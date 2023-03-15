@@ -16,7 +16,8 @@
 #include "Pd/Patch.h"
 
 Iolet::Iolet(Object* parent, bool inlet)
-    : object(parent), insideGraph(parent->cnv->isGraph)
+    : object(parent)
+    , insideGraph(parent->cnv->isGraph)
 {
     isInlet = inlet;
     setSize(8, 8);
@@ -332,7 +333,7 @@ void Iolet::createConnection()
     if (!cnv->connectionsBeingCreated.isEmpty()) {
 
         cnv->patch.startUndoSequence("Connecting");
-        
+
         for (auto& c : object->cnv->connectionsBeingCreated) {
             // Check type for input and output
             bool sameDirection = isInlet == c->getIolet()->isInlet;
@@ -455,8 +456,8 @@ void Iolet::valueChanged(Value& v)
     }
 }
 
-
-void Iolet::setHidden(bool hidden) {
+void Iolet::setHidden(bool hidden)
+{
     hideIolet = hidden;
     setVisible(!static_cast<bool>(presentationMode.getValue()) && !insideGraph && !hideIolet);
     repaint();

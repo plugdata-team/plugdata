@@ -170,7 +170,6 @@ protected:
     std::unique_ptr<PlugDataWindow> mainWindow;
 };
 
-
 bool PlugDataWindow::hasOpenedDialog()
 {
     auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());

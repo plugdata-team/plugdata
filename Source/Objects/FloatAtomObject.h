@@ -31,7 +31,7 @@ public:
 
             editor->setBorder({ 0, 1, 3, 0 });
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-            
+
             if (editor != nullptr) {
                 editor->setInputRestrictions(0, ".-0123456789");
             }
@@ -173,13 +173,11 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if(value.refersToSameSourceAs(min)) {
+        if (value.refersToSameSourceAs(min)) {
             auto v = static_cast<float>(min.getValue());
             input.setMinimum(v);
             atomHelper.setMinimum(v);
-        }
-        else if(value.refersToSameSourceAs(max))
-        {
+        } else if (value.refersToSameSourceAs(max)) {
             auto v = static_cast<float>(min.getValue());
             input.setMaximum(v);
             atomHelper.setMaximum(v);

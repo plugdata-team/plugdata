@@ -56,7 +56,7 @@ public:
 
         if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !object->cnv->isShowing() || isPressed)
             return;
-        
+
         pd->setThis();
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -97,7 +97,7 @@ public:
         lastPosition = { xPos, yPos };
 
         pd->setThis();
-        
+
         pd->enqueueFunction([x, xPos, yPos]() {
             x->x_x = xPos;
             x->x_y = yPos;

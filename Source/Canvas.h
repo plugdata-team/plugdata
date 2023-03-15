@@ -6,15 +6,14 @@
 
 #pragma once
 
-#include "ObjectGrid.h" // move to impl
+#include "ObjectGrid.h"          // move to impl
 #include "Utility/RateReducer.h" // move to impl
 #include "Utility/ModifierKeyListener.h"
 #include "Pd/MessageListener.h"
 #include "Constants.h"
 
-namespace pd
-{
-    class Patch;
+namespace pd {
+class Patch;
 }
 
 class SuggestionComponent;
@@ -28,8 +27,7 @@ class ConnectionPathUpdater;
 class ConnectionBeingCreated;
 class TabComponent;
 
-struct ObjectDragState
-{
+struct ObjectDragState {
     bool wasDragDuplicated = false;
     bool didStartDragging = false;
     bool wasSelectedOnMouseDown = false;
@@ -46,8 +44,7 @@ class Canvas : public Component
     , public ModifierKeyListener
     , public FocusChangeListener
     , public pd::MessageListener
-    , public AsyncUpdater
-{
+    , public AsyncUpdater {
 public:
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
@@ -55,7 +52,7 @@ public:
 
     PluginEditor* editor;
     PluginProcessor* pd;
-        
+
     void recreateViewport();
 
     void lookAndFeelChanged() override;
@@ -182,8 +179,8 @@ public:
 
     bool attachNextObjectToMouse = false;
     // TODO: Move to drag state!
-    SafePointer<Object> lastSelectedObject; // For auto patching
-    SafePointer<Connection> lastSelectedConnection;   // For auto patching
+    SafePointer<Object> lastSelectedObject;         // For auto patching
+    SafePointer<Connection> lastSelectedConnection; // For auto patching
 
     int const minimumMovementToStartDrag = 5;
 
@@ -193,15 +190,13 @@ public:
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
     RateReducer objectRateReducer = RateReducer(90);
-        
-    ObjectDragState dragState;
-    
-private:
 
+    ObjectDragState dragState;
+
+private:
     LassoComponent<WeakReference<Component>> lasso;
 
     RateReducer canvasRateReducer = RateReducer(90);
-
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },

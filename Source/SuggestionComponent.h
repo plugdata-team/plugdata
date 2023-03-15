@@ -215,7 +215,8 @@ class SuggestionComponent : public Component
 public:
     SuggestionComponent()
         : resizer(this, &constrainer)
-        , currentBox(nullptr), windowMargin(canBeTransparent() ? 22 : 0)
+        , currentBox(nullptr)
+        , windowMargin(canBeTransparent() ? 22 : 0)
     {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
@@ -286,7 +287,7 @@ public:
         }
 
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
-        
+
         updateBounds();
 
         setVisible(false);
@@ -407,8 +408,9 @@ private:
     {
         return getLocalBounds().reduced(windowMargin).contains(x, y);
     }
-        
-    bool canBeTransparent() {
+
+    bool canBeTransparent()
+    {
 #if !PLUGDATA_STANDALONE
         // Apple's hosts don't deal well with transparency,
         auto hostType = PluginHostType();
@@ -423,10 +425,9 @@ private:
     {
         auto b = getLocalBounds().reduced(windowMargin);
 
-        if(!canBeTransparent()) {
+        if (!canBeTransparent()) {
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-        }
-        else {
+        } else {
             Path localPath;
             localPath.addRoundedRectangle(b.toFloat().reduced(4.0f), Corners::windowCornerRadius);
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 16, { 0, 3 });
@@ -566,7 +567,6 @@ private:
             buttons[currentidx]->setToggleState(true, dontSendNotification);
         }
 
-        
         auto filterNonHvccObjectsIfNeeded = [_this = SafePointer(this)](StringArray& toFilter) {
             if (!_this || !_this->currentBox)
                 return;
@@ -584,13 +584,12 @@ private:
             }
         };
 
-        
         // Update suggestions
         auto found = library.autocomplete(currentText);
 
         // When hvcc mode is enabled, show only hvcc compatible objects
         filterNonHvccObjectsIfNeeded(found);
-        
+
         if (found.isEmpty()) {
             autoCompleteComponent->enableAutocomplete(false);
             deselectAll();
@@ -706,6 +705,6 @@ private:
 
     TextEditor* openedEditor = nullptr;
     SafePointer<Object> currentBox;
-        
+
     int windowMargin;
 };

@@ -188,7 +188,6 @@ public:
         rightClick(tabIndex, tabName);
     }
 
-
     int getIndexOfCanvas(Canvas* cnv)
     {
         if (!cnv->viewport)
@@ -222,7 +221,7 @@ public:
 
         return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
     }
-    
+
     void mouseDown(MouseEvent const& e) override
     {
         tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
@@ -258,8 +257,7 @@ public:
                 tabs->getTabButton(clickedTabIndex)->setVisible(false);
             }
             // Keep ghost tab within view
-            auto newPosition = Point<int>(std::clamp(currentTabBounds.getX() + getX() + e.getDistanceFromDragStartX(), 0, getParentWidth() - tabWidth)
-                                        , std::clamp(currentTabBounds.getY() + e.getDistanceFromDragStartY(), 0, getHeight() - tabs->getHeight()));
+            auto newPosition = Point<int>(std::clamp(currentTabBounds.getX() + getX() + e.getDistanceFromDragStartX(), 0, getParentWidth() - tabWidth), std::clamp(currentTabBounds.getY() + e.getDistanceFromDragStartY(), 0, getHeight() - tabs->getHeight()));
             tabSnapshotBounds.setPosition(newPosition);
             getParentComponent()->repaint();
         }

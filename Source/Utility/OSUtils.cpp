@@ -8,19 +8,19 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 
-#define REPARSE_MOUNTPOINT_HEADER_SIZE 8
+#    define REPARSE_MOUNTPOINT_HEADER_SIZE 8
 
-#define _WIN32_WINNT 0x0500 // Windows 2000 or later
-#define WIN32_LEAN_AND_MEAN
-#define WIN32_NO_STATUS
+#    define _WIN32_WINNT 0x0500 // Windows 2000 or later
+#    define WIN32_LEAN_AND_MEAN
+#    define WIN32_NO_STATUS
 
-#include <windows.h>
-#include <WINIOCTL.H>
-#include <shlobj.h>
-#include <ShellAPI.h>
+#    include <windows.h>
+#    include <WINIOCTL.H>
+#    include <shlobj.h>
+#    include <ShellAPI.h>
 
-#include <stdio.h>
-#include <filesystem>
+#    include <stdio.h>
+#    include <filesystem>
 
 void OSUtils::createJunction(std::string from, std::string to)
 {
@@ -122,10 +122,10 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     TCHAR buff[KL_NAMELENGTH];
     bool result = GetKeyboardLayoutNameA(buff);
 
-    if(buff == "French" || buff == "Belgian French" || buff == "Belgian (Comma)" || buff == "Belgian (Period)") {
+    if (buff == "French" || buff == "Belgian French" || buff == "Belgian (Comma)" || buff == "Belgian (Period)") {
         return AZERTY;
     }
-        
+
     return QWERTY;
 }
 
@@ -134,14 +134,14 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
 extern "C" {
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
+#    include <X11/Xlib.h>
+#    include <X11/Xatom.h>
 }
 
-#include <unistd.h>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
+#    include <unistd.h>
+#    include <cstdio>
+#    include <cstring>
+#    include <cstdlib>
 
 bool OSUtils::isMaximised(void* handle)
 {
@@ -192,7 +192,7 @@ bool OSUtils::isMaximised(void* handle)
         "_NET_WM_STATE_DEMANDS_ATTENTION",
         "_NET_WM_STATE_FOCUSED"
     };
-    
+
     window_t win;
     auto window = (Window)handle;
     auto* display = XOpenDisplay(nullptr);
@@ -269,16 +269,16 @@ void OSUtils::maximiseLinuxWindow(void* handle)
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
-    char   *line = NULL;
-    size_t  size = 0;
+    char* line = NULL;
+    size_t size = 0;
     ssize_t len;
     KeyboardLayout result = QWERTY;
-    FILE *in;
-    
+    FILE* in;
+
     in = popen("LANG=C LC_ALL=C setxkbmap -print", "rb");
     if (!in)
         return QWERTY;
-    
+
     while (1) {
         len = getline(&line, &size, in);
         if (strstr(line, "aliases(qwerty)"))
@@ -286,10 +286,10 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
         if (strstr(line, "aliases(azerty)"))
             result = AZERTY;
     }
-    
+
     free(line);
     pclose(in);
-    
+
     return result;
 }
 #endif // Linux/BSD

@@ -72,7 +72,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 
     popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(220).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
         [editor, popup, centre, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
-            switch(result) {
+            switch (result) {
             case MainMenu::MenuItem::NewPatch: {
                 editor->newProject();
                 break;
@@ -130,13 +130,11 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             }
-        
-        
-        MessageManager::callAsync([popup]() {
-            delete popup;
-        });
-        });
 
+            MessageManager::callAsync([popup]() {
+                delete popup;
+            });
+        });
 }
 
 class OkayCancelDialog : public Component {
@@ -270,8 +268,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
     bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
 
-    enum MenuOptions
-    {
+    enum MenuOptions {
         Open = 1,
         Help,
         Reference,
@@ -283,7 +280,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     PopupMenu popupMenu;
 
     popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
-    
+
     popupMenu.addSeparator();
     popupMenu.addItem(Help, "Help", object != nullptr);
     popupMenu.addItem(Reference, "Reference", object != nullptr);

@@ -7,30 +7,30 @@
 #include "InternalSynth.h"
 
 #if PLUGDATA_STANDALONE
-#include "FluidLite/include/fluidlite.h"
-#include "FluidLite/src/fluid_sfont.h"
-#include <StandaloneBinaryData.h>
+#    include "FluidLite/include/fluidlite.h"
+#    include "FluidLite/src/fluid_sfont.h"
+#    include <StandaloneBinaryData.h>
 #endif
 
 // InternalSynth is an internal General MIDI synthesizer that can be used as a MIDI output device
 // The goal is to get something similar to the "AU DLS Synth" in Max/MSP on macOS, but cross-platform
 // Since fluidsynth is alraedy included for the sfont~ object, we can reuse it here to read a GM soundfont
-InternalSynth::InternalSynth() : Thread("InternalSynthInit")
+InternalSynth::InternalSynth()
+    : Thread("InternalSynthInit")
 {
-     #ifdef PLUGDATA_STANDALONE
+#ifdef PLUGDATA_STANDALONE
     // Unpack soundfont
     if (!soundFont.existsAsFile()) {
         FileOutputStream ostream(soundFont);
         ostream.write(StandaloneBinaryData::GeneralUser_GS_sf3, StandaloneBinaryData::GeneralUser_GS_sf3Size);
         ostream.flush();
     }
-    #endif
+#endif
 }
 
 InternalSynth::~InternalSynth()
 {
-     #ifdef PLUGDATA_STANDALONE
-
+#ifdef PLUGDATA_STANDALONE
 
     stopThread(6000);
 
@@ -39,14 +39,14 @@ InternalSynth::~InternalSynth()
             delete_fluid_synth(synth);
         if (settings)
             delete_fluid_settings(settings);
-    } 
-     #endif
+    }
+#endif
 }
 
 // Initialise fluidsynth on another thread, because it takes a while
 void InternalSynth::run()
 {
-     #ifdef PLUGDATA_STANDALONE
+#ifdef PLUGDATA_STANDALONE
 
     unprepareLock.lock();
 
@@ -78,12 +78,12 @@ void InternalSynth::run()
 
     unprepareLock.unlock();
 
-    #endif
+#endif
 }
 
 void InternalSynth::unprepare()
 {
-     #ifdef PLUGDATA_STANDALONE
+#ifdef PLUGDATA_STANDALONE
 
     unprepareLock.lock();
 
@@ -105,12 +105,12 @@ void InternalSynth::unprepare()
 
     unprepareLock.unlock();
 
-    #endif
+#endif
 }
 
 void InternalSynth::prepare(int sampleRate, int blockSize, int numChannels)
 {
-     #ifdef PLUGDATA_STANDALONE
+#ifdef PLUGDATA_STANDALONE
 
     if (ready && !isThreadRunning() && sampleRate == lastSampleRate && blockSize == lastBlockSize && numChannels == lastNumChannels) {
         return;
@@ -121,14 +121,13 @@ void InternalSynth::prepare(int sampleRate, int blockSize, int numChannels)
 
         startThread();
     }
-            
-     #endif
 
+#endif
 }
 
 void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
-    #ifdef PLUGDATA_STANDALONE
+#ifdef PLUGDATA_STANDALONE
 
     if (buffer.getNumChannels() != lastNumChannels || buffer.getNumSamples() > lastBlockSize) {
         unprepare();
@@ -174,19 +173,14 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
         buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());
     }
 
-
-     #endif
-
+#endif
 }
 
 bool InternalSynth::isReady()
 {
-     #ifndef PLUGDATA_STANDALONE
-        return false;
-     #else 
-        return ready;
-     #endif
-
-    
+#ifndef PLUGDATA_STANDALONE
+    return false;
+#else
+    return ready;
+#endif
 }
-

@@ -248,28 +248,29 @@ void Library::initialiseLibrary()
 void Library::updateLibrary()
 {
     auto* pdinstance = libpd_this_instance();
-    
+
     auto updateFn = [this, pdinstance]() {
         auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
 
         auto pathTree = settingsTree.getChildWithName("Paths");
 
         libpd_set_instance(pdinstance);
-        
+
         searchTree = std::make_unique<Trie>();
 
         // Get available objects directly from pd
         t_class* o = pd_objectmaker;
 
         t_methodentry* mlist = static_cast<t_methodentry*>(libpd_get_class_methods(o));
-        t_methodentry *m;
+        t_methodentry* m;
 
         allObjects.clear();
-        
+
         int i;
         for (i = o->c_nmethod, m = mlist; i--; m++) {
-            if(!m || !m->me_name) continue;
-            
+            if (!m || !m->me_name)
+                continue;
+
             auto newName = String::fromUTF8(m->me_name->s_name);
             if (!(newName.startsWith("else/") || newName.startsWith("cyclone/"))) {
                 allObjects.add(newName);

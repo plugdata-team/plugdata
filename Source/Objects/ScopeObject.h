@@ -281,13 +281,13 @@ public:
             colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(static_cast<int>(bufferSize.getValue()), 0, SCOPE_MAXBUFSIZE * 4);
-            
+
             pd->setThis();
             sys_lock();
-            
+
             scope->x_bufsize = bufferSize.getValue();
             scope->x_bufphase = 0;
-            
+
             sys_unlock();
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
             pd->setThis();

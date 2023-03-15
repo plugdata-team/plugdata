@@ -106,7 +106,6 @@ public:
 
     int minimumSize = 12;
 
-        
 private:
     void initialise();
 
@@ -119,9 +118,9 @@ private:
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;
     bool isHvccCompatible = true;
-        
+
     ObjectDragState& ds;
-        
+
     std::unique_ptr<TextEditor> newObjectEditor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)

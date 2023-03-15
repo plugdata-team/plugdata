@@ -21,7 +21,6 @@ extern "C" {
 #include <g_undo.h>
 
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
-
 }
 
 #include "Object.h"
@@ -82,7 +81,7 @@ public:
         parent->setVisible(false);
     }
 
-    Rectangle<int> getPdBounds() override { return {0, 0, 1, 1}; };
+    Rectangle<int> getPdBounds() override { return { 0, 0, 1, 1 }; };
     void setPdBounds(Rectangle<int> newBounds) override {};
 };
 
@@ -211,32 +210,30 @@ void ObjectBase::closeOpenedSubpatchers()
     }
 }
 
-
 bool ObjectBase::click()
 {
     pd->setThis();
 
     auto* pdObj = static_cast<t_gobj*>(ptr)->g_pd;
-    
+
     // Check if click method exists, if so, call it
     t_methodentry* mlist;
-    
+
     auto* pdinstance = libpd_this_instance();
 #if PDINSTANCE
-        mlist = pdObj->c_methods[pdinstance->pd_instanceno];
+    mlist = pdObj->c_methods[pdinstance->pd_instanceno];
 #else
-        mlist = pdObj->c_methods;
+    mlist = pdObj->c_methods;
 #endif
-    
-    for(int i = 0; i < pdObj->c_nmethod; i++)
-    {
+
+    for (int i = 0; i < pdObj->c_nmethod; i++) {
         auto& method = mlist[i];
-        if(mlist[i].me_name == gensym("click") && mlist[i].me_arg[0] == '\0') {
+        if (mlist[i].me_name == gensym("click") && mlist[i].me_arg[0] == '\0') {
             pd->enqueueDirectMessages(ptr, "click", {});
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -341,16 +338,15 @@ void ObjectBase::stopEdition()
 
 void ObjectBase::sendFloatValue(float newValue)
 {
-    pd->enqueueFunction([newValue, patch = &cnv->patch, ptr = this->ptr](){
-        
-        if(patch->objectWasDeleted(ptr)) return;
-        
+    pd->enqueueFunction([newValue, patch = &cnv->patch, ptr = this->ptr]() {
+        if (patch->objectWasDeleted(ptr))
+            return;
+
         t_atom atom;
         SETFLOAT(&atom, newValue);
         pd_typedmess(static_cast<t_pd*>(ptr), patch->instance->generateSymbol("set"), 1, &atom);
         pd_bang(static_cast<t_pd*>(ptr));
     });
-
 }
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
@@ -546,8 +542,6 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
         }
     });
 }
-
-
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var value)
 {

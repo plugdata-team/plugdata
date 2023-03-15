@@ -1621,7 +1621,7 @@ void PlugDataTextEditor::translateView(float dx, float dy)
 
     translation.x = jlimit(jmin(GUTTER_WIDTH, -W + getWidth()), GUTTER_WIDTH, translation.x + dx);
     translation.y = jlimit(jmin(-0.f, -H + (getHeight() - 10)), 0.0f, translation.y + dy);
-    
+
     updateViewTransform();
 }
 

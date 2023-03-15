@@ -66,7 +66,7 @@ public:
 
     void notifyDAW()
     {
-        if(!ProjectInfo::isStandalone) {
+        if (!ProjectInfo::isStandalone) {
             auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
             processor.updateHostDisplay(details);
         }
@@ -231,7 +231,7 @@ public:
     void setGestureState(float v)
     {
 
-        if(!ProjectInfo::isStandalone) {
+        if (!ProjectInfo::isStandalone) {
             // Send new value to DAW
             v ? beginChangeGesture() : endChangeGesture();
         }

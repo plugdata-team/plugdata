@@ -99,7 +99,7 @@ public:
     void performParameterChange(int type, String name, float value) override;
 
     // Jyg added this
-    void fillDataBuffer(const std::vector<pd::Atom>& list) override;
+    void fillDataBuffer(std::vector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
     XmlElement* m_temp_xml;
 
@@ -154,7 +154,6 @@ public:
     std::atomic<int> oversampling = 0;
     int lastLeftTab = -1;
     int lastRightTab = -1;
-
 
     // Only used by standalone!
     OwnedArray<MidiOutput> midiOutputs;

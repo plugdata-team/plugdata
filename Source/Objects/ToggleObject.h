@@ -96,10 +96,10 @@ public:
 
     void sendToggleValue(bool newValue)
     {
-        pd->enqueueFunction([ptr = this->ptr, pd = this->pd, patch = &cnv->patch, newValue](){
-            
-            if(patch->objectWasDeleted(ptr)) return;
-            
+        pd->enqueueFunction([ptr = this->ptr, pd = this->pd, patch = &cnv->patch, newValue]() {
+            if (patch->objectWasDeleted(ptr))
+                return;
+
             t_atom atom;
             SETFLOAT(&atom, newValue);
             pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);

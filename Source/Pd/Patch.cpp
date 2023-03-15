@@ -608,7 +608,7 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
             libpd_moveselection(getPointer(), dx, dy);
 
             glist_noselect(getPointer());
-            
+
             libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
             setCurrent();
         });

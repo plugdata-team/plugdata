@@ -16,14 +16,14 @@ struct t_fake_textbuf {
 
 struct t_fake_qlist {
     t_fake_textbuf x_textbuf;
-    t_outlet *x_bangout;
-    int x_onset;                /* playback position */
-    t_clock *x_clock;
+    t_outlet* x_bangout;
+    int x_onset; /* playback position */
+    t_clock* x_clock;
     t_float x_tempo;
     double x_whenclockset;
     t_float x_clockdelay;
-    int x_rewound;          /* we've been rewound since last start */
-    int x_innext;           /* we're currently inside the "next" routine */
+    int x_rewound; /* we've been rewound since last start */
+    int x_innext;  /* we're currently inside the "next" routine */
 };
 
 struct t_fake_text_define {
@@ -38,18 +38,17 @@ struct t_fake_text_define {
 };
 
 class TextFileObject final : public TextBase {
-    
+
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
-    
+
 public:
     TextFileObject(void* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
         , textEditor(nullptr)
     {
-        
     }
-    
+
     void lock(bool isLocked) override
     {
         setInterceptsMouseClicks(isLocked, false);
@@ -73,7 +72,7 @@ public:
                     textEditor.reset(nullptr);
                     return;
                 }
-                
+
                 Dialogs::showSaveDialog(
                     &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
                         if (result == 2) {
@@ -163,7 +162,6 @@ public:
     {
         openTextEditor();
     }
-    
 };
 
 // Actual text object, marked final for optimisation
@@ -299,4 +297,3 @@ public:
         openTextEditor();
     }
 };
-

@@ -57,11 +57,10 @@ public:
     template<typename T>
     T getProperty(String name)
     {
-        if(!isInitialised)
-        {
+        if (!isInitialised) {
             initialise();
         }
-        
+
         if constexpr (std::is_same<T, String>::value) {
             return settingsTree.getProperty(name).toString();
         } else {

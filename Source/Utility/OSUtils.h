@@ -8,15 +8,13 @@
 
 #include <string>
 
-struct OSUtils
-{
-    enum KeyboardLayout
-    {
+struct OSUtils {
+    enum KeyboardLayout {
         QWERTY,
         AZERTY
         /* QWERTZ */
     };
-    
+
 #if defined(_WIN32) || defined(_WIN64)
     static void createJunction(std::string from, std::string to);
     static void createHardLink(std::string from, std::string to);
@@ -28,7 +26,5 @@ struct OSUtils
     static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
 #endif
 
-    
     static KeyboardLayout getKeyboardLayout();
 };
-

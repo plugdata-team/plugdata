@@ -247,14 +247,15 @@ public:
 
     void checkGraphState()
     {
-        if(!ptr) return;
-        
+        if (!ptr)
+            return;
+
         pd->setThis();
-        
+
         int isGraph = static_cast<bool>(isGraphChild.getValue());
         int hideText = isGraph && static_cast<bool>(hideNameAndArgs.getValue());
-        
-        canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2*hideText, 0);
+
+        canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
         repaint();
 
         MessageManager::callAsync([this, _this = SafePointer(this)]() {
@@ -276,7 +277,7 @@ public:
     void valueChanged(Value& v) override
     {
         auto* glist = static_cast<t_canvas*>(ptr);
-        
+
         if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
             checkGraphState();
         } else if (v.refersToSameSourceAs(xRange)) {

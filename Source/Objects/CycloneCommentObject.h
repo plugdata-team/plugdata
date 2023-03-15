@@ -128,14 +128,12 @@ public:
     Rectangle<int> getPdBounds() override
     {
         int width = getBestTextWidth(getText()) * 8;
-      
+
         pd->lockAudioThread();
         auto* comment = static_cast<t_fake_comment*>(ptr);
         int height = comment->x_fontsize + 18;
         auto bounds = Rectangle<int>(comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height);
         pd->unlockAudioThread();
-
-
 
         return bounds;
     }

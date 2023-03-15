@@ -1,22 +1,18 @@
 #pragma once
 
-namespace juce
-{
-    class AudioDeviceManager;
+namespace juce {
+class AudioDeviceManager;
 }
 using namespace juce;
 
 struct ProjectInfo {
 
-    static const char* projectName;
+    static char const* projectName;
     static bool isStandalone;
 
-    static inline const char* companyName = "plugdata";
-    static inline const char* versionString = PLUGDATA_VERSION;
-    static inline const int versionNumber = 0x700;
-    
+    static inline char const* companyName = "plugdata";
+    static inline char const* versionString = PLUGDATA_VERSION;
+    static inline int const versionNumber = 0x700;
+
     static AudioDeviceManager* getDeviceManager();
 };
-
-
-

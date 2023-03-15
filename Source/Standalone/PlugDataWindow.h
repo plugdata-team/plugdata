@@ -237,7 +237,7 @@ public:
     {
         return false;
     }
-        
+
     Image getIAAHostIcon(int size)
     {
         return {};
@@ -563,7 +563,7 @@ public:
     {
         return pluginHolder->processor.get();
     }
-        
+
     /*
     AudioDeviceManager& getDeviceManager() const noexcept
     {
@@ -656,7 +656,7 @@ public:
         if (resizer) {
             if (isFullScreen()) {
                 resizer->setVisible(false);
-            } else if (!isUsingNativeTitleBar()){
+            } else if (!isUsingNativeTitleBar()) {
                 resizer->setVisible(true);
 
                 Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
@@ -678,7 +678,7 @@ public:
             content->repaint();
             MessageManager::callAsync([this, content] {
                 if (content->isShowing())
-                content->grabKeyboardFocus();
+                    content->grabKeyboardFocus();
             });
         }
     }
@@ -687,7 +687,7 @@ public:
     {
         return pluginHolder.get();
     }
-        
+
     bool hasOpenedDialog();
 
     std::unique_ptr<StandalonePluginHolder> pluginHolder;

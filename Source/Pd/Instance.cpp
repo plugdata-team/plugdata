@@ -138,7 +138,7 @@ Instance::Instance(String const& symbol)
 
     // JYG added This
     m_databuffer_receiver = libpd_multi_receiver_new(this, "databuffer", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
-            reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+        reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
 
     m_parameter_change_receiver = libpd_multi_receiver_new(this, "param_change", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
@@ -161,9 +161,8 @@ Instance::Instance(String const& symbol)
     };
 
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
-        
         ScopedLock lock(static_cast<Instance*>(instance)->messageListenerLock);
-        
+
         auto& listeners = static_cast<Instance*>(instance)->messageListeners;
         if (!symbol || !listeners.count(target))
             return;
@@ -373,7 +372,8 @@ void Instance::sendList(char const* receiver, std::vector<Atom> const& list) con
 
 void Instance::sendMessage(void* object, char const* msg, std::vector<Atom> const& list) const
 {
-    if(!object) return;
+    if (!object)
+        return;
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
@@ -408,8 +408,8 @@ void Instance::processMessage(Message mess)
         auto name = mess.list[0].getSymbol();
         int state = mess.list[1].getFloat() != 0;
         performParameterChange(1, name, state);
-    // JYG added This
-    } else if (mess.destination == "databuffer")  {
+        // JYG added This
+    } else if (mess.destination == "databuffer") {
         fillDataBuffer(mess.list);
 
     } else if (mess.selector == "bang") {
@@ -484,8 +484,7 @@ void Instance::processSend(dmessage mess)
             sys_lock();
             pd_symbol(static_cast<t_pd*>(mess.object), generateSymbol(mess.list[0].getSymbol()));
             sys_unlock();
-        }
-        else {
+        } else {
             sendMessage(static_cast<t_pd*>(mess.object), mess.selector.toRawUTF8(), mess.list);
         }
     } else {
@@ -502,7 +501,7 @@ void Instance::registerMessageListener(void* object, MessageListener* messageLis
 void Instance::unregisterMessageListener(void* object, MessageListener* messageListener)
 {
     ScopedLock lock(messageListenerLock);
-    
+
     if (messageListeners.count(object))
         return;
 
@@ -624,7 +623,7 @@ void Instance::setThis() const
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 }
 
-t_symbol* Instance::generateSymbol(const char* symbol) const
+t_symbol* Instance::generateSymbol(char const* symbol) const
 {
     setThis();
     return gensym(symbol);

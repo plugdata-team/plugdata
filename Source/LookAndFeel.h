@@ -81,7 +81,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setDefaultSansSerifTypeface(Fonts::getCurrentFont().getTypefacePtr());
     }
 
-    class PlugData_DocumentWindowButton_macOS : public Button, public FocusChangeListener {
+    class PlugData_DocumentWindowButton_macOS : public Button
+        , public FocusChangeListener {
     public:
         PlugData_DocumentWindowButton_macOS(int buttonType)
             : Button("")
@@ -92,44 +93,44 @@ struct PlugDataLook : public LookAndFeel_V4 {
             auto crossThickness = 0.25f;
             String name;
 
-            switch(buttonType) {
-                case DocumentWindow::closeButton: {
-                    name = "close";
-                    bgColour = Colour(0xFFFF605C); // Sunset Orange (#FF605C)
+            switch (buttonType) {
+            case DocumentWindow::closeButton: {
+                name = "close";
+                bgColour = Colour(0xFFFF605C); // Sunset Orange (#FF605C)
 
-                    shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
-                    shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
-                    toggledShape = shape;
-                    break;
-                }
-                case DocumentWindow::minimiseButton: {
-                    name = "minimise";
-                    bgColour = Colour(0xFFFFBD44); // Pastel Orange (#FFBD44)
+                shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
+                shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
+                toggledShape = shape;
+                break;
+            }
+            case DocumentWindow::minimiseButton: {
+                name = "minimise";
+                bgColour = Colour(0xFFFFBD44); // Pastel Orange (#FFBD44)
 
-                    shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
-                    toggledShape = shape;
-                    break;
-                }
-                case DocumentWindow::maximiseButton: {
-                    name = "maximise";
-                    bgColour = Colour(0xFF00CA4E); // Malachite (#00CA4E)
+                shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+                toggledShape = shape;
+                break;
+            }
+            case DocumentWindow::maximiseButton: {
+                name = "maximise";
+                bgColour = Colour(0xFF00CA4E); // Malachite (#00CA4E)
 
-                    // we add a rectangle, and make it two triangles by drawing an oblique line on top
-                    shape.addRectangle(0.0f, 0.0f, 1.0f, 1.0f);
+                // we add a rectangle, and make it two triangles by drawing an oblique line on top
+                shape.addRectangle(0.0f, 0.0f, 1.0f, 1.0f);
 
-                    // top triangle
-                    auto point_a_a = Point<float>(0.5f, 0.0f);
-                    auto point_a_b = Point<float>(0.5f, 0.5f);
-                    auto point_a_c = Point<float>(0.0f, 0.5f);
-                    // bottom triangle
-                    auto point_b_a = Point<float>(0.5f, 0.5f);
-                    auto point_b_b = Point<float>(1.0f, 0.5f);
-                    auto point_b_c = Point<float>(0.5f, 1.0f);
+                // top triangle
+                auto point_a_a = Point<float>(0.5f, 0.0f);
+                auto point_a_b = Point<float>(0.5f, 0.5f);
+                auto point_a_c = Point<float>(0.0f, 0.5f);
+                // bottom triangle
+                auto point_b_a = Point<float>(0.5f, 0.5f);
+                auto point_b_b = Point<float>(1.0f, 0.5f);
+                auto point_b_c = Point<float>(0.5f, 1.0f);
 
-                    toggledShape.addTriangle(point_a_a, point_a_b, point_a_c);
-                    toggledShape.addTriangle(point_b_a, point_b_b, point_b_c);
-                    break;
-                }
+                toggledShape.addTriangle(point_a_a, point_a_b, point_a_c);
+                toggledShape.addTriangle(point_b_a, point_b_b, point_b_c);
+                break;
+            }
             }
             setName(name);
             setButtonText(name);
@@ -141,7 +142,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         {
             Desktop::getInstance().removeFocusChangeListener(this);
         }
-        
+
         void setWindow(DocumentWindow* window)
         {
             owner = window;
@@ -158,12 +159,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
             auto rect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat();
             auto reducedRect = rect.reduced(getHeight() * 0.22f);
             auto reducedRectShape = reducedRect.reduced(getHeight() * 0.15f);
-            
-            for(auto* button : getAllButtons())
-            {
-                if(button->isMouseOver()) shouldDrawButtonAsHighlighted = true;
+
+            for (auto* button : getAllButtons()) {
+                if (button->isMouseOver())
+                    shouldDrawButtonAsHighlighted = true;
             }
-            
+
             auto finalColour = shouldDrawButtonAsDown ? buttonColour.darker(0.4f) : buttonColour;
 
             // draw macOS filled background circle
@@ -178,7 +179,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             if (shouldDrawButtonAsHighlighted) {
                 auto p = shape;
                 auto s = reducedRectShape;
-                if (getToggleState()){
+                if (getToggleState()) {
                     p = toggledShape;
                     s = rect.reduced(getHeight() * 0.26f);
                 }
@@ -188,7 +189,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 // perfectly fine hack to draw maximise macOS style button
                 if (buttonType == DocumentWindow::maximiseButton && !getToggleState()) {
                     g.setColour(finalColour);
-                    auto bar = Line<float>({0.0f, 1.0f, 1.0f, 0.0f});
+                    auto bar = Line<float>({ 0.0f, 1.0f, 1.0f, 0.0f });
                     Path barPath;
                     barPath.addLineSegment(bar, 0.3f);
                     auto rectBarSegment = rect.reduced(getHeight() * 0.3f);
@@ -196,46 +197,48 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 }
             }
         }
-    
-        void mouseEnter (const MouseEvent& e) override
+
+        void mouseEnter(MouseEvent const& e) override
         {
-            for(auto* button : getAllButtons()) button->repaint();
+            for (auto* button : getAllButtons())
+                button->repaint();
             Button::mouseEnter(e);
         }
 
-        void mouseExit (const MouseEvent& e) override
+        void mouseExit(MouseEvent const& e) override
         {
-            for(auto* button : getAllButtons()) button->repaint();
+            for (auto* button : getAllButtons())
+                button->repaint();
             Button::mouseExit(e);
         }
 
-        void mouseDrag (const MouseEvent& e) override
+        void mouseDrag(MouseEvent const& e) override
         {
-            for(auto* button : getAllButtons()) button->repaint();
+            for (auto* button : getAllButtons())
+                button->repaint();
             Button::mouseDrag(e);
         }
 
         std::vector<Button*> getAllButtons()
         {
             std::vector<Button*> allButtons;
-            
-            if(!owner) return allButtons;
-            
-            if(auto* minButton = owner->getMinimiseButton())
-            {
+
+            if (!owner)
+                return allButtons;
+
+            if (auto* minButton = owner->getMinimiseButton()) {
                 allButtons.push_back(minButton);
             }
-            if(auto* maxButton = owner->getMaximiseButton())
-            {
+            if (auto* maxButton = owner->getMaximiseButton()) {
                 allButtons.push_back(maxButton);
             }
-            if(auto* closeButton = owner->getCloseButton())
-            {
+            if (auto* closeButton = owner->getCloseButton()) {
                 allButtons.push_back(closeButton);
             }
-            
+
             return allButtons;
         }
+
     private:
         DocumentWindow* owner;
         Colour bgColour;
@@ -255,34 +258,34 @@ struct PlugDataLook : public LookAndFeel_V4 {
             auto crossThickness = 0.15f;
             String name;
 
-            switch(buttonType) {
-                case DocumentWindow::closeButton: {
-                    name = "close";
-                    shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
-                    shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
-                    toggledShape = shape;
-                    break;
-                }
-                case DocumentWindow::minimiseButton: {
-                    name = "minimise";
-                    shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
-                    toggledShape = shape;
-                    break;
-                }
-                case DocumentWindow::maximiseButton: {
-                    name = "maximise";
-                    shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
-                    shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+            switch (buttonType) {
+            case DocumentWindow::closeButton: {
+                name = "close";
+                shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
+                shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
+                toggledShape = shape;
+                break;
+            }
+            case DocumentWindow::minimiseButton: {
+                name = "minimise";
+                shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+                toggledShape = shape;
+                break;
+            }
+            case DocumentWindow::maximiseButton: {
+                name = "maximise";
+                shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
+                shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
 
-                    toggledShape.startNewSubPath(45.0f, 100.0f);
-                    toggledShape.lineTo(0.0f, 100.0f);
-                    toggledShape.lineTo(0.0f, 0.0f);
-                    toggledShape.lineTo(100.0f, 0.0f);
-                    toggledShape.lineTo(100.0f, 45.0f);
-                    toggledShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
-                    PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
-                    break;
-                }
+                toggledShape.startNewSubPath(45.0f, 100.0f);
+                toggledShape.lineTo(0.0f, 100.0f);
+                toggledShape.lineTo(0.0f, 0.0f);
+                toggledShape.lineTo(100.0f, 0.0f);
+                toggledShape.lineTo(100.0f, 45.0f);
+                toggledShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
+                PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
+                break;
+            }
             }
             setName(name);
             setButtonText(name);
@@ -445,8 +448,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
     Button* createDocumentWindowButton(int buttonType) override
     {
         // For dialogs
-        if(buttonType == 5) return new PlugData_DocumentWindowButton(4);
-        
+        if (buttonType == 5)
+            return new PlugData_DocumentWindowButton(4);
+
         if (SettingsFile::getInstance()->getProperty<bool>("macos_buttons"))
             return new PlugData_DocumentWindowButton_macOS(buttonType);
         else
@@ -457,14 +461,14 @@ struct PlugDataLook : public LookAndFeel_V4 {
     }
 
     void positionDocumentWindowButtons(DocumentWindow& window,
-                                        int titleBarX, int titleBarY, int titleBarW, int titleBarH,
-                                        Button* minimiseButton,
-                                        Button* maximiseButton,
-                                        Button* closeButton,
-                                        bool positionTitleBarButtonsOnLeft) override
+        int titleBarX, int titleBarY, int titleBarW, int titleBarH,
+        Button* minimiseButton,
+        Button* maximiseButton,
+        Button* closeButton,
+        bool positionTitleBarButtonsOnLeft) override
     {
         auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
-        
+
         // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
         // we check if the system is drawing with a dropshadow- hence semi transparent will be true
 #if JUCE_LINUX
@@ -472,46 +476,45 @@ struct PlugDataLook : public LookAndFeel_V4 {
         if (areButtonsLeft && Desktop::canUseSemiTransparentWindows()) {
             if (maximiseButton->getToggleState())
                 leftOffset += 8;
-            else 
+            else
                 leftOffset += 25;
         }
 #else
         auto leftOffset = areButtonsLeft && Desktop::canUseSemiTransparentWindows() ? titleBarX + 12 : titleBarX;
 #endif
-        
-        if(areButtonsLeft) {
+
+        if (areButtonsLeft) {
             titleBarY += 3;
             titleBarH -= 4;
         }
-       
-        auto buttonW = static_cast<int> (titleBarH * 1.2);
+
+        auto buttonW = static_cast<int>(titleBarH * 1.2);
 
         auto x = areButtonsLeft ? leftOffset : leftOffset + titleBarW - buttonW;
-        
-        auto setWindow = [](Button* button, DocumentWindow& window){
-            if(auto* b = dynamic_cast<PlugData_DocumentWindowButton_macOS*>(button)) b->setWindow(&window);
+
+        auto setWindow = [](Button* button, DocumentWindow& window) {
+            if (auto* b = dynamic_cast<PlugData_DocumentWindowButton_macOS*>(button))
+                b->setWindow(&window);
         };
 
-        if (closeButton != nullptr)
-        {
+        if (closeButton != nullptr) {
             setWindow(closeButton, window);
-            closeButton->setBounds (x, titleBarY, buttonW, titleBarH);
+            closeButton->setBounds(x, titleBarY, buttonW, titleBarH);
             x += areButtonsLeft ? titleBarH * 1.1 : -buttonW;
         }
 
         if (areButtonsLeft)
-            std::swap (minimiseButton, maximiseButton);
+            std::swap(minimiseButton, maximiseButton);
 
-        if (maximiseButton != nullptr)
-        {
+        if (maximiseButton != nullptr) {
             setWindow(maximiseButton, window);
-            maximiseButton->setBounds (x, titleBarY, buttonW, titleBarH);
+            maximiseButton->setBounds(x, titleBarY, buttonW, titleBarH);
             x += areButtonsLeft ? titleBarH * 1.1 : -buttonW;
         }
 
         if (minimiseButton != nullptr) {
             setWindow(minimiseButton, window);
-            minimiseButton->setBounds (x, titleBarY, buttonW, titleBarH);
+            minimiseButton->setBounds(x, titleBarY, buttonW, titleBarH);
         }
     }
 

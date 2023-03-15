@@ -41,7 +41,7 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 
 class AtomHelper {
 
-    int const atomSizes[8] = { 0, 8, 10, 12, 16, 24, 36};
+    int const atomSizes[8] = { 0, 8, 10, 12, 16, 24, 36 };
 
     Object* object;
     ObjectBase* gui;
@@ -127,7 +127,7 @@ public:
 
         auto newHeight = newBounds.getHeight();
         auto heightIdx = std::clamp<int>(std::upper_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
-        
+
         setFontHeight(atomSizes[heightIdx]);
         gui->setParameterExcludingListener(fontSize, heightIdx + 1);
     }
@@ -172,7 +172,7 @@ public:
             object->updateIolets();
         }
     }
-    
+
     float getMinimum()
     {
         return atom->a_draglo;
@@ -191,7 +191,6 @@ public:
     {
         atom->a_draghi = value;
     }
-
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
     {
@@ -229,13 +228,12 @@ public:
 
     void setFontHeight(float newSize)
     {
-        pd->enqueueFunctionAsync([obj = atom, patch = &cnv->patch, newSize](){
-            
-            if(patch->objectWasDeleted(obj)) return;
-            
+        pd->enqueueFunctionAsync([obj = atom, patch = &cnv->patch, newSize]() {
+            if (patch->objectWasDeleted(obj))
+                return;
+
             obj->a_fontsize = newSize;
         });
-        
     }
 
     Rectangle<int> getLabelBounds() const

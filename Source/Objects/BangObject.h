@@ -60,14 +60,15 @@ public:
     void toggleObject(Point<int> position) override
     {
         if (!alreadyBanged) {
-            pd->enqueueFunction([this](){
-                if(cnv->patch.objectWasDeleted(ptr)) return;
-                
+            pd->enqueueFunction([this]() {
+                if (cnv->patch.objectWasDeleted(ptr))
+                    return;
+
                 startEdition();
                 pd_bang(static_cast<t_pd*>(ptr));
                 stopEdition();
             });
-            
+
             trigger();
             alreadyBanged = true;
         }
@@ -80,9 +81,10 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        pd->enqueueFunction([this](){
-            if(cnv->patch.objectWasDeleted(ptr)) return;
-            
+        pd->enqueueFunction([this]() {
+            if (cnv->patch.objectWasDeleted(ptr))
+                return;
+
             startEdition();
             pd_bang(static_cast<t_pd*>(ptr));
             stopEdition();
@@ -121,8 +123,9 @@ public:
 
     void trigger()
     {
-        if(bangState) return;
-        
+        if (bangState)
+            return;
+
         bangState = true;
         repaint();
 

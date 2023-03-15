@@ -3,11 +3,11 @@
 #include "Standalone/PlugDataWindow.h"
 
 #if PLUGDATA_FX
-const char* ProjectInfo::projectName = "plugdata-fx";
+char const* ProjectInfo::projectName = "plugdata-fx";
 #elif PLUGDATA_MIDI
-const char* ProjectInfo::projectName = "plugdata-midi";
+char const* ProjectInfo::projectName = "plugdata-midi";
 #else
-const char* ProjectInfo::projectName = "plugdata";
+char const* ProjectInfo::projectName = "plugdata";
 #endif
 
 #if PLUGDATA_STANDALONE
@@ -21,7 +21,7 @@ juce::AudioDeviceManager* ProjectInfo::getDeviceManager()
 #if PLUGDATA_STANDALONE
     if (auto* standalone = StandalonePluginHolder::getInstance())
         return &standalone->deviceManager;
-    
+
     return nullptr;
 #else
     return nullptr;

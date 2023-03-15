@@ -11,7 +11,7 @@ class ListObject final : public ObjectBase {
 
     Value min = Value(0.0f);
     Value max = Value(0.0f);
-    
+
 public:
     ListObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -20,10 +20,10 @@ public:
         listLabel.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
         listLabel.setMinimumHorizontalScale(1.f);
         listLabel.setJustificationType(Justification::centredLeft);
-        //listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
+        // listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
 
         addAndMakeVisible(listLabel);
-        
+
         min = atomHelper.getMinimum();
         max = atomHelper.getMaximum();
 
@@ -61,18 +61,15 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if(value.refersToSameSourceAs(min)) {
+        if (value.refersToSameSourceAs(min)) {
             auto v = static_cast<float>(min.getValue());
             listLabel.setMinimum(v);
             atomHelper.setMinimum(v);
-        }
-        else if(value.refersToSameSourceAs(max))
-        {
+        } else if (value.refersToSameSourceAs(max)) {
             auto v = static_cast<float>(max.getValue());
             listLabel.setMaximum(v);
             atomHelper.setMaximum(v);
-        }
-        else {
+        } else {
             atomHelper.valueChanged(value);
         }
     }
@@ -131,7 +128,7 @@ public:
 
         return allParameters;
     }
-    
+
     void updateLabel() override
     {
         atomHelper.updateLabel(label);
@@ -160,7 +157,7 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-        
+
         bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
 
         if (highlighed) {

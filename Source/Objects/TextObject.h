@@ -252,7 +252,7 @@ public:
         numLines = newNumLines;
 
         pd->unlockAudioThread();
-        
+
         return newBounds;
     }
 
@@ -273,10 +273,10 @@ public:
             TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
         }
     }
-        
-    void mouseDown(const MouseEvent& e) override
+
+    void mouseDown(MouseEvent const& e) override
     {
-        if(isLocked) {
+        if (isLocked) {
             click();
         }
     }

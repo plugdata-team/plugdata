@@ -832,7 +832,7 @@ private:
 
         // Transparency is broken in Apple's DAWs on Apple Silicon
         // Just to be sure, we don't draw window shadows on dialogs in those DAWs
-        if(!ProjectInfo::isStandalone) {
+        if (!ProjectInfo::isStandalone) {
             auto hostType = PluginHostType();
             if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
                 dawSupportsTransparency = false;

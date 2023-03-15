@@ -7,20 +7,20 @@
 
 #pragma once
 
-class AdvancedSettingsPanel : public Component, public Value::Listener {
+class AdvancedSettingsPanel : public Component
+    , public Value::Listener {
 
 public:
     AdvancedSettingsPanel(Component* editor)
         : editor(editor)
     {
         auto* settingsFile = SettingsFile::getInstance();
-        
-        if(ProjectInfo::isStandalone)
-        {
+
+        if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
             macTitlebarButtons.referTo(settingsFile->getPropertyAsValue("macos_buttons"));
             reloadPatch.referTo(settingsFile->getPropertyAsValue("reload_last_state"));
-            
+
             macTitlebarButtons.addListener(this);
 
             useNativeTitlebar.reset(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
@@ -31,7 +31,7 @@ public:
             addAndMakeVisible(*useMacTitlebarButtons);
             addAndMakeVisible(*reloadLastOpenedPatch);
         }
-        
+
         infiniteCanvas.referTo(settingsFile->getPropertyAsValue("infinite_canvas"));
         infiniteCanvas.addListener(this);
         useInfiniteCanvas.reset(new PropertiesPanel::BoolComponent("Use infinite canvas", infiniteCanvas, { "No", "Yes" }));
@@ -41,8 +41,7 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds();
-        if(ProjectInfo::isStandalone)
-        {
+        if (ProjectInfo::isStandalone) {
             useNativeTitlebar->setBounds(bounds.removeFromTop(23));
             useMacTitlebarButtons->setBounds(bounds.removeFromTop(23));
             reloadLastOpenedPatch->setBounds(bounds.removeFromTop(23));

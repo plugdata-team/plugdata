@@ -18,7 +18,6 @@ namespace pd {
 struct Instance;
 }
 
-
 class PluginEditor;
 class Sidebar : public Component {
 

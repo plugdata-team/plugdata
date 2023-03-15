@@ -33,7 +33,7 @@ public:
     static Iolet* findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
 
     void createConnection();
-        
+
     void setHidden(bool hidden);
 
     void clearConnections();
@@ -50,11 +50,9 @@ public:
     Canvas* cnv;
 
 private:
-        
-        
-    const bool insideGraph;
+    bool const insideGraph;
     bool hideIolet = false;
-        
+
     Value locked;
     Value presentationMode;
 

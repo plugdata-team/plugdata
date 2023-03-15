@@ -664,13 +664,11 @@ public:
 
     void openFromMenu() override
     {
-        if(dialog)
-        {
+        if (dialog) {
             dialog->toFront(true);
             return;
         }
-        
-        
+
         dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         dialog->onClose = [this]() {
             dialog.reset(nullptr);
@@ -685,9 +683,8 @@ public:
         case hash("list"): {
             break;
         }
-        case hash("edit"):
-        {
-            if(!atoms.empty()) {
+        case hash("edit"): {
+            if (!atoms.empty()) {
                 editable = atoms[0].getFloat();
                 setInterceptsMouseClicks(false, editable);
             }
@@ -735,12 +732,11 @@ public:
 
     void openArrayEditor()
     {
-        if(editor)
-        {
+        if (editor) {
             editor->toFront(true);
             return;
         }
-        
+
         auto* c = reinterpret_cast<t_canvas*>(static_cast<t_canvas*>(ptr)->gl_list);
         auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
         auto array = PdArray(glist, cnv->pd->m_instance);

@@ -1122,7 +1122,6 @@ public:
     }
 };
 
-
 class DAWAudioSettings : public Component
     , public Value::Listener {
 

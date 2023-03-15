@@ -5,12 +5,11 @@
  */
 #pragma once
 
-namespace pd
-{
+namespace pd {
 
 struct MessageListener {
     virtual void receiveMessage(String const& name, int argc, t_atom* argv) {};
-    
+
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener);
 };
 

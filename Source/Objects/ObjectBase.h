@@ -114,7 +114,7 @@ public:
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
     void openSubpatch();
-        
+
     // Attempt to send "click" message to object. Returns false if the object has no such method
     bool click();
 
@@ -154,8 +154,7 @@ protected:
 
     // Send a float value to Pd
     void sendFloatValue(float value);
-    
-    
+
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>
     void colourToHexArray(Colour colour, T* hex)
@@ -164,7 +163,6 @@ protected:
         hex[1] = colour.getGreen();
         hex[2] = colour.getBlue();
     }
-
 
     // Min and max limit a juce::Value
     template<typename T>

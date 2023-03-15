@@ -130,7 +130,7 @@ public:
         maxValue.setMinimum(minimum + 0.000001f);
         minValue.setMaximum(maximum);
 
-        if(ProjectInfo::isStandalone) {
+        if (ProjectInfo::isStandalone) {
             slider.setValue(param->getUnscaledValue());
             slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
             valueLabel.setText(String(param->getUnscaledValue(), 2), dontSendNotification);
@@ -139,8 +139,7 @@ public:
                 param->setUnscaledValueNotifyingHost(value);
                 valueLabel.setText(String(value, 2), dontSendNotification);
             };
-        }
-        else {
+        } else {
             slider.onValueChange = [this]() mutable {
                 float value = slider.getValue();
                 valueLabel.setText(String(value, 2), dontSendNotification);
@@ -554,14 +553,13 @@ public:
 
     void updateParameters()
     {
-        if(ProjectInfo::isStandalone) {
+        if (ProjectInfo::isStandalone) {
             for (int p = 0; p < PluginProcessor::numParameters; p++) {
                 auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
-                
+
                 sliders.rows[p]->slider.setValue(param->getUnscaledValue());
             }
-        }
-        else {
+        } else {
             sliders.updateSliders();
         }
     }

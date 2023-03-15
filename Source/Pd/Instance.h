@@ -239,7 +239,7 @@ public:
     virtual void performParameterChange(int type, String name, float value) {};
 
     // JYG added this
-    virtual void fillDataBuffer(const std::vector<pd::Atom>& list) {};
+    virtual void fillDataBuffer(std::vector<pd::Atom> const& list) {};
     virtual void parseDataBuffer(XmlElement const& xml) {};
 
     void logMessage(String const& message);
@@ -268,8 +268,7 @@ public:
 
     void setThis() const;
     t_symbol* generateSymbol(String const& symbol) const;
-    t_symbol* generateSymbol(const char* symbol) const;
-
+    t_symbol* generateSymbol(char const* symbol) const;
 
     void waitForStateUpdate();
 
@@ -303,9 +302,8 @@ public:
     CriticalSection const* audioLock;
 
 private:
-    
     CriticalSection messageListenerLock;
-    
+
     std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;
 
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);

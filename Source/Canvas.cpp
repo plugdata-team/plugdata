@@ -56,7 +56,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     } else {
         isGraph = false;
     }
-    
+
     recreateViewport();
 
     suggestor = new SuggestionComponent;
@@ -116,8 +116,9 @@ Canvas::~Canvas()
 
 void Canvas::recreateViewport()
 {
-    if(isGraph) return;
-    
+    if (isGraph)
+        return;
+
     auto* canvasViewport = new CanvasViewport(editor, this);
 
     canvasViewport->setViewedComponent(this, false);
@@ -131,7 +132,6 @@ void Canvas::recreateViewport()
     canvasViewport->setScrollBarsShown(true, true, true, true);
 
     viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
-
 }
 
 void Canvas::lookAndFeelChanged()
@@ -150,14 +150,14 @@ void Canvas::paint(Graphics& g)
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
         auto verticalExtent = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, getHeight() + 1.0f);
         auto horizontalExtent = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, getWidth() + 1.0f, canvasOrigin.y - 0.5f);
-        float dash[2] = { 5.0f, 5.0f};
+        float dash[2] = { 5.0f, 5.0f };
         g.drawDashedLine(verticalExtent, dash, 2, 1.0f);
         g.drawDashedLine(horizontalExtent, dash, 2, 1.0f);
 
         Rectangle<int> const clipBounds = g.getClipBounds();
 
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-        
+
         for (int x = canvasOrigin.getX() % objectGrid.gridSize; x < clipBounds.getRight(); x += objectGrid.gridSize) {
             for (int y = canvasOrigin.getY() % objectGrid.gridSize; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
                 if (!(x == canvasOrigin.x && y >= canvasOrigin.y || y == canvasOrigin.y && x >= canvasOrigin.x))
@@ -240,7 +240,7 @@ void Canvas::performSynchronise()
 
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
-        if(patch.connectionWasDeleted(connections[n]->getPointer())) {
+        if (patch.connectionWasDeleted(connections[n]->getPointer())) {
             connections.remove(n);
         }
     }
@@ -291,32 +291,30 @@ void Canvas::performSynchronise()
     for (auto& connection : pdConnections) {
         auto& [ptr, inno, inobj, outno, outobj] = connection;
 
-        Iolet* inlet = nullptr, *outlet = nullptr;
-        
+        Iolet *inlet = nullptr, *outlet = nullptr;
+
         // Find the objects that this connection is connected to
-        for(auto* obj : objects) {
-            if(outobj && outobj == obj->getPointer()) {
-                
+        for (auto* obj : objects) {
+            if (outobj && outobj == obj->getPointer()) {
+
                 // Check if we have enough outlets, should never return false
-                if(isPositiveAndBelow(obj->numInputs + outno, obj->iolets.size())) {
+                if (isPositiveAndBelow(obj->numInputs + outno, obj->iolets.size())) {
                     outlet = obj->iolets[obj->numInputs + outno];
-                }
-                else {
+                } else {
                     break;
                 }
             }
-            if(inobj && inobj == obj->getPointer()) {
-                
+            if (inobj && inobj == obj->getPointer()) {
+
                 // Check if we have enough inlets, should never return false
-                if(isPositiveAndBelow(inno, obj->iolets.size())) {
+                if (isPositiveAndBelow(inno, obj->iolets.size())) {
                     inlet = obj->iolets[inno];
-                }
-                else {
+                } else {
                     break;
                 }
             }
         }
-                
+
         // This shouldn't be necessary, but just to be sure...
         if (!inlet || !outlet) {
             jassertfalse;
@@ -324,9 +322,9 @@ void Canvas::performSynchronise()
         }
 
         auto* it = std::find_if(connections.begin(), connections.end(),
-                    [c_ptr = ptr](auto* c) {
-                        return c_ptr == c->getPointer();
-                    });
+            [c_ptr = ptr](auto* c) {
+                return c_ptr == c->getPointer();
+            });
 
         if (it == connections.end()) {
             connections.add(new Connection(this, inlet, outlet, ptr));
@@ -475,7 +473,7 @@ bool Canvas::autoscroll(MouseEvent const& e)
     auto y = viewport->getViewPositionY();
     auto oldY = y;
     auto oldX = x;
-    
+
     auto pos = e.getPosition();
 
     if (pos.x > viewport->getWidth()) {
@@ -488,12 +486,12 @@ bool Canvas::autoscroll(MouseEvent const& e)
     } else if (pos.y < 0) {
         y -= std::clamp(-pos.y / 6, 1, 14);
     }
-    
-    if(x != oldX || y != oldY) {
+
+    if (x != oldX || y != oldY) {
         viewport->setViewPosition(x, y);
         return true;
     }
-    
+
     return false;
 }
 
@@ -517,7 +515,6 @@ void Canvas::mouseUp(MouseEvent const& e)
     isDraggingLasso = false;
     for (auto* object : objects)
         object->originalBounds = Rectangle<int>(0, 0, 0, 0);
-
 
     // TODO: this is a hack, find a better solution
     if (connectingWithDrag) {
@@ -624,13 +621,12 @@ bool Canvas::keyPressed(KeyPress const& key)
         if (connectionsBeingCreated.size()) {
             MessageManager::callAsync([this] {
                 cancelConnectionCreation();
-                
             });
         }
         return true;
     }
 
-        return false;
+    return false;
 }
 
 void Canvas::deselectAll()
@@ -968,7 +964,7 @@ void Canvas::encapsulateSelection()
 
     synchronise();
     handleUpdateNowIfNeeded();
-    
+
     patch.deselectAll();
 }
 
@@ -1020,7 +1016,7 @@ void Canvas::undo()
     // Load state from pd
     synchronise();
     handleUpdateNowIfNeeded();
-    
+
     patch.deselectAll();
 }
 
@@ -1032,16 +1028,16 @@ void Canvas::redo()
     // Load state from pd
     synchronise();
     handleUpdateNowIfNeeded();
-    
+
     patch.deselectAll();
 }
 
 void Canvas::checkBounds()
 {
-    if(viewport) {
+    if (viewport) {
         dynamic_cast<AsyncUpdater*>(viewport)->triggerAsyncUpdate();
     }
-    
+
     if (graphArea) {
         graphArea->updateBounds();
     }
@@ -1091,10 +1087,11 @@ void Canvas::valueChanged(Value& v)
         commandLocked.setValue(presentationMode.getValue());
     } else if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
 
-        if(!patch.getPointer()) return;
-        
+        if (!patch.getPointer())
+            return;
+
         pd->setThis();
-        
+
         int graphChild = static_cast<bool>(isGraphChild.getValue());
         int hideText = static_cast<bool>(hideNameAndArgs.getValue());
 
@@ -1157,7 +1154,6 @@ bool Canvas::isSelected(Component* component) const
 {
     return selectedComponents.isSelected(component);
 }
-
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
 {
@@ -1228,7 +1224,7 @@ bool Canvas::panningModifierDown()
 void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
 {
     auto atoms = pd::Atom::fromAtoms(argc, argv);
-    
+
     switch (hash(symbol)) {
     case hash("obj"):
     case hash("msg"):
@@ -1251,8 +1247,7 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
     case hash("numbox"):
     case hash("connect"):
     case hash("clear"):
-    case hash("donecanvasdialog"):
-    {
+    case hash("donecanvasdialog"): {
         // This will trigger an asyncupdater, so it's thread-safe to do this here
         synchronise();
         break;

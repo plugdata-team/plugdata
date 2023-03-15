@@ -8,7 +8,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-#include "SplitView.h" // TODO: move to impl
+#include "SplitView.h"           // TODO: move to impl
 #include "Utility/RateReducer.h" // TODO: move to impl
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/StackShadow.h" // TODO: move to impl
@@ -48,7 +48,6 @@ public:
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override;
     void mouseMagnify(MouseEvent const& e, float scaleFactor) override;
-
 
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
@@ -111,14 +110,13 @@ public:
     Value splitZoomScale;
 
 private:
-        
     // Used by standalone to handle dragging the window
     ComponentDragger windowDragger;
-        
+
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 
-    const int toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
+    int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
 
     TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pinButton, hideSidebarButton;
 

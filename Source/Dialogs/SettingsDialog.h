@@ -60,25 +60,22 @@ public:
         : processor(dynamic_cast<PluginProcessor*>(editor->getAudioProcessor()))
     {
         setVisible(false);
-        
+
         toolbarButtons = { new SettingsToolbarButton(Icons::Audio, "Audio"),
             new SettingsToolbarButton(Icons::Pencil, "Themes"),
             new SettingsToolbarButton(Icons::Search, "Paths"),
             new SettingsToolbarButton(Icons::Library, "Libraries"),
             new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
             new SettingsToolbarButton(Icons::Externals, "Externals"),
-            new SettingsToolbarButton(Icons::Wrench, "Advanced")
-        };
-        
+            new SettingsToolbarButton(Icons::Wrench, "Advanced") };
+
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
-        
+
         auto* processor = dynamic_cast<PluginProcessor*>(editor->getAudioProcessor());
-        
-        if(auto* deviceManager = ProjectInfo::getDeviceManager())
-        {
+
+        if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
             panels.add(new StandaloneAudioSettings(processor, *deviceManager));
-        }
-        else {
+        } else {
             panels.add(new DAWAudioSettings(processor));
         }
 
@@ -88,7 +85,7 @@ public:
         panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
         panels.add(new Deken());
 
-        if(ProjectInfo::isStandalone) {
+        if (ProjectInfo::isStandalone) {
             panels.add(new AdvancedSettingsPanel(editor));
         }
 
@@ -133,13 +130,13 @@ public:
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
-        
+
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        
+
         auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, toolbarHeight);
         g.fillRoundedRectangle(toolbarBounds, Corners::windowCornerRadius);
         g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
-        
+
         bool drawStatusbar = ProjectInfo::isStandalone ? currentPanel > 0 : true;
 
         if (drawStatusbar) {

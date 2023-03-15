@@ -62,8 +62,8 @@ public:
     void setPdBounds()
     {
         t_canvas* cnv = canvas->patch.getPointer();
-        
-        canvas->pd->enqueueFunction([cnv, _this = SafePointer(this)](){
+
+        canvas->pd->enqueueFunction([cnv, _this = SafePointer(this)]() {
             if (_this && cnv) {
                 cnv->gl_pixwidth = _this->getWidth();
                 cnv->gl_pixheight = _this->getHeight();

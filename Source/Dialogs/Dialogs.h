@@ -38,7 +38,7 @@ public:
             };
             closeButton->setAlwaysOnTop(true);
         }
-        
+
         // Some parts of the code check for an active dialog to decide if it needs to paint an outline
         getTopLevelComponent()->repaint();
     }

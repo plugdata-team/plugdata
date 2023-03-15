@@ -28,7 +28,7 @@ public:
     static constexpr int tolerance = 5;
 
     static Array<Object*> getSnappableObjects(Object* cnv);
-    
+
 private:
     enum SnapOrientation {
         SnappedLeft,
@@ -39,7 +39,7 @@ private:
 
     bool widthResizeSnapped = false;
     bool horizontalResizeSnapped = false;
-    
+
     bool snapped[2] = { false, false };
 
     SnapOrientation orientation[2];
@@ -52,7 +52,6 @@ private:
     void updateMarker();
     void clear(bool horizontal);
 
-  
     bool isAlreadySnapped(bool horizontal, Point<int>& dragOffset);
 
     void propertyChanged(String name, var value) override;
@@ -60,10 +59,9 @@ private:
     Value gridEnabled;
 };
 
-
 /* better system to use in the future?
 struct ObjectGrid2 : public SettingsFileListener {
-    
+
     ObjectGrid2::ObjectGrid2(Canvas* cnv) {
         cnv->addAndMakeVisible(gridLines[0]);
         cnv->addAndMakeVisible(gridLines[1]);
@@ -71,7 +69,7 @@ struct ObjectGrid2 : public SettingsFileListener {
 
     Point<int> ObjectGrid2::performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds)
     {
-        
+
         auto limits = [&]() -> Rectangle<int> {
             if (auto* parent = toDrag->getParentComponent())
                 return { parent->getWidth(), parent->getHeight() };
@@ -92,27 +90,27 @@ struct ObjectGrid2 : public SettingsFileListener {
             resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
             resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
 
-        
+
         auto snappable = ObjectGrid::getSnappableObjects(toDrag);
-        
+
         auto ratio = toDrag->constrainer->getFixedAspectRatio();
 
         auto oldBounds = toDrag->originalBounds;
-        
+
         auto wDiff = nonClippedBounds.getWidth() - oldBounds.getWidth();
         auto hDiff = nonClippedBounds.getHeight() - oldBounds.getHeight();
         bool draggingWidth =  wDiff > (hDiff * ratio);
-        
+
         auto b2 = toDrag->getBounds().reduced(Object::margin);
-        
+
         for(auto* object : snappable) {
-            
+
             auto b1 = object->getBounds().reduced(Object::margin);
             auto topDiff = b1.getY() - b2.getY();
             auto bottomDiff = b1.getBottom() - b2.getBottom();
             auto leftDiff = b1.getX() - b2.getX();
             auto rightDiff = b1.getRight() - b2.getRight();
-            
+
             bool snapped = true;
             int distance = 0;
             Point<int> start, end;
@@ -139,18 +137,18 @@ struct ObjectGrid2 : public SettingsFileListener {
             else {
                 snapped = false;
             }
-            
+
             if(snapped) {
                 setPath(0, start, end);
                 std::cout << "Snapped" << std::endl;
                 return draggingWidth ? dragOffset.withX(dragOffset.x + distance) : dragOffset.withY(dragOffset.y + distance);
             }
         }
-        
+
         std::cout << "Not snapped" << std::endl;
-        
+
         clearPath(0);
-        
+
         return dragOffset;
     }
 
@@ -164,13 +162,13 @@ struct ObjectGrid2 : public SettingsFileListener {
         gridLines[idx].setStrokeFill(FillType(lnf.findColour(PlugDataColour::gridLineColourId)));
         gridLines[idx].setStrokeThickness(1);
         gridLines[idx].setAlwaysOnTop(true);
-        
+
         Path toDraw;
         toDraw.addLineSegment(Line<float>(start.toFloat(), end.toFloat()), 1.0f);
         gridLines[idx].setPath(toDraw);
     }
 
-    
+
     DrawablePath gridLines[2];
     Point<int> lastSnapPosition;
 };

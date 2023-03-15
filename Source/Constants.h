@@ -62,7 +62,7 @@ struct Icons {
     inline static const String History = "X";
     inline static const String Protection = "Y";
     inline static const String Direction = "{";
-    
+
     inline static const String SavePatch = "Z";
     inline static const String ClosePatch = "[";
     inline static const String CloseAllPatches = "]";
@@ -128,7 +128,6 @@ enum PlugDataColour {
     /* iteration hack */
     numberOfColours
 };
-
 
 enum CommandIDs {
     NewProject = 1,
@@ -499,14 +498,12 @@ const std::map<ObjectIDs, String> objectNames {
     { NewSignalNotEquals, "!=~" },
 };
 
-struct Corners
-{
+struct Corners {
     inline static float const windowCornerRadius = 7.5f;
     inline static float const defaultCornerRadius = 6.0f;
     inline static float const smallCornerRadius = 4.0f;
     inline static float objectCornerRadius = 2.75f;
 };
-
 
 enum ParameterType {
     tString,
@@ -524,8 +521,6 @@ enum ParameterCategory {
     cLabel,
     cExtra
 };
-
-
 
 using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>; // name, type and pointer to value, list of items only for combobox and bool
 

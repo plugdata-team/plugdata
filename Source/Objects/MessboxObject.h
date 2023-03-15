@@ -93,9 +93,9 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
-        
+
         libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-        
+
         messbox->x_width = b.getWidth();
         messbox->x_height = b.getHeight();
     }
@@ -291,7 +291,7 @@ public:
 
             auto col = Colour::fromString(primaryColour.toString());
             editor.applyColourToAllText(col);
-            
+
             colourToHexArray(col, messbox->x_fg);
             repaint();
         }

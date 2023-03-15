@@ -5,22 +5,20 @@
  */
 
 // Inherit to customise drawing
-class MIDIKeyboard : public MidiKeyboardComponent
-{
-    
+class MIDIKeyboard : public MidiKeyboardComponent {
+
     Object* object;
-    
+
     bool toggleMode = false;
     std::set<int> heldKeys;
-    
+
 public:
-    
     std::function<void(int, int)> noteOn;
     std::function<void(int)> noteOff;
-    
+
     MIDIKeyboard(Object* parent, MidiKeyboardState& stateToUse, Orientation orientationToUse)
-    : MidiKeyboardComponent(stateToUse, orientationToUse)
-    , object(parent)
+        : MidiKeyboardComponent(stateToUse, orientationToUse)
+        , object(parent)
     {
         // Make sure nothing is drawn outside of our custom draw functions
         setColour(MidiKeyboardComponent::whiteNoteColourId, Colours::transparentBlack);
@@ -29,7 +27,7 @@ public:
         setColour(MidiKeyboardComponent::textLabelColourId, Colours::transparentBlack);
         setColour(MidiKeyboardComponent::shadowColourId, Colours::transparentBlack);
     }
-    
+
     /*  Return the amount of white notes in the current displayed range.
      *  We use this to calculate & resize the keyboard width when more range is added
      *  because setKeyWidth sets the width of white keys
@@ -52,41 +50,38 @@ public:
         }
         return count;
     }
-    
-    bool mouseDownOnKey (int midiNoteNumber, const MouseEvent &e) override
+
+    bool mouseDownOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
-        if(toggleMode) {
-            
-            
-            if(heldKeys.contains(midiNoteNumber))
-            {
+        if (toggleMode) {
+
+            if (heldKeys.contains(midiNoteNumber)) {
                 heldKeys.erase(midiNoteNumber);
                 noteOff(midiNoteNumber);
-            }
-            else {
+            } else {
                 heldKeys.insert(midiNoteNumber);
                 noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
             }
-        }
-        else {
+        } else {
             heldKeys.insert(midiNoteNumber);
             noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
         }
-        
+
         repaint();
         return false;
     }
-    
-    void mouseUpOnKey (int midiNoteNumber, const MouseEvent &e) override
+
+    void mouseUpOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
-        if(!toggleMode)  {
+        if (!toggleMode) {
             heldKeys.erase(midiNoteNumber);
             noteOff(midiNoteNumber);
             repaint();
         }
     }
 
-    void setToggleMode(bool enableToggleMode) {
+    void setToggleMode(bool enableToggleMode)
+    {
         toggleMode = enableToggleMode;
     }
 
@@ -94,7 +89,7 @@ public:
     {
         // TODO: this should be a theme preference, or setting for keyboard
         // yeah but we can set a less ugly default colour for now!
-        
+
         isDown = heldKeys.contains(midiNoteNumber);
 
         auto c = Colour(225, 225, 225);
@@ -163,7 +158,7 @@ public:
         auto c = Colour(90, 90, 90);
 
         isDown = heldKeys.contains(midiNoteNumber);
-        
+
         if (isOver)
             c = Colour(101, 101, 101);
         if (isDown)
@@ -175,8 +170,7 @@ public:
 };
 // ELSE keyboard
 class KeyboardObject final : public ObjectBase
-    , public Timer
-{
+    , public Timer {
     typedef struct _edit_proxy {
         t_object p_obj;
         t_symbol* p_sym;
@@ -237,8 +231,8 @@ public:
     {
         keyboard.setMidiChannel(1);
         keyboard.setScrollButtonsVisible(false);
-        
-        keyboard.noteOn = [this](int note, int velocity){
+
+        keyboard.noteOn = [this](int note, int velocity) {
             auto* elseKeyboard = static_cast<t_keyboard*>(this->ptr);
 
             cnv->pd->enqueueFunction(
@@ -256,8 +250,8 @@ public:
                         pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
                 });
         };
-        
-        keyboard.noteOff = [this](int note){
+
+        keyboard.noteOff = [this](int note) {
             auto* elseKeyboard = static_cast<t_keyboard*>(this->ptr);
 
             cnv->pd->enqueueFunction(
@@ -298,8 +292,8 @@ public:
 
         MessageManager::callAsync([this, object] {
             // Call async to make sure pd obj has updated
-            object->updateBounds(); 
-            });
+            object->updateBounds();
+        });
     }
 
     Rectangle<int> getPdBounds() override
@@ -328,9 +322,9 @@ public:
     void resized() override
     {
         float keyWidth = static_cast<float>(object->getHeight() - Object::doubleMargin) / keyRatio;
-        
-        
-        if(keyWidth <= 0) return;
+
+        if (keyWidth <= 0)
+            return;
 
         keyboard.setKeyWidth(keyWidth);
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
@@ -341,7 +335,7 @@ public:
         return {
             { "Start octave", tInt, cGeneral, &lowC, {} },
             { "Num. octaves", tInt, cGeneral, &octaves, {} },
-            { "Toggle Mode", tBool, cGeneral, &toggleMode, {"Off", "On"} },
+            { "Toggle Mode", tBool, cGeneral, &toggleMode, { "Off", "On" } },
             { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
             { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
         };

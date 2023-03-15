@@ -48,10 +48,10 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(locked && click()) {
+        if (locked && click()) {
             return;
         }
-        
+
         //  If locked and it's a left click
         if (locked && !e.mods.isRightButtonDown() && !object->attachedToMouse) {
             openSubpatch();
@@ -95,10 +95,11 @@ public:
 
     void checkGraphState()
     {
-        if(!ptr) return;
-        
+        if (!ptr)
+            return;
+
         pd->setThis();
-        
+
         int isGraph = static_cast<bool>(isGraphChild.getValue());
         int hideText = static_cast<bool>(hideNameAndArgs.getValue());
 

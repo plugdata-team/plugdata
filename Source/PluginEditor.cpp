@@ -15,7 +15,6 @@
 
 #include "Pd/Patch.h"
 
-
 #include "LookAndFeel.h"
 
 #include "Canvas.h"
@@ -61,10 +60,9 @@ public:
     }
 };
 
-
 bool wantsNativeDialog()
 {
-    if(ProjectInfo::isStandalone) {
+    if (ProjectInfo::isStandalone) {
         return true;
     }
 
@@ -101,7 +99,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     setResizable(true, false);
 
     // In the standalone, the resizer handling is done on the window class
-    if(!ProjectInfo::isStandalone) {
+    if (!ProjectInfo::isStandalone) {
         cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
         cornerResizer->setAlwaysOnTop(true);
         addAndMakeVisible(cornerResizer.get());
@@ -163,7 +161,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Show settings
     mainMenuButton.setTooltip("Settings");
     mainMenuButton.onClick = [this]() {
-    Dialogs::showMainMenu(this, &mainMenuButton);
+        Dialogs::showMainMenu(this, &mainMenuButton);
     };
 
     addAndMakeVisible(mainMenuButton);
@@ -298,7 +296,7 @@ void PluginEditor::resized()
     auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
     auto offset = useLeftButtons && useNonNativeTitlebar ? 70 : 0;
-    
+
     mainMenuButton.setBounds(20 + offset, 0, toolbarHeight, toolbarHeight);
     undoButton.setBounds(90 + offset, 0, toolbarHeight, toolbarHeight);
     redoButton.setBounds(160 + offset, 0, toolbarHeight, toolbarHeight);
@@ -306,7 +304,7 @@ void PluginEditor::resized()
 
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 170.0f : 70.0f;
 
-    if(!ProjectInfo::isStandalone) {
+    if (!ProjectInfo::isStandalone) {
         int const resizerSize = 18;
         cornerResizer->setBounds(getWidth() - resizerSize,
             getHeight() - resizerSize,
@@ -352,15 +350,15 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
     scale = value;
 }
 
-
 void PluginEditor::mouseDown(MouseEvent const& e)
 {
     // no window dragging by toolbar in plugin!
-    if(!ProjectInfo::isStandalone) return;
-    
+    if (!ProjectInfo::isStandalone)
+        return;
+
     if (e.getNumberOfClicks() >= 2) {
 
-#    if JUCE_MAC
+#if JUCE_MAC
         if (isMaximised) {
             getPeer()->setBounds(unmaximisedSize, false);
         } else {
@@ -372,9 +370,9 @@ void PluginEditor::mouseDown(MouseEvent const& e)
         isMaximised = !isMaximised;
         return;
 
-#    else
+#else
         findParentComponentOfClass<DocumentWindow>()->maximiseButtonPressed();
-#    endif
+#endif
     }
 
     if (e.getPosition().getY() < toolbarHeight) {
@@ -387,8 +385,9 @@ void PluginEditor::mouseDown(MouseEvent const& e)
 
 void PluginEditor::mouseDrag(MouseEvent const& e)
 {
-    if(!ProjectInfo::isStandalone) return;
-    
+    if (!ProjectInfo::isStandalone)
+        return;
+
     if (!isMaximised) {
         if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
             if (!window->isUsingNativeTitleBar())
@@ -525,7 +524,7 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     auto* tabbar = cnv->getTabbar();
     auto const tabIdx = cnv->getTabIndex();
-    
+
     auto* patch = &cnv->patch;
 
     sidebar->hideParameters();
@@ -533,15 +532,14 @@ void PluginEditor::closeTab(Canvas* cnv)
     cnv->getTabbar()->removeTab(tabIdx);
 
     pd->patches.removeObject(patch, false);
-    
+
     canvases.removeObject(cnv);
-    
-    if(patch->closePatchOnDelete) {
+
+    if (patch->closePatchOnDelete) {
         delete patch;
     }
 
-    if(tabbar->getCurrentTabIndex() < 0 && tabbar->getNumTabs() >= 0)
-    {
+    if (tabbar->getCurrentTabIndex() < 0 && tabbar->getNumTabs() >= 0) {
         tabbar->setCurrentTabIndex(0);
     }
 
@@ -574,7 +572,7 @@ void PluginEditor::addTab(Canvas* cnv)
     // Add tab next to the currently focused tab
     auto patchTitle = cnv->patch.getTitle();
     focusedTabbar->addTab(patchTitle, findColour(ResizableWindow::backgroundColourId), cnv->viewport, true, newTabIdx);
-    
+
     // Open help files and references in Locked Mode
     if (patchTitle.contains("-help") || patchTitle.equalsIgnoreCase("reference"))
         cnv->locked.setValue(true);
@@ -1021,53 +1019,53 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     static auto const shiftMod = ModifierKeys::shiftModifier;
 
     std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts;
-    
-    switch(OSUtils::getKeyboardLayout())
-    {
-        case OSUtils::KeyboardLayout::QWERTY:
-            defaultShortcuts = {
-                { NewObject, { 49, cmdMod } },
-                { NewComment, { 53, cmdMod } },
-                { NewBang, { 66, cmdMod | shiftMod } },
-                { NewMessage, { 50, cmdMod } },
-                { NewToggle, { 84, cmdMod | shiftMod } },
-                { NewNumbox, { 78, cmdMod | shiftMod } },
-                { NewVerticalSlider, { 86, cmdMod | shiftMod } },
-                { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
-                { NewVerticalRadio, { 68, cmdMod | shiftMod } },
-                { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
-                { NewFloatAtom, { 51, cmdMod } },
-                { NewListAtom, { 52, cmdMod } },
-                { NewArray, { 65, cmdMod | shiftMod } },
-                { NewGraphOnParent, { 71, cmdMod | shiftMod } },
-                { NewCanvas, { 67, cmdMod | shiftMod } },
-                { NewVUMeterObject, { 85, cmdMod | shiftMod } }
-            };
-            break;
-        case OSUtils::KeyboardLayout::AZERTY:
-            defaultShortcuts = {
-                { NewObject, { 38, cmdMod } },
-                { NewComment, { 40, cmdMod } },
-                { NewBang, { 66, cmdMod | shiftMod } },
-                { NewMessage, { 233, cmdMod } },
-                { NewToggle, { 84, cmdMod | shiftMod } },
-                { NewNumbox, { 73, cmdMod | shiftMod } },
-                { NewVerticalSlider, { 86, cmdMod | shiftMod } },
-                { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
-                { NewVerticalRadio, { 68, cmdMod | shiftMod } },
-                { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
-                { NewFloatAtom, { 34, cmdMod } },
-                { NewListAtom, { 39, cmdMod } },
-                { NewArray, { 65, cmdMod | shiftMod } },
-                { NewGraphOnParent, { 71, cmdMod | shiftMod } },
-                { NewCanvas, { 67, cmdMod | shiftMod } },
-                { NewVUMeterObject, { 85, cmdMod | shiftMod } }
-            };
-            break;
-            
-        default: break;
+
+    switch (OSUtils::getKeyboardLayout()) {
+    case OSUtils::KeyboardLayout::QWERTY:
+        defaultShortcuts = {
+            { NewObject, { 49, cmdMod } },
+            { NewComment, { 53, cmdMod } },
+            { NewBang, { 66, cmdMod | shiftMod } },
+            { NewMessage, { 50, cmdMod } },
+            { NewToggle, { 84, cmdMod | shiftMod } },
+            { NewNumbox, { 78, cmdMod | shiftMod } },
+            { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+            { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+            { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+            { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+            { NewFloatAtom, { 51, cmdMod } },
+            { NewListAtom, { 52, cmdMod } },
+            { NewArray, { 65, cmdMod | shiftMod } },
+            { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+            { NewCanvas, { 67, cmdMod | shiftMod } },
+            { NewVUMeterObject, { 85, cmdMod | shiftMod } }
+        };
+        break;
+    case OSUtils::KeyboardLayout::AZERTY:
+        defaultShortcuts = {
+            { NewObject, { 38, cmdMod } },
+            { NewComment, { 40, cmdMod } },
+            { NewBang, { 66, cmdMod | shiftMod } },
+            { NewMessage, { 233, cmdMod } },
+            { NewToggle, { 84, cmdMod | shiftMod } },
+            { NewNumbox, { 73, cmdMod | shiftMod } },
+            { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+            { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+            { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+            { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+            { NewFloatAtom, { 34, cmdMod } },
+            { NewListAtom, { 39, cmdMod } },
+            { NewArray, { 65, cmdMod | shiftMod } },
+            { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+            { NewCanvas, { 67, cmdMod | shiftMod } },
+            { NewVUMeterObject, { 85, cmdMod | shiftMod } }
+        };
+        break;
+
+    default:
+        break;
     };
-    
+
     if (commandID >= ObjectIDs::NewObject) {
         auto name = objectNames.at(static_cast<ObjectIDs>(commandID));
 
@@ -1088,7 +1086,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
 bool PluginEditor::perform(InvocationInfo const& info)
 {
-    switch(info.commandID) {
+    switch (info.commandID) {
     case CommandIDs::NewProject: {
         newProject();
         return true;
@@ -1330,8 +1328,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
 bool PluginEditor::wantsRoundedCorners()
 {
-    if(!ProjectInfo::isStandalone) return false;
-    
+    if (!ProjectInfo::isStandalone)
+        return false;
+
     if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
         return !window->isUsingNativeTitleBar() && Desktop::canUseSemiTransparentWindows();
     } else {

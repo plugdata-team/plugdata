@@ -47,7 +47,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         auto* cnvObj = reinterpret_cast<t_my_canvas*>(iemHelper.iemgui);
-        
+
         cnvObj->x_gui.x_obj.te_xpix = b.getX();
         cnvObj->x_gui.x_obj.te_ypix = b.getY();
         cnvObj->x_vis_w = b.getWidth() - 1;
@@ -77,7 +77,7 @@ public:
 
         return bounds;
     }
-    
+
     void paint(Graphics& g) override
     {
         auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());

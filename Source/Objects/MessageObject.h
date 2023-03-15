@@ -52,7 +52,7 @@ public:
         newBounds.setWidth(newBounds.getWidth() + 5);
 
         pd->unlockAudioThread();
-        
+
         return newBounds;
     }
 
@@ -187,9 +187,10 @@ public:
             outgoingEditor.reset();
 
             object->updateBounds(); // Recalculate bounds
-            
-            pd->enqueueFunction([_this = SafePointer(this)](){
-                if(!_this) return;
+
+            pd->enqueueFunction([_this = SafePointer(this)]() {
+                if (!_this)
+                    return;
                 _this->setPdBounds(_this->object->getObjectBounds());
             });
 

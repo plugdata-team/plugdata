@@ -225,10 +225,10 @@ public:
 
     void setInit(bool init)
     {
-        pd->enqueueFunctionAsync([this, init](){
-            
-            if(cnv->patch.objectWasDeleted(iemgui)) return;
-            
+        pd->enqueueFunctionAsync([this, init]() {
+            if (cnv->patch.objectWasDeleted(iemgui))
+                return;
+
             iemgui->x_isa.x_loadinit = init;
         });
     }
@@ -304,7 +304,7 @@ public:
     String getSendSymbol()
     {
         pd->setThis();
-        
+
         t_symbol* srlsym[3];
         iemgui_all_sym2dollararg(iemgui, srlsym);
 
@@ -318,7 +318,7 @@ public:
     String getReceiveSymbol()
     {
         pd->setThis();
-    
+
         t_symbol* srlsym[3];
         iemgui_all_sym2dollararg(iemgui, srlsym);
 

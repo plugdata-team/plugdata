@@ -33,7 +33,9 @@ extern "C" {
 }
 
 Object::Object(Canvas* parent, String const& name, Point<int> position)
-    : cnv(parent), ds(parent->dragState), gui(nullptr)
+    : cnv(parent)
+    , ds(parent->dragState)
+    , gui(nullptr)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
 
@@ -63,7 +65,9 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     }
 }
 
-Object::Object(void* object, Canvas* parent) : ds(parent->dragState), gui(nullptr)
+Object::Object(void* object, Canvas* parent)
+    : ds(parent->dragState)
+    , gui(nullptr)
 {
     cnv = parent;
 
@@ -226,9 +230,9 @@ void Object::updateBounds()
 
         // Get the bounds of the object in Pd
         auto newBounds = gui->getPdBounds();
-                
+
         // Objects may return empty bounds if they are not a real object (like scalars)
-        if(!newBounds.isEmpty())
+        if (!newBounds.isEmpty())
             setObjectBounds(newBounds);
     }
 
@@ -727,7 +731,8 @@ void Object::mouseUp(MouseEvent const& e)
                     // Resize canvas in case we dragged object out of bounds
                     if (!cnv->viewport->getViewArea().contains(object->getBounds())) {
                         MessageManager::callAsync([o = object]() {
-                            if (o) o->cnv->checkBounds();
+                            if (o)
+                                o->cnv->checkBounds();
                         });
                     }
                 }
@@ -756,9 +761,9 @@ void Object::mouseUp(MouseEvent const& e)
         cnv->updateSidebarSelection();
 
         if (ds.didStartDragging) {
-            
+
             cnv->checkBounds();
-            
+
             auto objects = std::vector<void*>();
 
             for (auto* object : cnv->getSelectionOfType<Object>()) {
@@ -855,7 +860,7 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         ds.wasResized = true;
-    } else if(!cnv->isGraph) {
+    } else if (!cnv->isGraph) {
         // Ensure tiny movements don't start a drag.
         if (!ds.didStartDragging && e.getDistanceFromDragStart() < cnv->minimumMovementToStartDrag)
             return;
@@ -907,13 +912,12 @@ void Object::mouseDrag(MouseEvent const& e)
                 });
 
             int i = 0;
-            for(auto* selected : selection)
-            {
+            for (auto* selected : selection) {
                 selected->originalBounds = selected->getBounds().withPosition(mouseDownObjectPositions[i]);
                 i++;
             }
 
-            if(isPositiveAndBelow(draggedIdx, selection.size())) {
+            if (isPositiveAndBelow(draggedIdx, selection.size())) {
                 ds.componentBeingDragged = selection[draggedIdx];
             }
         }

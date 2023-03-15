@@ -77,9 +77,10 @@ public:
             outgoingEditor.reset();
 
             object->updateBounds(); // Recalculate bounds
-            
-            pd->enqueueFunction([_this = SafePointer(this)](){
-                if(!_this) return;
+
+            pd->enqueueFunction([_this = SafePointer(this)]() {
+                if (!_this)
+                    return;
                 _this->setPdBounds(_this->object->getObjectBounds());
             });
 
@@ -130,7 +131,7 @@ public:
         numLines = newNumLines;
 
         pd->unlockAudioThread();
-        
+
         return newBounds;
     }
 

@@ -37,23 +37,22 @@ EXTERN char* pd_version;
 AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 {
     AudioProcessor::BusesProperties busesProperties;
-    
-    if(ProjectInfo::isStandalone) {
+
+    if (ProjectInfo::isStandalone) {
         busesProperties.addBus(true, "Main Input", AudioChannelSet::canonicalChannelSet(16), true);
         busesProperties.addBus(false, "Main Output", AudioChannelSet::canonicalChannelSet(16), true);
-    }
-    else {
+    } else {
         busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
-        
+
         for (int i = 1; i < numInputBuses; i++)
             busesProperties.addBus(true, "Aux Input " + String(i), AudioChannelSet::stereo(), false);
-        
+
         busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
-        
+
         for (int i = 1; i < numOutputBuses; i++)
             busesProperties.addBus(false, "Aux " + String(i), AudioChannelSet::stereo(), false);
     }
-    
+
     return busesProperties;
 }
 
@@ -63,10 +62,11 @@ String PluginProcessor::pdlua_version = "pdlua 0.11.0 (lua 5.4)";
 
 PluginProcessor::PluginProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-    : AudioProcessor(buildBusesProperties()),
+    : AudioProcessor(buildBusesProperties())
+    ,
 #endif
-    pd::Instance("plugdata"),
-    internalSynth(std::make_unique<InternalSynth>())
+    pd::Instance("plugdata")
+    , internalSynth(std::make_unique<InternalSynth>())
 {
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");
@@ -82,7 +82,7 @@ PluginProcessor::PluginProcessor()
     }
 
     statusbarSource = std::make_unique<StatusbarSource>();
-     
+
     auto* volumeParameter = new PlugDataParameter(this, "volume", 1.0f, true);
     addParameter(volumeParameter);
     volume = volumeParameter->getValuePointer();
@@ -178,7 +178,7 @@ PluginProcessor::PluginProcessor()
     setLatencySamples(pd::Instance::getBlockSize());
 
 #if !JUCE_WINDOWS
-    if(ProjectInfo::isStandalone) {
+    if (ProjectInfo::isStandalone) {
         if (auto* newOut = MidiOutput::createNewDevice("from plugdata").release()) {
             midiOutputs.add(newOut)->startBackgroundThread();
         }
@@ -497,13 +497,13 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     buffer.applyGain(getParameters()[0]->getValue());
     statusbarSource->processBlock(buffer, midiBufferCopy, midiMessages, totalNumOutputChannels);
 
-    if(ProjectInfo::isStandalone) {
+    if (ProjectInfo::isStandalone) {
         for (auto* midiOutput : midiOutputs) {
             midiOutput->sendBlockOfMessages(midiMessages,
-                                            Time::getMillisecondCounterHiRes(),
-                                            AudioProcessor::getSampleRate());
+                Time::getMillisecondCounterHiRes(),
+                AudioProcessor::getSampleRate());
         }
-        
+
         // If the internalSynth is enabled and loaded, let it process the midi
         if (enableInternalSynth && internalSynth->isReady()) {
             internalSynth->process(buffer, midiMessages);
@@ -892,7 +892,6 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     // signal to patches that we need to collect extra data to save into the host session
     sendMessage("from_plugdata", "save", {});
 
-
     PlugDataParameter::saveStateInformation(xml, getParameters());
 
     MemoryBlock xmlBlock;
@@ -1001,7 +1000,6 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         }
         // JYG added this
         parseDataBuffer(*xmlState);
-
     }
 
     setLatencySamples(latency);
@@ -1062,9 +1060,9 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
         MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
             if (!_editor)
                 return;
-            auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr)); 
+            auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr));
             _editor->addTab(cnv);
-            
+
             // Open help files in splitview
             // TODO: Maybe this should be an advanced setting?
             if (patch->getTitle().contains("-help"))
@@ -1224,7 +1222,7 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
             // Send new value to DAW
             pldParam->setUnscaledValueNotifyingHost(value);
 
-            if(ProjectInfo::isStandalone) {
+            if (ProjectInfo::isStandalone) {
                 if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                     editor->sidebar->updateAutomationParameters();
                 }
@@ -1234,42 +1232,33 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
 }
 
 // JYG added this
-void PluginProcessor::fillDataBuffer(const std::vector<pd::Atom>& list)
+void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& list)
 {
-    if(m_temp_xml)
-    {
+    if (m_temp_xml) {
         XmlElement* patch = m_temp_xml->getChildByName("patch");
-        if(!patch)
-        {
+        if (!patch) {
             patch = m_temp_xml->createNewChildElement("patch");
-            if(!patch)
-            {
+            if (!patch) {
                 logMessage("Error:can't allocate memory for saving plugin state.");
                 return;
             }
         }
-        const int nchilds = patch->getNumChildElements();
-        XmlElement* preset = patch->createNewChildElement(String("list") + String(nchilds+1));
-        if(preset)
-        {
-            for(size_t i = 0; i < list.size(); ++i)
-            {
-                if(list[i].isFloat()) {
-                    preset->setAttribute(String("float") + String(i+1), list[i].getFloat()); }
-                else if(list[i].isSymbol())  {
-                    preset->setAttribute(String("string") + String(i+1), String(list[i].getSymbol()));
-                 }
-                else {
-                    preset->setAttribute(String("atom") + String(i+1), String("unknown")); }
+        int const nchilds = patch->getNumChildElements();
+        XmlElement* preset = patch->createNewChildElement(String("list") + String(nchilds + 1));
+        if (preset) {
+            for (size_t i = 0; i < list.size(); ++i) {
+                if (list[i].isFloat()) {
+                    preset->setAttribute(String("float") + String(i + 1), list[i].getFloat());
+                } else if (list[i].isSymbol()) {
+                    preset->setAttribute(String("string") + String(i + 1), String(list[i].getSymbol()));
+                } else {
+                    preset->setAttribute(String("atom") + String(i + 1), String("unknown"));
+                }
             }
-        }
-        else
-        {
+        } else {
             logMessage("Error: can't allocate memory for saving plugin databuffer.");
         }
-    }
-    else
-    {
+    } else {
         logMessage("Error, databuffer method should be called after databuffer save notification.");
     }
 }
@@ -1280,27 +1269,24 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 
     bool loaded = false;
     XmlElement const* patch = xml.getChildByName(juce::StringRef("patch"));
-    if(patch)
-    {
-        const int nlists = patch->getNumChildElements();
+    if (patch) {
+        int const nlists = patch->getNumChildElements();
         std::vector<pd::Atom> vec;
-        for(int i = 0; i < nlists; ++i)
-        {
+        for (int i = 0; i < nlists; ++i) {
             XmlElement const* list = patch->getChildElement(i);
-            if(list)
-            {
-                const int natoms = list->getNumAttributes();
+            if (list) {
+                int const natoms = list->getNumAttributes();
                 vec.resize(natoms);
 
-                for(int j = 0; j < natoms; ++j)
-                {
+                for (int j = 0; j < natoms; ++j) {
                     String const& name = list->getAttributeName(j);
-                    if(name.startsWith("float")) {
-                        vec[j] = static_cast<float>(list->getDoubleAttribute(name)); }
-                    else if(name.startsWith("string")){
-                        vec[j] = list->getStringAttribute(name); }
-                    else {
-                        vec[j] = String("unknown"); }
+                    if (name.startsWith("float")) {
+                        vec[j] = static_cast<float>(list->getDoubleAttribute(name));
+                    } else if (name.startsWith("string")) {
+                        vec[j] = list->getStringAttribute(name);
+                    } else {
+                        vec[j] = String("unknown");
+                    }
                 }
 
                 sendList("load", vec);
@@ -1309,13 +1295,11 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
         }
     }
 
-    if(!loaded)
-    {
+    if (!loaded) {
         sendBang("load");
     }
 }
 ////////////////////
-
 
 void PluginProcessor::receiveDSPState(bool dsp)
 {
