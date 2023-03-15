@@ -5,14 +5,22 @@
  */
 
 // Inherit to customise drawing
-class MIDIKeyboard : public MidiKeyboardComponent {
-
+class MIDIKeyboard : public MidiKeyboardComponent
+{
+    
     Object* object;
-
+    
+    bool toggleMode = false;
+    std::set<int> heldKeys;
+    
 public:
+    
+    std::function<void(int, int)> noteOn;
+    std::function<void(int)> noteOff;
+    
     MIDIKeyboard(Object* parent, MidiKeyboardState& stateToUse, Orientation orientationToUse)
-        : MidiKeyboardComponent(stateToUse, orientationToUse)
-        , object(parent)
+    : MidiKeyboardComponent(stateToUse, orientationToUse)
+    , object(parent)
     {
         // Make sure nothing is drawn outside of our custom draw functions
         setColour(MidiKeyboardComponent::whiteNoteColourId, Colours::transparentBlack);
@@ -21,7 +29,7 @@ public:
         setColour(MidiKeyboardComponent::textLabelColourId, Colours::transparentBlack);
         setColour(MidiKeyboardComponent::shadowColourId, Colours::transparentBlack);
     }
-
+    
     /*  Return the amount of white notes in the current displayed range.
      *  We use this to calculate & resize the keyboard width when more range is added
      *  because setKeyWidth sets the width of white keys
@@ -29,13 +37,13 @@ public:
     int getCountOfWhiteNotesInRange()
     {
         /*
-        ┌──┬─┬─┬─┬──┬──┬─┬─┬─┬─┬─┬──┐
-        │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
-        │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
-        │  └┼┘ └┼┘  │  └┼┘ └┼┘ └┼┘  │
-        │ 0 │ 2 │ 4 │ 5 │ 7 │ 9 │11 │
-        └───┴───┴───┴───┴───┴───┴───┘
-        */
+         ┌──┬─┬─┬─┬──┬──┬─┬─┬─┬─┬─┬──┐
+         │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
+         │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
+         │  └┼┘ └┼┘  │  └┼┘ └┼┘ └┼┘  │
+         │ 0 │ 2 │ 4 │ 5 │ 7 │ 9 │11 │
+         └───┴───┴───┴───┴───┴───┴───┘
+         */
         int count = 0;
         for (int i = getRangeStart(); i <= getRangeEnd(); i++) {
             if (i % 12 == 0 || i % 12 == 2 || i % 12 == 4 || i % 12 == 5 || i % 12 == 7 || i % 12 == 9 || i % 12 == 11) {
@@ -44,11 +52,50 @@ public:
         }
         return count;
     }
+    
+    bool mouseDownOnKey (int midiNoteNumber, const MouseEvent &e) override
+    {
+        if(toggleMode) {
+            
+            
+            if(heldKeys.contains(midiNoteNumber))
+            {
+                heldKeys.erase(midiNoteNumber);
+                noteOff(midiNoteNumber);
+            }
+            else {
+                heldKeys.insert(midiNoteNumber);
+                noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
+            }
+        }
+        else {
+            heldKeys.insert(midiNoteNumber);
+            noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
+        }
+        
+        repaint();
+        return false;
+    }
+    
+    void mouseUpOnKey (int midiNoteNumber, const MouseEvent &e) override
+    {
+        if(!toggleMode)  {
+            heldKeys.erase(midiNoteNumber);
+            noteOff(midiNoteNumber);
+            repaint();
+        }
+    }
+
+    void setToggleMode(bool enableToggleMode) {
+        toggleMode = enableToggleMode;
+    }
 
     void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
     {
         // TODO: this should be a theme preference, or setting for keyboard
         // yeah but we can set a less ugly default colour for now!
+        
+        isDown = heldKeys.contains(midiNoteNumber);
 
         auto c = Colour(225, 225, 225);
         if (isOver)
@@ -115,6 +162,8 @@ public:
         // TODO: this should be a theme preference, or setting for keyboard
         auto c = Colour(90, 90, 90);
 
+        isDown = heldKeys.contains(midiNoteNumber);
+        
         if (isOver)
             c = Colour(101, 101, 101);
         if (isDown)
@@ -127,7 +176,7 @@ public:
 // ELSE keyboard
 class KeyboardObject final : public ObjectBase
     , public Timer
-    , public MidiKeyboardStateListener {
+{
     typedef struct _edit_proxy {
         t_object p_obj;
         t_symbol* p_sym;
@@ -175,6 +224,7 @@ class KeyboardObject final : public ObjectBase
 
     Value sendSymbol;
     Value receiveSymbol;
+    Value toggleMode;
 
     MidiKeyboardState state;
     MIDIKeyboard keyboard;
@@ -187,14 +237,51 @@ public:
     {
         keyboard.setMidiChannel(1);
         keyboard.setScrollButtonsVisible(false);
+        
+        keyboard.noteOn = [this](int note, int velocity){
+            auto* elseKeyboard = static_cast<t_keyboard*>(this->ptr);
 
-        state.addListener(this);
+            cnv->pd->enqueueFunction(
+                [_this = SafePointer(this), elseKeyboard, note, velocity]() mutable {
+                    if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
+                        return;
+
+                    int ac = 2;
+                    t_atom at[2];
+                    SETFLOAT(at, note);
+                    SETFLOAT(at + 1, velocity);
+
+                    outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
+                    if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
+                        pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
+                });
+        };
+        
+        keyboard.noteOff = [this](int note){
+            auto* elseKeyboard = static_cast<t_keyboard*>(this->ptr);
+
+            cnv->pd->enqueueFunction(
+                [_this = SafePointer(this), elseKeyboard, note]() mutable {
+                    if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
+                        return;
+
+                    int ac = 2;
+                    t_atom at[2];
+                    SETFLOAT(at, note);
+                    SETFLOAT(at + 1, 0);
+
+                    outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
+                    if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
+                        pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
+                });
+        };
 
         addAndMakeVisible(keyboard);
 
         auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
         lowC.setValue(elseKeyboard->x_low_c);
         octaves.setValue(elseKeyboard->x_octaves);
+        toggleMode.setValue(elseKeyboard->x_toggle_mode);
 
         auto sndSym = String::fromUTF8(elseKeyboard->x_send->s_name);
         auto rcvSym = String::fromUTF8(elseKeyboard->x_receive->s_name);
@@ -202,8 +289,10 @@ public:
         sendSymbol = sndSym != "empty" ? sndSym : "";
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
+        // TODO: move to initialiseParameters
         valueChanged(lowC);
         valueChanged(octaves);
+        valueChanged(toggleMode);
 
         startTimer(150);
 
@@ -247,59 +336,14 @@ public:
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
     }
 
-    void handleNoteOn(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
-    {
-        if (midiChannel != 1)
-            return;
-
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
-
-        cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), elseKeyboard, note, velocity]() mutable {
-                if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
-                    return;
-
-                int ac = 2;
-                t_atom at[2];
-                SETFLOAT(at, note);
-                SETFLOAT(at + 1, velocity * 127);
-
-                outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
-                if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
-                    pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
-            });
-    }
-
-    void handleNoteOff(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
-    {
-        if (midiChannel != 1)
-            return;
-
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
-
-        cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), elseKeyboard, note]() mutable {
-                if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
-                    return;
-
-                int ac = 2;
-                t_atom at[2];
-                SETFLOAT(at, note);
-                SETFLOAT(at + 1, 0);
-
-                outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
-                if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
-                    pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
-            });
-    }
-
     ObjectParameters getParameters() override
     {
         return {
             { "Start octave", tInt, cGeneral, &lowC, {} },
             { "Num. octaves", tInt, cGeneral, &octaves, {} },
+            { "Toggle Mode", tBool, cGeneral, &toggleMode, {"Off", "On"} },
             { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send Symbol", tString, cGeneral, &sendSymbol, {} }
+            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
         };
     }
 
@@ -342,6 +386,12 @@ public:
             t_atom atom;
             SETSYMBOL(&atom, pd->generateSymbol(symbol));
             pd_typedmess((t_pd*)elseKeyboard, pd->generateSymbol("receive"), 1, &atom);
+        } else if (value.refersToSameSourceAs(toggleMode)) {
+            auto toggle = static_cast<int>(toggleMode.getValue());
+            t_atom atom;
+            SETFLOAT(&atom, toggle);
+            pd_typedmess((t_pd*)elseKeyboard, pd->generateSymbol("toggle"), 1, &atom);
+            keyboard.setToggleMode(toggle);
         }
     }
 
@@ -392,6 +442,10 @@ public:
             if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
             break;
+        }
+        case hash("toggle"): {
+            setParameterExcludingListener(toggleMode, atoms[0].getFloat());
+            keyboard.setToggleMode(static_cast<bool>(atoms[0].getFloat()));
         }
         default:
             break;
