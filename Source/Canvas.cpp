@@ -146,19 +146,22 @@ void Canvas::paint(Graphics& g)
     }
 
     if (locked == var(false) && !isGraph) {
-        
         // draw origin
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-        g.drawLine(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, getHeight() + 1.0f);
-        g.drawLine(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, getWidth() + 1.0f, canvasOrigin.y - 0.5f);
-        
+        auto verticalExtent = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, getHeight() + 1.0f);
+        auto horizontalExtent = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, getWidth() + 1.0f, canvasOrigin.y - 0.5f);
+        float dash[2] = { 5.0f, 5.0f};
+        g.drawDashedLine(verticalExtent, dash, 2, 1.0f);
+        g.drawDashedLine(horizontalExtent, dash, 2, 1.0f);
+
         Rectangle<int> const clipBounds = g.getClipBounds();
 
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
         
         for (int x = canvasOrigin.getX() % objectGrid.gridSize; x < clipBounds.getRight(); x += objectGrid.gridSize) {
             for (int y = canvasOrigin.getY() % objectGrid.gridSize; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
-                g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
+                if (!(x == canvasOrigin.x && y >= canvasOrigin.y || y == canvasOrigin.y && x >= canvasOrigin.x))
+                    g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
             }
         }
     }
