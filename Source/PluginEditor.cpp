@@ -541,6 +541,9 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     sidebar->hideParameters();
 
+    if (tabbar->getCurrentTabIndex() == tabIdx)
+        tabbar->setCurrentTabIndex(tabIdx > 0 ? tabIdx - 1 : tabIdx);
+
     cnv->getTabbar()->removeTab(tabIdx);
 
     pd->patches.removeObject(patch, false);
@@ -549,10 +552,6 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     if (patch->closePatchOnDelete) {
         delete patch;
-    }
-
-    if (tabbar->getCurrentTabIndex() < 0 && tabbar->getNumTabs() >= 0) {
-        tabbar->setCurrentTabIndex(0);
     }
 
     if (auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas()) {
