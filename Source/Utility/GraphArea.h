@@ -43,7 +43,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        setPdBounds();
+        applyBounds();
         repaint();
     }
 
@@ -51,7 +51,7 @@ public:
     {
         int handleSize = 20;
 
-        setPdBounds();
+        applyBounds();
         resizer.setBounds(getWidth() - handleSize, getHeight() - handleSize, handleSize, handleSize);
 
         canvas->updateDrawables();
@@ -59,7 +59,7 @@ public:
         repaint();
     }
 
-    void setPdBounds()
+    void applyBounds()
     {
         t_canvas* cnv = canvas->patch.getPointer();
 

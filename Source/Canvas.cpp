@@ -127,6 +127,10 @@ void Canvas::recreateViewport()
         if (suggestor) {
             suggestor->updateBounds();
         }
+        if(graphArea)
+        {
+            graphArea->updateBounds();
+        }
     };
 
     canvasViewport->setScrollBarsShown(true, true, true, true);
