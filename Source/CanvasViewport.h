@@ -54,7 +54,7 @@ class CanvasViewport : public Viewport, public AsyncUpdater
                 scale = std::sqrt(std::abs(viewedComponent->getTransform().getDeterminant()));
             }
 
-            auto infiniteCanvasOriginOffset = viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
+            auto infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
             viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
         }
         
@@ -182,11 +182,17 @@ class CanvasViewport : public Viewport, public AsyncUpdater
         void mouseDrag (const MouseEvent& e) override
         {
             auto mousePos = isVertical() ? e.y : e.x;
+            
+            auto totalRange = getRangeLimit();
+            
+            
 
             if (isDraggingThumb && lastMousePos != mousePos)
             {
                 auto deltaPixels = mousePos - lastMousePos;
          
+                deltaPixels = jmap<int>(deltaPixels, 0, isVertical() ? getHeight() : getWidth() ,totalRange.getStart(), totalRange.getEnd());
+                
                 setCurrentRangeStart (getCurrentRangeStart()
                                         + deltaPixels * 2.5);
             }
