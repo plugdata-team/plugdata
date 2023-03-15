@@ -311,9 +311,10 @@ void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
     auto* currentTabbar = cnv->getTabbar();
     auto const tabIdx = cnv->getTabIndex();
 
-    currentTabbar->removeTab(cnv->getTabIndex());
+    if (currentTabbar->getCurrentTabIndex() == tabIdx)
+        currentTabbar->setCurrentTabIndex(tabIdx > 0 ? tabIdx - 1 : tabIdx);
 
-    currentTabbar->setCurrentTabIndex(tabIdx > 0 ? tabIdx - 1 : tabIdx);
+    currentTabbar->removeTab(tabIdx);
 
     cnv->recreateViewport();
 
