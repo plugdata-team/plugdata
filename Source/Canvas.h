@@ -144,6 +144,7 @@ public:
     Viewport* viewport = nullptr;
 
     bool connectingWithDrag = false;
+    bool connectionCancelled = false;
     SafePointer<Iolet> nearestIolet;
 
     pd::Patch& patch;
