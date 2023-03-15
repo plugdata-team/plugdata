@@ -636,11 +636,7 @@ bool Canvas::keyPressed(KeyPress const& key)
 
     // Cancel connections being created by ESC key
     if (keycode == KeyPress::escapeKey) {
-        if (connectionsBeingCreated.size()) {
-            MessageManager::callAsync([this] {
-                cancelConnectionCreation();
-            });
-        }
+        cancelConnectionCreation();
         return true;
     }
 
@@ -1026,6 +1022,14 @@ bool Canvas::connectSelectedObjects()
 void Canvas::cancelConnectionCreation()
 {
     connectionsBeingCreated.clear();
+    if (connectingWithDrag) {
+        connectingWithDrag = false;
+        connectionCancelled = true;
+        if (nearestIolet) {
+            nearestIolet->isTargeted = false;
+            nearestIolet->repaint();
+        }
+    }
 }
 
 void Canvas::undo()

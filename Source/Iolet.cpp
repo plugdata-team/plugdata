@@ -133,7 +133,7 @@ void Iolet::mouseDrag(MouseEvent const& e)
     if (static_cast<bool>(locked.getValue()) || e.mods.isMiddleButtonDown())
         return;
 
-    if (cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
+    if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
         MessageManager::callAsync([_this = SafePointer(this)]() {
             _this->createConnection();
             _this->object->cnv->connectingWithDrag = true;
@@ -182,6 +182,8 @@ void Iolet::mouseUp(MouseEvent const& e)
 
         if (!cnv)
             return;
+
+        cnv->connectionCancelled = false;
 
         if (!wasDragged && cnv->connectionsBeingCreated.isEmpty()) {
             createConnection();
