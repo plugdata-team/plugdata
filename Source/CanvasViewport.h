@@ -19,7 +19,7 @@ class CanvasViewport : public Viewport, public AsyncUpdater
 {
     class MousePanner : public MouseListener {
     public:
-        MousePanner(Viewport* v)
+        MousePanner(CanvasViewport* v)
         : viewport(v)
         {
         }
@@ -41,18 +41,20 @@ class CanvasViewport : public Viewport, public AsyncUpdater
         {
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
-            downCanvasOrigin = static_cast<CanvasViewport*>(viewport)->cnv->canvasOrigin;
+            downCanvasOrigin = viewport->cnv->canvasOrigin;
 
         }
         
         void mouseDrag(MouseEvent const& e) override
         {
+            beginDragAutoRepeat(10);
+            
             float scale = 1.0f;
             if (auto* viewedComponent = viewport->getViewedComponent()) {
                 scale = std::sqrt(std::abs(viewedComponent->getTransform().getDeterminant()));
             }
 
-            auto infiniteCanvasOriginOffset = (static_cast<CanvasViewport*>(viewport)->cnv->canvasOrigin - downCanvasOrigin) * scale;
+            auto infiniteCanvasOriginOffset = viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
             viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
         }
         
@@ -62,7 +64,7 @@ class CanvasViewport : public Viewport, public AsyncUpdater
         }
         
     private:
-        Viewport* viewport;
+        CanvasViewport* viewport;
         Point<int> downPosition;
         Point<int> downCanvasOrigin;
     };
