@@ -346,8 +346,6 @@ public:
             note->x_fontname = gensym(fontName.toRawUTF8());
             updateFont();
         }
-        
-        
     }
 
     Font getFont()
@@ -360,7 +358,7 @@ public:
         auto style = (isBold * Font::bold) | (isItalic * Font::italic) | (isUnderlined * Font::underlined);
         auto typefaceName = font.toString();
         
-        if(typefaceName.isEmpty())
+        if(typefaceName.isEmpty() || typefaceName == "Inter")
         {
             return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
         }

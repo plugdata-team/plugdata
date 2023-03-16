@@ -145,7 +145,6 @@ public:
 
     void lock(bool isLocked) override
     {
-        std::cout << isLocked << std::endl;
         setInterceptsMouseClicks(isLocked, isLocked);
         repaint();
     }
