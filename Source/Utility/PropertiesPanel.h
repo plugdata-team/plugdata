@@ -7,6 +7,7 @@
 #pragma once
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "DraggableNumber.h"
+#include "ColourPicker.h"
 
 class PropertiesPanel : public PropertyPanel {
 
@@ -222,51 +223,6 @@ public:
         Value toggleStateValue;
     };
 
-    struct ColourPicker : public ColourSelector
-        , public ChangeListener {
-        static inline bool isShowing = false;
-
-        ColourPicker(std::function<void(Colour)> cb)
-            : ColourSelector(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace)
-            , callback(cb)
-        {
-            setSize(300, 400);
-            addChangeListener(this);
-
-            auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-
-            setColour(ColourSelector::backgroundColourId, lnf.findColour(PlugDataColour::panelBackgroundColourId));
-        }
-
-        ~ColourPicker()
-        {
-            removeChangeListener(this);
-            isShowing = false;
-        }
-
-        static void show(Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> callback)
-        {
-
-            if (isShowing)
-                return;
-
-            isShowing = true;
-
-            std::unique_ptr<ColourPicker> colourSelector = std::make_unique<ColourPicker>(callback);
-
-            colourSelector->setCurrentColour(currentColour);
-            CallOutBox::launchAsynchronously(std::move(colourSelector), bounds, nullptr);
-        }
-
-    private:
-        void changeListenerCallback(ChangeBroadcaster* source) override
-        {
-            callback(dynamic_cast<ColourSelector*>(source)->getCurrentColour());
-        }
-
-        std::function<void(Colour)> callback = [](Colour) {};
-    };
-
     struct ColourComponent : public Property {
         ColourComponent(String const& propertyName, Value& value)
             : Property(propertyName)
@@ -308,7 +264,7 @@ public:
             if (hideLabel && e.getPosition().x < getWidth() / 2)
                 return;
 
-            ColourPicker::show(Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c) {
+            ColourPicker::show(false, Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c) {
                 if (!_this)
                     return;
 

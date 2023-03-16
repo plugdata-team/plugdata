@@ -70,6 +70,7 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "FunctionObject.h"
 #include "BicoeffObject.h"
 #include "NoteObject.h"
+#include "ColourPickerObject.h"
 
 // Class for non-patchable objects
 class NonPatchable : public ObjectBase {
@@ -215,6 +216,8 @@ bool ObjectBase::click()
     pd->setThis();
 
     auto* pdObj = static_cast<t_gobj*>(ptr)->g_pd;
+
+    // TODO: use z_getfn?
 
     // Check if click method exists, if so, call it
     t_methodentry* mlist;
@@ -449,6 +452,8 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             }
             break;
         }
+        case hash("colors"):
+            return new ColourPickerObject(ptr, parent);
         case hash("key"):
             return new KeyObject(ptr, parent, KeyObject::Key);
         case hash("keyname"):
