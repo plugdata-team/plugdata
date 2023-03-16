@@ -245,6 +245,15 @@ void SplitView::closeEmptySplits()
 
         setSplitEnabled(false);
     }
+    
+    if(splits[0].getCurrentTabIndex() < 0 && splits[0].getNumTabs())
+    {
+        splits[0].setCurrentTabIndex(0);
+    }
+    if(splits[1].getCurrentTabIndex() < 0 && splits[1].getNumTabs())
+    {
+        splits[1].setCurrentTabIndex(0);
+    }
 }
 
 void SplitView::paintOverChildren(Graphics& g)
