@@ -425,7 +425,8 @@ public:
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
-        input.setColour(TextEditor::textColourId, findColour(PlugDataColour::searchBarColourId));
+        input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
+        input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 1, 23, 3, 1 });
         input.getProperties().set("NoOutline", true);
