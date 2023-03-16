@@ -629,10 +629,10 @@ void PluginEditor::addTab(Canvas* cnv)
                             if (result == 2)
                                 saveProject([&deleteFunc]() mutable { deleteFunc(); });
                             else if (result == 1)
-                                closeTab(cnv);
+                                deleteFunc();
                         });
                 } else {
-                    closeTab(cnv);
+                    deleteFunc();
                 }
             });
         }
@@ -1137,7 +1137,29 @@ bool PluginEditor::perform(InvocationInfo const& info)
         if (splitView.getActiveTabbar()->getNumTabs() == 0)
             return true;
 
-        closeTab(getCurrentCanvas());
+        auto* cnv = getCurrentCanvas();
+
+        auto deleteFunc = [this, cnv]() {
+            closeTab(cnv);
+        };
+
+        if (cnv) {
+            MessageManager::callAsync([this, cnv, deleteFunc]() mutable {
+                if (cnv->patch.isDirty()) {
+                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
+                        [this, cnv, deleteFunc](int result) mutable {
+                            if (!cnv)
+                                return;
+                            if (result == 2)
+                                saveProject([&deleteFunc]() mutable { deleteFunc(); });
+                            else if (result == 1)
+                                deleteFunc();
+                        });
+                } else {
+                    deleteFunc();
+                }
+            });
+        }
 
         return true;
     }
