@@ -415,11 +415,14 @@ void Canvas::mouseDown(MouseEvent const& e)
             if (e.mods.isCommandDown()) {
                 // Lock if cmd + click on canvas
                 deselectAll();
+                
+                presentationMode.setValue(false);
                 if (locked.getValue()) {
                     locked.setValue(false);
                 } else {
                     locked.setValue(true);
                 }
+               
             }
             if (!e.mods.isShiftDown()) {
                 deselectAll();
