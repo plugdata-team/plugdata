@@ -70,9 +70,9 @@ public:
         binbuf_text(ptr->te_binbuf, buftext.toRawUTF8(), buftext.getNumBytesAsUTF8());
     }
 
-    bool canResizefilterWidth()
+    bool canResizefilterAmplitude()
     {
-        return filterType == Highshelf || filterType == Lowshelf || filterType == EQ || filterType == Allpass;
+        return filterType == Highshelf || filterType == Lowshelf || filterType == EQ;
     }
 
     void update()
@@ -160,11 +160,11 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (canResizefilterWidth() && (std::abs(e.mouseDownPosition.x - (lastX1 * getWidth())) < 5 || std::abs(e.mouseDownPosition.x - (lastX2 * getWidth())) < 5)) {
+        if (std::abs(e.mouseDownPosition.x - (lastX1 * getWidth())) < 5 || std::abs(e.mouseDownPosition.x - (lastX2 * getWidth())) < 5) {
             changeBandWidth(e.x, e.y, e.mouseDownPosition.x, e.mouseDownPosition.y);
         } else {
             moveBand(e.x, e.mouseDownPosition.x);
-            moveGain(e.y, e.mouseDownPosition.y);
+            if(canResizefilterAmplitude()) moveGain(e.y, e.mouseDownPosition.y);
         }
 
         update();
@@ -172,12 +172,10 @@ public:
 
     void mouseMove(MouseEvent const& e) override
     {
-        if (canResizefilterWidth()) {
-            if (std::abs(e.x - (filterX1 * getWidth())) < 5 || std::abs(e.x - (filterX2 * getWidth())) < 5) {
-                setMouseCursor(MouseCursor::LeftRightResizeCursor);
-            } else {
-                setMouseCursor(MouseCursor::NormalCursor);
-            }
+        if (std::abs(e.x - (filterX1 * getWidth())) < 5 || std::abs(e.x - (filterX2 * getWidth())) < 5) {
+            setMouseCursor(MouseCursor::LeftRightResizeCursor);
+        } else {
+            setMouseCursor(MouseCursor::NormalCursor);
         }
     }
 
@@ -198,12 +196,8 @@ public:
 
         g.setColour(object->findColour(PlugDataColour::outlineColourId));
 
-        if (canResizefilterWidth()) {
-            g.drawVerticalLine(filterX1 * getWidth(), 0, getHeight());
-            g.drawVerticalLine(filterX2 * getWidth(), 0, getHeight());
-        } else {
-            g.drawVerticalLine(filterCentre, 0, getHeight());
-        }
+        g.drawVerticalLine(filterX1 * getWidth(), 0, getHeight());
+        g.drawVerticalLine(filterX2 * getWidth(), 0, getHeight());
 
         g.drawHorizontalLine(getHeight() / 2.0f, 0, getWidth());
 
