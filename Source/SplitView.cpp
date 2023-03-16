@@ -371,9 +371,11 @@ void SplitView::mouseDrag(MouseEvent const& e)
         } else {
             auto* leftTabbar = getLeftTabbar();
             auto* rightTabbar = getRightTabbar();
-            if (activeTabbar == leftTabbar && !leftTabbar->contains(activeTabbar->tabSnapshotBounds.getCentre())) {
+            auto leftTabbarContainsPointer = leftTabbar->contains(e.getEventRelativeTo(leftTabbar).getPosition());
+
+            if (activeTabbar == leftTabbar && !leftTabbarContainsPointer) {
                 splitviewIndicator = true;
-            } else if (activeTabbar == rightTabbar && leftTabbar->contains(activeTabbar->tabSnapshotBounds.getCentre())) {
+            } else if (activeTabbar == rightTabbar && leftTabbarContainsPointer) {
                 splitviewIndicator = true;
             } else {
                 splitviewIndicator = false;
