@@ -492,6 +492,26 @@ void Object::updateTooltips()
 
     // Set object tooltip
     gui->setTooltip(cnv->pd->objectLibrary.getObjectTooltip(gui->getType()));
+    
+    // Check pd library for pddp tooltips, those have priority
+    auto ioletTooltips = cnv->pd->objectLibrary.getIoletTooltips(gui->getType(), gui->getText(), numInputs, numOutputs);
+
+    // First clear all tooltips so we can see later if it has already been set or not
+    for (int i = 0; i < iolets.size(); i++) {
+        iolets[i]->setTooltip("");
+    }
+    
+    // Load tooltips from documentation files, these have priority
+    for (int i = 0; i < iolets.size(); i++) {
+        auto* iolet = iolets[i];
+        
+        auto& tooltip = ioletTooltips[!iolet->isInlet][iolet->isInlet ? i : i - numInputs];
+        
+        // Don't overwrite custom documentation
+        if (tooltip.isNotEmpty()) {
+            iolet->setTooltip(tooltip);
+        }
+    }
 
     cnv->pd->enqueueFunction([_this = SafePointer(this), this]() mutable {
         
@@ -558,13 +578,7 @@ void Object::updateTooltips()
             for (int i = 0; i < iolets.size(); i++) {
                 auto* iolet = iolets[i];
 
-                auto& tooltip = ioletTooltips[!iolet->isInlet][iolet->isInlet ? i : i - numInputs];
-
-                // Don't overwrite custom documentation
-                if (tooltip.isNotEmpty()) {
-                    iolet->setTooltip(tooltip);
-                    continue;
-                }
+                if(iolet->getTooltip().isNotEmpty()) continue;
 
                 if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numOut >= outletMessages.size()))
                     continue;
