@@ -100,11 +100,13 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
 
     locked.addListener(this);
 
+    editor->addModifierKeyListener(this);
     Desktop::getInstance().addFocusChangeListener(this);
 }
 
 Canvas::~Canvas()
 {
+    editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer(), this);
 
     Desktop::getInstance().removeFocusChangeListener(this);
