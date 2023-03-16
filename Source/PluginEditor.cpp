@@ -629,10 +629,10 @@ void PluginEditor::addTab(Canvas* cnv)
                             if (result == 2)
                                 saveProject([&deleteFunc]() mutable { deleteFunc(); });
                             else if (result == 1)
-                                closeTab(cnv);
+                                deleteFunc();
                         });
                 } else {
-                    closeTab(cnv);
+                    deleteFunc();
                 }
             });
         }
