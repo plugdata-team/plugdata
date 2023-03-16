@@ -686,7 +686,6 @@ void Object::mouseDown(MouseEvent const& e)
 
     for (auto* object : cnv->getSelectionOfType<Object>()) {
         object->originalBounds = object->getBounds();
-        object->setBufferedToImage(true);
     }
 
     repaint();
@@ -937,6 +936,7 @@ void Object::mouseDrag(MouseEvent const& e)
         // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
         if (!cnv->objectRateReducer.tooFast()) {
             for (auto* object : selection) {
+                object->setBufferedToImage(true);
                 object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance);
             }
 
