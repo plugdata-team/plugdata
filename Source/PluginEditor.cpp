@@ -757,6 +757,8 @@ void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
 
 void PluginEditor::updateCommandStatus()
 {
+    pd->titleChanged();
+    
     if (auto* cnv = getCurrentCanvas()) {
         // Update connection style button
         bool allSegmented = true;
@@ -795,8 +797,6 @@ void PluginEditor::updateCommandStatus()
             return;
 
         auto deletionCheck = SafePointer(this);
-
-
 
         // First on pd's thread, get undo status
         pd->enqueueFunction(
