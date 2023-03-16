@@ -341,8 +341,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
     
     void drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
-        
-        
         auto backgroundColour = findColour(shouldDrawButtonAsHighlighted || shouldDrawButtonAsDown || button.getToggleState() ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId);
         
         auto cornerSize = Corners::defaultCornerRadius;
@@ -353,7 +351,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         
         if (button.getRadioGroupId() && (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom))
         {
-            auto bounds = button.getLocalBounds().toFloat().reduced(0.0f, 6.0f).translated(-0.5f, -0.25f);
+            auto bounds = button.getLocalBounds().toFloat().reduced(0.0f, 8.0f).translated(-0.5f, -0.25f);
             
             backgroundColour = backgroundColour.contrasting(0.05f);
             
@@ -371,7 +369,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
         else
         {
-            auto bounds = button.getLocalBounds().toFloat().reduced(3.0f, 6.0f).translated(-0.5f, -0.25f);
+            auto bounds = button.getLocalBounds().toFloat().reduced(4.0f, 8.0f).translated(-0.5f, -0.25f);
             
             g.setColour(backgroundColour);
             g.fillRoundedRectangle (bounds, cornerSize);

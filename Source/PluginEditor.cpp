@@ -1264,6 +1264,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::Lock: {
         cnv->locked = !static_cast<bool>(cnv->locked.getValue());
+        cnv->presentationMode = false;
         return true;
     }
     case CommandIDs::ConnectionPathfind: {
