@@ -41,7 +41,7 @@ public:
             if(getToggleState()) background = background.darker(0.05f);
             
             g.setColour(background);
-            g.fillRoundedRectangle(b.toFloat().reduced(5.0f, 2.0f), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(b.toFloat().reduced(4.0f, 2.0f), Corners::defaultCornerRadius);
         }
 
         g.setColour(findColour(PlugDataColour::toolbarTextColourId));
