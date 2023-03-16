@@ -142,7 +142,7 @@ public:
     {
         auto* note = static_cast<t_fake_note*>(ptr);
 
-        primaryColour = Colour(note->x_color[0], note->x_color[1], note->x_color[2]).toString();
+        primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
         secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
         fontSize = note->x_fontsize;
 
@@ -301,7 +301,7 @@ public:
         if (v.refersToSameSourceAs(primaryColour)) {
             auto colour = Colour::fromString(primaryColour.toString());
             noteEditor.applyColourToAllText(colour);
-            colourToHexArray(colour, note->x_color);
+            colourToHexArray(colour, &note->x_red); // this should be illegal, but it works
             repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             colourToHexArray(Colour::fromString(secondaryColour.toString()), note->x_bgcolor);
