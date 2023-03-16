@@ -762,6 +762,8 @@ void PluginEditor::updateCommandStatus()
         bool allSegmented = true;
         bool allNotSegmented = true;
         bool hasSelection = false;
+        
+        bool locked = static_cast<bool>(cnv->locked.getValue());
 
         bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         for (auto& connection : cnv->getSelectionOfType<Connection>()) {
@@ -784,13 +786,17 @@ void PluginEditor::updateCommandStatus()
             editButton.setToggleState(true, dontSendNotification);
         }
         
+        // TooltipWindow already uses the setVisible flag internally, we can't use that, so we use setAlpha instead
+        tooltipWindow.setAlpha(!locked);
+        tooltipShadow.setOwner(locked ? nullptr : &tooltipWindow);
+        
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr)
             return;
 
         auto deletionCheck = SafePointer(this);
 
-        bool locked = static_cast<bool>(cnv->locked.getValue());
+
 
         // First on pd's thread, get undo status
         pd->enqueueFunction(

@@ -756,11 +756,20 @@ public:
             if (owner != nullptr)
                 owner->removeComponentListener(this);
 
-            // (the component can't be null)
-            jassert(componentToFollow != nullptr);
-
             owner = componentToFollow;
-            jassert(owner != nullptr);
+            
+            if(!owner)  {
+                for (int i = 4; --i >= 0;) {
+                    // there seem to be rare situations where the dropshadower may be deleted by
+                    // callbacks during this loop, so use a weak ref to watch out for this..
+                    WeakReference<Component> sw(shadowWindows[i]);
+                    
+                    if (sw != nullptr) {
+                        sw->setVisible(false);
+                    }
+                }
+                return;
+            }
 
             updateParent();
             owner->addComponentListener(this);
@@ -863,6 +872,7 @@ private:
                 WeakReference<Component> sw(shadowWindows[i]);
 
                 if (sw != nullptr) {
+                    sw->setVisible(true);
                     sw->setAlwaysOnTop(owner->isAlwaysOnTop());
 
                     if (sw == nullptr)
