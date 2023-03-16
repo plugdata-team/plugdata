@@ -17,36 +17,36 @@ public:
 
     float fadeIn()
     {
-        alphaTarget = 0.3f;
-        if (!isTimerRunning())
+        targetAlpha = 0.3f;
+        if (!isTimerRunning() && !(currentAlpha >= targetAlpha))
             startTimerHz(60);
 
-        return indicatorAlpha;
+        return currentAlpha;
     }
 
     float fadeOut()
     {
-        alphaTarget = 0.0f;
-        if (!isTimerRunning())
+        targetAlpha = 0.0f;
+        if (!isTimerRunning() && !(currentAlpha <= targetAlpha))
             startTimerHz(60);
 
-        return indicatorAlpha;
+        return currentAlpha;
     }
 
 private:
     void timerCallback() override
     {
         float const stepSize = 0.025f;
-        if (alphaTarget > indicatorAlpha) {
-            indicatorAlpha += stepSize;
-            if (indicatorAlpha >= alphaTarget) {
-                indicatorAlpha = alphaTarget;
+        if (targetAlpha > currentAlpha) {
+            currentAlpha += stepSize;
+            if (currentAlpha >= targetAlpha) {
+                currentAlpha = targetAlpha;
                 stopTimer();
             }
-        } else if (alphaTarget < indicatorAlpha) {
-            indicatorAlpha -= stepSize;
-            if (indicatorAlpha <= alphaTarget) {
-                indicatorAlpha = alphaTarget;
+        } else if (targetAlpha < currentAlpha) {
+            currentAlpha -= stepSize;
+            if (currentAlpha <= targetAlpha) {
+                currentAlpha = targetAlpha;
                 stopTimer();
             }
         }
@@ -56,8 +56,8 @@ private:
 
 private:
     SplitView* splitView;
-    float indicatorAlpha = 0.0f;
-    float alphaTarget = 0.0f;
+    float currentAlpha = 0.0f;
+    float targetAlpha = 0.0f;
 };
 
 class SplitViewResizer : public Component {
@@ -361,8 +361,8 @@ void SplitView::mouseDrag(MouseEvent const& e)
     // Check if the active tabbar has a valid tab snapshot and if the tab snapshot is below the current tab
     if (activeTabbar->tabSnapshot.isValid() && activeTabbar->tabSnapshotBounds.getY() > activeTabbar->getY() + activeTabbar->currentTabBounds.getHeight()) {
         if (!splitView) {
-            // Check if the tab snapshot is close to the right edge of the tabbar
-            if (activeTabbar->tabSnapshotBounds.getRight() > activeTabbar->getWidth() - 5) {
+            // Check if the tab snapshot is on the right hand half of the viewport (activeTabbar)
+            if (e.getEventRelativeTo(activeTabbar).getPosition().getX() > activeTabbar->getWidth() * 0.5f) {
                 splitviewIndicator = true;
 
             } else {
@@ -371,9 +371,11 @@ void SplitView::mouseDrag(MouseEvent const& e)
         } else {
             auto* leftTabbar = getLeftTabbar();
             auto* rightTabbar = getRightTabbar();
-            if (activeTabbar == leftTabbar && !leftTabbar->contains(activeTabbar->tabSnapshotBounds.getCentre())) {
+            auto leftTabbarContainsPointer = leftTabbar->contains(e.getEventRelativeTo(leftTabbar).getPosition());
+
+            if (activeTabbar == leftTabbar && !leftTabbarContainsPointer) {
                 splitviewIndicator = true;
-            } else if (activeTabbar == rightTabbar && leftTabbar->contains(activeTabbar->tabSnapshotBounds.getCentre())) {
+            } else if (activeTabbar == rightTabbar && leftTabbarContainsPointer) {
                 splitviewIndicator = true;
             } else {
                 splitviewIndicator = false;
