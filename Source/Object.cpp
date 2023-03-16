@@ -488,79 +488,94 @@ void Object::updateTooltips()
     if (!gui)
         return;
 
-    std::vector<std::pair<int, String>> inletMessages;
-    std::vector<std::pair<int, String>> outletMessages;
+
 
     // Set object tooltip
     gui->setTooltip(cnv->pd->objectLibrary.getObjectTooltip(gui->getType()));
 
-    /*
-    if (auto* subpatch = gui->getPatch()) {
+    cnv->pd->enqueueFunction([_this = SafePointer(this), this]() mutable {
+        
+        if(!_this) return;
+        
+        std::vector<std::pair<int, String>> inletMessages;
+        std::vector<std::pair<int, String>> outletMessages;
+        
+        if (auto* subpatch = gui->getPatch()) {
 
-        // Check child objects of subpatch for inlet/outlet messages
-        for (auto* obj : subpatch->getObjects()) {
+            // Check child objects of subpatch for inlet/outlet messages
+            for (auto* obj : subpatch->getObjects()) {
 
-            const String name = libpd_get_object_class_name(obj);
-            if (name == "inlet" || name == "inlet~") {
+                const String name = libpd_get_object_class_name(obj);
+                if (name == "inlet" || name == "inlet~") {
 
-                int size;
-                char* str_ptr;
-                libpd_get_object_text(obj, &str_ptr, &size);
+                    int size;
+                    char* str_ptr;
+                    libpd_get_object_text(obj, &str_ptr, &size);
 
-                int x, y, w, h;
-                libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
+                    int x, y, w, h;
+                    libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
 
-                // Anything after the first space will be the comment
-                auto const text = String::fromUTF8(str_ptr, size);
-                inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
-                freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
-            }
-            if (name == "outlet" || name == "outlet~") {
-                int size;
-                char* str_ptr;
-                libpd_get_object_text(obj, &str_ptr, &size);
+                    // Anything after the first space will be the comment
+                    auto const text = String::fromUTF8(str_ptr, size);
+                    inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
+                    freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
+                }
+                if (name == "outlet" || name == "outlet~") {
+                    int size;
+                    char* str_ptr;
+                    libpd_get_object_text(obj, &str_ptr, &size);
 
-                int x, y, w, h;
-                libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
+                    int x, y, w, h;
+                    libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
 
-                auto const text = String::fromUTF8(str_ptr, size);
-                outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
+                    auto const text = String::fromUTF8(str_ptr, size);
+                    outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
 
-                freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
+                    freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
+                }
             }
         }
-    } */
+        
+        if(!_this || (!inletMessages.size() && !outletMessages.size())) return;
+        
+        MessageManager::callAsync([_this, this, inletMessages, outletMessages]() mutable {
+            
+            if(!_this) return;
+            
+            auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b) {
+                return a.first < b.first;
+            };
 
-    auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b) {
-        return a.first < b.first;
-    };
+            std::sort(inletMessages.begin(), inletMessages.end(), sortFunc);
+            std::sort(outletMessages.begin(), outletMessages.end(), sortFunc);
 
-    std::sort(inletMessages.begin(), inletMessages.end(), sortFunc);
-    std::sort(outletMessages.begin(), outletMessages.end(), sortFunc);
+            int numIn = 0;
+            int numOut = 0;
 
-    int numIn = 0;
-    int numOut = 0;
+            // Check pd library for pddp tooltips, those have priority
+            auto ioletTooltips = cnv->pd->objectLibrary.getIoletTooltips(gui->getType(), gui->getText(), numInputs, numOutputs);
 
-    // Check pd library for pddp tooltips, those have priority
-    auto ioletTooltips = cnv->pd->objectLibrary.getIoletTooltips(gui->getType(), gui->getText(), numInputs, numOutputs);
+            for (int i = 0; i < iolets.size(); i++) {
+                auto* iolet = iolets[i];
 
-    for (int i = 0; i < iolets.size(); i++) {
-        auto* iolet = iolets[i];
+                auto& tooltip = ioletTooltips[!iolet->isInlet][iolet->isInlet ? i : i - numInputs];
 
-        auto& tooltip = ioletTooltips[!iolet->isInlet][iolet->isInlet ? i : i - numInputs];
+                // Don't overwrite custom documentation
+                if (tooltip.isNotEmpty()) {
+                    iolet->setTooltip(tooltip);
+                    continue;
+                }
 
-        // Don't overwrite custom documentation
-        if (tooltip.isNotEmpty()) {
-            iolet->setTooltip(tooltip);
-            continue;
-        }
+                if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numOut >= outletMessages.size()))
+                    continue;
 
-        if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numOut >= outletMessages.size()))
-            continue;
+                auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
+                iolet->setTooltip(message);
+            }
+        });
+    });
 
-        auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
-        iolet->setTooltip(message);
-    }
+    
 }
 
 void Object::updateIolets()
