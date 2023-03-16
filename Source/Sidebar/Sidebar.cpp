@@ -155,7 +155,7 @@ void Sidebar::mouseDrag(MouseEvent const& e)
 {
     if (draggingSidebar) {
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
-        newWidth = std::clamp(newWidth, 100, std::max(getParentWidth() / 2, 150));
+        newWidth = std::clamp(newWidth, 200, std::max(getParentWidth() / 2, 150));
 
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         getParentComponent()->resized();
