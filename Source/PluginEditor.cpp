@@ -95,6 +95,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addObjectMenuButton.setButtonText(Icons::Add);
     hideSidebarButton.setButtonText(Icons::Hide);
     pinButton.setButtonText(Icons::Pin);
+    
+    editButton.setButtonText(Icons::Edit);
+    runButton.setButtonText(Icons::Lock);
+    presentButton.setButtonText(Icons::Presentation);
 
     setResizable(true, false);
 
@@ -180,7 +184,41 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addObjectMenuButton.setTooltip("Create object");
     addObjectMenuButton.onClick = [this]() { Dialogs::showObjectMenu(this, &addObjectMenuButton); };
     addAndMakeVisible(addObjectMenuButton);
-
+    
+    // Edit, run and presentation mode buttons
+    for(auto* button : std::vector<TextButton*>{&editButton, &runButton, &presentButton}) {
+        button->onClick = [this]() {
+            if(auto* cnv = getCurrentCanvas()) {
+                if(editButton.getToggleState()) {
+                    cnv->presentationMode.setValue(false);
+                    cnv->locked.setValue(false);
+                }
+                else if(runButton.getToggleState()) {
+                    cnv->presentationMode.setValue(false);
+                    cnv->locked.setValue(true);
+                }
+                else if(presentButton.getToggleState()) {
+                    cnv->presentationMode.setValue(true);
+                    cnv->locked.setValue(true);
+                }
+            }
+        };
+        
+        button->getProperties().set("Style", "LargeIcon");
+        button->setClickingTogglesState(true);
+        button->setRadioGroupId(2200);
+        addAndMakeVisible(button);
+    }
+    editButton.setToggleState(true, sendNotification);
+    
+    editButton.setTooltip("Edit mode");
+    runButton.setTooltip("Run mode");
+    presentButton.setTooltip("Presentation mode");
+    
+    editButton.setConnectedEdges(Button::ConnectedOnRight);
+    runButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
+    presentButton.setConnectedEdges(Button::ConnectedOnLeft);
+    
     // Hide sidebar
     hideSidebarButton.setTooltip("Hide Sidebar");
     hideSidebarButton.getProperties().set("Style", "LargeIcon");
@@ -298,9 +336,15 @@ void PluginEditor::resized()
     auto offset = useLeftButtons && useNonNativeTitlebar ? 70 : 0;
 
     mainMenuButton.setBounds(20 + offset, 0, toolbarHeight, toolbarHeight);
-    undoButton.setBounds(90 + offset, 0, toolbarHeight, toolbarHeight);
-    redoButton.setBounds(160 + offset, 0, toolbarHeight, toolbarHeight);
-    addObjectMenuButton.setBounds(230 + offset, 0, toolbarHeight, toolbarHeight);
+    undoButton.setBounds(80 + offset, 0, toolbarHeight, toolbarHeight);
+    redoButton.setBounds(140 + offset, 0, toolbarHeight, toolbarHeight);
+    addObjectMenuButton.setBounds(200 + offset, 0, toolbarHeight, toolbarHeight);
+    
+    auto startX = (getWidth() / 2.0) - (toolbarHeight * 1.5);
+    
+    editButton.setBounds(startX, 0, toolbarHeight, toolbarHeight);
+    runButton.setBounds(startX + toolbarHeight - 1, 0, toolbarHeight, toolbarHeight);
+    presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 0, toolbarHeight, toolbarHeight);
 
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 170.0f : 70.0f;
 
@@ -314,8 +358,8 @@ void PluginEditor::resized()
     int hidePosition = getWidth() - windowControlsOffset;
     int pinPosition = hidePosition - 65;
 
-    hideSidebarButton.setBounds(hidePosition, 0, 70, toolbarHeight);
-    pinButton.setBounds(pinPosition, 0, 70, toolbarHeight);
+    hideSidebarButton.setBounds(hidePosition, 0, toolbarHeight, toolbarHeight);
+    pinButton.setBounds(pinPosition, 0, toolbarHeight, toolbarHeight);
 
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
@@ -719,7 +763,7 @@ void PluginEditor::updateCommandStatus()
         bool allNotSegmented = true;
         bool hasSelection = false;
 
-        bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && statusbar->locked == var(false);
+        bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         for (auto& connection : cnv->getSelectionOfType<Connection>()) {
             allSegmented = allSegmented && connection->isSegmented();
             allNotSegmented = allNotSegmented && !connection->isSegmented();
@@ -729,10 +773,17 @@ void PluginEditor::updateCommandStatus()
         statusbar->connectionStyleButton->setEnabled(!isDragging && hasSelection);
         statusbar->connectionPathfind->setEnabled(!isDragging && hasSelection);
         statusbar->connectionStyleButton->setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
-
-        statusbar->lockButton->setEnabled(!isDragging);
-        statusbar->attachToCanvas(cnv);
-
+        
+        if(static_cast<bool>(cnv->presentationMode.getValue())) {
+            presentButton.setToggleState(true, dontSendNotification);
+        }
+        else if(static_cast<bool>(cnv->locked.getValue())) {
+            runButton.setToggleState(true, dontSendNotification);
+        }
+        else {
+            editButton.setToggleState(true, dontSendNotification);
+        }
+        
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr)
             return;
@@ -764,8 +815,10 @@ void PluginEditor::updateCommandStatus()
                     });
             });
 
-        statusbar->lockButton->setEnabled(true);
-        statusbar->presentationButton->setEnabled(true);
+        editButton.setEnabled(true);
+        runButton.setEnabled(true);
+        presentButton.setEnabled(true);
+        
         statusbar->gridButton->setEnabled(true);
         statusbar->centreButton->setEnabled(true);
 
@@ -773,12 +826,13 @@ void PluginEditor::updateCommandStatus()
 
         addObjectMenuButton.setEnabled(!locked);
     } else {
+        
+        editButton.setEnabled(false);
+        runButton.setEnabled(false);
+        presentButton.setEnabled(false);
+        
         statusbar->connectionStyleButton->setEnabled(false);
         statusbar->connectionPathfind->setEnabled(false);
-        statusbar->lockButton->setEnabled(false);
-
-        statusbar->lockButton->setEnabled(false);
-        statusbar->presentationButton->setEnabled(false);
         statusbar->gridButton->setEnabled(false);
         statusbar->centreButton->setEnabled(false);
 
@@ -823,7 +877,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
-        isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && statusbar->locked == var(false);
+        isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         hasCanvas = true;
 
         locked = static_cast<bool>(cnv->locked.getValue());
@@ -1203,7 +1257,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::Lock: {
-        statusbar->lockButton->triggerClick();
+        cnv->locked = !static_cast<bool>(cnv->locked.getValue());
         return true;
     }
     case CommandIDs::ConnectionPathfind: {

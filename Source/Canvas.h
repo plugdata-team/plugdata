@@ -63,6 +63,7 @@ public:
     void mouseUp(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
 
+    void commandKeyChanged(bool isHeld) override;
     void spaceKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
 

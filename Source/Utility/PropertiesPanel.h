@@ -313,6 +313,7 @@ public:
                     return;
 
                 _this->currentColour = c.toString();
+                _this->repaint();
             });
         }
 

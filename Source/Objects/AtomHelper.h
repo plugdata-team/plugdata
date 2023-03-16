@@ -212,8 +212,13 @@ public:
             label->setBounds(bounds);
             label->setFont(Font(fontHeight));
             label->setText(text, dontSendNotification);
+            
+            auto textColour = object->findColour(PlugDataColour::canvasTextColourId);
+            if(std::abs(textColour.getBrightness() - object->findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
+                textColour = object->findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
+            }
 
-            label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+            label->setColour(Label::textColourId, textColour);
 
             object->cnv->addAndMakeVisible(label.get());
         } else {

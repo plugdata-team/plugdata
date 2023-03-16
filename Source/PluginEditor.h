@@ -119,6 +119,7 @@ private:
     int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
 
     TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pinButton, hideSidebarButton;
+    TextButton editButton, runButton, presentButton;
 
     TooltipWindow tooltipWindow;
     StackDropShadower tooltipShadow;

@@ -34,8 +34,17 @@ public:
     void paint(Graphics& g) override
     {
         auto b = getLocalBounds().reduced(2);
+        
+        if(isMouseOver() || getToggleState())
+        {
+            auto background = findColour(PlugDataColour::toolbarHoverColourId);
+            if(getToggleState()) background = background.darker(0.05f);
+            
+            g.setColour(background);
+            g.fillRoundedRectangle(b.toFloat().reduced(5.0f, 2.0f), Corners::defaultCornerRadius);
+        }
 
-        g.setColour(findColour(getToggleState() ? PlugDataColour::toolbarActiveColourId : PlugDataColour::toolbarTextColourId));
+        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
 
         auto iconBounds = b.removeFromTop(b.getHeight() * 0.65f).withTrimmedTop(5);
         auto textBounds = b.withTrimmedBottom(3);
@@ -92,7 +101,6 @@ public:
         for (int i = 0; i < toolbarButtons.size(); i++) {
             toolbarButtons[i]->setClickingTogglesState(true);
             toolbarButtons[i]->setRadioGroupId(0110);
-            toolbarButtons[i]->setConnectedEdges(12);
             toolbarButtons[i]->getProperties().set("Style", "LargeIcon");
             addAndMakeVisible(toolbarButtons[i]);
 
@@ -115,10 +123,13 @@ public:
     {
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight).withTrimmedBottom(6);
 
-        int toolbarPosition = 2;
+        auto spacing = ((getWidth() - 120) / toolbarButtons.size());
+        
+        int toolbarPosition = 40;
+        
         for (auto& button : toolbarButtons) {
             button->setBounds(toolbarPosition, 1, 70, toolbarHeight - 2);
-            toolbarPosition += 70;
+            toolbarPosition += spacing;
         }
 
         for (auto* panel : panels) {

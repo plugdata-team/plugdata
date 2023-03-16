@@ -184,10 +184,11 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto backgroundColour = findColour(PlugDataColour::searchBarColourId);
         auto textColour = findColour(PlugDataColour::sidebarTextColourId);
 
-        input.setColour(TextEditor::backgroundColourId, backgroundColour.brighter(0.7f));
+        
+        input.setColour(TextEditor::backgroundColourId, backgroundColour);
         input.setColour(TextEditor::textColourId, textColour);
 
         g.setColour(backgroundColour);

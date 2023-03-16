@@ -83,7 +83,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     setWantsKeyboardFocus(true);
 
     if (!isGraph) {
-        presentationMode.referTo(editor->statusbar->presentationMode);
         presentationMode.addListener(this);
     } else {
         presentationMode = false;
@@ -381,6 +380,11 @@ void Canvas::updateDrawables()
             object->gui->updateDrawables();
         }
     }
+}
+
+void Canvas::commandKeyChanged(bool isHeld)
+{
+    commandLocked = isHeld && locked.getValue() == var(false);
 }
 
 void Canvas::spaceKeyChanged(bool isHeld)

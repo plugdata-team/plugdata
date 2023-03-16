@@ -14,61 +14,64 @@
 
 inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDataColourNames = {
 
-    { toolbarBackgroundColourId, { "Toolbar Background", "toolbar_background", "Toolbar" } },
-    { toolbarTextColourId, { "Toolbar Text", "toolbar_text", "Toolbar" } },
-    { toolbarActiveColourId, { "Toolbar Active", "toolbar_active", "Toolbar" } },
+    { toolbarBackgroundColourId, { "Toolbar background", "toolbar_background", "Toolbar" } },
+    { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
+    { toolbarHoverColourId, { "Toolbar Hover", "toolbar_hover", "Toolbar" } },
+    { toolbarActiveColourId, { "Toolbar Active Text", "toolbar_active", "Toolbar" } },
 
     { tabBackgroundColourId, { "Tab Background", "tab_background", "Tabbar" } },
 
-    { tabTextColourId, { "Tab Text", "tab_text", "Tabbar" } },
-    { activeTabBackgroundColourId, { "Active Tab Background", "active_tab_background", "Tabbar" } },
-    { activeTabTextColourId, { "Active Tab Text", "active_tab_text", "Tabbar" } },
+    { tabTextColourId, { "Tab text", "tab_text", "Tabbar" } },
+    { activeTabBackgroundColourId, { "Active tab background", "active_tab_background", "Tabbar" } },
+    { activeTabTextColourId, { "Active tab text", "active_tab_text", "Tabbar" } },
 
-    { canvasBackgroundColourId, { "Canvas Background", "canvas_background", "Canvas" } },
-    { canvasTextColourId, { "Canvas Text", "canvas_text", "Canvas" } },
-    { canvasDotsColourId, { "Canvas Dots Colour", "canvas_dots", "Canvas" } },
-    { outlineColourId, { "Outline Colour", "outline_colour", "Canvas" } },
+    { canvasBackgroundColourId, { "Canvas background", "canvas_background", "Canvas" } },
+    { canvasTextColourId, { "Canvas text", "canvas_text", "Canvas" } },
+    { canvasDotsColourId, { "Canvas dots Colour", "canvas_dots", "Canvas" } },
+    { outlineColourId, { "Outline colour", "outline_colour", "Canvas" } },
 
-    { guiObjectBackgroundColourId, { "GUI Object Background", "default_object_background", "Object" } },
-    { textObjectBackgroundColourId, { "Text Object Background", "text_object_background", "Object" } },
+    { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
+    { textObjectBackgroundColourId, { "Text object background", "text_object_background", "Object" } },
+    { commentTextColourId, { "Comment text colour", "comment_text_colour", "Object" } },
     { objectOutlineColourId, { "Object outline colour", "object_outline_colour", "Object" } },
     { objectSelectedOutlineColourId, { "Selected object outline colour", "selected_object_outline_colour", "Object" } },
 
-    { ioletAreaColourId, { "Inlet/Outlet Area Colour", "iolet_area_colour", "Inlet/Outlet" } },
-    { ioletOutlineColourId, { "Inlet/Outlet Outline Colour", "iolet_outline_colour", "Inlet/Outlet" } },
+    { ioletAreaColourId, { "Inlet/Outlet area colour", "iolet_area_colour", "Inlet/Outlet" } },
+    { ioletOutlineColourId, { "Inlet/Outlet outline colour", "iolet_outline_colour", "Inlet/Outlet" } },
 
-    { dataColourId, { "Data Colour", "data_colour", "Canvas" } },
-    { connectionColourId, { "Connection Colour", "connection_colour", "Canvas" } },
-    { signalColourId, { "Signal Colour", "signal_colour", "Canvas" } },
-    { resizeableCornerColourId, { "Graph Resizer", "graph_resizer", "Canvas" } },
-    { gridLineColourId, { "Grid Line Colour", "grid_colour", "Canvas" } },
+    { dataColourId, { "Data colour", "data_colour", "Canvas" } },
+    { connectionColourId, { "Connection colour", "connection_colour", "Canvas" } },
+    { signalColourId, { "Signal colour", "signal_colour", "Canvas" } },
+    { resizeableCornerColourId, { "Graph resizer", "graph_resizer", "Canvas" } },
+    { gridLineColourId, { "Grid line colour", "grid_colour", "Canvas" } },
 
-    { popupMenuBackgroundColourId, { "Popup Menu Background", "popup_background", "Popup Menu" } },
-    { popupMenuActiveBackgroundColourId, { "Popup Menu Background Active", "popup_background_active", "Popup Menu" } },
-    { popupMenuTextColourId, { "Popup Menu Text", "popup_text", "Popup Menu" } },
-    { popupMenuActiveTextColourId, { "Popup Menu Active Text", "popup_active_text", "Popup Menu" } },
+    { popupMenuBackgroundColourId, { "Popup menu background", "popup_background", "Popup Menu" } },
+    { popupMenuActiveBackgroundColourId, { "Popup menu background active", "popup_background_active", "Popup Menu" } },
+    { popupMenuTextColourId, { "Popup menu text", "popup_text", "Popup Menu" } },
+    { popupMenuActiveTextColourId, { "Popup menu active text", "popup_active_text", "Popup Menu" } },
 
-    { dialogBackgroundColourId, { "Dialog Background", "dialog_background", "Other" } },
-    { caretColourId, { "Text Editor Caret", "caret_colour", "Other" } },
+    { dialogBackgroundColourId, { "Dialog background", "dialog_background", "Other" } },
+    { caretColourId, { "Text editor caret", "caret_colour", "Other" } },
 
-    { levelMeterActiveColourId, { "Level Meter Active", "levelmeter_active", "Level Meter" } },
-    { levelMeterInactiveColourId, { "Level Meter inactive", "levelmeter_inactive", "Level Meter" } },
+    { levelMeterActiveColourId, { "Level meter active", "levelmeter_active", "Level Meter" } },
+    { levelMeterInactiveColourId, { "Level meter inactive", "levelmeter_inactive", "Level Meter" } },
 
-    { levelMeterTrackColourId, { "Level Meter Track", "levelmeter_track", "Level Meter" } },
-    { levelMeterThumbColourId, { "Level Meter Thumb", "levelmeter_thumb", "Level Meter" } },
+    { levelMeterTrackColourId, { "Level meter track", "levelmeter_track", "Level Meter" } },
+    { levelMeterThumbColourId, { "Level meter thumb", "levelmeter_thumb", "Level Meter" } },
 
-    { sliderThumbColourId, { "Slider Thumb", "slider_thumb", "Other" } },
-    { scrollbarThumbColourId, { "Scrollbar Thumb", "scrollbar_thumb", "Other" } },
+    { sliderThumbColourId, { "Slider thumb", "slider_thumb", "Other" } },
+    { scrollbarThumbColourId, { "Scrollbar thumb", "scrollbar_thumb", "Other" } },
 
-    { panelBackgroundColourId, { "Panel Background", "panel_colour", "Panel" } },
-    { panelTextColourId, { "Panel Text", "panel_text", "Panel" } },
-    { panelActiveBackgroundColourId, { "Panel Background Active", "panel_background_active", "Panel" } },
-    { panelActiveTextColourId, { "Panel Active Text", "panel_active_text", "Panel" } },
-
-    { sidebarBackgroundColourId, { "Sidebar Background", "sidebar_colour", "Sidebar" } },
-    { sidebarTextColourId, { "Sidebar Text", "sidebar_text", "Sidebar" } },
-    { sidebarActiveBackgroundColourId, { "Sidebar Background Active", "sidebar_background_active", "Sidebar" } },
-    { sidebarActiveTextColourId, { "Sidebar Active Text", "sidebar_active_text", "Sidebar" } },
+    { panelBackgroundColourId, { "Panel background", "panel_colour", "Panel" } },
+    { panelTextColourId, { "Panel text", "panel_text", "Panel" } },
+    { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Panel" } },
+    { panelActiveTextColourId, { "Panel active text", "panel_active_text", "Panel" } },
+    { searchBarColourId, { "Searchbar colour", "searchbar_colour", "Panel" } },
+    
+    { sidebarBackgroundColourId, { "Sidebar background", "sidebar_colour", "Sidebar" } },
+    { sidebarTextColourId, { "Sidebar text", "sidebar_text", "Sidebar" } },
+    { sidebarActiveBackgroundColourId, { "Sidebar background active", "sidebar_background_active", "Sidebar" } },
+    { sidebarActiveTextColourId, { "Sidebar active text", "sidebar_active_text", "Sidebar" } },
 };
 
 struct PlugDataLook : public LookAndFeel_V4 {
@@ -149,7 +152,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
 
         void globalFocusChanged(Component* focusedComponent) override
-        {
+        { 
             buttonColour = getParentComponent()->hasKeyboardFocus(true) ? bgColour : Colours::lightgrey;
             repaint();
         }
@@ -335,9 +338,54 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawResizableWindowBorder(Graphics&, int w, int h, BorderSize<int> const& border, ResizableWindow&) override
     {
     }
+    
+    void drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+    {
+        
+        
+        auto backgroundColour = findColour(shouldDrawButtonAsHighlighted || shouldDrawButtonAsDown || button.getToggleState() ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId);
+        
+        auto cornerSize = Corners::defaultCornerRadius;
+        auto flatOnLeft   = button.isConnectedOnLeft();
+        auto flatOnRight  = button.isConnectedOnRight();
+        auto flatOnTop    = button.isConnectedOnTop();
+        auto flatOnBottom = button.isConnectedOnBottom();
+        
+        if (button.getRadioGroupId() && (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom))
+        {
+            auto bounds = button.getLocalBounds().toFloat().reduced(0.0f, 6.0f).translated(-0.5f, -0.25f);
+            
+            backgroundColour = backgroundColour.contrasting(0.05f);
+            
+            Path path;
+            path.addRoundedRectangle (bounds.getX(), bounds.getY(),
+                                      bounds.getWidth(), bounds.getHeight(),
+                                      cornerSize, cornerSize,
+                                      ! (flatOnLeft  || flatOnTop),
+                                      ! (flatOnRight || flatOnTop),
+                                      ! (flatOnLeft  || flatOnBottom),
+                                      ! (flatOnRight || flatOnBottom));
+
+            g.setColour(backgroundColour);
+            g.fillPath (path);
+        }
+        else
+        {
+            auto bounds = button.getLocalBounds().toFloat().reduced(3.0f, 6.0f).translated(-0.5f, -0.25f);
+            
+            g.setColour(backgroundColour);
+            g.fillRoundedRectangle (bounds, cornerSize);
+        }
+        
+    }
 
     void drawButtonBackground(Graphics& g, Button& button, Colour const& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
+        if(button.getProperties()["Style"] == "LargeIcon") {
+            drawToolbarButtonBackground(g, button, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+            return;
+        }
+        
         if (button.getProperties()["Style"].toString().contains("Icon")) {
             return;
         } else {
@@ -348,9 +396,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown) override
     {
         if (button.getProperties()["Style"] == "LargeIcon") {
-            button.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
+            button.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarTextColourId));
             button.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
-
             LookAndFeel_V4::drawButtonText(g, button, isMouseOverButton, isButtonDown);
         } else if (button.getProperties()["Style"] == "SmallIcon") {
             Font font(getTextButtonFont(button, button.getHeight()));
@@ -359,11 +406,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
             if (!button.isEnabled()) {
                 g.setColour(Colours::grey);
             } else if (button.getToggleState()) {
-                g.setColour(button.findColour(TextButton::textColourOnId));
+                g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId));
             } else if (isMouseOverButton) {
-                g.setColour(button.findColour(TextButton::textColourOnId).brighter(0.8f));
+                g.setColour(button.findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f));
             } else {
-                g.setColour(button.findColour(TextButton::textColourOffId));
+                g.setColour(button.findColour(PlugDataColour::toolbarTextColourId));
             }
 
             int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
@@ -949,7 +996,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setColour(PopupMenu::highlightedBackgroundColourId,
             colours.at(PlugDataColour::panelActiveBackgroundColourId));
         setColour(TextButton::textColourOnId,
-            colours.at(PlugDataColour::toolbarActiveColourId));
+            colours.at(PlugDataColour::toolbarHoverColourId));
         setColour(Slider::thumbColourId,
             colours.at(PlugDataColour::sliderThumbColourId));
         setColour(ScrollBar::thumbColourId,
@@ -999,19 +1046,19 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setColour(TextButton::textColourOffId,
             colours.at(PlugDataColour::panelTextColourId));
         setColour(ComboBox::textColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(TableListBox::textColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(Label::textColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(Label::textWhenEditingColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(ListBox::textColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(TextEditor::textColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(PropertyComponent::labelTextColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(PopupMenu::textColourId,
             colours.at(PlugDataColour::panelTextColourId));
         setColour(KeyMappingEditorComponent::textColourId,
@@ -1021,17 +1068,17 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setColour(TabbedButtonBar::tabTextColourId,
             colours.at(PlugDataColour::tabTextColourId));
         setColour(ToggleButton::textColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(ToggleButton::tickColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(ToggleButton::tickDisabledColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(ComboBox::arrowColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(DirectoryContentsDisplayComponent::textColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(Slider::textBoxTextColourId,
-            colours.at(PlugDataColour::canvasTextColourId));
+            colours.at(PlugDataColour::panelTextColourId));
         setColour(AlertWindow::textColourId,
             colours.at(PlugDataColour::panelTextColourId));
         setColour(FileBrowserComponent::currentPathBoxTextColourId,
@@ -1075,129 +1122,145 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
+    // clang-format off
     static inline const String defaultThemesXml = "<ColourThemes>\n"
-                                                  "    <Theme theme=\"max\" toolbar_background=\"ff333333\" toolbar_text=\"ffe4e4e4\"\n"
-                                                  "           toolbar_active=\"ff72aedf\" tab_background=\"ff333333\" tab_text=\"ffe4e4e4\"\n"
-                                                  "           active_tab_background=\"ff494949\" active_tab_text=\"ff72aedf\" canvas_background=\"ffe5e5e5\"\n"
-                                                  "           canvas_text=\"ffeeeeee\" canvas_dots=\"ff7f7f7f\" default_object_background=\"ff333333\"\n"
-                                                  "           object_outline_colour=\"ff696969\" selected_object_outline_colour=\"ff72aedf\"\n"
-                                                  "           outline_colour=\"ff393939\" data_colour=\"ff72aedf\" connection_colour=\"ffb3b3b3\"\n"
-                                                  "           signal_colour=\"ffe1ef00\" dialog_background=\"ff333333\" sidebar_colour=\"ff3e3e3e\"\n"
-                                                  "           sidebar_text=\"ffe4e4e4\" sidebar_background_active=\"ff72aedf\"\n"
-                                                  "           sidebar_active_text=\"ffe4e4e4\" levelmeter_active=\"ff72aedf\" levelmeter_inactive=\"ff5d5d5d\"\n"
-                                                  "           levelmeter_track=\"ff333333\" levelmeter_thumb=\"ffe4e4e4\" panel_colour=\"ff232323\"\n"
-                                                  "           panel_text=\"ffe4e4e4\" panel_background_active=\"ff72aedf\" panel_active_text=\"ffe4e4e4\"\n"
-                                                  "           popup_background=\"ff333333\" popup_background_active=\"ff72aedf\"\n"
-                                                  "           popup_text=\"ffe4e4e4\" popup_active_text=\"ffe4e4e4\" slider_thumb=\"ff72aedf\" scrollbar_thumb=\"ffa9a9a9\"\n"
-                                                  "           graph_resizer=\"ff72aedf\" grid_colour=\"ff72aedf\" caret_colour=\"ff72aedf\"\n"
-                                                  "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
-                                                  "           square_iolets=\"0\" square_object_corners=\"1\" iolet_area_colour=\"ff808080\"\n"
-                                                  "           iolet_outline_colour=\"ff696969\" text_object_background=\"ff333333\"/>\n"
-                                                  "    <Theme theme=\"classic\" toolbar_background=\"ffffffff\" toolbar_text=\"ff000000\"\n"
-                                                  "           toolbar_active=\"ff787878\" tab_background=\"ffffffff\" tab_text=\"ff000000\"\n"
-                                                  "           active_tab_background=\"ffffffff\" active_tab_text=\"ff000000\" canvas_background=\"ffffffff\"\n"
-                                                  "           canvas_text=\"ff000000\" canvas_dots=\"ffffffff\" default_object_background=\"ffffffff\"\n"
-                                                  "           text_object_background=\"ffffffff\" object_outline_colour=\"ff000000\"\n"
-                                                  "           selected_object_outline_colour=\"ff000000\" outline_colour=\"ff000000\"\n"
-                                                  "           iolet_area_colour=\"ffffffff\" iolet_outline_colour=\"ff000000\"\n"
-                                                  "           data_colour=\"ff000000\" connection_colour=\"ff000000\" signal_colour=\"ff000000\"\n"
-                                                  "           dialog_background=\"ffffffff\" sidebar_colour=\"ffffffff\" sidebar_text=\"ff000000\"\n"
-                                                  "           sidebar_background_active=\"ff000000\" sidebar_active_text=\"ffffffff\"\n"
-                                                  "           levelmeter_active=\"ff000000\" levelmeter_inactive=\"ffffffff\" levelmeter_track=\"ff000000\"\n"
-                                                  "           levelmeter_thumb=\"ff000000\" panel_colour=\"ffffffff\" panel_text=\"ff000000\"\n"
-                                                  "           panel_background_active=\"ff000000\" panel_active_text=\"ffffffff\"\n"
-                                                  "           popup_background=\"ffffffff\" popup_background_active=\"ff000000\"\n"
-                                                  "           popup_text=\"ff000000\" popup_active_text=\"ffffffff\" slider_thumb=\"ff000000\" scrollbar_thumb=\"ffa9a9a9\"\n"
-                                                  "           graph_resizer=\"ff000000\" grid_colour=\"ff000000\" caret_colour=\"ff000000\"\n"
-                                                  "           dashed_signal_connections=\"0\" straight_connections=\"1\" thin_connections=\"1\"\n"
-                                                  "           square_iolets=\"1\" square_object_corners=\"1\"/>\n"
-                                                  "    <Theme theme=\"classic_dark\" toolbar_background=\"ff000000\" toolbar_text=\"ffffffff\"\n"
-                                                  "           toolbar_active=\"ff787878\" tab_background=\"ff000000\" tab_text=\"ffffffff\"\n"
-                                                  "           active_tab_background=\"ff000000\" active_tab_text=\"ffffffff\" canvas_background=\"ff000000\"\n"
-                                                  "           canvas_text=\"ffffffff\" canvas_dots=\"ff000000\" default_object_background=\"ff000000\"\n"
-                                                  "           object_outline_colour=\"ffffffff\" selected_object_outline_colour=\"ffffffff\"\n"
-                                                  "           outline_colour=\"ffffffff\" data_colour=\"ffffffff\" connection_colour=\"ffffffff\"\n"
-                                                  "           signal_colour=\"ffffffff\" dialog_background=\"ff000000\" sidebar_colour=\"ff000000\"\n"
-                                                  "           sidebar_text=\"ffffffff\" sidebar_background_active=\"ffffffff\"\n"
-                                                  "           sidebar_active_text=\"ff000000\" levelmeter_active=\"ffffffff\" levelmeter_inactive=\"ff000000\"\n"
-                                                  "           levelmeter_track=\"ffffffff\" levelmeter_thumb=\"ffffffff\" panel_colour=\"ff000000\"\n"
-                                                  "           panel_text=\"ffffffff\" panel_background_active=\"ffffffff\" panel_active_text=\"ff000000\"\n"
-                                                  "           popup_background=\"ff000000\" popup_background_active=\"ffffffff\"\n"
-                                                  "           popup_text=\"ffffffff\" popup_active_text=\"ff000000\" slider_thumb=\"ffffffff\" scrollbar_thumb=\"ff7f7f7f\"\n"
-                                                  "           graph_resizer=\"ffffffff\" grid_colour=\"ffffffff\" caret_colour=\"ffffffff\"\n"
-                                                  "           dashed_signal_connections=\"0\" straight_connections=\"1\" thin_connections=\"1\"\n"
-                                                  "           square_iolets=\"1\" square_object_corners=\"1\" iolet_area_colour=\"ff000000\"\n"
-                                                  "           iolet_outline_colour=\"ffffffff\" text_object_background=\"ff000000\"/>\n"
-                                                  "    <Theme theme=\"dark\" toolbar_background=\"ff191919\" toolbar_text=\"ffffffff\"\n"
-                                                  "           toolbar_active=\"ff42a2c8\" tab_background=\"ff191919\" tab_text=\"ffffffff\"\n"
-                                                  "           active_tab_background=\"ff232323\" active_tab_text=\"ffffffff\" canvas_background=\"ff232323\"\n"
-                                                  "           canvas_text=\"ffffffff\" canvas_dots=\"ff7f7f7f\" default_object_background=\"ff191919\"\n"
-                                                  "           object_outline_colour=\"ff696969\" selected_object_outline_colour=\"ff42a2c8\"\n"
-                                                  "           outline_colour=\"ff393939\" data_colour=\"ff42a2c8\" connection_colour=\"ffe1e1e1\"\n"
-                                                  "           signal_colour=\"ffff8500\" dialog_background=\"ff191919\" sidebar_colour=\"ff191919\"\n"
-                                                  "           sidebar_text=\"ffffffff\" sidebar_background_active=\"ff282828\"\n"
-                                                  "           sidebar_active_text=\"ffffffff\" levelmeter_active=\"ff42a2c8\" levelmeter_inactive=\"ff2d2d2d\"\n"
-                                                  "           levelmeter_track=\"fff5f5f5\" levelmeter_thumb=\"fff5f5f5\" panel_colour=\"ff232323\"\n"
-                                                  "           panel_text=\"ffffffff\" panel_background_active=\"ff373737\" panel_active_text=\"ffffffff\"\n"
-                                                  "           popup_background=\"ff191919\" popup_background_active=\"ff282828\"\n"
-                                                  "           popup_text=\"ffffffff\" popup_active_text=\"ffffffff\" slider_thumb=\"ff42a2c8\" scrollbar_thumb=\"ff7f7f7f\"\n"
-                                                  "           graph_resizer=\"ff42a2c8\" grid_colour=\"ff42a2c8\" caret_colour=\"ff42a2c8\"\n"
-                                                  "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
-                                                  "           square_iolets=\"0\" square_object_corners=\"0\" text_object_background=\"ff232323\"\n"
-                                                  "           iolet_area_colour=\"ff232323\" iolet_outline_colour=\"ff696969\"/>\n"
-                                                  "    <Theme theme=\"light\" toolbar_background=\"ffe4e4e4\" toolbar_text=\"ff5a5a5a\"\n"
-                                                  "           toolbar_active=\"ff007aff\" tab_background=\"ffe4e4e4\" tab_text=\"ff5a5a5a\"\n"
-                                                  "           active_tab_background=\"fffafafa\" active_tab_text=\"ff5a5a5a\" canvas_background=\"fffafafa\"\n"
-                                                  "           canvas_text=\"ff5a5a5a\" canvas_dots=\"ff909090\" default_object_background=\"ffe4e4e4\"\n"
-                                                  "           object_outline_colour=\"ffa8a8a8\" selected_object_outline_colour=\"ff007aff\"\n"
-                                                  "           outline_colour=\"ffc8c8c8\" data_colour=\"ff007aff\" connection_colour=\"ffb3b3b3\"\n"
-                                                  "           signal_colour=\"ffff8500\" dialog_background=\"ffe4e4e4\" sidebar_colour=\"ffeeeeee\"\n"
-                                                  "           sidebar_text=\"ff5a5a5a\" sidebar_background_active=\"ffd9d9d9\"\n"
-                                                  "           sidebar_active_text=\"ff5a5a5a\" levelmeter_active=\"ff007aff\" levelmeter_inactive=\"ffeeeeee\"\n"
-                                                  "           levelmeter_track=\"ff5a5a5a\" levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"fffafafa\"\n"
-                                                  "           panel_text=\"ff5a5a5a\" panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
-                                                  "           popup_background=\"ffe4e4e4\" popup_background_active=\"ffcfcfcf\"\n"
-                                                  "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" slider_thumb=\"ff007aff\" scrollbar_thumb=\"ffa9a9a9\"\n"
-                                                  "           graph_resizer=\"ff007aff\" grid_colour=\"ff007aff\" caret_colour=\"ff007aff\"\n"
-                                                  "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
-                                                  "           square_iolets=\"0\" square_object_corners=\"0\" text_object_background=\"fffafafa\"\n"
-                                                  "           iolet_area_colour=\"fffafafa\" iolet_outline_colour=\"ffa8a8a8\"/>\n"
-                                                  "    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
-                                                  "           toolbar_active=\"ff5da0c4\" tab_background=\"ffd2cdc4\" tab_text=\"ff5a5a5a\"\n"
-                                                  "           active_tab_background=\"ffdedad3\" active_tab_text=\"ff5a5a5a\" canvas_background=\"ffe3dfd9\"\n"
-                                                  "           canvas_text=\"ff5a5a5a\" canvas_dots=\"ff909090\" default_object_background=\"ffe3dfd9\"\n"
-                                                  "           object_outline_colour=\"ff968e82\" selected_object_outline_colour=\"ff5da0c4\"\n"
-                                                  "           outline_colour=\"ff968e82\" data_colour=\"ff5da0c4\" connection_colour=\"ffb3b3b3\"\n"
-                                                  "           signal_colour=\"ffff8502\" dialog_background=\"ffd2cdc4\" sidebar_colour=\"ffdedad3\"\n"
-                                                  "           sidebar_text=\"ff5a5a5a\" sidebar_background_active=\"ffd2cdc4\"\n"
-                                                  "           sidebar_active_text=\"ff5a5a5a\" levelmeter_active=\"ff5da0c4\" levelmeter_inactive=\"ffd2cdc4\"\n"
-                                                  "           levelmeter_track=\"ff5a5a5a\" levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"ffe3dfd9\"\n"
-                                                  "           panel_text=\"ff5a5a5a\" panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
-                                                  "           popup_background=\"ffd2cdc4\" popup_background_active=\"ffdedad3\"\n"
-                                                  "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" slider_thumb=\"ff5da0c4\" scrollbar_thumb=\"ffa9a9a9\"\n"
-                                                  "           graph_resizer=\"ff5da0c4\" grid_colour=\"ff5da0c4\" caret_colour=\"ff5da0c4\"\n"
-                                                  "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
-                                                  "           square_iolets=\"0\" square_object_corners=\"0\" iolet_area_colour=\"ffe3dfd9\"\n"
-                                                  "           iolet_outline_colour=\"ff968e82\" text_object_background=\"ffe3dfd9\"/>\n"
-                                                  "    <Theme theme=\"fangs\" toolbar_background=\"ff232323\" toolbar_text=\"ffffffff\"\n"
-                                                  "           toolbar_active=\"ff5bcefa\" tab_background=\"ff232323\" tab_text=\"ffffffff\"\n"
-                                                  "           active_tab_background=\"ff3a3a3a\" active_tab_text=\"ffffffff\" canvas_background=\"ff383838\"\n"
-                                                  "           canvas_text=\"ffffffff\" canvas_dots=\"ffa0a0a0\" default_object_background=\"ff191919\"\n"
-                                                  "           object_outline_colour=\"ff232323\" selected_object_outline_colour=\"ffffacab\"\n"
-                                                  "           outline_colour=\"ff575757\" data_colour=\"ff5bcefa\" connection_colour=\"ffa0a0a0\"\n"
-                                                  "           signal_colour=\"ffffacab\" dialog_background=\"ff191919\" sidebar_colour=\"ff232323\"\n"
-                                                  "           sidebar_text=\"ffffffff\" sidebar_background_active=\"ff383838\"\n"
-                                                  "           sidebar_active_text=\"ffffffff\" levelmeter_active=\"ff5bcefa\" levelmeter_inactive=\"ff2d2d2d\"\n"
-                                                  "           levelmeter_track=\"fff5f5f5\" levelmeter_thumb=\"fff5f5f5\" panel_colour=\"ff383838\"\n"
-                                                  "           panel_text=\"ffffffff\" panel_background_active=\"ff232323\" panel_active_text=\"ffffffff\"\n"
-                                                  "           popup_background=\"ff232323\" popup_background_active=\"ff383838\"\n"
-                                                  "           popup_text=\"ffffffff\" popup_active_text=\"ffffffff\" scrollbar_thumb=\"ff8e8e8e\"\n"
-                                                  "           graph_resizer=\"ff5bcefa\" grid_colour=\"ff5bcefa\" caret_colour=\"ffffacab\"\n"
-                                                  "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"1\"\n"
-                                                  "           square_iolets=\"1\" square_object_corners=\"0\" text_object_background=\"ff232323\"\n"
-                                                  "           iolet_area_colour=\"ff232323\" iolet_outline_colour=\"ff696969\" slider_thumb=\"ff8e8e8e\"/>\n"
-                                                  "  </ColourThemes>";
-
+    "    <Theme theme=\"max\" toolbar_background=\"ff333333\" toolbar_text=\"ffe4e4e4\"\n"
+    "           toolbar_active=\"ff72aedf\" toolbar_hover=\"ff72aedf\" tab_background=\"ff333333\"\n"
+    "           tab_text=\"ffe4e4e4\" active_tab_background=\"ff494949\" active_tab_text=\"ff72aedf\"\n"
+    "           canvas_background=\"ffe5e5e5\" canvas_text=\"ffeeeeee\" canvas_dots=\"ff7f7f7f\"\n"
+    "           default_object_background=\"ff333333\" object_outline_colour=\"ff696969\"\n"
+    "           selected_object_outline_colour=\"ff72aedf\" outline_colour=\"ff393939\"\n"
+    "           data_colour=\"ff72aedf\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffe1ef00\"\n"
+    "           dialog_background=\"ff333333\" sidebar_colour=\"ff3e3e3e\" sidebar_text=\"ffe4e4e4\"\n"
+    "           sidebar_background_active=\"ff72aedf\" sidebar_active_text=\"ffe4e4e4\"\n"
+    "           levelmeter_active=\"ff72aedf\" levelmeter_inactive=\"ff5d5d5d\" levelmeter_track=\"ff333333\"\n"
+    "           levelmeter_thumb=\"ffe4e4e4\" panel_colour=\"ff232323\" panel_text=\"ffe4e4e4\"\n"
+    "           panel_background_active=\"ff72aedf\" panel_active_text=\"ffe4e4e4\"\n"
+    "           popup_background=\"ff333333\" popup_background_active=\"ff72aedf\"\n"
+    "           popup_text=\"ffe4e4e4\" popup_active_text=\"ffe4e4e4\" slider_thumb=\"ff72aedf\"\n"
+    "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff72aedf\" grid_colour=\"ff72aedf\"\n"
+    "           caret_colour=\"ff72aedf\" iolet_area_colour=\"ff808080\" iolet_outline_colour=\"ff696969\"\n"
+    "           text_object_background=\"ff333333\" comment_text_colour=\"ff111111\"\n"
+    "           searchbar_colour=\"ff3e3e3e\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+    "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"1\"/>\n"
+    "    <Theme theme=\"classic\" toolbar_background=\"ffffffff\" toolbar_text=\"ff000000\"\n"
+    "           toolbar_active=\"ff787878\" toolbar_hover=\"ffaaaaaa\" tab_background=\"ffffffff\"\n"
+    "           tab_text=\"ff000000\" active_tab_background=\"ffffffff\" active_tab_text=\"ff000000\"\n"
+    "           canvas_background=\"ffffffff\" canvas_text=\"ff000000\" canvas_dots=\"ffffffff\"\n"
+    "           default_object_background=\"ffffffff\" text_object_background=\"ffffffff\"\n"
+    "           object_outline_colour=\"ff000000\" selected_object_outline_colour=\"ff000000\"\n"
+    "           outline_colour=\"ff000000\" iolet_area_colour=\"ffffffff\" iolet_outline_colour=\"ff000000\"\n"
+    "           data_colour=\"ff000000\" connection_colour=\"ff000000\" signal_colour=\"ff000000\"\n"
+    "           dialog_background=\"ffffffff\" sidebar_colour=\"ffffffff\" sidebar_text=\"ff000000\"\n"
+    "           sidebar_background_active=\"ff000000\" sidebar_active_text=\"ffffffff\"\n"
+    "           levelmeter_active=\"ff000000\" levelmeter_inactive=\"ffffffff\" levelmeter_track=\"ff000000\"\n"
+    "           levelmeter_thumb=\"ff000000\" panel_colour=\"ffffffff\" panel_text=\"ff000000\"\n"
+    "           panel_background_active=\"ff000000\" panel_active_text=\"ffffffff\"\n"
+    "           popup_background=\"ffffffff\" popup_background_active=\"ff000000\"\n"
+    "           popup_text=\"ff000000\" popup_active_text=\"ffffffff\" slider_thumb=\"ff000000\"\n"
+    "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff000000\" grid_colour=\"ff000000\"\n"
+    "           caret_colour=\"ff000000\" comment_text_colour=\"ff000000\" searchbar_colour=\"ffffffff\"\n"
+    "           dashed_signal_connections=\"0\" straight_connections=\"1\"\n"
+    "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"1\"/>\n"
+    "    <Theme theme=\"classic_dark\" toolbar_background=\"ff000000\" toolbar_text=\"ffffffff\"\n"
+    "           toolbar_active=\"ff787878\" toolbar_hover=\"ff888888\" tab_background=\"ff000000\"\n"
+    "           tab_text=\"ffffffff\" active_tab_background=\"ff000000\" active_tab_text=\"ffffffff\"\n"
+    "           canvas_background=\"ff000000\" canvas_text=\"ffffffff\" canvas_dots=\"ff000000\"\n"
+    "           default_object_background=\"ff000000\" object_outline_colour=\"ffffffff\"\n"
+    "           selected_object_outline_colour=\"ffffffff\" outline_colour=\"ffffffff\"\n"
+    "           data_colour=\"ffffffff\" connection_colour=\"ffffffff\" signal_colour=\"ffffffff\"\n"
+    "           dialog_background=\"ff000000\" sidebar_colour=\"ff000000\" sidebar_text=\"ffffffff\"\n"
+    "           sidebar_background_active=\"ffffffff\" sidebar_active_text=\"ff000000\"\n"
+    "           levelmeter_active=\"ffffffff\" levelmeter_inactive=\"ff000000\" levelmeter_track=\"ffffffff\"\n"
+    "           levelmeter_thumb=\"ffffffff\" panel_colour=\"ff000000\" panel_text=\"ffffffff\"\n"
+    "           panel_background_active=\"ffffffff\" panel_active_text=\"ff000000\"\n"
+    "           popup_background=\"ff000000\" popup_background_active=\"ffffffff\"\n"
+    "           popup_text=\"ffffffff\" popup_active_text=\"ff000000\" slider_thumb=\"ffffffff\"\n"
+    "           scrollbar_thumb=\"ff7f7f7f\" graph_resizer=\"ffffffff\" grid_colour=\"ffffffff\"\n"
+    "           caret_colour=\"ffffffff\" iolet_area_colour=\"ff000000\" iolet_outline_colour=\"ffffffff\"\n"
+    "           text_object_background=\"ff000000\" comment_text_colour=\"ffffffff\"\n"
+    "           searchbar_colour=\"ff000000\" dashed_signal_connections=\"0\" straight_connections=\"1\"\n"
+    "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"1\"/>\n"
+    "    <Theme theme=\"dark\" toolbar_background=\"ff191919\" toolbar_text=\"ffe1e1e1\"\n"
+    "           toolbar_active=\"ff42a2c8\" toolbar_hover=\"ff282828\" tab_background=\"ff191919\"\n"
+    "           tab_text=\"ffe1e1e1\" active_tab_background=\"ff232323\" active_tab_text=\"ffe1e1e1\"\n"
+    "           canvas_background=\"ff232323\" canvas_text=\"ffe1e1e1\" canvas_dots=\"ff7f7f7f\"\n"
+    "           default_object_background=\"ff191919\" object_outline_colour=\"ff696969\"\n"
+    "           selected_object_outline_colour=\"ff42a2c8\" outline_colour=\"ff393939\"\n"
+    "           data_colour=\"ff42a2c8\" connection_colour=\"ffe1e1e1\" signal_colour=\"ffff8500\"\n"
+    "           dialog_background=\"ff191919\" sidebar_colour=\"ff191919\" sidebar_text=\"ffe1e1e1\"\n"
+    "           sidebar_background_active=\"ff282828\" sidebar_active_text=\"ffe1e1e1\"\n"
+    "           levelmeter_active=\"ff42a2c8\" levelmeter_inactive=\"ff2d2d2d\" levelmeter_track=\"ffe3e3e3\"\n"
+    "           levelmeter_thumb=\"ffe3e3e3\" panel_colour=\"ff232323\" panel_text=\"ffe1e1e1\"\n"
+    "           panel_background_active=\"ff373737\" panel_active_text=\"ffe1e1e1\"\n"
+    "           popup_background=\"ff191919\" popup_background_active=\"ff282828\"\n"
+    "           popup_text=\"ffe1e1e1\" popup_active_text=\"ffe1e1e1\" slider_thumb=\"ff42a2c8\"\n"
+    "           scrollbar_thumb=\"ff7f7f7f\" graph_resizer=\"ff42a2c8\" grid_colour=\"ff42a2c8\"\n"
+    "           caret_colour=\"ff42a2c8\" text_object_background=\"ff232323\" iolet_area_colour=\"ff232323\"\n"
+    "           iolet_outline_colour=\"ff696969\" comment_text_colour=\"ffe1e1e1\"\n"
+    "           searchbar_colour=\"ff232323\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+    "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
+    "    <Theme theme=\"light\" toolbar_background=\"ffebebeb\" toolbar_text=\"ff5a5a5a\"\n"
+    "           toolbar_active=\"ff007aff\" toolbar_hover=\"ffd9d9d9\" tab_background=\"ffe4e4e4\"\n"
+    "           tab_text=\"ff5a5a5a\" active_tab_background=\"fffafafa\" active_tab_text=\"ff5a5a5a\"\n"
+    "           canvas_background=\"fffafafa\" canvas_text=\"ff5a5a5a\" canvas_dots=\"ff909090\"\n"
+    "           default_object_background=\"ffe4e4e4\" object_outline_colour=\"ffa8a8a8\"\n"
+    "           selected_object_outline_colour=\"ff007aff\" outline_colour=\"ffc8c8c8\"\n"
+    "           data_colour=\"ff007aff\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\"\n"
+    "           dialog_background=\"ffe4e4e4\" sidebar_colour=\"ffefefef\" sidebar_text=\"ff5a5a5a\"\n"
+    "           sidebar_background_active=\"ffdfdfdf\" sidebar_active_text=\"ff5a5a5a\"\n"
+    "           levelmeter_active=\"ff007aff\" levelmeter_inactive=\"ffeeeeee\" levelmeter_track=\"ff5a5a5a\"\n"
+    "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"fffafafa\" panel_text=\"ff5a5a5a\"\n"
+    "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
+    "           popup_background=\"ffe6e6e6\" popup_background_active=\"ffd5d5d5\"\n"
+    "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" slider_thumb=\"ff007aff\"\n"
+    "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff007aff\" grid_colour=\"ff007aff\"\n"
+    "           caret_colour=\"ff007aff\" square_object_corners=\"0\"\n"
+    "           text_object_background=\"fffafafa\" iolet_area_colour=\"fffafafa\"\n"
+    "           iolet_outline_colour=\"ffa8a8a8\" comment_text_colour=\"ff5a5a5a\"\n"
+    "           searchbar_colour=\"ffefefef\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+    "           thin_connections=\"0\" square_iolets=\"0\"/>\n"
+    "    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
+    "           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffd2cdc4\" tab_background=\"ffd2cdc4\"\n"
+    "           tab_text=\"ff5a5a5a\" active_tab_background=\"ffdedad3\" active_tab_text=\"ff5a5a5a\"\n"
+    "           canvas_background=\"ffe3dfd9\" canvas_text=\"ff5a5a5a\" canvas_dots=\"ff909090\"\n"
+    "           default_object_background=\"ffe3dfd9\" object_outline_colour=\"ff968e82\"\n"
+    "           selected_object_outline_colour=\"ff5da0c4\" outline_colour=\"ff968e82\"\n"
+    "           data_colour=\"ff5da0c4\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8502\"\n"
+    "           dialog_background=\"ffd2cdc4\" sidebar_colour=\"ffdedad3\" sidebar_text=\"ff5a5a5a\"\n"
+    "           sidebar_background_active=\"ffefefef\" sidebar_active_text=\"ff5a5a5a\"\n"
+    "           levelmeter_active=\"ff5da0c4\" levelmeter_inactive=\"ffd2cdc4\" levelmeter_track=\"ff5a5a5a\"\n"
+    "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"ffe3dfd9\" panel_text=\"ff5a5a5a\"\n"
+    "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
+    "           popup_background=\"ffd2cdc4\" popup_background_active=\"ffdedad3\"\n"
+    "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" slider_thumb=\"ff5da0c4\"\n"
+    "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff5da0c4\" grid_colour=\"ff5da0c4\"\n"
+    "           caret_colour=\"ff5da0c4\" iolet_area_colour=\"ffe3dfd9\" iolet_outline_colour=\"ff968e82\"\n"
+    "           text_object_background=\"ffe3dfd9\" comment_text_colour=\"ff5a5a5a\"\n"
+    "           searchbar_colour=\"ffe3dfd9\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+    "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
+    "    <Theme theme=\"fangs\" toolbar_background=\"ff232323\" toolbar_text=\"ffffffff\"\n"
+    "           toolbar_active=\"ff5bcefa\" toolbar_hover=\"ff383838\" tab_background=\"ff232323\"\n"
+    "           tab_text=\"ffffffff\" active_tab_background=\"ff3a3a3a\" active_tab_text=\"ffffffff\"\n"
+    "           canvas_background=\"ff383838\" canvas_text=\"ffffffff\" canvas_dots=\"ffa0a0a0\"\n"
+    "           default_object_background=\"ff191919\" object_outline_colour=\"ff232323\"\n"
+    "           selected_object_outline_colour=\"ffffacab\" outline_colour=\"ff575757\"\n"
+    "           data_colour=\"ff5bcefa\" connection_colour=\"ffa0a0a0\" signal_colour=\"ffffacab\"\n"
+    "           dialog_background=\"ff191919\" sidebar_colour=\"ff232323\" sidebar_text=\"ffffffff\"\n"
+    "           sidebar_background_active=\"ff383838\" sidebar_active_text=\"ffffffff\"\n"
+    "           levelmeter_active=\"ff5bcefa\" levelmeter_inactive=\"ff2d2d2d\" levelmeter_track=\"fff5f5f5\"\n"
+    "           levelmeter_thumb=\"fff5f5f5\" panel_colour=\"ff383838\" panel_text=\"ffffffff\"\n"
+    "           panel_background_active=\"ff232323\" panel_active_text=\"ffffffff\"\n"
+    "           popup_background=\"ff232323\" popup_background_active=\"ff383838\"\n"
+    "           popup_text=\"ffffffff\" popup_active_text=\"ffffffff\" scrollbar_thumb=\"ff8e8e8e\"\n"
+    "           graph_resizer=\"ff5bcefa\" grid_colour=\"ff5bcefa\" caret_colour=\"ffffacab\" text_object_background=\"ff232323\"\n"
+    "           iolet_area_colour=\"ff232323\" iolet_outline_colour=\"ff696969\"\n"
+    "           slider_thumb=\"ff8e8e8e\" comment_text_colour=\"ffffffff\" searchbar_colour=\"ff383838\"\n"
+    "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"1\"\n"
+    "           square_iolets=\"1\" square_object_corners=\"0\"/>\n"
+    "  </ColourThemes>";
+    // clang-format on
+    
     static void resetColours(ValueTree themesTree)
     {
         auto defaultThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);

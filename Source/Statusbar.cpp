@@ -192,10 +192,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     setWantsKeyboardFocus(true);
 
-    commandLocked.referTo(pd->commandLocked);
-
-    locked.addListener(this);
-    commandLocked.addListener(this);
 
     oversampleSelector.setTooltip("Set oversampling");
     oversampleSelector.getProperties().set("FontScale", 0.5f);
@@ -222,29 +218,12 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(oversampleSelector);
 
     powerButton = std::make_unique<TextButton>(Icons::Power);
-    lockButton = std::make_unique<TextButton>(Icons::Lock);
     connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
     connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
-    presentationButton = std::make_unique<TextButton>(Icons::Presentation);
     gridButton = std::make_unique<TextButton>(Icons::Grid);
     directionButton = std::make_unique<TextButton>(Icons::Direction);
     protectButton = std::make_unique<TextButton>(Icons::Protection);
     centreButton = std::make_unique<TextButton>(Icons::Centre);
-
-    presentationButton->setTooltip("Presentation Mode");
-    presentationButton->setClickingTogglesState(true);
-    presentationButton->getProperties().set("Style", "SmallIcon");
-    presentationButton->getToggleStateValue().referTo(presentationMode);
-
-    presentationButton->onClick = [this]() {
-        // When presenting we are always locked
-        // A bit different from Max's presentation mode
-        if (presentationButton->getToggleState()) {
-            locked = var(true);
-        }
-    };
-
-    addAndMakeVisible(presentationButton.get());
 
     powerButton->setTooltip("Enable/disable DSP");
     powerButton->setClickingTogglesState(true);
@@ -296,17 +275,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     powerButton->setToggleState(pd_getdspstate(), dontSendNotification);
 
-    lockButton->setTooltip("Edit Mode");
-    lockButton->setClickingTogglesState(true);
-    lockButton->getProperties().set("Style", "SmallIcon");
-    lockButton->getToggleStateValue().referTo(locked);
-    addAndMakeVisible(lockButton.get());
-    lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
-    lockButton->onClick = [this]() {
-        if (static_cast<bool>(presentationMode.getValue())) {
-            presentationMode = false;
-        }
-    };
 
     centreButton->setTooltip("Move view to origin");
     centreButton->getProperties().set("Style", "SmallIcon");
@@ -387,12 +355,6 @@ Statusbar::~Statusbar()
     delete levelMeter;
 }
 
-void Statusbar::attachToCanvas(Canvas* cnv)
-{
-    locked.referTo(cnv->locked);
-    lockButton->getToggleStateValue().referTo(cnv->locked);
-}
-
 void Statusbar::propertyChanged(String name, var value)
 {
     if (name == "grid_enabled") {
@@ -415,24 +377,6 @@ void Statusbar::propertyChanged(String name, var value)
     }
 }
 
-void Statusbar::valueChanged(Value& v)
-{
-    bool lockIcon = locked == var(true) || commandLocked == var(true);
-    lockButton->setButtonText(lockIcon ? Icons::Lock : Icons::Unlock);
-
-    if (v.refersToSameSourceAs(commandLocked)) {
-        auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
-        lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
-    }
-}
-
-void Statusbar::lookAndFeelChanged()
-{
-    // Makes sure it gets updated on theme change
-    auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
-    lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
-}
-
 void Statusbar::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -447,11 +391,6 @@ void Statusbar::resized()
         pos += width + 3;
         return inverse ? getWidth() - pos : result;
     };
-
-    lockButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-
-    position(3); // Seperator
 
     connectionStyleButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     connectionPathfind->setBounds(position(getHeight()), 0, getHeight(), getHeight());
@@ -488,11 +427,6 @@ void Statusbar::shiftKeyChanged(bool isHeld)
     } else if (SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
         propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
     }
-}
-
-void Statusbar::commandKeyChanged(bool isHeld)
-{
-    commandLocked = isHeld && locked.getValue() == var(false);
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)

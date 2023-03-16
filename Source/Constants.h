@@ -73,6 +73,7 @@ enum PlugDataColour {
     toolbarBackgroundColourId,
     toolbarTextColourId,
     toolbarActiveColourId,
+    toolbarHoverColourId,
 
     tabBackgroundColourId,
     tabTextColourId,
@@ -88,6 +89,7 @@ enum PlugDataColour {
 
     objectOutlineColourId,
     objectSelectedOutlineColourId,
+    commentTextColourId,
     outlineColourId,
 
     ioletAreaColourId,
@@ -113,6 +115,7 @@ enum PlugDataColour {
     panelTextColourId,
     panelActiveBackgroundColourId,
     panelActiveTextColourId,
+    searchBarColourId,
 
     popupMenuBackgroundColourId,
     popupMenuActiveBackgroundColourId,

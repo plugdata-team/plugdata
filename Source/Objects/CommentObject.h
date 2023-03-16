@@ -35,7 +35,7 @@ public:
 
             auto scale = getWidth() < 50 ? 0.5f : 1.0f;
 
-            Fonts::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale, 14.0f, Justification::centredLeft);
+            Fonts::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::commentTextColourId), numLines, scale, 14.0f, Justification::centredLeft);
         }
     }
 
@@ -109,6 +109,8 @@ public:
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
 
+            editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::commentTextColourId));
+            
             editor->onFocusLost = [this]() {
                 hideEditor();
             };
