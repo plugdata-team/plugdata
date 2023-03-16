@@ -533,7 +533,7 @@ public:
         Fonts::drawIcon(g, Icons::Search, 0, 0, 30, findColour(PlugDataColour::panelTextColourId), 12);
 
         if (input.getText().isEmpty()) {
-            Fonts::drawText(g, "Type to search for objects or libraries", 32, 0, 350, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
+            Fonts::drawFittedText(g, "Type to search for objects or libraries", 30, 0, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
         }
 
         g.setColour(findColour(PlugDataColour::outlineColourId));

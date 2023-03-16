@@ -489,7 +489,7 @@ public:
         Fonts::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
 
         if (input.getText().isEmpty()) {
-            Fonts::drawText(g, "Type to search for objects", 30, 0, 300, 30, findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f), 14);
+            Fonts::drawFittedText(g, "Type to search for objects", 30, 0, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
         }
     }
 
