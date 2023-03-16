@@ -17,36 +17,36 @@ public:
 
     float fadeIn()
     {
-        alphaTarget = 0.3f;
-        if (!isTimerRunning())
+        targetAlpha = 0.3f;
+        if (!isTimerRunning() && !(currentAlpha >= targetAlpha))
             startTimerHz(60);
 
-        return indicatorAlpha;
+        return currentAlpha;
     }
 
     float fadeOut()
     {
-        alphaTarget = 0.0f;
-        if (!isTimerRunning())
+        targetAlpha = 0.0f;
+        if (!isTimerRunning() && !(currentAlpha <= targetAlpha))
             startTimerHz(60);
 
-        return indicatorAlpha;
+        return currentAlpha;
     }
 
 private:
     void timerCallback() override
     {
         float const stepSize = 0.025f;
-        if (alphaTarget > indicatorAlpha) {
-            indicatorAlpha += stepSize;
-            if (indicatorAlpha >= alphaTarget) {
-                indicatorAlpha = alphaTarget;
+        if (targetAlpha > currentAlpha) {
+            currentAlpha += stepSize;
+            if (currentAlpha >= targetAlpha) {
+                currentAlpha = targetAlpha;
                 stopTimer();
             }
-        } else if (alphaTarget < indicatorAlpha) {
-            indicatorAlpha -= stepSize;
-            if (indicatorAlpha <= alphaTarget) {
-                indicatorAlpha = alphaTarget;
+        } else if (targetAlpha < currentAlpha) {
+            currentAlpha -= stepSize;
+            if (currentAlpha <= targetAlpha) {
+                currentAlpha = targetAlpha;
                 stopTimer();
             }
         }
@@ -56,8 +56,8 @@ private:
 
 private:
     SplitView* splitView;
-    float indicatorAlpha = 0.0f;
-    float alphaTarget = 0.0f;
+    float currentAlpha = 0.0f;
+    float targetAlpha = 0.0f;
 };
 
 class SplitViewResizer : public Component {
