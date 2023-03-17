@@ -159,21 +159,28 @@ void Canvas::paint(Graphics& g)
         g.drawDashedLine(verticalExtent, dash, 2, 1.0f);
         g.drawDashedLine(horizontalExtent, dash, 2, 1.0f);
 
-        Rectangle<int> const clipBounds = g.getClipBounds();
+        auto clipBounds = g.getClipBounds().getIntersection(viewport->getViewArea());
+        
+        auto startX = (canvasOrigin.x % objectGrid.gridSize);
+        startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize) + objectGrid.gridSize;
 
+        auto startY = (canvasOrigin.y % objectGrid.gridSize);
+        startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize) + objectGrid.gridSize;
+        
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
-        int startX = clipBounds.getX() + (canvasOrigin.getX() % objectGrid.gridSize);
-        int startY = clipBounds.getY() + (canvasOrigin.getY() % objectGrid.gridSize);
-        
         for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
             for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
+                
+                // Don't draw over origin line
                 if ((x == canvasOrigin.x && y >= canvasOrigin.y) || (y == canvasOrigin.y && x >= canvasOrigin.x)) continue;
                 
                 g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
             }
         }
     }
+    
+   
 }
 
 TabComponent* Canvas::getTabbar()

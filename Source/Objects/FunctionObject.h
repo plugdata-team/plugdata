@@ -251,7 +251,18 @@ public:
     std::pair<float, float> getRange()
     {
         auto& arr = *range.getValue().getArray();
-        return { static_cast<float>(arr[0]), static_cast<float>(arr[1]) };
+        auto start = static_cast<float>(arr[0]);
+        auto end = static_cast<float>(arr[1]);
+        
+        if(end == start) {
+            return {start, end + 0.01f};
+        }
+        else if(end > start) {
+            return {start, end};
+        }
+        else {
+            return {end, start};
+        }
     }
     void setRange(std::pair<float, float> newRange)
     {
@@ -276,16 +287,14 @@ public:
                 points.getReference(dragIdx).y = newY;
                 changed = true;
             }
-
         }
 
         else if (dragIdx > 0) {
             float minX = points[dragIdx - 1].x;
             float maxX = points[dragIdx + 1].x;
-
-            float newX = jlimit(minX, maxX, jmap(static_cast<float>(e.x), 3.0f, getWidth() - 3.0f, 0.0f, 1.0f));
-
-            float newY = jlimit(min, max, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
+            
+            float newX = jlimit(minX, maxX, jmap(static_cast<float>(e.x), 3.0f, getWidth() - 3.0f, minX, maxX));
+            float newY = jlimit(min, max, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, max, min));
 
             auto newPoint = Point<float>(newX, newY);
             if (points[dragIdx] != newPoint) {
