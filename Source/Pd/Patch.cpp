@@ -84,11 +84,15 @@ Rectangle<int> Patch::getBounds() const
 
 bool Patch::isDirty() const
 {
+    if(!ptr) return;
+    
     return getPointer()->gl_dirty;
 }
 
 void Patch::savePatch(File const& location)
 {
+    if(!ptr) return;
+    
     String fullPathname = location.getParentDirectory().getFullPathName();
     String filename = location.getFileName();
 
@@ -111,22 +115,30 @@ void Patch::savePatch(File const& location)
 
 t_glist* Patch::getRoot()
 {
+    if(!ptr) return;
+    
     return canvas_getrootfor(getPointer());
 }
     
 bool Patch::isSubpatch()
 {
+    if(!ptr) return;
+    
     return getRoot() != ptr && !canvas_isabstraction(getPointer());
 }
 
 bool Patch::isAbstraction()
 {
+    if(!ptr) return;
+    
     return canvas_isabstraction(getPointer());
 }
 
 
 void Patch::savePatch()
 {
+    if(!ptr) return;
+    
     String fullPathname = currentFile.getParentDirectory().getFullPathName();
     String filename = currentFile.getFileName();
 
@@ -146,10 +158,9 @@ void Patch::savePatch()
 
 void Patch::setCurrent()
 {
-    instance->setThis();
+    if (!ptr) return;
 
-    if (!getPointer())
-        return;
+    instance->setThis();
 
     instance->lockAudioThread();
 
@@ -169,7 +180,8 @@ void Patch::setCurrent()
 
 Connections Patch::getConnections() const
 {
-
+    if (!ptr) return {};
+    
     Connections connections;
 
     t_outconnect* oc;
@@ -188,28 +200,28 @@ Connections Patch::getConnections() const
 
 std::vector<void*> Patch::getObjects()
 {
-    if (ptr) {
-        setCurrent();
+    if (!ptr) return {};
+    
+    setCurrent();
 
-        instance->lockAudioThread();
+    instance->lockAudioThread();
 
-        std::vector<void*> objects;
-        t_canvas const* cnv = getPointer();
+    std::vector<void*> objects;
+    t_canvas const* cnv = getPointer();
 
-        for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-            objects.push_back(static_cast<void*>(y));
-        }
-
-        instance->unlockAudioThread();
-
-        return objects;
+    for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
+        objects.push_back(static_cast<void*>(y));
     }
 
-    return {};
+    instance->unlockAudioThread();
+
+    return objects;
 }
 
 void* Patch::createGraphOnParent(int x, int y)
 {
+    if (!ptr) return nullptr;
+    
     t_pd* pdobject = nullptr;
     std::atomic<bool> done = false;
 
@@ -231,6 +243,8 @@ void* Patch::createGraphOnParent(int x, int y)
 
 void* Patch::createGraph(String const& name, int size, int x, int y)
 {
+    if (!ptr) return nullptr;
+    
     t_pd* pdobject = nullptr;
     std::atomic<bool> done = false;
 
@@ -422,6 +436,8 @@ void* Patch::renameObject(void* obj, String const& name)
 
 void Patch::copy()
 {
+    if (!ptr) return;
+    
     instance->enqueueFunction(
         [this]() {
             int size;
@@ -433,6 +449,8 @@ void Patch::copy()
 
 void Patch::paste()
 {
+    if (!ptr) return;
+    
     auto text = SystemClipboard::getTextFromClipboard();
 
     instance->enqueueFunction([this, text]() mutable { libpd_paste(getPointer(), text.toRawUTF8()); });
@@ -440,6 +458,8 @@ void Patch::paste()
 
 void Patch::duplicate()
 {
+    if (!ptr) return;
+    
     instance->enqueueFunction(
         [this]() {
             setCurrent();
@@ -449,6 +469,8 @@ void Patch::duplicate()
 
 void Patch::selectObject(void* obj)
 {
+    if (!ptr) return;
+    
     instance->enqueueFunction(
         [this, obj]() {
             auto* checked = &checkObject(obj)->te_g;
@@ -460,6 +482,8 @@ void Patch::selectObject(void* obj)
 
 void Patch::deselectAll()
 {
+    if (!ptr) return;
+    
     instance->enqueueFunction(
         [this]() {
             glist_noselect(getPointer());
@@ -484,6 +508,8 @@ void Patch::removeObject(void* obj)
 
 bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 {
+    if (!ptr) return;
+    
     bool hasConnection = false;
     std::atomic<bool> hasReturned = false;
 
@@ -502,6 +528,8 @@ bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 
 bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 {
+    if (!ptr) return;
+    
     bool canConnect = false;
 
     instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable {
@@ -517,6 +545,8 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 
 void Patch::createConnection(void* src, int nout, void* sink, int nin)
 {
+    if (!ptr) return;
+    
     instance->enqueueFunction(
         [this, src, nout, sink, nin]() mutable {
             if (objectWasDeleted(src) || objectWasDeleted(sink))
@@ -581,7 +611,8 @@ void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol*
 
 void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
 {
-
+    if (!ptr) return;
+    
     void* outconnect = nullptr;
     std::atomic<bool> hasReturned = false;
 
@@ -606,7 +637,7 @@ void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol
 
 void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
 {
-    // if(!obj || !ptr) return;
+    if(!ptr) return;
 
     instance->enqueueFunction(
         [this, objects, dx, dy]() mutable {
@@ -632,6 +663,8 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
 
 void Patch::finishRemove()
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction(
         [this]() mutable {
             setCurrent();
@@ -641,6 +674,8 @@ void Patch::finishRemove()
 
 void Patch::removeSelection()
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction(
         [this]() mutable {
             setCurrent();
@@ -651,6 +686,8 @@ void Patch::removeSelection()
 
 void Patch::startUndoSequence(String name)
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction([this, name]() {
         canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, instance->generateSymbol(name)->s_name, 0);
     });
@@ -658,6 +695,8 @@ void Patch::startUndoSequence(String name)
 
 void Patch::endUndoSequence(String name)
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction([this, name]() {
         canvas_undo_add(getPointer(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, 0);
     });
@@ -665,6 +704,8 @@ void Patch::endUndoSequence(String name)
 
 void Patch::undo()
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction(
         [this]() {
             setCurrent();
@@ -679,6 +720,8 @@ void Patch::undo()
 
 void Patch::redo()
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction(
         [this]() {
             setCurrent();
@@ -698,14 +741,15 @@ t_object* Patch::checkObject(void* obj)
 
 String Patch::getTitle() const
 {
+    if(!ptr) return;
+    
     String name = String::fromUTF8(getPointer()->gl_name->s_name);
     return name.isEmpty() ? "Untitled Patcher" : name;
 }
 
 void Patch::setTitle(String const& title)
 {
-    if (!getPointer())
-        return;
+    if(!ptr) return;
 
     setCurrent();
 
@@ -735,6 +779,7 @@ String Patch::getCanvasContent()
 {
     if (!ptr)
         return {};
+    
     char* buf;
     int bufsize;
     libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
@@ -744,7 +789,7 @@ String Patch::getCanvasContent()
 }
 
 void Patch::reloadPatch(File changedPatch, t_glist* except)
-{
+{    
     auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().replace("\\", "/").toRawUTF8());
     auto* file = gensym(changedPatch.getFileName().toRawUTF8());
     canvas_reload(file, dir, except);
@@ -752,6 +797,8 @@ void Patch::reloadPatch(File changedPatch, t_glist* except)
 
 bool Patch::objectWasDeleted(void* ptr)
 {
+    if(!ptr) return true;
+    
     t_canvas const* cnv = getPointer();
 
     for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
@@ -763,6 +810,8 @@ bool Patch::objectWasDeleted(void* ptr)
 }
 bool Patch::connectionWasDeleted(void* ptr)
 {
+    if(!ptr) return true;
+    
     t_outconnect* oc;
     t_linetraverser t;
 
