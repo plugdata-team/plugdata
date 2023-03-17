@@ -236,7 +236,7 @@ void SettingsFile::initialiseThemesTree()
                 auto defaultTree = defaultColourThemesTree.getChildWithProperty("theme", themeName);
 
                 // For when we add new colours in the future
-                if (!themeTree.hasProperty(colourName)) {
+                if (!themeTree.hasProperty(colourName) || themeTree.getProperty(colourName).toString().isEmpty() || themeTree.getProperty(colourName).toString() == "00000000") {
                     themeTree.setProperty(colourName, defaultTree.getProperty(colourName).toString(), nullptr);
                 }
             }
