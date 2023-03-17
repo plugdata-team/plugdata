@@ -518,7 +518,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         // we check if the system is drawing with a dropshadow- hence semi transparent will be true
 #if JUCE_LINUX
         auto leftOffset = titleBarX;
-        if (areButtonsLeft && Desktop::canUseSemiTransparentWindows()) {
+        if (maximiseButton != nullptr && areButtonsLeft && Desktop::canUseSemiTransparentWindows()) {
             if (maximiseButton->getToggleState())
                 leftOffset += 8;
             else
