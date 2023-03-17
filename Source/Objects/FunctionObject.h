@@ -104,8 +104,11 @@ public:
     {
         auto realPoints = Array<Point<float>>();
         for (auto point : points) {
-            point.x = jmap<float>(point.x, 0.0f, 1.0f, 3, getWidth() - 3);
-            point.y = jmap<float>(point.y, 0.0f, 1.0f, getHeight() - 3, 3);
+            
+            auto [min, max] = getRange();
+
+            point.x = jmap<float>(point.x, 0.0, 1.0, 3, getWidth() - 3);
+            point.y = jmap<float>(point.y, min, max, getHeight() - 3, 3);
             realPoints.add(point);
         }
 
@@ -282,7 +285,7 @@ public:
 
         // For first and last point, only adjust y position
         if (dragIdx == 0 || dragIdx == points.size() - 1) {
-            float newY = jlimit(min, max, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
+            float newY = jlimit(min, max, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, max, min));
             if (newY != points.getReference(dragIdx).y) {
                 points.getReference(dragIdx).y = newY;
                 changed = true;
@@ -293,7 +296,7 @@ public:
             float minX = points[dragIdx - 1].x;
             float maxX = points[dragIdx + 1].x;
             
-            float newX = jlimit(minX, maxX, jmap(static_cast<float>(e.x), 3.0f, getWidth() - 3.0f, minX, maxX));
+            float newX = jlimit(minX, maxX, jmap(static_cast<float>(e.x), 3.0f, getWidth() - 3.0f, 0.0f, 1.0f));
             float newY = jlimit(min, max, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, max, min));
 
             auto newPoint = Point<float>(newX, newY);
