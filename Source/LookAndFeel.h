@@ -1219,7 +1219,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           searchbar_colour=\"fffafafa\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"0\" square_iolets=\"0\"/>\n"
     "    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
-    "           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffd2cdc4\" tab_background=\"ffd2cdc4\"\n"
+    "           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffc0bbb2\" tab_background=\"ffd2cdc4\"\n"
     "           tab_text=\"ff5a5a5a\" active_tab_background=\"ffdedad3\" active_tab_text=\"ff5a5a5a\"\n"
     "           canvas_background=\"ffe3dfd9\" canvas_text=\"ff5a5a5a\" canvas_dots=\"ff909090\"\n"
     "           default_object_background=\"ffe3dfd9\" object_outline_colour=\"ff968e82\"\n"
