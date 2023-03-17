@@ -104,11 +104,8 @@ public:
     {
         auto realPoints = Array<Point<float>>();
         for (auto point : points) {
-            
-            auto [min, max] = getRange();
-
-            point.x = jmap<float>(point.x, 0.0, 1.0, 3, getWidth() - 3);
-            point.y = jmap<float>(point.y, min, max, getHeight() - 3, 3);
+            point.x = jmap<float>(point.x, 0.0f, 1.0f, 3, getWidth() - 3);
+            point.y = jmap<float>(point.y, 0.0f, 1.0f, getHeight() - 3, 3);
             realPoints.add(point);
         }
 
@@ -254,18 +251,7 @@ public:
     std::pair<float, float> getRange()
     {
         auto& arr = *range.getValue().getArray();
-        auto start = static_cast<float>(arr[0]);
-        auto end = static_cast<float>(arr[1]);
-        
-        if(end == start) {
-            return {start, end + 0.01f};
-        }
-        else if(end > start) {
-            return {start, end};
-        }
-        else {
-            return {end, start};
-        }
+        return { static_cast<float>(arr[0]), static_cast<float>(arr[1]) };
     }
     void setRange(std::pair<float, float> newRange)
     {
@@ -280,12 +266,11 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        auto [min, max] = getRange();
         bool changed = false;
 
         // For first and last point, only adjust y position
         if (dragIdx == 0 || dragIdx == points.size() - 1) {
-            float newY = jlimit(min, max, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, max, min));
+            float newY = jlimit(0.0f, 1.0f, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
             if (newY != points.getReference(dragIdx).y) {
                 points.getReference(dragIdx).y = newY;
                 changed = true;
@@ -295,9 +280,10 @@ public:
         else if (dragIdx > 0) {
             float minX = points[dragIdx - 1].x;
             float maxX = points[dragIdx + 1].x;
-            
+
             float newX = jlimit(minX, maxX, jmap(static_cast<float>(e.x), 3.0f, getWidth() - 3.0f, 0.0f, 1.0f));
-            float newY = jlimit(min, max, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, max, min));
+
+            float newY = jlimit(0.0f, 1.0f, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
 
             auto newPoint = Point<float>(newX, newY);
             if (points[dragIdx] != newPoint) {
