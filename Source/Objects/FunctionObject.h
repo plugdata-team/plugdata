@@ -251,7 +251,24 @@ public:
     std::pair<float, float> getRange()
     {
         auto& arr = *range.getValue().getArray();
-        return { static_cast<float>(arr[0]), static_cast<float>(arr[1]) };
+        
+        auto start = static_cast<float>(arr[0]);
+        auto end = static_cast<float>(arr[1]);
+        
+        if(start == end)
+        {
+            return {start, end + 0.01f};
+        }
+        if(start < end)
+        {
+            return {start, end};
+        }
+        if(start > end)
+        {
+            return {end, start};
+        }
+        
+        return {start, end};
     }
     void setRange(std::pair<float, float> newRange)
     {
