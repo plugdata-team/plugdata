@@ -163,10 +163,14 @@ void Canvas::paint(Graphics& g)
 
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
-        for (int x = canvasOrigin.getX() % objectGrid.gridSize; x < clipBounds.getRight(); x += objectGrid.gridSize) {
-            for (int y = canvasOrigin.getY() % objectGrid.gridSize; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
-                if (!(x == canvasOrigin.x && y >= canvasOrigin.y || y == canvasOrigin.y && x >= canvasOrigin.x))
-                    g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
+        int startX = clipBounds.getX() + (canvasOrigin.getX() % objectGrid.gridSize);
+        int startY = clipBounds.getY() + (canvasOrigin.getY() % objectGrid.gridSize);
+        
+        for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
+            for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
+                if ((x == canvasOrigin.x && y >= canvasOrigin.y) || (y == canvasOrigin.y && x >= canvasOrigin.x)) continue;
+                
+                g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
             }
         }
     }
