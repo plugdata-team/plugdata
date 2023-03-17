@@ -84,7 +84,7 @@ Rectangle<int> Patch::getBounds() const
 
 bool Patch::isDirty() const
 {
-    if(!ptr) return;
+    if(!ptr) return false;
     
     return getPointer()->gl_dirty;
 }
@@ -115,21 +115,21 @@ void Patch::savePatch(File const& location)
 
 t_glist* Patch::getRoot()
 {
-    if(!ptr) return;
+    if(!ptr) return nullptr;
     
     return canvas_getrootfor(getPointer());
 }
     
 bool Patch::isSubpatch()
 {
-    if(!ptr) return;
+    if(!ptr) return false;
     
     return getRoot() != ptr && !canvas_isabstraction(getPointer());
 }
 
 bool Patch::isAbstraction()
 {
-    if(!ptr) return;
+    if(!ptr) return false;
     
     return canvas_isabstraction(getPointer());
 }
@@ -508,7 +508,7 @@ void Patch::removeObject(void* obj)
 
 bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 {
-    if (!ptr) return;
+    if (!ptr) return false;
     
     bool hasConnection = false;
     std::atomic<bool> hasReturned = false;
@@ -528,7 +528,7 @@ bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 
 bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 {
-    if (!ptr) return;
+    if (!ptr) return false;
     
     bool canConnect = false;
 
@@ -611,7 +611,7 @@ void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol*
 
 void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
 {
-    if (!ptr) return;
+    if (!ptr) return nullptr;
     
     void* outconnect = nullptr;
     std::atomic<bool> hasReturned = false;
@@ -741,7 +741,7 @@ t_object* Patch::checkObject(void* obj)
 
 String Patch::getTitle() const
 {
-    if(!ptr) return;
+    if(!ptr) return "";
     
     String name = String::fromUTF8(getPointer()->gl_name->s_name);
     return name.isEmpty() ? "Untitled Patcher" : name;
