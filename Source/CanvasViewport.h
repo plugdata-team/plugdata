@@ -81,11 +81,6 @@ class CanvasViewport : public Viewport
                 startTimer(interval);
             }
 
-            void stop()
-            {
-                stopTimer();
-            }
-
             void timerCallback() override
             {
                 if (callback())
@@ -103,6 +98,7 @@ class CanvasViewport : public Viewport
             {
                 auto alpha = targetComponent->getAlpha();
                 if (alphaTarget > alpha) {
+                    
                     targetComponent->setAlpha(alpha + 0.3f);
                 } else if (alphaTarget < alpha) {
                     float easedAlpha = pow(alpha, 0.5f);
@@ -110,6 +106,7 @@ class CanvasViewport : public Viewport
                     alpha = pow(easedAlpha, 2.0f);
                     if (alpha < 0.01f)
                         alpha = 0.0f;
+                    
                     targetComponent->setAlpha(alpha);
                 } else {
                     stopTimer();
@@ -139,7 +136,6 @@ class CanvasViewport : public Viewport
             ScrollBar::setVisible(true);
             addListener(this);
             setAutoHide(false);
-            setBufferedToImage(true);
             fadeOut();
         }
 
@@ -344,7 +340,9 @@ public:
         
     void updateBufferState()
     {
-        cnv->setBufferedToImage(isScrollingHorizontally || isScrollingVertically);
+        // Uncomment this line to render canvas to image on scroll
+        // This isn't very advantageous yet, because the dots need to be repainted when view area changes!
+        //cnv->setBufferedToImage(isScrollingHorizontally || isScrollingVertically);
     }
 
     ScrollBar* createScrollBarComponent(bool isVertical) override

@@ -149,8 +149,12 @@ void Canvas::paint(Graphics& g)
     if (!isGraph) {
         g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
     }
-
+    
     if (locked == var(false) && !isGraph) {
+        
+        g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
+        auto clipBounds = g.getClipBounds();
+        
         // draw origin
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
         auto verticalExtent = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, getHeight() + 1.0f);
@@ -159,13 +163,11 @@ void Canvas::paint(Graphics& g)
         g.drawDashedLine(verticalExtent, dash, 2, 1.0f);
         g.drawDashedLine(horizontalExtent, dash, 2, 1.0f);
 
-        auto clipBounds = g.getClipBounds().getIntersection(viewport->getViewArea());
-        
         auto startX = (canvasOrigin.x % objectGrid.gridSize);
-        startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize) + objectGrid.gridSize;
+        startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
 
         auto startY = (canvasOrigin.y % objectGrid.gridSize);
-        startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize) + objectGrid.gridSize;
+        startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize);
         
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
