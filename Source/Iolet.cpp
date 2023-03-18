@@ -174,9 +174,6 @@ void Iolet::mouseUp(MouseEvent const& e)
     bool shiftIsDown = e.mods.isShiftDown();
     bool wasDragged = e.mouseWasDraggedSinceMouseDown();
 
-    
-    cnv->connectionCancelled = false;
-
     MessageManager::callAsync([this, _this = SafePointer(this), shiftIsDown, wasDragged]() mutable {
         if (!_this)
             return;
@@ -208,6 +205,7 @@ void Iolet::mouseUp(MouseEvent const& e)
                 cnv->cancelConnectionCreation();
                 cnv->nearestIolet = nullptr;
                 cnv->connectingWithDrag = false;
+                cnv->connectionCancelled = false;
 
             } else if (shiftIsDown && cnv->getSelectionOfType<Object>().size() > 1 && (cnv->connectionsBeingCreated.size() == 1)) {
 
