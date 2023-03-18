@@ -121,8 +121,8 @@ public:
         if (isPositiveAndBelow(row, searchResult.size())) {
             auto [name, prefix, object, ptr] = searchResult[row];
 
-            if (auto* cnv = editor->getCurrentCanvas()) {
-                highlightSearchTarget(object);
+            if(object) {
+                highlightSearchTarget(object.getComponent());
             }
         }
     }
@@ -294,12 +294,12 @@ public:
         input.grabKeyboardFocus();
     }
 
-    static Array<std::tuple<String, String, Object*, void*>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, String const& query, Object* topLevelObject = nullptr, String prefix = "")
+    static Array<std::tuple<String, String, SafePointer<Object>, void*>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, String const& query, Object* topLevelObject = nullptr, String prefix = "")
     {
 
         auto* instance = patch.instance;
 
-        Array<std::tuple<String, String, Object*, void*>> result;
+        Array<std::tuple<String, String, SafePointer<Object>, void*>> result;
 
         Array<std::pair<void*, Object*>> subpatches;
 
@@ -397,7 +397,7 @@ public:
 private:
     ListBox listBox;
 
-    Array<std::tuple<String, String, Object*, void*>> searchResult;
+    Array<std::tuple<String, String, SafePointer<Object>, void*>> searchResult;
     TextEditor input;
     TextButton closeButton = TextButton(Icons::Clear);
 
