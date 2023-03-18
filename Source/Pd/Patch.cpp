@@ -80,7 +80,8 @@ Rectangle<int> Patch::getBounds() const
         } else {
             auto width = cnv->gl_screenx2 - cnv->gl_screenx1;
             auto height = cnv->gl_screeny2 - cnv->gl_screeny1;
-            return { 0, 0, width, height };
+
+            return { cnv->gl_screenx1, cnv->gl_screeny1, width, height };
         }
     }
     return { 0, 0, 0, 0 };

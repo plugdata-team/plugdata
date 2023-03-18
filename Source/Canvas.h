@@ -171,6 +171,7 @@ public:
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
     Value xRange, yRange;
+    Value patchWidth, patchHeight;
 
     ObjectGrid objectGrid = ObjectGrid(this);
 
@@ -202,10 +203,14 @@ private:
     RateReducer canvasRateReducer = RateReducer(90);
 
     // Properties that can be shown in the inspector by right-clicking on canvas
-    ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
+    ObjectParameters parameters = { 
+        { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
         { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } },
         { "X range", tRange, cGeneral, &xRange, {} },
-        { "Y range", tRange, cGeneral, &yRange, {} } };
+        { "Y range", tRange, cGeneral, &yRange, {} },
+        { "Width", tInt, cGeneral, &patchWidth, {} },
+        { "Height", tInt, cGeneral, &patchHeight, {} }
+    };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };
