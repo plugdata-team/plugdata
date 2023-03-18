@@ -6,94 +6,74 @@
 
 #pragma once
 
-// #include "Canvas.h"
 #include "PluginEditor.h"
-//#include "Standalone/PlugDataWindow.h"
 
-class SecondaryWindow : public DocumentWindow
+class SecondaryWindow : public Component
     , public Button::Listener {
 public:
     SecondaryWindow(Canvas* cnv)
-        : DocumentWindow (cnv->getTitle(),
-                    findColour(PlugDataColour::toolbarBackgroundColourId),
-                    0,
-                    false)
-        , cnv(cnv)
-        , originalOwner(cnv->getParentComponent())
+        // : DocumentWindow("Test", findColour(PlugDataColour::textObjectBackgroundColourId), DocumentWindow::allButtons, false)
+        : cnv(cnv)
         , editor(cnv->editor)
-        , window(dynamic_cast<ResizableWindow*>(editor->getParentComponent()->getParentComponent()))
+        , mainWindow(static_cast<ResizableWindow*>(editor->getTopLevelComponent()))
+        , cnvParent(cnv->getParentComponent())
+        , windowBounds(mainWindow->getBounds())
+        , viewportBounds(cnv->viewport->getBounds())
+        , closeButton("Show Editor..")
     {
-#if PLUGDATA_STANDALONE
 
+        auto width = cnv->patchWidth.getValue();
+        auto height = cnv->patchHeight.getValue();
 
-#endif
+        //editor->setVisible(false);
+        //mainWindow->getContentComponent()->addAndMakeVisible(this);
+        editor->addAndMakeVisible(this);
+        //mainWindow->setResizable(false, false);
+        editor->setResizeLimits(width, height, 99999, 99999);
+       // mainWindow->setResizeLimits(width, height, 99999, 99999);
+        editor->setSize(width, height);
 
-        //
-        // setTitleBarHeight(0);
-        // 
+        closeButton.addListener(this);
+        addAndMakeVisible(cnv);
+        addAndMakeVisible(closeButton);
+        setBounds(0, 0, width, height);
         
-        //cnv->setBounds(getBounds());
 
-        closeButton.setButtonText("Show Editor"); // set the button text
-        
-        closeButton.addListener(this);      // add listener for button clicks
-        
-       /*  closeButton.setColour(closeButton.buttonColourId, findColour(PlugDataColour::toolbarBackgroundColourId));
-        closeButton.setColour(closeButton.buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
-        closeButton.setColour(closeButton.textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
-        closeButton.setColour(closeButton.textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
-        closeButton.setAlpha(0.5f); */
-
-        editor->removeKeyListener(dynamic_cast<KeyListener*>(cnv));
-        editor->setVisible(false);
-        window->setResizeLimits(11, 11, 10000, 10000);
-
-            window->setSize(cnv->patchWidth.getValue(), cnv->patchHeight.getValue());
-        window->setResizable(false, false);
         editor->zoomScale = 1.0f;
+        cnv->viewport->setViewPosition(cnv->canvasOrigin);
 
-        //window->addAndMakeVisible(closeButton);     // add the button to the window
-
-        
-        setSize(cnv->patchWidth.getValue(), cnv->patchHeight.getValue());
-         setContentOwned(new Component(), false);
-         getContentComponent()->addAndMakeVisible(cnv);
-        //addAndMakeVisible(closeButton);
-        cnv->setBounds(editor->getX(), editor->getY(), getWidth(), getHeight());
-
-        editor->getParentComponent()->addAndMakeVisible(this);
-        editor->getParentComponent()->setBounds(0, 0, cnv->patchWidth.getValue(), cnv->patchHeight.getValue());
+        cnv->viewport->setBounds(getBounds().withTrimmedRight(-cnv->viewport->getScrollBarThickness()).withTrimmedBottom(-cnv->viewport->getScrollBarThickness()));
         cnv->locked = true;
         cnv->presentationMode = true;
 
-       // cnv->setBounds(window->getBounds());
-        cnv->resized();
-        window->repaint();
+        closeButton.setBounds(getWidth()  - 75, 5, 70, 20);
+      //  mainWindow->repaint();
+       // mainWindow->getContentComponent()->repaint();
     }
 
     void buttonClicked(Button* button) override
     {
         if (button == &closeButton) {
             editor->setVisible(true);
-            originalOwner->addAndMakeVisible(cnv);
-            window->setResizable(true, false);
-          //  editor->addModifierKeyListener(editor);
-            // setVisible(false);
+            cnv->viewport->setBounds(viewportBounds);
+            cnv->locked = false;
+            cnv->presentationMode = false;
+            cnvParent->addAndMakeVisible(cnv);
+            cnv->resized();
+
+           // mainWindow->setResizeLimits()
+            mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
+            mainWindow->setResizable(true, false);
             delete this;
         }
     }
 
-    void resized() override
-    {
-        // position the close button in the top-right corner of the window
-        closeButton.setBounds(10, 10, 70, 25);
-        // cnv->setBounds(0, 0, getWidth(), getHeight() - 40); // set the canvas size
-    }
-
 private:
-    Component* originalOwner;
     Canvas* cnv;
     PluginEditor* editor;
     TextButton closeButton;
-    ResizableWindow* window;
+    ResizableWindow* mainWindow;
+    Component* cnvParent;
+    Rectangle<int> windowBounds;
+    Rectangle<int> viewportBounds;
 };
