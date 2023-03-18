@@ -25,20 +25,21 @@ public:
 
         auto width = cnv->patchWidth.getValue();
         auto height = cnv->patchHeight.getValue();
-        //editor->setVisible(false);
-        //mainWindow->getContentComponent()->addAndMakeVisible(this);
         editor->addAndMakeVisible(this);
-        //mainWindow->setResizable(false, false);
+
         editor->setResizeLimits(width, height, 99999, 99999);
         editor->setResizable(false, false);
-        // mainWindow->setResizeLimits(width, height, 99999, 99999);
         editor->setSize(width, height);
+        
+#ifdef PLUGDATA_STANDALONE
+        mainWindow->setResizeLimits(width, height, 99999, 99999);
+        mainWindow->setResizable(false, false);
+#endif
 
         closeButton.addListener(this);
         addAndMakeVisible(cnv);
         addAndMakeVisible(closeButton);
         setBounds(0, 0, width, height);
-        
 
         editor->zoomScale = 1.0f;
         cnv->viewport->setViewPosition(cnv->canvasOrigin);
@@ -47,8 +48,7 @@ public:
         cnv->locked = true;
         cnv->presentationMode = true;
 
-        closeButton.setBounds(getWidth()  - 75, 5, 70, 20);
-
+        closeButton.setBounds(getWidth() - 75, 5, 70, 20);
     }
 
     void buttonClicked(Button* button) override
@@ -64,6 +64,13 @@ public:
             editor->setResizeLimits(windowConstrainer->getMinimumWidth(), windowConstrainer->getMinimumHeight(), windowConstrainer->getMaximumWidth(), windowConstrainer->getMaximumHeight());
             editor->setSize(windowBounds.getWidth(), windowBounds.getHeight());
             editor->setResizable(true, false);
+
+#ifdef PLUGDATA_STANDALONE
+            mainWindow->setResizeLimits(windowConstrainer->getMinimumWidth(), windowConstrainer->getMinimumHeight(), windowConstrainer->getMaximumWidth(), windowConstrainer->getMaximumHeight());
+            mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
+            mainWindow->setResizable(true, false);
+#endif
+
             delete this;
         }
     }
