@@ -52,6 +52,8 @@ class FunctionObject final : public ObjectBase {
     Value sendSymbol;
     Value receiveSymbol;
 
+    Array<Point<float>> points;
+    
 public:
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -69,9 +71,6 @@ public:
         sendSymbol = sndSym != "empty" ? sndSym : "";
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";
     }
-
-    // std::pair<float, float> range;
-    Array<Point<float>> points;
 
     void setPdBounds(Rectangle<int> b) override
     {
@@ -94,12 +93,6 @@ public:
         return { x, y, w, h };
     }
 
-    void resized() override
-    {
-        static_cast<t_fake_function*>(ptr)->x_width = getWidth();
-        static_cast<t_fake_function*>(ptr)->x_height = getHeight();
-    }
-
     Array<Point<float>> getRealPoints()
     {
         auto realPoints = Array<Point<float>>();
@@ -110,15 +103,6 @@ public:
         }
 
         return realPoints;
-    }
-
-    void setRealPoints(Array<Point<float>> const& points)
-    {
-        auto* function = static_cast<t_fake_function*>(ptr);
-        for (int i = 0; i < points.size(); i++) {
-            function->x_points[i] = jmap<float>(points[i].y, getHeight() - 3, 3, 1.0f, 0.0f);
-            function->x_dur[i] = jmap<float>(points[i].x, 3, getWidth() - 3, 0.0f, 1.0f);
-        }
     }
 
     void paint(Graphics& g) override
