@@ -30,11 +30,12 @@ public:
         editor->setResizeLimits(width, height, 99999, 99999);
         editor->setResizable(false, false);
         editor->setSize(width, height);
-        
-#ifdef PLUGDATA_STANDALONE
-        mainWindow->setResizeLimits(width, height, 99999, 99999);
-        mainWindow->setResizable(false, false);
-#endif
+
+        if (ProjectInfo::isStandalone) {
+            mainWindow->setResizeLimits(width, height, 99999, 99999);
+            mainWindow->setResizable(false, false);
+            mainWindow->setSize(width, height);
+        }
 
         closeButton.addListener(this);
         addAndMakeVisible(cnv);
@@ -65,11 +66,11 @@ public:
             editor->setSize(windowBounds.getWidth(), windowBounds.getHeight());
             editor->setResizable(true, false);
 
-#ifdef PLUGDATA_STANDALONE
-            mainWindow->setResizeLimits(windowConstrainer->getMinimumWidth(), windowConstrainer->getMinimumHeight(), windowConstrainer->getMaximumWidth(), windowConstrainer->getMaximumHeight());
-            mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
-            mainWindow->setResizable(true, false);
-#endif
+            if (ProjectInfo::isStandalone) {
+                mainWindow->setResizeLimits(windowConstrainer->getMinimumWidth(), windowConstrainer->getMinimumHeight(), windowConstrainer->getMaximumWidth(), windowConstrainer->getMaximumHeight());
+                mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
+                mainWindow->setResizable(true, false);
+            }
 
             delete this;
         }
