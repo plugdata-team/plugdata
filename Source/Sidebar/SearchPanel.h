@@ -243,6 +243,8 @@ public:
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
 
         auto const& [name, prefix, object, ptr] = searchResult[rowNumber];
+        
+        if(!object) return;
 
         auto [x, y] = object->getPosition();
 

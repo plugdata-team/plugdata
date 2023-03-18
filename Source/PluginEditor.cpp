@@ -346,7 +346,7 @@ void PluginEditor::resized()
     runButton.setBounds(startX + toolbarHeight - 1, 0, toolbarHeight, toolbarHeight);
     presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 0, toolbarHeight, toolbarHeight);
 
-    auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 170.0f : 70.0f;
+    auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
 
     if (!ProjectInfo::isStandalone) {
         int const resizerSize = 18;
@@ -356,7 +356,7 @@ void PluginEditor::resized()
     }
 
     int hidePosition = getWidth() - windowControlsOffset;
-    int pinPosition = hidePosition - 65;
+    int pinPosition = hidePosition - 60;
 
     hideSidebarButton.setBounds(hidePosition, 0, toolbarHeight, toolbarHeight);
     pinButton.setBounds(pinPosition, 0, toolbarHeight, toolbarHeight);
