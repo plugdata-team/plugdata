@@ -77,8 +77,8 @@ public:
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* function = static_cast<t_fake_function*>(ptr);
-        function->x_width = b.getWidth();
-        function->x_height = b.getHeight();
+        function->x_width = b.getWidth() - 1;
+        function->x_height = b.getHeight() - 1;
     }
 
     Rectangle<int> getPdBounds() override
@@ -90,7 +90,7 @@ public:
 
         pd->unlockAudioThread();
 
-        return { x, y, w, h };
+        return { x, y, w + 1, h + 1};
     }
 
     Array<Point<float>> getRealPoints()

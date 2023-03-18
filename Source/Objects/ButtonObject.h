@@ -91,7 +91,7 @@ public:
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h);
+        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
 
         pd->unlockAudioThread();
 
@@ -103,8 +103,8 @@ public:
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* button = static_cast<t_fake_button*>(ptr);
-        button->x_w = b.getWidth();
-        button->x_h = b.getHeight();
+        button->x_w = b.getWidth() - 1;
+        button->x_h = b.getHeight() - 1;
     }
 
     void mouseDown(MouseEvent const& e) override
