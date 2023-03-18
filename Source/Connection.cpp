@@ -543,7 +543,7 @@ void Connection::reconnect(Iolet* target)
         reconnecting.add(SafePointer(c));
 
         // Make sure we're deselected and remove object
-        cnv->setSelected(c, false);
+        cnv->setSelected(c, false, false);
     }
 }
 

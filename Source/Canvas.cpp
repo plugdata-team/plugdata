@@ -1206,7 +1206,7 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool up
         component->repaint();
     }
 
-    if (updateCommandStatus) {
+    if (updateCommandStatus && isAlreadySelected != shouldNowBeSelected) {
         editor->updateCommandStatus();
     }
 }

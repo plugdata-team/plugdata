@@ -1255,11 +1255,12 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::SelectAll: {
         for (auto* object : cnv->objects) {
-            cnv->setSelected(object, true);
+            cnv->setSelected(object, true, false);
         }
         for (auto* con : cnv->connections) {
-            cnv->setSelected(con, true);
+            cnv->setSelected(con, true, false);
         }
+        updateCommandStatus();
         return true;
     }
     case CommandIDs::Lock: {

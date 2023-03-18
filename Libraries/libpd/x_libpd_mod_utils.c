@@ -695,6 +695,8 @@ void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* si
 
     canvas_undo_add(cnv, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(cnv, src_i, nout, dest_i, nin, connection_path));
     glist_noselect(cnv);
+    
+    canvas_dirty(cnv, 1);
 }
 
 void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize)
