@@ -935,7 +935,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
             // Store origin object positions
             for (auto object : selection) {
-                mouseDownObjectPositions.add(object->getPosition());
+                mouseDownObjectPositions.add(object->getPosition().translated(10, 10));
             }
 
             // Duplicate once
