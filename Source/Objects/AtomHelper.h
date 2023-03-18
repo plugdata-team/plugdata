@@ -86,7 +86,7 @@ public:
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), atom, &x, &y, &w, &h);
 
-        w = std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
+        w = (std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer())) + 3;
 
         auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
 
@@ -100,7 +100,7 @@ public:
         libpd_moveobj(cnv->patch.getPointer(), reinterpret_cast<t_gobj*>(atom), b.getX(), b.getY());
 
         auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        atom->a_text.te_width = b.getWidth() / fontWidth;
+        atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
     }
 
     void checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft)
@@ -110,8 +110,8 @@ public:
         auto fontWidth = glist_fontwidth(patch);
 
         // Calculate the width in text characters for both
-        auto oldCharWidth = oldBounds.getWidth() / fontWidth;
-        auto newCharWidth = std::max(minWidth, newBounds.getWidth() / fontWidth);
+        auto oldCharWidth = (oldBounds.getWidth() - 3) / fontWidth;
+        auto newCharWidth = std::max(minWidth, (newBounds.getWidth() - 3) / fontWidth);
 
         // If we're resizing the left edge, move the object left
         if (resizingOnLeft) {
