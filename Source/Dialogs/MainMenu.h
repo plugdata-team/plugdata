@@ -55,6 +55,10 @@ public:
 
         addSeparator();
 
+        addCustomItem(getMenuItemID(MenuItem::PluginMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::PluginMode)]), nullptr, "Plugin Mode");
+
+        addSeparator();
+
         addCustomItem(getMenuItemID(MenuItem::AutoConnect), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::AutoConnect)]), nullptr, "Auto-connect objects");
 
         addSeparator();
@@ -314,6 +318,7 @@ public:
         CloseAll,
         CompiledMode,
         Compile,
+        PluginMode,
         AutoConnect,
         Settings,
         About
@@ -345,6 +350,8 @@ public:
 
         new IconMenuItem("", "Compiled Mode", false, true),
         new IconMenuItem("", "Compile...", false, false),
+
+        new IconMenuItem("", "Plugin Mode", false, false),
 
         new IconMenuItem("", "Auto-connect objects", false, true),
 

@@ -25,6 +25,7 @@
 #include "ObjectBrowserDialog.h"
 #include "ObjectReferenceDialog.h"
 #include "Heavy/HeavyExportDialog.h"
+#include "SecondaryWindow.h"
 #include "MainMenu.h"
 #include "Canvas.h"
 
@@ -108,6 +109,10 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             }
             case MainMenu::MenuItem::Compile: {
                 Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
+                break;
+            }
+            case MainMenu::MenuItem::PluginMode: {
+                SecondaryWindow* secondaryWindow = new SecondaryWindow(editor->getCurrentCanvas());
                 break;
             }
             case MainMenu::MenuItem::AutoConnect: {
