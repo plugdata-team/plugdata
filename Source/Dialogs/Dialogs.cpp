@@ -309,9 +309,21 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         if (result > 100) {
             cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
         }
-
-        if ((!object && result < 100) || result < 1)
+        
+        if(result == Properties)
+        {
+            if (originalComponent == cnv) {
+                editor->sidebar->showParameters("canvas", cnv->getInspectorParameters());
+            } else if(object && object->gui) {
+                editor->sidebar->showParameters(object->gui->getText(), params);
+            }
+            
             return;
+        }
+
+        if ((!object && result < 100) || result <= 0) {
+            return;
+        }
 
         if (object)
             object->repaint();
@@ -361,15 +373,6 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             break;
         case Reference:
             Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
-            break;
-        case Properties:
-            if (originalComponent == cnv) {
-                // Open help
-                editor->sidebar->showParameters("canvas", cnv->getInspectorParameters());
-            } else {
-                editor->sidebar->showParameters(object->gui->getText(), params);
-            }
-
             break;
         default:
             break;
