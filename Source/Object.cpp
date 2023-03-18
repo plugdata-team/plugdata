@@ -285,7 +285,7 @@ void Object::setType(String const& newType, void* existingObject)
     gui.reset(ObjectBase::createGui(objectPtr, this));
 
     if (gui) {
-        gui->lock(locked == var(true));
+        gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
     }
