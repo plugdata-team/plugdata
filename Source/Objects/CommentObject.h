@@ -134,7 +134,7 @@ public:
 
         pd->unlockAudioThread();
 
-        return newBounds.withTrimmedBottom(4grap);
+        return newBounds.withTrimmedBottom(4);
     }
 
     bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
