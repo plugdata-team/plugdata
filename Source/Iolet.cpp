@@ -174,6 +174,9 @@ void Iolet::mouseUp(MouseEvent const& e)
     bool shiftIsDown = e.mods.isShiftDown();
     bool wasDragged = e.mouseWasDraggedSinceMouseDown();
 
+    
+    cnv->connectionCancelled = false;
+
     MessageManager::callAsync([this, _this = SafePointer(this), shiftIsDown, wasDragged]() mutable {
         if (!_this)
             return;
@@ -182,8 +185,6 @@ void Iolet::mouseUp(MouseEvent const& e)
 
         if (!cnv)
             return;
-
-        cnv->connectionCancelled = false;
 
         if (!wasDragged && cnv->connectionsBeingCreated.isEmpty()) {
             createConnection();

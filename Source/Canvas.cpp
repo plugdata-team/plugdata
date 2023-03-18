@@ -551,6 +551,8 @@ void Canvas::mouseUp(MouseEvent const& e)
     setPanDragMode(false);
     setMouseCursor(MouseCursor::NormalCursor);
 
+    connectionCancelled = false;
+    
     // Double-click canvas to create new object
     if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph && !static_cast<bool>(locked.getValue())) {
         objects.add(new Object(this, "", lastMousePosition));
