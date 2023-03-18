@@ -94,7 +94,7 @@ public:
         }
     }
 
-    void sendToggleValue(bool newValue)
+    void sendToggleValue(int newValue)
     {
         pd->enqueueFunction([ptr = this->ptr, pd = this->pd, patch = &cnv->patch, newValue]() {
             if (patch->objectWasDeleted(ptr))
