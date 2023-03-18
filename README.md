@@ -36,8 +36,12 @@ Join the Discord here, for sharing patches, reporting issues or requesting featu
 **-Linux:**
 - Option 1: [OBS repository/packages](https://software.opensuse.org//download.html?project=home%3Aplugdata&package=plugdata)
   The repository contains the packages plugdata, plugdata-vst3 and plugdata-lv2 (lv2-plugdata and vst3-plugdata on some distros). If you get a package without the repo, it will only contain the standalone version.
+    - Plugin versions can be found here:
+      - Deb/Ubuntu: https://software.opensuse.org/package/plugdata-vst3 and https://software.opensuse.org/package/plugdata-lv2
+      - RPM based distros: https://software.opensuse.org/package/vst3-plugdata and https://software.opensuse.org/package/lv2-plugdata
 - Option 2: Arch User Repository (Arch only).
   Has the [plugdata-bin](https://aur.archlinux.org/packages/plugdata-bin) package for the latest stable version, or the [plugdata-git](https://aur.archlinux.org/packages/plugdata-git) package for the latest experimental build.
+
 - Option 3: Get the binaries from the latest [official release](https://github.com/plugdata-team/plugdata/tags)
 
 If you have a GitHub account, you can also download a recent experimental build from the actions tab.
