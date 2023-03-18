@@ -292,7 +292,7 @@ public:
             int fontHeight = getFontHeight();
             int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
 
-            int const posx = objectBounds.getX() + iemgui->x_ldx;
+            int const posx = objectBounds.getX() + iemgui->x_ldx + 4;
             int const posy = objectBounds.getY() + iemgui->x_ldy;
 
             return { posx, posy, labelLength, fontHeight };
