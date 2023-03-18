@@ -47,6 +47,12 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     xRange.addListener(this);
     yRange.addListener(this);
 
+    patchWidth = patch.getBounds().getWidth();
+    patchHeight = patch.getBounds().getHeight();
+
+    patchWidth.addListener(this);
+    patchHeight.addListener(this);
+
     // Check if canvas belongs to a graph
     if (parentGraph) {
         setLookAndFeel(&editor->getLookAndFeel());
@@ -154,20 +160,20 @@ void Canvas::paint(Graphics& g)
         
         g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
         auto clipBounds = g.getClipBounds();
-        
+        auto patchWidthCanvas = canvasOrigin.x + static_cast<int>(patchWidth.getValue());
+        auto patchHeightCanvas = canvasOrigin.y + static_cast<int>(patchHeight.getValue());
+
         // draw patch window dashed outline
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-        auto patchWidth = canvasOrigin.x + patch.getBounds().getWidth();
-        auto patchHeight = canvasOrigin.y + patch.getBounds().getHeight();
-        auto verticalExtentLeft = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, patchHeight);
-        auto horizontalExtentTop = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, patchWidth, canvasOrigin.y - 0.5f);
+        auto verticalExtentLeft = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, patchHeightCanvas);
+        auto horizontalExtentTop = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, patchWidthCanvas, canvasOrigin.y - 0.5f);
         float dash[2] = { 5.0f, 5.0f };
 
         g.drawDashedLine(verticalExtentLeft, dash, 2, 1.0f);
-        verticalExtentLeft.applyTransform(AffineTransform::translation(Point<int>(patch.getBounds().getWidth(), 0)));
+        verticalExtentLeft.applyTransform(AffineTransform::translation(Point<int>(static_cast<int>(patchWidth.getValue()), 0)));
         g.drawDashedLine(verticalExtentLeft, dash, 2, 1.0f);
         g.drawDashedLine(horizontalExtentTop, dash, 2, 1.0f);
-        horizontalExtentTop.applyTransform(AffineTransform::translation(Point<int>(0, patch.getBounds().getHeight())));
+        horizontalExtentTop.applyTransform(AffineTransform::translation(Point<int>(0, static_cast<int>(patchHeight.getValue()))));
         g.drawDashedLine(horizontalExtentTop, dash, 2, 1.0f);
 
         auto startX = (canvasOrigin.x % objectGrid.gridSize);
@@ -182,7 +188,7 @@ void Canvas::paint(Graphics& g)
             for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
                 
                 // Don't draw over origin line
-                if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= patchHeight) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidth)) continue;
+                if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= patchHeightCanvas) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidthCanvas)) continue;
                 
                 g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
             }
@@ -1108,6 +1114,17 @@ void Canvas::checkBounds()
 
 void Canvas::valueChanged(Value& v)
 {
+    if (v.refersToSameSourceAs(patchWidth)) {
+        // limit canvas width to smallest object (11px)
+        patchWidth = jmax(11, static_cast<int>(patchWidth.getValue()));
+        patch.getPointer()->gl_screenx2 = static_cast<int>(patchWidth.getValue()) + patch.getPointer()->gl_screenx1;
+        repaint();
+    }
+    if (v.refersToSameSourceAs(patchHeight)) {
+        patchHeight = jmax(11, static_cast<int>(patchHeight.getValue()));
+        patch.getPointer()->gl_screeny2 = static_cast<int>(patchHeight.getValue()) + patch.getPointer()->gl_screeny1;
+        repaint();
+    }
     // When lock changes
     if (v.refersToSameSourceAs(locked)) {
         bool editMode = !static_cast<bool>(v.getValue());
