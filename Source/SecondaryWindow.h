@@ -17,20 +17,21 @@ public:
         , editor(cnv->editor)
         , mainWindow(static_cast<ResizableWindow*>(editor->getTopLevelComponent()))
         , cnvParent(cnv->getParentComponent())
-        , windowBounds(mainWindow->getBounds())
+        , windowBounds(editor->getBounds())
+        , windowConstrainer(editor->getConstrainer())
         , viewportBounds(cnv->viewport->getBounds())
         , closeButton("Show Editor..")
     {
 
         auto width = cnv->patchWidth.getValue();
         auto height = cnv->patchHeight.getValue();
-
         //editor->setVisible(false);
         //mainWindow->getContentComponent()->addAndMakeVisible(this);
         editor->addAndMakeVisible(this);
         //mainWindow->setResizable(false, false);
         editor->setResizeLimits(width, height, 99999, 99999);
-       // mainWindow->setResizeLimits(width, height, 99999, 99999);
+        editor->setResizable(false, false);
+        // mainWindow->setResizeLimits(width, height, 99999, 99999);
         editor->setSize(width, height);
 
         closeButton.addListener(this);
@@ -47,8 +48,7 @@ public:
         cnv->presentationMode = true;
 
         closeButton.setBounds(getWidth()  - 75, 5, 70, 20);
-      //  mainWindow->repaint();
-       // mainWindow->getContentComponent()->repaint();
+
     }
 
     void buttonClicked(Button* button) override
@@ -61,9 +61,9 @@ public:
             cnvParent->addAndMakeVisible(cnv);
             cnv->resized();
 
-           // mainWindow->setResizeLimits()
-            mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
-            mainWindow->setResizable(true, false);
+            editor->setResizeLimits(windowConstrainer->getMinimumWidth(), windowConstrainer->getMinimumHeight(), windowConstrainer->getMaximumWidth(), windowConstrainer->getMaximumHeight());
+            editor->setSize(windowBounds.getWidth(), windowBounds.getHeight());
+            editor->setResizable(true, false);
             delete this;
         }
     }
@@ -74,6 +74,7 @@ private:
     TextButton closeButton;
     ResizableWindow* mainWindow;
     Component* cnvParent;
+    ComponentBoundsConstrainer* windowConstrainer;
     Rectangle<int> windowBounds;
     Rectangle<int> viewportBounds;
 };
