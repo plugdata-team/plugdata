@@ -210,12 +210,8 @@ public:
 
         void mouseUp(MouseEvent const& e) override
         {
-            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-
-            if (bounds.contains(e.getMouseDownPosition())) {
-                toggleStateValue = !static_cast<bool>(toggleStateValue.getValue());
-                repaint();
-            }
+            toggleStateValue = !static_cast<bool>(toggleStateValue.getValue());
+            repaint();
         }
 
     private:
@@ -261,9 +257,6 @@ public:
 
         void mouseDown(MouseEvent const& e) override
         {
-            if (hideLabel && e.getPosition().x < getWidth() / 2)
-                return;
-
             ColourPicker::show(false, Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c) {
                 if (!_this)
                     return;
