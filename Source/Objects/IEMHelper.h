@@ -244,7 +244,7 @@ public:
         auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
         pd->unlockAudioThread();
 
-        return bounds;
+        return bounds.withTrimmedRight(-1).withTrimmedBottom(-1);
     }
 
     void setPdBounds(Rectangle<int> const b)
@@ -252,8 +252,8 @@ public:
         iemgui->x_obj.te_xpix = b.getX();
         iemgui->x_obj.te_ypix = b.getY();
 
-        iemgui->x_w = b.getWidth();
-        iemgui->x_h = b.getHeight();
+        iemgui->x_w = b.getWidth() - 1;
+        iemgui->x_h = b.getHeight() - 1;
     }
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)

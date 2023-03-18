@@ -140,12 +140,12 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return iemHelper.getPdBounds();
+        return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.setPdBounds(b);
+        iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1));
     }
 
     void updateRange()
