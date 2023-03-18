@@ -125,7 +125,7 @@ public:
         // Set new width
         atom->a_text.te_width = newCharWidth;
 
-        auto newHeight = newBounds.getHeight();
+        auto newHeight = newBounds.getHeight() - Object::doubleMargin;
         auto heightIdx = std::clamp<int>(std::upper_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
 
         setFontHeight(atomSizes[heightIdx]);
