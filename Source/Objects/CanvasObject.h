@@ -80,9 +80,9 @@ public:
         auto bounds = Rectangle<int>(x, y, static_cast<t_my_canvas*>(ptr)->x_vis_w + 1, static_cast<t_my_canvas*>(ptr)->x_vis_h + 1);
 
         pd->unlockAudioThread();
-
         return bounds;
     }
+    
 
     void paint(Graphics& g) override
     {

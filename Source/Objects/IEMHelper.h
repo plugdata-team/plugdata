@@ -153,11 +153,7 @@ public:
         }
         case hash("vis_size"): {
             if (atoms.size() >= 2) {
-                pd->lockAudioThread();
-                auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
-                pd->unlockAudioThread();
-
-                object->setObjectBounds(bounds);
+                object->updateBounds();
             }
             break;
         }
