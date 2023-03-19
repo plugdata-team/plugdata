@@ -305,8 +305,11 @@ public:
 
         setTransform(cnv->editor->getTransform());
 
-        auto objectPos = currentBox->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(-windowMargin, -windowMargin + 5);
-        setTopLeftPosition(objectPos);
+        auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
+
+        auto objectPos = currentBox->getScreenBounds().reduced(Object::margin).getBottomLeft() / scale;
+
+        setTopLeftPosition(objectPos.translated(-windowMargin, -windowMargin + 5));
 
         // If box is not contained in canvas bounds, hide suggestions
         if (cnv->viewport) {
