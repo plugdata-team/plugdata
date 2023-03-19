@@ -34,6 +34,11 @@ if(RUN_CLANG_TIDY)
   set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 endif()
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING 
+    "Default build type: Release" FORCE)
+endif()
+
 set(HARDENED_RUNTIME_ENABLED YES)
 set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
 
