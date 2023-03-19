@@ -161,7 +161,7 @@ public:
                 helper->setFontHeight(atomSizes[heightIdx]);
                 object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
                 
-                bounds = helper->getPdBounds().expanded(Object::margin);
+                bounds = helper->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
         

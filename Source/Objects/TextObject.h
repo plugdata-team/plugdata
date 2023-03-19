@@ -99,7 +99,7 @@ struct TextObjectHelper {
                 // Set new width
                 TextObjectHelper::setWidthInChars(object->getPointer(), newCharWidth);
                 
-                bounds = object->gui->getPdBounds().expanded(Object::margin);
+                bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
         

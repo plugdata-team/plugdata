@@ -297,7 +297,7 @@ public:
                 note->x_resized = 1;
                 note->x_max_pixwidth = bounds.reduced(Object::margin).getWidth();
                 
-                bounds = object->gui->getPdBounds();
+                bounds = object->gui->getPdBounds() + object->cnv->canvasOrigin;
             }
         };
         
