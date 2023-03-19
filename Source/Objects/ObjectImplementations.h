@@ -4,30 +4,42 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class SubpatchImpl : public ImplementationBase
+class SubpatchImpl : public ImplementationBase, public pd::MessageListener
 {
 public:
-    using ImplementationBase::ImplementationBase;
-
+    
+    SubpatchImpl(void* ptr, PluginProcessor* pd) : ImplementationBase(ptr, pd)
+    {
+        pd->registerMessageListener(ptr, this);
+    }
+     
     ~SubpatchImpl()
     {
+        pd->unregisterMessageListener(ptr, this);
         closeOpenedSubpatchers();
     }
-    
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
+
+    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
     {
-        switch(hash(symbol.toRawUTF8())) {
-            case hash("vis"): {
-                if (atoms[0].getFloat() == 1) {
-                    openSubpatch(subpatch);
-                } else {
-                    closeOpenedSubpatchers();
-                }
-            }
+        auto atoms = pd::Atom::fromAtoms(argc, argv);
+
+        bool isVisMessage = symbol == "vis";
+        if(isVisMessage && atoms[0].getFloat()) {
+            MessageManager::callAsync([_this = WeakReference(this)] {
+                if(!_this) _this->openSubpatch(_this->subpatch);
+            });
+        }
+        else if(isVisMessage) {
+            MessageManager::callAsync([_this = WeakReference(this)] {
+                if(!_this) _this->closeOpenedSubpatchers();
+            });
         }
     }
+
     
     std::unique_ptr<pd::Patch> subpatch = nullptr;
+    
+    JUCE_DECLARE_WEAK_REFERENCEABLE(SubpatchImpl);
 };
 
 
@@ -300,9 +312,15 @@ class CanvasActiveObject final : public ImplementationBase
     Component::SafePointer<Canvas> cnv;
 
 public:
-    CanvasActiveObject(void* ptr, PluginProcessor* pd)
-        : ImplementationBase(ptr, pd)
+
+    using ImplementationBase::ImplementationBase;
+
+    ~CanvasActiveObject()
     {
+        Desktop::getInstance().removeFocusChangeListener(this);
+    }
+        
+    void update() override {
         void* patch;
         sscanf(static_cast<t_fake_active*>(ptr)->x_cname->s_name, ".x%lx.c", (unsigned long*)&patch);
         
@@ -317,12 +335,8 @@ public:
         snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)y);
         buf[MAXPDSTRING - 1] = 0;
         canvasName = pd->generateSymbol(buf);
-    }
-
-    ~CanvasActiveObject()
-    {
-        Desktop::getInstance().removeFocusChangeListener(this);
-    }
+    };
+            
 
     void globalFocusChanged(Component* focusedComponent) override
     {
@@ -366,15 +380,26 @@ class CanvasMouseObject final : public ImplementationBase, public MouseListener 
     
     Point<int> lastPosition;
     Component::SafePointer<Canvas> cnv;
+    Component::SafePointer<Canvas> parentCanvas;
 
 public:
-    CanvasMouseObject(void* ptr, PluginProcessor* pd)
-    : ImplementationBase(ptr, pd)
+
+    using ImplementationBase::ImplementationBase;
+
+    ~CanvasMouseObject()
     {
+        if(!cnv) return;
+        
+        cnv->removeMouseListener(this);
+    }
+    
+    void update() override {
         char* text;
         int size;
         
-        binbuf_gettext(static_cast<t_fake_canvas_mouse*>(ptr)->x_obj.te_binbuf, &text, &size);
+        auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
+        
+        binbuf_gettext(mouse->x_obj.te_binbuf, &text, &size);
 
         int depth = 0;
         for(auto& arg : StringArray::fromTokens(String::fromUTF8(text, size), false))
@@ -388,22 +413,28 @@ public:
         
         if(depth > 0)
         {
-            cnv = getMainCanvas(static_cast<t_fake_canvas_mouse*>(ptr)->x_canvas->gl_owner);
+            cnv = getMainCanvas(mouse->x_canvas->gl_owner);
         }
         else {
-            cnv = getMainCanvas(static_cast<t_fake_canvas_mouse*>(ptr)->x_canvas);
+            cnv = getMainCanvas(mouse->x_canvas);
         }
         
         if(!cnv) return;
-
+        
         cnv->addMouseListener(this, true);
     }
-
-    ~CanvasMouseObject()
+    
+    Point<int> getMousePos(MouseEvent const& e)
     {
-        if(!cnv) return;
+        auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
+        auto* x = mouse->x_canvas;
         
-        cnv->removeMouseListener(this);
+        auto pos = e.getPosition();
+        if(mouse->x_pos){
+            pos -= Point<int>(x->gl_obj.te_xpix, x->gl_obj.te_ypix);
+        }
+        
+        return pos;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -411,7 +442,7 @@ public:
         if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
             return;
 
-        auto pos = e.getPosition();
+        auto pos = getMousePos(e);
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
 
         outlet_float(mouse->x_outlet_y, (float)pos.y);
@@ -433,7 +464,7 @@ public:
         if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
             return;
 
-        auto pos = e.getPosition();
+        auto pos = getMousePos(e);
         
         if(pos == lastPosition) return;
         
@@ -463,21 +494,24 @@ class CanvasVisibleObject final : public ImplementationBase
     bool lastFocus = 0;
     Component::SafePointer<Canvas> cnv;
 public:
-    CanvasVisibleObject(void* ptr, PluginProcessor* pd)
-        : ImplementationBase(ptr, pd)
-    {
-        cnv = getMainCanvas(static_cast<t_fake_canvas_vis*>(ptr)->x_canvas);
-        
-        lastFocus = cnv->hasKeyboardFocus(true);
-        cnv->addComponentListener(this);
-        startTimer(100);
-    }
+
+    using ImplementationBase::ImplementationBase;
 
     ~CanvasVisibleObject()
     {
         if(!cnv) return;
         
         cnv->removeComponentListener(this);
+    }
+        
+    void update() override {
+        cnv = getMainCanvas(static_cast<t_fake_canvas_vis*>(ptr)->x_canvas);
+        
+        if(!cnv) return;
+        
+        lastFocus = cnv->hasKeyboardFocus(true);
+        cnv->addComponentListener(this);
+        startTimer(100);
     }
 
     void updateVisibility()
@@ -522,9 +556,14 @@ class CanvasZoomObject final : public ImplementationBase, public Value::Listener
     Component::SafePointer<Canvas> cnv;
 
 public:
-    CanvasZoomObject(void* ptr, PluginProcessor* pd)
-    : ImplementationBase(ptr, pd)
-    {
+
+    using ImplementationBase::ImplementationBase;
+    
+    void update() override {
+        if(cnv) {
+            cnv->locked.removeListener(this);
+        }
+        
         cnv = getMainCanvas(static_cast<t_fake_zoom*>(ptr)->x_canvas);
         if(!cnv) return;
         
@@ -556,9 +595,14 @@ class CanvasEditObject final : public ImplementationBase, public Value::Listener
     Component::Component::SafePointer<Canvas> cnv;
 
 public:
-    CanvasEditObject(void* ptr, PluginProcessor* pd)
-    : ImplementationBase(ptr, pd)
-    {
+    
+    using ImplementationBase::ImplementationBase;
+
+    void update() override {
+        if(cnv) {
+            cnv->locked.removeListener(this);
+        }
+        
         cnv = getMainCanvas(static_cast<t_fake_edit*>(ptr)->x_canvas);
         if(!cnv) return;
         
@@ -566,10 +610,9 @@ public:
         lastEditMode = static_cast<float>(cnv->locked.getValue());
         cnv->locked.addListener(this);
     }
-
     void valueChanged(Value& v) override
     {
-        bool editMode = static_cast<bool>(cnv->locked.getValue());
+        bool editMode = static_cast<bool>(v.getValue());
         if (lastEditMode != editMode) {
             auto* edit = static_cast<t_fake_edit*>(ptr);
             outlet_float(edit->x_obj.ob_outlet, edit->x_edit = editMode);

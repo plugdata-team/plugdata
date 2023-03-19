@@ -14,7 +14,7 @@
 class PluginProcessor;
 class Canvas;
 
-class ImplementationBase : public pd::MessageListener
+class ImplementationBase
 {
 
 public:
@@ -25,10 +25,9 @@ public:
     static ImplementationBase* createImplementation(const String& type, void* ptr, PluginProcessor* pd);
     static bool hasImplementation(const String& type);
     
-    virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
-    
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
-    
+    virtual void update() {};
+
+
     void openSubpatch(std::unique_ptr<pd::Patch>& subpatch);
     void closeOpenedSubpatchers();
     

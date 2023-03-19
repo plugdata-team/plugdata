@@ -29,24 +29,11 @@ extern "C" {
 
 ImplementationBase::ImplementationBase(void* obj, PluginProcessor* processor) : pd(processor), ptr(obj)
 {
-    pd->registerMessageListener(ptr, this);
+    update();
 }
 
 ImplementationBase::~ImplementationBase()
 {
-    pd->unregisterMessageListener(ptr, this);
-}
-
-void ImplementationBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
-{
-    auto atoms = pd::Atom::fromAtoms(argc, argv);
-
-    MessageManager::callAsync([_this = WeakReference(this), symbol, atoms]() mutable {
-        if (!_this)
-            return;
-        
-        _this->receiveObjectMessage(symbol, atoms);
-    });
 }
 
 Canvas* ImplementationBase::getMainCanvas(void* patchPtr)
@@ -206,6 +193,9 @@ void ObjectImplementationManager::updateObjectImplementations()
             auto const name = String::fromUTF8(libpd_get_object_class_name(ptr));
             
             objectImplementations[ptr] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, ptr, pd));
+        }
+        else {
+            objectImplementations[ptr]->update();
         }
     }
 }
