@@ -143,7 +143,6 @@ Point<int> ObjectGrid::performFixedResize(Object* toDrag, Point<int> dragOffset,
     bool isSnapped = snapped[0] || snapped[1];
 
     if (isSnapped) {
-
         auto snappedPos = horizontalResizeSnapped ? snappedPosition.x : snappedPosition.y;
         auto dragPos = widthResizeSnapped ? dragOffset.x : dragOffset.y;
 
@@ -258,6 +257,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         dragOffset = performFixedResize(toDrag, dragOffset, newResizeBounds, nonClippedBounds);
     } else if (enableGrid != 2) {
         bool alreadySnappedVertically = isAlreadySnapped(false, dragOffset);
+        bool alreadySnappedHorizontally = isAlreadySnapped(true, dragOffset);
 
         if (!alreadySnappedVertically) {
             for (auto* object : snappable) {
@@ -273,13 +273,6 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
                 }
             }
         }
-        else if(std::abs(snappedPosition.y - dragOffset.y) > tolerance)
-        {
-            clear(0);
-        }
-
-        // Update in case we just snapped
-        bool alreadySnappedHorizontally = isAlreadySnapped(false, dragOffset);
 
         if (!alreadySnappedHorizontally) {
             for (auto* object : snappable) {
@@ -295,10 +288,6 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
                     dragOffset.x = applySnap(SnappedRight, dx + dragOffset.x, object, toDrag, true);
                 }
             }
-        }
-        else if(std::abs(snappedPosition.x - dragOffset.x) > tolerance)
-        {
-            clear(1);
         }
         
         MessageManager::callAsync([this]() {
