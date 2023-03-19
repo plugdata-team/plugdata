@@ -74,6 +74,7 @@ public:
 
     ValueTree getValueTree();
 
+    void setGlobalScale(float newScale);
 private:
     bool isInitialised = false;
 
@@ -101,6 +102,7 @@ private:
         { "reload_last_state", var(false) },
         { "autoconnect", var(true) },
         { "infinite_canvas", var(true) },
+        { "global_scale", var(1.0f) },
         { "macos_buttons",
 #if JUCE_MAC
             var(true)
