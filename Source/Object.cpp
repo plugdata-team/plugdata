@@ -261,7 +261,7 @@ void Object::setType(String const& newType, void* existingObject)
     void* objectPtr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
-    if (!existingObject || cnv->patch.objectWasDeleted(existingObject)) {
+    if (!existingObject) {
         auto* patch = &cnv->patch;
         if (gui) {
             // Clear connections to this object
@@ -337,6 +337,7 @@ void Object::setType(String const& newType, void* existingObject)
     cnv->editor->updateCommandStatus();
     
     cnv->synchroniseSplitCanvas();
+    cnv->pd->updateObjectImplementations();
 }
 
 Array<Rectangle<float>> Object::getCorners() const

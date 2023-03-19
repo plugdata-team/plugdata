@@ -33,7 +33,6 @@ public:
     ~SubpatchObject()
     {
         object->hvccMode.removeListener(this);
-        closeOpenedSubpatchers();
     }
 
     void updateValue()
@@ -59,20 +58,6 @@ public:
             return;
         } else {
             TextBase::mouseDown(e);
-        }
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
-        case hash("vis"): {
-            if (atoms[0].getFloat() == 1) {
-                openSubpatch();
-            } else {
-                closeOpenedSubpatchers();
-            }
-            break;
-        }
         }
     }
 

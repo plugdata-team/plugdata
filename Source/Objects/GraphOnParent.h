@@ -62,14 +62,6 @@ public:
             }
             break;
         }
-        case hash("vis"): {
-            if (atoms[0].getFloat() == 1) {
-                openSubpatch();
-            } else {
-                closeOpenedSubpatchers();
-            }
-            break;
-        }
         case hash("donecanvasdialog"): {
             if (atoms.size() >= 11) {
 
@@ -135,11 +127,6 @@ public:
         pd->unlockAudioThread();
 
         return bounds;
-    }
-
-    ~GraphOnParent() override
-    {
-        closeOpenedSubpatchers();
     }
 
     void tabChanged() override

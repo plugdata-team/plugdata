@@ -48,7 +48,6 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "ArrayObject.h"
 #include "GraphOnParent.h"
 #include "KeyboardObject.h"
-#include "KeyObject.h"
 #include "MessboxObject.h"
 #include "MousePadObject.h"
 #include "NumberObject.h"
@@ -65,7 +64,6 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
 #include "TextDefineObject.h"
-#include "CanvasListenerObjects.h"
 #include "ScopeObject.h"
 #include "FunctionObject.h"
 #include "BicoeffObject.h"
@@ -196,47 +194,27 @@ String ObjectBase::getType() const
     return {};
 }
 
-// Called in destructor of subpatch and graph class
-// Makes sure that any tabs refering to the now deleted patch will be closed
-void ObjectBase::closeOpenedSubpatchers()
-{
-    auto* editor = object->cnv->editor;
-
-    for (auto* canvas : editor->canvases) {
-        if (canvas && canvas->patch == *getPatch()) {
-
-            canvas->editor->closeTab(canvas);
-            break;
-        }
-    }
-}
-
 bool ObjectBase::click()
 {
     pd->setThis();
-
-    auto* pdObj = static_cast<t_gobj*>(ptr)->g_pd;
-
-    // TODO: use z_getfn?
-
-    // Check if click method exists, if so, call it
-    t_methodentry* mlist;
-
-    auto* pdinstance = libpd_this_instance();
-#if PDINSTANCE
-    mlist = pdObj->c_methods[pdinstance->pd_instanceno];
+    
+    const t_class* c = static_cast<t_gobj*>(ptr)->g_pd;
+    
+    t_methodentry *m, *mlist;
+    int i;
+    
+#ifdef PDINSTANCE
+    mlist = c->c_methods[libpd_this_instance()->pd_instanceno];
 #else
-    mlist = pdObj->c_methods;
+    mlist = c->c_methods;
 #endif
-
-    for (int i = 0; i < pdObj->c_nmethod; i++) {
-        auto& method = mlist[i];
-        if (mlist[i].me_name == gensym("click") && mlist[i].me_arg[0] == '\0') {
+    for (i = c->c_nmethod, m = mlist; i--; m++) {
+        if (m->me_name == gensym("click") && m->me_arg[0] == '\0') {
             pd->enqueueDirectMessages(ptr, "click", {});
             return true;
         }
     }
-
+    
     return false;
 }
 
@@ -454,12 +432,6 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         }
         case hash("colors"):
             return new ColourPickerObject(ptr, parent);
-        case hash("key"):
-            return new KeyObject(ptr, parent, KeyObject::Key);
-        case hash("keyname"):
-            return new KeyObject(ptr, parent, KeyObject::KeyName);
-        case hash("keyup"):
-            return new KeyObject(ptr, parent, KeyObject::KeyUp);
         // ELSE's [oscope~] and cyclone [scope~] are basically the same object
         case hash("oscope~"):
             return new OscopeObject(ptr, parent);
@@ -473,16 +445,6 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new MessboxObject(ptr, parent);
         case hash("note"):
             return new NoteObject(ptr, parent);
-        case hash("canvas.active"):
-            return new CanvasActiveObject(ptr, parent);
-        case hash("canvas.mouse"):
-            return new CanvasMouseObject(ptr, parent);
-        case hash("canvas.vis"):
-            return new CanvasVisibleObject(ptr, parent);
-        case hash("canvas.zoom"):
-            return new CanvasZoomObject(ptr, parent);
-        case hash("canvas.edit"):
-            return new CanvasEditObject(ptr, parent);
         default:
             break;
         }
