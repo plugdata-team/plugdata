@@ -62,17 +62,7 @@ public:
 
     ~CloneObject()
     {
-        // TODO: use an object implementation for this?
-        
-        auto* editor = object->cnv->editor;
-
-        for (auto* canvas : editor->canvases) {
-            if (canvas && canvas->patch == *getPatch()) {
-
-                canvas->editor->closeTab(canvas);
-                break;
-            }
-        }
+        closeOpenedSubpatchers();
     }
 
     pd::Patch* getPatch() override

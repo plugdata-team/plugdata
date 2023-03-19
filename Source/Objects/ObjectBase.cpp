@@ -194,6 +194,22 @@ String ObjectBase::getType() const
     return {};
 }
 
+
+// Called in destructor of subpatch and graph class
+// Makes sure that any tabs refering to the now deleted patch will be closed
+void ObjectBase::closeOpenedSubpatchers()
+{
+    auto* editor = object->cnv->editor;
+
+    for (auto* canvas : editor->canvases) {
+        if (canvas && canvas->patch == *getPatch()) {
+
+            canvas->editor->closeTab(canvas);
+            break;
+        }
+    }
+}
+
 bool ObjectBase::click()
 {
     pd->setThis();

@@ -33,6 +33,7 @@ public:
     ~SubpatchObject()
     {
         object->hvccMode.removeListener(this);
+        closeOpenedSubpatchers();
     }
 
     void updateValue()

@@ -129,6 +129,11 @@ public:
         return bounds;
     }
 
+    ~GraphOnParent() override
+    {
+        closeOpenedSubpatchers();
+    }
+
     void tabChanged() override
     {
         auto* leftTabbar = cnv->editor->splitView.getLeftTabbar();

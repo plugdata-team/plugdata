@@ -117,6 +117,7 @@ public:
     virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
 
     // Close any tabs with opened subpatchers
+    void closeOpenedSubpatchers();
     void openSubpatch();
 
     // Attempt to send "click" message to object. Returns false if the object has no such method
