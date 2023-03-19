@@ -272,9 +272,10 @@ public:
         class NoteObjectBoundsConstrainer : public ComponentBoundsConstrainer {
         public:
             
+            NoteObject* noteObject;
             Object* object;
             
-            NoteObjectBoundsConstrainer(Object* parent) : object(parent)
+            NoteObjectBoundsConstrainer(Object* obj, NoteObject* parent) : object(obj), noteObject(parent)
             {
             }
             /*
@@ -295,13 +296,15 @@ public:
             {
                 auto* note = static_cast<t_fake_note*>(object->getPointer());
                 note->x_resized = 1;
-                note->x_max_pixwidth = bounds.reduced(Object::margin).getWidth();
+                note->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
                 
-                bounds = object->gui->getPdBounds() + object->cnv->canvasOrigin;
+                // Set editor size first, so getTextHeight will return a correct result
+                noteObject->noteEditor.setSize(note->x_max_pixwidth, noteObject->noteEditor.getHeight());
+                bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
         
-        return new NoteObjectBoundsConstrainer(object);
+        return new NoteObjectBoundsConstrainer(object, this);
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -360,7 +363,6 @@ public:
             } else if (justificationType == 3) {
                 noteEditor.setJustification(Justification::topRight);
             }
-
         } else if (v.refersToSameSourceAs(outline)) {
             note->x_outline = static_cast<int>(outline.getValue());
             repaint();
