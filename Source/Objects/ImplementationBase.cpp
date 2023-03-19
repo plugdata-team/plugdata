@@ -65,6 +65,7 @@ bool ImplementationBase::hasImplementation(const String& type)
         case hash("canvas.vis"):
         case hash("canvas.zoom"):
         case hash("canvas.edit"):
+        case hash("mouse"):
             return true;
             
 
@@ -94,7 +95,9 @@ ImplementationBase* ImplementationBase::createImplementation(const String& type,
             return new KeyObject(ptr, pd, KeyObject::KeyName);
         case hash("keyup"):
             return new KeyObject(ptr, pd, KeyObject::KeyUp);
-
+        case hash("mouse"):
+            return new MouseObject(ptr, pd);
+            
         default: break;
     }
     

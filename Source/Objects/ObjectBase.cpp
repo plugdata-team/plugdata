@@ -39,7 +39,6 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "TextObject.h"
 #include "ToggleObject.h"
 #include "MessageObject.h"
-#include "MouseObject.h"
 #include "BangObject.h"
 #include "ButtonObject.h"
 #include "RadioObject.h"
@@ -397,8 +396,6 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         }
         case hash("pad"):
             return new MousePadObject(ptr, parent);
-        case hash("mouse"):
-            return new MouseObject(ptr, parent);
         case hash("keyboard"):
             return new KeyboardObject(ptr, parent);
         case hash("pic"):
