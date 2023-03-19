@@ -66,7 +66,9 @@ public:
             editor->resized();
         }
         if (v.refersToSameSourceAs(scaleValue)) {
-            SettingsFile::getInstance()->setGlobalScale(std::clamp(static_cast<float>(scaleValue.getValue()), 0.5f, 2.5f));
+            auto scale = std::clamp(static_cast<float>(scaleValue.getValue()), 0.5f, 2.5f);
+            SettingsFile::getInstance()->setGlobalScale(scale);
+            scaleValue = scale;
         }
         
     }
