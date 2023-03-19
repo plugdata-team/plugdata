@@ -23,12 +23,11 @@ public:
     {
         isVertical = static_cast<t_radio*>(ptr)->x_orientation;
 
-        max = getMaximum();
+        numItems = getMaximum();
+        max = numItems;
         max.addListener(this);
 
         selected = getValue();
-
-        valueChanged(max);
 
         if (selected > static_cast<int>(max.getValue())) {
             selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
@@ -52,6 +51,7 @@ public:
 
     void initialiseParameters() override
     {
+        
         iemHelper.initialiseParameters();
     }
 
@@ -206,12 +206,12 @@ public:
         auto minShortSide = object->minimumSize;
         if (isVertical) {
             object->setSize(object->getWidth(), verticalLength);
-            object->constrainer->setMinimumSize(minShortSide, minLongSide);
+            constrainer->setMinimumSize(minShortSide, minLongSide);
         } else {
             object->setSize(horizontalLength, object->getHeight());
-            object->constrainer->setMinimumSize(minLongSide, minShortSide);
+            constrainer->setMinimumSize(minLongSide, minShortSide);
         }
-        object->constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
+        constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
     }
 
     void valueChanged(Value& value) override

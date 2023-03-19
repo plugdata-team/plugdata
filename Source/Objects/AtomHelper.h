@@ -41,7 +41,7 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 
 class AtomHelper {
 
-    int const atomSizes[8] = { 0, 8, 10, 12, 16, 24, 36 };
+    static inline const int atomSizes[8] = { 0, 8, 10, 12, 16, 24, 36 };
 
     Object* object;
     ObjectBase* gui;
@@ -102,34 +102,70 @@ public:
         auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
         atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
     }
-
-    void checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft)
+    
+    ComponentBoundsConstrainer* createConstrainer(Object* object)
     {
-        auto* patch = cnv->patch.getPointer();
+        class AtomObjectBoundsConstrainer : public ComponentBoundsConstrainer {
+        public:
+            
+            Object* object;
+            AtomHelper* helper;
+            
+            AtomObjectBoundsConstrainer(Object* parent, AtomHelper* atomHelper) : object(parent), helper(atomHelper)
+            {
+            }
+            /*
+             * Custom version of checkBounds that takes into consideration
+             * the padding around plugdata node objects when resizing
+             * to allow the aspect ratio to be interpreted correctly.
+             * Otherwise resizing objects with an aspect ratio will
+             * resize the object size **including** margins, and not follow the
+             * actual size of the visible object
+             */
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool isStretchingTop,
+                bool isStretchingLeft,
+                bool isStretchingBottom,
+                bool isStretchingRight) override
+            {
+                
+                auto oldBounds = old.reduced(Object::margin);
+                auto newBounds = bounds.reduced(Object::margin);
+                
+                auto* atom = static_cast<t_fake_gatom*>(object->getPointer());
+                auto* patch = object->cnv->patch.getPointer();
 
-        auto fontWidth = glist_fontwidth(patch);
+                auto fontWidth = glist_fontwidth(patch);
 
-        // Calculate the width in text characters for both
-        auto oldCharWidth = (oldBounds.getWidth() - 3) / fontWidth;
-        auto newCharWidth = std::max(minWidth, (newBounds.getWidth() - 3) / fontWidth);
+                // Calculate the width in text characters for both
+                auto oldCharWidth = (oldBounds.getWidth() - 3) / fontWidth;
+                auto newCharWidth = std::max(minWidth, (newBounds.getWidth() - 3) / fontWidth);
 
-        // If we're resizing the left edge, move the object left
-        if (resizingOnLeft) {
-            auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
-            auto x = oldBounds.getX() - widthDiff;
-            auto y = oldBounds.getY();
+                // If we're resizing the left edge, move the object left
+                if (isStretchingLeft) {
+                    auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
+                    auto x = oldBounds.getX() - widthDiff;
+                    auto y = oldBounds.getY();
 
-            libpd_moveobj(patch, reinterpret_cast<t_gobj*>(atom), x, y);
-        }
+                    libpd_moveobj(patch, reinterpret_cast<t_gobj*>(atom), x, y);
+                }
 
-        // Set new width
-        atom->a_text.te_width = newCharWidth;
+                // Set new width
+                atom->a_text.te_width = newCharWidth;
 
-        auto newHeight = newBounds.getHeight() - Object::doubleMargin;
-        auto heightIdx = std::clamp<int>(std::upper_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
+                auto newHeight = newBounds.getHeight() - Object::doubleMargin;
+                auto heightIdx = std::clamp<int>(std::upper_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
 
-        setFontHeight(atomSizes[heightIdx]);
-        gui->setParameterExcludingListener(fontSize, heightIdx + 1);
+                helper->setFontHeight(atomSizes[heightIdx]);
+                object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
+                
+                bounds = helper->getPdBounds().expanded(Object::margin);
+            }
+        };
+        
+        return new AtomObjectBoundsConstrainer(object, this);
     }
 
     int getAtomHeight() const

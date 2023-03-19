@@ -31,7 +31,6 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 #include "Pd/Patch.h"
-#include "Utility/ObjectBoundsConstrainer.h"
 #include "Sidebar/Sidebar.h"
 
 #include "IEMHelper.h"
@@ -70,6 +69,7 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "NoteObject.h"
 #include "ColourPickerObject.h"
 
+
 // Class for non-patchable objects
 class NonPatchable : public ObjectBase {
 
@@ -98,15 +98,17 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 {
     pd->registerMessageListener(ptr, this);
 
-    updateLabel(); // TODO: fix virtual call from constructor
-
     setWantsKeyboardFocus(true);
 
     setLookAndFeel(new PlugDataLook());
 
     MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this) {
+            _this->constrainer = _this->createConstrainer();
+            _this->onConstrainerCreate();
+            
             _this->initialiseParameters();
+            _this->updateLabel();
         }
     });
 }
@@ -540,4 +542,62 @@ ObjectLabel* ObjectBase::getLabel()
 bool ObjectBase::isBeingEdited()
 {
     return edited;
+}
+
+ComponentBoundsConstrainer* ObjectBase::getConstrainer()
+{
+    return constrainer;
+}
+
+ComponentBoundsConstrainer* ObjectBase::createConstrainer()
+{
+    class ObjectBoundsConstrainer : public ComponentBoundsConstrainer {
+    public:
+        
+        ObjectBoundsConstrainer()
+        {
+            setMinimumSize(Object::minimumSize, Object::minimumSize);
+        }
+        /*
+         * Custom version of checkBounds that takes into consideration
+         * the padding around plugdata node objects when resizing
+         * to allow the aspect ratio to be interpreted correctly.
+         * Otherwise resizing objects with an aspect ratio will
+         * resize the object size **including** margins, and not follow the
+         * actual size of the visible object
+         */
+        void checkBounds(Rectangle<int>& bounds,
+            Rectangle<int> const& old,
+            Rectangle<int> const& limits,
+            bool isStretchingTop,
+            bool isStretchingLeft,
+            bool isStretchingBottom,
+            bool isStretchingRight) override
+        {
+            // we remove the margin from the resizing object
+            BorderSize<int> border(Object::margin);
+            border.subtractFrom(bounds);
+
+            // we also have to remove the margin from the old object, but don't alter the old object
+            ComponentBoundsConstrainer::checkBounds(bounds, border.subtractedFrom(old), limits, isStretchingTop,
+                isStretchingLeft,
+                isStretchingBottom,
+                isStretchingRight);
+
+            // put back the margins
+            border.addTo(bounds);
+
+            // If we're stretching in only one direction, make sure to keep the position on the other axis the same.
+            // This prevents ice-skating when the canvas is zoomed in
+            auto isStretchingWidth = isStretchingLeft || isStretchingRight;
+            auto isStretchingHeight = isStretchingBottom || isStretchingTop;
+
+            if (getFixedAspectRatio() != 0.0f && (isStretchingWidth ^ isStretchingHeight)) {
+
+                bounds = isStretchingHeight ? bounds.withX(old.getX()) : bounds.withY(old.getY());
+            }
+        }
+    };
+    
+    return new ObjectBoundsConstrainer();
 }

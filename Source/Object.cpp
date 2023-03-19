@@ -23,7 +23,6 @@
 
 #include "Dialogs/Dialogs.h"
 
-#include "Utility/ObjectBoundsConstrainer.h"
 #include "Pd/Patch.h"
 
 extern "C" {
@@ -107,8 +106,6 @@ void Object::setObjectBounds(Rectangle<int> bounds)
 
 void Object::initialise()
 {
-    constrainer = std::make_unique<ObjectBoundsConstrainer>();
-
     cnv->addAndMakeVisible(this);
     cnv->editor->addModifierKeyListener(this);
 
@@ -124,7 +121,6 @@ void Object::initialise()
     hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
-    constrainer->setMinimumSize(minimumSize, minimumSize);
 }
 
 void Object::timerCallback()
@@ -888,12 +884,13 @@ void Object::mouseDrag(MouseEvent const& e)
         auto toResize = cnv->getSelectionOfType<Object>();
 
         for (auto* obj : toResize) {
+            
+            if(!obj->gui) continue;
+            
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
 
-            bool useConstrainer = obj->gui && !obj->gui->checkBounds(obj->originalBounds - cnv->canvasOrigin, newBounds - cnv->canvasOrigin, resizeZone.isDraggingLeftEdge());
-
-            if (useConstrainer) {
-                obj->constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(),
+            if (auto* constrainer = obj->getConstrainer()) {
+                constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(),
                     resizeZone.isDraggingLeftEdge(),
                     resizeZone.isDraggingBottomEdge(),
                     resizeZone.isDraggingRightEdge());
@@ -1211,6 +1208,15 @@ void Object::textEditorTextChanged(TextEditor& ed)
     width += Object::doubleMargin;
 
     setSize(width, getHeight());
+}
+
+ComponentBoundsConstrainer* Object::getConstrainer()
+{
+    if(gui) {
+        return gui->getConstrainer();
+    }
+    
+    return nullptr;
 }
 
 void Object::openHelpPatch() const

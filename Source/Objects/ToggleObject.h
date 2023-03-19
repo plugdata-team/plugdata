@@ -19,7 +19,11 @@ public:
         , iemHelper(ptr, object, this)
     {
         value = getValue();
-        object->constrainer->setFixedAspectRatio(1);
+        
+        onConstrainerCreate = [this](){
+            constrainer->setFixedAspectRatio(1);
+        };
+        
     }
 
     bool hideInlets() override

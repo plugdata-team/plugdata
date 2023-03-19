@@ -40,7 +40,9 @@ public:
     ButtonObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        parent->constrainer->setFixedAspectRatio(1);
+        onConstrainerCreate = [this](){
+            constrainer->setFixedAspectRatio(1);
+        };
     }
 
     void initialiseParameters() override

@@ -11,7 +11,6 @@
 #include "Object.h"
 #include "Canvas.h"
 #include "Connection.h"
-#include "Utility/ObjectBoundsConstrainer.h"
 
 ObjectGrid::ObjectGrid(Component* parent)
 {
@@ -130,7 +129,9 @@ Point<int> ObjectGrid::performFixedResize(Object* toDrag, Point<int> dragOffset,
 {
     auto snappable = getSnappableObjects(toDrag);
     auto resizeZone = toDrag->resizeZone;
-    auto ratio = toDrag->constrainer->getFixedAspectRatio();
+    
+    auto* constrainer = toDrag->getConstrainer();
+    auto ratio = constrainer ? constrainer->getFixedAspectRatio() : 0.0;
 
     auto oldBounds = toDrag->originalBounds;
 
@@ -240,16 +241,20 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 
     auto resizeZone = toDrag->resizeZone;
     auto nonClippedBounds = newResizeBounds;
-    // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
-    toDrag->constrainer->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
-        resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
-        resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
+    auto* constrainer = toDrag->getConstrainer();
+    
+    if(constrainer) {
+        // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
+        constrainer->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
+                                 resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
+                                 resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
+    }
 
     auto b2 = newResizeBounds.reduced(Object::margin);
     auto snappable = getSnappableObjects(toDrag);
 
     // Snap to Objects
-    if (enableGrid != 2 && toDrag->constrainer->getFixedAspectRatio() != 0.0) {
+    if (enableGrid != 2 && constrainer && constrainer->getFixedAspectRatio() != 0.0) {
         dragOffset = performFixedResize(toDrag, dragOffset, newResizeBounds, nonClippedBounds);
     } else if (enableGrid != 2) {
         bool alreadySnappedVertically = isAlreadySnapped(false, dragOffset);
@@ -267,6 +272,10 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
                     dragOffset.y = applySnap(SnappedRight, dy + dragOffset.y, object, toDrag, false);
                 }
             }
+        }
+        else if(std::abs(snappedPosition.y - dragOffset.y) > tolerance)
+        {
+            clear(0);
         }
 
         // Update in case we just snapped
@@ -287,7 +296,11 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
                 }
             }
         }
-
+        else if(std::abs(snappedPosition.x - dragOffset.x) > tolerance)
+        {
+            clear(1);
+        }
+        
         MessageManager::callAsync([this]() {
             updateMarker();
         });

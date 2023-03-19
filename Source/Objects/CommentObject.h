@@ -137,15 +137,11 @@ public:
         return newBounds.withTrimmedBottom(4);
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    ComponentBoundsConstrainer* createConstrainer() override
     {
-        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        auto* patch = cnv->patch.getPointer();
-        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth);
-        object->updateBounds();
-        return true;
+        return TextObjectHelper::createConstrainer(object);
     }
-
+        
     void setPdBounds(Rectangle<int> b) override
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());

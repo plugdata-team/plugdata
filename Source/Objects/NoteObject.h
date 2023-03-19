@@ -266,18 +266,42 @@ public:
 
         return bounds;
     }
-
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    
+    ComponentBoundsConstrainer* createConstrainer() override
     {
-        newBounds.reduce(Object::margin, Object::margin);
-
-        auto* note = static_cast<t_fake_note*>(ptr);
-        note->x_resized = 1;
-        note->x_max_pixwidth = newBounds.getWidth();
-
-        object->updateBounds();
-
-        return true;
+        class NoteObjectBoundsConstrainer : public ComponentBoundsConstrainer {
+        public:
+            
+            Object* object;
+            
+            NoteObjectBoundsConstrainer(Object* parent) : object(parent)
+            {
+            }
+            /*
+             * Custom version of checkBounds that takes into consideration
+             * the padding around plugdata node objects when resizing
+             * to allow the aspect ratio to be interpreted correctly.
+             * Otherwise resizing objects with an aspect ratio will
+             * resize the object size **including** margins, and not follow the
+             * actual size of the visible object
+             */
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool isStretchingTop,
+                bool isStretchingLeft,
+                bool isStretchingBottom,
+                bool isStretchingRight) override
+            {
+                auto* note = static_cast<t_fake_note*>(object->getPointer());
+                note->x_resized = 1;
+                note->x_max_pixwidth = bounds.reduced(Object::margin).getWidth();
+                
+                bounds = object->gui->getPdBounds();
+            }
+        };
+        
+        return new NoteObjectBoundsConstrainer(object);
     }
 
     void setPdBounds(Rectangle<int> b) override
