@@ -308,6 +308,7 @@ class CanvasActiveObject final : public ImplementationBase
         
     bool lastFocus = 0;
 
+    t_symbol* lastFocussedName;
     t_symbol* canvasName;
     Component::SafePointer<Canvas> cnv;
 
@@ -342,14 +343,46 @@ public:
     {
         if (!focusedComponent) {
             t_atom args[2];
+            
+            auto* active = static_cast<t_fake_active*>(ptr);
+
             SETSYMBOL(args, canvasName);
             SETFLOAT(args + 1, 0);
             pd_typedmess((t_pd*)ptr, pd->generateSymbol("_focus"), 2, args);
             lastFocus = 0;
             return;
         }
-
+        
         bool shouldHaveFocus = focusedComponent == cnv;
+
+        auto* name = canvasName;
+        Canvas* focusedCanvas = nullptr;
+        
+        auto* active = static_cast<t_fake_active*>(ptr);
+        
+        if(active->x_name) {
+            focusedCanvas = dynamic_cast<Canvas*>(focusedComponent);
+            if(!focusedCanvas) {
+                focusedCanvas = focusedComponent->findParentComponentOfClass<Canvas>();
+            }
+            if(!focusedCanvas) return;
+
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)focusedCanvas->patch.getPointer());
+            buf[MAXPDSTRING-1] = 0;
+            
+            name = gensym(buf);
+            
+            if(lastFocussedName != name)
+            {
+                t_atom args[2];
+                SETSYMBOL(args, name);
+                SETFLOAT(args + 1, static_cast<float>(shouldHaveFocus));
+                pd_typedmess((t_pd*)ptr, pd->generateSymbol("_focus"), 2, args);
+                lastFocussedName = name;
+            }
+            return;
+        }
 
         if (shouldHaveFocus != lastFocus) {
             t_atom args[2];
