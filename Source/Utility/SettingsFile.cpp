@@ -164,6 +164,8 @@ void SettingsFile::addToRecentlyOpened(File path)
 
         recentlyOpened.removeChild(minIdx, nullptr);
     }
+    
+    RecentlyOpenedFilesList::registerRecentFileNatively(path);
 }
 
 void SettingsFile::initialiseThemesTree()

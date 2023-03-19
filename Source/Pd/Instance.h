@@ -308,11 +308,11 @@ public:
 
 private:
     
+    std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;
+    
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
     
     CriticalSection messageListenerLock;
-
-    std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;
 
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
