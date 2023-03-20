@@ -294,10 +294,8 @@ Statusbar::Statusbar(PluginProcessor* processor)
     overlayButton->setTooltip("Overlay display settings");
     overlayButton->getProperties().set("Style", "SmallIcon");
 
-    overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
-
     overlayButton->onClick = [this]() {
-        overlayDisplaySettings->show(overlayButton.get()->getScreenBounds());
+        OverlayDisplaySettings::show(pd->getActiveEditor(), overlayButton.get()->getScreenBounds());
     };
     
     addAndMakeVisible(overlayButton.get());

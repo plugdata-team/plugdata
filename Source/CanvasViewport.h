@@ -246,11 +246,6 @@ class CanvasViewport : public Viewport
             fadeOut();
         }
 
-        // Don't allow the viewport to manage scrollbar visibility!
-        void setVisible(bool shouldBeVisible) override
-        {
-        }
-
         bool isDraggingThumb = false;
         int lastMousePos = 0;
         FadeAnimator animator = FadeAnimator(this);

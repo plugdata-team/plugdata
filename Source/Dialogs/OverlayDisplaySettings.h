@@ -2,6 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Constants.h"
+#include "PluginEditor.h"
 #include "LookAndFeel.h"
 
 class OverlayDisplaySettings : public Component
@@ -176,7 +177,7 @@ public:
         buttonGroups[Direction].setBounds(bounds.removeFromTop(30));
     }
     
-    static void show(Rectangle<int> bounds)
+    static void show(Component* parent, Rectangle<int> bounds)
     {
         if (isShowing)
             return;
@@ -184,7 +185,7 @@ public:
         isShowing = true;
         
         auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
-        CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), bounds, nullptr);
+        CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), bounds, parent);
     }
     
     ~OverlayDisplaySettings()

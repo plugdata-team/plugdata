@@ -29,7 +29,7 @@ public:
         LookAndFeel::setColour(ComboBox::arrowColourId, lnf->findColour(ComboBox::arrowColourId));
         LookAndFeel::setColour(ComboBox::focusedOutlineColourId, lnf->findColour(ComboBox::focusedOutlineColourId));
 
-        LookAndFeel::setColour(PopupMenu::backgroundColourId, lnf->findColour(PlugDataColour::popupMenuBackgroundColourId));
+        LookAndFeel::setColour(PopupMenu::backgroundColourId, lnf->findColour(PlugDataColour::popupMenuBackgroundColourId).withAlpha(0.99f));
         LookAndFeel::setColour(PopupMenu::textColourId, lnf->findColour(PlugDataColour::popupMenuTextColourId));
         LookAndFeel::setColour(PopupMenu::highlightedBackgroundColourId, lnf->findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
         LookAndFeel::setColour(PopupMenu::highlightedTextColourId, lnf->findColour(PlugDataColour::popupMenuActiveTextColourId));
@@ -43,6 +43,106 @@ public:
     {
         setLookAndFeel(nullptr);
     }
+    
+    void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override
+    {
+
+        auto background = LookAndFeel::findColour(PopupMenu::backgroundColourId);
+
+        if (Desktop::canUseSemiTransparentWindows()) {
+            Path shadowPath;
+            shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 2 });
+
+            // Add a bit of alpha to disable the opaque flag
+
+            g.setColour(background);
+
+            auto bounds = Rectangle<float>(0, 0, width, height).reduced(7);
+            g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
+
+            g.setColour(LookAndFeel::findColour(ComboBox::outlineColourId));
+            g.drawRoundedRectangle(bounds, Corners::defaultCornerRadius, 1.0f);
+        } else {
+            auto bounds = Rectangle<float>(0, 0, width, height);
+
+            g.setColour(background);
+            g.fillRect(bounds);
+
+            g.setColour(LookAndFeel::findColour(ComboBox::outlineColourId));
+            g.drawRect(bounds, 1.0f);
+        }
+    }
+
+    void drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
+        bool const isSeparator, bool const isActive,
+        bool const isHighlighted, bool const isTicked,
+        bool const hasSubMenu, String const& text,
+        String const& shortcutKeyText,
+        Drawable const* icon, Colour const* const textColourToUse) override
+    {
+        int margin = Desktop::canUseSemiTransparentWindows() ? 9 : 2;
+
+        if (isSeparator) {
+            auto r = area.reduced(margin + 5, 0);
+            r.removeFromTop(roundToInt(((float)r.getHeight() * 0.5f) - 0.5f));
+
+            g.setColour(LookAndFeel::findColour(PopupMenu::textColourId).withAlpha(0.3f));
+            g.fillRect(r.removeFromTop(1));
+        } else {
+            auto r = area.reduced(margin, 1);
+
+            auto colour = LookAndFeel::findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
+            if (isHighlighted && isActive) {
+                g.setColour(LookAndFeel::findColour(PopupMenu::highlightedBackgroundColourId));
+                g.fillRoundedRectangle(r.toFloat().reduced(4, 0), 4.0f);
+                colour = LookAndFeel::findColour(PopupMenu::highlightedTextColourId);
+            }
+
+            g.setColour(colour);
+
+            r.reduce(jmin(5, area.getWidth() / 20), 0);
+
+            auto font = getPopupMenuFont();
+
+            auto maxFontHeight = (float)r.getHeight() / 1.3f;
+
+            if (font.getHeight() > maxFontHeight)
+                font.setHeight(maxFontHeight);
+
+            g.setFont(font);
+            
+            r.removeFromRight(3);
+            Fonts::drawFittedText(g, text, r, colour);
+        }
+    }
+    
+    void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& object) override
+    {
+        auto cornerSize = 3.0f;
+        Rectangle<int> boxBounds(0, 0, width, height);
+
+        g.setColour(object.findColour(ComboBox::backgroundColourId));
+        g.fillRoundedRectangle(boxBounds.toFloat(), cornerSize);
+
+        Rectangle<int> arrowZone(width - 20, 2, 14, height - 4);
+        Path path;
+        path.startNewSubPath((float)arrowZone.getX() + 3.0f, (float)arrowZone.getCentreY() - 2.0f);
+        path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 3.0f);
+        path.lineTo((float)arrowZone.getRight() - 3.0f, (float)arrowZone.getCentreY() - 2.0f);
+        g.setColour(object.findColour(ComboBox::arrowColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
+
+        g.strokePath(path, PathStrokeType(2.0f));
+    }
+    
+    int getPopupMenuBorderSize() override
+    {
+        if (Desktop::canUseSemiTransparentWindows()) {
+            return 10;
+        } else {
+            return 2;
+        }
+    };
     
     Label* createComboBoxTextBox (ComboBox& /*comboBox*/) override
     {
@@ -60,6 +160,7 @@ public:
 
     void editorShown (Label* label, TextEditor& editor) override
     {
+        editor.setJustification(Justification::centred);
         //editor.addListener (this);
     }
 
@@ -283,6 +384,16 @@ public:
         patchSelector.toBehind(&editModeButton);
     }
     
+    ~PaletteView()
+    {
+        if(paletteTree.isValid()) {
+            int lastMode = editModeButton.getToggleState();
+            lastMode += lockModeButton.getToggleState() * 2;
+            lastMode += dragModeButton.getToggleState() * 3;
+            paletteTree.setProperty("Mode", lastMode, nullptr);
+        }
+    }
+    
     void updatePatches(StringArray comboOptions)
     {
         patchSelector.clear();
@@ -291,6 +402,14 @@ public:
     
     void showPalette(ValueTree palette)
     {
+        
+        if(paletteTree.isValid()) {
+            int lastMode = editModeButton.getToggleState();
+            lastMode += lockModeButton.getToggleState() * 2;
+            lastMode += dragModeButton.getToggleState() * 3;
+            paletteTree.setProperty("Mode", lastMode, nullptr);
+        }
+        
         paletteTree = palette;
         
         auto patchText = paletteTree.getProperty("Patch").toString();
@@ -305,6 +424,8 @@ public:
         cnv = std::make_unique<Canvas>(editor, *patch, nullptr);
         viewport.reset(cnv->viewport);
         
+        viewport->setScrollBarsShown(true, false, true, false);
+        
         addAndMakeVisible(*viewport);
         
         auto name = paletteTree.getProperty("Name").toString();
@@ -314,6 +435,26 @@ public:
         else {
             patchSelector.setText("", dontSendNotification);
             patchSelector.showEditor();
+        }
+        
+        if(paletteTree.hasProperty("Mode"))
+        {
+            int mode = paletteTree.getProperty("Mode");
+            if(mode == 1)
+            {
+                editModeButton.triggerClick();
+            }
+            else if(mode == 2)
+            {
+                lockModeButton.triggerClick();
+            }
+            else if(mode == 3)
+            {
+                dragModeButton.triggerClick();
+            }
+        }
+        else {
+            dragModeButton.triggerClick();
         }
         
         // TODO: fix this!
@@ -477,13 +618,10 @@ public:
     
 };
 
-
-class Palettes : public Component
+class Palettes : public Component, public SettingsFileListener
 {
 public:
     Palettes(PluginEditor* editor) : view(editor), resizer(this) {
-        
-        setAlwaysOnTop(true);
         
         if(!palettesFile.exists())
         {
@@ -519,7 +657,6 @@ public:
                 }
             }));
         };
-
         
         updatePalettes();
         addAndMakeVisible(paletteBar);
@@ -544,14 +681,15 @@ public:
         
         setViewHidden(true);
         setSize(300, 0);
+        
+        setVisible(SettingsFile::getInstance()->getProperty<bool>("show_palettes"));
     }
     
     ~Palettes()
     {
         savePalettes();
     }
-    
-    
+
     bool isExpanded() {
         return view.isVisible();
     }
@@ -563,6 +701,14 @@ public:
     
     
 private:
+    
+    void propertyChanged(String name, var value) override
+    {
+        if(name == "show_palettes")
+        {
+            setVisible(static_cast<bool>(value));
+        }
+    };
     
     bool hitTest(int x, int y) override
     {
@@ -656,6 +802,8 @@ private:
                 }
             };
             paletteBar.addAndMakeVisible(*button);
+            
+            savePalettes();
         }
         
         StringArray options;
@@ -681,7 +829,9 @@ private:
         
         updatePalettes();
         
-        paletteSelectors.getLast()->setToggleState(true, sendNotification);
+        paletteSelectors.getLast()->triggerClick();
+        
+        savePalettes();
     }
     
     int dragStartWidth = 0;

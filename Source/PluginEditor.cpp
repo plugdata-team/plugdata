@@ -333,6 +333,8 @@ void PluginEditor::paintOverChildren(Graphics& g)
 void PluginEditor::resized()
 {
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
+    if(!palettes->isVisible()) paletteWidth = 0;
+    
     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), getHeight() - toolbarHeight - (statusbar->getHeight()));
     
     splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth) + 1, getHeight() - toolbarHeight - (statusbar->getHeight()));
@@ -1192,8 +1194,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
     if (!cnv)
         return false;
 
-    auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
-
     switch (info.commandID) {
     case CommandIDs::SaveProject: {
         saveProject();
@@ -1403,7 +1403,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
     default: {
         
         cnv = getCurrentCanvas(true);
-
+        
+        auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
+        
         auto ID = static_cast<ObjectIDs>(info.commandID);
 
         if (objectNames.count(ID)) {

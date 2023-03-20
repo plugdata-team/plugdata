@@ -55,6 +55,8 @@ public:
 
         addSeparator();
 
+        addCustomItem(getMenuItemID(MenuItem::EnablePalettes), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]), nullptr, "Enable Palettes");
+        
         addCustomItem(getMenuItemID(MenuItem::AutoConnect), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::AutoConnect)]), nullptr, "Auto-connect objects");
 
         addSeparator();
@@ -63,6 +65,7 @@ public:
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
 
         // Toggles hvcc compatibility mode
+        bool palettesEnabled = settingsTree.hasProperty("show_palettes") ? static_cast<bool>(settingsTree.getProperty("show_palettes")) : false;
         bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") ? static_cast<bool>(settingsTree.getProperty("hvcc_mode")) : false;
         bool autoconnectEnabled = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;
         bool hasCanvas = editor->getCurrentCanvas() != nullptr;
@@ -72,7 +75,8 @@ public:
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::Close)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::CloseAll)]->isActive = hasCanvas;
-
+       
+        menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]->isTicked = palettesEnabled;
         menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
         menuItems[getMenuItemIndex(MenuItem::AutoConnect)]->isTicked = autoconnectEnabled;
     }
@@ -315,6 +319,7 @@ public:
         CompiledMode,
         Compile,
         AutoConnect,
+        EnablePalettes,
         Settings,
         About
     };
@@ -347,6 +352,7 @@ public:
         new IconMenuItem("", "Compile...", false, false),
 
         new IconMenuItem("", "Auto-connect objects", false, true),
+        new IconMenuItem("", "Enable palettes", false, true),
 
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),

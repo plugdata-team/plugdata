@@ -110,6 +110,7 @@ private:
         { "order", var(0) },
         { "direction",  var(0) },
         { "global_scale", var(1.0f) },
+        { "show_palettes", var(true) },
         { "macos_buttons",
 #if JUCE_MAC
             var(true)
