@@ -112,7 +112,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             case MainMenu::MenuItem::PluginMode: {
-                SecondaryWindow* secondaryWindow = new SecondaryWindow(editor->getCurrentCanvas());
+                PluginMode* pluginMode = new PluginMode(editor->getCurrentCanvas());
                 break;
             }
             case MainMenu::MenuItem::AutoConnect: {

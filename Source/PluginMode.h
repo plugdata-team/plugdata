@@ -8,10 +8,10 @@
 
 #include "PluginEditor.h"
 
-class SecondaryWindow : public Component
+class PluginMode : public Component
     , public Button::Listener {
 public:
-    SecondaryWindow(Canvas* cnv)
+    PluginMode(Canvas* cnv)
         // : DocumentWindow("Test", findColour(PlugDataColour::textObjectBackgroundColourId), DocumentWindow::allButtons, false)
         : cnv(cnv)
         , editor(cnv->editor)
