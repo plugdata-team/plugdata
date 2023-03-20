@@ -338,6 +338,16 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawResizableWindowBorder(Graphics&, int w, int h, BorderSize<int> const& border, ResizableWindow&) override
     {
     }
+
+    void drawTextButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+    {
+        auto backgroundColour = findColour(shouldDrawButtonAsDown || button.getToggleState() ? PlugDataColour::dataColourId : PlugDataColour::canvasTextColourId);
+        if (shouldDrawButtonAsHighlighted)
+        backgroundColour = backgroundColour.brighter(0.5f);
+        auto cornerSize = Corners::defaultCornerRadius;
+        g.setColour(backgroundColour);
+        g.fillRoundedRectangle(button.getLocalBounds().toFloat(), cornerSize);
+    }
     
     void drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
@@ -383,6 +393,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
             drawToolbarButtonBackground(g, button, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
             return;
         }
+        if (button.getProperties()["Style"] == "TextIcon") {
+            drawTextButtonBackground(g, button, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+            return;
+        }
         
         if (button.getProperties()["Style"].toString().contains("Icon")) {
             return;
@@ -396,6 +410,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
         if (button.getProperties()["Style"] == "LargeIcon") {
             button.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarTextColourId));
             button.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+            LookAndFeel_V4::drawButtonText(g, button, isMouseOverButton, isButtonDown);
+        } else if (button.getProperties()["Style"] == "TextIcon") {
+            button.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarBackgroundColourId));
+            button.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarBackgroundColourId));
             LookAndFeel_V4::drawButtonText(g, button, isMouseOverButton, isButtonDown);
         } else if (button.getProperties()["Style"] == "SmallIcon") {
             Font font(getTextButtonFont(button, button.getHeight()));
