@@ -103,7 +103,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 
     MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this) {
-            _this->constrainer = _this->createConstrainer();
+            _this->constrainer = _this->createConstrainer().get();
             _this->onConstrainerCreate();
             
             _this->initialiseParameters();
@@ -546,7 +546,7 @@ ComponentBoundsConstrainer* ObjectBase::getConstrainer()
     return constrainer;
 }
 
-ComponentBoundsConstrainer* ObjectBase::createConstrainer()
+std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
 {
     class ObjectBoundsConstrainer : public ComponentBoundsConstrainer {
     public:
@@ -596,5 +596,5 @@ ComponentBoundsConstrainer* ObjectBase::createConstrainer()
         }
     };
     
-    return new ObjectBoundsConstrainer();
+    return std::make_unique<ObjectBoundsConstrainer>();
 }

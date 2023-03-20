@@ -112,7 +112,7 @@ public:
         atomHelper.setPdBounds(b);
     }
 
-    ComponentBoundsConstrainer* createConstrainer() override
+    std::unique_ptr<ComponentBoundsConstrainer>createConstrainer() override
     {
         return atomHelper.createConstrainer(object);
     }

@@ -47,7 +47,7 @@ struct TextObjectHelper {
         return static_cast<t_text*>(ptr)->te_width = newWidth;
     }
     
-    static ComponentBoundsConstrainer* createConstrainer(Object* object)
+    static std::unique_ptr<ComponentBoundsConstrainer> createConstrainer(Object* object)
     {
         class TextObjectBoundsConstrainer : public ComponentBoundsConstrainer {
         public:
@@ -103,7 +103,7 @@ struct TextObjectHelper {
             }
         };
         
-        return new TextObjectBoundsConstrainer(object);
+        return std::make_unique<TextObjectBoundsConstrainer>(object);
     }
 
     static String fixNewlines(String text)
@@ -396,7 +396,7 @@ public:
         return true;
     }
     
-    ComponentBoundsConstrainer* createConstrainer() override
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         return TextObjectHelper::createConstrainer(object);
     }

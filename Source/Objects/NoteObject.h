@@ -267,7 +267,7 @@ public:
         return bounds;
     }
     
-    ComponentBoundsConstrainer* createConstrainer() override
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         class NoteObjectBoundsConstrainer : public ComponentBoundsConstrainer {
         public:
@@ -304,7 +304,7 @@ public:
             }
         };
         
-        return new NoteObjectBoundsConstrainer(object, this);
+        return std::make_unique<NoteObjectBoundsConstrainer>(object, this);
     }
 
     void setPdBounds(Rectangle<int> b) override

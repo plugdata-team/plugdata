@@ -137,7 +137,7 @@ public:
         return newBounds.withTrimmedBottom(4);
     }
 
-    ComponentBoundsConstrainer* createConstrainer() override
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         return TextObjectHelper::createConstrainer(object);
     }

@@ -196,7 +196,7 @@ protected:
         
     std::function<void()> onConstrainerCreate = [](){};
         
-    virtual ComponentBoundsConstrainer* createConstrainer();
+    virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
         
     std::unique_ptr<ObjectLabel> label;
     static inline constexpr int maxSize = 1000000;
