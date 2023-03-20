@@ -25,7 +25,7 @@
 #include "ObjectBrowserDialog.h"
 #include "ObjectReferenceDialog.h"
 #include "Heavy/HeavyExportDialog.h"
-#include "SecondaryWindow.h"
+#include "PluginMode.h"
 #include "MainMenu.h"
 #include "Canvas.h"
 
