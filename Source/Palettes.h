@@ -246,8 +246,24 @@ public:
         if(!dragger) return;
         
         cnv->removeMouseListener(dragger.get());
-        
-        dragger->pasteObjects(editor->getCurrentCanvas());
+                
+        Canvas* targetCanvas = nullptr;
+        if(auto* leftCnv = editor->splitView.getLeftTabbar()->getCurrentCanvas())
+        {
+            if(leftCnv->getScreenBounds().contains(e.getScreenPosition()))
+            {
+                targetCanvas = leftCnv;
+            }
+        }
+        if(auto* rightCnv = editor->splitView.getRightTabbar()->getCurrentCanvas())
+        {
+            if(rightCnv->getScreenBounds().contains(e.getScreenPosition()))
+            {
+                targetCanvas = rightCnv;
+            }
+        }
+        if(targetCanvas) dragger->pasteObjects(targetCanvas);
+
         dragger.reset(nullptr);
     }
     
@@ -273,9 +289,6 @@ public:
         g.drawHorizontalLine(25, 0, getWidth());
     }
     
-    std::function<void()> updatePalettes = [](){};
-    
-private:
     
     void resized() override
     {
@@ -290,19 +303,30 @@ private:
         if(cnv)
         {
             cnv->viewport->getPositioner()->applyNewBounds(b);
+            cnv->checkBounds();
         }
     }
     
     
+    Canvas* getCanvas()
+    {
+        return cnv.get();
+    }
+    
+    std::function<void()> updatePalettes = [](){};
+    
+
+private:
+
     Value locked;
     pd::Instance* pd;
-    std::unique_ptr<Canvas> cnv;
     std::unique_ptr<pd::Patch> patch;
     ValueTree paletteTree;
     PluginEditor* editor;
     
     std::unique_ptr<DraggedComponentGroup> dragger = nullptr;
-
+    std::unique_ptr<Canvas> cnv;
+    
     ComboBox patchSelector;
     
     TextButton editModeButton;
@@ -337,7 +361,7 @@ public:
 class Palettes : public Component
 {
 public:
-    Palettes(PluginEditor* editor) : view(editor) {
+    Palettes(PluginEditor* editor) : view(editor), resizer(this) {
         
         setAlwaysOnTop(true);
         
@@ -380,6 +404,9 @@ public:
         updatePalettes();
         addAndMakeVisible(paletteBar);
         addAndMakeVisible(view);
+        addAndMakeVisible(resizer);
+        
+        resizer.setAlwaysOnTop(true);
         
         paletteBar.addAndMakeVisible(addButton);
         
@@ -388,6 +415,7 @@ public:
         };
         
         setViewHidden(true);
+        setSize(300, 0);
     }
     
     ~Palettes()
@@ -398,6 +426,12 @@ public:
     bool isExpanded() {
         return view.isVisible();
     }
+
+    Canvas* getCurrentCanvas()
+    {
+        return view.getCanvas();
+    }
+    
     
 private:
     
@@ -429,6 +463,8 @@ private:
         paletteBar.setTransform(AffineTransform::rotation(-MathConstants<float>::halfPi, 26, getHeight()));
         
         view.setBounds(getLocalBounds().withTrimmedLeft(26));
+        
+        resizer.setBounds(getWidth() - 5, 0, 5, getHeight());
  
         repaint();
     }
@@ -441,6 +477,7 @@ private:
         }
         
         view.setVisible(!hidden);
+        resizer.setVisible(!hidden);
         if(auto* parent = getParentComponent()) parent->resized();
     }
     
@@ -494,8 +531,7 @@ private:
         
         resized();
     }
-    
-    
+
     void newPalette(bool fromClipboard) {
         
         auto patchPrefix = "#N canvas 827 239 527 327 12;\n";
@@ -511,6 +547,9 @@ private:
         
         paletteSelectors.getLast()->setToggleState(true, sendNotification);
     }
+    
+    int dragStartWidth = 0;
+    bool resizing = false;
     
     File palettesFile = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Palettes.xml");
     
@@ -546,4 +585,42 @@ private:
         {"Oscillators", oscillatorsPatch},
         {"Filters", filtersPatch}
     };
+    
+    class ResizerComponent : public Component
+    {
+    public:
+        ResizerComponent(Component* toResize) : target(toResize)
+        {}
+    private:
+        void mouseDown(MouseEvent const& e) override
+        {
+            dragStartWidth = target->getWidth();
+        }
+
+        void mouseDrag(MouseEvent const& e) override
+        {
+            int newWidth = dragStartWidth + e.getDistanceFromDragStartX();
+            newWidth = std::clamp(newWidth, 100, std::max(target->getParentWidth() / 2, 150));
+
+            std::cout << newWidth << std::endl;
+            target->setBounds(0, target->getY(), newWidth, target->getHeight());
+            target->getParentComponent()->resized();
+        }
+
+        void mouseMove(MouseEvent const& e) override
+        {
+            bool resizeCursor = e.getEventRelativeTo(target).getPosition().getX() > target->getWidth() - 5;
+            e.originalComponent->setMouseCursor(resizeCursor ? MouseCursor::LeftRightResizeCursor : MouseCursor::NormalCursor);
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
+        }
+
+        int dragStartWidth = 0;
+        Component* target;
+    };
+    
+    ResizerComponent resizer;
 };

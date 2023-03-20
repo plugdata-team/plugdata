@@ -258,7 +258,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
-    palettes->setBounds(getLocalBounds().removeFromLeft(300).withTrimmedTop(toolbarHeight).withTrimmedBottom(statusbar.getHeight()));
+     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), getHeight() - toolbarHeight - (statusbar.getHeight()));
     
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
     
@@ -479,6 +479,13 @@ TabComponent* PluginEditor::getActiveTabbar()
 
 Canvas* PluginEditor::getCurrentCanvas()
 {
+    if(palettes && palettes->hasKeyboardFocus(true))
+    {
+        if(auto* cnv = palettes->getCurrentCanvas()) {
+            return cnv;
+        }
+    }
+    
     return getActiveTabbar()->getCurrentCanvas();
 }
 
