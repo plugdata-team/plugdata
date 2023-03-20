@@ -6,23 +6,179 @@
 #pragma once
 #include <JuceHeader.h>
 #include "Canvas.h"
+#include "Connection.h"
+#include "Iolet.h"
 #include "Pd/PdInstance.h"
 
 class PluginEditor;
 class PaletteView : public Component, public Value::Listener
 {
+    class DraggedComponentGroup : public Component
+    {
+    public:
+        DraggedComponentGroup(Canvas* canvas, Object* target, Point<int> mouseDownPosition) : cnv(canvas), draggedObject(target)
+        {
+            auto [clipboard, totalBounds] = getDraggedArea(target);
+            
+            imageToDraw = cnv->createComponentSnapshot(totalBounds, false, 1.0f);
+            //imageToDraw.multiplyAllAlphas(0.75f);
+            
+            clipboardContent = clipboard;
+            
+            addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
+            setTopLeftPosition(cnv->localPointToGlobal(mouseDownPosition));
+            setSize(imageToDraw.getWidth(), imageToDraw.getHeight());
+            setVisible(true);
+        }
+        
+        void pasteObjects(Canvas* target) {
+            
+            auto position = target->getLocalPoint(nullptr, getScreenPosition());
+            
+            auto objectBounds = draggedObject->getObjectBounds();
+            int minX = objectBounds.getX();
+            int minY = objectBounds.getY();
+            
+            auto isObject = [](StringArray& tokens){
+                return tokens[0] == "#X" &&
+                tokens[1] != "connect" &&
+                tokens[2].containsOnly("0123456789") &&
+                tokens[3].containsOnly("0123456789");
+            };
+            
+            for(auto& line : StringArray::fromLines(clipboardContent))
+            {
+                auto tokens = StringArray::fromTokens(line, true);
+                if(isObject(tokens)) {
+                    minX = std::max(minX, tokens[2].getIntValue());
+                    minY = std::max(minY, tokens[3].getIntValue());
+                }
+            }
+            
+            auto toPaste = StringArray::fromLines(clipboardContent);
+            for(auto& line : toPaste)
+            {
+                auto tokens = StringArray::fromTokens(line, true);
+                if(isObject(tokens)) {
+                    tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
+                    tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
+                    
+                    line = tokens.joinIntoString(" ");
+                }
+            }
+            
+            auto result = toPaste.joinIntoString("\n");
+            libpd_paste(target->patch.getPointer(), result.toRawUTF8());
+            target->synchronise();
+        }
+        
+
+    private:
+        
+        std::pair<String, Rectangle<int>> getDraggedArea(Object* target)
+        {
+            std::pair<Array<Object*>, Array<Connection*>> dragged;
+            getConnectedObjects(target, dragged);
+            auto& [objects, connections] = dragged;
+            
+            Rectangle<int> totalBounds;
+            for(auto* object : objects)
+            {
+                cnv->patch.selectObject(object->getPointer());
+                totalBounds = totalBounds.getUnion(object->getBounds().reduced(Object::margin));
+            }
+            for(auto* connection : connections)
+            {
+                totalBounds = totalBounds.getUnion(connection->getBounds());
+            }
+            
+            int size;
+            const char* text = libpd_copy(cnv->patch.getPointer(), &size);
+            String clipboard = String::fromUTF8(text, size);
+            
+            cnv->patch.deselectAll();
+            
+            return {clipboard, totalBounds};
+        }
+        
+        void getConnectedObjects(Object* target, std::pair<Array<Object*>, Array<Connection*>>& result)
+        {
+            auto& [objects, connections] = result;
+            
+            objects.addIfNotAlreadyThere(target);
+            
+            for(auto* connection : target->getConnections()) {
+                
+                connections.addIfNotAlreadyThere(connection);
+                
+                if(target->iolets.contains(connection->inlet) && !objects.contains(connection->outlet->object))
+                {
+                    getConnectedObjects(connection->outlet->object, result);
+                }
+                else if(!objects.contains(connection->inlet->object)){
+                    getConnectedObjects(connection->inlet->object, result);
+                }
+            }
+        }
+        
+        void paint(Graphics& g) override
+        {
+            g.drawImageAt(imageToDraw, 0, 0);
+        }
+        void mouseDown(const MouseEvent& e) override
+        {
+            dragger.startDraggingComponent (this, e);
+        }
+     
+        void mouseDrag(const MouseEvent& e) override
+        {
+            dragger.dragComponent (this, e, nullptr);
+        }
+
+        Image imageToDraw;
+        
+        Canvas* cnv;
+        Object* draggedObject;
+        String clipboardContent;
+        ComponentDragger dragger;
+    };
 public:
     PaletteView(PluginEditor* e) : editor(e), pd(e->pd) {
         
         editModeButton.setButtonText(Icons::Edit);
         editModeButton.getProperties().set("Style", "SmallIcon");
         editModeButton.setClickingTogglesState(true);
+        editModeButton.setRadioGroupId(2222);
+        editModeButton.onClick = [this](){
+            cnv->locked = false;
+        };
         addAndMakeVisible(editModeButton);
         
-        addAndMakeVisible(nameLabel);
-        nameLabel.setJustificationType(Justification::centred);
+        lockModeButton.setButtonText(Icons::Lock);
+        lockModeButton.getProperties().set("Style", "SmallIcon");
+        lockModeButton.setClickingTogglesState(true);
+        lockModeButton.setRadioGroupId(2222);
+        lockModeButton.onClick = [this](){
+            cnv->locked = true;
+        };
+        addAndMakeVisible(lockModeButton);
         
-        nameLabel.toBehind(&editModeButton);
+        patchSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        
+        dragModeButton.setButtonText(Icons::Presentation);
+        dragModeButton.getProperties().set("Style", "SmallIcon");
+        dragModeButton.setClickingTogglesState(true);
+        dragModeButton.setRadioGroupId(2222);
+        dragModeButton.onClick = [this](){
+            cnv->locked = true;
+        };
+        
+        addAndMakeVisible(dragModeButton);
+        
+        addAndMakeVisible(patchSelector);
+        patchSelector.setJustificationType(Justification::centred);
+        
+        patchSelector.toBehind(&editModeButton);
     }
     
     void showPalette(ValueTree palette)
@@ -41,41 +197,58 @@ public:
         cnv = std::make_unique<Canvas>(editor, *patch, nullptr);
         addAndMakeVisible(*cnv->viewport);
         
-        locked.referTo(cnv->locked);
-        
         auto name = paletteTree.getProperty("Name").toString();
         if(name.isNotEmpty()) {
-            nameLabel.setText(name, dontSendNotification);
+            patchSelector.setText(name, dontSendNotification);
         }
         else {
-            nameLabel.setText("", dontSendNotification);
-            nameLabel.showEditor();
+            patchSelector.setText("", dontSendNotification);
+            patchSelector.showEditor();
         }
+
+        patchSelector.setEditableText(true);
         
-        nameLabel.onEditorShow = [this](){
-            if(auto* editor = nameLabel.getCurrentTextEditor()) {
-                editor->setJustification(Justification::centred);
-            }
-        };
-       
-        nameLabel.setEditable(true, true);
-        
-        nameLabel.onTextChange = [this](){
-            paletteTree.setProperty("Name", nameLabel.getText(), nullptr);
+        patchSelector.onChange = [this](){
+            paletteTree.setProperty("Name", patchSelector.getText(), nullptr);
             updatePalettes();
         };
-        
-        cnv->locked.setValue(true);
-        editModeButton.onClick = [this](){
-            cnv->locked = !editModeButton.getToggleState();
-        };
-        
-        cnv->setColour(PlugDataColour::canvasBackgroundColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
-        cnv->setColour(PlugDataColour::canvasDotsColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
+
+        cnv->addMouseListener(this, true);
+        cnv->lookAndFeelChanged();
+        cnv->setColour(PlugDataColour::canvasBackgroundColourId, Colours::transparentBlack);
+        cnv->setColour(PlugDataColour::canvasDotsColourId, Colours::transparentBlack);
         
         resized();
         repaint();
         cnv->repaint();
+    }
+    
+    void mouseDrag(const MouseEvent& e) override
+    {
+        
+        if(dragger || !dragModeButton.getToggleState() || !cnv) return;
+        
+        auto relativeEvent = e.getEventRelativeTo(cnv.get());
+        
+        auto* object = dynamic_cast<Object*>(e.originalComponent);
+        if(!object)
+        {
+            object = e.originalComponent->findParentComponentOfClass<Object>();
+            if(!object) return;
+        }
+        
+        dragger = std::make_unique<DraggedComponentGroup>(cnv.get(), object, relativeEvent.getMouseDownPosition());
+        cnv->addMouseListener(dragger.get(), true);
+    }
+    
+    void mouseUp(const MouseEvent& e) override
+    {
+        if(!dragger) return;
+        
+        cnv->removeMouseListener(dragger.get());
+        
+        dragger->pasteObjects(editor->getCurrentCanvas());
+        dragger.reset(nullptr);
     }
     
     void valueChanged(Value& v) override
@@ -88,9 +261,14 @@ public:
     
     void paint(Graphics& g) override
     {
+        g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
+        
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRect(getLocalBounds().removeFromTop(26));
-        
+    }
+    
+    void paintOverChildren(Graphics& g) override
+    {
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawHorizontalLine(25, 0, getWidth());
     }
@@ -104,8 +282,10 @@ private:
         auto b = getLocalBounds();
         auto topPanel = b.removeFromTop(26);
         
-        nameLabel.setBounds(topPanel);
         editModeButton.setBounds(topPanel.removeFromRight(26));
+        lockModeButton.setBounds(topPanel.removeFromRight(26));
+        dragModeButton.setBounds(topPanel.removeFromRight(26));
+        patchSelector.setBounds(topPanel);
         
         if(cnv)
         {
@@ -121,9 +301,13 @@ private:
     ValueTree paletteTree;
     PluginEditor* editor;
     
-    Label nameLabel;
+    std::unique_ptr<DraggedComponentGroup> dragger = nullptr;
+
+    ComboBox patchSelector;
     
     TextButton editModeButton;
+    TextButton lockModeButton;
+    TextButton dragModeButton;
 };
 
 class PaletteSelector : public TextButton
@@ -133,7 +317,7 @@ public:
     PaletteSelector(String textToShow) {
         setRadioGroupId(1011);
         setButtonText(textToShow);
-        setClickingTogglesState(true);
+        //setClickingTogglesState(true);
     }
     
     void paint(Graphics& g) override
@@ -190,20 +374,13 @@ public:
                     newPalette(result - 1);
                 }
             }));
-            
-            
         };
-        
-        hideButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        hideButton.setAlwaysOnTop(true);
-        hideButton.onClick = [this](){
-            setViewHidden(true);
-        };
+
         
         updatePalettes();
         addAndMakeVisible(paletteBar);
         addAndMakeVisible(view);
-        addAndMakeVisible(hideButton);
+        
         paletteBar.addAndMakeVisible(addButton);
         
         view.updatePalettes = [this](){
@@ -252,20 +429,18 @@ private:
         paletteBar.setTransform(AffineTransform::rotation(-MathConstants<float>::halfPi, 26, getHeight()));
         
         view.setBounds(getLocalBounds().withTrimmedLeft(26));
-        
-        hideButton.setBounds(getLocalBounds().withSize(26, 26).translated(26, 0));
+ 
         repaint();
     }
     
     void setViewHidden(bool hidden) {
         if(hidden) {
             for(auto* button : paletteSelectors) {
-                button->setToggleState(false, sendNotification);
+                button->setToggleState(false, dontSendNotification);
             }
         }
         
         view.setVisible(!hidden);
-        hideButton.setVisible(!hidden);
         if(auto* parent = getParentComponent()) parent->resized();
     }
     
@@ -302,9 +477,17 @@ private:
         {
             auto name = palette.getProperty("Name").toString();
             auto button = paletteSelectors.add(new PaletteSelector(name));
-            button->onClick = [this, name](){
-                setViewHidden(false);
-                view.showPalette(palettesTree.getChildWithProperty("Name", name));
+            button->onClick = [this, name, button](){
+                
+                if(button->getToggleState()) {
+                    button->setToggleState(false, dontSendNotification);
+                    setViewHidden(true);
+                }
+                else {
+                    button->setToggleState(true, dontSendNotification);
+                    setViewHidden(false);
+                    view.showPalette(palettesTree.getChildWithProperty("Name", name));
+                }
             };
             paletteBar.addAndMakeVisible(*button);
         }
@@ -337,7 +520,6 @@ private:
     
     Component paletteBar;
     
-    TextButton hideButton = TextButton("<");
     TextButton addButton = TextButton(Icons::Add);
     
     OwnedArray<PaletteSelector> paletteSelectors;
