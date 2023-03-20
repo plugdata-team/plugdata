@@ -160,22 +160,37 @@ void Canvas::paint(Graphics& g)
         
         g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
         auto clipBounds = g.getClipBounds();
-        auto patchWidthCanvas = canvasOrigin.x + static_cast<int>(patchWidth.getValue());
-        auto patchHeightCanvas = canvasOrigin.y + static_cast<int>(patchHeight.getValue());
 
         // draw patch window dashed outline
-        g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-        auto verticalExtentLeft = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, patchHeightCanvas);
-        auto horizontalExtentTop = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, patchWidthCanvas, canvasOrigin.y - 0.5f);
+        auto patchWidthCanvas = canvasOrigin.x + static_cast<int>(patchWidth.getValue());
+        auto patchHeightCanvas = canvasOrigin.y + static_cast<int>(patchHeight.getValue());
+        /*
+        ┌────────┐
+        │a      b│
+        │        │
+        │        │
+        │d      c│
+        └────────┘
+        */
+        auto point_a = Point<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f);
+        auto point_b = Point<float>(patchWidthCanvas, canvasOrigin.y - 0.5f);
+        auto point_c = Point<float>(patchWidthCanvas, patchHeightCanvas);
+        auto point_d = Point<float>(canvasOrigin.x - 0.5f, patchHeightCanvas);
+
+        // arrange line points so that dashes appear to grow from origin and bottom right
+        auto extentLeft = Line<float>(point_a, point_d);
+        auto extentTop = Line<float>(point_a, point_b);
+        auto extentRight = Line<float>(point_c, point_b);
+        auto extentBottom = Line<float>(point_c, point_d);
+
         float dash[2] = { 5.0f, 5.0f };
+        g.setColour(findColour(PlugDataColour::canvasDotsColourId));
+        g.drawDashedLine(extentLeft, dash, 2, 1.0f);
+        g.drawDashedLine(extentTop, dash, 2, 1.0f);
+        g.drawDashedLine(extentRight, dash, 2, 1.0f);
+        g.drawDashedLine(extentBottom, dash, 2, 1.0f);
 
-        g.drawDashedLine(verticalExtentLeft, dash, 2, 1.0f);
-        verticalExtentLeft.applyTransform(AffineTransform::translation(Point<int>(static_cast<int>(patchWidth.getValue()), 0)));
-        g.drawDashedLine(verticalExtentLeft, dash, 2, 1.0f);
-        g.drawDashedLine(horizontalExtentTop, dash, 2, 1.0f);
-        horizontalExtentTop.applyTransform(AffineTransform::translation(Point<int>(0, static_cast<int>(patchHeight.getValue()))));
-        g.drawDashedLine(horizontalExtentTop, dash, 2, 1.0f);
-
+        // draw grid dots
         auto startX = (canvasOrigin.x % objectGrid.gridSize);
         startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
 
