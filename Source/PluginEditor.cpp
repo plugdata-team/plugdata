@@ -830,8 +830,6 @@ void PluginEditor::updateCommandStatus()
         statusbar->gridButton->setEnabled(true);
         statusbar->centreButton->setEnabled(true);
 
-        statusbar->directionButton->setEnabled(true);
-
         addObjectMenuButton.setEnabled(!locked);
     } else {
         
@@ -843,8 +841,6 @@ void PluginEditor::updateCommandStatus()
         statusbar->connectionPathfind->setEnabled(false);
         statusbar->gridButton->setEnabled(false);
         statusbar->centreButton->setEnabled(false);
-
-        statusbar->directionButton->setEnabled(false);
 
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
