@@ -20,7 +20,6 @@ public:
         , windowBounds(editor->getBounds())
         , windowConstrainer(editor->getConstrainer())
         , viewportBounds(cnv->viewport->getBounds())
-        , closeButton("Show Editor..")
     {
 
         auto width = cnv->patchWidth.getValue();
@@ -43,13 +42,20 @@ public:
         setBounds(0, 0, width, height);
 
         editor->zoomScale = 1.0f;
-        cnv->viewport->setViewPosition(cnv->canvasOrigin);
 
-        cnv->viewport->setBounds(getBounds().withTrimmedRight(-cnv->viewport->getScrollBarThickness()).withTrimmedBottom(-cnv->viewport->getScrollBarThickness()));
+        // cnv->viewport->setViewPosition(cnv->canvasOrigin);
+        cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
+
         cnv->locked = true;
         cnv->presentationMode = true;
 
-        closeButton.setBounds(getWidth() - 75, 5, 70, 20);
+        closeButton.setButtonText(Icons::Edit);
+        closeButton.setTooltip("Show Editor..");
+        if (ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("macos_buttons")) {
+            closeButton.setBounds(5, 5, 30, 30);
+        } else {
+            closeButton.setBounds(getWidth() - 75, 5, 30, 30);
+        }
     }
 
     void buttonClicked(Button* button) override
