@@ -223,7 +223,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     gridButton = std::make_unique<TextButton>(Icons::Grid);
     protectButton = std::make_unique<TextButton>(Icons::Protection);
     centreButton = std::make_unique<TextButton>(Icons::Centre);
-    overlayButton = std::make_unique<TextButton>(Icons::Eye);
 
     powerButton->setTooltip("Enable/disable DSP");
     powerButton->setClickingTogglesState(true);
@@ -290,17 +289,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
 
     addAndMakeVisible(centreButton.get());
-
-    overlayButton->setTooltip("Overlay display settings");
-    overlayButton->getProperties().set("Style", "SmallIcon");
-
-    overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
-
-    overlayButton->onClick = [this]() {
-        overlayDisplaySettings->show(overlayButton.get()->getScreenBounds());
-    };
-    
-    addAndMakeVisible(overlayButton.get());
 
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
@@ -411,8 +399,6 @@ void Statusbar::resized()
     gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     centreButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-
-    overlayButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     pos = 0; // reset position for elements on the left
 

@@ -28,6 +28,15 @@ public:
         {
             setSize(230, 30);
 
+            auto controlVisibility = [this](String mode){
+                if (settingName == "origin" || settingName == "border") {
+                    return true;
+                } else if (mode == "edit" || mode == "lock")
+                    return true;
+                else
+                    return false;
+            };
+
             buttons["edit"]->getProperties().set("Style", "SmallIcon");
             addAndMakeVisible(buttons["edit"]);
             buttons["edit"]->setButtonText(Icons::Edit);
@@ -39,18 +48,18 @@ public:
             buttons["lock"]->setButtonText(Icons::Lock);
             buttons["lock"]->setClickingTogglesState(true);
             buttons["lock"]->addListener(this);
+            buttons["lock"]->setVisible(controlVisibility("lock"));
 
             buttons["run"]->getProperties().set("Style", "SmallIcon");
             addAndMakeVisible(buttons["run"]);
             buttons["run"]->setButtonText(Icons::Presentation);
             buttons["run"]->setClickingTogglesState(true);
             buttons["run"]->addListener(this);
-            if (settingName == "order" || settingName == "direction" || settingName == "activation_state")
-                buttons["run"]->setEnabled(false);
+            buttons["run"]->setVisible(controlVisibility("run"));
 
-            buttons["alt"]->getProperties().set("Style", "TextIcon");
+            buttons["alt"]->getProperties().set("Style", "SmallIcon");
             addAndMakeVisible(buttons["alt"]);
-            buttons["alt"]->setButtonText("Alt");
+            buttons["alt"]->setButtonText(Icons::Eye);
             buttons["alt"]->setClickingTogglesState(true);
             buttons["alt"]->addListener(this);
 
@@ -111,34 +120,25 @@ public:
                 }
             }
         }
-        
-        void paintOverChildren(Graphics& g) override
-        {
-            // debugging
-            if (false) {
-                g.setColour(Colours::red);
-                g.drawRect(getLocalBounds(), 1.0f);
-            }
-        }
 
         void resized() override
         {
             auto bounds = Rectangle<int>(0,0,30,30);
             buttons["edit"]->setBounds(bounds);
-            bounds.translate(30,0);
+            bounds.translate(25,0);
             buttons["lock"]->setBounds(bounds);
-            bounds.translate(30,0);
+            bounds.translate(25,0);
             buttons["run"]->setBounds(bounds);
-            bounds.translate(30,0);
-            buttons["alt"]->setBounds(bounds.withWidth(35).withHeight(20));
-            bounds.translate(35,0);
+            bounds.translate(25,0);
+            buttons["alt"]->setBounds(bounds);
+            bounds.translate(25,0);
             textLabel.setBounds(bounds.withWidth(150));
         }
     };
 
     OverlayDisplaySettings()
     {
-        setSize(225, 280);
+        setSize(200, 275);
 
         addAndMakeVisible(canvasLabel);
         canvasLabel.setText("Canvas", dontSendNotification);
@@ -156,16 +156,6 @@ public:
             addAndMakeVisible(buttonGroup);
         }
     }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        // debugging
-        if (false) {
-            g.setColour(Colours::red);
-            g.drawRect(getLocalBounds(), 1.0f);
-        }
-    }
-
 
     void resized() override
     {
@@ -185,7 +175,12 @@ public:
         buttonGroups["Direction"]->setBounds(bounds.removeFromTop(30));
     }
 
-    static void show(Rectangle<int> bounds)
+    void paint(Graphics& g) override
+    {
+        //g.fillAll(Colours::red);
+    }
+
+    static void show(Component* editor, Rectangle<int> bounds)
     {
         if (isShowing)
                 return;
@@ -193,7 +188,9 @@ public:
         isShowing = true;
 
         auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
-        CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), bounds, nullptr);
+        CallOutBox& popup = CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), bounds, nullptr);
+        popup.updatePosition(bounds, editor->getScreenBounds());
+        //popup.updatePosition(bounds, bounds.getUnion(overlayDisplaySettings->getBounds().withCentre(Point<int>(bounds.getCentre().getX(), bounds.getTopLeft().getY()) )));
     }
 
     ~OverlayDisplaySettings()

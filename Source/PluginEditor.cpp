@@ -100,6 +100,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
 
+    overlayButton.setButtonText(Icons::Eye);
+    overlaySettingsButton.setButtonText(Icons::ThinDown);
+
+    overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
+    overlaySettingsButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        overlayDisplaySettings->show(editor, overlaySettingsButton.getScreenBounds());
+    };
+
     setResizable(true, false);
 
     // In the standalone, the resizer handling is done on the window class
@@ -158,7 +167,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &pinButton, &hideSidebarButton }) {
         button->getProperties().set("Style", "LargeIcon");
-        button->setConnectedEdges(12);
+        //button->setConnectedEdges(Button::Conn);
         addAndMakeVisible(button);
     }
 
@@ -218,13 +227,23 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     editButton.setConnectedEdges(Button::ConnectedOnRight);
     runButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
     presentButton.setConnectedEdges(Button::ConnectedOnLeft);
+
+    overlayButton.getProperties().set("Style", "LargeIcon");
+    overlayButton.setClickingTogglesState(true);
+    overlaySettingsButton.getProperties().set("Style", "LargeIcon");
+    overlaySettingsButton.setClickingTogglesState(false);
+    addAndMakeVisible(overlayButton);
+    addAndMakeVisible(overlaySettingsButton);
+    overlayButton.setConnectedEdges(Button::ConnectedOnRight);
+    overlaySettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
+    overlayButton.setTooltip(String("Show overlay"));
+    overlaySettingsButton.setTooltip(String("Overlay settings"));
     
     // Hide sidebar
     hideSidebarButton.setTooltip("Hide Sidebar");
     hideSidebarButton.getProperties().set("Style", "LargeIcon");
     hideSidebarButton.setClickingTogglesState(true);
     hideSidebarButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-    hideSidebarButton.setConnectedEdges(12);
     hideSidebarButton.onClick = [this]() {
         bool show = !hideSidebarButton.getToggleState();
 
@@ -242,7 +261,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pinButton.getProperties().set("Style", "LargeIcon");
     pinButton.setClickingTogglesState(true);
     pinButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-    pinButton.setConnectedEdges(12);
     pinButton.onClick = [this]() { sidebar->pinSidebar(pinButton.getToggleState()); };
 
     addAndMakeVisible(hideSidebarButton);
@@ -346,7 +364,12 @@ void PluginEditor::resized()
     runButton.setBounds(startX + toolbarHeight - 1, 0, toolbarHeight, toolbarHeight);
     presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 0, toolbarHeight, toolbarHeight);
 
+    overlayButton.setBounds(presentButton.getBounds().translated(150, 0));
+    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth(),0));
+
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
+
+
 
     if (!ProjectInfo::isStandalone) {
         int const resizerSize = 18;

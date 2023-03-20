@@ -13,6 +13,7 @@
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/StackShadow.h" // TODO: move to impl
 #include "SplitView.h"           // TODO: move to impl
+#include "Dialogs/OverlayDisplaySettings.h"
 
 class Sidebar;
 class Statusbar;
@@ -121,6 +122,10 @@ private:
 
     TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pinButton, hideSidebarButton;
     TextButton editButton, runButton, presentButton;
+
+    TextButton overlayButton, overlaySettingsButton;
+
+    std::unique_ptr<OverlayDisplaySettings> overlayDisplaySettings;
 
     TooltipWindow tooltipWindow;
     StackDropShadower tooltipShadow;
