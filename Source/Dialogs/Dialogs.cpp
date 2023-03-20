@@ -93,7 +93,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             }
             case MainMenu::MenuItem::Close: {
                 if (editor->getCurrentCanvas())
-                    editor->closeTab(editor->getCurrentCanvas());
+                    editor->closeTab(editor->getCurrentCanvas(false));
                 break;
             }
             case MainMenu::MenuItem::CloseAll: {

@@ -68,6 +68,7 @@ struct Icons {
     inline static const String CloseAllPatches = "]";
     inline static const String Centre = "}";
     inline static const String Eye = "|";
+    inline static const String DragCopyMode = "^";
 };
 
 enum PlugDataColour {

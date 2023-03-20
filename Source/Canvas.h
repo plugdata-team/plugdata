@@ -162,7 +162,8 @@ public:
     Value presentationMode;
     Value gridEnabled;
     Value showDirection;
-
+    Value paletteDragMode;
+        
     bool isGraph = false;
     bool hasParentCanvas = false;
     bool updatingBounds = false; // used by connection
@@ -171,7 +172,6 @@ public:
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
     Value xRange, yRange;
-    Value paletteDragMode;
     Value patchWidth, patchHeight;
 
     ObjectGrid objectGrid = ObjectGrid(this);

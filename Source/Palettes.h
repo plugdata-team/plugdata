@@ -11,6 +11,64 @@
 #include "Object.h"
 #include "Pd/Instance.h"
 
+class PaletteComboBox : public ComboBox,
+                       public LookAndFeel_V4,
+                       public Label::Listener
+{
+public:
+    PaletteComboBox(LookAndFeel* lnf)
+    {
+        setLookAndFeel(this);
+        setEditableText (true);
+        
+        LookAndFeel::setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        LookAndFeel::setColour(ComboBox::backgroundColourId, lnf->findColour(ComboBox::backgroundColourId));
+        LookAndFeel::setColour(ComboBox::textColourId, lnf->findColour(ComboBox::textColourId));
+        LookAndFeel::setColour(ComboBox::textColourId, lnf->findColour(ComboBox::textColourId));
+        LookAndFeel::setColour(ComboBox::buttonColourId, lnf->findColour(ComboBox::buttonColourId));
+        LookAndFeel::setColour(ComboBox::arrowColourId, lnf->findColour(ComboBox::arrowColourId));
+        LookAndFeel::setColour(ComboBox::focusedOutlineColourId, lnf->findColour(ComboBox::focusedOutlineColourId));
+
+        LookAndFeel::setColour(PopupMenu::backgroundColourId, lnf->findColour(PlugDataColour::popupMenuBackgroundColourId));
+        LookAndFeel::setColour(PopupMenu::textColourId, lnf->findColour(PlugDataColour::popupMenuTextColourId));
+        LookAndFeel::setColour(PopupMenu::highlightedBackgroundColourId, lnf->findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+        LookAndFeel::setColour(PopupMenu::highlightedTextColourId, lnf->findColour(PlugDataColour::popupMenuActiveTextColourId));
+        
+        LookAndFeel::setColour(Label::textColourId, lnf->findColour(PlugDataColour::sidebarTextColourId));
+        LookAndFeel::setColour(Label::textWhenEditingColourId, lnf->findColour(PlugDataColour::sidebarTextColourId));
+        // TODO: set label text colour id
+    }
+    
+    ~PaletteComboBox()
+    {
+        setLookAndFeel(nullptr);
+    }
+    
+    Label* createComboBoxTextBox (ComboBox& /*comboBox*/) override
+    {
+        Label* label = new Label();
+        label->addListener (this);
+        label->setEditable(true);
+        label->setJustificationType(Justification::centred);
+        return label;
+    }
+
+    void labelTextChanged (Label* labelThatHasChanged) override
+    {
+        onTextChange(labelThatHasChanged->getText());
+    }
+
+    void editorShown (Label* label, TextEditor& editor) override
+    {
+        //editor.addListener (this);
+    }
+
+    std::function<void(String)> onTextChange = [](String){};
+
+    //==========================================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PaletteComboBox)
+};
+
 class PluginEditor;
 class PaletteView : public Component, public Value::Listener
 {
@@ -42,7 +100,7 @@ class PaletteView : public Component, public Value::Listener
             std::sort(components.begin(), components.end(), [this](const auto* a, const auto* b){
                 return cnv->getIndexOfChildComponent(a) > cnv->getIndexOfChildComponent(b);
             });
-
+            
             Image image (Image::ARGB, totalBounds.getWidth(), totalBounds.getHeight(), true);
             Graphics g (image);
             
@@ -60,7 +118,7 @@ class PaletteView : public Component, public Value::Listener
         
         void pasteObjects(Canvas* target) {
             
-            auto position = target->getLocalPoint(nullptr, getScreenPosition()) + Point<int>(Object::margin, Object::margin);
+            auto position = target->getLocalPoint(nullptr, getScreenPosition()) + Point<int>(Object::margin, Object::margin) - target->canvasOrigin;
             
             int minX = 9999999;
             int minY = 9999999;
@@ -98,7 +156,7 @@ class PaletteView : public Component, public Value::Listener
             target->synchronise();
         }
         
-
+        
     private:
         
         std::pair<String, Array<Component*>> getDraggedArea(Object* target)
@@ -149,7 +207,7 @@ class PaletteView : public Component, public Value::Listener
         {
             g.drawImageAt(imageToDraw, 0, 0);
         }
-    
+        
         void mouseDrag(const MouseEvent& e) override
         {
             auto relativeEvent = e.getEventRelativeTo(this);
@@ -166,7 +224,7 @@ class PaletteView : public Component, public Value::Listener
         {
             isDragging = false;
         }
-
+        
         bool isDragging = false;
         Image imageToDraw;
         
@@ -176,32 +234,33 @@ class PaletteView : public Component, public Value::Listener
         ComponentDragger dragger;
     };
 public:
-    PaletteView(PluginEditor* e) : editor(e), pd(e->pd) {
+    PaletteView(PluginEditor* e) : editor(e), pd(e->pd), patchSelector(&e->getLookAndFeel()) {
         
         editModeButton.setButtonText(Icons::Edit);
-        editModeButton.getProperties().set("Style", "SmallIcon");
+        editModeButton.getProperties().set("Style", "LargeIcon");
         editModeButton.setClickingTogglesState(true);
         editModeButton.setRadioGroupId(2222);
+        editModeButton.setConnectedEdges(Button::ConnectedOnRight);
         editModeButton.onClick = [this](){
             cnv->locked = false;
         };
         addAndMakeVisible(editModeButton);
         
         lockModeButton.setButtonText(Icons::Lock);
-        lockModeButton.getProperties().set("Style", "SmallIcon");
+        lockModeButton.getProperties().set("Style", "LargeIcon");
         lockModeButton.setClickingTogglesState(true);
         lockModeButton.setRadioGroupId(2222);
+        lockModeButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         lockModeButton.onClick = [this](){
             cnv->locked = true;
         };
         addAndMakeVisible(lockModeButton);
         
-        patchSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        
-        dragModeButton.setButtonText(Icons::Presentation);
-        dragModeButton.getProperties().set("Style", "SmallIcon");
+        dragModeButton.setButtonText(Icons::DragCopyMode);
+        dragModeButton.getProperties().set("Style", "LargeIcon");
         dragModeButton.setClickingTogglesState(true);
         dragModeButton.setRadioGroupId(2222);
+        dragModeButton.setConnectedEdges(Button::ConnectedOnLeft);
         dragModeButton.onClick = [this](){
             cnv->locked = true;
             // TODO: make sure gui objects don't respond to mouse clicks!
@@ -211,8 +270,23 @@ public:
         
         addAndMakeVisible(patchSelector);
         patchSelector.setJustificationType(Justification::centred);
+        patchSelector.onChange = [this](){
+            setOpenedPatch(patchSelector.getSelectedItemIndex());
+        };
+        
+        patchSelector.onTextChange = [this](String newText)
+        {
+            paletteTree.setProperty("Name", newText, nullptr);
+            updatePalettes();
+        };
         
         patchSelector.toBehind(&editModeButton);
+    }
+    
+    void updatePatches(StringArray comboOptions)
+    {
+        patchSelector.clear();
+        patchSelector.addItemList(comboOptions, 1);
     }
     
     void showPalette(ValueTree palette)
@@ -229,7 +303,9 @@ public:
         
         patch.reset(pd->openPatch(patchFile));
         cnv = std::make_unique<Canvas>(editor, *patch, nullptr);
-        addAndMakeVisible(*cnv->viewport);
+        viewport.reset(cnv->viewport);
+        
+        addAndMakeVisible(*viewport);
         
         auto name = paletteTree.getProperty("Name").toString();
         if(name.isNotEmpty()) {
@@ -239,14 +315,10 @@ public:
             patchSelector.setText("", dontSendNotification);
             patchSelector.showEditor();
         }
-
-        patchSelector.setEditableText(true);
         
-        patchSelector.onChange = [this](){
-            paletteTree.setProperty("Name", patchSelector.getText(), nullptr);
-            updatePalettes();
-        };
-
+        // TODO: fix this!
+        //patchSelector.setEditableText(true);
+        
         cnv->addMouseListener(this, true);
         cnv->lookAndFeelChanged();
         cnv->setColour(PlugDataColour::canvasBackgroundColourId, Colours::transparentBlack);
@@ -284,7 +356,7 @@ public:
         if(!dragger) return;
         
         cnv->removeMouseListener(dragger.get());
-                
+        
         Canvas* targetCanvas = nullptr;
         if(auto* leftCnv = editor->splitView.getLeftTabbar()->getCurrentCanvas())
         {
@@ -301,7 +373,7 @@ public:
             }
         }
         if(targetCanvas) dragger->pasteObjects(targetCanvas);
-
+        
         dragger.reset(nullptr);
     }
     
@@ -333,9 +405,14 @@ public:
         auto b = getLocalBounds();
         auto topPanel = b.removeFromTop(26);
         
-        editModeButton.setBounds(topPanel.removeFromRight(26));
-        lockModeButton.setBounds(topPanel.removeFromRight(26));
-        dragModeButton.setBounds(topPanel.removeFromRight(26));
+        topPanel.removeFromRight(2);
+        
+        dragModeButton.setBounds(topPanel.removeFromRight(26).expanded(0, 2).translated(-2, 0));
+        lockModeButton.setBounds(topPanel.removeFromRight(26).expanded(0, 2).translated(-1, 0));
+        editModeButton.setBounds(topPanel.removeFromRight(26).expanded(0, 2));
+        
+        topPanel.removeFromRight(2);
+        
         patchSelector.setBounds(topPanel);
         
         if(cnv)
@@ -352,10 +429,10 @@ public:
     }
     
     std::function<void()> updatePalettes = [](){};
+    std::function<void(int)> setOpenedPatch = [](int){};
     
-
 private:
-
+    
     Value locked;
     pd::Instance* pd;
     std::unique_ptr<pd::Patch> patch;
@@ -364,12 +441,15 @@ private:
     
     std::unique_ptr<DraggedComponentGroup> dragger = nullptr;
     std::unique_ptr<Canvas> cnv;
+    std::unique_ptr<Viewport> viewport;
     
-    ComboBox patchSelector;
+    PaletteComboBox patchSelector;
     
     TextButton editModeButton;
     TextButton lockModeButton;
     TextButton dragModeButton;
+    
+    std::function<StringArray()> getComboOptions = [](){ return StringArray(); };
 };
 
 class PaletteSelector : public TextButton
@@ -379,6 +459,7 @@ public:
     PaletteSelector(String textToShow) {
         setRadioGroupId(1011);
         setButtonText(textToShow);
+        setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         //setClickingTogglesState(true);
     }
     
@@ -395,6 +476,7 @@ public:
     }
     
 };
+
 
 class Palettes : public Component
 {
@@ -448,6 +530,14 @@ public:
         
         paletteBar.addAndMakeVisible(addButton);
         
+        view.setOpenedPatch = [this](int toOpen){
+            auto palette = palettesTree.getChild(toOpen);
+    
+            paletteSelectors[toOpen]->setToggleState(true, dontSendNotification);
+            setViewHidden(false);
+            view.showPalette(palette);
+        };
+        
         view.updatePalettes = [this](){
             updatePalettes();
         };
@@ -460,6 +550,7 @@ public:
     {
         savePalettes();
     }
+    
     
     bool isExpanded() {
         return view.isVisible();
@@ -567,6 +658,13 @@ private:
             paletteBar.addAndMakeVisible(*button);
         }
         
+        StringArray options;
+        for(auto* selector : paletteSelectors)
+        {
+            options.add(selector->getButtonText());
+        }
+        view.updatePatches(options);
+        
         resized();
     }
 
@@ -640,7 +738,6 @@ private:
             int newWidth = dragStartWidth + e.getDistanceFromDragStartX();
             newWidth = std::clamp(newWidth, 100, std::max(target->getParentWidth() / 2, 150));
 
-            std::cout << newWidth << std::endl;
             target->setBounds(0, target->getY(), newWidth, target->getHeight());
             target->getParentComponent()->resized();
         }

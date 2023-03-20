@@ -64,7 +64,7 @@ public:
     void closeTab(Canvas* cnv);
     void closeAllTabs();
 
-    Canvas* getCurrentCanvas();
+    Canvas* getCurrentCanvas(bool canBePalette = false);
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
