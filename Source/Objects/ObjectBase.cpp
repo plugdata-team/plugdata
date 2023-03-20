@@ -103,7 +103,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 
     MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this) {
-            _this->constrainer = _this->createConstrainer().get();
+            _this->constrainer = _this->createConstrainer();
             _this->onConstrainerCreate();
             
             _this->initialiseParameters();
@@ -543,7 +543,7 @@ bool ObjectBase::isBeingEdited()
 
 ComponentBoundsConstrainer* ObjectBase::getConstrainer()
 {
-    return constrainer;
+    return constrainer.get();
 }
 
 std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()

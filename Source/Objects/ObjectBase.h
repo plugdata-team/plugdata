@@ -201,7 +201,7 @@ protected:
     std::unique_ptr<ObjectLabel> label;
     static inline constexpr int maxSize = 1000000;
     static inline std::atomic<bool> edited = false;
-    ComponentBoundsConstrainer* constrainer;
+    std::unique_ptr<ComponentBoundsConstrainer> constrainer;
 
     friend class IEMHelper;
     friend class AtomHelper;
