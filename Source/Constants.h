@@ -68,6 +68,10 @@ struct Icons {
     inline static const String CloseAllPatches = "]";
     inline static const String Centre = "}";
     inline static const String Eye = "|";
+    inline static const String Magnet = "%";
+    inline static const String SnapEdges = "#";
+    inline static const String SnapCorners = "\"";
+    inline static const String SnapCenters = "$";
     inline static const String DragCopyMode = "^";
 };
 

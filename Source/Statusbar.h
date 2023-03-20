@@ -8,7 +8,6 @@
 
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
-#include "Dialogs/OverlayDisplaySettings.h"
 
 class Canvas;
 class LevelMeter;
@@ -76,11 +75,9 @@ public:
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
 
-    std::unique_ptr<TextButton> powerButton, connectionStyleButton, connectionPathfind, gridButton, centreButton, overlayButton, protectButton;
+    std::unique_ptr<TextButton> powerButton, connectionStyleButton, connectionPathfind, gridButton, centreButton, protectButton;
 
     TextButton oversampleSelector;
-
-    std::unique_ptr<OverlayDisplaySettings> overlayDisplaySettings;
 
     Label zoomLabel;
 

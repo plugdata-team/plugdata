@@ -32,11 +32,21 @@ public:
         , settingName(nameOfSetting)
         {
             setSize(230, 30);
-            
+
+            auto controlVisibility = [this](String mode) {
+                if (settingName == "origin" || settingName == "border") {
+                    return true;
+                } else if (mode == "Edit" || mode == "Lock" || mode == "Alt")
+                    return true;
+                else
+                    return false;
+            };
+
             for(auto& button : buttons)
             {
-                button.getProperties().set("Style", &button == &buttons[Alt] ? "TextIcon" : "SmallIcon");
+                button.getProperties().set("Style", "SmallIcon");
                 addAndMakeVisible(button);
+                button.setVisible(controlVisibility(button.getName()));
                 button.setClickingTogglesState(true);
                 button.addListener(this);
             }
@@ -44,17 +54,16 @@ public:
             buttons[Edit].setButtonText(Icons::Edit);
             buttons[Lock].setButtonText(Icons::Lock);
             buttons[Run].setButtonText(Icons::Presentation);
-            buttons[Alt].setButtonText("Alt");
-            
-            addAndMakeVisible(textLabel);
-            textLabel.setJustificationType(Justification::centredLeft);
-            
+            buttons[Alt].setButtonText(Icons::Eye);
+
             textLabel.setText(groupName, dontSendNotification);
+            addAndMakeVisible(textLabel);
+
             overlayValue = SettingsFile::getInstance()->getProperty<int>(settingName);
             overlayValue.addListener(this);
             valueChanged(overlayValue);
         }
-        
+
         void buttonClicked(Button* button) override
         {
             int currentBitValue = SettingsFile::getInstance()->getProperty<int>(settingName);
@@ -103,35 +112,27 @@ public:
                 }
             }
         }
-        
-        void paintOverChildren(Graphics& g) override
-        {
-            // debugging
-            if (false) {
-                g.setColour(Colours::red);
-                g.drawRect(getLocalBounds(), 1.0f);
-            }
-        }
-        
+
         void resized() override
         {
             auto bounds = Rectangle<int>(0,0,30,30);
             buttons[Edit].setBounds(bounds);
-            bounds.translate(30,0);
+            bounds.translate(25,0);
             buttons[Lock].setBounds(bounds);
-            bounds.translate(30,0);
+            bounds.translate(25,0);
             buttons[Run].setBounds(bounds);
-            bounds.translate(30,0);
-            buttons[Alt].setBounds(bounds.withWidth(35).withHeight(20));
-            bounds.translate(35,0);
+            bounds.translate(25,0);
+            buttons[Alt].setBounds(bounds);
+            bounds.translate(25,0);
+
             textLabel.setBounds(bounds.withWidth(150));
         }
     };
     
     OverlayDisplaySettings()
     {
-        setSize(225, 280);
-        
+        setSize(200, 275);
+
         addAndMakeVisible(canvasLabel);
         canvasLabel.setText("Canvas", dontSendNotification);
         canvasLabel.setJustificationType(Justification::topLeft);
@@ -148,21 +149,12 @@ public:
             addAndMakeVisible(buttonGroup);
         }
     }
-    
-    void paintOverChildren(Graphics& g) override
-    {
-        // debugging
-        if (false) {
-            g.setColour(Colours::red);
-            g.drawRect(getLocalBounds(), 1.0f);
-        }
-    }
-    
-    
+
     void resized() override
     {
         auto bounds = getLocalBounds();
-        
+        bounds.removeFromTop(5);
+
         canvasLabel.setBounds(bounds.removeFromTop(20));
         buttonGroups[Origin].setBounds(bounds.removeFromTop(30));
         buttonGroups[Border].setBounds(bounds.removeFromTop(30));
@@ -174,7 +166,7 @@ public:
         
         connectionLabel.setBounds(bounds.removeFromTop(20));
         buttonGroups[Order].setBounds(bounds.removeFromTop(30));
-        buttonGroups[Direction].setBounds(bounds.removeFromTop(30));
+        buttonGroups[Direction].setBounds(bounds);
     }
     
     static void show(Component* parent, Rectangle<int> bounds)
@@ -187,17 +179,17 @@ public:
         auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
         CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), bounds, parent);
     }
-    
+
     ~OverlayDisplaySettings()
     {
         isShowing = false;
     }
-    
+
     Value originValue, borderValue, indexValue, coordinateValue, activationValue, orderValue, directionValue;
-    
+
 private:
     static inline bool isShowing = false;
-    
+
     Label canvasLabel, objectLabel, connectionLabel;
     
     enum OverlayState {
@@ -207,7 +199,7 @@ private:
         RunDisplay = 4,
         AltDisplay = 8
     };
-    
+
     enum OverlayGroups
     {
         Origin = 0,
@@ -218,7 +210,7 @@ private:
         Order,
         Direction
     };
-    
+
     OverlayDisplaySettings::OverlaySelector buttonGroups[7] = {
         OverlaySelector(originValue, "origin", "Origin"),
         OverlaySelector(borderValue, "border", "Border"),

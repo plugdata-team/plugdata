@@ -223,7 +223,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     gridButton = std::make_unique<TextButton>(Icons::Grid);
     protectButton = std::make_unique<TextButton>(Icons::Protection);
     centreButton = std::make_unique<TextButton>(Icons::Centre);
-    overlayButton = std::make_unique<TextButton>(Icons::Eye);
 
     powerButton->setTooltip("Enable/disable DSP");
     powerButton->setClickingTogglesState(true);
@@ -266,7 +265,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
     };
 
-    addAndMakeVisible(gridButton.get());
+    //addAndMakeVisible(gridButton.get());
 
     // Initialise grid state
     propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
@@ -290,15 +289,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
 
     addAndMakeVisible(centreButton.get());
-
-    overlayButton->setTooltip("Overlay display settings");
-    overlayButton->getProperties().set("Style", "SmallIcon");
-
-    overlayButton->onClick = [this]() {
-        OverlayDisplaySettings::show(pd->getActiveEditor(), overlayButton.get()->getScreenBounds());
-    };
-    
-    addAndMakeVisible(overlayButton.get());
 
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
@@ -406,11 +396,9 @@ void Statusbar::resized()
 
     position(3); // Seperator
 
-    gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    //gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     centreButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-
-    overlayButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     pos = 0; // reset position for elements on the left
 
