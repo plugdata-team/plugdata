@@ -3,10 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
-#include "../Utility/PropertiesPanel.h"
-
-#include "../Standalone/PlugDataWindow.h"
+#include "Utility/PropertiesPanel.h"
 
 #include "AboutPanel.h"
 
@@ -35,8 +34,17 @@ public:
     void paint(Graphics& g) override
     {
         auto b = getLocalBounds().reduced(2);
+        
+        if(isMouseOver() || getToggleState())
+        {
+            auto background = findColour(PlugDataColour::toolbarHoverColourId);
+            if(getToggleState()) background = background.darker(0.05f);
+            
+            g.setColour(background);
+            g.fillRoundedRectangle(b.toFloat().reduced(4.0f, 2.0f), Corners::defaultCornerRadius);
+        }
 
-        g.setColour(findColour(getToggleState() ? PlugDataColour::toolbarActiveColourId : PlugDataColour::toolbarTextColourId));
+        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
 
         auto iconBounds = b.removeFromTop(b.getHeight() * 0.65f).withTrimmedTop(5);
         auto textBounds = b.withTrimmedBottom(3);
@@ -67,22 +75,18 @@ public:
             new SettingsToolbarButton(Icons::Search, "Paths"),
             new SettingsToolbarButton(Icons::Library, "Libraries"),
             new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
-            new SettingsToolbarButton(Icons::Externals, "Externals")
-#if PLUGDATA_STANDALONE
-                ,
-            new SettingsToolbarButton(Icons::Wrench, "Advanced")
-#endif
-        };
+            new SettingsToolbarButton(Icons::Externals, "Externals"),
+            new SettingsToolbarButton(Icons::Wrench, "Advanced") };
 
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
         auto* processor = dynamic_cast<PluginProcessor*>(editor->getAudioProcessor());
-#if PLUGDATA_STANDALONE
-        auto& deviceManager = editor->findParentComponentOfClass<PlugDataWindow>()->getDeviceManager();
-        panels.add(new StandaloneAudioSettings(processor, deviceManager));
-#else
-        panels.add(new DAWAudioSettings(processor));
-#endif
+
+        if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
+            panels.add(new StandaloneAudioSettings(processor, *deviceManager));
+        } else {
+            panels.add(new DAWAudioSettings(processor));
+        }
 
         panels.add(new ThemePanel(processor));
         panels.add(new SearchPathComponent());
@@ -90,9 +94,9 @@ public:
         panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
         panels.add(new Deken());
 
-#if PLUGDATA_STANDALONE
-        panels.add(new AdvancedSettingsPanel());
-#endif
+        if (ProjectInfo::isStandalone) {
+            panels.add(new AdvancedSettingsPanel(editor));
+        }
 
         for (int i = 0; i < toolbarButtons.size(); i++) {
             toolbarButtons[i]->setClickingTogglesState(true);
@@ -120,10 +124,13 @@ public:
     {
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight).withTrimmedBottom(6);
 
-        int toolbarPosition = 2;
+        auto spacing = ((getWidth() - 120) / toolbarButtons.size());
+        
+        int toolbarPosition = 40;
+        
         for (auto& button : toolbarButtons) {
             button->setBounds(toolbarPosition, 1, 70, toolbarHeight - 2);
-            toolbarPosition += 70;
+            toolbarPosition += spacing;
         }
 
         for (auto* panel : panels) {
@@ -134,26 +141,22 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
         auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, toolbarHeight);
-        g.fillRoundedRectangle(toolbarBounds, PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(toolbarBounds, Corners::windowCornerRadius);
         g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
 
-#ifdef PLUGDATA_STANDALONE
-        bool drawStatusbar = currentPanel > 0;
-#else
-        bool drawStatusbar = true;
-#endif
+        bool drawStatusbar = ProjectInfo::isStandalone ? currentPanel > 0 : true;
 
         if (drawStatusbar) {
             auto statusbarBounds = getLocalBounds().reduced(1).removeFromBottom(32).toFloat();
             g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
             g.fillRect(statusbarBounds.withHeight(20));
-            g.fillRoundedRectangle(statusbarBounds, PlugDataLook::windowCornerRadius);
+            g.fillRoundedRectangle(statusbarBounds, Corners::windowCornerRadius);
         }
 
         g.setColour(findColour(PlugDataColour::outlineColourId));

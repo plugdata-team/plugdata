@@ -23,7 +23,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::resizeableCornerColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), PlugDataLook::objectCornerRadius, PlugDataLook::smallCornerRadius);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), Corners::objectCornerRadius, Corners::smallCornerRadius);
     }
 
     bool hitTest(int x, int y) override
@@ -43,7 +43,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        setPdBounds();
+        applyBounds();
         repaint();
     }
 
@@ -51,7 +51,7 @@ public:
     {
         int handleSize = 20;
 
-        setPdBounds();
+        applyBounds();
         resizer.setBounds(getWidth() - handleSize, getHeight() - handleSize, handleSize, handleSize);
 
         canvas->updateDrawables();
@@ -59,17 +59,19 @@ public:
         repaint();
     }
 
-    void setPdBounds()
+    void applyBounds()
     {
         t_canvas* cnv = canvas->patch.getPointer();
-        // TODO: make this thread safe
-        if (cnv) {
-            cnv->gl_pixwidth = getWidth();
-            cnv->gl_pixheight = getHeight();
 
-            cnv->gl_xmargin = getX() - canvas->canvasOrigin.x;
-            cnv->gl_ymargin = getY() - canvas->canvasOrigin.y;
-        }
+        canvas->pd->enqueueFunction([cnv, _this = SafePointer(this)]() {
+            if (_this && cnv) {
+                cnv->gl_pixwidth = _this->getWidth();
+                cnv->gl_pixheight = _this->getHeight();
+
+                cnv->gl_xmargin = _this->getX() - _this->canvas->canvasOrigin.x;
+                cnv->gl_ymargin = _this->getY() - _this->canvas->canvasOrigin.y;
+            }
+        });
     }
 
     void updateBounds()

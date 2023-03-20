@@ -3,11 +3,19 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "Connection.h"
 
 #include "Canvas.h"
 #include "Iolet.h"
+#include "Object.h"
+#include "PluginProcessor.h"
+#include "PluginEditor.h" // might not need this?
 #include "LookAndFeel.h"
+#include "Pd/Patch.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     : cnv(parent)
@@ -17,6 +25,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     , inobj(inlet->object)
     , ptr(static_cast<t_fake_outconnect*>(oc))
 {
+
+    cnv->editor->addModifierKeyListener(this);
 
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);
@@ -82,6 +92,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
 Connection::~Connection()
 {
+    cnv->editor->removeModifierKeyListener(this);
     cnv->pd->unregisterMessageListener(ptr, this);
 
     if (outlet) {
@@ -134,7 +145,7 @@ void Connection::pushPathState()
 
 void Connection::popPathState()
 {
-    if (!ptr || cnv->patch.connectionWasDeleted(ptr) || !ptr->outconnect_path_data || !ptr->outconnect_path_data->s_name)
+    if (!ptr || !ptr->outconnect_path_data || !ptr->outconnect_path_data->s_name)
         return;
 
     auto const state = String::fromUTF8(ptr->outconnect_path_data->s_name);
@@ -185,6 +196,9 @@ t_symbol* Connection::getPathState()
 
 bool Connection::hitTest(int x, int y)
 {
+    if (inlet == nullptr || outlet == nullptr)
+        return false;
+        
     if (Canvas::panningModifierDown())
         return false;
 
@@ -237,13 +251,14 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     return false;
 }
 
-void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver, bool isSelected, Point<int> mousePos, bool isHovering)
+void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool showDirection, bool isMouseOver, bool isSelected, Point<int> mousePos, bool isHovering)
 {
-
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
     auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
     auto handleColour = isSignal ? dataColour : signalColour;
+
+    auto connectionLength = connectionPath.getLength();
 
     if (isSelected) {
         baseColour = isSignal ? signalColour : dataColour;
@@ -274,10 +289,51 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
     innerStroke.setEndStyle(PathStrokeType::EndCapStyle::rounded);
     g.strokePath(innerPath, innerStroke);
 
+    // draw direction arrow if button is toggled (per canvas, default state is false)
+    //            c
+    //            |\
+    //            | \
+    //            |  \
+    //  ___path___|   \a___path___
+    //            |   /
+    //            |  /
+    //            | /
+    //            |/
+    //            b
+
+    // setup arrow parameters
+    float arrowWidth = 8.0f;
+    float arrowLength = 12.0f;
+
+    if (showDirection && connectionLength > arrowLength * 2) {
+        // get the center point of the connection path
+        auto arrowCenter = connectionLength * 0.5f;
+        auto arrowBase = connectionPath.getPointAlongPath(arrowCenter - (arrowLength * 0.5f));
+        auto arrowTip = connectionPath.getPointAlongPath(arrowCenter + (arrowLength * 0.5f));
+
+        Line<float> arrowLine(arrowBase, arrowTip);
+        auto point_a = arrowTip;
+        auto point_b = arrowLine.getPointAlongLine(0.0f, -(arrowWidth * 0.5f));
+        auto point_c = arrowLine.getPointAlongLine(0.0f, (arrowWidth * 0.5f));
+
+        // create the arrow path
+        Path arrow;
+        arrow.addTriangle(point_a, point_b, point_c);
+
+        // draw the arrow
+        g.setColour(baseColour);
+        g.fillPath(arrow);
+
+        // draw arrow outline to aid in visibility for dark / light themes
+        g.setColour(baseColour.darker(1.0f));
+        PathStrokeType arrowOutline(0.5f);
+        g.strokePath(arrow, arrowOutline);
+    }
+
     // draw reconnect handles if connection is both selected & mouse is hovering over
     if (isSelected && isHovering) {
         auto startReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(8.5f));
-        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(std::max(connectionPath.getLength() - 8.5f, 9.5f)));
+        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(std::max(connectionLength - 8.5f, 9.5f)));
 
         bool overStart = startReconnectHandle.contains(mousePos.toFloat());
         bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
@@ -293,9 +349,15 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
     }
 }
 
+void Connection::altKeyChanged(bool isHeld)
+{
+    showDirection = isHeld;
+    repaint();
+}
+
 void Connection::paint(Graphics& g)
 {
-    renderConnectionPath(g, cnv, toDraw, outlet->isSignal, isMouseOver(), cnv->isSelected(this), getMouseXYRelative(), isHovering);
+    renderConnectionPath(g, cnv, toDraw, outlet->isSignal, showDirection, isMouseOver(), cnv->isSelected(this), getMouseXYRelative(), isHovering);
 }
 
 bool Connection::isSegmented()
@@ -481,7 +543,7 @@ void Connection::reconnect(Iolet* target)
         reconnecting.add(SafePointer(c));
 
         // Make sure we're deselected and remove object
-        cnv->setSelected(c, false);
+        cnv->setSelected(c, false, false);
     }
 }
 

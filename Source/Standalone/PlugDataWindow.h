@@ -24,14 +24,15 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_audio_plugin_client/juce_audio_plugin_client.h>
+#include <juce_audio_utils/juce_audio_utils.h>
 
-#include "../PluginEditor.h"
+#include "Constants.h"
+#include "Utility/StackShadow.h"
+#include "Utility/OSUtils.h"
+#include "Utility/SettingsFile.h"
+#include "Utility/RateReducer.h"
 
-#include "../Utility/StackShadow.h"
-#include "../Utility/OSUtils.h"
-#include "../Utility/SettingsFile.h"
-#include "../Utility/RateReducer.h"
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
 // - Use the native shadow, it works fine
@@ -562,10 +563,12 @@ public:
     {
         return pluginHolder->processor.get();
     }
+
+    /*
     AudioDeviceManager& getDeviceManager() const noexcept
     {
         return pluginHolder->deviceManager;
-    }
+    } */
 
     /** Deletes and re-creates the plugin, resetting it to its default state. */
     void resetToDefaultState()
@@ -609,17 +612,18 @@ public:
 #if JUCE_LINUX
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
-                b->setToggleState(!isMaximised(peer->getNativeHandle()), dontSendNotification);
+                b->setToggleState(!OSUtils::isMaximised(peer->getNativeHandle()), dontSendNotification);
             } else {
                 b->setToggleState(false, dontSendNotification);
             }
         }
 
-        maximiseLinuxWindow(getPeer()->getNativeHandle());
+        OSUtils::maximiseLinuxWindow(getPeer()->getNativeHandle());
 
 #else
         setFullScreen(!isFullScreen());
 #endif
+        resized();
     }
 
 #if JUCE_LINUX
@@ -628,7 +632,7 @@ public:
         if (drawWindowShadow && !isUsingNativeTitleBar()) {
             auto b = getLocalBounds();
             Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), PlugDataLook::windowCornerRadius);
+            localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
 
             int radius = isActiveWindow() ? 21 : 16;
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 3 });
@@ -650,28 +654,33 @@ public:
     {
         ResizableWindow::resized();
 
-        if (!isUsingNativeTitleBar()) {
-
-            Rectangle<int> titleBarArea;
-            if (drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
-                auto margin = mainComponent ? mainComponent->getMargin() : 18;
-                titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
-                if (resizer)
+        Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
+        
+        if (resizer) {
+            if (isFullScreen()) {
+                resizer->setVisible(false);
+            } else if (!isUsingNativeTitleBar()) {
+                resizer->setVisible(true);
+                
+                if (drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
+                    auto margin = mainComponent ? mainComponent->getMargin() : 18;
+                    titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
                     resizer->setBounds(getLocalBounds().reduced(margin));
-            } else {
-                titleBarArea = Rectangle<int>(0, 7, getWidth() - 6, 23);
-                if (auto* b = getMaximiseButton())
-                    b->setToggleState(isFullScreen(), dontSendNotification);
-
-                if (resizer)
+                } else {
                     resizer->setBounds(getLocalBounds());
+                }
             }
-
-            getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
         }
+        
+        getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
+
         if (auto* content = getContentComponent()) {
             content->resized();
             content->repaint();
+            MessageManager::callAsync([this, content] {
+                if (content->isShowing())
+                    content->grabKeyboardFocus();
+            });
         }
     }
 
@@ -679,6 +688,8 @@ public:
     {
         return pluginHolder.get();
     }
+
+    bool hasOpenedDialog();
 
     std::unique_ptr<StandalonePluginHolder> pluginHolder;
 
@@ -716,20 +727,20 @@ private:
         void paintOverChildren(Graphics& g) override
         {
 #if JUCE_LINUX
-            if (!owner.isUsingNativeTitleBar()) {
+            if (!owner.isUsingNativeTitleBar() && !owner.hasOpenedDialog()) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
 
                 if (!Desktop::canUseSemiTransparentWindows()) {
                     g.drawRect(getLocalBounds().toFloat().reduced(getMargin()), 1.0f);
                 } else {
-                    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin()), PlugDataLook::windowCornerRadius, 1.0f);
+                    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin()), Corners::windowCornerRadius, 1.0f);
                 }
             }
 #elif JUCE_WINDOWS
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
 
-            g.drawRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
 #endif
         }
 
@@ -860,7 +871,6 @@ private:
 
 inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
 {
-#if JucePlugin_Enable_IAA || JucePlugin_Build_Standalone
     if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone) {
         auto& desktop = Desktop::getInstance();
         int const numTopLevelWindows = desktop.getNumComponents();
@@ -869,7 +879,6 @@ inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
             if (auto window = dynamic_cast<PlugDataWindow*>(desktop.getComponent(i)))
                 return window->getPluginHolder();
     }
-#endif
 
     return nullptr;
 }

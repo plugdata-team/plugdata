@@ -4,6 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "SettingsFile.h"
 #include "LookAndFeel.h"
 
@@ -59,6 +63,8 @@ SettingsFile* SettingsFile::initialise()
 
     initialisePathsTree();
     initialiseThemesTree();
+    
+    Desktop::getInstance().setGlobalScaleFactor(getProperty<float>("global_scale"));
 
     saveSettings();
 
@@ -160,6 +166,8 @@ void SettingsFile::addToRecentlyOpened(File path)
 
         recentlyOpened.removeChild(minIdx, nullptr);
     }
+    
+    RecentlyOpenedFilesList::registerRecentFileNatively(path);
 }
 
 void SettingsFile::initialiseThemesTree()
@@ -232,7 +240,7 @@ void SettingsFile::initialiseThemesTree()
                 auto defaultTree = defaultColourThemesTree.getChildWithProperty("theme", themeName);
 
                 // For when we add new colours in the future
-                if (!themeTree.hasProperty(colourName)) {
+                if (!themeTree.hasProperty(colourName) || themeTree.getProperty(colourName).toString().isEmpty() || themeTree.getProperty(colourName).toString() == "00000000") {
                     themeTree.setProperty(colourName, defaultTree.getProperty(colourName).toString(), nullptr);
                 }
             }
@@ -305,6 +313,12 @@ void SettingsFile::timerCallback()
     // Use timer to group changes together
     saveSettings();
     stopTimer();
+}
+
+void SettingsFile::setGlobalScale(float newScale)
+{
+    setProperty("global_scale", newScale);
+    Desktop::getInstance().setGlobalScaleFactor(newScale);
 }
 
 void SettingsFile::saveSettings()

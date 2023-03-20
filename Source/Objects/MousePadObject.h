@@ -42,12 +42,12 @@ public:
         auto* x = static_cast<t_pad*>(ptr);
         auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
         g.setColour(fillColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     };
 
     void mouseDown(MouseEvent const& e) override
@@ -56,6 +56,8 @@ public:
 
         if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !object->cnv->isShowing() || isPressed)
             return;
+
+        pd->setThis();
 
         auto* x = static_cast<t_pad*>(ptr);
         t_atom at[3];
@@ -73,6 +75,11 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
+        mouseMove(e);
+    }
+
+    void mouseMove(MouseEvent const& e) override
+    {
         if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked())
             return;
 
@@ -85,12 +92,12 @@ public:
             return;
 
         int xPos = relativeEvent.getPosition().x;
-        ;
         int yPos = getHeight() - relativeEvent.getPosition().y;
 
         lastPosition = { xPos, yPos };
 
-        sys_lock();
+        pd->setThis();
+
         pd->enqueueFunction([x, xPos, yPos]() {
             x->x_x = xPos;
             x->x_y = yPos;
@@ -99,37 +106,8 @@ public:
             SETFLOAT(at, xPos);
             SETFLOAT(at + 1, yPos);
 
-            outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
+            outlet_anything(x->x_obj.ob_outlet, gensym("list"), 2, at);
         });
-
-        sys_unlock();
-    }
-
-    void mouseMove(MouseEvent const& e) override
-    {
-        if (!getScreenBounds().contains(e.getScreenPosition()) || isPressed || !isLocked())
-            return;
-
-        auto* x = static_cast<t_pad*>(ptr);
-        t_atom at[3];
-
-        auto relativeEvent = e.getEventRelativeTo(this);
-
-        // Don't repeat values
-        if (relativeEvent.getPosition() == lastPosition)
-            return;
-
-        x->x_x = relativeEvent.getPosition().x;
-        x->x_y = getHeight() - relativeEvent.getPosition().y;
-
-        SETFLOAT(at, x->x_x);
-        SETFLOAT(at + 1, x->x_y);
-
-        lastPosition = { x->x_x, getHeight() - x->x_y };
-
-        sys_lock();
-        outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
-        sys_unlock();
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -144,17 +122,16 @@ public:
         isPressed = false;
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* pad = static_cast<t_pad*>(ptr);
-        pad->x_w = b.getWidth();
-        pad->x_h = b.getHeight();
+        pad->x_w = b.getWidth() - 1;
+        pad->x_h = b.getHeight() - 1;
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -163,20 +140,19 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds({ x, y, w, h });
+        return { x, y, w + 1, h + 1 };
     }
 
     // Check if top-level canvas is locked to determine if we should respond to mouse events
     bool isLocked()
     {
-
         // Find top-level canvas
         auto* topLevel = findParentComponentOfClass<Canvas>();
         while (auto* nextCanvas = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCanvas;
         }
 
-        return static_cast<bool>(topLevel->locked.getValue());
+        return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue());
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

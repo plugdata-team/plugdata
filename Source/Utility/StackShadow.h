@@ -18,6 +18,8 @@
 #    include <juce_gui_basics/native/juce_win32_ScopedThreadDPIAwarenessSetter.h>
 #endif
 
+#include <juce_audio_processors/juce_audio_processors.h>
+
 class StackShadow {
 
     static inline unsigned short const stackblur_mul[255] = {
@@ -754,11 +756,20 @@ public:
             if (owner != nullptr)
                 owner->removeComponentListener(this);
 
-            // (the component can't be null)
-            jassert(componentToFollow != nullptr);
-
             owner = componentToFollow;
-            jassert(owner != nullptr);
+            
+            if(!owner)  {
+                for (int i = 4; --i >= 0;) {
+                    // there seem to be rare situations where the dropshadower may be deleted by
+                    // callbacks during this loop, so use a weak ref to watch out for this..
+                    WeakReference<Component> sw(shadowWindows[i]);
+                    
+                    if (sw != nullptr) {
+                        sw->setVisible(false);
+                    }
+                }
+                return;
+            }
 
             updateParent();
             owner->addComponentListener(this);
@@ -830,12 +841,12 @@ private:
 
         // Transparency is broken in Apple's DAWs on Apple Silicon
         // Just to be sure, we don't draw window shadows on dialogs in those DAWs
-#if !PLUGDATA_STANDALONE
-        auto hostType = PluginHostType();
-        if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
-            dawSupportsTransparency = false;
+        if (!ProjectInfo::isStandalone) {
+            auto hostType = PluginHostType();
+            if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
+                dawSupportsTransparency = false;
+            }
         }
-#endif
 
         if (owner != nullptr
             && owner->isShowing()
@@ -861,6 +872,7 @@ private:
                 WeakReference<Component> sw(shadowWindows[i]);
 
                 if (sw != nullptr) {
+                    sw->setVisible(true);
                     sw->setAlwaysOnTop(owner->isAlwaysOnTop());
 
                     if (sw == nullptr)

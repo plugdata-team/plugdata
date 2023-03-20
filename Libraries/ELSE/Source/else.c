@@ -14,7 +14,7 @@ static int printed;
 
 static int min_major = 0;
 static int min_minor = 53;
-static int min_bugfix = 1;
+static int min_bugfix = 2;
 
 static int else_major = 1;
 static int else_minor = 0;
@@ -60,7 +60,7 @@ void print_else_obj(t_else_obj *x){
     post("-------------------------------------------------------------------");
     post("  -----> ELSE - EL Locus Solus' Externals for Pure Data <-----");
     post("-------------------------------------------------------------------");
-    post("- Version: %d.%d-%d %s-%d; Unreleased", else_major, else_minor, else_bugfix, STATUS, status_number);
+    post("- Version: %d.%d-%d %s-%d; Released march 1st 2023", else_major, else_minor, else_bugfix, STATUS, status_number);
     post("- Author: Alexandre Torres Porres");
     post("- Repository: https://github.com/porres/pd-else");
     post("- License: Do What The Fuck You Want To Public License");

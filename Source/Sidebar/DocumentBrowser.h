@@ -12,6 +12,8 @@
 #    include "../Utility/OSUtils.h"
 #endif
 
+#include "Object.h"
+
 bool wantsNativeDialog();
 
 // Base classes for communication between parent and child classes
@@ -170,12 +172,12 @@ public:
         auto colour = isSelected() ? owner.findColour(PlugDataColour::sidebarActiveTextColourId) : owner.findColour(PlugDataColour::sidebarTextColourId);
 
         if (isDirectory) {
-            PlugDataLook::drawIcon(g, Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
+            Fonts::drawIcon(g, Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
         } else {
-            PlugDataLook::drawIcon(g, Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
+            Fonts::drawIcon(g, Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
         }
 
-        PlugDataLook::drawFittedText(g, file.getFileName(), x, 0, width - x, height, colour);
+        Fonts::drawFittedText(g, file.getFileName(), x, 0, width - x, height, colour);
     }
 
     String getAccessibilityName() override
@@ -265,6 +267,7 @@ public:
         refresh();
         addListener(this);
         getViewport()->getVerticalScrollBar().addListener(this);
+        getViewport()->setScrollBarsShown(true, false);
         startTimer(1500);
     }
 
@@ -356,7 +359,7 @@ public:
             auto y = getSelectedItem(0)->getItemPosition(true).getY();
             auto selectedRect = Rectangle<float>(3.0f, y + 2.0f, getWidth() - 6.0f, 20.0f);
 
-            g.fillRoundedRectangle(selectedRect, PlugDataLook::smallCornerRadius);
+            g.fillRoundedRectangle(selectedRect, Corners::smallCornerRadius);
         }
     }
     // Paint file drop outline
@@ -436,10 +439,10 @@ public:
                 if (file.isDirectory()) {
 
                     // Create NTFS directory junction
-                    createJunction(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
+                    OSUtils::createJunction(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
                 } else {
                     // Create hard link
-                    createHardLink(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
+                    OSUtils::createHardLink(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
                 }
 
 #else
@@ -531,6 +534,8 @@ public:
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setInterceptsMouseClicks(false, true);
+        
+        lookAndFeelChanged();
         repaint();
     }
 
@@ -567,19 +572,22 @@ public:
             g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
         }
     }
+        
+    void lookAndFeelChanged() override
+    {
+        input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
+        input.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+    }
 
     void paintOverChildren(Graphics& g) override
     {
-        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+
         auto textColour = findColour(PlugDataColour::sidebarTextColourId);
-
-        input.setColour(TextEditor::backgroundColourId, backgroundColour.brighter(0.7f));
-        input.setColour(TextEditor::textColourId, textColour);
-
-        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, textColour, 12);
+        
+        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, textColour, 12);
 
         if (input.getText().isEmpty()) {
-            PlugDataLook::drawText(g, "Type to search documentation", 30, 0, 300, 30, textColour.withAlpha(0.5f), 14);
+            Fonts::drawFittedText(g, "Type to search documentation", 30, 0, getWidth() - 60, 30, textColour.withAlpha(0.5f), 1, 0.9f, 14);
         }
     }
 
@@ -587,14 +595,14 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, PlugDataLook::smallCornerRadius);
+            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::smallCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
         const String item = searchResult[rowNumber].getFileName();
 
-        PlugDataLook::drawText(g, item, h + 4, 0, w - 4, h, colour);
-        PlugDataLook::drawIcon(g, Icons::File, 12, 0, h, colour, 12, false);
+        Fonts::drawText(g, item, h + 4, 0, w - 4, h, colour);
+        Fonts::drawIcon(g, Icons::File, 12, 0, h, colour, 12, false);
     }
 
     int getNumRows() override
@@ -830,7 +838,7 @@ public:
     {
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, PlugDataLook::defaultCornerRadius);
+        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override

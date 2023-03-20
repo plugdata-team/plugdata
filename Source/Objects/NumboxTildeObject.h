@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Utility/DraggableNumber.h"
+#include "Utility/DraggableNumber.h"
 
 typedef struct _numbox {
     t_object x_obj;
@@ -95,7 +95,7 @@ public:
         repaint();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -105,30 +105,65 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
-    {
-        auto* nbx = static_cast<t_numbox*>(ptr);
+        ComponentBoundsConstrainer* createConstrainer() override
+        {
+            class NumboxTildeBoundsConstrainer : public ComponentBoundsConstrainer {
+            public:
+                
+                Object* object;
+                
+                NumboxTildeBoundsConstrainer(Object* parent) : object(parent)
+                {
+                }
+                /*
+                 * Custom version of checkBounds that takes into consideration
+                 * the padding around plugdata node objects when resizing
+                 * to allow the aspect ratio to be interpreted correctly.
+                 * Otherwise resizing objects with an aspect ratio will
+                 * resize the object size **including** margins, and not follow the
+                 * actual size of the visible object
+                 */
+                void checkBounds(Rectangle<int>& bounds,
+                    Rectangle<int> const& old,
+                    Rectangle<int> const& limits,
+                    bool isStretchingTop,
+                    bool isStretchingLeft,
+                    bool isStretchingBottom,
+                    bool isStretchingRight) override
+                {
+                    auto* nbx = static_cast<t_numbox*>(object->getPointer());
 
-        nbx->x_fontsize = getHeight() - 4;
+                    nbx->x_fontsize = object->gui->getHeight() - 4;
 
-        int width = getWidth();
-        int numWidth = (2.0f * (-6.0f + width - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
-        width = (nbx->x_fontsize - (nbx->x_fontsize / 2) + 2) * (numWidth + 2) + 2;
+                    int width = bounds.reduced(Object::margin).getWidth();
+                    int numWidth = (2.0f * (-6.0f + width - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
+                    width = (nbx->x_fontsize - (nbx->x_fontsize / 2) + 2) * (numWidth + 2) + 2;
+                    
+                    BorderSize<int> border(Object::margin);
+                    border.subtractFrom(bounds);
 
-        int height = jlimit(18, maxSize, getHeight());
-        if (getWidth() != width || getHeight() != height) {
-            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
+                    // we also have to remove the margin from the old object, but don't alter the old object
+                    ComponentBoundsConstrainer::checkBounds(bounds, border.subtractedFrom(old), limits, isStretchingTop,
+                        isStretchingLeft,
+                        isStretchingBottom,
+                        isStretchingRight);
+
+                    // put back the margins
+                    border.addTo(bounds);
+                }
+            };
+            
+            auto* constrainer = new NumboxTildeBoundsConstrainer(object);
+            constrainer->setMinimumSize(30, 15);
+            
+            return constrainer;
         }
 
-        return true;
-    }
-
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* nbx = static_cast<t_numbox*>(ptr);
@@ -204,19 +239,19 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         auto iconBounds = Rectangle<int>(2, 0, getHeight(), getHeight());
-        PlugDataLook::drawIcon(g, mode ? Icons::ThinDown : Icons::Sine, iconBounds, object->findColour(PlugDataColour::dataColourId));
+        Fonts::drawIcon(g, mode ? Icons::ThinDown : Icons::Sine, iconBounds, object->findColour(PlugDataColour::dataColourId));
     }
 
     void paint(Graphics& g) override
     {
         g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     void timerCallback() override

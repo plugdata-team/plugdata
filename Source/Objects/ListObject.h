@@ -9,6 +9,9 @@ class ListObject final : public ObjectBase {
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
 
+    Value min = Value(0.0f);
+    Value max = Value(0.0f);
+
 public:
     ListObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -17,9 +20,12 @@ public:
         listLabel.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
         listLabel.setMinimumHorizontalScale(1.f);
         listLabel.setJustificationType(Justification::centredLeft);
-        listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
+        // listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
 
         addAndMakeVisible(listLabel);
+
+        min = atomHelper.getMinimum();
+        max = atomHelper.getMaximum();
 
         listLabel.onEditorHide = [this]() {
             startEdition();
@@ -29,8 +35,9 @@ public:
 
         listLabel.onEditorShow = [this]() {
             auto* editor = listLabel.getCurrentTextEditor();
+            editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             if (editor != nullptr) {
-                editor->setBorder({ 1, 2, 0, 0 });
+                editor->setBorder({ 0, 1, 3, 0 });
             }
         };
 
@@ -52,9 +59,19 @@ public:
         updateValue();
     }
 
-    void valueChanged(Value& v) override
+    void valueChanged(Value& value) override
     {
-        atomHelper.valueChanged(v);
+        if (value.refersToSameSourceAs(min)) {
+            auto v = static_cast<float>(min.getValue());
+            listLabel.setMinimum(v);
+            atomHelper.setMinimum(v);
+        } else if (value.refersToSameSourceAs(max)) {
+            auto v = static_cast<float>(max.getValue());
+            listLabel.setMaximum(v);
+            atomHelper.setMaximum(v);
+        } else {
+            atomHelper.valueChanged(value);
+        }
     }
 
     void updateFromGui()
@@ -85,26 +102,29 @@ public:
         listLabel.setBounds(getLocalBounds());
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        atomHelper.updateBounds();
+        return atomHelper.getPdBounds();
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        atomHelper.applyBounds();
+        atomHelper.setPdBounds(b);
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    ComponentBoundsConstrainer* createConstrainer() override
     {
-        atomHelper.checkBounds(oldBounds, newBounds, resizingOnLeft);
-        updateBounds();
-        return true;
+        return atomHelper.createConstrainer(object);
     }
 
     ObjectParameters getParameters() override
     {
-        return atomHelper.getParameters();
+        ObjectParameters allParameters = { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
+
+        auto atomParameters = atomHelper.getParameters();
+        allParameters.insert(allParameters.end(), atomParameters.begin(), atomParameters.end());
+
+        return allParameters;
     }
 
     void updateLabel() override
@@ -134,7 +154,14 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+
+        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
+
+        if (highlighed) {
+            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
+        }
     }
 
     void lookAndFeelChanged() override
@@ -148,7 +175,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         g.setColour(object->findColour(PlugDataColour::outlineColourId));
 
@@ -160,7 +187,7 @@ public:
 
     void updateValue()
     {
-        if (!edited && !listLabel.isBeingEdited()) {
+        if (!listLabel.isBeingEdited()) {
             auto const array = getList();
             String message;
             for (auto const& atom : array) {
@@ -187,9 +214,9 @@ public:
         return pd::Atom::fromAtoms(ac, av);
     }
 
-    void setList(std::vector<pd::Atom> const& value)
+    void setList(std::vector<pd::Atom> const value)
     {
-        cnv->pd->enqueueDirectMessages(ptr, value);
+        cnv->pd->enqueueDirectMessages(ptr, std::move(value));
     }
 
     void mouseUp(MouseEvent const& e) override

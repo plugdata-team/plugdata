@@ -136,14 +136,8 @@ public:
     {
         return Colour(hex[0], hex[1], hex[2]);
     }
-    void colourToHexArray(Colour colour, unsigned char* hex)
-    {
-        hex[0] = colour.getRed();
-        hex[1] = colour.getGreen();
-        hex[2] = colour.getBlue();
-    }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -152,7 +146,15 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds({ x, y, w, h });
+        return { x, y, w + 1, h + 1};
+    }
+        
+    void setPdBounds(Rectangle<int> b) override
+    {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+
+        static_cast<S*>(ptr)->x_width = getWidth() - 1;
+        static_cast<S*>(ptr)->x_height = getHeight() - 1;
     }
 
     void resized() override
@@ -162,7 +164,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;
@@ -202,18 +204,7 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
-    }
-
-    // Push current object bounds into pd
-    void applyBounds() override
-    {
-
-        auto b = object->getObjectBounds();
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
-        static_cast<S*>(ptr)->x_width = getWidth();
-        static_cast<S*>(ptr)->x_height = getHeight();
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     void timerCallback() override
@@ -289,11 +280,16 @@ public:
             colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(static_cast<int>(bufferSize.getValue()), 0, SCOPE_MAXBUFSIZE * 4);
+
+            pd->setThis();
             sys_lock();
+
             scope->x_bufsize = bufferSize.getValue();
             scope->x_bufphase = 0;
+
             sys_unlock();
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
+            pd->setThis();
             sys_lock();
             scope->x_period = limitValueMin(v, 0);
             sys_unlock();
@@ -313,7 +309,7 @@ public:
             scope->x_receive = canvas_realizedollar(scope->x_glist, scope->x_rcv_raw = rcv);
 
             pd->setThis();
-            if (scope->x_receive != &s_) {
+            if (scope->x_receive != gensym("")) {
                 pd_bind(&scope->x_obj.ob_pd, scope->x_receive);
             } else {
                 scope->x_rcv_raw = pd->generateSymbol("empty");

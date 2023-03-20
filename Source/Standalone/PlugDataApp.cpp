@@ -18,11 +18,17 @@
    EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR PURPOSE, ARE
    DISCLAIMED.
 */
+#include <juce_gui_basics/juce_gui_basics.h>
 
-#include <JuceHeader.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "PlugDataWindow.h"
-#include "../Canvas.h"
-#include "../PluginProcessor.h"
+#include "Canvas.h"
+#include "PluginProcessor.h"
+#include "PluginEditor.h"
+
+#include "Dialogs/Dialogs.h"
 
 extern "C" {
 #include <x_libpd_multi.h>
@@ -164,6 +170,12 @@ protected:
     std::unique_ptr<PlugDataWindow> mainWindow;
 };
 
+bool PlugDataWindow::hasOpenedDialog()
+{
+    auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
+    return editor->openedDialog.get() != nullptr;
+}
+
 void PlugDataWindow::closeAllPatches()
 {
     // Show an ask to save dialog for each patch that is dirty
@@ -189,9 +201,8 @@ void PlugDataWindow::closeAllPatches()
 
     if (canvas) {
         MessageManager::callAsync([this, editor, canvas, patch, deleteFunc]() mutable {
-            // Don't show save dialog, if patch is still open in another view
             if (patch->isDirty()) {
-                Dialogs::showSaveDialog(&editor->openedDialog, this, patch->getTitle(),
+                Dialogs::showSaveDialog(&editor->openedDialog, editor, patch->getTitle(),
                     [this, editor, canvas, deleteFunc](int result) mutable {
                         if (!canvas)
                             return;

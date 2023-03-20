@@ -4,18 +4,24 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_data_structures/juce_data_structures.h>
+#include <juce_events/juce_events.h>
+
+#include "Utility/Config.h"
+
 extern "C" {
 #include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
 #include <s_stuff.h>
 #include <z_libpd.h>
+#include <x_libpd_mod_utils.h>
 }
 
 #include <utility>
 #include <vector>
 
-#include "PdLibrary.h"
+#include "Library.h"
 
 struct _canvasenvironment {
     t_symbol* ce_dir;    /* directory patch lives in */
@@ -205,15 +211,13 @@ int Trie::autocomplete(String query, Suggestions& result)
 
 void Library::initialiseLibrary()
 {
-    auto* pdinstance = pd_this;
+    auto* pdinstance = libpd_this_instance();
 
     auto updateFn = [this, pdinstance]() {
         libraryLock.lock();
 
-// Make sure instance is set correctly for this thread
-#ifdef PDINSTANCE
-        pd_setinstance(pdinstance);
-#endif
+        // Make sure instance is set correctly for this thread
+        libpd_set_instance(pdinstance);
 
         auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
 
@@ -243,31 +247,31 @@ void Library::initialiseLibrary()
 
 void Library::updateLibrary()
 {
-    auto* pdinstance = pd_this;
+    auto* pdinstance = libpd_this_instance();
+
     auto updateFn = [this, pdinstance]() {
         auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
 
         auto pathTree = settingsTree.getChildWithName("Paths");
 
+        libpd_set_instance(pdinstance);
+
         searchTree = std::make_unique<Trie>();
 
         // Get available objects directly from pd
-        int i;
         t_class* o = pd_objectmaker;
 
-        t_methodentry *mlist, *m;
-
-#if PDINSTANCE
-        mlist = o->c_methods[pdinstance->pd_instanceno];
-#else
-        mlist = o->c_methods;
-#endif
+        t_methodentry* mlist = static_cast<t_methodentry*>(libpd_get_class_methods(o));
+        t_methodentry* m;
 
         allObjects.clear();
 
+        int i;
         for (i = o->c_nmethod, m = mlist; i--; m++) {
+            if (!m || !m->me_name)
+                continue;
 
-            auto newName = String(m->me_name->s_name);
+            auto newName = String::fromUTF8(m->me_name->s_name);
             if (!(newName.startsWith("else/") || newName.startsWith("cyclone/"))) {
                 allObjects.add(newName);
                 searchTree->insert(m->me_name->s_name);

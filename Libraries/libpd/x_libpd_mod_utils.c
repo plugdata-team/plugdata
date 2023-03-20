@@ -695,6 +695,8 @@ void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* si
 
     canvas_undo_add(cnv, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(cnv, src_i, nout, dest_i, nin, connection_path));
     glist_noselect(cnv);
+    
+    canvas_dirty(cnv, 1);
 }
 
 void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize)
@@ -835,4 +837,12 @@ int libpd_issignaloutlet(t_object const* x, int m)
     for (o2 = x->ob_outlet, n = 0; o2 && m--; o2 = o2->o_next)
         ;
     return (o2 && (o2->o_sym == &s_signal));
+}
+
+void* libpd_get_class_methods(t_class* o) {
+#if PDINSTANCE
+    return o->c_methods[pd_this->pd_instanceno];
+#else
+    return o->c_methods;
+#endif
 }

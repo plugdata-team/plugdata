@@ -36,7 +36,7 @@ public:
         objectText = getSymbol();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -51,25 +51,13 @@ public:
         // Create extra space for drawing the message box flag
         newBounds.setWidth(newBounds.getWidth() + 5);
 
-        if (newBounds != object->getObjectBounds()) {
-            object->setObjectBounds(newBounds);
-        }
-
         pd->unlockAudioThread();
+
+        return newBounds;
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        auto* patch = cnv->patch.getPointer();
-        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth);
-        updateBounds();
-        return true;
-    }
-
-    void applyBounds() override
-    {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         if (TextObjectHelper::getWidthInChars(ptr)) {
@@ -86,14 +74,14 @@ public:
     {
         // Draw background
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         // Draw text
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds().withTrimmedRight(5));
             auto scale = getWidth() < 50 ? 0.5f : 1.0f;
 
-            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
+            Fonts::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
         }
     }
 
@@ -106,7 +94,7 @@ public:
 
         if (isDown) {
             g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(b.reduced(1).toFloat(), PlugDataLook::objectCornerRadius, 3.0f);
+            g.drawRoundedRectangle(b.reduced(1).toFloat(), Corners::objectCornerRadius, 3.0f);
 
             g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
             g.fillPath(flagPath);
@@ -119,7 +107,7 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
@@ -132,7 +120,7 @@ public:
             objectText = v;
 
             repaint();
-            updateBounds();
+            object->updateBounds();
         }
     }
 
@@ -189,8 +177,13 @@ public:
 
             outgoingEditor.reset();
 
-            updateBounds(); // Recalculate bounds
-            applyBounds();  // Send new bounds to Pd
+            object->updateBounds(); // Recalculate bounds
+
+            pd->enqueueFunction([_this = SafePointer(this)]() {
+                if (!_this)
+                    return;
+                _this->setPdBounds(_this->object->getObjectBounds());
+            });
 
             setSymbol(objectText);
 
@@ -244,7 +237,7 @@ public:
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor& ed) override
     {
-        updateBounds();
+        object->updateBounds();
     }
 
     String getSymbol() const
@@ -293,5 +286,10 @@ public:
     bool hideInGraph() override
     {
         return true;
+    }
+        
+    ComponentBoundsConstrainer* createConstrainer() override
+    {
+        return TextObjectHelper::createConstrainer(object);
     }
 };

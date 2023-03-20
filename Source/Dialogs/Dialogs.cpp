@@ -3,20 +3,28 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-#include <JuceHeader.h>
+
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
 
 #include "Dialogs.h"
 
+#include "LookAndFeel.h"
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
+#include "Sidebar/Sidebar.h"
+#include "Object.h"
+#include "Objects/ObjectBase.h"
 #include "SaveDialog.h"
 #include "ArrayDialog.h"
 #include "SettingsDialog.h"
 #include "TextEditorDialog.h"
 #include "ObjectBrowserDialog.h"
 #include "ObjectReferenceDialog.h"
-#include "../Heavy/HeavyExportDialog.h"
+#include "Heavy/HeavyExportDialog.h"
 #include "MainMenu.h"
 #include "Canvas.h"
 
@@ -64,54 +72,54 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 
     popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(220).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
         [editor, popup, centre, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
-            switch(result) {
-            case MainMenu::menuItem::newPatch: {
+            switch (result) {
+            case MainMenu::MenuItem::NewPatch: {
                 editor->newProject();
                 break;
             }
-            case MainMenu::menuItem::openPatch: {
+            case MainMenu::MenuItem::OpenPatch: {
                 editor->openProject();
                 break;
             }
-            case MainMenu::menuItem::save: {
+            case MainMenu::MenuItem::Save: {
                 if (editor->getCurrentCanvas())
                     editor->saveProject();
                 break;
             }
-            case MainMenu::menuItem::saveAs: {
+            case MainMenu::MenuItem::SaveAs: {
                 if (editor->getCurrentCanvas())
                     editor->saveProjectAs();
                 break;
             }
-            case MainMenu::menuItem::close: {
+            case MainMenu::MenuItem::Close: {
                 if (editor->getCurrentCanvas())
                     editor->closeTab(editor->getCurrentCanvas());
                 break;
             }
-            case MainMenu::menuItem::closeAll: {
+            case MainMenu::MenuItem::CloseAll: {
                 if (editor->getCurrentCanvas())
                     editor->closeAllTabs();
                 break;
             }
-            case MainMenu::menuItem::compiledMode: {
+            case MainMenu::MenuItem::CompiledMode: {
                 bool ticked = settingsTree.hasProperty("hvcc_mode") ? static_cast<bool>(settingsTree.getProperty("hvcc_mode")) : false;
                 settingsTree.setProperty("hvcc_mode", !ticked, nullptr);
                 break;
             }
-            case MainMenu::menuItem::compile: {
+            case MainMenu::MenuItem::Compile: {
                 Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
                 break;
             }
-            case MainMenu::menuItem::autoConnect: {
+            case MainMenu::MenuItem::AutoConnect: {
                 bool ticked = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;
                 settingsTree.setProperty("autoconnect", !ticked, nullptr);
                 break;
             }
-            case MainMenu::menuItem::settings: {
+            case MainMenu::MenuItem::Settings: {
                 Dialogs::showSettingsDialog(editor);
                 break;
             }
-            case MainMenu::menuItem::about: {
+            case MainMenu::MenuItem::About: {
                 auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
                 auto* aboutPanel = new AboutPanel();
                 dialog->setViewedComponent(aboutPanel);
@@ -122,13 +130,11 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             }
-        
-        
-        MessageManager::callAsync([popup]() {
-            delete popup;
-        });
-        });
 
+            MessageManager::callAsync([popup]() {
+                delete popup;
+            });
+        });
 }
 
 class OkayCancelDialog : public Component {
@@ -262,10 +268,22 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
     bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
 
+    enum MenuOptions {
+        Open = 1,
+        Help,
+        Reference,
+        ToFront,
+        ToBack,
+        Properties
+    };
     // Create popup menu
     PopupMenu popupMenu;
 
-    popupMenu.addItem(1, "Open", object && !multiple && canBeOpened); // for opening subpatches
+    popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
+
+    popupMenu.addSeparator();
+    popupMenu.addItem(Help, "Help", object != nullptr);
+    popupMenu.addItem(Reference, "Reference", object != nullptr);
     popupMenu.addSeparator();
 
     auto* editor = cnv->editor;
@@ -281,31 +299,40 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addCommandItem(editor, CommandIDs::Delete);
     popupMenu.addSeparator();
 
-    popupMenu.addItem(8, "To Front", object != nullptr);
-    popupMenu.addItem(9, "To Back", object != nullptr);
+    popupMenu.addItem(ToFront, "To Front", object != nullptr);
+    popupMenu.addItem(ToBack, "To Back", object != nullptr);
     popupMenu.addSeparator();
-    popupMenu.addItem(10, "Help", object != nullptr);
-    popupMenu.addItem(11, "Reference", object != nullptr);
-    popupMenu.addSeparator();
-    popupMenu.addItem(12, "Properties", originalComponent == cnv || (object && !params.empty()));
+    popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.empty()));
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
         // Set position where new objet will be created
         if (result > 100) {
             cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
         }
-
-        if ((!object && result < 100) || result < 1)
+        
+        if(result == Properties)
+        {
+            if (originalComponent == cnv) {
+                editor->sidebar->showParameters("canvas", cnv->getInspectorParameters());
+            } else if(object && object->gui) {
+                editor->sidebar->showParameters(object->gui->getText(), params);
+            }
+            
             return;
+        }
+
+        if ((!object && result < 100) || result <= 0) {
+            return;
+        }
 
         if (object)
             object->repaint();
 
         switch (result) {
-        case 1: // Open subpatch
+        case Open: // Open subpatch
             object->gui->openFromMenu();
             break;
-        case 8: { // To Front
+        case ToFront: { // To Front
             // The double for loop makes sure that they keep their original order
             auto objects = cnv->patch.getObjects();
 
@@ -323,7 +350,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             cnv->synchronise();
             break;
         }
-        case 9: { // To Back
+        case ToBack: {
             auto objects = cnv->patch.getObjects();
 
             cnv->patch.startUndoSequence("ToBack");
@@ -341,20 +368,11 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             cnv->synchronise();
             break;
         }
-        case 10: // Open help
+        case Help:
             object->openHelpPatch();
             break;
-        case 11: // Open reference
+        case Reference:
             Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
-            break;
-        case 12:
-            if (originalComponent == cnv) {
-                // Open help
-                editor->sidebar.showParameters("canvas", cnv->getInspectorParameters());
-            } else {
-                editor->sidebar.showParameters(object->gui->getText(), params);
-            }
-
             break;
         default:
             break;

@@ -32,6 +32,12 @@
 #define NULL 0
 #endif
 
+#ifdef _MSC_VER
+  #define forcedinline __forceinline
+#else
+  #define forcedinline __attribute__((always_inline))
+#endif
+
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&);               \
   void operator=(const TypeName&)

@@ -35,7 +35,7 @@ public:
 
             auto scale = getWidth() < 50 ? 0.5f : 1.0f;
 
-            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale, 14.0f, Justification::centredLeft);
+            Fonts::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::commentTextColourId), numLines, scale, 14.0f, Justification::centredLeft);
         }
     }
 
@@ -76,8 +76,13 @@ public:
 
             outgoingEditor.reset();
 
-            updateBounds(); // Recalculate bounds
-            applyBounds();  // Send new bounds to Pd
+            object->updateBounds(); // Recalculate bounds
+
+            pd->enqueueFunction([_this = SafePointer(this)]() {
+                if (!_this)
+                    return;
+                _this->setPdBounds(_this->object->getObjectBounds());
+            });
 
             setSymbol(objectText);
             repaint();
@@ -104,6 +109,8 @@ public:
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
 
+            editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::commentTextColourId));
+            
             editor->onFocusLost = [this]() {
                 hideEditor();
             };
@@ -113,7 +120,7 @@ public:
         }
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -121,36 +128,22 @@ public:
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
 
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines).expanded(Object::margin) + cnv->canvasOrigin;
+        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines);
 
         numLines = newNumLines;
 
-        auto objBounds = object->getBounds();
-
-        // TODO: this is a hack
-        // why is there a weird 1px offset, only for comment but not for textobj or message?
-        if (objBounds.getPosition().getDistanceFrom(newBounds.getPosition()) > 2) {
-            object->setTopLeftPosition(newBounds.getX(), newBounds.getY());
-        }
-        if (newBounds.getWidth() != objBounds.getWidth() || newBounds.getHeight() != objBounds.getHeight()) {
-            object->setSize(newBounds.getWidth(), newBounds.getHeight());
-        }
-
         pd->unlockAudioThread();
+
+        return newBounds.withTrimmedBottom(4);
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    ComponentBoundsConstrainer* createConstrainer() override
     {
-        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        auto* patch = cnv->patch.getPointer();
-        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth);
-        updateBounds();
-        return true;
+        return TextObjectHelper::createConstrainer(object);
     }
-
-    void applyBounds() override
+        
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         if (TextObjectHelper::getWidthInChars(ptr)) {
@@ -232,6 +225,6 @@ public:
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor& ed) override
     {
-        updateBounds();
+        object->updateBounds();
     }
 };

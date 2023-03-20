@@ -96,6 +96,8 @@ public:
 
         slider.onDragStart = [this]() {
             startEdition();
+            const float val = slider.getValue();
+            setValue(val);
         };
 
         slider.onValueChange = [this]() {
@@ -107,13 +109,15 @@ public:
             stopEdition();
         };
 
-        auto minLongSide = object->minimumSize * 2;
-        auto minShortSide = object->minimumSize;
-        if (isVertical) {
-            object->constrainer->setMinimumSize(minShortSide, minLongSide);
-        } else {
-            object->constrainer->setMinimumSize(minLongSide, minShortSide);
-        }
+        onConstrainerCreate = [this](){
+            auto minLongSide = this->object->minimumSize * 2;
+            auto minShortSide = this->object->minimumSize;
+            if (isVertical) {
+                constrainer->setMinimumSize(minShortSide, minLongSide);
+            } else {
+                constrainer->setMinimumSize(minLongSide, minShortSide);
+            }
+        };
     }
 
     bool hideInlets() override
@@ -136,14 +140,14 @@ public:
         iemHelper.initialiseParameters();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        iemHelper.updateBounds();
+        return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.applyBounds(object->getObjectBounds());
+        iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1));
     }
 
     void updateRange()
@@ -202,10 +206,9 @@ public:
             break;
         }
         }
-        
+
         // Update the colours of the actual slider
-        if(hash(symbol) == hash("color"))
-        {
+        if (hash(symbol) == hash("color")) {
             getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
             getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
         }
@@ -214,13 +217,13 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -229,7 +232,7 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     void resized() override
@@ -246,7 +249,7 @@ public:
         ObjectParameters allParameters = {
             { "Minimum", tFloat, cGeneral, &min, {} },
             { "Maximum", tFloat, cGeneral, &max, {} },
-            { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "off", "on" } },
+            { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "Off", "On" } },
             { "Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" } }
         };
 
@@ -258,8 +261,6 @@ public:
 
     float getValue()
     {
-        auto* slid = static_cast<t_slider*>(ptr);
-
         return static_cast<t_slider*>(ptr)->x_fval;
     }
 

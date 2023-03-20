@@ -5,18 +5,18 @@
 */
 
 #pragma once
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_dsp/juce_dsp.h>
+#include "Utility/Config.h"
 
-#include <JuceHeader.h>
+#include "Pd/Instance.h"
+#include "Pd/Library.h"
+#include "Pd/Patch.h"
 
-#include "Pd/PdInstance.h"
-#include "Pd/PdLibrary.h"
-#include "Utility/SettingsFile.h"
-#include "Statusbar.h"
-
-#if PLUGDATA_STANDALONE
-#    include "Utility/InternalSynth.h"
-#endif
-
+class InternalSynth;
+class SettingsFile;
+class StatusbarSource;
 class PlugDataLook;
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
@@ -98,6 +98,11 @@ public:
     void messageEnqueued() override;
     void performParameterChange(int type, String name, float value) override;
 
+    // Jyg added this
+    void fillDataBuffer(std::vector<pd::Atom> const& list) override;
+    void parseDataBuffer(XmlElement const& xml) override;
+    XmlElement* m_temp_xml;
+
     pd::Patch* loadPatch(String patch);
     pd::Patch* loadPatch(File const& patch);
 
@@ -123,13 +128,15 @@ public:
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString);
+
+    static inline const String versionSuffix = "-test";
+    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + versionSuffix);
 
     File abstractions = versionDataDir.getChildFile("Abstractions");
 
     Value commandLocked = Value(var(false));
 
-    StatusbarSource statusbarSource;
+    std::unique_ptr<StatusbarSource> statusbarSource;
 
     Value tailLength = Value(0.0f);
 
@@ -148,12 +155,10 @@ public:
     int lastLeftTab = -1;
     int lastRightTab = -1;
 
-#if PLUGDATA_STANDALONE
+    // Only used by standalone!
     OwnedArray<MidiOutput> midiOutputs;
-
-    InternalSynth internalSynth;
+    std::unique_ptr<InternalSynth> internalSynth;
     std::atomic<bool> enableInternalSynth = false;
-#endif
 
 private:
     void processInternal();

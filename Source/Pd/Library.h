@@ -6,13 +6,8 @@
 
 #pragma once
 
-#include <JuceHeader.h>
 #include <m_pd.h>
-
-#include "../Utility/FileSystemWatcher.h"
-
-#include <array>
-#include <vector>
+#include "Utility/FileSystemWatcher.h"
 
 namespace pd {
 
@@ -113,7 +108,8 @@ public:
         appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("heavylib"),
         appDataDir.getChildFile("Library").getChildFile("Abstractions"),
         appDataDir.getChildFile("Library").getChildFile("Deken"),
-        appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("else")
+        appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("else"),
+        appDataDir.getChildFile("Library").getChildFile("Extra")
     };
 
     static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "heavylib", "pdlua" };

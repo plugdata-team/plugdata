@@ -19,7 +19,11 @@ public:
         , iemHelper(ptr, object, this)
     {
         value = getValue();
-        object->constrainer->setFixedAspectRatio(1);
+        
+        onConstrainerCreate = [this](){
+            constrainer->setFixedAspectRatio(1);
+        };
+        
     }
 
     bool hideInlets() override
@@ -37,14 +41,14 @@ public:
         iemHelper.updateLabel(label);
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        iemHelper.updateBounds();
+        return iemHelper.getPdBounds();
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.applyBounds(object->getObjectBounds());
+        iemHelper.setPdBounds(b);
     }
 
     void initialiseParameters() override
@@ -57,13 +61,13 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
         auto toggledColour = iemHelper.getForegroundColour();
         auto untoggledColour = toggledColour.interpolatedWith(iemHelper.getBackgroundColour(), 0.8f);
@@ -94,16 +98,21 @@ public:
         }
     }
 
-    void sendToggleValue(bool newValue)
+    void sendToggleValue(int newValue)
     {
-        t_atom atom;
-        SETFLOAT(&atom, newValue);
-        pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
+        pd->enqueueFunction([ptr = this->ptr, pd = this->pd, patch = &cnv->patch, newValue]() {
+            if (patch->objectWasDeleted(ptr))
+                return;
 
-        auto* iem = static_cast<t_iemgui*>(ptr);
-        outlet_float(iem->x_obj.ob_outlet, newValue);
-        if (iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
-            pd_float(iem->x_snd->s_thing, newValue);
+            t_atom atom;
+            SETFLOAT(&atom, newValue);
+            pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
+
+            auto* iem = static_cast<t_iemgui*>(ptr);
+            outlet_float(iem->x_obj.ob_outlet, newValue);
+            if (iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
+                pd_float(iem->x_snd->s_thing, newValue);
+        });
     }
 
     void untoggleObject() override

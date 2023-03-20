@@ -4,24 +4,68 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 
-#if PLUGDATA_STANDALONE
-#    include "Standalone/PlugDataWindow.h"
-#endif
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+#include "Utility/OSUtils.h"
 
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
+
+#include "Pd/Patch.h"
 
 #include "LookAndFeel.h"
 #include "Palettes.h"
 
 #include "Canvas.h"
 #include "Connection.h"
+#include "Objects/ObjectBase.h" // TODO: We shouldn't need this!
 #include "Dialogs/Dialogs.h"
+#include "Statusbar.h"
+#include "Sidebar/Sidebar.h"
+#include "Object.h"
+
+class ZoomLabel : public TextButton
+    , public Timer {
+
+    ComponentAnimator labelAnimator;
+
+    bool initRun = true;
+
+public:
+    ZoomLabel()
+    {
+        setInterceptsMouseClicks(false, false);
+    }
+
+    void setZoomLevel(float value)
+    {
+        if (initRun) {
+            initRun = false;
+            return;
+        }
+
+        setButtonText(String(value * 100, 1) + "%");
+        startTimer(2000);
+
+        if (!labelAnimator.isAnimating(this)) {
+            labelAnimator.fadeIn(this, 200);
+        }
+    }
+
+    void timerCallback() override
+    {
+        labelAnimator.fadeOut(this, 200);
+        stopTimer();
+    }
+};
 
 bool wantsNativeDialog()
 {
-#if PLUGDATA_STANDALONE
-    return true;
-#endif
+    if (ProjectInfo::isStandalone) {
+        return true;
+    }
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
     File settingsFile = homeDir.getChildFile("Settings.xml");
@@ -38,11 +82,13 @@ bool wantsNativeDialog()
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
-    , statusbar(&p)
-    , sidebar(&p, this)
+    , statusbar(std::make_unique<Statusbar>(&p))
+    , zoomLabel(std::make_unique<ZoomLabel>())
+    , sidebar(std::make_unique<Sidebar>(&p, this))
     , tooltipWindow(this, 500)
-    , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), PlugDataLook::defaultCornerRadius)
+    , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), Corners::defaultCornerRadius)
     , splitView(this)
+    , openedDialog(nullptr)
 {
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
@@ -51,14 +97,17 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     hideSidebarButton.setButtonText(Icons::Hide);
     pinButton.setButtonText(Icons::Pin);
     
+    editButton.setButtonText(Icons::Edit);
+    runButton.setButtonText(Icons::Lock);
+    presentButton.setButtonText(Icons::Presentation);
     setResizable(true, false);
 
     // In the standalone, the resizer handling is done on the window class
-#if !PLUGDATA_STANDALONE
-    cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
-    cornerResizer->setAlwaysOnTop(true);
-    addAndMakeVisible(cornerResizer.get());
-#endif
+    if (!ProjectInfo::isStandalone) {
+        cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
+        cornerResizer->setAlwaysOnTop(true);
+        addAndMakeVisible(cornerResizer.get());
+    }
 
     tooltipWindow.setOpaque(false);
     tooltipWindow.setLookAndFeel(&pd->lnf.get());
@@ -103,12 +152,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     splitZoomScale.referTo(settingsFile->getPropertyAsValue("split_zoom"));
     splitZoomScale.addListener(this);
 
+
     palettes = std::make_unique<Palettes>(this);
     
     addAndMakeVisible(*palettes);
-    addAndMakeVisible(statusbar);
+    addAndMakeVisible(*statusbar);
+
     addAndMakeVisible(splitView);
-    addAndMakeVisible(sidebar);
+    addAndMakeVisible(*sidebar);
 
     for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &pinButton, &hideSidebarButton }) {
         button->getProperties().set("Style", "LargeIcon");
@@ -119,11 +170,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Show settings
     mainMenuButton.setTooltip("Settings");
     mainMenuButton.onClick = [this]() {
-#ifdef PLUGDATA_STANDALONE
         Dialogs::showMainMenu(this, &mainMenuButton);
-#else
-        Dialogs::showMainMenu(this, &mainMenuButton);
-#endif
     };
 
     addAndMakeVisible(mainMenuButton);
@@ -142,7 +189,41 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addObjectMenuButton.setTooltip("Create object");
     addObjectMenuButton.onClick = [this]() { Dialogs::showObjectMenu(this, &addObjectMenuButton); };
     addAndMakeVisible(addObjectMenuButton);
-
+    
+    // Edit, run and presentation mode buttons
+    for(auto* button : std::vector<TextButton*>{&editButton, &runButton, &presentButton}) {
+        button->onClick = [this]() {
+            if(auto* cnv = getCurrentCanvas()) {
+                if(editButton.getToggleState()) {
+                    cnv->presentationMode.setValue(false);
+                    cnv->locked.setValue(false);
+                }
+                else if(runButton.getToggleState()) {
+                    cnv->presentationMode.setValue(false);
+                    cnv->locked.setValue(true);
+                }
+                else if(presentButton.getToggleState()) {
+                    cnv->presentationMode.setValue(true);
+                    cnv->locked.setValue(true);
+                }
+            }
+        };
+        
+        button->getProperties().set("Style", "LargeIcon");
+        button->setClickingTogglesState(true);
+        button->setRadioGroupId(2200);
+        addAndMakeVisible(button);
+    }
+    editButton.setToggleState(true, sendNotification);
+    
+    editButton.setTooltip("Edit mode");
+    runButton.setTooltip("Run mode");
+    presentButton.setTooltip("Presentation mode");
+    
+    editButton.setConnectedEdges(Button::ConnectedOnRight);
+    runButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
+    presentButton.setConnectedEdges(Button::ConnectedOnLeft);
+    
     // Hide sidebar
     hideSidebarButton.setTooltip("Hide Sidebar");
     hideSidebarButton.getProperties().set("Style", "LargeIcon");
@@ -152,7 +233,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     hideSidebarButton.onClick = [this]() {
         bool show = !hideSidebarButton.getToggleState();
 
-        sidebar.showSidebar(show);
+        sidebar->showSidebar(show);
         hideSidebarButton.setButtonText(show ? Icons::Hide : Icons::Show);
         hideSidebarButton.setTooltip(show ? "Hide Sidebar" : "Show Sidebar");
         pinButton.setVisible(show);
@@ -167,34 +248,29 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pinButton.setClickingTogglesState(true);
     pinButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     pinButton.setConnectedEdges(12);
-    pinButton.onClick = [this]() { sidebar.pinSidebar(pinButton.getToggleState()); };
+    pinButton.onClick = [this]() { sidebar->pinSidebar(pinButton.getToggleState()); };
 
     addAndMakeVisible(hideSidebarButton);
 
-    sidebar.setSize(250, pd->lastUIHeight - 40);
+    sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
     setSize(pd->lastUIWidth, pd->lastUIHeight);
 
     // Set minimum bounds
     setResizeLimits(835, 305, 999999, 999999);
 
-    sidebar.toFront(false);
+    sidebar->toFront(false);
 
     // Make sure existing console messages are processed
-    sidebar.updateConsole();
+    sidebar->updateConsole();
     updateCommandStatus();
 
-    addModifierKeyListener(&statusbar);
+    addModifierKeyListener(statusbar.get());
 
-    addChildComponent(zoomLabel);
+    addChildComponent(*zoomLabel);
 
     // Initialise zoom factor
     valueChanged(zoomScale);
     valueChanged(splitZoomScale);
-
-    selectedSplitRect.setStrokeThickness(1.0f);
-    selectedSplitRect.setInterceptsMouseClicks(false, false);
-    selectedSplitRect.setFill(Colours::transparentBlack);
-    addAndMakeVisible(selectedSplitRect);
 }
 PluginEditor::~PluginEditor()
 {
@@ -210,10 +286,8 @@ PluginEditor::~PluginEditor()
 
 void PluginEditor::paint(Graphics& g)
 {
-    selectedSplitRect.setStrokeFill(findColour(PlugDataColour::dataColourId));
-
     g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
@@ -223,12 +297,12 @@ void PluginEditor::paint(Graphics& g)
         // Toolbar background
         g.setColour(baseColour);
         g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
-        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, Corners::windowCornerRadius);
 
         // Statusbar background
         g.setColour(baseColour);
-        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 12);
-        g.fillRoundedRectangle(0.0f, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), PlugDataLook::windowCornerRadius);
+        g.fillRect(0, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight() - 12);
+        g.fillRoundedRectangle(0.0f, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight(), Corners::windowCornerRadius);
     } else {
         // Toolbar background
         g.setColour(baseColour);
@@ -236,7 +310,7 @@ void PluginEditor::paint(Graphics& g)
 
         // Statusbar background
         g.setColour(baseColour);
-        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
+        g.fillRect(0, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight());
     }
 
     g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -258,48 +332,48 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
-     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), getHeight() - toolbarHeight - (statusbar.getHeight()));
+
+    palettes->setBounds(0, toolbarHeight, palettes->getWidth(), getHeight() - toolbarHeight - (statusbar->getHeight()));
     
-    auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
+    splitView.setBounds(0, toolbarHeight, (getWidth() - sidebar->getWidth()) + 1, getHeight() - toolbarHeight - (statusbar->getHeight()));
+    sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), getHeight() - toolbarHeight);
+    statusbar->setBounds(0, getHeight() - statusbar->getHeight(), getWidth() - sidebar->getWidth(), statusbar->getHeight());
+
+    auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
+    auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
+    auto offset = useLeftButtons && useNonNativeTitlebar ? 70 : 0;
+
+    mainMenuButton.setBounds(20 + offset, 0, toolbarHeight, toolbarHeight);
+    undoButton.setBounds(80 + offset, 0, toolbarHeight, toolbarHeight);
+    redoButton.setBounds(140 + offset, 0, toolbarHeight, toolbarHeight);
+    addObjectMenuButton.setBounds(200 + offset, 0, toolbarHeight, toolbarHeight);
     
-    splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar.getWidth() - paletteWidth) + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
-    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
-    statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
+    auto startX = (getWidth() / 2.0) - (toolbarHeight * 1.5);
+    
+    editButton.setBounds(startX, 0, toolbarHeight, toolbarHeight);
+    runButton.setBounds(startX + toolbarHeight - 1, 0, toolbarHeight, toolbarHeight);
+    presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 0, toolbarHeight, toolbarHeight);
 
-    mainMenuButton.setBounds(20, 0, toolbarHeight, toolbarHeight);
-    undoButton.setBounds(90, 0, toolbarHeight, toolbarHeight);
-    redoButton.setBounds(160, 0, toolbarHeight, toolbarHeight);
-    addObjectMenuButton.setBounds(230, 0, toolbarHeight, toolbarHeight);
+    auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
 
-#ifdef PLUGDATA_STANDALONE
-    auto useNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
-    auto windowControlsOffset = useNativeTitlebar ? 70.0f : 170.0f;
-#else
-    int const resizerSize = 18;
-    cornerResizer->setBounds(getWidth() - resizerSize,
-        getHeight() - resizerSize,
-        resizerSize, resizerSize);
-
-    auto windowControlsOffset = 70.0f;
-#endif
+    if (!ProjectInfo::isStandalone) {
+        int const resizerSize = 18;
+        cornerResizer->setBounds(getWidth() - resizerSize,
+            getHeight() - resizerSize,
+            resizerSize, resizerSize);
+    }
 
     int hidePosition = getWidth() - windowControlsOffset;
-    int pinPosition = hidePosition - 65;
+    int pinPosition = hidePosition - 60;
 
-    hideSidebarButton.setBounds(hidePosition, 0, 70, toolbarHeight);
-    pinButton.setBounds(pinPosition, 0, 70, toolbarHeight);
+    hideSidebarButton.setBounds(hidePosition, 0, toolbarHeight, toolbarHeight);
+    pinButton.setBounds(pinPosition, 0, toolbarHeight, toolbarHeight);
 
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
 
-    zoomLabel.setTopLeftPosition(5, statusbar.getY() - 28);
-    zoomLabel.setSize(55, 23);
-
-    if (auto* cnv = getCurrentCanvas()) {
-        cnv->checkBounds();
-    }
-
-    updateSplitOutline();
+    zoomLabel->setTopLeftPosition(5, statusbar->getY() - 28);
+    zoomLabel->setSize(55, 23);
 }
 
 void PluginEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel)
@@ -328,14 +402,15 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
     scale = value;
 }
 
-#if PLUGDATA_STANDALONE
-
 void PluginEditor::mouseDown(MouseEvent const& e)
 {
+    // no window dragging by toolbar in plugin!
+    if (!ProjectInfo::isStandalone)
+        return;
 
     if (e.getNumberOfClicks() >= 2) {
 
-#    if JUCE_MAC
+#if JUCE_MAC
         if (isMaximised) {
             getPeer()->setBounds(unmaximisedSize, false);
         } else {
@@ -347,13 +422,13 @@ void PluginEditor::mouseDown(MouseEvent const& e)
         isMaximised = !isMaximised;
         return;
 
-#    else
-        findParentComponentOfClass<PlugDataWindow>()->maximiseButtonPressed();
-#    endif
+#else
+        findParentComponentOfClass<DocumentWindow>()->maximiseButtonPressed();
+#endif
     }
 
     if (e.getPosition().getY() < toolbarHeight) {
-        if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+        if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
             if (!window->isUsingNativeTitleBar())
                 windowDragger.startDraggingComponent(window, e.getEventRelativeTo(window));
         }
@@ -362,14 +437,16 @@ void PluginEditor::mouseDown(MouseEvent const& e)
 
 void PluginEditor::mouseDrag(MouseEvent const& e)
 {
+    if (!ProjectInfo::isStandalone)
+        return;
+
     if (!isMaximised) {
-        if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+        if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
             if (!window->isUsingNativeTitleBar())
                 windowDragger.dragComponent(window, e.getEventRelativeTo(window), nullptr);
         }
     }
 }
-#endif
 
 bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
 {
@@ -462,10 +539,22 @@ void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
     for (auto* patch : pd->patches) {
         patch->deselectAll();
     }
-
-    if (getCurrentCanvas()->patch.getCurrentFile().existsAsFile()) {
-        getCurrentCanvas()->patch.savePatch();
-        SettingsFile::getInstance()->addToRecentlyOpened(getCurrentCanvas()->patch.getCurrentFile());
+    
+    auto* cnv = getCurrentCanvas();
+    
+    if(cnv->patch.isSubpatch())
+    {
+        for(auto& parentCanvas : canvases)
+        {
+            if(cnv->patch.getRoot() == parentCanvas->patch.getPointer()) {
+                cnv = parentCanvas;
+            }
+        }
+    }
+    
+    if (cnv->patch.getCurrentFile().existsAsFile()) {
+        cnv->patch.savePatch();
+        SettingsFile::getInstance()->addToRecentlyOpened(cnv->patch.getCurrentFile());
         nestedCallback();
     } else {
         saveProjectAs(nestedCallback);
@@ -505,25 +594,23 @@ void PluginEditor::closeTab(Canvas* cnv)
         return;
 
     auto* tabbar = cnv->getTabbar();
-    int const tabIdx = cnv->getTabIndex();
-    int const currentTabIdx = tabbar->getCurrentTabIndex();
+    auto const tabIdx = cnv->getTabIndex();
+
     auto* patch = &cnv->patch;
 
-    sidebar.hideParameters();
+    sidebar->hideParameters();
+
+    if (tabbar->getCurrentTabIndex() == tabIdx)
+        tabbar->setCurrentTabIndex(tabIdx > 0 ? tabIdx - 1 : tabIdx);
 
     cnv->getTabbar()->removeTab(tabIdx);
 
-    canvases.removeObject(cnv);
-    pd->patches.removeObject(patch, patch->closePatchOnDelete);
+    pd->patches.removeObject(patch, false);
 
-    if (currentTabIdx == tabIdx) {
-        if (currentTabIdx != tabbar->getNumTabs()) {
-            // Set the focused tab to the next one
-            tabbar->setCurrentTabIndex(currentTabIdx, true);
-        } else {
-            // Unless it's the last, then set it to the previous one
-            tabbar->setCurrentTabIndex(currentTabIdx - 1, true);
-        }
+    canvases.removeObject(cnv);
+
+    if (patch->closePatchOnDelete) {
+        delete patch;
     }
 
     if (auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas()) {
@@ -533,6 +620,8 @@ void PluginEditor::closeTab(Canvas* cnv)
         rightCnv->tabChanged();
     }
 
+    pd->updateObjectImplementations();
+    
     splitView.closeEmptySplits();
     updateCommandStatus();
 
@@ -553,7 +642,12 @@ void PluginEditor::addTab(Canvas* cnv)
     int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
 
     // Add tab next to the currently focused tab
-    focusedTabbar->addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true, newTabIdx);
+    auto patchTitle = cnv->patch.getTitle();
+    focusedTabbar->addTab(patchTitle, findColour(ResizableWindow::backgroundColourId), cnv->viewport, true, newTabIdx);
+
+    // Open help files and references in Locked Mode
+    if (patchTitle.contains("-help") || patchTitle.equalsIgnoreCase("reference"))
+        cnv->locked.setValue(true);
 
     focusedTabbar->setCurrentTabIndex(newTabIdx);
     focusedTabbar->setTabBackgroundColour(newTabIdx, Colours::transparentBlack);
@@ -596,17 +690,16 @@ void PluginEditor::addTab(Canvas* cnv)
                             if (result == 2)
                                 saveProject([&deleteFunc]() mutable { deleteFunc(); });
                             else if (result == 1)
-                                closeTab(cnv);
+                                deleteFunc();
                         });
                 } else {
-                    closeTab(cnv);
+                    deleteFunc();
                 }
             });
         }
     };
 
     cnv->setVisible(true);
-    updateSplitOutline();
 
     pd->savePatchTabPositions();
 }
@@ -665,7 +758,7 @@ void PluginEditor::valueChanged(Value& v)
             // Otherwise don't adjust viewport position
         }
 
-        zoomLabel.setZoomLevel(scale);
+        zoomLabel->setZoomLevel(scale);
     }
     // Update theme
     else if (v.refersToSameSourceAs(theme)) {
@@ -681,31 +774,44 @@ void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
 
 void PluginEditor::updateCommandStatus()
 {
+    pd->titleChanged();
+    
     if (auto* cnv = getCurrentCanvas()) {
         // Update connection style button
         bool allSegmented = true;
         bool allNotSegmented = true;
         bool hasSelection = false;
+        
+        bool locked = static_cast<bool>(cnv->locked.getValue());
 
-        bool isDragging = cnv->didStartDragging && !cnv->isDraggingLasso && statusbar.locked == var(false);
+        bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         for (auto& connection : cnv->getSelectionOfType<Connection>()) {
             allSegmented = allSegmented && connection->isSegmented();
             allNotSegmented = allNotSegmented && !connection->isSegmented();
             hasSelection = true;
         }
 
-        statusbar.connectionStyleButton->setEnabled(!isDragging && hasSelection);
-        statusbar.connectionPathfind->setEnabled(!isDragging && hasSelection);
-        statusbar.connectionStyleButton->setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
-
-        statusbar.lockButton->setEnabled(!isDragging);
-        statusbar.attachToCanvas(cnv);
-
+        statusbar->connectionStyleButton->setEnabled(!isDragging && hasSelection);
+        statusbar->connectionPathfind->setEnabled(!isDragging && hasSelection);
+        statusbar->connectionStyleButton->setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
+        
+        if(static_cast<bool>(cnv->presentationMode.getValue())) {
+            presentButton.setToggleState(true, dontSendNotification);
+        }
+        else if(static_cast<bool>(cnv->locked.getValue())) {
+            runButton.setToggleState(true, dontSendNotification);
+        }
+        else {
+            editButton.setToggleState(true, dontSendNotification);
+        }
+        
+        // TooltipWindow already uses the setVisible flag internally, we can't use that, so we use setAlpha instead
+        tooltipWindow.setAlpha(!locked);
+        tooltipShadow.setOwner(locked ? nullptr : &tooltipWindow);
+        
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr)
             return;
-
-        bool locked = static_cast<bool>(cnv->locked.getValue());
 
         // First on pd's thread, get undo status
         pd->enqueueFunction(
@@ -730,19 +836,24 @@ void PluginEditor::updateCommandStatus()
                     });
             });
 
-        statusbar.lockButton->setEnabled(true);
-        statusbar.presentationButton->setEnabled(true);
-        statusbar.gridButton->setEnabled(true);
+        editButton.setEnabled(true);
+        runButton.setEnabled(true);
+        presentButton.setEnabled(true);
+        
+        statusbar->gridButton->setEnabled(true);
+        statusbar->centreButton->setEnabled(true);
 
         addObjectMenuButton.setEnabled(!locked);
     } else {
-        statusbar.connectionStyleButton->setEnabled(false);
-        statusbar.connectionPathfind->setEnabled(false);
-        statusbar.lockButton->setEnabled(false);
-
-        statusbar.lockButton->setEnabled(false);
-        statusbar.presentationButton->setEnabled(false);
-        statusbar.gridButton->setEnabled(false);
+        
+        editButton.setEnabled(false);
+        runButton.setEnabled(false);
+        presentButton.setEnabled(false);
+        
+        statusbar->connectionStyleButton->setEnabled(false);
+        statusbar->connectionPathfind->setEnabled(false);
+        statusbar->gridButton->setEnabled(false);
+        statusbar->centreButton->setEnabled(false);
 
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
@@ -783,7 +894,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
-        isDragging = cnv->didStartDragging && !cnv->isDraggingLasso && statusbar.locked == var(false);
+        isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         hasCanvas = true;
 
         locked = static_cast<bool>(cnv->locked.getValue());
@@ -847,7 +958,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     }
     case CommandIDs::ConnectionStyle: {
         result.setInfo("Connection style", "Set connection style", "Edit", 0);
-        result.setActive(hasCanvas && !isDragging && statusbar.connectionStyleButton->isEnabled());
+        result.setActive(hasCanvas && !isDragging && statusbar->connectionStyleButton->isEnabled());
         break;
     }
     case CommandIDs::ZoomIn: {
@@ -988,23 +1099,53 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
     static auto const cmdMod = ModifierKeys::commandModifier;
     static auto const shiftMod = ModifierKeys::shiftModifier;
-    static const std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts = {
-        { NewObject, { 49, cmdMod } },
-        { NewComment, { 53, cmdMod } },
-        { NewBang, { 66, cmdMod | shiftMod } },
-        { NewMessage, { 50, cmdMod } },
-        { NewToggle, { 84, cmdMod | shiftMod } },
-        { NewNumbox, { 78, cmdMod | shiftMod } },
-        { NewVerticalSlider, { 86, cmdMod | shiftMod } },
-        { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
-        { NewVerticalRadio, { 68, cmdMod | shiftMod } },
-        { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
-        { NewFloatAtom, { 51, cmdMod } },
-        { NewListAtom, { 52, cmdMod } },
-        { NewArray, { 65, cmdMod | shiftMod } },
-        { NewGraphOnParent, { 71, cmdMod | shiftMod } },
-        { NewCanvas, { 67, cmdMod | shiftMod } },
-        { NewVUMeterObject, { 85, cmdMod | shiftMod } }
+
+    std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts;
+
+    switch (OSUtils::getKeyboardLayout()) {
+    case OSUtils::KeyboardLayout::QWERTY:
+        defaultShortcuts = {
+            { NewObject, { 49, cmdMod } },
+            { NewComment, { 53, cmdMod } },
+            { NewBang, { 66, cmdMod | shiftMod } },
+            { NewMessage, { 50, cmdMod } },
+            { NewToggle, { 84, cmdMod | shiftMod } },
+            { NewNumbox, { 78, cmdMod | shiftMod } },
+            { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+            { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+            { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+            { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+            { NewFloatAtom, { 51, cmdMod } },
+            { NewListAtom, { 52, cmdMod } },
+            { NewArray, { 65, cmdMod | shiftMod } },
+            { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+            { NewCanvas, { 67, cmdMod | shiftMod } },
+            { NewVUMeterObject, { 85, cmdMod | shiftMod } }
+        };
+        break;
+    case OSUtils::KeyboardLayout::AZERTY:
+        defaultShortcuts = {
+            { NewObject, { 38, cmdMod } },
+            { NewComment, { 40, cmdMod } },
+            { NewBang, { 66, cmdMod | shiftMod } },
+            { NewMessage, { 233, cmdMod } },
+            { NewToggle, { 84, cmdMod | shiftMod } },
+            { NewNumbox, { 73, cmdMod | shiftMod } },
+            { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+            { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+            { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+            { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+            { NewFloatAtom, { 34, cmdMod } },
+            { NewListAtom, { 39, cmdMod } },
+            { NewArray, { 65, cmdMod | shiftMod } },
+            { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+            { NewCanvas, { 67, cmdMod | shiftMod } },
+            { NewVUMeterObject, { 85, cmdMod | shiftMod } }
+        };
+        break;
+
+    default:
+        break;
     };
 
     if (commandID >= ObjectIDs::NewObject) {
@@ -1027,7 +1168,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
 bool PluginEditor::perform(InvocationInfo const& info)
 {
-    switch(info.commandID) {
+    switch (info.commandID) {
     case CommandIDs::NewProject: {
         newProject();
         return true;
@@ -1037,11 +1178,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ShowBrowser: {
-        sidebar.showPanel(sidebar.isShowingBrowser() ? 0 : 1);
+        sidebar->showPanel(sidebar->isShowingBrowser() ? 0 : 1);
         return true;
     }
     case CommandIDs::Search: {
-        sidebar.showPanel(3);
+        sidebar->showPanel(3);
         return true;
     }
     }
@@ -1067,7 +1208,29 @@ bool PluginEditor::perform(InvocationInfo const& info)
         if (splitView.getActiveTabbar()->getNumTabs() == 0)
             return true;
 
-        closeTab(getCurrentCanvas());
+        auto* cnv = getCurrentCanvas();
+
+        auto deleteFunc = [this, cnv]() {
+            closeTab(cnv);
+        };
+
+        if (cnv) {
+            MessageManager::callAsync([this, cnv, deleteFunc]() mutable {
+                if (cnv->patch.isDirty()) {
+                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
+                        [this, cnv, deleteFunc](int result) mutable {
+                            if (!cnv)
+                                return;
+                            if (result == 2)
+                                saveProject([&deleteFunc]() mutable { deleteFunc(); });
+                            else if (result == 1)
+                                deleteFunc();
+                        });
+                } else {
+                    deleteFunc();
+                }
+            });
+        }
 
         return true;
     }
@@ -1103,21 +1266,23 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::SelectAll: {
         for (auto* object : cnv->objects) {
-            cnv->setSelected(object, true);
+            cnv->setSelected(object, true, false);
         }
         for (auto* con : cnv->connections) {
-            cnv->setSelected(con, true);
+            cnv->setSelected(con, true, false);
         }
+        updateCommandStatus();
         return true;
     }
     case CommandIDs::Lock: {
-        statusbar.lockButton->triggerClick();
+        cnv->locked = !static_cast<bool>(cnv->locked.getValue());
+        cnv->presentationMode = false;
         return true;
     }
     case CommandIDs::ConnectionPathfind: {
         cnv->patch.startUndoSequence("ConnectionPathFind");
 
-        statusbar.connectionStyleButton->setToggleState(true, sendNotification);
+        statusbar->connectionStyleButton->setToggleState(true, sendNotification);
         for (auto* con : cnv->connections) {
             if (cnv->isSelected(con)) {
                 con->findPath();
@@ -1191,7 +1356,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ClearConsole: {
-        sidebar.clearConsole();
+        sidebar->clearConsole();
         return true;
     }
     case CommandIDs::ShowSettings: {
@@ -1269,31 +1434,13 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
 bool PluginEditor::wantsRoundedCorners()
 {
-#if PLUGDATA_STANDALONE
-    if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+    if (!ProjectInfo::isStandalone)
+        return false;
+
+    if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
         return !window->isUsingNativeTitleBar() && Desktop::canUseSemiTransparentWindows();
     } else {
         return true;
-    }
-#else
-    return false;
-#endif
-}
-
-void PluginEditor::updateSplitOutline()
-{
-    auto* tabbar = splitView.getActiveTabbar();
-    if (splitView.isSplitEnabled() && tabbar) {
-        if (auto* cnv = tabbar->getCurrentCanvas()) {
-            bool isOnLeft = tabbar == splitView.getLeftTabbar();
-
-            auto bounds = getLocalArea(tabbar, tabbar->getLocalBounds()).withTrimmedTop(tabbar->getTabBarDepth()).toFloat().withTrimmedRight(isOnLeft ? 0.0f : 0.5f).withTrimmedLeft(isOnLeft ? 0.5f : 0.0f).withTrimmedBottom(-0.5f);
-            selectedSplitRect.setRectangle(Parallelogram<float>(bounds));
-            selectedSplitRect.toFront(false);
-            selectedSplitRect.setVisible(true);
-        }
-    } else {
-        selectedSplitRect.setVisible(false);
     }
 }
 

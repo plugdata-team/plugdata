@@ -43,15 +43,16 @@ public:
     {
         iemHelper.initialiseParameters();
     }
-
-    void applyBounds() override
+    
+    Rectangle<int> getSelectableBounds() override
     {
-        iemHelper.applyBounds(object->getObjectBounds());
+        auto* cnvObj = reinterpret_cast<t_my_canvas*>(iemHelper.iemgui);
+        return {cnvObj->x_gui.x_obj.te_xpix, cnvObj->x_gui.x_obj.te_ypix, cnvObj->x_gui.x_w, cnvObj->x_gui.x_h};
     }
 
     bool canReceiveMouseEvent(int x, int y) override
     {
-        return !locked;
+        return !locked && Rectangle<int>(static_cast<t_iemgui*>(ptr)->x_w, static_cast<t_iemgui*>(ptr)->x_h).contains(x - Object::margin, y - Object::margin);
     }
 
     void lock(bool isLocked) override
@@ -59,7 +60,17 @@ public:
         locked = isLocked;
     }
 
-    void updateBounds() override
+    void setPdBounds(Rectangle<int> b) override
+    {
+        auto* cnvObj = reinterpret_cast<t_my_canvas*>(iemHelper.iemgui);
+
+        cnvObj->x_gui.x_obj.te_xpix = b.getX();
+        cnvObj->x_gui.x_obj.te_ypix = b.getY();
+        cnvObj->x_vis_w = b.getWidth() - 1;
+        cnvObj->x_vis_h = b.getHeight() - 1;
+    }
+    
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -69,22 +80,22 @@ public:
         auto bounds = Rectangle<int>(x, y, static_cast<t_my_canvas*>(ptr)->x_vis_w + 1, static_cast<t_my_canvas*>(ptr)->x_vis_h + 1);
 
         pd->unlockAudioThread();
-
-        object->setObjectBounds(bounds);
+        return bounds;
     }
-
-    void resized() override
-    {
-        static_cast<t_my_canvas*>(ptr)->x_vis_w = getWidth() - 1;
-        static_cast<t_my_canvas*>(ptr)->x_vis_h = getHeight() - 1;
-    }
+    
 
     void paint(Graphics& g) override
     {
         auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
-
+        
         g.setColour(bgcolour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
+        
+        if(!locked) {
+            auto draggableRect = Rectangle<float>(static_cast<t_iemgui*>(ptr)->x_w, static_cast<t_iemgui*>(ptr)->x_h);
+            g.setColour(cnv->isSelected(object) ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : object->findColour(PlugDataColour::objectOutlineColourId));
+            g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
+        }
     }
 
     void valueChanged(Value& v) override

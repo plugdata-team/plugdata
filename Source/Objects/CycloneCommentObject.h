@@ -75,9 +75,8 @@ public:
         textColour = Colour(comment->x_red, comment->x_green, comment->x_blue);
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
     }
 
@@ -85,11 +84,12 @@ public:
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
 
-        int width = getBestTextWidth(getText());
-        int height = comment->x_fontsize + 6;
+        int width = getBestTextWidth(getText()) * 8;
+        int height = comment->x_fontsize + 18;
 
         width = std::max(width, 25);
 
+        // TODO: don't do this!
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }
@@ -100,7 +100,7 @@ public:
         auto* comment = static_cast<t_fake_comment*>(ptr);
 
         auto textArea = border.subtractedFrom(getLocalBounds());
-        PlugDataLook::drawFittedText(g, getText(), textArea, textColour, comment->x_fontsize);
+        Fonts::drawFittedText(g, getText(), textArea, textColour, comment->x_fontsize);
 
         auto selected = cnv->isSelected(object);
         if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
@@ -125,17 +125,17 @@ public:
         return false;
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
+        int width = getBestTextWidth(getText()) * 8;
+
         pd->lockAudioThread();
         auto* comment = static_cast<t_fake_comment*>(ptr);
-        int fontsize = comment->x_fontsize;
+        int height = comment->x_fontsize + 18;
+        auto bounds = Rectangle<int>(comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height);
         pd->unlockAudioThread();
 
-        int width = getBestTextWidth(getText());
-        int height = fontsize + 6;
-
-        object->setObjectBounds({ comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height });
+        return bounds;
     }
 
     String getText() override

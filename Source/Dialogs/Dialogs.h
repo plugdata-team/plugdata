@@ -6,8 +6,7 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-#include "LookAndFeel.h"
+#include "Constants.h"
 
 class PluginEditor;
 class Canvas;
@@ -32,13 +31,16 @@ public:
         grabKeyboardFocus();
 
         if (showCloseButton) {
-            closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
+            closeButton.reset(getLookAndFeel().createDocumentWindowButton(5));
             addAndMakeVisible(closeButton.get());
             closeButton->onClick = [this]() {
                 closeDialog();
             };
             closeButton->setAlwaysOnTop(true);
         }
+
+        // Some parts of the code check for an active dialog to decide if it needs to paint an outline
+        getTopLevelComponent()->repaint();
     }
 
     void setViewedComponent(Component* child)
@@ -59,20 +61,20 @@ public:
     {
         g.setColour(Colours::black.withAlpha(0.5f));
 
-        auto bounds = getLocalBounds().reduced(backgroundMargin);
+        auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
 
         if (wantsRoundedCorners()) {
-            g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::windowCornerRadius);
+            g.fillRoundedRectangle(bounds.toFloat(), Corners::windowCornerRadius);
         } else {
             g.fillRect(bounds);
         }
 
         if (viewedComponent) {
             g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
-            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), PlugDataLook::windowCornerRadius);
+            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
+            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
         }
     }
 

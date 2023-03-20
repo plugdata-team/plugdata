@@ -6,16 +6,13 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
-extern "C" {
 #include <m_pd.h>
-}
 
-#include <concurrentqueue.h>
-#include "Iolet.h"
-#include "Pd/PdInstance.h"
+#include <concurrentqueue.h> // Move to impl
+#include "Iolet.h"           // Move to impl
+#include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
+#include "Utility/ModifierKeyListener.h"
 
 using PathPlan = std::vector<Point<float>>;
 
@@ -26,7 +23,8 @@ class Connection : public Component
     , public ComponentListener
     , public Value::Listener
     , public pd::MessageListener
-    , public SettableTooltipClient {
+    , public SettableTooltipClient
+    , public ModifierKeyListener {
 public:
     int inIdx;
     int outIdx;
@@ -40,7 +38,9 @@ public:
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
     ~Connection() override;
 
-    static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = { 0, 0 }, bool isHovering = false);
+    void altKeyChanged(bool isHeld) override;
+
+    static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool showDirection, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = { 0, 0 }, bool isHovering = false);
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
@@ -104,6 +104,8 @@ private:
     Value locked;
     Value presentationMode;
 
+    bool showDirection = false;
+
     Canvas* cnv;
 
     Point<float> origin, offset;
@@ -127,6 +129,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
+// TODO: hide behind Connection interface to reduce includes!
 class ConnectionBeingCreated : public Component {
     SafePointer<Iolet> iolet;
     Component* cnv;
@@ -190,7 +193,7 @@ public:
             jassertfalse; // shouldn't happen
             return;
         }
-        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, true);
+        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, false, true);
     }
 
     Iolet* getIolet()

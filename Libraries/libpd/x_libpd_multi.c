@@ -507,6 +507,7 @@ void setup_canvas0x2ebounds();
 void setup_canvas0x2eedit();
 void setup_canvas0x2egop();
 void setup_canvas0x2emouse();
+void setup_canvas0x2ename();
 void setup_canvas0x2epos();
 void setup_canvas0x2esetname();
 void setup_canvas0x2evis();
@@ -589,6 +590,7 @@ void impulse_tilde_setup();
 void impulse2_tilde_setup();
 void initmess_setup();
 void keyboard_setup();
+void keycode_setup();
 void lag_tilde_setup();
 void lag2_tilde_setup();
 void lastvalue_tilde_setup();
@@ -637,9 +639,7 @@ void pimp_tilde_setup();
 void pimpmul_tilde_setup();
 void pink_tilde_setup();
 void pluck_tilde_setup();
-#ifndef _MSC_VER
 void plaits_tilde_setup();
-#endif
 void pmosc_tilde_setup();
 void power_tilde_setup();
 void properties_setup();
@@ -791,6 +791,7 @@ void libpd_init_else(void)
     setup_canvas0x2eedit();
     setup_canvas0x2egop();
     setup_canvas0x2emouse();
+    setup_canvas0x2ename();
     setup_canvas0x2epos();
     setup_canvas0x2esetname();
     setup_canvas0x2evis();
@@ -874,6 +875,7 @@ void libpd_init_else(void)
     impulse2_tilde_setup();
     initmess_setup();
     keyboard_setup();
+    keycode_setup();
     lag_tilde_setup();
     lag2_tilde_setup();
     lastvalue_tilde_setup();
@@ -921,9 +923,7 @@ void libpd_init_else(void)
     pimp_tilde_setup();
     pimpmul_tilde_setup();
     pink_tilde_setup();
-#ifndef _MSC_VER
     plaits_tilde_setup();
-#endif
     pluck_tilde_setup();
     pmosc_tilde_setup();
     power_tilde_setup();

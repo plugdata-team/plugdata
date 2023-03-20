@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 extern "C" {
 #include <z_libpd.h>
 #include <s_inter.h>
@@ -15,8 +13,9 @@ extern "C" {
 
 #include <concurrentqueue.h>
 
-#include "PdPatch.h"
-#include "../Utility/StringUtils.h"
+#include "Utility/StringUtils.h"
+
+class ObjectImplementationManager;
 
 namespace pd {
 
@@ -116,12 +115,8 @@ private:
     String symbol;
 };
 
-struct MessageListener {
-    virtual void receiveMessage(String const& name, int argc, t_atom* argv) {};
-
-    JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener);
-};
-
+class MessageListener;
+class Patch;
 class Instance {
     struct Message {
         String selector;
@@ -155,7 +150,7 @@ public:
     Instance(String const& symbol);
     Instance(Instance const& other) = delete;
     virtual ~Instance();
-
+    
     void loadLibs(String& pdlua_version);
     void prepareDSP(int const nins, int const nouts, double const samplerate, int const blockSize);
     void startDSP();
@@ -204,6 +199,7 @@ public:
     void sendSymbol(char const* receiver, char const* symbol) const;
     void sendList(char const* receiver, std::vector<pd::Atom> const& list) const;
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
+    void sendMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
 
     virtual void receivePrint(String const& message) {};
 
@@ -237,11 +233,18 @@ public:
 
     void enqueueMessages(String const& dest, String const& msg, std::vector<pd::Atom>&& list);
 
-    void enqueueDirectMessages(void* object, std::vector<pd::Atom> const& list);
+    void enqueueDirectMessages(void* object, String const& msg, std::vector<Atom>&& list);
+    void enqueueDirectMessages(void* object, std::vector<pd::Atom> const&& list);
     void enqueueDirectMessages(void* object, String const& msg);
     void enqueueDirectMessages(void* object, float const msg);
+    
+    void updateObjectImplementations();
 
     virtual void performParameterChange(int type, String name, float value) {};
+
+    // JYG added this
+    virtual void fillDataBuffer(std::vector<pd::Atom> const& list) {};
+    virtual void parseDataBuffer(XmlElement const& xml) {};
 
     void logMessage(String const& message);
     void logError(String const& message);
@@ -269,6 +272,7 @@ public:
 
     void setThis() const;
     t_symbol* generateSymbol(String const& symbol) const;
+    t_symbol* generateSymbol(char const* symbol) const;
 
     void waitForStateUpdate();
 
@@ -279,6 +283,7 @@ public:
     void setCallbackLock(CriticalSection const* lock);
 
     bool loadLibrary(String library);
+    
 
     void* m_instance = nullptr;
     void* m_patch = nullptr;
@@ -288,6 +293,9 @@ public:
     void* m_parameter_change_receiver = nullptr;
     void* m_midi_receiver = nullptr;
     void* m_print_receiver = nullptr;
+
+    // JYG added this
+    void* m_databuffer_receiver = nullptr;
 
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
@@ -299,13 +307,18 @@ public:
     CriticalSection const* audioLock;
 
 private:
+    
     std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;
+    
+    std::unique_ptr<ObjectImplementationManager> objectImplementations;
+    
+    CriticalSection messageListenerLock;
 
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-
+    
     std::atomic<int> numLocksHeld = 0;
 
     WaitableEvent updateWait;
@@ -421,5 +434,6 @@ protected:
     };
 
     ConsoleHandler consoleHandler;
+
 };
 } // namespace pd

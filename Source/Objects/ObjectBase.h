@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
-#include "PluginProcessor.h"
-#include "Sidebar/Sidebar.h"
 #include "Utility/HashUtils.h"
+#include "Pd/Instance.h"
+#include "Pd/MessageListener.h"
+#include "Constants.h"
 
+class PluginProcessor;
 class Canvas;
 
 namespace pd {
@@ -70,13 +70,16 @@ public:
     virtual bool hideInlets() { return false; }
     virtual bool hideOutlets() { return false; }
 
-    virtual bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) { return false; };
-
     // Gets position from pd and applies it to Object
-    virtual void updateBounds() = 0;
+    virtual Rectangle<int> getPdBounds() = 0;
+        
+    // Gets position from pd and applies it to Object
+    virtual Rectangle<int> getSelectableBounds() {
+        return getPdBounds();
+    }
 
     // Push current object bounds into pd
-    virtual void applyBounds() = 0;
+    virtual void setPdBounds(Rectangle<int> newBounds) = 0;
 
     // Called whenever a drawable changes
     virtual void updateDrawables() {};
@@ -115,6 +118,9 @@ public:
     void closeOpenedSubpatchers();
     void openSubpatch();
 
+    // Attempt to send "click" message to object. Returns false if the object has no such method
+    bool click();
+
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
 
     static ObjectBase* createGui(void* ptr, Object* parent);
@@ -138,6 +144,8 @@ public:
     // Global flag to find out if any GUI object is currently being interacted with
     static bool isBeingEdited();
 
+    ComponentBoundsConstrainer* getConstrainer();
+        
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var value);
@@ -151,6 +159,15 @@ protected:
 
     // Send a float value to Pd
     void sendFloatValue(float value);
+
+    // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
+    template<typename T>
+    void colourToHexArray(Colour colour, T* hex)
+    {
+        hex[0] = colour.getRed();
+        hex[1] = colour.getGreen();
+        hex[2] = colour.getBlue();
+    }
 
     // Min and max limit a juce::Value
     template<typename T>
@@ -176,9 +193,15 @@ public:
     PluginProcessor* pd;
 
 protected:
+        
+    std::function<void()> onConstrainerCreate = [](){};
+        
+    virtual ComponentBoundsConstrainer* createConstrainer();
+        
     std::unique_ptr<ObjectLabel> label;
     static inline constexpr int maxSize = 1000000;
     static inline std::atomic<bool> edited = false;
+    ComponentBoundsConstrainer* constrainer;
 
     friend class IEMHelper;
     friend class AtomHelper;

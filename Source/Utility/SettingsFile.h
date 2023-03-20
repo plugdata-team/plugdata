@@ -5,7 +5,7 @@
  */
 
 #pragma once
-#include "Pd/PdLibrary.h"
+#include "Pd/Library.h"
 
 struct SettingsFileListener {
     SettingsFileListener();
@@ -57,7 +57,9 @@ public:
     template<typename T>
     T getProperty(String name)
     {
-        jassert(isInitialised);
+        if (!isInitialised) {
+            initialise();
+        }
 
         if constexpr (std::is_same<T, String>::value) {
             return settingsTree.getProperty(name).toString();
@@ -72,6 +74,7 @@ public:
 
     ValueTree getValueTree();
 
+    void setGlobalScale(float newScale);
 private:
     bool isInitialised = false;
 
@@ -97,7 +100,23 @@ private:
         { "default_font", var("Inter") },
         { "native_window", var(false) },
         { "reload_last_state", var(false) },
-        { "autoconnect", var(true) }
+        { "autoconnect", var(true) },
+        { "infinite_canvas", var(true) },
+        { "origin", var(0) },
+        { "border",  var(0) },
+        { "index", var(0) },
+        { "coordinate", var(0) },
+        { "activation_state", var(0) },
+        { "order", var(0) },
+        { "direction",  var(0) },
+        { "global_scale", var(1.0f) },
+        { "macos_buttons",
+#if JUCE_MAC
+            var(true)
+#else
+            var(false)
+#endif
+        },
     };
 
     StringArray childTrees {

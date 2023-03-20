@@ -3,11 +3,14 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <juce_gui_basics/juce_gui_basics.h>
 
-#include "PdPatch.h"
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
 
-#include "PdInstance.h"
-#include "../Objects/ObjectBase.h"
+#include "Patch.h"
+#include "Instance.h"
+#include "Objects/ObjectBase.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -74,6 +77,11 @@ Rectangle<int> Patch::getBounds() const
             cnv->gl_pixheight = std::max(15, cnv->gl_pixheight);
 
             return { cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth, cnv->gl_pixheight };
+        } else {
+            auto width = cnv->gl_screenx2 - cnv->gl_screenx1;
+            auto height = cnv->gl_screeny2 - cnv->gl_screeny1;
+
+            return { cnv->gl_screenx1, cnv->gl_screeny1, width, height };
         }
     }
     return { 0, 0, 0, 0 };
@@ -81,11 +89,15 @@ Rectangle<int> Patch::getBounds() const
 
 bool Patch::isDirty() const
 {
+    if(!ptr) return false;
+    
     return getPointer()->gl_dirty;
 }
 
 void Patch::savePatch(File const& location)
 {
+    if(!ptr) return;
+    
     String fullPathname = location.getParentDirectory().getFullPathName();
     String filename = location.getFileName();
 
@@ -106,8 +118,32 @@ void Patch::savePatch(File const& location)
     currentFile = location;
 }
 
+t_glist* Patch::getRoot()
+{
+    if(!ptr) return nullptr;
+    
+    return canvas_getrootfor(getPointer());
+}
+    
+bool Patch::isSubpatch()
+{
+    if(!ptr) return false;
+    
+    return getRoot() != ptr && !canvas_isabstraction(getPointer());
+}
+
+bool Patch::isAbstraction()
+{
+    if(!ptr) return false;
+    
+    return canvas_isabstraction(getPointer());
+}
+
+
 void Patch::savePatch()
 {
+    if(!ptr) return;
+    
     String fullPathname = currentFile.getParentDirectory().getFullPathName();
     String filename = currentFile.getFileName();
 
@@ -127,10 +163,9 @@ void Patch::savePatch()
 
 void Patch::setCurrent()
 {
-    instance->setThis();
+    if (!ptr) return;
 
-    if (!getPointer())
-        return;
+    instance->setThis();
 
     instance->lockAudioThread();
 
@@ -148,27 +183,10 @@ void Patch::setCurrent()
     instance->unlockAudioThread();
 }
 
-int Patch::getIndex(void* obj)
-{
-    setCurrent();
-
-    int i = 0;
-    auto* cnv = getPointer();
-
-    for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-        if (obj == y) {
-            return i;
-        }
-
-        i++;
-    }
-
-    return -1;
-}
-
 Connections Patch::getConnections() const
 {
-
+    if (!ptr) return {};
+    
     Connections connections;
 
     t_outconnect* oc;
@@ -179,7 +197,7 @@ Connections Patch::getConnections() const
 
     // TODO: fix data race
     while ((oc = linetraverser_next(&t))) {
-        connections.push_back({ oc, t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2 });
+        connections.push_back({ oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob });
     }
 
     return connections;
@@ -187,28 +205,28 @@ Connections Patch::getConnections() const
 
 std::vector<void*> Patch::getObjects()
 {
-    if (ptr) {
-        setCurrent();
+    if (!ptr) return {};
+    
+    setCurrent();
 
-        instance->lockAudioThread();
+    instance->lockAudioThread();
 
-        std::vector<void*> objects;
-        t_canvas const* cnv = getPointer();
+    std::vector<void*> objects;
+    t_canvas const* cnv = getPointer();
 
-        for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-            objects.push_back(static_cast<void*>(y));
-        }
-
-        instance->unlockAudioThread();
-
-        return objects;
+    for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
+        objects.push_back(static_cast<void*>(y));
     }
 
-    return {};
+    instance->unlockAudioThread();
+
+    return objects;
 }
 
 void* Patch::createGraphOnParent(int x, int y)
 {
+    if (!ptr) return nullptr;
+    
     t_pd* pdobject = nullptr;
     std::atomic<bool> done = false;
 
@@ -230,6 +248,8 @@ void* Patch::createGraphOnParent(int x, int y)
 
 void* Patch::createGraph(String const& name, int size, int x, int y)
 {
+    if (!ptr) return nullptr;
+    
     t_pd* pdobject = nullptr;
     std::atomic<bool> done = false;
 
@@ -421,6 +441,8 @@ void* Patch::renameObject(void* obj, String const& name)
 
 void Patch::copy()
 {
+    if (!ptr) return;
+    
     instance->enqueueFunction(
         [this]() {
             int size;
@@ -432,6 +454,8 @@ void Patch::copy()
 
 void Patch::paste()
 {
+    if (!ptr) return;
+    
     auto text = SystemClipboard::getTextFromClipboard();
 
     instance->enqueueFunction([this, text]() mutable { libpd_paste(getPointer(), text.toRawUTF8()); });
@@ -439,6 +463,8 @@ void Patch::paste()
 
 void Patch::duplicate()
 {
+    if (!ptr) return;
+    
     instance->enqueueFunction(
         [this]() {
             setCurrent();
@@ -448,6 +474,8 @@ void Patch::duplicate()
 
 void Patch::selectObject(void* obj)
 {
+    if (!ptr) return;
+    
     instance->enqueueFunction(
         [this, obj]() {
             auto* checked = &checkObject(obj)->te_g;
@@ -459,10 +487,12 @@ void Patch::selectObject(void* obj)
 
 void Patch::deselectAll()
 {
+    if (!ptr) return;
+    
     instance->enqueueFunction(
         [this]() {
             glist_noselect(getPointer());
-            EDITOR->canvas_undo_already_set_move = 0;
+            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
         });
 }
 
@@ -483,6 +513,8 @@ void Patch::removeObject(void* obj)
 
 bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 {
+    if (!ptr) return false;
+    
     bool hasConnection = false;
     std::atomic<bool> hasReturned = false;
 
@@ -501,6 +533,8 @@ bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 
 bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 {
+    if (!ptr) return false;
+    
     bool canConnect = false;
 
     instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable {
@@ -516,6 +550,8 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 
 void Patch::createConnection(void* src, int nout, void* sink, int nin)
 {
+    if (!ptr) return;
+    
     instance->enqueueFunction(
         [this, src, nout, sink, nin]() mutable {
             if (objectWasDeleted(src) || objectWasDeleted(sink))
@@ -580,7 +616,8 @@ void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol*
 
 void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
 {
-
+    if (!ptr) return nullptr;
+    
     void* outconnect = nullptr;
     std::atomic<bool> hasReturned = false;
 
@@ -605,7 +642,7 @@ void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol
 
 void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
 {
-    // if(!obj || !ptr) return;
+    if(!ptr) return;
 
     instance->enqueueFunction(
         [this, objects, dx, dy]() mutable {
@@ -623,13 +660,16 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
             libpd_moveselection(getPointer(), dx, dy);
 
             glist_noselect(getPointer());
-            EDITOR->canvas_undo_already_set_move = 0;
+
+            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
             setCurrent();
         });
 }
 
 void Patch::finishRemove()
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction(
         [this]() mutable {
             setCurrent();
@@ -639,6 +679,8 @@ void Patch::finishRemove()
 
 void Patch::removeSelection()
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction(
         [this]() mutable {
             setCurrent();
@@ -649,6 +691,8 @@ void Patch::removeSelection()
 
 void Patch::startUndoSequence(String name)
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction([this, name]() {
         canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, instance->generateSymbol(name)->s_name, 0);
     });
@@ -656,6 +700,8 @@ void Patch::startUndoSequence(String name)
 
 void Patch::endUndoSequence(String name)
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction([this, name]() {
         canvas_undo_add(getPointer(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, 0);
     });
@@ -663,11 +709,13 @@ void Patch::endUndoSequence(String name)
 
 void Patch::undo()
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction(
         [this]() {
             setCurrent();
             glist_noselect(getPointer());
-            EDITOR->canvas_undo_already_set_move = 0;
+            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
             libpd_undo(getPointer());
 
@@ -677,11 +725,13 @@ void Patch::undo()
 
 void Patch::redo()
 {
+    if(!ptr) return;
+    
     instance->enqueueFunction(
         [this]() {
             setCurrent();
             glist_noselect(getPointer());
-            EDITOR->canvas_undo_already_set_move = 0;
+            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
             libpd_redo(getPointer());
 
@@ -696,14 +746,15 @@ t_object* Patch::checkObject(void* obj)
 
 String Patch::getTitle() const
 {
+    if(!ptr) return "";
+    
     String name = String::fromUTF8(getPointer()->gl_name->s_name);
     return name.isEmpty() ? "Untitled Patcher" : name;
 }
 
 void Patch::setTitle(String const& title)
 {
-    if (!getPointer())
-        return;
+    if(!ptr) return;
 
     setCurrent();
 
@@ -733,6 +784,7 @@ String Patch::getCanvasContent()
 {
     if (!ptr)
         return {};
+    
     char* buf;
     int bufsize;
     libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
@@ -742,7 +794,7 @@ String Patch::getCanvasContent()
 }
 
 void Patch::reloadPatch(File changedPatch, t_glist* except)
-{
+{    
     auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().replace("\\", "/").toRawUTF8());
     auto* file = gensym(changedPatch.getFileName().toRawUTF8());
     canvas_reload(file, dir, except);
@@ -750,6 +802,8 @@ void Patch::reloadPatch(File changedPatch, t_glist* except)
 
 bool Patch::objectWasDeleted(void* ptr)
 {
+    if(!ptr) return true;
+    
     t_canvas const* cnv = getPointer();
 
     for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
@@ -761,7 +815,8 @@ bool Patch::objectWasDeleted(void* ptr)
 }
 bool Patch::connectionWasDeleted(void* ptr)
 {
-
+    if(!ptr) return true;
+    
     t_outconnect* oc;
     t_linetraverser t;
 

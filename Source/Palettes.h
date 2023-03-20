@@ -8,7 +8,8 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Iolet.h"
-#include "Pd/PdInstance.h"
+#include "Object.h"
+#include "Pd/Instance.h"
 
 class PluginEditor;
 class PaletteView : public Component, public Value::Listener

@@ -41,13 +41,17 @@ public:
         // Change from subpatch to graph
         if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
             cnv->setSelected(object, false);
-            object->cnv->editor->sidebar.hideParameters();
+            object->cnv->editor->sidebar->hideParameters();
             object->setType(objectText, ptr);
         }
     };
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (locked && click()) {
+            return;
+        }
+
         //  If locked and it's a left click
         if (locked && !e.mods.isRightButtonDown() && !object->attachedToMouse) {
             openSubpatch();
@@ -55,20 +59,6 @@ public:
             return;
         } else {
             TextBase::mouseDown(e);
-        }
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
-        case hash("vis"): {
-            if (atoms[0].getFloat() == 1) {
-                openSubpatch();
-            } else {
-                closeOpenedSubpatchers();
-            }
-            break;
-        }
         }
     }
 
@@ -91,6 +81,11 @@ public:
 
     void checkGraphState()
     {
+        if (!ptr)
+            return;
+
+        pd->setThis();
+
         int isGraph = static_cast<bool>(isGraphChild.getValue());
         int hideText = static_cast<bool>(hideNameAndArgs.getValue());
 
@@ -104,7 +99,7 @@ public:
             // Change from subpatch to graph
             if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
                 cnv->setSelected(object, false);
-                object->cnv->editor->sidebar.hideParameters();
+                object->cnv->editor->sidebar->hideParameters();
                 object->setType(getText(), ptr);
                 return;
             }
@@ -151,7 +146,7 @@ public:
                 freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
 
             } else if (!Object::hvccObjects.contains(name)) {
-                instance->logWarning(String("Warning: object \"" + prefix + name + "\" is not supported in Compiled Mode").toRawUTF8());
+                instance->logWarning(String("Warning: object \"" + prefix + name + "\" is not supported in Compiled Mode"));
             }
         }
     }

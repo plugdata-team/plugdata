@@ -11,7 +11,7 @@ class BicoeffGraph : public Component {
 
     float a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
 
-    float filterGain = 0.75f;
+    float filterGain = 0.5f;
 
     float filterWidth, filterCentre;
     float filterX1, filterX2;
@@ -70,9 +70,9 @@ public:
         binbuf_text(ptr->te_binbuf, buftext.toRawUTF8(), buftext.getNumBytesAsUTF8());
     }
 
-    bool canResizefilterWidth()
+    bool canResizefilterAmplitude()
     {
-        return filterType == Highshelf || filterType == Lowshelf || filterType == EQ || filterType == Allpass;
+        return filterType == Highshelf || filterType == Lowshelf || filterType == EQ;
     }
 
     void update()
@@ -160,11 +160,11 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (canResizefilterWidth() && (std::abs(e.mouseDownPosition.x - (lastX1 * getWidth())) < 5 || std::abs(e.mouseDownPosition.x - (lastX2 * getWidth())) < 5)) {
+        if (std::abs(e.mouseDownPosition.x - (lastX1 * getWidth())) < 5 || std::abs(e.mouseDownPosition.x - (lastX2 * getWidth())) < 5) {
             changeBandWidth(e.x, e.y, e.mouseDownPosition.x, e.mouseDownPosition.y);
         } else {
             moveBand(e.x, e.mouseDownPosition.x);
-            moveGain(e.y, e.mouseDownPosition.y);
+            if(canResizefilterAmplitude()) moveGain(e.y, e.mouseDownPosition.y);
         }
 
         update();
@@ -172,12 +172,10 @@ public:
 
     void mouseMove(MouseEvent const& e) override
     {
-        if (canResizefilterWidth()) {
-            if (std::abs(e.x - (filterX1 * getWidth())) < 5 || std::abs(e.x - (filterX2 * getWidth())) < 5) {
-                setMouseCursor(MouseCursor::LeftRightResizeCursor);
-            } else {
-                setMouseCursor(MouseCursor::NormalCursor);
-            }
+        if (std::abs(e.x - (filterX1 * getWidth())) < 5 || std::abs(e.x - (filterX2 * getWidth())) < 5) {
+            setMouseCursor(MouseCursor::LeftRightResizeCursor);
+        } else {
+            setMouseCursor(MouseCursor::NormalCursor);
         }
     }
 
@@ -194,16 +192,12 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         g.setColour(object->findColour(PlugDataColour::outlineColourId));
 
-        if (canResizefilterWidth()) {
-            g.drawVerticalLine(filterX1 * getWidth(), 0, getHeight());
-            g.drawVerticalLine(filterX2 * getWidth(), 0, getHeight());
-        } else {
-            g.drawVerticalLine(filterCentre, 0, getHeight());
-        }
+        g.drawVerticalLine(filterX1 * getWidth(), 0, getHeight());
+        g.drawVerticalLine(filterX2 * getWidth(), 0, getHeight());
 
         g.drawHorizontalLine(getHeight() / 2.0f, 0, getWidth());
 
@@ -216,7 +210,7 @@ public:
         bool selected = object->cnv->isSelected(object) && !object->cnv->isGraph;
 
         g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     std::pair<float, float> calcMagnitudePhase(float f, float a1, float a2, float b0, float b1, float b2)
@@ -237,8 +231,6 @@ public:
 
         float magnitude = numerMag / denomMag;
         float phase = numerArg - denomArg;
-
-        float fHz = f * 44100.0f / (2.0f * M_PI);
 
         // convert magnitude to dB scale
         float logMagnitude = std::clamp<float>(20.0f * std::log(magnitude) / std::log(10.0), -25.f, 25.f);
@@ -539,27 +531,26 @@ public:
         graph.setBounds(getLocalBounds());
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h);
+        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         t_atom size[2];
-        SETFLOAT(size, b.getWidth());
-        SETFLOAT(size + 1, b.getHeight());
+        SETFLOAT(size, b.getWidth() - 1);
+        SETFLOAT(size + 1, b.getHeight() - 1);
         pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("dim"), 2, size);
 
         graph.saveProperties();

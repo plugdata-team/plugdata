@@ -4,6 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "Statusbar.h"
 #include "LookAndFeel.h"
 
@@ -99,7 +103,7 @@ class MidiBlinker : public Component
 public:
     void paint(Graphics& g) override
     {
-        PlugDataLook::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), findColour(ComboBox::textColourId), 11, Justification::centredRight);
+        Fonts::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), findColour(ComboBox::textColourId), 11, Justification::centredRight);
 
         auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
@@ -154,7 +158,7 @@ public:
 
         for (int i = 5; i <= 30; i += 5) {
             auto textBounds = Rectangle<int>(x, b.getY(), spacing, b.getHeight());
-            PlugDataLook::drawStyledText(g, String(i), textBounds, findColour(PlugDataColour::toolbarTextColourId), Monospace, 10, Justification::centredTop);
+            Fonts::drawStyledText(g, String(i), textBounds, findColour(PlugDataColour::toolbarTextColourId), Monospace, 10, Justification::centredTop);
             x += spacing;
         }
     }
@@ -182,16 +186,12 @@ Statusbar::Statusbar(PluginProcessor* processor)
     levelMeter = new LevelMeter();
     midiBlinker = new MidiBlinker();
 
-    pd->statusbarSource.addListener(levelMeter);
-    pd->statusbarSource.addListener(midiBlinker);
-    pd->statusbarSource.addListener(this);
+    pd->statusbarSource->addListener(levelMeter);
+    pd->statusbarSource->addListener(midiBlinker);
+    pd->statusbarSource->addListener(this);
 
     setWantsKeyboardFocus(true);
 
-    commandLocked.referTo(pd->commandLocked);
-
-    locked.addListener(this);
-    commandLocked.addListener(this);
 
     oversampleSelector.setTooltip("Set oversampling");
     oversampleSelector.getProperties().set("FontScale", 0.5f);
@@ -218,27 +218,12 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(oversampleSelector);
 
     powerButton = std::make_unique<TextButton>(Icons::Power);
-    lockButton = std::make_unique<TextButton>(Icons::Lock);
     connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
     connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
-    presentationButton = std::make_unique<TextButton>(Icons::Presentation);
     gridButton = std::make_unique<TextButton>(Icons::Grid);
     protectButton = std::make_unique<TextButton>(Icons::Protection);
-
-    presentationButton->setTooltip("Presentation Mode");
-    presentationButton->setClickingTogglesState(true);
-    presentationButton->getProperties().set("Style", "SmallIcon");
-    presentationButton->getToggleStateValue().referTo(presentationMode);
-
-    presentationButton->onClick = [this]() {
-        // When presenting we are always locked
-        // A bit different from Max's presentation mode
-        if (presentationButton->getToggleState()) {
-            locked = var(true);
-        }
-    };
-
-    addAndMakeVisible(presentationButton.get());
+    centreButton = std::make_unique<TextButton>(Icons::Centre);
+    overlayButton = std::make_unique<TextButton>(Icons::Eye);
 
     powerButton->setTooltip("Enable/disable DSP");
     powerButton->setClickingTogglesState(true);
@@ -290,17 +275,32 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     powerButton->setToggleState(pd_getdspstate(), dontSendNotification);
 
-    lockButton->setTooltip("Edit Mode");
-    lockButton->setClickingTogglesState(true);
-    lockButton->getProperties().set("Style", "SmallIcon");
-    lockButton->getToggleStateValue().referTo(locked);
-    addAndMakeVisible(lockButton.get());
-    lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
-    lockButton->onClick = [this]() {
-        if (static_cast<bool>(presentationMode.getValue())) {
-            presentationMode = false;
+
+    centreButton->setTooltip("Move view to origin");
+    centreButton->getProperties().set("Style", "SmallIcon");
+    centreButton->onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        if (auto* cnv = editor->getCurrentCanvas()) {
+            auto origin = cnv->canvasOrigin + Point<int>(1, 1);
+            float scale = editor->getZoomScaleForCanvas(cnv);
+            cnv->updatingBounds = true;
+            cnv->viewport->setViewPosition(origin * scale);
+            cnv->updatingBounds = false;
         }
     };
+
+    addAndMakeVisible(centreButton.get());
+
+    overlayButton->setTooltip("Overlay display settings");
+    overlayButton->getProperties().set("Style", "SmallIcon");
+
+    overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
+
+    overlayButton->onClick = [this]() {
+        overlayDisplaySettings->show(overlayButton.get()->getScreenBounds());
+    };
+    
+    addAndMakeVisible(overlayButton.get());
 
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
@@ -319,6 +319,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
         // cnv->patch.endUndoSequence("ChangeSegmentedPaths");
     };
+    addAndMakeVisible(connectionStyleButton.get());
 
     addAndMakeVisible(connectionStyleButton.get());
 
@@ -357,18 +358,12 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
 Statusbar::~Statusbar()
 {
-    pd->statusbarSource.removeListener(levelMeter);
-    pd->statusbarSource.removeListener(midiBlinker);
-    pd->statusbarSource.removeListener(this);
+    pd->statusbarSource->removeListener(levelMeter);
+    pd->statusbarSource->removeListener(midiBlinker);
+    pd->statusbarSource->removeListener(this);
 
     delete midiBlinker;
     delete levelMeter;
-}
-
-void Statusbar::attachToCanvas(Canvas* cnv)
-{
-    locked.referTo(cnv->locked);
-    lockButton->getToggleStateValue().referTo(cnv->locked);
 }
 
 void Statusbar::propertyChanged(String name, var value)
@@ -393,24 +388,6 @@ void Statusbar::propertyChanged(String name, var value)
     }
 }
 
-void Statusbar::valueChanged(Value& v)
-{
-    bool lockIcon = locked == var(true) || commandLocked == var(true);
-    lockButton->setButtonText(lockIcon ? Icons::Lock : Icons::Unlock);
-
-    if (v.refersToSameSourceAs(commandLocked)) {
-        auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
-        lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
-    }
-}
-
-void Statusbar::lookAndFeelChanged()
-{
-    // Makes sure it gets updated on theme change
-    auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
-    lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
-}
-
 void Statusbar::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -426,17 +403,16 @@ void Statusbar::resized()
         return inverse ? getWidth() - pos : result;
     };
 
-    lockButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-
-    position(3); // Seperator
-
     connectionStyleButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     connectionPathfind->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     position(3); // Seperator
 
     gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+
+    centreButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+
+    overlayButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     pos = 0; // reset position for elements on the left
 
@@ -462,13 +438,6 @@ void Statusbar::shiftKeyChanged(bool isHeld)
     } else if (SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
         propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
     }
-}
-
-void Statusbar::commandKeyChanged(bool isHeld)
-{
-    auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-
-    commandLocked = isHeld && locked.getValue() == var(false);
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)

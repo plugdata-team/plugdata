@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 class Connection;
 class Object;
 class Canvas;
@@ -36,6 +34,8 @@ public:
 
     void createConnection();
 
+    void setHidden(bool hidden);
+
     void clearConnections();
     Array<Connection*> getConnections();
 
@@ -50,6 +50,9 @@ public:
     Canvas* cnv;
 
 private:
+    bool const insideGraph;
+    bool hideIolet = false;
+
     Value locked;
     Value presentationMode;
 

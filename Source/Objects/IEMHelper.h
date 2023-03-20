@@ -8,7 +8,7 @@
 
 static int srl_is_valid(t_symbol const* s)
 {
-    return (!!s && s != &s_);
+    return (!!s && s != gensym(""));
 }
 
 extern "C" {
@@ -153,11 +153,7 @@ public:
         }
         case hash("vis_size"): {
             if (atoms.size() >= 2) {
-                pd->lockAudioThread();
-                auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
-                pd->unlockAudioThread();
-
-                object->setObjectBounds(bounds);
+                object->updateBounds();
             }
             break;
         }
@@ -225,7 +221,12 @@ public:
 
     void setInit(bool init)
     {
-        iemgui->x_isa.x_loadinit = init;
+        pd->enqueueFunctionAsync([this, init]() {
+            if (cnv->patch.objectWasDeleted(iemgui))
+                return;
+
+            iemgui->x_isa.x_loadinit = init;
+        });
     }
 
     bool getInit()
@@ -233,22 +234,22 @@ public:
         return iemgui->x_isa.x_loadinit;
     }
 
-    void updateBounds()
+    Rectangle<int> getPdBounds()
     {
         pd->lockAudioThread();
         auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds.withTrimmedRight(-1).withTrimmedBottom(-1);
     }
 
-    void applyBounds(Rectangle<int> const b)
+    void setPdBounds(Rectangle<int> const b)
     {
         iemgui->x_obj.te_xpix = b.getX();
         iemgui->x_obj.te_ypix = b.getY();
 
-        iemgui->x_w = b.getWidth();
-        iemgui->x_h = b.getHeight();
+        iemgui->x_w = b.getWidth() - 1;
+        iemgui->x_h = b.getHeight() - 1;
     }
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
@@ -287,7 +288,7 @@ public:
             int fontHeight = getFontHeight();
             int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
 
-            int const posx = objectBounds.getX() + iemgui->x_ldx;
+            int const posx = objectBounds.getX() + iemgui->x_ldx + 4;
             int const posy = objectBounds.getY() + iemgui->x_ldy;
 
             return { posx, posy, labelLength, fontHeight };
@@ -298,6 +299,8 @@ public:
 
     String getSendSymbol()
     {
+        pd->setThis();
+
         t_symbol* srlsym[3];
         iemgui_all_sym2dollararg(iemgui, srlsym);
 
@@ -310,6 +313,8 @@ public:
 
     String getReceiveSymbol()
     {
+        pd->setThis();
+
         t_symbol* srlsym[3];
         iemgui_all_sym2dollararg(iemgui, srlsym);
 
@@ -322,31 +327,23 @@ public:
 
     bool hasSendSymbol()
     {
-        if (!iemgui->x_snd_unexpanded)
-            return false;
-
-        auto sym = getSendSymbol();
-        return sym.isNotEmpty() && sym != "empty";
+        return iemgui->x_fsf.x_snd_able;
     }
 
     bool hasReceiveSymbol()
     {
-        if (!iemgui->x_rcv_unexpanded)
-            return false;
-
-        auto sym = getReceiveSymbol();
-        return sym.isNotEmpty() && sym != "empty";
+        return iemgui->x_fsf.x_rcv_able;
     }
 
     void setSendSymbol(String const& symbol) const
     {
-        auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
+        auto* sym = symbol.isEmpty() ? pd->generateSymbol("empty") : pd->generateSymbol(symbol);
         iemgui_send(iemgui, iemgui, sym);
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
-        auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
+        auto* sym = symbol.isEmpty() ? pd->generateSymbol("empty") : pd->generateSymbol(symbol);
         iemgui_receive(iemgui, iemgui, sym);
     }
 

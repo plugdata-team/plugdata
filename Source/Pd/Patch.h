@@ -5,13 +5,8 @@
  */
 #pragma once
 
-#include <JuceHeader.h>
-
-#include <array>
-#include <vector>
-
 extern "C" {
-#include "x_libpd_mod_utils.h"
+#include "x_libpd_mod_utils.h" //  TODO: we only need t_object
 }
 
 namespace pd {
@@ -52,7 +47,12 @@ public:
 
     void selectObject(void*);
     void deselectAll();
+    
+    bool isSubpatch();
+    bool isAbstraction();
 
+    t_glist* getRoot();
+    
     void copy();
     void paste();
     void duplicate();
@@ -102,8 +102,6 @@ public:
 
     static void reloadPatch(File changedPatch, t_glist* except);
 
-    int getIndex(void* obj);
-
     static t_object* checkObject(void* obj);
 
     String getTitle() const;
@@ -138,7 +136,8 @@ private:
         { "oscope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
         { "scope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
         { "function", "200 100 empty empty 0 1 bgColour_rgb lblColour_rgb 0 0 0 0 0 1000 0" },
-        { "messbox", "180 60 bgColour_rgb lblColour_rgb 0 12" }
+        { "messbox", "180 60 bgColour_rgb lblColour_rgb 0 12" },
+        { "note", "0 14 Inter empty 0 lblColour_rgb 0 bgColour_rgb 0 0 note"}
     };
 
     friend class Instance;

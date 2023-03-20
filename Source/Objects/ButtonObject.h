@@ -40,7 +40,9 @@ public:
     ButtonObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        parent->constrainer->setFixedAspectRatio(1);
+        onConstrainerCreate = [this](){
+            constrainer->setFixedAspectRatio(1);
+        };
     }
 
     void initialiseParameters() override
@@ -85,27 +87,26 @@ public:
         alreadyBanged = false;
     }*/
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h);
+        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* button = static_cast<t_fake_button*>(ptr);
-        button->x_w = b.getWidth();
-        button->x_h = b.getHeight();
+        button->x_w = b.getWidth() - 1;
+        button->x_h = b.getHeight() - 1;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -134,19 +135,19 @@ public:
         auto const bounds = getLocalBounds().toFloat();
 
         g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(bounds.reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
 
         g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
-        g.drawRoundedRectangle(bounds.reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
         g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
-        g.drawRoundedRectangle(bounds.reduced(6), PlugDataLook::objectCornerRadius, 1.5f);
+        g.drawRoundedRectangle(bounds.reduced(6), Corners::objectCornerRadius, 1.5f);
 
         if (state) {
             g.setColour(Colour::fromString(primaryColour.toString()));
-            g.fillRoundedRectangle(bounds.reduced(6), PlugDataLook::objectCornerRadius);
+            g.fillRoundedRectangle(bounds.reduced(6), Corners::objectCornerRadius);
         }
     }
 

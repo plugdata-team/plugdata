@@ -78,7 +78,7 @@ public:
         repaint();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -87,14 +87,14 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds({ x, y, w, h });
+        return { x, y, w, h };
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
 
-        auto b = object->getObjectBounds();
+        libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         messbox->x_width = b.getWidth();
         messbox->x_height = b.getHeight();
@@ -111,18 +111,16 @@ public:
         auto bounds = getLocalBounds();
         // Draw background
         g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(1);
-
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
@@ -175,7 +173,7 @@ public:
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor& ed) override
     {
-        updateBounds();
+        object->updateBounds();
     }
 
     void setSymbols(String const& symbols)
@@ -282,7 +280,7 @@ public:
             { "Text colour", tColour, cAppearance, &primaryColour, {} },
             { "Background colour", tColour, cAppearance, &secondaryColour, {} },
             { "Font size", tInt, cAppearance, &fontSize, {} },
-            { "Bold", tBool, cAppearance, &bold, { "no", "yes" } }
+            { "Bold", tBool, cAppearance, &bold, { "No", "Yes" } }
         };
     }
 
@@ -291,19 +289,15 @@ public:
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
         if (value.refersToSameSourceAs(primaryColour)) {
 
-            editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-
             auto col = Colour::fromString(primaryColour.toString());
-            messbox->x_fg[0] = col.getRed();
-            messbox->x_fg[1] = col.getGreen();
-            messbox->x_fg[2] = col.getBlue();
+            editor.applyColourToAllText(col);
+
+            colourToHexArray(col, messbox->x_fg);
             repaint();
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
-            messbox->x_bg[0] = col.getRed();
-            messbox->x_bg[1] = col.getGreen();
-            messbox->x_bg[2] = col.getBlue();
+            colourToHexArray(col, messbox->x_bg);
             repaint();
         }
         if (value.refersToSameSourceAs(fontSize)) {
@@ -315,11 +309,11 @@ public:
             auto size = static_cast<int>(fontSize.getValue());
             if (static_cast<bool>(bold.getValue())) {
                 auto boldFont = Fonts::getBoldFont();
-                editor.applyFontToAllText(boldFont.withHeight(15));
+                editor.applyFontToAllText(boldFont.withHeight(size));
                 messbox->x_font_weight = pd->generateSymbol("normal");
             } else {
                 auto defaultFont = Fonts::getCurrentFont();
-                editor.applyFontToAllText(defaultFont.withHeight(15));
+                editor.applyFontToAllText(defaultFont.withHeight(size));
                 messbox->x_font_weight = pd->generateSymbol("bold");
             }
         }

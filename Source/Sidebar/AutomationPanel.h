@@ -5,6 +5,7 @@
  */
 
 #include "Canvas.h"
+#include "Object.h"
 #include "Utility/PluginParameter.h"
 
 class AutomationSlider : public Component
@@ -129,26 +130,25 @@ public:
         maxValue.setMinimum(minimum + 0.000001f);
         minValue.setMaximum(maximum);
 
-#if PLUGDATA_STANDALONE
+        if (ProjectInfo::isStandalone) {
+            slider.setValue(param->getUnscaledValue());
+            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
+            valueLabel.setText(String(param->getUnscaledValue(), 2), dontSendNotification);
+            slider.onValueChange = [this]() mutable {
+                float value = slider.getValue();
+                param->setUnscaledValueNotifyingHost(value);
+                valueLabel.setText(String(value, 2), dontSendNotification);
+            };
+        } else {
+            slider.onValueChange = [this]() mutable {
+                float value = slider.getValue();
+                valueLabel.setText(String(value, 2), dontSendNotification);
+            };
+            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
 
-        slider.setValue(param->getUnscaledValue());
-        slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
-        valueLabel.setText(String(param->getUnscaledValue(), 2), dontSendNotification);
-        slider.onValueChange = [this]() mutable {
-            float value = slider.getValue();
-            param->setUnscaledValueNotifyingHost(value);
-            valueLabel.setText(String(value, 2), dontSendNotification);
-        };
-#else
-        slider.onValueChange = [this]() mutable {
-            float value = slider.getValue();
-            valueLabel.setText(String(value, 2), dontSendNotification);
-        };
-        slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
-
-        attachment = std::make_unique<SliderParameterAttachment>(*param, slider, nullptr);
-        valueLabel.setText(String(param->getValue(), 2), dontSendNotification);
-#endif
+            attachment = std::make_unique<SliderParameterAttachment>(*param, slider, nullptr);
+            valueLabel.setText(String(param->getValue(), 2), dontSendNotification);
+        }
 
         valueLabel.valueChanged = [this](float newValue) mutable {
             auto minimum = param->getNormalisableRange().start;
@@ -296,7 +296,7 @@ public:
         valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
 
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.5f));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f, 3.0f), PlugDataLook::defaultCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f, 3.0f), Corners::defaultCornerRadius);
     }
 
     std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*) {};
@@ -320,9 +320,7 @@ public:
 
     int index;
 
-#if !PLUGDATA_STANDALONE
     std::unique_ptr<SliderParameterAttachment> attachment;
-#endif
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationSlider)
 };
@@ -345,13 +343,13 @@ class AutomationComponent : public Component {
             auto colour = findColour(PlugDataColour::sidebarTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
+                g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
 
                 colour = findColour(PlugDataColour::sidebarActiveTextColourId);
             }
 
-            PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
-            PlugDataLook::drawText(g, "Add new parameter", textBounds, colour, 14);
+            Fonts::drawIcon(g, Icons::Add, iconBounds, colour, 12);
+            Fonts::drawText(g, "Add new parameter", textBounds, colour, 14);
         }
 
         bool hitTest(int x, int y) override
@@ -543,7 +541,7 @@ public:
 
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, PlugDataLook::defaultCornerRadius);
+        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, Corners::defaultCornerRadius);
     }
 
     void resized() override
@@ -555,15 +553,15 @@ public:
 
     void updateParameters()
     {
-#if PLUGDATA_STANDALONE
-        for (int p = 0; p < PluginProcessor::numParameters; p++) {
-            auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
+        if (ProjectInfo::isStandalone) {
+            for (int p = 0; p < PluginProcessor::numParameters; p++) {
+                auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
 
-            sliders.rows[p]->slider.setValue(param->getUnscaledValue());
+                sliders.rows[p]->slider.setValue(param->getUnscaledValue());
+            }
+        } else {
+            sliders.updateSliders();
         }
-#else
-        sliders.updateSliders();
-#endif
     }
 
     Viewport viewport;

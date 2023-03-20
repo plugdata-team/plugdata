@@ -141,7 +141,7 @@ public:
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
 
-        object->constrainer->setMinimumSize(100 - Object::doubleMargin, 40 - Object::doubleMargin);
+        object->getConstrainer()->setMinimumSize(100 - Object::doubleMargin, 40 - Object::doubleMargin);
     }
 
     void setArray(PdArray& graph)
@@ -261,11 +261,11 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         if (error) {
             // TODO: error colour
-            PlugDataLook::drawText(g, "array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, "array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
             error = false;
         } else {
             paintGraph(g);
@@ -449,19 +449,19 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
     }
 
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.drawHorizontalLine(39, 0, getWidth());
 
         if (!title.isEmpty()) {
-            PlugDataLook::drawText(g, title, 0, 0, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, title, 0, 0, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
         }
     }
 };
@@ -533,7 +533,7 @@ public:
         }
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -545,7 +545,7 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
     ObjectParameters getParameters() override
@@ -559,9 +559,8 @@ public:
         };
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* array = static_cast<_glist*>(ptr);
@@ -647,7 +646,7 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     PdArray getArray() const
@@ -665,6 +664,11 @@ public:
 
     void openFromMenu() override
     {
+        if (dialog) {
+            dialog->toFront(true);
+            return;
+        }
+
         dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         dialog->onClose = [this]() {
             dialog.reset(nullptr);
@@ -679,13 +683,12 @@ public:
         case hash("list"): {
             break;
         }
-            /*
-    case objectMessage::msg_edit: {
-        if(!atoms.empty()) {
-            editable = atoms[0].getFloat();
-            setInterceptsMouseClicks(false, editable);
+        case hash("edit"): {
+            if (!atoms.empty()) {
+                editable = atoms[0].getFloat();
+                setInterceptsMouseClicks(false, editable);
+            }
         }
-    } */
         default:
             break;
         }
@@ -696,7 +699,7 @@ private:
 
     PdArray array;
     GraphicalArray graph;
-    std::unique_ptr<ArrayEditorDialog> dialog;
+    std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
 
     Value labelColour;
     bool editable = true;
@@ -704,7 +707,7 @@ private:
 
 // Actual text object, marked final for optimisation
 class ArrayDefineObject final : public TextBase {
-    std::unique_ptr<ArrayEditorDialog> editor;
+    std::unique_ptr<ArrayEditorDialog> editor = nullptr;
 
 public:
     ArrayDefineObject(void* obj, Object* parent, bool isValid = true)
@@ -729,6 +732,11 @@ public:
 
     void openArrayEditor()
     {
+        if (editor) {
+            editor->toFront(true);
+            return;
+        }
+
         auto* c = reinterpret_cast<t_canvas*>(static_cast<t_canvas*>(ptr)->gl_list);
         auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
         auto array = PdArray(glist, cnv->pd->m_instance);

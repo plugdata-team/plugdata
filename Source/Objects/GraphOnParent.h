@@ -62,14 +62,6 @@ public:
             }
             break;
         }
-        case hash("vis"): {
-            if (atoms[0].getFloat() == 1) {
-                openSubpatch();
-            } else {
-                closeOpenedSubpatchers();
-            }
-            break;
-        }
         case hash("donecanvasdialog"): {
             if (atoms.size() >= 11) {
 
@@ -114,18 +106,27 @@ public:
 
         return false;
     }
+    
+    void setPdBounds(Rectangle<int> b) override
+    {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-    void updateBounds() override
+        auto* graph = static_cast<_glist*>(ptr);
+        graph->gl_pixwidth = b.getWidth() - 1;
+        graph->gl_pixheight = b.getHeight() - 1;
+    }
+
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h);
+        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
     ~GraphOnParent() override
@@ -150,16 +151,6 @@ public:
         repaint();
     }
 
-    void applyBounds() override
-    {
-        auto b = object->getObjectBounds();
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
-        auto* graph = static_cast<_glist*>(ptr);
-        graph->gl_pixwidth = b.getWidth();
-        graph->gl_pixheight = b.getHeight();
-    }
-
     void lock(bool locked) override
     {
         setInterceptsMouseClicks(locked, locked);
@@ -176,13 +167,12 @@ public:
             cnv->editor->updateCommandStatus();
         }
 
-        canvas->synchronise();
-        canvas->checkBounds();
-
         auto b = getPatch()->getBounds() + canvas->canvasOrigin;
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         canvas->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
         canvas->locked.referTo(cnv->locked);
+        
+        canvas->performSynchronise();
     }
 
     void updateDrawables() override
@@ -199,18 +189,12 @@ public:
     // override to make transparent
     void paint(Graphics& g) override
     {
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
-
         // Strangly, the title goes below the graph content in pd
         if (!static_cast<bool>(hideNameAndArgs.getValue()) && getText() != "graph") {
             auto text = getText();
 
-            auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
-            PlugDataLook::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
+            auto textArea = getLocalBounds().removeFromTop(16).withTrimmedLeft(5);
+            Fonts::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
         }
     }
 
@@ -219,14 +203,17 @@ public:
         if (isOpenedInSplitView) {
 
             g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::objectCornerRadius);
-
-            g.setColour(object->findColour(objectOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
 
             auto colour = object->findColour(PlugDataColour::canvasTextColourId);
-            PlugDataLook::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
+            Fonts::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
         }
+        
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     pd::Patch* getPatch() override
@@ -249,8 +236,13 @@ public:
 
     void checkGraphState()
     {
+        if (!ptr)
+            return;
+
+        pd->setThis();
+
         int isGraph = static_cast<bool>(isGraphChild.getValue());
-        int hideText = static_cast<bool>(hideNameAndArgs.getValue());
+        int hideText = isGraph && static_cast<bool>(hideNameAndArgs.getValue());
 
         canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
         repaint();
@@ -262,9 +254,9 @@ public:
             // Change from graph to subpatch
             if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
                 cnv->setSelected(object, false);
-                object->cnv->editor->sidebar.hideParameters();
+                object->cnv->editor->sidebar->hideParameters();
                 object->setType(getText(), ptr);
-                return;
+                return; // Make sure we don't run updateCanvas because class might be deleted!
             }
 
             updateCanvas();
@@ -273,15 +265,15 @@ public:
 
     void valueChanged(Value& v) override
     {
+        auto* glist = static_cast<t_canvas*>(ptr);
+
         if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
             checkGraphState();
         } else if (v.refersToSameSourceAs(xRange)) {
-            auto* glist = static_cast<t_canvas*>(ptr);
             glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
             glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));
             updateDrawables();
         } else if (v.refersToSameSourceAs(yRange)) {
-            auto* glist = static_cast<t_canvas*>(ptr);
             glist->gl_y2 = static_cast<float>(yRange.getValue().getArray()->getReference(0));
             glist->gl_y1 = static_cast<float>(yRange.getValue().getArray()->getReference(1));
             updateDrawables();

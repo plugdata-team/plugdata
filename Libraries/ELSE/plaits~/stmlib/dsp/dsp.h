@@ -33,8 +33,8 @@
 
 #include "stmlib/stmlib.h"
 
-#include <cmath>
 #include <math.h>
+#include <cstdint>
 
 namespace stmlib {
 

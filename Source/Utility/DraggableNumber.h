@@ -5,7 +5,6 @@
  */
 
 #pragma once
-#include <JuceHeader.h>
 
 class DraggableNumber : public Label
     , public Label::Listener {
@@ -362,9 +361,9 @@ struct DraggableListNumber : public DraggableNumber {
         float const increment = 1.;
         float const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
 
-        // lastDragPos = e.position;
-
         float newValue = dragValue + std::floor(increment * -deltaY);
+
+        newValue = limitValue(newValue);
 
         int length = numberEndIdx - numberStartIdx;
 

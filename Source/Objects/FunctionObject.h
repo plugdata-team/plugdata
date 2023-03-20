@@ -52,6 +52,8 @@ class FunctionObject final : public ObjectBase {
     Value sendSymbol;
     Value receiveSymbol;
 
+    Array<Point<float>> points;
+    
 public:
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -70,20 +72,16 @@ public:
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";
     }
 
-    // std::pair<float, float> range;
-    Array<Point<float>> points;
-
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* function = static_cast<t_fake_function*>(ptr);
-        function->x_width = b.getWidth();
-        function->x_height = b.getHeight();
+        function->x_width = b.getWidth() - 1;
+        function->x_height = b.getHeight() - 1;
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -92,13 +90,7 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds({ x, y, w, h });
-    }
-
-    void resized() override
-    {
-        static_cast<t_fake_function*>(ptr)->x_width = getWidth();
-        static_cast<t_fake_function*>(ptr)->x_height = getHeight();
+        return { x, y, w + 1, h + 1};
     }
 
     Array<Point<float>> getRealPoints()
@@ -113,26 +105,17 @@ public:
         return realPoints;
     }
 
-    void setRealPoints(Array<Point<float>> const& points)
-    {
-        auto* function = static_cast<t_fake_function*>(ptr);
-        for (int i = 0; i < points.size(); i++) {
-            function->x_points[i] = jmap<float>(points[i].y, getHeight() - 3, 3, 1.0f, 0.0f);
-            function->x_dur[i] = jmap<float>(points[i].x, 3, getWidth() - 3, 0.0f, 1.0f);
-        }
-    }
-
     void paint(Graphics& g) override
     {
         g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         bool editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
         g.setColour(Colour::fromString(primaryColour.toString()));
 
@@ -252,7 +235,24 @@ public:
     std::pair<float, float> getRange()
     {
         auto& arr = *range.getValue().getArray();
-        return { static_cast<float>(arr[0]), static_cast<float>(arr[1]) };
+        
+        auto start = static_cast<float>(arr[0]);
+        auto end = static_cast<float>(arr[1]);
+        
+        if(start == end)
+        {
+            return {start, end + 0.01f};
+        }
+        if(start < end)
+        {
+            return {start, end};
+        }
+        if(start > end)
+        {
+            return {end, start};
+        }
+        
+        return {start, end};
     }
     void setRange(std::pair<float, float> newRange)
     {
@@ -267,17 +267,15 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        auto [min, max] = getRange();
         bool changed = false;
 
         // For first and last point, only adjust y position
         if (dragIdx == 0 || dragIdx == points.size() - 1) {
-            float newY = jlimit(min, max, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
+            float newY = jlimit(0.0f, 1.0f, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
             if (newY != points.getReference(dragIdx).y) {
                 points.getReference(dragIdx).y = newY;
                 changed = true;
             }
-
         }
 
         else if (dragIdx > 0) {
@@ -286,7 +284,7 @@ public:
 
             float newX = jlimit(minX, maxX, jmap(static_cast<float>(e.x), 3.0f, getWidth() - 3.0f, 0.0f, 1.0f));
 
-            float newY = jlimit(min, max, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
+            float newY = jlimit(0.0f, 1.0f, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
 
             auto newPoint = Point<float>(newX, newY);
             if (points[dragIdx] != newPoint) {
@@ -350,9 +348,9 @@ public:
             if (!_this || _this->cnv->patch.objectWasDeleted(x))
                 return;
 
-            outlet_list(x->x_obj.ob_outlet, &s_list, ac - 2, at.data());
-            if (x->x_send != &s_ && x->x_send->s_thing)
-                pd_list(x->x_send->s_thing, &s_list, ac - 2, at.data());
+            outlet_list(x->x_obj.ob_outlet, gensym("list"), ac - 2, at.data());
+            if (x->x_send != gensym("") && x->x_send->s_thing)
+                pd_list(x->x_send->s_thing, gensym("list"), ac - 2, at.data());
         });
     }
 
@@ -397,12 +395,6 @@ public:
     Colour colourFromHexArray(unsigned char* hex)
     {
         return Colour(hex[0], hex[1], hex[2]);
-    }
-    void colourToHexArray(Colour colour, unsigned char* hex)
-    {
-        hex[0] = colour.getRed();
-        hex[1] = colour.getGreen();
-        hex[2] = colour.getBlue();
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

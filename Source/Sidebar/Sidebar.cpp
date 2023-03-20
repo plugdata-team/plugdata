@@ -4,9 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <JuceHeader.h>
-#include "Pd/PdInstance.h"
-#include "LookAndFeel.h"
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
+#include "Pd/Instance.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "Canvas.h"
@@ -140,7 +142,7 @@ void Sidebar::resized()
 
 void Sidebar::mouseDown(MouseEvent const& e)
 {
-    Rectangle<int> dragBar(0, dragbarWidth, 15, getHeight());
+    Rectangle<int> dragBar(0, 0, dragbarWidth, getHeight() - 30);
     if (dragBar.contains(e.getEventRelativeTo(this).getPosition()) && !sidebarHidden) {
         draggingSidebar = true;
         dragStartWidth = getWidth();
@@ -153,7 +155,7 @@ void Sidebar::mouseDrag(MouseEvent const& e)
 {
     if (draggingSidebar) {
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
-        newWidth = std::clamp(newWidth, 100, std::max(getParentWidth() / 2, 150));
+        newWidth = std::clamp(newWidth, 200, std::max(getParentWidth() / 2, 150));
 
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         getParentComponent()->resized();
@@ -170,7 +172,7 @@ void Sidebar::mouseUp(MouseEvent const& e)
 void Sidebar::mouseMove(MouseEvent const& e)
 {
 
-    bool resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth;
+    bool resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth && e.getEventRelativeTo(this).getPosition().getY() < getHeight() - 30;
     e.originalComponent->setMouseCursor(resizeCursor ? MouseCursor::LeftRightResizeCursor : MouseCursor::NormalCursor);
 }
 
@@ -232,7 +234,7 @@ void Sidebar::showSidebar(bool show)
 
     if (!show) {
         lastWidth = getWidth();
-        int newWidth = dragbarWidth;
+        int newWidth = 0;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
     } else {
         int newWidth = lastWidth;

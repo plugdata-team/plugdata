@@ -6,17 +6,13 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "Utility/ModifierKeyListener.h"
 
-extern "C" {
-#include <m_pd.h>
-}
-
-#include "ObjectGrid.h"
-#include "Iolet.h"
-#include "Objects/ObjectBase.h"
-
+class ObjectBase;
+class Iolet;
+class ObjectDragState;
 class Canvas;
+class Connection;
 class ObjectBoundsConstrainer;
 
 class Object : public Component
@@ -47,9 +43,12 @@ public:
     void showEditor();
     void hideEditor();
 
+    Rectangle<int> getSelectableBounds();
     Rectangle<int> getObjectBounds();
     void setObjectBounds(Rectangle<int> bounds);
-
+        
+    ComponentBoundsConstrainer* getConstrainer();
+        
     void openHelpPatch() const;
     void* getPointer() const;
 
@@ -83,7 +82,7 @@ public:
 
     Canvas* cnv;
 
-    std::unique_ptr<ObjectBase> gui = nullptr;
+    std::unique_ptr<ObjectBase> gui;
 
     OwnedArray<Iolet> iolets;
     ResizableBorderComponent::Zone resizeZone;
@@ -104,11 +103,10 @@ public:
         // These are only for the suggestions
         "hv.comb~", "hv.compressor~", "hv.compressor2~", "hv.dispatch", "hv.drunk", "hv.envfollow~", "hv.eq~", "hv.exp~", "hv.filter.gain~", "hv.filter~", "hv.flanger~", "hv.flanger2~", "hv.freqshift~", "hv.gt~", "hv.gte~", "hv.log~", "hv.lt~", "hv.lte~", "hv.multiplex~", "hv.neq~", "hv.osc~", "hv.pinknoise~", "hv.pow~", "hv.reverb~", "hv.tanh~", "hv.vline~" };
 
-    std::unique_ptr<ObjectBoundsConstrainer> constrainer;
 
     Rectangle<int> originalBounds;
 
-    int minimumSize = 12;
+    static inline const int minimumSize = 12;
 
 private:
     void initialise();
@@ -123,7 +121,7 @@ private:
     bool indexShown = false;
     bool isHvccCompatible = true;
 
-    bool wasResized = false;
+    ObjectDragState& ds;
 
     std::unique_ptr<TextEditor> newObjectEditor;
 

@@ -3,15 +3,21 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
 
 #include "Iolet.h"
 
+#include "Object.h"
 #include "Canvas.h"
 #include "Connection.h"
 #include "LookAndFeel.h"
+#include "Pd/Patch.h"
 
 Iolet::Iolet(Object* parent, bool inlet)
     : object(parent)
+    , insideGraph(parent->cnv->isGraph)
 {
     isInlet = inlet;
     setSize(8, 8);
@@ -30,7 +36,7 @@ Iolet::Iolet(Object* parent, bool inlet)
     setInterceptsMouseClicks(!isLocked, true);
 
     bool isPresenting = static_cast<bool>(presentationMode.getValue());
-    setVisible(!isPresenting && !object->cnv->isGraph);
+    setVisible(!isPresenting && !insideGraph);
 
     // Drawing cirles is more expensive than you might think, especially because there can be a lot of iolets!
     setBufferedToImage(true);
@@ -127,7 +133,7 @@ void Iolet::mouseDrag(MouseEvent const& e)
     if (static_cast<bool>(locked.getValue()) || e.mods.isMiddleButtonDown())
         return;
 
-    if (cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
+    if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
         MessageManager::callAsync([_this = SafePointer(this)]() {
             _this->createConnection();
             _this->object->cnv->connectingWithDrag = true;
@@ -199,6 +205,7 @@ void Iolet::mouseUp(MouseEvent const& e)
                 cnv->cancelConnectionCreation();
                 cnv->nearestIolet = nullptr;
                 cnv->connectingWithDrag = false;
+                cnv->connectionCancelled = false;
 
             } else if (shiftIsDown && cnv->getSelectionOfType<Object>().size() > 1 && (cnv->connectionsBeingCreated.size() == 1)) {
 
@@ -323,9 +330,10 @@ void Iolet::createConnection()
 
     cnv->hideAllActiveEditors();
 
-    cnv->patch.startUndoSequence("Connecting");
     // Check if this is the start or end action of connecting
     if (!cnv->connectionsBeingCreated.isEmpty()) {
+
+        cnv->patch.startUndoSequence("Connecting");
 
         for (auto& c : object->cnv->connectionsBeingCreated) {
             // Check type for input and output
@@ -444,7 +452,14 @@ void Iolet::valueChanged(Value& v)
         repaint();
     }
     if (v.refersToSameSourceAs(presentationMode)) {
-        setVisible(!static_cast<bool>(presentationMode.getValue()) && !object->cnv->isGraph);
+        setVisible(!static_cast<bool>(presentationMode.getValue()) && !insideGraph && !hideIolet);
         repaint();
     }
+}
+
+void Iolet::setHidden(bool hidden)
+{
+    hideIolet = hidden;
+    setVisible(!static_cast<bool>(presentationMode.getValue()) && !insideGraph && !hideIolet);
+    repaint();
 }

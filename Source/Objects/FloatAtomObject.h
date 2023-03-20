@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Utility/DraggableNumber.h"
+#include "Utility/DraggableNumber.h"
 
 class FloatAtomObject final : public ObjectBase {
 
@@ -30,6 +30,7 @@ public:
             startEdition();
 
             editor->setBorder({ 0, 1, 3, 0 });
+            editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
 
             if (editor != nullptr) {
                 editor->setInputRestrictions(0, ".-0123456789");
@@ -45,8 +46,8 @@ public:
 
         input.setText(input.formatNumber(value), dontSendNotification);
 
-        min = getMinimum();
-        max = getMaximum();
+        min = atomHelper.getMinimum();
+        max = atomHelper.getMaximum();
 
         addMouseListener(this, true);
 
@@ -102,7 +103,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -117,13 +118,13 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
         bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
 
         if (highlighed) {
             g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), PlugDataLook::objectCornerRadius, 2.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
         }
     }
 
@@ -132,21 +133,19 @@ public:
         atomHelper.updateLabel(label);
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        atomHelper.updateBounds();
+        return atomHelper.getPdBounds();
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        atomHelper.applyBounds();
+        atomHelper.setPdBounds(b);
     }
-
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    
+    ComponentBoundsConstrainer* createConstrainer() override
     {
-        atomHelper.checkBounds(oldBounds, newBounds, resizingOnLeft);
-        updateBounds();
-        return true;
+        return atomHelper.createConstrainer(object);
     }
 
     void resized() override
@@ -173,9 +172,13 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
-            setMinimum(static_cast<float>(min.getValue()));
+            auto v = static_cast<float>(min.getValue());
+            input.setMinimum(v);
+            atomHelper.setMinimum(v);
         } else if (value.refersToSameSourceAs(max)) {
-            setMaximum(static_cast<float>(max.getValue()));
+            auto v = static_cast<float>(min.getValue());
+            input.setMaximum(v);
+            atomHelper.setMaximum(v);
         } else {
             atomHelper.valueChanged(value);
         }
@@ -186,39 +189,14 @@ public:
         return atom_getfloat(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)));
     }
 
-    float getMinimum()
-    {
-        auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
-        return gatom->a_draglo;
-    }
-
-    float getMaximum()
-    {
-        auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
-        return gatom->a_draghi;
-    }
-
-    void setMinimum(float value)
-    {
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        input.setMinimum(value);
-        gatom->a_draglo = value;
-    }
-    void setMaximum(float value)
-    {
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        input.setMaximum(value);
-        gatom->a_draghi = value;
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
 
         case hash("set"):
         case hash("float"): {
-            auto min = getMinimum();
-            auto max = getMaximum();
+            auto min = atomHelper.getMinimum();
+            auto max = atomHelper.getMaximum();
 
             if (min != 0 || max != 0) {
                 value = std::clamp(atoms[0].getFloat(), min, max);
