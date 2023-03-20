@@ -109,13 +109,15 @@ public:
             stopEdition();
         };
 
-        auto minLongSide = object->minimumSize * 2;
-        auto minShortSide = object->minimumSize;
-        if (isVertical) {
-            object->constrainer->setMinimumSize(minShortSide, minLongSide);
-        } else {
-            object->constrainer->setMinimumSize(minLongSide, minShortSide);
-        }
+        onConstrainerCreate = [this](){
+            auto minLongSide = this->object->minimumSize * 2;
+            auto minShortSide = this->object->minimumSize;
+            if (isVertical) {
+                constrainer->setMinimumSize(minShortSide, minLongSide);
+            } else {
+                constrainer->setMinimumSize(minLongSide, minShortSide);
+            }
+        };
     }
 
     bool hideInlets() override
@@ -140,12 +142,12 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return iemHelper.getPdBounds();
+        return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.setPdBounds(b);
+        iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1));
     }
 
     void updateRange()

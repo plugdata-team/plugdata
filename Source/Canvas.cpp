@@ -94,8 +94,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
         presentationMode = false;
     }
 
-    synchronise();
-
+    performSynchronise();
+    
     // Start in unlocked mode if the patch is empty
     if (objects.isEmpty()) {
         locked = false;
@@ -399,6 +399,8 @@ void Canvas::performSynchronise()
 
     editor->updateCommandStatus();
     repaint();
+    
+    pd->updateObjectImplementations();
 }
 
 void Canvas::updateDrawables()
@@ -674,9 +676,10 @@ bool Canvas::keyPressed(KeyPress const& key)
         moveSelection(0, moveDistance);
         return true;
     }
+    
 
     // Cancel connections being created by ESC key
-    if (keycode == KeyPress::escapeKey) {
+    if (keycode == KeyPress::escapeKey && !connectionsBeingCreated.isEmpty()) {
         cancelConnectionCreation();
         return true;
     }

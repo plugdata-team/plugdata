@@ -153,11 +153,7 @@ public:
         }
         case hash("vis_size"): {
             if (atoms.size() >= 2) {
-                pd->lockAudioThread();
-                auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
-                pd->unlockAudioThread();
-
-                object->setObjectBounds(bounds);
+                object->updateBounds();
             }
             break;
         }
@@ -244,7 +240,7 @@ public:
         auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
         pd->unlockAudioThread();
 
-        return bounds;
+        return bounds.withTrimmedRight(-1).withTrimmedBottom(-1);
     }
 
     void setPdBounds(Rectangle<int> const b)
@@ -252,8 +248,8 @@ public:
         iemgui->x_obj.te_xpix = b.getX();
         iemgui->x_obj.te_ypix = b.getY();
 
-        iemgui->x_w = b.getWidth();
-        iemgui->x_h = b.getHeight();
+        iemgui->x_w = b.getWidth() - 1;
+        iemgui->x_h = b.getHeight() - 1;
     }
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
@@ -292,7 +288,7 @@ public:
             int fontHeight = getFontHeight();
             int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
 
-            int const posx = objectBounds.getX() + iemgui->x_ldx;
+            int const posx = objectBounds.getX() + iemgui->x_ldx + 4;
             int const posy = objectBounds.getY() + iemgui->x_ldy;
 
             return { posx, posy, labelLength, fontHeight };

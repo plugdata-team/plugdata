@@ -56,15 +56,6 @@ public:
         return newBounds;
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
-    {
-        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        auto* patch = cnv->patch.getPointer();
-        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth);
-        object->updateBounds();
-        return true;
-    }
-
     void setPdBounds(Rectangle<int> b) override
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
@@ -295,5 +286,10 @@ public:
     bool hideInGraph() override
     {
         return true;
+    }
+        
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+    {
+        return TextObjectHelper::createConstrainer(object);
     }
 };

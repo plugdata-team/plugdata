@@ -47,6 +47,8 @@ public:
     Rectangle<int> getObjectBounds();
     void setObjectBounds(Rectangle<int> bounds);
         
+    ComponentBoundsConstrainer* getConstrainer();
+        
     void openHelpPatch() const;
     void* getPointer() const;
 
@@ -101,11 +103,10 @@ public:
         // These are only for the suggestions
         "hv.comb~", "hv.compressor~", "hv.compressor2~", "hv.dispatch", "hv.drunk", "hv.envfollow~", "hv.eq~", "hv.exp~", "hv.filter.gain~", "hv.filter~", "hv.flanger~", "hv.flanger2~", "hv.freqshift~", "hv.gt~", "hv.gte~", "hv.log~", "hv.lt~", "hv.lte~", "hv.multiplex~", "hv.neq~", "hv.osc~", "hv.pinknoise~", "hv.pow~", "hv.reverb~", "hv.tanh~", "hv.vline~" };
 
-    std::unique_ptr<ObjectBoundsConstrainer> constrainer;
 
     Rectangle<int> originalBounds;
 
-    int minimumSize = 12;
+    static inline const int minimumSize = 12;
 
 private:
     void initialise();

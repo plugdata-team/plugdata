@@ -537,7 +537,7 @@ public:
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h);
+        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
 
         pd->unlockAudioThread();
 
@@ -549,8 +549,8 @@ public:
         libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         t_atom size[2];
-        SETFLOAT(size, b.getWidth());
-        SETFLOAT(size + 1, b.getHeight());
+        SETFLOAT(size, b.getWidth() - 1);
+        SETFLOAT(size + 1, b.getHeight() - 1);
         pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("dim"), 2, size);
 
         graph.saveProperties();

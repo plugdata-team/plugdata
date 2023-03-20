@@ -267,6 +267,7 @@ public:
         refresh();
         addListener(this);
         getViewport()->getVerticalScrollBar().addListener(this);
+        getViewport()->setScrollBarsShown(true, false);
         startTimer(1500);
     }
 

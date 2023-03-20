@@ -62,14 +62,6 @@ public:
             }
             break;
         }
-        case hash("vis"): {
-            if (atoms[0].getFloat() == 1) {
-                openSubpatch();
-            } else {
-                closeOpenedSubpatchers();
-            }
-            break;
-        }
         case hash("donecanvasdialog"): {
             if (atoms.size() >= 11) {
 
@@ -114,6 +106,15 @@ public:
 
         return false;
     }
+    
+    void setPdBounds(Rectangle<int> b) override
+    {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+
+        auto* graph = static_cast<_glist*>(ptr);
+        graph->gl_pixwidth = b.getWidth() - 1;
+        graph->gl_pixheight = b.getHeight() - 1;
+    }
 
     Rectangle<int> getPdBounds() override
     {
@@ -121,7 +122,7 @@ public:
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h);
+        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
 
         pd->unlockAudioThread();
 
@@ -148,15 +149,6 @@ public:
 
         updateCanvas();
         repaint();
-    }
-
-    void setPdBounds(Rectangle<int> b) override
-    {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
-        auto* graph = static_cast<_glist*>(ptr);
-        graph->gl_pixwidth = b.getWidth();
-        graph->gl_pixheight = b.getHeight();
     }
 
     void lock(bool locked) override
@@ -197,17 +189,11 @@ public:
     // override to make transparent
     void paint(Graphics& g) override
     {
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
         // Strangly, the title goes below the graph content in pd
         if (!static_cast<bool>(hideNameAndArgs.getValue()) && getText() != "graph") {
             auto text = getText();
 
-            auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
+            auto textArea = getLocalBounds().removeFromTop(16).withTrimmedLeft(5);
             Fonts::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
         }
     }
@@ -219,12 +205,15 @@ public:
             g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
             g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
 
-            g.setColour(object->findColour(objectOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
             auto colour = object->findColour(PlugDataColour::canvasTextColourId);
             Fonts::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
         }
+        
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     pd::Patch* getPatch() override

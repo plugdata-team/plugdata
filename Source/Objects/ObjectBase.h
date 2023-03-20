@@ -70,8 +70,6 @@ public:
     virtual bool hideInlets() { return false; }
     virtual bool hideOutlets() { return false; }
 
-    virtual bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) { return false; };
-
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getPdBounds() = 0;
         
@@ -146,6 +144,8 @@ public:
     // Global flag to find out if any GUI object is currently being interacted with
     static bool isBeingEdited();
 
+    ComponentBoundsConstrainer* getConstrainer();
+        
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var value);
@@ -193,9 +193,15 @@ public:
     PluginProcessor* pd;
 
 protected:
+        
+    std::function<void()> onConstrainerCreate = [](){};
+        
+    virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
+        
     std::unique_ptr<ObjectLabel> label;
     static inline constexpr int maxSize = 1000000;
     static inline std::atomic<bool> edited = false;
+    std::unique_ptr<ComponentBoundsConstrainer> constrainer;
 
     friend class IEMHelper;
     friend class AtomHelper;

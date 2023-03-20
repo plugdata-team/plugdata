@@ -36,6 +36,13 @@ public:
         infiniteCanvas.addListener(this);
         useInfiniteCanvas.reset(new PropertiesPanel::BoolComponent("Use infinite canvas", infiniteCanvas, { "No", "Yes" }));
         addAndMakeVisible(*useInfiniteCanvas);
+        
+        
+        scaleValue = settingsFile->getProperty<float>("global_scale");
+        scaleValue.addListener(this);
+        globalScale.reset(new PropertiesPanel::EditableComponent<float>("Global scale factor", scaleValue));
+        addAndMakeVisible(*globalScale);
+        
     }
 
     void resized() override
@@ -47,6 +54,7 @@ public:
             reloadLastOpenedPatch->setBounds(bounds.removeFromTop(23));
         }
         useInfiniteCanvas->setBounds(bounds.removeFromTop(23));
+        globalScale->setBounds(bounds.removeFromTop(23));
     }
 
     void valueChanged(Value& v) override
@@ -57,6 +65,12 @@ public:
 
             editor->resized();
         }
+        if (v.refersToSameSourceAs(scaleValue)) {
+            auto scale = std::clamp(static_cast<float>(scaleValue.getValue()), 0.5f, 2.5f);
+            SettingsFile::getInstance()->setGlobalScale(scale);
+            scaleValue = scale;
+        }
+        
     }
     Component* editor;
 
@@ -66,9 +80,11 @@ public:
     Value macTitlebarButtons;
     Value reloadPatch;
     Value infiniteCanvas;
+    Value scaleValue;
 
     std::unique_ptr<PropertiesPanel::BoolComponent> useNativeTitlebar;
     std::unique_ptr<PropertiesPanel::BoolComponent> useMacTitlebarButtons;
     std::unique_ptr<PropertiesPanel::BoolComponent> reloadLastOpenedPatch;
     std::unique_ptr<PropertiesPanel::BoolComponent> useInfiniteCanvas;
+    std::unique_ptr<PropertiesPanel::EditableComponent<float>> globalScale;
 };

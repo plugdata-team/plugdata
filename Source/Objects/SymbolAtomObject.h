@@ -64,12 +64,11 @@ public:
         atomHelper.setPdBounds(b);
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    std::unique_ptr<ComponentBoundsConstrainer>  createConstrainer() override
     {
-        atomHelper.checkBounds(oldBounds, newBounds, resizingOnLeft);
-        object->updateBounds();
-        return true;
+        return atomHelper.createConstrainer(object);
     }
+        
 
     ObjectParameters getParameters() override
     {

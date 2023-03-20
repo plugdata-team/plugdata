@@ -63,6 +63,8 @@ SettingsFile* SettingsFile::initialise()
 
     initialisePathsTree();
     initialiseThemesTree();
+    
+    Desktop::getInstance().setGlobalScaleFactor(getProperty<float>("global_scale"));
 
     saveSettings();
 
@@ -164,6 +166,8 @@ void SettingsFile::addToRecentlyOpened(File path)
 
         recentlyOpened.removeChild(minIdx, nullptr);
     }
+    
+    RecentlyOpenedFilesList::registerRecentFileNatively(path);
 }
 
 void SettingsFile::initialiseThemesTree()
@@ -309,6 +313,12 @@ void SettingsFile::timerCallback()
     // Use timer to group changes together
     saveSettings();
     stopTimer();
+}
+
+void SettingsFile::setGlobalScale(float newScale)
+{
+    setProperty("global_scale", newScale);
+    Desktop::getInstance().setGlobalScaleFactor(newScale);
 }
 
 void SettingsFile::saveSettings()

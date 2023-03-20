@@ -13,6 +13,7 @@
 #include "Instance.h"
 #include "Patch.h"
 #include "MessageListener.h"
+#include "Objects/ImplementationBase.h"
 
 extern "C" {
 
@@ -119,6 +120,8 @@ Instance::Instance(String const& symbol)
     : consoleHandler(this)
 {
     libpd_multi_init();
+    
+    objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
 
     m_instance = libpd_new_instance();
 
@@ -747,5 +750,10 @@ void Instance::setCallbackLock(CriticalSection const* lock)
 {
     audioLock = lock;
 };
+
+void Instance::updateObjectImplementations()
+{
+    objectImplementations->updateObjectImplementations();
+}
 
 } // namespace pd

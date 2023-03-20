@@ -108,23 +108,59 @@ public:
         return bounds;
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
-    {
-        auto* nbx = static_cast<t_numbox*>(ptr);
+        std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+        {
+            class NumboxTildeBoundsConstrainer : public ComponentBoundsConstrainer {
+            public:
+                
+                Object* object;
+                
+                NumboxTildeBoundsConstrainer(Object* parent) : object(parent)
+                {
+                }
+                /*
+                 * Custom version of checkBounds that takes into consideration
+                 * the padding around plugdata node objects when resizing
+                 * to allow the aspect ratio to be interpreted correctly.
+                 * Otherwise resizing objects with an aspect ratio will
+                 * resize the object size **including** margins, and not follow the
+                 * actual size of the visible object
+                 */
+                void checkBounds(Rectangle<int>& bounds,
+                    Rectangle<int> const& old,
+                    Rectangle<int> const& limits,
+                    bool isStretchingTop,
+                    bool isStretchingLeft,
+                    bool isStretchingBottom,
+                    bool isStretchingRight) override
+                {
+                    auto* nbx = static_cast<t_numbox*>(object->getPointer());
 
-        nbx->x_fontsize = getHeight() - 4;
+                    nbx->x_fontsize = object->gui->getHeight() - 4;
 
-        int width = newBounds.reduced(Object::margin).getWidth();
-        int numWidth = (2.0f * (-6.0f + width - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
-        width = (nbx->x_fontsize - (nbx->x_fontsize / 2) + 2) * (numWidth + 2) + 2;
+                    int width = bounds.reduced(Object::margin).getWidth();
+                    int numWidth = (2.0f * (-6.0f + width - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
+                    width = (nbx->x_fontsize - (nbx->x_fontsize / 2) + 2) * (numWidth + 2) + 2;
+                    
+                    BorderSize<int> border(Object::margin);
+                    border.subtractFrom(bounds);
 
-        int height = jlimit(18, maxSize, newBounds.getHeight() - Object::doubleMargin);
-        if (getWidth() != width || getHeight() != height) {
-            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
+                    // we also have to remove the margin from the old object, but don't alter the old object
+                    ComponentBoundsConstrainer::checkBounds(bounds, border.subtractedFrom(old), limits, isStretchingTop,
+                        isStretchingLeft,
+                        isStretchingBottom,
+                        isStretchingRight);
+
+                    // put back the margins
+                    border.addTo(bounds);
+                }
+            };
+            
+            auto constrainer = std::make_unique<NumboxTildeBoundsConstrainer>(object);
+            constrainer->setMinimumSize(30, 15);
+            
+            return constrainer;
         }
-
-        return true;
-    }
 
     void setPdBounds(Rectangle<int> b) override
     {
