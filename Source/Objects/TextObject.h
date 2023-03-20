@@ -7,7 +7,7 @@
 struct TextObjectHelper {
 
     inline static int minWidth = 3;
-
+    
     static Rectangle<int> recalculateTextObjectBounds(void* patch, void* obj, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
     {
         int x, y, w, h;
@@ -37,31 +37,6 @@ struct TextObjectHelper {
         return { x, y, w, h };
     }
 
-    static void checkBounds(void* patch, void* obj, Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft, int fontWidth, int maxIolets = 0)
-    {
-        // Remove margin
-        newBounds = newBounds.reduced(Object::margin);
-        oldBounds = oldBounds.reduced(Object::margin);
-
-        auto minimumWidth = std::max(minWidth, (maxIolets * 18) / fontWidth);
-
-        // Calculate the width in text characters for both
-        auto oldCharWidth = oldBounds.getWidth() / fontWidth;
-        auto newCharWidth = std::max(minimumWidth, newBounds.getWidth() / fontWidth);
-
-        // If we're resizing the left edge, move the object left
-        if (resizingOnLeft) {
-            auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
-            auto x = oldBounds.getX() - widthDiff;
-            auto y = oldBounds.getY(); // don't allow y resize
-
-            libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(obj), x, y);
-        }
-
-        // Set new width
-        TextObjectHelper::setWidthInChars(obj, newCharWidth);
-    }
-
     static int getWidthInChars(void* ptr)
     {
         return static_cast<t_text*>(ptr)->te_width;
@@ -70,6 +45,65 @@ struct TextObjectHelper {
     static int setWidthInChars(void* ptr, int newWidth)
     {
         return static_cast<t_text*>(ptr)->te_width = newWidth;
+    }
+    
+    static ComponentBoundsConstrainer* createConstrainer(Object* object)
+    {
+        class TextObjectBoundsConstrainer : public ComponentBoundsConstrainer {
+        public:
+            
+            Object* object;
+            
+            TextObjectBoundsConstrainer(Object* parent) : object(parent)
+            {
+            }
+            /*
+             * Custom version of checkBounds that takes into consideration
+             * the padding around plugdata node objects when resizing
+             * to allow the aspect ratio to be interpreted correctly.
+             * Otherwise resizing objects with an aspect ratio will
+             * resize the object size **including** margins, and not follow the
+             * actual size of the visible object
+             */
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool isStretchingTop,
+                bool isStretchingLeft,
+                bool isStretchingBottom,
+                bool isStretchingRight) override
+            {
+                auto fontWidth = glist_fontwidth(object->cnv->patch.getPointer());
+                auto* patch = object->cnv->patch.getPointer();
+                
+                // Remove margin
+                auto newBounds = bounds.reduced(Object::margin);
+                auto oldBounds = old.reduced(Object::margin);
+
+                auto maxIolets = std::max({ 1, object->numInputs, object->numOutputs });
+                auto minimumWidth = std::max(TextObjectHelper::minWidth, (maxIolets * 18) / fontWidth);
+
+                // Calculate the width in text characters for both
+                auto oldCharWidth = oldBounds.getWidth() / fontWidth;
+                auto newCharWidth = std::max(minimumWidth, newBounds.getWidth() / fontWidth);
+
+                // If we're resizing the left edge, move the object left
+                if (isStretchingLeft) {
+                    auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
+                    auto x = oldBounds.getX() - widthDiff;
+                    auto y = oldBounds.getY(); // don't allow y resize
+
+                    libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x, y);
+                }
+
+                // Set new width
+                TextObjectHelper::setWidthInChars(object->getPointer(), newCharWidth);
+                
+                bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+            }
+        };
+        
+        return new TextObjectBoundsConstrainer(object);
     }
 
     static String fixNewlines(String text)
@@ -256,15 +290,6 @@ public:
         return newBounds;
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
-    {
-        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        auto* patch = cnv->patch.getPointer();
-        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth, std::max(object->numInputs, object->numOutputs));
-        object->updateBounds();
-        return true;
-    }
-
     void setPdBounds(Rectangle<int> b) override
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
@@ -369,6 +394,11 @@ public:
     bool hideInGraph() override
     {
         return true;
+    }
+    
+    ComponentBoundsConstrainer* createConstrainer() override
+    {
+        return TextObjectHelper::createConstrainer(object);
     }
 };
 

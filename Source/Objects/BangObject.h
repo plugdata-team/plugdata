@@ -24,7 +24,9 @@ public:
         bangInterrupt = bng->x_flashtime_break;
         bangHold = bng->x_flashtime_hold;
 
-        parent->constrainer->setFixedAspectRatio(1);
+        onConstrainerCreate = [this](){
+            constrainer->setFixedAspectRatio(1);
+        };
     }
 
     void initialiseParameters() override

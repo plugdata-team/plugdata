@@ -313,11 +313,6 @@ public:
         sendSymbol = sndSym != "empty" ? sndSym : "";
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
-        // TODO: move to initialiseParameters
-        valueChanged(lowC);
-        valueChanged(octaves);
-        valueChanged(toggleMode);
-
         startTimer(150);
 
         MessageManager::callAsync([this, object] {
@@ -325,7 +320,7 @@ public:
             object->updateBounds();
         });
     }
-
+        
     Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
@@ -388,8 +383,8 @@ public:
         numWhiteKeys = keyboard.getCountOfWhiteNotesInRange();
 
         object->setSize(horizontalLength + Object::doubleMargin, object->getHeight());
-        object->constrainer->setFixedAspectRatio(horizontalLength / static_cast<float>(object->getHeight() - Object::doubleMargin));
-        object->constrainer->setMinimumSize((object->minimumSize / 5.0f) * numWhiteKeys, object->minimumSize);
+        constrainer->setFixedAspectRatio(horizontalLength / static_cast<float>(object->getHeight() - Object::doubleMargin));
+        constrainer->setMinimumSize((object->minimumSize / 5.0f) * numWhiteKeys, object->minimumSize);
     }
 
     void valueChanged(Value& value) override

@@ -127,8 +127,8 @@ public:
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* pad = static_cast<t_pad*>(ptr);
-        pad->x_w = b.getWidth();
-        pad->x_h = b.getHeight();
+        pad->x_w = b.getWidth() - 1;
+        pad->x_h = b.getHeight() - 1;
     }
 
     Rectangle<int> getPdBounds() override
@@ -140,7 +140,7 @@ public:
 
         pd->unlockAudioThread();
 
-        return { x, y, w, h };
+        return { x, y, w + 1, h + 1 };
     }
 
     // Check if top-level canvas is locked to determine if we should respond to mouse events

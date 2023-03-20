@@ -11,7 +11,6 @@
 #include "Object.h"
 #include "Canvas.h"
 #include "Connection.h"
-#include "Utility/ObjectBoundsConstrainer.h"
 
 ObjectGrid::ObjectGrid(Component* parent)
 {
@@ -130,7 +129,9 @@ Point<int> ObjectGrid::performFixedResize(Object* toDrag, Point<int> dragOffset,
 {
     auto snappable = getSnappableObjects(toDrag);
     auto resizeZone = toDrag->resizeZone;
-    auto ratio = toDrag->constrainer->getFixedAspectRatio();
+    
+    auto* constrainer = toDrag->getConstrainer();
+    auto ratio = constrainer ? constrainer->getFixedAspectRatio() : 0.0;
 
     auto oldBounds = toDrag->originalBounds;
 
@@ -142,7 +143,6 @@ Point<int> ObjectGrid::performFixedResize(Object* toDrag, Point<int> dragOffset,
     bool isSnapped = snapped[0] || snapped[1];
 
     if (isSnapped) {
-
         auto snappedPos = horizontalResizeSnapped ? snappedPosition.x : snappedPosition.y;
         auto dragPos = widthResizeSnapped ? dragOffset.x : dragOffset.y;
 
@@ -240,19 +240,24 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 
     auto resizeZone = toDrag->resizeZone;
     auto nonClippedBounds = newResizeBounds;
-    // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
-    toDrag->constrainer->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
-        resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
-        resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
+    auto* constrainer = toDrag->getConstrainer();
+    
+    if(constrainer) {
+        // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
+        constrainer->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
+                                 resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
+                                 resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
+    }
 
     auto b2 = newResizeBounds.reduced(Object::margin);
     auto snappable = getSnappableObjects(toDrag);
 
     // Snap to Objects
-    if (enableGrid != 2 && toDrag->constrainer->getFixedAspectRatio() != 0.0) {
+    if (enableGrid != 2 && constrainer && constrainer->getFixedAspectRatio() != 0.0) {
         dragOffset = performFixedResize(toDrag, dragOffset, newResizeBounds, nonClippedBounds);
     } else if (enableGrid != 2) {
         bool alreadySnappedVertically = isAlreadySnapped(false, dragOffset);
+        bool alreadySnappedHorizontally = isAlreadySnapped(true, dragOffset);
 
         if (!alreadySnappedVertically) {
             for (auto* object : snappable) {
@@ -269,9 +274,6 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
             }
         }
 
-        // Update in case we just snapped
-        bool alreadySnappedHorizontally = isAlreadySnapped(false, dragOffset);
-
         if (!alreadySnappedHorizontally) {
             for (auto* object : snappable) {
 
@@ -287,7 +289,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
                 }
             }
         }
-
+        
         MessageManager::callAsync([this]() {
             updateMarker();
         });

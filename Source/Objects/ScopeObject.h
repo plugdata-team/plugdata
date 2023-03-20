@@ -146,7 +146,15 @@ public:
 
         pd->unlockAudioThread();
 
-        return { x, y, w, h };
+        return { x, y, w + 1, h + 1};
+    }
+        
+    void setPdBounds(Rectangle<int> b) override
+    {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+
+        static_cast<S*>(ptr)->x_width = getWidth() - 1;
+        static_cast<S*>(ptr)->x_height = getHeight() - 1;
     }
 
     void resized() override
@@ -197,15 +205,6 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-    }
-
-    // Push current object bounds into pd
-    void setPdBounds(Rectangle<int> b) override
-    {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
-        static_cast<S*>(ptr)->x_width = getWidth();
-        static_cast<S*>(ptr)->x_height = getHeight();
     }
 
     void timerCallback() override

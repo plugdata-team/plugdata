@@ -183,8 +183,6 @@ void Iolet::mouseUp(MouseEvent const& e)
         if (!cnv)
             return;
 
-        cnv->connectionCancelled = false;
-
         if (!wasDragged && cnv->connectionsBeingCreated.isEmpty()) {
             createConnection();
 
@@ -207,6 +205,7 @@ void Iolet::mouseUp(MouseEvent const& e)
                 cnv->cancelConnectionCreation();
                 cnv->nearestIolet = nullptr;
                 cnv->connectingWithDrag = false;
+                cnv->connectionCancelled = false;
 
             } else if (shiftIsDown && cnv->getSelectionOfType<Object>().size() > 1 && (cnv->connectionsBeingCreated.size() == 1)) {
 

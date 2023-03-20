@@ -23,7 +23,6 @@
 
 #include "Dialogs/Dialogs.h"
 
-#include "Utility/ObjectBoundsConstrainer.h"
 #include "Pd/Patch.h"
 
 extern "C" {
@@ -107,8 +106,6 @@ void Object::setObjectBounds(Rectangle<int> bounds)
 
 void Object::initialise()
 {
-    constrainer = std::make_unique<ObjectBoundsConstrainer>();
-
     cnv->addAndMakeVisible(this);
     cnv->editor->addModifierKeyListener(this);
 
@@ -124,7 +121,6 @@ void Object::initialise()
     hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
-    constrainer->setMinimumSize(minimumSize, minimumSize);
 }
 
 void Object::timerCallback()
@@ -261,7 +257,7 @@ void Object::setType(String const& newType, void* existingObject)
     void* objectPtr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
-    if (!existingObject || cnv->patch.objectWasDeleted(existingObject)) {
+    if (!existingObject) {
         auto* patch = &cnv->patch;
         if (gui) {
             // Clear connections to this object
@@ -285,7 +281,7 @@ void Object::setType(String const& newType, void* existingObject)
     gui.reset(ObjectBase::createGui(objectPtr, this));
 
     if (gui) {
-        gui->lock(locked == var(true));
+        gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
     }
@@ -337,6 +333,7 @@ void Object::setType(String const& newType, void* existingObject)
     cnv->editor->updateCommandStatus();
     
     cnv->synchroniseSplitCanvas();
+    cnv->pd->updateObjectImplementations();
 }
 
 Array<Rectangle<float>> Object::getCorners() const
@@ -887,12 +884,13 @@ void Object::mouseDrag(MouseEvent const& e)
         auto toResize = cnv->getSelectionOfType<Object>();
 
         for (auto* obj : toResize) {
+            
+            if(!obj->gui) continue;
+            
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
 
-            bool useConstrainer = obj->gui && !obj->gui->checkBounds(obj->originalBounds - cnv->canvasOrigin, newBounds - cnv->canvasOrigin, resizeZone.isDraggingLeftEdge());
-
-            if (useConstrainer) {
-                obj->constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(),
+            if (auto* constrainer = obj->getConstrainer()) {
+                constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(),
                     resizeZone.isDraggingLeftEdge(),
                     resizeZone.isDraggingBottomEdge(),
                     resizeZone.isDraggingRightEdge());
@@ -935,7 +933,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
             // Store origin object positions
             for (auto object : selection) {
-                mouseDownObjectPositions.add(object->getPosition());
+                mouseDownObjectPositions.add(object->getPosition().translated(10, 10));
             }
 
             // Duplicate once
@@ -963,7 +961,7 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
-        if (!cnv->objectRateReducer.tooFast()) {
+        if (!cnv->objectRateReducer.tooFast() && ds.componentBeingDragged) {
             for (auto* object : selection) {
                 object->setBufferedToImage(true);
                 object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance);
@@ -1210,6 +1208,15 @@ void Object::textEditorTextChanged(TextEditor& ed)
     width += Object::doubleMargin;
 
     setSize(width, getHeight());
+}
+
+ComponentBoundsConstrainer* Object::getConstrainer()
+{
+    if(gui) {
+        return gui->getConstrainer();
+    }
+    
+    return nullptr;
 }
 
 void Object::openHelpPatch() const

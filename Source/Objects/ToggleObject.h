@@ -19,7 +19,11 @@ public:
         , iemHelper(ptr, object, this)
     {
         value = getValue();
-        object->constrainer->setFixedAspectRatio(1);
+        
+        onConstrainerCreate = [this](){
+            constrainer->setFixedAspectRatio(1);
+        };
+        
     }
 
     bool hideInlets() override
@@ -94,7 +98,7 @@ public:
         }
     }
 
-    void sendToggleValue(bool newValue)
+    void sendToggleValue(int newValue)
     {
         pd->enqueueFunction([ptr = this->ptr, pd = this->pd, patch = &cnv->patch, newValue]() {
             if (patch->objectWasDeleted(ptr))

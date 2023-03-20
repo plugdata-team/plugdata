@@ -8,10 +8,11 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-#include "SplitView.h"           // TODO: move to impl
+#include "Utility/Fonts.h"
 #include "Utility/RateReducer.h" // TODO: move to impl
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/StackShadow.h" // TODO: move to impl
+#include "SplitView.h"           // TODO: move to impl
 
 class Sidebar;
 class Statusbar;

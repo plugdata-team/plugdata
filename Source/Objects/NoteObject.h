@@ -266,18 +266,45 @@ public:
 
         return bounds;
     }
-
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    
+    ComponentBoundsConstrainer* createConstrainer() override
     {
-        newBounds.reduce(Object::margin, Object::margin);
-
-        auto* note = static_cast<t_fake_note*>(ptr);
-        note->x_resized = 1;
-        note->x_max_pixwidth = newBounds.getWidth();
-
-        object->updateBounds();
-
-        return true;
+        class NoteObjectBoundsConstrainer : public ComponentBoundsConstrainer {
+        public:
+            
+            NoteObject* noteObject;
+            Object* object;
+            
+            NoteObjectBoundsConstrainer(Object* obj, NoteObject* parent) : object(obj), noteObject(parent)
+            {
+            }
+            /*
+             * Custom version of checkBounds that takes into consideration
+             * the padding around plugdata node objects when resizing
+             * to allow the aspect ratio to be interpreted correctly.
+             * Otherwise resizing objects with an aspect ratio will
+             * resize the object size **including** margins, and not follow the
+             * actual size of the visible object
+             */
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool isStretchingTop,
+                bool isStretchingLeft,
+                bool isStretchingBottom,
+                bool isStretchingRight) override
+            {
+                auto* note = static_cast<t_fake_note*>(object->getPointer());
+                note->x_resized = 1;
+                note->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
+                
+                // Set editor size first, so getTextHeight will return a correct result
+                noteObject->noteEditor.setSize(note->x_max_pixwidth, noteObject->noteEditor.getHeight());
+                bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+            }
+        };
+        
+        return new NoteObjectBoundsConstrainer(object, this);
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -336,7 +363,6 @@ public:
             } else if (justificationType == 3) {
                 noteEditor.setJustification(Justification::topRight);
             }
-
         } else if (v.refersToSameSourceAs(outline)) {
             note->x_outline = static_cast<int>(outline.getValue());
             repaint();

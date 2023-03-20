@@ -43,16 +43,6 @@ public:
     {
         iemHelper.initialiseParameters();
     }
-
-    void setPdBounds(Rectangle<int> b) override
-    {
-        auto* cnvObj = reinterpret_cast<t_my_canvas*>(iemHelper.iemgui);
-
-        cnvObj->x_gui.x_obj.te_xpix = b.getX();
-        cnvObj->x_gui.x_obj.te_ypix = b.getY();
-        cnvObj->x_vis_w = b.getWidth() - 1;
-        cnvObj->x_vis_h = b.getHeight() - 1;
-    }
     
     Rectangle<int> getSelectableBounds() override
     {
@@ -70,6 +60,16 @@ public:
         locked = isLocked;
     }
 
+    void setPdBounds(Rectangle<int> b) override
+    {
+        auto* cnvObj = reinterpret_cast<t_my_canvas*>(iemHelper.iemgui);
+
+        cnvObj->x_gui.x_obj.te_xpix = b.getX();
+        cnvObj->x_gui.x_obj.te_ypix = b.getY();
+        cnvObj->x_vis_w = b.getWidth() - 1;
+        cnvObj->x_vis_h = b.getHeight() - 1;
+    }
+    
     Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
@@ -80,16 +80,16 @@ public:
         auto bounds = Rectangle<int>(x, y, static_cast<t_my_canvas*>(ptr)->x_vis_w + 1, static_cast<t_my_canvas*>(ptr)->x_vis_h + 1);
 
         pd->unlockAudioThread();
-
         return bounds;
     }
+    
 
     void paint(Graphics& g) override
     {
         auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
         
         g.setColour(bgcolour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
         
         if(!locked) {
             auto draggableRect = Rectangle<float>(static_cast<t_iemgui*>(ptr)->x_w, static_cast<t_iemgui*>(ptr)->x_h);
