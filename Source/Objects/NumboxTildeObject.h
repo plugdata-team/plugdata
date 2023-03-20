@@ -108,7 +108,7 @@ public:
         return bounds;
     }
 
-        ComponentBoundsConstrainer* createConstrainer() override
+        std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
         {
             class NumboxTildeBoundsConstrainer : public ComponentBoundsConstrainer {
             public:
@@ -156,7 +156,7 @@ public:
                 }
             };
             
-            auto* constrainer = new NumboxTildeBoundsConstrainer(object);
+            auto constrainer = std::make_unique<NumboxTildeBoundsConstrainer>(object);
             constrainer->setMinimumSize(30, 15);
             
             return constrainer;

@@ -288,7 +288,7 @@ public:
         return true;
     }
         
-    ComponentBoundsConstrainer* createConstrainer() override
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         return TextObjectHelper::createConstrainer(object);
     }

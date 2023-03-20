@@ -103,7 +103,7 @@ public:
         atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
     }
     
-    ComponentBoundsConstrainer* createConstrainer(Object* object)
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer(Object* object)
     {
         class AtomObjectBoundsConstrainer : public ComponentBoundsConstrainer {
         public:
@@ -165,7 +165,7 @@ public:
             }
         };
         
-        return new AtomObjectBoundsConstrainer(object, this);
+        return std::make_unique<AtomObjectBoundsConstrainer>(object, this);
     }
 
     int getAtomHeight() const

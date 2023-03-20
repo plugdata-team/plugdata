@@ -543,10 +543,10 @@ bool ObjectBase::isBeingEdited()
 
 ComponentBoundsConstrainer* ObjectBase::getConstrainer()
 {
-    return constrainer;
+    return constrainer.get();
 }
 
-ComponentBoundsConstrainer* ObjectBase::createConstrainer()
+std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
 {
     class ObjectBoundsConstrainer : public ComponentBoundsConstrainer {
     public:
@@ -596,5 +596,5 @@ ComponentBoundsConstrainer* ObjectBase::createConstrainer()
         }
     };
     
-    return new ObjectBoundsConstrainer();
+    return std::make_unique<ObjectBoundsConstrainer>();
 }

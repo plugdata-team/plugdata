@@ -283,7 +283,7 @@ void SplitView::paintOverChildren(Graphics& g)
         g.setColour(leftTabbarOutline);
         g.drawRect(getLeftTabbar()->getBounds().withTrimmedRight(-1), 2.0f);
         g.setColour(rightTabbarOutline);
-        g.drawRect(getRightTabbar()->getBounds().withTrimmedLeft(-1), 2.0f);
+        g.drawRect(getRightTabbar()->getBounds().withTrimmedLeft(-1).withTrimmedRight(1), 2.0f);
     }
     if (tabbar->tabSnapshot.isValid()) {
         g.setColour(indicatorColour);
