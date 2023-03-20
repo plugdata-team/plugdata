@@ -70,6 +70,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     commandLocked.referTo(pd->commandLocked);
     commandLocked.addListener(this);
 
+    //showBorder.referTo(SettingsFile::getInstance()->getPropertyAsValue("border"));
+
     // TODO: use SettingsFileListener
     gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 
@@ -160,6 +162,8 @@ void Canvas::paint(Graphics& g)
         
         g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
         auto clipBounds = g.getClipBounds();
+
+        // draw patch window dashed outline
         auto patchWidthCanvas = canvasOrigin.x + static_cast<int>(patchWidth.getValue());
         auto patchHeightCanvas = canvasOrigin.y + static_cast<int>(patchHeight.getValue());
 
