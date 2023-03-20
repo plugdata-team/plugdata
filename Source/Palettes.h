@@ -384,13 +384,17 @@ public:
         patchSelector.toBehind(&editModeButton);
     }
     
-    ~PaletteView()
+    void savePalette()
     {
-        if(paletteTree.isValid()) {
-            int lastMode = editModeButton.getToggleState();
-            lastMode += lockModeButton.getToggleState() * 2;
-            lastMode += dragModeButton.getToggleState() * 3;
-            paletteTree.setProperty("Mode", lastMode, nullptr);
+        if(cnv) {
+            paletteTree.setProperty("Patch", cnv->patch.getCanvasContent(), nullptr);
+            
+            if(paletteTree.isValid()) {
+                int lastMode = editModeButton.getToggleState();
+                lastMode += lockModeButton.getToggleState() * 2;
+                lastMode += dragModeButton.getToggleState() * 3;
+                paletteTree.setProperty("Mode", lastMode, nullptr);
+            }
         }
     }
     
@@ -672,6 +676,7 @@ public:
     
             paletteSelectors[toOpen]->setToggleState(true, dontSendNotification);
             setViewHidden(false);
+            savePalettes();
             view.showPalette(palette);
         };
         
@@ -778,6 +783,7 @@ private:
     
     void savePalettes()
     {
+        view.savePalette();
         palettesFile.replaceWithText(palettesTree.toXmlString());
     }
     
@@ -798,20 +804,20 @@ private:
                 else {
                     button->setToggleState(true, dontSendNotification);
                     setViewHidden(false);
+                    savePalettes();
                     view.showPalette(palettesTree.getChildWithProperty("Name", name));
                 }
             };
             paletteBar.addAndMakeVisible(*button);
-            
-            savePalettes();
         }
         
-        StringArray options;
+        StringArray patches;
         for(auto* selector : paletteSelectors)
         {
-            options.add(selector->getButtonText());
+            patches.add(selector->getButtonText());
         }
-        view.updatePatches(options);
+        view.updatePatches(patches);
+        savePalettes();
         
         resized();
     }
