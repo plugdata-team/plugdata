@@ -16,6 +16,7 @@
 #include "Pd/Patch.h"
 
 #include "LookAndFeel.h"
+#include "Palettes.h"
 
 #include "Canvas.h"
 #include "Connection.h"
@@ -99,7 +100,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
-
     setResizable(true, false);
 
     // In the standalone, the resizer handling is done on the window class
@@ -152,7 +152,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     splitZoomScale.referTo(settingsFile->getPropertyAsValue("split_zoom"));
     splitZoomScale.addListener(this);
 
+
+    palettes = std::make_unique<Palettes>(this);
+    
+    addAndMakeVisible(*palettes);
     addAndMakeVisible(*statusbar);
+
     addAndMakeVisible(splitView);
     addAndMakeVisible(*sidebar);
 
@@ -327,7 +332,10 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
-    splitView.setBounds(0, toolbarHeight, (getWidth() - sidebar->getWidth()) + 1, getHeight() - toolbarHeight - (statusbar->getHeight()));
+    auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
+    palettes->setBounds(0, toolbarHeight, palettes->getWidth(), getHeight() - toolbarHeight - (statusbar->getHeight()));
+    
+    splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth) + 1, getHeight() - toolbarHeight - (statusbar->getHeight()));
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), getHeight() - toolbarHeight);
     statusbar->setBounds(0, getHeight() - statusbar->getHeight(), getWidth() - sidebar->getWidth(), statusbar->getHeight());
 
@@ -558,8 +566,15 @@ TabComponent* PluginEditor::getActiveTabbar()
     return splitView.getActiveTabbar();
 }
 
-Canvas* PluginEditor::getCurrentCanvas()
+Canvas* PluginEditor::getCurrentCanvas(bool canBePalette)
 {
+    if(canBePalette && palettes && palettes->hasKeyboardFocus(true))
+    {
+        if(auto* cnv = palettes->getCurrentCanvas()) {
+            return cnv;
+        }
+    }
+    
     return getActiveTabbar()->getCurrentCanvas();
 }
 
@@ -798,11 +813,9 @@ void PluginEditor::updateCommandStatus()
         if (!patchPtr)
             return;
 
-        auto deletionCheck = SafePointer(this);
-
         // First on pd's thread, get undo status
         pd->enqueueFunction(
-            [this, patchPtr, isDragging, deletionCheck, locked]() mutable {
+            [this, patchPtr, isDragging, deletionCheck = SafePointer(this), locked]() mutable {
                 if (!deletionCheck)
                     return;
 
@@ -874,8 +887,8 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     bool hasCanvas = false;
     bool locked = true;
     bool canConnect = false;
-
-    if (auto* cnv = getCurrentCanvas()) {
+    
+    if (auto* cnv = getCurrentCanvas(true)) {
         auto selectedBoxes = cnv->getSelectionOfType<Object>();
         auto selectedConnections = cnv->getSelectionOfType<Connection>();
 
@@ -940,7 +953,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::ConnectionPathfind: {
         result.setInfo("Tidy connection", "Find best path for connection", "Edit", 0);
         result.addDefaultKeypress(89, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging);
+        result.setActive((hasCanvas) && !isDragging);
         break;
     }
     case CommandIDs::ConnectionStyle: {
@@ -1073,7 +1086,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setInfo("Open Reference", "Open reference panel", "Edit", 0);
         result.addDefaultKeypress(KeyPress::F1Key, ModifierKeys::noModifiers); // f1 to open settings
 
-        if (auto* cnv = getCurrentCanvas()) {
+        if (auto* cnv = getCurrentCanvas(true)) {
             auto selection = cnv->getSelectionOfType<Object>();
             bool enabled = selection.size() == 1 && selection[0]->gui && selection[0]->gui->getType().isNotEmpty();
             result.setActive(enabled);
@@ -1194,9 +1207,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
         if (splitView.getActiveTabbar()->getNumTabs() == 0)
             return true;
-
-        auto* cnv = getCurrentCanvas();
-
+        
         auto deleteFunc = [this, cnv]() {
             closeTab(cnv);
         };
@@ -1222,36 +1233,44 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::Copy: {
+        cnv = getCurrentCanvas(true);
         cnv->copySelection();
         return true;
     }
     case CommandIDs::Paste: {
+        cnv = getCurrentCanvas(true);
         cnv->pasteSelection();
         return true;
     }
     case CommandIDs::Cut: {
+        cnv = getCurrentCanvas(true);
         cnv->cancelConnectionCreation();
         cnv->copySelection();
         cnv->removeSelection();
         return true;
     }
     case CommandIDs::Delete: {
+        cnv = getCurrentCanvas(true);
         cnv->cancelConnectionCreation();
         cnv->removeSelection();
         return true;
     }
     case CommandIDs::Duplicate: {
+        cnv = getCurrentCanvas(true);
         cnv->duplicateSelection();
         return true;
     }
     case CommandIDs::Encapsulate: {
+        cnv = getCurrentCanvas(true);
         cnv->encapsulateSelection();
         return true;
     }
     case CommandIDs::CreateConnection: {
+        cnv = getCurrentCanvas(true);
         return cnv->connectSelectedObjects();
     }
     case CommandIDs::SelectAll: {
+        cnv = getCurrentCanvas(true);
         for (auto* object : cnv->objects) {
             cnv->setSelected(object, true, false);
         }
@@ -1267,6 +1286,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ConnectionPathfind: {
+        cnv = getCurrentCanvas(true);
         cnv->patch.startUndoSequence("ConnectionPathFind");
 
         statusbar->connectionStyleButton->setToggleState(true, sendNotification);
@@ -1352,7 +1372,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ShowReference: {
-        if (auto* cnv = getCurrentCanvas()) {
+        if (auto* cnv = getCurrentCanvas(true)) {
             auto selection = cnv->getSelectionOfType<Object>();
             if (selection.size() != 1 || !selection[0]->gui || selection[0]->gui->getType().isEmpty()) {
                 return false;
@@ -1367,10 +1387,12 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case ObjectIDs::NewArray: {
 
+        cnv = getCurrentCanvas(true);
+        
         Dialogs::showArrayDialog(&openedDialog, this,
             [this](int result, String const& name, String const& size) {
                 if (result) {
-                    auto* cnv = getCurrentCanvas();
+                    auto* cnv = getCurrentCanvas(true);
                     auto* object = new Object(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
                     cnv->objects.add(object);
                 }
@@ -1379,6 +1401,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
 
     default: {
+        
+        cnv = getCurrentCanvas(true);
 
         auto ID = static_cast<ObjectIDs>(info.commandID);
 

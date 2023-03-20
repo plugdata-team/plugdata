@@ -22,6 +22,7 @@ class WelcomeButton;
 class Canvas;
 class TabComponent;
 class PluginProcessor;
+class Palettes;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -63,7 +64,7 @@ public:
     void closeTab(Canvas* cnv);
     void closeAllTabs();
 
-    Canvas* getCurrentCanvas();
+    Canvas* getCurrentCanvas(bool canBePalette = false);
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
@@ -116,6 +117,8 @@ private:
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
+        
+    std::unique_ptr<Palettes> palettes;
 
     int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
 

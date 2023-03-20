@@ -361,7 +361,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
         
         if (button.getRadioGroupId() && (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom))
         {
-            auto bounds = button.getLocalBounds().toFloat().reduced(0.0f, 8.0f).translated(-0.5f, -0.25f);
+            auto bounds = button.getLocalBounds().toFloat();
+            bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.2f)).translated(-0.5f, -0.25f);
             
             backgroundColour = backgroundColour.contrasting(0.05f);
             

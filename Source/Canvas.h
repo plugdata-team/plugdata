@@ -162,7 +162,8 @@ public:
     Value presentationMode;
     Value gridEnabled;
     Value showDirection;
-
+    Value paletteDragMode;
+        
     bool isGraph = false;
     bool hasParentCanvas = false;
     bool updatingBounds = false; // used by connection

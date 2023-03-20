@@ -68,7 +68,7 @@ struct ExporterBase : public Component
             addAndMakeVisible(panel);
         }
 
-        if (auto* cnv = editor->getCurrentCanvas()) {
+        if (auto* cnv = editor->getCurrentCanvas(false)) {
             openedPatchFile = File::createTempFile(".pd");
             Toolchain::deleteTempFileLater(openedPatchFile);
             openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, false, "\n");

@@ -627,7 +627,7 @@ void Canvas::mouseMove(MouseEvent const& e)
 
 bool Canvas::keyPressed(KeyPress const& key)
 {
-    if (editor->getCurrentCanvas() != this || isGraph)
+    if (editor->getCurrentCanvas(true) != this || isGraph)
         return false;
 
     // Absorb space events for drag-scrolling

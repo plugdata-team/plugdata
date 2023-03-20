@@ -1313,8 +1313,9 @@ void PluginProcessor::receiveDSPState(bool dsp)
 
 void PluginProcessor::updateDrawables()
 {
+    // TODO: fix for split view and palettes
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([cnv = editor->getCurrentCanvas()]() {
+        MessageManager::callAsync([cnv = editor->getCurrentCanvas(true)]() {
             if (cnv)
                 cnv->updateDrawables();
         });
