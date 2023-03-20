@@ -18,26 +18,51 @@ class PaletteView : public Component, public Value::Listener
     public:
         DraggedComponentGroup(Canvas* canvas, Object* target, Point<int> mouseDownPosition) : cnv(canvas), draggedObject(target)
         {
-            auto [clipboard, totalBounds] = getDraggedArea(target);
+            auto [clipboard, components] = getDraggedArea(target);
             
-            imageToDraw = cnv->createComponentSnapshot(totalBounds, false, 1.0f);
-            //imageToDraw.multiplyAllAlphas(0.75f);
+            
+            Rectangle<int> totalBounds;
+            for(auto* component : components)
+            {
+                totalBounds = totalBounds.getUnion(component->getBounds());
+            }
+            
+            imageToDraw = getObjectsSnapshot(components, totalBounds);
             
             clipboardContent = clipboard;
             
             addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
-            setTopLeftPosition(cnv->localPointToGlobal(mouseDownPosition));
-            setSize(imageToDraw.getWidth(), imageToDraw.getHeight());
+            setBounds(cnv->localAreaToGlobal(totalBounds));
             setVisible(true);
+        }
+        
+        Image getObjectsSnapshot(Array<Component*> components, Rectangle<int> totalBounds) {
+            
+            std::sort(components.begin(), components.end(), [this](const auto* a, const auto* b){
+                return cnv->getIndexOfChildComponent(a) > cnv->getIndexOfChildComponent(b);
+            });
+
+            Image image (Image::ARGB, totalBounds.getWidth(), totalBounds.getHeight(), true);
+            Graphics g (image);
+            
+            for(auto* component : components)
+            {
+                auto b = component->getBounds();
+                
+                g.drawImageAt(component->createComponentSnapshot(component->getLocalBounds()), b.getX() - totalBounds.getX(), b.getY() - totalBounds.getY());
+            }
+            
+            image.multiplyAllAlphas(0.75f);
+            
+            return image;
         }
         
         void pasteObjects(Canvas* target) {
             
-            auto position = target->getLocalPoint(nullptr, getScreenPosition());
+            auto position = target->getLocalPoint(nullptr, getScreenPosition()) + Point<int>(Object::margin, Object::margin);
             
-            auto objectBounds = draggedObject->getObjectBounds();
-            int minX = objectBounds.getX();
-            int minY = objectBounds.getY();
+            int minX = 9999999;
+            int minY = 9999999;
             
             auto isObject = [](StringArray& tokens){
                 return tokens[0] == "#X" &&
@@ -50,8 +75,8 @@ class PaletteView : public Component, public Value::Listener
             {
                 auto tokens = StringArray::fromTokens(line, true);
                 if(isObject(tokens)) {
-                    minX = std::max(minX, tokens[2].getIntValue());
-                    minY = std::max(minY, tokens[3].getIntValue());
+                    minX = std::min(minX, tokens[2].getIntValue());
+                    minY = std::min(minY, tokens[3].getIntValue());
                 }
             }
             
@@ -75,21 +100,15 @@ class PaletteView : public Component, public Value::Listener
 
     private:
         
-        std::pair<String, Rectangle<int>> getDraggedArea(Object* target)
+        std::pair<String, Array<Component*>> getDraggedArea(Object* target)
         {
             std::pair<Array<Object*>, Array<Connection*>> dragged;
             getConnectedObjects(target, dragged);
             auto& [objects, connections] = dragged;
             
-            Rectangle<int> totalBounds;
             for(auto* object : objects)
             {
                 cnv->patch.selectObject(object->getPointer());
-                totalBounds = totalBounds.getUnion(object->getBounds().reduced(Object::margin));
-            }
-            for(auto* connection : connections)
-            {
-                totalBounds = totalBounds.getUnion(connection->getBounds());
             }
             
             int size;
@@ -98,7 +117,11 @@ class PaletteView : public Component, public Value::Listener
             
             cnv->patch.deselectAll();
             
-            return {clipboard, totalBounds};
+            Array<Component*> components;
+            components.addArray(objects);
+            components.addArray(connections);
+            
+            return {clipboard, components};
         }
         
         void getConnectedObjects(Object* target, std::pair<Array<Object*>, Array<Connection*>>& result)
@@ -125,16 +148,25 @@ class PaletteView : public Component, public Value::Listener
         {
             g.drawImageAt(imageToDraw, 0, 0);
         }
-        void mouseDown(const MouseEvent& e) override
-        {
-            dragger.startDraggingComponent (this, e);
-        }
-     
+    
         void mouseDrag(const MouseEvent& e) override
         {
-            dragger.dragComponent (this, e, nullptr);
+            auto relativeEvent = e.getEventRelativeTo(this);
+            
+            if(!isDragging) {
+                dragger.startDraggingComponent (this, relativeEvent);
+                isDragging = true;
+            }
+            
+            dragger.dragComponent (this, relativeEvent, nullptr);
+        }
+        
+        void mouseUp(const MouseEvent& e) override
+        {
+            isDragging = false;
         }
 
+        bool isDragging = false;
         Image imageToDraw;
         
         Canvas* cnv;
@@ -171,6 +203,7 @@ public:
         dragModeButton.setRadioGroupId(2222);
         dragModeButton.onClick = [this](){
             cnv->locked = true;
+            // TODO: make sure gui objects don't respond to mouse clicks!
         };
         
         addAndMakeVisible(dragModeButton);
@@ -225,7 +258,6 @@ public:
     
     void mouseDrag(const MouseEvent& e) override
     {
-        
         if(dragger || !dragModeButton.getToggleState() || !cnv) return;
         
         auto relativeEvent = e.getEventRelativeTo(cnv.get());
@@ -239,6 +271,11 @@ public:
         
         dragger = std::make_unique<DraggedComponentGroup>(cnv.get(), object, relativeEvent.getMouseDownPosition());
         cnv->addMouseListener(dragger.get(), true);
+    }
+    
+    void mouseDown(const MouseEvent& e) override
+    {
+        if(!dragModeButton.getToggleState() || !cnv) return;
     }
     
     void mouseUp(const MouseEvent& e) override

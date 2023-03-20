@@ -150,6 +150,7 @@ public:
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
     Value xRange, yRange;
+    Value paletteDragMode;
 
     ObjectGrid objectGrid = ObjectGrid(this);
 

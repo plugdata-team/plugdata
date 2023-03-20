@@ -95,6 +95,7 @@ void Object::initialise()
     locked.addListener(this);
     commandLocked.addListener(this);
     hvccMode.addListener(this);
+    cnv->paletteDragMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
     constrainer->setMinimumSize(minimumSize, minimumSize);
@@ -127,6 +128,11 @@ void Object::valueChanged(Value& v)
 
         return;
     }
+    if (v.refersToSameSourceAs(cnv->paletteDragMode)) {
+        auto dragMode = static_cast<bool>(cnv->paletteDragMode.getValue());
+        if(gui) gui->setInterceptsMouseClicks(!dragMode, !dragMode);
+    }
+    
 
     // else it was a lock/unlock/presentation mode action
     // Hide certain objects in GOP

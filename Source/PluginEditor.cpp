@@ -705,13 +705,11 @@ void PluginEditor::updateCommandStatus()
         if (!patchPtr)
             return;
 
-        auto deletionCheck = SafePointer(this);
-
         bool locked = static_cast<bool>(cnv->locked.getValue());
 
         // First on pd's thread, get undo status
         pd->enqueueFunction(
-            [this, patchPtr, isDragging, deletionCheck, locked]() mutable {
+            [this, patchPtr, isDragging, deletionCheck = SafePointer(this), locked]() mutable {
                 if (!deletionCheck)
                     return;
 
