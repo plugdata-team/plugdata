@@ -212,7 +212,7 @@ public:
     std::pair<String, String> formatSearchResultString(String name, String prefix, Rectangle<int> bounds)
     {
 
-        auto positionString = " (" + String(bounds.getX()) + "," + String(bounds.getY()) + "  " + String(bounds.getWidth()) + "×" + String(bounds.getHeight()) +")";
+        auto positionString = " (" + String(bounds.getX()) + ":" + String(bounds.getY()) + "  " + String(bounds.getWidth()) + "×" + String(bounds.getHeight()) +")";
 
         int maxWidth = getWidth() - 20;
 
