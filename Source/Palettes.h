@@ -283,7 +283,7 @@ class PaletteView : public Component, public Value::Listener
                     minY = std::min(minY, tokens[3].getIntValue());
                 }
                 
-                if(canvasDepth != 0 && isEndingCanvas(tokens))
+                if(canvasDepth == 1 && isEndingCanvas(tokens))
                 {
                     minX = std::min(minX, tokens[2].getIntValue());
                     minY = std::min(minY, tokens[3].getIntValue());
@@ -493,8 +493,9 @@ public:
         auto patchFile = File::createTempFile(".pd");
         patchFile.replaceWithText(patchText);
         
-        patch.reset(pd->openPatch(patchFile));
-        cnv = std::make_unique<Canvas>(editor, *patch, nullptr, true);
+        auto* newPatch = pd->openPatch(patchFile); // Don't delete old patch until canvas is replaced!
+        cnv = std::make_unique<Canvas>(editor, *newPatch, nullptr, true);
+        patch.reset(newPatch);
         viewport.reset(cnv->viewport);
         
         cnv->paletteDragMode.referTo(dragModeButton.getToggleStateValue());

@@ -31,6 +31,8 @@ public:
     void openSubpatch(std::unique_ptr<pd::Patch>& subpatch);
     void closeOpenedSubpatchers();
     
+    bool objectStillExists(t_glist* parent);
+    
     Canvas* getMainCanvas(void* patchPtr);
     
     PluginProcessor* pd;
@@ -45,6 +47,7 @@ public:
     ObjectImplementationManager(pd::Instance* pd);
     
     void updateObjectImplementations();
+    void clearObjectImplementationsForPatch(void* patch);
     
 private:
 

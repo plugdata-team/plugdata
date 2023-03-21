@@ -142,6 +142,35 @@ void ImplementationBase::openSubpatch(std::unique_ptr<pd::Patch>& subpatch)
     }
 }
 
+bool ImplementationBase::objectStillExists(t_glist* patch)
+{
+    pd->setThis();
+    
+    auto* root = canvas_getrootfor(patch);
+    bool canvasExists = false;
+    
+    auto* roots = pd_getcanvaslist();
+    while(roots)
+    {
+        if(roots == root)
+        {
+            canvasExists = true;
+        }
+        roots = roots->gl_next;
+    }
+    
+    if(!canvasExists) return false;
+    
+    auto* object = patch->gl_list;
+    while(object)
+    {
+        if(object == ptr) return true;
+        object = object->g_next;
+    }
+    
+    return false;
+}
+
 void ImplementationBase::closeOpenedSubpatchers()
 {
     if(auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
@@ -222,4 +251,17 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
     }
     
     return implementations;
+}
+
+void ObjectImplementationManager::clearObjectImplementationsForPatch(void* patch)
+{
+    auto* glist = static_cast<t_glist*>(patch);
+
+    for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
+        auto const name = String::fromUTF8(libpd_get_object_class_name(y));
+        if (name == "canvas" || name == "graph") {
+            clearObjectImplementationsForPatch(y);
+        }
+        objectImplementations.erase(y);
+    }
 }

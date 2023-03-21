@@ -756,4 +756,9 @@ void Instance::updateObjectImplementations()
     objectImplementations->updateObjectImplementations();
 }
 
+void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
+{
+    objectImplementations->clearObjectImplementationsForPatch(p->getPointer());
+}
+
 } // namespace pd

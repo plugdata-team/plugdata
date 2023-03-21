@@ -493,6 +493,8 @@ public:
     
     void mouseDown(MouseEvent const& e) override
     {
+        if(!objectStillExists(cnv->patch.getPointer())) return;
+        
         if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
             return;
         
@@ -719,11 +721,15 @@ public:
         lastPosition = mouseSource.getScreenPosition();
         lastMouseDownTime = mouseSource.getLastMouseDownTime();
         startTimer(timerInterval);
+        canvas = static_cast<t_mouse*>(ptr)->x_glist;
     }
 
     void timerCallback() override
     {
+        if(!objectStillExists(canvas)) return;
+        
         if (lastPosition != mouseSource.getScreenPosition()) {
+            
             auto pos = mouseSource.getScreenPosition();
 
             t_atom args[2];
@@ -768,4 +774,5 @@ public:
     Point<float> lastPosition;
     bool isDown = false;
     int const timerInterval = 30;
+    t_glist* canvas;
 };

@@ -239,7 +239,8 @@ public:
     void enqueueDirectMessages(void* object, float const msg);
     
     void updateObjectImplementations();
-
+    void clearObjectImplementationsForPatch(pd::Patch* p);
+    
     virtual void performParameterChange(int type, String name, float value) {};
 
     // JYG added this

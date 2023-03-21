@@ -205,7 +205,7 @@ public:
             g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
             g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
 
-            auto colour = object->findColour(PlugDataColour::canvasTextColourId);
+            auto colour = object->findColour(PlugDataColour::commentTextColourId);
             Fonts::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
         }
         
