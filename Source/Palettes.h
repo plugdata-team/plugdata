@@ -175,17 +175,6 @@ public:
     void editorShown (Label* label, TextEditor& editor) override
     {
         editor.setJustification(Justification::centred);
-        
-        editor.onFocusLost = [this, &editor](){
-            if(editor.getText().isEmpty())
-            {
-                MessageManager::callAsync([this](){
-                    showEditor();
-                });
-               
-            }
-        };
-        //editor.addListener (this);
     }
 
     std::function<void(String)> onTextChange = [](String){};
