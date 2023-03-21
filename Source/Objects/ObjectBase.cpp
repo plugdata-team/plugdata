@@ -195,6 +195,16 @@ String ObjectBase::getType() const
     return {};
 }
 
+// Make sure the object can't be triggered if that palette is in drag mode
+bool ObjectBase::hitTest(int x, int y)
+{
+    if(cnv->isPalette && static_cast<bool>(cnv->paletteDragMode.getValue()))
+    {
+        return false;
+    }
+    
+    return true;
+}
 
 // Called in destructor of subpatch and graph class
 // Makes sure that any tabs refering to the now deleted patch will be closed

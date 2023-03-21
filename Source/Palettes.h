@@ -244,7 +244,7 @@ class PaletteView : public Component, public Value::Listener
             int minX = 9999999;
             int minY = 9999999;
             
-            int canvasDepth = -1;
+            int canvasDepth = 0;
             
             auto isObject = [](StringArray& tokens){
                 return tokens[0] == "#X" &&
@@ -255,7 +255,7 @@ class PaletteView : public Component, public Value::Listener
             
             auto isStartingCanvas = [](StringArray& tokens){
                 return tokens[0] == "#N" &&
-                tokens[1] != "canvas" &&
+                tokens[1] == "canvas" &&
                 tokens[2].containsOnly("0123456789") &&
                 tokens[3].containsOnly("0123456789") &&
                 tokens[4].containsOnly("0123456789") &&

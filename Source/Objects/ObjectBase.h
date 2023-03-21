@@ -65,6 +65,8 @@ public:
     virtual bool isEditorShown() { return false; };
     virtual void showEditor() {};
     virtual void hideEditor() {};
+        
+    bool hitTest(int x, int y) override;
 
     // Some objects need to show/hide iolets when send/receive symbols are set
     virtual bool hideInlets() { return false; }
