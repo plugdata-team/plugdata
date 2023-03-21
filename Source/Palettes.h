@@ -191,6 +191,13 @@ class PaletteView : public Component, public Value::Listener
     public:
         DraggedComponentGroup(Canvas* canvas, Object* target, Point<int> mouseDownPosition) : cnv(canvas), draggedObject(target)
         {
+            
+            // Find top level object if we're dragging a graph
+            while(auto* nextObject = target->findParentComponentOfClass<Object>())
+            {
+                target = nextObject;
+            }
+            
             auto [clipboard, components] = getDraggedArea(target);
             
             
@@ -237,6 +244,8 @@ class PaletteView : public Component, public Value::Listener
             int minX = 9999999;
             int minY = 9999999;
             
+            int canvasDepth = -1;
+            
             auto isObject = [](StringArray& tokens){
                 return tokens[0] == "#X" &&
                 tokens[1] != "connect" &&
@@ -244,24 +253,69 @@ class PaletteView : public Component, public Value::Listener
                 tokens[3].containsOnly("0123456789");
             };
             
+            auto isStartingCanvas = [](StringArray& tokens){
+                return tokens[0] == "#N" &&
+                tokens[1] != "canvas" &&
+                tokens[2].containsOnly("0123456789") &&
+                tokens[3].containsOnly("0123456789") &&
+                tokens[4].containsOnly("0123456789") &&
+                tokens[5].containsOnly("0123456789");
+            };
+            
+            auto isEndingCanvas = [](StringArray& tokens){
+                return tokens[0] == "#X" &&
+                tokens[1] == "restore" &&
+                tokens[2].containsOnly("0123456789") &&
+                tokens[3].containsOnly("0123456789");
+            };
+            
             for(auto& line : StringArray::fromLines(clipboardContent))
             {
                 auto tokens = StringArray::fromTokens(line, true);
-                if(isObject(tokens)) {
+                
+                if(isStartingCanvas(tokens))
+                {
+                    canvasDepth++;
+                }
+                
+                if(canvasDepth == 0 && isObject(tokens)) {
                     minX = std::min(minX, tokens[2].getIntValue());
                     minY = std::min(minY, tokens[3].getIntValue());
+                }
+                
+                if(canvasDepth != 0 && isEndingCanvas(tokens))
+                {
+                    minX = std::min(minX, tokens[2].getIntValue());
+                    minY = std::min(minY, tokens[3].getIntValue());
+                    canvasDepth--;
                 }
             }
             
             auto toPaste = StringArray::fromLines(clipboardContent);
             for(auto& line : toPaste)
             {
+                
                 auto tokens = StringArray::fromTokens(line, true);
-                if(isObject(tokens)) {
+                if(isStartingCanvas(tokens))
+                {
+                    canvasDepth++;
+                }
+                
+                if(canvasDepth == 0 && isObject(tokens)) {
                     tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
                     tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
                     
                     line = tokens.joinIntoString(" ");
+                }
+                
+                if(canvasDepth != 0 && isEndingCanvas(tokens))
+                {
+                    tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
+                    tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
+                    
+                    line = tokens.joinIntoString(" ");
+                    
+                    canvasDepth--;
                 }
             }
             
