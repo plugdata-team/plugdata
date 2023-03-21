@@ -329,6 +329,8 @@ class PaletteView : public Component, public Value::Listener
         
         std::pair<String, Array<Component*>> getDraggedArea(Object* target)
         {
+            cnv->patch.deselectAll();
+            
             std::pair<Array<Object*>, Array<Connection*>> dragged;
             getConnectedObjects(target, dragged);
             auto& [objects, connections] = dragged;
