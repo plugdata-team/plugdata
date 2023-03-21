@@ -136,14 +136,6 @@ public:
     {
         setSize(110, 155);
 
-        //addAndMakeVisible(canvasLabel);
-        canvasLabel.setText("Canvas", dontSendNotification);
-        canvasLabel.setJustificationType(Justification::topLeft);
-
-        //addAndMakeVisible(objectLabel);
-        objectLabel.setText("Object", dontSendNotification);
-        objectLabel.setJustificationType(Justification::topLeft);
-
         for (auto& buttonGroup : buttonGroups) {
             addAndMakeVisible(buttonGroup);
         }
@@ -157,10 +149,8 @@ public:
     {
         auto bounds = getLocalBounds();
         bounds.removeFromTop(5);
-        //canvasLabel.setBounds(bounds.removeFromTop(25));
-        buttonGroups[SnapItem::Grid].setBounds(bounds.removeFromTop(30));
 
-        //objectLabel.setBounds(bounds.removeFromTop(25));
+        buttonGroups[SnapItem::Grid].setBounds(bounds.removeFromTop(30));
         buttonGroups[SnapItem::Edges].setBounds(bounds.removeFromTop(30));
         buttonGroups[SnapItem::Corners].setBounds(bounds.removeFromTop(30));
         buttonGroups[SnapItem::Centers].setBounds(bounds.removeFromTop(35));
@@ -186,8 +176,6 @@ public:
 
 private:
     static inline bool isShowing = false;
-
-    Label canvasLabel, objectLabel;
 
     std::unique_ptr<GridSizeSlider> gridSlider = std::make_unique<GridSizeSlider>();
 

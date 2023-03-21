@@ -75,7 +75,7 @@ public:
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
 
-    std::unique_ptr<TextButton> powerButton, connectionStyleButton, connectionPathfind, gridButton, centreButton, protectButton;
+    std::unique_ptr<TextButton> powerButton, connectionStyleButton, connectionPathfind, centreButton, protectButton;
 
     TextButton oversampleSelector;
 

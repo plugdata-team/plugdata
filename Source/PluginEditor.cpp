@@ -899,8 +899,7 @@ void PluginEditor::updateCommandStatus()
         editButton.setEnabled(true);
         runButton.setEnabled(true);
         presentButton.setEnabled(true);
-        
-        statusbar->gridButton->setEnabled(true);
+
         statusbar->centreButton->setEnabled(true);
 
         addObjectMenuButton.setEnabled(!locked);
@@ -912,7 +911,6 @@ void PluginEditor::updateCommandStatus()
         
         statusbar->connectionStyleButton->setEnabled(false);
         statusbar->connectionPathfind->setEnabled(false);
-        statusbar->gridButton->setEnabled(false);
         statusbar->centreButton->setEnabled(false);
 
         undoButton.setEnabled(false);
