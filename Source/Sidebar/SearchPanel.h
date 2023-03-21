@@ -5,6 +5,7 @@
  */
 
 #include "Object.h"
+#include "../Objects/ObjectBase.h"
 
 #include <m_pd.h>
 #include <m_imp.h>
@@ -208,10 +209,10 @@ public:
         }
     }
 
-    std::pair<String, String> formatSearchResultString(String name, String prefix, int x, int y)
+    std::pair<String, String> formatSearchResultString(String name, String prefix, Rectangle<int> bounds)
     {
 
-        auto positionString = " (" + String(x) + ", " + String(y) + ")";
+        auto positionString = " (X: " + String(bounds.getX()) + ", Y: " + String(bounds.getY()) + ", W: " + String(bounds.getWidth()) + ", H: " + String(bounds.getHeight()) +")";
 
         int maxWidth = getWidth() - 20;
 
@@ -246,9 +247,9 @@ public:
         
         if(!object) return;
 
-        auto [x, y] = object->getPosition();
+        auto pdBounds = object->gui->getPdBounds();
 
-        auto [text, size] = formatSearchResultString(name, prefix, x, y);
+        auto [text, size] = formatSearchResultString(name, prefix, pdBounds);
 
         auto positionTextWidth = Fonts::getCurrentFont().getStringWidth(size);
         auto positionTextX = getWidth() - positionTextWidth - 16;
