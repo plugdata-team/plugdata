@@ -203,7 +203,7 @@ bool ObjectBase::hitTest(int x, int y)
         return false;
     }
     
-    return true;
+    return Component::hitTest(x, y);
 }
 
 // Called in destructor of subpatch and graph class

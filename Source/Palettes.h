@@ -552,10 +552,28 @@ public:
         auto relativeEvent = e.getEventRelativeTo(cnv.get());
         
         auto* object = dynamic_cast<Object*>(e.originalComponent);
+
+
         if(!object)
         {
             object = e.originalComponent->findParentComponentOfClass<Object>();
-            if(!object) return;
+            if(!object)  {
+                
+                if(auto* cnv = dynamic_cast<Canvas*>(e.originalComponent))
+                {
+                    // TODO: is the order correct? we should prioritise top-level objects!
+                    for(auto* obj : cnv->objects)
+                    {
+                        if(obj->getBounds().contains(relativeEvent.getPosition()))
+                        {
+                            object = obj;
+                            break;
+                        }
+                    }
+                }
+                
+                if(!object) return;
+            }
         }
         
         dragger = std::make_unique<DraggedComponentGroup>(cnv.get(), object, relativeEvent.getMouseDownPosition());

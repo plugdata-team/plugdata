@@ -865,7 +865,7 @@ void PluginEditor::updateCommandStatus()
 
 ApplicationCommandTarget* PluginEditor::getNextCommandTarget()
 {
-    return this;
+    return nullptr;
 }
 
 void PluginEditor::getAllCommands(Array<CommandID>& commands)
