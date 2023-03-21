@@ -15,6 +15,20 @@ class PaletteComboBox : public ComboBox,
                        public LookAndFeel_V4,
                        public Label::Listener
 {
+    
+    class ComboLabel : public Label
+    {
+        void textEditorFocusLost(TextEditor& ed) override
+        {
+            if(!ed.getText().isEmpty()) {
+                textEditorTextChanged (ed);
+            }
+            else {
+                ed.grabKeyboardFocus();
+            }
+        }
+    };
+    
 public:
     PaletteComboBox(LookAndFeel* lnf)
     {
@@ -146,7 +160,7 @@ public:
     
     Label* createComboBoxTextBox (ComboBox& /*comboBox*/) override
     {
-        Label* label = new Label();
+        auto* label = new ComboLabel();
         label->addListener (this);
         label->setEditable(true);
         label->setJustificationType(Justification::centred);
@@ -161,6 +175,16 @@ public:
     void editorShown (Label* label, TextEditor& editor) override
     {
         editor.setJustification(Justification::centred);
+        
+        editor.onFocusLost = [this, &editor](){
+            if(editor.getText().isEmpty())
+            {
+                MessageManager::callAsync([this](){
+                    showEditor();
+                });
+               
+            }
+        };
         //editor.addListener (this);
     }
 
