@@ -30,12 +30,12 @@ public:
         bool isVisMessage = symbol == "vis";
         if(isVisMessage && atoms[0].getFloat()) {
             MessageManager::callAsync([_this = WeakReference(this)] {
-                if(!_this) _this->openSubpatch(_this->subpatch);
+                if(_this) _this->openSubpatch(_this->subpatch);
             });
         }
         else if(isVisMessage) {
             MessageManager::callAsync([_this = WeakReference(this)] {
-                if(!_this) _this->closeOpenedSubpatchers();
+                if(_this) _this->closeOpenedSubpatchers();
             });
         }
     }
