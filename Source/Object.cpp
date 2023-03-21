@@ -113,7 +113,8 @@ void Object::initialise()
     locked.referTo(cnv->locked);
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
-    hvccMode.referTo(cnv->editor->hvccMode);
+    
+    if(!cnv->isPalette) hvccMode.referTo(cnv->editor->hvccMode);
 
     presentationMode.addListener(this);
     locked.addListener(this);
@@ -136,7 +137,7 @@ void Object::timerCallback()
 void Object::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(hvccMode)) {
-        if (gui) {
+        if (gui && !cnv->isPalette) {
             auto typeName = String::fromUTF8(libpd_get_object_class_name(gui->ptr));
             // Check hvcc compatibility
             bool isSubpatch = gui ? gui->getPatch() != nullptr : false;

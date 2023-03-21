@@ -114,6 +114,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 bool ticked = settingsTree.hasProperty("show_palettes") ? static_cast<bool>(settingsTree.getProperty("show_palettes")) : false;
                 settingsTree.setProperty("show_palettes", !ticked, nullptr);
                 editor->resized();
+                break;
             }
             case MainMenu::MenuItem::AutoConnect: {
                 bool ticked = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;

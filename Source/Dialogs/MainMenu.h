@@ -318,8 +318,8 @@ public:
         CloseAll,
         CompiledMode,
         Compile,
-        AutoConnect,
         EnablePalettes,
+        AutoConnect,
         Settings,
         About
     };
