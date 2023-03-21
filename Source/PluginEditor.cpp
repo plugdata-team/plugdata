@@ -1464,6 +1464,8 @@ float PluginEditor::getZoomScale()
 
 float PluginEditor::getZoomScaleForCanvas(Canvas* cnv)
 {
+    if(cnv->isPalette) return 1.0f;
+    
     return static_cast<float>(getZoomScaleValueForCanvas(cnv).getValue());
 }
 

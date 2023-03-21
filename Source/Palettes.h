@@ -438,8 +438,10 @@ public:
         patchFile.replaceWithText(patchText);
         
         patch.reset(pd->openPatch(patchFile));
-        cnv = std::make_unique<Canvas>(editor, *patch, nullptr);
+        cnv = std::make_unique<Canvas>(editor, *patch, nullptr, true);
         viewport.reset(cnv->viewport);
+        
+        cnv->paletteDragMode.referTo(dragModeButton.getToggleStateValue());
         
         viewport->setScrollBarsShown(true, false, true, false);
         

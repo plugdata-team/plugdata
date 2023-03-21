@@ -29,11 +29,12 @@ extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
 
-Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
+Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool palette)
     : editor(parent)
     , pd(parent->pd)
     , patch(p)
     , pathUpdater(new ConnectionPathUpdater(this))
+    , isPalette(palette)
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
