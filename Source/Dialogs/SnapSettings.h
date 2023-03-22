@@ -49,9 +49,9 @@ public:
 
     enum SnapItem
     {
-        Grid = 0,
-        Edges,
-        Centers
+        Edges = 0,
+        Centers,
+        Grid,
     };
     
     enum SnapBitMask
