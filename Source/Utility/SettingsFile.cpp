@@ -251,12 +251,12 @@ void SettingsFile::initialiseThemesTree()
 
 void SettingsFile::initialiseOverlayTree()
 {
-    std::map<String, Array<Overlay>> defaults =
+    std::map<String, int> defaults =
     {
-        {"edit", {Origin, ActivationState}},
-        {"lock", {}},
-        {"run",  {}},
-        {"alt", {Origin, Border, ActivationState, Index, Coordinate, Order, Direction}}
+        { "edit", Origin | ActivationState },
+        { "lock", None },
+        { "run",  None },
+        { "alt", Origin | Border | ActivationState | Index | Coordinate | Order | Direction }
     };
     
     auto overlayTree = settingsTree.getChildWithName("Overlays");
@@ -266,11 +266,7 @@ void SettingsFile::initialiseOverlayTree()
         
         for(auto& [name, settings] : defaults)
         {
-            for(auto& type : std::vector<Overlay>{Origin, Border, ActivationState, Index, Coordinate, Order, Direction})
-            {
-                int oldProperty = overlayTree.getProperty(name);
-                overlayTree.setProperty(name, oldProperty | (type * settings.contains(type)), nullptr);
-            }
+            overlayTree.setProperty(name, settings, nullptr);
         }
         
         settingsTree.appendChild(overlayTree, nullptr);

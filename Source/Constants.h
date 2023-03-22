@@ -535,6 +535,7 @@ enum ParameterCategory {
 
 enum Overlay
 {
+    None = 0,
     Origin = 1,
     Border = 2,
     Index = 4,
