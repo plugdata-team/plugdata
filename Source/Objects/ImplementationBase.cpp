@@ -142,6 +142,7 @@ void ImplementationBase::openSubpatch(std::unique_ptr<pd::Patch>& subpatch)
     }
 }
 
+/*
 bool ImplementationBase::objectStillExists(t_glist* patch)
 {
     pd->setThis();
@@ -169,7 +170,7 @@ bool ImplementationBase::objectStillExists(t_glist* patch)
     }
     
     return false;
-}
+} */
 
 void ImplementationBase::closeOpenedSubpatchers()
 {

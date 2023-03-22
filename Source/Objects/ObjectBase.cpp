@@ -227,24 +227,7 @@ bool ObjectBase::click()
 {
     pd->setThis();
     
-    const t_class* c = static_cast<t_gobj*>(ptr)->g_pd;
-    
-    t_methodentry *m, *mlist;
-    int i;
-    
-#ifdef PDINSTANCE
-    mlist = c->c_methods[libpd_this_instance()->pd_instanceno];
-#else
-    mlist = c->c_methods;
-#endif
-    for (i = c->c_nmethod, m = mlist; i--; m++) {
-        if (m->me_name == gensym("click") && m->me_arg[0] == '\0') {
-            pd->enqueueDirectMessages(ptr, "click", {});
-            return true;
-        }
-    }
-    
-    return false;
+    return libpd_has_click_function(static_cast<t_object*>(ptr));
 }
 
 void ObjectBase::openSubpatch()

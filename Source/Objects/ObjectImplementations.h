@@ -415,6 +415,7 @@ class CanvasMouseObject final : public ImplementationBase, public MouseListener,
     };
     
     
+    std::atomic<bool> zero;
     Point<int> lastPosition;
     Point<int> zeroPosition;
     Component::SafePointer<Canvas> cnv;
@@ -439,6 +440,12 @@ public:
     }
     
     void update() override {
+
+        if(cnv)
+        {
+            cnv->removeMouseListener(this);
+        }
+        
         char* text;
         int size;
         
@@ -485,25 +492,25 @@ public:
         if(mouse->x_pos){
             pos -= Point<int>(x->gl_obj.te_xpix, x->gl_obj.te_ypix);
         }
-        
-        pos -= zeroPosition;
-        
+
         return positionChanged;
     }
     
     void mouseDown(MouseEvent const& e) override
     {
-        if(!objectStillExists(cnv->patch.getPointer())) return;
-        
         if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
             return;
         
         Point<int> pos;
         getMousePos(e, pos);
         
+        pos -= zeroPosition;
+        
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
         
         outlet_float(mouse->x_obj.ob_outlet, 1.0);
+        
+        std::cout << "down!" << std::endl;
     }
     
     void mouseUp(MouseEvent const& e) override
@@ -513,20 +520,35 @@ public:
         
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
         outlet_float(mouse->x_obj.ob_outlet, 0.0f);
+        
+        std::cout << "up!" << std::endl;
     }
     
     void mouseMove(MouseEvent const& e) override
     {
         if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
             return;
-        
+
         Point<int> pos;
-        if(getMousePos(e, pos))
+        bool positionChanged = getMousePos(e, pos);
+        
+        if(zero)
+        {
+            zeroPosition = pos;
+            zero = false;
+            std::cout << "apply zero!" << std::endl;
+        }
+        
+        pos -= zeroPosition;
+        
+        if(positionChanged)
         {
             auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
             
             outlet_float(mouse->x_outlet_y, (float)pos.y);
             outlet_float(mouse->x_outlet_x, (float)pos.x);
+            
+            std::cout << "move!" << std::endl;
         }
     }
     
@@ -538,24 +560,11 @@ public:
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override
     {
         if(!cnv) return;
-        
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
-        
-        bool isZeroMessage = symbol == "zero";
-        if(isZeroMessage) {
-            
-            // TODO: make this safer!!
-            MessageManager::callAsync([this]() {
-                zeroPosition = cnv->getMouseXYRelative() - cnv->canvasOrigin;
-            
-                auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
-                if(mouse->x_pos){
-                    auto* x = mouse->x_canvas;
-                    zeroPosition -= Point<int>(x->gl_obj.te_xpix, x->gl_obj.te_ypix);
-                }
-            });
+
+        if(symbol == "zero") {
+            zero = true;
+            std::cout << "zero!" << std::endl;
         }
-        
     }
 };
 
@@ -726,8 +735,6 @@ public:
 
     void timerCallback() override
     {
-        if(!objectStillExists(canvas)) return;
-        
         if (lastPosition != mouseSource.getScreenPosition()) {
             
             auto pos = mouseSource.getScreenPosition();
