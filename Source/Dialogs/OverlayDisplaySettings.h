@@ -9,17 +9,6 @@ class OverlayDisplaySettings : public Component
 {
 public:
     
-    enum OverlayGroups
-    {
-        Origin = 1,
-        Border = 2,
-        Index = 4,
-        Coordinate = 8,
-        ActivationState = 16,
-        Order = 32,
-        Direction = 64
-    };
-    
     class OverlaySelector : public Component, public Button::Listener
     {
     private:
@@ -38,9 +27,9 @@ public:
         String settingName;
         String toolTip;
         ValueTree overlayState;
-        OverlayGroups group;
+        Overlay group;
     public:
-        OverlaySelector(ValueTree settings, OverlayGroups groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
+        OverlaySelector(ValueTree settings, Overlay groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
         : groupName(nameOfGroup)
         , settingName(nameOfSetting)
         , toolTip(toolTipString)
@@ -132,27 +121,6 @@ public:
         
         auto overlayTree = settingsTree.getChildWithName("Overlays");
         
-        if(!overlayTree.isValid()) {
-            overlayTree = ValueTree("Overlays");
-
-            for(auto& [name, settings] : defaults)
-            {
-                for(auto& [type, num] : std::vector<std::pair<String, OverlayGroups>>
-                    {{"origin", Origin},
-                    {"border", Border},
-                    {"activation_state", ActivationState},
-                    {"index", Index},
-                    {"coordinate", Coordinate},
-                    {"order", Order},
-                    {"direction", Direction}})
-                {
-                    int oldProperty = overlayTree.getProperty(name);
-                    overlayTree.setProperty(name, oldProperty | (num * settings.contains(type)), nullptr);
-                }
-            }
-
-            settingsTree.appendChild(overlayTree, nullptr);
-        }
 
         canvasLabel.setText("Canvas", dontSendNotification);
         addAndMakeVisible(canvasLabel);
@@ -235,15 +203,6 @@ private:
         RunDisplay,
         AltDisplay
     };
-    
-    std::map<String, StringArray> defaults =
-    {
-        {"edit", {"origin", "activation_state"}},
-        {"lock", {}},
-        {"run",  {}},
-        {"alt", {"origin", "border", "activation_state", "index", "coordinate", "order", "direction"}}
-    };
-
 
     OwnedArray<OverlayDisplaySettings::OverlaySelector> buttonGroups;
 

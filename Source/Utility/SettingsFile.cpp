@@ -63,6 +63,7 @@ SettingsFile* SettingsFile::initialise()
 
     initialisePathsTree();
     initialiseThemesTree();
+    initialiseOverlayTree();
     
     Desktop::getInstance().setGlobalScaleFactor(getProperty<float>("global_scale"));
 
@@ -245,6 +246,34 @@ void SettingsFile::initialiseThemesTree()
                 }
             }
         }
+    }
+}
+
+void SettingsFile::initialiseOverlayTree()
+{
+    std::map<String, Array<Overlay>> defaults =
+    {
+        {"edit", {Origin, ActivationState}},
+        {"lock", {}},
+        {"run",  {}},
+        {"alt", {Origin, Border, ActivationState, Index, Coordinate, Order, Direction}}
+    };
+    
+    auto overlayTree = settingsTree.getChildWithName("Overlays");
+    
+    if(!overlayTree.isValid()) {
+        overlayTree = ValueTree("Overlays");
+        
+        for(auto& [name, settings] : defaults)
+        {
+            for(auto& type : std::vector<Overlay>{Origin, Border, ActivationState, Index, Coordinate, Order, Direction})
+            {
+                int oldProperty = overlayTree.getProperty(name);
+                overlayTree.setProperty(name, oldProperty | (type * settings.contains(type)), nullptr);
+            }
+        }
+        
+        settingsTree.appendChild(overlayTree, nullptr);
     }
 }
 

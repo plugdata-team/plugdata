@@ -177,14 +177,14 @@ public:
     {
         setSize(110, 155);
 
-        for (auto& buttonGroup : buttonGroups) {
-            addAndMakeVisible(buttonGroup);
-            buttonGroup.addMouseListener(this, true);
+        for (auto* group : buttonGroups) {
+            addAndMakeVisible(group);
+            group->addMouseListener(this, true);
         }
 
-        buttonGroups[SnapItem::Grid].setTooltip("Snap to canvas grid");
-        buttonGroups[SnapItem::Edges].setTooltip("Snap to edges of objects");
-        buttonGroups[SnapItem::Centers].setTooltip("Snap to centers of objects");
+        buttonGroups[SnapItem::Grid]->setTooltip("Snap to canvas grid");
+        buttonGroups[SnapItem::Edges]->setTooltip("Snap to edges of objects");
+        buttonGroups[SnapItem::Centers]->setTooltip("Snap to centers of objects");
 
         //auto* leftCanvas = editor->splitView.getLeftTabbar()->getCurrentCanvas();
         //auto* rightCanvas = editor->splitView.getRightTabbar()->getCurrentCanvas();
@@ -196,30 +196,30 @@ public:
         auto bounds = getLocalBounds();
         bounds.removeFromTop(5);
 
-        buttonGroups[SnapItem::Grid].setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
-        buttonGroups[SnapItem::Edges].setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
-        buttonGroups[SnapItem::Centers].setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
+        buttonGroups[SnapItem::Grid]->setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
+        buttonGroups[SnapItem::Edges]->setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
+        buttonGroups[SnapItem::Centers]->setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
 
         gridSlider->setBounds(bounds);
     }
 
     void mouseUp(MouseEvent const& e) override
     {
-        for (auto& button : buttonGroups) {
-            button.dragToggledInteraction = false;
+        for (auto* group : buttonGroups) {
+            group->dragToggledInteraction = false;
             //button.button.setState(Button::ButtonState::buttonNormal);
-            button.repaint();
+            group->repaint();
         }
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        for (auto& group : buttonGroups) {
-            if (group.dragToggledInteraction == false && group.getScreenBounds().contains(e.getScreenPosition()) && e.getDistanceFromDragStart() > 2) {
+        for (auto* group : buttonGroups) {
+            if (group->dragToggledInteraction == false && group->getScreenBounds().contains(e.getScreenPosition()) && e.getDistanceFromDragStart() > 2) {
                 //group.button.setState(Button::ButtonState::buttonOver);
-                group.dragToggledInteraction = true;
-                group.button.setToggleState(mouseInteraction, dontSendNotification);
-                group.buttonClicked(&group.button);
+                group->dragToggledInteraction = true;
+                group->button.setToggleState(mouseInteraction, dontSendNotification);
+                group->buttonClicked(&group->button);
             }
         }
     }
@@ -252,10 +252,10 @@ private:
 
     std::unique_ptr<GridSizeSlider> gridSlider = std::make_unique<GridSizeSlider>();
 
-    SnapSettings::SnapSelector buttonGroups[3] = {
-        SnapSelector(this, Icons::SnapEdges, "Edges", SnapBitMask::EdgesBit),
-        SnapSelector(this, Icons::SnapCenters, "Centers", SnapBitMask::CentersBit),
-        SnapSelector(this, Icons::Grid, "Grid", SnapBitMask::GridBit)
+    OwnedArray<SnapSettings::SnapSelector> buttonGroups = {
+        new SnapSelector(this, Icons::SnapEdges, "Edges", SnapBitMask::EdgesBit),
+        new SnapSelector(this, Icons::SnapCenters, "Centers", SnapBitMask::CentersBit),
+        new SnapSelector(this, Icons::Grid, "Grid", SnapBitMask::GridBit)
     };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SnapSettings)

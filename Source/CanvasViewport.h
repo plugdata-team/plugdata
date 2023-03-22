@@ -18,7 +18,7 @@
 class CanvasViewport : public Viewport
     , public AsyncUpdater {
         
-    inline static const int infiniteCanvasMargin = 128;
+    inline static const int infiniteCanvasMargin = 32;
         
     class MousePanner : public MouseListener {
     public:

@@ -108,7 +108,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
     }
 
     locked.addListener(this);
-
+    
     editor->addModifierKeyListener(this);
     Desktop::getInstance().addFocusChangeListener(this);
 }
@@ -138,6 +138,7 @@ void Canvas::propertyChanged(String name, var value)
         case hash("lock"):
         case hash("run"):
         case hash("alt"):
+        case hash("alt_mode"):
         {
             updateOverlays();
             break;
@@ -151,6 +152,8 @@ void Canvas::updateOverlays()
     
     auto overlaysTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays");
     
+    auto altModeEnabled = overlaysTree.getProperty("alt_mode");
+    
     if(locked.getValue() || commandLocked.getValue())
     {
         overlayState = overlaysTree.getProperty("lock");
@@ -159,8 +162,9 @@ void Canvas::updateOverlays()
     {
         overlayState = overlaysTree.getProperty("run");
     }
-    else if(ModifierKeys::getCurrentModifiers().isAltDown())
+    else if(altModeEnabled)
     {
+        
         overlayState = overlaysTree.getProperty("alt");
     }
     else
@@ -182,11 +186,6 @@ void Canvas::updateOverlays()
     }
     
     repaint();
-}
-
-bool Canvas::isOverlayActive(Overlay overlay)
-{
-    
 }
 
 void Canvas::recreateViewport()
@@ -521,7 +520,7 @@ void Canvas::middleMouseChanged(bool isHeld)
 
 void Canvas::altKeyChanged(bool isHeld)
 {
-    updateOverlays();
+    SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", isHeld, nullptr);
 }
 
 void Canvas::mouseDown(MouseEvent const& e)

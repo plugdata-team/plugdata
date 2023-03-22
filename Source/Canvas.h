@@ -47,17 +47,6 @@ class Canvas : public Component
     , public pd::MessageListener
     , public AsyncUpdater {
 public:
-        
-    enum Overlay
-    {
-        Origin = 1,
-        Border = 2,
-        Index = 4,
-        Coordinate = 8,
-        ActivationState = 16,
-        Order = 32,
-        Direction = 64
-    };
     
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr, bool isPalette = false);
 
@@ -84,7 +73,6 @@ public:
     void propertyChanged(String name, var value) override;
         
     void updateOverlays();
-    bool isOverlayActive(Overlay overlay);
 
     void synchroniseSplitCanvas();
     void synchronise();
@@ -181,6 +169,7 @@ public:
     Value presentationMode;
     Value showDirection;
     Value paletteDragMode;
+    Value altMode;
 
     bool showOrigin = false;
     bool showBorder = false;

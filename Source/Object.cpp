@@ -1196,7 +1196,7 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
 void Object::updateOverlays(int overlay)
 {
     bool indexWasShown = indexShown;
-    indexShown = overlay & Canvas::Overlay::Index;
+    indexShown = overlay & Overlay::Index;
     
     if (indexWasShown != indexShown) {
         

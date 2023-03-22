@@ -532,6 +532,18 @@ enum ParameterCategory {
     cExtra
 };
 
+
+enum Overlay
+{
+    Origin = 1,
+    Border = 2,
+    Index = 4,
+    Coordinate = 8,
+    ActivationState = 16,
+    Order = 32,
+    Direction = 64
+};
+
 using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>; // name, type and pointer to value, list of items only for combobox and bool
 
 using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function

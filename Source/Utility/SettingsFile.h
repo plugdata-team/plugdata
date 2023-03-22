@@ -36,12 +36,13 @@ public:
     ValueTree getTheme(String name);
     ValueTree getCurrentTheme();
 
-    void initialisePathsTree();
-
     void addToRecentlyOpened(File path);
 
+        
+    void initialisePathsTree();
     void initialiseThemesTree();
-
+    void initialiseOverlayTree();
+        
     void reloadSettings();
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;

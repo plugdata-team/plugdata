@@ -259,6 +259,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     overlayButton.setConnectedEdges(Button::ConnectedOnRight);
     overlaySettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
 
+    
+    overlayButton.getToggleStateValue().referTo(settingsFile->getValueTree().getChildWithName("Overlays").getPropertyAsValue("alt_mode", nullptr));
     overlayButton.setTooltip(String("Show overlays"));
     overlaySettingsButton.setTooltip(String("Overlay settings"));
 
