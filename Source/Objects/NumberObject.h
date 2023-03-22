@@ -32,7 +32,7 @@ public:
             editor->setBorder({ 0, 11, 3, 0 });
 
             if (editor != nullptr) {
-                editor->setInputRestrictions(0, ".-0123456789");
+                editor->setInputRestrictions(0, "e.-0123456789");
             }
         };
 
