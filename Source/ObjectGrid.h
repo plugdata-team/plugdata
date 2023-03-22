@@ -58,7 +58,8 @@ private:
     
     std::tuple<bool, bool, bool> getSnapConfiguration();
 
-    int gridEnabled;
+    int gridType;
+    bool gridEnabled;
 };
 
 /* better system to use in the future?

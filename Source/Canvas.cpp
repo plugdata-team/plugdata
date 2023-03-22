@@ -74,9 +74,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
     // init border for testing
     propertyChanged("border", SettingsFile::getInstance()->getPropertyAsValue("border"));
 
-    // TODO: use SettingsFileListener
-    gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
-
     // Add draggable border for setting graph position
     if (static_cast<bool>(isGraphChild.getValue()) && !isGraph) {
         graphArea = new GraphArea(this);

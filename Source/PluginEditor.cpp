@@ -112,6 +112,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     snapEnableButton.setButtonText(Icons::Magnet);
     snapSettingsButton.setButtonText(Icons::ThinDown);
+    
+    snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 
     snapSettings = std::make_unique<SnapSettings>();
 

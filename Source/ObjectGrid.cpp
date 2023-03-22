@@ -22,6 +22,7 @@ ObjectGrid::ObjectGrid(Component* parent)
     }
 
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+    gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
     gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");
 }
 
@@ -217,9 +218,11 @@ Point<int> ObjectGrid::performFixedResize(Object* toDrag, Point<int> dragOffset,
 }
 Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds)
 {
-    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool>{gridEnabled & 1, gridEnabled & 2, gridEnabled & 4};
+    if(!gridEnabled) return dragOffset;
+    
+    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool>{gridType & 1, gridType & 2, gridType & 4};
 
-    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridEnabled == 0) {
+    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0) {
         clear(0);
         clear(1);
         return dragOffset;
@@ -337,9 +340,11 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 
 Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 {
-    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool>{gridEnabled & 1, gridEnabled & 2, gridEnabled & 4};
+    if(!gridEnabled) return dragOffset;
+    
+    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool>{gridType & 1, gridType & 2, gridType & 4};
 
-    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridEnabled == 0) {
+    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0) {
         clear(0);
         clear(1);
         return dragOffset;
@@ -510,8 +515,12 @@ bool ObjectGrid::isAlreadySnapped(bool horizontal, Point<int>& dragOffset)
 
 Point<int> ObjectGrid::handleMouseUp(Point<int> dragOffset)
 {
+    if(!gridEnabled) return dragOffset;
+    
+    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool>{gridType & 1, gridType & 2, gridType & 4};
+    
     if (!ModifierKeys::getCurrentModifiers().isShiftDown()) {
-        if (gridEnabled == 1) {
+        if (!snapGrid && (snapEdges || snapCentres)) {
             if (snapped[1]) {
                 dragOffset.x = snappedPosition.x;
                 clear(1);
@@ -520,7 +529,7 @@ Point<int> ObjectGrid::handleMouseUp(Point<int> dragOffset)
                 dragOffset.y = snappedPosition.y;
                 clear(0);
             }
-        } else if (gridEnabled == 2 || gridEnabled == 3) {
+        } else if (snapGrid) {
             dragOffset = snappedPosition;
             if (snapped[1]) {
                 clear(1);
@@ -536,6 +545,9 @@ Point<int> ObjectGrid::handleMouseUp(Point<int> dragOffset)
 
 void ObjectGrid::propertyChanged(String name, var value)
 {
+    if (name == "grid_type") {
+        gridType = static_cast<int>(value);
+    }
     if (name == "grid_enabled") {
         gridEnabled = static_cast<int>(value);
     }

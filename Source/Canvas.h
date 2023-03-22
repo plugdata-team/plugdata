@@ -163,7 +163,6 @@ public:
     Value locked;
     Value commandLocked;
     Value presentationMode;
-    Value gridEnabled;
     Value showDirection;
     Value paletteDragMode;
 

@@ -68,7 +68,7 @@ public:
 
         Value snapValue;
 
-        String property = "grid_enabled";
+        String property = "grid_type";
 
         SnapBitMask snapBit;
 
@@ -127,11 +127,9 @@ public:
 
         void mouseExit(MouseEvent const& e) override
         {
-
-                button.setState(Button::ButtonState::buttonNormal);
-                buttonHover = false;
-                repaint();
-
+            button.setState(Button::ButtonState::buttonNormal);
+            buttonHover = false;
+            repaint();
         }
 
         void mouseDown(MouseEvent const& e) override

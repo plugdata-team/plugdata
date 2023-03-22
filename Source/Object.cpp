@@ -923,7 +923,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
         auto dragDistance = e.getOffsetFromDragStart() + canvasMoveOffset;
 
-        if (static_cast<bool>(cnv->gridEnabled.getValue()) && ds.componentBeingDragged) {
+        if (ds.componentBeingDragged) {
             dragDistance = cnv->objectGrid.performMove(this, dragDistance);
         }
 
