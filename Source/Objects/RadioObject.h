@@ -21,17 +21,21 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
-        isVertical = static_cast<t_radio*>(ptr)->x_orientation;
-
-        numItems = getMaximum();
-        max = numItems;
-        max.addListener(this);
-
+    }
+    
+    void update() override
+    {
         selected = getValue();
 
         if (selected > static_cast<int>(max.getValue())) {
             selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
         }
+        
+        isVertical = static_cast<t_radio*>(ptr)->x_orientation;
+        numItems = getMaximum();
+        max = numItems;
+        
+        iemHelper.update();
     }
 
     bool hideInlets() override
@@ -47,12 +51,6 @@ public:
     void updateLabel() override
     {
         iemHelper.updateLabel(label);
-    }
-
-    void initialiseParameters() override
-    {
-        
-        iemHelper.initialiseParameters();
     }
 
     void setPdBounds(Rectangle<int> b) override

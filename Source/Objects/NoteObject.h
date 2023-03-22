@@ -82,10 +82,6 @@ public:
     NoteObject(void* obj, Object* object)
         : ObjectBase(obj, object)
     {
-        auto* note = static_cast<t_fake_note*>(ptr);
-        textColour = Colour(note->x_red, note->x_green, note->x_blue);
-        noteEditor.setText(getNote());
-
         locked = static_cast<bool>(object->locked.getValue());
 
         addAndMakeVisible(noteEditor);
@@ -95,7 +91,7 @@ public:
         noteEditor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         noteEditor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         noteEditor.setColour(ScrollBar::thumbColourId, object->findColour(PlugDataColour::scrollbarThumbColourId));
-
+        
         noteEditor.setAlwaysOnTop(true);
         noteEditor.setMultiLine(true);
         noteEditor.setReturnKeyStartsNewLine(true);
@@ -104,7 +100,6 @@ public:
         noteEditor.setScrollToShowCursor(true);
         noteEditor.setJustification(Justification::topLeft);
         noteEditor.setBorder(border);
-        noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
         noteEditor.addMouseListener(this, true);
         noteEditor.setReadOnly(true);
 
@@ -113,7 +108,7 @@ public:
             noteEditor.setReadOnly(true);
         };
 
-        noteEditor.onTextChange = [this]() {
+        noteEditor.onTextChange = [this, object]() {
             auto* x = static_cast<t_fake_note*>(ptr);
 
             std::vector<t_atom> atoms;
@@ -134,18 +129,23 @@ public:
             binbuf_gettext(x->x_binbuf, &x->x_buf, &x->x_bufsize);
             pd->unlockAudioThread();
 
-            this->object->updateBounds();
+            object->updateBounds();
         };
     }
 
-    void initialiseParameters() override
+    void update() override
     {
         auto* note = static_cast<t_fake_note*>(ptr);
+        
+        textColour = Colour(note->x_red, note->x_green, note->x_blue);
+        noteEditor.setText(getNote());
 
         primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
         secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
         fontSize = note->x_fontsize;
 
+        noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
+        
         bold = note->x_bold;
         italic = note->x_italic;
         underline = note->x_underline;
@@ -163,17 +163,12 @@ public:
         auto receiveSym = String::fromUTF8(note->x_rcv_raw->s_name);
         receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
 
-        auto params = getParameters();
-        for (auto& [name, type, cat, value, list] : params) {
-            value->addListener(this);
-
-            // Push current parameters to pd
-            valueChanged(*value);
-        }
-
         repaint();
         
         updateFont();
+        
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
+        getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
     }
 
     void mouseDown(MouseEvent const& e) override

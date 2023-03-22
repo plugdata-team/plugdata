@@ -55,7 +55,7 @@ class AtomHelper {
 public:
     Value labelColour;
     Value labelPosition = Value(0.0f);
-    Value fontSize = Value(18.0f);
+    Value fontSize = Value(5.0f);
     Value labelText;
     Value sendSymbol;
     Value receiveSymbol;
@@ -67,6 +67,10 @@ public:
         , pd(parent->cnv->pd)
         , atom(static_cast<t_fake_gatom*>(ptr))
     {
+    }
+    
+    void update()
+    {
         labelText = getLabelText();
         labelPosition = static_cast<int>(atom->a_wherelabel + 1);
 
@@ -74,9 +78,12 @@ public:
 
         int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
         fontSize = idx + 1;
-
+        
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
+        
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
     }
 
     Rectangle<int> getPdBounds()

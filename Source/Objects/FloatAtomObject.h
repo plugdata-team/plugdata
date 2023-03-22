@@ -22,8 +22,6 @@ public:
         , atomHelper(obj, parent, this)
         , input(false)
     {
-        value = getValue();
-
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
 
@@ -44,11 +42,6 @@ public:
 
         addAndMakeVisible(input);
 
-        input.setText(input.formatNumber(value), dontSendNotification);
-
-        min = atomHelper.getMinimum();
-        max = atomHelper.getMaximum();
-
         addMouseListener(this, true);
 
         input.dragStart = [this]() {
@@ -59,12 +52,25 @@ public:
             sendFloatValue(newValue);
         };
 
-        input.setMinimum(static_cast<float>(min.getValue()));
-        input.setMaximum(static_cast<float>(max.getValue()));
-
         input.dragEnd = [this]() {
             stopEdition();
         };
+    }
+    
+    void update() override
+    {
+        value = getValue();
+        
+        min = atomHelper.getMinimum();
+        max = atomHelper.getMaximum();
+        
+        input.setMinimum(static_cast<float>(min.getValue()));
+        input.setMaximum(static_cast<float>(max.getValue()));
+        
+        input.setText(input.formatNumber(value), dontSendNotification);
+
+
+        atomHelper.update();
     }
 
     void focusGained(FocusChangeType cause) override

@@ -25,23 +25,16 @@ public:
         , pd(parent->cnv->pd)
         , iemgui(static_cast<t_iemgui*>(ptr))
     {
-
-        labelX = iemgui->x_ldx;
-        labelY = iemgui->x_ldy;
-        labelHeight = getFontHeight();
-        labelText = getExpandedLabelText();
-
-        sendSymbol = getSendSymbol();
-        receiveSymbol = getReceiveSymbol();
-
-        initialise = getInit();
     }
-
-    void initialiseParameters()
+    
+    void update()
     {
         primaryColour = Colour(getForegroundColour()).toString();
         secondaryColour = Colour(getBackgroundColour()).toString();
         labelColour = Colour(getLabelColour()).toString();
+
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
 
         gui->getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
         gui->getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
@@ -54,15 +47,16 @@ public:
 
         gui->getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
 
-        auto params = gui->getParameters();
-        for (auto& [name, type, cat, value, list] : params) {
-            value->addListener(gui);
+        labelX = iemgui->x_ldx;
+        labelY = iemgui->x_ldy;
+        labelHeight = getFontHeight();
+        labelText = getExpandedLabelText();
 
-            // Push current parameters to pd
-            // TODO: How about we don't do that tho?
-            valueChanged(*value);
-        }
+        sendSymbol = getSendSymbol();
+        receiveSymbol = getReceiveSymbol();
 
+        initialise = getInit();
+        
         gui->repaint();
     }
 

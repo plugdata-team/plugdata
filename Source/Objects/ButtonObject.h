@@ -45,20 +45,12 @@ public:
         };
     }
 
-    void initialiseParameters() override
+    void update() override
     {
         auto* button = static_cast<t_fake_button*>(ptr);
 
         primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
         secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
-
-        auto params = getParameters();
-        for (auto& [name, type, cat, value, list] : params) {
-            value->addListener(this);
-
-            // Push current parameters to pd
-            valueChanged(*value);
-        }
 
         repaint();
     }

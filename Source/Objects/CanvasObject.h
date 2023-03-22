@@ -39,9 +39,9 @@ public:
         iemHelper.receiveObjectMessage(symbol, atoms);
     }
 
-    void initialiseParameters() override
+    void update() override
     {
-        iemHelper.initialiseParameters();
+        iemHelper.update();
     }
     
     Rectangle<int> getSelectableBounds() override

@@ -18,12 +18,9 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
-        value = getValue();
-        
         onConstrainerCreate = [this](){
             constrainer->setFixedAspectRatio(1);
         };
-        
     }
 
     bool hideInlets() override
@@ -51,10 +48,12 @@ public:
         iemHelper.setPdBounds(b);
     }
 
-    void initialiseParameters() override
+    void update() override
     {
         nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
-        iemHelper.initialiseParameters();
+        iemHelper.update();
+        
+        value = getValue();
         setToggleStateFromFloat(value);
     }
 

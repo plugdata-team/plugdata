@@ -302,6 +302,11 @@ public:
 
         addAndMakeVisible(keyboard);
 
+        startTimer(150);
+    }
+        
+    void update() override
+    {
         auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
         lowC.setValue(elseKeyboard->x_low_c);
         octaves.setValue(elseKeyboard->x_octaves);
@@ -312,10 +317,10 @@ public:
 
         sendSymbol = sndSym != "empty" ? sndSym : "";
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";
-
-        startTimer(150);
-
-        MessageManager::callAsync([this, object] {
+        
+        MessageManager::callAsync([this] {
+            updateAspectRatio();
+            
             // Call async to make sure pd obj has updated
             object->updateBounds();
         });

@@ -22,11 +22,6 @@ public:
     MessboxObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        auto* messbox = static_cast<t_fake_messbox*>(ptr);
-
-        bold = messbox->x_font_weight == pd->generateSymbol("bold");
-        fontSize = messbox->x_font_size;
-
         editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         editor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
@@ -60,20 +55,15 @@ public:
         editor.setReadOnly(!isLocked);
     }
 
-    void initialiseParameters() override
+    void update() override
     {
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
 
+        bold = messbox->x_font_weight == pd->generateSymbol("bold");
+        fontSize = messbox->x_font_size;
+        
         primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
         secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
-
-        auto params = getParameters();
-        for (auto& [name, type, cat, value, list] : params) {
-            value->addListener(this);
-
-            // Push current parameters to pd
-            valueChanged(*value);
-        }
 
         repaint();
     }

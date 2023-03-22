@@ -41,6 +41,11 @@ public:
 
         input.setMinimumHorizontalScale(0.9f);
     }
+        
+    void update() override
+    {
+        atomHelper.update();
+    }
 
     void lock(bool locked) override
     {

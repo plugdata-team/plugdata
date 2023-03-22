@@ -102,7 +102,10 @@ public:
         : ObjectBase(ptr, object)
     {
         startTimerHz(25);
-
+    }
+        
+    void update() override
+    {
         auto* scope = static_cast<S*>(ptr);
         triggerMode = scope->x_trigmode + 1;
         triggerValue = scope->x_triglevel;
@@ -120,16 +123,6 @@ public:
 
         Array<var> arr = { scope->x_min, scope->x_max };
         signalRange = var(arr);
-
-        bufferSize.addListener(this);
-        samplesPerPoint.addListener(this);
-        secondaryColour.addListener(this);
-        primaryColour.addListener(this);
-        gridColour.addListener(this);
-        signalRange.addListener(this);
-        delay.addListener(this);
-        triggerMode.addListener(this);
-        triggerValue.addListener(this);
     }
 
     Colour colourFromHexArray(unsigned char* hex)

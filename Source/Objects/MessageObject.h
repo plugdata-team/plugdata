@@ -33,6 +33,11 @@ public:
     MessageObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
+        
+    }
+        
+    void update() override
+    {
         objectText = getSymbol();
     }
 

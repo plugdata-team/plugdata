@@ -18,11 +18,6 @@ public:
         , subpatch(ptr, cnv->pd, false)
     {
         isGraphChild = false;
-        hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
-
-        isGraphChild.addListener(this);
-        hideNameAndArgs.addListener(this);
-
         object->hvccMode.addListener(this);
 
         if (static_cast<bool>(object->hvccMode.getValue())) {
@@ -34,6 +29,11 @@ public:
     {
         object->hvccMode.removeListener(this);
         closeOpenedSubpatchers();
+    }
+    
+    void update() override
+    {
+        hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
     }
 
     void updateValue()

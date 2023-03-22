@@ -20,18 +20,18 @@ public:
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {
-        auto* bng = static_cast<t_bng*>(ptr);
-        bangInterrupt = bng->x_flashtime_break;
-        bangHold = bng->x_flashtime_hold;
-
         onConstrainerCreate = [this](){
             constrainer->setFixedAspectRatio(1);
         };
     }
 
-    void initialiseParameters() override
+    void update() override
     {
-        iemHelper.initialiseParameters();
+        auto* bng = static_cast<t_bng*>(ptr);
+        bangInterrupt = bng->x_flashtime_break;
+        bangHold = bng->x_flashtime_hold;
+        
+        iemHelper.update();
     }
 
     bool hideInlets() override

@@ -66,7 +66,17 @@ public:
         };
 
         addAndMakeVisible(input);
+        
+        addMouseListener(this, true);
 
+        input.valueChanged = [this](float value) { sendFloatValue(value); };
+        
+        startTimer(nextInterval);
+        repaint();
+    }
+        
+    void update() override
+    {
         input.setText(input.formatNumber(getValue()), dontSendNotification);
 
         min = getMinimum();
@@ -84,15 +94,9 @@ public:
         getLookAndFeel().setColour(Label::textColourId, fg);
         getLookAndFeel().setColour(Label::textWhenEditingColourId, fg);
         getLookAndFeel().setColour(TextEditor::textColourId, fg);
+        
+        mode = object->x_outmode;
 
-        addMouseListener(this, true);
-
-        input.valueChanged = [this](float value) { sendFloatValue(value); };
-
-        mode = static_cast<t_numbox*>(ptr)->x_outmode;
-
-        startTimer(nextInterval);
-        repaint();
     }
 
     Rectangle<int> getPdBounds() override

@@ -24,8 +24,6 @@ public:
 
         addAndMakeVisible(listLabel);
 
-        min = atomHelper.getMinimum();
-        max = atomHelper.getMaximum();
 
         listLabel.onEditorHide = [this]() {
             startEdition();
@@ -55,8 +53,15 @@ public:
 
         listLabel.setText("0 0", dontSendNotification);
         updateFromGui();
-
+    }
+    
+    void update() override
+    {
+        min = atomHelper.getMinimum();
+        max = atomHelper.getMaximum();
         updateValue();
+        
+        atomHelper.update();
     }
 
     void valueChanged(Value& value) override

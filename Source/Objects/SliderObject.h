@@ -63,36 +63,14 @@ public:
         : ObjectBase(obj, object)
         , iemHelper(obj, object, this)
     {
-        isVertical = static_cast<t_slider*>(obj)->x_orientation;
         addAndMakeVisible(slider);
-
-        auto steady = getSteadyOnClick();
-        steadyOnClick = steady;
-        slider.setSliderSnapsToMousePosition(!steady);
-
-        slider.setRangeFlipped((static_cast<t_slider*>(ptr)->x_min) > (static_cast<t_slider*>(ptr)->x_max));
-
-        min = getMinimum();
-        max = getMaximum();
-
-        value = getValue();
-
-        isLogarithmic = isLogScale();
-
+        
         slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
-
-        if (isVertical)
-            slider.setSliderStyle(Slider::LinearBarVertical);
-        else
-            slider.setSliderStyle(Slider::LinearBar);
-
-        updateRange();
 
         slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         slider.setScrollWheelEnabled(false);
         slider.getProperties().set("Style", "SliderObject");
         slider.setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
-        slider.setValue(getValue(), dontSendNotification);
 
         slider.onDragStart = [this]() {
             startEdition();
@@ -119,6 +97,38 @@ public:
             }
         };
     }
+    
+    void update() override
+    {
+        isVertical = static_cast<t_slider*>(ptr)->x_orientation;
+
+        auto steady = getSteadyOnClick();
+        steadyOnClick = steady;
+        slider.setSliderSnapsToMousePosition(!steady);
+
+        slider.setRangeFlipped((static_cast<t_slider*>(ptr)->x_min) > (static_cast<t_slider*>(ptr)->x_max));
+
+        min = getMinimum();
+        max = getMaximum();
+        
+        updateRange();
+        
+        auto currentValue = getValue();
+        value = currentValue;
+        slider.setValue(currentValue, dontSendNotification);
+        
+        isLogarithmic = isLogScale();
+        
+        if (isVertical)
+            slider.setSliderStyle(Slider::LinearBarVertical);
+        else
+            slider.setSliderStyle(Slider::LinearBar);
+
+        iemHelper.update();
+        
+        getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
+        getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
+    }
 
     bool hideInlets() override
     {
@@ -133,11 +143,6 @@ public:
     void updateLabel() override
     {
         iemHelper.updateLabel(label);
-    }
-
-    void initialiseParameters() override
-    {
-        iemHelper.initialiseParameters();
     }
 
     Rectangle<int> getPdBounds() override

@@ -19,7 +19,7 @@ public:
             constrainer->setMinimumSize(20, 20 * 2);
         };
     }
-
+        
     bool hideInlets() override
     {
         return iemHelper.hasReceiveSymbol();
@@ -45,9 +45,9 @@ public:
         return iemHelper.getParameters();
     }
 
-    void initialiseParameters() override
+    void update() override
     {
-        iemHelper.initialiseParameters();
+        iemHelper.update();
     }
 
     Rectangle<int> getPdBounds() override

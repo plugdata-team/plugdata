@@ -20,12 +20,15 @@ public:
         : ObjectBase(obj, object)
     {
         locked = static_cast<bool>(object->locked.getValue());
-
-        objectText = getText().trimEnd();
     }
 
     ~CommentObject()
     {
+    }
+        
+    void update() override
+    {
+        objectText = getText().trimEnd();
     }
 
     void paint(Graphics& g) override

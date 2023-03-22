@@ -481,18 +481,6 @@ public:
         graph.setBounds(getLocalBounds());
         addAndMakeVisible(&graph);
 
-        auto scale = array.getScale();
-        Array<var> arr = { var(scale[0]), var(scale[1]) };
-        range = var(arr);
-        size = var(static_cast<int>(graph.array.size()));
-        saveContents = array.willSaveContent();
-        name = String(array.getUnexpandedName());
-        drawMode = static_cast<int>(array.getDrawType()) + 1;
-
-        labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
-
-        updateLabel();
-
         startTimer(20);
     }
 
@@ -575,15 +563,17 @@ public:
         graph.setBounds(getLocalBounds());
     }
 
-    void initialiseParameters() override
+    void update() override
     {
-        auto params = getParameters();
-        for (auto& [name, type, cat, value, list] : params) {
-            value->addListener(this);
+        auto scale = array.getScale();
+        Array<var> arr = { var(scale[0]), var(scale[1]) };
+        range = var(arr);
+        size = var(static_cast<int>(graph.array.size()));
+        saveContents = array.willSaveContent();
+        name = String(array.getUnexpandedName());
+        drawMode = static_cast<int>(array.getDrawType()) + 1;
 
-            // Push current parameters to pd
-            valueChanged(*value);
-        }
+        labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
     }
 
     void updateSettings()

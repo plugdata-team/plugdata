@@ -71,6 +71,10 @@ public:
     CycloneCommentObject(void* obj, Object* object)
         : ObjectBase(obj, object)
     {
+    }
+    
+    void update() override
+    {
         auto* comment = static_cast<t_fake_comment*>(ptr);
         textColour = Colour(comment->x_red, comment->x_green, comment->x_blue);
     }

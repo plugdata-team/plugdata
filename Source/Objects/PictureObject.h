@@ -84,7 +84,7 @@ public:
         }
     }
     
-    void initialiseParameters() override
+    void update() override
     {
         auto* pic = static_cast<t_fake_pic*>(ptr);
         
@@ -98,14 +98,6 @@ public:
         sendSymbol = pic->x_snd_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_snd_raw->s_name);
         receiveSymbol = pic->x_rcv_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_rcv_raw->s_name);
         
-        auto params = getParameters();
-        for (auto& [name, type, cat, value, list] : params) {
-            value->addListener(this);
-
-            // Push current parameters to pd
-            valueChanged(*value);
-        }
-
         repaint();
     }
     

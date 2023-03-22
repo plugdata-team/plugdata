@@ -25,8 +25,6 @@ public:
         , input(false)
 
     {
-        value = getValue();
-
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
@@ -43,17 +41,10 @@ public:
             stopEdition();
         };
 
-        value = getValue();
-
         input.setBorderSize({ 1, 15, 1, 1 });
 
         addAndMakeVisible(input);
-
-        input.setText(input.formatNumber(value), dontSendNotification);
-
-        min = getMinimum();
-        max = getMaximum();
-
+        
         addMouseListener(this, true);
 
         input.dragStart = [this]() {
@@ -64,17 +55,23 @@ public:
             sendFloatValue(newValue);
         };
 
-        input.setMinimum(static_cast<float>(min.getValue()));
-        input.setMaximum(static_cast<float>(max.getValue()));
-
         input.dragEnd = [this]() {
             stopEdition();
         };
     }
 
-    void initialiseParameters() override
+    void update() override
     {
-        iemHelper.initialiseParameters();
+        value = getValue();
+        input.setText(input.formatNumber(value), dontSendNotification);
+
+        min = getMinimum();
+        max = getMaximum();
+
+        input.setMinimum(static_cast<float>(min.getValue()));
+        input.setMaximum(static_cast<float>(max.getValue()));
+
+        iemHelper.update();
     }
 
     bool hideInlets() override

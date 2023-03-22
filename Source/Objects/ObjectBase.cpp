@@ -103,11 +103,13 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 
     MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this) {
+            _this->updateLabel();
             _this->constrainer = _this->createConstrainer();
             _this->onConstrainerCreate();
             
-            _this->initialiseParameters();
-            _this->updateLabel();
+            for (auto& [name, type, cat, value, list] : _this->getParameters()) {
+                value->addListener(_this.getComponent());
+            }
         }
     });
 }
@@ -303,22 +305,6 @@ void ObjectBase::paint(Graphics& g)
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-}
-
-void ObjectBase::initialiseParameters()
-{
-    getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
-    getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
-
-    auto params = getParameters();
-    for (auto& [name, type, cat, value, list] : params) {
-        value->addListener(this);
-
-        // Push current parameters to pd
-        valueChanged(*value);
-    }
-
-    repaint();
 }
 
 ObjectParameters ObjectBase::getParameters()

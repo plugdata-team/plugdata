@@ -87,11 +87,9 @@ public:
     virtual void updateDrawables() {};
 
     // Called after creation, to initialise parameter listeners
-    virtual void initialiseParameters();
+    virtual void update() {};
 
-    virtual void tabChanged() {
-        initialiseParameters();
-    };
+    virtual void tabChanged() {};
 
     virtual bool canOpenFromMenu();
     virtual void openFromMenu();

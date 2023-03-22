@@ -22,19 +22,18 @@ public:
         : ObjectBase(obj, object)
         , subpatch(ptr, cnv->pd, false)
     {
+        resized();
+    }
+    
+    void update() override
+    {
         auto* glist = static_cast<t_canvas*>(ptr);
         isGraphChild = true;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
         xRange = Array<var> { var(glist->gl_x1), var(glist->gl_x2) };
         yRange = Array<var> { var(glist->gl_y2), var(glist->gl_y1) };
-
-        isGraphChild.addListener(this);
-        hideNameAndArgs.addListener(this);
-        xRange.addListener(this);
-        yRange.addListener(this);
-
+        
         updateCanvas();
-        resized();
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

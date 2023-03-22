@@ -58,7 +58,12 @@ public:
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
+    }
+    
+    void update() override
+    {
         auto* function = static_cast<t_fake_function*>(ptr);
+        
         secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
         primaryColour = colourFromHexArray(function->x_fgcolor).toString();
 
@@ -70,6 +75,8 @@ public:
 
         sendSymbol = sndSym != "empty" ? sndSym : "";
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";
+        
+        getPointsFromFunction();
     }
 
     void setPdBounds(Rectangle<int> b) override

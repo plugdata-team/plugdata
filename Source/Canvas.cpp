@@ -328,6 +328,7 @@ void Canvas::performSynchronise()
             object->toFront(false);
             if (object->gui && object->gui->getLabel())
                 object->gui->getLabel()->toFront(false);
+            if(object->gui) object->gui->update();
         }
     }
 
