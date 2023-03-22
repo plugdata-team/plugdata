@@ -137,14 +137,18 @@ public:
 
             for(auto& [name, settings] : defaults)
             {
-                ValueTree subtree(name);
-                
-                for(auto& type : StringArray{"origin", "border", "activation_state", "index", "coordinate", "order", "direction"})
+                for(auto& [type, num] : std::vector<std::pair<String, OverlayGroups>>
+                    {{"origin", Origin},
+                    {"border", Border},
+                    {"activation_state", ActivationState},
+                    {"index", Index},
+                    {"coordinate", Coordinate},
+                    {"order", Order},
+                    {"direction", Direction}})
                 {
-                    subtree.setProperty(type, settings.contains(type), nullptr);
+                    int oldProperty = overlayTree.getProperty(name);
+                    overlayTree.setProperty(name, oldProperty | (num * settings.contains(type)), nullptr);
                 }
-                
-                overlayTree.appendChild(subtree, nullptr);
             }
 
             settingsTree.appendChild(overlayTree, nullptr);
@@ -177,26 +181,29 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds();
+        
+        const auto labelHeight = 26;
+        const auto itemHeight = 28;
+        const auto spacing = 2;
 
-        canvasLabel.setBounds(bounds.removeFromTop(28));
-        buttonGroups[0]->setBounds(bounds.removeFromTop(28));
-        buttonGroups[1]->setBounds(bounds.removeFromTop(28));
+        canvasLabel.setBounds(bounds.removeFromTop(labelHeight));
+        buttonGroups[0]->setBounds(bounds.removeFromTop(itemHeight));
+        buttonGroups[1]->setBounds(bounds.removeFromTop(itemHeight));
 
-
-        bounds.removeFromTop(5);
-        objectLabel.setBounds(bounds.removeFromTop(28));
-        buttonGroups[2]->setBounds(bounds.removeFromTop(28));
+        bounds.removeFromTop(spacing);
+        objectLabel.setBounds(bounds.removeFromTop(labelHeight));
+        buttonGroups[2]->setBounds(bounds.removeFromTop(itemHeight));
         
         // doesn't exist yet
         //buttonGroups[Coordinate].setBounds(bounds.removeFromTop(28));
         //buttonGroups[ActivationState].setBounds(bounds.removeFromTop(28));
 
-        bounds.removeFromTop(5);
-        connectionLabel.setBounds(bounds.removeFromTop(28));
+        bounds.removeFromTop(spacing);
+        connectionLabel.setBounds(bounds.removeFromTop(labelHeight));
         // doesn't exist yet
         //buttonGroups[Order].setBounds(bounds);
 
-        buttonGroups[3]->setBounds(bounds.removeFromTop(28));
+        buttonGroups[3]->setBounds(bounds.removeFromTop(itemHeight));
     }
     
     static void show(Component* parent, Rectangle<int> bounds)
@@ -232,8 +239,8 @@ private:
     std::map<String, StringArray> defaults =
     {
         {"edit", {"origin", "activation_state"}},
-        {"lock", {"origin", "activation_state"}},
-        {"run",  {"origin", "activation_state"}},
+        {"lock", {}},
+        {"run",  {}},
         {"alt", {"origin", "border", "activation_state", "index", "coordinate", "order", "direction"}}
     };
 

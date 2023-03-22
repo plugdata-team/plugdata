@@ -409,10 +409,10 @@ void PluginEditor::resized()
     presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 0, toolbarHeight, toolbarHeight);
 
     overlayButton.setBounds(presentButton.getBounds().translated(100, 0));
-    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1,0));
+    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1,0).withTrimmedRight(8));
 
-    snapEnableButton.setBounds(overlaySettingsButton.getBounds().translated(100, 0));
-    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1,0));
+    snapEnableButton.setBounds(overlayButton.getBounds().translated(120, 0));
+    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1,0).withTrimmedRight(8));
 
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
 
