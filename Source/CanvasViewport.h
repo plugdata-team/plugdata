@@ -17,6 +17,9 @@
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport
     , public AsyncUpdater {
+        
+    inline static const int infiniteCanvasMargin = 128;
+        
     class MousePanner : public MouseListener {
     public:
         MousePanner(CanvasViewport* v)
@@ -167,8 +170,10 @@ class CanvasViewport : public Viewport
             auto currentRange = getCurrentRange();
             auto totalRange = getRangeLimit();
             
-            auto thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart() + 30, totalRange.getEnd() - 30, 0, isVertical() ? getHeight() : getWidth());
-            auto thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart() + 30, totalRange.getEnd() - 30, 0, isVertical() ? getHeight() : getWidth());
+            int margin = (infiniteCanvasMargin - 2);
+            
+            auto thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart() + margin, totalRange.getEnd() - margin, 0, isVertical() ? getHeight() : getWidth());
+            auto thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart() + margin, totalRange.getEnd() - margin, 0, isVertical() ? getHeight() : getWidth());
             
             auto thumbBounds = Rectangle<int>();
             
@@ -389,7 +394,7 @@ public:
         auto newBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, (getWidth() - getScrollBarThickness()) * smallerScale, (getHeight() - getScrollBarThickness()) * smallerScale);
 
         if (SettingsFile::getInstance()->getProperty<int>("infinite_canvas")) {
-            newBounds = newBounds.getUnion(viewArea.expanded(32) * scale);
+            newBounds = newBounds.getUnion(viewArea.expanded(infiniteCanvasMargin) * scale);
         }
         for (auto* obj : cnv->objects) {
             newBounds = newBounds.getUnion(obj->getBoundsInParent().reduced(Object::margin));
