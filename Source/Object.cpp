@@ -120,6 +120,8 @@ void Object::initialise()
     cnv->paletteDragMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
+    
+    updateOverlays(cnv->getOverlays());
 }
 
 void Object::timerCallback()

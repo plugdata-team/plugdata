@@ -146,7 +146,7 @@ void Canvas::propertyChanged(String name, var value)
     }
 }
 
-void Canvas::updateOverlays()
+int Canvas::getOverlays()
 {
     int overlayState = 0;
     
@@ -171,6 +171,13 @@ void Canvas::updateOverlays()
     {
         overlayState = overlaysTree.getProperty("edit");
     }
+    
+    return overlayState;
+}
+
+void Canvas::updateOverlays()
+{
+    int overlayState = getOverlays();
     
     showBorder = overlayState & Border;
     showOrigin = overlayState & Origin;

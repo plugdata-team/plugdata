@@ -72,6 +72,7 @@ public:
         
     void propertyChanged(String name, var value) override;
         
+    int getOverlays();
     void updateOverlays();
 
     void synchroniseSplitCanvas();
