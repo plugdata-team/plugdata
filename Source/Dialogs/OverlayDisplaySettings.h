@@ -8,7 +8,19 @@
 class OverlayDisplaySettings : public Component
 {
 public:
-    class OverlaySelector : public Component, public Value::Listener, public Button::Listener
+    
+    enum OverlayGroups
+    {
+        Origin = 1,
+        Border = 2,
+        Index = 4,
+        Coordinate = 8,
+        ActivationState = 16,
+        Order = 32,
+        Direction = 64
+    };
+    
+    class OverlaySelector : public Component, public Button::Listener
     {
     private:
         
@@ -19,118 +31,95 @@ public:
             Run,
             Alt
         };
-        TextButton buttons[4] = {TextButton("Edit"), TextButton("Lock"), TextButton("Run"), TextButton("Alt")};
+        OwnedArray<TextButton> buttons {new TextButton("edit"), new TextButton("lock"), new TextButton("run"), new TextButton("alt")};
         
         Label textLabel;
         String groupName;
         String settingName;
         String toolTip;
-        Value overlayValue;
+        ValueTree overlayState;
+        OverlayGroups group;
     public:
-        OverlaySelector(Value setting, String nameOfSetting, String nameOfGroup, String toolTipString)
-        : overlayValue(setting)
-        , groupName(nameOfGroup)
+        OverlaySelector(ValueTree settings, OverlayGroups groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
+        : groupName(nameOfGroup)
         , settingName(nameOfSetting)
         , toolTip(toolTipString)
+        , overlayState(settings)
+        , group(groupType)
         {
             setSize(230, 30);
 
             auto controlVisibility = [this](String mode) {
                 if (settingName == "origin" || settingName == "border") {
                     return true;
-                } else if (mode == "Edit" || mode == "Lock" || mode == "Alt")
+                } else if (mode == "edit" || mode == "lock" || mode == "alt")
                     return true;
                 else
                     return false;
             };
 
-            for(auto& button : buttons)
+            for(auto* button : buttons)
             {
-                button.getProperties().set("Style", "SmallIcon");
+                button->getProperties().set("Style", "SmallIcon");
                 addAndMakeVisible(button);
-                button.setVisible(controlVisibility(button.getName()));
-                button.setClickingTogglesState(true);
-                button.addListener(this);
+                button->setVisible(controlVisibility(button->getName()));
+                button->addListener(this);
             }
             
-            buttons[Edit].setButtonText(Icons::Edit);
-            buttons[Lock].setButtonText(Icons::Lock);
-            buttons[Run].setButtonText(Icons::Presentation);
-            buttons[Alt].setButtonText(Icons::Eye);
+            buttons[Edit]->setButtonText(Icons::Edit);
+            buttons[Lock]->setButtonText(Icons::Lock);
+            buttons[Run]->setButtonText(Icons::Presentation);
+            buttons[Alt]->setButtonText(Icons::Eye);
 
-            buttons[Edit].setTooltip("Show " + groupName.toLowerCase() + " in edit mode");
-            buttons[Lock].setTooltip("Show " + groupName.toLowerCase() + " in run mode");
-            buttons[Run].setTooltip("Show " + groupName.toLowerCase() + " in presentation mode");
-            buttons[Alt].setTooltip("Show " + groupName.toLowerCase() + " when overlay button is active");
+            buttons[Edit]->setTooltip("Show " + groupName.toLowerCase() + " in edit mode");
+            buttons[Lock]->setTooltip("Show " + groupName.toLowerCase() + " in run mode");
+            buttons[Run]->setTooltip("Show " + groupName.toLowerCase() + " in presentation mode");
+            buttons[Alt]->setTooltip("Show " + groupName.toLowerCase() + " when overlay button is active");
 
             textLabel.setText(groupName, dontSendNotification);
             textLabel.setTooltip(toolTip);
             addAndMakeVisible(textLabel);
-
-            overlayValue = SettingsFile::getInstance()->getProperty<int>(settingName);
-            overlayValue.addListener(this);
-            valueChanged(overlayValue);
+            
+            auto editState = static_cast<int>(settings.getProperty("edit"));
+            auto lockState = static_cast<int>(settings.getProperty("lock"));
+            auto runState = static_cast<int>(settings.getProperty("run"));
+            auto altState = static_cast<int>(settings.getProperty("alt"));
+            
+            buttons[Edit]->setToggleState(static_cast<bool>(editState & group), dontSendNotification);
+            buttons[Lock]->setToggleState(static_cast<bool>(lockState & group), dontSendNotification);
+            buttons[Run]->setToggleState(static_cast<bool>(runState & group), dontSendNotification);
+            buttons[Alt]->setToggleState(static_cast<bool>(altState & group), dontSendNotification);
         }
 
         void buttonClicked(Button* button) override
         {
-            int currentBitValue = SettingsFile::getInstance()->getProperty<int>(settingName);
-            int buttonBit = 0;
             auto name = button->getName();
             
-            if (name == "Edit") {
-                buttonBit = OverlayState::EditDisplay;
-            } else if (name == "Lock") {
-                buttonBit = OverlayState::LockDisplay;
-            } else if (name == "Run") {
-                buttonBit = OverlayState::RunDisplay;
-            } else if (name == "Alt") {
-                buttonBit = OverlayState::AltDisplay;
+            int buttonBit = overlayState.getProperty(name);
+            
+            button->setToggleState(!button->getToggleState(), dontSendNotification);
+            
+            if(button->getToggleState())
+            {
+                buttonBit = buttonBit | group;
+            }
+            else {
+                buttonBit = buttonBit &~ group;
             }
             
-            if (button->getToggleState()) {
-                overlayValue = currentBitValue | buttonBit;
-            } else {
-                overlayValue = currentBitValue &~ buttonBit;
-            }
-            
-            SettingsFile::getInstance()->setProperty(settingName, overlayValue);
-        }
-        
-        void valueChanged(Value& value) override
-        {
-            if (value.refersToSameSourceAs(overlayValue)) {
-                auto state = static_cast<int>(overlayValue.getValue());
-                
-                for (auto& button : buttons) {
-                    button.setToggleState(false, dontSendNotification);
-                }
-                
-                if (state & OverlayState::EditDisplay) {
-                    buttons[Edit].setToggleState(true, dontSendNotification);
-                }
-                if (state & OverlayState::LockDisplay) {
-                    buttons[Lock].setToggleState(true, dontSendNotification);
-                }
-                if (state & OverlayState::RunDisplay) {
-                    buttons[Run].setToggleState(true, dontSendNotification);
-                }
-                if (state & OverlayState::AltDisplay) {
-                    buttons[Alt].setToggleState(true, dontSendNotification);
-                }
-            }
+            overlayState.setProperty(name, buttonBit, nullptr);
         }
 
         void resized() override
         {
             auto bounds = Rectangle<int>(0,0,30,30);
-            buttons[Edit].setBounds(bounds);
+            buttons[Edit]->setBounds(bounds);
             bounds.translate(25,0);
-            buttons[Lock].setBounds(bounds);
+            buttons[Lock]->setBounds(bounds);
             bounds.translate(25,0);
-            buttons[Run].setBounds(bounds);
+            buttons[Run]->setBounds(bounds);
             bounds.translate(25,0);
-            buttons[Alt].setBounds(bounds);
+            buttons[Alt]->setBounds(bounds);
             bounds.translate(25,0);
 
             textLabel.setBounds(bounds.withWidth(150));
@@ -139,66 +128,75 @@ public:
     
     OverlayDisplaySettings()
     {
-        setSize(170, 200);
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        
+        auto overlayTree = settingsTree.getChildWithName("Overlays");
+        
+        if(!overlayTree.isValid()) {
+            overlayTree = ValueTree("Overlays");
 
-        auto labelRect = getLocalBounds().withHeight(30);
+            for(auto& [name, settings] : defaults)
+            {
+                ValueTree subtree(name);
+                
+                for(auto& type : StringArray{"origin", "border", "activation_state", "index", "coordinate", "order", "direction"})
+                {
+                    subtree.setProperty(type, settings.contains(type), nullptr);
+                }
+                
+                overlayTree.appendChild(subtree, nullptr);
+            }
+
+            settingsTree.appendChild(overlayTree, nullptr);
+        }
 
         canvasLabel.setText("Canvas", dontSendNotification);
-        canvasLabel.setSize(200, 30);
         addAndMakeVisible(canvasLabel);
 
         objectLabel.setText("Object", dontSendNotification);
-        objectLabel.setSize(200, 30);
         addAndMakeVisible(objectLabel);
 
         connectionLabel.setText("Connection", dontSendNotification);
-        connectionLabel.setSize(200, 30);
         addAndMakeVisible(connectionLabel);
-
-        //for (auto& buttonGroup : buttonGroups) {
-        //    addAndMakeVisible(buttonGroup);
-        //}
-        addAndMakeVisible(buttonGroups[Origin]);
-        addAndMakeVisible(buttonGroups[Border]);
-        addAndMakeVisible(buttonGroups[Index]);
-        // doesn't exist yet
-        //addAndMakeVisible(buttonGroups[Coordinate]);
-        //addAndMakeVisible(buttonGroups[ActivationState]);
-        //addAndMakeVisible(buttonGroups[Order]);
-        addAndMakeVisible(buttonGroups[Direction]);
+        
+        buttonGroups.add(new OverlaySelector(overlayTree, Origin, "origin", "Origin", "0,0 point of canvas"));
+        buttonGroups.add(new OverlaySelector(overlayTree, Border, "border", "Border", "Plugin / window workspace size"));
+        buttonGroups.add(new OverlaySelector(overlayTree, Index, "index", "Index", "Object index in patch"));
+        //buttonGroups.add(new OverlaySelector(overlayTree, Coordinate, "coordinate", "Coordinate", "Object coordinate in patch"));
+        //buttonGroups.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activation state", "Data flow display"));
+        buttonGroups.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
+        //buttonGroups.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connection"));
+        
+        for (auto* buttonGroup : buttonGroups) {
+            addAndMakeVisible(buttonGroup);
+        }
+        
+        setSize(170, 200);
     }
 
     void resized() override
     {
-        int spacer = 28;
-
         auto bounds = getLocalBounds();
 
-        canvasLabel.setBounds(bounds);
-        bounds.removeFromTop(spacer);
-        buttonGroups[Origin].setBounds(bounds);
-        bounds.removeFromTop(spacer);
-        buttonGroups[Border].setBounds(bounds);
-        bounds.removeFromTop(spacer);
+        canvasLabel.setBounds(bounds.removeFromTop(28));
+        buttonGroups[0]->setBounds(bounds.removeFromTop(28));
+        buttonGroups[1]->setBounds(bounds.removeFromTop(28));
 
-        objectLabel.setBounds(bounds);
-        bounds.removeFromTop(spacer);
-        buttonGroups[Index].setBounds(bounds);
-        bounds.removeFromTop(spacer);
-        // doesn't exist yet
-        //buttonGroups[Coordinate].setBounds(bounds);
-        //bounds.removeFromTop(spacer);
-        // doesn't exist yet
-        //buttonGroups[ActivationState].setBounds(bounds);
-        //bounds.removeFromTop(spacer);
 
-        connectionLabel.setBounds(bounds);
-        bounds.removeFromTop(spacer);
+        bounds.removeFromTop(5);
+        objectLabel.setBounds(bounds.removeFromTop(28));
+        buttonGroups[2]->setBounds(bounds.removeFromTop(28));
+        
+        // doesn't exist yet
+        //buttonGroups[Coordinate].setBounds(bounds.removeFromTop(28));
+        //buttonGroups[ActivationState].setBounds(bounds.removeFromTop(28));
+
+        bounds.removeFromTop(5);
+        connectionLabel.setBounds(bounds.removeFromTop(28));
         // doesn't exist yet
         //buttonGroups[Order].setBounds(bounds);
-        //bounds.removeFromTop(spacer);
-        // doesn't exist yet
-        buttonGroups[Direction].setBounds(bounds);
+
+        buttonGroups[3]->setBounds(bounds.removeFromTop(28));
     }
     
     static void show(Component* parent, Rectangle<int> bounds)
@@ -217,41 +215,30 @@ public:
         isShowing = false;
     }
 
-    Value originValue, borderValue, indexValue, coordinateValue, activationValue, orderValue, directionValue;
-
 private:
+    
     static inline bool isShowing = false;
 
     Label canvasLabel, objectLabel, connectionLabel;
     
     enum OverlayState {
         AllOff = 0,
-        EditDisplay = 1,
-        LockDisplay = 2,
-        RunDisplay = 4,
-        AltDisplay = 8
+        EditDisplay,
+        LockDisplay,
+        RunDisplay,
+        AltDisplay
     };
-
-    enum OverlayGroups
+    
+    std::map<String, StringArray> defaults =
     {
-        Origin = 0,
-        Border,
-        Index,
-        Coordinate,
-        ActivationState,
-        Order,
-        Direction
+        {"edit", {"origin", "activation_state"}},
+        {"lock", {"origin", "activation_state"}},
+        {"run",  {"origin", "activation_state"}},
+        {"alt", {"origin", "border", "activation_state", "index", "coordinate", "order", "direction"}}
     };
 
-    OverlayDisplaySettings::OverlaySelector buttonGroups[7] = {
-        OverlaySelector(originValue, "origin", "Origin", "0,0 point of canvas"),
-        OverlaySelector(borderValue, "border", "Border", "Plugin / window workspace size"),
-        OverlaySelector(indexValue, "index", "Index", "Object index in patch"),
-        OverlaySelector(coordinateValue, "coordinate", "Coordinate", "Object coordinate in patch"),
-        OverlaySelector(activationValue, "activation_state", "Activation state", "Data flow display"),
-        OverlaySelector(orderValue, "order", "Order", "Trigger order of multiple outlets"),
-        OverlaySelector(directionValue, "direction", "Direction", "Direction of connection")
-    };
+
+    OwnedArray<OverlayDisplaySettings::OverlaySelector> buttonGroups;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OverlayDisplaySettings)
 };

@@ -81,6 +81,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
         graphArea->setAlwaysOnTop(true);
     }
 
+    updateOverlays();
+    
     setSize(600, 400);
 
     // Add lasso component
@@ -125,13 +127,66 @@ Canvas::~Canvas()
 void Canvas::propertyChanged(String name, var value)
 {
     switch (hash(name)) {
-    case hash("grid_size"):
-        repaint();
-        break;
-    case hash("border"):
-        showBorder = static_cast<int>(value);
-        repaint();
+        case hash("grid_size"):
+            repaint();
+            break;
+        case hash("border"):
+            showBorder = static_cast<int>(value);
+            repaint();
+            break;
+        case hash("edit"):
+        case hash("lock"):
+        case hash("run"):
+        case hash("alt"):
+        {
+            updateOverlays();
+            break;
+        }
     }
+}
+
+void Canvas::updateOverlays()
+{
+    int overlayState = 0;
+    
+    auto overlaysTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays");
+    
+    if(locked.getValue() || commandLocked.getValue())
+    {
+        overlayState = overlaysTree.getProperty("lock");
+    }
+    else if(presentationMode.getValue())
+    {
+        overlayState = overlaysTree.getProperty("run");
+    }
+    else if(ModifierKeys::getCurrentModifiers().isAltDown())
+    {
+        overlayState = overlaysTree.getProperty("alt");
+    }
+    else
+    {
+        overlayState = overlaysTree.getProperty("edit");
+    }
+    
+    showBorder = overlayState & Border;
+    showOrigin = overlayState & Origin;
+    
+    for(auto* object : objects)
+    {
+        object->updateOverlays(overlayState);
+    }
+    
+    for(auto* connection : connections)
+    {
+        //connection->updateOverlays(overlayState);
+    }
+    
+    repaint();
+}
+
+bool Canvas::isOverlayActive(Overlay overlay)
+{
+    
 }
 
 void Canvas::recreateViewport()
@@ -165,56 +220,73 @@ void Canvas::lookAndFeelChanged()
 
 void Canvas::paint(Graphics& g)
 {
-    if (!isGraph) {
-        g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-    }
-    
-    if (locked == var(false) && !isGraph) {
+    if (isGraph) return;
         
-        g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
-        auto clipBounds = g.getClipBounds();
+    g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+    
+    g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
+    auto clipBounds = g.getClipBounds();
 
-        // draw patch window dashed outline
-        auto patchWidthCanvas = canvasOrigin.x + static_cast<int>(patchWidth.getValue());
-        auto patchHeightCanvas = canvasOrigin.y + static_cast<int>(patchHeight.getValue());
+    // draw patch window dashed outline
+    auto patchWidthCanvas = canvasOrigin.x + static_cast<int>(patchWidth.getValue());
+    auto patchHeightCanvas = canvasOrigin.y + static_cast<int>(patchHeight.getValue());
 
-        // draw patch window dashed outline
-        if (showBorder) {
-            g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-            auto verticalExtentLeft = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, patchHeightCanvas);
-            auto horizontalExtentTop = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, patchWidthCanvas, canvasOrigin.y - 0.5f);
-            float dash[2] = { 5.0f, 5.0f };
-
-            g.drawDashedLine(verticalExtentLeft, dash, 2, 1.0f);
-            verticalExtentLeft.applyTransform(AffineTransform::translation(Point<int>(static_cast<int>(patchWidth.getValue()), 0)));
-            g.drawDashedLine(verticalExtentLeft, dash, 2, 1.0f);
-            g.drawDashedLine(horizontalExtentTop, dash, 2, 1.0f);
-            horizontalExtentTop.applyTransform(AffineTransform::translation(Point<int>(0, static_cast<int>(patchHeight.getValue()))));
-            g.drawDashedLine(horizontalExtentTop, dash, 2, 1.0f);
-        }
-
-        auto startX = (canvasOrigin.x % objectGrid.gridSize);
-        startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
-
-        auto startY = (canvasOrigin.y % objectGrid.gridSize);
-        startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize);
-
-        g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-
-        for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
-            for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
-                
-                // Don't draw over origin line
-                if (showBorder) {
-                    if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= patchHeightCanvas) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidthCanvas))
-                        continue;
-                }
-                g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
-            }
-        }
+    /*
+    ┌────────┐
+    │a      b│
+    │        │
+    │        │
+    │d      c│
+    └────────┘
+    */
+    
+    if(!showBorder)
+    {
+        patchHeightCanvas = getHeight();
+        patchWidthCanvas = getWidth();
     }
     
-   
+    auto pointA = Point<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f);
+    auto pointB = Point<float>(patchWidthCanvas, canvasOrigin.y - 0.5f);
+    auto pointC = Point<float>(patchWidthCanvas, patchHeightCanvas);
+    auto pointD = Point<float>(canvasOrigin.x - 0.5f, patchHeightCanvas);
+
+    // arrange line points so that dashes appear to grow from origin and bottom right
+    auto extentLeft = Line<float>(pointA, pointD);
+    auto extentTop = Line<float>(pointA, pointB);
+    auto extentRight = Line<float>(pointC, pointB);
+    auto extentBottom = Line<float>(pointC, pointD);
+
+    float dash[2] = { 5.0f, 5.0f };
+    g.setColour(findColour(PlugDataColour::canvasDotsColourId));
+    if(showOrigin || showBorder) {
+        g.drawDashedLine(extentLeft, dash, 2, 1.0f);
+        g.drawDashedLine(extentTop, dash, 2, 1.0f);
+    }
+    if(showBorder) {
+        g.drawDashedLine(extentRight, dash, 2, 1.0f);
+        g.drawDashedLine(extentBottom, dash, 2, 1.0f);
+    }
+
+    auto startX = (canvasOrigin.x % objectGrid.gridSize);
+    startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
+
+    auto startY = (canvasOrigin.y % objectGrid.gridSize);
+    startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize);
+
+    g.setColour(findColour(PlugDataColour::canvasDotsColourId));
+
+    for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
+        for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
+            
+            // Don't draw over origin line
+            if (showBorder) {
+                if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= patchHeightCanvas) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidthCanvas))
+                    continue;
+            }
+            g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
+        }
+    }
 }
 
 TabComponent* Canvas::getTabbar()
@@ -445,6 +517,11 @@ void Canvas::spaceKeyChanged(bool isHeld)
 void Canvas::middleMouseChanged(bool isHeld)
 {
     checkPanDragMode();
+}
+
+void Canvas::altKeyChanged(bool isHeld)
+{
+    updateOverlays();
 }
 
 void Canvas::mouseDown(MouseEvent const& e)
@@ -1181,7 +1258,9 @@ void Canvas::valueChanged(Value& v)
             grabKeyboardFocus();
 
         editor->updateCommandStatus();
+        updateOverlays();
     } else if (v.refersToSameSourceAs(commandLocked)) {
+        updateOverlays();
         repaint();
     }
     // Should only get called when the canvas isn't a real graph
@@ -1210,6 +1289,7 @@ void Canvas::valueChanged(Value& v)
             graphArea = nullptr;
         }
 
+        updateOverlays();
         repaint();
     } else if (v.refersToSameSourceAs(xRange)) {
         auto* glist = patch.getPointer();

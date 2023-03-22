@@ -77,8 +77,6 @@ Object::Object(void* object, Canvas* parent)
 
 Object::~Object()
 {
-    cnv->editor->removeModifierKeyListener(this);
-
     if (attachedToMouse) {
         stopTimer();
     }
@@ -107,7 +105,6 @@ void Object::setObjectBounds(Rectangle<int> bounds)
 void Object::initialise()
 {
     cnv->addAndMakeVisible(this);
-    cnv->editor->addModifierKeyListener(this);
 
     // Updates lock/unlock mode
     locked.referTo(cnv->locked);
@@ -1196,10 +1193,13 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
     }
 }
 
-void Object::altKeyChanged(bool isHeld)
+void Object::updateOverlays(int overlay)
 {
-    if (isHeld != indexShown) {
-        indexShown = isHeld;
+    bool indexWasShown = indexShown;
+    indexShown = overlay & Canvas::Overlay::Index;
+    
+    if (indexWasShown != indexShown) {
+        
         repaint();
     }
 }

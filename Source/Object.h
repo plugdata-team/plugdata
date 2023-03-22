@@ -19,7 +19,7 @@ class Object : public Component
     , public Value::Listener
     , public Timer
     , private TextEditor::Listener
-    , private ModifierKeyListener {
+{
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
@@ -62,7 +62,7 @@ public:
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
 
-    void altKeyChanged(bool isHeld) override;
+    void updateOverlays(int overlay);
 
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     void textEditorTextChanged(TextEditor& ed) override;
