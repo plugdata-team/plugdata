@@ -820,7 +820,7 @@ void Object::mouseUp(MouseEvent const& e)
             
             auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
 
-            distance = cnv->objectGrid.handleMouseUp(distance) + canvasMoveOffset;
+            distance = cnv->objectGrid.handleMouseUp(distance) + canvasMoveOffset - cnv->canvasOrigin;
 
             // When done dragging objects, update positions to pd
             cnv->patch.moveObjects(objects, distance.x, distance.y);
