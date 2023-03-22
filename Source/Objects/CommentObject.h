@@ -25,7 +25,7 @@ public:
     ~CommentObject()
     {
     }
-        
+
     void update() override
     {
         objectText = getText().trimEnd();
@@ -113,7 +113,7 @@ public:
             editor->grabKeyboardFocus();
 
             editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::commentTextColourId));
-            
+
             editor->onFocusLost = [this]() {
                 hideEditor();
             };
@@ -144,7 +144,7 @@ public:
     {
         return TextObjectHelper::createConstrainer(object);
     }
-        
+
     void setPdBounds(Rectangle<int> b) override
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());

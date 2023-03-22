@@ -96,7 +96,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addObjectMenuButton.setButtonText(Icons::Add);
     hideSidebarButton.setButtonText(Icons::Hide);
     pinButton.setButtonText(Icons::Pin);
-    
+
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
@@ -112,7 +112,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     snapEnableButton.setButtonText(Icons::Magnet);
     snapSettingsButton.setButtonText(Icons::ThinDown);
-    
+
     snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 
     snapSettings = std::make_unique<SnapSettings>();
@@ -120,7 +120,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     snapSettingsButton.onClick = [this]() {
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
         snapSettings->show(editor, snapSettingsButton.getBounds());
-    }; 
+    };
 
     setResizable(true, false);
 
@@ -174,9 +174,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     splitZoomScale.referTo(settingsFile->getPropertyAsValue("split_zoom"));
     splitZoomScale.addListener(this);
 
-
     palettes = std::make_unique<Palettes>(this);
-    
+
     addAndMakeVisible(*palettes);
     addAndMakeVisible(*statusbar);
 
@@ -185,7 +184,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &pinButton, &hideSidebarButton }) {
         button->getProperties().set("Style", "LargeIcon");
-        //button->setConnectedEdges(Button::Conn);
+        // button->setConnectedEdges(Button::Conn);
         addAndMakeVisible(button);
     }
 
@@ -211,37 +210,35 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addObjectMenuButton.setTooltip("Create object");
     addObjectMenuButton.onClick = [this]() { Dialogs::showObjectMenu(this, &addObjectMenuButton); };
     addAndMakeVisible(addObjectMenuButton);
-    
+
     // Edit, run and presentation mode buttons
-    for(auto* button : std::vector<TextButton*>{&editButton, &runButton, &presentButton}) {
+    for (auto* button : std::vector<TextButton*> { &editButton, &runButton, &presentButton }) {
         button->onClick = [this]() {
-            if(auto* cnv = getCurrentCanvas()) {
-                if(editButton.getToggleState()) {
+            if (auto* cnv = getCurrentCanvas()) {
+                if (editButton.getToggleState()) {
                     cnv->presentationMode.setValue(false);
                     cnv->locked.setValue(false);
-                }
-                else if(runButton.getToggleState()) {
+                } else if (runButton.getToggleState()) {
                     cnv->presentationMode.setValue(false);
                     cnv->locked.setValue(true);
-                }
-                else if(presentButton.getToggleState()) {
+                } else if (presentButton.getToggleState()) {
                     cnv->presentationMode.setValue(true);
                     cnv->locked.setValue(true);
                 }
             }
         };
-        
+
         button->getProperties().set("Style", "LargeIcon");
         button->setClickingTogglesState(true);
         button->setRadioGroupId(2200);
         addAndMakeVisible(button);
     }
     editButton.setToggleState(true, sendNotification);
-    
+
     editButton.setTooltip("Edit mode");
     runButton.setTooltip("Run mode");
     presentButton.setTooltip("Presentation mode");
-    
+
     editButton.setConnectedEdges(Button::ConnectedOnRight);
     runButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
     presentButton.setConnectedEdges(Button::ConnectedOnLeft);
@@ -259,7 +256,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     overlayButton.setConnectedEdges(Button::ConnectedOnRight);
     overlaySettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
 
-    
     overlayButton.getToggleStateValue().referTo(settingsFile->getValueTree().getChildWithName("Overlays").getPropertyAsValue("alt_mode", nullptr));
     overlayButton.setTooltip(String("Show overlays"));
     overlaySettingsButton.setTooltip(String("Overlay settings"));
@@ -279,7 +275,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     snapEnableButton.setTooltip(String("Enable snapping"));
     snapSettingsButton.setTooltip(String("Snap settings"));
-    
+
     // Hide sidebar
     hideSidebarButton.setTooltip("Hide Sidebar");
     hideSidebarButton.getProperties().set("Style", "LargeIcon");
@@ -387,10 +383,11 @@ void PluginEditor::paintOverChildren(Graphics& g)
 void PluginEditor::resized()
 {
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
-    if(!palettes->isVisible()) paletteWidth = 0;
-    
+    if (!palettes->isVisible())
+        paletteWidth = 0;
+
     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), getHeight() - toolbarHeight - (statusbar->getHeight()));
-    
+
     splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth) + 1, getHeight() - toolbarHeight - (statusbar->getHeight()));
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), getHeight() - toolbarHeight);
     statusbar->setBounds(0, getHeight() - statusbar->getHeight(), getWidth() - sidebar->getWidth(), statusbar->getHeight());
@@ -403,22 +400,20 @@ void PluginEditor::resized()
     undoButton.setBounds(80 + offset, 0, toolbarHeight, toolbarHeight);
     redoButton.setBounds(140 + offset, 0, toolbarHeight, toolbarHeight);
     addObjectMenuButton.setBounds(200 + offset, 0, toolbarHeight, toolbarHeight);
-    
+
     auto startX = (getWidth() / 2.0) - (toolbarHeight * 1.5);
-    
+
     editButton.setBounds(startX, 0, toolbarHeight, toolbarHeight);
     runButton.setBounds(startX + toolbarHeight - 1, 0, toolbarHeight, toolbarHeight);
     presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 0, toolbarHeight, toolbarHeight);
 
     overlayButton.setBounds(presentButton.getBounds().translated(100, 0));
-    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1,0).withTrimmedRight(8));
+    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1, 0).withTrimmedRight(8));
 
     snapEnableButton.setBounds(overlayButton.getBounds().translated(120, 0));
-    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1,0).withTrimmedRight(8));
+    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1, 0).withTrimmedRight(8));
 
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
-
-
 
     if (!ProjectInfo::isStandalone) {
         int const resizerSize = 18;
@@ -603,19 +598,17 @@ void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
     for (auto* patch : pd->patches) {
         patch->deselectAll();
     }
-    
+
     auto* cnv = getCurrentCanvas();
-    
-    if(cnv->patch.isSubpatch())
-    {
-        for(auto& parentCanvas : canvases)
-        {
-            if(cnv->patch.getRoot() == parentCanvas->patch.getPointer()) {
+
+    if (cnv->patch.isSubpatch()) {
+        for (auto& parentCanvas : canvases) {
+            if (cnv->patch.getRoot() == parentCanvas->patch.getPointer()) {
                 cnv = parentCanvas;
             }
         }
     }
-    
+
     if (cnv->patch.getCurrentFile().existsAsFile()) {
         cnv->patch.savePatch();
         SettingsFile::getInstance()->addToRecentlyOpened(cnv->patch.getCurrentFile());
@@ -632,13 +625,12 @@ TabComponent* PluginEditor::getActiveTabbar()
 
 Canvas* PluginEditor::getCurrentCanvas(bool canBePalette)
 {
-    if(canBePalette && palettes && palettes->hasKeyboardFocus(true))
-    {
-        if(auto* cnv = palettes->getCurrentCanvas()) {
+    if (canBePalette && palettes && palettes->hasKeyboardFocus(true)) {
+        if (auto* cnv = palettes->getCurrentCanvas()) {
             return cnv;
         }
     }
-    
+
     return getActiveTabbar()->getCurrentCanvas();
 }
 
@@ -685,7 +677,7 @@ void PluginEditor::closeTab(Canvas* cnv)
     }
 
     pd->updateObjectImplementations();
-    
+
     splitView.closeEmptySplits();
     updateCommandStatus();
 
@@ -839,13 +831,13 @@ void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
 void PluginEditor::updateCommandStatus()
 {
     pd->titleChanged();
-    
+
     if (auto* cnv = getCurrentCanvas()) {
         // Update connection style button
         bool allSegmented = true;
         bool allNotSegmented = true;
         bool hasSelection = false;
-        
+
         bool locked = static_cast<bool>(cnv->locked.getValue());
 
         bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
@@ -858,21 +850,19 @@ void PluginEditor::updateCommandStatus()
         statusbar->connectionStyleButton->setEnabled(!isDragging && hasSelection);
         statusbar->connectionPathfind->setEnabled(!isDragging && hasSelection);
         statusbar->connectionStyleButton->setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
-        
-        if(static_cast<bool>(cnv->presentationMode.getValue())) {
+
+        if (static_cast<bool>(cnv->presentationMode.getValue())) {
             presentButton.setToggleState(true, dontSendNotification);
-        }
-        else if(static_cast<bool>(cnv->locked.getValue())) {
+        } else if (static_cast<bool>(cnv->locked.getValue())) {
             runButton.setToggleState(true, dontSendNotification);
-        }
-        else {
+        } else {
             editButton.setToggleState(true, dontSendNotification);
         }
-        
+
         // TooltipWindow already uses the setVisible flag internally, we can't use that, so we use setAlpha instead
         tooltipWindow.setAlpha(!locked);
         tooltipShadow.setOwner(locked ? nullptr : &tooltipWindow);
-        
+
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr)
             return;
@@ -908,11 +898,11 @@ void PluginEditor::updateCommandStatus()
 
         addObjectMenuButton.setEnabled(!locked);
     } else {
-        
+
         editButton.setEnabled(false);
         runButton.setEnabled(false);
         presentButton.setEnabled(false);
-        
+
         statusbar->connectionStyleButton->setEnabled(false);
         statusbar->connectionPathfind->setEnabled(false);
         statusbar->centreButton->setEnabled(false);
@@ -949,7 +939,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     bool hasCanvas = false;
     bool locked = true;
     bool canConnect = false;
-    
+
     if (auto* cnv = getCurrentCanvas(true)) {
         auto selectedBoxes = cnv->getSelectionOfType<Object>();
         auto selectedConnections = cnv->getSelectionOfType<Connection>();
@@ -1267,7 +1257,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
         if (splitView.getActiveTabbar()->getNumTabs() == 0)
             return true;
-        
+
         auto deleteFunc = [this, cnv]() {
             closeTab(cnv);
         };
@@ -1448,7 +1438,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
     case ObjectIDs::NewArray: {
 
         cnv = getCurrentCanvas(true);
-        
+
         Dialogs::showArrayDialog(&openedDialog, this,
             [this](int result, String const& name, String const& size) {
                 if (result) {
@@ -1461,11 +1451,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
 
     default: {
-        
+
         cnv = getCurrentCanvas(true);
-        
+
         auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
-        
+
         auto ID = static_cast<ObjectIDs>(info.commandID);
 
         if (objectNames.count(ID)) {
@@ -1524,8 +1514,9 @@ float PluginEditor::getZoomScale()
 
 float PluginEditor::getZoomScaleForCanvas(Canvas* cnv)
 {
-    if(cnv->isPalette) return 1.0f;
-    
+    if (cnv->isPalette)
+        return 1.0f;
+
     return static_cast<float>(getZoomScaleValueForCanvas(cnv).getValue());
 }
 

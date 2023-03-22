@@ -27,7 +27,9 @@ extern "C" {
 
 // TODO: create function to check if ptr was deleted, by passing the parent patch in the contructor?
 
-ImplementationBase::ImplementationBase(void* obj, PluginProcessor* processor) : pd(processor), ptr(obj)
+ImplementationBase::ImplementationBase(void* obj, PluginProcessor* processor)
+    : pd(processor)
+    , ptr(obj)
 {
     update();
 }
@@ -38,76 +40,72 @@ ImplementationBase::~ImplementationBase()
 
 Canvas* ImplementationBase::getMainCanvas(void* patchPtr)
 {
-    if(auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor()))
-    {
-        for(auto* cnv : editor->canvases)
-        {
-            if(cnv->patch.getPointer() == patchPtr)
-            {
+    if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
+        for (auto* cnv : editor->canvases) {
+            if (cnv->patch.getPointer() == patchPtr) {
                 return cnv;
             }
         }
     }
-    
+
     return nullptr;
 }
 
-bool ImplementationBase::hasImplementation(const String& type)
+bool ImplementationBase::hasImplementation(String const& type)
 {
     switch (hash(type)) {
-        case hash("canvas"):
-        case hash("graph"):
-        case hash("key"):
-        case hash("keyname"):
-        case hash("keyup"):
-        case hash("canvas.active"):
-        case hash("canvas.mouse"):
-        case hash("canvas.vis"):
-        case hash("canvas.zoom"):
-        case hash("canvas.edit"):
-        case hash("mouse"):
-            return true;
-            
+    case hash("canvas"):
+    case hash("graph"):
+    case hash("key"):
+    case hash("keyname"):
+    case hash("keyup"):
+    case hash("canvas.active"):
+    case hash("canvas.mouse"):
+    case hash("canvas.vis"):
+    case hash("canvas.zoom"):
+    case hash("canvas.edit"):
+    case hash("mouse"):
+        return true;
 
-        default:
-            return false;
+    default:
+        return false;
     }
 }
-ImplementationBase* ImplementationBase::createImplementation(const String& type, void* ptr, PluginProcessor* pd)
+ImplementationBase* ImplementationBase::createImplementation(String const& type, void* ptr, PluginProcessor* pd)
 {
     switch (hash(type)) {
-        case hash("canvas"):
-        case hash("graph"):
-            return new SubpatchImpl(ptr, pd);
-        case hash("canvas.active"):
-            return new CanvasActiveObject(ptr, pd);
-        case hash("canvas.mouse"):
-            return new CanvasMouseObject(ptr, pd);
-        case hash("canvas.vis"):
-            return new CanvasVisibleObject(ptr, pd);
-        case hash("canvas.zoom"):
-            return new CanvasZoomObject(ptr, pd);
-        case hash("canvas.edit"):
-            return new CanvasEditObject(ptr, pd);
-        case hash("key"):
-            return new KeyObject(ptr, pd, KeyObject::Key);
-        case hash("keyname"):
-            return new KeyObject(ptr, pd, KeyObject::KeyName);
-        case hash("keyup"):
-            return new KeyObject(ptr, pd, KeyObject::KeyUp);
-        case hash("mouse"):
-            return new MouseObject(ptr, pd);
-            
-        default: break;
+    case hash("canvas"):
+    case hash("graph"):
+        return new SubpatchImpl(ptr, pd);
+    case hash("canvas.active"):
+        return new CanvasActiveObject(ptr, pd);
+    case hash("canvas.mouse"):
+        return new CanvasMouseObject(ptr, pd);
+    case hash("canvas.vis"):
+        return new CanvasVisibleObject(ptr, pd);
+    case hash("canvas.zoom"):
+        return new CanvasZoomObject(ptr, pd);
+    case hash("canvas.edit"):
+        return new CanvasEditObject(ptr, pd);
+    case hash("key"):
+        return new KeyObject(ptr, pd, KeyObject::Key);
+    case hash("keyname"):
+        return new KeyObject(ptr, pd, KeyObject::KeyName);
+    case hash("keyup"):
+        return new KeyObject(ptr, pd, KeyObject::KeyUp);
+    case hash("mouse"):
+        return new MouseObject(ptr, pd);
+
+    default:
+        break;
     }
-    
+
     return nullptr;
 }
 
 void ImplementationBase::openSubpatch(std::unique_ptr<pd::Patch>& subpatch)
 {
-    if(!subpatch)
-    {
+    if (!subpatch) {
         subpatch = std::make_unique<pd::Patch>(ptr, pd, false);
     }
 
@@ -122,12 +120,11 @@ void ImplementationBase::openSubpatch(std::unique_ptr<pd::Patch>& subpatch)
     if (abstraction) {
         path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
-    
+
     auto* newPatch = pd->patches.add(subpatch.get());
     newPatch->setCurrentFile(path);
-    
-    if(auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor()))
-    {
+
+    if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
         // Check if subpatch is already opened
         for (auto* cnv : editor->canvases) {
             if (cnv->patch == *subpatch) {
@@ -136,7 +133,7 @@ void ImplementationBase::openSubpatch(std::unique_ptr<pd::Patch>& subpatch)
                 return;
             }
         }
-        
+
         auto* newCanvas = editor->canvases.add(new Canvas(editor, *newPatch, nullptr));
         editor->addTab(newCanvas);
     }
@@ -146,10 +143,10 @@ void ImplementationBase::openSubpatch(std::unique_ptr<pd::Patch>& subpatch)
 bool ImplementationBase::objectStillExists(t_glist* patch)
 {
     pd->setThis();
-    
+
     auto* root = canvas_getrootfor(patch);
     bool canvasExists = false;
-    
+
     auto* roots = pd_getcanvaslist();
     while(roots)
     {
@@ -159,26 +156,26 @@ bool ImplementationBase::objectStillExists(t_glist* patch)
         }
         roots = roots->gl_next;
     }
-    
+
     if(!canvasExists) return false;
-    
+
     auto* object = patch->gl_list;
     while(object)
     {
         if(object == ptr) return true;
         object = object->g_next;
     }
-    
+
     return false;
 } */
 
 void ImplementationBase::closeOpenedSubpatchers()
 {
-    if(auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
-        
+    if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
+
         for (auto* canvas : editor->canvases) {
             if (canvas && canvas->patch.getPointer() == ptr) {
-                
+
                 canvas->editor->closeTab(canvas);
                 break;
             }
@@ -186,48 +183,41 @@ void ImplementationBase::closeOpenedSubpatchers()
     }
 }
 
-
-ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor) : pd(static_cast<PluginProcessor*>(processor)) {
-    
+ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor)
+    : pd(static_cast<PluginProcessor*>(processor))
+{
 }
 
 void ObjectImplementationManager::updateObjectImplementations()
 {
     Array<void*> allImplementations;
-    
+
     pd->setThis();
-    
+
     t_glist* x;
-    for (x = pd_getcanvaslist(); x; x = x->gl_next)
-    {
+    for (x = pd_getcanvaslist(); x; x = x->gl_next) {
         allImplementations.addArray(getImplementationsForPatch(x));
     }
-    
+
     // Remove unused object implementations
-    for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();)
-    {
-      auto& [ptr, implementation] = *it;
-      auto found = std::find(allImplementations.begin(), allImplementations.end(), ptr);
-    
-      if (found == allImplementations.end())
-      {
-        objectImplementations.erase(it++);
-      }
-      else
-      {
-        it++;
-      }
-    }
-    
-    for(auto* ptr : allImplementations)
-    {
-        if(!objectImplementations.count(ptr)) {
-            
-            auto const name = String::fromUTF8(libpd_get_object_class_name(ptr));
-            
-            objectImplementations[ptr] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, ptr, pd));
+    for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
+        auto& [ptr, implementation] = *it;
+        auto found = std::find(allImplementations.begin(), allImplementations.end(), ptr);
+
+        if (found == allImplementations.end()) {
+            objectImplementations.erase(it++);
+        } else {
+            it++;
         }
-        else {
+    }
+
+    for (auto* ptr : allImplementations) {
+        if (!objectImplementations.count(ptr)) {
+
+            auto const name = String::fromUTF8(libpd_get_object_class_name(ptr));
+
+            objectImplementations[ptr] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, ptr, pd));
+        } else {
             objectImplementations[ptr]->update();
         }
     }
@@ -236,21 +226,21 @@ void ObjectImplementationManager::updateObjectImplementations()
 Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch)
 {
     Array<void*> implementations;
-    
+
     auto* glist = static_cast<t_glist*>(patch);
 
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
-        
+
         auto const name = String::fromUTF8(libpd_get_object_class_name(y));
-        
+
         if (name == "canvas" || name == "graph") {
             implementations.addArray(getImplementationsForPatch(y));
         }
-        if(ImplementationBase::hasImplementation(name)) {
+        if (ImplementationBase::hasImplementation(name)) {
             implementations.add(y);
         }
     }
-    
+
     return implementations;
 }
 

@@ -30,7 +30,7 @@ public:
         object->hvccMode.removeListener(this);
         closeOpenedSubpatchers();
     }
-    
+
     void update() override
     {
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);

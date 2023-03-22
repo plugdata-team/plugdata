@@ -44,7 +44,7 @@ public:
         input.setBorderSize({ 1, 15, 1, 1 });
 
         addAndMakeVisible(input);
-        
+
         addMouseListener(this, true);
 
         input.dragStart = [this]() {

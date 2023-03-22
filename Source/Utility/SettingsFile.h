@@ -38,11 +38,10 @@ public:
 
     void addToRecentlyOpened(File path);
 
-        
     void initialisePathsTree();
     void initialiseThemesTree();
     void initialiseOverlayTree();
-        
+
     void reloadSettings();
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
@@ -76,6 +75,7 @@ public:
     ValueTree getValueTree();
 
     void setGlobalScale(float newScale);
+
 private:
     bool isInitialised = false;
 
@@ -105,12 +105,12 @@ private:
         { "autoconnect", var(true) },
         { "infinite_canvas", var(true) },
         { "origin", var(0) },
-        { "border",  var(0) },
+        { "border", var(0) },
         { "index", var(0) },
         { "coordinate", var(0) },
         { "activation_state", var(0) },
         { "order", var(0) },
-        { "direction",  var(0) },
+        { "direction", var(0) },
         { "global_scale", var(1.0f) },
         { "show_palettes", var(true) },
         { "macos_buttons",

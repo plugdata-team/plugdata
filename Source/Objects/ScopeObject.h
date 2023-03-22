@@ -103,7 +103,7 @@ public:
     {
         startTimerHz(25);
     }
-        
+
     void update() override
     {
         auto* scope = static_cast<S*>(ptr);
@@ -139,9 +139,9 @@ public:
 
         pd->unlockAudioThread();
 
-        return { x, y, w + 1, h + 1};
+        return { x, y, w + 1, h + 1 };
     }
-        
+
     void setPdBounds(Rectangle<int> b) override
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());

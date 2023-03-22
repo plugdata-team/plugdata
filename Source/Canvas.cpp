@@ -82,7 +82,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
     }
 
     updateOverlays();
-    
+
     setSize(600, 400);
 
     // Add lasso component
@@ -98,7 +98,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
     }
 
     performSynchronise();
-    
+
     // Start in unlocked mode if the patch is empty
     if (objects.isEmpty()) {
         locked = false;
@@ -108,7 +108,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
     }
 
     locked.addListener(this);
-    
+
     editor->addModifierKeyListener(this);
     Desktop::getInstance().addFocusChangeListener(this);
 }
@@ -127,71 +127,61 @@ Canvas::~Canvas()
 void Canvas::propertyChanged(String name, var value)
 {
     switch (hash(name)) {
-        case hash("grid_size"):
-            repaint();
-            break;
-        case hash("border"):
-            showBorder = static_cast<int>(value);
-            repaint();
-            break;
-        case hash("edit"):
-        case hash("lock"):
-        case hash("run"):
-        case hash("alt"):
-        case hash("alt_mode"):
-        {
-            updateOverlays();
-            break;
-        }
+    case hash("grid_size"):
+        repaint();
+        break;
+    case hash("border"):
+        showBorder = static_cast<int>(value);
+        repaint();
+        break;
+    case hash("edit"):
+    case hash("lock"):
+    case hash("run"):
+    case hash("alt"):
+    case hash("alt_mode"): {
+        updateOverlays();
+        break;
+    }
     }
 }
 
 int Canvas::getOverlays()
 {
     int overlayState = 0;
-    
+
     auto overlaysTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays");
-    
+
     auto altModeEnabled = overlaysTree.getProperty("alt_mode");
-    
-    if(locked.getValue() || commandLocked.getValue())
-    {
+
+    if (locked.getValue() || commandLocked.getValue()) {
         overlayState = overlaysTree.getProperty("lock");
-    }
-    else if(presentationMode.getValue())
-    {
+    } else if (presentationMode.getValue()) {
         overlayState = overlaysTree.getProperty("run");
-    }
-    else if(altModeEnabled)
-    {
-        
+    } else if (altModeEnabled) {
+
         overlayState = overlaysTree.getProperty("alt");
-    }
-    else
-    {
+    } else {
         overlayState = overlaysTree.getProperty("edit");
     }
-    
+
     return overlayState;
 }
 
 void Canvas::updateOverlays()
 {
     int overlayState = getOverlays();
-    
+
     showBorder = overlayState & Border;
     showOrigin = overlayState & Origin;
-    
-    for(auto* object : objects)
-    {
+
+    for (auto* object : objects) {
         object->updateOverlays(overlayState);
     }
-    
-    for(auto* connection : connections)
-    {
-        //connection->updateOverlays(overlayState);
+
+    for (auto* connection : connections) {
+        // connection->updateOverlays(overlayState);
     }
-    
+
     repaint();
 }
 
@@ -208,8 +198,7 @@ void Canvas::recreateViewport()
         if (suggestor) {
             suggestor->updateBounds();
         }
-        if(graphArea)
-        {
+        if (graphArea) {
             graphArea->updateBounds();
         }
     };
@@ -226,10 +215,11 @@ void Canvas::lookAndFeelChanged()
 
 void Canvas::paint(Graphics& g)
 {
-    if (isGraph) return;
-        
+    if (isGraph)
+        return;
+
     g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-    
+
     g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
     auto clipBounds = g.getClipBounds();
 
@@ -245,13 +235,12 @@ void Canvas::paint(Graphics& g)
     │d      c│
     └────────┘
     */
-    
-    if(!showBorder)
-    {
+
+    if (!showBorder) {
         patchHeightCanvas = getHeight();
         patchWidthCanvas = getWidth();
     }
-    
+
     auto pointA = Point<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f);
     auto pointB = Point<float>(patchWidthCanvas, canvasOrigin.y - 0.5f);
     auto pointC = Point<float>(patchWidthCanvas, patchHeightCanvas);
@@ -265,11 +254,11 @@ void Canvas::paint(Graphics& g)
 
     float dash[2] = { 5.0f, 5.0f };
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-    if(showOrigin || showBorder) {
+    if (showOrigin || showBorder) {
         g.drawDashedLine(extentLeft, dash, 2, 1.0f);
         g.drawDashedLine(extentTop, dash, 2, 1.0f);
     }
-    if(showBorder) {
+    if (showBorder) {
         g.drawDashedLine(extentRight, dash, 2, 1.0f);
         g.drawDashedLine(extentBottom, dash, 2, 1.0f);
     }
@@ -284,7 +273,7 @@ void Canvas::paint(Graphics& g)
 
     for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
         for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
-            
+
             // Don't draw over origin line
             if (showBorder) {
                 if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= patchHeightCanvas) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidthCanvas))
@@ -360,15 +349,13 @@ void Canvas::synchroniseSplitCanvas()
 {
     auto* leftTabbar = editor->splitView.getLeftTabbar();
     auto* rightTabbar = editor->splitView.getRightTabbar();
-    if(getTabbar() == leftTabbar)
-    {
-        if(auto* rightCnv = rightTabbar->getCurrentCanvas()) {
+    if (getTabbar() == leftTabbar) {
+        if (auto* rightCnv = rightTabbar->getCurrentCanvas()) {
             rightCnv->synchronise();
         }
     }
-    if(getTabbar() == rightTabbar)
-    {
-        if(auto* leftCnv = leftTabbar->getCurrentCanvas()) {
+    if (getTabbar() == rightTabbar) {
+        if (auto* leftCnv = leftTabbar->getCurrentCanvas()) {
             leftCnv->synchronise();
         }
     }
@@ -420,7 +407,8 @@ void Canvas::performSynchronise()
             object->toFront(false);
             if (object->gui && object->gui->getLabel())
                 object->gui->getLabel()->toFront(false);
-            if(object->gui) object->gui->update();
+            if (object->gui)
+                object->gui->update();
         }
     }
 
@@ -497,7 +485,7 @@ void Canvas::performSynchronise()
 
     editor->updateCommandStatus();
     repaint();
-    
+
     pd->updateObjectImplementations();
 }
 
@@ -548,14 +536,13 @@ void Canvas::mouseDown(MouseEvent const& e)
             if (e.mods.isCommandDown()) {
                 // Lock if cmd + click on canvas
                 deselectAll();
-                
+
                 presentationMode.setValue(false);
                 if (locked.getValue()) {
                     locked.setValue(false);
                 } else {
                     locked.setValue(true);
                 }
-               
             }
             if (!e.mods.isShiftDown()) {
                 deselectAll();
@@ -663,7 +650,7 @@ void Canvas::mouseUp(MouseEvent const& e)
     setMouseCursor(MouseCursor::NormalCursor);
 
     connectionCancelled = false;
-    
+
     // Double-click canvas to create new object
     if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph && !static_cast<bool>(locked.getValue())) {
         objects.add(new Object(this, "", lastMousePosition));
@@ -779,7 +766,6 @@ bool Canvas::keyPressed(KeyPress const& key)
         moveSelection(0, moveDistance);
         return true;
     }
-    
 
     // Cancel connections being created by ESC key
     if (keycode == KeyPress::escapeKey && !connectionsBeingCreated.isEmpty()) {
@@ -1001,7 +987,7 @@ void Canvas::removeSelection()
     handleUpdateNowIfNeeded();
 
     patch.deselectAll();
-    
+
     synchroniseSplitCanvas();
 }
 
@@ -1189,7 +1175,7 @@ void Canvas::undo()
     handleUpdateNowIfNeeded();
 
     patch.deselectAll();
-    
+
     synchroniseSplitCanvas();
 }
 
@@ -1203,7 +1189,7 @@ void Canvas::redo()
     handleUpdateNowIfNeeded();
 
     patch.deselectAll();
-    
+
     synchroniseSplitCanvas();
 }
 

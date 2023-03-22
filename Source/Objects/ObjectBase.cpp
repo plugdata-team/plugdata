@@ -68,7 +68,6 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "NoteObject.h"
 #include "ColourPickerObject.h"
 
-
 // Class for non-patchable objects
 class NonPatchable : public ObjectBase {
 
@@ -106,7 +105,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
             _this->updateLabel();
             _this->constrainer = _this->createConstrainer();
             _this->onConstrainerCreate();
-            
+
             for (auto& [name, type, cat, value, list] : _this->getParameters()) {
                 value->addListener(_this.getComponent());
             }
@@ -200,11 +199,10 @@ String ObjectBase::getType() const
 // Make sure the object can't be triggered if that palette is in drag mode
 bool ObjectBase::hitTest(int x, int y)
 {
-    if(cnv->isPalette && static_cast<bool>(cnv->paletteDragMode.getValue()))
-    {
+    if (cnv->isPalette && static_cast<bool>(cnv->paletteDragMode.getValue())) {
         return false;
     }
-    
+
     return Component::hitTest(x, y);
 }
 
@@ -226,7 +224,7 @@ void ObjectBase::closeOpenedSubpatchers()
 bool ObjectBase::click()
 {
     pd->setThis();
-    
+
     return libpd_has_click_function(static_cast<t_object*>(ptr));
 }
 
@@ -529,7 +527,6 @@ std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
 {
     class ObjectBoundsConstrainer : public ComponentBoundsConstrainer {
     public:
-        
         ObjectBoundsConstrainer()
         {
             setMinimumSize(Object::minimumSize, Object::minimumSize);
@@ -574,6 +571,6 @@ std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
             }
         }
     };
-    
+
     return std::make_unique<ObjectBoundsConstrainer>();
 }

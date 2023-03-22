@@ -56,7 +56,7 @@ public:
         addSeparator();
 
         addCustomItem(getMenuItemID(MenuItem::EnablePalettes), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]), nullptr, "Enable Palettes");
-        
+
         addCustomItem(getMenuItemID(MenuItem::AutoConnect), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::AutoConnect)]), nullptr, "Auto-connect objects");
 
         addSeparator();
@@ -75,7 +75,7 @@ public:
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::Close)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::CloseAll)]->isActive = hasCanvas;
-       
+
         menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]->isTicked = palettesEnabled;
         menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
         menuItems[getMenuItemIndex(MenuItem::AutoConnect)]->isTicked = autoconnectEnabled;

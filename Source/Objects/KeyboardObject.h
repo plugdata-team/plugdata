@@ -72,41 +72,38 @@ public:
 
     bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
     {
-        if(!toggleMode && !heldKeys.count(midiNoteNumber))
-        {
-            for(auto& note : heldKeys)
-            {
+        if (!toggleMode && !heldKeys.count(midiNoteNumber)) {
+            for (auto& note : heldKeys) {
                 noteOff(midiNoteNumber);
             }
-            
+
             heldKeys.clear();
-            
+
             heldKeys.insert(midiNoteNumber);
             noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
-            
+
             repaint();
         }
-        
+
         return true;
     }
-    
+
     void mouseUpOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
         if (!toggleMode) {
             heldKeys.erase(midiNoteNumber);
             noteOff(midiNoteNumber);
         }
-        
+
         repaint();
     }
-    
+
     // Override to fix bug in JUCE
-    void mouseUp (const MouseEvent& e) override
+    void mouseUp(MouseEvent const& e) override
     {
         auto keys = heldKeys;
-        for(auto& key : keys)
-        {
-            mouseUpOnKey (key, e);
+        for (auto& key : keys) {
+            mouseUpOnKey(key, e);
         }
     }
 
@@ -304,7 +301,7 @@ public:
 
         startTimer(150);
     }
-        
+
     void update() override
     {
         auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
@@ -317,15 +314,15 @@ public:
 
         sendSymbol = sndSym != "empty" ? sndSym : "";
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";
-        
+
         MessageManager::callAsync([this] {
             updateAspectRatio();
-            
+
             // Call async to make sure pd obj has updated
             object->updateBounds();
         });
     }
-        
+
     Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
@@ -357,10 +354,10 @@ public:
             return;
 
         keyboard.setKeyWidth(keyWidth);
-        
+
         auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
         elseKeyboard->x_space = keyWidth;
-        
+
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
     }
 

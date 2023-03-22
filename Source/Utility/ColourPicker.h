@@ -9,16 +9,17 @@
 struct ColourPicker : public ColourSelector
     , public ChangeListener {
     static inline bool isShowing = false;
-        
+
     bool onlyCallbackOnClose;
 
     ColourPicker(bool noLiveChangeCallback, std::function<void(Colour)> cb)
         : ColourSelector(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace)
-        , callback(cb), onlyCallbackOnClose(noLiveChangeCallback)
+        , callback(cb)
+        , onlyCallbackOnClose(noLiveChangeCallback)
     {
         setSize(300, 400);
-        
-        if(!onlyCallbackOnClose) {
+
+        if (!onlyCallbackOnClose) {
             addChangeListener(this);
         }
 
@@ -29,7 +30,8 @@ struct ColourPicker : public ColourSelector
 
     ~ColourPicker()
     {
-        if(onlyCallbackOnClose) callback(getCurrentColour());
+        if (onlyCallbackOnClose)
+            callback(getCurrentColour());
         removeChangeListener(this);
         isShowing = false;
     }

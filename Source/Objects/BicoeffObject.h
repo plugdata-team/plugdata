@@ -164,7 +164,8 @@ public:
             changeBandWidth(e.x, e.y, e.mouseDownPosition.x, e.mouseDownPosition.y);
         } else {
             moveBand(e.x, e.mouseDownPosition.x);
-            if(canResizefilterAmplitude()) moveGain(e.y, e.mouseDownPosition.y);
+            if (canResizefilterAmplitude())
+                moveGain(e.y, e.mouseDownPosition.y);
         }
 
         update();

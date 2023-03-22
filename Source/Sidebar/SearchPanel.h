@@ -122,7 +122,7 @@ public:
         if (isPositiveAndBelow(row, searchResult.size())) {
             auto [name, prefix, object, ptr] = searchResult[row];
 
-            if(object) {
+            if (object) {
                 highlightSearchTarget(object.getComponent());
             }
         }
@@ -212,7 +212,7 @@ public:
     std::pair<String, String> formatSearchResultString(String name, String prefix, Rectangle<int> bounds)
     {
 
-        auto positionString = " (" + String(bounds.getX()) + ":" + String(bounds.getY()) + "  " + String(bounds.getWidth()) + "×" + String(bounds.getHeight()) +")";
+        auto positionString = " (" + String(bounds.getX()) + ":" + String(bounds.getY()) + "  " + String(bounds.getWidth()) + "×" + String(bounds.getHeight()) + ")";
 
         int maxWidth = getWidth() - 20;
 
@@ -244,8 +244,9 @@ public:
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
 
         auto const& [name, prefix, object, ptr] = searchResult[rowNumber];
-        
-        if(!object) return;
+
+        if (!object)
+            return;
 
         auto pdBounds = object->gui->getPdBounds();
 

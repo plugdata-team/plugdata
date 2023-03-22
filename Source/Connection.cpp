@@ -198,7 +198,7 @@ bool Connection::hitTest(int x, int y)
 {
     if (inlet == nullptr || outlet == nullptr)
         return false;
-        
+
     if (Canvas::panningModifierDown())
         return false;
 

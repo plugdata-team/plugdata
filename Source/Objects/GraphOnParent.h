@@ -24,7 +24,7 @@ public:
     {
         resized();
     }
-    
+
     void update() override
     {
         auto* glist = static_cast<t_canvas*>(ptr);
@@ -32,7 +32,7 @@ public:
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
         xRange = Array<var> { var(glist->gl_x1), var(glist->gl_x2) };
         yRange = Array<var> { var(glist->gl_y2), var(glist->gl_y1) };
-        
+
         updateCanvas();
     }
 
@@ -105,7 +105,7 @@ public:
 
         return false;
     }
-    
+
     void setPdBounds(Rectangle<int> b) override
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
@@ -170,7 +170,7 @@ public:
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         canvas->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
         canvas->locked.referTo(cnv->locked);
-        
+
         canvas->performSynchronise();
     }
 
@@ -207,7 +207,7 @@ public:
             auto colour = object->findColour(PlugDataColour::commentTextColourId);
             Fonts::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
         }
-        
+
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 

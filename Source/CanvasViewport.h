@@ -17,9 +17,9 @@
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport
     , public AsyncUpdater {
-        
-    inline static const int infiniteCanvasMargin = 32;
-        
+
+    inline static int const infiniteCanvasMargin = 32;
+
     class MousePanner : public MouseListener {
     public:
         MousePanner(CanvasViewport* v)
@@ -101,7 +101,7 @@ class CanvasViewport : public Viewport
             {
                 auto alpha = targetComponent->getAlpha();
                 if (alphaTarget > alpha) {
-                    
+
                     targetComponent->setAlpha(alpha + 0.3f);
                 } else if (alphaTarget < alpha) {
                     float easedAlpha = pow(alpha, 0.5f);
@@ -109,7 +109,7 @@ class CanvasViewport : public Viewport
                     alpha = pow(easedAlpha, 2.0f);
                     if (alpha < 0.01f)
                         alpha = 0.0f;
-                    
+
                     targetComponent->setAlpha(alpha);
                 } else {
                     stopTimer();
@@ -146,8 +146,8 @@ class CanvasViewport : public Viewport
         {
             setVisible(true);
             animator.fadeIn();
-            
-            if(!isAlreadyScrolling) {
+
+            if (!isAlreadyScrolling) {
                 onScrollStart();
                 isAlreadyScrolling = true;
             }
@@ -159,37 +159,38 @@ class CanvasViewport : public Viewport
                 });
             }
         }
-            
+
         void prepareImage()
         {
-            if(getWidth() <= 0 || getHeight() <= 0) return;
-            
+            if (getWidth() <= 0 || getHeight() <= 0)
+                return;
+
             scrollbarImage = Image(Image::ARGB, getWidth(), getHeight(), true);
             Graphics g(scrollbarImage);
 
             auto currentRange = getCurrentRange();
             auto totalRange = getRangeLimit();
-            
+
             int margin = (infiniteCanvasMargin - 2);
-            
+
             auto thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart() + margin, totalRange.getEnd() - margin, 0, isVertical() ? getHeight() : getWidth());
             auto thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart() + margin, totalRange.getEnd() - margin, 0, isVertical() ? getHeight() : getWidth());
-            
+
             auto thumbBounds = Rectangle<int>();
-            
+
             if (isVertical())
                 thumbBounds = { 0, thumbStart, getWidth(), thumbEnd - thumbStart };
             else
                 thumbBounds = { thumbStart, 0, thumbEnd - thumbStart, getHeight() };
-            
+
             auto c = findColour(ScrollBar::ColourIds::thumbColourId);
-            g.setColour (isMouseOver() ? c.brighter (0.25f) : c);
-            g.fillRoundedRectangle (thumbBounds.reduced (1).toFloat(), 4.0f);
+            g.setColour(isMouseOver() ? c.brighter(0.25f) : c);
+            g.fillRoundedRectangle(thumbBounds.reduced(1).toFloat(), 4.0f);
         }
-            
+
         void paint(Graphics& g) override
         {
-            if(scrollbarImage.isValid()) {
+            if (scrollbarImage.isValid()) {
                 g.drawImageAt(scrollbarImage, 0, 0);
             }
         }
@@ -202,13 +203,12 @@ class CanvasViewport : public Viewport
         }
 
     private:
-            
         void resized() override
         {
             prepareImage();
             ScrollBar::resized();
         }
-    
+
         void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
         {
             fadeIn(true);
@@ -255,14 +255,14 @@ class CanvasViewport : public Viewport
         int lastMousePos = 0;
         FadeAnimator animator = FadeAnimator(this);
         FadeTimer fadeTimer;
-            
+
         Image scrollbarImage;
-            
+
         bool isAlreadyScrolling = false;
-            
+
     public:
-        std::function<void()> onScrollStart = [](){};
-        std::function<void()> onScrollEnd = [](){};
+        std::function<void()> onScrollStart = []() {};
+        std::function<void()> onScrollEnd = []() {};
     };
 
     struct ViewportPositioner : public Component::Positioner {
@@ -337,45 +337,43 @@ public:
         handleUpdateNowIfNeeded();
         setCanvasOrigin(oldCanvasOrigin);
     }
-        
+
     void updateBufferState()
     {
         // Uncomment this line to render canvas to image on scroll
         // This isn't very advantageous yet, because the dots need to be repainted when view area changes!
-        //cnv->setBufferedToImage(isScrollingHorizontally || isScrollingVertically);
+        // cnv->setBufferedToImage(isScrollingHorizontally || isScrollingVertically);
     }
 
     ScrollBar* createScrollBarComponent(bool isVertical) override
     {
         if (isVertical) {
             vbar = new FadingScrollbar(true);
-            vbar->onScrollStart = [this](){
+            vbar->onScrollStart = [this]() {
                 isScrollingHorizontally = true;
                 updateBufferState();
             };
-            
-            vbar->onScrollEnd = [this](){
+
+            vbar->onScrollEnd = [this]() {
                 isScrollingVertically = false;
                 updateBufferState();
             };
             return vbar;
         } else {
             hbar = new FadingScrollbar(false);
-            hbar->onScrollStart = [this](){
+            hbar->onScrollStart = [this]() {
                 isScrollingHorizontally = true;
                 updateBufferState();
             };
-            
-            hbar->onScrollEnd = [this](){
+
+            hbar->onScrollEnd = [this]() {
                 isScrollingHorizontally = false;
                 updateBufferState();
             };
             return hbar;
         }
-        
-        for(auto* scrollbar : std::vector<FadingScrollbar*>{hbar, vbar}) {
-            
-            
+
+        for (auto* scrollbar : std::vector<FadingScrollbar*> { hbar, vbar }) {
         }
     }
 
@@ -452,8 +450,7 @@ private:
     MousePanner panner = MousePanner(this);
     FadingScrollbar* vbar = nullptr;
     FadingScrollbar* hbar = nullptr;
-        
+
     bool isScrollingHorizontally = false;
     bool isScrollingVertically = false;
-
 };

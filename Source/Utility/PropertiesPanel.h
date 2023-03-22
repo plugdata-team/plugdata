@@ -177,7 +177,7 @@ public:
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
             return bounds.contains(x, y);
         }
-        
+
         void paint(Graphics& g) override
         {
             bool isDown = static_cast<bool>(toggleStateValue.getValue());

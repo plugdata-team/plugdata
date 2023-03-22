@@ -91,7 +91,7 @@ public:
         noteEditor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         noteEditor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         noteEditor.setColour(ScrollBar::thumbColourId, object->findColour(PlugDataColour::scrollbarThumbColourId));
-        
+
         noteEditor.setAlwaysOnTop(true);
         noteEditor.setMultiLine(true);
         noteEditor.setReturnKeyStartsNewLine(true);
@@ -136,7 +136,7 @@ public:
     void update() override
     {
         auto* note = static_cast<t_fake_note*>(ptr);
-        
+
         textColour = Colour(note->x_red, note->x_green, note->x_blue);
         noteEditor.setText(getNote());
 
@@ -145,28 +145,27 @@ public:
         fontSize = note->x_fontsize;
 
         noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
-        
+
         bold = note->x_bold;
         italic = note->x_italic;
         underline = note->x_underline;
         fillBackground = note->x_bg_flag;
         justification = note->x_textjust + 1;
         outline = note->x_outline;
-        
-        if(note->x_fontname && String::fromUTF8(note->x_fontname->s_name).isNotEmpty()) {
+
+        if (note->x_fontname && String::fromUTF8(note->x_fontname->s_name).isNotEmpty()) {
             font = String::fromUTF8(note->x_fontname->s_name);
-        }
-        else {
+        } else {
             font = "Inter Variable";
         }
-        
+
         auto receiveSym = String::fromUTF8(note->x_rcv_raw->s_name);
         receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
 
         repaint();
-        
+
         updateFont();
-        
+
         getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
     }
@@ -261,16 +260,17 @@ public:
 
         return bounds;
     }
-    
+
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         class NoteObjectBoundsConstrainer : public ComponentBoundsConstrainer {
         public:
-            
             NoteObject* noteObject;
             Object* object;
-            
-            NoteObjectBoundsConstrainer(Object* obj, NoteObject* parent) : object(obj), noteObject(parent)
+
+            NoteObjectBoundsConstrainer(Object* obj, NoteObject* parent)
+                : object(obj)
+                , noteObject(parent)
             {
             }
             /*
@@ -292,13 +292,13 @@ public:
                 auto* note = static_cast<t_fake_note*>(object->getPointer());
                 note->x_resized = 1;
                 note->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
-                
+
                 // Set editor size first, so getTextHeight will return a correct result
                 noteObject->noteEditor.setSize(note->x_max_pixwidth, noteObject->noteEditor.getHeight());
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
-        
+
         return std::make_unique<NoteObjectBoundsConstrainer>(object, this);
     }
 
@@ -361,8 +361,7 @@ public:
         } else if (v.refersToSameSourceAs(outline)) {
             note->x_outline = static_cast<int>(outline.getValue());
             repaint();
-        }
-        else if (v.refersToSameSourceAs(font)) {
+        } else if (v.refersToSameSourceAs(font)) {
             auto fontName = font.toString();
             note->x_fontname = gensym(fontName.toRawUTF8());
             updateFont();
@@ -375,15 +374,14 @@ public:
         auto isItalic = static_cast<bool>(italic.getValue());
         auto isUnderlined = static_cast<bool>(underline.getValue());
         auto fontHeight = static_cast<int>(fontSize.getValue());
-  
+
         auto style = (isBold * Font::bold) | (isItalic * Font::italic) | (isUnderlined * Font::underlined);
         auto typefaceName = font.toString();
-        
-        if(typefaceName.isEmpty() || typefaceName == "Inter")
-        {
+
+        if (typefaceName.isEmpty() || typefaceName == "Inter") {
             return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
         }
-        
+
         return Font(typefaceName, fontHeight, style);
     }
 

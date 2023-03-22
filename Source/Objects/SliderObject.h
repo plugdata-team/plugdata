@@ -64,7 +64,7 @@ public:
         , iemHelper(obj, object, this)
     {
         addAndMakeVisible(slider);
-        
+
         slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
 
         slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
@@ -87,7 +87,7 @@ public:
             stopEdition();
         };
 
-        onConstrainerCreate = [this](){
+        onConstrainerCreate = [this]() {
             auto minLongSide = this->object->minimumSize * 2;
             auto minShortSide = this->object->minimumSize;
             if (isVertical) {
@@ -97,7 +97,7 @@ public:
             }
         };
     }
-    
+
     void update() override
     {
         isVertical = static_cast<t_slider*>(ptr)->x_orientation;
@@ -110,22 +110,22 @@ public:
 
         min = getMinimum();
         max = getMaximum();
-        
+
         updateRange();
-        
+
         auto currentValue = getValue();
         value = currentValue;
         slider.setValue(currentValue, dontSendNotification);
-        
+
         isLogarithmic = isLogScale();
-        
+
         if (isVertical)
             slider.setSliderStyle(Slider::LinearBarVertical);
         else
             slider.setSliderStyle(Slider::LinearBar);
 
         iemHelper.update();
-        
+
         getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
         getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
     }

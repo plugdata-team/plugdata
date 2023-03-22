@@ -4,9 +4,7 @@
 #include "Constants.h"
 #include "LookAndFeel.h"
 
-
-class SnapSettings : public Component
-{
+class SnapSettings : public Component {
 public:
     class GridSizeSlider : public Component {
     public:
@@ -47,22 +45,22 @@ public:
         std::unique_ptr<Slider> slider = std::make_unique<Slider>();
     };
 
-    enum SnapItem
-    {
+    enum SnapItem {
         Edges = 0,
         Centers,
         Grid,
     };
-    
-    enum SnapBitMask
-    {
+
+    enum SnapBitMask {
         GridBit = 1,
         EdgesBit = 2,
         CentersBit = 4
     };
 
-    class SnapSelector : public Component, public Value::Listener, public Button::Listener, public SettableTooltipClient
-    {
+    class SnapSelector : public Component
+        , public Value::Listener
+        , public Button::Listener
+        , public SettableTooltipClient {
     private:
         Label textLabel;
 
@@ -85,12 +83,12 @@ public:
 
     public:
         SnapSelector(SnapSettings* parent, String icon, String nameOfGroup, SnapBitMask snapBitValue)
-        : groupName(nameOfGroup)
-        , snapBit(snapBitValue)
-        , parent(parent)
+            : groupName(nameOfGroup)
+            , snapBit(snapBitValue)
+            , parent(parent)
         {
             setSize(110, 30);
-            
+
             button.getProperties().set("Style", "SmallIcon");
             addAndMakeVisible(button);
             button.setClickingTogglesState(true);
@@ -110,7 +108,7 @@ public:
 
         void paint(Graphics& g) override
         {
-            if (dragToggledInteraction) {// || buttonHover) {//button.getState() == Button::ButtonState::buttonOver) {
+            if (dragToggledInteraction) { // || buttonHover) {//button.getState() == Button::ButtonState::buttonOver) {
                 g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
                 g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
             }
@@ -142,14 +140,14 @@ public:
 
         void buttonClicked(Button* button) override
         {
-            //button->setState(Button::ButtonState::buttonOver);
+            // button->setState(Button::ButtonState::buttonOver);
             int currentBitValue = SettingsFile::getInstance()->getProperty<int>(property);
 
             if (button->getToggleState()) {
                 snapValue = currentBitValue | snapBit;
             } else {
                 button->setState(Button::ButtonState::buttonNormal);
-                snapValue = currentBitValue &~ snapBit;
+                snapValue = currentBitValue & ~snapBit;
             }
 
             SettingsFile::getInstance()->setProperty(property, snapValue);
@@ -166,13 +164,13 @@ public:
 
         void resized() override
         {
-            auto bounds = Rectangle<int>(0,0,30,30);
+            auto bounds = Rectangle<int>(0, 0, 30, 30);
             button.setBounds(bounds);
-            bounds.translate(25,0);
+            bounds.translate(25, 0);
             textLabel.setBounds(bounds.withWidth(150));
         }
     };
-    
+
     SnapSettings()
     {
         setSize(110, 155);
@@ -186,8 +184,8 @@ public:
         buttonGroups[SnapItem::Edges]->setTooltip("Snap to edges of objects");
         buttonGroups[SnapItem::Centers]->setTooltip("Snap to centers of objects");
 
-        //auto* leftCanvas = editor->splitView.getLeftTabbar()->getCurrentCanvas();
-        //auto* rightCanvas = editor->splitView.getRightTabbar()->getCurrentCanvas();
+        // auto* leftCanvas = editor->splitView.getLeftTabbar()->getCurrentCanvas();
+        // auto* rightCanvas = editor->splitView.getRightTabbar()->getCurrentCanvas();
         addAndMakeVisible(gridSlider.get());
     }
 
@@ -207,7 +205,7 @@ public:
     {
         for (auto* group : buttonGroups) {
             group->dragToggledInteraction = false;
-            //button.button.setState(Button::ButtonState::buttonNormal);
+            // button.button.setState(Button::ButtonState::buttonNormal);
             group->repaint();
         }
     }
@@ -216,7 +214,7 @@ public:
     {
         for (auto* group : buttonGroups) {
             if (group->dragToggledInteraction == false && group->getScreenBounds().contains(e.getScreenPosition()) && e.getDistanceFromDragStart() > 2) {
-                //group.button.setState(Button::ButtonState::buttonOver);
+                // group.button.setState(Button::ButtonState::buttonOver);
                 group->dragToggledInteraction = true;
                 group->button.setToggleState(mouseInteraction, dontSendNotification);
                 group->buttonClicked(&group->button);

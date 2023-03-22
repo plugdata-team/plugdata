@@ -4,19 +4,17 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 #include "Utility/GlobalMouseListener.h"
 
-
-class SubpatchImpl : public ImplementationBase, public pd::MessageListener
-{
+class SubpatchImpl : public ImplementationBase
+    , public pd::MessageListener {
 public:
-    
-    SubpatchImpl(void* ptr, PluginProcessor* pd) : ImplementationBase(ptr, pd)
+    SubpatchImpl(void* ptr, PluginProcessor* pd)
+        : ImplementationBase(ptr, pd)
     {
         pd->registerMessageListener(ptr, this);
     }
-     
+
     ~SubpatchImpl()
     {
         pd->unregisterMessageListener(ptr, this);
@@ -28,25 +26,23 @@ public:
         auto atoms = pd::Atom::fromAtoms(argc, argv);
 
         bool isVisMessage = symbol == "vis";
-        if(isVisMessage && atoms[0].getFloat()) {
+        if (isVisMessage && atoms[0].getFloat()) {
             MessageManager::callAsync([_this = WeakReference(this)] {
-                if(_this) _this->openSubpatch(_this->subpatch);
+                if (_this)
+                    _this->openSubpatch(_this->subpatch);
             });
-        }
-        else if(isVisMessage) {
+        } else if (isVisMessage) {
             MessageManager::callAsync([_this = WeakReference(this)] {
-                if(_this) _this->closeOpenedSubpatchers();
+                if (_this)
+                    _this->closeOpenedSubpatchers();
             });
         }
     }
 
-    
     std::unique_ptr<pd::Patch> subpatch = nullptr;
-    
+
     JUCE_DECLARE_WEAK_REFERENCEABLE(SubpatchImpl);
 };
-
-
 
 // Wrapper for Pd's key, keyup and keyname objects
 class KeyObject final : public ImplementationBase
@@ -73,7 +69,7 @@ public:
         : ImplementationBase(ptr, pd)
         , type(keyObjectType)
     {
-        if(auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
+        if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
             // Capture key events for whole window
             editor->addKeyListener(this);
             editor->addModifierKeyListener(this);
@@ -82,7 +78,7 @@ public:
 
     ~KeyObject()
     {
-        if(auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
+        if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
             editor->removeModifierKeyListener(this);
             editor->removeKeyListener(this);
         }
@@ -297,19 +293,18 @@ public:
     }
 };
 
-
 class CanvasActiveObject final : public ImplementationBase
     , public FocusChangeListener {
 
-        struct t_fake_active{
-            t_object         x_obj;
-            void            *x_proxy;
-            t_symbol        *x_cname;
-            int              x_right_click;
-            int              x_on;
-            int              x_name;
-        };
-        
+    struct t_fake_active {
+        t_object x_obj;
+        void* x_proxy;
+        t_symbol* x_cname;
+        int x_right_click;
+        int x_on;
+        int x_name;
+    };
+
     bool lastFocus = 0;
 
     t_symbol* lastFocussedName;
@@ -317,21 +312,22 @@ class CanvasActiveObject final : public ImplementationBase
     Component::SafePointer<Canvas> cnv;
 
 public:
-
     using ImplementationBase::ImplementationBase;
 
     ~CanvasActiveObject()
     {
         Desktop::getInstance().removeFocusChangeListener(this);
     }
-        
-    void update() override {
+
+    void update() override
+    {
         void* patch;
         sscanf(static_cast<t_fake_active*>(ptr)->x_cname->s_name, ".x%lx.c", (unsigned long*)&patch);
-        
+
         cnv = getMainCanvas(patch);
-        if(!cnv) return;
-        
+        if (!cnv)
+            return;
+
         lastFocus = cnv->hasKeyboardFocus(true);
         Desktop::getInstance().addFocusChangeListener(this);
 
@@ -341,13 +337,12 @@ public:
         buf[MAXPDSTRING - 1] = 0;
         canvasName = pd->generateSymbol(buf);
     };
-            
 
     void globalFocusChanged(Component* focusedComponent) override
     {
         if (!focusedComponent) {
             t_atom args[2];
-            
+
             auto* active = static_cast<t_fake_active*>(ptr);
 
             SETSYMBOL(args, canvasName);
@@ -356,29 +351,29 @@ public:
             lastFocus = 0;
             return;
         }
-        
+
         bool shouldHaveFocus = focusedComponent == cnv;
 
         auto* name = canvasName;
         Canvas* focusedCanvas = nullptr;
-        
+
         auto* active = static_cast<t_fake_active*>(ptr);
-        
-        if(active->x_name) {
+
+        if (active->x_name) {
             focusedCanvas = dynamic_cast<Canvas*>(focusedComponent);
-            if(!focusedCanvas) {
+            if (!focusedCanvas) {
                 focusedCanvas = focusedComponent->findParentComponentOfClass<Canvas>();
             }
-            if(!focusedCanvas) return;
+            if (!focusedCanvas)
+                return;
 
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)focusedCanvas->patch.getPointer());
-            buf[MAXPDSTRING-1] = 0;
-            
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)focusedCanvas->patch.getPointer());
+            buf[MAXPDSTRING - 1] = 0;
+
             name = gensym(buf);
-            
-            if(lastFocussedName != name)
-            {
+
+            if (lastFocussedName != name) {
                 t_atom args[2];
                 SETSYMBOL(args, name);
                 SETFLOAT(args + 1, static_cast<float>(shouldHaveFocus));
@@ -398,8 +393,10 @@ public:
     }
 };
 
-class CanvasMouseObject final : public ImplementationBase, public MouseListener, public pd::MessageListener {
-    
+class CanvasMouseObject final : public ImplementationBase
+    , public MouseListener
+    , public pd::MessageListener {
+
     struct t_fake_canvas_mouse {
         t_object x_obj;
         void* x_proxy;
@@ -413,119 +410,115 @@ class CanvasMouseObject final : public ImplementationBase, public MouseListener,
         int x_x;
         int x_y;
     };
-    
-    
+
     std::atomic<bool> zero;
     Point<int> lastPosition;
     Point<int> zeroPosition;
     Component::SafePointer<Canvas> cnv;
     Component::SafePointer<Canvas> parentCanvas;
-    
+
 public:
-    
     using ImplementationBase::ImplementationBase;
-    CanvasMouseObject(void* ptr, PluginProcessor* pd) : ImplementationBase(ptr, pd)
+    CanvasMouseObject(void* ptr, PluginProcessor* pd)
+        : ImplementationBase(ptr, pd)
     {
         pd->registerMessageListener(ptr, this);
     }
-    
+
     ~CanvasMouseObject()
     {
-        
-        pd->unregisterMessageListener(ptr, this);
-        if(!cnv) return;
-        
-        cnv->removeMouseListener(this);
-       
-    }
-    
-    void update() override {
 
-        if(cnv)
-        {
+        pd->unregisterMessageListener(ptr, this);
+        if (!cnv)
+            return;
+
+        cnv->removeMouseListener(this);
+    }
+
+    void update() override
+    {
+
+        if (cnv) {
             cnv->removeMouseListener(this);
         }
-        
+
         char* text;
         int size;
-        
+
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
-        
+
         binbuf_gettext(mouse->x_obj.te_binbuf, &text, &size);
-        
+
         int depth = 0;
-        for(auto& arg : StringArray::fromTokens(String::fromUTF8(text, size), false))
-        {
-            if(arg.containsOnly("0123456789"))
-            {
+        for (auto& arg : StringArray::fromTokens(String::fromUTF8(text, size), false)) {
+            if (arg.containsOnly("0123456789")) {
                 depth = arg.getIntValue();
                 break;
             }
         }
-        
-        if(depth > 0)
-        {
+
+        if (depth > 0) {
             cnv = getMainCanvas(mouse->x_canvas->gl_owner);
-        }
-        else {
+        } else {
             cnv = getMainCanvas(mouse->x_canvas);
         }
-        
-        if(!cnv) return;
-        
+
+        if (!cnv)
+            return;
+
         cnv->addMouseListener(this, true);
     }
-    
+
     bool getMousePos(MouseEvent const& e, Point<int>& pos)
     {
         auto relativeEvent = e.getEventRelativeTo(cnv);
-        
+
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
         auto* x = mouse->x_canvas;
-        
+
         pos = cnv->getLocalPoint(e.originalComponent, e.getPosition()) - cnv->canvasOrigin;
-        
+
         bool positionChanged = lastPosition != pos;
-        
+
         lastPosition = pos;
-        
-        if(mouse->x_pos){
+
+        if (mouse->x_pos) {
             pos -= Point<int>(x->gl_obj.te_xpix, x->gl_obj.te_ypix);
         }
 
         return positionChanged;
     }
-    
+
     void mouseDown(MouseEvent const& e) override
     {
         if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
             return;
-        
+
         Point<int> pos;
         getMousePos(e, pos);
-        
+
         pos -= zeroPosition;
-        
+
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
-        
+
         outlet_float(mouse->x_outlet_y, (float)pos.y);
         outlet_float(mouse->x_outlet_x, (float)pos.x);
         outlet_float(mouse->x_obj.ob_outlet, 1.0);
-        
+
         std::cout << "down!" << std::endl;
     }
-    
+
     void mouseUp(MouseEvent const& e) override
     {
         if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
             return;
-        
+
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
         outlet_float(mouse->x_obj.ob_outlet, 0.0f);
-        
+
         std::cout << "up!" << std::endl;
     }
-    
+
     void mouseMove(MouseEvent const& e) override
     {
         if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
@@ -533,37 +526,36 @@ public:
 
         Point<int> pos;
         bool positionChanged = getMousePos(e, pos);
-        
-        if(zero)
-        {
+
+        if (zero) {
             zeroPosition = pos;
             zero = false;
             std::cout << "apply zero!" << std::endl;
         }
-        
+
         pos -= zeroPosition;
-        
-        if(positionChanged)
-        {
+
+        if (positionChanged) {
             auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
-            
+
             outlet_float(mouse->x_outlet_y, (float)pos.y);
             outlet_float(mouse->x_outlet_x, (float)pos.x);
-            
+
             std::cout << "move!" << std::endl;
         }
     }
-    
+
     void mouseDrag(MouseEvent const& e) override
     {
         mouseMove(e);
     }
-    
+
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override
     {
-        if(!cnv) return;
+        if (!cnv)
+            return;
 
-        if(symbol == "zero") {
+        if (symbol == "zero") {
             zero = true;
             std::cout << "zero!" << std::endl;
         }
@@ -581,22 +573,25 @@ class CanvasVisibleObject final : public ImplementationBase
 
     bool lastFocus = 0;
     Component::SafePointer<Canvas> cnv;
-public:
 
+public:
     using ImplementationBase::ImplementationBase;
 
     ~CanvasVisibleObject()
     {
-        if(!cnv) return;
-        
+        if (!cnv)
+            return;
+
         cnv->removeComponentListener(this);
     }
-        
-    void update() override {
+
+    void update() override
+    {
         cnv = getMainCanvas(static_cast<t_fake_canvas_vis*>(ptr)->x_canvas);
-        
-        if(!cnv) return;
-        
+
+        if (!cnv)
+            return;
+
         lastFocus = cnv->hasKeyboardFocus(true);
         cnv->addComponentListener(this);
         startTimer(100);
@@ -604,8 +599,9 @@ public:
 
     void updateVisibility()
     {
-        if(!cnv) return;
-        
+        if (!cnv)
+            return;
+
         if (lastFocus != cnv->isShowing()) {
             auto* vis = static_cast<t_fake_canvas_vis*>(ptr);
 
@@ -630,7 +626,8 @@ public:
     }
 };
 
-class CanvasZoomObject final : public ImplementationBase, public Value::Listener {
+class CanvasZoomObject final : public ImplementationBase
+    , public Value::Listener {
     struct t_fake_zoom {
         t_object x_obj;
         void* x_proxy;
@@ -640,21 +637,22 @@ class CanvasZoomObject final : public ImplementationBase, public Value::Listener
 
     float lastScale;
     Value zoomScaleValue;
-    
+
     Component::SafePointer<Canvas> cnv;
 
 public:
-
     using ImplementationBase::ImplementationBase;
-    
-    void update() override {
-        if(cnv) {
+
+    void update() override
+    {
+        if (cnv) {
             cnv->locked.removeListener(this);
         }
-        
+
         cnv = getMainCanvas(static_cast<t_fake_zoom*>(ptr)->x_canvas);
-        if(!cnv) return;
-        
+        if (!cnv)
+            return;
+
         zoomScaleValue.referTo(cnv->editor->getZoomScaleValueForCanvas(cnv));
         zoomScaleValue.addListener(this);
         lastScale = static_cast<float>(zoomScaleValue.getValue());
@@ -671,7 +669,8 @@ public:
     }
 };
 
-class CanvasEditObject final : public ImplementationBase, public Value::Listener {
+class CanvasEditObject final : public ImplementationBase
+    , public Value::Listener {
     struct t_fake_edit {
         t_object x_obj;
         void* x_proxy;
@@ -683,17 +682,18 @@ class CanvasEditObject final : public ImplementationBase, public Value::Listener
     Component::Component::SafePointer<Canvas> cnv;
 
 public:
-    
     using ImplementationBase::ImplementationBase;
 
-    void update() override {
-        if(cnv) {
+    void update() override
+    {
+        if (cnv) {
             cnv->locked.removeListener(this);
         }
-        
+
         cnv = getMainCanvas(static_cast<t_fake_edit*>(ptr)->x_canvas);
-        if(!cnv) return;
-        
+        if (!cnv)
+            return;
+
         // Don't use lock method, because that also responds to temporary lock
         lastEditMode = static_cast<float>(cnv->locked.getValue());
         cnv->locked.addListener(this);
@@ -726,7 +726,7 @@ class MouseObject final : public ImplementationBase
 
 public:
     MouseObject(void* ptr, PluginProcessor* pd)
-            : ImplementationBase(ptr, pd)
+        : ImplementationBase(ptr, pd)
         , mouseSource(Desktop::getInstance().getMainMouseSource())
     {
         lastPosition = mouseSource.getScreenPosition();
@@ -738,7 +738,7 @@ public:
     void timerCallback() override
     {
         if (lastPosition != mouseSource.getScreenPosition()) {
-            
+
             auto pos = mouseSource.getScreenPosition();
 
             t_atom args[2];

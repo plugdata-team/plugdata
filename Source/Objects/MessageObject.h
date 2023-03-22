@@ -33,9 +33,8 @@ public:
     MessageObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        
     }
-        
+
     void update() override
     {
         objectText = getSymbol();
@@ -292,7 +291,7 @@ public:
     {
         return true;
     }
-        
+
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         return TextObjectHelper::createConstrainer(object);

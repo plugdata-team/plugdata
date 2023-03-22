@@ -534,7 +534,7 @@ public:
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setInterceptsMouseClicks(false, true);
-        
+
         lookAndFeelChanged();
         repaint();
     }
@@ -572,7 +572,7 @@ public:
             g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
         }
     }
-        
+
     void lookAndFeelChanged() override
     {
         input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
@@ -583,7 +583,7 @@ public:
     {
 
         auto textColour = findColour(PlugDataColour::sidebarTextColourId);
-        
+
         Fonts::drawIcon(g, Icons::Search, 0, 0, 30, textColour, 12);
 
         if (input.getText().isEmpty()) {

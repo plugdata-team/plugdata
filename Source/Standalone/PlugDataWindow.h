@@ -655,13 +655,13 @@ public:
         ResizableWindow::resized();
 
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
-        
+
         if (resizer) {
             if (isFullScreen()) {
                 resizer->setVisible(false);
             } else if (!isUsingNativeTitleBar()) {
                 resizer->setVisible(true);
-                
+
                 if (drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
                     auto margin = mainComponent ? mainComponent->getMargin() : 18;
                     titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
@@ -671,7 +671,7 @@ public:
                 }
             }
         }
-        
+
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
 
         if (auto* content = getContentComponent()) {

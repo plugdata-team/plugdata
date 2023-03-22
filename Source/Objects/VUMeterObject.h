@@ -15,11 +15,11 @@ public:
     {
         // we need to make this a specific size as it has two inlets
         // which will become squashed together if too close
-        onConstrainerCreate = [this](){
+        onConstrainerCreate = [this]() {
             constrainer->setMinimumSize(20, 20 * 2);
         };
     }
-        
+
     bool hideInlets() override
     {
         return iemHelper.hasReceiveSymbol();

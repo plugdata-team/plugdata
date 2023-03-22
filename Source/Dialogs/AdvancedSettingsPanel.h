@@ -36,13 +36,11 @@ public:
         infiniteCanvas.addListener(this);
         useInfiniteCanvas.reset(new PropertiesPanel::BoolComponent("Use infinite canvas", infiniteCanvas, { "No", "Yes" }));
         addAndMakeVisible(*useInfiniteCanvas);
-        
-        
+
         scaleValue = settingsFile->getProperty<float>("global_scale");
         scaleValue.addListener(this);
         globalScale.reset(new PropertiesPanel::EditableComponent<float>("Global scale factor", scaleValue));
         addAndMakeVisible(*globalScale);
-        
     }
 
     void resized() override
@@ -70,7 +68,6 @@ public:
             SettingsFile::getInstance()->setGlobalScale(scale);
             scaleValue = scale;
         }
-        
     }
     Component* editor;
 

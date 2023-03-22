@@ -143,7 +143,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     setWantsKeyboardFocus(true);
 
-
     oversampleSelector.setTooltip("Set oversampling");
     oversampleSelector.getProperties().set("FontScale", 0.5f);
     oversampleSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -182,7 +181,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
 
     powerButton->setToggleState(pd_getdspstate(), dontSendNotification);
-
 
     centreButton->setTooltip("Move view to origin");
     centreButton->getProperties().set("Style", "SmallIcon");

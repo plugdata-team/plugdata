@@ -47,7 +47,6 @@ class Canvas : public Component
     , public pd::MessageListener
     , public AsyncUpdater {
 public:
-    
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr, bool isPalette = false);
 
     ~Canvas() override;
@@ -69,9 +68,9 @@ public:
     void spaceKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
-        
+
     void propertyChanged(String name, var value) override;
-        
+
     int getOverlays();
     void updateOverlays();
 
@@ -174,7 +173,7 @@ public:
 
     bool showOrigin = false;
     bool showBorder = false;
-        
+
     bool isGraph = false;
     bool hasParentCanvas = false;
     bool updatingBounds = false; // used by connection
@@ -216,7 +215,7 @@ private:
     RateReducer canvasRateReducer = RateReducer(90);
 
     // Properties that can be shown in the inspector by right-clicking on canvas
-    ObjectParameters parameters = { 
+    ObjectParameters parameters = {
         { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
         { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } },
         { "X range", tRange, cGeneral, &xRange, {} },

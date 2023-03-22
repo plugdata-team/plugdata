@@ -61,7 +61,7 @@ public:
 
         bold = messbox->x_font_weight == pd->generateSymbol("bold");
         fontSize = messbox->x_font_size;
-        
+
         primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
         secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
 

@@ -315,15 +315,14 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         if (result > 100) {
             cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
         }
-        
-        if(result == Properties)
-        {
+
+        if (result == Properties) {
             if (originalComponent == cnv) {
                 editor->sidebar->showParameters("canvas", cnv->getInspectorParameters());
-            } else if(object && object->gui) {
+            } else if (object && object->gui) {
                 editor->sidebar->showParameters(object->gui->getText(), params);
             }
-            
+
             return;
         }
 

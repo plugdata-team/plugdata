@@ -14,43 +14,39 @@
 class PluginProcessor;
 class Canvas;
 
-class ImplementationBase
-{
+class ImplementationBase {
 
 public:
     ImplementationBase(void* obj, PluginProcessor* pd);
-    
-    virtual ~ImplementationBase();
-    
-    static ImplementationBase* createImplementation(const String& type, void* ptr, PluginProcessor* pd);
-    static bool hasImplementation(const String& type);
-    
-    virtual void update() {};
 
+    virtual ~ImplementationBase();
+
+    static ImplementationBase* createImplementation(String const& type, void* ptr, PluginProcessor* pd);
+    static bool hasImplementation(String const& type);
+
+    virtual void update() {};
 
     void openSubpatch(std::unique_ptr<pd::Patch>& subpatch);
     void closeOpenedSubpatchers();
 
     Canvas* getMainCanvas(void* patchPtr);
-    
+
     PluginProcessor* pd;
     void* ptr;
-    
+
     JUCE_DECLARE_WEAK_REFERENCEABLE(ImplementationBase);
 };
 
-class ObjectImplementationManager
-{
+class ObjectImplementationManager {
 public:
     ObjectImplementationManager(pd::Instance* pd);
-    
+
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(void* patch);
-    
-private:
 
+private:
     Array<void*> getImplementationsForPatch(void* patch);
-    
+
     PluginProcessor* pd;
 
     std::map<void*, std::unique_ptr<ImplementationBase>> objectImplementations;

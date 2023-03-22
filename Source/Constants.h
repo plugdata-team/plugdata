@@ -532,9 +532,7 @@ enum ParameterCategory {
     cExtra
 };
 
-
-enum Overlay
-{
+enum Overlay {
     None = 0,
     Origin = 1,
     Border = 2,

@@ -24,7 +24,6 @@ public:
 
         addAndMakeVisible(listLabel);
 
-
         listLabel.onEditorHide = [this]() {
             startEdition();
             updateFromGui();
@@ -54,13 +53,13 @@ public:
         listLabel.setText("0 0", dontSendNotification);
         updateFromGui();
     }
-    
+
     void update() override
     {
         min = atomHelper.getMinimum();
         max = atomHelper.getMaximum();
         updateValue();
-        
+
         atomHelper.update();
     }
 
@@ -117,7 +116,7 @@ public:
         atomHelper.setPdBounds(b);
     }
 
-    std::unique_ptr<ComponentBoundsConstrainer>createConstrainer() override
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         return atomHelper.createConstrainer(object);
     }

@@ -53,17 +53,17 @@ class FunctionObject final : public ObjectBase {
     Value receiveSymbol;
 
     Array<Point<float>> points;
-    
+
 public:
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
     }
-    
+
     void update() override
     {
         auto* function = static_cast<t_fake_function*>(ptr);
-        
+
         secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
         primaryColour = colourFromHexArray(function->x_fgcolor).toString();
 
@@ -75,7 +75,7 @@ public:
 
         sendSymbol = sndSym != "empty" ? sndSym : "";
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";
-        
+
         getPointsFromFunction();
     }
 
@@ -97,7 +97,7 @@ public:
 
         pd->unlockAudioThread();
 
-        return { x, y, w + 1, h + 1};
+        return { x, y, w + 1, h + 1 };
     }
 
     Array<Point<float>> getRealPoints()
@@ -242,24 +242,21 @@ public:
     std::pair<float, float> getRange()
     {
         auto& arr = *range.getValue().getArray();
-        
+
         auto start = static_cast<float>(arr[0]);
         auto end = static_cast<float>(arr[1]);
-        
-        if(start == end)
-        {
-            return {start, end + 0.01f};
+
+        if (start == end) {
+            return { start, end + 0.01f };
         }
-        if(start < end)
-        {
-            return {start, end};
+        if (start < end) {
+            return { start, end };
         }
-        if(start > end)
-        {
-            return {end, start};
+        if (start > end) {
+            return { end, start };
         }
-        
-        return {start, end};
+
+        return { start, end };
     }
     void setRange(std::pair<float, float> newRange)
     {

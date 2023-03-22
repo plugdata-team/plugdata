@@ -22,7 +22,7 @@ public:
         , iemHelper(ptr, object, this)
     {
     }
-    
+
     void update() override
     {
         selected = getValue();
@@ -30,11 +30,11 @@ public:
         if (selected > static_cast<int>(max.getValue())) {
             selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
         }
-        
+
         isVertical = static_cast<t_radio*>(ptr)->x_orientation;
         numItems = getMaximum();
         max = numItems;
-        
+
         iemHelper.update();
     }
 
@@ -59,22 +59,22 @@ public:
         b = isVertical ? b.withHeight(b.getWidth()) : b.withWidth(b.getHeight());
         iemHelper.setPdBounds(b.withTrimmedRight(1).withTrimmedBottom(1));
     }
-    
+
     Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        
+
         pd->unlockAudioThread();
-        
+
         auto* radio = static_cast<t_radio*>(ptr);
-        
+
         auto width = isVertical ? radio->x_gui.x_w : radio->x_gui.x_h * numItems;
-        auto height = isVertical ?  radio->x_gui.x_w * numItems : radio->x_gui.x_h;
-    
-        return {x, y, width + 1, height + 1};
+        auto height = isVertical ? radio->x_gui.x_w * numItems : radio->x_gui.x_h;
+
+        return { x, y, width + 1, height + 1 };
     }
 
     void toggleObject(Point<int> position) override

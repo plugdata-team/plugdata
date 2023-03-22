@@ -18,8 +18,7 @@ class ObjectBoundsConstrainer;
 class Object : public Component
     , public Value::Listener
     , public Timer
-    , private TextEditor::Listener
-{
+    , private TextEditor::Listener {
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
@@ -46,9 +45,9 @@ public:
     Rectangle<int> getSelectableBounds();
     Rectangle<int> getObjectBounds();
     void setObjectBounds(Rectangle<int> bounds);
-        
+
     ComponentBoundsConstrainer* getConstrainer();
-        
+
     void openHelpPatch() const;
     void* getPointer() const;
 
@@ -80,7 +79,7 @@ public:
     Value commandLocked;
     Value presentationMode;
     Value hvccMode = Value(var(false));
-        
+
     Canvas* cnv;
 
     std::unique_ptr<ObjectBase> gui;
@@ -102,10 +101,9 @@ public:
         // These are only for the suggestions
         "hv.comb~", "hv.compressor~", "hv.compressor2~", "hv.dispatch", "hv.drunk", "hv.envfollow~", "hv.eq~", "hv.exp~", "hv.filter.gain~", "hv.filter~", "hv.flanger~", "hv.flanger2~", "hv.freqshift~", "hv.gt~", "hv.gte~", "hv.log~", "hv.lt~", "hv.lte~", "hv.multiplex~", "hv.neq~", "hv.osc~", "hv.pinknoise~", "hv.pow~", "hv.reverb~", "hv.tanh~", "hv.vline~" };
 
-
     Rectangle<int> originalBounds;
 
-    static inline const int minimumSize = 12;
+    static inline int const minimumSize = 12;
 
 private:
     void initialise();

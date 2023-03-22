@@ -120,7 +120,7 @@ Instance::Instance(String const& symbol)
     : consoleHandler(this)
 {
     libpd_multi_init();
-    
+
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
 
     m_instance = libpd_new_instance();

@@ -89,11 +89,10 @@ Rectangle<int> Object::getObjectBounds()
 
 Rectangle<int> Object::getSelectableBounds()
 {
-    if(gui)
-    {
+    if (gui) {
         return gui->getSelectableBounds().translated(Object::margin, Object::margin) + cnv->canvasOrigin;
     }
-    
+
     return getBounds().reduced(margin);
 }
 
@@ -110,8 +109,9 @@ void Object::initialise()
     locked.referTo(cnv->locked);
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
-    
-    if(!cnv->isPalette) hvccMode.referTo(cnv->editor->hvccMode);
+
+    if (!cnv->isPalette)
+        hvccMode.referTo(cnv->editor->hvccMode);
 
     presentationMode.addListener(this);
     locked.addListener(this);
@@ -120,7 +120,7 @@ void Object::initialise()
     cnv->paletteDragMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
-    
+
     updateOverlays(cnv->getOverlays());
 }
 
@@ -153,9 +153,9 @@ void Object::valueChanged(Value& v)
     }
     if (v.refersToSameSourceAs(cnv->paletteDragMode)) {
         auto dragMode = static_cast<bool>(cnv->paletteDragMode.getValue());
-        if(gui) gui->setInterceptsMouseClicks(!dragMode, !dragMode);
+        if (gui)
+            gui->setInterceptsMouseClicks(!dragMode, !dragMode);
     }
-    
 
     // else it was a lock/unlock/presentation mode action
     // Hide certain objects in GOP
@@ -188,7 +188,7 @@ bool Object::hitTest(int x, int y)
 
         return getLocalBounds().reduced(margin).contains(x, y);
     }
-    
+
     if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
@@ -338,7 +338,7 @@ void Object::setType(String const& newType, void* existingObject)
     cnv->lastSelectedConnection = nullptr;
 
     cnv->editor->updateCommandStatus();
-    
+
     cnv->synchroniseSplitCanvas();
     cnv->pd->updateObjectImplementations();
 }
@@ -492,11 +492,9 @@ void Object::updateTooltips()
     if (!gui)
         return;
 
-
-
     // Set object tooltip
     gui->setTooltip(cnv->pd->objectLibrary.getObjectTooltip(gui->getType()));
-    
+
     // Check pd library for pddp tooltips, those have priority
     auto ioletTooltips = cnv->pd->objectLibrary.getIoletTooltips(gui->getType(), gui->getText(), numInputs, numOutputs);
 
@@ -504,13 +502,13 @@ void Object::updateTooltips()
     for (int i = 0; i < iolets.size(); i++) {
         iolets[i]->setTooltip("");
     }
-    
+
     // Load tooltips from documentation files, these have priority
     for (int i = 0; i < iolets.size(); i++) {
         auto* iolet = iolets[i];
-        
+
         auto& tooltip = ioletTooltips[!iolet->isInlet][iolet->isInlet ? i : i - numInputs];
-        
+
         // Don't overwrite custom documentation
         if (tooltip.isNotEmpty()) {
             iolet->setTooltip(tooltip);
@@ -518,12 +516,12 @@ void Object::updateTooltips()
     }
 
     cnv->pd->enqueueFunction([_this = SafePointer(this), this]() mutable {
-        
-        if(!_this) return;
-        
+        if (!_this)
+            return;
+
         std::vector<std::pair<int, String>> inletMessages;
         std::vector<std::pair<int, String>> outletMessages;
-        
+
         if (auto* subpatch = gui->getPatch()) {
 
             // Check child objects of subpatch for inlet/outlet messages
@@ -559,13 +557,14 @@ void Object::updateTooltips()
                 }
             }
         }
-        
-        if(!_this || (!inletMessages.size() && !outletMessages.size())) return;
-        
+
+        if (!_this || (!inletMessages.size() && !outletMessages.size()))
+            return;
+
         MessageManager::callAsync([_this, this, inletMessages, outletMessages]() mutable {
-            
-            if(!_this) return;
-            
+            if (!_this)
+                return;
+
             auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b) {
                 return a.first < b.first;
             };
@@ -582,7 +581,8 @@ void Object::updateTooltips()
             for (int i = 0; i < iolets.size(); i++) {
                 auto* iolet = iolets[i];
 
-                if(iolet->getTooltip().isNotEmpty()) continue;
+                if (iolet->getTooltip().isNotEmpty())
+                    continue;
 
                 if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numOut >= outletMessages.size()))
                     continue;
@@ -592,8 +592,6 @@ void Object::updateTooltips()
             }
         });
     });
-
-    
 }
 
 void Object::updateIolets()
@@ -816,7 +814,7 @@ void Object::mouseUp(MouseEvent const& e)
             }
 
             auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
-            
+
             auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
 
             distance = cnv->objectGrid.handleMouseUp(distance) + canvasMoveOffset - cnv->canvasOrigin;
@@ -893,9 +891,10 @@ void Object::mouseDrag(MouseEvent const& e)
         auto toResize = cnv->getSelectionOfType<Object>();
 
         for (auto* obj : toResize) {
-            
-            if(!obj->gui) continue;
-            
+
+            if (!obj->gui)
+                continue;
+
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
 
             if (auto* constrainer = obj->getConstrainer()) {
@@ -917,7 +916,7 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
-        
+
         auto selection = cnv->getSelectionOfType<Object>();
 
         auto dragDistance = e.getOffsetFromDragStart() + canvasMoveOffset;
@@ -1199,9 +1198,9 @@ void Object::updateOverlays(int overlay)
 {
     bool indexWasShown = indexShown;
     indexShown = overlay & Overlay::Index;
-    
+
     if (indexWasShown != indexShown) {
-        
+
         repaint();
     }
 }
@@ -1226,10 +1225,10 @@ void Object::textEditorTextChanged(TextEditor& ed)
 
 ComponentBoundsConstrainer* Object::getConstrainer()
 {
-    if(gui) {
+    if (gui) {
         return gui->getConstrainer();
     }
-    
+
     return nullptr;
 }
 

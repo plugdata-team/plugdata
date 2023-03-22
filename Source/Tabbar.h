@@ -266,7 +266,8 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         tabSnapshot = Image();
-        if(clickedTabIndex >= 0) tabs->getTabButton(clickedTabIndex)->setVisible(true);
+        if (clickedTabIndex >= 0)
+            tabs->getTabButton(clickedTabIndex)->setVisible(true);
         getParentComponent()->repaint(tabSnapshotBounds);
     }
 

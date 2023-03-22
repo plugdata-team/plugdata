@@ -64,7 +64,7 @@ SettingsFile* SettingsFile::initialise()
     initialisePathsTree();
     initialiseThemesTree();
     initialiseOverlayTree();
-    
+
     Desktop::getInstance().setGlobalScaleFactor(getProperty<float>("global_scale"));
 
     saveSettings();
@@ -167,7 +167,7 @@ void SettingsFile::addToRecentlyOpened(File path)
 
         recentlyOpened.removeChild(minIdx, nullptr);
     }
-    
+
     RecentlyOpenedFilesList::registerRecentFileNatively(path);
 }
 
@@ -251,24 +251,22 @@ void SettingsFile::initialiseThemesTree()
 
 void SettingsFile::initialiseOverlayTree()
 {
-    std::map<String, int> defaults =
-    {
+    std::map<String, int> defaults = {
         { "edit", Origin | ActivationState },
         { "lock", None },
-        { "run",  None },
+        { "run", None },
         { "alt", Origin | Border | ActivationState | Index | Coordinate | Order | Direction }
     };
-    
+
     auto overlayTree = settingsTree.getChildWithName("Overlays");
-    
-    if(!overlayTree.isValid()) {
+
+    if (!overlayTree.isValid()) {
         overlayTree = ValueTree("Overlays");
-        
-        for(auto& [name, settings] : defaults)
-        {
+
+        for (auto& [name, settings] : defaults) {
             overlayTree.setProperty(name, settings, nullptr);
         }
-        
+
         settingsTree.appendChild(overlayTree, nullptr);
     }
 }

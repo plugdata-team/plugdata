@@ -26,7 +26,7 @@ public:
         , iemgui(static_cast<t_iemgui*>(ptr))
     {
     }
-    
+
     void update()
     {
         primaryColour = Colour(getForegroundColour()).toString();
@@ -56,7 +56,7 @@ public:
         receiveSymbol = getReceiveSymbol();
 
         initialise = getInit();
-        
+
         gui->repaint();
     }
 

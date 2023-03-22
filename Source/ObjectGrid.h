@@ -55,7 +55,7 @@ private:
     bool isAlreadySnapped(bool horizontal, Point<int>& dragOffset);
 
     void propertyChanged(String name, var value) override;
-    
+
     std::tuple<bool, bool, bool> getSnapConfiguration();
 
     int gridType;

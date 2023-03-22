@@ -130,7 +130,7 @@ Point<int> ObjectGrid::performFixedResize(Object* toDrag, Point<int> dragOffset,
 {
     auto snappable = getSnappableObjects(toDrag);
     auto resizeZone = toDrag->resizeZone;
-    
+
     auto* constrainer = toDrag->getConstrainer();
     auto ratio = constrainer ? constrainer->getFixedAspectRatio() : 0.0;
 
@@ -218,9 +218,10 @@ Point<int> ObjectGrid::performFixedResize(Object* toDrag, Point<int> dragOffset,
 }
 Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds)
 {
-    if(!gridEnabled) return dragOffset;
-    
-    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool>{gridType & 1, gridType & 2, gridType & 4};
+    if (!gridEnabled)
+        return dragOffset;
+
+    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool> { gridType & 1, gridType & 2, gridType & 4 };
 
     if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0) {
         clear(0);
@@ -244,12 +245,12 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     auto resizeZone = toDrag->resizeZone;
     auto nonClippedBounds = newResizeBounds;
     auto* constrainer = toDrag->getConstrainer();
-    
-    if(constrainer) {
+
+    if (constrainer) {
         // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
         constrainer->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
-                                 resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
-                                 resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
+            resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
+            resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
     }
 
     auto b2 = newResizeBounds.reduced(Object::margin);
@@ -292,7 +293,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
                 }
             }
         }
-        
+
         MessageManager::callAsync([this]() {
             updateMarker();
         });
@@ -340,9 +341,10 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 
 Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 {
-    if(!gridEnabled) return dragOffset;
-    
-    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool>{gridType & 1, gridType & 2, gridType & 4};
+    if (!gridEnabled)
+        return dragOffset;
+
+    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool> { gridType & 1, gridType & 2, gridType & 4 };
 
     if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0) {
         clear(0);
@@ -515,10 +517,11 @@ bool ObjectGrid::isAlreadySnapped(bool horizontal, Point<int>& dragOffset)
 
 Point<int> ObjectGrid::handleMouseUp(Point<int> dragOffset)
 {
-    if(!gridEnabled) return dragOffset;
-    
-    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool>{gridType & 1, gridType & 2, gridType & 4};
-    
+    if (!gridEnabled)
+        return dragOffset;
+
+    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool> { gridType & 1, gridType & 2, gridType & 4 };
+
     if (!ModifierKeys::getCurrentModifiers().isShiftDown()) {
         if (!snapGrid && (snapEdges || snapCentres)) {
             if (snapped[1]) {

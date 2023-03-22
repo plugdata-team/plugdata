@@ -20,7 +20,7 @@ public:
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {
-        onConstrainerCreate = [this](){
+        onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
         };
     }
@@ -30,7 +30,7 @@ public:
         auto* bng = static_cast<t_bng*>(ptr);
         bangInterrupt = bng->x_flashtime_break;
         bangHold = bng->x_flashtime_hold;
-        
+
         iemHelper.update();
     }
 

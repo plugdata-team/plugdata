@@ -41,7 +41,7 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 
 class AtomHelper {
 
-    static inline const int atomSizes[8] = { 0, 8, 10, 12, 16, 24, 36 };
+    static inline int const atomSizes[8] = { 0, 8, 10, 12, 16, 24, 36 };
 
     Object* object;
     ObjectBase* gui;
@@ -68,7 +68,7 @@ public:
         , atom(static_cast<t_fake_gatom*>(ptr))
     {
     }
-    
+
     void update()
     {
         labelText = getLabelText();
@@ -78,10 +78,10 @@ public:
 
         int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
         fontSize = idx + 1;
-        
+
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
-        
+
         gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
         gui->getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
     }
@@ -109,16 +109,17 @@ public:
         auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
         atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
     }
-    
+
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer(Object* object)
     {
         class AtomObjectBoundsConstrainer : public ComponentBoundsConstrainer {
         public:
-            
             Object* object;
             AtomHelper* helper;
-            
-            AtomObjectBoundsConstrainer(Object* parent, AtomHelper* atomHelper) : object(parent), helper(atomHelper)
+
+            AtomObjectBoundsConstrainer(Object* parent, AtomHelper* atomHelper)
+                : object(parent)
+                , helper(atomHelper)
             {
             }
             /*
@@ -137,10 +138,10 @@ public:
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                
+
                 auto oldBounds = old.reduced(Object::margin);
                 auto newBounds = bounds.reduced(Object::margin);
-                
+
                 auto* atom = static_cast<t_fake_gatom*>(object->getPointer());
                 auto* patch = object->cnv->patch.getPointer();
 
@@ -167,11 +168,11 @@ public:
 
                 helper->setFontHeight(atomSizes[heightIdx]);
                 object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
-                
+
                 bounds = helper->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
-        
+
         return std::make_unique<AtomObjectBoundsConstrainer>(object, this);
     }
 
@@ -255,9 +256,9 @@ public:
             label->setBounds(bounds);
             label->setFont(Font(fontHeight));
             label->setText(text, dontSendNotification);
-            
+
             auto textColour = object->findColour(PlugDataColour::canvasTextColourId);
-            if(std::abs(textColour.getBrightness() - object->findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
+            if (std::abs(textColour.getBrightness() - object->findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
                 textColour = object->findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
             }
 

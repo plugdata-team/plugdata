@@ -150,7 +150,7 @@ public:
     Instance(String const& symbol);
     Instance(Instance const& other) = delete;
     virtual ~Instance();
-    
+
     void loadLibs(String& pdlua_version);
     void prepareDSP(int const nins, int const nouts, double const samplerate, int const blockSize);
     void startDSP();
@@ -237,10 +237,10 @@ public:
     void enqueueDirectMessages(void* object, std::vector<pd::Atom> const&& list);
     void enqueueDirectMessages(void* object, String const& msg);
     void enqueueDirectMessages(void* object, float const msg);
-    
+
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(pd::Patch* p);
-    
+
     virtual void performParameterChange(int type, String name, float value) {};
 
     // JYG added this
@@ -284,7 +284,6 @@ public:
     void setCallbackLock(CriticalSection const* lock);
 
     bool loadLibrary(String library);
-    
 
     void* m_instance = nullptr;
     void* m_patch = nullptr;
@@ -308,18 +307,17 @@ public:
     CriticalSection const* audioLock;
 
 private:
-    
     std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;
-    
+
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
-    
+
     CriticalSection messageListenerLock;
 
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-    
+
     std::atomic<int> numLocksHeld = 0;
 
     WaitableEvent updateWait;
@@ -435,6 +433,5 @@ protected:
     };
 
     ConsoleHandler consoleHandler;
-
 };
 } // namespace pd

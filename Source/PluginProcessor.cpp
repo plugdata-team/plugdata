@@ -1377,7 +1377,7 @@ void PluginProcessor::titleChanged()
             auto* cnv = leftTabbar->getCanvas(n);
             if (!cnv)
                 return;
-            
+
             leftTabbar->setTabName(n, cnv->patch.getTitle() + String(cnv->patch.isDirty() ? "*" : ""));
         }
         for (int n = 0; n < rightTabbar->getNumTabs(); n++) {

@@ -34,12 +34,12 @@ public:
     void paint(Graphics& g) override
     {
         auto b = getLocalBounds().reduced(2);
-        
-        if(isMouseOver() || getToggleState())
-        {
+
+        if (isMouseOver() || getToggleState()) {
             auto background = findColour(PlugDataColour::toolbarHoverColourId);
-            if(getToggleState()) background = background.darker(0.05f);
-            
+            if (getToggleState())
+                background = background.darker(0.05f);
+
             g.setColour(background);
             g.fillRoundedRectangle(b.toFloat().reduced(4.0f, 2.0f), Corners::defaultCornerRadius);
         }
@@ -125,9 +125,9 @@ public:
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight).withTrimmedBottom(6);
 
         auto spacing = ((getWidth() - 120) / toolbarButtons.size());
-        
+
         int toolbarPosition = 40;
-        
+
         for (auto& button : toolbarButtons) {
             button->setBounds(toolbarPosition, 1, 70, toolbarHeight - 2);
             toolbarPosition += spacing;

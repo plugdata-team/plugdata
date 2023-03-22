@@ -57,68 +57,67 @@ public:
             openFile(filePath);
         }
     }
-    
-    void mouseDown(const MouseEvent& e) override
+
+    void mouseDown(MouseEvent const& e) override
     {
-        if(static_cast<bool>(latch.getValue())) {
+        if (static_cast<bool>(latch.getValue())) {
             auto* pic = static_cast<t_fake_pic*>(ptr);
-            pd->enqueueFunction([pic](){
+            pd->enqueueFunction([pic]() {
                 outlet_float(pic->x_outlet, 1.0f);
             });
-        }
-        else {
+        } else {
             auto* pic = static_cast<t_fake_pic*>(ptr);
-            pd->enqueueFunction([pic](){
+            pd->enqueueFunction([pic]() {
                 outlet_bang(pic->x_outlet);
             });
         }
     }
-    
-    void mouseUp(const MouseEvent& e) override
+
+    void mouseUp(MouseEvent const& e) override
     {
-        if(static_cast<bool>(latch.getValue())) {
+        if (static_cast<bool>(latch.getValue())) {
             auto* pic = static_cast<t_fake_pic*>(ptr);
-            pd->enqueueFunction([pic](){
+            pd->enqueueFunction([pic]() {
                 outlet_float(pic->x_outlet, 0.0f);
             });
         }
     }
-    
+
     void update() override
     {
         auto* pic = static_cast<t_fake_pic*>(ptr);
-        
-        if(pic->x_fullname) {
+
+        if (pic->x_fullname) {
             path = String::fromUTF8(pic->x_fullname->s_name);
         }
-        
+
         latch = pic->x_latch;
         outline = pic->x_outline;
         reportSize = pic->x_size;
         sendSymbol = pic->x_snd_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_snd_raw->s_name);
         receiveSymbol = pic->x_rcv_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_rcv_raw->s_name);
-        
+
         repaint();
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         auto* pic = static_cast<t_fake_pic*>(ptr);
-        
+
         switch (hash(symbol)) {
-            case hash("latch"): {
-                latch = pic->x_latch;
-                break;
-            }
-            case hash("outline"): {
-                outline = pic->x_outline;
-                break;
-            }
-            case hash("open"): {
-                if (atoms.size() >= 1)
-                    openFile(atoms[0].getSymbol());
-                break;
-            }
+        case hash("latch"): {
+            latch = pic->x_latch;
+            break;
+        }
+        case hash("outline"): {
+            outline = pic->x_outline;
+            break;
+        }
+        case hash("open"): {
+            if (atoms.size() >= 1)
+                openFile(atoms[0].getSymbol());
+            break;
+        }
         }
     }
 
@@ -126,9 +125,9 @@ public:
     {
         return {
             { "File", tString, cGeneral, &path, {} },
-            { "Latch", tBool, cGeneral, &latch, {"No", "Yes"} },
-            { "Outline", tBool, cAppearance, &outline, {"No", "Yes"} },
-            { "Report Size", tBool, cAppearance, &reportSize, {"No", "Yes"} },
+            { "Latch", tBool, cGeneral, &latch, { "No", "Yes" } },
+            { "Outline", tBool, cAppearance, &outline, { "No", "Yes" } },
+            { "Report Size", tBool, cAppearance, &reportSize, { "No", "Yes" } },
             { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
             { "Send Symbol", tString, cGeneral, &sendSymbol, {} }
         };
@@ -144,8 +143,8 @@ public:
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
-        if(static_cast<bool>(outline.getValue())) {
+
+        if (static_cast<bool>(outline.getValue())) {
             g.setColour(outlineColour);
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
         }
@@ -154,20 +153,16 @@ public:
     void valueChanged(Value& value) override
     {
         auto* pic = static_cast<t_fake_pic*>(ptr);
-        
+
         if (value.refersToSameSourceAs(path)) {
             openFile(path.toString());
-        }
-        else if (value.refersToSameSourceAs(latch)) {
+        } else if (value.refersToSameSourceAs(latch)) {
             pic->x_latch = static_cast<int>(latch.getValue());
-        }
-        else if (value.refersToSameSourceAs(outline)) {
+        } else if (value.refersToSameSourceAs(outline)) {
             pic->x_outline = static_cast<int>(latch.getValue());
-        }
-        else if (value.refersToSameSourceAs(reportSize)) {
+        } else if (value.refersToSameSourceAs(reportSize)) {
             pic->x_size = static_cast<int>(reportSize.getValue());
-        }
-        else if (value.refersToSameSourceAs(sendSymbol)) {
+        } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
             t_atom atom;
             SETSYMBOL(&atom, pd->generateSymbol(symbol));
@@ -178,7 +173,6 @@ public:
             SETSYMBOL(&atom, pd->generateSymbol(symbol));
             pd_typedmess((t_pd*)pic, pd->generateSymbol("receive"), 1, &atom);
         }
-        
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -238,7 +232,7 @@ public:
 
         auto pathString = imageFile.getFullPathName();
         auto fileNameString = imageFile.getFileName();
-        
+
         auto* rawFileName = fileNameString.toRawUTF8();
         auto* rawPath = pathString.toRawUTF8();
 
@@ -249,9 +243,8 @@ public:
 
         pic->x_width = img.getWidth();
         pic->x_height = img.getHeight();
-        
-        if(static_cast<bool>(reportSize.getValue()))
-        {
+
+        if (static_cast<bool>(reportSize.getValue())) {
             t_atom coordinates[2];
             SETFLOAT(coordinates, img.getWidth());
             SETFLOAT(coordinates + 1, img.getHeight());

@@ -244,23 +244,18 @@ void SplitView::closeEmptySplits()
         }
 
         setSplitEnabled(false);
+    } else if (!splits[0].getNumTabs()) {
     }
-    else if(!splits[0].getNumTabs())
-    {
-        
-    }
-    
-    if(splits[0].getCurrentTabIndex() < 0 && splits[0].getNumTabs())
-    {
+
+    if (splits[0].getCurrentTabIndex() < 0 && splits[0].getNumTabs()) {
         splits[0].setCurrentTabIndex(0);
     }
     // Make sure to show the welcome screen if this was the last tab
-    else if(splits[0].getCurrentTabIndex() < 0) {
+    else if (splits[0].getCurrentTabIndex() < 0) {
         splits[0].currentTabChanged(-1, "");
     }
-    
-    if(splits[1].getCurrentTabIndex() < 0 && splits[1].getNumTabs())
-    {
+
+    if (splits[1].getCurrentTabIndex() < 0 && splits[1].getNumTabs()) {
         splits[1].setCurrentTabIndex(0);
     }
 }

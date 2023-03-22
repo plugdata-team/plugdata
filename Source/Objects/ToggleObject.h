@@ -18,7 +18,7 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
-        onConstrainerCreate = [this](){
+        onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
         };
     }
@@ -52,7 +52,7 @@ public:
     {
         nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
         iemHelper.update();
-        
+
         value = getValue();
         setToggleStateFromFloat(value);
     }

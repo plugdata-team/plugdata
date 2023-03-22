@@ -56,19 +56,18 @@ public:
             stopEdition();
         };
     }
-    
+
     void update() override
     {
         value = getValue();
-        
+
         min = atomHelper.getMinimum();
         max = atomHelper.getMaximum();
-        
+
         input.setMinimum(static_cast<float>(min.getValue()));
         input.setMaximum(static_cast<float>(max.getValue()));
-        
-        input.setText(input.formatNumber(value), dontSendNotification);
 
+        input.setText(input.formatNumber(value), dontSendNotification);
 
         atomHelper.update();
     }
@@ -148,7 +147,7 @@ public:
     {
         atomHelper.setPdBounds(b);
     }
-    
+
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         return atomHelper.createConstrainer(object);

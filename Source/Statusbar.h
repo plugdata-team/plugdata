@@ -82,7 +82,7 @@ public:
     Label zoomLabel;
 
     Slider volumeSlider;
-        
+
     Value showDirection;
 
     static constexpr int statusbarHeight = 30;

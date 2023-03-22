@@ -72,7 +72,7 @@ public:
         : ObjectBase(obj, object)
     {
     }
-    
+
     void update() override
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);

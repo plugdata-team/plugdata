@@ -65,7 +65,7 @@ public:
     virtual bool isEditorShown() { return false; };
     virtual void showEditor() {};
     virtual void hideEditor() {};
-        
+
     bool hitTest(int x, int y) override;
 
     // Some objects need to show/hide iolets when send/receive symbols are set
@@ -74,9 +74,10 @@ public:
 
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getPdBounds() = 0;
-        
+
     // Gets position from pd and applies it to Object
-    virtual Rectangle<int> getSelectableBounds() {
+    virtual Rectangle<int> getSelectableBounds()
+    {
         return getPdBounds();
     }
 
@@ -147,7 +148,7 @@ public:
     static bool isBeingEdited();
 
     ComponentBoundsConstrainer* getConstrainer();
-        
+
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var value);
@@ -195,11 +196,10 @@ public:
     PluginProcessor* pd;
 
 protected:
-        
-    std::function<void()> onConstrainerCreate = [](){};
-        
+    std::function<void()> onConstrainerCreate = []() {};
+
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
-        
+
     std::unique_ptr<ObjectLabel> label;
     static inline constexpr int maxSize = 1000000;
     static inline std::atomic<bool> edited = false;

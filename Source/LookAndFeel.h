@@ -67,7 +67,7 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Panel" } },
     { panelActiveTextColourId, { "Panel active text", "panel_active_text", "Panel" } },
     { searchBarColourId, { "Searchbar colour", "searchbar_colour", "Panel" } },
-    
+
     { sidebarBackgroundColourId, { "Sidebar background", "sidebar_colour", "Sidebar" } },
     { sidebarTextColourId, { "Sidebar text", "sidebar_text", "Sidebar" } },
     { sidebarActiveBackgroundColourId, { "Sidebar background active", "sidebar_background_active", "Sidebar" } },
@@ -152,7 +152,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
 
         void globalFocusChanged(Component* focusedComponent) override
-        { 
+        {
             buttonColour = getParentComponent()->hasKeyboardFocus(true) ? bgColour : Colours::lightgrey;
             repaint();
         }
@@ -343,78 +343,74 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         auto backgroundColour = findColour(shouldDrawButtonAsDown || button.getToggleState() ? PlugDataColour::dataColourId : PlugDataColour::canvasTextColourId);
         if (shouldDrawButtonAsHighlighted)
-        backgroundColour = backgroundColour.brighter(0.5f);
+            backgroundColour = backgroundColour.brighter(0.5f);
         auto cornerSize = Corners::defaultCornerRadius;
         g.setColour(backgroundColour);
         g.fillRoundedRectangle(button.getLocalBounds().toFloat(), cornerSize);
     }
-    
+
     void drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
         auto backgroundColour = findColour(shouldDrawButtonAsHighlighted || shouldDrawButtonAsDown || button.getToggleState() ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId);
-        
+
         auto cornerSize = Corners::defaultCornerRadius;
-        auto flatOnLeft   = button.isConnectedOnLeft();
-        auto flatOnRight  = button.isConnectedOnRight();
-        auto flatOnTop    = button.isConnectedOnTop();
+        auto flatOnLeft = button.isConnectedOnLeft();
+        auto flatOnRight = button.isConnectedOnRight();
+        auto flatOnTop = button.isConnectedOnTop();
         auto flatOnBottom = button.isConnectedOnBottom();
-        
-        if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
-        {
+
+        if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
             auto bounds = button.getLocalBounds().toFloat();
             bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.2f)).translated(-0.5f, -0.25f);
-            
+
             backgroundColour = backgroundColour.contrasting(0.05f);
-            
+
             Path path;
-            path.addRoundedRectangle (bounds.getX(), bounds.getY(),
-                                      bounds.getWidth(), bounds.getHeight(),
-                                      cornerSize, cornerSize,
-                                      ! (flatOnLeft  || flatOnTop),
-                                      ! (flatOnRight || flatOnTop),
-                                      ! (flatOnLeft  || flatOnBottom),
-                                      ! (flatOnRight || flatOnBottom));
+            path.addRoundedRectangle(bounds.getX(), bounds.getY(),
+                bounds.getWidth(), bounds.getHeight(),
+                cornerSize, cornerSize,
+                !(flatOnLeft || flatOnTop),
+                !(flatOnRight || flatOnTop),
+                !(flatOnLeft || flatOnBottom),
+                !(flatOnRight || flatOnBottom));
 
             g.setColour(backgroundColour);
-            g.fillPath (path);
-        }
-        else
-        {
+            g.fillPath(path);
+        } else {
             auto bounds = button.getLocalBounds().toFloat().reduced(4.0f, 8.0f).translated(-0.5f, -0.25f);
-            
+
             g.setColour(backgroundColour);
-            g.fillRoundedRectangle (bounds, cornerSize);
+            g.fillRoundedRectangle(bounds, cornerSize);
         }
-        
     }
-    
-    void drawCallOutBoxBackground(CallOutBox& box, Graphics& g, const Path& path, Image& cachedImage) override
+
+    void drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path const& path, Image& cachedImage) override
     {
-        if (cachedImage.isNull())
-        {
+        if (cachedImage.isNull()) {
             cachedImage = { Image::ARGB, box.getWidth(), box.getHeight(), true };
-            Graphics g2 (cachedImage);
+            Graphics g2(cachedImage);
 
             StackShadow::renderDropShadow(g2, path, Colour(0, 0, 0).withAlpha(0.4f), 8, { 0, 2 });
         }
 
-        g.setColour (Colours::black);
-        g.drawImageAt (cachedImage, 0, 0);
+        g.setColour(Colours::black);
+        g.drawImageAt(cachedImage, 0, 0);
 
-        g.setColour (findColour(PlugDataColour::popupMenuBackgroundColourId));
-        g.fillPath (path);
+        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.fillPath(path);
 
-        g.setColour (findColour(PlugDataColour::outlineColourId));
-        g.strokePath (path, PathStrokeType (1.0f));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.strokePath(path, PathStrokeType(1.0f));
     }
-     
-    int getCallOutBoxBorderSize(const CallOutBox& c) override {
+
+    int getCallOutBoxBorderSize(CallOutBox const& c) override
+    {
         return 20;
     }
 
     void drawButtonBackground(Graphics& g, Button& button, Colour const& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        if(button.getProperties()["Style"] == "LargeIcon") {
+        if (button.getProperties()["Style"] == "LargeIcon") {
             drawToolbarButtonBackground(g, button, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
             return;
         }
@@ -422,7 +418,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             drawTextButtonBackground(g, button, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
             return;
         }
-        
+
         if (button.getProperties()["Style"].toString().contains("Icon")) {
             return;
         } else {
@@ -1301,7 +1297,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           square_iolets=\"1\" square_object_corners=\"0\"/>\n"
     "  </ColourThemes>";
     // clang-format on
-    
+
     static void resetColours(ValueTree themesTree)
     {
         auto defaultThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);

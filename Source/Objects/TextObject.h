@@ -7,7 +7,7 @@
 struct TextObjectHelper {
 
     inline static int minWidth = 3;
-    
+
     static Rectangle<int> recalculateTextObjectBounds(void* patch, void* obj, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
     {
         int x, y, w, h;
@@ -46,15 +46,15 @@ struct TextObjectHelper {
     {
         return static_cast<t_text*>(ptr)->te_width = newWidth;
     }
-    
+
     static std::unique_ptr<ComponentBoundsConstrainer> createConstrainer(Object* object)
     {
         class TextObjectBoundsConstrainer : public ComponentBoundsConstrainer {
         public:
-            
             Object* object;
-            
-            TextObjectBoundsConstrainer(Object* parent) : object(parent)
+
+            TextObjectBoundsConstrainer(Object* parent)
+                : object(parent)
             {
             }
             /*
@@ -75,7 +75,7 @@ struct TextObjectHelper {
             {
                 auto fontWidth = glist_fontwidth(object->cnv->patch.getPointer());
                 auto* patch = object->cnv->patch.getPointer();
-                
+
                 // Remove margin
                 auto newBounds = bounds.reduced(Object::margin);
                 auto oldBounds = old.reduced(Object::margin);
@@ -98,11 +98,11 @@ struct TextObjectHelper {
 
                 // Set new width
                 TextObjectHelper::setWidthInChars(object->getPointer(), newCharWidth);
-                
+
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
-        
+
         return std::make_unique<TextObjectBoundsConstrainer>(object);
     }
 
@@ -395,7 +395,7 @@ public:
     {
         return true;
     }
-    
+
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         return TextObjectHelper::createConstrainer(object);
