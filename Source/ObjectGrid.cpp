@@ -217,9 +217,9 @@ Point<int> ObjectGrid::performFixedResize(Object* toDrag, Point<int> dragOffset,
 }
 Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds)
 {
-    int enableGrid = static_cast<int>(gridEnabled.getValue());
+    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool>{gridEnabled & 1, gridEnabled & 2, gridEnabled & 4};
 
-    if (ModifierKeys::getCurrentModifiers().isShiftDown() || enableGrid == 0) {
+    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridEnabled == 0) {
         clear(0);
         clear(1);
         return dragOffset;
@@ -253,9 +253,9 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     auto snappable = getSnappableObjects(toDrag);
 
     // Snap to Objects
-    if (enableGrid != 2 && constrainer && constrainer->getFixedAspectRatio() != 0.0) {
+    if (snapEdges && constrainer && constrainer->getFixedAspectRatio() != 0.0) {
         dragOffset = performFixedResize(toDrag, dragOffset, newResizeBounds, nonClippedBounds);
-    } else if (enableGrid != 2) {
+    } else if (snapEdges) {
         bool alreadySnappedVertically = isAlreadySnapped(false, dragOffset);
         bool alreadySnappedHorizontally = isAlreadySnapped(true, dragOffset);
 
@@ -263,11 +263,11 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
             for (auto* object : snappable) {
                 auto b1 = object->getBounds().reduced(Object::margin);
 
-                if (resizeZone.isDraggingTopEdge() && std::abs(b1.getY() - b2.getY()) < tolerance) {
+                if (snapEdges && resizeZone.isDraggingTopEdge() && std::abs(b1.getY() - b2.getY()) < tolerance) {
                     auto dy = b1.getY() - b2.getY();
                     dragOffset.y = applySnap(SnappedLeft, dy + dragOffset.y, object, toDrag, false);
                 }
-                if (resizeZone.isDraggingBottomEdge() && std::abs(b1.getBottom() - b2.getBottom()) < tolerance) {
+                if (snapEdges && resizeZone.isDraggingBottomEdge() && std::abs(b1.getBottom() - b2.getBottom()) < tolerance) {
                     auto dy = b1.getBottom() - b2.getBottom();
                     dragOffset.y = applySnap(SnappedRight, dy + dragOffset.y, object, toDrag, false);
                 }
@@ -279,11 +279,11 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 
                 auto b1 = object->getBounds().reduced(Object::margin);
 
-                if (resizeZone.isDraggingLeftEdge() && std::abs(b1.getX() - b2.getX()) < tolerance) {
+                if (snapEdges && resizeZone.isDraggingLeftEdge() && std::abs(b1.getX() - b2.getX()) < tolerance) {
                     auto dx = b1.getX() - b2.getX();
                     dragOffset.x = applySnap(SnappedLeft, dx + dragOffset.x, object, toDrag, true);
                 }
-                if (resizeZone.isDraggingRightEdge() && std::abs(b1.getRight() - b2.getRight()) < tolerance) {
+                if (snapEdges && resizeZone.isDraggingRightEdge() && std::abs(b1.getRight() - b2.getRight()) < tolerance) {
                     auto dx = b1.getRight() - b2.getRight();
                     dragOffset.x = applySnap(SnappedRight, dx + dragOffset.x, object, toDrag, true);
                 }
@@ -295,7 +295,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         });
     }
 
-    if (enableGrid == 1) {
+    if (!snapGrid) {
         return dragOffset;
     }
 
@@ -337,16 +337,16 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 
 Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 {
-    int enableGrid = static_cast<int>(gridEnabled.getValue());
+    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool>{gridEnabled & 1, gridEnabled & 2, gridEnabled & 4};
 
-    if (ModifierKeys::getCurrentModifiers().isShiftDown() || enableGrid == 0) {
+    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridEnabled == 0) {
         clear(0);
         clear(1);
         return dragOffset;
     }
 
     // Snap to Objects
-    if (enableGrid != 2) {
+    if (snapEdges || snapCentres) {
         auto snappable = getSnappableObjects(toDrag);
         auto b2 = (toDrag->originalBounds + dragOffset).reduced(Object::margin);
 
@@ -357,21 +357,21 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
                 start[0] = object;
                 end[0] = toDrag;
 
-                if (std::abs(b1.getY() - b2.getY()) < tolerance) {
+                if (snapEdges && std::abs(b1.getY() - b2.getY()) < tolerance) {
                     dragOffset.y = applySnap(SnappedLeft, b1.getY() - b2.getY() + dragOffset.y, object, toDrag, false);
                     break;
                 }
-                if (std::abs(b1.getCentreY() - b2.getCentreY()) < tolerance) {
+                if (snapCentres && std::abs(b1.getCentreY() - b2.getCentreY()) < tolerance) {
                     dragOffset.y = applySnap(SnappedCentre, b1.getCentreY() - b2.getCentreY() + dragOffset.y, object, toDrag, false);
                     break;
                 }
-                if (std::abs(b1.getBottom() - b2.getBottom()) < tolerance) {
+                if (snapEdges && std::abs(b1.getBottom() - b2.getBottom()) < tolerance) {
                     dragOffset.y = applySnap(SnappedRight, b1.getBottom() - b2.getBottom() + dragOffset.y, object, toDrag, false);
                     break;
                 }
             }
         }
-        if (!isAlreadySnapped(true, dragOffset)) {
+        if (snapEdges && !isAlreadySnapped(true, dragOffset)) {
 
             // Find snap points based on connection alignment
             for (auto* connection : toDrag->getConnections()) {
@@ -420,15 +420,15 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
                 start[1] = object;
                 end[1] = toDrag;
 
-                if (std::abs(b1.getX() - b2.getX()) < tolerance) {
+                if (snapEdges && std::abs(b1.getX() - b2.getX()) < tolerance) {
                     dragOffset.x = applySnap(SnappedLeft, b1.getX() - b2.getX() + dragOffset.x, object, toDrag, true);
                     break;
                 }
-                if (std::abs(b1.getCentreX() - b2.getCentreX()) < tolerance) {
+                if (snapCentres && std::abs(b1.getCentreX() - b2.getCentreX()) < tolerance) {
                     dragOffset.x = applySnap(SnappedCentre, b1.getCentreX() - b2.getCentreX() + dragOffset.x, object, toDrag, true);
                     break;
                 }
-                if (std::abs(b1.getRight() - b2.getRight()) < tolerance) {
+                if (snapEdges && std::abs(b1.getRight() - b2.getRight()) < tolerance) {
                     dragOffset.x = applySnap(SnappedRight, b1.getRight() - b2.getRight() + dragOffset.x, object, toDrag, true);
                     break;
                 }
@@ -439,13 +439,13 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
             updateMarker();
         });
 
-        if (gridEnabled == 1) {
+        if (!snapGrid) {
             return dragOffset;
         }
     }
 
     // Snap to Grid
-    if (gridEnabled != 1) {
+    if (snapGrid) {
         Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
         if (!isAlreadySnapped(true, dragOffset)) {
 

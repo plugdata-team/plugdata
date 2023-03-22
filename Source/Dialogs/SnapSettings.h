@@ -51,7 +51,6 @@ public:
     {
         Grid = 0,
         Edges,
-        Corners,
         Centers
     };
     
@@ -59,8 +58,7 @@ public:
     {
         GridBit = 1,
         EdgesBit = 2,
-        CornersBit = 4,
-        CentersBit = 8
+        CentersBit = 4
     };
 
     class SnapSelector : public Component, public Value::Listener, public Button::Listener, public SettableTooltipClient
@@ -139,7 +137,7 @@ public:
         void mouseDown(MouseEvent const& e) override
         {
             // allow mouse click on item label to also toggle state
-            button.setToggleState(!button.getToggleState(), false);
+            button.setToggleState(!button.getToggleState(), dontSendNotification);
             buttonClicked(&button);
             parent->mouseInteraction = button.getToggleState() ? MouseInteraction::ToggledButtonOn : MouseInteraction::ToggledButtonOff;
         }
@@ -188,7 +186,6 @@ public:
 
         buttonGroups[SnapItem::Grid].setTooltip("Snap to canvas grid");
         buttonGroups[SnapItem::Edges].setTooltip("Snap to edges of objects");
-        buttonGroups[SnapItem::Corners].setTooltip("Snap to corners of objects");
         buttonGroups[SnapItem::Centers].setTooltip("Snap to centers of objects");
 
         //auto* leftCanvas = editor->splitView.getLeftTabbar()->getCurrentCanvas();
@@ -203,7 +200,6 @@ public:
 
         buttonGroups[SnapItem::Grid].setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
         buttonGroups[SnapItem::Edges].setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
-        buttonGroups[SnapItem::Corners].setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
         buttonGroups[SnapItem::Centers].setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
 
         gridSlider->setBounds(bounds);
@@ -220,12 +216,12 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        for (auto& button : buttonGroups) {
-            if (button.dragToggledInteraction == false && button.getScreenBounds().contains(e.getScreenPosition()) && e.getDistanceFromDragStart() > 2) {
-                //button.button.setState(Button::ButtonState::buttonOver);
-                button.dragToggledInteraction = true;
-                button.button.setToggleState(mouseInteraction, false);
-                button.buttonClicked(&button.button);
+        for (auto& group : buttonGroups) {
+            if (group.dragToggledInteraction == false && group.getScreenBounds().contains(e.getScreenPosition()) && e.getDistanceFromDragStart() > 2) {
+                //group.button.setState(Button::ButtonState::buttonOver);
+                group.dragToggledInteraction = true;
+                group.button.setToggleState(mouseInteraction, dontSendNotification);
+                group.buttonClicked(&group.button);
             }
         }
     }
@@ -258,11 +254,10 @@ private:
 
     std::unique_ptr<GridSizeSlider> gridSlider = std::make_unique<GridSizeSlider>();
 
-    SnapSettings::SnapSelector buttonGroups[4] = {
-        SnapSelector(this, Icons::Grid, "Grid", SnapBitMask::GridBit),
+    SnapSettings::SnapSelector buttonGroups[3] = {
         SnapSelector(this, Icons::SnapEdges, "Edges", SnapBitMask::EdgesBit),
-        SnapSelector(this, Icons::SnapCorners, "Corners", SnapBitMask::CornersBit),
-        SnapSelector(this, Icons::SnapCenters, "Centers", SnapBitMask::CentersBit)
+        SnapSelector(this, Icons::SnapCenters, "Centers", SnapBitMask::CentersBit),
+        SnapSelector(this, Icons::Grid, "Grid", SnapBitMask::GridBit)
     };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SnapSettings)
