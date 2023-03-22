@@ -24,12 +24,14 @@ public:
         Label textLabel;
         String groupName;
         String settingName;
+        String toolTip;
         Value overlayValue;
     public:
-        OverlaySelector(Value setting, String nameOfSetting, String nameOfGroup)
+        OverlaySelector(Value setting, String nameOfSetting, String nameOfGroup, String toolTipString)
         : overlayValue(setting)
         , groupName(nameOfGroup)
         , settingName(nameOfSetting)
+        , toolTip(toolTipString)
         {
             setSize(230, 30);
 
@@ -56,7 +58,13 @@ public:
             buttons[Run].setButtonText(Icons::Presentation);
             buttons[Alt].setButtonText(Icons::Eye);
 
+            buttons[Edit].setTooltip("Show " + groupName.toLowerCase() + " in edit mode");
+            buttons[Lock].setTooltip("Show " + groupName.toLowerCase() + " in run mode");
+            buttons[Run].setTooltip("Show " + groupName.toLowerCase() + " in presentation mode");
+            buttons[Alt].setTooltip("Show " + groupName.toLowerCase() + " when overlay button is active");
+
             textLabel.setText(groupName, dontSendNotification);
+            textLabel.setTooltip(toolTip);
             addAndMakeVisible(textLabel);
 
             overlayValue = SettingsFile::getInstance()->getProperty<int>(settingName);
@@ -212,13 +220,13 @@ private:
     };
 
     OverlayDisplaySettings::OverlaySelector buttonGroups[7] = {
-        OverlaySelector(originValue, "origin", "Origin"),
-        OverlaySelector(borderValue, "border", "Border"),
-        OverlaySelector(indexValue, "index", "Index"),
-        OverlaySelector(coordinateValue, "coordinate", "Coordinate"),
-        OverlaySelector(activationValue, "activation_state", "Activation state"),
-        OverlaySelector(orderValue, "order", "Order"),
-        OverlaySelector(directionValue, "direction", "Direction")
+        OverlaySelector(originValue, "origin", "Origin", "0,0 point of canvas"),
+        OverlaySelector(borderValue, "border", "Border", "Plugin / window workspace size"),
+        OverlaySelector(indexValue, "index", "Index", "Object index in patch"),
+        OverlaySelector(coordinateValue, "coordinate", "Coordinate", "Object coordinate in patch"),
+        OverlaySelector(activationValue, "activation_state", "Activation state", "Data flow display"),
+        OverlaySelector(orderValue, "order", "Order", "Trigger order of multiple outlets"),
+        OverlaySelector(directionValue, "direction", "Direction", "Direction of connection")
     };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OverlayDisplaySettings)

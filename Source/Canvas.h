@@ -40,6 +40,7 @@ struct ObjectDragState {
 
 class Canvas : public Component
     , public Value::Listener
+    , public SettingsFileListener
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
     , public FocusChangeListener
@@ -66,6 +67,8 @@ public:
     void commandKeyChanged(bool isHeld) override;
     void spaceKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
+
+    void propertyChanged(String name, var value) override;
 
     void synchroniseSplitCanvas();
     void synchronise();
@@ -163,6 +166,8 @@ public:
     Value gridEnabled;
     Value showDirection;
     Value paletteDragMode;
+
+    bool showBorder = false;
         
     bool isGraph = false;
     bool hasParentCanvas = false;

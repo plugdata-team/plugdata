@@ -71,7 +71,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
     commandLocked.referTo(pd->commandLocked);
     commandLocked.addListener(this);
 
-    //showBorder.referTo(SettingsFile::getInstance()->getPropertyAsValue("border"));
+    // init border for testing
+    propertyChanged("border", SettingsFile::getInstance()->getPropertyAsValue("border"));
 
     // TODO: use SettingsFileListener
     gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
@@ -124,6 +125,19 @@ Canvas::~Canvas()
     delete suggestor;
 }
 
+void Canvas::propertyChanged(String name, var value)
+{
+    switch (hash(name)) {
+    case hash("grid_size"):
+        repaint();
+        break;
+    case hash("border"):
+        showBorder = static_cast<int>(value);
+        std::cout << "border: " << showBorder << std::endl;
+        repaint();
+    }
+}
+
 void Canvas::recreateViewport()
 {
     if (isGraph)
@@ -169,32 +183,36 @@ void Canvas::paint(Graphics& g)
         auto patchHeightCanvas = canvasOrigin.y + static_cast<int>(patchHeight.getValue());
 
         // draw patch window dashed outline
-        g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-        auto verticalExtentLeft = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, patchHeightCanvas);
-        auto horizontalExtentTop = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, patchWidthCanvas, canvasOrigin.y - 0.5f);
-        float dash[2] = { 5.0f, 5.0f };
+        if (showBorder) {
+            g.setColour(findColour(PlugDataColour::canvasDotsColourId));
+            auto verticalExtentLeft = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, patchHeightCanvas);
+            auto horizontalExtentTop = Line<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, patchWidthCanvas, canvasOrigin.y - 0.5f);
+            float dash[2] = { 5.0f, 5.0f };
 
-        g.drawDashedLine(verticalExtentLeft, dash, 2, 1.0f);
-        verticalExtentLeft.applyTransform(AffineTransform::translation(Point<int>(static_cast<int>(patchWidth.getValue()), 0)));
-        g.drawDashedLine(verticalExtentLeft, dash, 2, 1.0f);
-        g.drawDashedLine(horizontalExtentTop, dash, 2, 1.0f);
-        horizontalExtentTop.applyTransform(AffineTransform::translation(Point<int>(0, static_cast<int>(patchHeight.getValue()))));
-        g.drawDashedLine(horizontalExtentTop, dash, 2, 1.0f);
+            g.drawDashedLine(verticalExtentLeft, dash, 2, 1.0f);
+            verticalExtentLeft.applyTransform(AffineTransform::translation(Point<int>(static_cast<int>(patchWidth.getValue()), 0)));
+            g.drawDashedLine(verticalExtentLeft, dash, 2, 1.0f);
+            g.drawDashedLine(horizontalExtentTop, dash, 2, 1.0f);
+            horizontalExtentTop.applyTransform(AffineTransform::translation(Point<int>(0, static_cast<int>(patchHeight.getValue()))));
+            g.drawDashedLine(horizontalExtentTop, dash, 2, 1.0f);
+        }
 
         auto startX = (canvasOrigin.x % objectGrid.gridSize);
         startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
 
         auto startY = (canvasOrigin.y % objectGrid.gridSize);
         startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize);
-        
+
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
         for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
             for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
                 
                 // Don't draw over origin line
-                if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= patchHeightCanvas) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidthCanvas)) continue;
-                
+                if (showBorder) {
+                    if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= patchHeightCanvas) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidthCanvas))
+                        continue;
+                }
                 g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
             }
         }
