@@ -133,7 +133,6 @@ void Canvas::propertyChanged(String name, var value)
         break;
     case hash("border"):
         showBorder = static_cast<int>(value);
-        std::cout << "border: " << showBorder << std::endl;
         repaint();
     }
 }

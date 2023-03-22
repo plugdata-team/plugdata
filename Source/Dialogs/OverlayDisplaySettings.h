@@ -139,41 +139,65 @@ public:
     
     OverlayDisplaySettings()
     {
-        setSize(200, 275);
+        setSize(170, 200);
 
-        addAndMakeVisible(canvasLabel);
+        auto labelRect = getLocalBounds().withHeight(30);
+
         canvasLabel.setText("Canvas", dontSendNotification);
-        canvasLabel.setJustificationType(Justification::topLeft);
-        
-        addAndMakeVisible(objectLabel);
+        canvasLabel.setSize(200, 30);
+        addAndMakeVisible(canvasLabel);
+
         objectLabel.setText("Object", dontSendNotification);
-        objectLabel.setJustificationType(Justification::topLeft);
-        
-        addAndMakeVisible(connectionLabel);
+        objectLabel.setSize(200, 30);
+        addAndMakeVisible(objectLabel);
+
         connectionLabel.setText("Connection", dontSendNotification);
-        connectionLabel.setJustificationType(Justification::topLeft);
-        
-        for (auto& buttonGroup : buttonGroups) {
-            addAndMakeVisible(buttonGroup);
-        }
+        connectionLabel.setSize(200, 30);
+        addAndMakeVisible(connectionLabel);
+
+        //for (auto& buttonGroup : buttonGroups) {
+        //    addAndMakeVisible(buttonGroup);
+        //}
+        addAndMakeVisible(buttonGroups[Origin]);
+        addAndMakeVisible(buttonGroups[Border]);
+        addAndMakeVisible(buttonGroups[Index]);
+        // doesn't exist yet
+        //addAndMakeVisible(buttonGroups[Coordinate]);
+        //addAndMakeVisible(buttonGroups[ActivationState]);
+        //addAndMakeVisible(buttonGroups[Order]);
+        addAndMakeVisible(buttonGroups[Direction]);
     }
 
     void resized() override
     {
-        auto bounds = getLocalBounds();
-        bounds.removeFromTop(5);
+        int spacer = 28;
 
-        canvasLabel.setBounds(bounds.removeFromTop(20));
-        buttonGroups[Origin].setBounds(bounds.removeFromTop(30));
-        buttonGroups[Border].setBounds(bounds.removeFromTop(30));
-        
-        objectLabel.setBounds(bounds.removeFromTop(20));
-        buttonGroups[Index].setBounds(bounds.removeFromTop(30));
-        buttonGroups[Coordinate].setBounds(bounds.removeFromTop(30));
-        buttonGroups[ActivationState].setBounds(bounds.removeFromTop(30));
-        
-        connectionLabel.setBounds(bounds.removeFromTop(20));
-        buttonGroups[Order].setBounds(bounds.removeFromTop(30));
+        auto bounds = getLocalBounds();
+
+        canvasLabel.setBounds(bounds);
+        bounds.removeFromTop(spacer);
+        buttonGroups[Origin].setBounds(bounds);
+        bounds.removeFromTop(spacer);
+        buttonGroups[Border].setBounds(bounds);
+        bounds.removeFromTop(spacer);
+
+        objectLabel.setBounds(bounds);
+        bounds.removeFromTop(spacer);
+        buttonGroups[Index].setBounds(bounds);
+        bounds.removeFromTop(spacer);
+        // doesn't exist yet
+        //buttonGroups[Coordinate].setBounds(bounds);
+        //bounds.removeFromTop(spacer);
+        // doesn't exist yet
+        //buttonGroups[ActivationState].setBounds(bounds);
+        //bounds.removeFromTop(spacer);
+
+        connectionLabel.setBounds(bounds);
+        bounds.removeFromTop(spacer);
+        // doesn't exist yet
+        //buttonGroups[Order].setBounds(bounds);
+        //bounds.removeFromTop(spacer);
+        // doesn't exist yet
         buttonGroups[Direction].setBounds(bounds);
     }
     
