@@ -22,33 +22,31 @@ public:
         , viewportBounds(cnv->viewport->getBounds())
     {
 
-        auto width = cnv->patchWidth.getValue();
-        auto height = cnv->patchHeight.getValue();
         editor->addAndMakeVisible(this);
 
-        editor->setResizeLimits(width, height, 99999, 99999);
+        editor->setResizeLimits(width, height + titlebarHeight, 99999, 99999);
         editor->setResizable(false, false);
-        editor->setSize(width, height);
+        editor->setSize(width, height + titlebarHeight);
 
         if (ProjectInfo::isStandalone) {
-            mainWindow->setResizeLimits(width, height, 99999, 99999);
+            mainWindow->setResizeLimits(width, height + titlebarHeight, 99999, 99999);
             mainWindow->setResizable(false, false);
-            mainWindow->setSize(width, height);
+            mainWindow->setSize(width, height + titlebarHeight);
         }
 
         closeButton.addListener(this);
         addAndMakeVisible(cnv);
         addAndMakeVisible(closeButton);
-        setBounds(0, 0, width, height);
+        setBounds(0, 0, width, height + titlebarHeight);
 
         editor->zoomScale = 1.0f;
-
+        
         // cnv->viewport->setViewPosition(cnv->canvasOrigin);
-        cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
-
+        cnv->viewport->setBounds(0, 50, width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
+        std::cout << cnv->viewport->getY() << std::endl;
         cnv->locked = true;
         cnv->presentationMode = true;
-
+        
         closeButton.setButtonText(Icons::Edit);
         closeButton.setTooltip("Show Editor..");
         if (ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("macos_buttons")) {
@@ -56,6 +54,8 @@ public:
         } else {
             closeButton.setBounds(getWidth() - 75, 5, 30, 30);
         }
+
+        repaint();
     }
 
     void buttonClicked(Button* button) override
@@ -82,6 +82,22 @@ public:
         }
     }
 
+    void paint(Graphics& g) override
+    {
+        auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
+        std::cout << "HEJ" << std::endl;
+        if (editor->wantsRoundedCorners()) {
+            // Toolbar background
+            g.setColour(baseColour);
+            g.fillRect(0, 10, getWidth(), titlebarHeight - 9);
+            g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), titlebarHeight, Corners::windowCornerRadius);
+        } else {
+            // Toolbar background
+            g.setColour(baseColour);
+            g.fillRect(0, 0, getWidth(), titlebarHeight);
+        }
+    }
+
 private:
     Canvas* cnv;
     PluginEditor* editor;
@@ -91,4 +107,7 @@ private:
     ComponentBoundsConstrainer* windowConstrainer;
     Rectangle<int> windowBounds;
     Rectangle<int> viewportBounds;
+    int width = cnv->patchWidth.getValue();
+    int height = cnv->patchHeight.getValue();
+    int titlebarHeight = 30;
 };
