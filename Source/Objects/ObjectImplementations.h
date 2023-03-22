@@ -508,6 +508,8 @@ public:
         
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
         
+        outlet_float(mouse->x_outlet_y, (float)pos.y);
+        outlet_float(mouse->x_outlet_x, (float)pos.x);
         outlet_float(mouse->x_obj.ob_outlet, 1.0);
         
         std::cout << "down!" << std::endl;

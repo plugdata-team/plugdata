@@ -387,6 +387,30 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
         
     }
+    
+    void drawCallOutBoxBackground(CallOutBox& box, Graphics& g, const Path& path, Image& cachedImage) override
+    {
+        if (cachedImage.isNull())
+        {
+            cachedImage = { Image::ARGB, box.getWidth(), box.getHeight(), true };
+            Graphics g2 (cachedImage);
+
+            StackShadow::renderDropShadow(g2, path, Colour(0, 0, 0).withAlpha(0.4f), 8, { 0, 2 });
+        }
+
+        g.setColour (Colours::black);
+        g.drawImageAt (cachedImage, 0, 0);
+
+        g.setColour (findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.fillPath (path);
+
+        g.setColour (findColour(PlugDataColour::outlineColourId));
+        g.strokePath (path, PathStrokeType (1.0f));
+    }
+     
+    int getCallOutBoxBorderSize(const CallOutBox& c) override {
+        return 20;
+    }
 
     void drawButtonBackground(Graphics& g, Button& button, Colour const& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
