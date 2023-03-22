@@ -131,55 +131,6 @@ public:
     bool blinkMidiOut = false;
 };
 
-class GridSizeSlider : public PopupMenu::CustomComponent {
-public:
-    GridSizeSlider(Canvas* leftCnv, Canvas* rightCnv)
-    {
-        addAndMakeVisible(slider.get());
-        slider->setRange(5, 30, 5);
-        slider->setValue(SettingsFile::getInstance()->getProperty<int>("grid_size"));
-        slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
-        slider->setColour(Slider::ColourIds::trackColourId, findColour(PlugDataColour::panelBackgroundColourId));
-
-        slider->onValueChange = [this, leftCnv, rightCnv]() {
-            SettingsFile::getInstance()->setProperty("grid_size", slider->getValue());
-            if (leftCnv)
-                leftCnv->repaint();
-            if (rightCnv)
-                rightCnv->repaint();
-        };
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto b = getLocalBounds().reduced(12, 0);
-        int x = b.getX();
-        int spacing = b.getWidth() / 6;
-
-        for (int i = 5; i <= 30; i += 5) {
-            auto textBounds = Rectangle<int>(x, b.getY(), spacing, b.getHeight());
-            Fonts::drawStyledText(g, String(i), textBounds, findColour(PlugDataColour::toolbarTextColourId), Monospace, 10, Justification::centredTop);
-            x += spacing;
-        }
-    }
-
-    void getIdealSize(int& idealWidth, int& idealHeight) override
-    {
-        idealWidth = 150;
-        idealHeight = 25;
-    }
-
-    void resized() override
-    {
-        auto bounds = getLocalBounds();
-        bounds.reduce(10, 0);
-        slider->setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() + 10);
-    }
-
-private:
-    std::unique_ptr<Slider> slider = std::make_unique<Slider>();
-};
-
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
@@ -220,56 +171,13 @@ Statusbar::Statusbar(PluginProcessor* processor)
     powerButton = std::make_unique<TextButton>(Icons::Power);
     connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
     connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
-    gridButton = std::make_unique<TextButton>(Icons::Grid);
     protectButton = std::make_unique<TextButton>(Icons::Protection);
     centreButton = std::make_unique<TextButton>(Icons::Centre);
-    overlayButton = std::make_unique<TextButton>(Icons::Eye);
 
     powerButton->setTooltip("Enable/disable DSP");
     powerButton->setClickingTogglesState(true);
     powerButton->getProperties().set("Style", "SmallIcon");
     addAndMakeVisible(powerButton.get());
-
-    gridButton->setTooltip("Grid Options");
-    gridButton->getProperties().set("Style", "SmallIcon");
-    gridButton->onClick = [this]() {
-        PopupMenu gridSelector;
-        int gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
-        gridSelector.addItem("Snap to Grid", true, gridEnabled == 2 || gridEnabled == 3, [this, gridEnabled]() {
-            if (gridEnabled == 0) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 2);
-            } else if (gridEnabled == 1) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 3);
-            } else if (gridEnabled == 2) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 0);
-            } else {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 1);
-            }
-        });
-        gridSelector.addItem("Snap to Objects", true, gridEnabled == 1 || gridEnabled == 3, [this, gridEnabled]() {
-            if (gridEnabled == 0) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 1);
-            } else if (gridEnabled == 1) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 0);
-            } else if (gridEnabled == 2) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 3);
-            } else {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 2);
-            }
-        });
-        gridSelector.addSeparator();
-
-        auto* leftCanvas = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->splitView.getLeftTabbar()->getCurrentCanvas();
-        auto* rightCanvas = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->splitView.getRightTabbar()->getCurrentCanvas();
-        gridSelector.addCustomItem(1, std::make_unique<GridSizeSlider>(leftCanvas, rightCanvas), nullptr, "Grid Size");
-
-        gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
-    };
-
-    addAndMakeVisible(gridButton.get());
-
-    // Initialise grid state
-    propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
 
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
 
@@ -290,15 +198,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
 
     addAndMakeVisible(centreButton.get());
-
-    overlayButton->setTooltip("Overlay display settings");
-    overlayButton->getProperties().set("Style", "SmallIcon");
-
-    overlayButton->onClick = [this]() {
-        OverlayDisplaySettings::show(pd->getActiveEditor(), overlayButton.get()->getScreenBounds());
-    };
-    
-    addAndMakeVisible(overlayButton.get());
 
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
@@ -366,24 +265,6 @@ Statusbar::~Statusbar()
 
 void Statusbar::propertyChanged(String name, var value)
 {
-    if (name == "grid_enabled") {
-        int gridEnabled = static_cast<int>(value);
-        if (gridEnabled == 0) {
-            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
-            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
-        } else if (gridEnabled == 1) {
-            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
-            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::gridLineColourId).brighter(0.4f));
-        } else if (gridEnabled == 2) {
-            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::signalColourId));
-            // TODO: fix weird colour id usage
-            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::signalColourId).brighter(0.4f));
-        } else if (gridEnabled == 3) {
-            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::signalColourId));
-            // TODO: fix weird colour id usage
-            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::signalColourId).brighter(0.4f));
-        }
-    }
 }
 
 void Statusbar::paint(Graphics& g)
@@ -406,11 +287,7 @@ void Statusbar::resized()
 
     position(3); // Seperator
 
-    gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-
     centreButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-
-    overlayButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     pos = 0; // reset position for elements on the left
 
@@ -430,12 +307,6 @@ void Statusbar::resized()
 
 void Statusbar::shiftKeyChanged(bool isHeld)
 {
-    if (isHeld && SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
-        gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
-        gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
-    } else if (SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
-        propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
-    }
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)

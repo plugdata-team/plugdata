@@ -100,6 +100,26 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
+
+    overlayButton.setButtonText(Icons::Eye);
+    overlaySettingsButton.setButtonText(Icons::ThinDown);
+
+    overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
+    overlaySettingsButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        overlayDisplaySettings->show(editor, overlaySettingsButton.getBounds());
+    };
+
+    snapEnableButton.setButtonText(Icons::Magnet);
+    snapSettingsButton.setButtonText(Icons::ThinDown);
+
+    snapSettings = std::make_unique<SnapSettings>();
+
+    snapSettingsButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        snapSettings->show(editor, snapSettingsButton.getBounds());
+    }; 
+
     setResizable(true, false);
 
     // In the standalone, the resizer handling is done on the window class
@@ -163,7 +183,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &pinButton, &hideSidebarButton }) {
         button->getProperties().set("Style", "LargeIcon");
-        button->setConnectedEdges(12);
+        //button->setConnectedEdges(Button::Conn);
         addAndMakeVisible(button);
     }
 
@@ -223,13 +243,44 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     editButton.setConnectedEdges(Button::ConnectedOnRight);
     runButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
     presentButton.setConnectedEdges(Button::ConnectedOnLeft);
+
+    // overlay button
+    overlayButton.getProperties().set("Style", "LargeIcon");
+    overlaySettingsButton.getProperties().set("Style", "LargeIcon");
+
+    overlayButton.setClickingTogglesState(true);
+    overlaySettingsButton.setClickingTogglesState(false);
+
+    addAndMakeVisible(overlayButton);
+    addAndMakeVisible(overlaySettingsButton);
+
+    overlayButton.setConnectedEdges(Button::ConnectedOnRight);
+    overlaySettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
+
+    overlayButton.setTooltip(String("Show overlays"));
+    overlaySettingsButton.setTooltip(String("Overlay settings"));
+
+    // snapping button
+    snapEnableButton.getProperties().set("Style", "LargeIcon");
+    snapSettingsButton.getProperties().set("Style", "LargeIcon");
+
+    snapEnableButton.setClickingTogglesState(true);
+    snapSettingsButton.setClickingTogglesState(false);
+
+    addAndMakeVisible(snapEnableButton);
+    addAndMakeVisible(snapSettingsButton);
+
+    snapEnableButton.setConnectedEdges(Button::ConnectedOnRight);
+    snapSettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
+
+    snapEnableButton.setTooltip(String("Enable snapping"));
+    snapSettingsButton.setTooltip(String("Snap settings"));
     
     // Hide sidebar
     hideSidebarButton.setTooltip("Hide Sidebar");
     hideSidebarButton.getProperties().set("Style", "LargeIcon");
     hideSidebarButton.setClickingTogglesState(true);
     hideSidebarButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-    hideSidebarButton.setConnectedEdges(12);
     hideSidebarButton.onClick = [this]() {
         bool show = !hideSidebarButton.getToggleState();
 
@@ -247,7 +298,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pinButton.getProperties().set("Style", "LargeIcon");
     pinButton.setClickingTogglesState(true);
     pinButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-    pinButton.setConnectedEdges(12);
     pinButton.onClick = [this]() { sidebar->pinSidebar(pinButton.getToggleState()); };
 
     addAndMakeVisible(hideSidebarButton);
@@ -356,7 +406,15 @@ void PluginEditor::resized()
     runButton.setBounds(startX + toolbarHeight - 1, 0, toolbarHeight, toolbarHeight);
     presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 0, toolbarHeight, toolbarHeight);
 
+    overlayButton.setBounds(presentButton.getBounds().translated(100, 0));
+    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1,0));
+
+    snapEnableButton.setBounds(overlaySettingsButton.getBounds().translated(100, 0));
+    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1,0));
+
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
+
+
 
     if (!ProjectInfo::isStandalone) {
         int const resizerSize = 18;
@@ -841,8 +899,7 @@ void PluginEditor::updateCommandStatus()
         editButton.setEnabled(true);
         runButton.setEnabled(true);
         presentButton.setEnabled(true);
-        
-        statusbar->gridButton->setEnabled(true);
+
         statusbar->centreButton->setEnabled(true);
 
         addObjectMenuButton.setEnabled(!locked);
@@ -854,7 +911,6 @@ void PluginEditor::updateCommandStatus()
         
         statusbar->connectionStyleButton->setEnabled(false);
         statusbar->connectionPathfind->setEnabled(false);
-        statusbar->gridButton->setEnabled(false);
         statusbar->centreButton->setEnabled(false);
 
         undoButton.setEnabled(false);
