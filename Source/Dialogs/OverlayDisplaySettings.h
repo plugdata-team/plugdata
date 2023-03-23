@@ -33,8 +33,6 @@ public:
             , overlayState(settings)
             , group(groupType)
         {
-            setSize(230, 30);
-
             auto controlVisibility = [this](String mode) {
                 if (settingName == "origin" || settingName == "border") {
                     return true;
@@ -74,6 +72,8 @@ public:
             buttons[Lock]->setToggleState(static_cast<bool>(lockState & group), dontSendNotification);
             buttons[Run]->setToggleState(static_cast<bool>(runState & group), dontSendNotification);
             buttons[Alt]->setToggleState(static_cast<bool>(altState & group), dontSendNotification);
+            
+            setSize(230, 30);
         }
 
         void buttonClicked(Button* button) override
@@ -135,8 +135,7 @@ public:
         for (auto* buttonGroup : buttonGroups) {
             addAndMakeVisible(buttonGroup);
         }
-
-        setSize(170, 200);
+        setSize(170, 500);
     }
 
     void resized() override
@@ -165,6 +164,7 @@ public:
         // buttonGroups[Order].setBounds(bounds);
 
         buttonGroups[3]->setBounds(bounds.removeFromTop(itemHeight));
+        setSize(170, bounds.getY());
     }
 
     static void show(Component* parent, Rectangle<int> bounds)

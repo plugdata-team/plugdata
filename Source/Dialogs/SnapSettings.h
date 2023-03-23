@@ -87,8 +87,6 @@ public:
             , snapBit(snapBitValue)
             , parent(parent)
         {
-            setSize(110, 30);
-
             button.getProperties().set("Style", "SmallIcon");
             addAndMakeVisible(button);
             button.setClickingTogglesState(true);
@@ -104,12 +102,14 @@ public:
             snapValue = SettingsFile::getInstance()->getProperty<int>(property);
             snapValue.addListener(this);
             valueChanged(snapValue);
+
+            setSize(110, 30);
         }
 
         void paint(Graphics& g) override
         {
-            if (dragToggledInteraction) { // || buttonHover) {//button.getState() == Button::ButtonState::buttonOver) {
-                g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
+            if (dragToggledInteraction) {
+                g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
                 g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
             }
         }
@@ -173,8 +173,6 @@ public:
 
     SnapSettings()
     {
-        setSize(110, 155);
-
         for (auto* group : buttonGroups) {
             addAndMakeVisible(group);
             group->addMouseListener(this, true);
@@ -184,21 +182,19 @@ public:
         buttonGroups[SnapItem::Edges]->setTooltip("Snap to edges of objects");
         buttonGroups[SnapItem::Centers]->setTooltip("Snap to centers of objects");
 
-        // auto* leftCanvas = editor->splitView.getLeftTabbar()->getCurrentCanvas();
-        // auto* rightCanvas = editor->splitView.getRightTabbar()->getCurrentCanvas();
         addAndMakeVisible(gridSlider.get());
+
+        setSize(110, 500);
     }
 
     void resized() override
     {
         auto bounds = getLocalBounds();
-        bounds.removeFromTop(5);
-
-        buttonGroups[SnapItem::Grid]->setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
-        buttonGroups[SnapItem::Edges]->setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
-        buttonGroups[SnapItem::Centers]->setTopLeftPosition(bounds.removeFromTop(30).getTopLeft());
-
-        gridSlider->setBounds(bounds);
+        buttonGroups[SnapItem::Edges]->setBounds(bounds.removeFromTop(30));
+        buttonGroups[SnapItem::Centers]->setBounds(bounds.removeFromTop(30));
+        buttonGroups[SnapItem::Grid]->setBounds(bounds.removeFromTop(30));
+        gridSlider->setBounds(bounds.removeFromTop(30));
+        setSize(110, bounds.getY());
     }
 
     void mouseUp(MouseEvent const& e) override
