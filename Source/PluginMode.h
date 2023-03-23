@@ -42,7 +42,17 @@ public:
 
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
-        titleBar.addAndMakeVisible(*closeButton);
+
+        Label titleLabel;
+        titleBar.addAndMakeVisible(titleLabel);
+        titleLabel.setBounds(0, 5, width, titlebarHeight);
+        titleLabel.setText(cnv->patch.getTitle(), NotificationType::dontSendNotification);
+        std::cout << cnv->patch.getTitle() << std::endl;
+        titleLabel.setFont(Font(20.0f, Font::bold));
+        titleLabel.setJustificationType(Justification::centred);
+        titleLabel.setColour(Label::textColourId, findColour(PlugDataColour::panelTextColourId));
+        
+        
         closeButton->setButtonText(Icons::Edit);
         closeButton->getProperties().set("Style", "LargeIcon");
         closeButton->setTooltip("Show Editor..");
@@ -52,6 +62,8 @@ public:
             closeButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         }
         closeButton->addListener(this);
+        titleBar.addAndMakeVisible(*closeButton);
+
         addAndMakeVisible(titleBar);
 
         // Viewed Content
@@ -61,7 +73,7 @@ public:
         cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
         cnv->locked = true;
         cnv->presentationMode = true;
-        addAndMakeVisible(content);
+        addAndMakeVisible(content); 
     }
 
     ~PluginMode()
