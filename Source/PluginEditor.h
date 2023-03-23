@@ -102,6 +102,8 @@ public:
 
     std::unique_ptr<Dialog> openedDialog;
 
+    std::unique_ptr<Component> pluginMode;
+
     Value theme;
 
     Value hvccMode;

@@ -118,7 +118,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             case MainMenu::MenuItem::PluginMode: {
-                PluginMode* pluginMode = new PluginMode(editor->getCurrentCanvas());
+                editor->pluginMode = std::make_unique<PluginMode>(editor->getCurrentCanvas());
                 break;
             }
             case MainMenu::MenuItem::AutoConnect: {

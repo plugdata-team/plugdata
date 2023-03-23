@@ -6,7 +6,9 @@
 
 #pragma once
 
-#include "PluginEditor.h"
+// #include "PluginEditor.h"
+
+class PluginEditor;
 
 class PluginMode : public Component
     , public Button::Listener {
@@ -26,7 +28,7 @@ public:
                 children.emplace_back(child);
             }
         }
-
+        
         editor->addAndMakeVisible(this);
 
         editor->setResizeLimits(width, height + titlebarHeight, 99999, 99999);
@@ -39,11 +41,10 @@ public:
             mainWindow->setSize(width, height + titlebarHeight);
         }
 
-        closeButton.addListener(this);
+        closeButton->addListener(this);
         addAndMakeVisible(cnv);
-        addAndMakeVisible(closeButton);
+        addAndMakeVisible(*closeButton);
         setBounds(0, 0, width, height + titlebarHeight);
-        cnv->toBack();
 
         editor->zoomScale = 1.0f;
 
@@ -53,20 +54,25 @@ public:
         cnv->locked = true;
         cnv->presentationMode = true;
 
-        closeButton.setButtonText(Icons::Edit);
-        closeButton.setTooltip("Show Editor..");
+        closeButton->setButtonText(Icons::Edit);
+        closeButton->setTooltip("Show Editor..");
         if (ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("macos_buttons")) {
-            closeButton.setBounds(5, 5, 30, 30);
+            closeButton->setBounds(5, 5, 30, 30);
         } else {
-            closeButton.setBounds(getWidth() - 75, 5, 30, 30);
+            closeButton->setBounds(getWidth() - 75, 5, 30, 30);
         }
 
         repaint();
     }
 
+    ~PluginMode()
+    {
+        std::cout << "CLOSING!!" << std::endl;
+    }
+
     void buttonClicked(Button* button) override
     {
-        if (button == &closeButton) {
+        if (button == closeButton.get()) {
             for (auto* child : children) {
                 child->setVisible(true);
             }
@@ -86,7 +92,6 @@ public:
                 mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
                 mainWindow->setResizable(true, false);
             }
-
             delete this;
         }
     }
@@ -109,7 +114,7 @@ public:
 private:
     Canvas* cnv;
     PluginEditor* editor;
-    TextButton closeButton;
+    std::unique_ptr<TextButton> closeButton = std::make_unique<TextButton>();
     ResizableWindow* mainWindow;
     Component* cnvParent;
     ComponentBoundsConstrainer* windowConstrainer;
