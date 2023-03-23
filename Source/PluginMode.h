@@ -12,7 +12,6 @@ class PluginMode : public Component
     , public Button::Listener {
 public:
     PluginMode(Canvas* cnv)
-        // : DocumentWindow("Test", findColour(PlugDataColour::textObjectBackgroundColourId), DocumentWindow::allButtons, false)
         : cnv(cnv)
         , editor(cnv->editor)
         , mainWindow(static_cast<ResizableWindow*>(editor->getTopLevelComponent()))
@@ -21,6 +20,12 @@ public:
         , windowConstrainer(editor->getConstrainer())
         , viewportBounds(cnv->viewport->getBounds())
     {
+        for (auto* child : editor->getChildren()) {
+            if (child->isVisible()) {
+                child->setVisible(false);
+                children.emplace_back(child);
+            }
+        }
 
         editor->addAndMakeVisible(this);
 
@@ -38,15 +43,16 @@ public:
         addAndMakeVisible(cnv);
         addAndMakeVisible(closeButton);
         setBounds(0, 0, width, height + titlebarHeight);
+        cnv->toBack();
 
         editor->zoomScale = 1.0f;
-        
+
         // cnv->viewport->setViewPosition(cnv->canvasOrigin);
-        cnv->viewport->setBounds(0, 50, width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
-        std::cout << cnv->viewport->getY() << std::endl;
+        // cnv->setBounds(50, 50, 100, 100);
+        cnv->setBounds(0, 50, width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness() + titlebarHeight);
         cnv->locked = true;
         cnv->presentationMode = true;
-        
+
         closeButton.setButtonText(Icons::Edit);
         closeButton.setTooltip("Show Editor..");
         if (ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("macos_buttons")) {
@@ -61,7 +67,10 @@ public:
     void buttonClicked(Button* button) override
     {
         if (button == &closeButton) {
-            editor->setVisible(true);
+            for (auto* child : children) {
+                child->setVisible(true);
+            }
+
             cnv->viewport->setBounds(viewportBounds);
             cnv->locked = false;
             cnv->presentationMode = false;
@@ -85,7 +94,6 @@ public:
     void paint(Graphics& g) override
     {
         auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        std::cout << "HEJ" << std::endl;
         if (editor->wantsRoundedCorners()) {
             // Toolbar background
             g.setColour(baseColour);
@@ -110,4 +118,6 @@ private:
     int width = cnv->patchWidth.getValue();
     int height = cnv->patchHeight.getValue();
     int titlebarHeight = 30;
+
+    std::vector<Component*> children;
 };
