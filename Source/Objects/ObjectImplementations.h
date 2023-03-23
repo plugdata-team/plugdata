@@ -88,7 +88,7 @@ public:
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
-        if(pd->isPerformingGlobalSync) return;
+        if(pd->isPerformingGlobalSync) return false;
         
         auto const keyIdx = heldKeys.indexOf(key);
         auto const alreadyDown = keyIdx >= 0;
@@ -167,7 +167,7 @@ public:
 
     bool keyStateChanged(bool isKeyDown, Component* originatingComponent) override
     {
-        if(pd->isPerformingGlobalSync) return;
+        if(pd->isPerformingGlobalSync) return false;
         
         if (!isKeyDown) {
             for (int n = heldKeys.size() - 1; n >= 0; n--) {
