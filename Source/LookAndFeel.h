@@ -642,7 +642,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override
     {
-
         auto background = findColour(PlugDataColour::popupMenuBackgroundColourId);
 
         if (Desktop::canUseSemiTransparentWindows()) {
@@ -784,10 +783,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
         }
 
-        Rectangle<int> arrowZone(width - 20, 2, 14, height - 4);
+        Rectangle<int> arrowZone(width - 22, 9, 14, height - 18);
         Path path;
         path.startNewSubPath((float)arrowZone.getX() + 3.0f, (float)arrowZone.getCentreY() - 2.0f);
-        path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 3.0f);
+        path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 2.0f);
         path.lineTo((float)arrowZone.getRight() - 3.0f, (float)arrowZone.getCentreY() - 2.0f);
         g.setColour(object.findColour(ComboBox::arrowColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
 

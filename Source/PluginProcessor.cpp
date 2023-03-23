@@ -1354,8 +1354,10 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
     }
 
     for (auto& cnv : canvases) {
-        if (cnv.getComponent())
+        if (cnv.getComponent()) {
             cnv->synchronise();
+            cnv->handleUpdateNowIfNeeded();
+        }
     }
 
     isPerformingGlobalSync = false;

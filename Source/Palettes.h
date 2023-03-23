@@ -63,7 +63,7 @@ public:
         if (Desktop::canUseSemiTransparentWindows()) {
             Path shadowPath;
             shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 2 });
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.2f), 10, { 0, 2 });
 
             // Add a bit of alpha to disable the opaque flag
 
@@ -94,38 +94,31 @@ public:
     {
         int margin = Desktop::canUseSemiTransparentWindows() ? 9 : 2;
 
-        if (isSeparator) {
-            auto r = area.reduced(margin + 5, 0);
-            r.removeFromTop(roundToInt(((float)r.getHeight() * 0.5f) - 0.5f));
+        auto r = area.reduced(margin, 1);
 
-            g.setColour(LookAndFeel::findColour(PopupMenu::textColourId).withAlpha(0.3f));
-            g.fillRect(r.removeFromTop(1));
-        } else {
-            auto r = area.reduced(margin, 1);
-
-            auto colour = LookAndFeel::findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
-            if (isHighlighted && isActive) {
-                g.setColour(LookAndFeel::findColour(PopupMenu::highlightedBackgroundColourId));
-                g.fillRoundedRectangle(r.toFloat().reduced(4, 0), 4.0f);
-                colour = LookAndFeel::findColour(PopupMenu::highlightedTextColourId);
-            }
-
-            g.setColour(colour);
-
-            r.reduce(jmin(5, area.getWidth() / 20), 0);
-
-            auto font = getPopupMenuFont();
-
-            auto maxFontHeight = (float)r.getHeight() / 1.3f;
-
-            if (font.getHeight() > maxFontHeight)
-                font.setHeight(maxFontHeight);
-
-            g.setFont(font);
-
-            r.removeFromRight(3);
-            Fonts::drawFittedText(g, text, r, colour);
+        auto colour = LookAndFeel::findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
+        if (isHighlighted && isActive) {
+            g.setColour(LookAndFeel::findColour(PopupMenu::highlightedBackgroundColourId));
+            g.fillRoundedRectangle(r.toFloat().reduced(4, 0), 4.0f);
+            colour = LookAndFeel::findColour(PopupMenu::highlightedTextColourId);
         }
+
+        g.setColour(colour);
+
+        r.reduce(jmin(5, area.getWidth() / 20), 0);
+        r.removeFromLeft(8.0f);
+        
+        auto font = getPopupMenuFont();
+
+        auto maxFontHeight = (float)r.getHeight() / 1.3f;
+
+        if (font.getHeight() > maxFontHeight)
+            font.setHeight(maxFontHeight);
+
+        g.setFont(font);
+
+        r.removeFromRight(3);
+        Fonts::drawFittedText(g, text, r, colour);
     }
 
     void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& object) override
@@ -136,10 +129,10 @@ public:
         g.setColour(object.findColour(ComboBox::backgroundColourId));
         g.fillRoundedRectangle(boxBounds.toFloat(), cornerSize);
 
-        Rectangle<int> arrowZone(width - 20, 2, 14, height - 4);
+        Rectangle<int> arrowZone(width - 22, 9, 14, height - 18);
         Path path;
         path.startNewSubPath((float)arrowZone.getX() + 3.0f, (float)arrowZone.getCentreY() - 2.0f);
-        path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 3.0f);
+        path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 2.0f);
         path.lineTo((float)arrowZone.getRight() - 3.0f, (float)arrowZone.getCentreY() - 2.0f);
         g.setColour(object.findColour(ComboBox::arrowColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
 
@@ -161,6 +154,7 @@ public:
         label->addListener(this);
         label->setEditable(true);
         label->setJustificationType(Justification::centred);
+        label->setBorderSize(BorderSize<int>(1, 16, 1, 5));
         return label;
     }
 
@@ -416,7 +410,14 @@ public:
         };
 
         addAndMakeVisible(dragModeButton);
-
+        
+        deleteButton.setButtonText(Icons::Trash);
+        deleteButton.getProperties().set("Style", "LargeIcon");
+        deleteButton.onClick = [this]() {
+            
+        };
+        addAndMakeVisible(deleteButton);
+        
         addAndMakeVisible(patchSelector);
         patchSelector.setJustificationType(Justification::centred);
         patchSelector.onChange = [this]() {
@@ -590,30 +591,31 @@ public:
         g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRect(getLocalBounds().removeFromTop(26));
+        g.fillRect(getLocalBounds().removeFromTop(52));
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawHorizontalLine(25, 0, getWidth());
+        g.drawHorizontalLine(51, 0, getWidth());
     }
 
     void resized() override
     {
+        int panelHeight = 26;
+        
         auto b = getLocalBounds();
-        auto topPanel = b.removeFromTop(26);
+        patchSelector.setBounds(b.removeFromTop(panelHeight));
+        
+        auto secondPanel = b.removeFromTop(panelHeight).expanded(0, 3);
+        auto stateButtonsBounds = secondPanel.withX((getWidth() / 2) - (panelHeight * 1.5f)).withWidth(panelHeight);
 
-        topPanel.removeFromRight(2);
-
-        dragModeButton.setBounds(topPanel.removeFromRight(26).expanded(0, 2).translated(-2, 0));
-        lockModeButton.setBounds(topPanel.removeFromRight(26).expanded(0, 2).translated(-1, 0));
-        editModeButton.setBounds(topPanel.removeFromRight(26).expanded(0, 2));
-
-        topPanel.removeFromRight(2);
-
-        patchSelector.setBounds(topPanel);
-
+        dragModeButton.setBounds(stateButtonsBounds.translated((panelHeight - 1) * 2, 0));
+        lockModeButton.setBounds(stateButtonsBounds.translated(panelHeight - 1, 0));
+        editModeButton.setBounds(stateButtonsBounds);
+        
+        deleteButton.setBounds(secondPanel.removeFromRight(panelHeight));
+        
         if (cnv) {
             cnv->viewport->getPositioner()->applyNewBounds(b);
             cnv->checkBounds();
@@ -644,6 +646,8 @@ private:
     TextButton editModeButton;
     TextButton lockModeButton;
     TextButton dragModeButton;
+        
+    TextButton deleteButton;
 
     std::function<StringArray()> getComboOptions = []() { return StringArray(); };
 };

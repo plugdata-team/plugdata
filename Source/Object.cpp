@@ -1196,6 +1196,8 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
 
 void Object::updateOverlays(int overlay)
 {
+    if(cnv->isGraph) return;
+    
     bool indexWasShown = indexShown;
     indexShown = overlay & Overlay::Index;
 

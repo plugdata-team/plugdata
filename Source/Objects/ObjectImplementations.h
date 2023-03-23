@@ -23,6 +23,8 @@ public:
 
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         auto atoms = pd::Atom::fromAtoms(argc, argv);
 
         bool isVisMessage = symbol == "vis";
@@ -86,6 +88,8 @@ public:
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         auto const keyIdx = heldKeys.indexOf(key);
         auto const alreadyDown = keyIdx >= 0;
         auto const currentTime = Time::getMillisecondCounter();
@@ -163,6 +167,8 @@ public:
 
     bool keyStateChanged(bool isKeyDown, Component* originatingComponent) override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         if (!isKeyDown) {
             for (int n = heldKeys.size() - 1; n >= 0; n--) {
                 auto key = heldKeys[n];
@@ -321,6 +327,8 @@ public:
 
     void update() override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         void* patch;
         sscanf(static_cast<t_fake_active*>(ptr)->x_cname->s_name, ".x%lx.c", (unsigned long*)&patch);
 
@@ -340,6 +348,8 @@ public:
 
     void globalFocusChanged(Component* focusedComponent) override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         if (!focusedComponent) {
             t_atom args[2];
 
@@ -438,6 +448,8 @@ public:
     void update() override
     {
 
+        if(pd->isPerformingGlobalSync) return;
+        
         if (cnv) {
             cnv->removeMouseListener(this);
         }
@@ -491,6 +503,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
             return;
 
@@ -510,6 +524,8 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
             return;
 
@@ -521,6 +537,8 @@ public:
 
     void mouseMove(MouseEvent const& e) override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
             return;
 
@@ -552,7 +570,7 @@ public:
 
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override
     {
-        if (!cnv)
+        if (!cnv || pd->isPerformingGlobalSync)
             return;
 
         if (symbol == "zero") {
@@ -599,6 +617,8 @@ public:
 
     void updateVisibility()
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         if (!cnv)
             return;
 
@@ -645,6 +665,8 @@ public:
 
     void update() override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         if (cnv) {
             cnv->locked.removeListener(this);
         }
@@ -660,6 +682,8 @@ public:
 
     void valueChanged(Value& v) override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         float newScale = static_cast<float>(zoomScaleValue.getValue());
         if (lastScale != newScale) {
             auto* zoom = static_cast<t_fake_zoom*>(ptr);
@@ -686,6 +710,8 @@ public:
 
     void update() override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         if (cnv) {
             cnv->locked.removeListener(this);
         }
@@ -700,6 +726,8 @@ public:
     }
     void valueChanged(Value& v) override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         bool editMode = static_cast<bool>(v.getValue());
         if (lastEditMode != editMode) {
             auto* edit = static_cast<t_fake_edit*>(ptr);
@@ -737,6 +765,8 @@ public:
 
     void timerCallback() override
     {
+        if(pd->isPerformingGlobalSync) return;
+        
         if (lastPosition != mouseSource.getScreenPosition()) {
 
             auto pos = mouseSource.getScreenPosition();

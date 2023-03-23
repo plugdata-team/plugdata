@@ -271,6 +271,8 @@ void Canvas::paint(Graphics& g)
 
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
+    if(static_cast<bool>(locked.getValue())) return;
+    
     for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
         for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
 
