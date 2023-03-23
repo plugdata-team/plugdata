@@ -56,6 +56,12 @@ public:
         addSeparator();
 
         addCustomItem(getMenuItemID(MenuItem::EnablePalettes), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]), nullptr, "Enable Palettes");
+       
+        addSeparator();
+        
+        addCustomItem(getMenuItemID(MenuItem::PluginMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::PluginMode)]), nullptr, "Plugin Mode");
+
+        addSeparator();
 
         addCustomItem(getMenuItemID(MenuItem::AutoConnect), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::AutoConnect)]), nullptr, "Auto-connect objects");
 
@@ -318,6 +324,7 @@ public:
         CloseAll,
         CompiledMode,
         Compile,
+        PluginMode,
         AutoConnect,
         EnablePalettes,
         Settings,
@@ -350,6 +357,8 @@ public:
 
         new IconMenuItem("", "Compiled Mode", false, true),
         new IconMenuItem("", "Compile...", false, false),
+
+        new IconMenuItem("", "Plugin Mode", false, false),
 
         new IconMenuItem("", "Auto-connect objects", false, true),
         new IconMenuItem("", "Enable palettes", false, true),
