@@ -190,7 +190,7 @@ public:
 
     int getIndexOfCanvas(Canvas* cnv)
     {
-        if (!cnv->viewport)
+        if (!cnv->viewport || !cnv->editor)
             return -1;
 
         for (int i = 0; i < getNumTabs(); i++) {
