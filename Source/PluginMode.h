@@ -1,14 +1,7 @@
-/*
- // Copyright (c) 2021-2022 Timothy Schoen
- // For information on usage and redistribution, and for a DISCLAIMER OF ALL
- // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
-*/
-
 #pragma once
 
-// #include "PluginEditor.h"
-
-class PluginEditor;
+#include "PluginEditor.h"
+#include "Standalone/PlugDataWindow.h"
 
 class PluginMode : public Component
     , public Button::Listener {
@@ -16,44 +9,44 @@ public:
     PluginMode(Canvas* cnv)
         : cnv(cnv)
         , editor(cnv->editor)
-        , mainWindow(static_cast<ResizableWindow*>(editor->getTopLevelComponent()))
         , cnvParent(cnv->getParentComponent())
         , windowBounds(editor->getBounds())
         , windowConstrainer(editor->getConstrainer())
         , viewportBounds(cnv->viewport->getBounds())
     {
+        if (ProjectInfo::isStandalone) {
+            mainWindow = static_cast<PlugDataWindow*>(editor->getTopLevelComponent());
+        }
+        resizeLimits = { editor->getConstrainer()->getMinimumWidth(), editor->getConstrainer()->getMinimumHeight(), editor->getConstrainer()->getMaximumWidth(), editor->getConstrainer()->getMaximumHeight() };
         for (auto* child : editor->getChildren()) {
             if (child->isVisible()) {
                 child->setVisible(false);
                 children.emplace_back(child);
             }
         }
-        
-        editor->addAndMakeVisible(this);
 
-        editor->setResizeLimits(width, height + titlebarHeight, 99999, 99999);
-        editor->setResizable(false, false);
-        editor->setSize(width, height + titlebarHeight);
-
-        if (ProjectInfo::isStandalone) {
-            mainWindow->setResizeLimits(width, height + titlebarHeight, 99999, 99999);
-            mainWindow->setResizable(false, false);
-            mainWindow->setSize(width, height + titlebarHeight);
-        }
-
-        closeButton->addListener(this);
-        addAndMakeVisible(cnv);
-        addAndMakeVisible(*closeButton);
-        setBounds(0, 0, width, height + titlebarHeight);
 
         editor->zoomScale = 1.0f;
 
-        // cnv->viewport->setViewPosition(cnv->canvasOrigin);
-        // cnv->setBounds(50, 50, 100, 100);
-        cnv->setBounds(0, 50, width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness() + titlebarHeight);
-        cnv->locked = true;
-        cnv->presentationMode = true;
+        editor->setResizeLimits(width, height + titlebarHeight, width, height + titlebarHeight);
+        editor->setSize(width, height + titlebarHeight);
+        // editor->setResizable(false, false);
 
+        if (mainWindow) {
+            mainWindow->setResizeLimits(width, height + titlebarHeight, width, height + titlebarHeight);
+            mainWindow->setSize(width, height + titlebarHeight);
+            // mainWindow->setResizable(false, false);
+        }
+
+        setBounds(0, 0, width, height + titlebarHeight);
+        editor->addAndMakeVisible(this);
+
+        
+       
+
+        // Titlebar
+        titleBar.setBounds(0, 0, width, titlebarHeight);
+        titleBar.addAndMakeVisible(*closeButton);
         closeButton->setButtonText(Icons::Edit);
         closeButton->setTooltip("Show Editor..");
         if (ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("macos_buttons")) {
@@ -61,13 +54,21 @@ public:
         } else {
             closeButton->setBounds(getWidth() - 75, 5, 30, 30);
         }
+        closeButton->addListener(this);
+        addAndMakeVisible(titleBar);
 
-        repaint();
+        // Viewed Content
+        content.setBounds(0, titlebarHeight, width, height);
+        content.addAndMakeVisible(cnv);
+        // cnv->viewport->setViewPosition(cnv->canvasOrigin);
+        cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
+        cnv->locked = true;
+        cnv->presentationMode = true;
+        addAndMakeVisible(content);
     }
 
     ~PluginMode()
     {
-        std::cout << "CLOSING!!" << std::endl;
     }
 
     void buttonClicked(Button* button) override
@@ -76,7 +77,6 @@ public:
             for (auto* child : children) {
                 child->setVisible(true);
             }
-
             cnv->viewport->setBounds(viewportBounds);
             cnv->locked = false;
             cnv->presentationMode = false;
@@ -92,7 +92,7 @@ public:
                 mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
                 mainWindow->setResizable(true, false);
             }
-            delete this;
+            editor->pluginMode.reset(nullptr);
         }
     }
 
@@ -100,12 +100,11 @@ public:
     {
         auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
         if (editor->wantsRoundedCorners()) {
-            // Toolbar background
+            // TitleBar background
             g.setColour(baseColour);
-            g.fillRect(0, 10, getWidth(), titlebarHeight - 9);
             g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), titlebarHeight, Corners::windowCornerRadius);
         } else {
-            // Toolbar background
+            // TitleBar background
             g.setColour(baseColour);
             g.fillRect(0, 0, getWidth(), titlebarHeight);
         }
@@ -114,15 +113,30 @@ public:
 private:
     Canvas* cnv;
     PluginEditor* editor;
-    std::unique_ptr<TextButton> closeButton = std::make_unique<TextButton>();
-    ResizableWindow* mainWindow;
-    Component* cnvParent;
+    PlugDataWindow* mainWindow = nullptr;
+
+    Component titleBar;
+    Component content;
+
+    // ResizableWindow* mainWindow;
     ComponentBoundsConstrainer* windowConstrainer;
+    Component* cnvParent;
+    struct ResizeLimits {
+        int minWidth;
+        int minHeight;
+        int maxWidth;
+        int maxHeight;
+    };
+
+    ResizeLimits resizeLimits;
     Rectangle<int> windowBounds;
     Rectangle<int> viewportBounds;
-    int width = cnv->patchWidth.getValue();
-    int height = cnv->patchHeight.getValue();
-    int titlebarHeight = 30;
+    int const width = cnv->patchWidth.getValue();
+    int const height = cnv->patchHeight.getValue();
+
+    int const titlebarHeight = 40;
 
     std::vector<Component*> children;
+
+    std::unique_ptr<TextButton> closeButton = std::make_unique<TextButton>();
 };
