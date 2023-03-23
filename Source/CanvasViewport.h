@@ -334,7 +334,8 @@ public:
         // In case the window resizes, make sure we maintain the same origin point
         auto oldCanvasOrigin = cnv->canvasOrigin;
         Viewport::resized();
-        handleUpdateNowIfNeeded();
+        if (editor->isShowing())
+            handleUpdateNowIfNeeded();
         setCanvasOrigin(oldCanvasOrigin);
     }
 
