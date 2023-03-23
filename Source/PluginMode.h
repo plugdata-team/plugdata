@@ -25,34 +25,31 @@ public:
             }
         }
 
-
         editor->zoomScale = 1.0f;
 
         editor->setResizeLimits(width, height + titlebarHeight, width, height + titlebarHeight);
         editor->setSize(width, height + titlebarHeight);
-        // editor->setResizable(false, false);
+        editor->setResizable(false, false);
 
         if (mainWindow) {
             mainWindow->setResizeLimits(width, height + titlebarHeight, width, height + titlebarHeight);
             mainWindow->setSize(width, height + titlebarHeight);
-            // mainWindow->setResizable(false, false);
+            mainWindow->setResizable(false, false);
         }
 
         setBounds(0, 0, width, height + titlebarHeight);
         editor->addAndMakeVisible(this);
 
-        
-       
-
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addAndMakeVisible(*closeButton);
         closeButton->setButtonText(Icons::Edit);
+        closeButton->getProperties().set("Style", "LargeIcon");
         closeButton->setTooltip("Show Editor..");
         if (ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("macos_buttons")) {
-            closeButton->setBounds(5, 5, 30, 30);
+            closeButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
         } else {
-            closeButton->setBounds(getWidth() - 75, 5, 30, 30);
+            closeButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         }
         closeButton->addListener(this);
         addAndMakeVisible(titleBar);
