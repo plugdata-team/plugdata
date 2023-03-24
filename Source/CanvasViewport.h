@@ -390,7 +390,7 @@ public:
         float scale = 1.0f / editor->getZoomScaleForCanvas(cnv);
         float smallerScale = std::max(1.0f, scale);
 
-        auto newBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, (getWidth() - getScrollBarThickness()) * smallerScale, (getHeight() - getScrollBarThickness()) * smallerScale);
+        auto newBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, (getWidth() + 1 - getScrollBarThickness()) * smallerScale, (getHeight() + 1 -  getScrollBarThickness()) * smallerScale);
 
         if (SettingsFile::getInstance()->getProperty<int>("infinite_canvas")) {
             newBounds = newBounds.getUnion(viewArea.expanded(infiniteCanvasMargin) * scale);
