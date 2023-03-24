@@ -23,7 +23,7 @@ public:
     // The default-constructed iterator acts as the 'end' sentinel.
     FastDirectoryIterator() = default;
 
-    FastDirectoryIterator (const File& directory)
+    FastDirectoryIterator(const File& directory, bool skipDirectories = true) : onlyFiles(skipDirectories)
     {
         if(!directory.exists()) return;
         
@@ -78,11 +78,15 @@ public:
 private:
     bool next()
     {
-        if(dir.has_next)
+        while(dir.has_next)
         {
             tinydir_next(&dir);
             tinydir_readfile(&dir, &file);
+            
+            if(onlyFiles != file.is_dir) continue;
+            
             currentFile = File(String::fromUTF8(file.path));
+
             return true;
         }
         
@@ -92,7 +96,7 @@ private:
         return false;
     }
     
-    
+    bool onlyFiles;
     tinydir_file file;
     tinydir_dir dir;
     
@@ -106,15 +110,14 @@ inline FastDirectoryIterator end(const FastDirectoryIterator&) { return {}; }
 inline Array<File> FastDirectoryIterator::recurse(const File& directory)
 {
     Array<File> result;
-    for(auto file : FastDirectoryIterator(directory))
+    for(auto file : FastDirectoryIterator(directory, true))
     {
-        if(file.isDirectory() && file != directory)
-        {
-            result.addArray(recurse(file));
-        }
-        else {
-            result.add(file);
-        }
+        result.add(file);
+    }
+    
+    for(auto file : FastDirectoryIterator(directory, false))
+    {
+        result.addArray(recurse(file));
     }
     
     return result;

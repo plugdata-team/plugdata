@@ -129,8 +129,8 @@ public:
         buttonGroups.add(new OverlaySelector(overlayTree, Index, "index", "Index", "Object index in patch"));
         // buttonGroups.add(new OverlaySelector(overlayTree, Coordinate, "coordinate", "Coordinate", "Object coordinate in patch"));
         // buttonGroups.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activation state", "Data flow display"));
-        buttonGroups.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
-        // buttonGroups.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connection"));
+        //buttonGroups.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
+         buttonGroups.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connection"));
 
         for (auto* buttonGroup : buttonGroups) {
             addAndMakeVisible(buttonGroup);

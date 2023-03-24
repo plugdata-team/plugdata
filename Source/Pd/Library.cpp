@@ -70,7 +70,7 @@ void Library::updateLibrary()
         
         for(auto file : FastDirectoryIterator(File(filePath)))
         {
-            if(!file.isDirectory() && file.hasFileExtension(".pd"))
+            if(file.hasFileExtension(".pd"))
             {
                 auto filename = file.getFileNameWithoutExtension();
                 if (!filename.startsWith("help-") || filename.endsWith("-help")) {
