@@ -8,6 +8,9 @@
 
 #include "../Libraries/tinydir/tinydir.h"
 
+// Fast dir iterator class based on tinydir
+// From my tests, this is about 2x faster than JUCE's RangedDirectoryIterator
+// std::filesystem would be even faster, but unfortunately it doesn't work on old macOS and old GCC
 class FastDirectoryIterator
 {
 public:
@@ -20,16 +23,16 @@ public:
     // The default-constructed iterator acts as the 'end' sentinel.
     FastDirectoryIterator() = default;
 
-    FastDirectoryIterator (const File& directory,
-                             bool isRecursive)
+    FastDirectoryIterator (const File& directory)
     {
-        
         if(!directory.exists()) return;
         
         auto filePath = directory.getFullPathName();
         tinydir_open(&dir, filePath.toRawUTF8());
+        tinydir_next(&dir); // Skip ".." entry
         tinydir_readfile(&dir, &file);
         currentFile = File(String::fromUTF8(file.path)).getChildFile(file.name);
+        
     }
 
     // Returns true if both iterators are in their end/sentinel state, otherwise returns false.
@@ -70,7 +73,8 @@ public:
         return result;
     }
     
-
+    static Array<File> recurse(const File& directory);
+    
 private:
     bool next()
     {
@@ -78,7 +82,7 @@ private:
         {
             tinydir_next(&dir);
             tinydir_readfile(&dir, &file);
-            currentFile = File(String::fromUTF8(file.path)).getChildFile(file.name);
+            currentFile = File(String::fromUTF8(file.path));
             return true;
         }
         
@@ -98,3 +102,20 @@ private:
 inline FastDirectoryIterator begin(const FastDirectoryIterator& it) { return it; }
 
 inline FastDirectoryIterator end(const FastDirectoryIterator&) { return {}; }
+
+inline Array<File> FastDirectoryIterator::recurse(const File& directory)
+{
+    Array<File> result;
+    for(auto file : FastDirectoryIterator(directory))
+    {
+        if(file.isDirectory() && file != directory)
+        {
+            result.addArray(recurse(file));
+        }
+        else {
+            result.add(file);
+        }
+    }
+    
+    return result;
+}

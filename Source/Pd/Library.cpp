@@ -63,12 +63,12 @@ void Library::updateLibrary()
             allObjects.add(newName);
         }
     }
-
+    
     // Find patches in our search tree
     for (auto path : pathTree) {
         auto filePath = path.getProperty("Path").toString();
         
-        for(auto file : FastDirectoryIterator(File(filePath), false))
+        for(auto file : FastDirectoryIterator(File(filePath)))
         {
             if(!file.isDirectory() && file.hasFileExtension(".pd"))
             {
@@ -327,9 +327,9 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";
 
+    
     auto findHelpPatch = [&firstName, &secondName](File const& searchDir, bool recursive) -> File {
-        for (const auto& fileIter : RangedDirectoryIterator(searchDir, recursive)) {
-            auto file = fileIter.getFile();
+        for (const auto& file : FastDirectoryIterator::recurse(searchDir)) {
             if (file.getFileName() == firstName || file.getFileName() == secondName) {
                 return file;
             }

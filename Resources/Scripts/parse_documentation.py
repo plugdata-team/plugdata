@@ -44,6 +44,7 @@ def writeToStream(stream, object):
       # Write length of value +1
       writeCompressedInt(stream, len(strBytes) + 1)
       # Write JUCE::var identifier for string as a single byte
+      # Only string properties are allowed because that's all we use
       stream += int(5).to_bytes(1, byteorder='little')
       # Add value to stream
       stream += strBytes
