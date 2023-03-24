@@ -64,10 +64,14 @@ public:
 
         // Viewed Content (canvas)
         content.setBounds(0, titlebarHeight, width, height);
+
         content.addAndMakeVisible(cnv);
         cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
         cnv->locked = true;
         cnv->presentationMode = true;
+
+        cnv->updatingBounds = true;
+        cnv->setBounds(0, 0, width, height);
 
         addAndMakeVisible(content);
     }
@@ -92,7 +96,6 @@ public:
 
             // Add the canvas to it's original parent component
             cnvParent->addAndMakeVisible(cnv);
-            cnv->resized();
 
             // Restore the editor's resize limits
             if (mainWindow) {
@@ -104,6 +107,10 @@ public:
                 editor->setSize(windowBounds.getWidth(), windowBounds.getHeight());
                 editor->setResizable(true, false);
             }
+
+            // Restore canvas bounds
+            cnv->updatingBounds = false;
+            cnv->viewport->resized();
 
             // Destroy this view
             editor->pluginMode.reset(nullptr);
