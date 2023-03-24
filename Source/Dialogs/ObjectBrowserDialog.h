@@ -77,7 +77,14 @@ public:
         setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         setColour(ListBox::outlineColourId, Colours::transparentBlack);
 
-        descriptions = library.getObjectDescriptions();
+        for(auto object : library.getAllObjects())
+        {
+            auto info = library.getObjectInfo(object);
+            if(info.hasProperty("name") && info.hasProperty("description"))
+            {
+                descriptions[info.getProperty("name").toString()] = info.getProperty("description").toString();
+            }
+        }
     }
 
     int getNumRows() override
@@ -128,7 +135,7 @@ class ObjectViewer : public Component {
 public:
     ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference)
         : reference(objectReference)
-        , library(editor->pd->objectLibrary)
+        , library(*editor->pd->objectLibrary)
     {
         addChildComponent(openHelp);
         addChildComponent(openReference);
@@ -311,26 +318,24 @@ public:
             return;
         }
 
-        auto ioletDescriptions = library.getIoletDescriptions()[name];
-        auto& inletDescriptions = ioletDescriptions[0];
-        auto& outletDescriptions = ioletDescriptions[1];
-
-        inlets.resize(inletDescriptions.size());
-        outlets.resize(outletDescriptions.size());
-
         bool hasUnknownInletLayout = false;
-
-        for (int i = 0; i < inlets.size(); i++) {
-            inlets[i] = inletDescriptions[i].first.contains("(signal)");
-            if (inletDescriptions[i].second)
-                hasUnknownInletLayout = true;
-        }
-
         bool hasUnknownOutletLayout = false;
-        for (int i = 0; i < outlets.size(); i++) {
-            outlets[i] = outletDescriptions[i].first.contains("(signal)");
-            if (outletDescriptions[i].second)
-                hasUnknownOutletLayout = true;
+        
+        auto objectInfo = library.getObjectInfo(name);
+        auto ioletDescriptions = objectInfo.getChildWithName("iolets");
+        for(auto iolet : ioletDescriptions)
+        {
+            auto variable = iolet.getProperty("variable").toString() == "1";
+           
+            if(iolet.getType() == Identifier("inlet"))
+            {
+                if(variable) hasUnknownInletLayout = true;
+                inlets.push_back(iolet.getProperty("tooltip").toString().contains("(signal)"));
+            }
+            else {
+                if(variable) hasUnknownOutletLayout = true;
+                outlets.push_back(iolet.getProperty("tooltip").toString().contains("(signal)"));
+            }
         }
 
         unknownInletLayout = hasUnknownInletLayout;
@@ -339,12 +344,14 @@ public:
         objectName = name;
         categories = "";
         origin = "";
+        
+        auto categoriesTree = objectInfo.getChildWithName("categories");
 
-        // Inverse lookup :(
-        for (auto const& [cat, objects] : library.getObjectCategories()) {
-            if (pd::Library::objectOrigins.contains(cat) && objects.contains(name)) {
+        for (auto category : categoriesTree) {
+            auto cat = category.getProperty("name").toString();
+            if (pd::Library::objectOrigins.contains(cat)) {
                 origin = cat;
-            } else if (objects.contains(name)) {
+            } else {
                 categories += cat + ", ";
             }
         }
@@ -359,7 +366,7 @@ public:
             origin = "Unknown";
         }
 
-        description = library.getObjectDescriptions()[name];
+        description = objectInfo.getProperty("description").toString();
 
         if (description.isEmpty()) {
             description = "No description available";
@@ -444,10 +451,12 @@ public:
 
         setInterceptsMouseClicks(false, true);
 
-        objectDescriptions = library.getObjectDescriptions();
-
         for (auto& object : library.getAllObjects()) {
-            if (!objectDescriptions.count(object)) {
+            auto objectInfo = library.getObjectInfo(object);
+            if(objectInfo.isValid()) {
+                objectDescriptions[object] = objectInfo.getProperty("description").toString();
+            }
+            else {
                 objectDescriptions[object] = "";
             }
         }
@@ -626,13 +635,21 @@ class ObjectBrowserDialog : public Component {
 public:
     ObjectBrowserDialog(Component* pluginEditor, Dialog* parent)
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
-        , objectsList(editor->pd->objectLibrary)
+        , objectsList(*editor->pd->objectLibrary)
         , objectReference(editor, true)
         , objectViewer(editor, objectReference)
-        , objectSearch(editor->pd->objectLibrary)
+        , objectSearch(*editor->pd->objectLibrary)
     {
-        auto& library = editor->pd->objectLibrary;
-        objectsByCategory = library.getObjectCategories();
+        auto& library = *editor->pd->objectLibrary;
+        
+        for (auto& object : library.getAllObjects()) {
+            auto categoriesTree = library.getObjectInfo(object).getChildWithName("categories");
+
+            for (auto category : categoriesTree) {
+                auto cat = category.getProperty("name").toString();
+                objectsByCategory[cat].add(object);
+            }
+        }
 
         addAndMakeVisible(categoriesList);
         addAndMakeVisible(objectsList);
@@ -674,6 +691,7 @@ public:
             categories.insert(2, pd::Library::objectOrigins[i]);
         }
 
+        /*
 #if JUCE_DEBUG
         auto objectDescriptions = library.getObjectDescriptions();
 
@@ -688,7 +706,7 @@ public:
         std::cout << "Num Left:" << numEmpty << std::endl;
         float percentage = 1.0f - (numEmpty / static_cast<float>(objectsByCategory["All"].size()));
         std::cout << "Percentage done:" << percentage << std::endl;
-#endif
+#endif */
 
         categoriesList.changeCallback = [this](String const& category) {
             objectsList.showObjects(objectsByCategory[category]);

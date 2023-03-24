@@ -52,6 +52,10 @@ add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+message("-- Preparing documentation")
+execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
+
+
 message("-- Packaging resources")
 execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
@@ -83,6 +87,7 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/GoNotoCurrent.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Documentation.bin
     )
 
 file(GLOB StandaloneBinarySources

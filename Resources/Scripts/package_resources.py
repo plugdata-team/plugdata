@@ -78,8 +78,6 @@ copyFile("../Patches/param.pd", "./Abstractions")
 #copyFile("../Patches/beat.pd", "./Abstractions")
 
 globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
-
-copyDir("../Documentation", "./Documentation/pddp")
 copyDir("../../Libraries/ELSE/Help-files/", "./Documentation/9.else")
 
 copyFile("../../Libraries/ELSE/sfont~/sfont~-help.pd", "./Documentation/9.else")

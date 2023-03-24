@@ -539,15 +539,18 @@ private:
         // If there's a space, open arguments panel
         if (currentText.contains(" ")) {
             state = ShowingArguments;
-            auto found = library.getArguments()[currentText.upToFirstOccurrenceOf(" ", false, false)];
-            for (int i = 0; i < std::min<int>(buttons.size(), static_cast<int>(found.size())); i++) {
-                auto& [type, description, init] = found[i];
+            auto name = currentText.upToFirstOccurrenceOf(" ", false, false);
+            auto found = library->getObjectInfo(name).getChildWithProperty("name", "arguments");
+            
+            numOptions = std::min<int>(buttons.size(), found.getNumChildren());
+            for (int i = 0; i < numOptions; i++) {
+                auto type = found.getProperty("type").toString();
+                auto description = found.getProperty("description").toString();
+                
                 buttons[i]->setText(type, description, false);
                 buttons[i]->setInterceptsMouseClicks(false, false);
                 buttons[i]->setToggleState(false, dontSendNotification);
             }
-
-            numOptions = static_cast<int>(found.size());
 
             for (int i = numOptions; i < buttons.size(); i++) {
                 buttons[i]->setText("", "", false);
@@ -588,7 +591,7 @@ private:
         };
 
         // Update suggestions
-        auto found = library.autocomplete(currentText);
+        auto found = library->autocomplete(currentText);
 
         // When hvcc mode is enabled, show only hvcc compatible objects
         filterNonHvccObjectsIfNeeded(found);
@@ -609,14 +612,10 @@ private:
             // Apply object name and descriptions to buttons
             for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
                 auto& name = suggestions[i];
+                
+                auto description = library->getObjectInfo(name).getProperty("description").toString();
+                buttons[i]->setText(name, description, true);
 
-                auto descriptions = library.getObjectDescriptions();
-
-                if (descriptions.find(name) != descriptions.end()) {
-                    buttons[i]->setText(name, descriptions[name], true);
-                } else {
-                    buttons[i]->setText(name, "", true);
-                }
                 buttons[i]->setInterceptsMouseClicks(true, false);
             }
 
@@ -666,7 +665,7 @@ private:
             applySuggestionsToButtons(found, currentText);
         }
 
-        library.getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText, sortSuggestions](StringArray s) mutable {
+        library->getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText, sortSuggestions](StringArray s) mutable {
             filterNonHvccObjectsIfNeeded(s);
 
             // This means the extra suggestions have returned too late to still be relevant

@@ -9,7 +9,7 @@ class ObjectReferenceDialog : public Component {
 
 public:
     ObjectReferenceDialog(PluginEditor* editor, bool showBackButton)
-        : library(editor->pd->objectLibrary)
+        : library(*editor->pd->objectLibrary)
     {
         // We only need to respond to explicit repaints anyway!
         setBufferedToImage(true);
@@ -36,7 +36,7 @@ public:
 
     void resized() override
     {
-        backButton.setBounds(2, 0, 55, 55);
+        backButton.setBounds(8, 6, 42, 48);
 
         auto buttonBounds = getLocalBounds().removeFromBottom(80).reduced(30, 0).translated(0, -30);
         buttonBounds.removeFromTop(10);
@@ -180,27 +180,31 @@ public:
             return;
         }
 
-        auto const ioletDescriptions = library.getIoletDescriptions()[name];
-        auto const& inletDescriptions = ioletDescriptions[0];
-        auto const& outletDescriptions = ioletDescriptions[1];
-        auto methods = library.getMethods()[name];
-
-        inlets.resize(inletDescriptions.size());
-        outlets.resize(outletDescriptions.size());
-
         bool hasUnknownInletLayout = false;
-
-        for (int i = 0; i < inlets.size(); i++) {
-            inlets[i] = inletDescriptions[i].first.contains("(signal)");
-            if (inletDescriptions[i].second)
-                hasUnknownInletLayout = true;
-        }
-
         bool hasUnknownOutletLayout = false;
-        for (int i = 0; i < outlets.size(); i++) {
-            outlets[i] = outletDescriptions[i].first.contains("(signal)");
-            if (outletDescriptions[i].second)
-                hasUnknownOutletLayout = true;
+        
+        StringArray inletDescriptions;
+        StringArray outletDescriptions;
+        
+        auto objectInfo = library.getObjectInfo(name);
+        auto ioletDescriptions = objectInfo.getChildWithName("iolets");
+        for(auto iolet : ioletDescriptions)
+        {
+            auto variable = iolet.getProperty("variable").toString() == "1";
+           
+            if(iolet.getType() == Identifier("inlet"))
+            {
+                if(variable) hasUnknownInletLayout = true;
+                auto tooltip = iolet.getProperty("tooltip").toString();
+                inletDescriptions.add(tooltip);
+                inlets.push_back(tooltip.contains("(signal)"));
+            }
+            else {
+                if(variable) hasUnknownOutletLayout = true;
+                auto tooltip = iolet.getProperty("tooltip").toString();
+                outletDescriptions.add(tooltip);
+                outlets.push_back(tooltip.contains("(signal)"));
+            }
         }
 
         unknownInletLayout = hasUnknownInletLayout;
@@ -210,11 +214,13 @@ public:
         categories = "";
         origin = "";
 
-        // Inverse lookup :(
-        for (auto const& [cat, objects] : library.getObjectCategories()) {
-            if (pd::Library::objectOrigins.contains(cat) && objects.contains(name)) {
+        auto categoriesTree = objectInfo.getChildWithName("categories");
+
+        for (auto category : categoriesTree) {
+            auto cat = category.getProperty("name").toString();
+            if (pd::Library::objectOrigins.contains(cat)) {
                 origin = cat;
-            } else if (objects.contains(name)) {
+            } else {
                 categories += cat + ", ";
             }
         }
@@ -229,40 +235,43 @@ public:
             origin = "Unknown";
         }
 
-        description = library.getObjectDescriptions()[name];
+        description = objectInfo.getProperty("description");
 
         if (description.isEmpty()) {
             description = "No description available";
         }
-
+        
         setVisible(true);
 
         String rightSideInfoText;
 
-        auto arguments = library.getArguments()[name];
+        auto arguments = objectInfo.getChildWithName("arguments");
 
-        if (arguments.size())
+        if (arguments.getNumChildren())
             rightSideInfoText += "Arguments:";
 
         int numArgs = 1;
 
-        for (auto [type, description, defaultValue] : arguments) {
+        for (auto argument : arguments) {
+            auto type = argument.getProperty("type").toString();
+            auto desc = argument.getProperty("description").toString();
+            auto def = argument.getProperty("default").toString();
             rightSideInfoText += "\n" + String(numArgs) + ": ";
             rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
-            rightSideInfoText += description;
-            rightSideInfoText += defaultValue.isNotEmpty() && !description.contains("(default") ? " (default: " + defaultValue + ")" : "";
+            rightSideInfoText += desc;
+            rightSideInfoText += def.isNotEmpty() && !desc.contains("(default") ? " (default: " + def + ")" : "";
 
             numArgs++;
         }
+        
 
         if (inletDescriptions.size())
             rightSideInfoText += "\n\nInlets:";
 
         int numIn = 1;
-        for (auto [description, type] : inletDescriptions) {
+        for (auto description : inletDescriptions) {
             description = description.replace("\n", "\n      ");
             rightSideInfoText += "\n" + String(numIn) + ":\n    " + description;
-
             numIn++;
         }
 
@@ -270,18 +279,21 @@ public:
             rightSideInfoText += "\n\nOutlets:";
 
         int numOut = 1;
-        for (auto [description, type] : outletDescriptions) {
-            description = description.replace("\n", "\n    ");
-            rightSideInfoText += "\n" + String(numOut) + ":\n    " + description;
-
+        for (auto description : outletDescriptions) {
+            description = description.replace("\n", "\n      ");
+            rightSideInfoText += "\n" + String(numIn) + ":\n    " + description;
             numOut++;
         }
 
-        if (methods.size())
+        auto methods = objectInfo.getChildWithName("methods");
+        if (methods.getNumChildren())
             rightSideInfoText += "\n\nMethods:";
 
         int numMethods = 1;
-        for (auto [type, description] : methods) {
+        for (auto method : methods) {
+            auto type = method.getProperty("type").toString();
+            auto description = method.getProperty("description").toString();
+            
             rightSideInfoText += "\n" + String(numMethods) + ": ";
             rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
             rightSideInfoText += description;
