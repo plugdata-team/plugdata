@@ -179,7 +179,7 @@ void Canvas::updateOverlays()
     }
 
     for (auto* connection : connections) {
-        // connection->updateOverlays(overlayState);
+        connection->updateOverlays(overlayState);
     }
 
     repaint();
