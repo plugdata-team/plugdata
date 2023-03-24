@@ -413,11 +413,28 @@ public:
         auto* note = static_cast<t_fake_note*>(ptr);
 
         switch (hash(symbol)) {
-        case hash("font"):
-        case hash("italic"):
-        case hash("size"):
-        case hash("underline"):
+        case hash("font"): {
+            font = String::fromUTF8(note->x_fontname->s_name);
+            updateFont();
+            break;
+        }
+        case hash("italic"): {
+            italic = note->x_italic;
+            updateFont();
+            break;
+        }
+        case hash("size"): {
+            fontSize = note->x_fontsize;
+            updateFont();
+            break;
+        }
+        case hash("underline"): {
+            underline = note->x_underline;
+            updateFont();
+            break;
+        }
         case hash("bold"): {
+            bold = note->x_bold;
             updateFont();
             break;
         }
