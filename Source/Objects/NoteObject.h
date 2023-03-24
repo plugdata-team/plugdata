@@ -429,7 +429,7 @@ public:
             break;
         }
         case hash("color"): {
-            primaryColour = Colour(note->x_color[0], note->x_color[1], note->x_color[2]).toString();
+            primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
             break;
         }
         case hash("bgcolor"): {
