@@ -84,6 +84,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     updatePath();
     repaint();
 
+    updateOverlays(cnv->getOverlays());
+    
     cnv->pd->registerMessageListener(ptr, this);
 }
 
