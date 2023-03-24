@@ -147,6 +147,19 @@ public:
         g.drawText(cnv->patch.getTitle().trimCharactersAtEnd(".pd"), titleBar.getBounds(), Justification::centred);
     }
 
+    void parentSizeChanged() override
+    {
+        /*
+        float editorWidth = editor->getWidth();
+        int editorHeight = (editorWidth / resizeRatio) + titlebarHeight;
+        editor->setSize(editorWidth, editorHeight);
+
+        // Apply and limit zoom
+        auto scale = std::clamp(editorWidth / width, 0.5f, 2.0f);
+        cnv->setTransform(AffineTransform().scaled(scale));
+        */
+    }
+
     bool keyPressed(KeyPress const& key) override
     {
         // Block keypresses to editor
@@ -200,6 +213,7 @@ private:
     Rectangle<int> viewportBounds;
     int const width = cnv->patchWidth.getValue();
     int const height = cnv->patchHeight.getValue();
+    float resizeRatio = float(width) / float(height);
 
     std::vector<Component*> children;
 };
