@@ -25,9 +25,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     , inobj(inlet->object)
     , ptr(static_cast<t_fake_outconnect*>(oc))
 {
-
-    cnv->editor->addModifierKeyListener(this);
-
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);
     presentationMode.addListener(this);
@@ -87,12 +84,13 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     updatePath();
     repaint();
 
+    updateOverlays(cnv->getOverlays());
+    
     cnv->pd->registerMessageListener(ptr, this);
 }
 
 Connection::~Connection()
 {
-    cnv->editor->removeModifierKeyListener(this);
     cnv->pd->unregisterMessageListener(ptr, this);
 
     if (outlet) {
@@ -349,11 +347,12 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
     }
 }
 
-void Connection::altKeyChanged(bool isHeld)
+void Connection::updateOverlays(int overlay)
 {
-    showDirection = isHeld;
+    showDirection = overlay & Overlay::Direction;
     repaint();
 }
+
 
 void Connection::paint(Graphics& g)
 {

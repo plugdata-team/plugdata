@@ -120,26 +120,6 @@ PluginProcessor::PluginProcessor()
 
     sendMessagesFromQueue();
 
-    objectLibrary.appDirChanged = [this]() {
-        // If we changed the settings from within the app, don't reload
-        settingsFile->reloadSettings();
-        auto newTheme = settingsFile->getProperty<String>("theme");
-        if (PlugDataLook::currentTheme != newTheme) {
-            setTheme(newTheme);
-        }
-
-        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-            for (auto* cnv : editor->canvases) {
-                // Make sure inlets/outlets are updated
-                for (auto* object : cnv->objects)
-                    object->updateIolets();
-            }
-        }
-
-        updateSearchPaths();
-        objectLibrary.updateLibrary();
-    };
-
     auto themeName = settingsFile->getProperty<String>("theme");
 
     // Make sure theme exists
@@ -166,15 +146,27 @@ PluginProcessor::PluginProcessor()
     loadLibs(pdlua_version);
     logMessage(pdlua_version);
 
-    // scope for locking message manager
-    {
-        const MessageManagerLock mmLock;
+    objectLibrary = std::make_unique<pd::Library>();
+    objectLibrary->appDirChanged = [this]() {
+        // If we changed the settings from within the app, don't reload
+        settingsFile->reloadSettings();
+        auto newTheme = settingsFile->getProperty<String>("theme");
+        if (PlugDataLook::currentTheme != newTheme) {
+            setTheme(newTheme);
+        }
 
-        // Initialise library for text autocompletion
-        // Needs to be done after loadLibs
-        objectLibrary.initialiseLibrary();
-    }
+        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+            for (auto* cnv : editor->canvases) {
+                // Make sure inlets/outlets are updated
+                for (auto* object : cnv->objects)
+                    object->updateIolets();
+            }
+        }
 
+        updateSearchPaths();
+        objectLibrary->updateLibrary();
+    };
+    
     setLatencySamples(pd::Instance::getBlockSize());
 
 #if !JUCE_WINDOWS

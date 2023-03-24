@@ -22,7 +22,7 @@ outlets:
   - type: symbol
     description: converted symbol message
   
-  flags:
+flags:
   - name: @separator <symbol>
     description: sets the separator character
     default: "space"

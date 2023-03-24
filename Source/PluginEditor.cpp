@@ -177,6 +177,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     palettes = std::make_unique<Palettes>(this);
 
     addAndMakeVisible(*palettes);
+    palettes->setDefaultVisibility();
     addAndMakeVisible(*statusbar);
 
     addAndMakeVisible(splitView);

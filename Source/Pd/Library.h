@@ -11,93 +11,36 @@
 
 namespace pd {
 
-using IODescription = Array<std::pair<String, bool>>;
-using IODescriptionMap = std::unordered_map<String, std::array<IODescription, 2>>;
-
-using Suggestions = StringArray;
-
-using Arguments = std::vector<std::tuple<String, String, String>>;
-using ArgumentMap = std::unordered_map<String, Arguments>;
-
-using Methods = std::vector<std::pair<String, String>>;
-using MethodMap = std::unordered_map<String, Methods>;
-
-using ObjectMap = std::unordered_map<String, String>;
-using KeywordMap = std::unordered_map<String, StringArray>;
-using CategoryMap = std::unordered_map<String, StringArray>;
-// Define the character size
-#define CHAR_SIZE 128
-#define CHAR_TO_INDEX(c) (static_cast<int>(c) - static_cast<int>('\0'))
-#define INDEX_TO_CHAR(c) static_cast<char>(c + static_cast<int>('\0'))
-// A class to store a Trie node
-class Trie {
-public:
-    bool isLeaf;
-    Trie* character[CHAR_SIZE];
-
-    // Constructor
-    Trie()
-    {
-        isLeaf = false;
-
-        for (int i = 0; i < CHAR_SIZE; i++) {
-            character[i] = nullptr;
-        }
-    }
-
-    ~Trie()
-    {
-        for (int i = 0; i < CHAR_SIZE; i++) {
-            if (character[i]) {
-                delete character[i];
-            }
-        }
-    }
-
-    void insert(String key);
-    bool deletion(Trie*&, String);
-    bool search(String const&);
-    bool hasChildren();
-
-    void suggestionsRec(String currPrefix, Suggestions& result);
-    int autocomplete(String query, Suggestions& result);
-};
-
 class Library : public FileSystemWatcher::Listener {
 
 public:
+    
+    Library();
+    
     ~Library()
     {
         appDirChanged = nullptr;
-        libraryUpdateThread.removeAllJobs(true, -1);
+        objectSearchThread.removeAllJobs(true, -1);
     }
-    void initialiseLibrary();
 
     void updateLibrary();
-    void parseDocumentation(String const& path);
 
-    Suggestions autocomplete(String query) const;
-    void getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(Suggestions)> callback);
+    StringArray autocomplete(String query) const;
+    void getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(StringArray)> callback);
 
-    String getObjectTooltip(String const& type);
-    std::array<StringArray, 2> getIoletTooltips(String type, String name, int numIn, int numOut);
+    std::array<StringArray, 2> parseIoletTooltips(ValueTree iolets, String name, int numIn, int numOut);
 
     void fsChangeCallback() override;
 
     File findHelpfile(t_object* obj, File parentPatchFile);
 
-    Array<File> helpPaths;
-
-    ThreadPool libraryUpdateThread = ThreadPool(1);
-
-    ObjectMap getObjectDescriptions();
-    KeywordMap getObjectKeywords();
-    CategoryMap getObjectCategories();
-    IODescriptionMap getIoletDescriptions();
+    ValueTree getObjectInfo(String const& name);
+    
     StringArray getAllObjects();
-    ArgumentMap getArguments();
-    MethodMap getMethods();
-
+    StringArray getAllCategories();
+    
+    Array<File> helpPaths;
+    
     std::function<void()> appDirChanged;
 
     static inline const File appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
@@ -115,20 +58,16 @@ public:
     static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "heavylib", "pdlua" };
 
 private:
-    ObjectMap objectDescriptions;
-    KeywordMap objectKeywords;
-    CategoryMap objectCategories;
-    IODescriptionMap ioletDescriptions;
-    ArgumentMap arguments;
-    MethodMap methods;
 
     StringArray allObjects;
+    StringArray allCategories;
 
     std::recursive_mutex libraryLock;
 
-    std::unique_ptr<Trie> searchTree = nullptr;
-
     FileSystemWatcher watcher;
+    ThreadPool objectSearchThread;
+    
+    ValueTree documentationTree;
 };
 
 } // namespace pd
