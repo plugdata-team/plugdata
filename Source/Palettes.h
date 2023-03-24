@@ -740,7 +740,7 @@ public:
         setViewHidden(true);
         setSize(300, 0);
 
-        setVisible(SettingsFile::getInstance()->getProperty<bool>("show_palettes"));
+        showPalettes = SettingsFile::getInstance()->getProperty<bool>("show_palettes");
     }
 
     ~Palettes()
@@ -756,6 +756,11 @@ public:
     Canvas* getCurrentCanvas()
     {
         return view.getCanvas();
+    }
+
+    void setDefaultVisibility()
+    {
+        setVisible(showPalettes);
     }
 
 private:
@@ -922,6 +927,8 @@ private:
         { "Oscillators", oscillatorsPatch },
         { "Filters", filtersPatch }
     };
+
+    bool showPalettes = false;
 
     class ResizerComponent : public Component {
     public:
