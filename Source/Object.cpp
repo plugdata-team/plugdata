@@ -721,7 +721,8 @@ void Object::mouseDown(MouseEvent const& e)
     repaint();
 
     ds.canvasDragStartPosition = cnv->getPosition();
-
+    ds.canvasLastOrigin = cnv->canvasOrigin;
+    
     cnv->updateSidebarSelection();
 
     if (cnv->isSelected(this) != wasSelected) {
@@ -813,10 +814,11 @@ void Object::mouseUp(MouseEvent const& e)
             }
 
             auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
-
+            auto canvasOriginOffset = ds.canvasLastOrigin - cnv->canvasOrigin;
+            
             auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
 
-            distance = cnv->objectGrid.handleMouseUp(distance) + canvasMoveOffset - cnv->canvasOrigin;
+            distance = cnv->objectGrid.handleMouseUp(distance) + canvasOriginOffset + canvasMoveOffset;
 
             // When done dragging objects, update positions to pd
             cnv->patch.moveObjects(objects, distance.x, distance.y);
