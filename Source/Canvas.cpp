@@ -1163,6 +1163,7 @@ void Canvas::cancelConnectionCreation()
         if (nearestIolet) {
             nearestIolet->isTargeted = false;
             nearestIolet->repaint();
+            nearestIolet = nullptr;
         }
     }
 }
