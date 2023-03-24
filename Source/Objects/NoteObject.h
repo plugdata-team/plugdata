@@ -464,6 +464,11 @@ public:
         case hash("outline"): {
             outline = note->x_outline;
         }
+        case hash("receive"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            break;
+        }
         default:
             break;
         }
