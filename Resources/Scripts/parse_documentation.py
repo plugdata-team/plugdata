@@ -198,7 +198,7 @@ def parseFilesInDir(dir, generateXml):
   # Save the generate xml if asked for
   if generateXml:
     tree = ET.ElementTree(root)
-    tree.write("/Users/timschoen/Projecten/plugdata/Resources/Documentation/parsed.xml")
+    tree.write("../Documentation/Documentation.xml")
 
   # Convert xml to JUCE ValueTree binary format
   stream = bytearray()
