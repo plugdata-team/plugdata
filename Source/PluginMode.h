@@ -65,13 +65,20 @@ public:
         // Viewed Content (canvas)
         content.setBounds(0, titlebarHeight, width, height);
 
+        cnv->updatingBounds = true;
+        cnv->viewport->setViewPosition(cnv->canvasOrigin);
+        cnv->updatingBounds = false;
+
         content.addAndMakeVisible(cnv);
         cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
         cnv->locked = true;
         cnv->presentationMode = true;
 
-        cnv->updatingBounds = true;
-        cnv->setBounds(0, 0, width, height);
+        MessageManager::callAsync([this, cnv] {
+            // Called async to make sure viewport pos has updated
+            cnv->updatingBounds = true; // Is hold true to prevent loops when updating bounds
+            cnv->setBounds(0, 0, width, height);
+        });
 
         addAndMakeVisible(content);
     }
