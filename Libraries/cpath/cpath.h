@@ -242,6 +242,7 @@ extern "C" {
 #endif
 
 #if defined _WIN32
+    #include <direct.h>
     #define _cpath_getcwd _getcwd
 #else
     #include <unistd.h> // for getcwd()
@@ -286,8 +287,8 @@ extern "C" {
 //              Worse case we introduce a #define
 #if defined _MSC_VER || defined __MINGW32__
 // todo
-typedef cpath_offset_t;
-typedef cpath_time_t;
+typedef int cpath_offset_t;
+typedef int cpath_time_t;
 typedef TCHAR cpath_char_t;
 #else
 typedef char cpath_char_t;
@@ -338,7 +339,7 @@ typedef struct cpath_dir_t {
     size_t size;
 
 #ifdef _MSC_VER
-    HANDLE_ handle;
+    HANDLE handle;
     WIN32_FIND_DATA findData;
 #else
     cpath_dirdata_t *dir;
@@ -1269,14 +1270,14 @@ int cpathRestartDir(cpath_dir *dir) {
 
 #if defined _MSC_VER
     cpath_char_t pathBuf[CPATH_MAX_PATH_LEN];
-    cpath_str_copy(pathBuf, dir->path);
-    cpath_str_cat(pathBuf, CPATH_STR("\\*"));
+    cpath_str_copy(pathBuf, dir->path.buf);
+    strcat(pathBuf, CPATH_STR("\\*"));
 
 #if (defined WINAPI_FAMILY) && (WINAPI_FAMILY != WINAPI_FAMILY_DESKTOP_APP)
-    dir->handle = FindFirstFileEx(path_buf, FindExInfoStandard, &dir->findData,
+    dir->handle = FindFirstFileEx(pathBuf, FindExInfoStandard, &dir->findData,
                                                                 FindExSearchNameMatch, NULL, 0);
 #else
-    dir->handle = FindFirstFile(path_buf, &dir->findData);
+    dir->handle = FindFirstFile(pathBuf, &dir->findData);
 #endif
 
     if (dir->handle == INVALID_HANDLE_VALUE) {
@@ -1387,7 +1388,7 @@ int cpathGetFileInfo(cpath_file *file) {
 _CPATH_FUNC_
 int cpathLoadFlags(cpath_dir *dir, cpath_file *file, void *data) {
 #if defined _MSC_VER
-    WIN32_FIND_DATA *find = (WIN32_FIND_DATA*) data;
+    WIN32_FIND_DATA find = *((WIN32_FIND_DATA*) data);
     file->isDir = FILE_IS(find, DIRECTORY);
     if (FILE_IS(find, NORMAL)) {
         file->isReg = 1;
@@ -1439,7 +1440,7 @@ int cpathPeekNextFile(cpath_dir *dir, cpath_file *file) {
     if (dir->handle == INVALID_HANDLE_VALUE) {
         return 0;
     }
-    filename = dir->fileData.cFileName;
+    filename = dir->findData.cFileName;
     filenameLen = cpath_str_length(filename);
 #else
     if (dir->dirent == NULL) {
@@ -1466,7 +1467,7 @@ int cpathPeekNextFile(cpath_dir *dir, cpath_file *file) {
     cpathGetExtension(file);
 #endif
 #if defined _MSC_VER
-    if (!cpathLoadFlags(dir, file, dir->fileData)) return 0;
+    if (!cpathLoadFlags(dir, file, (WIN32_FIND_DATA*)(&dir->findData))) return 0;
 #else
     if (!cpathLoadFlags(dir, file, NULL)) return 0;
 #endif
@@ -1811,11 +1812,13 @@ int cpathOpenFile(cpath_file *file, const cpath *path) {
     }
     // @TODO: make sure tmp isn't too long
 #endif
-    dir.dirent = NULL;
+
     file->statLoaded = 0;
     int res = cpathLoadFlags(&dir, file, data);
 #if defined _MSC_VER
     FindClose((HANDLE)handle);
+#else
+    dir.dirent = NULL;
 #endif
 
     return res;
@@ -2500,3 +2503,4 @@ Opt<Dir, Error::Type> File::ToDir() const {
 
 #endif
 #endif /* CPath */
+       
