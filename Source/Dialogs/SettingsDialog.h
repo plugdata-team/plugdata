@@ -93,10 +93,8 @@ public:
         panels.add(new LibraryLoadPanel());
         panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
         panels.add(new Deken());
+        panels.add(new AdvancedSettingsPanel(editor));
 
-        if (ProjectInfo::isStandalone) {
-            panels.add(new AdvancedSettingsPanel(editor));
-        }
 
         for (int i = 0; i < toolbarButtons.size(); i++) {
             toolbarButtons[i]->setClickingTogglesState(true);
