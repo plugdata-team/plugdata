@@ -11,8 +11,12 @@
 #include "Utility/Config.h"
 
 #include "Pd/Instance.h"
-#include "Pd/Library.h"
 #include "Pd/Patch.h"
+
+namespace pd
+{
+    class Library;
+}
 
 class InternalSynth;
 class SettingsFile;
@@ -125,7 +129,7 @@ public:
 
     SettingsFile* settingsFile;
 
-    pd::Library objectLibrary;
+    std::unique_ptr<pd::Library> objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
 

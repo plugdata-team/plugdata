@@ -518,8 +518,6 @@ public:
         outlet_float(mouse->x_outlet_y, (float)pos.y);
         outlet_float(mouse->x_outlet_x, (float)pos.x);
         outlet_float(mouse->x_obj.ob_outlet, 1.0);
-
-        std::cout << "down!" << std::endl;
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -531,8 +529,6 @@ public:
 
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
         outlet_float(mouse->x_obj.ob_outlet, 0.0f);
-
-        std::cout << "up!" << std::endl;
     }
 
     void mouseMove(MouseEvent const& e) override
@@ -548,7 +544,6 @@ public:
         if (zero) {
             zeroPosition = pos;
             zero = false;
-            std::cout << "apply zero!" << std::endl;
         }
 
         pos -= zeroPosition;
@@ -558,8 +553,6 @@ public:
 
             outlet_float(mouse->x_outlet_y, (float)pos.y);
             outlet_float(mouse->x_outlet_x, (float)pos.x);
-
-            std::cout << "move!" << std::endl;
         }
     }
 
@@ -575,7 +568,6 @@ public:
 
         if (symbol == "zero") {
             zero = true;
-            std::cout << "zero!" << std::endl;
         }
     }
 };

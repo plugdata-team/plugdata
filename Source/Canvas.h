@@ -33,6 +33,7 @@ struct ObjectDragState {
     bool wasSelectedOnMouseDown = false;
     bool wasResized = false;
     Point<int> canvasDragStartPosition = { 0, 0 };
+    Point<int> canvasLastOrigin = { 0, 0 };
     Component::SafePointer<Object> componentBeingDragged;
     Component::SafePointer<Object> objectSnappingInbetween;
     Component::SafePointer<Connection> connectionToSnapInbetween;

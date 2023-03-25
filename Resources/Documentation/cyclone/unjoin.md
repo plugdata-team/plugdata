@@ -23,7 +23,7 @@ outlets:
   - type: anything
     description: the list composed of the joined messages
 
-- flags:
+flags:
   - name: @outsize <float>
     description: number of elements per group
     default: 1

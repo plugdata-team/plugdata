@@ -179,7 +179,7 @@ void Canvas::updateOverlays()
     }
 
     for (auto* connection : connections) {
-        // connection->updateOverlays(overlayState);
+        connection->updateOverlays(overlayState);
     }
 
     repaint();
@@ -235,20 +235,24 @@ void Canvas::paint(Graphics& g)
     │d      c│
     └────────┘
     */
-
-    if (!showBorder) {
-        patchHeightCanvas = getHeight();
-        patchWidthCanvas = getWidth();
-    }
-
+    // points for border
     auto pointA = Point<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f);
     auto pointB = Point<float>(patchWidthCanvas, canvasOrigin.y - 0.5f);
     auto pointC = Point<float>(patchWidthCanvas, patchHeightCanvas);
     auto pointD = Point<float>(canvasOrigin.x - 0.5f, patchHeightCanvas);
 
+    // points for origin extending to edge of view
+    auto pointOriginB = Point<float>(getWidth(), canvasOrigin.y - 0.5f);
+    auto pointOriginD = Point<float>(canvasOrigin.x - 0.5f, getHeight());
+
     // arrange line points so that dashes appear to grow from origin and bottom right
-    auto extentLeft = Line<float>(pointA, pointD);
     auto extentTop = Line<float>(pointA, pointB);
+    auto extentLeft = Line<float>(pointA, pointD);
+    if (showOrigin) {
+        extentTop = Line<float>(pointA, pointOriginB);
+        extentLeft = Line<float>(pointA, pointOriginD);
+    }
+
     auto extentRight = Line<float>(pointC, pointB);
     auto extentBottom = Line<float>(pointC, pointD);
 
@@ -277,8 +281,8 @@ void Canvas::paint(Graphics& g)
         for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
 
             // Don't draw over origin line
-            if (showBorder) {
-                if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= patchHeightCanvas) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidthCanvas))
+            if (showBorder || showOrigin) {
+                if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= extentLeft.getEndY()) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= extentTop.getEndX()))
                     continue;
             }
             g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);

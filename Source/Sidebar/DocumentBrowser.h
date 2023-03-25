@@ -12,6 +12,7 @@
 #    include "../Utility/OSUtils.h"
 #endif
 
+#include "Utility/FastDirectoryIterator.h"
 #include "Object.h"
 
 bool wantsNativeDialog();
@@ -646,10 +647,10 @@ public:
 
         for (int i = 0; i < searchPath.getNumFiles(); i++) {
             auto file = searchPath.getFile(i);
-
+        
             if (file.isDirectory()) {
-                for (auto& child : RangedDirectoryIterator(file, true)) {
-                    addFile(child.getFile());
+                for (auto& child : iterateDirectory(file, true, false)) {
+                    addFile(child);
                 }
             } else {
                 addFile(file);

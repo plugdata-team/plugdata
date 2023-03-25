@@ -492,11 +492,13 @@ void Object::updateTooltips()
     if (!gui)
         return;
 
+    auto objectInfo = cnv->pd->objectLibrary->getObjectInfo(gui->getType());
+    
     // Set object tooltip
-    gui->setTooltip(cnv->pd->objectLibrary.getObjectTooltip(gui->getType()));
+    gui->setTooltip(objectInfo.getProperty("description").toString());
 
     // Check pd library for pddp tooltips, those have priority
-    auto ioletTooltips = cnv->pd->objectLibrary.getIoletTooltips(gui->getType(), gui->getText(), numInputs, numOutputs);
+    auto ioletTooltips = cnv->pd->objectLibrary->parseIoletTooltips(objectInfo.getChildWithName("iolets"), gui->getText(), numInputs, numOutputs);
 
     // First clear all tooltips so we can see later if it has already been set or not
     for (int i = 0; i < iolets.size(); i++) {
@@ -574,9 +576,6 @@ void Object::updateTooltips()
 
             int numIn = 0;
             int numOut = 0;
-
-            // Check pd library for pddp tooltips, those have priority
-            auto ioletTooltips = cnv->pd->objectLibrary.getIoletTooltips(gui->getType(), gui->getText(), numInputs, numOutputs);
 
             for (int i = 0; i < iolets.size(); i++) {
                 auto* iolet = iolets[i];
@@ -722,7 +721,8 @@ void Object::mouseDown(MouseEvent const& e)
     repaint();
 
     ds.canvasDragStartPosition = cnv->getPosition();
-
+    ds.canvasLastOrigin = cnv->canvasOrigin;
+    
     cnv->updateSidebarSelection();
 
     if (cnv->isSelected(this) != wasSelected) {
@@ -814,10 +814,11 @@ void Object::mouseUp(MouseEvent const& e)
             }
 
             auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
-
+            auto canvasOriginOffset = ds.canvasLastOrigin - cnv->canvasOrigin;
+            
             auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
 
-            distance = cnv->objectGrid.handleMouseUp(distance) + canvasMoveOffset - cnv->canvasOrigin;
+            distance = cnv->objectGrid.handleMouseUp(distance) + canvasOriginOffset + canvasMoveOffset;
 
             // When done dragging objects, update positions to pd
             cnv->patch.moveObjects(objects, distance.x, distance.y);
@@ -1240,7 +1241,7 @@ void Object::openHelpPatch() const
 
     if (auto* ptr = static_cast<t_object*>(getPointer())) {
 
-        auto file = cnv->pd->objectLibrary.findHelpfile(ptr, cnv->patch.getCurrentFile());
+        auto file = cnv->pd->objectLibrary->findHelpfile(ptr, cnv->patch.getCurrentFile());
 
         if (!file.existsAsFile()) {
             cnv->pd->logMessage("Couldn't find help file");

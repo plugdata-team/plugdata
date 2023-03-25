@@ -321,6 +321,13 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.empty()));
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
+        
+        // Make sure that iolets don't hang in hovered state
+        for(auto* object : cnv->objects)
+        {
+            for(auto* iolet : object->iolets) reinterpret_cast<Component*>(iolet)->repaint();
+        }
+        
         // Set position where new objet will be created
         if (result > 100) {
             cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);

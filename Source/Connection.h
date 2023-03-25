@@ -9,6 +9,7 @@
 #include <m_pd.h>
 
 #include <concurrentqueue.h> // Move to impl
+#include "Constants.h"
 #include "Iolet.h"           // Move to impl
 #include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
@@ -24,7 +25,7 @@ class Connection : public Component
     , public Value::Listener
     , public pd::MessageListener
     , public SettableTooltipClient
-    , public ModifierKeyListener {
+{
 public:
     int inIdx;
     int outIdx;
@@ -38,7 +39,7 @@ public:
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
     ~Connection() override;
 
-    void altKeyChanged(bool isHeld) override;
+    void updateOverlays(int overlay);
 
     static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool showDirection, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = { 0, 0 }, bool isHovering = false);
 
