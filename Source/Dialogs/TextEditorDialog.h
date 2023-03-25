@@ -748,7 +748,7 @@ void GutterComponent::paint(Graphics& g)
                          .withX(0)
                          .withWidth(GUTTER_WIDTH);
 
-            g.fillRoundedRectangle(A.reduced(4, 1), Corners::smallCornerRadius);
+            g.fillRoundedRectangle(A.reduced(4, 1), Corners::defaultCornerRadius);
         }
     }
 

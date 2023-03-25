@@ -763,9 +763,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour backgroundColour, bool isOpen, bool isMouseOver) override
     {
         Path p;
-        p.addTriangle(0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
+        p.startNewSubPath(0.0f, 0.0f);
+        p.lineTo(0.5f, 0.5f);
+        p.lineTo(isOpen ? 1.0f : 0.0f, isOpen ? 0.0f : 1.0f);
+        
+        auto size = std::min(area.getWidth(), area.getHeight()) * 0.5f;
         g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
-        g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
+        g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(area.withSizeKeepingCentre(size, size), true));
     }
 
     void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& object) override
