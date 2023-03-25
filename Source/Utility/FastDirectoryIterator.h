@@ -20,7 +20,7 @@ inline Array<File> iterateDirectoryRecurse(cpath::Dir&& dir, bool recursive, boo
             iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles);
         }
         if((isDir && !onlyFiles) || !isDir) {
-            result.add(File(String(file->Path().GetRawPath()->buf)));
+            result.add(File(String(file->GetPath().GetRawPath()->buf)));
         }
     }
     

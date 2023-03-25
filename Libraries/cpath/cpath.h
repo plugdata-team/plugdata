@@ -2312,7 +2312,7 @@ public:
         return internals::cpathGetFileSizeSuffix(&file, rep);
     }
 
-    inline Path Path() const {
+    inline Path GetPath() const {
         return cpath::Path(file.path);
     }
 
