@@ -38,6 +38,7 @@ public:
 
     void setType(String const& newType, void* existingObject = nullptr);
     void updateBounds();
+    void applyBounds();
 
     void showEditor();
     void hideEditor();

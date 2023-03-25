@@ -235,6 +235,47 @@ void Object::mouseMove(MouseEvent const& e)
     updateMouseCursor();
 }
 
+void Object::applyBounds()
+{
+    std::map<SafePointer<Object>, Rectangle<int>> newObjectSizes;
+    for (auto* obj : cnv->getSelectionOfType<Object>())
+        newObjectSizes[obj] = obj->getObjectBounds();
+
+    auto* patch = &cnv->patch;
+    
+    cnv->pd->enqueueFunction(
+        [newObjectSizes, patch]() mutable {
+            patch->startUndoSequence("resize");
+
+            for (auto& [object, bounds] : newObjectSizes) {
+                if (!object || !object->gui)
+                    return;
+
+                auto* obj = static_cast<t_gobj*>(object->getPointer());
+                auto* cnv = object->cnv;
+
+                if (cnv->patch.objectWasDeleted(obj))
+                    return;
+
+                // Used for size changes, could also be used for properties
+                libpd_undo_apply(cnv->patch.getPointer(), obj);
+
+                object->gui->setPdBounds(bounds);
+
+                canvas_dirty(cnv->patch.getPointer(), 1);
+
+                // Resize canvas in case we dragged object out of bounds
+                if (!cnv->viewport->getViewArea().contains(object->getBounds())) {
+                    MessageManager::callAsync([o = object]() {
+                        if (o)
+                            o->cnv->checkBounds();
+                    });
+                }
+            }
+
+            patch->endUndoSequence("resize");
+        });
+}
 void Object::updateBounds()
 {
     if (gui) {
@@ -721,7 +762,6 @@ void Object::mouseDown(MouseEvent const& e)
     repaint();
 
     ds.canvasDragStartPosition = cnv->getPosition();
-    ds.canvasLastOrigin = cnv->canvasOrigin;
     
     cnv->updateSidebarSelection();
 
@@ -741,46 +781,10 @@ void Object::mouseUp(MouseEvent const& e)
     }
 
     if (ds.wasResized) {
-        std::map<SafePointer<Object>, Rectangle<int>> newObjectSizes;
-        for (auto* obj : cnv->getSelectionOfType<Object>())
-            newObjectSizes[obj] = obj->getObjectBounds();
 
-        auto* patch = &cnv->patch;
+        cnv->objectGrid.clearAll();
 
-        cnv->objectGrid.handleMouseUp(e.getOffsetFromDragStart());
-
-        cnv->pd->enqueueFunction(
-            [newObjectSizes, patch]() mutable {
-                patch->startUndoSequence("resize");
-
-                for (auto& [object, bounds] : newObjectSizes) {
-                    if (!object || !object->gui)
-                        return;
-
-                    auto* obj = static_cast<t_gobj*>(object->getPointer());
-                    auto* cnv = object->cnv;
-
-                    if (cnv->patch.objectWasDeleted(obj))
-                        return;
-
-                    // Used for size changes, could also be used for properties
-                    libpd_undo_apply(cnv->patch.getPointer(), obj);
-
-                    object->gui->setPdBounds(bounds);
-
-                    canvas_dirty(cnv->patch.getPointer(), 1);
-
-                    // Resize canvas in case we dragged object out of bounds
-                    if (!cnv->viewport->getViewArea().contains(object->getBounds())) {
-                        MessageManager::callAsync([o = object]() {
-                            if (o)
-                                o->cnv->checkBounds();
-                        });
-                    }
-                }
-
-                patch->endUndoSequence("resize");
-            });
+        applyBounds();
 
         ds.wasResized = false;
         originalBounds.setBounds(0, 0, 0, 0);
@@ -805,25 +809,11 @@ void Object::mouseUp(MouseEvent const& e)
         if (ds.didStartDragging) {
 
             cnv->checkBounds();
-
-            auto objects = std::vector<void*>();
-
-            for (auto* object : cnv->getSelectionOfType<Object>()) {
-                if (object->getPointer())
-                    objects.push_back(object->getPointer());
-            }
-
-            auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
-            auto canvasOriginOffset = ds.canvasLastOrigin - cnv->canvasOrigin;
+            cnv->objectGrid.clearAll();
             
-            auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
-
-            distance = cnv->objectGrid.handleMouseUp(distance) + canvasOriginOffset + canvasMoveOffset;
-
-            // When done dragging objects, update positions to pd
-            cnv->patch.moveObjects(objects, distance.x, distance.y);
-
-            cnv->pd->waitForStateUpdate();
+            applyBounds();
+            
+            cnv->pd->waitForStateUpdate(); // TODO: ?? why do this?
 
             ds.didStartDragging = false;
         }

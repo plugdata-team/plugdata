@@ -14,7 +14,7 @@ class ObjectGrid : public SettingsFileListener {
 public:
     ObjectGrid(Component* parent);
 
-    Point<int> handleMouseUp(Point<int> dragOffset);
+    void clearAll();
 
     Point<int> performMove(Object* toDrag, Point<int> dragOffset);
     Point<int> performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds);

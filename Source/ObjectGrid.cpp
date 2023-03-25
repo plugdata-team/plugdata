@@ -515,35 +515,10 @@ bool ObjectGrid::isAlreadySnapped(bool horizontal, Point<int>& dragOffset)
     return false;
 }
 
-Point<int> ObjectGrid::handleMouseUp(Point<int> dragOffset)
+void ObjectGrid::clearAll()
 {
-    if (!gridEnabled)
-        return dragOffset;
-
-    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool> { gridType & 1, gridType & 2, gridType & 4 };
-
-    if (!ModifierKeys::getCurrentModifiers().isShiftDown()) {
-        if (!snapGrid && (snapEdges || snapCentres)) {
-            if (snapped[1]) {
-                dragOffset.x = snappedPosition.x;
-                clear(1);
-            }
-            if (snapped[0]) {
-                dragOffset.y = snappedPosition.y;
-                clear(0);
-            }
-        } else if (snapGrid) {
-            dragOffset = snappedPosition;
-            if (snapped[1]) {
-                clear(1);
-            }
-            if (snapped[0]) {
-                clear(0);
-            }
-        }
-    }
-
-    return dragOffset;
+    clear(0);
+    clear(1);
 }
 
 void ObjectGrid::propertyChanged(String name, var value)
