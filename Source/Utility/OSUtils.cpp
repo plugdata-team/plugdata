@@ -6,6 +6,7 @@
 
 #include <juce_core/juce_core.h>
 #include "OSUtils.h"
+#include "../Libraries/cpath/cpath.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 
