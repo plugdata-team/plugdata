@@ -116,6 +116,16 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 editor->resized();
                 break;
             }
+            case MainMenu::MenuItem::PluginMode: {
+                if (editor->getCurrentCanvas()) {
+                    var setting = settingsTree.hasProperty("plugin_mode") ? static_cast<bool>(settingsTree.getProperty("plugin_mode")) : false;
+                    if (!setting)
+                        setting = editor->getCurrentCanvas()->patch.getCurrentFile().getFullPathName();
+                    settingsTree.setProperty("plugin_mode", setting, nullptr);
+                    editor->enablePluginMode(editor->getCurrentCanvas());
+                }
+                break;
+            }
             case MainMenu::MenuItem::AutoConnect: {
                 bool ticked = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;
                 settingsTree.setProperty("autoconnect", !ticked, nullptr);
