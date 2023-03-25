@@ -25,7 +25,6 @@
 #include "ObjectBrowserDialog.h"
 #include "ObjectReferenceDialog.h"
 #include "Heavy/HeavyExportDialog.h"
-#include "PluginMode.h"
 #include "MainMenu.h"
 #include "Canvas.h"
 
@@ -118,7 +117,13 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             case MainMenu::MenuItem::PluginMode: {
-                editor->pluginMode = std::make_unique<PluginMode>(editor->getCurrentCanvas());
+                if (editor->getCurrentCanvas()) {
+                    var setting = settingsTree.hasProperty("plugin_mode") ? static_cast<bool>(settingsTree.getProperty("plugin_mode")) : false;
+                    if (!setting)
+                        setting = editor->getCurrentCanvas()->patch.getCurrentFile().getFullPathName();
+                    settingsTree.setProperty("plugin_mode", setting, nullptr);
+                    editor->enablePluginMode(editor->getCurrentCanvas());
+                }
                 break;
             }
             case MainMenu::MenuItem::AutoConnect: {

@@ -74,6 +74,7 @@ public:
         bool palettesEnabled = settingsTree.hasProperty("show_palettes") ? static_cast<bool>(settingsTree.getProperty("show_palettes")) : false;
         bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") ? static_cast<bool>(settingsTree.getProperty("hvcc_mode")) : false;
         bool autoconnectEnabled = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;
+        bool pluginModeEnabled = settingsTree.hasProperty("plugin_mode") ? static_cast<bool>(settingsTree.getProperty("plugin_mode")) : false;
         bool hasCanvas = editor->getCurrentCanvas() != nullptr;
         ;
 
@@ -81,10 +82,12 @@ public:
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::Close)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::CloseAll)]->isActive = hasCanvas;
+        menuItems[getMenuItemIndex(MenuItem::PluginMode)]->isActive = hasCanvas;
 
         menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]->isTicked = palettesEnabled;
         menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
         menuItems[getMenuItemIndex(MenuItem::AutoConnect)]->isTicked = autoconnectEnabled;
+        menuItems[getMenuItemIndex(MenuItem::PluginMode)]->isTicked = pluginModeEnabled;
     }
 
     class ZoomSelector : public Component {
@@ -358,7 +361,7 @@ public:
         new IconMenuItem("", "Compiled Mode", false, true),
         new IconMenuItem("", "Compile...", false, false),
 
-        new IconMenuItem("", "Plugin Mode", false, false),
+        new IconMenuItem("", "Plugin Mode", false, true),
 
         new IconMenuItem("", "Auto-connect objects", false, true),
         new IconMenuItem("", "Enable palettes", false, true),

@@ -119,6 +119,8 @@ public:
             cnv->updatingBounds = false;
             cnv->viewport->resized();
 
+            SettingsFile::getInstance()->setProperty("plugin_mode", false);
+
             // Destroy this view
             editor->pluginMode.reset(nullptr);
         }
