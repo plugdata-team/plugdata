@@ -9,7 +9,7 @@
 #include "../Libraries/cpath/cpath.h"
 
 
-inline Array<File> iterateDirectory(cpath::Dir&& dir, bool recursive, bool onlyFiles)
+inline Array<File> iterateDirectoryRecurse(cpath::Dir&& dir, bool recursive, bool onlyFiles)
 {
     Array<File> result;
     
@@ -17,7 +17,7 @@ inline Array<File> iterateDirectory(cpath::Dir&& dir, bool recursive, bool onlyF
         auto isDir = file->IsDir();
         
         if(isDir && recursive && !file->IsSpecialHardLink()) {
-            iterateDirectory(std::move(file->ToDir().GetRaw()), recursive, onlyFiles);
+            iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles);
         }
         if((isDir && !onlyFiles) || !isDir) {
             result.add(File(String(file->Path().GetRawPath()->buf)));
@@ -31,6 +31,6 @@ inline Array<File> iterateDirectory(const File& directory, bool recursive, bool 
 {
     auto pathName = directory.getFullPathName();
     auto dir = cpath::Dir(pathName.toRawUTF8());
-    return iterateDirectory(std::move(dir), recursive, onlyFiles);
+    return iterateDirectoryRecurse(std::move(dir), recursive, onlyFiles);
     
 }
