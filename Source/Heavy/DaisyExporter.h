@@ -8,14 +8,12 @@ class DaisyExporter : public ExporterBase {
 public:
     Value targetBoardValue = Value(var(1));
     Value exportTypeValue = Value(var(3));
-    Value stlinkValue = Value(var(1));
     Value romOptimisationType = Value(var(2));
     Value ramOptimisationType = Value(var(2));
 
     File customBoardDefinition;
 
     TextButton flashButton = TextButton("Flash");
-    Component* stlinkUse;
     Component* ramOptimisation;
     Component* romOptimisation;
 
@@ -25,7 +23,6 @@ public:
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Simple", "Custom JSON..." })));
 
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" })));
-        addAndMakeVisible(stlinkUse = properties.add(new PropertiesPanel::BoolComponent("Use stlink", stlinkValue, { "No", "Yes" })));
 
         addAndMakeVisible(romOptimisation = properties.add(new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, { "Optimise for size", "Optimise for speed" })));
         addAndMakeVisible(ramOptimisation = properties.add(new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, { "Optimise for size", "Optimise for speed" })));
@@ -59,7 +56,6 @@ public:
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
 
-        stlinkUse->setVisible(flash);
         ramOptimisation->setVisible(flash);
         romOptimisation->setVisible(flash);
 
@@ -90,7 +86,6 @@ public:
         auto target = static_cast<int>(targetBoardValue.getValue()) - 1;
         bool compile = static_cast<int>(exportTypeValue.getValue()) - 1;
         bool flash = static_cast<int>(exportTypeValue.getValue()) == 3;
-        bool stlink = static_cast<int>(stlinkValue.getValue());
 
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
 
@@ -168,7 +163,6 @@ public:
             bool bootloader = setMakefileVariables(sourceDir.getChildFile("Makefile"));
 
             auto gccPath = bin.getFullPathName();
-            auto ocdDir = Toolchain::dir.getChildFile("etc").getFullPathName();
 
 #if JUCE_WINDOWS
             auto buildScript = make.getFullPathName().replaceCharacter('\\', '/')
@@ -241,17 +235,10 @@ public:
                     + " PROJECT_NAME=" + name;
 #else
                 String flashScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
-                    + "cd " + sourceDir.getFullPathName() + "\n";
-                if (stlink) {
-                    flashScript += make.getFullPathName() + " program"
-                                 + " OCD_DIR=" + ocdDir
-                                 + " PGM_DEVICE=stlink.cfg";
-                } else {
-                    flashScript += make.getFullPathName() + " program-dfu";
-                }
-
-                flashScript += " GCC_PATH=" + gccPath
-                             + " PROJECT_NAME=" + name;
+                    + "cd " + sourceDir.getFullPathName() + "\n"
+                    + make.getFullPathName() + " program-dfu"
+                    + " GCC_PATH=" + gccPath
+                    + " PROJECT_NAME=" + name;
 #endif
 
                 Toolchain::startShellScript(flashScript, this);
