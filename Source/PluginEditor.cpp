@@ -448,7 +448,7 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
 {
     auto* cnv = getCurrentCanvas();
 
-    if (!cnv)
+    if (!cnv || SettingsFile::getInstance()->getProperty<var>("plugin_mode") != var(false))
         return;
 
     auto event = e.getEventRelativeTo(getCurrentCanvas()->viewport);

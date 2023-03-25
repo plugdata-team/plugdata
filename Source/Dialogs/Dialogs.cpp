@@ -117,12 +117,12 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             case MainMenu::MenuItem::PluginMode: {
-                if (editor->getCurrentCanvas()) {
+                if (auto* cnv = editor->getCurrentCanvas()) {
                     var setting = settingsTree.hasProperty("plugin_mode") ? static_cast<bool>(settingsTree.getProperty("plugin_mode")) : false;
                     if (!setting)
-                        setting = editor->getCurrentCanvas()->patch.getCurrentFile().getFullPathName();
+                        setting = cnv->patch.getCurrentFile().getFullPathName();
                     settingsTree.setProperty("plugin_mode", setting, nullptr);
-                    editor->enablePluginMode(editor->getCurrentCanvas());
+                    editor->enablePluginMode(cnv);
                 }
                 break;
             }
