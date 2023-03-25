@@ -649,7 +649,7 @@ public:
             auto file = searchPath.getFile(i);
         
             if (file.isDirectory()) {
-                for (auto& child : FastDirectoryIterator::recurse(file)) {
+                for (auto& child : iterateDirectory(file, true, false)) {
                     addFile(child);
                 }
             } else {

@@ -727,9 +727,13 @@ void PluginProcessor::sendPlayhead()
 void PluginProcessor::sendParameters()
 {
     for (auto* param : getParameters()) {
-        auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
+        // Used to do dynamic_cast here, but since it gets called very often and param is always PlugDataParameter
+        // we use reinterpret_cast now.
+        auto* pldParam = reinterpret_cast<PlugDataParameter*>(param);
+        if(!pldParam->isEnabled()) continue;
+        
         auto newvalue = pldParam->getUnscaledValue();
-        if (pldParam->isEnabled() && pldParam->getLastValue() != newvalue) {
+        if (pldParam->getLastValue() != newvalue) {
             auto title = pldParam->getTitle();
             sendFloat(title.toRawUTF8(), pldParam->getUnscaledValue());
             pldParam->setLastValue(newvalue);

@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+
+
 #include <juce_data_structures/juce_data_structures.h>
 #include <juce_events/juce_events.h>
 
@@ -11,7 +13,6 @@
 
 #include <BinaryData.h>
 
-#include "../Libraries/tinydir/tinydir.h"
 #include "Utility/FastDirectoryIterator.h"
 
 extern "C" {
@@ -68,7 +69,7 @@ void Library::updateLibrary()
     for (auto path : pathTree) {
         auto filePath = path.getProperty("Path").toString();
         
-        for(auto file : FastDirectoryIterator(File(filePath)))
+        for(auto file : iterateDirectory(File(filePath), false, true))
         {
             if(file.hasFileExtension(".pd"))
             {
@@ -329,7 +330,7 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
 
     
     auto findHelpPatch = [&firstName, &secondName](File const& searchDir, bool recursive) -> File {
-        for (const auto& file : FastDirectoryIterator::recurse(searchDir)) {
+        for (const auto& file : iterateDirectory(searchDir, recursive, true)) {
             if (file.getFileName() == firstName || file.getFileName() == secondName) {
                 return file;
             }
