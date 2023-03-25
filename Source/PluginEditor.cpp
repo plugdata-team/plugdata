@@ -25,6 +25,7 @@
 #include "Statusbar.h"
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
+#include "PluginMode.h"
 
 class ZoomLabel : public TextButton
     , public Timer {
@@ -1527,4 +1528,11 @@ Value& PluginEditor::getZoomScaleValueForCanvas(Canvas* cnv)
     }
 
     return zoomScale;
+}
+
+void PluginEditor::enablePluginMode(Canvas* cnv)
+{
+    if (!cnv)
+        return;
+    pluginMode = std::make_unique<PluginMode>(cnv);
 }

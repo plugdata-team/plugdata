@@ -90,6 +90,8 @@ public:
     float getZoomScaleForCanvas(Canvas* cnv);
     Value& getZoomScaleValueForCanvas(Canvas* cnv);
 
+    void enablePluginMode(Canvas* cnv);
+
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;
