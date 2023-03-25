@@ -7,6 +7,7 @@
 #include <JuceHeader.h>
 #include "Canvas.h"
 #include "Connection.h"
+#include "Dialogs/Dialogs.h"
 #include "Iolet.h"
 #include "Object.h"
 #include "Pd/Instance.h"
@@ -20,7 +21,7 @@ class PaletteComboBox : public ComboBox
         {
             if (!ed.getText().isEmpty()) {
                 textEditorTextChanged(ed);
-            } else {
+            } else if(ed.isShowing()){
                 ed.grabKeyboardFocus();
             }
         }
@@ -414,7 +415,12 @@ public:
         deleteButton.setButtonText(Icons::Trash);
         deleteButton.getProperties().set("Style", "LargeIcon");
         deleteButton.onClick = [this]() {
-            
+            Dialogs::showOkayCancelDialog(&editor->openedDialog, editor, "Are you sure you want to delete this palette?", [this](bool result){
+                if(result)
+                {
+                    deletePalette();
+                }
+            });
         };
         addAndMakeVisible(deleteButton);
         
@@ -443,6 +449,16 @@ public:
                 lastMode += dragModeButton.getToggleState() * 3;
                 paletteTree.setProperty("Mode", lastMode, nullptr);
             }
+        }
+    }
+    
+    void deletePalette()
+    {
+        auto parentTree = paletteTree.getParent();
+        if(parentTree.isValid())
+        {
+            parentTree.removeChild(paletteTree, nullptr);
+            updatePalettes();
         }
     }
 
@@ -614,7 +630,7 @@ public:
         lockModeButton.setBounds(stateButtonsBounds.translated(panelHeight - 1, 0));
         editModeButton.setBounds(stateButtonsBounds);
         
-        deleteButton.setBounds(secondPanel.removeFromRight(panelHeight));
+        deleteButton.setBounds(secondPanel.removeFromRight(panelHeight + 6).expanded(2, 3));
         
         if (cnv) {
             cnv->viewport->getPositioner()->applyNewBounds(b);
@@ -845,6 +861,11 @@ private:
 
     void updatePalettes()
     {
+        int lastIdx = -1;
+        for (int i = 0; i < paletteSelectors.size(); i++) {
+            if(paletteSelectors[i]->getToggleState()) lastIdx = i;
+        }
+        
         paletteSelectors.clear();
 
         for (auto palette : palettesTree) {
@@ -864,12 +885,31 @@ private:
             paletteBar.addAndMakeVisible(*button);
         }
 
+        bool anySelected = false;
         StringArray patches;
         for (auto* selector : paletteSelectors) {
             patches.add(selector->getButtonText());
+            anySelected = anySelected || selector->getToggleState();
         }
+        
+        if(isPositiveAndBelow(lastIdx, paletteSelectors.size()))
+        {
+            paletteSelectors[lastIdx]->setToggleState(true, dontSendNotification);
+        }
+        else {
+            if(!paletteSelectors.size())
+            {
+                setViewHidden(true);
+            }
+            else {
+                paletteSelectors[std::max(0, lastIdx - 1)]->triggerClick();
+            }
+        }
+        
         view.updatePatches(patches);
         savePalettes();
+        
+        
 
         resized();
     }
