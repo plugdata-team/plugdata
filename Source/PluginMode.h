@@ -13,6 +13,7 @@ public:
         , windowBounds(editor->getBounds())
         , windowConstrainer(editor->getConstrainer())
         , viewportBounds(cnv->viewport->getBounds())
+        , infiniteCanvas(SettingsFile::getInstance()->getProperty<int>("infinite_canvas"))
     {
         if (ProjectInfo::isStandalone) {
             mainWindow = static_cast<DocumentWindow*>(editor->getTopLevelComponent());
@@ -65,6 +66,9 @@ public:
         // Viewed Content (canvas)
         content.setBounds(0, titlebarHeight, width, height);
 
+        if (infiniteCanvas)
+            SettingsFile::getInstance()->setProperty("infinite_canvas", false); // Temporarily disable infinte canvas
+
         cnv->updatingBounds = true;
         cnv->viewport->setViewPosition(cnv->canvasOrigin);
         cnv->updatingBounds = false;
@@ -76,7 +80,6 @@ public:
 
         MessageManager::callAsync([this, cnv] {
             // Called async to make sure viewport pos has updated
-            cnv->updatingBounds = true; // Is hold true to prevent loops when updating bounds
             cnv->setBounds(0, 0, width, height);
         });
 
@@ -85,42 +88,43 @@ public:
 
     ~PluginMode()
     {
+        // Restore the original editor content
+        for (auto const& child : children) {
+            child->setVisible(true);
+        }
+
+        // Reset the canvas properties
+        cnv->viewport->setBounds(viewportBounds);
+        cnv->locked = false;
+        cnv->presentationMode = false;
+
+        // Add the canvas to it's original parent component
+        cnvParent->addAndMakeVisible(cnv);
+
+        // Restore the editor's resize limits
+        if (mainWindow) {
+            mainWindow->setResizeLimits(windowConstrainer->getMinimumWidth(), windowConstrainer->getMinimumHeight(), windowConstrainer->getMaximumWidth(), windowConstrainer->getMaximumHeight());
+            mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
+            mainWindow->setResizable(true, false);
+        } else {
+            editor->setResizeLimits(windowConstrainer->getMinimumWidth(), windowConstrainer->getMinimumHeight(), windowConstrainer->getMaximumWidth(), windowConstrainer->getMaximumHeight());
+            editor->setSize(windowBounds.getWidth(), windowBounds.getHeight());
+            editor->setResizable(true, false);
+        }
+
+        // Restore canvas bounds
+        cnv->updatingBounds = false;
+        if (infiniteCanvas)
+            SettingsFile::getInstance()->setProperty("infinite_canvas", true);
+
+        cnv->viewport->resized();
+
+        SettingsFile::getInstance()->setProperty("plugin_mode", false);
     }
 
     void buttonClicked(Button* button) override
     {
         if (button == closeButton.get()) {
-
-            // Restore the original editor content
-            for (auto const& child : children) {
-                child->setVisible(true);
-            }
-
-            // Reset the canvas properties
-            cnv->viewport->setBounds(viewportBounds);
-            cnv->locked = false;
-            cnv->presentationMode = false;
-
-            // Add the canvas to it's original parent component
-            cnvParent->addAndMakeVisible(cnv);
-
-            // Restore the editor's resize limits
-            if (mainWindow) {
-                mainWindow->setResizeLimits(windowConstrainer->getMinimumWidth(), windowConstrainer->getMinimumHeight(), windowConstrainer->getMaximumWidth(), windowConstrainer->getMaximumHeight());
-                mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
-                mainWindow->setResizable(true, false);
-            } else {
-                editor->setResizeLimits(windowConstrainer->getMinimumWidth(), windowConstrainer->getMinimumHeight(), windowConstrainer->getMaximumWidth(), windowConstrainer->getMaximumHeight());
-                editor->setSize(windowBounds.getWidth(), windowBounds.getHeight());
-                editor->setResizable(true, false);
-            }
-
-            // Restore canvas bounds
-            cnv->updatingBounds = false;
-            cnv->viewport->resized();
-
-            SettingsFile::getInstance()->setProperty("plugin_mode", false);
-
             // Destroy this view
             editor->pluginMode.reset(nullptr);
         }
@@ -216,6 +220,8 @@ private:
     int const width = cnv->patchWidth.getValue();
     int const height = cnv->patchHeight.getValue();
     float resizeRatio = float(width) / float(height);
+
+    bool infiniteCanvas;
 
     std::vector<Component*> children;
 };
