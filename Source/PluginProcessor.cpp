@@ -838,6 +838,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
         editor->splitView.getRightTabbar()->setCurrentTabIndex(lastRightTab);
     }
 
+    // Restore Plugin Mode view
     if (settingsFile->getProperty<var>("plugin_mode") != var(false)) {
         bool canvasFound = false;
         for (auto* cnv : editor->canvases) {
@@ -847,8 +848,14 @@ AudioProcessorEditor* PluginProcessor::createEditor()
                 break;
             }
         }
-        if (!canvasFound) {
-            File p(settingsFile->getProperty<String>("plugin_mode"));
+        
+        File p(settingsFile->getProperty<String>("plugin_mode")); // Create file for restoring by loadPatch at startup
+
+        if (!canvasFound)
+            settingsFile->setProperty("plugin_mode", false);
+
+        // Restore Plugin Mode view at startup
+        /* if (!canvasFound) {
             MessageManager::callAsync([this, editor, &canvasFound, p] {
                 if (auto* patch = loadPatch(p)) {
                     Timer::callAfterDelay(1, [this, editor, &canvasFound, patch] {
@@ -864,7 +871,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
                     });
                 }
             });
-        }
+        } */
     }
 
     return editor;
