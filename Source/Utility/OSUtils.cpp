@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_core/juce_core.h>
 #include "OSUtils.h"
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -293,3 +294,32 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     return result;
 }
 #endif // Linux/BSD
+
+
+// Functions for all OS:
+
+static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool recursive, bool onlyFiles)
+{
+    juce::Array<juce::File> result;
+    
+    while (cpath::Opt<cpath::File, cpath::Error::Type> file = dir.GetNextFile()) {
+        auto isDir = file->IsDir();
+        
+        if(isDir && recursive && !file->IsSpecialHardLink()) {
+            iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles);
+        }
+        if((isDir && !onlyFiles) || !isDir) {
+            result.add(juce::File(juce::String(file->GetPath().GetRawPath()->buf)));
+        }
+    }
+    
+    return result;
+}
+
+juce::Array<juce::File> OSUtils::iterateDirectory(const juce::File& directory, bool recursive, bool onlyFiles)
+{
+    auto pathName = directory.getFullPathName();
+    auto dir = cpath::Dir(pathName.toRawUTF8());
+    return iterateDirectoryRecurse(std::move(dir), recursive, onlyFiles);
+}
+

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <string>
+#include "../Libraries/cpath/cpath.h"
 
 struct OSUtils {
     enum KeyboardLayout {
@@ -26,5 +27,7 @@ struct OSUtils {
     static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
 #endif
 
+    static juce::Array<juce::File> iterateDirectory(const juce::File& directory, bool recursive, bool onlyFiles);
+    
     static KeyboardLayout getKeyboardLayout();
 };

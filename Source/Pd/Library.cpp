@@ -13,7 +13,7 @@
 
 #include <BinaryData.h>
 
-#include "Utility/FastDirectoryIterator.h"
+#include "Utility/OSUtils.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -69,7 +69,7 @@ void Library::updateLibrary()
     for (auto path : pathTree) {
         auto filePath = path.getProperty("Path").toString();
         
-        for(auto file : iterateDirectory(File(filePath), false, true))
+        for(auto file : OSUtils::iterateDirectory(File(filePath), false, true))
         {
             if(file.hasFileExtension(".pd"))
             {
@@ -330,7 +330,7 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
 
     
     auto findHelpPatch = [&firstName, &secondName](File const& searchDir, bool recursive) -> File {
-        for (const auto& file : iterateDirectory(searchDir, recursive, true)) {
+        for (const auto& file : OSUtils::iterateDirectory(searchDir, recursive, true)) {
             if (file.getFileName() == firstName || file.getFileName() == secondName) {
                 return file;
             }

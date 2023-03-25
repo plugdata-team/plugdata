@@ -4,7 +4,9 @@
 
 #import <string>
 
+#include <juce_core/juce_core.h>
 #include "OSUtils.h"
+#include "OSUtils.cpp"
 
 int getStyleMask(bool nativeTitlebar) {
     

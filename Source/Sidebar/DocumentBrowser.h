@@ -8,11 +8,7 @@
 // 1. Sort by folders first
 // 2. Improve simplicity and efficiency by not using OS file icons (they look bad anyway)
 
-#if JUCE_WINDOWS
-#    include "../Utility/OSUtils.h"
-#endif
-
-#include "Utility/FastDirectoryIterator.h"
+#include "Utility/OSUtils.h"
 #include "Object.h"
 
 bool wantsNativeDialog();
@@ -649,7 +645,7 @@ public:
             auto file = searchPath.getFile(i);
         
             if (file.isDirectory()) {
-                for (auto& child : iterateDirectory(file, true, false)) {
+                for (auto& child : OSUtils::iterateDirectory(file, true, false)) {
                     addFile(child);
                 }
             } else {
