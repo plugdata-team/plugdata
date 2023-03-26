@@ -102,7 +102,7 @@ private:
         { "default_font", var("Inter") },
         { "native_window", var(false) },
         { "reload_last_state", var(false) },
-        { "autoconnect", var(false) },
+        { "autoconnect", var(true) },
         { "infinite_canvas", var(true) },
         { "origin", var(0) },
         { "border", var(0) },
