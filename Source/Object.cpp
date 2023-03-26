@@ -109,6 +109,7 @@ void Object::initialise()
     locked.referTo(cnv->locked);
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
+    paletteDragMode.referTo(cnv->paletteDragMode);
 
     if (!cnv->isPalette)
         hvccMode.referTo(cnv->editor->hvccMode);
@@ -117,7 +118,7 @@ void Object::initialise()
     locked.addListener(this);
     commandLocked.addListener(this);
     hvccMode.addListener(this);
-    cnv->paletteDragMode.addListener(this);
+    paletteDragMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
 

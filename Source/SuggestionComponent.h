@@ -540,12 +540,16 @@ private:
         if (currentText.contains(" ")) {
             state = ShowingArguments;
             auto name = currentText.upToFirstOccurrenceOf(" ", false, false);
-            auto found = library->getObjectInfo(name).getChildWithProperty("name", "arguments");
+            auto objectInfo = library->getObjectInfo(name);
+            auto found = objectInfo.getChildWithName("arguments");
+            for(auto flag : objectInfo.getChildWithName("flags")) {
+                found.appendChild(flag.createCopy(), nullptr);
+            }
             
             numOptions = std::min<int>(buttons.size(), found.getNumChildren());
             for (int i = 0; i < numOptions; i++) {
-                auto type = found.getProperty("type").toString();
-                auto description = found.getProperty("description").toString();
+                auto type = found.getChild(i).getProperty("type").toString();
+                auto description = found.getChild(i).getProperty("description").toString();
                 
                 buttons[i]->setText(type, description, false);
                 buttons[i]->setInterceptsMouseClicks(false, false);

@@ -311,7 +311,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.empty()));
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
-        
+
         // Make sure that iolets don't hang in hovered state
         for(auto* object : cnv->objects)
         {
