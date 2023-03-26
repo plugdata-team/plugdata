@@ -9,18 +9,22 @@ public:
     PluginMode(Canvas* cnv)
         : cnv(cnv)
         , editor(cnv->editor)
+        , settings(SettingsFile::getInstance())
         , cnvParent(cnv->getParentComponent())
-        , windowBounds(editor->getBounds())
-        , windowConstrainer(editor->getConstrainer())
         , viewportBounds(cnv->viewport->getBounds())
-        , infiniteCanvas(SettingsFile::getInstance()->getProperty<int>("infinite_canvas"))
+        , infiniteCanvas(settings->getProperty<int>("infinite_canvas"))
     {
-        if (ProjectInfo::isStandalone) {
-            mainWindow = static_cast<DocumentWindow*>(editor->getTopLevelComponent());
-        }
+        mainWindow = static_cast<DocumentWindow*>(editor->getTopLevelComponent());
+        if (mainWindow == nullptr)
+            return;
+
+        auto c = editor->getConstrainer();
+        windowConstrainer.setSizeLimits(c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight());
+
+        windowBounds.setBounds(mainWindow->getX(), mainWindow->getY(), mainWindow->getWidth(), mainWindow->getHeight());
 
         // Hide all of the editor's content
-        for (auto const& child : editor->getChildren()) {
+        for (auto* child : editor->getChildren()) {
             if (child->isVisible()) {
                 child->setVisible(false);
                 children.emplace_back(child);
@@ -31,14 +35,13 @@ public:
         editor->zoomScale = 1.0f;
 
         // Set window bounds
-        if (mainWindow) {
-            mainWindow->setResizeLimits(width, height + titlebarHeight, width, height + titlebarHeight);
-            mainWindow->setSize(width, height + titlebarHeight);
-            mainWindow->setResizable(false, false);
-        } else {
-            editor->setResizeLimits(width, height + titlebarHeight, width, height + titlebarHeight);
+        mainWindow->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
+        mainWindow->setSize(width, height + titlebarHeight);
+        // mainWindow->setResizable(false, false);
+
+        if (ProjectInfo::isStandalone) {
+            editor->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
             editor->setSize(width, height + titlebarHeight);
-            editor->setResizable(false, false);
         }
 
         // Add this view to the editor
@@ -49,11 +52,10 @@ public:
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);
 
-        closeButton = std::make_unique<TextButton>();
-        closeButton->setButtonText(Icons::Edit);
+        closeButton = std::make_unique<TextButton>(Icons::Edit);
         closeButton->getProperties().set("Style", "LargeIcon");
         closeButton->setTooltip("Show Editor..");
-        if (ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("macos_buttons")) {
+        if (ProjectInfo::isStandalone && !settings->getProperty<bool>("macos_buttons")) {
             closeButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
         } else {
             closeButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
@@ -67,7 +69,7 @@ public:
         content.setBounds(0, titlebarHeight, width, height);
 
         if (infiniteCanvas)
-            SettingsFile::getInstance()->setProperty("infinite_canvas", false); // Temporarily disable infinte canvas
+            settings->setProperty("infinite_canvas", false); // Temporarily disable infinte canvas
 
         cnv->updatingBounds = true;
         cnv->viewport->setViewPosition(cnv->canvasOrigin);
@@ -90,14 +92,17 @@ public:
     ~PluginMode()
     {
         if (infiniteCanvas)
-            SettingsFile::getInstance()->setProperty("infinite_canvas", true);
+            settings->setProperty("infinite_canvas", true);
     }
 
     void buttonClicked(Button* button) override
     {
         if (button == closeButton.get()) {
+            cnv->updatingBounds = false;
+            settings->setProperty("plugin_mode", false);
+
             // Restore the original editor content
-            for (auto const& child : children) {
+            for (auto* child : children) {
                 child->setVisible(true);
             }
 
@@ -110,22 +115,13 @@ public:
             cnvParent->addAndMakeVisible(cnv);
 
             // Restore the editor's resize limits
-            if (mainWindow) {
-                mainWindow->setResizeLimits(windowConstrainer->getMinimumWidth(), windowConstrainer->getMinimumHeight(), windowConstrainer->getMaximumWidth(), windowConstrainer->getMaximumHeight());
-                mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
-                mainWindow->setResizable(true, false);
-            } else {
-                editor->setResizeLimits(windowConstrainer->getMinimumWidth(), windowConstrainer->getMinimumHeight(), windowConstrainer->getMaximumWidth(), windowConstrainer->getMaximumHeight());
+            mainWindow->setResizeLimits(windowConstrainer.getMinimumWidth(), windowConstrainer.getMinimumHeight(), windowConstrainer.getMaximumWidth(), windowConstrainer.getMaximumHeight());
+            mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
+
+            if (ProjectInfo::isStandalone) {
+                editor->setResizeLimits(windowConstrainer.getMinimumWidth(), windowConstrainer.getMinimumHeight(), windowConstrainer.getMaximumWidth(), windowConstrainer.getMaximumHeight());
                 editor->setSize(windowBounds.getWidth(), windowBounds.getHeight());
-                editor->setResizable(true, false);
             }
-
-            // Restore canvas bounds
-            cnv->updatingBounds = false;
-
-            cnv->viewport->resized();
-
-            SettingsFile::getInstance()->setProperty("plugin_mode", false);
 
             // Destroy this view
             editor->pluginMode.reset(nullptr);
@@ -190,6 +186,7 @@ public:
     }
 
     void mouseDrag(MouseEvent const& e) override
+    bool keyPressed(KeyPress const& key) override
     {
         // No window dragging by TitleBar in plugin!
         if (!ProjectInfo::isStandalone)
@@ -200,28 +197,31 @@ public:
             if (!mainWindow->isUsingNativeTitleBar())
                 windowDragger.dragComponent(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
         }
+        // Block keypresses to editor
+        return true;
     }
 
 private:
     Canvas* cnv;
     PluginEditor* editor;
     DocumentWindow* mainWindow = nullptr;
+    SettingsFile* settings;
 
     Component titleBar;
     int const titlebarHeight = 40;
     std::unique_ptr<TextButton> closeButton;
-    ComponentDragger windowDragger;
 
     Component content;
 
-    ComponentBoundsConstrainer* windowConstrainer;
+    ComponentBoundsConstrainer windowConstrainer;
+
     Component* cnvParent;
 
     Rectangle<int> windowBounds;
     Rectangle<int> viewportBounds;
     int const width = cnv->patchWidth.getValue();
     int const height = cnv->patchHeight.getValue();
-    float resizeRatio = float(width) / float(height);
+    float const resizeRatio = float(height) / float(width);
 
     bool infiniteCanvas;
 
