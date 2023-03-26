@@ -556,10 +556,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
 
+#if JUCE_MAC
+        // Hide title bar buttons when fullscreen on MacOS
         bool visible = !window.isFullScreen();
         minimiseButton->setVisible(visible);
         maximiseButton->setVisible(visible);
         closeButton->setVisible(visible);
+#endif
 
             // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
             // we check if the system is drawing with a dropshadow- hence semi transparent will be true
