@@ -551,10 +551,21 @@ struct PlugDataLook : public LookAndFeel_V4 {
         Button* closeButton,
         bool positionTitleBarButtonsOnLeft) override
     {
+        if (window.isUsingNativeTitleBar())
+            return;
+
         auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
 
-        // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
-        // we check if the system is drawing with a dropshadow- hence semi transparent will be true
+#if JUCE_MAC
+        // Hide title bar buttons when fullscreen on MacOS
+        bool visible = !window.isFullScreen();
+        minimiseButton->setVisible(visible);
+        maximiseButton->setVisible(visible);
+        closeButton->setVisible(visible);
+#endif
+
+            // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
+            // we check if the system is drawing with a dropshadow- hence semi transparent will be true
 #if JUCE_LINUX
         auto leftOffset = titleBarX;
         if (maximiseButton != nullptr && areButtonsLeft && Desktop::canUseSemiTransparentWindows()) {
