@@ -35,7 +35,6 @@ public:
         // Set window bounds
         if (ProjectInfo::isStandalone) {
             windowBounds.setBounds(mainWindow->getX(), mainWindow->getY(), mainWindow->getWidth(), mainWindow->getHeight());
-            mainWindow->getMaximiseButton()->setVisible(false);
             mainWindow->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
             mainWindow->setSize(width, height + titlebarHeight);
 
@@ -120,7 +119,6 @@ public:
 
             // Restore the editor's resize limits
             if (ProjectInfo::isStandalone) {
-                mainWindow->getMaximiseButton()->setVisible(true);
                 mainWindow->setResizeLimits(windowConstrainer.getMinimumWidth(), windowConstrainer.getMinimumHeight(), windowConstrainer.getMaximumWidth(), windowConstrainer.getMaximumHeight());
                 mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
             }

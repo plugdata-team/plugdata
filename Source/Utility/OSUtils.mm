@@ -22,7 +22,7 @@ int getStyleMask(bool nativeTitlebar) {
     return style;
 }
 
-void enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
+void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
     
     NSView* view = static_cast<NSView*>(nativeHandle);
     
@@ -42,6 +42,22 @@ void enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
     }
 
     [window update];
+}
+
+void OSUtils::HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton)
+{
+	NSView* nsView = (NSView*)view;
+	NSWindow* nsWindow = [nsView window];
+    NSButton *minimizeButton = [nsWindow standardWindowButton:NSWindowMiniaturizeButton];
+    NSButton *maximizeButton = [nsWindow standardWindowButton:NSWindowZoomButton];
+    NSButton *closeButton = [nsWindow standardWindowButton:NSWindowCloseButton];
+
+        [minimizeButton setHidden: hideMinimiseButton ? YES : NO];
+        [minimizeButton setEnabled: hideMinimiseButton ? NO : YES];
+        [maximizeButton setHidden: hideMaximiseButton ? YES : NO];
+        [maximizeButton setEnabled: hideMaximiseButton ? NO : YES];
+        [closeButton setHidden: hideCloseButton ? YES : NO];
+        [closeButton setEnabled: hideCloseButton ? NO : YES];
 }
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()

@@ -672,6 +672,27 @@ public:
             }
         }
 
+#if JUCE_MAC
+        // Disable minimise/maximise in Plugin Mode if using native title bar
+        if (isUsingNativeTitleBar() && SettingsFile::getInstance()->getProperty<var>("plugin_mode") != var(false)) {
+            if (ComponentPeer* peer = getPeer())
+                OSUtils::HideTitlebarButtons(peer->getNativeHandle(), true, true, false);
+        } else if (isUsingNativeTitleBar()) {
+            if (ComponentPeer* peer = getPeer())
+                OSUtils::HideTitlebarButtons(peer->getNativeHandle(), false, false, false);
+        }
+
+        // Hide title bar buttons when fullscreen on MacOS
+        if (!isUsingNativeTitleBar()) {
+            bool visible = !isFullScreen();
+            getCloseButton()->setVisible(visible);
+            // & disable minimise and maximise in Plugin Mode
+            visible = visible && SettingsFile::getInstance()->getProperty<var>("plugin_mode") == var(false);
+            getMinimiseButton()->setVisible(visible);
+            getMaximiseButton()->setVisible(visible);
+        }
+#endif
+
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
 
         if (auto* content = getContentComponent()) {
