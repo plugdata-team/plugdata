@@ -14,7 +14,7 @@ public:
         , viewportBounds(cnv->viewport->getBounds())
         , infiniteCanvas(settings->getProperty<int>("infinite_canvas"))
     {
-        mainWindow = static_cast<DocumentWindow*>(editor->getTopLevelComponent());
+        mainWindow = editor->findParentComponentOfClass<DocumentWindow>();
         if (mainWindow == nullptr)
             return;
 
@@ -163,17 +163,18 @@ public:
     }
 
     void mouseDrag(MouseEvent const& e) override
-    bool keyPressed(KeyPress const& key) override
     {
         // No window dragging by TitleBar in plugin!
         if (!ProjectInfo::isStandalone)
             return;
 
         // Drag window by TitleBar
-        if (mainWindow) {
-            if (!mainWindow->isUsingNativeTitleBar())
-                windowDragger.dragComponent(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
-        }
+        if (!mainWindow->isUsingNativeTitleBar())
+            windowDragger.dragComponent(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
+    }
+
+    bool keyPressed(KeyPress const& key) override
+    {
         // Block keypresses to editor
         return true;
     }
@@ -190,6 +191,7 @@ private:
 
     Component content;
 
+    ComponentDragger windowDragger;
     ComponentBoundsConstrainer windowConstrainer;
 
     Component* cnvParent;
