@@ -398,7 +398,8 @@ public:
         lockModeButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         lockModeButton.onClick = [this]() {
             cnv->locked = true;
-            viewport->setScrollBarsShown(true, true, true, true);
+            cnv->jumpToOrigin();
+            viewport->setScrollBarsShown(true, false, true, false);
         };
         addAndMakeVisible(lockModeButton);
 
@@ -408,14 +409,7 @@ public:
         dragModeButton.setRadioGroupId(2222);
         dragModeButton.setConnectedEdges(Button::ConnectedOnLeft);
         dragModeButton.onClick = [this]() {
-            cnv->locked = true;
-            
-            auto origin = cnv->canvasOrigin + Point<int>(1, 1);
-            float scale = editor->getZoomScaleForCanvas(cnv.get());
-            cnv->updatingBounds = true;
-            cnv->viewport->setViewPosition(origin * scale);
-            cnv->updatingBounds = false;
-            
+            cnv->jumpToOrigin();
             viewport->setScrollBarsShown(true, false, true, false);
         };
 
@@ -639,7 +633,7 @@ public:
         deleteButton.setBounds(secondPanel.removeFromRight(panelHeight + 6).expanded(2, 3));
         
         if (cnv) {
-            cnv->viewport->getPositioner()->applyNewBounds(b);
+            cnv->viewport->setBounds(b);
             cnv->checkBounds();
         }
     }
@@ -661,7 +655,7 @@ private:
 
     std::unique_ptr<DraggedComponentGroup> dragger = nullptr;
     std::unique_ptr<Canvas> cnv;
-    std::unique_ptr<Viewport> viewport;
+    std::unique_ptr<CanvasViewport> viewport;
 
     PaletteComboBox patchSelector;
 

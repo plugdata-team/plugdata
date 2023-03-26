@@ -541,9 +541,12 @@ private:
             state = ShowingArguments;
             auto name = currentText.upToFirstOccurrenceOf(" ", false, false);
             auto objectInfo = library->getObjectInfo(name);
-            auto found = objectInfo.getChildWithName("arguments");
+            auto found = objectInfo.getChildWithName("arguments").createCopy();
             for(auto flag : objectInfo.getChildWithName("flags")) {
-                found.appendChild(flag.createCopy(), nullptr);
+                ValueTree flagTree("flag");
+                flagTree.setProperty("type", flag.getProperty("name"), nullptr);
+                flagTree.setProperty("description", flag.getProperty("description"), nullptr);
+                found.appendChild(flagTree, nullptr);
             }
             
             numOptions = std::min<int>(buttons.size(), found.getNumChildren());

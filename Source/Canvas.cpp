@@ -111,6 +111,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
 
     editor->addModifierKeyListener(this);
     Desktop::getInstance().addFocusChangeListener(this);
+    
 }
 
 Canvas::~Canvas()
@@ -190,7 +191,7 @@ void Canvas::recreateViewport()
     if (isGraph)
         return;
 
-    auto* canvasViewport = new CanvasViewport(editor, this);
+    auto* canvasViewport = new CanvasViewport(editor);
 
     canvasViewport->setViewedComponent(this, false);
 
@@ -202,10 +203,33 @@ void Canvas::recreateViewport()
             graphArea->updateBounds();
         }
     };
+    canvasViewport->getContentBounds = [this](){
+        
+        Rectangle<int> newBounds;
+        for (auto* obj : objects) {
+            newBounds = newBounds.getUnion(obj->getBoundsInParent().reduced(Object::margin));
+        }
+        for (auto* c : connections) {
+            newBounds = newBounds.getUnion(c->getBoundsInParent());
+        }
+        
+        return newBounds;
+    };
 
     canvasViewport->setScrollBarsShown(true, true, true, true);
 
     viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
+    
+    jumpToOrigin();
+}
+
+void Canvas::jumpToOrigin()
+{
+    auto origin = canvasOrigin + Point<int>(1, 1);
+    float scale = editor->getZoomScaleForCanvas(this);
+    updatingBounds = true;
+    viewport->setViewPosition(origin * scale);
+    updatingBounds = false;
 }
 
 void Canvas::lookAndFeelChanged()
@@ -624,6 +648,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
 bool Canvas::autoscroll(MouseEvent const& e)
 {
+    /* TODO: fix this!
     auto x = viewport->getViewPositionX();
     auto y = viewport->getViewPositionY();
     auto oldY = y;
@@ -645,7 +670,7 @@ bool Canvas::autoscroll(MouseEvent const& e)
     if (x != oldX || y != oldY) {
         viewport->setViewPosition(x, y);
         return true;
-    }
+    }*/
 
     return false;
 }
@@ -1203,7 +1228,7 @@ void Canvas::redo()
 void Canvas::checkBounds()
 {
     if (viewport) {
-        dynamic_cast<AsyncUpdater*>(viewport)->triggerAsyncUpdate();
+        //dynamic_cast<AsyncUpdater*>(viewport)->triggerAsyncUpdate();
     }
 
     if (graphArea) {
