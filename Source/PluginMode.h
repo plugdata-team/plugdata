@@ -14,14 +14,12 @@ public:
         , viewportBounds(cnv->viewport->getBounds())
         , infiniteCanvas(settings->getProperty<int>("infinite_canvas"))
     {
-        mainWindow = editor->findParentComponentOfClass<DocumentWindow>();
-        if (mainWindow == nullptr)
-            return;
+        if (ProjectInfo::isStandalone) {
+            mainWindow = editor->findParentComponentOfClass<DocumentWindow>();
+        }
 
         auto c = editor->getConstrainer();
         windowConstrainer.setSizeLimits(c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight());
-
-        windowBounds.setBounds(mainWindow->getX(), mainWindow->getY(), mainWindow->getWidth(), mainWindow->getHeight());
 
         // Hide all of the editor's content
         for (auto* child : editor->getChildren()) {
@@ -35,11 +33,17 @@ public:
         editor->zoomScale = 1.0f;
 
         // Set window bounds
-        mainWindow->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
-        mainWindow->setSize(width, height + titlebarHeight);
-        // mainWindow->setResizable(false, false);
-
         if (ProjectInfo::isStandalone) {
+            windowBounds.setBounds(mainWindow->getX(), mainWindow->getY(), mainWindow->getWidth(), mainWindow->getHeight());
+            mainWindow->getMaximiseButton()->setVisible(false);
+            mainWindow->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
+            mainWindow->setSize(width, height + titlebarHeight);
+
+            editor->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
+            editor->setSize(width, height + titlebarHeight);
+
+        } else {
+            windowBounds.setBounds(editor->getX(), editor->getY(), editor->getWidth(), editor->getHeight());
             editor->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
             editor->setSize(width, height + titlebarHeight);
         }
@@ -115,13 +119,14 @@ public:
             cnvParent->addAndMakeVisible(cnv);
 
             // Restore the editor's resize limits
-            mainWindow->setResizeLimits(windowConstrainer.getMinimumWidth(), windowConstrainer.getMinimumHeight(), windowConstrainer.getMaximumWidth(), windowConstrainer.getMaximumHeight());
-            mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
-
             if (ProjectInfo::isStandalone) {
-                editor->setResizeLimits(windowConstrainer.getMinimumWidth(), windowConstrainer.getMinimumHeight(), windowConstrainer.getMaximumWidth(), windowConstrainer.getMaximumHeight());
-                editor->setSize(windowBounds.getWidth(), windowBounds.getHeight());
+                mainWindow->getMaximiseButton()->setVisible(true);
+                mainWindow->setResizeLimits(windowConstrainer.getMinimumWidth(), windowConstrainer.getMinimumHeight(), windowConstrainer.getMaximumWidth(), windowConstrainer.getMaximumHeight());
+                mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
             }
+
+            editor->setResizeLimits(windowConstrainer.getMinimumWidth(), windowConstrainer.getMinimumHeight(), windowConstrainer.getMaximumWidth(), windowConstrainer.getMaximumHeight());
+            editor->setSize(windowBounds.getWidth(), windowBounds.getHeight());
 
             // Destroy this view
             editor->pluginMode.reset(nullptr);
