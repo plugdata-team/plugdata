@@ -255,6 +255,7 @@ bool Dialog::wantsRoundedCorners()
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
 {
     cnv->cancelConnectionCreation();
+    cnv->isShowingMenu = true;
 
     // Info about selection status
     auto selectedBoxes = cnv->getSelectionOfType<Object>();
@@ -312,6 +313,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
 
+        cnv->isShowingMenu = false;
+        cnv->grabKeyboardFocus();
+        
         // Make sure that iolets don't hang in hovered state
         for(auto* object : cnv->objects)
         {

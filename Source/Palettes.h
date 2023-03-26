@@ -780,11 +780,12 @@ public:
         return view.getCanvas();
     }
 
-    void setDefaultVisibility()
+    bool hasFocus()
     {
-        setVisible(showPalettes);
+        auto* cnv = getCurrentCanvas();
+        return cnv && (cnv->isShowingMenu || hasKeyboardFocus(true));
     }
-
+        
 private:
     void propertyChanged(String name, var value) override
     {

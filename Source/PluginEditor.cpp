@@ -177,7 +177,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     palettes = std::make_unique<Palettes>(this);
 
     addAndMakeVisible(*palettes);
-    palettes->setDefaultVisibility();
     addAndMakeVisible(*statusbar);
 
     addAndMakeVisible(splitView);
@@ -630,7 +629,7 @@ TabComponent* PluginEditor::getActiveTabbar()
 
 Canvas* PluginEditor::getCurrentCanvas(bool canBePalette)
 {
-    if (canBePalette && palettes && palettes->hasKeyboardFocus(true)) {
+    if (canBePalette && palettes && palettes->hasFocus()) {
         if (auto* cnv = palettes->getCurrentCanvas()) {
             if(!static_cast<bool>(cnv->paletteDragMode.getValue())) {
                 return cnv;
