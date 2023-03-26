@@ -384,6 +384,9 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
+    if (SettingsFile::getInstance()->getProperty<var>("plugin_mode") != var(false)) 
+        return;
+    
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
     if (!palettes->isVisible())
         paletteWidth = 0;

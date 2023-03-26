@@ -153,36 +153,13 @@ public:
 
     void parentSizeChanged() override
     {
-        /*
-        float editorWidth = editor->getWidth();
-        int editorHeight = (editorWidth / resizeRatio) + titlebarHeight;
-        editor->setSize(editorWidth, editorHeight);
+        float editorWidth = editor->getLocalBounds().getWidth();
 
-        // Apply and limit zoom
-        auto scale = std::clamp(editorWidth / width, 0.5f, 2.0f);
-        cnv->setTransform(AffineTransform().scaled(scale));
-        */
-    }
+        float scale = editorWidth / float(width);
 
-    bool keyPressed(KeyPress const& key) override
-    {
-        // Block keypresses to editor
-        return true;
-    }
+        editor->setSize(editorWidth, (editorWidth + titlebarHeight) * resizeRatio);
 
-    void mouseDown(MouseEvent const& e) override
-    {
-        // No window dragging by TitleBar in plugin!
-        if (!ProjectInfo::isStandalone)
-            return;
-
-        // Drag window by TitleBar
-        if (e.getPosition().getY() < titlebarHeight) {
-            if (mainWindow) {
-                if (!mainWindow->isUsingNativeTitleBar())
-                    windowDragger.startDraggingComponent(mainWindow, e.getEventRelativeTo(mainWindow));
-            }
-        }
+        setTransform(getTransform().scale(scale));
     }
 
     void mouseDrag(MouseEvent const& e) override
