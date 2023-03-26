@@ -116,7 +116,7 @@ public:
         if (isPositiveAndBelow(row, items.size())) {
             if (rowIsSelected) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                g.fillRoundedRectangle(5, 3, width - 10, height - 6, Corners::smallCornerRadius);
+                g.fillRoundedRectangle(5, 3, width - 10, height - 6, Corners::defaultCornerRadius);
             }
 
             auto const textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);

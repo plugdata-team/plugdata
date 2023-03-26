@@ -506,7 +506,7 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::smallCornerRadius);
+            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::defaultCornerRadius);
         }
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(ComboBox::textColourId));
@@ -547,7 +547,7 @@ public:
         auto iconbound = g.getClipBounds().reduced(6);
         iconbound.setWidth(iconbound.getHeight());
         iconbound.translate(6, 0);
-        g.fillRoundedRectangle(iconbound.toFloat(), Corners::smallCornerRadius);
+        g.fillRoundedRectangle(iconbound.toFloat(), Corners::defaultCornerRadius);
 
         Fonts::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
     }

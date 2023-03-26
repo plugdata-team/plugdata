@@ -143,7 +143,7 @@ public:
                 if (isSelected) {
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 2).toFloat(), Corners::smallCornerRadius);
+                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 2).toFloat(), Corners::defaultCornerRadius);
 
                     bool connectedOnTop = false;
                     bool connectedOnBottom = false;

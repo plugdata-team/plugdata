@@ -387,6 +387,7 @@ public:
         editModeButton.setConnectedEdges(Button::ConnectedOnRight);
         editModeButton.onClick = [this]() {
             cnv->locked = false;
+            viewport->setScrollBarsShown(true, true, true, true);
         };
         addAndMakeVisible(editModeButton);
 
@@ -397,6 +398,7 @@ public:
         lockModeButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         lockModeButton.onClick = [this]() {
             cnv->locked = true;
+            viewport->setScrollBarsShown(true, true, true, true);
         };
         addAndMakeVisible(lockModeButton);
 
@@ -407,7 +409,14 @@ public:
         dragModeButton.setConnectedEdges(Button::ConnectedOnLeft);
         dragModeButton.onClick = [this]() {
             cnv->locked = true;
-            // TODO: make sure gui objects don't respond to mouse clicks!
+            
+            auto origin = cnv->canvasOrigin + Point<int>(1, 1);
+            float scale = editor->getZoomScaleForCanvas(cnv.get());
+            cnv->updatingBounds = true;
+            cnv->viewport->setViewPosition(origin * scale);
+            cnv->updatingBounds = false;
+            
+            viewport->setScrollBarsShown(true, false, true, false);
         };
 
         addAndMakeVisible(dragModeButton);
@@ -495,7 +504,7 @@ public:
 
         cnv->paletteDragMode.referTo(dragModeButton.getToggleStateValue());
 
-        viewport->setScrollBarsShown(true, false, true, false);
+        
 
         addAndMakeVisible(*viewport);
 
@@ -519,9 +528,6 @@ public:
         } else {
             dragModeButton.triggerClick();
         }
-
-        // TODO: fix this!
-        // patchSelector.setEditableText(true);
 
         cnv->addMouseListener(this, true);
         cnv->lookAndFeelChanged();
@@ -774,11 +780,12 @@ public:
         return view.getCanvas();
     }
 
-    void setDefaultVisibility()
+    bool hasFocus()
     {
-        setVisible(showPalettes);
+        auto* cnv = getCurrentCanvas();
+        return cnv && (cnv->isShowingMenu || hasKeyboardFocus(true));
     }
-
+        
 private:
     void propertyChanged(String name, var value) override
     {
@@ -896,7 +903,7 @@ private:
         {
             paletteSelectors[lastIdx]->setToggleState(true, dontSendNotification);
         }
-        else {
+        else if(view.isVisible()) {
             if(!paletteSelectors.size())
             {
                 setViewHidden(true);
@@ -909,14 +916,11 @@ private:
         view.updatePatches(patches);
         savePalettes();
         
-        
-
         resized();
     }
 
     void newPalette(bool fromClipboard)
     {
-
         auto patchPrefix = "#N canvas 827 239 527 327 12;\n";
         auto patch = fromClipboard ? patchPrefix + SystemClipboard::getTextFromClipboard() : "";
 

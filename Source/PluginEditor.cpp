@@ -178,7 +178,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     palettes = std::make_unique<Palettes>(this);
 
     addAndMakeVisible(*palettes);
-    palettes->setDefaultVisibility();
     addAndMakeVisible(*statusbar);
 
     addAndMakeVisible(splitView);
@@ -634,9 +633,11 @@ TabComponent* PluginEditor::getActiveTabbar()
 
 Canvas* PluginEditor::getCurrentCanvas(bool canBePalette)
 {
-    if (canBePalette && palettes && palettes->hasKeyboardFocus(true)) {
+    if (canBePalette && palettes && palettes->hasFocus()) {
         if (auto* cnv = palettes->getCurrentCanvas()) {
-            return cnv;
+            if(!static_cast<bool>(cnv->paletteDragMode.getValue())) {
+                return cnv;
+            }
         }
     }
 
@@ -942,7 +943,7 @@ void PluginEditor::getAllCommands(Array<CommandID>& commands)
 
 void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result)
 {
-    bool hasBoxSelection = false;
+    bool hasObjectSelection = false;
     bool hasSelection = false;
     bool isDragging = false;
     bool hasCanvas = false;
@@ -950,11 +951,11 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     bool canConnect = false;
 
     if (auto* cnv = getCurrentCanvas(true)) {
-        auto selectedBoxes = cnv->getSelectionOfType<Object>();
+        auto selectedObjects = cnv->getSelectionOfType<Object>();
         auto selectedConnections = cnv->getSelectionOfType<Connection>();
 
-        hasBoxSelection = !selectedBoxes.isEmpty();
-        hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
+        hasObjectSelection = !selectedObjects.isEmpty();
+        hasSelection = hasObjectSelection || !selectedConnections.isEmpty();
         isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         hasCanvas = true;
 
@@ -1043,7 +1044,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::Copy: {
         result.setInfo("Copy", "Copy", "Edit", 0);
         result.addDefaultKeypress(67, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !locked && hasBoxSelection && !isDragging);
+        result.setActive(hasCanvas && !locked && hasObjectSelection && !isDragging);
         break;
     }
     case CommandIDs::Cut: {
@@ -1076,7 +1077,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
         result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
         result.addDefaultKeypress(68, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked && hasBoxSelection);
+        result.setActive(hasCanvas && !isDragging && !locked && hasObjectSelection);
         break;
     }
     case CommandIDs::CreateConnection: {

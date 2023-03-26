@@ -179,6 +179,7 @@ public:
     bool updatingBounds = false; // used by connection
     bool isDraggingLasso = false;
     bool isPalette;
+    bool isShowingMenu = false;
 
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));

@@ -26,21 +26,25 @@ def writeCompressedInt(target, value):
   #data = data.replace(b"\x0c", b"\x1c")
   target += data[:num+1]
 
+# Write null-terminated UTF8 string
+def cString(string):
+  return string.encode('utf-8') + b'\x00'
+
 # Write xml object to binary stream, using JUCE's ValueTree binary format
 # Only supports string properties because that's all we need
 def writeToStream(stream, object):
     attribs = object.attrib;
 
     # Write tag
-    stream += object.tag.encode('utf-8') + b'\x00'
+    stream += cString(object.tag)
     # Write num attributes
     writeCompressedInt(stream, len(attribs))
 
     for attr in attribs:
       # Write attribute name
-      stream += attr.strip().encode('utf-8') + b'\x00'
+      stream += cString(attr.strip())
       # Get attribute value
-      strBytes = object.get(attr).strip().encode('utf-8') + b'\x00'
+      strBytes = cString(object.get(attr).strip())
       # Write length of value +1
       writeCompressedInt(stream, len(strBytes) + 1)
       # Write JUCE::var identifier for string as a single byte
@@ -162,8 +166,7 @@ def markdownToXml(root, md):
         for argument in sectionsFromHyphens(inletSections[section]):
           typeAndDescription = getSections(argument, { "type", "description" })
           tip += "(" + typeAndDescription["type"] + ") " + typeAndDescription["description"] + "\n"
-          #ET.SubElement(inlet, "input", type=typeAndDescription["type"], description=typeAndDescription["description"])
-        inlet.set("tooltip", tip)
+        inlet.set("tooltip", tip.strip())
         iolets.append(inlet)
 
     if "outlets" in sections:
@@ -177,8 +180,7 @@ def markdownToXml(root, md):
         for argument in sectionsFromHyphens(outletSections[section]):
           typeAndDescription = getSections(argument, { "type", "description" })
           tip += "(" + typeAndDescription["type"] + ") " + typeAndDescription["description"] + "\n"
-          #ET.SubElement(outlet, "output", type=typeAndDescription["type"], description=typeAndDescription["description"])
-        outlet.set("tooltip", tip)
+        outlet.set("tooltip", tip.strip())
         iolets.append(outlet)
 
 # Iterate over markdown files in search dirs

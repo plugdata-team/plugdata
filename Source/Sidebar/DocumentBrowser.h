@@ -71,11 +71,14 @@ public:
     void paintOpenCloseButton(Graphics& g, Rectangle<float> const& area, Colour backgroundColour, bool isMouseOver) override
     {
         Path p;
-        p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
+        p.startNewSubPath(0.0f, 0.0f);
+        p.lineTo(0.5f, 0.5f);
+        p.lineTo(isOpen() ? 1.0f : 0.0f, isOpen() ? 0.0f : 1.0f);
+        
+        auto arrowArea = area.reduced(5, 9).translated(4, 0).toFloat();
+        
         g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
-
-        auto pathArea = area.translated(3, 0);
-        g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 3.5f), true));
+        g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(arrowArea, true));
     }
 
     bool mightContainSubItems() override
@@ -356,7 +359,7 @@ public:
             auto y = getSelectedItem(0)->getItemPosition(true).getY();
             auto selectedRect = Rectangle<float>(3.0f, y + 2.0f, getWidth() - 6.0f, 20.0f);
 
-            g.fillRoundedRectangle(selectedRect, Corners::smallCornerRadius);
+            g.fillRoundedRectangle(selectedRect, Corners::defaultCornerRadius);
         }
     }
     // Paint file drop outline
@@ -592,7 +595,7 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::smallCornerRadius);
+            g.fillRoundedRectangle(5, 2, w - 10, h - 4, Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
@@ -813,7 +816,7 @@ public:
     {
         searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 30));
 
-        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 60).withY(30));
+        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 60).withY(30).reduced(2, 0));
 
         auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
 

@@ -6,7 +6,32 @@
 
 #include <juce_core/juce_core.h>
 #include "OSUtils.h"
+
+#if defined(__APPLE__)
+#define HAS_STD_FILESYSTEM 0
+#elif defined(__unix__)
+    #if defined(__cpp_lib_filesystem) || defined(__cpp_lib_experimental_filesystem)
+    #define HAS_STD_FILESYSTEM 1
+    #else
+    #define HAS_STD_FILESYSTEM 0
+    #endif
+#elif defined(_WIN32) || defined(_WIN64)
+#define HAS_STD_FILESYSTEM 1
+#endif
+
+#if HAS_STD_FILESYSTEM
+    #if defined(__cpp_lib_filesystem)
+        #include <filesystem>
+    #elif defined(__cpp_lib_experimental_filesystem)
+        #include <experimental/filesystem>
+        namespace std {
+            namespace filesystem = experimental::filesystem;
+        }
+    #endif
+#else
 #include "../Libraries/cpath/cpath.h"
+#endif
+
 
 #if defined(_WIN32) || defined(_WIN64)
 
@@ -296,8 +321,38 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
+// Use std::filesystem directory iterator if available
+// On old versions of GCC and macos <10.15, std::filesystem is not available
+#if HAS_STD_FILESYSTEM
 
-// Functions for all OS:
+juce::Array<juce::File> OSUtils::iterateDirectory(const juce::File& directory, bool recursive, bool onlyFiles)
+{
+    juce::Array<juce::File> result;
+    
+    if(recursive) {
+        for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
+            auto isDir = dirEntry.is_directory();
+            if((isDir && !onlyFiles) || !isDir)
+            {
+                result.add(juce::File(dirEntry.path().string()));
+            }
+        }
+    }
+    else {
+        for (const auto& dirEntry : std::filesystem::directory_iterator(directory.getFullPathName().toStdString())) {
+            auto isDir = dirEntry.is_directory();
+            if((isDir && !onlyFiles) || !isDir)
+            {
+                result.add(juce::File(dirEntry.path().string()));
+            }
+        }
+    }
+    
+    return result;
+}
+
+// Otherwise use cpath
+#else
 
 static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool recursive, bool onlyFiles)
 {
@@ -324,3 +379,5 @@ juce::Array<juce::File> OSUtils::iterateDirectory(const juce::File& directory, b
     return iterateDirectoryRecurse(std::move(dir), recursive, onlyFiles);
 }
 
+
+#endif
