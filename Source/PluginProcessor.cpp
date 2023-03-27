@@ -850,8 +850,10 @@ AudioProcessorEditor* PluginProcessor::createEditor()
                     break;
                 }
             }
-            if (!canvasFound) // remove if Plugin Mode view should restore at startup
+            if (!canvasFound) { // remove if Plugin Mode view should restore at startup
                 settingsFile->setProperty("plugin_mode", false);
+                editor->resized();
+            }
 
             // Restore Plugin Mode view at startup
             /* File p(settingsFile->getProperty<String>("plugin_mode")); // Create file for restoring by loadPatch at startup
