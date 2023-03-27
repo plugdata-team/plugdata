@@ -295,4 +295,4 @@ def parseFilesInDir(dir, generateXml, generateWebsite):
     # Write bytes to file
     binaryFile.write(stream)
 
-parseFilesInDir("../Documentation", False, True)
+parseFilesInDir("../Documentation", False, False)
