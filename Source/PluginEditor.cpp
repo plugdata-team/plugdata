@@ -25,6 +25,7 @@
 #include "Statusbar.h"
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
+#include "PluginMode.h"
 
 class ZoomLabel : public TextButton
     , public Timer {
@@ -382,6 +383,9 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
+    if (SettingsFile::getInstance()->getProperty<var>("plugin_mode") != var(false)) 
+        return;
+    
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
     if (!palettes->isVisible())
         paletteWidth = 0;
@@ -450,7 +454,7 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
 {
     auto* cnv = getCurrentCanvas();
 
-    if (!cnv)
+    if (!cnv || SettingsFile::getInstance()->getProperty<var>("plugin_mode") != var(false))
         return;
 
     auto event = e.getEventRelativeTo(getCurrentCanvas()->viewport);
@@ -1535,4 +1539,11 @@ Value& PluginEditor::getZoomScaleValueForCanvas(Canvas* cnv)
     }
 
     return zoomScale;
+}
+
+void PluginEditor::enablePluginMode(Canvas* cnv)
+{
+    if (!cnv)
+        return;
+    pluginMode = std::make_unique<PluginMode>(cnv);
 }

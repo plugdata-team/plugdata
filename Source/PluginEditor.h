@@ -90,6 +90,8 @@ public:
     float getZoomScaleForCanvas(Canvas* cnv);
     Value& getZoomScaleValueForCanvas(Canvas* cnv);
 
+    void enablePluginMode(Canvas* cnv);
+
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;
@@ -101,6 +103,8 @@ public:
     std::atomic<bool> canUndo = false, canRedo = false;
 
     std::unique_ptr<Dialog> openedDialog;
+
+    std::unique_ptr<Component> pluginMode;
 
     Value theme;
 

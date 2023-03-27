@@ -24,6 +24,7 @@ struct OSUtils {
     static bool isMaximised(void* handle);
 #elif JUCE_MAC
     static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
+    static void HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);
 #endif
 
     static juce::Array<juce::File> iterateDirectory(const juce::File& directory, bool recursive, bool onlyFiles);

@@ -109,6 +109,7 @@ private:
         { "index", var(0) },
         { "coordinate", var(0) },
         { "activation_state", var(0) },
+        { "plugin_mode", var(false) },
         { "order", var(0) },
         { "direction", var(0) },
         { "global_scale", var(1.0f) },
