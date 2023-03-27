@@ -19,7 +19,7 @@ public:
         }
 
         auto c = editor->getConstrainer();
-        windowConstrainer = {c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight()};
+        windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
 
         // Hide all of the editor's content
         for (auto* child : editor->getChildren()) {
@@ -121,7 +121,6 @@ public:
         auto newBounds = ProjectInfo::isStandalone ? windowBounds.withPosition(mainWindow->getPosition()) : windowBounds.withPosition(editor->getPosition());
 
         MessageManager::callAsync([this, _mainWindow, _editor, _windowConstrainer, newBounds]() mutable {
-            
             if (ProjectInfo::isStandalone) {
                 auto* w = *_mainWindow;
                 w->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
