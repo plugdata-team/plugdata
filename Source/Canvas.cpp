@@ -97,8 +97,10 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
         presentationMode = false;
     }
 
-    performSynchronise();
-
+    MessageManager::callAsync([this] {
+        performSynchronise();
+    });
+    
     // Start in unlocked mode if the patch is empty
     if (objects.isEmpty()) {
         locked = false;
