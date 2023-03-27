@@ -198,11 +198,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     //  Undo button
     undoButton.setTooltip("Undo");
+    undoButton.getProperties().set("Style", "LargeIcon");
+    undoButton.setConnectedEdges(Button::ConnectedOnRight);
     undoButton.onClick = [this]() { getCurrentCanvas()->undo(); };
     addAndMakeVisible(undoButton);
 
     // Redo button
     redoButton.setTooltip("Redo");
+    redoButton.getProperties().set("Style", "LargeIcon");
+    redoButton.setConnectedEdges(Button::ConnectedOnLeft);
     redoButton.onClick = [this]() { getCurrentCanvas()->redo(); };
     addAndMakeVisible(redoButton);
 
@@ -402,20 +406,38 @@ void PluginEditor::resized()
 
     mainMenuButton.setBounds(20 + offset, 0, toolbarHeight, toolbarHeight);
     undoButton.setBounds(80 + offset, 0, toolbarHeight, toolbarHeight);
-    redoButton.setBounds(140 + offset, 0, toolbarHeight, toolbarHeight);
-    addObjectMenuButton.setBounds(200 + offset, 0, toolbarHeight, toolbarHeight);
+    redoButton.setBounds(undoButton.getBounds().withPosition(undoButton.getRight() - 1, 0));
+    addObjectMenuButton.setBounds(redoButton.getBounds().translated(50, 0));
 
-    auto startX = (getWidth() / 2.0) - (toolbarHeight * 1.5);
+    auto startX = 0;
 
     editButton.setBounds(startX, 0, toolbarHeight, toolbarHeight);
-    runButton.setBounds(startX + toolbarHeight - 1, 0, toolbarHeight, toolbarHeight);
-    presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 0, toolbarHeight, toolbarHeight);
+    runButton.setBounds(editButton.getBounds().withPosition(editButton.getRight() - 1, 0));
+    presentButton.setBounds(runButton.getBounds().withPosition(runButton.getRight() - 1, 0));
 
-    overlayButton.setBounds(presentButton.getBounds().translated(100, 0));
+    overlayButton.setBounds(presentButton.getBounds().translated(50, 0));
     overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1, 0).withTrimmedRight(8));
 
-    snapEnableButton.setBounds(overlayButton.getBounds().translated(120, 0));
+    snapEnableButton.setBounds(overlayButton.getBounds().translated(overlaySettingsButton.getWidth() + 50, 0));
     snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1, 0).withTrimmedRight(8));
+
+    auto endX = snapSettingsButton.getRight();
+    auto middle = jmax(redoButton.getRight() + 60, static_cast<int>((getWidth() / 2.0f) - (endX / 2.0f)));
+
+    auto lazyPositioner = [this, middle](TextButton* button){
+        button->setBounds(button->getBounds().translated(middle, 0));
+    };
+
+    lazyPositioner(&editButton);
+    lazyPositioner(&runButton);
+    lazyPositioner(&presentButton);
+    lazyPositioner(&overlayButton);
+    lazyPositioner(&overlaySettingsButton);
+    lazyPositioner(&snapEnableButton);
+    lazyPositioner(&snapSettingsButton);
+
+    addObjectMenuButton.setBounds(addObjectMenuButton.getBounds().withX(((editButton.getBounds().getTopLeft().getX() - redoButton.getBounds().getRight()) * 0.5f) + redoButton.getBounds().getRight() - addObjectMenuButton.getWidth() * 0.5f));
+
 
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
 
