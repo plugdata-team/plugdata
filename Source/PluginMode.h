@@ -165,6 +165,19 @@ public:
         setTransform(getTransform().scale(scale));
     }
 
+    void mouseDown(MouseEvent const& e) override
+    {
+        // No window dragging by TitleBar in plugin!
+        if (!ProjectInfo::isStandalone)
+            return;
+
+        // Offset the start of the drag when dragging the window by Titlebar
+        if (!mainWindow->isUsingNativeTitleBar()) {
+            if (e.getPosition().getY() < titlebarHeight)
+                windowDragger.startDraggingComponent(mainWindow, e.getEventRelativeTo(mainWindow));
+        }
+    }
+
     void mouseDrag(MouseEvent const& e) override
     {
         // No window dragging by TitleBar in plugin!
@@ -173,7 +186,7 @@ public:
 
         // Drag window by TitleBar
         if (!mainWindow->isUsingNativeTitleBar())
-            windowDragger.dragComponent(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
+                windowDragger.dragComponent(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
     }
 
     bool keyPressed(KeyPress const& key) override
