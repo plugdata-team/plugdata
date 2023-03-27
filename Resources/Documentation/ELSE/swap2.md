@@ -22,7 +22,7 @@ outlets:
   1st:
   - type: anything
     description: swapped messages
-  2st:
+  2nd:
   - type: anything
     description: swapped massages
 
