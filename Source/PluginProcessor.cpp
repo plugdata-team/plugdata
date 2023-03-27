@@ -853,6 +853,8 @@ AudioProcessorEditor* PluginProcessor::createEditor()
             if (!canvasFound) { // remove if Plugin Mode view should restore at startup
                 settingsFile->setProperty("plugin_mode", false);
                 editor->resized();
+                if (ProjectInfo::isStandalone)
+                    editor->getTopLevelComponent()->resized();
             }
 
             // Restore Plugin Mode view at startup
