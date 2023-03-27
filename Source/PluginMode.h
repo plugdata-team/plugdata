@@ -156,11 +156,11 @@ public:
 
     void parentSizeChanged() override
     {
-        float editorWidth = editor->getLocalBounds().getWidth();
+        float const editorWidth = editor->getLocalBounds().getWidth();
 
-        float scale = editorWidth / float(width);
+        float const scale = editorWidth / width;
 
-        editor->setSize(editorWidth, (editorWidth + titlebarHeight) * resizeRatio);
+        editor->setSize(editorWidth, (editorWidth * resizeRatio) + (titlebarHeight * scale));
 
         setTransform(getTransform().scale(scale));
     }
@@ -201,9 +201,9 @@ private:
 
     Rectangle<int> windowBounds;
     Rectangle<int> viewportBounds;
-    int const width = cnv->patchWidth.getValue();
-    int const height = cnv->patchHeight.getValue();
-    float const resizeRatio = float(height) / float(width);
+    float const width = cnv->patchWidth.getValue();
+    float const height = cnv->patchHeight.getValue();
+    float const resizeRatio = height / width;
 
     bool infiniteCanvas;
 

@@ -98,6 +98,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
     }
 
     MessageManager::callAsync([this] {
+        // Called async, to make sure canvas is fully initialized before updating objects
         performSynchronise();
     });
     
