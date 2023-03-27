@@ -100,7 +100,7 @@ public:
 
     void buttonClicked(Button* button) override
     {
-        if (button == closeButton.get()) {
+        if (cnv && button == closeButton.get()) {
             cnv->updatingBounds = false;
             settings->setProperty("plugin_mode", false);
 
@@ -133,7 +133,8 @@ public:
 
     void paint(Graphics& g) override
     {
-
+        if(!cnv) return;
+        
         auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
         if (editor->wantsRoundedCorners()) {
             // TitleBar background
@@ -196,7 +197,7 @@ public:
     }
 
 private:
-    Canvas* cnv;
+    SafePointer<Canvas> cnv;
     PluginEditor* editor;
     DocumentWindow* mainWindow = nullptr;
     SettingsFile* settings;
