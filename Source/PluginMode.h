@@ -93,7 +93,9 @@ public:
     }
 
     ~PluginMode()
-    {
+    { 
+        if(!cnv) return;
+        
         if (infiniteCanvas)
             settings->setProperty("infinite_canvas", true);
 
@@ -142,7 +144,8 @@ public:
 
     void paint(Graphics& g) override
     {
-
+        if(!cnv) return;
+        
         auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
         if (editor->wantsRoundedCorners()) {
             // TitleBar background
@@ -205,7 +208,7 @@ public:
     }
 
 private:
-    Canvas* cnv;
+    SafePointer<Canvas> cnv;
     PluginEditor* editor;
     DocumentWindow* mainWindow = nullptr;
     SettingsFile* settings;

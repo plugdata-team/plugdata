@@ -107,6 +107,86 @@ def getSections(markdown, sectionNames):
 
   return sections
 
+
+def checkForIllegalChars(strToCheck):
+  strToCheck = strToCheck.replace(":", ";")
+  strToCheck = strToCheck.replace("- ", " ")
+
+  return strToCheck
+
+def prepareDocsForWebpage(xml):
+  mdTitle = "\ntitle: " + xml.get("name");
+
+  mdCategories = ""
+  for category in xml.findall("categories")[0]:
+    cat = category.get("name").strip()
+    if not cat.startswith("ELSE"):
+      mdCategories += cat
+      break
+
+  indices = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth"];
+  mdInlets = ""
+  mdOutlets = ""
+  numIn = 0;
+  numOut = 0;
+  for iolet in xml.findall("iolets")[0]:
+    if iolet.tag == "inlet":
+      idx = indices[numIn]
+      numIn += 1
+      mdInlets += "\n  " + idx + ":"
+    else:
+      idx = indices[numOut]
+      numOut += 1
+      mdOutlets += "\n  " + idx + ":"
+
+    for message in iolet:
+      if iolet.tag == "inlet":
+        mdInlets += "\n  - type: " + message.get("type") + "\n    description: " + checkForIllegalChars(message.get("description"))
+      else:
+        mdOutlets += "\n  - type: " + message.get("type") + "\n    description: " + checkForIllegalChars(message.get("description"))
+
+  mdArguments = ""
+  for argument in xml.findall("arguments")[0]:
+    mdArguments += "\n  - type: " + argument.get("type") + "\n    description: " + checkForIllegalChars(argument.get("description"));
+
+  mdMethods = ""
+  for method in xml.findall("methods")[0]:
+    mdMethods += "\n  - type: " + method.get("type") + "\n    description: " + checkForIllegalChars(method.get("description"));
+
+  mdFlags = ""
+  for flag in xml.findall("flags")[0]:
+    mdFlags += "\n  - type: " + flag.get("name") + "\n    description: " + checkForIllegalChars(flag.get("description"));
+
+  if len(mdCategories):
+    mdCategories = "pdcategory: " + mdCategories
+
+  if len(mdInlets):
+    mdInlets = "inlets:\n" + mdInlets
+
+  if len(mdOutlets):
+    mdOutlets = "outlets:\n" + mdOutlets
+
+  if len(mdArguments):
+    mdArguments = "arguments:" + mdArguments
+
+  if len(mdMethods):
+    mdMethods = "methods:" + mdMethods
+
+  if len(mdFlags):
+    mdFlags = "flags:" + mdFlags
+
+  md = "--- \n\n" + mdTitle + "\n\n" + mdCategories + "\n\n" + mdInlets + "\n\n" + mdOutlets + "\n\n" + mdArguments + "\n\n" + mdMethods + "\n\n" + mdFlags + "\n\ndraft: false\n---";
+
+  if " " in xml.get("name"): return
+
+
+  with open("../Website/" + xml.get("name") + ".md", "w") as markdown:
+    # Write bytes to file
+    markdown.write(md)
+
+
+  return
+
 # Converts our markdown docs format to xml
 def markdownToXml(root, md):
 
@@ -126,7 +206,7 @@ def markdownToXml(root, md):
 
     if "methods" in sections:
       for section in sectionsFromHyphens(sections["methods"]):
-        method = getSections(section, { "name", "type", "description" });
+        method = getSections(section, { "name", "type", "description", "default" });
         name = ""
         if "type" in method:
           name = method["type"]
@@ -150,7 +230,7 @@ def markdownToXml(root, md):
 
     if "flags" in sections:
       for flag in sectionsFromHyphens(sections["flags"]):
-        sectionMap = getSections(flag, { "name", "description" })
+        sectionMap = getSections(flag, { "name", "description", "default" })
         desc = sectionMap["description"] if "description" in sectionMap else ""
         ET.SubElement(flags, "flag", name=sectionMap["name"], description=desc)
 
@@ -166,6 +246,7 @@ def markdownToXml(root, md):
         for argument in sectionsFromHyphens(inletSections[section]):
           typeAndDescription = getSections(argument, { "type", "description" })
           tip += "(" + typeAndDescription["type"] + ") " + typeAndDescription["description"] + "\n"
+          ET.SubElement(inlet, "message", type=typeAndDescription["type"], description=typeAndDescription["description"])
         inlet.set("tooltip", tip.strip())
         iolets.append(inlet)
 
@@ -176,18 +257,17 @@ def markdownToXml(root, md):
         isVariable = str(int(section == "nth"));
         tip = ""
         outlet = ET.Element("outlet", variable=isVariable)
-
         for argument in sectionsFromHyphens(outletSections[section]):
           typeAndDescription = getSections(argument, { "type", "description" })
           tip += "(" + typeAndDescription["type"] + ") " + typeAndDescription["description"] + "\n"
+          ET.SubElement(outlet, "message", type=typeAndDescription["type"], description=typeAndDescription["description"])
         outlet.set("tooltip", tip.strip())
         iolets.append(outlet)
 
 # Iterate over markdown files in search dirs
-def parseFilesInDir(dir, generateXml):
+def parseFilesInDir(dir, generateXml, generateWebsite):
   directory = os.fsencode(dir)
   root = ET.Element("root")
-
   # Find files
   for origin in os.listdir(directory):
     originPath = os.path.join(directory, origin)
@@ -207,8 +287,12 @@ def parseFilesInDir(dir, generateXml):
   stream = bytearray()
   writeToStream(stream, root)
 
+  if generateWebsite:
+    for child in root:
+      prepareDocsForWebpage(child)
+
   with open("../Documentation.bin", "wb") as binaryFile:
     # Write bytes to file
     binaryFile.write(stream)
 
-parseFilesInDir("../Documentation", True)
+parseFilesInDir("../Documentation", False, False)

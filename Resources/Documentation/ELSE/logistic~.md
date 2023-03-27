@@ -22,7 +22,7 @@ inlets:
     description: frequency in Hz (negative values accepted)
   2nd:
   - type: float/signal
-    description: 'p' parameter (from 0 to 1)
+    description: parameter 'p' (from 0 to 1)
 
 outlets:
   1st:
