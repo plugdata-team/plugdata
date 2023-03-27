@@ -19,7 +19,7 @@ public:
         }
 
         auto c = editor->getConstrainer();
-        windowConstrainer.setSizeLimits(c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight());
+        windowConstrainer = {c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight()};
 
         // Hide all of the editor's content
         for (auto* child : editor->getChildren()) {
@@ -96,36 +96,46 @@ public:
     {
         if (infiniteCanvas)
             settings->setProperty("infinite_canvas", true);
+
+        settings->setProperty("plugin_mode", false);
+
+        cnv->updatingBounds = false;
+
+        // Restore the original editor content
+        for (auto* child : children) {
+            child->setVisible(true);
+        }
+
+        // Reset the canvas properties
+        cnv->viewport->setBounds(viewportBounds);
+        cnv->locked = false;
+        cnv->presentationMode = false;
+
+        // Add the canvas to it's original parent component
+        cnvParent->addAndMakeVisible(cnv);
+
+        // Restore the editor's size & resize limits with current position
+        auto _mainWindow = std::make_shared<DocumentWindow*>(mainWindow);
+        auto _editor = std::make_shared<PluginEditor*>(editor);
+        auto _windowConstrainer = windowConstrainer;
+        auto newBounds = ProjectInfo::isStandalone ? windowBounds.withPosition(mainWindow->getPosition()) : windowBounds.withPosition(editor->getPosition());
+
+        MessageManager::callAsync([this, _mainWindow, _editor, _windowConstrainer, newBounds]() mutable {
+            
+            if (ProjectInfo::isStandalone) {
+                auto* w = *_mainWindow;
+                w->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
+                w->setBounds(newBounds);
+            }
+            auto* e = *_editor;
+            e->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
+            e->setBounds(newBounds);
+        });
     }
 
     void buttonClicked(Button* button) override
     {
         if (button == closeButton.get()) {
-            cnv->updatingBounds = false;
-            settings->setProperty("plugin_mode", false);
-
-            // Restore the original editor content
-            for (auto* child : children) {
-                child->setVisible(true);
-            }
-
-            // Reset the canvas properties
-            cnv->viewport->setBounds(viewportBounds);
-            cnv->locked = false;
-            cnv->presentationMode = false;
-
-            // Add the canvas to it's original parent component
-            cnvParent->addAndMakeVisible(cnv);
-
-            // Restore the editor's resize limits
-            if (ProjectInfo::isStandalone) {
-                mainWindow->setResizeLimits(windowConstrainer.getMinimumWidth(), windowConstrainer.getMinimumHeight(), windowConstrainer.getMaximumWidth(), windowConstrainer.getMaximumHeight());
-                mainWindow->setSize(windowBounds.getWidth(), windowBounds.getHeight());
-            }
-
-            editor->setResizeLimits(windowConstrainer.getMinimumWidth(), windowConstrainer.getMinimumHeight(), windowConstrainer.getMaximumWidth(), windowConstrainer.getMaximumHeight());
-            editor->setSize(windowBounds.getWidth(), windowBounds.getHeight());
-
             // Destroy this view
             editor->pluginMode.reset(nullptr);
         }
@@ -186,7 +196,7 @@ public:
 
         // Drag window by TitleBar
         if (!mainWindow->isUsingNativeTitleBar())
-                windowDragger.dragComponent(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
+            windowDragger.dragComponent(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
     }
 
     bool keyPressed(KeyPress const& key) override
@@ -208,7 +218,7 @@ private:
     Component content;
 
     ComponentDragger windowDragger;
-    ComponentBoundsConstrainer windowConstrainer;
+    std::vector<int> windowConstrainer;
 
     Component* cnvParent;
 
