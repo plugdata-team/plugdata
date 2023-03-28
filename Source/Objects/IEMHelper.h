@@ -34,14 +34,15 @@ public:
         labelColour = Colour(getLabelColour()).toString();
 
         gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
-        gui->getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
+        gui->getLookAndFeel().setColour(Label::textColourId, Colour::fromString(primaryColour.toString()));
 
         gui->getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
         gui->getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
 
         gui->getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
         gui->getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
-
+        
+        
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
 
