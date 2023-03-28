@@ -434,10 +434,24 @@ public:
         };
         addAndMakeVisible(deleteButton);
         
+        
+        hideButton.setButtonText(Icons::Eye);
+        hideButton.getProperties().set("Style", "LargeIcon");
+        hideButton.setClickingTogglesState(true);
+        hideButton.setToggleState(!static_cast<bool>(paletteTree.getProperty("Hidden")), dontSendNotification);
+        hideButton.onClick = [this]() {
+            paletteTree.setProperty("Hidden", !hideButton.getToggleState(), nullptr);
+            updatePalettes();
+        };
+        addAndMakeVisible(hideButton);
+        
         addAndMakeVisible(patchSelector);
         patchSelector.setJustificationType(Justification::centred);
         patchSelector.onChange = [this]() {
-            setOpenedPatch(patchSelector.getSelectedItemIndex());
+            auto palettesTree = paletteTree.getParent();
+            auto palette = palettesTree.getChild(patchSelector.getSelectedItemIndex());
+            showPalette(palette);
+            onPaletteChange(palette);
         };
 
         patchSelector.onTextChange = [this](String newText) {
@@ -623,6 +637,10 @@ public:
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawHorizontalLine(51, 0, getWidth());
     }
+        
+    bool isHiddenFromBar() {
+        return static_cast<bool>(paletteTree.getProperty("Hidden"));
+    }
 
     void resized() override
     {
@@ -639,6 +657,7 @@ public:
         editModeButton.setBounds(stateButtonsBounds);
         
         deleteButton.setBounds(secondPanel.removeFromRight(panelHeight + 6).expanded(2, 3));
+        hideButton.setBounds(secondPanel.removeFromRight(panelHeight + 6).expanded(2, 3));
         
         if (cnv) {
             cnv->viewport->getPositioner()->applyNewBounds(b);
@@ -652,7 +671,7 @@ public:
     }
 
     std::function<void()> updatePalettes = []() {};
-    std::function<void(int)> setOpenedPatch = [](int) {};
+    std::function<void(ValueTree)> onPaletteChange = [](ValueTree){};
 
 private:
     Value locked;
@@ -672,13 +691,15 @@ private:
     TextButton dragModeButton;
         
     TextButton deleteButton;
+    TextButton hideButton;
 
     std::function<StringArray()> getComboOptions = []() { return StringArray(); };
 };
 
 class PaletteSelector : public TextButton {
-
+    
 public:
+    
     PaletteSelector(String textToShow)
     {
         setRadioGroupId(1011);
@@ -686,11 +707,12 @@ public:
         setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         // setClickingTogglesState(true);
     }
+    
 
     void paint(Graphics& g) override
     {
         g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
-
+        
         if (getToggleState()) {
             g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
             g.fillRect(getLocalBounds().removeFromRight(4));
@@ -775,13 +797,27 @@ public:
 
         paletteBar.addAndMakeVisible(addButton);
 
-        view.setOpenedPatch = [this](int toOpen) {
-            auto palette = palettesTree.getChild(toOpen);
+        view.onPaletteChange = [this](ValueTree currentPalette) {
+            
+            int idx = 0;
+            bool found = false;
+            for(auto palette : palettesTree)
+            {
+                if(static_cast<bool>(palette.getProperty("Hidden"))) continue;
+                
+                if(palette == currentPalette)
+                {
+                    found = true;
+                    break;
+                }
+                
+                idx++;
+            }
+            if(!found) return;
 
-            paletteSelectors[toOpen]->setToggleState(true, dontSendNotification);
+            paletteSelectors[idx]->setToggleState(true, dontSendNotification);
             setViewHidden(false);
             savePalettes();
-            view.showPalette(palette);
         };
 
         view.updatePalettes = [this]() {
@@ -844,30 +880,73 @@ private:
         totalHeight = std::max(totalHeight, getHeight());
         
         paletteBar.setBounds(0, 0, 26, totalHeight);
+        paletteViewport.setBounds(getLocalBounds().removeFromLeft(26));
         
-        int offset = paletteViewport.getVerticalScrollBar().isVisible() ? -4 : 0;
+        int offset = totalHeight > paletteViewport.getMaximumVisibleHeight() ? -4 : 0;
         
         totalHeight = 0;
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
             int height = Font(14).getStringWidth(buttonText) + 26;
-            button->setBounds(Rectangle<int>(offset, totalHeight, 26, height));
+            
+            if(button != draggedTab) {
+                button->setBounds(Rectangle<int>(offset, totalHeight, 26, height));
+            }
+            
             totalHeight += height;
         }
         
         addButton.toFront(false);
         addButton.setBounds(Rectangle<int>(offset, totalHeight, 26, 26));
         totalHeight += 25;
-        
-        
-
-        paletteViewport.setBounds(getLocalBounds().removeFromLeft(26));
 
         view.setBounds(getLocalBounds().withTrimmedLeft(26));
 
         resizer.setBounds(getWidth() - 5, 0, 5, getHeight());
 
         repaint();
+        
+        paletteBar.addMouseListener(this, true);
+    }
+
+    void mouseUp(const MouseEvent& e) override
+    {
+        if(draggedTab) {
+            draggedTab = nullptr;
+            savePalettes();
+            resized();
+        }
+    }
+    
+    void mouseDrag(const MouseEvent& e) override
+    {
+        if(e.getDistanceFromDragStart() < 5) return;
+        
+        if(!draggedTab) {
+            if(auto* paletteSelector = dynamic_cast<PaletteSelector*>(e.originalComponent))
+            {
+                draggedTab = paletteSelector;
+                draggedTab->toFront(false);
+                mouseDownPos = draggedTab->getPosition();
+            }
+        }
+        else {
+            draggedTab->setTopLeftPosition(mouseDownPos.translated(0, e.getDistanceFromDragStartY()));
+            
+            int idx = paletteSelectors.indexOf(draggedTab);
+            if(idx > 0 && draggedTab->getBounds().getCentreY() < paletteSelectors[idx - 1]->getBounds().getCentreY())
+            {
+                paletteSelectors.swap(idx, idx-1);
+                palettesTree.moveChild(idx, idx-1, nullptr);
+                resized();
+            }
+            else if(idx < paletteSelectors.size()-1 && draggedTab->getBounds().getCentreY() > paletteSelectors[idx + 1]->getBounds().getCentreY())
+            {
+                paletteSelectors.swap(idx, idx+1);
+                palettesTree.moveChild(idx, idx+1, nullptr);
+                resized();
+            }
+        }
     }
 
     void setViewHidden(bool hidden)
@@ -919,10 +998,20 @@ private:
         
         paletteSelectors.clear();
 
+        StringArray patches;
+        
         for (auto palette : palettesTree) {
             auto name = palette.getProperty("Name").toString();
+            auto hidden = static_cast<bool>(palette.getProperty("Hidden"));
+            
+            patches.add(name);
+            
+            if(hidden) continue;
+            
             auto button = paletteSelectors.add(new PaletteSelector(name));
             button->onClick = [this, name, button]() {
+                if(draggedTab == button) return;
+                
                 if (button->getToggleState()) {
                     button->setToggleState(false, dontSendNotification);
                     setViewHidden(true);
@@ -936,14 +1025,7 @@ private:
             paletteBar.addAndMakeVisible(*button);
         }
 
-        bool anySelected = false;
-        StringArray patches;
-        for (auto* selector : paletteSelectors) {
-            patches.add(selector->getButtonText());
-            anySelected = anySelected || selector->getToggleState();
-        }
-        
-        if(isPositiveAndBelow(lastIdx, paletteSelectors.size()))
+        if(isPositiveAndBelow(lastIdx, paletteSelectors.size()) && !view.isHiddenFromBar())
         {
             paletteSelectors[lastIdx]->setToggleState(true, dontSendNotification);
         }
@@ -989,6 +1071,9 @@ private:
     ValueTree palettesTree;
 
     PaletteView view;
+        
+    Point<int> mouseDownPos;
+    PaletteSelector* draggedTab = nullptr;
 
     Viewport paletteViewport;
     Component paletteBar;
