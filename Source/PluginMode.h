@@ -83,7 +83,9 @@ public:
         cnv->locked = true;
         cnv->presentationMode = true;
 
-        MessageManager::callAsync([this, cnv] {
+        MessageManager::callAsync([_this = SafePointer(this), this, cnv] {
+            if (!_this)
+                return;
             // Called async to make sure viewport pos has updated
             cnv->updatingBounds = true;
             cnv->setBounds(0, 0, width, height);
