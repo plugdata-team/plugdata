@@ -383,7 +383,6 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
-    if (SettingsFile::getInstance()->getProperty<var>("plugin_mode") != var(false)) 
         return;
     
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
@@ -454,7 +453,6 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
 {
     auto* cnv = getCurrentCanvas();
 
-    if (!cnv || SettingsFile::getInstance()->getProperty<var>("plugin_mode") != var(false))
         return;
 
     auto event = e.getEventRelativeTo(getCurrentCanvas()->viewport);
@@ -1543,7 +1541,4 @@ Value& PluginEditor::getZoomScaleValueForCanvas(Canvas* cnv)
 
 void PluginEditor::enablePluginMode(Canvas* cnv)
 {
-    if (!cnv)
-        return;
-    pluginMode = std::make_unique<PluginMode>(cnv);
 }

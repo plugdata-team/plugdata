@@ -838,47 +838,6 @@ AudioProcessorEditor* PluginProcessor::createEditor()
         editor->splitView.getRightTabbar()->setCurrentTabIndex(lastRightTab);
     }
 
-    // Restore Plugin Mode view
-    if (settingsFile->getProperty<var>("plugin_mode") != var(false)) {
-        Timer::callAfterDelay(100, [this, editor] {
-            // Call after delay, to make sure the canvases has properly initialized
-            bool canvasFound = false;
-            for (auto* cnv : editor->canvases) {
-                if (cnv->patch.getCurrentFile().getFileName() == settingsFile->getProperty<String>("plugin_mode").fromLastOccurrenceOf("/", false, false)) {
-                    editor->enablePluginMode(cnv);
-                    canvasFound = true;
-                    break;
-                }
-            }
-            if (!canvasFound) { // remove if Plugin Mode view should restore at startup
-                settingsFile->setProperty("plugin_mode", false);
-                editor->resized();
-                if (ProjectInfo::isStandalone)
-                    editor->getTopLevelComponent()->resized();
-            }
-
-            // Restore Plugin Mode view at startup
-            /* File p(settingsFile->getProperty<String>("plugin_mode")); // Create file for restoring by loadPatch at startup
-            if (!canvasFound) {
-                MessageManager::callAsync([this, editor, &canvasFound, p] {
-                    if (auto* patch = loadPatch(p)) {
-                        Timer::callAfterDelay(1, [this, editor, &canvasFound, patch] {
-                            for (auto* cnv : editor->canvases) {
-                                if (cnv->patch == *patch) {
-                                    editor->enablePluginMode(cnv);
-                                    canvasFound = true;
-                                    break;
-                                }
-                            }
-                            if (!canvasFound)
-                                settingsFile->setProperty("plugin_mode", false);
-                        });
-                    }
-                });
-            } */
-        });
-    }
-
     return editor;
 }
 
