@@ -362,7 +362,7 @@ static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool re
         auto isDir = file->IsDir();
         
         if(isDir && recursive && !file->IsSpecialHardLink()) {
-            iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles);
+            result.addArray(iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles));
         }
         if((isDir && !onlyFiles) || !isDir) {
             result.add(juce::File(juce::String(file->GetPath().GetRawPath()->buf)));
