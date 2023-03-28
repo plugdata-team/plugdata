@@ -307,13 +307,14 @@ public:
         createObject.setVisible(valid);
         // openHelp.setVisible(valid);
         openReference.setVisible(valid);
-
+        
+        inlets.clear();
+        outlets.clear();
+        
         if (!valid) {
             objectName = "";
             unknownInletLayout = false;
             unknownOutletLayout = false;
-            inlets.clear();
-            outlets.clear();
             repaint();
             return;
         }
