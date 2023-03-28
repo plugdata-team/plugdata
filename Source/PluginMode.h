@@ -1,7 +1,6 @@
 #pragma once
 
 #include "PluginEditor.h"
-// #include "Standalone/PlugDataWindow.h"
 
 class PluginMode : public Component
     , public Button::Listener {
@@ -15,7 +14,7 @@ public:
         , viewportBounds(cnv->viewport->getBounds())
         , infiniteCanvas(settings->getProperty<int>("infinite_canvas"))
     {
-       // desktopWindow->getConstrainer()->setFixedAspectRatio(width / (height + titlebarHeight + nativeTitleBarHeight));
+        // desktopWindow->getConstrainer()->setFixedAspectRatio(width / (height + titlebarHeight + nativeTitleBarHeight));
         auto c = editor->getConstrainer();
         windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
 
@@ -122,8 +121,6 @@ public:
             // Add the canvas to it's original parent component
             cnvParent->addAndMakeVisible(cnv);
 
-            std::cout << "CLUCJCJCKED" << std::endl;
-
             // Restore Bounds & Resize Limits with the current position
             auto* _desktopWindow = desktopWindow;
             auto* _editor = editor;
@@ -131,9 +128,9 @@ public:
             auto _bounds = windowBounds.withPosition(getTopLevelComponent()->getPosition());
             MessageManager::callAsync([this, _desktopWindow, _editor, _windowConstrainer, _bounds]() mutable {
                 if (ProjectInfo::isStandalone) {
-                _desktopWindow->getConstrainer()->setFixedAspectRatio(0);
-                _desktopWindow->getConstrainer()->setSizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
-                _desktopWindow->setBounds(_bounds, false);
+                    _desktopWindow->getConstrainer()->setFixedAspectRatio(0);
+                    _desktopWindow->getConstrainer()->setSizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
+                    _desktopWindow->setBounds(_bounds, false);
                 }
                 _editor->getConstrainer()->setFixedAspectRatio(0);
                 _editor->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
@@ -177,15 +174,13 @@ public:
         int const editorHeight = editor->getHeight();
 
         float const scale = editorWidth / width;
+
         if (ProjectInfo::isStandalone) {
             desktopWindow->getConstrainer()->setFixedAspectRatio(width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale)));
-    } else {
-        editor->getConstrainer()->setFixedAspectRatio(width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale)));
-    }
-        std::cout << "PARRENT SIZE" << std::endl;
-        // editor->setSize(editorWidth, editorWidth * resizeRatio + titlebarHeight);
-        // editor->getTopLevelComponent()->setBounds(0, 0, editorWidth, editorWidth * resizeRatio + titlebarHeight);
-        
+        } else {
+            editor->getConstrainer()->setFixedAspectRatio(width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale)));
+        }
+
         setSize(editorWidth, editorHeight);
 
         content.setTransform(content.getTransform().scale(scale));
