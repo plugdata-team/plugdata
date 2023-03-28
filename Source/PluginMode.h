@@ -109,6 +109,7 @@ public:
     {
         if (button == closeButton.get()) {
 
+            editor->pd->pluginMode = var(false);
 
             // Restore the original editor content
             for (auto* child : children) {

@@ -322,7 +322,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Initialise zoom factor
     valueChanged(zoomScale);
     valueChanged(splitZoomScale);
+
+    // Restore Plugin Mode View
+    if (pd->pluginMode != var(false) && pd->pluginMode.toString().isNotEmpty())
+        enablePluginMode(nullptr);
 }
+
 PluginEditor::~PluginEditor()
 {
     setConstrainer(nullptr);
@@ -383,8 +388,9 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
+    if (pd->pluginMode != var(false))
         return;
-    
+
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
     if (!palettes->isVisible())
         paletteWidth = 0;
@@ -453,6 +459,7 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
 {
     auto* cnv = getCurrentCanvas();
 
+    if (!cnv || pd->pluginMode != var(false))
         return;
 
     auto event = e.getEventRelativeTo(getCurrentCanvas()->viewport);
@@ -1541,4 +1548,34 @@ Value& PluginEditor::getZoomScaleValueForCanvas(Canvas* cnv)
 
 void PluginEditor::enablePluginMode(Canvas* cnv)
 {
+    if (!cnv) {
+        std::cout << pd->pluginMode.toString() << std::endl;
+        if (pd->pluginMode != var(false) && pd->pluginMode.toString().isNotEmpty()) {
+            MessageManager::callAsync([_this = SafePointer(this), this]() {
+                if (!_this)
+                    return;
+                // Restore Plugin Mode View
+                bool canvasFound = false;
+                for (auto* cnv : canvases) {
+                    std::cout << pd->pluginMode.toString() << std::endl;
+                    if (cnv->patch.getCurrentFile().getFileName() == pd->pluginMode.toString()) {
+                        enablePluginMode(cnv);
+                        canvasFound = true;
+                        break;
+                    }
+                }
+                if (!canvasFound) {
+                    pd->pluginMode = var(false);
+                    resized();
+                    if (ProjectInfo::isStandalone)
+                        getTopLevelComponent()->resized();
+                }
+            });
+        } else {
+            return;
+        }
+    } else {
+        pd->pluginMode = cnv->patch.getCurrentFile().getFileName();
+        pluginMode = std::make_unique<PluginMode>(cnv);
+    }
 }

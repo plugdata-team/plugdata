@@ -1001,6 +1001,8 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             pluginMode = xmlState->getStringAttribute("PluginMode");
             std::cout << "xml: " << xmlState->getStringAttribute("PluginMode") << std::endl;
             std::cout << "pluginMode: " << pluginMode.toString() << std::endl;
+            if (pluginMode != var(false)) {
+                if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                     // Restore Plugin Mode View
                     editor->enablePluginMode(nullptr);
                 }
