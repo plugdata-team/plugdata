@@ -448,6 +448,42 @@ void PluginEditor::resized()
     zoomLabel->setSize(55, 23);
 }
 
+void PluginEditor::parentSizeChanged()
+{
+    if (!ProjectInfo::isStandalone)
+        return;
+
+    auto* standalone = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
+#if JUCE_MAC
+    if (!standalone->isUsingNativeTitleBar()) {
+        // Hide title bar buttons when fullscreen on MacOS
+        bool visible = !standalone->isFullScreen();
+        standalone->getCloseButton()->setVisible(visible);
+        // & disable minimise and maximise in Plugin Mode
+
+        visible = visible && pd->pluginMode == var(false);
+        std::cout << "vis: " << visible << std::endl;
+        standalone->getMinimiseButton()->setVisible(visible);
+        standalone->getMaximiseButton()->setVisible(visible);
+    } else if (pd->pluginMode != var(false)) {
+        // Disable minimise/maximise in Plugin Mode if using native title bar
+        if (ComponentPeer* peer = standalone->getPeer())
+                        OSUtils::HideTitlebarButtons(peer->getNativeHandle(), true, true, false);
+    } else {
+        // Enable minimise/maximise
+        if (ComponentPeer* peer = standalone->getPeer())
+                        OSUtils::HideTitlebarButtons(peer->getNativeHandle(), false, false, false);
+    }
+#else
+    if (!standalone->isUsingNativeTitleBar()) {
+        bool visible = pd->pluginMode == var(false);
+        // Disable minimise/maximise in Plugin Mode
+        standalone->getMinimiseButton()->setVisible(visible);
+        standalone->getMaximiseButton()->setVisible(visible);
+    }
+#endif
+}
+
 void PluginEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel)
 {
     if (e.mods.isCommandDown()) {
