@@ -883,6 +883,8 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         xml.setAttribute("Height", lastUIHeight);
     }
 
+    xml.setAttribute("PluginMode", pluginMode.toString());
+
     // JYG added This
     m_temp_xml = &xml;
     // signal to patches that we need to collect extra data to save into the host session
@@ -992,6 +994,16 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                 editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
+            }
+        }
+        if (xmlState->hasAttribute("PluginMode")) {
+
+            pluginMode = xmlState->getStringAttribute("PluginMode");
+            std::cout << "xml: " << xmlState->getStringAttribute("PluginMode") << std::endl;
+            std::cout << "pluginMode: " << pluginMode.toString() << std::endl;
+                    // Restore Plugin Mode View
+                    editor->enablePluginMode(nullptr);
+                }
             }
         }
         // JYG added this

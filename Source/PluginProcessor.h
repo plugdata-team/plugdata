@@ -144,6 +144,8 @@ public:
 
     Value tailLength = Value(0.0f);
 
+    Value pluginMode;
+
     // Just so we never have to deal with deleting the default LnF
     SharedResourcePointer<PlugDataLook> lnf;
 
