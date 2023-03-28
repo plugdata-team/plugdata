@@ -544,6 +544,16 @@ enum Overlay {
     Direction = 64
 };
 
+enum OverlayItem {
+    OverlayOrigin = 0,
+    OverlayBorder,
+    OverlayIndex,
+    //Coordinate,
+    //ActivationState,
+    OverlayDirection,
+    OverlayOrder
+};
+
 using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>; // name, type and pointer to value, list of items only for combobox and bool
 
 using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function

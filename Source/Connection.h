@@ -41,7 +41,18 @@ public:
 
     void updateOverlays(int overlay);
 
-    static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool showDirection, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = { 0, 0 }, bool isHovering = false);
+    static void renderConnectionPath(Graphics& g,
+                                     Canvas* cnv,
+                                     Path connectionPath,
+                                     bool isSignal,
+                                     bool isMouseOver = false,
+                                     bool showDirection = false,
+                                     bool showConnectionOrder = false,
+                                     bool isSelected = false,
+                                     Point<int> mousePos = { 0, 0 },
+                                     bool isHovering = false,
+                                     int connections = 0,
+                                     int connectionNum = 0);
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
@@ -98,7 +109,10 @@ private:
 
     Array<SafePointer<Connection>> reconnecting;
 
-    Rectangle<float> startReconnectHandle, endReconnectHandle;
+    Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
+
+    int getMultiConnectNumber();
+    int getNumberOfConnections();
 
     PathPlan currentPlan;
 
@@ -106,6 +120,7 @@ private:
     Value presentationMode;
 
     bool showDirection = false;
+    bool showConnectionOrder = false;
 
     Canvas* cnv;
 
@@ -194,7 +209,7 @@ public:
             jassertfalse; // shouldn't happen
             return;
         }
-        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, false, true);
+        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, true);
     }
 
     Iolet* getIolet()
