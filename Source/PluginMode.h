@@ -1,7 +1,6 @@
 #pragma once
 
 #include "PluginEditor.h"
-// #include "Standalone/PlugDataWindow.h"
 
 class PluginMode : public Component
     , public Button::Listener {
@@ -9,15 +8,13 @@ public:
     PluginMode(Canvas* cnv)
         : cnv(cnv)
         , editor(cnv->editor)
+        , desktopWindow(editor->getPeer())
         , settings(SettingsFile::getInstance())
         , cnvParent(cnv->getParentComponent())
+        , windowBounds(editor->getBounds())
         , viewportBounds(cnv->viewport->getBounds())
         , infiniteCanvas(settings->getProperty<int>("infinite_canvas"))
     {
-        if (ProjectInfo::isStandalone) {
-            mainWindow = editor->findParentComponentOfClass<DocumentWindow>();
-        }
-
         auto c = editor->getConstrainer();
         windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
 
@@ -32,23 +29,20 @@ public:
         // Reset zoom level
         editor->zoomScale = 1.0f;
 
-        // Set window bounds
+        // Set window constrainers
         if (ProjectInfo::isStandalone) {
-            windowBounds.setBounds(mainWindow->getX(), mainWindow->getY(), mainWindow->getWidth(), mainWindow->getHeight());
-            mainWindow->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
-            mainWindow->setSize(width, height + titlebarHeight);
-
-            editor->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
-            editor->setSize(width, height + titlebarHeight);
-
-        } else {
-            windowBounds.setBounds(editor->getX(), editor->getY(), editor->getWidth(), editor->getHeight());
-            editor->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
-            editor->setSize(width, height + titlebarHeight);
+            nativeTitleBarHeight = desktopWindow->getFrameSize().getTop();
+            desktopWindow->getConstrainer()->setSizeLimits(width / 2, height / 2 + titlebarHeight + nativeTitleBarHeight, width * 2, height * 2 + titlebarHeight + nativeTitleBarHeight);
         }
+        editor->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
+
+        // Set editor bounds
+        editor->setSize(width, height + titlebarHeight);
+
+        // Set local bounds
+        setBounds(0, 0, width, height + titlebarHeight);
 
         // Add this view to the editor
-        setBounds(0, 0, width, height + titlebarHeight);
         editor->addAndMakeVisible(this);
 
         // Titlebar
@@ -125,18 +119,19 @@ public:
             cnvParent->addAndMakeVisible(cnv);
 
             // Restore Bounds & Resize Limits with the current position
-            auto* _mainWindow = mainWindow;
+            auto* _desktopWindow = desktopWindow;
             auto* _editor = editor;
             auto _windowConstrainer = windowConstrainer;
-            auto _standaloneBounds = ProjectInfo::isStandalone ? windowBounds.withPosition(mainWindow->getPosition()) : windowBounds;
-            auto _editorBounds = windowBounds.withPosition(editor->getPosition());
-            MessageManager::callAsync([this, _mainWindow, _editor, _windowConstrainer, _standaloneBounds, _editorBounds]() mutable {
+            auto _bounds = windowBounds.withPosition(getTopLevelComponent()->getPosition());
+            MessageManager::callAsync([this, _desktopWindow, _editor, _windowConstrainer, _bounds]() {
                 if (ProjectInfo::isStandalone) {
-                    _mainWindow->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
-                    _mainWindow->setBounds(_standaloneBounds);
+                    _desktopWindow->getConstrainer()->setFixedAspectRatio(0);
+                    _desktopWindow->getConstrainer()->setSizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
+                    _desktopWindow->setBounds(_bounds, false);
                 }
+                _editor->getConstrainer()->setFixedAspectRatio(0);
                 _editor->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
-                _editor->setBounds(_editorBounds);
+                _editor->setBounds(_bounds);
             });
 
             // Destroy this view
@@ -171,13 +166,30 @@ public:
 
     void parentSizeChanged() override
     {
-        float const editorWidth = editor->getLocalBounds().getWidth();
+
+        int const editorWidth = editor->getWidth();
+        int const editorHeight = editor->getHeight();
 
         float const scale = editorWidth / width;
 
-        editor->setSize(editorWidth, (editorWidth * resizeRatio) + (titlebarHeight * scale));
+        if (ProjectInfo::isStandalone) {
+            desktopWindow->getConstrainer()->setFixedAspectRatio(width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale)));
+        } else {
+            editor->getConstrainer()->setFixedAspectRatio(width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale)));
+        }
 
-        setTransform(getTransform().scale(scale));
+        setSize(editorWidth, editorHeight);
+
+        content.setTransform(content.getTransform().scale(scale));
+        content.setTopLeftPosition(0, titlebarHeight / scale);
+
+        titleBar.setBounds(0, 0, editorWidth, titlebarHeight);
+
+        if (ProjectInfo::isStandalone && !settings->getProperty<bool>("macos_buttons")) {
+            closeButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
+        } else {
+            closeButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
+        }
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -187,9 +199,9 @@ public:
             return;
 
         // Offset the start of the drag when dragging the window by Titlebar
-        if (!mainWindow->isUsingNativeTitleBar()) {
+        if (!nativeTitleBarHeight) {
             if (e.getPosition().getY() < titlebarHeight)
-                windowDragger.startDraggingComponent(mainWindow, e.getEventRelativeTo(mainWindow));
+                windowDragger.startDraggingComponent(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()));
         }
     }
 
@@ -200,8 +212,8 @@ public:
             return;
 
         // Drag window by TitleBar
-        if (!mainWindow->isUsingNativeTitleBar())
-            windowDragger.dragComponent(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
+        if (!nativeTitleBarHeight)
+            windowDragger.dragComponent(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()), nullptr);
     }
 
     bool keyPressed(KeyPress const& key) override
@@ -213,11 +225,12 @@ public:
 private:
     SafePointer<Canvas> cnv;
     PluginEditor* editor;
-    DocumentWindow* mainWindow = nullptr;
+    ComponentPeer* desktopWindow;
     SettingsFile* settings;
 
     Component titleBar;
     int const titlebarHeight = 40;
+    int nativeTitleBarHeight;
     std::unique_ptr<TextButton> closeButton;
 
     Component content;
@@ -231,7 +244,7 @@ private:
     Rectangle<int> viewportBounds;
     float const width = cnv->patchWidth.getValue();
     float const height = cnv->patchHeight.getValue();
-    float const resizeRatio = height / width;
+    float resizeRatio;
 
     bool infiniteCanvas;
 
