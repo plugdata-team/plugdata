@@ -131,7 +131,6 @@ public:
             auto _standaloneBounds = ProjectInfo::isStandalone ? windowBounds.withPosition(mainWindow->getPosition()) : windowBounds;
             auto _editorBounds = windowBounds.withPosition(editor->getPosition());
             MessageManager::callAsync([this, _mainWindow, _editor, _windowConstrainer, _standaloneBounds, _editorBounds]() mutable {
-                std::cout << _windowConstrainer[0] << std::endl;
                 if (ProjectInfo::isStandalone) {
                     _mainWindow->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
                     _mainWindow->setBounds(_standaloneBounds);

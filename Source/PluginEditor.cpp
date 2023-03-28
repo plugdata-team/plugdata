@@ -462,7 +462,6 @@ void PluginEditor::parentSizeChanged()
         // & disable minimise and maximise in Plugin Mode
 
         visible = visible && pd->pluginMode == var(false);
-        std::cout << "vis: " << visible << std::endl;
         standalone->getMinimiseButton()->setVisible(visible);
         standalone->getMaximiseButton()->setVisible(visible);
     } else if (pd->pluginMode != var(false)) {
@@ -1585,7 +1584,6 @@ Value& PluginEditor::getZoomScaleValueForCanvas(Canvas* cnv)
 void PluginEditor::enablePluginMode(Canvas* cnv)
 {
     if (!cnv) {
-        std::cout << pd->pluginMode.toString() << std::endl;
         if (pd->pluginMode != var(false) && pd->pluginMode.toString().isNotEmpty()) {
             MessageManager::callAsync([_this = SafePointer(this), this]() {
                 if (!_this)
@@ -1593,7 +1591,6 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
                 // Restore Plugin Mode View
                 bool canvasFound = false;
                 for (auto* cnv : canvases) {
-                    std::cout << pd->pluginMode.toString() << std::endl;
                     if (cnv->patch.getCurrentFile().getFileName() == pd->pluginMode.toString()) {
                         enablePluginMode(cnv);
                         canvasFound = true;
