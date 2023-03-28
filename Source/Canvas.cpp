@@ -96,12 +96,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
     } else {
         presentationMode = false;
     }
+    performSynchronise();
 
-    MessageManager::callAsync([this] {
-        // Called async, to make sure canvas is fully initialized before updating objects
-        performSynchronise();
-    });
-    
     // Start in unlocked mode if the patch is empty
     if (objects.isEmpty()) {
         locked = false;
