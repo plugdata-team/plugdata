@@ -634,14 +634,7 @@ public:
             if (!file.hasFileExtension("pd"))
                 return;
 
-            // Insert in front if the query matches a whole word
-            if (fileName.containsWholeWordIgnoreCase(query) && !searchResult.contains(file)) {
-                searchResult.insert(0, file);
-            }
-            // Insert in back if it contains the query
-            else if (fileName.containsIgnoreCase(query)) {
-                searchResult.addIfNotAlreadyThere(file);
-            }
+            searchResult.add(file);
         };
 
         for (int i = 0; i < searchPath.getNumFiles(); i++) {
