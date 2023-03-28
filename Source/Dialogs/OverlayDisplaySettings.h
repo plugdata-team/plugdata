@@ -129,8 +129,8 @@ public:
         buttonGroups.add(new OverlaySelector(overlayTree, Index, "index", "Index", "Object index in patch"));
         // buttonGroups.add(new OverlaySelector(overlayTree, Coordinate, "coordinate", "Coordinate", "Object coordinate in patch"));
         // buttonGroups.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activation state", "Data flow display"));
-        //buttonGroups.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
-         buttonGroups.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connection"));
+        buttonGroups.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connection"));
+        buttonGroups.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
 
         for (auto* buttonGroup : buttonGroups) {
             addAndMakeVisible(buttonGroup);
@@ -147,23 +147,21 @@ public:
         auto const spacing = 2;
 
         canvasLabel.setBounds(bounds.removeFromTop(labelHeight));
-        buttonGroups[0]->setBounds(bounds.removeFromTop(itemHeight));
-        buttonGroups[1]->setBounds(bounds.removeFromTop(itemHeight));
+        buttonGroups[OverlayOrigin]->setBounds(bounds.removeFromTop(itemHeight));
+        buttonGroups[OverlayBorder]->setBounds(bounds.removeFromTop(itemHeight));
 
         bounds.removeFromTop(spacing);
         objectLabel.setBounds(bounds.removeFromTop(labelHeight));
-        buttonGroups[2]->setBounds(bounds.removeFromTop(itemHeight));
+        buttonGroups[OverlayIndex]->setBounds(bounds.removeFromTop(itemHeight));
 
         // doesn't exist yet
-        // buttonGroups[Coordinate].setBounds(bounds.removeFromTop(28));
-        // buttonGroups[ActivationState].setBounds(bounds.removeFromTop(28));
+        // buttonGroups[OverlayCoordinate].setBounds(bounds.removeFromTop(28));
+        // buttonGroups[OverlayActivationState].setBounds(bounds.removeFromTop(28));
 
         bounds.removeFromTop(spacing);
         connectionLabel.setBounds(bounds.removeFromTop(labelHeight));
-        // doesn't exist yet
-        // buttonGroups[Order].setBounds(bounds);
-
-        buttonGroups[3]->setBounds(bounds.removeFromTop(itemHeight));
+        buttonGroups[OverlayDirection]->setBounds(bounds.removeFromTop(itemHeight));
+        buttonGroups[OverlayOrder]->setBounds(bounds.removeFromTop(itemHeight));
         setSize(170, bounds.getY());
     }
 

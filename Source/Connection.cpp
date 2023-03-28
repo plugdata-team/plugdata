@@ -249,7 +249,18 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     return false;
 }
 
-void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool showDirection, bool isMouseOver, bool isSelected, Point<int> mousePos, bool isHovering)
+void Connection::renderConnectionPath(Graphics& g,
+                                      Canvas* cnv,
+                                      Path connectionPath,
+                                      bool isSignal,
+                                      bool isMouseOver,
+                                      bool showDirection,
+                                      bool showConnectionOrder,
+                                      bool isSelected,
+                                      Point<int> mousePos,
+                                      bool isHovering,
+                                      int connectionCount,
+                                      int multiConnectNumber)
 {
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
@@ -328,10 +339,21 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
         g.strokePath(arrow, arrowOutline);
     }
 
+    // draw connection index number
+    if (showConnectionOrder && !isSignal && connectionCount > 1)
+    {
+        auto endCableOrderDisplay = Rectangle<float>(13, 13).withCentre(connectionPath.getPointAlongPath(jmax(connectionPath.getLength() - 8.5f * 3, 9.5f)));
+        g.setColour(baseColour);
+        g.fillEllipse(endCableOrderDisplay);
+        g.setColour(baseColour.darker(1.0f));
+        g.drawEllipse(endCableOrderDisplay, 0.5f);
+        Fonts::drawStyledText(g, String(multiConnectNumber), endCableOrderDisplay.toNearestIntEdges(), cnv->findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
+    }
+
     // draw reconnect handles if connection is both selected & mouse is hovering over
     if (isSelected && isHovering) {
         auto startReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(8.5f));
-        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(std::max(connectionLength - 8.5f, 9.5f)));
+        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(jmax(connectionLength - 8.5f, 9.5f)));
 
         bool overStart = startReconnectHandle.contains(mousePos.toFloat());
         bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
@@ -350,13 +372,25 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
 void Connection::updateOverlays(int overlay)
 {
     showDirection = overlay & Overlay::Direction;
+    showConnectionOrder = overlay & Overlay::Order;
     repaint();
 }
 
 
 void Connection::paint(Graphics& g)
 {
-    renderConnectionPath(g, cnv, toDraw, outlet->isSignal, showDirection, isMouseOver(), cnv->isSelected(this), getMouseXYRelative(), isHovering);
+    renderConnectionPath(g,
+                         cnv,
+                         toDraw,
+                         outlet->isSignal,
+                         isMouseOver(),
+                         showDirection,
+                         showConnectionOrder,
+                         cnv->isSelected(this),
+                         getMouseXYRelative(),
+                         isHovering,
+                         getNumberOfConnections(),
+                         getMultiConnectNumber());
 }
 
 bool Connection::isSegmented()
@@ -626,6 +660,34 @@ Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
 
     return connectionPath;
 }
+
+int Connection::getNumberOfConnections()
+{
+    int count = 0;
+    for (auto connection : cnv->connections)
+    {
+        if (outlet == connection->outlet)
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
+int Connection::getMultiConnectNumber()
+{
+    int count = 0;
+    for (auto connection : cnv->connections)
+    {
+        if (outlet == connection->outlet)
+        {
+            count += 1;
+            if (this == connection)
+                return count;
+        }
+    }
+    return -1;
+};
 
 void Connection::updatePath()
 {
