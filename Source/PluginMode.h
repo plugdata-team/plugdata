@@ -11,10 +11,10 @@ public:
         , desktopWindow(editor->getPeer())
         , settings(SettingsFile::getInstance())
         , cnvParent(cnv->getParentComponent())
+        , windowBounds(editor->getBounds())
         , viewportBounds(cnv->viewport->getBounds())
         , infiniteCanvas(settings->getProperty<int>("infinite_canvas"))
     {
-        // desktopWindow->getConstrainer()->setFixedAspectRatio(width / (height + titlebarHeight + nativeTitleBarHeight));
         auto c = editor->getConstrainer();
         windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
 
@@ -28,9 +28,6 @@ public:
 
         // Reset zoom level
         editor->zoomScale = 1.0f;
-
-        // Store window bounds
-        windowBounds = editor->getBounds();
 
         // Set window constrainers
         if (ProjectInfo::isStandalone) {
@@ -126,7 +123,7 @@ public:
             auto* _editor = editor;
             auto _windowConstrainer = windowConstrainer;
             auto _bounds = windowBounds.withPosition(getTopLevelComponent()->getPosition());
-            MessageManager::callAsync([this, _desktopWindow, _editor, _windowConstrainer, _bounds]() mutable {
+            MessageManager::callAsync([this, _desktopWindow, _editor, _windowConstrainer, _bounds]() {
                 if (ProjectInfo::isStandalone) {
                     _desktopWindow->getConstrainer()->setFixedAspectRatio(0);
                     _desktopWindow->getConstrainer()->setSizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
