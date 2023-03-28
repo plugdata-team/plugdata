@@ -828,6 +828,7 @@ public:
         setSize(300, 0);
 
         showPalettes = SettingsFile::getInstance()->getProperty<bool>("show_palettes");
+        setVisible(showPalettes);
     }
 
     ~Palettes()
