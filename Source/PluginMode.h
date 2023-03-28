@@ -83,7 +83,9 @@ public:
         cnv->locked = true;
         cnv->presentationMode = true;
 
-        MessageManager::callAsync([this, cnv] {
+        MessageManager::callAsync([_this = SafePointer(this), this, cnv] {
+            if (!_this)
+                return;
             // Called async to make sure viewport pos has updated
             cnv->updatingBounds = true;
             cnv->setBounds(0, 0, width, height);
@@ -93,50 +95,50 @@ public:
     }
 
     ~PluginMode()
-    { 
-        if(!cnv) return;
-        
+    {
+        if (!cnv)
+            return;
+
         if (infiniteCanvas)
             settings->setProperty("infinite_canvas", true);
 
-        settings->setProperty("plugin_mode", false);
-
         cnv->updatingBounds = false;
-
-        // Restore the original editor content
-        for (auto* child : children) {
-            child->setVisible(true);
-        }
-
-        // Reset the canvas properties
-        cnv->viewport->setBounds(viewportBounds);
         cnv->locked = false;
         cnv->presentationMode = false;
-
-        // Add the canvas to it's original parent component
-        cnvParent->addAndMakeVisible(cnv);
-
-        // Restore the editor's size & resize limits with current position
-        auto _mainWindow = std::make_shared<DocumentWindow*>(mainWindow);
-        auto _editor = std::make_shared<PluginEditor*>(editor);
-        auto _windowConstrainer = windowConstrainer;
-        auto newBounds = ProjectInfo::isStandalone ? windowBounds.withPosition(mainWindow->getPosition()) : windowBounds.withPosition(editor->getPosition());
-
-        MessageManager::callAsync([this, _mainWindow, _editor, _windowConstrainer, newBounds]() mutable {
-            if (ProjectInfo::isStandalone) {
-                auto* w = *_mainWindow;
-                w->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
-                w->setBounds(newBounds);
-            }
-            auto* e = *_editor;
-            e->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
-            e->setBounds(newBounds);
-        });
     }
 
     void buttonClicked(Button* button) override
     {
         if (button == closeButton.get()) {
+
+            editor->pd->pluginMode = var(false);
+
+            // Restore the original editor content
+            for (auto* child : children) {
+                child->setVisible(true);
+            }
+
+            // Reset the canvas properties
+            cnv->viewport->setBounds(viewportBounds);
+
+            // Add the canvas to it's original parent component
+            cnvParent->addAndMakeVisible(cnv);
+
+            // Restore Bounds & Resize Limits with the current position
+            auto* _mainWindow = mainWindow;
+            auto* _editor = editor;
+            auto _windowConstrainer = windowConstrainer;
+            auto _standaloneBounds = ProjectInfo::isStandalone ? windowBounds.withPosition(mainWindow->getPosition()) : windowBounds;
+            auto _editorBounds = windowBounds.withPosition(editor->getPosition());
+            MessageManager::callAsync([this, _mainWindow, _editor, _windowConstrainer, _standaloneBounds, _editorBounds]() mutable {
+                if (ProjectInfo::isStandalone) {
+                    _mainWindow->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
+                    _mainWindow->setBounds(_standaloneBounds);
+                }
+                _editor->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
+                _editor->setBounds(_editorBounds);
+            });
+
             // Destroy this view
             editor->pluginMode.reset(nullptr);
         }
@@ -144,8 +146,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        if(!cnv) return;
-        
+        if (!cnv)
+            return;
+
         auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
         if (editor->wantsRoundedCorners()) {
             // TitleBar background
