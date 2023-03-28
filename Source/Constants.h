@@ -393,8 +393,7 @@ enum OverlayItem {
     OverlayOrigin = 0,
     OverlayBorder,
     OverlayIndex,
-    // Coordinate,
-    // ActivationState,
+    OverlayActivationState,
     OverlayDirection,
     OverlayOrder
 };
