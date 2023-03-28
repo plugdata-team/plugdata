@@ -326,7 +326,7 @@ public:
             colourToHexArray(colour, &note->x_red); // this should be illegal, but it works
             repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
-            colourToHexArray(Colour::fromString(secondaryColour.toString()), note->x_bgcolor);
+            colourToHexArray(Colour::fromString(secondaryColour.toString()), note->x_bg);
             repaint();
         } else if (v.refersToSameSourceAs(fontSize)) {
             note->x_fontsize = static_cast<int>(fontSize.getValue());
