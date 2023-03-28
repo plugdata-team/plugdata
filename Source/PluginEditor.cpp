@@ -322,7 +322,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Initialise zoom factor
     valueChanged(zoomScale);
     valueChanged(splitZoomScale);
+
+    // Restore Plugin Mode View
+    if (pd->pluginMode != var(false) && pd->pluginMode.toString().isNotEmpty())
+        enablePluginMode(nullptr);
 }
+
 PluginEditor::~PluginEditor()
 {
     setConstrainer(nullptr);
@@ -383,9 +388,9 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
-    if (SettingsFile::getInstance()->getProperty<var>("plugin_mode") != var(false)) 
+    if (pd->pluginMode != var(false))
         return;
-    
+
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
     if (!palettes->isVisible())
         paletteWidth = 0;
@@ -443,6 +448,41 @@ void PluginEditor::resized()
     zoomLabel->setSize(55, 23);
 }
 
+void PluginEditor::parentSizeChanged()
+{
+    if (!ProjectInfo::isStandalone)
+        return;
+
+    auto* standalone = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
+#if JUCE_MAC
+    if (!standalone->isUsingNativeTitleBar()) {
+        // Hide title bar buttons when fullscreen on MacOS
+        bool visible = !standalone->isFullScreen();
+        standalone->getCloseButton()->setVisible(visible);
+        // & disable minimise and maximise in Plugin Mode
+
+        visible = visible && pd->pluginMode == var(false);
+        standalone->getMinimiseButton()->setVisible(visible);
+        standalone->getMaximiseButton()->setVisible(visible);
+    } else if (pd->pluginMode != var(false)) {
+        // Disable minimise/maximise in Plugin Mode if using native title bar
+        if (ComponentPeer* peer = standalone->getPeer())
+                        OSUtils::HideTitlebarButtons(peer->getNativeHandle(), true, true, false);
+    } else {
+        // Enable minimise/maximise
+        if (ComponentPeer* peer = standalone->getPeer())
+                        OSUtils::HideTitlebarButtons(peer->getNativeHandle(), false, false, false);
+    }
+#else
+    if (!standalone->isUsingNativeTitleBar()) {
+        bool visible = pd->pluginMode == var(false);
+        // Disable minimise/maximise in Plugin Mode
+        standalone->getMinimiseButton()->setVisible(visible);
+        standalone->getMaximiseButton()->setVisible(visible);
+    }
+#endif
+}
+
 void PluginEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel)
 {
     if (e.mods.isCommandDown()) {
@@ -454,7 +494,7 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
 {
     auto* cnv = getCurrentCanvas();
 
-    if (!cnv || SettingsFile::getInstance()->getProperty<var>("plugin_mode") != var(false))
+    if (!cnv || pd->pluginMode != var(false))
         return;
 
     auto event = e.getEventRelativeTo(getCurrentCanvas()->viewport);
@@ -1543,7 +1583,32 @@ Value& PluginEditor::getZoomScaleValueForCanvas(Canvas* cnv)
 
 void PluginEditor::enablePluginMode(Canvas* cnv)
 {
-    if (!cnv)
-        return;
-    pluginMode = std::make_unique<PluginMode>(cnv);
+    if (!cnv) {
+        if (pd->pluginMode != var(false) && pd->pluginMode.toString().isNotEmpty()) {
+            MessageManager::callAsync([_this = SafePointer(this), this]() {
+                if (!_this)
+                    return;
+                // Restore Plugin Mode View
+                bool canvasFound = false;
+                for (auto* cnv : canvases) {
+                    if (cnv->patch.getCurrentFile().getFileName() == pd->pluginMode.toString()) {
+                        enablePluginMode(cnv);
+                        canvasFound = true;
+                        break;
+                    }
+                }
+                if (!canvasFound) {
+                    pd->pluginMode = var(false);
+                    resized();
+                    if (ProjectInfo::isStandalone)
+                        getTopLevelComponent()->resized();
+                }
+            });
+        } else {
+            return;
+        }
+    } else {
+        pd->pluginMode = cnv->patch.getCurrentFile().getFileName();
+        pluginMode = std::make_unique<PluginMode>(cnv);
+    }
 }
