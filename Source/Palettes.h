@@ -10,6 +10,7 @@
 #include "Dialogs/Dialogs.h"
 #include "Iolet.h"
 #include "Object.h"
+#include "Sidebar/Sidebar.h"
 #include "Pd/Instance.h"
 
 class PaletteComboBox : public ComboBox
@@ -494,6 +495,9 @@ public:
         if (patchText.isEmpty())
             patchText = pd::Instance::defaultPatch;
 
+        // Make sure there aren't any properties still open in sidebar
+        editor->sidebar->hideParameters();
+        
         auto patchFile = File::createTempFile(".pd");
         patchFile.replaceWithText(patchText);
 
@@ -503,8 +507,6 @@ public:
         viewport.reset(cnv->viewport);
 
         cnv->paletteDragMode.referTo(dragModeButton.getToggleStateValue());
-
-        
 
         addAndMakeVisible(*viewport);
 
@@ -691,12 +693,32 @@ public:
 
         if (getToggleState()) {
             g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
-            g.fillRect(getLocalBounds().removeFromBottom(4));
+            g.fillRect(getLocalBounds().removeFromRight(4));
         }
+        
+        
+        g.saveState();
+ 
+        auto midX = static_cast<float>(getWidth()) * 0.5f;
+        auto midY = static_cast<float>(getHeight()) * 0.5f;
+        
+        auto transform = AffineTransform::rotation(-MathConstants<float>::halfPi, midX, midY);
+        g.addTransform(transform);
 
-        getLookAndFeel().drawButtonText(g, *this, isMouseOver(), getToggleState());
+        Font font(getWidth() / 1.7f);
+        
+        g.setFont(font);
+        auto colour = findColour(getToggleState() ? TextButton::textColourOnId
+                                                                : TextButton::textColourOffId)
+                          .withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
+
+        g.setColour(colour);
+        g.drawText(getButtonText(), getLocalBounds().reduced(2).transformedBy(transform), Justification::centred, false);
+
+        g.restoreState();
     }
 };
+
 
 class Palettes : public Component
     , public SettingsFileListener {
@@ -738,7 +760,14 @@ public:
         };
 
         updatePalettes();
-        addAndMakeVisible(paletteBar);
+        
+        paletteBar.setVisible(true);
+        paletteViewport.setViewedComponent(&paletteBar, false);
+        paletteViewport.setScrollBarsShown(true, false, true, false);
+        paletteViewport.setScrollBarThickness(4);
+        paletteViewport.setScrollBarPosition(false, false);
+        
+        addAndMakeVisible(paletteViewport);
         addAndMakeVisible(view);
         addAndMakeVisible(resizer);
 
@@ -805,19 +834,34 @@ private:
 
     void resized() override
     {
-        auto barBounds = getLocalBounds().removeFromBottom(26).withWidth(getHeight() + 26);
-
-        auto buttonArea = barBounds.withZeroOrigin();
+        int totalHeight = 0;
+        for (auto* button : paletteSelectors) {
+            totalHeight += Font(14).getStringWidth(button->getButtonText()) + 26;
+        }
+        
+        totalHeight += 46;
+        
+        totalHeight = std::max(totalHeight, getHeight());
+        
+        paletteBar.setBounds(0, 0, 26, totalHeight);
+        
+        int offset = paletteViewport.getVerticalScrollBar().isVisible() ? -4 : 0;
+        
+        totalHeight = 0;
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
-            int width = Font(14).getStringWidth(buttonText);
-            button->setBounds(buttonArea.removeFromRight(width + 26));
+            int height = Font(14).getStringWidth(buttonText) + 26;
+            button->setBounds(Rectangle<int>(offset, totalHeight, 26, height));
+            totalHeight += height;
         }
+        
+        addButton.toFront(false);
+        addButton.setBounds(Rectangle<int>(offset, totalHeight, 26, 26));
+        totalHeight += 25;
+        
+        
 
-        addButton.setBounds(buttonArea.removeFromRight(26));
-
-        paletteBar.setBounds(barBounds);
-        paletteBar.setTransform(AffineTransform::rotation(-MathConstants<float>::halfPi, 26, getHeight()));
+        paletteViewport.setBounds(getLocalBounds().removeFromLeft(26));
 
         view.setBounds(getLocalBounds().withTrimmedLeft(26));
 
@@ -946,6 +990,7 @@ private:
 
     PaletteView view;
 
+    Viewport paletteViewport;
     Component paletteBar;
 
     TextButton addButton = TextButton(Icons::Add);
