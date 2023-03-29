@@ -650,6 +650,12 @@ void Object::updateIolets()
 
     numInputs = 0;
     numOutputs = 0;
+    
+    if(cnv->patch.objectWasDeleted(getPointer()))
+    {
+        iolets.clear();
+        return;
+    }
 
     if (auto* ptr = pd::Patch::checkObject(getPointer())) {
         numInputs = libpd_ninlets(ptr);
