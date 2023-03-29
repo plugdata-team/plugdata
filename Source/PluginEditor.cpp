@@ -414,17 +414,43 @@ void PluginEditor::resized()
     redoButton.setBounds(140 + offset, 0, toolbarHeight, toolbarHeight);
     addObjectMenuButton.setBounds(200 + offset, 0, toolbarHeight, toolbarHeight);
 
-    auto startX = (getWidth() / 2.65) - (toolbarHeight * 1.5);
+    /* ---------- MIDDLE BUTTON GROUP --------------
+        we layout all the middle buttons from left = 0
+        then use the lazyPositioner to move them center
+        making sure we are not moving into the addOjbectMenuButton
 
-    editButton.setBounds(startX, 0, toolbarHeight, toolbarHeight);
-    runButton.setBounds(startX + toolbarHeight - 1, 0, toolbarHeight, toolbarHeight);
-    presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 0, toolbarHeight, toolbarHeight);
+        ┌────┬───┬────────────┐           ┌───────┬────────┐           ┌────┬────────┐
+        │edit│run│presentation│<-spacing->│overlay│settings│<-spacing->│snap│settings│
+        └────┴───┴────────────┘           └───────┴────────┘           └────┴────────┘
+    */
 
-    overlayButton.setBounds(presentButton.getBounds().translated(90, 0));
+    auto spacing = 70; // change this to move the middle button groups closer / further apart
+
+    editButton.setBounds(0, 0, toolbarHeight, toolbarHeight);
+    runButton.setBounds(editButton.getBounds().withPosition(editButton.getRight() - 1, 0));
+    presentButton.setBounds(runButton.getBounds().withPosition(runButton.getRight() - 1, 0));
+
+    overlayButton.setBounds(presentButton.getBounds().translated(spacing, 0));
     overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1, 0).withTrimmedRight(8));
 
-    snapEnableButton.setBounds(overlayButton.getBounds().translated(110, 0));
+    snapEnableButton.setBounds(overlayButton.getBounds().translated(overlaySettingsButton.getWidth() + spacing, 0));
     snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1, 0).withTrimmedRight(8));
+
+    auto endX = snapSettingsButton.getRight();
+
+    auto middle = jmax(addObjectMenuButton.getRight() + 35, static_cast<int>((getWidth() * 0.5f) - (endX * 0.5f)));
+
+    auto lazyPositioner = [this, middle](TextButton* button){
+        button->setBounds(button->getBounds().translated(middle, 0));
+    };
+
+    lazyPositioner(&editButton);
+    lazyPositioner(&runButton);
+    lazyPositioner(&presentButton);
+    lazyPositioner(&overlayButton);
+    lazyPositioner(&overlaySettingsButton);
+    lazyPositioner(&snapEnableButton);
+    lazyPositioner(&snapSettingsButton);
 
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
 
