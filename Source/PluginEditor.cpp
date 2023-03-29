@@ -1181,13 +1181,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::ShowSettings: {
         result.setInfo("Open Settings", "Open settings panel", "Edit", 0);
         result.addDefaultKeypress(44, ModifierKeys::commandModifier); // Cmd + , to open settings
-        if (!getCurrentCanvas()) {
-            // Disable the key command if there is no canvas
-            // to prevent app from crashing
-            result.setActive(false);
-        } else {
-            result.setActive(true);
-        }
+        result.setActive(true);
         break;
     }
     case CommandIDs::ShowReference: {
@@ -1291,6 +1285,21 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::Search: {
         sidebar->showPanel(3);
+        return true;
+    }
+    case CommandIDs::ToggleGrid: {
+        auto value = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+        SettingsFile::getInstance()->setProperty("grid_enabled", !value);
+
+        return true;
+    }
+    case CommandIDs::ClearConsole: {
+        sidebar->clearConsole();
+        return true;
+    }
+    case CommandIDs::ShowSettings: {
+        Dialogs::showSettingsDialog(this);
+
         return true;
     }
     }
@@ -1459,21 +1468,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
             currentIdx += tabbar->getNumTabs();
 
         tabbar->setCurrentTabIndex(currentIdx);
-
-        return true;
-    }
-    case CommandIDs::ToggleGrid: {
-        auto value = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
-        SettingsFile::getInstance()->setProperty("grid_enabled", !value);
-
-        return true;
-    }
-    case CommandIDs::ClearConsole: {
-        sidebar->clearConsole();
-        return true;
-    }
-    case CommandIDs::ShowSettings: {
-        Dialogs::showSettingsDialog(this);
 
         return true;
     }
