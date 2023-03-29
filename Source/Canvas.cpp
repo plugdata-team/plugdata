@@ -35,6 +35,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
     , patch(p)
     , pathUpdater(new ConnectionPathUpdater(this))
     , isPalette(palette)
+    , graphArea(nullptr)
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
@@ -76,8 +77,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
 
     // Add draggable border for setting graph position
     if (static_cast<bool>(isGraphChild.getValue()) && !isGraph) {
-        graphArea = new GraphArea(this);
-        addAndMakeVisible(graphArea);
+        graphArea = std::make_unique<GraphArea>(this);
+        addAndMakeVisible(*graphArea);
         graphArea->setAlwaysOnTop(true);
     }
 
@@ -119,7 +120,6 @@ Canvas::~Canvas()
 
     Desktop::getInstance().removeFocusChangeListener(this);
 
-    delete graphArea;
     delete suggestor;
 }
 
@@ -1280,13 +1280,12 @@ void Canvas::valueChanged(Value& v)
         canvas_setgraph(patch.getPointer(), isGraph + 2 * hideText, 0);
 
         if (graphChild && !isGraph) {
-            graphArea = new GraphArea(this);
-            addAndMakeVisible(graphArea);
+            graphArea = std::make_unique<GraphArea>(this);
+            addAndMakeVisible(*graphArea);
             graphArea->setAlwaysOnTop(true);
             graphArea->updateBounds();
         } else {
-            delete graphArea;
-            graphArea = nullptr;
+            graphArea.reset(nullptr);
         }
 
         updateOverlays();

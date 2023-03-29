@@ -191,7 +191,7 @@ public:
     Point<int> canvasOrigin = { 0, 0 };
     Point<int> viewportPositionBeforeMiddleDrag = { 0, 0 };
 
-    GraphArea* graphArea = nullptr;
+    std::unique_ptr<GraphArea> graphArea;
     SuggestionComponent* suggestor = nullptr;
 
     bool attachNextObjectToMouse = false;
