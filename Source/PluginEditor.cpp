@@ -102,27 +102,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
 
-    overlayButton.setButtonText(Icons::Eye);
-    overlaySettingsButton.setButtonText(Icons::ThinDown);
-
-    overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
-    overlaySettingsButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        overlayDisplaySettings->show(editor, overlaySettingsButton.getBounds());
-    };
-
-    snapEnableButton.setButtonText(Icons::Magnet);
-    snapSettingsButton.setButtonText(Icons::ThinDown);
-
-    snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
-
-    snapSettings = std::make_unique<SnapSettings>();
-
-    snapSettingsButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        snapSettings->show(editor, snapSettingsButton.getBounds());
-    };
-
     setResizable(true, false);
 
     // In the standalone, the resizer handling is done on the window class
@@ -244,38 +223,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     runButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
     presentButton.setConnectedEdges(Button::ConnectedOnLeft);
 
-    // overlay button
-    overlayButton.getProperties().set("Style", "LargeIcon");
-    overlaySettingsButton.getProperties().set("Style", "LargeIcon");
-
-    overlayButton.setClickingTogglesState(true);
-    overlaySettingsButton.setClickingTogglesState(false);
-
-    addAndMakeVisible(overlayButton);
-    addAndMakeVisible(overlaySettingsButton);
-
-    overlayButton.setConnectedEdges(Button::ConnectedOnRight);
-    overlaySettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
-
-    overlayButton.getToggleStateValue().referTo(settingsFile->getValueTree().getChildWithName("Overlays").getPropertyAsValue("alt_mode", nullptr));
-    overlayButton.setTooltip(String("Show overlays"));
-    overlaySettingsButton.setTooltip(String("Overlay settings"));
-
-    // snapping button
-    snapEnableButton.getProperties().set("Style", "LargeIcon");
-    snapSettingsButton.getProperties().set("Style", "LargeIcon");
-
-    snapEnableButton.setClickingTogglesState(true);
-    snapSettingsButton.setClickingTogglesState(false);
-
-    addAndMakeVisible(snapEnableButton);
-    addAndMakeVisible(snapSettingsButton);
-
-    snapEnableButton.setConnectedEdges(Button::ConnectedOnRight);
-    snapSettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
-
-    snapEnableButton.setTooltip(String("Enable snapping"));
-    snapSettingsButton.setTooltip(String("Snap settings"));
 
     // Hide sidebar
     hideSidebarButton.setTooltip("Hide Sidebar");
@@ -414,17 +361,11 @@ void PluginEditor::resized()
     redoButton.setBounds(140 + offset, 0, toolbarHeight, toolbarHeight);
     addObjectMenuButton.setBounds(200 + offset, 0, toolbarHeight, toolbarHeight);
 
-    auto startX = (getWidth() / 2.65) - (toolbarHeight * 1.5);
+    auto startX = (getWidth() / 2) - (toolbarHeight * 1.5);
 
     editButton.setBounds(startX, 0, toolbarHeight, toolbarHeight);
     runButton.setBounds(startX + toolbarHeight - 1, 0, toolbarHeight, toolbarHeight);
     presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 0, toolbarHeight, toolbarHeight);
-
-    overlayButton.setBounds(presentButton.getBounds().translated(90, 0));
-    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1, 0).withTrimmedRight(8));
-
-    snapEnableButton.setBounds(overlayButton.getBounds().translated(110, 0));
-    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1, 0).withTrimmedRight(8));
 
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
 
@@ -897,9 +838,9 @@ void PluginEditor::updateCommandStatus()
             hasSelection = true;
         }
 
-        statusbar->connectionStyleButton->setEnabled(!isDragging && hasSelection);
-        statusbar->connectionPathfind->setEnabled(!isDragging && hasSelection);
-        statusbar->connectionStyleButton->setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
+        statusbar->connectionStyleButton.setEnabled(!isDragging && hasSelection);
+        statusbar->connectionPathfind.setEnabled(!isDragging && hasSelection);
+        statusbar->connectionStyleButton.setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
 
         if (static_cast<bool>(cnv->presentationMode.getValue())) {
             presentButton.setToggleState(true, dontSendNotification);
@@ -944,7 +885,7 @@ void PluginEditor::updateCommandStatus()
         runButton.setEnabled(true);
         presentButton.setEnabled(true);
 
-        statusbar->centreButton->setEnabled(true);
+        statusbar->centreButton.setEnabled(true);
 
         addObjectMenuButton.setEnabled(!locked);
     } else {
@@ -953,9 +894,9 @@ void PluginEditor::updateCommandStatus()
         runButton.setEnabled(false);
         presentButton.setEnabled(false);
 
-        statusbar->connectionStyleButton->setEnabled(false);
-        statusbar->connectionPathfind->setEnabled(false);
-        statusbar->centreButton->setEnabled(false);
+        statusbar->connectionStyleButton.setEnabled(false);
+        statusbar->connectionPathfind.setEnabled(false);
+        statusbar->centreButton.setEnabled(false);
 
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
@@ -1060,7 +1001,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     }
     case CommandIDs::ConnectionStyle: {
         result.setInfo("Connection style", "Set connection style", "Edit", 0);
-        result.setActive(hasCanvas && !isDragging && statusbar->connectionStyleButton->isEnabled());
+        result.setActive(hasCanvas && !isDragging && statusbar->connectionStyleButton.isEnabled());
         break;
     }
     case CommandIDs::ZoomIn: {
@@ -1404,7 +1345,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         cnv = getCurrentCanvas(true);
         cnv->patch.startUndoSequence("ConnectionPathFind");
 
-        statusbar->connectionStyleButton->setToggleState(true, sendNotification);
+        statusbar->connectionStyleButton.setToggleState(true, sendNotification);
         for (auto* con : cnv->connections) {
             if (cnv->isSelected(con)) {
                 con->findPath();

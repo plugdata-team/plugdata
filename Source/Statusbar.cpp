@@ -16,6 +16,9 @@
 #include "Canvas.h"
 #include "Connection.h"
 
+#include "Dialogs/OverlayDisplaySettings.h"
+#include "Dialogs/SnapSettings.h"
+
 class LevelMeter : public Component
     , public StatusbarSource::Listener {
     int totalBlocks = 15;
@@ -167,24 +170,24 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
     addAndMakeVisible(oversampleSelector);
 
-    powerButton = std::make_unique<TextButton>(Icons::Power);
-    connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
-    connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
-    protectButton = std::make_unique<TextButton>(Icons::Protection);
-    centreButton = std::make_unique<TextButton>(Icons::Centre);
+    powerButton.setButtonText(Icons::Power);
+    connectionStyleButton.setButtonText(Icons::ConnectionStyle);
+    connectionPathfind.setButtonText(Icons::Wand);
+    protectButton.setButtonText(Icons::Protection);
+    centreButton.setButtonText(Icons::Centre);
 
-    powerButton->setTooltip("Enable/disable DSP");
-    powerButton->setClickingTogglesState(true);
-    powerButton->getProperties().set("Style", "SmallIcon");
-    addAndMakeVisible(powerButton.get());
+    powerButton.setTooltip("Enable/disable DSP");
+    powerButton.setClickingTogglesState(true);
+    powerButton.getProperties().set("Style", "SmallIcon");
+    addAndMakeVisible(powerButton);
 
-    powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
+    powerButton.onClick = [this]() { powerButton.getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
 
-    powerButton->setToggleState(pd_getdspstate(), dontSendNotification);
+    powerButton.setToggleState(pd_getdspstate(), dontSendNotification);
 
-    centreButton->setTooltip("Move view to origin");
-    centreButton->getProperties().set("Style", "SmallIcon");
-    centreButton->onClick = [this]() {
+    centreButton.setTooltip("Move view to origin");
+    centreButton.getProperties().set("Style", "SmallIcon");
+    centreButton.onClick = [this]() {
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
         if (auto* cnv = editor->getCurrentCanvas()) {
             auto origin = cnv->canvasOrigin + Point<int>(1, 1);
@@ -195,13 +198,13 @@ Statusbar::Statusbar(PluginProcessor* processor)
         }
     };
 
-    addAndMakeVisible(centreButton.get());
+    addAndMakeVisible(centreButton);
 
-    connectionStyleButton->setTooltip("Enable segmented connections");
-    connectionStyleButton->setClickingTogglesState(true);
-    connectionStyleButton->getProperties().set("Style", "SmallIcon");
-    connectionStyleButton->onClick = [this]() {
-        bool segmented = connectionStyleButton->getToggleState();
+    connectionStyleButton.setTooltip("Enable segmented connections");
+    connectionStyleButton.setClickingTogglesState(true);
+    connectionStyleButton.getProperties().set("Style", "SmallIcon");
+    connectionStyleButton.onClick = [this]() {
+        bool segmented = connectionStyleButton.getToggleState();
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
 
         auto* cnv = editor->getCurrentCanvas();
@@ -214,25 +217,24 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
         // cnv->patch.endUndoSequence("ChangeSegmentedPaths");
     };
-    addAndMakeVisible(connectionStyleButton.get());
+    addAndMakeVisible(connectionStyleButton);
 
-    addAndMakeVisible(connectionStyleButton.get());
 
-    connectionPathfind->setTooltip("Find best connection path");
-    connectionPathfind->getProperties().set("Style", "SmallIcon");
-    connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
-    addAndMakeVisible(connectionPathfind.get());
+    connectionPathfind.setTooltip("Find best connection path");
+    connectionPathfind.getProperties().set("Style", "SmallIcon");
+    connectionPathfind.onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
+    addAndMakeVisible(connectionPathfind);
 
-    protectButton->setTooltip("Clip output signal and filter non-finite values");
-    protectButton->getProperties().set("Style", "SmallIcon");
-    protectButton->setClickingTogglesState(true);
-    protectButton->setToggleState(SettingsFile::getInstance()->getProperty<int>("protected"), dontSendNotification);
-    protectButton->onClick = [this]() {
-        int state = protectButton->getToggleState();
+    protectButton.setTooltip("Clip output signal and filter non-finite values");
+    protectButton.getProperties().set("Style", "SmallIcon");
+    protectButton.setClickingTogglesState(true);
+    protectButton.setToggleState(SettingsFile::getInstance()->getProperty<int>("protected"), dontSendNotification);
+    protectButton.onClick = [this]() {
+        int state = protectButton.getToggleState();
         pd->setProtectedMode(state);
         SettingsFile::getInstance()->setProperty("protected", state);
     };
-    addAndMakeVisible(*protectButton);
+    addAndMakeVisible(protectButton);
 
     addAndMakeVisible(volumeSlider);
     volumeSlider.setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
@@ -247,7 +249,61 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(midiBlinker);
 
     levelMeter->toBehind(&volumeSlider);
+    
+    overlayButton.setButtonText(Icons::Eye);
+    overlaySettingsButton.setButtonText(Icons::ThinDown);
 
+    overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
+    overlaySettingsButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        overlayDisplaySettings->show(editor, editor->getLocalArea(this, overlaySettingsButton.getBounds()));
+    };
+
+    snapEnableButton.setButtonText(Icons::Magnet);
+    snapSettingsButton.setButtonText(Icons::ThinDown);
+
+    snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
+
+    snapSettings = std::make_unique<SnapSettings>();
+
+    snapSettingsButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        snapSettings->show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
+    };
+
+    // overlay button
+    overlayButton.getProperties().set("Style", "SmallIcon");
+    overlaySettingsButton.getProperties().set("Style", "SmallIcon");
+
+    overlayButton.setClickingTogglesState(true);
+    overlaySettingsButton.setClickingTogglesState(false);
+
+    addAndMakeVisible(overlayButton);
+    addAndMakeVisible(overlaySettingsButton);
+
+    overlayButton.setConnectedEdges(Button::ConnectedOnRight);
+    overlaySettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
+
+    overlayButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").getPropertyAsValue("alt_mode", nullptr));
+    overlayButton.setTooltip(String("Show overlays"));
+    overlaySettingsButton.setTooltip(String("Overlay settings"));
+
+    // snapping button
+    snapEnableButton.getProperties().set("Style", "SmallIcon");
+    snapSettingsButton.getProperties().set("Style", "SmallIcon");
+
+    snapEnableButton.setClickingTogglesState(true);
+    snapSettingsButton.setClickingTogglesState(false);
+
+    addAndMakeVisible(snapEnableButton);
+    addAndMakeVisible(snapSettingsButton);
+
+    snapEnableButton.setConnectedEdges(Button::ConnectedOnRight);
+    snapSettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
+
+    snapEnableButton.setTooltip(String("Enable snapping"));
+    snapSettingsButton.setTooltip(String("Snap settings"));
+    
     setSize(getWidth(), statusbarHeight);
 }
 
@@ -280,18 +336,28 @@ void Statusbar::resized()
         return inverse ? getWidth() - pos : result;
     };
 
-    connectionStyleButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    connectionPathfind->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    connectionStyleButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    connectionPathfind.setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    position(3); // Seperator
+    position(5); // Seperator
 
-    centreButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    centreButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    
+    position(10); // Seperator
+    
+    overlayButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1, 0).withTrimmedRight(8));
+    
+    position(getHeight() - 8);
+
+    snapEnableButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1, 0).withTrimmedRight(8));
 
     pos = 0; // reset position for elements on the left
 
-    protectButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    protectButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
-    powerButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    powerButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     int levelMeterPosition = position(100, true);
     levelMeter->setBounds(levelMeterPosition, 2, 100, getHeight() - 4);
@@ -311,7 +377,7 @@ void Statusbar::audioProcessedChanged(bool audioProcessed)
 {
     auto colour = findColour(audioProcessed ? PlugDataColour::levelMeterActiveColourId : PlugDataColour::signalColourId);
 
-    powerButton->setColour(TextButton::textColourOnId, colour);
+    powerButton.setColour(TextButton::textColourOnId, colour);
 }
 
 StatusbarSource::StatusbarSource()

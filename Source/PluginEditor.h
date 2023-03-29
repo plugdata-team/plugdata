@@ -132,12 +132,6 @@ private:
     TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pinButton, hideSidebarButton;
     TextButton editButton, runButton, presentButton;
 
-    TextButton overlayButton, overlaySettingsButton;
-    std::unique_ptr<OverlayDisplaySettings> overlayDisplaySettings;
-
-    TextButton snapEnableButton, snapSettingsButton;
-    std::unique_ptr<SnapSettings> snapSettings;
-
     TooltipWindow tooltipWindow;
     StackDropShadower tooltipShadow;
 
