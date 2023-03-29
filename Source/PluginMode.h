@@ -69,7 +69,6 @@ public:
         cnv->locked = true;
         cnv->presentationMode = true;
         addAndMakeVisible(content);
-        
 
         MessageManager::callAsync([_this = SafePointer(this), this, cnv] {
             if (!_this)
@@ -84,15 +83,14 @@ public:
         if (!cnv)
             return;
 
-        cnv->updatingBounds = false;
         cnv->locked = false;
         cnv->presentationMode = false;
+        cnv->viewport->resized();
     }
 
     void buttonClicked(Button* button) override
     {
         if (button == closeButton.get()) {
-
             editor->pd->pluginMode = var(false);
 
             // Restore the original editor content
@@ -155,18 +153,19 @@ public:
 
     void parentSizeChanged() override
     {
-
         int const editorWidth = editor->getWidth();
-        int const editorHeight = editor->getHeight();
-
         float const scale = editorWidth / width;
+        float const resizeRatio = width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale));
+
+        int const editorHeight = editorWidth / resizeRatio - nativeTitleBarHeight;
 
         if (ProjectInfo::isStandalone) {
-            desktopWindow->getConstrainer()->setFixedAspectRatio(width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale)));
+            desktopWindow->getConstrainer()->setFixedAspectRatio(resizeRatio);
+            desktopWindow->setBounds(desktopWindow->getBounds().withSize(editorWidth, editorHeight), false);
         } else {
-            editor->getConstrainer()->setFixedAspectRatio(width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale)));
+            editor->getConstrainer()->setFixedAspectRatio(resizeRatio);
         }
-
+        
         setSize(editorWidth, editorHeight);
 
         content.setTransform(content.getTransform().scale(scale));
@@ -231,9 +230,8 @@ private:
 
     Rectangle<int> windowBounds;
     Rectangle<int> viewportBounds;
-    float const width = cnv->patchWidth.getValue();
-    float const height = cnv->patchHeight.getValue();
-    float resizeRatio;
+    float const width = float(cnv->patchWidth.getValue()) + 1.0f;
+    float const height = float(cnv->patchHeight.getValue()) + 1.0f;
 
     std::vector<Component*> children;
 };
