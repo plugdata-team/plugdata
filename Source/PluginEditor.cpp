@@ -722,25 +722,21 @@ void PluginEditor::addTab(Canvas* cnv)
         if (tabIdx == -1)
             return;
 
-        auto deleteFunc = [this, cnv]() {
-            closeTab(cnv);
-        };
-
         if (cnv) {
-            MessageManager::callAsync([this, cnv, deleteFunc]() mutable {
+            MessageManager::callAsync([this, cnv = SafePointer(cnv)]() mutable {
                 // Don't show save dialog, if patch is still open in another view
-                if (cnv->patch.isDirty()) {
+                if (cnv && cnv->patch.isDirty()) {
                     Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
-                        [this, cnv, deleteFunc](int result) mutable {
+                        [this, cnv](int result) mutable {
                             if (!cnv)
                                 return;
                             if (result == 2)
-                                saveProject([&deleteFunc]() mutable { deleteFunc(); });
+                                saveProject([this, cnv]() mutable { closeTab(cnv); });
                             else if (result == 1)
-                                deleteFunc();
+                                closeTab(cnv);
                         });
                 } else {
-                    deleteFunc();
+                    closeTab(cnv);
                 }
             });
         }
@@ -1264,24 +1260,20 @@ bool PluginEditor::perform(InvocationInfo const& info)
         if (splitView.getActiveTabbar()->getNumTabs() == 0)
             return true;
 
-        auto deleteFunc = [this, cnv]() {
-            closeTab(cnv);
-        };
-
         if (cnv) {
-            MessageManager::callAsync([this, cnv, deleteFunc]() mutable {
-                if (cnv->patch.isDirty()) {
+            MessageManager::callAsync([this, cnv = SafePointer(cnv)]() mutable {
+                if (cnv && cnv->patch.isDirty()) {
                     Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
-                        [this, cnv, deleteFunc](int result) mutable {
+                        [this, cnv](int result) mutable {
                             if (!cnv)
                                 return;
                             if (result == 2)
-                                saveProject([&deleteFunc]() mutable { deleteFunc(); });
+                                saveProject([this, cnv]() mutable { closeTab(cnv); });
                             else if (result == 1)
-                                deleteFunc();
+                                closeTab(cnv);
                         });
                 } else {
-                    deleteFunc();
+                    closeTab(cnv);
                 }
             });
         }
@@ -1552,4 +1544,13 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
         pd->pluginMode = cnv->patch.getCurrentFile().getFileName();
         pluginMode = std::make_unique<PluginMode>(cnv);
     }
+}
+
+// At the top-level, always catch all keypresses
+// This makes sure you can't accidentally do a DAW keyboard shortcut with plugdata open
+// Since objects like "keyname" need to be able to respond to any key as well,
+// it would be annoying to hear the bloop sound for every key that isn't a valid command
+bool PluginEditor::keyPressed(KeyPress const& key)
+{
+    return true;
 }

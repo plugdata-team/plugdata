@@ -99,7 +99,6 @@ public:
     {
         if (key == KeyPress::escapeKey) {
             closeDialog();
-
             return true;
         }
 

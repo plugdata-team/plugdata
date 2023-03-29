@@ -111,8 +111,14 @@ public:
         } else if (type == KeyName) {
 
             String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
-            if (!key.getModifiers().isShiftDown())
+            
+            if(keyString.startsWith("#"))
+            {
+                keyString = String::charToString(key.getTextCharacter());
+            }
+            if (!key.getModifiers().isShiftDown()) {
                 keyString = keyString.toLowerCase();
+            }
 
             t_symbol* keysym = pd->generateSymbol(keyString);
             parseKey(keyCode, keysym);
@@ -185,8 +191,14 @@ public:
                     } else if (type == KeyName) {
 
                         String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
-                        if (!key.getModifiers().isShiftDown())
+                        
+                        if(keyString.startsWith("#"))
+                        {
+                            keyString = String::charToString(key.getTextCharacter());
+                        }
+                        if (!key.getModifiers().isShiftDown()) {
                             keyString = keyString.toLowerCase();
+                        }
 
                         t_symbol* keysym = pd->generateSymbol(keyString);
                         parseKey(keyCode, keysym);

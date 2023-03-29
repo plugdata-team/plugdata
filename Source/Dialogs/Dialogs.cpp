@@ -693,6 +693,19 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
 
     menu.addSeparator();
 
+    menu.addItem(createCommandItem(ObjectIDs::NewObject, "Empty Object"));
+    menu.addItem(createCommandItem(ObjectIDs::NewMessage, "Message"));
+    menu.addItem(createCommandItem(ObjectIDs::NewFloatAtom, "Float box"));
+    menu.addItem(createCommandItem(ObjectIDs::NewSymbolAtom, "Symbol box"));
+    menu.addItem(createCommandItem(ObjectIDs::NewListAtom, "List box"));
+    menu.addItem(createCommandItem(ObjectIDs::NewComment, "Comment"));
+    menu.addSeparator();
+
+    menu.addItem(createCommandItem(ObjectIDs::NewArray, "Array..."));
+    menu.addItem(createCommandItem(ObjectIDs::NewGraphOnParent, "GraphOnParent"));
+    
+    menu.addSeparator();
+    
     menu.addSubMenu("UI", uiMenu);
     menu.addSubMenu("General", generalMenu);
     menu.addSubMenu("MIDI", midiMenu);
@@ -710,17 +723,6 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     menu.addSubMenu("Control~", controlMenu);
     menu.addSubMenu("Math~", signalMathMenu);
 
-    menu.addSeparator();
 
-    menu.addItem(createCommandItem(ObjectIDs::NewObject, "Empty Object"));
-    menu.addItem(createCommandItem(ObjectIDs::NewMessage, "Message"));
-    menu.addItem(createCommandItem(ObjectIDs::NewFloatAtom, "Float box"));
-    menu.addItem(createCommandItem(ObjectIDs::NewSymbolAtom, "Symbol box"));
-    menu.addItem(createCommandItem(ObjectIDs::NewListAtom, "List box"));
-    menu.addItem(createCommandItem(ObjectIDs::NewComment, "Comment"));
-    menu.addSeparator();
-
-    menu.addItem(createCommandItem(ObjectIDs::NewArray, "Array..."));
-    menu.addItem(createCommandItem(ObjectIDs::NewGraphOnParent, "GraphOnParent"));
     return menu;
 }

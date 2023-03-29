@@ -723,12 +723,8 @@ bool Canvas::keyPressed(KeyPress const& key)
     if (editor->getCurrentCanvas(true) != this || isGraph)
         return false;
 
-    // Absorb space events for drag-scrolling
-    // This makes sure that there isn't constantly a warning sound if we map scroll-drag to a key
-    if (key == KeyPress::spaceKey)
-        return true;
-
     int keycode = key.getKeyCode();
+    bool hasSelection = !getSelectionOfType<Object>().isEmpty();
 
     auto moveSelection = [this](int x, int y) {
         auto objects = getSelectionOfType<Object>();
@@ -749,6 +745,12 @@ bool Canvas::keyPressed(KeyPress const& key)
         }
     };
 
+    // Cancel connections being created by ESC key
+    if (keycode == KeyPress::escapeKey && !connectionsBeingCreated.isEmpty()) {
+        cancelConnectionCreation();
+        return true;
+    }
+    
     // Move objects with arrow keys
     int moveDistance = objectGrid.gridSize;
     if (key.getModifiers().isShiftDown()) {
@@ -759,25 +761,19 @@ bool Canvas::keyPressed(KeyPress const& key)
 
     if (keycode == KeyPress::leftKey) {
         moveSelection(-moveDistance, 0);
-        return true;
+        return false;
     }
     if (keycode == KeyPress::rightKey) {
         moveSelection(moveDistance, 0);
-        return true;
+        return false;
     }
     if (keycode == KeyPress::upKey) {
         moveSelection(0, -moveDistance);
-        return true;
+        return false;
     }
     if (keycode == KeyPress::downKey) {
         moveSelection(0, moveDistance);
-        return true;
-    }
-
-    // Cancel connections being created by ESC key
-    if (keycode == KeyPress::escapeKey && !connectionsBeingCreated.isEmpty()) {
-        cancelConnectionCreation();
-        return true;
+        return false;
     }
 
     return false;

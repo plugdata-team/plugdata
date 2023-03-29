@@ -16,7 +16,9 @@
 
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport
-    , public AsyncUpdater {
+    , public AsyncUpdater
+    , public SettingsFileListener
+{
 
     inline static int const infiniteCanvasMargin = 32;
 
@@ -74,7 +76,8 @@ class CanvasViewport : public Viewport
     };
 
     class FadingScrollbar : public ScrollBar
-        , public ScrollBar::Listener {
+        , public ScrollBar::Listener
+        {
         struct FadeTimer : private ::Timer {
             std::function<bool()> callback;
 
@@ -133,8 +136,8 @@ class CanvasViewport : public Viewport
         };
 
     public:
-        FadingScrollbar(bool isVertical)
-            : ScrollBar(isVertical)
+        FadingScrollbar(bool isVertical, bool infinite) : isInfinite(infinite)
+            , ScrollBar(isVertical)
         {
             ScrollBar::setVisible(true);
             addListener(this);
@@ -159,7 +162,7 @@ class CanvasViewport : public Viewport
                 });
             }
         }
-
+            
         void prepareImage()
         {
             if (getWidth() <= 0 || getHeight() <= 0)
@@ -171,7 +174,7 @@ class CanvasViewport : public Viewport
             auto currentRange = getCurrentRange();
             auto totalRange = getRangeLimit();
 
-            int margin = (infiniteCanvasMargin - 2);
+            int margin = isInfinite ? (infiniteCanvasMargin - 2) : 0;
 
             auto thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart() + margin, totalRange.getEnd() - margin, 0, isVertical() ? getHeight() : getWidth());
             auto thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart() + margin, totalRange.getEnd() - margin, 0, isVertical() ? getHeight() : getWidth());
@@ -258,6 +261,7 @@ class CanvasViewport : public Viewport
 
         Image scrollbarImage;
 
+        bool isInfinite;
         bool isAlreadyScrolling = false;
 
     public:
@@ -354,8 +358,10 @@ public:
 
     ScrollBar* createScrollBarComponent(bool isVertical) override
     {
+        auto isInfinite = SettingsFile::getInstance()->getProperty<bool>("infinite_canvas") && !cnv->isPalette;
+        
         if (isVertical) {
-            vbar = new FadingScrollbar(true);
+            vbar = new FadingScrollbar(true, isInfinite);
             vbar->onScrollStart = [this]() {
                 isScrollingHorizontally = true;
                 updateBufferState();
@@ -367,7 +373,7 @@ public:
             };
             return vbar;
         } else {
-            hbar = new FadingScrollbar(false);
+            hbar = new FadingScrollbar(false, isInfinite);
             hbar->onScrollStart = [this]() {
                 isScrollingHorizontally = true;
                 updateBufferState();
@@ -397,8 +403,8 @@ public:
         float smallerScale = std::max(1.0f, scale);
 
         auto newBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, (getWidth() + 1 - getScrollBarThickness()) * smallerScale, (getHeight() + 1 -  getScrollBarThickness()) * smallerScale);
-
-        if (SettingsFile::getInstance()->getProperty<int>("infinite_canvas")) {
+        
+        if (SettingsFile::getInstance()->getProperty<int>("infinite_canvas") && !cnv->isPalette) {
             newBounds = newBounds.getUnion(viewArea.expanded(infiniteCanvasMargin) * scale);
         }
         for (auto* obj : cnv->objects) {
@@ -432,6 +438,14 @@ public:
 
         cnv->updatingBounds = false;
     }
+    
+    void propertyChanged(String name, var value) override
+    {
+        if(name == "infinite_canvas")
+        {
+            recreateScrollbars();
+        }
+    }
 
     void setCanvasOrigin(Point<int> newOrigin)
     {
@@ -441,6 +455,12 @@ public:
     void visibleAreaChanged(Rectangle<int> const& newVisibleArea) override
     {
         triggerAsyncUpdate();
+    }
+    
+    // Never respond to arrow keys, they have a different meaning
+    bool keyPressed(KeyPress const& key) override
+    {
+        return false;
     }
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d) override

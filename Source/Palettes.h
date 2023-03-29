@@ -13,169 +13,6 @@
 #include "Sidebar/Sidebar.h"
 #include "Pd/Instance.h"
 
-class PaletteComboBox : public ComboBox
-    , public LookAndFeel_V4
-    , public Label::Listener {
-
-    class ComboLabel : public Label {
-        void textEditorFocusLost(TextEditor& ed) override
-        {
-            if (!ed.getText().isEmpty()) {
-                textEditorTextChanged(ed);
-            } else if(ed.isShowing()){
-                ed.grabKeyboardFocus();
-            }
-        }
-    };
-
-public:
-    PaletteComboBox(LookAndFeel* lnf)
-    {
-        setLookAndFeel(this);
-        setEditableText(true);
-
-        LookAndFeel::setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        LookAndFeel::setColour(ComboBox::backgroundColourId, lnf->findColour(ComboBox::backgroundColourId));
-        LookAndFeel::setColour(ComboBox::textColourId, lnf->findColour(ComboBox::textColourId));
-        LookAndFeel::setColour(ComboBox::textColourId, lnf->findColour(ComboBox::textColourId));
-        LookAndFeel::setColour(ComboBox::buttonColourId, lnf->findColour(ComboBox::buttonColourId));
-        LookAndFeel::setColour(ComboBox::arrowColourId, lnf->findColour(ComboBox::arrowColourId));
-        LookAndFeel::setColour(ComboBox::focusedOutlineColourId, lnf->findColour(ComboBox::focusedOutlineColourId));
-
-        LookAndFeel::setColour(PopupMenu::backgroundColourId, lnf->findColour(PlugDataColour::popupMenuBackgroundColourId).withAlpha(0.99f));
-        LookAndFeel::setColour(PopupMenu::textColourId, lnf->findColour(PlugDataColour::popupMenuTextColourId));
-        LookAndFeel::setColour(PopupMenu::highlightedBackgroundColourId, lnf->findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-        LookAndFeel::setColour(PopupMenu::highlightedTextColourId, lnf->findColour(PlugDataColour::popupMenuActiveTextColourId));
-
-        LookAndFeel::setColour(Label::textColourId, lnf->findColour(PlugDataColour::sidebarTextColourId));
-        LookAndFeel::setColour(Label::textWhenEditingColourId, lnf->findColour(PlugDataColour::sidebarTextColourId));
-        // TODO: set label text colour id
-    }
-
-    ~PaletteComboBox()
-    {
-        setLookAndFeel(nullptr);
-    }
-
-    void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override
-    {
-
-        auto background = LookAndFeel::findColour(PopupMenu::backgroundColourId);
-
-        if (Desktop::canUseSemiTransparentWindows()) {
-            Path shadowPath;
-            shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.2f), 10, { 0, 2 });
-
-            // Add a bit of alpha to disable the opaque flag
-
-            g.setColour(background);
-
-            auto bounds = Rectangle<float>(0, 0, width, height).reduced(7);
-            g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
-
-            g.setColour(LookAndFeel::findColour(ComboBox::outlineColourId));
-            g.drawRoundedRectangle(bounds, Corners::defaultCornerRadius, 1.0f);
-        } else {
-            auto bounds = Rectangle<float>(0, 0, width, height);
-
-            g.setColour(background);
-            g.fillRect(bounds);
-
-            g.setColour(LookAndFeel::findColour(ComboBox::outlineColourId));
-            g.drawRect(bounds, 1.0f);
-        }
-    }
-
-    void drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
-        bool const isSeparator, bool const isActive,
-        bool const isHighlighted, bool const isTicked,
-        bool const hasSubMenu, String const& text,
-        String const& shortcutKeyText,
-        Drawable const* icon, Colour const* const textColourToUse) override
-    {
-        int margin = Desktop::canUseSemiTransparentWindows() ? 9 : 2;
-
-        auto r = area.reduced(margin, 1);
-
-        auto colour = LookAndFeel::findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
-        if (isHighlighted && isActive) {
-            g.setColour(LookAndFeel::findColour(PopupMenu::highlightedBackgroundColourId));
-            g.fillRoundedRectangle(r.toFloat().reduced(4, 0), 4.0f);
-            colour = LookAndFeel::findColour(PopupMenu::highlightedTextColourId);
-        }
-
-        g.setColour(colour);
-
-        r.reduce(jmin(5, area.getWidth() / 20), 0);
-        r.removeFromLeft(8.0f);
-        
-        auto font = getPopupMenuFont();
-
-        auto maxFontHeight = (float)r.getHeight() / 1.3f;
-
-        if (font.getHeight() > maxFontHeight)
-            font.setHeight(maxFontHeight);
-
-        g.setFont(font);
-
-        r.removeFromRight(3);
-        Fonts::drawFittedText(g, text, r, colour);
-    }
-
-    void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& object) override
-    {
-        auto cornerSize = 3.0f;
-        Rectangle<int> boxBounds(0, 0, width, height);
-
-        g.setColour(object.findColour(ComboBox::backgroundColourId));
-        g.fillRoundedRectangle(boxBounds.toFloat(), cornerSize);
-
-        Rectangle<int> arrowZone(width - 22, 9, 14, height - 18);
-        Path path;
-        path.startNewSubPath((float)arrowZone.getX() + 3.0f, (float)arrowZone.getCentreY() - 2.0f);
-        path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 2.0f);
-        path.lineTo((float)arrowZone.getRight() - 3.0f, (float)arrowZone.getCentreY() - 2.0f);
-        g.setColour(object.findColour(ComboBox::arrowColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
-
-        g.strokePath(path, PathStrokeType(2.0f));
-    }
-
-    int getPopupMenuBorderSize() override
-    {
-        if (Desktop::canUseSemiTransparentWindows()) {
-            return 10;
-        } else {
-            return 2;
-        }
-    };
-
-    Label* createComboBoxTextBox(ComboBox& /*comboBox*/) override
-    {
-        auto* label = new ComboLabel();
-        label->addListener(this);
-        label->setEditable(true);
-        label->setJustificationType(Justification::centred);
-        label->setBorderSize(BorderSize<int>(1, 16, 1, 5));
-        return label;
-    }
-
-    void labelTextChanged(Label* labelThatHasChanged) override
-    {
-        onTextChange(labelThatHasChanged->getText());
-    }
-
-    void editorShown(Label* label, TextEditor& editor) override
-    {
-        editor.setJustification(Justification::centred);
-    }
-
-    std::function<void(String)> onTextChange = [](String) {};
-
-    //==========================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PaletteComboBox)
-};
-
 class PluginEditor;
 class PaletteView : public Component
     , public Value::Listener {
@@ -262,13 +99,16 @@ class PaletteView : public Component
                     minY = std::min(minY, tokens[3].getIntValue());
                 }
 
-                if (canvasDepth == 1 && isEndingCanvas(tokens)) {
-                    minX = std::min(minX, tokens[2].getIntValue());
-                    minY = std::min(minY, tokens[3].getIntValue());
+                if (isEndingCanvas(tokens)) {
+                    if(canvasDepth == 1) {
+                        minX = std::min(minX, tokens[2].getIntValue());
+                        minY = std::min(minY, tokens[3].getIntValue());
+                    }
                     canvasDepth--;
                 }
             }
 
+            canvasDepth = 0;
             auto toPaste = StringArray::fromLines(clipboardContent);
             for (auto& line : toPaste) {
 
@@ -284,9 +124,11 @@ class PaletteView : public Component
                     line = tokens.joinIntoString(" ");
                 }
 
-                if (canvasDepth != 0 && isEndingCanvas(tokens)) {
-                    tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
-                    tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
+                if (isEndingCanvas(tokens)) {
+                    if(canvasDepth == 1) {
+                        tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
+                        tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
+                    }
 
                     line = tokens.joinIntoString(" ");
 
@@ -378,7 +220,6 @@ public:
     PaletteView(PluginEditor* e)
         : editor(e)
         , pd(e->pd)
-        , patchSelector(&e->getLookAndFeel())
     {
 
         editModeButton.setButtonText(Icons::Edit);
@@ -388,7 +229,6 @@ public:
         editModeButton.setConnectedEdges(Button::ConnectedOnRight);
         editModeButton.onClick = [this]() {
             cnv->locked = false;
-            viewport->setScrollBarsShown(true, true, true, true);
         };
         addAndMakeVisible(editModeButton);
 
@@ -399,7 +239,6 @@ public:
         lockModeButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         lockModeButton.onClick = [this]() {
             cnv->locked = true;
-            viewport->setScrollBarsShown(true, true, true, true);
         };
         addAndMakeVisible(lockModeButton);
 
@@ -410,14 +249,6 @@ public:
         dragModeButton.setConnectedEdges(Button::ConnectedOnLeft);
         dragModeButton.onClick = [this]() {
             cnv->locked = true;
-            
-            auto origin = cnv->canvasOrigin + Point<int>(1, 1);
-            float scale = editor->getZoomScaleForCanvas(cnv.get());
-            cnv->updatingBounds = true;
-            cnv->viewport->setViewPosition(origin * scale);
-            cnv->updatingBounds = false;
-            
-            viewport->setScrollBarsShown(true, false, true, false);
         };
 
         addAndMakeVisible(dragModeButton);
@@ -433,33 +264,24 @@ public:
             });
         };
         addAndMakeVisible(deleteButton);
-        
-        
-        hideButton.setButtonText(Icons::Eye);
-        hideButton.getProperties().set("Style", "LargeIcon");
-        hideButton.setClickingTogglesState(true);
-        hideButton.setToggleState(!static_cast<bool>(paletteTree.getProperty("Hidden")), dontSendNotification);
-        hideButton.onClick = [this]() {
-            paletteTree.setProperty("Hidden", !hideButton.getToggleState(), nullptr);
-            updatePalettes();
-        };
-        addAndMakeVisible(hideButton);
-        
-        addAndMakeVisible(patchSelector);
-        patchSelector.setJustificationType(Justification::centred);
-        patchSelector.onChange = [this]() {
-            auto palettesTree = paletteTree.getParent();
-            auto palette = palettesTree.getChild(patchSelector.getSelectedItemIndex());
-            showPalette(palette);
-            onPaletteChange(palette);
-        };
 
-        patchSelector.onTextChange = [this](String newText) {
-            paletteTree.setProperty("Name", newText, nullptr);
+        
+        addAndMakeVisible(patchTitle);
+        patchTitle.setEditable(true);
+        patchTitle.setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
+        patchTitle.setJustificationType(Justification::centred);
+        patchTitle.onEditorShow = [this](){
+            if(auto* editor = patchTitle.getCurrentTextEditor())
+            {
+                editor->setJustification(Justification::centred);
+            }
+        };
+        patchTitle.onTextChange = [this]() {
+            paletteTree.setProperty("Name", patchTitle.getText(), nullptr);
             updatePalettes();
         };
 
-        patchSelector.toBehind(&editModeButton);
+        patchTitle.toBehind(&editModeButton);
     }
 
     void savePalette()
@@ -484,12 +306,6 @@ public:
             parentTree.removeChild(paletteTree, nullptr);
             updatePalettes();
         }
-    }
-
-    void updatePatches(StringArray comboOptions)
-    {
-        patchSelector.clear();
-        patchSelector.addItemList(comboOptions, 1);
     }
 
     void showPalette(ValueTree palette)
@@ -526,10 +342,10 @@ public:
 
         auto name = paletteTree.getProperty("Name").toString();
         if (name.isNotEmpty()) {
-            patchSelector.setText(name, dontSendNotification);
+            patchTitle.setText(name, dontSendNotification);
         } else {
-            patchSelector.setText("", dontSendNotification);
-            patchSelector.showEditor();
+            patchTitle.setText("", dontSendNotification);
+            patchTitle.showEditor();
         }
 
         if (paletteTree.hasProperty("Mode")) {
@@ -637,17 +453,13 @@ public:
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawHorizontalLine(51, 0, getWidth());
     }
-        
-    bool isHiddenFromBar() {
-        return static_cast<bool>(paletteTree.getProperty("Hidden"));
-    }
 
     void resized() override
     {
         int panelHeight = 26;
         
         auto b = getLocalBounds();
-        patchSelector.setBounds(b.removeFromTop(panelHeight));
+        patchTitle.setBounds(b.removeFromTop(panelHeight));
         
         auto secondPanel = b.removeFromTop(panelHeight).expanded(0, 3);
         auto stateButtonsBounds = secondPanel.withX((getWidth() / 2) - (panelHeight * 1.5f)).withWidth(panelHeight);
@@ -657,8 +469,7 @@ public:
         editModeButton.setBounds(stateButtonsBounds);
         
         deleteButton.setBounds(secondPanel.removeFromRight(panelHeight + 6).expanded(2, 3));
-        hideButton.setBounds(secondPanel.removeFromRight(panelHeight + 6).expanded(2, 3));
-        
+
         if (cnv) {
             cnv->viewport->getPositioner()->applyNewBounds(b);
             cnv->checkBounds();
@@ -684,14 +495,13 @@ private:
     std::unique_ptr<Canvas> cnv;
     std::unique_ptr<Viewport> viewport;
 
-    PaletteComboBox patchSelector;
+    Label patchTitle;
 
     TextButton editModeButton;
     TextButton lockModeButton;
     TextButton dragModeButton;
         
     TextButton deleteButton;
-    TextButton hideButton;
 
     std::function<StringArray()> getComboOptions = []() { return StringArray(); };
 };
@@ -785,7 +595,7 @@ public:
         
         paletteBar.setVisible(true);
         paletteViewport.setViewedComponent(&paletteBar, false);
-        paletteViewport.setScrollBarsShown(true, false, true, false);
+        paletteViewport.setScrollBarsShown(true, true, true, true);
         paletteViewport.setScrollBarThickness(4);
         paletteViewport.setScrollBarPosition(false, false);
         
@@ -799,12 +609,11 @@ public:
 
         view.onPaletteChange = [this](ValueTree currentPalette) {
             
+            // TODO: clean this up!
             int idx = 0;
             bool found = false;
             for(auto palette : palettesTree)
             {
-                if(static_cast<bool>(palette.getProperty("Hidden"))) continue;
-                
                 if(palette == currentPalette)
                 {
                     found = true;
@@ -999,16 +808,8 @@ private:
         
         paletteSelectors.clear();
 
-        StringArray patches;
-        
         for (auto palette : palettesTree) {
             auto name = palette.getProperty("Name").toString();
-            auto hidden = static_cast<bool>(palette.getProperty("Hidden"));
-            
-            patches.add(name);
-            
-            if(hidden) continue;
-            
             auto button = paletteSelectors.add(new PaletteSelector(name));
             button->onClick = [this, name, button]() {
                 if(draggedTab == button) return;
@@ -1026,7 +827,7 @@ private:
             paletteBar.addAndMakeVisible(*button);
         }
 
-        if(isPositiveAndBelow(lastIdx, paletteSelectors.size()) && !view.isHiddenFromBar())
+        if(isPositiveAndBelow(lastIdx, paletteSelectors.size()))
         {
             paletteSelectors[lastIdx]->setToggleState(true, dontSendNotification);
         }
@@ -1040,7 +841,6 @@ private:
             }
         }
         
-        view.updatePatches(patches);
         savePalettes();
         
         resized();
