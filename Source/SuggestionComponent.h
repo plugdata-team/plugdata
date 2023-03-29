@@ -541,9 +541,13 @@ private:
             state = ShowingArguments;
             auto name = currentText.upToFirstOccurrenceOf(" ", false, false);
             auto objectInfo = library->getObjectInfo(name);
-            auto found = objectInfo.getChildWithName("arguments");
+            auto found = objectInfo.getChildWithName("arguments").createCopy();
             for(auto flag : objectInfo.getChildWithName("flags")) {
-                found.appendChild(flag.createCopy(), nullptr);
+                auto flagCopy = flag.createCopy();
+                auto name = flagCopy.getProperty("name").toString().trim();
+                if(!name.startsWith("-")) name = "-" + name;
+                flagCopy.setProperty("type", name, nullptr);
+                found.appendChild(flagCopy, nullptr);
             }
             
             numOptions = std::min<int>(buttons.size(), found.getNumChildren());
