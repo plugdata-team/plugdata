@@ -323,12 +323,18 @@ public:
 
     void componentMovedOrResized(Component& c, bool moved, bool resized) override
     {
+        if (editor->pd->pluginMode != var(false))
+            return;
+
         Viewport::componentMovedOrResized(c, moved, resized);
         adjustScrollbarBounds();
     }
 
     void resized() override
     {
+        if (editor->pd->pluginMode != var(false))
+            return;
+
         adjustScrollbarBounds();
 
         // In case the window resizes, make sure we maintain the same origin point
