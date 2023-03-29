@@ -18,7 +18,7 @@ public:
         windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
 
         // Hide all of the editor's content
-        for (auto* child : editor->getChildren()) {
+        for (auto* child : editor->getTopLevelComponent()->getChildren()) {
             if (child->isVisible()) {
                 child->setVisible(false);
                 children.emplace_back(child);
@@ -42,7 +42,7 @@ public:
         setBounds(0, 0, width, height + titlebarHeight);
 
         // Add this view to the editor
-        editor->addAndMakeVisible(this);
+        editor->getTopLevelComponent()->addAndMakeVisible(this);
 
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
@@ -134,6 +134,13 @@ public:
         if (!cnv)
             return;
 
+        if (ProjectInfo::isStandalone && desktopWindow->isFullScreen()) {
+            // Fill background for Fullscreen / Kiosk Mode
+            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.fillRect(editor->getTopLevelComponent()->getBounds());
+            return;
+        }
+
         auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
         if (editor->wantsRoundedCorners()) {
             // TitleBar background
@@ -156,35 +163,67 @@ public:
 
     void parentSizeChanged() override
     {
-        int const editorWidth = editor->getWidth();
-        float const scale = editorWidth / width;
-        float const resizeRatio = width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale));
+        if (ProjectInfo::isStandalone && desktopWindow->isFullScreen()) {
 
-        int const editorHeight = editorWidth / resizeRatio - nativeTitleBarHeight;
+            // Fullscreen / Kiosk Mode
 
-        if (ProjectInfo::isStandalone) {
-            desktopWindow->getConstrainer()->setFixedAspectRatio(resizeRatio);
-            desktopWindow->setBounds(desktopWindow->getBounds().withSize(editorWidth, editorHeight), false);
+            // Determine the screen width and height
+            int const screenWidth = desktopWindow->getBounds().getWidth();
+            int const screenHeight = desktopWindow->getBounds().getHeight();
+
+            // Fill the screen
+            setBounds(0, 0, screenWidth, screenHeight);
+
+            // Calculate the scale factor required to fit the editor in the screen
+            float const scaleX = static_cast<float>(screenWidth) / width;
+            float const scaleY = static_cast<float>(screenHeight) / height;
+            float const scale = jmin(scaleX, scaleY);
+
+            // Calculate the position of the editor after scaling
+            int const scaledWidth = static_cast<int>(width * scale);
+            int const x = (screenWidth - scaledWidth) / 2;
+
+            // Apply the scale and position to the editor
+            content.setTransform(content.getTransform().scale(scale));
+            content.setTopLeftPosition(x / scale, 0);
+
+            // Hide titlebar
+            titleBar.setBounds(0, 0, 0, 0);
         } else {
-            editor->getConstrainer()->setFixedAspectRatio(resizeRatio);
+
+            int const editorWidth = editor->getWidth();
+            float const scale = editorWidth / width;
+            float const resizeRatio = width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale));
+
+            int const editorHeight = editorWidth / resizeRatio - nativeTitleBarHeight;
+
+            if (ProjectInfo::isStandalone) {
+                desktopWindow->getConstrainer()->setFixedAspectRatio(resizeRatio);
+            } else {
+                editor->getConstrainer()->setFixedAspectRatio(resizeRatio);
+            }
+
+            setSize(editorWidth, editorHeight);
+
+            content.setTransform(content.getTransform().scale(scale));
+            content.setTopLeftPosition(0, titlebarHeight / scale);
+
+            titleBar.setBounds(0, 0, editorWidth, titlebarHeight);
+
+            if (ProjectInfo::isStandalone && !settings->getProperty<bool>("macos_buttons")) {
+                closeButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
+            } else {
+                closeButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
+            }
         }
-        
-        setSize(editorWidth, editorHeight);
+    }
 
-        content.setTransform(content.getTransform().scale(scale));
-        content.setTopLeftPosition(0, titlebarHeight / scale);
-
-        titleBar.setBounds(0, 0, editorWidth, titlebarHeight);
-
-        if (ProjectInfo::isStandalone && !settings->getProperty<bool>("macos_buttons")) {
-            closeButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
     bool hitTest(int x, int y) override
     {
         if (ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             // Block modifier keys when mouseDown
             return false;
         } else {
-            closeButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
             return true;
         }
     }
