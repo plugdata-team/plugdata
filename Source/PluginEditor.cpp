@@ -1181,13 +1181,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::ShowSettings: {
         result.setInfo("Open Settings", "Open settings panel", "Edit", 0);
         result.addDefaultKeypress(44, ModifierKeys::commandModifier); // Cmd + , to open settings
-        if (!getCurrentCanvas()) {
-            // Disable the key command if there is no canvas
-            // to prevent app from crashing
-            result.setActive(false);
-        } else {
-            result.setActive(true);
-        }
+        result.setActive(true);
         break;
     }
     case CommandIDs::ShowReference: {
