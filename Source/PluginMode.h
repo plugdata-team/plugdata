@@ -52,17 +52,17 @@ public:
         editorButton->getProperties().set("Style", "LargeIcon");
         editorButton->setTooltip("Show Editor..");
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
-
         editorButton->addListener(this);
-
-        fullscreenButton = std::make_unique<TextButton>(Icons::Fullscreen);
-        fullscreenButton->getProperties().set("Style", "LargeIcon");
-        fullscreenButton->setTooltip("Kiosk Mode..");
-        fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
-        fullscreenButton->addListener(this);
-
         titleBar.addAndMakeVisible(*editorButton);
-        titleBar.addAndMakeVisible(*fullscreenButton);
+
+        if (ProjectInfo::isStandalone) {
+            fullscreenButton = std::make_unique<TextButton>(Icons::Fullscreen);
+            fullscreenButton->getProperties().set("Style", "LargeIcon");
+            fullscreenButton->setTooltip("Kiosk Mode..");
+            fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
+            fullscreenButton->addListener(this);
+            titleBar.addAndMakeVisible(*fullscreenButton);
+        }
 
         addAndMakeVisible(titleBar);
 
