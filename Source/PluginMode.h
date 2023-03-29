@@ -223,11 +223,7 @@ public:
 
             titleBar.setBounds(0, 0, editorWidth, titlebarHeight);
 
-            if (ProjectInfo::isStandalone && !settings->getProperty<bool>("macos_buttons")) {
-                editorButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
-            } else {
-                editorButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
-            }
+            editorButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         }
     }
 
