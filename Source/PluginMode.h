@@ -48,16 +48,21 @@ public:
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);
 
-        closeButton = std::make_unique<TextButton>(Icons::Edit);
-        closeButton->getProperties().set("Style", "LargeIcon");
-        closeButton->setTooltip("Show Editor..");
-        if (ProjectInfo::isStandalone && !settings->getProperty<bool>("macos_buttons")) {
-            closeButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
-        } else {
-            closeButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
-        }
-        closeButton->addListener(this);
-        titleBar.addAndMakeVisible(*closeButton);
+        editorButton = std::make_unique<TextButton>(Icons::Edit);
+        editorButton->getProperties().set("Style", "LargeIcon");
+        editorButton->setTooltip("Show Editor..");
+        editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
+
+        editorButton->addListener(this);
+
+        fullscreenButton = std::make_unique<TextButton>(Icons::Fullscreen);
+        fullscreenButton->getProperties().set("Style", "LargeIcon");
+        fullscreenButton->setTooltip("Kiosk Mode..");
+        fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
+        fullscreenButton->addListener(this);
+
+        titleBar.addAndMakeVisible(*editorButton);
+        titleBar.addAndMakeVisible(*fullscreenButton);
 
         addAndMakeVisible(titleBar);
 
@@ -93,7 +98,11 @@ public:
 
     void buttonClicked(Button* button) override
     {
-        if (button == closeButton.get()) {
+        if (button == fullscreenButton.get()) {
+            auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
+            window->setFullScreen(true);
+
+        } else if (button == editorButton.get()) {
             editor->pd->pluginMode = var(false);
 
             // Restore the original editor content
@@ -211,9 +220,9 @@ public:
             titleBar.setBounds(0, 0, editorWidth, titlebarHeight);
 
             if (ProjectInfo::isStandalone && !settings->getProperty<bool>("macos_buttons")) {
-                closeButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
+                editorButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
             } else {
-                closeButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
+                editorButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
             }
         }
     }
@@ -273,7 +282,8 @@ private:
     Component titleBar;
     int const titlebarHeight = 40;
     int nativeTitleBarHeight;
-    std::unique_ptr<TextButton> closeButton;
+    std::unique_ptr<TextButton> editorButton;
+    std::unique_ptr<TextButton> fullscreenButton;
 
     Component content;
 
