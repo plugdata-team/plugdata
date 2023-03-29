@@ -13,7 +13,6 @@ public:
         , cnvParent(cnv->getParentComponent())
         , windowBounds(editor->getBounds())
         , viewportBounds(cnv->viewport->getBounds())
-        , infiniteCanvas(settings->getProperty<int>("infinite_canvas"))
     {
         auto c = editor->getConstrainer();
         windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
@@ -65,36 +64,25 @@ public:
         // Viewed Content (canvas)
         content.setBounds(0, titlebarHeight, width, height);
 
-        if (infiniteCanvas)
-            settings->setProperty("infinite_canvas", false); // Temporarily disable infinte canvas
-
-        cnv->updatingBounds = true;
-        cnv->viewport->setViewPosition(cnv->canvasOrigin);
-        cnv->updatingBounds = false;
-
         content.addAndMakeVisible(cnv);
         cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
         cnv->locked = true;
         cnv->presentationMode = true;
+        addAndMakeVisible(content);
+        
 
         MessageManager::callAsync([_this = SafePointer(this), this, cnv] {
             if (!_this)
                 return;
-            // Called async to make sure viewport pos has updated
-            cnv->updatingBounds = true;
-            cnv->setBounds(0, 0, width, height);
+            // Have to be called async to be placed correctly
+            cnv->viewport->setViewPosition(cnv->canvasOrigin + Point<int>(-1, -1));
         });
-
-        addAndMakeVisible(content);
     }
 
     ~PluginMode()
     {
         if (!cnv)
             return;
-
-        if (infiniteCanvas)
-            settings->setProperty("infinite_canvas", true);
 
         cnv->updatingBounds = false;
         cnv->locked = false;
@@ -245,8 +233,6 @@ private:
     float const width = cnv->patchWidth.getValue();
     float const height = cnv->patchHeight.getValue();
     float resizeRatio;
-
-    bool infiniteCanvas;
 
     std::vector<Component*> children;
 };
