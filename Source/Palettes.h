@@ -268,6 +268,7 @@ public:
         
         addAndMakeVisible(patchTitle);
         patchTitle.setEditable(true);
+        patchTitle.setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
         patchTitle.setJustificationType(Justification::centred);
         patchTitle.onEditorShow = [this](){
             if(auto* editor = patchTitle.getCurrentTextEditor())
