@@ -76,6 +76,9 @@ public:
             // Have to be called async to be placed correctly
             cnv->viewport->setViewPosition(cnv->canvasOrigin + Point<int>(-1, -1));
         });
+
+        setWantsKeyboardFocus(true);
+        setInterceptsMouseClicks(false, false);
     }
 
     ~PluginMode()
@@ -175,8 +178,14 @@ public:
 
         if (ProjectInfo::isStandalone && !settings->getProperty<bool>("macos_buttons")) {
             closeButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
+    bool hitTest(int x, int y) override
+    {
+        if (ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
+            // Block modifier keys when mouseDown
+            return false;
         } else {
             closeButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
+            return true;
         }
     }
 
@@ -206,8 +215,14 @@ public:
 
     bool keyPressed(KeyPress const& key) override
     {
-        // Block keypresses to editor
-        return true;
+        grabKeyboardFocus();
+        if (key.getModifiers().isAnyModifierKeyDown()) {
+            // Block All Modifiers
+            return true;
+        } else {
+            // Pass other keypresses on to the editor
+            return false;
+        }
     }
 
 private:
