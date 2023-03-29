@@ -4,12 +4,13 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ReversibleSlider : public Slider {
+class ReversibleKnob : public Slider {
     
     bool isInverted;
     
 public:
-    ReversibleSlider() {
+    ReversibleKnob() {
+        setSliderStyle(Slider::RotaryHorizontalVerticalDrag);
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         setScrollWheelEnabled(false);
@@ -17,7 +18,7 @@ public:
         setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
     }
     
-    ~ReversibleSlider() {}
+    ~ReversibleKnob() {}
 
     void setRangeFlipped(bool invert)
     {
@@ -46,62 +47,71 @@ public:
 };
 
 
-class SliderObject : public ObjectBase {
-    bool isVertical;
+class KnobObject : public ObjectBase {
+    
+    struct t_fake_knb
+    {
+        t_iemgui x_gui;
+        float    x_pos; /* 0-1 normalized position */
+        int      x_arc_width;
+        int      x_start_angle;
+        int      x_end_angle;
+        int      x_ticks;
+        double   x_min;
+        double   x_max;
+        t_float  x_fval;
+        int      x_acol;
+        t_symbol *x_move_mode; /* "x","y", "xy" or "angle" */
+        unsigned int      x_lin0_log1:1;
+        unsigned int      x_wiper_visible:1;
+        unsigned int      x_arc_visible:1;
+        unsigned int      x_center_visible:1;
+    };
+    
     Value isLogarithmic = Value(var(false));
 
-    ReversibleSlider slider;
+    ReversibleKnob knob;
 
     IEMHelper iemHelper;
 
     Value min = Value(0.0f);
     Value max = Value(0.0f);
-    Value steadyOnClick = Value(false);
 
     float value = 0.0f;
 
 public:
-    SliderObject(void* obj, Object* object)
+    KnobObject(void* obj, Object* object)
         : ObjectBase(obj, object)
         , iemHelper(obj, object, this)
     {
-        addAndMakeVisible(slider);
+        addAndMakeVisible(knob);
 
-        slider.onDragStart = [this]() {
+        knob.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
+
+        knob.onDragStart = [this]() {
             startEdition();
-            const float val = slider.getValue();
+            const float val = knob.getValue();
             setValue(val);
         };
 
-        slider.onValueChange = [this]() {
-            const float val = slider.getValue();
+        knob.onValueChange = [this]() {
+            const float val = knob.getValue();
             setValue(val);
         };
 
-        slider.onDragEnd = [this]() {
+        knob.onDragEnd = [this]() {
             stopEdition();
         };
 
         onConstrainerCreate = [this]() {
-            auto minLongSide = this->object->minimumSize * 2;
-            auto minShortSide = this->object->minimumSize;
-            if (isVertical) {
-                constrainer->setMinimumSize(minShortSide, minLongSide);
-            } else {
-                constrainer->setMinimumSize(minLongSide, minShortSide);
-            }
+            constrainer->setFixedAspectRatio(1.0f);
+            constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
     }
 
     void update() override
     {
-        isVertical = static_cast<t_slider*>(ptr)->x_orientation;
-
-        auto steady = getSteadyOnClick();
-        steadyOnClick = steady;
-        slider.setSliderSnapsToMousePosition(!steady);
-
-        slider.setRangeFlipped((static_cast<t_slider*>(ptr)->x_min) > (static_cast<t_slider*>(ptr)->x_max));
+        knob.setRangeFlipped((static_cast<t_fake_knb*>(ptr)->x_min) > (static_cast<t_fake_knb*>(ptr)->x_max));
 
         min = getMinimum();
         max = getMaximum();
@@ -110,14 +120,9 @@ public:
 
         auto currentValue = getValue();
         value = currentValue;
-        slider.setValue(currentValue, dontSendNotification);
+        knob.setValue(currentValue, dontSendNotification);
 
         isLogarithmic = isLogScale();
-
-        if (isVertical)
-            slider.setSliderStyle(Slider::LinearBarVertical);
-        else
-            slider.setSliderStyle(Slider::LinearBar);
 
         iemHelper.update();
 
@@ -153,15 +158,15 @@ public:
     void updateRange()
     {
         if (isLogScale()) {
-            if (slider.isRangeFlipped())
-                slider.setNormalisableRange(makeLogarithmicRange<double>(getMaximum(), getMinimum()));
+            if (knob.isRangeFlipped())
+                knob.setNormalisableRange(makeLogarithmicRange<double>(getMaximum(), getMinimum()));
             else
-                slider.setNormalisableRange(makeLogarithmicRange<double>(getMinimum(), getMaximum()));
+                knob.setNormalisableRange(makeLogarithmicRange<double>(getMinimum(), getMaximum()));
         } else {
-            if (slider.isRangeFlipped())
-                slider.setRange(getMaximum(), getMinimum(), std::numeric_limits<float>::epsilon());
+            if (knob.isRangeFlipped())
+                knob.setRange(getMaximum(), getMinimum(), std::numeric_limits<float>::epsilon());
             else
-                slider.setRange(getMinimum(), getMaximum(), std::numeric_limits<float>::epsilon());
+                knob.setRange(getMinimum(), getMaximum(), std::numeric_limits<float>::epsilon());
         }
     }
 
@@ -171,7 +176,7 @@ public:
         case hash("float"):
         case hash("set"): {
             value = atoms[0].getFloat();
-            slider.setValue(value, dontSendNotification);
+            knob.setValue(value, dontSendNotification);
             break;
         }
         case hash("lin"): {
@@ -186,18 +191,10 @@ public:
         }
         case hash("range"): {
             if (atoms.size() >= 2) {
-                slider.setRangeFlipped(atoms[0].getFloat() > atoms[1].getFloat());
+                knob.setRangeFlipped(atoms[0].getFloat() > atoms[1].getFloat());
                 setParameterExcludingListener(min, atoms[0].getFloat());
                 setParameterExcludingListener(max, atoms[1].getFloat());
                 updateRange();
-            }
-            break;
-        }
-        case hash("steady"): {
-            if (atoms.size() >= 1) {
-                bool steady = atoms[0].getFloat();
-                setParameterExcludingListener(steadyOnClick, steady);
-                slider.setSliderSnapsToMousePosition(!steady);
             }
             break;
         }
@@ -237,11 +234,8 @@ public:
 
     void resized() override
     {
-        slider.setBounds(getLocalBounds());
+        knob.setBounds(getLocalBounds());
 
-        // TODO: we would also want to have a high precision mode, use keypress to change sensitivity etc
-        // Currently we set the sensitivity to 1:1 of current slider size
-        slider.setMouseDragSensitivity(isVertical ? slider.getHeight() : slider.getWidth());
     }
 
     ObjectParameters getParameters() override
@@ -250,7 +244,6 @@ public:
             { "Minimum", tFloat, cGeneral, &min, {} },
             { "Maximum", tFloat, cGeneral, &max, {} },
             { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "Off", "On" } },
-            { "Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" } }
         };
 
         auto iemParameters = iemHelper.getParameters();
@@ -261,35 +254,31 @@ public:
 
     float getValue()
     {
-        return static_cast<t_slider*>(ptr)->x_fval;
+        return static_cast<t_fake_knb*>(ptr)->x_fval;
     }
 
     float getMinimum()
     {
-        return static_cast<t_slider*>(ptr)->x_min;
+        return static_cast<t_fake_knb*>(ptr)->x_min;
     }
 
     float getMaximum()
     {
-        return static_cast<t_slider*>(ptr)->x_max;
+        return static_cast<t_fake_knb*>(ptr)->x_max;
     }
 
     void setMinimum(float value)
     {
-        static_cast<t_slider*>(ptr)->x_min = value;
-        slider.setRangeFlipped(static_cast<t_slider*>(ptr)->x_min > static_cast<t_slider*>(ptr)->x_max);
+        static_cast<t_fake_knb*>(ptr)->x_min = value;
+        knob.setRangeFlipped(static_cast<t_fake_knb*>(ptr)->x_min > static_cast<t_fake_knb*>(ptr)->x_max);
     }
 
     void setMaximum(float value)
     {
-        static_cast<t_slider*>(ptr)->x_max = value;
-        slider.setRangeFlipped(static_cast<t_slider*>(ptr)->x_min > static_cast<t_slider*>(ptr)->x_max);
+        static_cast<t_fake_knb*>(ptr)->x_max = value;
+        knob.setRangeFlipped(static_cast<t_fake_knb*>(ptr)->x_min > static_cast<t_fake_knb*>(ptr)->x_max);
     }
 
-    bool getSteadyOnClick() const
-    {
-        return static_cast<t_slider*>(ptr)->x_steady;
-    }
 
     void valueChanged(Value& value) override
     {
@@ -302,21 +291,20 @@ public:
         } else if (value.refersToSameSourceAs(isLogarithmic)) {
             setLogScale(isLogarithmic == var(true));
             updateRange();
-        } else if (value.refersToSameSourceAs(steadyOnClick)) {
-            slider.setSliderSnapsToMousePosition(!static_cast<bool>(steadyOnClick.getValue()));
-        } else {
+        }
+        else {
             iemHelper.valueChanged(value);
         }
     }
 
     bool isLogScale() const
     {
-        return static_cast<t_slider*>(ptr)->x_lin0_log1;
+        return static_cast<t_fake_knb*>(ptr)->x_lin0_log1;
     }
 
     void setLogScale(bool log)
     {
-        static_cast<t_slider*>(ptr)->x_lin0_log1 = log;
+        static_cast<t_fake_knb*>(ptr)->x_lin0_log1 = log;
     }
 
     void setValue(float v)

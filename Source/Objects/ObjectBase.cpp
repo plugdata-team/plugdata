@@ -43,6 +43,7 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "ButtonObject.h"
 #include "RadioObject.h"
 #include "SliderObject.h"
+#include "KnobObject.h"
 #include "ArrayObject.h"
 #include "GraphOnParent.h"
 #include "KeyboardObject.h"
