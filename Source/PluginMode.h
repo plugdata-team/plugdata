@@ -207,7 +207,11 @@ public:
             int const editorHeight = editorWidth / resizeRatio - nativeTitleBarHeight;
 
             if (ProjectInfo::isStandalone) {
+#if JUCE_LINUX
+                editor->getConstrainer()->setFixedAspectRatio(resizeRatio);
+#else
                 desktopWindow->getConstrainer()->setFixedAspectRatio(resizeRatio);
+#endif
             } else {
                 editor->getConstrainer()->setFixedAspectRatio(resizeRatio);
             }
