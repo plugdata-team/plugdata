@@ -152,15 +152,17 @@ int Canvas::getOverlays()
 
     auto altModeEnabled = overlaysTree.getProperty("alt_mode");
 
+    if (!locked.getValue()) {
+        overlayState = overlaysTree.getProperty("edit");
+    }
     if (locked.getValue() || commandLocked.getValue()) {
         overlayState = overlaysTree.getProperty("lock");
-    } else if (presentationMode.getValue()) {
+    }
+    if (presentationMode.getValue()) {
         overlayState = overlaysTree.getProperty("run");
-    } else if (altModeEnabled) {
-
+    }
+    if (altModeEnabled) {
         overlayState = overlaysTree.getProperty("alt");
-    } else {
-        overlayState = overlaysTree.getProperty("edit");
     }
 
     return overlayState;
