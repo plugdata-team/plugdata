@@ -74,6 +74,7 @@ struct Icons {
     inline static const String SnapCenters = "$";
     inline static const String DragCopyMode = "^";
     inline static const String Trash = "~";
+    inline static const String Fullscreen = "&";
 };
 
 enum PlugDataColour {
