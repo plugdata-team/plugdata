@@ -13,6 +13,8 @@ class Canvas;
 class LevelMeter;
 class MidiBlinker;
 class PluginProcessor;
+class OverlayDisplaySettings;
+class SnapSettings;
 
 class StatusbarSource : public Timer {
 
@@ -75,8 +77,14 @@ public:
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
 
-    std::unique_ptr<TextButton> powerButton, connectionStyleButton, connectionPathfind, centreButton, protectButton;
+    TextButton powerButton, connectionStyleButton, connectionPathfind, centreButton, protectButton;
 
+    TextButton overlayButton, overlaySettingsButton;
+    std::unique_ptr<OverlayDisplaySettings> overlayDisplaySettings;
+
+    TextButton snapEnableButton, snapSettingsButton;
+    std::unique_ptr<SnapSettings> snapSettings;
+        
     TextButton oversampleSelector;
 
     Label zoomLabel;

@@ -1314,7 +1314,7 @@ void PluginProcessor::receiveDSPState(bool dsp)
     MessageManager::callAsync(
         [this, dsp]() mutable {
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                editor->statusbar->powerButton->setToggleState(dsp, dontSendNotification);
+                editor->statusbar->powerButton.setToggleState(dsp, dontSendNotification);
             }
         });
 }
