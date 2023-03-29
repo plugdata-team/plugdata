@@ -31,9 +31,9 @@ public:
         // Set window constrainers
         if (ProjectInfo::isStandalone) {
             nativeTitleBarHeight = desktopWindow->getFrameSize().getTop();
-            desktopWindow->getConstrainer()->setSizeLimits(width / 2, height / 2 + titlebarHeight + nativeTitleBarHeight, width * 2, height * 2 + titlebarHeight + nativeTitleBarHeight);
+            desktopWindow->getConstrainer()->setSizeLimits(width / 2, height / 2 + titlebarHeight + nativeTitleBarHeight, width * 10, height * 10 + titlebarHeight + nativeTitleBarHeight);
         }
-        editor->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 2, height * 2 + titlebarHeight);
+        editor->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 10, height * 10 + titlebarHeight);
 
         // Set editor bounds
         editor->setSize(width, height + titlebarHeight);
