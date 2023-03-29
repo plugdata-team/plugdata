@@ -86,6 +86,8 @@ public:
     bool perform(InvocationInfo const& info) override;
 
     bool wantsRoundedCorners();
+        
+    bool keyPressed(KeyPress const& key) override;
 
     float getZoomScale();
     float getZoomScaleForCanvas(Canvas* cnv);

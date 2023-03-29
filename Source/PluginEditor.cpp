@@ -1545,3 +1545,12 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
         pluginMode = std::make_unique<PluginMode>(cnv);
     }
 }
+
+// At the top-level, always catch all keypresses
+// This makes sure you can't accidentally do a DAW keyboard shortcut with plugdata open
+// Since objects like "keyname" need to be able to respond to any key as well,
+// it would be annoying to hear the bloop sound for every key that isn't a valid command
+bool PluginEditor::keyPressed(KeyPress const& key)
+{
+    return true;
+}

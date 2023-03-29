@@ -456,6 +456,12 @@ public:
     {
         triggerAsyncUpdate();
     }
+    
+    // Never respond to arrow keys, they have a different meaning
+    bool keyPressed(KeyPress const& key) override
+    {
+        return false;
+    }
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d) override
     {
