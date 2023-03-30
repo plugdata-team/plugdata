@@ -327,11 +327,15 @@ public:
 
     void componentMovedOrResized(Component& c, bool moved, bool resized) override
     {
-        if (editor->pd->pluginMode != var(false))
+        if (isUpdatingBounds ||  editor->pd->pluginMode != var(false))
             return;
+
+        isUpdatingBounds = true;
 
         Viewport::componentMovedOrResized(c, moved, resized);
         adjustScrollbarBounds();
+
+        isUpdatingBounds = false;
     }
 
     void resized() override
@@ -480,4 +484,6 @@ private:
 
     bool isScrollingHorizontally = false;
     bool isScrollingVertically = false;
+
+    bool isUpdatingBounds = false;
 };
