@@ -69,8 +69,8 @@ public:
     void receiveAftertouch(int const channel, int const value) override;
     void receivePolyAftertouch(int const channel, int const pitch, int const value) override;
     void receiveMidiByte(int const port, int const byte) override;
-
-    void receiveDSPState(bool dsp) override;
+    void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
+        
     void updateDrawables() override;
 
     void updateConsole() override;
@@ -195,6 +195,8 @@ private:
     static inline const String cyclone_version = "cyclone v0.7-0";
     // this gets updated with live version data later
     static String pdlua_version;
+        
+    std::vector<std::pair<String, String>> presets = {{"LIRA-8", ""}};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

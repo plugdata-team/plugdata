@@ -399,6 +399,9 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
 
 void Instance::processMessage(Message mess)
 {
+    if (mess.destination == "pd") {
+        receiveSysMessage(mess.selector, mess.list);
+    }
     if (mess.destination == "param" && mess.list.size() >= 2) {
         if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
             return;
@@ -423,9 +426,8 @@ void Instance::processMessage(Message mess)
         receiveSymbol(mess.destination, mess.list[0].getSymbol());
     } else if (mess.selector == "list") {
         receiveList(mess.destination, mess.list);
-    } else if (mess.selector == "dsp") {
-        receiveDSPState(mess.list[0].getFloat());
-    } else {
+    }
+    else {
         receiveMessage(mess.destination, mess.selector, mess.list);
     }
 }

@@ -66,6 +66,8 @@ public:
     void addTab(Canvas* cnv);
     void closeTab(Canvas* cnv);
     void closeAllTabs();
+        
+    void quit(bool askToSave);
 
     Canvas* getCurrentCanvas(bool canBePalette = false);
 

@@ -425,7 +425,6 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         }
         case hash("colors"):
             return new ColourPickerObject(ptr, parent);
-        // ELSE's [oscope~] and cyclone [scope~] are basically the same object
         case hash("oscope~"):
             return new OscopeObject(ptr, parent);
         case hash("scope~"):
@@ -438,6 +437,8 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new MessboxObject(ptr, parent);
         case hash("note"):
             return new NoteObject(ptr, parent);
+        case hash("knob"):
+            return new KnobObject(ptr, parent);
         default:
             break;
         }

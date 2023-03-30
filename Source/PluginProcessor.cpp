@@ -12,6 +12,7 @@
 #include "PluginProcessor.h"
 
 #include "Utility/Config.h"
+#include "Utility/HashUtils.h"
 #include "Utility/Fonts.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/PluginParameter.h"
@@ -349,10 +350,23 @@ int PluginProcessor::getCurrentProgram()
 
 void PluginProcessor::setCurrentProgram(int index)
 {
+    /*
+    if(isPositiveAndBelow(index, presets.size()))
+    {
+        MemoryBlock data;
+        if (data.fromBase64Encoding(presets[index].second) && data.getSize() > 0) {
+            setStateInformation(data.getData(), static_cast<int>(data.getSize()));
+        }
+    } */
 }
 
 const String PluginProcessor::getProgramName(int index)
 {
+    if(isPositiveAndBelow(index, presets.size()))
+    {
+        return presets[index].first;
+    }
+    
     return "Init preset";
 }
 
@@ -1199,6 +1213,40 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     }
 }
 
+void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list)
+{
+    switch(hash(selector))
+    {
+        case hash("dsp"): {
+            bool dsp = list[0].getFloat();
+            MessageManager::callAsync(
+                                      [this, dsp]() mutable {
+                                          if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                                              editor->statusbar->powerButton.setToggleState(dsp, dontSendNotification);
+                                          }
+                                      });
+            break;
+        }
+        case hash("quit"):
+        case hash("verifyquit"): {
+            if(ProjectInfo::isStandalone)
+            {
+                bool askToSave = hash(selector) == hash("verifyquit");
+                MessageManager::callAsync(
+                                          [this, askToSave]() mutable {
+                                              if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                                                  editor->quit(askToSave);
+                                              }
+                                          });
+            }
+            else {
+                logWarning("Quitting Pd not supported in plugin");
+            }
+            break;
+        }
+    }
+};
+
 void PluginProcessor::performParameterChange(int type, String name, float value)
 {
     // Type == 1 means it sets the change gesture state
@@ -1307,17 +1355,7 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
         sendBang("load");
     }
 }
-////////////////////
 
-void PluginProcessor::receiveDSPState(bool dsp)
-{
-    MessageManager::callAsync(
-        [this, dsp]() mutable {
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                editor->statusbar->powerButton.setToggleState(dsp, dontSendNotification);
-            }
-        });
-}
 
 void PluginProcessor::updateDrawables()
 {

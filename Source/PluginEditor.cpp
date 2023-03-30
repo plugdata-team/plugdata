@@ -1553,3 +1553,16 @@ bool PluginEditor::keyPressed(KeyPress const& key)
 {
     return true;
 }
+
+void PluginEditor::quit(bool askToSave)
+{
+    jassert(ProjectInfo::isStandalone);
+    
+    if(askToSave) {
+        auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
+        window->closeButtonPressed();
+    }
+    else {
+        JUCEApplication::quit();
+    }
+}
