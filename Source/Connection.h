@@ -30,8 +30,8 @@ public:
     int inIdx;
     int outIdx;
 
-    SafePointer<Iolet> inlet, outlet;
-    SafePointer<Object> inobj, outobj;
+    WeakReference<Iolet> inlet, outlet;
+    WeakReference<Object> inobj, outobj;
 
     Path toDraw;
     String lastId;

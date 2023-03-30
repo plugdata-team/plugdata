@@ -125,4 +125,5 @@ private:
     std::unique_ptr<TextEditor> newObjectEditor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
+    JUCE_DECLARE_WEAK_REFERENCEABLE(Object)
 };

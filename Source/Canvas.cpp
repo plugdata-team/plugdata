@@ -1021,16 +1021,16 @@ void Canvas::encapsulateSelection()
 
     // First, find all the incoming and outgoing connections
     for (auto* connection : connections) {
-        if (selectedBoxes.contains(connection->inobj.getComponent()) && !selectedBoxes.contains(connection->outobj.getComponent())) {
-            auto* inlet = connection->inlet.getComponent();
-            targetEdges[inlet].add(connection->outlet.getComponent());
+        if (selectedBoxes.contains(connection->inobj.get()) && !selectedBoxes.contains(connection->outobj.get())) {
+            auto* inlet = connection->inlet.get();
+            targetEdges[inlet].add(connection->outlet.get());
             usedEdges.addIfNotAlreadyThere(inlet);
         }
     }
     for (auto* connection : connections) {
-        if (selectedBoxes.contains(connection->outobj.getComponent()) && !selectedBoxes.contains(connection->inobj.getComponent())) {
-            auto* outlet = connection->outlet.getComponent();
-            targetEdges[outlet].add(connection->inlet.getComponent());
+        if (selectedBoxes.contains(connection->outobj.get()) && !selectedBoxes.contains(connection->inobj.get())) {
+            auto* outlet = connection->outlet.get();
+            targetEdges[outlet].add(connection->inlet.get());
             usedEdges.addIfNotAlreadyThere(outlet);
         }
     }

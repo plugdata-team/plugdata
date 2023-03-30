@@ -96,7 +96,7 @@ PluginProcessor::PluginProcessor()
         auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false);
         addParameter(parameter);
     }
-
+    
     // Make sure that the parameter valuetree has a name, to prevent assertion failures
     // parameters.replaceState(ValueTree("plugdata"));
 

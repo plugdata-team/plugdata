@@ -266,7 +266,7 @@ void Connection::renderConnectionPath(Graphics& g,
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
     auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
     auto handleColour = isSignal ? dataColour : signalColour;
-
+    
     auto connectionLength = connectionPath.getLength();
 
     if (isSelected) {

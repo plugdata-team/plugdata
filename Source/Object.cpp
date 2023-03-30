@@ -1000,7 +1000,7 @@ void Object::mouseDrag(MouseEvent const& e)
             // Two cases that are allowed: either 1 input and multiple outputs,
             // or 1 output and multiple inputs
             if (inputs.size() == 1 && outputs.size()) {
-                auto* outlet = inputs[0]->outlet.getComponent();
+                auto* outlet = inputs[0]->outlet.get();
 
                 for (auto* c : outputs) {
                     cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
@@ -1020,7 +1020,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
                 ds.objectSnappingInbetween = nullptr;
             } else if (inputs.size() && outputs.size() == 1) {
-                auto* inlet = outputs[0]->inlet.getComponent();
+                auto* inlet = outputs[0]->inlet.get();
 
                 for (auto* c : inputs) {
                     cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());

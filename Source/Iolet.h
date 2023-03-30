@@ -57,4 +57,5 @@ private:
     Value presentationMode;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Iolet)
+    JUCE_DECLARE_WEAK_REFERENCEABLE(Iolet)
 };

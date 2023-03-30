@@ -1483,8 +1483,10 @@ bool PluginEditor::wantsRoundedCorners()
 {
     if (!ProjectInfo::isStandalone)
         return false;
-
-    if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
+    
+    // Since this is called in a paint routine, use reinterpret_cast instead of dynamic_cast for efficiency
+    // For the standalone, the top-level component should always be DocumentWindow derived!
+    if (auto* window = reinterpret_cast<DocumentWindow*>(getTopLevelComponent())) {
         return !window->isUsingNativeTitleBar() && Desktop::canUseSemiTransparentWindows();
     } else {
         return true;
