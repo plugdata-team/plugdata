@@ -518,6 +518,18 @@ public:
         // setClickingTogglesState(true);
     }
     
+    void mouseDown(const MouseEvent& e) override
+    {
+        if(e.mods.isRightButtonDown())
+        {
+            PopupMenu menu;
+            menu.addItem("Delete palette", rightClicked);
+            menu.showMenuAsync(PopupMenu::Options());
+        }
+        
+        TextButton::mouseDown(e);
+    }
+    
 
     void paint(Graphics& g) override
     {
@@ -549,6 +561,8 @@ public:
 
         g.restoreState();
     }
+    
+    std::function<void()> rightClicked = [](){};
 };
 
 
@@ -823,6 +837,11 @@ private:
                     savePalettes();
                     view.showPalette(palettesTree.getChildWithProperty("Name", name));
                 }
+            };
+            
+            button->rightClicked = [this, palette](){
+                palettesTree.removeChild(palette, nullptr);
+                updatePalettes();
             };
             paletteBar.addAndMakeVisible(*button);
         }
