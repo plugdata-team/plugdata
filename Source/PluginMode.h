@@ -18,7 +18,7 @@ public:
         windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
 
         // Hide all of the editor's content
-        for (auto* child : editor->getTopLevelComponent()->getChildren()) {
+        for (auto* child : editor->getChildren()) {
             if (child->isVisible()) {
                 child->setVisible(false);
                 children.emplace_back(child);
@@ -42,7 +42,7 @@ public:
         setBounds(0, 0, width, height + titlebarHeight);
 
         // Add this view to the editor
-        editor->getTopLevelComponent()->addAndMakeVisible(this);
+        editor->addAndMakeVisible(this);
 
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
@@ -190,11 +190,13 @@ public:
 
             // Calculate the position of the editor after scaling
             int const scaledWidth = static_cast<int>(width * scale);
+            int const scaledHeight = static_cast<int>(height * scale);
             int const x = (screenWidth - scaledWidth) / 2;
+            int const y = (screenHeight - scaledHeight) / 2;
 
             // Apply the scale and position to the editor
             content.setTransform(content.getTransform().scale(scale));
-            content.setTopLeftPosition(x / scale, 0);
+            content.setTopLeftPosition(x / scale, y / scale);
 
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
