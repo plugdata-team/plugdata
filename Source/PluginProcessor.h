@@ -195,8 +195,6 @@ private:
     static inline const String cyclone_version = "cyclone v0.7-0";
     // this gets updated with live version data later
     static String pdlua_version;
-        
-    std::vector<std::pair<String, String>> presets = {{"LIRA-8", ""}};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

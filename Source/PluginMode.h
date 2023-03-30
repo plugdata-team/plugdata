@@ -104,6 +104,8 @@ public:
 
         } else if (button == editorButton.get()) {
             editor->pd->pluginMode = var(false);
+            
+            if(!cnv) return;
 
             // Restore the original editor content
             for (auto* child : children) {

@@ -18,6 +18,7 @@
 #include "Utility/PluginParameter.h"
 #include "Utility/OSUtils.h"
 
+#include "Presets.h"
 #include "Canvas.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
@@ -350,21 +351,20 @@ int PluginProcessor::getCurrentProgram()
 
 void PluginProcessor::setCurrentProgram(int index)
 {
-    /*
-    if(isPositiveAndBelow(index, presets.size()))
+    if(isPositiveAndBelow(index, Presets::presets.size()))
     {
-        MemoryBlock data;
-        if (data.fromBase64Encoding(presets[index].second) && data.getSize() > 0) {
-            setStateInformation(data.getData(), static_cast<int>(data.getSize()));
-        }
-    } */
+        MemoryOutputStream data;
+        Base64::convertFromBase64(data, Presets::presets[index].second);
+        if (data.getDataSize() > 0)
+            setStateInformation(data.getData(), static_cast<int>(data.getDataSize()));
+    }
 }
 
 const String PluginProcessor::getProgramName(int index)
 {
-    if(isPositiveAndBelow(index, presets.size()))
+    if(isPositiveAndBelow(index, Presets::presets.size()))
     {
-        return presets[index].first;
+        return Presets::presets[index].first;
     }
     
     return "Init preset";
@@ -868,9 +868,17 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     // Save path and content for patch
     lockAudioThread();
+    
+    auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+    
     for (auto* patch : patches) {
         ostream.writeString(patch->getCanvasContent());
-        ostream.writeString(patch->getCurrentFile().getFullPathName());
+        
+        auto patchFile = patch->getCurrentFile();
+        auto path = patchFile.getFullPathName();
+        path = path.replace(presetDir.getFullPathName(), "${PRESET_DIR}");
+        
+        ostream.writeString(path);
     }
     unlockAudioThread();
 
@@ -947,22 +955,33 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     for (int i = 0; i < numPatches; i++) {
         auto state = istream.readString();
-        auto location = File(istream.readString());
-
-        if (location.getParentDirectory().exists()) {
-            auto parentPath = location.getParentDirectory().getFullPathName();
-            // Add patch path to search path to make sure it finds abstractions in the saved patch!
-            // TODO: is there any way to make this local the the canvas?
-            libpd_add_to_search_path(parentPath.toRawUTF8());
-        }
-
-        auto* patch = loadPatch(state);
-
-        if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
-            patch->setTitle("Untitled Patcher");
-        } else if (location.existsAsFile()) {
+        auto path = istream.readString();
+        
+        auto presetDir = homeDir.getChildFile("Extra").getChildFile("Presets");
+        path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
+        
+        auto location = File(path);
+        
+        if(path.isNotEmpty() && location.existsAsFile()) // TODO: test if path's parent is temp dir
+        {
+            auto* patch = loadPatch(location);
             patch->setCurrentFile(location);
             patch->setTitle(location.getFileName());
+        }
+        else {
+            auto* patch = loadPatch(state);
+            if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
+                patch->setTitle("Untitled Patcher");
+            } else if (location.existsAsFile()) {
+                patch->setCurrentFile(location);
+                patch->setTitle(location.getFileName());
+            }
+            if (location.getParentDirectory().exists()) {
+                auto parentPath = location.getParentDirectory().getFullPathName();
+                // Add patch path to search path to make sure it finds abstractions in the saved patch!
+                // TODO: is there any way to make this local the the canvas?
+                libpd_add_to_search_path(parentPath.toRawUTF8());
+            }
         }
     }
 

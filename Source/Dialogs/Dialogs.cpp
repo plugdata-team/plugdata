@@ -149,51 +149,53 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
         });
 }
 
-class OkayCancelDialog : public Component {
-
-public:
-    OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> callback)
-        : label("", title)
-    {
-        setSize(400, 200);
-        addAndMakeVisible(label);
-        addAndMakeVisible(cancel);
-        addAndMakeVisible(okay);
-
-        cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-        okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-
-        cancel.onClick = [this, dialog, callback] {
-            callback(false);
-            dialog->closeDialog();
-        };
-
-        okay.onClick = [this, dialog, callback] {
-            callback(true);
-            dialog->closeDialog();
-        };
-
-        cancel.changeWidthToFitText();
-        okay.changeWidthToFitText();
-        setOpaque(false);
-    }
-
-    void resized() override
-    {
-        label.setBounds(20, 25, 360, 30);
-        cancel.setBounds(20, 80, 80, 25);
-        okay.setBounds(300, 80, 80, 25);
-    }
-
-private:
-    Label label;
-
-    TextButton cancel = TextButton("Cancel");
-    TextButton okay = TextButton("OK");
-};
-
 void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback)
 {
+    
+    class OkayCancelDialog : public Component {
+
+    public:
+        OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> callback)
+            : label("", title)
+        {
+            setSize(400, 200);
+            addAndMakeVisible(label);
+            addAndMakeVisible(cancel);
+            addAndMakeVisible(okay);
+
+            cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+            okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+
+            cancel.onClick = [this, dialog, callback] {
+                callback(false);
+                dialog->closeDialog();
+            };
+
+            okay.onClick = [this, dialog, callback] {
+                callback(true);
+                dialog->closeDialog();
+            };
+
+            cancel.changeWidthToFitText();
+            okay.changeWidthToFitText();
+            setOpaque(false);
+        }
+
+        void resized() override
+        {
+            label.setBounds(20, 25, 360, 30);
+            cancel.setBounds(20, 80, 80, 25);
+            okay.setBounds(300, 80, 80, 25);
+        }
+
+    private:
+        Label label;
+
+        TextButton cancel = TextButton("Cancel");
+        TextButton okay = TextButton("OK");
+    };
+
+    
     auto* dialog = new Dialog(target, parent, 400, 130, 160, false);
     auto* dialogContent = new OkayCancelDialog(dialog, title, callback);
 
@@ -256,6 +258,80 @@ bool Dialog::wantsRoundedCorners()
     else {
         return true;
     }
+}
+
+
+
+void Dialogs::askToLocatePatch(PluginEditor* editor, const String& backupState, std::function<void(File)> callback)
+{
+    class LocatePatchDialog : public Component {
+
+    public:
+        LocatePatchDialog(Dialog* dialog, String const& backup, std::function<void(File)> callback)
+            : label("", ""), backupState(backup)
+        {
+            setSize(400, 200);
+            addAndMakeVisible(label);
+            addAndMakeVisible(locate);
+            addAndMakeVisible(loadFromState);
+
+            locate.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+            loadFromState.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+
+            locate.onClick = [this, dialog, callback] {
+                callback(File());
+                
+                openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", wantsNativeDialog());
+
+                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [callback](FileChooser const& f) {
+                    File openedFile = f.getResult();
+                    if(openedFile.existsAsFile()) {
+                        callback(openedFile);
+                    }
+                });
+                
+                dialog->closeDialog();
+            };
+
+            loadFromState.onClick = [this, dialog, callback] {
+                
+                if (backupState.isEmpty())
+                    backupState = pd::Instance::defaultPatch;
+
+                auto patchFile = File::createTempFile(".pd");
+                patchFile.replaceWithText(backupState);
+
+                callback(patchFile);
+                dialog->closeDialog();
+            };
+
+            locate.changeWidthToFitText();
+            loadFromState.changeWidthToFitText();
+            setOpaque(false);
+        }
+
+        void resized() override
+        {
+            label.setBounds(20, 25, 360, 30);
+            loadFromState.setBounds(20, 80, 80, 25);
+            locate.setBounds(300, 80, 80, 25);
+        }
+
+    private:
+        Label label;
+        String backupState;
+        
+        std::unique_ptr<FileChooser> openChooser;
+        
+        TextButton loadFromState = TextButton("Use saved state");
+        TextButton locate = TextButton("Locate...");
+    };
+    
+    auto* dialog = new Dialog(&editor->openedDialog, editor, 400, 130, 160, false);
+    auto* dialogContent = new LocatePatchDialog(dialog, backupState, callback);
+
+    dialog->setViewedComponent(dialogContent);
+    editor->openedDialog.reset(dialog);
 }
 
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)

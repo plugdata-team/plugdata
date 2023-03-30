@@ -218,18 +218,20 @@ public:
         if (settings != nullptr && processor != nullptr) {
             MemoryBlock data;
             processor->getStateInformation(data);
-
-            settings->setValue("filterState", data.toBase64Encoding());
+            
+            MemoryOutputStream ostream;
+            Base64::convertToBase64(ostream, data.getData(), data.getSize());
+            settings->setValue("filterState", ostream.toString());
         }
     }
 
     void reloadPluginState()
     {
         if (settings != nullptr) {
-            MemoryBlock data;
-
-            if (data.fromBase64Encoding(settings->getValue("filterState")) && data.getSize() > 0)
-                processor->setStateInformation(data.getData(), static_cast<int>(data.getSize()));
+            MemoryOutputStream data;
+            Base64::convertFromBase64(data, settings->getValue("filterState"));
+            if (data.getDataSize() > 0)
+                processor->setStateInformation(data.getData(), static_cast<int>(data.getDataSize()));
         }
     }
 
