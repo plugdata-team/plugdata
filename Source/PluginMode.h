@@ -18,7 +18,7 @@ public:
         windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
 
         // Hide all of the editor's content
-        for (auto* child : editor->getTopLevelComponent()->getChildren()) {
+        for (auto* child : editor->getChildren()) {
             if (child->isVisible()) {
                 child->setVisible(false);
                 children.emplace_back(child);
@@ -42,7 +42,7 @@ public:
         setBounds(0, 0, width, height + titlebarHeight);
 
         // Add this view to the editor
-        editor->getTopLevelComponent()->addAndMakeVisible(this);
+        editor->addAndMakeVisible(this);
 
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
