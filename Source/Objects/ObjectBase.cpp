@@ -503,7 +503,7 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
     auto messages = getAllMessages();
     if(std::find(messages.begin(), messages.end(), sym) != messages.end()) {
         MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-            _this->receiveObjectMessage(symbol, atoms);
+            if(_this) _this->receiveObjectMessage(symbol, atoms);
         });
     }
  }
