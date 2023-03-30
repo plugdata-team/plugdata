@@ -223,10 +223,32 @@ void Canvas::paint(Graphics& g)
 
     g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
     auto clipBounds = g.getClipBounds();
+    
+    if(!static_cast<bool>(locked.getValue())) {
+        
+        auto startX = (canvasOrigin.x % objectGrid.gridSize);
+        startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
 
-    // draw patch window dashed outline
-    auto patchWidthCanvas = canvasOrigin.x + static_cast<int>(patchWidth.getValue());
-    auto patchHeightCanvas = canvasOrigin.y + static_cast<int>(patchHeight.getValue());
+        auto startY = (canvasOrigin.y % objectGrid.gridSize);
+        startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize);
+        
+        g.setColour(findColour(PlugDataColour::canvasDotsColourId));
+        
+        for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
+            for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
+                
+                // Don't draw over origin line
+                if (showBorder || showOrigin) {
+                    if ((x == canvasOrigin.x && y >= canvasOrigin.y) || (y == canvasOrigin.y && x >= canvasOrigin.x))
+                        continue;
+                }
+                g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
+            }
+        }
+    }
+    
+    if(!showOrigin && !showBorder) return;
+
 
     /*
     ┌────────┐
@@ -236,66 +258,54 @@ void Canvas::paint(Graphics& g)
     │d      c│
     └────────┘
     */
+    
+    // Clip bounds so that we have the smallest lines that fit the viewport, but also
+    // compensate for line start, so the dashes don't stay fixed in place if they are drawn from
+    // the top of the viewport
+    auto clippedOrigin = Point<float>(std::max(canvasOrigin.x, clipBounds.getX()), std::max(canvasOrigin.y, clipBounds.getY()));
+    
+    auto originDiff = canvasOrigin.toFloat() - clippedOrigin;
+    
+    // draw patch window dashed outline
+    auto patchWidthCanvas = clippedOrigin.x + (static_cast<int>(patchWidth.getValue()) + originDiff.x);
+    auto patchHeightCanvas = clippedOrigin.y + (static_cast<int>(patchHeight.getValue()) + originDiff.y);
+    
+    clippedOrigin.x += fmod(originDiff.x, 10.0f) - 0.5f;
+    clippedOrigin.y += fmod(originDiff.y, 10.0f) - 0.5f;
+    
     // points for border
-    auto pointA = Point<float>(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f);
-    auto pointB = Point<float>(patchWidthCanvas, canvasOrigin.y - 0.5f);
+    auto pointA = Point<float>(clippedOrigin.x, clippedOrigin.y);
+    auto pointB = Point<float>(patchWidthCanvas, clippedOrigin.y);
     auto pointC = Point<float>(patchWidthCanvas, patchHeightCanvas);
-    auto pointD = Point<float>(canvasOrigin.x - 0.5f, patchHeightCanvas);
-
-    // points for origin extending to edge of view
-    auto pointOriginB = Point<float>(getWidth(), canvasOrigin.y - 0.5f);
-    auto pointOriginD = Point<float>(canvasOrigin.x - 0.5f, getHeight());
-
-    // arrange line points so that dashes appear to grow from origin and bottom right
+    auto pointD = Point<float>(clippedOrigin.x, patchHeightCanvas);
+    
     auto extentTop = Line<float>(pointA, pointB);
     auto extentLeft = Line<float>(pointA, pointD);
+    
+    // arrange line points so that dashes appear to grow from origin and bottom right
     if (showOrigin) {
+        
+        // points for origin extending to edge of view
+        auto pointOriginB = Point<float>(getWidth(), clippedOrigin.y);
+        auto pointOriginD = Point<float>(clippedOrigin.x, getHeight());
+        
         extentTop = Line<float>(pointA, pointOriginB);
         extentLeft = Line<float>(pointA, pointOriginD);
     }
 
-    auto extentRight = Line<float>(pointC, pointB);
-    auto extentBottom = Line<float>(pointC, pointD);
-
     float dash[2] = { 5.0f, 5.0f };
     
-    auto isInsideXBounds = [this, &b = clipBounds](Line<float>& line) {
-        return b.getX() < line.getStartX() && b.getRight() > line.getStartX();
-    };
-    auto isInsideYBounds = [this, &b = clipBounds](Line<float>& line) {
-        return b.getY() < line.getStartY() && b.getBottom() > line.getStartY();
-    };
-    
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-    if (showOrigin || showBorder) {
-        if(isInsideXBounds(extentLeft)) g.drawDashedLine(extentLeft, dash, 2, 1.0f);
-        if(isInsideYBounds(extentTop)) g.drawDashedLine(extentTop, dash, 2, 1.0f);
-    }
+    
+    g.drawDashedLine(extentLeft, dash, 2, 1.0f);
+    g.drawDashedLine(extentTop, dash, 2, 1.0f);
+    
     if (showBorder) {
-        if(isInsideXBounds(extentRight)) g.drawDashedLine(extentRight, dash, 2, 1.0f);
-        if(isInsideYBounds(extentBottom)) g.drawDashedLine(extentBottom, dash, 2, 1.0f);
-    }
-
-    auto startX = (canvasOrigin.x % objectGrid.gridSize);
-    startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
-
-    auto startY = (canvasOrigin.y % objectGrid.gridSize);
-    startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize);
-
-    g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-
-    if(static_cast<bool>(locked.getValue())) return;
-    
-    for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
-        for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
-
-            // Don't draw over origin line
-            if (showBorder || showOrigin) {
-                if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= extentLeft.getEndY()) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= extentTop.getEndX()))
-                    continue;
-            }
-            g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
-        }
+        auto extentRight = Line<float>(pointC, pointB);
+        auto extentBottom = Line<float>(pointC, pointD);
+        
+        g.drawDashedLine(extentRight, dash, 2, 1.0f);
+        g.drawDashedLine(extentBottom, dash, 2, 1.0f);
     }
 }
 
@@ -1410,8 +1420,6 @@ bool Canvas::panningModifierDown()
 
 void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
 {
-    auto atoms = pd::Atom::fromAtoms(argc, argv);
-
     switch (hash(symbol)) {
     case hash("obj"):
     case hash("msg"):

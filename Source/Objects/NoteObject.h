@@ -408,6 +408,25 @@ public:
         };
     }
 
+    std::vector<hash32> getAllMessages() override {
+        return {
+            hash("font"),
+            hash("italic"),
+            hash("size"),
+            hash("underline"),
+            hash("bold"),
+            hash("prepend"),
+            hash("append"),
+            hash("set"),
+            hash("color"),
+            hash("bgcolor"),
+            hash("justification"),
+            hash("width"),
+            hash("outline"),
+            hash("receive")
+        };
+    }
+    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         auto* note = static_cast<t_fake_note*>(ptr);

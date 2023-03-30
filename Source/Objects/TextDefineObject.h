@@ -127,6 +127,13 @@ public:
             binbuf_free(z);
         });
     }
+    
+    std::vector<hash32> getAllMessages() override {
+        return {
+            hash("click"),
+            hash("close")
+        };
+    }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {

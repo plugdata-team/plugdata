@@ -170,6 +170,15 @@ public:
         }
     }
 
+    std::vector<hash32> getAllMessages() override {
+        return {
+            hash("float"),
+            hash("set"),
+            hash("range"),
+            // TODO: finish this
+        };
+    }
+    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
@@ -177,16 +186,6 @@ public:
         case hash("set"): {
             value = atoms[0].getFloat();
             knob.setValue(value, dontSendNotification);
-            break;
-        }
-        case hash("lin"): {
-            setParameterExcludingListener(isLogarithmic, false);
-            updateRange();
-            break;
-        }
-        case hash("log"): {
-            setParameterExcludingListener(isLogarithmic, true);
-            updateRange();
             break;
         }
         case hash("range"): {

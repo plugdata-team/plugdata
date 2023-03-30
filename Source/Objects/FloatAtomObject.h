@@ -194,6 +194,15 @@ public:
         return atom_getfloat(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)));
     }
 
+    std::vector<hash32> getAllMessages() override {
+        return {
+            hash("set"),
+            hash("float"),
+            hash("send"),
+            hash("receive"),
+        };
+    }
+    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {

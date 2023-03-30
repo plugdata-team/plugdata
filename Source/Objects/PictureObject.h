@@ -99,6 +99,14 @@ public:
 
         repaint();
     }
+    
+    std::vector<hash32> getAllMessages() override {
+        return {
+            hash("latch"),
+            hash("outline"),
+            hash("open"),
+        };
+    }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {

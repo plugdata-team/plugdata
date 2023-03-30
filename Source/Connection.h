@@ -11,6 +11,7 @@
 #include <concurrentqueue.h> // Move to impl
 #include "Constants.h"
 #include "Iolet.h"           // Move to impl
+#include "Pd/Instance.h"        // Move to impl
 #include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
@@ -140,7 +141,11 @@ private:
     };
 
     t_fake_outconnect* ptr;
-
+    
+    std::vector<pd::Atom> lastValue;
+    String lastSelector;
+    std::mutex lastValueMutex;
+    
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };

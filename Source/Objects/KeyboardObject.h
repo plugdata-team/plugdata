@@ -434,6 +434,21 @@ public:
         }
     }
 
+    std::vector<hash32> getAllMessages() override {
+        return {
+            hash("float"),
+            hash("list"),
+            hash("set"),
+            hash("lowc"),
+            hash("oct"),
+            hash("8ves"),
+            hash("send"),
+            hash("receive"),
+            hash("toggle")
+        };
+    }
+    
+    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {

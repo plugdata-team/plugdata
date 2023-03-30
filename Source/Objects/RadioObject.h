@@ -95,6 +95,16 @@ public:
             repaint();
         }
     }
+    
+    std::vector<hash32> getAllMessages() override {
+        return {
+            hash("float"),
+            hash("set"),
+            hash("orientation"),
+            hash("number"),
+            IEMGUI_MESSAGES
+        };
+    }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {

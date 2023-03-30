@@ -50,6 +50,12 @@ public:
             });
         });
     }
+    
+    std::vector<hash32> getAllMessages() override {
+        return {
+            hash("pick")
+        };
+    }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {

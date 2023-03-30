@@ -11,6 +11,9 @@ static int srl_is_valid(t_symbol const* s)
     return (!!s && s != gensym(""));
 }
 
+
+#define IEMGUI_MESSAGES hash("send"), hash("receive"), hash("color"), hash("label"), hash("label_pos"), hash("label_font"), hash("vis_size"), hash("init")
+
 extern "C" {
 char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
 }
@@ -77,6 +80,7 @@ public:
         };
     }
 
+    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
     {
         auto setColour = [this](Value& targetValue, pd::Atom& atom) {

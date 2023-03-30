@@ -484,25 +484,29 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
 void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
 {
     auto atoms = pd::Atom::fromAtoms(argc, argv);
-
-    MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-        if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
-            return;
-
-        switch (hash(symbol)) {
+    auto sym = hash(symbol);
+   
+    switch (sym) {
         case hash("size"):
         case hash("delta"):
         case hash("pos"):
         case hash("dim"):
         case hash("width"):
-        case hash("height"):
-            _this->object->updateBounds();
-            break;
-        default:
-            _this->receiveObjectMessage(symbol, atoms);
+        case hash("height"): {
+            MessageManager::callAsync([_this = SafePointer(this)](){
+                _this->object->updateBounds();
+            });
+            return;
         }
-    });
-}
+    }
+    
+    auto messages = getAllMessages();
+    if(std::find(messages.begin(), messages.end(), sym) != messages.end()) {
+        MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+            _this->receiveObjectMessage(symbol, atoms);
+        });
+    }
+ }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var value)
 {
