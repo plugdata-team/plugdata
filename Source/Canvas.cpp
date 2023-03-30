@@ -258,14 +258,22 @@ void Canvas::paint(Graphics& g)
     auto extentBottom = Line<float>(pointC, pointD);
 
     float dash[2] = { 5.0f, 5.0f };
+    
+    auto isInsideXBounds = [this, &b = clipBounds](Line<float>& line) {
+        return b.getX() < line.getStartX() && b.getRight() > line.getStartX();
+    };
+    auto isInsideYBounds = [this, &b = clipBounds](Line<float>& line) {
+        return b.getY() < line.getStartY() && b.getBottom() > line.getStartY();
+    };
+    
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
     if (showOrigin || showBorder) {
-        g.drawDashedLine(extentLeft, dash, 2, 1.0f);
-        g.drawDashedLine(extentTop, dash, 2, 1.0f);
+        if(isInsideXBounds(extentLeft)) g.drawDashedLine(extentLeft, dash, 2, 1.0f);
+        if(isInsideYBounds(extentTop)) g.drawDashedLine(extentTop, dash, 2, 1.0f);
     }
     if (showBorder) {
-        g.drawDashedLine(extentRight, dash, 2, 1.0f);
-        g.drawDashedLine(extentBottom, dash, 2, 1.0f);
+        if(isInsideXBounds(extentRight)) g.drawDashedLine(extentRight, dash, 2, 1.0f);
+        if(isInsideYBounds(extentBottom)) g.drawDashedLine(extentBottom, dash, 2, 1.0f);
     }
 
     auto startX = (canvasOrigin.x % objectGrid.gridSize);
