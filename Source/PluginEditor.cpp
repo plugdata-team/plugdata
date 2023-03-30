@@ -395,29 +395,28 @@ void PluginEditor::parentSizeChanged()
         return;
 
     auto* standalone = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
+    // Hide TitleBar Buttons in Plugin Mode
+    bool visible = pd->pluginMode == var(false);
 #if JUCE_MAC
     if (!standalone->isUsingNativeTitleBar()) {
-        // Hide title bar buttons when fullscreen on MacOS
-        bool visible = !standalone->isFullScreen();
+        // & hide TitleBar buttons when fullscreen on MacOS
+        visible = visible && !standalone->isFullScreen();
         standalone->getCloseButton()->setVisible(visible);
-        // & disable minimise and maximise in Plugin Mode
-
-        visible = visible && pd->pluginMode == var(false);
         standalone->getMinimiseButton()->setVisible(visible);
         standalone->getMaximiseButton()->setVisible(visible);
-    } else if (pd->pluginMode != var(false)) {
-        // Disable minimise/maximise in Plugin Mode if using native title bar
+    } else if (!visible && !standalone->isFullScreen()) {
+        // Hide TitleBar Buttons in Plugin Mode if using native title bar
         if (ComponentPeer* peer = standalone->getPeer())
-                        OSUtils::HideTitlebarButtons(peer->getNativeHandle(), true, true, false);
+                        OSUtils::HideTitlebarButtons(peer->getNativeHandle(), true, true, true);
     } else {
-        // Enable minimise/maximise
+        // Show TitleBar Buttons
         if (ComponentPeer* peer = standalone->getPeer())
                         OSUtils::HideTitlebarButtons(peer->getNativeHandle(), false, false, false);
     }
 #else
     if (!standalone->isUsingNativeTitleBar()) {
-        bool visible = pd->pluginMode == var(false);
-        // Disable minimise/maximise in Plugin Mode
+        // Hide/Show TitleBar Buttons in Plugin Mode
+        standalone->getCloseButton()->setVisible(visible);
         standalone->getMinimiseButton()->setVisible(visible);
         standalone->getMaximiseButton()->setVisible(visible);
     }
