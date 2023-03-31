@@ -42,6 +42,7 @@ class PaletteView : public Component
             addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
             setBounds(cnv->localAreaToGlobal(totalBounds));
             setVisible(true);
+            setAlwaysOnTop(true);
         }
 
         Image getObjectsSnapshot(Array<Component*> components, Rectangle<int> totalBounds)
