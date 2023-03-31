@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Utility/ModifierKeyListener.h"
+#include <JuceHeader.h>
 
 class ObjectBase;
 class Iolet;
@@ -17,6 +18,7 @@ class ObjectBoundsConstrainer;
 
 class Object : public Component
     , public Value::Listener
+    , public ChangeListener
     , public Timer
     , private TextEditor::Listener {
 public:
@@ -27,6 +29,8 @@ public:
     ~Object();
 
     void valueChanged(Value& v) override;
+
+    void changeListenerCallback(ChangeBroadcaster *source) override;
 
     void timerCallback() override;
 
@@ -107,6 +111,8 @@ public:
 
     static inline int const minimumSize = 12;
 
+    bool isSelected();
+
 private:
     void initialise();
 
@@ -114,11 +120,15 @@ private:
 
     void openNewObjectEditor();
 
+    void setSelected(bool shouldBeSelected);
+    bool selectedFlag = false;
+
     bool createEditorOnMouseDown = false;
     bool selectionStateChanged = false;
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;
     bool isHvccCompatible = true;
+
 
     ObjectDragState& ds;
 

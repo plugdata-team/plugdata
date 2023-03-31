@@ -25,6 +25,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     , inobj(inlet->object)
     , ptr(static_cast<t_fake_outconnect*>(oc))
 {
+    cnv->selectedComponents.addChangeListener(this);
+
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);
     presentationMode.addListener(this);
@@ -92,6 +94,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 Connection::~Connection()
 {
     cnv->pd->unregisterMessageListener(ptr, this);
+    cnv->selectedComponents.removeChangeListener(this);
 
     if (outlet) {
         outlet->repaint();
@@ -108,6 +111,12 @@ Connection::~Connection()
     if (inobj) {
         inobj->removeComponentListener(this);
     }
+}
+
+void Connection::changeListenerCallback(ChangeBroadcaster *source)
+{
+    if (auto selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
+        setSelected(selectedItems->isSelected(this));
 }
 
 void Connection::valueChanged(Value& v)
@@ -212,7 +221,7 @@ bool Connection::hitTest(int x, int y)
     auto pstart = getStartPoint().toFloat();
     auto pend = getEndPoint().toFloat();
 
-    if (cnv->isSelected(this) && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position))) {
+    if (selectedFlag && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position))) {
         repaint();
         return true;
     }
@@ -386,7 +395,7 @@ void Connection::paint(Graphics& g)
                          isMouseOver(),
                          showDirection,
                          showConnectionOrder,
-                         cnv->isSelected(this),
+                         selectedFlag,
                          getMouseXYRelative(),
                          isHovering,
                          getNumberOfConnections(),
@@ -404,6 +413,19 @@ void Connection::setSegmented(bool isSegmented)
     pushPathState();
     updatePath();
     repaint();
+}
+
+void Connection::setSelected(bool shouldBeSelected)
+{
+    if (selectedFlag != shouldBeSelected) {
+        selectedFlag = shouldBeSelected;
+        repaint();
+    }
+}
+
+bool Connection::isSelected()
+{
+    return selectedFlag;
 }
 
 void Connection::mouseMove(MouseEvent const& e)
@@ -477,8 +499,6 @@ void Connection::mouseExit(MouseEvent const& e)
 
 void Connection::mouseDown(MouseEvent const& e)
 {
-    wasSelected = cnv->isSelected(this);
-
     // Deselect all other connection if shift or command is not down
     if (!e.mods.isCommandDown() && !e.mods.isShiftDown()) {
         cnv->deselectAll();
@@ -505,11 +525,11 @@ void Connection::mouseDown(MouseEvent const& e)
 
 void Connection::mouseDrag(MouseEvent const& e)
 {
-    if (wasSelected && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
+    if (selectedFlag && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
         cnv->connectingWithDrag = true;
         reconnect(inlet);
     }
-    if (wasSelected && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
+    if (selectedFlag && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
         cnv->connectingWithDrag = true;
         reconnect(outlet);
     }
@@ -543,10 +563,10 @@ void Connection::mouseUp(MouseEvent const& e)
         dragIdx = -1;
     }
 
-    if (wasSelected && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.position)) {
+    if (selectedFlag && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.position)) {
         reconnect(inlet);
     }
-    if (wasSelected && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.position)) {
+    if (selectedFlag && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.position)) {
         reconnect(outlet);
     }
     if (reconnecting.size()) {
@@ -590,7 +610,7 @@ void Connection::reconnect(Iolet* target)
 
     if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
         for (auto* c : otherEdge->object->getConnections()) {
-            if (c == this || !cnv->isSelected(c))
+            if (c == this || !c->isSelected())
                 continue;
 
             connections.add(c);
@@ -630,7 +650,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
 
     // If both inlet and outlet are selected we can just move the connection cord
-    if ((cnv->isSelected(outobj) && cnv->isSelected(inobj)) || cnv->updatingBounds) {
+    if ((outobj->isSelected() && inobj->isSelected()) || cnv->updatingBounds) {
         auto offset = pstart - currentPlan[0];
         for (auto& point : currentPlan)
             point += offset;
