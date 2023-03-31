@@ -417,8 +417,10 @@ void Connection::setSegmented(bool isSegmented)
 
 void Connection::setSelected(bool shouldBeSelected)
 {
-    selectedFlag = shouldBeSelected;
-    repaint();
+    if (selectedFlag != shouldBeSelected) {
+        selectedFlag = shouldBeSelected;
+        repaint();
+    }
 }
 
 bool Connection::isSelected()

@@ -146,8 +146,10 @@ void Object::changeListenerCallback(ChangeBroadcaster *source)
 
 void Object::setSelected(bool shouldBeSelected)
 {
-    selectedFlag = shouldBeSelected;
-    repaint();
+    if (selectedFlag != shouldBeSelected) {
+        selectedFlag = shouldBeSelected;
+        repaint();
+    }
 }
 
 bool Object::isSelected()
