@@ -74,6 +74,8 @@ class KnobObject : public ObjectBase {
 
     Value min = Value(0.0f);
     Value max = Value(0.0f);
+    
+    Value initialValue, moveMode, ticks, arcThickness, startAngle, endAngle;
 
     float value = 0.0f;
 
@@ -101,10 +103,21 @@ public:
             stopEdition();
         };
 
+        auto* knb = static_cast<t_fake_knb*>(ptr);
+        
+        initialValue = knb->x_init;
+        //moveMode
+        ticks = knb->x_ticks;
+        arcThickness = knb->x_arc_width;
+        startAngle = knb->x_start_angle;
+        endAngle = knb->x_end_angle;
+        
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
+        
+        updateRotaryParameters();
     }
 
     void update() override
@@ -143,7 +156,16 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
+        auto* iemgui = static_cast<t_iemgui*>(ptr);
+        
+        pd->lockAudioThread();
+        int x, y, w, h;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        pd->unlockAudioThread();
+        
+        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
+
+        return bounds;
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -223,20 +245,27 @@ public:
     void resized() override
     {
         knob.setBounds(getLocalBounds());
-
     }
+
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters allParameters = {
+        return {
             { "Minimum", tFloat, cGeneral, &min, {} },
             { "Maximum", tFloat, cGeneral, &max, {} },
-        };
-
-        auto iemParameters = iemHelper.getParameters();
-        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
-
-        return allParameters;
+            
+            { "Initial value", tFloat, cGeneral, &initialValue, {} },
+            { "Move mode", tCombo, cGeneral, &moveMode, {"X + Y", "X", "Y", "Angle"}},
+            { "Ticks", tInt, cGeneral, &ticks, {} },
+            { "Arc thickness", tFloat, cGeneral, &arcThickness, {} },
+            { "Start angle", tInt, cGeneral, &startAngle, {} },
+            { "End angle", tInt, cGeneral, &endAngle, {} },
+            
+            { "Foreground", tColour, cAppearance, &iemHelper.primaryColour, {} },
+            { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
+            { "Receive Symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
+            { "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
+        };;
     }
 
     float getValue()
@@ -266,15 +295,45 @@ public:
         knob.setRangeFlipped(static_cast<t_fake_knb*>(ptr)->x_min > static_cast<t_fake_knb*>(ptr)->x_max);
     }
 
+    void updateRotaryParameters()
+    {
+        auto* knb = static_cast<t_fake_knb*>(ptr);
+        float startRad = degreesToRadians<float>(180 - knb->x_start_angle);
+        float endRad = degreesToRadians<float>(180 - knb->x_end_angle);
+        knob.setRotaryParameters({startRad, endRad, true});
+        knob.repaint();
+    }
 
     void valueChanged(Value& value) override
     {
+        auto* knb = static_cast<t_fake_knb*>(ptr);
+        
         if (value.refersToSameSourceAs(min)) {
             setMinimum(static_cast<float>(min.getValue()));
             updateRange();
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
             updateRange();
+        }
+        else if (value.refersToSameSourceAs(initialValue)) {
+            knb->x_init = static_cast<float>(initialValue.getValue());
+        }
+        else if (value.refersToSameSourceAs(moveMode)) {
+            // TODO: implement this
+        }
+        else if (value.refersToSameSourceAs(ticks)) {
+            knb->x_ticks = static_cast<int>(ticks.getValue());
+        }
+        else if (value.refersToSameSourceAs(arcThickness)) {
+            knb->x_arc_width = static_cast<int>(arcThickness.getValue());
+        }
+        else if (value.refersToSameSourceAs(startAngle)) {
+            knb->x_start_angle = static_cast<int>(startAngle.getValue());
+            updateRotaryParameters();
+        }
+        else if (value.refersToSameSourceAs(endAngle)) {
+            knb->x_end_angle = static_cast<int>(endAngle.getValue());
+            updateRotaryParameters();
         }
         else {
             iemHelper.valueChanged(value);

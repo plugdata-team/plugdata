@@ -741,7 +741,7 @@ void knob_setup(void){
         A_FLOAT, A_FLOAT, 0);
     class_addmethod(knb_class, (t_method)knb_dialog, gensym("dialog"), A_GIMME, 0);
     class_addmethod(knb_class, (t_method)knb_init, gensym("init"), A_GIMME, 0);
-    class_addmethod(knb_class, (t_method)knb_set, gensym("set"), A_GIMME, 0);
+    class_addmethod(knb_class, (t_method)knb_set, gensym("set"), A_FLOAT, 0);
     class_addmethod(knb_class, (t_method)knb_size, gensym("size"), A_FLOAT, 0);
     class_addmethod(knb_class, (t_method)knb_sensitivity, gensym("sensitivity"), A_FLOAT, 0);
     class_addmethod(knb_class, (t_method)knb_move_mode, gensym("move_mode"), A_SYMBOL, 0);
