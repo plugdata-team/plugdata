@@ -186,12 +186,7 @@ public:
 
     std::vector<hash32> getAllMessages() override {
         return {
-            hash("float"),
-            hash("symbol"),
-            hash("list"),
-            hash("bang"),
-            hash("flashtime"),
-            IEMGUI_MESSAGES
+            hash("anything")
         };
     }
     
@@ -211,7 +206,11 @@ public:
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
+            if(!wasIemMessage)
+            {
+                trigger();
+            }
             break;
         }
         }

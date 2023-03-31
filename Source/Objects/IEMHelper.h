@@ -81,7 +81,7 @@ public:
     }
 
     
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
+    bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
     {
         auto setColour = [this](Value& targetValue, pd::Atom& atom) {
             if (atom.isSymbol()) {
@@ -110,12 +110,12 @@ public:
         case hash("send"): {
             if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
-            break;
+            return true;
         }
         case hash("receive"): {
             if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
-            break;
+            return true;
         }
         case hash("color"): {
             if (atoms.size() > 0)
@@ -126,14 +126,14 @@ public:
                 setColour(labelColour, atoms[2]);
             gui->repaint();
             gui->updateLabel();
-            break;
+            return true;
         }
         case hash("label"): {
             if (atoms.size() >= 1) {
                 gui->setParameterExcludingListener(labelText, atoms[0].getSymbol());
                 gui->updateLabel();
             }
-            break;
+            return true;
         }
         case hash("label_pos"): {
             if (atoms.size() >= 2) {
@@ -141,29 +141,31 @@ public:
                 gui->setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
             }
-            break;
+            return true;
         }
         case hash("label_font"): {
             if (atoms.size() >= 2) {
                 gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
             }
-            break;
+            return true;
         }
         case hash("vis_size"): {
             if (atoms.size() >= 2) {
                 object->updateBounds();
             }
-            break;
+            return true;
         }
         case hash("init"): {
             if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
-            break;
+            return true;
         }
         default:
             break;
         }
+        
+        return false;
     }
 
     void valueChanged(Value& v)
