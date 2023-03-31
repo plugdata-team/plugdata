@@ -71,7 +71,7 @@ public:
     // Some objects need to show/hide iolets when send/receive symbols are set
     virtual bool hideInlets() { return false; }
     virtual bool hideOutlets() { return false; }
-        
+    
     virtual std::vector<hash32> getAllMessages() { return {}; }
 
     // Gets position from pd and applies it to Object

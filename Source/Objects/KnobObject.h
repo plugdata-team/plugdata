@@ -52,7 +52,8 @@ class KnobObject : public ObjectBase {
     struct t_fake_knb
     {
         t_iemgui x_gui;
-        float    x_pos; /* 0-1 normalized position */
+        float    x_pos;         // 0-1 normalized position
+        float    x_init;
         int      x_arc_width;
         int      x_start_angle;
         int      x_end_angle;
@@ -62,7 +63,6 @@ class KnobObject : public ObjectBase {
         t_float  x_fval;
         int      x_acol;
         t_symbol *x_move_mode; /* "x","y", "xy" or "angle" */
-        unsigned int      x_lin0_log1:1;
         unsigned int      x_wiper_visible:1;
         unsigned int      x_arc_visible:1;
         unsigned int      x_center_visible:1;
