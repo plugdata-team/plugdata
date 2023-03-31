@@ -743,6 +743,8 @@ void xselect_tilde_setup();
 void xselect2_tilde_setup();
 void zerocross_tilde_setup();
 
+void knob_setup();
+
 void pdlua_setup(const char *datadir, char *vers, int vers_len);
 
 void libpd_init_pdlua(const char *datadir, char *vers, int vers_len)
@@ -752,6 +754,8 @@ void libpd_init_pdlua(const char *datadir, char *vers, int vers_len)
 
 void libpd_init_else(void)
 {
+    knob_setup();
+    
     above_tilde_setup();
     add_tilde_setup();
     adsr_tilde_setup();

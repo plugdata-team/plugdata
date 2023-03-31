@@ -998,7 +998,6 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     
     auto xmlSize = istream.readInt();
 
-
     auto* xmlData = new char[xmlSize];
     istream.read(xmlData, xmlSize);
 
