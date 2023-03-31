@@ -36,6 +36,10 @@ public:
         max = numItems;
 
         iemHelper.update();
+        
+        onConstrainerCreate = [this](){
+            updateAspectRatio();
+        };
     }
 
     bool hideInlets() override
