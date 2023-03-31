@@ -141,10 +141,7 @@ void Object::timerCallback()
 void Object::changeListenerCallback(ChangeBroadcaster *source)
 {
     if (auto selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
-        if (selectedItems->isSelected(this))
-            setSelected(true);
-        else
-            setSelected(false);
+        setSelected(selectedItems->isSelected(this));
 }
 
 void Object::setSelected(bool shouldBeSelected)
