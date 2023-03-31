@@ -799,14 +799,7 @@ bool Canvas::keyPressed(KeyPress const& key)
 
 void Canvas::deselectAll()
 {
-    auto selection = selectedComponents;
-
     selectedComponents.deselectAll();
-
-    // Deselect objects
-    for (auto c : selection)
-        if (!c.wasObjectDeleted())
-            c->repaint();
 
     editor->sidebar->hideParameters();
 }
@@ -878,6 +871,7 @@ void Canvas::duplicateSelection()
 {
     Array<Connection*> conInlets, conOutlets;
     auto selection = getSelectionOfType<Object>();
+
     patch.startUndoSequence("Duplicate");
 
     for (auto* object : selection) {
@@ -1333,12 +1327,10 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool up
 
     if (!isAlreadySelected && shouldNowBeSelected) {
         selectedComponents.addToSelection(component);
-        component->repaint();
     }
 
     if (isAlreadySelected && !shouldNowBeSelected) {
         removeSelectedComponent(component);
-        component->repaint();
     }
 
     if (updateCommandStatus && isAlreadySelected != shouldNowBeSelected) {
@@ -1384,7 +1376,6 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
         auto selB = object->getSelectableBounds() + canvasOrigin;
         if (area.intersects(object->getSelectableBounds())) {
             itemsFound.add(object);
-            setSelected(object, true, false);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(object, false, false);
         }
@@ -1401,7 +1392,6 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
         // Check if path intersects with lasso
         if (con->intersects(lasso.getBounds().translated(-con->getX(), -con->getY()).toFloat())) {
             itemsFound.add(con);
-            setSelected(con, true, false);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(con, false, false);
         }

@@ -24,6 +24,7 @@ class PathUpdater;
 class Connection : public Component
     , public ComponentListener
     , public Value::Listener
+    , public ChangeListener
     , public pd::MessageListener
     , public SettableTooltipClient
 {
@@ -66,6 +67,8 @@ public:
 
     void lookAndFeelChanged() override;
 
+    void changeListenerCallback(ChangeBroadcaster *source) override;
+
     bool hitTest(int x, int y) override;
 
     void mouseDown(MouseEvent const& e) override;
@@ -104,8 +107,9 @@ public:
 
     void receiveMessage(String const& name, int argc, t_atom* argv) override;
 
+    bool isSelected();
+
 private:
-    bool wasSelected = false;
     bool segmented = false;
 
     Array<SafePointer<Connection>> reconnecting;
@@ -114,6 +118,9 @@ private:
 
     int getMultiConnectNumber();
     int getNumberOfConnections();
+
+    void setSelected(bool shouldBeSelected);
+    bool selectedFlag = false;
 
     PathPlan currentPlan;
 

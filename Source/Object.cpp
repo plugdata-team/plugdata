@@ -80,6 +80,8 @@ Object::~Object()
     if (attachedToMouse) {
         stopTimer();
     }
+
+    cnv->selectedComponents.removeChangeListener(this);
 }
 
 Rectangle<int> Object::getObjectBounds()
@@ -104,6 +106,8 @@ void Object::setObjectBounds(Rectangle<int> bounds)
 void Object::initialise()
 {
     cnv->addAndMakeVisible(this);
+
+    cnv->selectedComponents.addChangeListener(this);
 
     // Updates lock/unlock mode
     locked.referTo(cnv->locked);
@@ -132,6 +136,26 @@ void Object::timerCallback()
         auto viewArea = cnv->viewport->getViewArea() / cnv->editor->getZoomScaleForCanvas(cnv);
         setCentrePosition(viewArea.getConstrainedPoint(pos));
     }
+}
+
+void Object::changeListenerCallback(ChangeBroadcaster *source)
+{
+    if (auto selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
+        if (selectedItems->isSelected(this))
+            setSelected(true);
+        else
+            setSelected(false);
+}
+
+void Object::setSelected(bool shouldBeSelected)
+{
+    selectedFlag = shouldBeSelected;
+    repaint();
+}
+
+bool Object::isSelected()
+{
+    return selectedFlag;
 }
 
 void Object::valueChanged(Value& v)
@@ -180,7 +204,7 @@ bool Object::hitTest(int x, int y)
             return true;
     }
 
-    if (cnv->isSelected(this)) {
+    if (selectedFlag) {
 
         for (auto& corner : getCorners()) {
             if (corner.contains(x, y))
@@ -222,7 +246,7 @@ void Object::mouseExit(MouseEvent const& e)
 
 void Object::mouseMove(MouseEvent const& e)
 {
-    if (!cnv->isSelected(this) || locked == var(true) || commandLocked == var(true)) {
+    if (!selectedFlag || locked == var(true) || commandLocked == var(true)) {
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
         return;
@@ -452,7 +476,7 @@ void Object::paintOverChildren(Graphics& g)
 
 void Object::paint(Graphics& g)
 {
-    if ((cnv->isSelected(this) && !cnv->isGraph) || newObjectEditor) {
+    if ((selectedFlag && !cnv->isGraph) || newObjectEditor) {
 
         if (newObjectEditor) {
 
@@ -742,8 +766,6 @@ void Object::mouseDown(MouseEvent const& e)
 
     wasLockedOnMouseDown = false;
 
-    bool wasSelected = cnv->isSelected(this);
-
     if (e.mods.isRightButtonDown()) {
         cnv->setSelected(this, true);
 
@@ -754,8 +776,8 @@ void Object::mouseDown(MouseEvent const& e)
     }
     if (e.mods.isShiftDown()) {
         // select multiple objects
-        ds.wasSelectedOnMouseDown = cnv->isSelected(this);
-    } else if (!cnv->isSelected(this)) {
+        ds.wasSelectedOnMouseDown = selectedFlag;
+    } else if (!selectedFlag) {
         cnv->deselectAll();
     }
     cnv->setSelected(this, true); // TODO: can we move this up, so we don't need it twice?
@@ -771,10 +793,6 @@ void Object::mouseDown(MouseEvent const& e)
     ds.canvasDragStartPosition = cnv->getPosition();
     
     cnv->updateSidebarSelection();
-
-    if (cnv->isSelected(this) != wasSelected) {
-        selectionStateChanged = true;
-    }
 }
 
 void Object::mouseUp(MouseEvent const& e)
@@ -802,7 +820,7 @@ void Object::mouseUp(MouseEvent const& e)
         if (e.mods.isShiftDown() && ds.wasSelectedOnMouseDown && !ds.didStartDragging) {
             // Unselect object if selected
             cnv->setSelected(this, false);
-        } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && cnv->isSelected(this) && !ds.didStartDragging && !e.mods.isRightButtonDown()) {
+        } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && selectedFlag && !ds.didStartDragging && !e.mods.isRightButtonDown()) {
 
             // Don't run normal deselectAll, that would clear the sidebar inspector as well
             // We'll update sidebar selection later in this function
@@ -864,11 +882,9 @@ void Object::mouseUp(MouseEvent const& e)
         ds.wasDragDuplicated = false;
     }
 
-    if (gui && !selectionStateChanged && cnv->isSelected(this) && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
+    if (gui && selectedFlag && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
         gui->showEditor();
     }
-
-    selectionStateChanged = false;
 }
 
 void Object::mouseDrag(MouseEvent const& e)
