@@ -74,7 +74,7 @@ public:
     {
         if (!toggleMode && !heldKeys.count(midiNoteNumber)) {
             for (auto& note : heldKeys) {
-                noteOff(midiNoteNumber);
+                noteOff(note);
             }
 
             heldKeys.clear();
