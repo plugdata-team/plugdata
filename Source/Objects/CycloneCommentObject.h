@@ -106,7 +106,7 @@ public:
         auto textArea = border.subtractedFrom(getLocalBounds());
         Fonts::drawFittedText(g, getText(), textArea, textColour, comment->x_fontsize);
 
-        auto selected = cnv->isSelected(object);
+        auto selected = object->isSelected();
         if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
             g.setColour(selected ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : object->findColour(PlugDataColour::objectOutlineColourId));
 

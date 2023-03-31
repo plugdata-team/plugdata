@@ -282,7 +282,7 @@ void ObjectBase::paint(Graphics& g)
     g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-    bool selected = cnv->isSelected(object) && !cnv->isGraph;
+    bool selected = object->isSelected() && !cnv->isGraph;
     auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
     g.setColour(outlineColour);
