@@ -415,9 +415,9 @@ void Connection::setSegmented(bool isSegmented)
     repaint();
 }
 
-void Connection::setSelected(bool isSelected)
+void Connection::setSelected(bool shouldBeSelected)
 {
-    selectedFlag = isSelected;
+    selectedFlag = shouldBeSelected;
     repaint();
 }
 
