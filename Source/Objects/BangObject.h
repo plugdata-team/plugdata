@@ -189,6 +189,7 @@ public:
             hash("float"),
             hash("symbol"),
             hash("list"),
+            hash("bang"),
             hash("flashtime"),
             IEMGUI_MESSAGES
         };

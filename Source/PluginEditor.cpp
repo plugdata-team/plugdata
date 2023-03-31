@@ -13,6 +13,8 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
+#include "Presets.h" // TODO: temporary, remove later
+
 #include "Pd/Patch.h"
 
 #include "LookAndFeel.h"
@@ -1247,6 +1249,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
     switch (info.commandID) {
     case CommandIDs::SaveProject: {
+        Presets::createPreset(pd);
         saveProject();
         return true;
     }

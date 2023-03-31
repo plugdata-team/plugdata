@@ -989,7 +989,7 @@ void Canvas::removeSelection()
 
     // Remove connection afterwards and make sure they aren't already deleted
     for (auto* con : connections) {
-        if (isSelected(con)) {
+        if (con->isSelected()) {
             if (!(objects.contains(con->outobj->getPointer()) || objects.contains(con->inobj->getPointer()))) {
                 patch.removeConnection(con->outobj->getPointer(), con->outIdx, con->inobj->getPointer(), con->inIdx, con->getPathState());
             }
@@ -1326,24 +1326,11 @@ void Canvas::hideSuggestions()
 // Makes component selected
 void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus)
 {
-    bool isAlreadySelected = isSelected(component);
-
-    if (!isAlreadySelected && shouldNowBeSelected) {
-        selectedComponents.addToSelection(component);
-    }
-
-    if (isAlreadySelected && !shouldNowBeSelected) {
-        removeSelectedComponent(component);
-    }
-
-    if (updateCommandStatus && isAlreadySelected != shouldNowBeSelected) {
+    selectedComponents.addToSelection(component);
+    
+    if (updateCommandStatus) {
         editor->updateCommandStatus();
     }
-}
-
-bool Canvas::isSelected(Component* component) const
-{
-    return selectedComponents.isSelected(component);
 }
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()

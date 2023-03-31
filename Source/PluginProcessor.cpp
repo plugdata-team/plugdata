@@ -860,11 +860,21 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     setThis();
 
     savePatchTabPositions();
+    
+    Array<pd::Patch*> palettes;
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+        for(auto* cnv : editor->canvases) {
+            if(cnv->isPalette)
+            {
+                palettes.add(&cnv->patch);
+            }
+        }
+    }
 
     // Store pure-data and parameter state
     MemoryOutputStream ostream(destData, false);
 
-    ostream.writeInt(patches.size());
+    ostream.writeInt(patches.size() - palettes.size());
 
     // Save path and content for patch
     lockAudioThread();
@@ -872,13 +882,10 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
     
     for (auto* patch : patches) {
+        if(palettes.contains(patch)) continue;
         ostream.writeString(patch->getCanvasContent());
-        
         auto patchFile = patch->getCurrentFile();
-        auto path = patchFile.getFullPathName();
-        path = path.replace(presetDir.getFullPathName(), "${PRESET_DIR}");
-        
-        ostream.writeString(path);
+        ostream.writeString(patchFile.getFullPathName());
     }
     unlockAudioThread();
 
@@ -985,12 +992,12 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         }
     }
 
-    auto latency = istream.readInt();
-    auto oversampling = istream.readInt();
-    auto tail = istream.readFloat();
+    auto legacyLatency = istream.readInt();
+    auto legacyOversampling = istream.readInt();
+    auto legacyTail = istream.readFloat();
+    
     auto xmlSize = istream.readInt();
 
-    tailLength = var(tail);
 
     auto* xmlData = new char[xmlSize];
     istream.read(xmlData, xmlSize);
@@ -1004,6 +1011,17 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
         auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
 
+        if (!xmlState->hasAttribute("Legacy") || xmlState->getBoolAttribute("Legacy")) {
+            setLatencySamples(legacyLatency);
+            setOversampling(legacyOversampling);
+            tailLength = legacyTail;
+        }
+        else {
+            setOversampling(xmlState->getDoubleAttribute("Oversampling"));
+            setLatencySamples(xmlState->getDoubleAttribute("Latency"));
+            tailLength = xmlState->getDoubleAttribute("TailLength");
+        }
+        
         if (xmlState->hasAttribute("Version")) {
             versionString = xmlState->getStringAttribute("Version");
         }
@@ -1043,8 +1061,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         parseDataBuffer(*xmlState);
     }
 
-    setLatencySamples(latency);
-    setOversampling(oversampling);
+
     delete[] xmlData;
 
     suspendProcessing(false);

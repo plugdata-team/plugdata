@@ -343,7 +343,7 @@ void Statusbar::resized()
 
     centreButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
     
-    position(10); // Seperator
+    position(7); // Seperator
     
     overlayButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
     overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1, 0).withTrimmedRight(8));
