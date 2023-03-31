@@ -216,7 +216,7 @@ public:
             Fonts::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
         }
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);

@@ -172,7 +172,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        wasSelectedOnMouseDown = cnv->isSelected(object);
+        wasSelectedOnMouseDown = object->isSelected();
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -214,7 +214,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         if (static_cast<bool>(outline.getValue())) {
-            bool selected = cnv->isSelected(object) && !cnv->isGraph;
+            bool selected = object->isSelected() && !cnv->isGraph;
             auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
             g.setColour(outlineColour);

@@ -124,7 +124,7 @@ public:
         triangle = triangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(triangle);
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);

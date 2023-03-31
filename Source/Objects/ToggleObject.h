@@ -62,7 +62,7 @@ public:
         g.setColour(iemHelper.getBackgroundColour());
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);

@@ -117,7 +117,7 @@ public:
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         bool editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 

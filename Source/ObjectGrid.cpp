@@ -485,7 +485,7 @@ Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
     auto viewBounds = reinterpret_cast<Viewport*>(cnv->viewport)->getViewArea();
 
     for (auto* object : cnv->objects) {
-        if (draggedObject == object || cnv->isSelected(object) || !viewBounds.intersects(object->getBounds()))
+        if (draggedObject == object || object->isSelected() || !viewBounds.intersects(object->getBounds()))
             continue; // don't look at dragged object, selected objects, or objects that are outside of view bounds
 
         snappable.add(object);

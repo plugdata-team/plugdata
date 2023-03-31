@@ -44,7 +44,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto selected = cnv->isSelected(object);
+        auto selected = object->isSelected();
         if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
             g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
 

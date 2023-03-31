@@ -120,7 +120,7 @@ public:
             Fonts::drawFittedText(g, String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
         }
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);

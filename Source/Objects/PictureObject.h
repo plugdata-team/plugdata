@@ -149,7 +149,7 @@ public:
             Fonts::drawText(g, "?", getLocalBounds(), object->findColour(PlugDataColour::canvasTextColourId), 30, Justification::centred);
         }
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         if (static_cast<bool>(outline.getValue())) {
