@@ -67,8 +67,6 @@ class KnobObject : public ObjectBase {
         unsigned int      x_arc_visible:1;
         unsigned int      x_center_visible:1;
     };
-    
-    Value isLogarithmic = Value(var(false));
 
     ReversibleKnob knob;
 
@@ -122,8 +120,6 @@ public:
         value = currentValue;
         knob.setValue(currentValue, dontSendNotification);
 
-        isLogarithmic = isLogScale();
-
         iemHelper.update();
 
         getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
@@ -157,17 +153,10 @@ public:
 
     void updateRange()
     {
-        if (isLogScale()) {
-            if (knob.isRangeFlipped())
-                knob.setNormalisableRange(makeLogarithmicRange<double>(getMaximum(), getMinimum()));
-            else
-                knob.setNormalisableRange(makeLogarithmicRange<double>(getMinimum(), getMaximum()));
-        } else {
-            if (knob.isRangeFlipped())
-                knob.setRange(getMaximum(), getMinimum(), std::numeric_limits<float>::epsilon());
-            else
-                knob.setRange(getMinimum(), getMaximum(), std::numeric_limits<float>::epsilon());
-        }
+        if (knob.isRangeFlipped())
+            knob.setRange(getMaximum(), getMinimum(), std::numeric_limits<float>::epsilon());
+        else
+            knob.setRange(getMinimum(), getMaximum(), std::numeric_limits<float>::epsilon());
     }
 
     std::vector<hash32> getAllMessages() override {
@@ -242,7 +231,6 @@ public:
         ObjectParameters allParameters = {
             { "Minimum", tFloat, cGeneral, &min, {} },
             { "Maximum", tFloat, cGeneral, &max, {} },
-            { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "Off", "On" } },
         };
 
         auto iemParameters = iemHelper.getParameters();
@@ -287,42 +275,14 @@ public:
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
             updateRange();
-        } else if (value.refersToSameSourceAs(isLogarithmic)) {
-            setLogScale(isLogarithmic == var(true));
-            updateRange();
         }
         else {
             iemHelper.valueChanged(value);
         }
     }
 
-    bool isLogScale() const
-    {
-        return static_cast<t_fake_knb*>(ptr)->x_lin0_log1;
-    }
-
-    void setLogScale(bool log)
-    {
-        static_cast<t_fake_knb*>(ptr)->x_lin0_log1 = log;
-    }
-
     void setValue(float v)
     {
         sendFloatValue(v);
-    }
-
-    template<typename FloatType>
-    static inline NormalisableRange<FloatType> makeLogarithmicRange(FloatType min, FloatType max)
-    {
-        min = std::max<float>(min, max / 100.0f);
-
-        return NormalisableRange<FloatType>(
-            min, max,
-            [](FloatType min, FloatType max, FloatType linVal) {
-                return std::pow(10.0f, (std::log10(max / min) * linVal + std::log10(min)));
-            },
-            [](FloatType min, FloatType max, FloatType logVal) {
-                return (std::log10(logVal / min) / std::log10(max / min));
-            });
     }
 };
