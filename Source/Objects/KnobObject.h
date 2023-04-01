@@ -11,6 +11,7 @@ class ReversibleKnob : public Slider{
     bool isInverted;
     Colour bgColour;
     Colour fgColour;
+    Colour lnColour;
 
     int arcWidth = 1;
     int numberOfTicks = 0;
@@ -31,7 +32,6 @@ public:
         // Calculate the angle between each tick
         float angleIncrement = (endAngle - startAngle) / static_cast<float>(jmax(numberOfTicks - 1, 1));
 
-
         // Position each tick around the larger circle
         float tickRadius = radius * 0.05f;
         for (int i = 0; i < numberOfTicks; ++i)
@@ -48,7 +48,7 @@ public:
 
     void paint(Graphics& g) override 
     {
-        auto bounds = getBounds().reduced(getWidth() * 0.1f);
+        auto bounds = getBounds().reduced(getWidth() * 0.15f);
         auto x = bounds.getX();
         auto y = bounds.getY();
         auto w = bounds.getWidth();
@@ -65,16 +65,17 @@ public:
         startAngle = jmin(startAngle, endAngle + MathConstants<float>::twoPi);
         startAngle = jmax(startAngle, endAngle - MathConstants<float>::twoPi);
 
-
-        Path bgArc;
         Path arc;
-        bgArc.addPieSegment(x, y, w, h, startAngle, endAngle, arcWidthProportional);
-        arc.addPieSegment(x, y, w, h, startAngle, angle, arcWidthProportional);
 
-        g.setColour(Colours::grey);
-        g.fillPath(bgArc);
+        arc.addPieSegment(x, y, w, h, startAngle, angle, 1.0f - arcWidthProportional);
+        
+        auto line = Line<float>::fromStartAndAngle (bounds.getCentre().toFloat(), (w / 2.0f) - 1.5f, angle);
+        
+        g.setColour(lnColour);
+        g.drawEllipse(bounds.toFloat().reduced(1.0f), 2.0f);
 
         g.setColour(fgColour);
+        g.drawLine(line, 2.0f); // TODO: use arc colour
         g.fillPath(arc);
 
         drawTicks(g, bounds, startAngle, endAngle);
@@ -90,14 +91,14 @@ public:
         return isInverted;
     }
 
-    double proportionOfLengthToValue(double proportion)
+    double proportionOfLengthToValue(double proportion) override
     {
         if (isInverted)
             return Slider::proportionOfLengthToValue(1.0f - proportion);
         else
             return Slider::proportionOfLengthToValue(proportion);
     };
-    double valueToProportionOfLength(double value)
+    double valueToProportionOfLength(double value) override
     {
         if (isInverted)
             return 1.0f - (Slider::valueToProportionOfLength(value));
@@ -105,15 +106,21 @@ public:
             return Slider::valueToProportionOfLength(value);
     };
 
-    void setBgColour(Colour setBgColour)
+    void setBgColour(Colour newBgColour)
     {
-        bgColour = setBgColour;
+        bgColour = newBgColour;
         repaint();
     }
 
-    void setFgColour(Colour setFgColour)
+    void setFgColour(Colour newFgColour)
     {
-        fgColour = setFgColour;
+        fgColour = newFgColour;
+        repaint();
+    }
+    
+    void setOutlineColour(Colour newOutlineColour)
+    {
+        lnColour = newOutlineColour;
         repaint();
     }
 
@@ -135,21 +142,22 @@ class KnobObject : public ObjectBase {
     
     struct t_fake_knb
     {
-        t_iemgui x_gui;
-        float    x_pos;         // 0-1 normalized position
-        float    x_init;
-        int      x_arc_width;
-        int      x_start_angle;
-        int      x_end_angle;
-        int      x_ticks;
-        double   x_min;
-        double   x_max;
-        t_float  x_fval;
-        int      x_acol;
-        t_symbol *x_move_mode; /* "x","y", "xy" or "angle" */
-        unsigned int      x_wiper_visible:1;
-        unsigned int      x_arc_visible:1;
-        unsigned int      x_center_visible:1;
+        t_iemgui        x_gui;
+        float           x_pos;  // 0-1 normalized position
+        float           x_exp;
+        float           x_init;
+        int             x_arc_width;
+        int             x_start_angle;
+        int             x_end_angle;
+        int             x_ticks;
+        double          x_min;
+        double          x_max;
+        t_float         x_fval;
+        int             x_acol;
+        t_symbol       *x_move_mode; // "xy" or "angle"
+        unsigned int    x_wiper_visible:1;
+        unsigned int    x_arc_visible:1;
+        unsigned int    x_center_visible:1;
     };
 
     ReversibleKnob knob;
@@ -189,8 +197,11 @@ public:
 
         auto* knb = static_cast<t_fake_knb*>(ptr);
         
+        auto mode = getModeMove();
+        knob.setSliderStyle(mode);
+        moveMode = mode - 3;
+        
         initialValue = knb->x_init;
-        //moveMode
         ticks = knb->x_ticks;
         arcThickness = knb->x_arc_width;
         startAngle = knb->x_start_angle;
@@ -202,6 +213,55 @@ public:
         };
         
         updateRotaryParameters();
+        
+        knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
+    }
+    
+    void setModeMove(Slider::SliderStyle style)
+    {
+        auto& mode = static_cast<t_fake_knb*>(ptr)->x_move_mode;
+        if(style == Slider::SliderStyle::RotaryHorizontalDrag)
+        {
+            mode = gensym("x");
+        }
+        if(style == Slider::SliderStyle::RotaryVerticalDrag)
+        {
+            mode = gensym("y");
+        }
+        if(style == Slider::SliderStyle::RotaryHorizontalVerticalDrag)
+        {
+            mode = gensym("xy");
+        }
+        if(style == Slider::SliderStyle::RotaryHorizontalVerticalDrag)
+        {
+            mode = gensym("angle");
+        }
+    }
+    
+    Slider::SliderStyle getModeMove()
+    {
+        auto mode = static_cast<t_fake_knb*>(ptr)->x_move_mode;
+        if(mode == gensym("x"))
+        {
+            return Slider::SliderStyle::RotaryHorizontalDrag;
+        }
+        if(mode == gensym("y"))
+        {
+            return Slider::SliderStyle::RotaryVerticalDrag;
+        }
+        if(mode == gensym("xy"))
+        {
+            return Slider::SliderStyle::RotaryHorizontalVerticalDrag;
+        }
+        if(mode == gensym("angle"))
+        {
+            return Slider::SliderStyle::Rotary;
+        }
+    }
+    
+    void lookAndFeelChanged() override
+    {
+        knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
     }
 
     void update() override
@@ -246,14 +306,12 @@ public:
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
         pd->unlockAudioThread();
         
-        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
-
-        return bounds;
+        return Rectangle<int>(x, y, w + 1, h + 1);
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.setPdBounds(b.reduced(2, 0).withTrimmedLeft(1));
+        iemHelper.setPdBounds(b.withTrimmedRight(-1).withTrimmedBottom(-1));
     }
 
     void updateRange()
@@ -339,7 +397,7 @@ public:
             { "Maximum", tFloat, cGeneral, &max, {} },
             
             { "Initial value", tFloat, cGeneral, &initialValue, {} },
-            { "Move mode", tCombo, cGeneral, &moveMode, {"X + Y", "X", "Y", "Angle"}},
+            { "Move mode", tCombo, cGeneral, &moveMode, {"Angle", "X", "Y", "X + Y"}},
             { "Ticks", tInt, cGeneral, &ticks, {} },
             { "Arc thickness", tFloat, cGeneral, &arcThickness, {} },
             { "Start angle", tInt, cGeneral, &startAngle, {} },
@@ -405,7 +463,10 @@ public:
             knb->x_init = static_cast<float>(initialValue.getValue());
         }
         else if (value.refersToSameSourceAs(moveMode)) {
-            // TODO: implement this
+            auto mode = static_cast<Slider::SliderStyle>(static_cast<int>(moveMode.getValue()) + 3);
+            knob.setSliderStyle(mode);
+            setModeMove(mode);
+            
         }
         else if (value.refersToSameSourceAs(ticks)) {
             ticks = jmax(static_cast<int>(ticks.getValue()), 0);
