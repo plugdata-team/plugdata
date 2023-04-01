@@ -74,15 +74,15 @@ public:
         
         auto line = Line<float>::fromStartAndAngle (bounds.getCentre().toFloat(), (w / 2.0f) - 1.5f, angle);
         
-        g.setColour(lnColour);
-        g.drawEllipse(bounds.toFloat().reduced(1.0f), lineThickness);
-        
         g.setColour(arcColour);
         g.fillPath(arc);
         
         g.setColour(fgColour);
         g.drawLine(line, lineThickness);
 
+        g.setColour(lnColour);
+        g.drawEllipse(bounds.toFloat().reduced(2.0f), lineThickness);
+        
         drawTicks(g, bounds, startAngle, endAngle);
     }
 
