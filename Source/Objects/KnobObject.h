@@ -4,21 +4,81 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class ReversibleKnob : public Slider {
+#include <JuceHeader.h>
+
+class ReversibleKnob : public Slider{
     
     bool isInverted;
-    
+    Colour bgColour;
+    Colour fgColour;
+
+    int arcWidth = 1;
+    int numberOfTicks = 0;
 public:
-    ReversibleKnob() {
-        setSliderStyle(Slider::RotaryHorizontalVerticalDrag);
-        setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
-        setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
+    ReversibleKnob() : Slider(Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox)
+    {
         setScrollWheelEnabled(false);
-        getProperties().set("Style", "SliderObject");
         setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
     }
     
     ~ReversibleKnob() {}
+
+    void drawTicks(Graphics& g, Rectangle<int> knobBounds, float startAngle, float endAngle)
+    {
+        auto centre = knobBounds.getCentre();
+        auto radius = (knobBounds.getWidth() * 0.5f) * 1.1f;
+
+        // Calculate the angle between each tick
+        float angleIncrement = (endAngle - startAngle) / static_cast<float>(jmax(numberOfTicks - 1, 1));
+
+
+        // Position each tick around the larger circle
+        float tickRadius = radius * 0.05f;
+        for (int i = 0; i < numberOfTicks; ++i)
+        {
+            float angle = startAngle + i * angleIncrement - MathConstants<float>::pi * 0.5f; 
+            float x = centre.getX() + radius * std::cos(angle);
+            float y = centre.getY() + radius * std::sin(angle);
+
+            // Draw the tick at this position
+            g.setColour(Colours::grey);
+            g.fillEllipse(x - tickRadius, y - tickRadius, tickRadius * 2.0f, tickRadius * 2.0f);
+        }
+    }
+
+    void paint(Graphics& g) override 
+    {
+        auto bounds = getBounds().reduced(getWidth() * 0.1f);
+        auto x = bounds.getX();
+        auto y = bounds.getY();
+        auto w = bounds.getWidth();
+        auto h = bounds.getHeight();
+
+        auto arcWidthProportional = static_cast<float>(arcWidth) / bounds.getWidth();//* 0.001f;
+
+        auto sliderPosProportional = (getValue() - getRange().getStart()) / getRange().getLength();
+
+        auto startAngle = getRotaryParameters().startAngleRadians * -1 + MathConstants<float>::pi;
+        auto endAngle = getRotaryParameters().endAngleRadians * -1 + MathConstants<float>::pi;
+        float angle = startAngle  + sliderPosProportional * (endAngle - startAngle);
+
+        startAngle = jmin(startAngle, endAngle + MathConstants<float>::twoPi);
+        startAngle = jmax(startAngle, endAngle - MathConstants<float>::twoPi);
+
+
+        Path bgArc;
+        Path arc;
+        bgArc.addPieSegment(x, y, w, h, startAngle, endAngle, arcWidthProportional);
+        arc.addPieSegment(x, y, w, h, startAngle, angle, arcWidthProportional);
+
+        g.setColour(Colours::grey);
+        g.fillPath(bgArc);
+
+        g.setColour(fgColour);
+        g.fillPath(arc);
+
+        drawTicks(g, bounds, startAngle, endAngle);
+    }
 
     void setRangeFlipped(bool invert)
     {
@@ -44,6 +104,30 @@ public:
         else
             return Slider::valueToProportionOfLength(value);
     };
+
+    void setBgColour(Colour setBgColour)
+    {
+        bgColour = setBgColour;
+        repaint();
+    }
+
+    void setFgColour(Colour setFgColour)
+    {
+        fgColour = setFgColour;
+        repaint();
+    }
+
+    void setArcWidth(int setArcWidth)
+    {
+        arcWidth = setArcWidth;
+        repaint();
+    }
+
+    void setNumberOfTicks(int ticks)
+    {
+        numberOfTicks = ticks;
+        repaint();
+    }
 };
 
 
@@ -135,8 +219,7 @@ public:
 
         iemHelper.update();
 
-        getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
-        getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
+        knob.setFgColour(Colour::fromString(iemHelper.primaryColour.toString()));
     }
 
     bool hideInlets() override
@@ -186,6 +269,7 @@ public:
             hash("float"),
             hash("set"),
             hash("range"),
+            IEMGUI_MESSAGES
             // TODO: finish this
         };
     }
@@ -216,8 +300,8 @@ public:
 
         // Update the colours of the actual slider
         if (hash(symbol) == hash("color")) {
-            getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
-            getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
+            knob.setBgColour(Colour::fromString(iemHelper.secondaryColour.toString()));
+            knob.setFgColour(Colour::fromString(iemHelper.primaryColour.toString()));
         }
     }
 
@@ -265,7 +349,7 @@ public:
             { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
             { "Receive Symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
             { "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
-        };;
+        };
     }
 
     float getValue()
@@ -301,6 +385,8 @@ public:
         float startRad = degreesToRadians<float>(180 - knb->x_start_angle);
         float endRad = degreesToRadians<float>(180 - knb->x_end_angle);
         knob.setRotaryParameters({startRad, endRad, true});
+        knob.setArcWidth(knb->x_arc_width);
+        knob.setNumberOfTicks(knb->x_ticks);
         knob.repaint();
     }
 
@@ -322,10 +408,14 @@ public:
             // TODO: implement this
         }
         else if (value.refersToSameSourceAs(ticks)) {
+            ticks = jmax(static_cast<int>(ticks.getValue()), 0);
             knb->x_ticks = static_cast<int>(ticks.getValue());
+            updateRotaryParameters();
         }
         else if (value.refersToSameSourceAs(arcThickness)) {
+            arcThickness = jmax(static_cast<int>(arcThickness.getValue()), 0);
             knb->x_arc_width = static_cast<int>(arcThickness.getValue());
+            updateRotaryParameters();
         }
         else if (value.refersToSameSourceAs(startAngle)) {
             knb->x_start_angle = static_cast<int>(startAngle.getValue());
@@ -337,6 +427,7 @@ public:
         }
         else {
             iemHelper.valueChanged(value);
+            knob.setFgColour(Colour::fromString(iemHelper.primaryColour.toString()));
         }
     }
 
