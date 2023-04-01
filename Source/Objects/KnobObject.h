@@ -77,11 +77,11 @@ public:
         g.setColour(lnColour);
         g.drawEllipse(bounds.toFloat().reduced(1.0f), lineThickness);
         
-        g.setColour(fgColour);
-        g.drawLine(line, lineThickness);
-        
         g.setColour(arcColour);
         g.fillPath(arc);
+        
+        g.setColour(fgColour);
+        g.drawLine(line, lineThickness);
 
         drawTicks(g, bounds, startAngle, endAngle);
     }
