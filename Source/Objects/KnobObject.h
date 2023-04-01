@@ -12,6 +12,7 @@ class ReversibleKnob : public Slider{
     Colour bgColour;
     Colour fgColour;
     Colour lnColour;
+    Colour arcColour;
 
     int arcWidth = 1;
     int numberOfTicks = 0;
@@ -69,13 +70,17 @@ public:
 
         arc.addPieSegment(x, y, w, h, startAngle, angle, 1.0f - arcWidthProportional);
         
+        auto const lineThickness = std::max(w * 0.06f, 1.5f);
+        
         auto line = Line<float>::fromStartAndAngle (bounds.getCentre().toFloat(), (w / 2.0f) - 1.5f, angle);
         
         g.setColour(lnColour);
-        g.drawEllipse(bounds.toFloat().reduced(1.0f), 2.0f);
-
+        g.drawEllipse(bounds.toFloat().reduced(1.0f), lineThickness);
+        
         g.setColour(fgColour);
-        g.drawLine(line, 2.0f); // TODO: use arc colour
+        g.drawLine(line, lineThickness);
+        
+        g.setColour(arcColour);
         g.fillPath(arc);
 
         drawTicks(g, bounds, startAngle, endAngle);
@@ -124,9 +129,16 @@ public:
         repaint();
     }
 
-    void setArcWidth(int setArcWidth)
+    
+    void setArcColour(Colour newArcColour)
     {
-        arcWidth = setArcWidth;
+        arcColour = newArcColour;
+        repaint();
+    }
+    
+    void setArcWidth(int newArcWidth)
+    {
+        arcWidth = newArcWidth;
         repaint();
     }
 
@@ -167,7 +179,7 @@ class KnobObject : public ObjectBase {
     Value min = Value(0.0f);
     Value max = Value(0.0f);
     
-    Value initialValue, moveMode, ticks, arcThickness, startAngle, endAngle;
+    Value initialValue, moveMode, ticks, arcThickness, startAngle, endAngle, arcColour;
 
     float value = 0.0f;
 
@@ -207,6 +219,8 @@ public:
         startAngle = knb->x_start_angle;
         endAngle = knb->x_end_angle;
         
+        arcColour = Colour(static_cast<uint32>(convert_from_iem_color(knb->x_acol))).toString();
+        
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
@@ -215,6 +229,7 @@ public:
         updateRotaryParameters();
         
         knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
+        knob.setArcColour(Colour::fromString(arcColour.toString()));
     }
     
     void setModeMove(Slider::SliderStyle style)
@@ -405,6 +420,7 @@ public:
             
             { "Foreground", tColour, cAppearance, &iemHelper.primaryColour, {} },
             { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
+            { "Arc", tColour, cAppearance, &arcColour, {} },
             { "Receive Symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
             { "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
         };
@@ -467,6 +483,11 @@ public:
             knob.setSliderStyle(mode);
             setModeMove(mode);
             
+        }
+        else if (value.refersToSameSourceAs(arcColour)) {
+            auto colourStr = arcColour.toString();
+            knob.setArcColour(Colour::fromString(colourStr));
+            knb->x_acol = convert_to_iem_color(colourStr.toRawUTF8());
         }
         else if (value.refersToSameSourceAs(ticks)) {
             ticks = jmax(static_cast<int>(ticks.getValue()), 0);
