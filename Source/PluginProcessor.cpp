@@ -1119,11 +1119,6 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
                 return;
             auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr));
             _editor->addTab(cnv);
-
-            // Open help files in splitview
-            // TODO: Maybe this should be an advanced setting?
-            if (patch->getTitle().contains("-help"))
-                _editor->splitView.splitCanvasView(cnv, true);
         });
     }
 
