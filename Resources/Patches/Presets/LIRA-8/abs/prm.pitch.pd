@@ -1,0 +1,10 @@
+#N canvas 216 616 319 183 10;
+#X obj 12 33 / 127;
+#X obj 12 12 r \$1-s-pitch-\$2\$3\$4\$5;
+#X obj 12 75 + 0.01;
+#X obj 12 54 * 1.99;
+#X obj 12 138 outlet;
+#X connect 0 0 3 0;
+#X connect 1 0 0 0;
+#X connect 2 0 4 0;
+#X connect 3 0 2 0;

@@ -1,0 +1,14 @@
+#N canvas 641 71 230 193 10;
+#X obj 12 49 inlet;
+#X obj 12 70 route;
+#X obj 12 112 s \$2-r-sensor-\$1;
+#X obj 12 91 > 0;
+#X obj 56 12 loadbang;
+#X obj 56 33 f \$1;
+#X obj 56 54 + 35;
+#X connect 0 0 1 0;
+#X connect 1 0 3 0;
+#X connect 3 0 2 0;
+#X connect 4 0 5 0;
+#X connect 5 0 6 0;
+#X connect 6 0 1 1;
