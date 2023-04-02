@@ -272,6 +272,8 @@ public:
         {
             return Slider::SliderStyle::Rotary;
         }
+        
+        return Slider::SliderStyle::RotaryHorizontalVerticalDrag;
     }
     
     void lookAndFeelChanged() override
