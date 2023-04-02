@@ -236,6 +236,20 @@ void Canvas::paint(Graphics& g)
     g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
     auto clipBounds = g.getClipBounds();
     
+    // Clip bounds so that we have the smallest lines that fit the viewport, but also
+    // compensate for line start, so the dashes don't stay fixed in place if they are drawn from
+    // the top of the viewport
+    auto clippedOrigin = Point<float>(std::max(canvasOrigin.x, clipBounds.getX()), std::max(canvasOrigin.y, clipBounds.getY()));
+    
+    auto originDiff = canvasOrigin.toFloat() - clippedOrigin;
+    
+    // draw patch window dashed outline
+    auto patchWidthCanvas = clippedOrigin.x + (static_cast<int>(patchWidth.getValue()) + originDiff.x);
+    auto patchHeightCanvas = clippedOrigin.y + (static_cast<int>(patchHeight.getValue()) + originDiff.y);
+    
+    clippedOrigin.x += fmod(originDiff.x, 10.0f) - 0.5f;
+    clippedOrigin.y += fmod(originDiff.y, 10.0f) - 0.5f;
+    
     if(!static_cast<bool>(locked.getValue())) {
         
         auto startX = (canvasOrigin.x % objectGrid.gridSize);
@@ -251,7 +265,7 @@ void Canvas::paint(Graphics& g)
                 
                 // Don't draw over origin line
                 if (showBorder || showOrigin) {
-                    if ((x == canvasOrigin.x && y >= canvasOrigin.y) || (y == canvasOrigin.y && x >= canvasOrigin.x))
+                    if ((x == canvasOrigin.x && y >= canvasOrigin.y &&  y <= patchHeightCanvas) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidthCanvas))
                         continue;
                 }
                 g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
@@ -270,20 +284,6 @@ void Canvas::paint(Graphics& g)
     │d      c│
     └────────┘
     */
-    
-    // Clip bounds so that we have the smallest lines that fit the viewport, but also
-    // compensate for line start, so the dashes don't stay fixed in place if they are drawn from
-    // the top of the viewport
-    auto clippedOrigin = Point<float>(std::max(canvasOrigin.x, clipBounds.getX()), std::max(canvasOrigin.y, clipBounds.getY()));
-    
-    auto originDiff = canvasOrigin.toFloat() - clippedOrigin;
-    
-    // draw patch window dashed outline
-    auto patchWidthCanvas = clippedOrigin.x + (static_cast<int>(patchWidth.getValue()) + originDiff.x);
-    auto patchHeightCanvas = clippedOrigin.y + (static_cast<int>(patchHeight.getValue()) + originDiff.y);
-    
-    clippedOrigin.x += fmod(originDiff.x, 10.0f) - 0.5f;
-    clippedOrigin.y += fmod(originDiff.y, 10.0f) - 0.5f;
     
     // points for border
     auto pointA = Point<float>(clippedOrigin.x, clippedOrigin.y);
