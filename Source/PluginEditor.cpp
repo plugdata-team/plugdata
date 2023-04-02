@@ -1254,7 +1254,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
     switch (info.commandID) {
     case CommandIDs::SaveProject: {
         saveProject();
-        Presets::createPreset(pd);
         return true;
     }
     case CommandIDs::SaveProjectAs: {
