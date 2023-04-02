@@ -157,7 +157,11 @@ public:
 
         for (int c = 0; c < getNumTabs(); c++) {
             if (auto* comp = getTabContentComponent(c)) {
-                comp->setBounds(content);
+                if (auto* positioner = comp->getPositioner()) {
+                    positioner->applyNewBounds(content);
+                } else {
+                    comp->setBounds(content);
+                }
             }
         }
     }
@@ -200,7 +204,7 @@ public:
 
     Canvas* getCanvas(int idx)
     {
-        auto* viewport = dynamic_cast<CanvasViewport*>(getTabContentComponent(idx));
+        auto* viewport = dynamic_cast<Viewport*>(getTabContentComponent(idx));
 
         if (!viewport)
             return nullptr;
@@ -210,7 +214,7 @@ public:
 
     Canvas* getCurrentCanvas()
     {
-        auto* viewport = dynamic_cast<CanvasViewport*>(getCurrentContentComponent());
+        auto* viewport = dynamic_cast<Viewport*>(getCurrentContentComponent());
 
         if (!viewport)
             return nullptr;
