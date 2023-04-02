@@ -15,7 +15,8 @@ struct Presets
             "AQAAAAAke1BSRVNFVF9ESVJ9L0FsbW9uZE9yZ2FuL0FsbW9uZE9yZ2FuLnBkAEAAAAAAAAAAAAAAAM4AAABWQzIhxQAAADw/eG1sIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IlVURi04Ij8+IDxwbHVnZGF0YV9zYXZlIFZlcnNpb249IjAuNy4xIiBTcGxpdEluZGV4PSIxIiBPdmVyc2FtcGxpbmc9IjAiIExhdGVuY3k9IjY0IiBUYWlsTGVuZ3RoPSIwLjAiIExlZ2FjeT0iMCIgV2lkdGg9IjcyMiIgSGVpZ2h0PSIzNjUiIFBsdWdpbk1vZGU9IkFsbW9uZE9yZ2FuLnBkIi8+AA=="},
         {"MiniMock", "AQAAAAAke1BSRVNFVF9ESVJ9L01pbmlNb2NrL01pbmlNb2NrLnBkAEAAAAAAAAAAAAAAAMwAAABWQzIhwwAAADw/eG1sIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IlVURi04Ij8+IDxwbHVnZGF0YV9zYXZlIFZlcnNpb249IjAuNy4xIiBTcGxpdEluZGV4PSIxIiBPdmVyc2FtcGxpbmc9IjAiIExhdGVuY3k9IjY0IiBUYWlsTGVuZ3RoPSIwLjAiIExlZ2FjeT0iMCIgV2lkdGg9IjEwNTQiIEhlaWdodD0iMzczIiBQbHVnaW5Nb2RlPSJNaW5pTW9jay5wZCIvPgA="},
         {"Castafiore", "AQAAAAAke1BSRVNFVF9ESVJ9L0Nhc3RhZmlvcmUvQ2FzdGFmaW9yZS5wZABAAAAAAAAAAAAAAADNAAAAVkMyIcQAAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSIzMDIiIEhlaWdodD0iMjQyIiBQbHVnaW5Nb2RlPSJDYXN0YWZpb3JlLnBkIi8+AA=="},
-        {"Bulgroz", "AQAAAAAke1BSRVNFVF9ESVJ9L0J1bGdyb3ovQnVsZ3Jvei5wZABAAAAAAAAAAAAAAADKAAAAVkMyIcEAAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI0NjEiIEhlaWdodD0iMjAxIiBQbHVnaW5Nb2RlPSJCdWxncm96LnBkIi8+AA=="}
+        {"Bulgroz", "AQAAAAAke1BSRVNFVF9ESVJ9L0J1bGdyb3ovQnVsZ3Jvei5wZABAAAAAAAAAAAAAAADKAAAAVkMyIcEAAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI0NjEiIEhlaWdodD0iMjAxIiBQbHVnaW5Nb2RlPSJCdWxncm96LnBkIi8+AA=="},
+        {"Pong", "AAAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAADHAAAAVkMyIb4AAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI1MDAiIEhlaWdodD0iNDg3IiBQbHVnaW5Nb2RlPSJwb25nLnBkIi8+AA=="}
     };
     
     static void createPreset(AudioProcessor* processor)
@@ -27,13 +28,12 @@ struct Presets
         
         MemoryInputStream istream(data, false);
         
-        istream.readInt();
-        //jassert(istream.readInt() == 1);
+        jassert(istream.readInt() == 1);
         
-        int numPatches = 0;
+        int numPatches = 1;
         
-        //istream.readString();
-        //auto patchFile = istream.readString();
+        istream.readString();
+        auto patchFile = istream.readString();
         
         auto latency = istream.readInt();
         auto oversampling = istream.readInt();
@@ -71,8 +71,8 @@ struct Presets
         
         ostream.writeInt(0);
 
-        //ostream.writeString("");
-        //ostream.writeString("${PRESET_DIR}/" + patchFile.fromFirstOccurrenceOf("Extra/Presets/", false, false));
+        ostream.writeString("");
+        ostream.writeString("${PRESET_DIR}/" + patchFile.fromFirstOccurrenceOf("Extra/Presets/", false, false));
 
         ostream.writeInt(latency);
         ostream.writeInt(oversampling);
