@@ -745,6 +745,7 @@ void PluginEditor::addTab(Canvas* cnv)
     };
 
     cnv->setVisible(true);
+    cnv->jumpToOrigin();
     
     if(pd->pluginMode == var(true) || pd->pluginMode == cnv->patch.getCurrentFile().getFileName()) {
         enablePluginMode(cnv);
@@ -1215,6 +1216,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
 {
     switch (info.commandID) {
     case CommandIDs::NewProject: {
+        Presets::createPreset(pd);
         newProject();
         return true;
     }

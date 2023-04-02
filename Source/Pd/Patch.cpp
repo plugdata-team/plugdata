@@ -54,6 +54,7 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, bool ownsPatch, File patc
     , currentFile(patchFile)
     , closePatchOnDelete(ownsPatch)
 {
+    jassert(parentInstance);
 }
 
 Patch::~Patch()

@@ -9,6 +9,7 @@
 struct Presets
 {
     static inline const std::vector<std::pair<String, String>> presets = {
+        {"Default Preset", "AAAAAEAAAAAAAAAAAAAAAMIAAABWQzIhuQAAADw/eG1sIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IlVURi04Ij8+IDxwbHVnZGF0YV9zYXZlIFZlcnNpb249IjAuNy4xIiBTcGxpdEluZGV4PSIwIiBPdmVyc2FtcGxpbmc9IjAiIExhdGVuY3k9IjY0IiBUYWlsTGVuZ3RoPSIwLjAiIExlZ2FjeT0iMCIgV2lkdGg9IjEwMDAiIEhlaWdodD0iNjUwIiBQbHVnaW5Nb2RlPSIwIi8+AA=="},
         {"LIRA-8", "AQAAAAAke1BSRVNFVF9ESVJ9L0xJUkEtOC9MSVJBLTgucGQAQAAAAAAAAAAAAAAAyQAAAFZDMiHAAAAAPD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4gPHBsdWdkYXRhX3NhdmUgVmVyc2lvbj0iMC43LjEiIFNwbGl0SW5kZXg9IjEiIE92ZXJzYW1wbGluZz0iMCIgTGF0ZW5jeT0iNjQiIFRhaWxMZW5ndGg9IjAuMCIgTGVnYWN5PSIwIiBXaWR0aD0iMzg1IiBIZWlnaHQ9IjcxNyIgUGx1Z2luTW9kZT0iTElSQS04LnBkIi8+AA=="},
         {"AlmondOrgan",
             "AQAAAAAke1BSRVNFVF9ESVJ9L0FsbW9uZE9yZ2FuL0FsbW9uZE9yZ2FuLnBkAEAAAAAAAAAAAAAAAM4AAABWQzIhxQAAADw/eG1sIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IlVURi04Ij8+IDxwbHVnZGF0YV9zYXZlIFZlcnNpb249IjAuNy4xIiBTcGxpdEluZGV4PSIxIiBPdmVyc2FtcGxpbmc9IjAiIExhdGVuY3k9IjY0IiBUYWlsTGVuZ3RoPSIwLjAiIExlZ2FjeT0iMCIgV2lkdGg9IjcyMiIgSGVpZ2h0PSIzNjUiIFBsdWdpbk1vZGU9IkFsbW9uZE9yZ2FuLnBkIi8+AA=="},
@@ -26,12 +27,13 @@ struct Presets
         
         MemoryInputStream istream(data, false);
         
-        jassert(istream.readInt() == 1);
+        istream.readInt();
+        //jassert(istream.readInt() == 1);
         
-        int numPatches = 1;
+        int numPatches = 0;
         
-        istream.readString();
-        auto patchFile = istream.readString();
+        //istream.readString();
+        //auto patchFile = istream.readString();
         
         auto latency = istream.readInt();
         auto oversampling = istream.readInt();
@@ -67,10 +69,10 @@ struct Presets
         // Now reconstruct the modified save file
         MemoryOutputStream ostream(outBlock, false);
         
-        ostream.writeInt(1);
+        ostream.writeInt(0);
 
-        ostream.writeString("");
-        ostream.writeString("${PRESET_DIR}/" + patchFile.fromFirstOccurrenceOf("Extra/Presets/", false, false));
+        //ostream.writeString("");
+        //ostream.writeString("${PRESET_DIR}/" + patchFile.fromFirstOccurrenceOf("Extra/Presets/", false, false));
 
         ostream.writeInt(latency);
         ostream.writeInt(oversampling);

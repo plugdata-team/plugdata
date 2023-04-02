@@ -188,6 +188,7 @@ private:
     int minOut = 2;
 
     int lastSplitIndex = -1;
+    int lastSetProgram = 0;
 
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 

@@ -346,7 +346,7 @@ int PluginProcessor::getNumPrograms()
 
 int PluginProcessor::getCurrentProgram()
 {
-    return 0; // TODO: fix this
+    return lastSetProgram;
 }
 
 void PluginProcessor::setCurrentProgram(int index)
@@ -355,8 +355,10 @@ void PluginProcessor::setCurrentProgram(int index)
     {
         MemoryOutputStream data;
         Base64::convertFromBase64(data, Presets::presets[index].second);
-        if (data.getDataSize() > 0)
+        if (data.getDataSize() > 0) {
             setStateInformation(data.getData(), static_cast<int>(data.getDataSize()));
+            lastSetProgram = index;
+        }
     }
 }
 
@@ -1041,7 +1043,11 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             lastSplitIndex = xmlState->getIntAttribute("SplitIndex", -1);
 
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
+                MessageManager::callAsync([editor = Component::SafePointer(editor), this]() {
+                    if(!editor) return;
+                    
+                    editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
+                });
             }
         }
         if (xmlState->hasAttribute("PluginMode")) {
