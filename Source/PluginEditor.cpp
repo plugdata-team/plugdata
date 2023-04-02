@@ -279,6 +279,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
 PluginEditor::~PluginEditor()
 {
+    setVisible(false); // We can check the visible flag to detect if the pluginEditor is closing
     setConstrainer(nullptr);
 
     zoomScale.removeListener(this);
