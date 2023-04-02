@@ -11,6 +11,7 @@
 #include "Utility/ModifierKeyListener.h"
 #include "Pd/MessageListener.h"
 #include "Constants.h"
+#include "CanvasViewport.h"
 
 namespace pd {
 class Patch;
@@ -108,6 +109,7 @@ public:
     void redo();
 
     void checkBounds();
+    void jumpToOrigin();
 
     bool autoscroll(MouseEvent const& e);
 
@@ -148,7 +150,7 @@ public:
         return result;
     }
 
-    Viewport* viewport = nullptr;
+    CanvasViewport* viewport = nullptr;
 
     bool connectingWithDrag = false;
     bool connectionCancelled = false;

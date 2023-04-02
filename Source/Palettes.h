@@ -472,7 +472,7 @@ public:
         deleteButton.setBounds(secondPanel.removeFromRight(panelHeight + 6).expanded(2, 3));
 
         if (cnv) {
-            cnv->viewport->getPositioner()->applyNewBounds(b);
+            cnv->viewport->setBounds(b);
             cnv->checkBounds();
         }
     }
@@ -494,7 +494,7 @@ private:
 
     std::unique_ptr<DraggedComponentGroup> dragger = nullptr;
     std::unique_ptr<Canvas> cnv;
-    std::unique_ptr<Viewport> viewport;
+    std::unique_ptr<CanvasViewport> viewport;
 
     Label patchTitle;
 
