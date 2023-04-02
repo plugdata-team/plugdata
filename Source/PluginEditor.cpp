@@ -780,7 +780,7 @@ void PluginEditor::valueChanged(Value& v)
         if (auto* cnv = getCurrentCanvas()) {
             cnv->checkBounds();
 
-            if (!cnv->viewport)
+            if (!cnv->viewport || pluginMode)
                 return;
 
             auto totalBounds = Rectangle<int>();

@@ -205,7 +205,6 @@ void Canvas::recreateViewport()
     };
 
     canvasViewport->setScrollBarsShown(true, true, true, true);
-    canvasViewport->handleAsyncUpdate();
     
     viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
     
@@ -214,9 +213,10 @@ void Canvas::recreateViewport()
 
 void Canvas::jumpToOrigin()
 {
+    updatingBounds = true;
+    dynamic_cast<CanvasViewport*>(viewport)->handleAsyncUpdate();
     auto origin = canvasOrigin + Point<int>(-1, -1);
     float scale = editor->getZoomScaleForCanvas(this);
-    updatingBounds = true;
     viewport->setViewPosition(origin * scale);
     updatingBounds = false;
 }

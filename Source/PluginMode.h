@@ -17,16 +17,9 @@ public:
         auto c = editor->getConstrainer();
         windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
 
-        // Hide all of the editor's content
-        for (auto* child : editor->getChildren()) {
-            if (child->isVisible()) {
-                child->setVisible(false);
-                children.emplace_back(child);
-            }
-        }
-
         // Reset zoom level
         editor->zoomScale = 1.0f;
+        editor->zoomScale.getValueSource().sendChangeMessage(true);
 
         // Set window constrainers
         if (ProjectInfo::isStandalone) {
@@ -79,10 +72,11 @@ public:
         MessageManager::callAsync([_this = SafePointer(this), this, cnv] {
             if (!_this)
                 return;
-
+            
             cnv->jumpToOrigin();
         });
 
+        setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
         setInterceptsMouseClicks(false, false);
     }
@@ -101,11 +95,6 @@ public:
         editor->pd->pluginMode = var(false);
         
         if(!cnv) return;
-
-        // Restore the original editor content
-        for (auto* child : children) {
-            child->setVisible(true);
-        }
 
         // Reset the canvas properties
         cnv->viewport->setBounds(viewportBounds);
@@ -306,6 +295,4 @@ private:
     Rectangle<int> viewportBounds;
     float const width = float(cnv->patchWidth.getValue()) + 1.0f;
     float const height = float(cnv->patchHeight.getValue()) + 1.0f;
-
-    std::vector<Component*> children;
 };
