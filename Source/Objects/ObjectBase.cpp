@@ -327,6 +327,8 @@ void ObjectBase::sendFloatValue(float newValue)
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 {
+    parent->cnv->pd->setThis();
+    
     auto const name = hash(libpd_get_object_class_name(ptr));
 
     // check if object is a patcher object, or something else
