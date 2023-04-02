@@ -54,7 +54,14 @@ public:
 
         if (pic && pic->x_filename) {
             auto filePath = String::fromUTF8(pic->x_filename->s_name);
-            openFile(filePath);
+            
+            // Call async prevents a bug when renaming an object to pic
+            MessageManager::callAsync([_this = SafePointer(this), filePath](){
+                if(_this)
+                {
+                    _this->openFile(filePath);
+                }
+            });
         }
     }
 
