@@ -31,7 +31,7 @@ class PluginEditor : public AudioProcessorEditor
     , public ApplicationCommandTarget
     , public ApplicationCommandManager
     , public FileDragAndDropTarget
-    , public ModifierKeyBroadcaster {
+    , public ModifierKeyBroadcaster, public ModifierKeyListener {
 public:
     enum ToolbarButtonType {
         Settings = 0,
@@ -97,6 +97,8 @@ public:
     Value& getZoomScaleValueForCanvas(Canvas* cnv);
 
     void enablePluginMode(Canvas* cnv);
+        
+    void commandKeyChanged(bool isHeld) override;
 
     TabComponent* getActiveTabbar();
 

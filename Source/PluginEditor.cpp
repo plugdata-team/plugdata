@@ -271,6 +271,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Initialise zoom factor
     valueChanged(zoomScale);
     valueChanged(splitZoomScale);
+    
+    addModifierKeyListener(this);
 
     // Restore Plugin Mode View
     if (pd->pluginMode != var(false) && pd->pluginMode.toString().isNotEmpty())
@@ -1216,7 +1218,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
 {
     switch (info.commandID) {
     case CommandIDs::NewProject: {
-        Presets::createPreset(pd);
         newProject();
         return true;
     }
@@ -1256,6 +1257,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
     switch (info.commandID) {
     case CommandIDs::SaveProject: {
+        Presets::createPreset(pd);
         saveProject();
         return true;
     }
@@ -1563,6 +1565,18 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
 bool PluginEditor::keyPressed(KeyPress const& key)
 {
     return true;
+}
+
+void PluginEditor::commandKeyChanged(bool isHeld)
+{
+    if(isHeld) {
+        runButton.setToggleState(true, dontSendNotification);
+    }
+    else {
+        if(!static_cast<bool>(getCurrentCanvas()->locked.getValue())) {
+            editButton.setToggleState(true, dontSendNotification);
+        }
+    }
 }
 
 void PluginEditor::quit(bool askToSave)
