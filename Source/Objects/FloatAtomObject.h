@@ -181,7 +181,7 @@ public:
             input.setMinimum(v);
             atomHelper.setMinimum(v);
         } else if (value.refersToSameSourceAs(max)) {
-            auto v = static_cast<float>(min.getValue());
+            auto v = static_cast<float>(max.getValue());
             input.setMaximum(v);
             atomHelper.setMaximum(v);
         } else {

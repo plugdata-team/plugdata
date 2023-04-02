@@ -105,6 +105,8 @@ public:
 
     void setValue(float newValue)
     {
+        newValue = limitValue(newValue);
+        
         if (lastValue != newValue) {
             lastValue = newValue;
             setText(String(newValue), sendNotification);
