@@ -1,0 +1,4 @@
+MiniMock is a MIDI synthesizer inspired by the MiniMoog patch by Jaime E. Oliver La Rosa from the Faculty of Arts and Sciences of NYU.
+
+Version: 1.0
+Author: Pierre Guillot

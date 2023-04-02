@@ -1,0 +1,12 @@
+param -name Picth -label ½tone -min -24 -max 24 -default 0;
+program fundamental;
+program major-third;
+program fifth;
+program octave;
+iolayout 2 2;
+code zUrt;
+type effect;
+image Castafiore.png;
+description Infos.txt;
+manufacturer Pierre Guillot;
+compatibility 1.0.7;
