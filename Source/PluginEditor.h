@@ -25,6 +25,7 @@ class Canvas;
 class TabComponent;
 class PluginProcessor;
 class Palettes;
+class PluginMode;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -109,7 +110,7 @@ public:
 
     std::unique_ptr<Dialog> openedDialog;
 
-    std::unique_ptr<Component> pluginMode;
+    std::unique_ptr<PluginMode> pluginMode;
 
     Value theme;
 

@@ -100,6 +100,7 @@ makeDir("Extra/GS")
 
 copyDir("../../Libraries/ELSE/Extra", "Extra/else");
 copyDir("../../Libraries/ELSE/sfont~/sf", "Extra/else/sf");
+copyDir("../Patches/Presets", "./Extra/Presets")
 globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else");
 
 # pd-lua

@@ -94,7 +94,45 @@ public:
 
         cnv->locked = false;
         cnv->presentationMode = false;
+    }
+        
+    void closePluginMode()
+    {
+        editor->pd->pluginMode = var(false);
+        
+        if(!cnv) return;
+
+        // Restore the original editor content
+        for (auto* child : children) {
+            child->setVisible(true);
+        }
+
+        // Reset the canvas properties
+        cnv->viewport->setBounds(viewportBounds);
+
+        // Add the canvas to it's original parent component
+        cnvParent->addAndMakeVisible(cnv);
+
+        // Restore Bounds & Resize Limits with the current position
+        auto* _desktopWindow = desktopWindow;
+        auto* _editor = editor;
+        auto _windowConstrainer = windowConstrainer;
+        auto _bounds = windowBounds.withPosition(getTopLevelComponent()->getPosition());
+        MessageManager::callAsync([this, _desktopWindow, _editor, _windowConstrainer, _bounds]() {
+            if (ProjectInfo::isStandalone) {
+                _desktopWindow->getConstrainer()->setFixedAspectRatio(0);
+                _desktopWindow->getConstrainer()->setSizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
+                _desktopWindow->setBounds(_bounds, false);
+            }
+            _editor->getConstrainer()->setFixedAspectRatio(0);
+            _editor->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
+            _editor->setBounds(_bounds);
+            _editor->getParentComponent()->resized();
+        });
+        
         cnv->viewport->resized();
+        // Destroy this view
+        editor->pluginMode.reset(nullptr);
     }
 
     void buttonClicked(Button* button) override
@@ -104,40 +142,7 @@ public:
             window->setFullScreen(true);
 
         } else if (button == editorButton.get()) {
-            editor->pd->pluginMode = var(false);
-            
-            if(!cnv) return;
-
-            // Restore the original editor content
-            for (auto* child : children) {
-                child->setVisible(true);
-            }
-
-            // Reset the canvas properties
-            cnv->viewport->setBounds(viewportBounds);
-
-            // Add the canvas to it's original parent component
-            cnvParent->addAndMakeVisible(cnv);
-
-            // Restore Bounds & Resize Limits with the current position
-            auto* _desktopWindow = desktopWindow;
-            auto* _editor = editor;
-            auto _windowConstrainer = windowConstrainer;
-            auto _bounds = windowBounds.withPosition(getTopLevelComponent()->getPosition());
-            MessageManager::callAsync([this, _desktopWindow, _editor, _windowConstrainer, _bounds]() {
-                if (ProjectInfo::isStandalone) {
-                    _desktopWindow->getConstrainer()->setFixedAspectRatio(0);
-                    _desktopWindow->getConstrainer()->setSizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
-                    _desktopWindow->setBounds(_bounds, false);
-                }
-                _editor->getConstrainer()->setFixedAspectRatio(0);
-                _editor->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
-                _editor->setBounds(_bounds);
-                _editor->getParentComponent()->resized();
-            });
-
-            // Destroy this view
-            editor->pluginMode.reset(nullptr);
+            closePluginMode();
         }
     }
 

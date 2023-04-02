@@ -20,6 +20,7 @@
 
 #include "Presets.h"
 #include "Canvas.h"
+#include "PluginMode.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 #include "Tabbar.h"
@@ -340,13 +341,12 @@ double PluginProcessor::getTailLengthSeconds() const
 
 int PluginProcessor::getNumPrograms()
 {
-    return 1; // NB: some hosts don't cope very well if you tell them there are 0 programs,
-    // so this should be at least 1, even if you're not really implementing programs.
+    return Presets::presets.size();
 }
 
 int PluginProcessor::getCurrentProgram()
 {
-    return 0;
+    return 0; // TODO: fix this
 }
 
 void PluginProcessor::setCurrentProgram(int index)
@@ -964,7 +964,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         auto state = istream.readString();
         auto path = istream.readString();
         
-        auto presetDir = homeDir.getChildFile("Extra").getChildFile("Presets");
+        auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
         
         auto location = File(path);
@@ -972,22 +972,21 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         if(path.isNotEmpty() && location.existsAsFile()) // TODO: test if path's parent is temp dir
         {
             auto* patch = loadPatch(location);
-            patch->setCurrentFile(location);
             patch->setTitle(location.getFileName());
         }
         else {
+            if (location.getParentDirectory().exists()) {
+                auto parentPath = location.getParentDirectory().getFullPathName();
+                // Add patch path to search path to make sure it finds abstractions in the saved patch!
+                // TODO: is there any way to make this local the the canvas?
+                libpd_add_to_search_path(parentPath.toRawUTF8());
+            }
             auto* patch = loadPatch(state);
             if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
                 patch->setTitle("Untitled Patcher");
             } else if (location.existsAsFile()) {
                 patch->setCurrentFile(location);
                 patch->setTitle(location.getFileName());
-            }
-            if (location.getParentDirectory().exists()) {
-                auto parentPath = location.getParentDirectory().getFullPathName();
-                // Add patch path to search path to make sure it finds abstractions in the saved patch!
-                // TODO: is there any way to make this local the the canvas?
-                libpd_add_to_search_path(parentPath.toRawUTF8());
             }
         }
     }
@@ -1039,7 +1038,6 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             }
         }
         if (xmlState->hasAttribute("SplitIndex")) {
-
             lastSplitIndex = xmlState->getIntAttribute("SplitIndex", -1);
 
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
@@ -1047,14 +1045,10 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             }
         }
         if (xmlState->hasAttribute("PluginMode")) {
-
             pluginMode = xmlState->getStringAttribute("PluginMode");
-            if (pluginMode != var(false)) {
-                if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                    // Restore Plugin Mode View
-                    editor->enablePluginMode(nullptr);
-                }
-            }
+        }
+        else {
+            pluginMode = var(false);
         }
         // JYG added this
         parseDataBuffer(*xmlState);
@@ -1071,6 +1065,10 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 return;
             editor->sidebar->updateAutomationParameters();
         });
+        
+        if(editor->pluginMode && pluginMode == var(false)) {
+            editor->pluginMode->closePluginMode();
+        }
     }
 }
 

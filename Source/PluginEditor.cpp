@@ -744,6 +744,10 @@ void PluginEditor::addTab(Canvas* cnv)
     };
 
     cnv->setVisible(true);
+    
+    if(pd->pluginMode == var(true) || pd->pluginMode == cnv->patch.getCurrentFile().getFileName()) {
+        enablePluginMode(cnv);
+    }
 
     pd->savePatchTabPositions();
 }
@@ -1250,6 +1254,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
     switch (info.commandID) {
     case CommandIDs::SaveProject: {
         saveProject();
+        Presets::createPreset(pd);
         return true;
     }
     case CommandIDs::SaveProjectAs: {
