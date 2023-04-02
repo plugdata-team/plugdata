@@ -206,6 +206,8 @@ public:
         knob.onDragEnd = [this]() {
             stopEdition();
         };
+        
+       
 
         auto* knb = static_cast<t_fake_knb*>(ptr);
         
@@ -219,6 +221,8 @@ public:
         startAngle = knb->x_start_angle;
         endAngle = knb->x_end_angle;
         
+        
+        
         arcColour = Colour(static_cast<uint32>(convert_from_iem_color(knb->x_acol))).toString();
         
         onConstrainerCreate = [this]() {
@@ -228,6 +232,7 @@ public:
         
         updateRotaryParameters();
         
+        knob.setDoubleClickReturnValue(true, static_cast<int>(initialValue.getValue()));
         knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
         knob.setArcColour(Colour::fromString(arcColour.toString()));
     }
@@ -478,6 +483,7 @@ public:
             updateRange();
         }
         else if (value.refersToSameSourceAs(initialValue)) {
+            knob.setDoubleClickReturnValue(true, static_cast<int>(initialValue.getValue()));
             knb->x_init = static_cast<float>(initialValue.getValue());
         }
         else if (value.refersToSameSourceAs(moveMode)) {
