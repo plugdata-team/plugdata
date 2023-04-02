@@ -634,7 +634,10 @@ public:
             if (!file.hasFileExtension("pd"))
                 return;
 
-            searchResult.add(file);
+            if(fileName.containsIgnoreCase(query))
+            {
+                searchResult.add(file);
+            }
         };
 
         for (int i = 0; i < searchPath.getNumFiles(); i++) {
