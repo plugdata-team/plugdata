@@ -11,6 +11,7 @@
 #include "Utility/Fonts.h"
 #include "Utility/RateReducer.h" // TODO: move to impl
 #include "Utility/ModifierKeyListener.h"
+#include "Utility/TooltipWindowWithTarget.h"
 #include "Utility/StackShadow.h" // TODO: move to impl
 #include "SplitView.h"           // TODO: move to impl
 #include "Dialogs/OverlayDisplaySettings.h"
@@ -139,8 +140,7 @@ private:
     TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pinButton, hideSidebarButton;
     TextButton editButton, runButton, presentButton;
 
-    TooltipWindow tooltipWindow;
-    StackDropShadower tooltipShadow;
+    TooltipWindowWithTarget<PluginEditor, Canvas> tooltipWindow;
 
     TextButton seperators[8];
 

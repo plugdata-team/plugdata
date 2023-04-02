@@ -9,6 +9,7 @@
 #include "ObjectGrid.h"          // move to impl
 #include "Utility/RateReducer.h" // move to impl
 #include "Utility/ModifierKeyListener.h"
+#include "Utility/TooltipWindowWithTarget.h"
 #include "Pd/MessageListener.h"
 #include "Constants.h"
 
@@ -163,7 +164,9 @@ public:
     OwnedArray<Object> objects;
     OwnedArray<Connection> connections;
     OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
-
+        
+    TooltipWindowWithTarget<Canvas, void> tooltipWindow;
+        
     Value locked;
     Value commandLocked;
     Value presentationMode;

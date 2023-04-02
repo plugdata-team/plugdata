@@ -36,6 +36,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
     , pathUpdater(new ConnectionPathUpdater(this))
     , isPalette(palette)
     , graphArea(nullptr)
+    , tooltipWindow(this, &pd->lnf.get())
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
@@ -217,6 +218,7 @@ void Canvas::jumpToOrigin()
     dynamic_cast<CanvasViewport*>(viewport)->handleAsyncUpdate();
     auto origin = canvasOrigin + Point<int>(-1, -1);
     float scale = editor->getZoomScaleForCanvas(this);
+
     viewport->setViewPosition(origin * scale);
     updatingBounds = false;
 }

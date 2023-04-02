@@ -88,8 +88,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , statusbar(std::make_unique<Statusbar>(&p))
     , zoomLabel(std::make_unique<ZoomLabel>())
     , sidebar(std::make_unique<Sidebar>(&p, this))
-    , tooltipWindow(this, 500)
-    , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), Corners::defaultCornerRadius)
+    , tooltipWindow(this, &pd->lnf.get())
     , splitView(this)
     , openedDialog(nullptr)
 {
@@ -112,11 +111,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         cornerResizer->setAlwaysOnTop(true);
         addAndMakeVisible(cornerResizer.get());
     }
-
-    tooltipWindow.setOpaque(false);
-    tooltipWindow.setLookAndFeel(&pd->lnf.get());
-
-    tooltipShadow.setOwner(&tooltipWindow);
 
     addKeyListener(getKeyMappings());
 
@@ -855,9 +849,7 @@ void PluginEditor::updateCommandStatus()
             editButton.setToggleState(true, dontSendNotification);
         }
 
-        // TooltipWindow already uses the setVisible flag internally, we can't use that, so we use setAlpha instead
-        tooltipWindow.setAlpha(!locked);
-        tooltipShadow.setOwner(locked ? nullptr : &tooltipWindow);
+        cnv->tooltipWindow.hide(locked);
 
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr)
@@ -1257,7 +1249,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
     switch (info.commandID) {
     case CommandIDs::SaveProject: {
-        Presets::createPreset(pd);
         saveProject();
         return true;
     }
