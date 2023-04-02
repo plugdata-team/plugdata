@@ -20,7 +20,7 @@ class CanvasViewport : public Viewport
     , public SettingsFileListener
 {
 
-    inline static int const infiniteCanvasMargin = 32;
+    inline static int const infiniteCanvasMargin = 48;
 
     class MousePanner : public MouseListener {
     public:

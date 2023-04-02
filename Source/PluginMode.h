@@ -73,13 +73,14 @@ public:
         cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
         cnv->locked = true;
         cnv->presentationMode = true;
+        
         addAndMakeVisible(content);
 
         MessageManager::callAsync([_this = SafePointer(this), this, cnv] {
             if (!_this)
                 return;
-            // Have to be called async to be placed correctly
-            cnv->viewport->setViewPosition(cnv->canvasOrigin + Point<int>(-1, -1));
+
+            cnv->jumpToOrigin();
         });
 
         setWantsKeyboardFocus(true);

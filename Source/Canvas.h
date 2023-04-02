@@ -108,6 +108,7 @@ public:
     void redo();
 
     void checkBounds();
+    void jumpToOrigin();
 
     bool autoscroll(MouseEvent const& e);
 
