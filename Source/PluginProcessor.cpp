@@ -1070,11 +1070,11 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             if (!editor)
                 return;
             editor->sidebar->updateAutomationParameters();
+            
+            if(editor->pluginMode && editor->pd->pluginMode == var(false)) {
+                editor->pluginMode->closePluginMode();
+            }
         });
-        
-        if(editor->pluginMode && pluginMode == var(false)) {
-            editor->pluginMode->closePluginMode();
-        }
     }
 }
 

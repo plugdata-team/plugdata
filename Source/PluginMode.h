@@ -90,11 +90,13 @@ public:
     {
         editor->pd->pluginMode = var(false);
         
-        if(!cnv) return;
-
-        // Reset the canvas properties
-        cnv->viewport->setBounds(viewportBounds);
-        cnv->viewport->setViewedComponent(cnv, false);
+        if(cnv)  {
+            content.removeChildComponent(cnv);
+            // Reset the canvas properties
+            cnv->viewport->setBounds(viewportBounds);
+            cnv->viewport->setViewedComponent(cnv, false);
+            cnv->viewport->resized();
+        }
         
         // Restore Bounds & Resize Limits with the current position
         auto* _desktopWindow = desktopWindow;
@@ -113,7 +115,7 @@ public:
             _editor->getParentComponent()->resized();
         });
         
-        cnv->viewport->resized();
+
         // Destroy this view
         editor->pluginMode.reset(nullptr);
     }
