@@ -974,7 +974,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         if(path.isNotEmpty() && location.existsAsFile()) // TODO: test if path's parent is temp dir
         {
             auto* patch = loadPatch(location);
-            patch->setTitle(location.getFileName());
+            if(patch) patch->setTitle(location.getFileName());
         }
         else {
             if (location.getParentDirectory().exists()) {
@@ -984,9 +984,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 libpd_add_to_search_path(parentPath.toRawUTF8());
             }
             auto* patch = loadPatch(state);
-            if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
+            if (patch && (location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
                 patch->setTitle("Untitled Patcher");
-            } else if (location.existsAsFile()) {
+            } else if (patch && location.existsAsFile()) {
                 patch->setCurrentFile(location);
                 patch->setTitle(location.getFileName());
             }

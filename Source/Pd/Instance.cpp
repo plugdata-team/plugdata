@@ -171,14 +171,15 @@ Instance::Instance(String const& symbol)
             return;
 
         bool cleanUp = false;
-
+        
+        auto sym = String::fromUTF8(symbol->s_name);
+        
         for (auto listener : listeners[target]) {
             // Check if the safepointer is still valid
             if (!listener) {
                 cleanUp = true;
                 continue;
             }
-            auto sym = String::fromUTF8(symbol->s_name);
             listener->receiveMessage(sym, argc, argv);
         }
 
