@@ -369,6 +369,8 @@ static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool re
         }
     }
     
+    dir.Close();
+    
     return result;
 }
 
