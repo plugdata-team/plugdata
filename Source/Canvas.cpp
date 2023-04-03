@@ -1228,7 +1228,7 @@ void Canvas::redo()
 
 void Canvas::checkBounds()
 {
-    if (viewport) {
+    if (viewport && viewport->getViewedComponent()) {
         dynamic_cast<AsyncUpdater*>(viewport)->triggerAsyncUpdate();
     }
 

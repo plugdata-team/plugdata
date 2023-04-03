@@ -69,13 +69,8 @@ public:
         
         addAndMakeVisible(content);
 
-        MessageManager::callAsync([cnv = SafePointer(cnv), _this = SafePointer(this)] {
-            if (!cnv || !_this)
-                return;
-            
-            auto& origin = cnv->canvasOrigin;
-            cnv->setBounds(-origin.x, -origin.y, _this->width + origin.x, _this->height + origin.y);
-        });
+        auto& origin = cnv->canvasOrigin;
+        cnv->setBounds(-origin.x, -origin.y, width + origin.x, height + origin.y);
 
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
