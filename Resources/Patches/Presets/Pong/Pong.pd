@@ -1,7 +1,7 @@
 #N canvas 91 22 499 479 10;
 #X obj -1 366 cnv 15 500 40 empty empty empty 20 12 0 14 #c8c8c8 #5a5a5a 0;
 #X obj 0 0 cnv 15 500 364 empty background empty 20 12 0 14 #e0e0e0 #404040 0;
-#X obj 0 70 cnv 15 20 80 outp1 inp1 empty 20 12 0 14 #000000 #404040 0;
+#X obj 0 0 cnv 15 20 80 outp1 inp1 empty 20 12 0 14 #000000 #404040 0;
 #X obj 480 320 cnv 15 20 80 outp2 inp2 empty 20 12 0 14 #000000 #404040 0;
 #X obj 240 190 cnv 15 20 20 outball inball empty 20 12 0 14 #181818 #404040 0;
 #N canvas 28 29 1030 719 pong 1;
@@ -154,9 +154,9 @@
 #X obj 437 580 loadbang;
 #X obj 315 580 sel 0 480;
 #X obj 73 121 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #e4e4e4 #5a5a5a #5a5a5a 0 256;
-#X obj 126 98 sel 81 65;
-#X obj 256 92 sel 81 65;
-#X obj 600 393 sel 13;
+#X obj 126 98 sel 113 97;
+#X obj 256 92 sel 113 97;
+#X obj 600 393 sel 10;
 #X connect 0 0 78 0 empty;
 #X connect 3 0 103 0 empty;
 #X connect 3 0 104 0 empty;

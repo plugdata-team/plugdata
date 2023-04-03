@@ -237,15 +237,15 @@ public:
         } else if (keynum == KeyPress::backspaceKey)
             keysym = pd->generateSymbol("BackSpace");
         else if (keynum == KeyPress::tabKey)
-            keysym = pd->generateSymbol("Tab");
+            keynum = 9, keysym = pd->generateSymbol("Tab");
         else if (keynum == KeyPress::returnKey)
-            keysym = pd->generateSymbol("Return");
+            keynum = 10, keysym = pd->generateSymbol("Return");
         else if (keynum == KeyPress::escapeKey)
-            keysym = pd->generateSymbol("Escape");
+            keynum = 27, keysym = pd->generateSymbol("Escape");
         else if (keynum == KeyPress::spaceKey)
-            keysym = pd->generateSymbol("Space");
+            keynum = 32, keysym = pd->generateSymbol("Space");
         else if (keynum == KeyPress::deleteKey)
-            keysym = pd->generateSymbol("Delete");
+            keynum = 127, keysym = pd->generateSymbol("Delete");
 
         else if (keynum == KeyPress::upKey)
             keynum = 0, keysym = pd->generateSymbol("Up");
@@ -308,6 +308,14 @@ public:
             keynum = 56, keysym = pd->generateSymbol("8");
         else if (keynum == KeyPress::numberPad9)
             keynum = 57, keysym = pd->generateSymbol("9");
+        
+        // on macOS, alphanumeric characters are offset
+#if JUCE_MAC
+        else if(keynum >= 65 && keynum <= 90)
+        {
+            keynum += 32;
+        }
+#endif
     }
 };
 
