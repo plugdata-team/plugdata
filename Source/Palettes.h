@@ -22,7 +22,6 @@ class PaletteView : public Component
             : cnv(canvas)
             , draggedObject(target)
         {
-
             // Find top level object if we're dragging a graph
             while (auto* nextObject = target->findParentComponentOfClass<Object>()) {
                 target = nextObject;
@@ -43,6 +42,13 @@ class PaletteView : public Component
             setBounds(cnv->localAreaToGlobal(totalBounds));
             setVisible(true);
             setAlwaysOnTop(true);
+            
+            cnv->addMouseListener(this, true);
+        }
+        
+        ~DraggedComponentGroup()
+        {
+            cnv->removeMouseListener(this);
         }
 
         Image getObjectsSnapshot(Array<Component*> components, Rectangle<int> totalBounds)
@@ -401,7 +407,6 @@ public:
         }
 
         dragger = std::make_unique<DraggedComponentGroup>(cnv.get(), object, relativeEvent.getMouseDownPosition());
-        cnv->addMouseListener(dragger.get(), true);
     }
 
     void mouseDown(MouseEvent const& e) override
