@@ -69,11 +69,12 @@ public:
         
         addAndMakeVisible(content);
 
-        MessageManager::callAsync([cnv = SafePointer(cnv)] {
-            if (!cnv)
+        MessageManager::callAsync([cnv = SafePointer(cnv), _this = SafePointer(this)] {
+            if (!cnv || !_this)
                 return;
             
-            cnv->jumpToOrigin();
+            auto& origin = cnv->canvasOrigin;
+            cnv->setBounds(-origin.x, -origin.y, _this->width + origin.x, _this->height + origin.y);
         });
 
         setAlwaysOnTop(true);
