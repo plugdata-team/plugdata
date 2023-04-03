@@ -61,7 +61,7 @@ public:
     {
         // radio stores it's height and width as a square to allow changing orientation via message: "orientation 0/1"
         b = isVertical ? b.withHeight(b.getWidth()) : b.withWidth(b.getHeight());
-        iemHelper.setPdBounds(b.withTrimmedRight(1).withTrimmedBottom(1));
+        iemHelper.setPdBounds(b);
     }
 
     Rectangle<int> getPdBounds() override
@@ -75,10 +75,10 @@ public:
 
         auto* radio = static_cast<t_radio*>(ptr);
 
-        auto width = isVertical ? radio->x_gui.x_w : radio->x_gui.x_h * numItems;
-        auto height = isVertical ? radio->x_gui.x_w * numItems : radio->x_gui.x_h;
+        auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
+        auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
 
-        return { x, y, width + 1, height + 1 };
+        return { x, y, width, height};
     }
 
     void toggleObject(Point<int> position) override
