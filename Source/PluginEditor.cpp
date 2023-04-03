@@ -1563,8 +1563,8 @@ void PluginEditor::commandKeyChanged(bool isHeld)
     if(isHeld) {
         runButton.setToggleState(true, dontSendNotification);
     }
-    else {
-        if(!static_cast<bool>(getCurrentCanvas()->locked.getValue())) {
+    else if(auto* cnv = getCurrentCanvas()){
+        if(!static_cast<bool>(cnv->locked.getValue())) {
             editButton.setToggleState(true, dontSendNotification);
         }
     }
