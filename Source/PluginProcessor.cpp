@@ -984,7 +984,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 libpd_add_to_search_path(parentPath.toRawUTF8());
             }
             auto* patch = loadPatch(state);
-            if (patch && (location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
+            if (patch && ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists())) {
                 patch->setTitle("Untitled Patcher");
             } else if (patch && location.existsAsFile()) {
                 patch->setCurrentFile(location);

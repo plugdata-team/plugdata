@@ -414,6 +414,11 @@ public:
     {
         if (!dragger)
             return;
+        
+        if(getLocalBounds().contains(e.getEventRelativeTo(this).getPosition())) {
+            dragger.reset(nullptr);
+            return;
+        }
 
         cnv->removeMouseListener(dragger.get());
 
