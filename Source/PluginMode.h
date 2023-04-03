@@ -9,8 +9,6 @@ public:
         : cnv(cnv)
         , editor(cnv->editor)
         , desktopWindow(editor->getPeer())
-        , settings(SettingsFile::getInstance())
-        , cnvParent(cnv->getParentComponent())
         , windowBounds(editor->getBounds())
         , viewportBounds(cnv->viewport->getBounds())
     {
@@ -63,14 +61,16 @@ public:
         content.setBounds(0, titlebarHeight, width, height);
 
         content.addAndMakeVisible(cnv);
+        
         cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
         cnv->locked = true;
         cnv->presentationMode = true;
+        cnv->viewport->setViewedComponent(nullptr);
         
         addAndMakeVisible(content);
 
-        MessageManager::callAsync([_this = SafePointer(this), this, cnv] {
-            if (!_this)
+        MessageManager::callAsync([cnv = SafePointer(cnv)] {
+            if (!cnv)
                 return;
             
             cnv->jumpToOrigin();
@@ -98,10 +98,8 @@ public:
 
         // Reset the canvas properties
         cnv->viewport->setBounds(viewportBounds);
-
-        // Add the canvas to it's original parent component
-        cnvParent->addAndMakeVisible(cnv);
-
+        cnv->viewport->setViewedComponent(cnv, false);
+        
         // Restore Bounds & Resize Limits with the current position
         auto* _desktopWindow = desktopWindow;
         auto* _editor = editor;
@@ -276,7 +274,6 @@ private:
     SafePointer<Canvas> cnv;
     PluginEditor* editor;
     ComponentPeer* desktopWindow;
-    SettingsFile* settings;
 
     Component titleBar;
     int const titlebarHeight = 40;
@@ -288,8 +285,6 @@ private:
 
     ComponentDragger windowDragger;
     std::vector<int> windowConstrainer;
-
-    Component* cnvParent;
 
     Rectangle<int> windowBounds;
     Rectangle<int> viewportBounds;

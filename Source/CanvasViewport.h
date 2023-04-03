@@ -397,7 +397,7 @@ public:
 
     void handleAsyncUpdate() override
     {
-        if (cnv->updatingBounds)
+        if (cnv->updatingBounds || !getViewedComponent())
             return;
 
         auto viewArea = getViewArea();
