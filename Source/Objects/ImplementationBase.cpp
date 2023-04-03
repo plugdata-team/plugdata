@@ -228,17 +228,14 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
     Array<void*> implementations;
 
     auto* glist = static_cast<t_glist*>(patch);
-    auto* canvasSym = pd->generateSymbol("canvas");
-    auto* graphSym = pd->generateSymbol("graph");
-
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
 
-        auto const* symbol = libpd_get_object_class_symbol(y);
+        auto const* name = libpd_get_object_class_name(y);
         
-        if (symbol == canvasSym || symbol == graphSym) {
+        if (pd_class(&y->g_pd) == canvas_class) {
             implementations.addArray(getImplementationsForPatch(y));
         }
-        if (ImplementationBase::hasImplementation(symbol->s_name)) {
+        if (ImplementationBase::hasImplementation(name)) {
             implementations.add(y);
         }
     }
