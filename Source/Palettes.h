@@ -74,7 +74,6 @@ class PaletteView : public Component
 
         void pasteObjects(Canvas* target)
         {
-
             auto position = target->getLocalPoint(nullptr, getScreenPosition()) + Point<int>(Object::margin, Object::margin) - target->canvasOrigin;
 
             int minX = 9999999;
@@ -95,6 +94,9 @@ class PaletteView : public Component
             };
 
             for (auto& line : StringArray::fromLines(clipboardContent)) {
+                
+                line = line.upToLastOccurrenceOf(";", false, false);
+                
                 auto tokens = StringArray::fromTokens(line, true);
 
                 if (isStartingCanvas(tokens)) {
@@ -118,7 +120,7 @@ class PaletteView : public Component
             canvasDepth = 0;
             auto toPaste = StringArray::fromLines(clipboardContent);
             for (auto& line : toPaste) {
-
+                line = line.upToLastOccurrenceOf(";", false, false);
                 auto tokens = StringArray::fromTokens(line, true);
                 if (isStartingCanvas(tokens)) {
                     canvasDepth++;
@@ -127,7 +129,7 @@ class PaletteView : public Component
                 if (canvasDepth == 0 && isObject(tokens)) {
                     tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
                     tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
-
+                    
                     line = tokens.joinIntoString(" ");
                 }
 
@@ -141,8 +143,10 @@ class PaletteView : public Component
 
                     canvasDepth--;
                 }
+                
+                line += ";";
             }
-
+            
             auto result = toPaste.joinIntoString("\n");
             libpd_paste(target->patch.getPointer(), result.toRawUTF8());
             target->synchronise();
