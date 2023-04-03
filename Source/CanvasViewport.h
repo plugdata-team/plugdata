@@ -165,14 +165,15 @@ class CanvasViewport : public Viewport
             
         void prepareImage()
         {
-            if (getWidth() <= 0 || getHeight() <= 0)
+            auto currentRange = getCurrentRange();
+            auto totalRange = getRangeLimit();
+            
+            if (getWidth() <= 0 || getHeight() <= 0 || totalRange.isEmpty() || currentRange.isEmpty())
                 return;
 
             scrollbarImage = Image(Image::ARGB, getWidth(), getHeight(), true);
             Graphics g(scrollbarImage);
 
-            auto currentRange = getCurrentRange();
-            auto totalRange = getRangeLimit();
 
             int margin = isInfinite ? (infiniteCanvasMargin - 2) : 0;
 
