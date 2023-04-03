@@ -313,6 +313,11 @@ public:
         slider.setRangeFlipped(static_cast<t_slider*>(ptr)->x_min > static_cast<t_slider*>(ptr)->x_max);
     }
 
+    void setSteadyOnClick(bool steady) const
+    {
+        static_cast<t_slider*>(ptr)->x_steady = steady;
+    }
+    
     bool getSteadyOnClick() const
     {
         return static_cast<t_slider*>(ptr)->x_steady;
@@ -330,7 +335,9 @@ public:
             setLogScale(isLogarithmic == var(true));
             updateRange();
         } else if (value.refersToSameSourceAs(steadyOnClick)) {
-            slider.setSliderSnapsToMousePosition(!static_cast<bool>(steadyOnClick.getValue()));
+            bool steady = static_cast<bool>(steadyOnClick.getValue());
+            setSteadyOnClick(steady);
+            slider.setSliderSnapsToMousePosition(!steady);
         } else {
             iemHelper.valueChanged(value);
         }
