@@ -151,7 +151,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 
 void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback)
 {
-    
+
     class OkayCancelDialog : public Component {
 
     public:
@@ -195,7 +195,6 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         TextButton okay = TextButton("OK");
     };
 
-    
     auto* dialog = new Dialog(target, parent, 400, 130, 160, false);
     auto* dialogContent = new OkayCancelDialog(dialog, title, callback);
 
@@ -260,15 +259,14 @@ bool Dialog::wantsRoundedCorners()
     }
 }
 
-
-
-void Dialogs::askToLocatePatch(PluginEditor* editor, const String& backupState, std::function<void(File)> callback)
+void Dialogs::askToLocatePatch(PluginEditor* editor, String const& backupState, std::function<void(File)> callback)
 {
     class LocatePatchDialog : public Component {
 
     public:
         LocatePatchDialog(Dialog* dialog, String const& backup, std::function<void(File)> callback)
-            : label("", ""), backupState(backup)
+            : label("", "")
+            , backupState(backup)
         {
             setSize(400, 200);
             addAndMakeVisible(label);
@@ -280,21 +278,20 @@ void Dialogs::askToLocatePatch(PluginEditor* editor, const String& backupState, 
 
             locate.onClick = [this, dialog, callback] {
                 callback(File());
-                
+
                 openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", wantsNativeDialog());
 
                 openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [callback](FileChooser const& f) {
                     File openedFile = f.getResult();
-                    if(openedFile.existsAsFile()) {
+                    if (openedFile.existsAsFile()) {
                         callback(openedFile);
                     }
                 });
-                
+
                 dialog->closeDialog();
             };
 
             loadFromState.onClick = [this, dialog, callback] {
-                
                 if (backupState.isEmpty())
                     backupState = pd::Instance::defaultPatch;
 
@@ -320,13 +317,13 @@ void Dialogs::askToLocatePatch(PluginEditor* editor, const String& backupState, 
     private:
         Label label;
         String backupState;
-        
+
         std::unique_ptr<FileChooser> openChooser;
-        
+
         TextButton loadFromState = TextButton("Use saved state");
         TextButton locate = TextButton("Locate...");
     };
-    
+
     auto* dialog = new Dialog(&editor->openedDialog, editor, 400, 130, 160, false);
     auto* dialogContent = new LocatePatchDialog(dialog, backupState, callback);
 
@@ -394,16 +391,15 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.empty()));
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
-
         cnv->isShowingMenu = false;
         cnv->grabKeyboardFocus();
-        
+
         // Make sure that iolets don't hang in hovered state
-        for(auto* object : cnv->objects)
-        {
-            for(auto* iolet : object->iolets) reinterpret_cast<Component*>(iolet)->repaint();
+        for (auto* object : cnv->objects) {
+            for (auto* iolet : object->iolets)
+                reinterpret_cast<Component*>(iolet)->repaint();
         }
-        
+
         // Set position where new objet will be created
         if (result > 100) {
             cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
@@ -779,9 +775,9 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
 
     menu.addItem(createCommandItem(ObjectIDs::NewArray, "Array..."));
     menu.addItem(createCommandItem(ObjectIDs::NewGraphOnParent, "GraphOnParent"));
-    
+
     menu.addSeparator();
-    
+
     menu.addSubMenu("UI", uiMenu);
     menu.addSubMenu("General", generalMenu);
     menu.addSubMenu("MIDI", midiMenu);
@@ -798,7 +794,6 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     menu.addSubMenu("Filters~", filtersMenu);
     menu.addSubMenu("Control~", controlMenu);
     menu.addSubMenu("Math~", signalMathMenu);
-
 
     return menu;
 }

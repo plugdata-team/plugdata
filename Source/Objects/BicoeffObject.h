@@ -557,7 +557,8 @@ public:
         graph.saveProperties();
     }
 
-    std::vector<hash32> getAllMessages() override {
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             hash("allpass"),
             hash("lowpass"),
@@ -570,7 +571,7 @@ public:
             hash("highshelf")
         };
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {

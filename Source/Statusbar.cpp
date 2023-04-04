@@ -215,7 +215,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
     addAndMakeVisible(connectionStyleButton);
 
-
     connectionPathfind.setTooltip("Find best connection path");
     connectionPathfind.getProperties().set("Style", "SmallIcon");
     connectionPathfind.onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
@@ -245,7 +244,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(midiBlinker);
 
     levelMeter->toBehind(&volumeSlider);
-    
+
     overlayButton.setButtonText(Icons::Eye);
     overlaySettingsButton.setButtonText(Icons::ThinDown);
 
@@ -299,7 +298,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     snapEnableButton.setTooltip(String("Enable snapping"));
     snapSettingsButton.setTooltip(String("Snap settings"));
-    
+
     setSize(getWidth(), statusbarHeight);
 }
 
@@ -338,12 +337,12 @@ void Statusbar::resized()
     position(5); // Seperator
 
     centreButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    
+
     position(7); // Seperator
-    
+
     overlayButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
     overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1, 0).withTrimmedRight(8));
-    
+
     position(getHeight() - 8);
 
     snapEnableButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());

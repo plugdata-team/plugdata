@@ -164,7 +164,7 @@ class SuggestionComponent : public Component
         void paint(Graphics& g) override
         {
             auto scrollbarIndent = parent->port->canScrollVertically() ? 6 : 0;
-            
+
             auto backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : PlugDataColour::popupMenuBackgroundColourId);
 
             auto buttonArea = getLocalBounds().reduced(4, 2).withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat();
@@ -542,19 +542,20 @@ private:
             auto name = currentText.upToFirstOccurrenceOf(" ", false, false);
             auto objectInfo = library->getObjectInfo(name);
             auto found = objectInfo.getChildWithName("arguments").createCopy();
-            for(auto flag : objectInfo.getChildWithName("flags")) {
+            for (auto flag : objectInfo.getChildWithName("flags")) {
                 auto flagCopy = flag.createCopy();
                 auto name = flagCopy.getProperty("name").toString().trim();
-                if(!name.startsWith("-")) name = "-" + name;
+                if (!name.startsWith("-"))
+                    name = "-" + name;
                 flagCopy.setProperty("type", name, nullptr);
                 found.appendChild(flagCopy, nullptr);
             }
-            
+
             numOptions = std::min<int>(buttons.size(), found.getNumChildren());
             for (int i = 0; i < numOptions; i++) {
                 auto type = found.getChild(i).getProperty("type").toString();
                 auto description = found.getChild(i).getProperty("description").toString();
-                
+
                 buttons[i]->setText(type, description, false);
                 buttons[i]->setInterceptsMouseClicks(false, false);
                 buttons[i]->setToggleState(false, dontSendNotification);
@@ -620,7 +621,7 @@ private:
             // Apply object name and descriptions to buttons
             for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
                 auto& name = suggestions[i];
-                
+
                 auto description = library->getObjectInfo(name).getProperty("description").toString();
                 buttons[i]->setText(name, description, true);
 

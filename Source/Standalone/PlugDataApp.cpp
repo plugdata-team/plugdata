@@ -77,7 +77,7 @@ static char const* strtokcpy(char* to, size_t to_len, char const* from, char del
 }
 
 class PlugDataApp : public JUCEApplication {
-    
+
 public:
     PlugDataApp()
     {

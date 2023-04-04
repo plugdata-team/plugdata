@@ -87,7 +87,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     repaint();
 
     updateOverlays(cnv->getOverlays());
-    
+
     cnv->pd->registerMessageListener(ptr, this);
 }
 
@@ -113,7 +113,7 @@ Connection::~Connection()
     }
 }
 
-void Connection::changeListenerCallback(ChangeBroadcaster *source)
+void Connection::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (auto selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
         setSelected(selectedItems->isSelected(this));
@@ -259,23 +259,23 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
 }
 
 void Connection::renderConnectionPath(Graphics& g,
-                                      Canvas* cnv,
-                                      Path connectionPath,
-                                      bool isSignal,
-                                      bool isMouseOver,
-                                      bool showDirection,
-                                      bool showConnectionOrder,
-                                      bool isSelected,
-                                      Point<int> mousePos,
-                                      bool isHovering,
-                                      int connectionCount,
-                                      int multiConnectNumber)
+    Canvas* cnv,
+    Path connectionPath,
+    bool isSignal,
+    bool isMouseOver,
+    bool showDirection,
+    bool showConnectionOrder,
+    bool isSelected,
+    Point<int> mousePos,
+    bool isHovering,
+    int connectionCount,
+    int multiConnectNumber)
 {
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
     auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
     auto handleColour = isSignal ? dataColour : signalColour;
-    
+
     auto connectionLength = connectionPath.getLength();
 
     if (isSelected) {
@@ -349,8 +349,7 @@ void Connection::renderConnectionPath(Graphics& g,
     }
 
     // draw connection index number
-    if (showConnectionOrder && !isSignal && connectionCount > 1)
-    {
+    if (showConnectionOrder && !isSignal && connectionCount > 1) {
         auto endCableOrderDisplay = Rectangle<float>(13, 13).withCentre(connectionPath.getPointAlongPath(jmax(connectionPath.getLength() - 8.5f * 3, 9.5f)));
         g.setColour(baseColour);
         g.fillEllipse(endCableOrderDisplay);
@@ -385,21 +384,20 @@ void Connection::updateOverlays(int overlay)
     repaint();
 }
 
-
 void Connection::paint(Graphics& g)
 {
     renderConnectionPath(g,
-                         cnv,
-                         toDraw,
-                         outlet->isSignal,
-                         isMouseOver(),
-                         showDirection,
-                         showConnectionOrder,
-                         selectedFlag,
-                         getMouseXYRelative(),
-                         isHovering,
-                         getNumberOfConnections(),
-                         getMultiConnectNumber());
+        cnv,
+        toDraw,
+        outlet->isSignal,
+        isMouseOver(),
+        showDirection,
+        showConnectionOrder,
+        selectedFlag,
+        getMouseXYRelative(),
+        isHovering,
+        getNumberOfConnections(),
+        getMultiConnectNumber());
 }
 
 bool Connection::isSegmented()
@@ -455,9 +453,9 @@ void Connection::mouseEnter(MouseEvent const& e)
     auto args = lastValue;
     auto name = lastSelector;
     lastValueMutex.unlock();
-    
+
     String tooltip;
-    
+
     if (name == "float" && args.size() >= 1) {
         tooltip = "(float) " + String(args[0].getFloat());
     } else if (name == "symbol" && args.size() >= 1) {
@@ -484,9 +482,9 @@ void Connection::mouseEnter(MouseEvent const& e)
 
         tooltip = result.joinIntoString(" ");
     }
-    
+
     setTooltip(tooltip);
-    
+
     isHovering = true;
     repaint();
 }
@@ -720,10 +718,8 @@ Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
 int Connection::getNumberOfConnections()
 {
     int count = 0;
-    for (auto connection : cnv->connections)
-    {
-        if (outlet == connection->outlet)
-        {
+    for (auto connection : cnv->connections) {
+        if (outlet == connection->outlet) {
             count++;
         }
     }
@@ -733,10 +729,8 @@ int Connection::getNumberOfConnections()
 int Connection::getMultiConnectNumber()
 {
     int count = 0;
-    for (auto connection : cnv->connections)
-    {
-        if (outlet == connection->outlet)
-        {
+    for (auto connection : cnv->connections) {
+        if (outlet == connection->outlet) {
             count += 1;
             if (this == connection)
                 return count;
@@ -1094,7 +1088,7 @@ void ConnectionPathUpdater::timerCallback()
 
 void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 {
-    if(lastValueMutex.try_lock()) {
+    if (lastValueMutex.try_lock()) {
         lastValue = pd::Atom::fromAtoms(argc, argv);
         lastSelector = name;
         lastValueMutex.unlock();

@@ -218,7 +218,7 @@ public:
         if (settings != nullptr && processor != nullptr) {
             MemoryBlock data;
             processor->getStateInformation(data);
-            
+
             MemoryOutputStream ostream;
             Base64::convertToBase64(ostream, data.getData(), data.getSize());
             settings->setValue("filterState", ostream.toString());

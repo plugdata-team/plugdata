@@ -164,9 +164,9 @@ public:
     OwnedArray<Object> objects;
     OwnedArray<Connection> connections;
     OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
-        
+
     TooltipWindowWithTarget<Canvas, void> tooltipWindow;
-        
+
     Value locked;
     Value commandLocked;
     Value presentationMode;

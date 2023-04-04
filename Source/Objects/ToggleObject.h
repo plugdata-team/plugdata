@@ -151,7 +151,8 @@ public:
         repaint();
     }
 
-    std::vector<hash32> getAllMessages() override {
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             hash("bang"),
             hash("float"),
@@ -160,7 +161,6 @@ public:
         };
     }
 
-    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {

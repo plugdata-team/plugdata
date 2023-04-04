@@ -408,7 +408,8 @@ public:
         };
     }
 
-    std::vector<hash32> getAllMessages() override {
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             hash("font"),
             hash("italic"),
@@ -426,7 +427,7 @@ public:
             hash("receive")
         };
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         auto* note = static_cast<t_fake_note*>(ptr);

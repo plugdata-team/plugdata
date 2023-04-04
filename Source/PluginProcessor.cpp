@@ -98,7 +98,7 @@ PluginProcessor::PluginProcessor()
         auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false);
         addParameter(parameter);
     }
-    
+
     // Make sure that the parameter valuetree has a name, to prevent assertion failures
     // parameters.replaceState(ValueTree("plugdata"));
 
@@ -169,7 +169,7 @@ PluginProcessor::PluginProcessor()
         updateSearchPaths();
         objectLibrary->updateLibrary();
     };
-    
+
     setLatencySamples(pd::Instance::getBlockSize());
 
 #if !JUCE_WINDOWS
@@ -351,8 +351,7 @@ int PluginProcessor::getCurrentProgram()
 
 void PluginProcessor::setCurrentProgram(int index)
 {
-    if(isPositiveAndBelow(index, Presets::presets.size()))
-    {
+    if (isPositiveAndBelow(index, Presets::presets.size())) {
         MemoryOutputStream data;
         Base64::convertFromBase64(data, Presets::presets[index].second);
         if (data.getDataSize() > 0) {
@@ -364,11 +363,10 @@ void PluginProcessor::setCurrentProgram(int index)
 
 const String PluginProcessor::getProgramName(int index)
 {
-    if(isPositiveAndBelow(index, Presets::presets.size()))
-    {
+    if (isPositiveAndBelow(index, Presets::presets.size())) {
         return Presets::presets[index].first;
     }
-    
+
     return "Init preset";
 }
 
@@ -746,8 +744,9 @@ void PluginProcessor::sendParameters()
         // Used to do dynamic_cast here, but since it gets called very often and param is always PlugDataParameter
         // we use reinterpret_cast now.
         auto* pldParam = reinterpret_cast<PlugDataParameter*>(param);
-        if(!pldParam->isEnabled()) continue;
-        
+        if (!pldParam->isEnabled())
+            continue;
+
         auto newvalue = pldParam->getUnscaledValue();
         if (pldParam->getLastValue() != newvalue) {
             auto title = pldParam->getTitle();
@@ -862,12 +861,11 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     setThis();
 
     savePatchTabPositions();
-    
+
     Array<pd::Patch*> palettes;
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        for(auto* cnv : editor->canvases) {
-            if(cnv->isPalette)
-            {
+        for (auto* cnv : editor->canvases) {
+            if (cnv->isPalette) {
                 palettes.add(&cnv->patch);
             }
         }
@@ -880,11 +878,12 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     // Save path and content for patch
     lockAudioThread();
-    
+
     auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
-    
+
     for (auto* patch : patches) {
-        if(palettes.contains(patch)) continue;
+        if (palettes.contains(patch))
+            continue;
         ostream.writeString(patch->getCanvasContent());
         auto patchFile = patch->getCurrentFile();
         ostream.writeString(patchFile.getFullPathName());
@@ -965,18 +964,18 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     for (int i = 0; i < numPatches; i++) {
         auto state = istream.readString();
         auto path = istream.readString();
-        
+
         auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
-        
+
         auto location = File(path);
-        
-        if(path.isNotEmpty() && location.existsAsFile()) // TODO: test if path's parent is temp dir
+
+        if (path.isNotEmpty() && location.existsAsFile()) // TODO: test if path's parent is temp dir
         {
             auto* patch = loadPatch(location);
-            if(patch) patch->setTitle(location.getFileName());
-        }
-        else {
+            if (patch)
+                patch->setTitle(location.getFileName());
+        } else {
             if (location.getParentDirectory().exists()) {
                 auto parentPath = location.getParentDirectory().getFullPathName();
                 // Add patch path to search path to make sure it finds abstractions in the saved patch!
@@ -996,7 +995,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     auto legacyLatency = istream.readInt();
     auto legacyOversampling = istream.readInt();
     auto legacyTail = istream.readFloat();
-    
+
     auto xmlSize = istream.readInt();
 
     auto* xmlData = new char[xmlSize];
@@ -1015,13 +1014,12 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             setLatencySamples(legacyLatency);
             setOversampling(legacyOversampling);
             tailLength = legacyTail;
-        }
-        else {
+        } else {
             setOversampling(xmlState->getDoubleAttribute("Oversampling"));
             setLatencySamples(xmlState->getDoubleAttribute("Latency"));
             tailLength = xmlState->getDoubleAttribute("TailLength");
         }
-        
+
         if (xmlState->hasAttribute("Version")) {
             versionString = xmlState->getStringAttribute("Version");
         }
@@ -1044,22 +1042,21 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                 MessageManager::callAsync([editor = Component::SafePointer(editor), this]() {
-                    if(!editor) return;
-                    
+                    if (!editor)
+                        return;
+
                     editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
                 });
             }
         }
         if (xmlState->hasAttribute("PluginMode")) {
             pluginMode = xmlState->getStringAttribute("PluginMode");
-        }
-        else {
+        } else {
             pluginMode = var(false);
         }
         // JYG added this
         parseDataBuffer(*xmlState);
     }
-
 
     delete[] xmlData;
 
@@ -1070,8 +1067,8 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             if (!editor)
                 return;
             editor->sidebar->updateAutomationParameters();
-            
-            if(editor->pluginMode && editor->pd->pluginMode == var(false)) {
+
+            if (editor->pluginMode && editor->pd->pluginMode == var(false)) {
                 editor->pluginMode->closePluginMode();
             }
         });
@@ -1249,35 +1246,32 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
 
 void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list)
 {
-    switch(hash(selector))
-    {
-        case hash("dsp"): {
-            bool dsp = list[0].getFloat();
+    switch (hash(selector)) {
+    case hash("dsp"): {
+        bool dsp = list[0].getFloat();
+        MessageManager::callAsync(
+            [this, dsp]() mutable {
+                if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                    editor->statusbar->powerButton.setToggleState(dsp, dontSendNotification);
+                }
+            });
+        break;
+    }
+    case hash("quit"):
+    case hash("verifyquit"): {
+        if (ProjectInfo::isStandalone) {
+            bool askToSave = hash(selector) == hash("verifyquit");
             MessageManager::callAsync(
-                                      [this, dsp]() mutable {
-                                          if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                                              editor->statusbar->powerButton.setToggleState(dsp, dontSendNotification);
-                                          }
-                                      });
-            break;
+                [this, askToSave]() mutable {
+                    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                        editor->quit(askToSave);
+                    }
+                });
+        } else {
+            logWarning("Quitting Pd not supported in plugin");
         }
-        case hash("quit"):
-        case hash("verifyquit"): {
-            if(ProjectInfo::isStandalone)
-            {
-                bool askToSave = hash(selector) == hash("verifyquit");
-                MessageManager::callAsync(
-                                          [this, askToSave]() mutable {
-                                              if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                                                  editor->quit(askToSave);
-                                              }
-                                          });
-            }
-            else {
-                logWarning("Quitting Pd not supported in plugin");
-            }
-            break;
-        }
+        break;
+    }
     }
 };
 
@@ -1389,7 +1383,6 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
         sendBang("load");
     }
 }
-
 
 void PluginProcessor::updateDrawables()
 {

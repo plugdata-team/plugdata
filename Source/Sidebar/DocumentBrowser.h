@@ -74,9 +74,9 @@ public:
         p.startNewSubPath(0.0f, 0.0f);
         p.lineTo(0.5f, 0.5f);
         p.lineTo(isOpen() ? 1.0f : 0.0f, isOpen() ? 0.0f : 1.0f);
-        
+
         auto arrowArea = area.reduced(5, 9).translated(4, 0).toFloat();
-        
+
         g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
         g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(arrowArea, true));
     }
@@ -634,15 +634,14 @@ public:
             if (!file.hasFileExtension("pd"))
                 return;
 
-            if(fileName.containsIgnoreCase(query))
-            {
+            if (fileName.containsIgnoreCase(query)) {
                 searchResult.add(file);
             }
         };
 
         for (int i = 0; i < searchPath.getNumFiles(); i++) {
             auto file = searchPath.getFile(i);
-        
+
             if (file.isDirectory()) {
                 for (auto& child : OSUtils::iterateDirectory(file, true, false)) {
                     addFile(child);

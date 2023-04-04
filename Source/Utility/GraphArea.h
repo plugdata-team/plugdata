@@ -6,7 +6,8 @@
 
 // Graph bounds component
 class GraphArea : public Component
-    , public ComponentDragger, public Value::Listener {
+    , public ComponentDragger
+    , public Value::Listener {
     ResizableCornerComponent resizer;
     Canvas* canvas;
 
@@ -18,16 +19,16 @@ public:
         addAndMakeVisible(resizer);
         updateBounds();
         setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        
+
         canvas->locked.addListener(this);
         valueChanged(canvas->locked);
     }
-        
+
     ~GraphArea()
     {
         canvas->locked.removeListener(this);
     }
-        
+
     void valueChanged(Value& v) override
     {
         setVisible(!getValue<bool>(v));

@@ -13,9 +13,8 @@
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
 
-namespace pd
-{
-    class Library;
+namespace pd {
+class Library;
 }
 
 class InternalSynth;
@@ -70,7 +69,7 @@ public:
     void receivePolyAftertouch(int const channel, int const pitch, int const value) override;
     void receiveMidiByte(int const port, int const byte) override;
     void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
-        
+
     void updateDrawables() override;
 
     void updateConsole() override;

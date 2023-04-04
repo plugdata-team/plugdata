@@ -5,19 +5,20 @@
  */
 
 class ReversibleSlider : public Slider {
-    
+
     bool isInverted;
-    
+
 public:
-    ReversibleSlider() {
+    ReversibleSlider()
+    {
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         setScrollWheelEnabled(false);
         getProperties().set("Style", "SliderObject");
         setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
     }
-    
-    ~ReversibleSlider() {}
+
+    ~ReversibleSlider() { }
 
     void setRangeFlipped(bool invert)
     {
@@ -44,7 +45,6 @@ public:
             return Slider::valueToProportionOfLength(value);
     };
 };
-
 
 class SliderObject : public ObjectBase {
     bool isVertical;
@@ -165,7 +165,8 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override {
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             hash("float"),
             hash("set"),
@@ -176,7 +177,7 @@ public:
             IEMGUI_MESSAGES
         };
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
@@ -274,17 +275,18 @@ public:
     float getValue()
     {
         auto* x = static_cast<t_slider*>(ptr);
-        
+
         t_float fval;
         int rounded_val = (x->x_gui.x_fsf.x_finemoved) ? x->x_val : (x->x_val / 100) * 100;
 
         /* if rcv==snd, don't round the value to prevent bad dragging when zoomed-in */
-        if(x->x_gui.x_fsf.x_snd_able && (x->x_gui.x_snd == x->x_gui.x_rcv))
+        if (x->x_gui.x_fsf.x_snd_able && (x->x_gui.x_snd == x->x_gui.x_rcv))
             rounded_val = x->x_val;
 
         if (x->x_lin0_log1)
-            fval = x->x_min * exp(x->x_k * (double)(rounded_val) * 0.01);
-        else fval = (double)(rounded_val) * 0.01 * x->x_k + x->x_min;
+            fval = x->x_min * exp(x->x_k * (double)(rounded_val)*0.01);
+        else
+            fval = (double)(rounded_val)*0.01 * x->x_k + x->x_min;
         if ((fval < 1.0e-10) && (fval > -1.0e-10))
             fval = 0.0;
 
@@ -317,7 +319,7 @@ public:
     {
         static_cast<t_slider*>(ptr)->x_steady = steady;
     }
-    
+
     bool getSteadyOnClick() const
     {
         return static_cast<t_slider*>(ptr)->x_steady;
@@ -374,5 +376,4 @@ public:
                 return (std::log10(logVal / min) / std::log10(max / min));
             });
     }
-
 };

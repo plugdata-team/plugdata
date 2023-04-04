@@ -23,8 +23,9 @@ public:
 
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         auto atoms = pd::Atom::fromAtoms(argc, argv);
 
         bool isVisMessage = symbol == "vis";
@@ -88,8 +89,9 @@ public:
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
-        if(pd->isPerformingGlobalSync) return false;
-        
+        if (pd->isPerformingGlobalSync)
+            return false;
+
         auto const keyIdx = heldKeys.indexOf(key);
         auto const alreadyDown = keyIdx >= 0;
         auto const currentTime = Time::getMillisecondCounter();
@@ -111,9 +113,8 @@ public:
         } else if (type == KeyName) {
 
             String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
-            
-            if(keyString.startsWith("#"))
-            {
+
+            if (keyString.startsWith("#")) {
                 keyString = String::charToString(key.getTextCharacter());
             }
             if (!key.getModifiers().isShiftDown()) {
@@ -173,8 +174,9 @@ public:
 
     bool keyStateChanged(bool isKeyDown, Component* originatingComponent) override
     {
-        if(pd->isPerformingGlobalSync) return false;
-        
+        if (pd->isPerformingGlobalSync)
+            return false;
+
         if (!isKeyDown) {
             for (int n = heldKeys.size() - 1; n >= 0; n--) {
                 auto key = heldKeys[n];
@@ -191,9 +193,8 @@ public:
                     } else if (type == KeyName) {
 
                         String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
-                        
-                        if(keyString.startsWith("#"))
-                        {
+
+                        if (keyString.startsWith("#")) {
                             keyString = String::charToString(key.getTextCharacter());
                         }
                         if (!key.getModifiers().isShiftDown()) {
@@ -308,11 +309,10 @@ public:
             keynum = 56, keysym = pd->generateSymbol("8");
         else if (keynum == KeyPress::numberPad9)
             keynum = 57, keysym = pd->generateSymbol("9");
-        
-        // on macOS, alphanumeric characters are offset
+
+            // on macOS, alphanumeric characters are offset
 #if JUCE_MAC
-        else if(keynum >= 65 && keynum <= 90)
-        {
+        else if (keynum >= 65 && keynum <= 90) {
             keynum += 32;
         }
 #endif
@@ -347,8 +347,9 @@ public:
 
     void update() override
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         void* patch;
         sscanf(static_cast<t_fake_active*>(ptr)->x_cname->s_name, ".x%lx.c", (unsigned long*)&patch);
 
@@ -368,8 +369,9 @@ public:
 
     void globalFocusChanged(Component* focusedComponent) override
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         if (!focusedComponent) {
             t_atom args[2];
 
@@ -468,8 +470,9 @@ public:
     void update() override
     {
 
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         if (cnv) {
             cnv->removeMouseListener(this);
         }
@@ -523,8 +526,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
@@ -542,8 +546,9 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
@@ -553,8 +558,9 @@ public:
 
     void mouseMove(MouseEvent const& e) override
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
@@ -629,8 +635,9 @@ public:
 
     void updateVisibility()
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         if (!cnv)
             return;
 
@@ -677,8 +684,9 @@ public:
 
     void update() override
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         if (cnv) {
             cnv->locked.removeListener(this);
         }
@@ -694,8 +702,9 @@ public:
 
     void valueChanged(Value& v) override
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         float newScale = getValue<float>(zoomScaleValue);
         if (lastScale != newScale) {
             auto* zoom = static_cast<t_fake_zoom*>(ptr);
@@ -722,8 +731,9 @@ public:
 
     void update() override
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         if (cnv) {
             cnv->locked.removeListener(this);
         }
@@ -738,8 +748,9 @@ public:
     }
     void valueChanged(Value& v) override
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         bool editMode = getValue<bool>(v);
         if (lastEditMode != editMode) {
             auto* edit = static_cast<t_fake_edit*>(ptr);
@@ -777,8 +788,9 @@ public:
 
     void timerCallback() override
     {
-        if(pd->isPerformingGlobalSync) return;
-        
+        if (pd->isPerformingGlobalSync)
+            return;
+
         if (lastPosition != mouseSource.getScreenPosition()) {
 
             auto pos = mouseSource.getScreenPosition();

@@ -184,12 +184,13 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override {
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             hash("anything")
         };
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
@@ -207,8 +208,7 @@ public:
         }
         default: {
             bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
-            if(!wasIemMessage)
-            {
+            if (!wasIemMessage) {
                 trigger();
             }
             break;

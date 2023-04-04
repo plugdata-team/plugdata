@@ -26,7 +26,7 @@ public:
     void update() override
     {
         selected = getValue();
-        
+
         if (selected > ::getValue<int>(max)) {
             selected = std::min<int>(::getValue<int>(max) - 1, selected);
         }
@@ -36,8 +36,8 @@ public:
         max = numItems;
 
         iemHelper.update();
-        
-        onConstrainerCreate = [this](){
+
+        onConstrainerCreate = [this]() {
             updateAspectRatio();
         };
     }
@@ -78,7 +78,7 @@ public:
         auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
         auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
 
-        return { x, y, width, height};
+        return { x, y, width, height };
     }
 
     void toggleObject(Point<int> position) override
@@ -99,8 +99,9 @@ public:
             repaint();
         }
     }
-    
-    std::vector<hash32> getAllMessages() override {
+
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             hash("float"),
             hash("set"),

@@ -77,11 +77,9 @@ public:
         setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         setColour(ListBox::outlineColourId, Colours::transparentBlack);
 
-        for(auto object : library.getAllObjects())
-        {
+        for (auto object : library.getAllObjects()) {
             auto info = library.getObjectInfo(object);
-            if(info.hasProperty("name") && info.hasProperty("description"))
-            {
+            if (info.hasProperty("name") && info.hasProperty("description")) {
                 descriptions[info.getProperty("name").toString()] = info.getProperty("description").toString();
             }
         }
@@ -307,10 +305,10 @@ public:
         createObject.setVisible(valid);
         // openHelp.setVisible(valid);
         openReference.setVisible(valid);
-        
+
         inlets.clear();
         outlets.clear();
-        
+
         if (!valid) {
             objectName = "";
             unknownInletLayout = false;
@@ -321,20 +319,19 @@ public:
 
         bool hasUnknownInletLayout = false;
         bool hasUnknownOutletLayout = false;
-        
+
         auto objectInfo = library.getObjectInfo(name);
         auto ioletDescriptions = objectInfo.getChildWithName("iolets");
-        for(auto iolet : ioletDescriptions)
-        {
+        for (auto iolet : ioletDescriptions) {
             auto variable = iolet.getProperty("variable").toString() == "1";
-           
-            if(iolet.getType() == Identifier("inlet"))
-            {
-                if(variable) hasUnknownInletLayout = true;
+
+            if (iolet.getType() == Identifier("inlet")) {
+                if (variable)
+                    hasUnknownInletLayout = true;
                 inlets.push_back(iolet.getProperty("tooltip").toString().contains("(signal)"));
-            }
-            else {
-                if(variable) hasUnknownOutletLayout = true;
+            } else {
+                if (variable)
+                    hasUnknownOutletLayout = true;
                 outlets.push_back(iolet.getProperty("tooltip").toString().contains("(signal)"));
             }
         }
@@ -345,7 +342,7 @@ public:
         objectName = name;
         categories = "";
         origin = "";
-        
+
         auto categoriesTree = objectInfo.getChildWithName("categories");
 
         for (auto category : categoriesTree) {
@@ -454,10 +451,9 @@ public:
 
         for (auto& object : library.getAllObjects()) {
             auto objectInfo = library.getObjectInfo(object);
-            if(objectInfo.isValid()) {
+            if (objectInfo.isValid()) {
                 objectDescriptions[object] = objectInfo.getProperty("description").toString();
-            }
-            else {
+            } else {
                 objectDescriptions[object] = "";
             }
         }
@@ -642,7 +638,7 @@ public:
         , objectSearch(*editor->pd->objectLibrary)
     {
         auto& library = *editor->pd->objectLibrary;
-        
+
         for (auto& object : library.getAllObjects()) {
             auto categoriesTree = library.getObjectInfo(object).getChildWithName("categories");
 

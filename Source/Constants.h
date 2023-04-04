@@ -549,8 +549,8 @@ enum OverlayItem {
     OverlayOrigin = 0,
     OverlayBorder,
     OverlayIndex,
-    //Coordinate,
-    //ActivationState,
+    // Coordinate,
+    // ActivationState,
     OverlayDirection,
     OverlayOrder
 };

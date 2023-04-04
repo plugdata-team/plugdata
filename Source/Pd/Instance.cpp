@@ -171,9 +171,9 @@ Instance::Instance(String const& symbol)
             return;
 
         bool cleanUp = false;
-        
+
         auto sym = String::fromUTF8(symbol->s_name);
-        
+
         for (auto listener : listeners[target]) {
             // Check if the safepointer is still valid
             if (!listener) {
@@ -427,8 +427,7 @@ void Instance::processMessage(Message mess)
         receiveSymbol(mess.destination, mess.list[0].getSymbol());
     } else if (mess.selector == "list") {
         receiveList(mess.destination, mess.list);
-    }
-    else {
+    } else {
         receiveMessage(mess.destination, mess.selector, mess.list);
     }
 }
@@ -726,7 +725,7 @@ void Instance::lockAudioThread()
 {
     if (waitingForStateUpdate) // In this case, the message thread is waiting for the audio thread, so never lock in that case!
         return;
-    
+
     numLocksHeld++;
     audioLock->enter();
 }

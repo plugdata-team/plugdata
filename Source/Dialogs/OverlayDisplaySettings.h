@@ -72,7 +72,7 @@ public:
             buttons[Lock]->setToggleState(static_cast<bool>(lockState & group), dontSendNotification);
             buttons[Run]->setToggleState(static_cast<bool>(runState & group), dontSendNotification);
             buttons[Alt]->setToggleState(static_cast<bool>(altState & group), dontSendNotification);
-            
+
             setSize(230, 30);
         }
 

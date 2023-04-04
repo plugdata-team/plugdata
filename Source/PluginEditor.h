@@ -32,7 +32,8 @@ class PluginEditor : public AudioProcessorEditor
     , public ApplicationCommandTarget
     , public ApplicationCommandManager
     , public FileDragAndDropTarget
-    , public ModifierKeyBroadcaster, public ModifierKeyListener {
+    , public ModifierKeyBroadcaster
+    , public ModifierKeyListener {
 public:
     enum ToolbarButtonType {
         Settings = 0,
@@ -68,7 +69,7 @@ public:
     void addTab(Canvas* cnv);
     void closeTab(Canvas* cnv);
     void closeAllTabs();
-        
+
     void quit(bool askToSave);
 
     Canvas* getCurrentCanvas(bool canBePalette = false);
@@ -90,7 +91,7 @@ public:
     bool perform(InvocationInfo const& info) override;
 
     bool wantsRoundedCorners();
-        
+
     bool keyPressed(KeyPress const& key) override;
 
     float getZoomScale();
@@ -98,7 +99,7 @@ public:
     Value& getZoomScaleValueForCanvas(Canvas* cnv);
 
     void enablePluginMode(Canvas* cnv);
-        
+
     void commandKeyChanged(bool isHeld) override;
 
     TabComponent* getActiveTabbar();

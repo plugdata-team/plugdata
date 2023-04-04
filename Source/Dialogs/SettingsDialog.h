@@ -95,7 +95,6 @@ public:
         panels.add(new Deken());
         panels.add(new AdvancedSettingsPanel(editor));
 
-
         for (int i = 0; i < toolbarButtons.size(); i++) {
             toolbarButtons[i]->setClickingTogglesState(true);
             toolbarButtons[i]->setRadioGroupId(0111);

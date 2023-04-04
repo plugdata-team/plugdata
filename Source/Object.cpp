@@ -138,7 +138,7 @@ void Object::timerCallback()
     }
 }
 
-void Object::changeListenerCallback(ChangeBroadcaster *source)
+void Object::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (auto selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
         setSelected(selectedItems->isSelected(this));
@@ -266,7 +266,7 @@ void Object::applyBounds()
         newObjectSizes[obj] = obj->getObjectBounds();
 
     auto* patch = &cnv->patch;
-    
+
     cnv->pd->enqueueFunction(
         [newObjectSizes, patch]() mutable {
             patch->startUndoSequence("resize");
@@ -558,7 +558,7 @@ void Object::updateTooltips()
         return;
 
     auto objectInfo = cnv->pd->objectLibrary->getObjectInfo(gui->getType());
-    
+
     // Set object tooltip
     gui->setTooltip(objectInfo.getProperty("description").toString());
 
@@ -673,9 +673,8 @@ void Object::updateIolets()
 
     numInputs = 0;
     numOutputs = 0;
-    
-    if(cnv->patch.objectWasDeleted(getPointer()))
-    {
+
+    if (cnv->patch.objectWasDeleted(getPointer())) {
         iolets.clear();
         return;
     }
@@ -790,7 +789,7 @@ void Object::mouseDown(MouseEvent const& e)
     repaint();
 
     ds.canvasDragStartPosition = cnv->getPosition();
-    
+
     cnv->updateSidebarSelection();
 }
 
@@ -834,9 +833,9 @@ void Object::mouseUp(MouseEvent const& e)
 
             cnv->checkBounds();
             cnv->objectGrid.clearAll();
-            
+
             applyBounds();
-            
+
             cnv->pd->waitForStateUpdate(); // TODO: ?? why do this?
 
             ds.didStartDragging = false;
@@ -1209,8 +1208,9 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
 
 void Object::updateOverlays(int overlay)
 {
-    if(cnv->isGraph) return;
-    
+    if (cnv->isGraph)
+        return;
+
     bool indexWasShown = indexShown;
     indexShown = overlay & Overlay::Index;
 

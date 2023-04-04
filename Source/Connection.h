@@ -10,8 +10,8 @@
 
 #include <concurrentqueue.h> // Move to impl
 #include "Constants.h"
-#include "Iolet.h"           // Move to impl
-#include "Pd/Instance.h"        // Move to impl
+#include "Iolet.h"       // Move to impl
+#include "Pd/Instance.h" // Move to impl
 #include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
@@ -26,8 +26,7 @@ class Connection : public Component
     , public Value::Listener
     , public ChangeListener
     , public pd::MessageListener
-    , public SettableTooltipClient
-{
+    , public SettableTooltipClient {
 public:
     int inIdx;
     int outIdx;
@@ -44,17 +43,17 @@ public:
     void updateOverlays(int overlay);
 
     static void renderConnectionPath(Graphics& g,
-                                     Canvas* cnv,
-                                     Path connectionPath,
-                                     bool isSignal,
-                                     bool isMouseOver = false,
-                                     bool showDirection = false,
-                                     bool showConnectionOrder = false,
-                                     bool isSelected = false,
-                                     Point<int> mousePos = { 0, 0 },
-                                     bool isHovering = false,
-                                     int connections = 0,
-                                     int connectionNum = 0);
+        Canvas* cnv,
+        Path connectionPath,
+        bool isSignal,
+        bool isMouseOver = false,
+        bool showDirection = false,
+        bool showConnectionOrder = false,
+        bool isSelected = false,
+        Point<int> mousePos = { 0, 0 },
+        bool isHovering = false,
+        int connections = 0,
+        int connectionNum = 0);
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
@@ -67,7 +66,7 @@ public:
 
     void lookAndFeelChanged() override;
 
-    void changeListenerCallback(ChangeBroadcaster *source) override;
+    void changeListenerCallback(ChangeBroadcaster* source) override;
 
     bool hitTest(int x, int y) override;
 
@@ -148,11 +147,11 @@ private:
     };
 
     t_fake_outconnect* ptr;
-    
+
     std::vector<pd::Atom> lastValue;
     String lastSelector;
     std::mutex lastValueMutex;
-    
+
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };

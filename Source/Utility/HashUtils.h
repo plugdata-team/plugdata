@@ -10,8 +10,9 @@ typedef uint8_t u8;
 constexpr hash32 hash(char const* str)
 {
     hash32 result = EMPTY_HASH;
-    
-    if(!str) return result;
+
+    if (!str)
+        return result;
 
     while (*str) {
         result ^= (hash32)*str;       // NOTE: make this toupper(*s) or tolower(*s) if you want case-insensitive hashes

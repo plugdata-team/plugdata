@@ -219,7 +219,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     runButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
     presentButton.setConnectedEdges(Button::ConnectedOnLeft);
 
-
     // Hide sidebar
     hideSidebarButton.setTooltip("Hide Sidebar");
     hideSidebarButton.getProperties().set("Style", "LargeIcon");
@@ -265,7 +264,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Initialise zoom factor
     valueChanged(zoomScale);
     valueChanged(splitZoomScale);
-    
+
     addModifierKeyListener(this);
 
     // Restore Plugin Mode View
@@ -406,11 +405,11 @@ void PluginEditor::parentSizeChanged()
     } else if (!visible && !standalone->isFullScreen()) {
         // Hide TitleBar Buttons in Plugin Mode if using native title bar
         if (ComponentPeer* peer = standalone->getPeer())
-                        OSUtils::HideTitlebarButtons(peer->getNativeHandle(), true, true, true);
+            OSUtils::HideTitlebarButtons(peer->getNativeHandle(), true, true, true);
     } else {
         // Show TitleBar Buttons
         if (ComponentPeer* peer = standalone->getPeer())
-                        OSUtils::HideTitlebarButtons(peer->getNativeHandle(), false, false, false);
+            OSUtils::HideTitlebarButtons(peer->getNativeHandle(), false, false, false);
     }
 #else
     if (!standalone->isUsingNativeTitleBar()) {
@@ -614,7 +613,7 @@ Canvas* PluginEditor::getCurrentCanvas(bool canBePalette)
 {
     if (canBePalette && palettes && palettes->hasFocus()) {
         if (auto* cnv = palettes->getCurrentCanvas()) {
-            if(!getValue<bool>(cnv->paletteDragMode)) {
+            if (!getValue<bool>(cnv->paletteDragMode)) {
                 return cnv;
             }
         }
@@ -742,8 +741,8 @@ void PluginEditor::addTab(Canvas* cnv)
 
     cnv->setVisible(true);
     cnv->jumpToOrigin();
-    
-    if(pd->pluginMode == var(true) || pd->pluginMode == cnv->patch.getCurrentFile().getFileName()) {
+
+    if (pd->pluginMode == var(true) || pd->pluginMode == cnv->patch.getCurrentFile().getFileName()) {
         enablePluginMode(cnv);
     }
 
@@ -1485,7 +1484,7 @@ bool PluginEditor::wantsRoundedCorners()
 {
     if (!ProjectInfo::isStandalone)
         return false;
-    
+
     // Since this is called in a paint routine, use reinterpret_cast instead of dynamic_cast for efficiency
     // For the standalone, the top-level component should always be DocumentWindow derived!
     if (auto* window = reinterpret_cast<DocumentWindow*>(getTopLevelComponent())) {
@@ -1560,11 +1559,10 @@ bool PluginEditor::keyPressed(KeyPress const& key)
 
 void PluginEditor::commandKeyChanged(bool isHeld)
 {
-    if(isHeld) {
+    if (isHeld) {
         runButton.setToggleState(true, dontSendNotification);
-    }
-    else if(auto* cnv = getCurrentCanvas()){
-        if(!getValue<bool>(cnv->locked)) {
+    } else if (auto* cnv = getCurrentCanvas()) {
+        if (!getValue<bool>(cnv->locked)) {
             editButton.setToggleState(true, dontSendNotification);
         }
     }
@@ -1573,12 +1571,11 @@ void PluginEditor::commandKeyChanged(bool isHeld)
 void PluginEditor::quit(bool askToSave)
 {
     jassert(ProjectInfo::isStandalone);
-    
-    if(askToSave) {
+
+    if (askToSave) {
         auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
         window->closeButtonPressed();
-    }
-    else {
+    } else {
         JUCEApplication::quit();
     }
 }

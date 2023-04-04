@@ -148,7 +148,7 @@ String ObjectBase::getType() const
 {
     // TODO: callback lock can cause deadlock :(
     // ScopedLock lock(*pd->getCallbackLock());
-    
+
     pd->setThis();
 
     if (ptr) {
@@ -328,7 +328,7 @@ void ObjectBase::sendFloatValue(float newValue)
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
-    
+
     auto const name = hash(libpd_get_object_class_name(ptr));
 
     // check if object is a patcher object, or something else
@@ -487,29 +487,29 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
 {
     auto atoms = pd::Atom::fromAtoms(argc, argv);
     auto sym = hash(symbol);
-   
+
     switch (sym) {
-        case hash("size"):
-        case hash("delta"):
-        case hash("pos"):
-        case hash("dim"):
-        case hash("width"):
-        case hash("height"): {
-            MessageManager::callAsync([_this = SafePointer(this)](){
-                _this->object->updateBounds();
-            });
-            return;
-        }
+    case hash("size"):
+    case hash("delta"):
+    case hash("pos"):
+    case hash("dim"):
+    case hash("width"):
+    case hash("height"): {
+        MessageManager::callAsync([_this = SafePointer(this)]() {
+            _this->object->updateBounds();
+        });
+        return;
     }
-    
+    }
+
     auto messages = getAllMessages();
-    if(std::find(messages.begin(), messages.end(), hash("anything")) != messages.end() ||
-       std::find(messages.begin(), messages.end(), sym) != messages.end()) {
+    if (std::find(messages.begin(), messages.end(), hash("anything")) != messages.end() || std::find(messages.begin(), messages.end(), sym) != messages.end()) {
         MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-            if(_this) _this->receiveObjectMessage(symbol, atoms);
+            if (_this)
+                _this->receiveObjectMessage(symbol, atoms);
         });
     }
- }
+}
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var value)
 {

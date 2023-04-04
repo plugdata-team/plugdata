@@ -14,9 +14,8 @@ namespace pd {
 class Library : public FileSystemWatcher::Listener {
 
 public:
-    
     Library();
-    
+
     ~Library()
     {
         appDirChanged = nullptr;
@@ -35,12 +34,12 @@ public:
     File findHelpfile(t_object* obj, File parentPatchFile);
 
     ValueTree getObjectInfo(String const& name);
-    
+
     StringArray getAllObjects();
     StringArray getAllCategories();
-    
+
     Array<File> helpPaths;
-    
+
     std::function<void()> appDirChanged;
 
     static inline const File appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
@@ -58,7 +57,6 @@ public:
     static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "heavylib", "pdlua" };
 
 private:
-
     StringArray allObjects;
     StringArray allCategories;
 
@@ -66,7 +64,7 @@ private:
 
     FileSystemWatcher watcher;
     ThreadPool objectSearchThread;
-    
+
     ValueTree documentationTree;
 };
 

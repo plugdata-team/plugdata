@@ -169,8 +169,9 @@ public:
             repaint();
         }
     }
-    
-    std::vector<hash32> getAllMessages() override {
+
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             hash("bgcolor"),
             hash("fgcolor")

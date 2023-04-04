@@ -157,14 +157,15 @@ public:
         return allParameters;
     }
 
-    std::vector<hash32> getAllMessages() override {
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             hash("float"),
             hash("set"),
             IEMGUI_MESSAGES
         };
     }
-        
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {

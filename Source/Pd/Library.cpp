@@ -4,8 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
-
 #include <juce_data_structures/juce_data_structures.h>
 #include <juce_events/juce_events.h>
 
@@ -42,7 +40,7 @@ namespace pd {
 void Library::updateLibrary()
 {
     auto* pdinstance = libpd_this_instance();
-    
+
     auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
     auto pathTree = settingsTree.getChildWithName("Paths");
 
@@ -64,15 +62,13 @@ void Library::updateLibrary()
             allObjects.add(newName);
         }
     }
-    
+
     // Find patches in our search tree
     for (auto path : pathTree) {
         auto filePath = path.getProperty("Path").toString();
-        
-        for(auto file : OSUtils::iterateDirectory(File(filePath), false, true))
-        {
-            if(file.hasFileExtension(".pd"))
-            {
+
+        for (auto file : OSUtils::iterateDirectory(File(filePath), false, true)) {
+            if (file.hasFileExtension(".pd")) {
                 auto filename = file.getFileNameWithoutExtension();
                 if (!filename.startsWith("help-") || filename.endsWith("-help")) {
                     allObjects.add(filename);
@@ -86,28 +82,26 @@ Library::Library()
 {
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
     documentationTree = ValueTree::readFromStream(instream);
-    
-    
-    for(auto object : documentationTree)
-    {
-        auto categories = object.getChildWithName("categories");
-        if(!categories.isValid()) continue;
 
-        for(auto category : categories)
-        {
+    for (auto object : documentationTree) {
+        auto categories = object.getChildWithName("categories");
+        if (!categories.isValid())
+            continue;
+
+        for (auto category : categories) {
             allCategories.addIfNotAlreadyThere(category.getProperty("name").toString());
         }
     }
-    
+
     watcher.addFolder(appDataDir);
     watcher.addListener(this);
-    
+
     // Paths to search
     // First, only search vanilla, then search all documentation
     // Lastly, check the deken folder
     helpPaths = { appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("5.reference"), appDataDir.getChildFile("Library").getChildFile("Documentation"),
         appDataDir.getChildFile("Deken") };
-    
+
     updateLibrary();
 }
 
@@ -115,12 +109,12 @@ StringArray Library::autocomplete(String query) const
 {
     StringArray result;
     result.ensureStorageAllocated(20);
-    
-    for(const auto& str : allObjects)
-    {
-        if(result.size() >= 20) break;
-        
-        if(str.startsWith(query)) {
+
+    for (auto const& str : allObjects) {
+        if (result.size() >= 20)
+            break;
+
+        if (str.startsWith(query)) {
             result.addIfNotAlreadyThere(str);
         }
     }
@@ -130,53 +124,46 @@ StringArray Library::autocomplete(String query) const
 
 void Library::getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(StringArray)> callback)
 {
-    
+
     int const maxSuggestions = 20;
     if (currentNumSuggestions > maxSuggestions)
         return;
-    
+
     objectSearchThread.addJob([this, callback, currentNumSuggestions, query]() mutable {
-        
         StringArray result;
         StringArray matches;
-        
-        for(auto object : getAllObjects())
-        {
+
+        for (auto object : getAllObjects()) {
             auto info = getObjectInfo(object);
-            
+
             auto description = info.getProperty("description").toString();
-            
+
             auto iolets = info.getChildWithName("iolets");
             auto arguments = info.getChildWithName("arguments");
-            
-            if(description.contains(query) || object.contains(query))
-            {
+
+            if (description.contains(query) || object.contains(query)) {
                 matches.addIfNotAlreadyThere(object);
             }
-            
-            for(auto arg : arguments)
-            {
+
+            for (auto arg : arguments) {
                 auto argDescription = arg.getProperty("description").toString();
                 if (argDescription.contains(query)) {
                     matches.addIfNotAlreadyThere(object);
                 }
             }
-            
-            
-            for(auto iolet : iolets)
-            {
+
+            for (auto iolet : iolets) {
                 auto ioletDescription = iolet.getProperty("description").toString();
                 if (description.contains(query)) {
                     matches.addIfNotAlreadyThere(object);
                 }
             }
         }
-        
-        
+
         matches.sort(true);
         result.addArray(matches);
         matches.clear();
-        
+
         MessageManager::callAsync([callback, result]() {
             callback(result);
         });
@@ -195,22 +182,19 @@ std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree iolets, String 
     Array<std::pair<String, bool>> outlets;
 
     auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
-    
-    for(auto iolet : iolets)
-    {
+
+    for (auto iolet : iolets) {
         auto isVariable = iolet.getProperty("variable").toString() == "1";
         auto tooltip = iolet.getProperty("tooltip");
-        if(iolet.getType() == Identifier("inlet"))
-        {
-            inlets.add({tooltip, isVariable});
+        if (iolet.getType() == Identifier("inlet")) {
+            inlets.add({ tooltip, isVariable });
         }
-        
-        if(iolet.getType() == Identifier("outlet"))
-        {
-            outlets.add({tooltip, isVariable});
+
+        if (iolet.getType() == Identifier("outlet")) {
+            outlets.add({ tooltip, isVariable });
         }
     }
-    
+
     for (int type = 0; type < 2; type++) {
         int total = type ? numOut : numIn;
         auto& descriptions = type ? outlets : inlets;
@@ -219,15 +203,15 @@ std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree iolets, String 
             for (int i = 0; i < descriptions.size(); i++) {
                 if (descriptions[i].second) { // repeating inlet found
                     for (int j = 0; j < (total - descriptions.size()) + 1; j++) {
-                        
+
                         auto description = descriptions[i].first;
                         description = description.replace("$mth", String(j));
                         description = description.replace("$nth", String(j + 1));
-                        
+
                         if (isPositiveAndBelow(j, args.size())) {
                             description = description.replace("$arg", args[j]);
                         }
-                        
+
                         result[type].add(description);
                     }
                 } else {
@@ -240,10 +224,10 @@ std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree iolets, String 
             }
         }
     }
-    
+
     return result;
 }
-    
+
 /*
 std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, int numIn, int numOut)
 {
@@ -265,7 +249,7 @@ std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, i
     if (map->count(type)) {
         auto const& ioletDescriptions = map->at(type);
 
-        
+
         }
     }
 
@@ -328,7 +312,6 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";
 
-    
     auto findHelpPatch = [&firstName, &secondName](File const& searchDir, bool recursive) -> File {
         for (const auto& file : OSUtils::iterateDirectory(searchDir, recursive, true)) {
             if (file.getFileName() == firstName || file.getFileName() == secondName) {

@@ -182,25 +182,24 @@ public:
 
         bool hasUnknownInletLayout = false;
         bool hasUnknownOutletLayout = false;
-        
+
         StringArray inletDescriptions;
         StringArray outletDescriptions;
-        
+
         auto objectInfo = library.getObjectInfo(name);
         auto ioletDescriptions = objectInfo.getChildWithName("iolets");
-        for(auto iolet : ioletDescriptions)
-        {
+        for (auto iolet : ioletDescriptions) {
             auto variable = iolet.getProperty("variable").toString() == "1";
-           
-            if(iolet.getType() == Identifier("inlet"))
-            {
-                if(variable) hasUnknownInletLayout = true;
+
+            if (iolet.getType() == Identifier("inlet")) {
+                if (variable)
+                    hasUnknownInletLayout = true;
                 auto tooltip = iolet.getProperty("tooltip").toString();
                 inletDescriptions.add(tooltip);
                 inlets.push_back(tooltip.contains("(signal)"));
-            }
-            else {
-                if(variable) hasUnknownOutletLayout = true;
+            } else {
+                if (variable)
+                    hasUnknownOutletLayout = true;
                 auto tooltip = iolet.getProperty("tooltip").toString();
                 outletDescriptions.add(tooltip);
                 outlets.push_back(tooltip.contains("(signal)"));
@@ -240,7 +239,7 @@ public:
         if (description.isEmpty()) {
             description = "No description available";
         }
-        
+
         setVisible(true);
 
         String rightSideInfoText;
@@ -263,7 +262,6 @@ public:
 
             numArgs++;
         }
-        
 
         if (inletDescriptions.size())
             rightSideInfoText += "\n\nInlets:";
@@ -293,7 +291,7 @@ public:
         for (auto method : methods) {
             auto type = method.getProperty("type").toString();
             auto description = method.getProperty("description").toString();
-            
+
             rightSideInfoText += "\n" + String(numMethods) + ": ";
             rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
             rightSideInfoText += description;

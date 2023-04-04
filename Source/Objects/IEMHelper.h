@@ -11,7 +11,6 @@ static int srl_is_valid(t_symbol const* s)
     return (!!s && s != gensym(""));
 }
 
-
 #define IEMGUI_MESSAGES hash("send"), hash("receive"), hash("color"), hash("label"), hash("label_pos"), hash("label_font"), hash("vis_size"), hash("init")
 
 extern "C" {
@@ -44,8 +43,7 @@ public:
 
         gui->getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
         gui->getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
-        
-        
+
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
 
@@ -80,7 +78,6 @@ public:
         };
     }
 
-    
     bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
     {
         auto setColour = [this](Value& targetValue, pd::Atom& atom) {
@@ -164,7 +161,7 @@ public:
         default:
             break;
         }
-        
+
         return false;
     }
 

@@ -22,7 +22,7 @@ public:
     virtual ~ImplementationBase();
 
     static ImplementationBase* createImplementation(String const& type, void* ptr, PluginProcessor* pd);
-    static bool hasImplementation(const char* type);
+    static bool hasImplementation(char const* type);
 
     virtual void update() {};
 

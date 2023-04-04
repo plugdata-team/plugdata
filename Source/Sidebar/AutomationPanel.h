@@ -18,12 +18,12 @@ class AutomationSlider : public Component
             auto isOpen = getToggleState();
             auto mouseOver = isMouseOver();
             auto area = getLocalBounds().reduced(5).toFloat();
-    
+
             Path p;
             p.startNewSubPath(0.0f, 0.0f);
             p.lineTo(0.5f, 0.5f);
             p.lineTo(isOpen ? 1.0f : 0.0f, isOpen ? 0.0f : 1.0f);
-            
+
             g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(mouseOver ? 0.7f : 1.0f));
             g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(area.translated(3, 0).reduced(area.getWidth() / 4, area.getHeight() / 4), true));
         }

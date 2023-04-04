@@ -218,7 +218,7 @@ public:
     virtual void receiveMessage(String const& dest, String const& msg, std::vector<pd::Atom> const& list)
     {
     }
-    
+
     virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) {};
 
     void registerMessageListener(void* object, MessageListener* messageListener);

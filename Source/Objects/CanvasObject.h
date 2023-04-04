@@ -33,8 +33,9 @@ public:
     {
         iemHelper.updateLabel(label);
     }
-    
-    std::vector<hash32> getAllMessages() override {
+
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             IEMGUI_MESSAGES
         };

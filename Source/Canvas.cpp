@@ -206,9 +206,9 @@ void Canvas::recreateViewport()
     };
 
     canvasViewport->setScrollBarsShown(true, true, true, true);
-    
+
     viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
-    
+
     jumpToOrigin();
 }
 
@@ -237,46 +237,46 @@ void Canvas::paint(Graphics& g)
 
     g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
     auto clipBounds = g.getClipBounds();
-    
+
     // Clip bounds so that we have the smallest lines that fit the viewport, but also
     // compensate for line start, so the dashes don't stay fixed in place if they are drawn from
     // the top of the viewport
     auto clippedOrigin = Point<float>(std::max(canvasOrigin.x, clipBounds.getX()), std::max(canvasOrigin.y, clipBounds.getY()));
-    
+
     auto originDiff = canvasOrigin.toFloat() - clippedOrigin;
-    
+
     // draw patch window dashed outline
     auto patchWidthCanvas = clippedOrigin.x + (getValue<int>(patchWidth) + originDiff.x);
     auto patchHeightCanvas = clippedOrigin.y + (getValue<int>(patchHeight) + originDiff.y);
-    
+
     clippedOrigin.x += fmod(originDiff.x, 10.0f) - 0.5f;
     clippedOrigin.y += fmod(originDiff.y, 10.0f) - 0.5f;
-    
-    if(!getValue<bool>(locked)) {
-        
+
+    if (!getValue<bool>(locked)) {
+
         auto startX = (canvasOrigin.x % objectGrid.gridSize);
         startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
 
         auto startY = (canvasOrigin.y % objectGrid.gridSize);
         startY += ((clipBounds.getY() / objectGrid.gridSize) * objectGrid.gridSize);
-        
+
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-        
+
         for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
             for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
-                
+
                 // Don't draw over origin line
                 if (showBorder || showOrigin) {
-                    if ((x == canvasOrigin.x && y >= canvasOrigin.y &&  y <= patchHeightCanvas) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidthCanvas))
+                    if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= patchHeightCanvas) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidthCanvas))
                         continue;
                 }
                 g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
             }
         }
     }
-    
-    if(!showOrigin && !showBorder) return;
 
+    if (!showOrigin && !showBorder)
+        return;
 
     /*
     ┌────────┐
@@ -286,38 +286,38 @@ void Canvas::paint(Graphics& g)
     │d      c│
     └────────┘
     */
-    
+
     // points for border
     auto pointA = Point<float>(clippedOrigin.x, clippedOrigin.y);
     auto pointB = Point<float>(patchWidthCanvas, clippedOrigin.y);
     auto pointC = Point<float>(patchWidthCanvas, patchHeightCanvas);
     auto pointD = Point<float>(clippedOrigin.x, patchHeightCanvas);
-    
+
     auto extentTop = Line<float>(pointA, pointB);
     auto extentLeft = Line<float>(pointA, pointD);
-    
+
     // arrange line points so that dashes appear to grow from origin and bottom right
     if (showOrigin) {
-        
+
         // points for origin extending to edge of view
         auto pointOriginB = Point<float>(getWidth(), clippedOrigin.y);
         auto pointOriginD = Point<float>(clippedOrigin.x, getHeight());
-        
+
         extentTop = Line<float>(pointA, pointOriginB);
         extentLeft = Line<float>(pointA, pointOriginD);
     }
 
     float dash[2] = { 5.0f, 5.0f };
-    
+
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-    
+
     g.drawDashedLine(extentLeft, dash, 2, 1.0f);
     g.drawDashedLine(extentTop, dash, 2, 1.0f);
-    
+
     if (showBorder) {
         auto extentRight = Line<float>(pointC, pointB);
         auto extentBottom = Line<float>(pointC, pointD);
-        
+
         g.drawDashedLine(extentRight, dash, 2, 1.0f);
         g.drawDashedLine(extentBottom, dash, 2, 1.0f);
     }
@@ -782,7 +782,7 @@ bool Canvas::keyPressed(KeyPress const& key)
         cancelConnectionCreation();
         return true;
     }
-    
+
     // Move objects with arrow keys
     int moveDistance = objectGrid.gridSize;
     if (key.getModifiers().isShiftDown()) {
@@ -1341,7 +1341,7 @@ void Canvas::hideSuggestions()
 void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus)
 {
     selectedComponents.addToSelection(component);
-    
+
     if (updateCommandStatus) {
         editor->updateCommandStatus();
     }

@@ -61,12 +61,12 @@ public:
         content.setBounds(0, titlebarHeight, width, height);
 
         content.addAndMakeVisible(cnv);
-        
+
         cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
         cnv->locked = true;
         cnv->presentationMode = true;
         cnv->viewport->setViewedComponent(nullptr);
-        
+
         addAndMakeVisible(content);
 
         auto& origin = cnv->canvasOrigin;
@@ -85,19 +85,19 @@ public:
         cnv->locked = false;
         cnv->presentationMode = false;
     }
-        
+
     void closePluginMode()
     {
         editor->pd->pluginMode = var(false);
-        
-        if(cnv)  {
+
+        if (cnv) {
             content.removeChildComponent(cnv);
             // Reset the canvas properties
             cnv->viewport->setBounds(viewportBounds);
             cnv->viewport->setViewedComponent(cnv, false);
             cnv->viewport->resized();
         }
-        
+
         // Restore Bounds & Resize Limits with the current position
         auto* _desktopWindow = desktopWindow;
         auto* _editor = editor;
@@ -114,7 +114,6 @@ public:
             _editor->setBounds(_bounds);
             _editor->getParentComponent()->resized();
         });
-        
 
         // Destroy this view
         editor->pluginMode.reset(nullptr);

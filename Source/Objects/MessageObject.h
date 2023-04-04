@@ -114,7 +114,8 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
-    std::vector<hash32> getAllMessages() override {
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             hash("set"),
             hash("add"),
@@ -125,7 +126,7 @@ public:
             hash("adddollsym")
         };
     }
-        
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         String v = getSymbol();

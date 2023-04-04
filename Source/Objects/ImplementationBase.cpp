@@ -51,7 +51,7 @@ Canvas* ImplementationBase::getMainCanvas(void* patchPtr)
     return nullptr;
 }
 
-bool ImplementationBase::hasImplementation(const char* type)
+bool ImplementationBase::hasImplementation(char const* type)
 {
     switch (hash(type)) {
     case hash("canvas"):
@@ -231,7 +231,7 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
 
         auto const* name = libpd_get_object_class_name(y);
-        
+
         if (pd_class(&y->g_pd) == canvas_class) {
             implementations.addArray(getImplementationsForPatch(y));
         }

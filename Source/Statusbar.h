@@ -84,7 +84,7 @@ public:
 
     TextButton snapEnableButton, snapSettingsButton;
     std::unique_ptr<SnapSettings> snapSettings;
-        
+
     TextButton oversampleSelector;
 
     Label zoomLabel;

@@ -135,8 +135,8 @@ struct Dialogs {
     static void showSettingsDialog(PluginEditor* editor);
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
-    
-    static void askToLocatePatch(PluginEditor* editor, const String& backupState, std::function<void(File)> callback);
+
+    static void askToLocatePatch(PluginEditor* editor, String const& backupState, std::function<void(File)> callback);
 
     static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback);
 

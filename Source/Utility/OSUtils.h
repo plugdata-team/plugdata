@@ -27,7 +27,7 @@ struct OSUtils {
     static void HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);
 #endif
 
-    static juce::Array<juce::File> iterateDirectory(const juce::File& directory, bool recursive, bool onlyFiles);
-    
+    static juce::Array<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles);
+
     static KeyboardLayout getKeyboardLayout();
 };

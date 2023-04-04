@@ -54,11 +54,10 @@ public:
 
         if (pic && pic->x_filename) {
             auto filePath = String::fromUTF8(pic->x_filename->s_name);
-            
+
             // Call async prevents a bug when renaming an object to pic
-            MessageManager::callAsync([_this = SafePointer(this), filePath](){
-                if(_this)
-                {
+            MessageManager::callAsync([_this = SafePointer(this), filePath]() {
+                if (_this) {
                     _this->openFile(filePath);
                 }
             });
@@ -106,8 +105,9 @@ public:
 
         repaint();
     }
-    
-    std::vector<hash32> getAllMessages() override {
+
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             hash("latch"),
             hash("outline"),

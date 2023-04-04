@@ -30,7 +30,7 @@ public:
 
     void valueChanged(Value& v) override;
 
-    void changeListenerCallback(ChangeBroadcaster *source) override;
+    void changeListenerCallback(ChangeBroadcaster* source) override;
 
     void timerCallback() override;
 
@@ -128,7 +128,6 @@ private:
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;
     bool isHvccCompatible = true;
-
 
     ObjectDragState& ds;
 

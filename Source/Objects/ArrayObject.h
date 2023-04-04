@@ -667,15 +667,16 @@ public:
         };
     }
 
-    std::vector<hash32> getAllMessages() override {
-            return {
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
             hash("float"),
             hash("symbol"),
             hash("list"),
             hash("edit")
         };
     }
-        
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
@@ -694,7 +695,7 @@ public:
             break;
         }
     }
-        
+
 private:
     Value name, size, drawMode, saveContents, range;
 

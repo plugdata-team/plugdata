@@ -556,8 +556,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
 
-            // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
-            // we check if the system is drawing with a dropshadow- hence semi transparent will be true
+        // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
+        // we check if the system is drawing with a dropshadow- hence semi transparent will be true
 #if JUCE_LINUX
         auto leftOffset = titleBarX;
         if (maximiseButton != nullptr && areButtonsLeft && Desktop::canUseSemiTransparentWindows()) {
@@ -769,7 +769,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         p.startNewSubPath(0.0f, 0.0f);
         p.lineTo(0.5f, 0.5f);
         p.lineTo(isOpen ? 1.0f : 0.0f, isOpen ? 0.0f : 1.0f);
-        
+
         auto size = std::min(area.getWidth(), area.getHeight()) * 0.5f;
         g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
         g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(area.withSizeKeepingCentre(size, size), true));

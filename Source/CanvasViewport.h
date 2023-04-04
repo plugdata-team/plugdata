@@ -17,8 +17,7 @@
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport
     , public AsyncUpdater
-    , public SettingsFileListener
-{
+    , public SettingsFileListener {
 
     inline static int const infiniteCanvasMargin = 48;
 
@@ -76,8 +75,7 @@ class CanvasViewport : public Viewport
     };
 
     class FadingScrollbar : public ScrollBar
-        , public ScrollBar::Listener
-        {
+        , public ScrollBar::Listener {
         struct FadeTimer : private ::Timer {
             std::function<bool()> callback;
 
@@ -136,7 +134,8 @@ class CanvasViewport : public Viewport
         };
 
     public:
-        FadingScrollbar(bool isVertical, bool infinite) : isInfinite(infinite)
+        FadingScrollbar(bool isVertical, bool infinite)
+            : isInfinite(infinite)
             , ScrollBar(isVertical)
         {
             ScrollBar::setVisible(true);
@@ -162,18 +161,17 @@ class CanvasViewport : public Viewport
                 });
             }
         }
-            
+
         void prepareImage()
         {
             auto currentRange = getCurrentRange();
             auto totalRange = getRangeLimit();
-            
+
             if (getWidth() <= 0 || getHeight() <= 0 || totalRange.isEmpty() || currentRange.isEmpty())
                 return;
 
             scrollbarImage = Image(Image::ARGB, getWidth(), getHeight(), true);
             Graphics g(scrollbarImage);
-
 
             int margin = isInfinite ? (infiniteCanvasMargin - 2) : 0;
 
@@ -328,7 +326,7 @@ public:
 
     void componentMovedOrResized(Component& c, bool moved, bool resized) override
     {
-        if (isUpdatingBounds ||  editor->pd->pluginMode != var(false))
+        if (isUpdatingBounds || editor->pd->pluginMode != var(false))
             return;
 
         isUpdatingBounds = true;
@@ -364,7 +362,7 @@ public:
     ScrollBar* createScrollBarComponent(bool isVertical) override
     {
         auto isInfinite = SettingsFile::getInstance()->getProperty<bool>("infinite_canvas") && !cnv->isPalette;
-        
+
         if (isVertical) {
             vbar = new FadingScrollbar(true, isInfinite);
             vbar->onScrollStart = [this]() {
@@ -407,8 +405,8 @@ public:
         float scale = 1.0f / editor->getZoomScaleForCanvas(cnv);
         float smallerScale = std::max(1.0f, scale);
 
-        auto newBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, (getWidth() + 1 - getScrollBarThickness()) * smallerScale, (getHeight() + 1 -  getScrollBarThickness()) * smallerScale);
-        
+        auto newBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, (getWidth() + 1 - getScrollBarThickness()) * smallerScale, (getHeight() + 1 - getScrollBarThickness()) * smallerScale);
+
         if (SettingsFile::getInstance()->getProperty<int>("infinite_canvas") && !cnv->isPalette) {
             newBounds = newBounds.getUnion(viewArea.expanded(infiniteCanvasMargin) * scale);
         }
@@ -443,11 +441,10 @@ public:
 
         cnv->updatingBounds = false;
     }
-    
+
     void propertyChanged(String name, var value) override
     {
-        if(name == "infinite_canvas")
-        {
+        if (name == "infinite_canvas") {
             recreateScrollbars();
         }
     }
@@ -461,7 +458,7 @@ public:
     {
         triggerAsyncUpdate();
     }
-    
+
     // Never respond to arrow keys, they have a different meaning
     bool keyPressed(KeyPress const& key) override
     {

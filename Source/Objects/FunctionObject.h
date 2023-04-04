@@ -401,7 +401,8 @@ public:
         return Colour(hex[0], hex[1], hex[2]);
     }
 
-    std::vector<hash32> getAllMessages() override {
+    std::vector<hash32> getAllMessages() override
+    {
         return {
             hash("send"),
             hash("receive"),
@@ -410,7 +411,7 @@ public:
             hash("max"),
         };
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
