@@ -22,13 +22,13 @@ public:
         setScrollWheelEnabled(false);
         setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
     }
-    
+
     ~ReversibleKnob() {}
 
     void drawTicks(Graphics& g, Rectangle<float> knobBounds, float startAngle, float endAngle)
     {
         auto centre = knobBounds.getCentre();
-        auto radius = (knobBounds.getWidth() * 0.5f) * 1.1f;
+        auto radius = (knobBounds.getWidth() * 0.5f) * 1.05f;
 
         // Calculate the angle between each tick
         float angleIncrement = (endAngle - startAngle) / static_cast<float>(jmax(numberOfTicks - 1, 1));
@@ -42,60 +42,61 @@ public:
             float y = centre.getY() + radius * std::sin(angle);
 
             // Draw the tick at this position
-            g.setColour(Colours::grey);
+            g.setColour(fgColour);
             g.fillEllipse(x - tickRadius, y - tickRadius, tickRadius * 2.0f, tickRadius * 2.0f);
         }
     }
 
-    
+
     void showArc(bool show)
     {
         drawArc = show;
         repaint();
     }
-    
+
     void paint(Graphics& g) override 
     {
         auto bounds = getBounds().toFloat().reduced(getWidth() * 0.13f);
         
-        auto const lineThickness = std::max(bounds.getWidth() * 0.06f, 1.5f);
-        auto const arcThickness = lineThickness * 3.0f / getWidth();
-        
+        auto const lineThickness = std::max(bounds.getWidth() * 0.08f, 1.5f);
+        auto const arcThickness = lineThickness * 3.0f / bounds.getWidth();
+
         auto sliderPosProportional = (getValue() - getRange().getStart()) / getRange().getLength();
         sliderPosProportional = std::isfinite(sliderPosProportional) ? sliderPosProportional : 0.0f;
-        
+
         auto startAngle = getRotaryParameters().startAngleRadians * -1 + MathConstants<float>::pi;
         auto endAngle = getRotaryParameters().endAngleRadians * -1 + MathConstants<float>::pi;
         float angle = startAngle  + sliderPosProportional * (endAngle - startAngle);
 
         startAngle = jmin(startAngle, endAngle + MathConstants<float>::twoPi);
         startAngle = jmax(startAngle, endAngle - MathConstants<float>::twoPi);
-
-        g.setColour(fgColour);
         
+        // draw range arc
+        g.setColour(lnColour);
+        auto arcBounds = bounds.reduced(lineThickness);
+        auto arcRadius = arcBounds.getWidth() * 0.5;
+        auto arcWidth = (arcRadius - lineThickness) / arcRadius;
+        Path rangeArc;
+        rangeArc.addPieSegment(arcBounds, startAngle, endAngle, arcWidth);
+        g.fillPath(rangeArc);
+
         // draw arc
         if(drawArc) {
-            auto arcBounds = bounds.toFloat().reduced(bounds.getWidth() * 0.07f);
-            auto theataOfWiper = 2 * asin((lineThickness * 0.5f) / (2.0f * (bounds.getWidth() / 2.3f)));
             Path arc;
-
-            arc.addPieSegment(arcBounds, startAngle - theataOfWiper, angle, 1.0f - arcThickness);
-            
+            arc.addPieSegment(arcBounds, startAngle, angle, arcWidth);
+            g.setColour(fgColour);
             g.fillPath(arc);
         }
 
         // draw wiper
         Path wiperPath;
-        auto centre = Point<float>(getBounds().getWidth() * 0.5f, getBounds().getHeight() * 0.5f);
-        auto line = Line<float>::fromStartAndAngle (centre, (bounds.getWidth() / 2.3f), angle);
+        auto wiperRadius = bounds.getWidth() * 0.5;
+        auto line = Line<float>::fromStartAndAngle (bounds.getCentre(), wiperRadius, angle);
         wiperPath.startNewSubPath(line.getStart());
-        wiperPath.lineTo(line.getEnd());
+        wiperPath.lineTo(line.getPointAlongLine(wiperRadius - lineThickness * 1.5));
+        g.setColour(fgColour);
         g.strokePath(wiperPath, PathStrokeType(lineThickness, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
 
-        // draw circular border
-        g.setColour(lnColour);
-        g.drawEllipse(bounds.toFloat().reduced(bounds.getWidth() * 0.05f), lineThickness);
-        
         drawTicks(g, bounds, startAngle, endAngle);
     }
 
