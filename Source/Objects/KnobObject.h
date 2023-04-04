@@ -203,10 +203,16 @@ public:
         updateRotaryParameters();
         
 
-        knob.setDoubleClickReturnValue(true, ::getValue<int>(initialValue));
+        updateDoubleClickValue();
         knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
         knob.setSliderStyle(::getValue<bool>(circular) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
         knob.showArc(::getValue<bool>(showArc));
+    }
+    
+    void updateDoubleClickValue()
+    {
+        auto val = jmap<float>(::getValue<int>(initialValue), getMinimum(), getMaximum(), 0.0f, 1.0f);
+        knob.setDoubleClickReturnValue(true, val);
     }
     
     void setCircular(Slider::SliderStyle style)
@@ -230,6 +236,7 @@ public:
         max = getMaximum();
 
         updateRange();
+        updateDoubleClickValue();
 
         auto currentValue = getValue();
         value = currentValue;
@@ -303,6 +310,7 @@ public:
                 setParameterExcludingListener(min, atoms[0].getFloat());
                 setParameterExcludingListener(max, atoms[1].getFloat());
                 updateRange();
+                updateDoubleClickValue();
             }
             break;
         }
@@ -449,13 +457,15 @@ public:
         if (value.refersToSameSourceAs(min)) {
             setMinimum(::getValue<float>(min));
             updateRange();
+            updateDoubleClickValue();
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(::getValue<float>(max));
             updateRange();
+            updateDoubleClickValue();
         }
         else if (value.refersToSameSourceAs(initialValue)) {
-            knob.setDoubleClickReturnValue(true, ::getValue<int>(initialValue));
-            knb->x_init = ::getValue<float>(initialValue);
+            updateDoubleClickValue();
+            knb->x_init = ::getValue<int>(initialValue);
         }
         else if (value.refersToSameSourceAs(circular)) {
             auto mode = ::getValue<int>(circular);

@@ -20,7 +20,7 @@ struct ProjectInfo {
 };
 
 template<typename T>
-T getValue(const Value& v)
+inline T getValue(const Value& v)
 {
     return static_cast<T>(v.getValue());
 }
