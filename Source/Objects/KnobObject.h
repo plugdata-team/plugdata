@@ -25,9 +25,9 @@ public:
     
     ~ReversibleKnob() {}
 
-    void drawTicks(Graphics& g, Rectangle<int> knobBounds, float startAngle, float endAngle)
+    void drawTicks(Graphics& g, Rectangle<float> knobBounds, float startAngle, float endAngle)
     {
-        auto centre = knobBounds.toFloat().getCentre();
+        auto centre = knobBounds.getCentre();
         auto radius = (knobBounds.getWidth() * 0.5f) * 1.1f;
 
         // Calculate the angle between each tick
@@ -56,7 +56,7 @@ public:
     
     void paint(Graphics& g) override 
     {
-        auto bounds = getBounds().reduced(getWidth() * 0.13f);
+        auto bounds = getBounds().toFloat().reduced(getWidth() * 0.13f);
         
         auto const lineThickness = std::max(bounds.getWidth() * 0.06f, 1.5f);
         auto const arcThickness = lineThickness * 3.0f / getWidth();
@@ -73,17 +73,26 @@ public:
 
         g.setColour(fgColour);
         
+        // draw arc
         if(drawArc) {
             auto arcBounds = bounds.toFloat().reduced(bounds.getWidth() * 0.07f);
+            auto theataOfWiper = 2 * asin((lineThickness * 0.5f) / (2.0f * (bounds.getWidth() / 2.3f)));
             Path arc;
-            arc.addPieSegment(arcBounds, startAngle, angle, 1.0f - arcThickness);
+
+            arc.addPieSegment(arcBounds, startAngle - theataOfWiper, angle, 1.0f - arcThickness);
             
             g.fillPath(arc);
         }
-        
-        auto line = Line<float>::fromStartAndAngle (bounds.getCentre().toFloat(), (bounds.getWidth() / 2.2f), angle);
-        g.drawLine(line, lineThickness);
 
+        // draw wiper
+        Path wiperPath;
+        auto centre = Point<float>(getBounds().getWidth() * 0.5f, getBounds().getHeight() * 0.5f);
+        auto line = Line<float>::fromStartAndAngle (centre, (bounds.getWidth() / 2.3f), angle);
+        wiperPath.startNewSubPath(line.getStart());
+        wiperPath.lineTo(line.getEnd());
+        g.strokePath(wiperPath, PathStrokeType(lineThickness, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
+
+        // draw circular border
         g.setColour(lnColour);
         g.drawEllipse(bounds.toFloat().reduced(bounds.getWidth() * 0.05f), lineThickness);
         
