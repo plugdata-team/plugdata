@@ -66,11 +66,11 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
-            auto v = static_cast<float>(min.getValue());
+            auto v = getValue<float>(min);
             listLabel.setMinimum(v);
             atomHelper.setMinimum(v);
         } else if (value.refersToSameSourceAs(max)) {
-            auto v = static_cast<float>(max.getValue());
+            auto v = getValue<float>(max);
             listLabel.setMaximum(v);
             atomHelper.setMaximum(v);
         } else {
@@ -160,7 +160,7 @@ public:
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
-        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
+        bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
 
         if (highlighed) {
             g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
@@ -225,7 +225,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (static_cast<bool>(object->locked.getValue()) && !e.mouseWasDraggedSinceMouseDown()) {
+        if (getValue<bool>(object->locked) && !e.mouseWasDraggedSinceMouseDown()) {
 
             listLabel.showEditor();
         }

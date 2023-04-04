@@ -82,7 +82,7 @@ public:
     NoteObject(void* obj, Object* object)
         : ObjectBase(obj, object)
     {
-        locked = static_cast<bool>(object->locked.getValue());
+        locked = getValue<bool>(object->locked);
 
         addAndMakeVisible(noteEditor);
 
@@ -203,7 +203,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (static_cast<bool>(fillBackground.getValue())) {
+        if (getValue<bool>(fillBackground)) {
             auto bounds = getLocalBounds();
             // Draw background
             g.setColour(Colour::fromString(secondaryColour.toString()));
@@ -213,7 +213,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        if (static_cast<bool>(outline.getValue())) {
+        if (getValue<bool>(outline)) {
             bool selected = object->isSelected() && !cnv->isGraph;
             auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
@@ -329,19 +329,19 @@ public:
             colourToHexArray(Colour::fromString(secondaryColour.toString()), note->x_bg);
             repaint();
         } else if (v.refersToSameSourceAs(fontSize)) {
-            note->x_fontsize = static_cast<int>(fontSize.getValue());
+            note->x_fontsize = getValue<int>(fontSize);
             updateFont();
         } else if (v.refersToSameSourceAs(bold)) {
-            note->x_bold = static_cast<int>(bold.getValue());
+            note->x_bold = getValue<int>(bold);
             updateFont();
         } else if (v.refersToSameSourceAs(italic)) {
-            note->x_italic = static_cast<int>(italic.getValue());
+            note->x_italic = getValue<int>(italic);
             updateFont();
         } else if (v.refersToSameSourceAs(underline)) {
-            note->x_underline = static_cast<int>(underline.getValue());
+            note->x_underline = getValue<int>(underline);
             updateFont();
         } else if (v.refersToSameSourceAs(fillBackground)) {
-            note->x_bg_flag = static_cast<int>(fillBackground.getValue());
+            note->x_bg_flag = getValue<int>(fillBackground);
             repaint();
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto receive = receiveSymbol.toString();
@@ -349,7 +349,7 @@ public:
             note->x_rcv_set = receive.isNotEmpty();
             repaint();
         } else if (v.refersToSameSourceAs(justification)) {
-            auto justificationType = static_cast<int>(justification.getValue());
+            auto justificationType = getValue<int>(justification);
             note->x_textjust = justificationType - 1;
             if (justificationType == 1) {
                 noteEditor.setJustification(Justification::topLeft);
@@ -359,7 +359,7 @@ public:
                 noteEditor.setJustification(Justification::topRight);
             }
         } else if (v.refersToSameSourceAs(outline)) {
-            note->x_outline = static_cast<int>(outline.getValue());
+            note->x_outline = getValue<int>(outline);
             repaint();
         } else if (v.refersToSameSourceAs(font)) {
             auto fontName = font.toString();
@@ -370,10 +370,10 @@ public:
 
     Font getFont()
     {
-        auto isBold = static_cast<bool>(bold.getValue());
-        auto isItalic = static_cast<bool>(italic.getValue());
-        auto isUnderlined = static_cast<bool>(underline.getValue());
-        auto fontHeight = static_cast<int>(fontSize.getValue());
+        auto isBold = getValue<bool>(bold);
+        auto isItalic = getValue<bool>(italic);
+        auto isUnderlined = getValue<bool>(underline);
+        auto fontHeight = getValue<int>(fontSize);
 
         auto style = (isBold * Font::bold) | (isItalic * Font::italic) | (isUnderlined * Font::underlined);
         auto typefaceName = font.toString();

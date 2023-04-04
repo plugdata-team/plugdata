@@ -230,7 +230,7 @@ public:
 
     void valueChanged(Value& v) override
     {
-        createButton.setEnabled(!static_cast<bool>(v.getValue()));
+        createButton.setEnabled(!getValue<bool>(v));
     }
 
     int getItemHeight()

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <juce_data_structures/juce_data_structures.h>
+
 namespace juce {
 class AudioDeviceManager;
 }
@@ -18,7 +20,7 @@ struct ProjectInfo {
 };
 
 template<typename T>
-T getValue(Value& v)
+T getValue(const Value& v)
 {
     return static_cast<T>(v.getValue());
 }

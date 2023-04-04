@@ -203,10 +203,10 @@ public:
         updateRotaryParameters();
         
 
-        knob.setDoubleClickReturnValue(true, getValue<int>(initialValue));
+        knob.setDoubleClickReturnValue(true, ::getValue<int>(initialValue));
         knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
-        knob.setSliderStyle(getValue<bool>(circular) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
-        knob.showArc(getValue<bool>(showArc));
+        knob.setSliderStyle(::getValue<bool>(circular) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
+        knob.showArc(::getValue<bool>(showArc));
     }
     
     void setCircular(Slider::SliderStyle style)
@@ -269,8 +269,8 @@ public:
 
     void updateRange()
     {
-        auto numTicks = std::max(static_cast<int>(ticks.getValue()) - 1, 1);
-        auto increment = static_cast<bool>(discrete.getValue()) ? 1.0 / numTicks : std::numeric_limits<double>::epsilon();
+        auto numTicks = std::max(::getValue<int>(ticks) - 1, 1);
+        auto increment = ::getValue<bool>(discrete) ? 1.0 / numTicks : std::numeric_limits<double>::epsilon();
         
         knob.setRange(0.0, 1.0, increment);
     }
@@ -447,51 +447,51 @@ public:
         auto* knb = static_cast<t_fake_knb*>(ptr);
         
         if (value.refersToSameSourceAs(min)) {
-            setMinimum(static_cast<float>(min.getValue()));
+            setMinimum(::getValue<float>(min));
             updateRange();
         } else if (value.refersToSameSourceAs(max)) {
-            setMaximum(static_cast<float>(max.getValue()));
+            setMaximum(::getValue<float>(max));
             updateRange();
         }
         else if (value.refersToSameSourceAs(initialValue)) {
-            knob.setDoubleClickReturnValue(true, static_cast<int>(initialValue.getValue()));
-            knb->x_init = static_cast<float>(initialValue.getValue());
+            knob.setDoubleClickReturnValue(true, ::getValue<int>(initialValue));
+            knb->x_init = ::getValue<float>(initialValue);
         }
         else if (value.refersToSameSourceAs(circular)) {
-            auto mode = static_cast<int>(circular.getValue());
+            auto mode = ::getValue<int>(circular);
             knob.setSliderStyle(mode ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
             knb->x_circular = mode;
             
         }
         else if (value.refersToSameSourceAs(ticks)) {
-            ticks = jmax(static_cast<int>(ticks.getValue()), 0);
-            knb->x_ticks = static_cast<int>(ticks.getValue());
+            ticks = jmax(::getValue<int>(ticks), 0);
+            knb->x_ticks = ::getValue<int>(ticks);
             updateRotaryParameters();
             updateRange();
         }
         else if (value.refersToSameSourceAs(angularRange)) {
-            auto start = static_cast<int>(angularRange.getValue());
-            auto end = static_cast<int>(angularOffset.getValue());
+            auto start = ::getValue<int>(angularRange);
+            auto end = ::getValue<int>(angularOffset);
             pd->enqueueDirectMessages(knb, "angle", {pd::Atom(start), pd::Atom(end)});
             updateRotaryParameters();
         }
         else if (value.refersToSameSourceAs(showArc)) {
-            bool arc = static_cast<bool>(showArc.getValue());
+            bool arc = ::getValue<bool>(showArc);
             knob.showArc(arc);
             knb->x_arc = arc;
         }
         else if (value.refersToSameSourceAs(angularOffset)) {
-            auto start = static_cast<int>(angularRange.getValue());
-            auto end = static_cast<int>(angularOffset.getValue());
+            auto start = ::getValue<int>(angularRange);
+            auto end = ::getValue<int>(angularOffset);
             pd->enqueueDirectMessages(knb, "angle", {pd::Atom(start), pd::Atom(end)});
             updateRotaryParameters();
         }
         else if (value.refersToSameSourceAs(discrete)) {
-            knb->x_discrete = static_cast<bool>(discrete.getValue());
+            knb->x_discrete = ::getValue<bool>(discrete);
             updateRange();
         }
         else if (value.refersToSameSourceAs(exponential)) {
-            knb->x_exp = static_cast<bool>(exponential.getValue());
+            knb->x_exp = ::getValue<bool>(exponential);
         }
         else {
             iemHelper.valueChanged(value);

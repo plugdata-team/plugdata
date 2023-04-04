@@ -68,8 +68,8 @@ public:
         min = getMinimum();
         max = getMaximum();
 
-        input.setMinimum(static_cast<float>(min.getValue()));
-        input.setMaximum(static_cast<float>(max.getValue()));
+        input.setMinimum(::getValue<float>(min));
+        input.setMaximum(::getValue<float>(max));
 
         iemHelper.update();
     }
@@ -170,7 +170,7 @@ public:
         switch (hash(symbol)) {
         case hash("float"):
         case hash("set"): {
-            value = std::clamp(atoms[0].getFloat(), static_cast<float>(min.getValue()), static_cast<float>(max.getValue()));
+            value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
             input.setText(input.formatNumber(value), dontSendNotification);
             break;
         }
@@ -184,9 +184,9 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
-            setMinimum(static_cast<float>(min.getValue()));
+            setMinimum(::getValue<float>(min));
         } else if (value.refersToSameSourceAs(max)) {
-            setMaximum(static_cast<float>(max.getValue()));
+            setMaximum(::getValue<float>(max));
         } else {
             iemHelper.valueChanged(value);
         }
@@ -228,7 +228,7 @@ public:
 
         auto normalColour = object->findColour(PlugDataColour::objectOutlineColourId);
         auto highlightColour = object->findColour(PlugDataColour::objectSelectedOutlineColourId);
-        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
+        bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
 
         g.setColour(highlighed ? highlightColour : normalColour);
         g.fillPath(triangle);

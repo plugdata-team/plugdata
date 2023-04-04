@@ -440,7 +440,7 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
 
     auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
 
-    float value = static_cast<float>(scale.getValue());
+    float value = getValue<float>(scale);
 
     // Apply and limit zoom
     value = std::clamp(value * scrollFactor, 0.5f, 2.0f);
@@ -614,7 +614,7 @@ Canvas* PluginEditor::getCurrentCanvas(bool canBePalette)
 {
     if (canBePalette && palettes && palettes->hasFocus()) {
         if (auto* cnv = palettes->getCurrentCanvas()) {
-            if(!static_cast<bool>(cnv->paletteDragMode.getValue())) {
+            if(!getValue<bool>(cnv->paletteDragMode)) {
                 return cnv;
             }
         }
@@ -754,7 +754,7 @@ void PluginEditor::valueChanged(Value& v)
 {
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale) || v.refersToSameSourceAs(splitZoomScale)) {
-        float scale = static_cast<float>(v.getValue());
+        float scale = getValue<float>(v);
 
         if (scale == 0) {
             scale = 1.0f;
@@ -828,7 +828,7 @@ void PluginEditor::updateCommandStatus()
         bool allNotSegmented = true;
         bool hasSelection = false;
 
-        bool locked = static_cast<bool>(cnv->locked.getValue());
+        bool locked = getValue<bool>(cnv->locked);
 
         bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         for (auto& connection : cnv->getSelectionOfType<Connection>()) {
@@ -841,9 +841,9 @@ void PluginEditor::updateCommandStatus()
         statusbar->connectionPathfind.setEnabled(!isDragging && hasSelection);
         statusbar->connectionStyleButton.setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
 
-        if (static_cast<bool>(cnv->presentationMode.getValue())) {
+        if (getValue<bool>(cnv->presentationMode)) {
             presentButton.setToggleState(true, dontSendNotification);
-        } else if (static_cast<bool>(cnv->locked.getValue())) {
+        } else if (getValue<bool>(cnv->locked)) {
             runButton.setToggleState(true, dontSendNotification);
         } else {
             editButton.setToggleState(true, dontSendNotification);
@@ -937,7 +937,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         hasCanvas = true;
 
-        locked = static_cast<bool>(cnv->locked.getValue());
+        locked = getValue<bool>(cnv->locked);
         canConnect = cnv->canConnectSelectedObjects();
     }
 
@@ -1330,7 +1330,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::Lock: {
-        cnv->locked = !static_cast<bool>(cnv->locked.getValue());
+        cnv->locked = !getValue<bool>(cnv->locked);
         cnv->presentationMode = false;
         return true;
     }
@@ -1352,14 +1352,14 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::ZoomIn: {
         auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
-        float newScale = static_cast<float>(scale.getValue()) + 0.1f;
+        float newScale = getValue<float>(scale) + 0.1f;
         scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
 
         return true;
     }
     case CommandIDs::ZoomOut: {
         auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
-        float newScale = static_cast<float>(scale.getValue()) - 0.1f;
+        float newScale = getValue<float>(scale) - 0.1f;
         scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
 
         return true;
@@ -1564,7 +1564,7 @@ void PluginEditor::commandKeyChanged(bool isHeld)
         runButton.setToggleState(true, dontSendNotification);
     }
     else if(auto* cnv = getCurrentCanvas()){
-        if(!static_cast<bool>(cnv->locked.getValue())) {
+        if(!getValue<bool>(cnv->locked)) {
             editButton.setToggleState(true, dontSendNotification);
         }
     }

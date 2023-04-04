@@ -272,7 +272,7 @@ public:
         } else if (v.refersToSameSourceAs(gridColour)) {
             colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
         } else if (v.refersToSameSourceAs(bufferSize)) {
-            bufferSize = std::clamp<int>(static_cast<int>(bufferSize.getValue()), 0, SCOPE_MAXBUFSIZE * 4);
+            bufferSize = std::clamp<int>(getValue<int>(bufferSize), 0, SCOPE_MAXBUFSIZE * 4);
 
             pd->setThis();
             sys_lock();
@@ -292,11 +292,11 @@ public:
             scope->x_min = min;
             scope->x_max = max;
         } else if (v.refersToSameSourceAs(delay)) {
-            scope->x_delay = static_cast<int>(delay.getValue());
+            scope->x_delay = getValue<int>(delay);
         } else if (v.refersToSameSourceAs(triggerMode)) {
-            scope->x_trigmode = static_cast<int>(triggerMode.getValue()) - 1;
+            scope->x_trigmode = getValue<int>(triggerMode) - 1;
         } else if (v.refersToSameSourceAs(triggerValue)) {
-            scope->x_triglevel = static_cast<int>(triggerValue.getValue());
+            scope->x_triglevel = getValue<int>(triggerValue);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto* rcv = pd->generateSymbol(receiveSymbol.toString());
             scope->x_receive = canvas_realizedollar(scope->x_glist, scope->x_rcv_raw = rcv);

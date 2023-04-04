@@ -374,8 +374,8 @@ public:
 
     void updateAspectRatio()
     {
-        int numOctaves = static_cast<int>(octaves.getValue());
-        int lowest = static_cast<int>(lowC.getValue());
+        int numOctaves = getValue<int>(octaves);
+        int lowest = getValue<int>(lowC);
         int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
         keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12) - 1, 127));
 
@@ -394,12 +394,12 @@ public:
         auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
 
         if (value.refersToSameSourceAs(lowC)) {
-            lowC = std::clamp<int>(static_cast<int>(lowC.getValue()), -1, 9);
-            elseKeyboard->x_low_c = static_cast<int>(lowC.getValue());
+            lowC = std::clamp<int>(getValue<int>(lowC), -1, 9);
+            elseKeyboard->x_low_c = getValue<int>(lowC);
             updateAspectRatio();
         } else if (value.refersToSameSourceAs(octaves)) {
-            octaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
-            elseKeyboard->x_octaves = static_cast<int>(octaves.getValue());
+            octaves = std::clamp<int>(getValue<int>(octaves), 1, 11);
+            elseKeyboard->x_octaves = getValue<int>(octaves);
             updateAspectRatio();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
@@ -412,7 +412,7 @@ public:
             SETSYMBOL(&atom, pd->generateSymbol(symbol));
             pd_typedmess((t_pd*)elseKeyboard, pd->generateSymbol("receive"), 1, &atom);
         } else if (value.refersToSameSourceAs(toggleMode)) {
-            auto toggle = static_cast<int>(toggleMode.getValue());
+            auto toggle = getValue<int>(toggleMode);
             t_atom atom;
             SETFLOAT(&atom, toggle);
             pd_typedmess((t_pd*)elseKeyboard, pd->generateSymbol("toggle"), 1, &atom);
@@ -464,7 +464,7 @@ public:
             break;
         }
         case hash("oct"): {
-            setParameterExcludingListener(lowC, std::clamp<int>(static_cast<int>(lowC.getValue()) + static_cast<int>(atoms[0].getFloat()), -1, 9));
+            setParameterExcludingListener(lowC, std::clamp<int>(getValue<int>(lowC) + static_cast<int>(atoms[0].getFloat()), -1, 9));
             updateAspectRatio();
             break;
         }

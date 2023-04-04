@@ -89,7 +89,7 @@ public:
     {
         if (!alreadyToggled) {
             startEdition();
-            auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
+            auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
             sendToggleValue(newValue);
             setToggleStateFromFloat(newValue);
             stopEdition();
@@ -123,7 +123,7 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         startEdition();
-        auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
+        auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
         sendToggleValue(newValue);
         setToggleStateFromFloat(newValue);
         stopEdition();

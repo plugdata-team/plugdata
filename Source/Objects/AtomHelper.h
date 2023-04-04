@@ -178,7 +178,7 @@ public:
 
     int getAtomHeight() const
     {
-        int idx = static_cast<int>(fontSize.getValue()) - 1;
+        int idx = getValue<int>(fontSize) - 1;
         if (idx == 0) {
             return cnv->patch.getPointer()->gl_font + 7;
         } else {
@@ -200,7 +200,7 @@ public:
     void valueChanged(Value& v)
     {
         if (v.refersToSameSourceAs(labelPosition)) {
-            setLabelPosition(static_cast<int>(labelPosition.getValue()));
+            setLabelPosition(getValue<int>(labelPosition));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(fontSize)) {
             gui->updateLabel();

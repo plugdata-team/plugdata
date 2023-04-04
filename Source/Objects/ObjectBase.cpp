@@ -200,7 +200,7 @@ String ObjectBase::getType() const
 // Make sure the object can't be triggered if that palette is in drag mode
 bool ObjectBase::hitTest(int x, int y)
 {
-    if (cnv->isPalette && static_cast<bool>(cnv->paletteDragMode.getValue())) {
+    if (cnv->isPalette && getValue<bool>(cnv->paletteDragMode)) {
         return false;
     }
 

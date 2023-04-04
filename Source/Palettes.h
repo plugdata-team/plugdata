@@ -451,7 +451,7 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(locked)) {
-            editModeButton.setToggleState(!static_cast<bool>(locked.getValue()), dontSendNotification);
+            editModeButton.setToggleState(!getValue<bool>(locked), dontSendNotification);
         }
     }
 

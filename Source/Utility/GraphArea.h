@@ -30,7 +30,7 @@ public:
         
     void valueChanged(Value& v) override
     {
-        setVisible(!static_cast<bool>(v.getValue()));
+        setVisible(!getValue<bool>(v));
     }
 
     void paint(Graphics& g) override

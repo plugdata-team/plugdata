@@ -585,7 +585,7 @@ private:
             if (!_this || !_this->currentBox)
                 return;
 
-            if (static_cast<bool>(_this->currentBox->cnv->editor->hvccMode.getValue())) {
+            if (getValue<bool>(_this->currentBox->cnv->editor->hvccMode)) {
 
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {

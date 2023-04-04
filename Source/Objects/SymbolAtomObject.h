@@ -130,7 +130,7 @@ public:
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
-        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
+        bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
 
         if (highlighed) {
             g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));

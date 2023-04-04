@@ -157,7 +157,7 @@ public:
         void valueChanged(Value& value) override
         {
             if (value.refersToSameSourceAs(snapValue)) {
-                auto state = static_cast<int>(snapValue.getValue());
+                auto state = getValue<int>(snapValue);
                 button.setToggleState(state & snapBit, dontSendNotification);
             }
         }

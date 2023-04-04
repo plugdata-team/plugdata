@@ -26,9 +26,9 @@ public:
     void update() override
     {
         selected = getValue();
-
-        if (selected > static_cast<int>(max.getValue())) {
-            selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
+        
+        if (selected > ::getValue<int>(max)) {
+            selected = std::min<int>(::getValue<int>(max) - 1, selected);
         }
 
         isVertical = static_cast<t_radio*>(ptr)->x_orientation;
@@ -229,9 +229,9 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(max)) {
-            if (static_cast<int>(max.getValue()) != numItems) {
+            if (::getValue<int>(max) != numItems) {
                 limitValueMin(value, 1);
-                numItems = static_cast<int>(max.getValue());
+                numItems = ::getValue<int>(max);
                 updateAspectRatio();
                 setMaximum(numItems);
             }

@@ -204,7 +204,7 @@ public:
         , isValid(valid)
     {
         objectText = getText();
-        isLocked = static_cast<bool>(cnv->locked.getValue());
+        isLocked = getValue<bool>(cnv->locked);
     }
 
     virtual ~TextBase()

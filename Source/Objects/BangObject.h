@@ -136,7 +136,7 @@ public:
 
         int holdTime = bangHold.getValue();
 
-        if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2) {
+        if (timeSinceLast < getValue<int>(bangHold) * 2) {
             holdTime = timeSinceLast / 2;
         }
         if (holdTime < bangInterrupt) {

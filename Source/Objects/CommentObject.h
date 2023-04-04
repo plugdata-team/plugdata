@@ -19,7 +19,7 @@ public:
     CommentObject(void* obj, Object* object)
         : ObjectBase(obj, object)
     {
-        locked = static_cast<bool>(object->locked.getValue());
+        locked = getValue<bool>(object->locked);
     }
 
     ~CommentObject()

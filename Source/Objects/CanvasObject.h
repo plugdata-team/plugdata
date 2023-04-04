@@ -16,7 +16,7 @@ public:
         , iemHelper(ptr, object, this)
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
-        locked = static_cast<bool>(object->locked.getValue());
+        locked = getValue<bool>(object->locked);
     }
 
     bool hideInlets() override

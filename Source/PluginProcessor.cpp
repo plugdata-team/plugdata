@@ -336,7 +336,7 @@ bool PluginProcessor::isMidiEffect() const
 
 double PluginProcessor::getTailLengthSeconds() const
 {
-    return static_cast<float>(tailLength.getValue());
+    return getValue<float>(tailLength);
 }
 
 int PluginProcessor::getNumPrograms()
@@ -893,7 +893,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     ostream.writeInt(getLatencySamples());
     ostream.writeInt(oversampling);
-    ostream.writeFloat(static_cast<float>(tailLength.getValue()));
+    ostream.writeFloat(getValue<float>(tailLength));
 
     XmlElement xml = XmlElement("plugdata_save");
     xml.setAttribute("Version", PLUGDATA_VERSION);
@@ -903,7 +903,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     // By putting this here, we can prepare for making this change without breaking existing DAW saves
     xml.setAttribute("Oversampling", oversampling);
     xml.setAttribute("Latency", getLatencySamples());
-    xml.setAttribute("TailLength", static_cast<float>(tailLength.getValue()));
+    xml.setAttribute("TailLength", getValue<float>(tailLength));
     xml.setAttribute("Legacy", false);
 
     if (auto* editor = getActiveEditor()) {

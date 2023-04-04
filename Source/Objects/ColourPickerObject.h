@@ -25,7 +25,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (static_cast<bool>(object->locked.getValue())) {
+        if (getValue<bool>(object->locked)) {
             showColourPicker();
         }
     }

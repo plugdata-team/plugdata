@@ -199,19 +199,19 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
-            setMinimum(static_cast<float>(min.getValue()));
+            setMinimum(::getValue<float>(min));
         } else if (value.refersToSameSourceAs(max)) {
-            setMaximum(static_cast<float>(max.getValue()));
+            setMaximum(::getValue<float>(max));
         } else if (value.refersToSameSourceAs(interval)) {
             auto* nbx = static_cast<t_numbox*>(ptr);
-            nbx->x_rate = static_cast<float>(interval.getValue());
+            nbx->x_rate = ::getValue<float>(interval);
 
         } else if (value.refersToSameSourceAs(ramp)) {
             auto* nbx = static_cast<t_numbox*>(ptr);
-            nbx->x_ramp_ms = static_cast<float>(ramp.getValue());
+            nbx->x_ramp_ms = ::getValue<float>(ramp);
         } else if (value.refersToSameSourceAs(init)) {
             auto* nbx = static_cast<t_numbox*>(ptr);
-            nbx->x_set_val = static_cast<float>(init.getValue());
+            nbx->x_set_val = ::getValue<float>(init);
         } else if (value.refersToSameSourceAs(primaryColour)) {
             setForegroundColour(primaryColour.toString());
         } else if (value.refersToSameSourceAs(secondaryColour)) {

@@ -533,7 +533,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         } else {
 
             auto cnv = Component::SafePointer(parent->getCurrentCanvas());
-            bool locked = static_cast<bool>(cnv->locked.getValue()) || static_cast<bool>(cnv->commandLocked.getValue());
+            bool locked = getValue<bool>(cnv->locked) || getValue<bool>(cnv->commandLocked);
 
             PopupMenu::Item i;
             i.text = displayName;

@@ -164,7 +164,7 @@ public:
     }
     void valueChanged(Value& value) override
     {
-        muteInput = static_cast<bool>(value.getValue());
+        muteInput = getValue<bool>(value);
     }
 
     void startPlaying()
@@ -185,7 +185,7 @@ public:
             settings->setValue("audioSetup", xml.get());
 
 #if !(JUCE_IOS || JUCE_ANDROID)
-            settings->setValue("shouldMuteInput", static_cast<bool>(shouldMuteInput.getValue()));
+            settings->setValue("shouldMuteInput", getValue<bool>(shouldMuteInput));
 #endif
         }
     }

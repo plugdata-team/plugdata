@@ -102,7 +102,7 @@ public:
             zoomValue = settingsTree.getPropertyAsValue(splitZoom ? "split_zoom" : "zoom", nullptr);
 
             zoomIn.setButtonText("+");
-            zoomReset.setButtonText(String(static_cast<float>(zoomValue.getValue()) * 100, 1) + "%");
+            zoomReset.setButtonText(String(getValue<float>(zoomValue) * 100, 1) + "%");
             zoomOut.setButtonText("-");
 
             addAndMakeVisible(zoomIn);
@@ -126,7 +126,7 @@ public:
 
         void applyZoom(bool zoomIn)
         {
-            float value = static_cast<float>(zoomValue.getValue());
+            float value = getValue<float>(zoomValue);
 
             // Apply limits
             value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.5f, 2.0f);

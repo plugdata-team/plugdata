@@ -77,7 +77,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool 
     propertyChanged("border", SettingsFile::getInstance()->getPropertyAsValue("border"));
 
     // Add draggable border for setting graph position
-    if (static_cast<bool>(isGraphChild.getValue()) && !isGraph) {
+    if (getValue<bool>(isGraphChild) && !isGraph) {
         graphArea = std::make_unique<GraphArea>(this);
         addAndMakeVisible(*graphArea);
         graphArea->setAlwaysOnTop(true);
@@ -246,13 +246,13 @@ void Canvas::paint(Graphics& g)
     auto originDiff = canvasOrigin.toFloat() - clippedOrigin;
     
     // draw patch window dashed outline
-    auto patchWidthCanvas = clippedOrigin.x + (static_cast<int>(patchWidth.getValue()) + originDiff.x);
-    auto patchHeightCanvas = clippedOrigin.y + (static_cast<int>(patchHeight.getValue()) + originDiff.y);
+    auto patchWidthCanvas = clippedOrigin.x + (getValue<int>(patchWidth) + originDiff.x);
+    auto patchHeightCanvas = clippedOrigin.y + (getValue<int>(patchHeight) + originDiff.y);
     
     clippedOrigin.x += fmod(originDiff.x, 10.0f) - 0.5f;
     clippedOrigin.y += fmod(originDiff.y, 10.0f) - 0.5f;
     
-    if(!static_cast<bool>(locked.getValue())) {
+    if(!getValue<bool>(locked)) {
         
         auto startX = (canvasOrigin.x % objectGrid.gridSize);
         startX += ((clipBounds.getX() / objectGrid.gridSize) * objectGrid.gridSize);
@@ -691,7 +691,7 @@ void Canvas::mouseUp(MouseEvent const& e)
     connectionCancelled = false;
 
     // Double-click canvas to create new object
-    if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph && !static_cast<bool>(locked.getValue())) {
+    if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph && !getValue<bool>(locked)) {
         objects.add(new Object(this, "", lastMousePosition));
         deselectAll();
         setSelected(objects[objects.size() - 1], true); // Select newly created object
@@ -1241,18 +1241,18 @@ void Canvas::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(patchWidth)) {
         // limit canvas width to smallest object (11px)
-        patchWidth = jmax(11, static_cast<int>(patchWidth.getValue()));
-        patch.getPointer()->gl_screenx2 = static_cast<int>(patchWidth.getValue()) + patch.getPointer()->gl_screenx1;
+        patchWidth = jmax(11, getValue<int>(patchWidth));
+        patch.getPointer()->gl_screenx2 = getValue<int>(patchWidth) + patch.getPointer()->gl_screenx1;
         repaint();
     }
     if (v.refersToSameSourceAs(patchHeight)) {
-        patchHeight = jmax(11, static_cast<int>(patchHeight.getValue()));
-        patch.getPointer()->gl_screeny2 = static_cast<int>(patchHeight.getValue()) + patch.getPointer()->gl_screeny1;
+        patchHeight = jmax(11, getValue<int>(patchHeight));
+        patch.getPointer()->gl_screeny2 = getValue<int>(patchHeight) + patch.getPointer()->gl_screeny1;
         repaint();
     }
     // When lock changes
     if (v.refersToSameSourceAs(locked)) {
-        bool editMode = !static_cast<bool>(v.getValue());
+        bool editMode = !getValue<bool>(v);
 
         pd->enqueueFunction([this, editMode]() {
             patch.getPointer()->gl_edit = editMode;
@@ -1299,8 +1299,8 @@ void Canvas::valueChanged(Value& v)
 
         pd->setThis();
 
-        int graphChild = static_cast<bool>(isGraphChild.getValue());
-        int hideText = static_cast<bool>(hideNameAndArgs.getValue());
+        int graphChild = getValue<bool>(isGraphChild);
+        int hideText = getValue<bool>(hideNameAndArgs);
 
         canvas_setgraph(patch.getPointer(), isGraph + 2 * hideText, 0);
 

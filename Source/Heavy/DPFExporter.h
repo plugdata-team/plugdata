@@ -55,14 +55,14 @@ public:
             args.add("\"" + copyright + "\"");
         }
 
-        int midiin = static_cast<int>(midiinEnableValue.getValue());
-        int midiout = static_cast<int>(midioutEnableValue.getValue());
+        int midiin = getValue<int>(midiinEnableValue);
+        int midiout = getValue<int>(midioutEnableValue);
 
-        bool lv2 = static_cast<int>(lv2EnableValue.getValue());
-        bool vst2 = static_cast<int>(vst2EnableValue.getValue());
-        bool vst3 = static_cast<int>(vst3EnableValue.getValue());
-        bool clap = static_cast<int>(clapEnableValue.getValue());
-        bool jack = static_cast<int>(jackEnableValue.getValue());
+        bool lv2 = getValue<int>(lv2EnableValue);
+        bool vst2 = getValue<int>(vst2EnableValue);
+        bool vst3 = getValue<int>(vst3EnableValue);
+        bool clap = getValue<int>(clapEnableValue);
+        bool jack = getValue<int>(jackEnableValue);
 
         StringArray formats;
 
@@ -131,7 +131,7 @@ public:
 
         bool generationExitCode = getExitCode();
         // Check if we need to compile
-        if (!generationExitCode && static_cast<int>(exportTypeValue.getValue()) == 2) {
+        if (!generationExitCode && getValue<int>(exportTypeValue) == 2) {
             auto workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();

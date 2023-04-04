@@ -525,7 +525,7 @@ public:
     {
         if(pd->isPerformingGlobalSync) return;
         
-        if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
+        if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
         Point<int> pos;
@@ -544,7 +544,7 @@ public:
     {
         if(pd->isPerformingGlobalSync) return;
         
-        if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
+        if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
@@ -555,7 +555,7 @@ public:
     {
         if(pd->isPerformingGlobalSync) return;
         
-        if (!cnv || !static_cast<bool>(cnv->locked.getValue()))
+        if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
         Point<int> pos;
@@ -689,14 +689,14 @@ public:
 
         zoomScaleValue.referTo(cnv->editor->getZoomScaleValueForCanvas(cnv));
         zoomScaleValue.addListener(this);
-        lastScale = static_cast<float>(zoomScaleValue.getValue());
+        lastScale = getValue<float>(zoomScaleValue);
     }
 
     void valueChanged(Value& v) override
     {
         if(pd->isPerformingGlobalSync) return;
         
-        float newScale = static_cast<float>(zoomScaleValue.getValue());
+        float newScale = getValue<float>(zoomScaleValue);
         if (lastScale != newScale) {
             auto* zoom = static_cast<t_fake_zoom*>(ptr);
             outlet_float(zoom->x_obj.ob_outlet, newScale);
@@ -733,14 +733,14 @@ public:
             return;
 
         // Don't use lock method, because that also responds to temporary lock
-        lastEditMode = static_cast<float>(cnv->locked.getValue());
+        lastEditMode = getValue<float>(cnv->locked);
         cnv->locked.addListener(this);
     }
     void valueChanged(Value& v) override
     {
         if(pd->isPerformingGlobalSync) return;
         
-        bool editMode = static_cast<bool>(v.getValue());
+        bool editMode = getValue<bool>(v);
         if (lastEditMode != editMode) {
             auto* edit = static_cast<t_fake_edit*>(ptr);
             outlet_float(edit->x_obj.ob_outlet, edit->x_edit = editMode);

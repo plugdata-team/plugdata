@@ -32,10 +32,10 @@ Iolet::Iolet(Object* parent, bool inlet)
     presentationMode.referTo(object->cnv->presentationMode);
     presentationMode.addListener(this);
 
-    bool isLocked = static_cast<bool>(locked.getValue());
+    bool isLocked = getValue<bool>(locked);
     setInterceptsMouseClicks(!isLocked, true);
 
-    bool isPresenting = static_cast<bool>(presentationMode.getValue());
+    bool isPresenting = getValue<bool>(presentationMode);
     setVisible(!isPresenting && !insideGraph);
 
     // Drawing cirles is more expensive than you might think, especially because there can be a lot of iolets!
@@ -52,7 +52,7 @@ Rectangle<int> Iolet::getCanvasBounds()
 
 bool Iolet::hitTest(int x, int y)
 {
-    if (static_cast<bool>(locked.getValue()))
+    if (getValue<bool>(locked))
         return false;
 
     Path smallBounds;
@@ -77,7 +77,7 @@ void Iolet::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat().reduced(0.5f);
 
-    bool isLocked = static_cast<bool>(locked.getValue());
+    bool isLocked = getValue<bool>(locked);
     bool down = isMouseButtonDown();
     bool over = isMouseOver();
 
@@ -130,7 +130,7 @@ void Iolet::paint(Graphics& g)
 void Iolet::mouseDrag(MouseEvent const& e)
 {
     // Ignore when locked or if middlemouseclick?
-    if (static_cast<bool>(locked.getValue()) || e.mods.isMiddleButtonDown())
+    if (getValue<bool>(locked) || e.mods.isMiddleButtonDown())
         return;
 
     if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
@@ -166,7 +166,7 @@ void Iolet::mouseDrag(MouseEvent const& e)
 
 void Iolet::mouseUp(MouseEvent const& e)
 {
-    if (static_cast<bool>(locked.getValue()) || e.mods.isRightButtonDown())
+    if (getValue<bool>(locked) || e.mods.isRightButtonDown())
         return;
 
     // This might end up calling Canvas::synchronise, at which point we are not sure this class will survive, so we do an async call
@@ -452,7 +452,7 @@ void Iolet::valueChanged(Value& v)
         repaint();
     }
     if (v.refersToSameSourceAs(presentationMode)) {
-        setVisible(!static_cast<bool>(presentationMode.getValue()) && !insideGraph && !hideIolet);
+        setVisible(!getValue<bool>(presentationMode) && !insideGraph && !hideIolet);
         repaint();
     }
 }
@@ -460,6 +460,6 @@ void Iolet::valueChanged(Value& v)
 void Iolet::setHidden(bool hidden)
 {
     hideIolet = hidden;
-    setVisible(!static_cast<bool>(presentationMode.getValue()) && !insideGraph && !hideIolet);
+    setVisible(!getValue<bool>(presentationMode) && !insideGraph && !hideIolet);
     repaint();
 }

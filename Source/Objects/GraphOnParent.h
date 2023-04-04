@@ -197,7 +197,7 @@ public:
     void paint(Graphics& g) override
     {
         // Strangly, the title goes below the graph content in pd
-        if (!static_cast<bool>(hideNameAndArgs.getValue()) && getText() != "graph") {
+        if (!getValue<bool>(hideNameAndArgs) && getText() != "graph") {
             auto text = getText();
 
             auto textArea = getLocalBounds().removeFromTop(16).withTrimmedLeft(5);
@@ -248,8 +248,8 @@ public:
 
         pd->setThis();
 
-        int isGraph = static_cast<bool>(isGraphChild.getValue());
-        int hideText = isGraph && static_cast<bool>(hideNameAndArgs.getValue());
+        int isGraph = getValue<bool>(isGraphChild);
+        int hideText = isGraph && getValue<bool>(hideNameAndArgs);
 
         canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
         repaint();

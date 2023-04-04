@@ -129,7 +129,7 @@ public:
 
     void handleMouseDown(MouseEvent const& e)
     {
-        if (!getLocalBounds().contains(e.getPosition()) || !static_cast<bool>(canvas->locked.getValue()) || !canvas->isShowing() || !scalar->sc_template)
+        if (!getLocalBounds().contains(e.getPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing() || !scalar->sc_template)
             return;
 
         auto shift = e.mods.isShiftDown();

@@ -51,7 +51,7 @@ public:
         resized();
         repaint();
 
-        bool isLocked = static_cast<bool>(object->cnv->locked.getValue());
+        bool isLocked = getValue<bool>(object->cnv->locked);
         editor.setReadOnly(!isLocked);
     }
 
@@ -300,13 +300,13 @@ public:
             repaint();
         }
         if (value.refersToSameSourceAs(fontSize)) {
-            auto size = static_cast<int>(fontSize.getValue());
+            auto size = getValue<int>(fontSize);
             editor.applyFontToAllText(editor.getFont().withHeight(size));
             messbox->x_font_size = size;
         }
         if (value.refersToSameSourceAs(bold)) {
-            auto size = static_cast<int>(fontSize.getValue());
-            if (static_cast<bool>(bold.getValue())) {
+            auto size = getValue<int>(fontSize);
+            if (getValue<bool>(bold)) {
                 auto boldFont = Fonts::getBoldFont();
                 editor.applyFontToAllText(boldFont.withHeight(size));
                 messbox->x_font_weight = pd->generateSymbol("normal");

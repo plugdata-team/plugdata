@@ -20,7 +20,7 @@ public:
         isGraphChild = false;
         object->hvccMode.addListener(this);
 
-        if (static_cast<bool>(object->hvccMode.getValue())) {
+        if (getValue<bool>(object->hvccMode)) {
             checkHvccCompatibility(subpatch);
         }
     }
@@ -86,8 +86,8 @@ public:
 
         pd->setThis();
 
-        int isGraph = static_cast<bool>(isGraphChild.getValue());
-        int hideText = static_cast<bool>(hideNameAndArgs.getValue());
+        int isGraph = getValue<bool>(isGraphChild);
+        int hideText = getValue<bool>(hideNameAndArgs);
 
         canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
         repaint();
@@ -111,7 +111,7 @@ public:
         if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
             checkGraphState();
         } else if (v.refersToSameSourceAs(object->hvccMode)) {
-            if (static_cast<bool>(v.getValue())) {
+            if (getValue<bool>(v)) {
                 checkHvccCompatibility(subpatch);
             }
         }

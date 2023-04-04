@@ -180,7 +180,7 @@ public:
 
         void paint(Graphics& g) override
         {
-            bool isDown = static_cast<bool>(toggleStateValue.getValue());
+            bool isDown = getValue<bool>(toggleStateValue);
             bool isHovered = isMouseOver();
 
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
@@ -210,7 +210,7 @@ public:
 
         void mouseUp(MouseEvent const& e) override
         {
-            toggleStateValue = !static_cast<bool>(toggleStateValue.getValue());
+            toggleStateValue = !getValue<bool>(toggleStateValue);
             repaint();
         }
 

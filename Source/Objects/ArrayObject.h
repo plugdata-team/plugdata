@@ -579,10 +579,10 @@ public:
     void updateSettings()
     {
         auto arrName = name.getValue().toString();
-        auto arrSize = std::max(0, static_cast<int>(size.getValue()));
-        auto arrDrawMode = static_cast<int>(drawMode.getValue()) - 1;
+        auto arrSize = std::max(0, getValue<int>(size));
+        auto arrDrawMode = getValue<int>(drawMode) - 1;
 
-        if (arrSize != static_cast<int>(size.getValue())) {
+        if (arrSize != getValue<int>(size)) {
             size = arrSize;
         }
 
@@ -593,7 +593,7 @@ public:
             arrDrawMode = 0;
         }
 
-        auto arrSaveContents = static_cast<bool>(saveContents.getValue());
+        auto arrSaveContents = getValue<bool>(saveContents);
 
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
 

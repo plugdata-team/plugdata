@@ -326,16 +326,16 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
-            setMinimum(static_cast<float>(min.getValue()));
+            setMinimum(::getValue<float>(min));
             updateRange();
         } else if (value.refersToSameSourceAs(max)) {
-            setMaximum(static_cast<float>(max.getValue()));
+            setMaximum(::getValue<float>(max));
             updateRange();
         } else if (value.refersToSameSourceAs(isLogarithmic)) {
             setLogScale(isLogarithmic == var(true));
             updateRange();
         } else if (value.refersToSameSourceAs(steadyOnClick)) {
-            bool steady = static_cast<bool>(steadyOnClick.getValue());
+            bool steady = ::getValue<bool>(steadyOnClick);
             setSteadyOnClick(steady);
             slider.setSliderSnapsToMousePosition(!steady);
         } else {

@@ -67,7 +67,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (static_cast<bool>(latch.getValue())) {
+        if (getValue<bool>(latch)) {
             auto* pic = static_cast<t_fake_pic*>(ptr);
             pd->enqueueFunction([pic]() {
                 outlet_float(pic->x_outlet, 1.0f);
@@ -82,7 +82,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (static_cast<bool>(latch.getValue())) {
+        if (getValue<bool>(latch)) {
             auto* pic = static_cast<t_fake_pic*>(ptr);
             pd->enqueueFunction([pic]() {
                 outlet_float(pic->x_outlet, 0.0f);
@@ -159,7 +159,7 @@ public:
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        if (static_cast<bool>(outline.getValue())) {
+        if (getValue<bool>(outline)) {
             g.setColour(outlineColour);
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
         }
@@ -172,11 +172,11 @@ public:
         if (value.refersToSameSourceAs(path)) {
             openFile(path.toString());
         } else if (value.refersToSameSourceAs(latch)) {
-            pic->x_latch = static_cast<int>(latch.getValue());
+            pic->x_latch = getValue<int>(latch);
         } else if (value.refersToSameSourceAs(outline)) {
-            pic->x_outline = static_cast<int>(latch.getValue());
+            pic->x_outline = getValue<int>(latch);
         } else if (value.refersToSameSourceAs(reportSize)) {
-            pic->x_size = static_cast<int>(reportSize.getValue());
+            pic->x_size = getValue<int>(reportSize);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
             t_atom atom;
@@ -259,7 +259,7 @@ public:
         pic->x_width = img.getWidth();
         pic->x_height = img.getHeight();
 
-        if (static_cast<bool>(reportSize.getValue())) {
+        if (getValue<bool>(reportSize)) {
             t_atom coordinates[2];
             SETFLOAT(coordinates, img.getWidth());
             SETFLOAT(coordinates + 1, img.getHeight());

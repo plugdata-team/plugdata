@@ -178,7 +178,7 @@ protected:
     template<typename T>
     T limitValueMax(Value& v, T max)
     {
-        auto clampedValue = std::min<T>(max, static_cast<T>(v.getValue()));
+        auto clampedValue = std::min<T>(max, getValue<T>(v));
         v = clampedValue;
         return clampedValue;
     }
@@ -186,7 +186,7 @@ protected:
     template<typename T>
     T limitValueMin(Value& v, T min)
     {
-        auto clampedValue = std::max<T>(min, static_cast<T>(v.getValue()));
+        auto clampedValue = std::max<T>(min, getValue<T>(v));
         v = clampedValue;
         return clampedValue;
     }

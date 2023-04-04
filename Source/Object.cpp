@@ -57,9 +57,9 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     // Open the text editor of a new object if it has one
     // Don't do this if the object is attached to the mouse
     // Param objects are an exception where we don't want to open on mouse-down
-    if (attachedToMouse && !name.startsWith("param") && !static_cast<bool>(locked.getValue())) {
+    if (attachedToMouse && !name.startsWith("param") && !getValue<bool>(locked)) {
         createEditorOnMouseDown = true;
-    } else if (!attachedToMouse && !static_cast<bool>(locked.getValue())) {
+    } else if (!attachedToMouse && !getValue<bool>(locked)) {
         showEditor();
     }
 }
@@ -164,7 +164,7 @@ void Object::valueChanged(Value& v)
             auto typeName = String::fromUTF8(libpd_get_object_class_name(gui->ptr));
             // Check hvcc compatibility
             bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
-            isHvccCompatible = !static_cast<bool>(hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);
+            isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
 
             if (!isHvccCompatible) {
                 cnv->pd->logWarning(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
@@ -176,7 +176,7 @@ void Object::valueChanged(Value& v)
         return;
     }
     if (v.refersToSameSourceAs(cnv->paletteDragMode)) {
-        auto dragMode = static_cast<bool>(cnv->paletteDragMode.getValue());
+        auto dragMode = getValue<bool>(cnv->paletteDragMode);
         if (gui)
             gui->setInterceptsMouseClicks(!dragMode, !dragMode);
     }
@@ -361,7 +361,7 @@ void Object::setType(String const& newType, void* existingObject)
     auto typeName = String::fromUTF8(libpd_get_object_class_name(objectPtr));
     // Check hvcc compatibility
     bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
-    isHvccCompatible = !static_cast<bool>(hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);
+    isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
 
     if (!isHvccCompatible) {
         cnv->pd->logWarning(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
@@ -372,7 +372,7 @@ void Object::setType(String const& newType, void* existingObject)
     updateBounds();
 
     // Auto patching
-    if (static_cast<bool>(!attachedToMouse && cnv->editor->autoconnect.getValue()) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
+    if (!attachedToMouse && getValue<bool>(cnv->editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto inlet = iolets[0];
         if (outlet->isSignal == inlet->isSignal) {
@@ -799,7 +799,7 @@ void Object::mouseUp(MouseEvent const& e)
     if (wasLockedOnMouseDown || (gui && gui->isEditorShown()))
         return;
 
-    if (!ds.didStartDragging && !static_cast<bool>(locked.getValue()) && e.mods.isAltDown()) {
+    if (!ds.didStartDragging && !getValue<bool>(locked) && e.mods.isAltDown()) {
         // Show help file on alt+mouseup if object were not draged
         openHelpPatch();
     }

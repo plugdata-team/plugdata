@@ -1167,7 +1167,7 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(latencyValue)) {
-            processor->setLatencySamples(static_cast<int>(latencyValue.getValue()));
+            processor->setLatencySamples(getValue<int>(latencyValue));
         }
     }
 

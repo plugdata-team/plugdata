@@ -167,7 +167,7 @@ struct ExporterBase : public Component
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(inputPatchValue)) {
-            int idx = static_cast<int>(v.getValue());
+            int idx = getValue<int>(v);
 
             if (idx == 1) {
                 patchFile = openedPatchFile;

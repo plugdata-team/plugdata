@@ -204,19 +204,19 @@ public:
             setLabelColour(Colour::fromString(labelColour.toString()));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelX)) {
-            setLabelPosition({ static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue()) });
+            setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelY)) {
-            setLabelPosition({ static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue()) });
+            setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
-            setFontHeight(static_cast<int>(labelHeight.getValue()));
+            setFontHeight(getValue<int>(labelHeight));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelText)) {
             setLabelText(labelText.toString());
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(initialise)) {
-            setInit(static_cast<bool>(initialise.getValue()));
+            setInit(getValue<bool>(initialise));
         }
     }
 
