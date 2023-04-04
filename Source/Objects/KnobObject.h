@@ -25,7 +25,7 @@ public:
 
     ~ReversibleKnob() {}
 
-    void drawTicks(Graphics& g, Rectangle<float> knobBounds, float startAngle, float endAngle)
+    void drawTicks(Graphics& g, Rectangle<float> knobBounds, float startAngle, float endAngle, float tickWidth)
     {
         auto centre = knobBounds.getCentre();
         auto radius = (knobBounds.getWidth() * 0.5f) * 1.05f;
@@ -34,7 +34,7 @@ public:
         float angleIncrement = (endAngle - startAngle) / static_cast<float>(jmax(numberOfTicks - 1, 1));
 
         // Position each tick around the larger circle
-        float tickRadius = radius * 0.05f;
+        float tickRadius = tickWidth * 0.5f;
         for (int i = 0; i < numberOfTicks; ++i)
         {
             float angle = startAngle + i * angleIncrement - MathConstants<float>::pi * 0.5f; 
@@ -97,7 +97,7 @@ public:
         g.setColour(fgColour);
         g.strokePath(wiperPath, PathStrokeType(lineThickness, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
 
-        drawTicks(g, bounds, startAngle, endAngle);
+        drawTicks(g, bounds, startAngle, endAngle, lineThickness);
     }
 
     void setRangeFlipped(bool invert)
