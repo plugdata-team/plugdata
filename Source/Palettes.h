@@ -598,7 +598,6 @@ public:
                 ValueTree paletteTree = ValueTree("Palette");
                 paletteTree.setProperty("Name", name, nullptr);
                 paletteTree.setProperty("Patch", patch, nullptr);
-                paletteTree.setProperty("Width", 300, nullptr);
                 palettesTree.appendChild(paletteTree, nullptr);
             }
 
@@ -612,6 +611,33 @@ public:
             PopupMenu menu;
             menu.addItem(1, "New palette");
             menu.addItem(2, "New palette from clipboard");
+            
+            
+            PopupMenu defaultPalettesMenu;
+            
+            for(auto& [name, patch] : defaultPalettes)
+            {
+                defaultPalettesMenu.addItem(name, [this, name = name, patch = patch](){
+                    auto existingTree = palettesTree.getChildWithProperty("Name", name);
+                    if(existingTree.isValid()) {
+                        view.showPalette(existingTree);
+                    }
+                    else {
+                        ValueTree paletteTree = ValueTree("Palette");
+                        paletteTree.setProperty("Name", name, nullptr);
+                        paletteTree.setProperty("Patch", patch, nullptr);
+                        palettesTree.appendChild(paletteTree, nullptr);
+                        
+                        updatePalettes();
+                        
+                        paletteSelectors.getLast()->triggerClick();
+
+                        savePalettes();
+                    }
+                });
+            }
+            
+            menu.addSubMenu("Add default palette", defaultPalettesMenu);
 
             menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetComponent(&addButton), ModalCallbackFunction::create([this](int result) {
                 if (result > 0) {
@@ -888,7 +914,6 @@ private:
         ValueTree paletteTree = ValueTree("Palette");
         paletteTree.setProperty("Name", "", nullptr);
         paletteTree.setProperty("Patch", patch, nullptr);
-        paletteTree.setProperty("Width", 300, nullptr);
         palettesTree.appendChild(paletteTree, nullptr);
 
         updatePalettes();

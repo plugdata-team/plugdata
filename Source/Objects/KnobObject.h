@@ -12,9 +12,9 @@ class ReversibleKnob : public Slider{
     Colour bgColour;
     Colour fgColour;
     Colour lnColour;
-    Colour arcColour;
+    
+    bool drawArc;
 
-    int arcWidth = 1;
     int numberOfTicks = 0;
 public:
     ReversibleKnob() : Slider(Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox)
@@ -27,7 +27,7 @@ public:
 
     void drawTicks(Graphics& g, Rectangle<int> knobBounds, float startAngle, float endAngle)
     {
-        auto centre = knobBounds.getCentre();
+        auto centre = knobBounds.toFloat().getCentre();
         auto radius = (knobBounds.getWidth() * 0.5f) * 1.1f;
 
         // Calculate the angle between each tick
@@ -47,18 +47,23 @@ public:
         }
     }
 
+    
+    void showArc(bool show)
+    {
+        drawArc = show;
+        repaint();
+    }
+    
     void paint(Graphics& g) override 
     {
-        auto bounds = getBounds().reduced(getWidth() * 0.15f);
-        auto x = bounds.getX();
-        auto y = bounds.getY();
-        auto w = bounds.getWidth();
-        auto h = bounds.getHeight();
-
-        auto arcWidthProportional = static_cast<float>(arcWidth) / bounds.getWidth();//* 0.001f;
-
+        auto bounds = getBounds().reduced(getWidth() * 0.13f);
+        
+        auto const lineThickness = std::max(bounds.getWidth() * 0.06f, 1.5f);
+        auto const arcThickness = lineThickness * 3.0f / getWidth();
+        
         auto sliderPosProportional = (getValue() - getRange().getStart()) / getRange().getLength();
-
+        sliderPosProportional = std::isfinite(sliderPosProportional) ? sliderPosProportional : 0.0f;
+        
         auto startAngle = getRotaryParameters().startAngleRadians * -1 + MathConstants<float>::pi;
         auto endAngle = getRotaryParameters().endAngleRadians * -1 + MathConstants<float>::pi;
         float angle = startAngle  + sliderPosProportional * (endAngle - startAngle);
@@ -66,22 +71,21 @@ public:
         startAngle = jmin(startAngle, endAngle + MathConstants<float>::twoPi);
         startAngle = jmax(startAngle, endAngle - MathConstants<float>::twoPi);
 
-        Path arc;
-
-        arc.addPieSegment(x, y, w, h, startAngle, angle, 1.0f - arcWidthProportional);
-        
-        auto const lineThickness = std::max(w * 0.06f, 1.5f);
-        
-        auto line = Line<float>::fromStartAndAngle (bounds.getCentre().toFloat(), (w / 2.0f) - 1.5f, angle);
-        
-        g.setColour(arcColour);
-        g.fillPath(arc);
-        
         g.setColour(fgColour);
+        
+        if(drawArc) {
+            auto arcBounds = bounds.toFloat().reduced(bounds.getWidth() * 0.07f);
+            Path arc;
+            arc.addPieSegment(arcBounds, startAngle, angle, 1.0f - arcThickness);
+            
+            g.fillPath(arc);
+        }
+        
+        auto line = Line<float>::fromStartAndAngle (bounds.getCentre().toFloat(), (bounds.getWidth() / 2.2f), angle);
         g.drawLine(line, lineThickness);
 
         g.setColour(lnColour);
-        g.drawEllipse(bounds.toFloat().reduced(2.0f), lineThickness);
+        g.drawEllipse(bounds.toFloat().reduced(bounds.getWidth() * 0.05f), lineThickness);
         
         drawTicks(g, bounds, startAngle, endAngle);
     }
@@ -105,6 +109,8 @@ public:
     };
     double valueToProportionOfLength(double value) override
     {
+        if(!std::isfinite(value)) return 0.0f;
+            
         if (isInverted)
             return 1.0f - (Slider::valueToProportionOfLength(value));
         else
@@ -129,19 +135,6 @@ public:
         repaint();
     }
 
-    
-    void setArcColour(Colour newArcColour)
-    {
-        arcColour = newArcColour;
-        repaint();
-    }
-    
-    void setArcWidth(int newArcWidth)
-    {
-        arcWidth = newArcWidth;
-        repaint();
-    }
-
     void setNumberOfTicks(int ticks)
     {
         numberOfTicks = ticks;
@@ -158,18 +151,17 @@ class KnobObject : public ObjectBase {
         float           x_pos;  // 0-1 normalized position
         float           x_exp;
         float           x_init;
-        int             x_arc_width;
         int             x_start_angle;
         int             x_end_angle;
+        int             x_range;
+        int             x_offset;
         int             x_ticks;
         double          x_min;
         double          x_max;
         t_float         x_fval;
-        int             x_acol;
-        t_symbol       *x_move_mode; // "xy" or "angle"
-        unsigned int    x_wiper_visible:1;
-        unsigned int    x_arc_visible:1;
-        unsigned int    x_center_visible:1;
+        int             x_circular;
+        int             x_arc;
+        int             x_discrete;
     };
 
     ReversibleKnob knob;
@@ -179,7 +171,7 @@ class KnobObject : public ObjectBase {
     Value min = Value(0.0f);
     Value max = Value(0.0f);
     
-    Value initialValue, moveMode, ticks, arcThickness, startAngle, endAngle, arcColour;
+    Value initialValue, circular, ticks, angularRange, angularOffset, discrete, showArc;
 
     float value = 0.0f;
 
@@ -207,23 +199,14 @@ public:
             stopEdition();
         };
         
-       
-
         auto* knb = static_cast<t_fake_knb*>(ptr);
-        
-        auto mode = getModeMove();
-        knob.setSliderStyle(mode);
-        moveMode = mode - 3;
-        
         initialValue = knb->x_init;
         ticks = knb->x_ticks;
-        arcThickness = knb->x_arc_width;
-        startAngle = knb->x_start_angle;
-        endAngle = knb->x_end_angle;
-        
-        
-        
-        arcColour = Colour(static_cast<uint32>(convert_from_iem_color(knb->x_acol))).toString();
+        angularRange = knb->x_range;
+        angularOffset = knb->x_offset;
+        discrete = knb->x_discrete;
+        circular = knb->x_circular;
+        showArc = knb->x_arc;
         
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1.0f);
@@ -234,51 +217,18 @@ public:
         
         knob.setDoubleClickReturnValue(true, static_cast<int>(initialValue.getValue()));
         knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
-        knob.setArcColour(Colour::fromString(arcColour.toString()));
+        knob.setSliderStyle(static_cast<bool>(circular.getValue()) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
+        knob.showArc(static_cast<bool>(showArc.getValue()));
     }
     
-    void setModeMove(Slider::SliderStyle style)
+    void setCircular(Slider::SliderStyle style)
     {
-        auto& mode = static_cast<t_fake_knb*>(ptr)->x_move_mode;
-        if(style == Slider::SliderStyle::RotaryHorizontalDrag)
-        {
-            mode = gensym("x");
-        }
-        if(style == Slider::SliderStyle::RotaryVerticalDrag)
-        {
-            mode = gensym("y");
-        }
-        if(style == Slider::SliderStyle::RotaryHorizontalVerticalDrag)
-        {
-            mode = gensym("xy");
-        }
-        if(style == Slider::SliderStyle::RotaryHorizontalVerticalDrag)
-        {
-            mode = gensym("angle");
-        }
+        static_cast<t_fake_knb*>(ptr)->x_circular = style == Slider::SliderStyle::RotaryHorizontalVerticalDrag;
     }
     
-    Slider::SliderStyle getModeMove()
+    bool isCircular()
     {
-        auto mode = static_cast<t_fake_knb*>(ptr)->x_move_mode;
-        if(mode == gensym("x"))
-        {
-            return Slider::SliderStyle::RotaryHorizontalDrag;
-        }
-        if(mode == gensym("y"))
-        {
-            return Slider::SliderStyle::RotaryVerticalDrag;
-        }
-        if(mode == gensym("xy"))
-        {
-            return Slider::SliderStyle::RotaryHorizontalVerticalDrag;
-        }
-        if(mode == gensym("angle"))
-        {
-            return Slider::SliderStyle::Rotary;
-        }
-        
-        return Slider::SliderStyle::RotaryHorizontalVerticalDrag;
+        return ;
     }
     
     void lookAndFeelChanged() override
@@ -314,11 +264,6 @@ public:
         return iemHelper.hasSendSymbol();
     }
 
-    void updateLabel() override
-    {
-        iemHelper.updateLabel(label);
-    }
-
     Rectangle<int> getPdBounds() override
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
@@ -338,10 +283,16 @@ public:
 
     void updateRange()
     {
+        auto min = getMinimum();
+        auto max = getMaximum();
+        auto range = std::abs(max - min);
+        auto numTicks = std::max(static_cast<int>(ticks.getValue()) - 1, 0);
+        auto increment = static_cast<bool>(discrete.getValue()) ? range / numTicks : std::numeric_limits<float>::epsilon();
+        
         if (knob.isRangeFlipped())
-            knob.setRange(getMaximum(), getMinimum(), std::numeric_limits<float>::epsilon());
+            knob.setRange(max, min, increment);
         else
-            knob.setRange(getMinimum(), getMaximum(), std::numeric_limits<float>::epsilon());
+            knob.setRange(min, max, increment);
     }
 
     std::vector<hash32> getAllMessages() override {
@@ -349,8 +300,13 @@ public:
             hash("float"),
             hash("set"),
             hash("range"),
+            hash("circular"),
+            hash("exp"),
+            hash("discrete"),
+            hash("arc"),
+            hash("angle"),
+            hash("ticks"),
             IEMGUI_MESSAGES
-            // TODO: finish this
         };
     }
     
@@ -370,6 +326,39 @@ public:
                 setParameterExcludingListener(max, atoms[1].getFloat());
                 updateRange();
             }
+            break;
+        }
+        case hash("angle"): {
+            if (atoms.size() >= 2) {
+                setParameterExcludingListener(angularRange, atoms[0].getFloat());
+                setParameterExcludingListener(angularOffset, atoms[1].getFloat());
+                updateRotaryParameters();
+            }
+            break;
+        }
+        case hash("arc"): {
+            setParameterExcludingListener(showArc, atoms[0].getFloat());
+            knob.showArc(atoms[0].getFloat());
+            break;
+        }
+        case hash("discrete"): {
+            setParameterExcludingListener(discrete, atoms[0].getFloat());
+            updateRange();
+            break;
+        }
+        case hash("circular"): {
+            setParameterExcludingListener(circular, atoms[0].getFloat());
+            knob.setSliderStyle(atoms[0].getFloat() ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
+            break;
+        }
+        case hash("ticks"): {
+            setParameterExcludingListener(ticks, atoms[0].getFloat());
+            updateRotaryParameters();
+            updateRange();
+            break;
+        }
+        case hash("exp"): {
+            //exp = atoms[0].getFloat();
             break;
         }
         default: {
@@ -419,17 +408,18 @@ public:
             { "Maximum", tFloat, cGeneral, &max, {} },
             
             { "Initial value", tFloat, cGeneral, &initialValue, {} },
-            { "Move mode", tCombo, cGeneral, &moveMode, {"Angle", "X", "Y", "X + Y"}},
+            { "Circular drag", tBool, cGeneral, &circular, {"No", "Yes"}},
             { "Ticks", tInt, cGeneral, &ticks, {} },
-            { "Arc thickness", tFloat, cGeneral, &arcThickness, {} },
-            { "Start angle", tInt, cGeneral, &startAngle, {} },
-            { "End angle", tInt, cGeneral, &endAngle, {} },
+            { "Discrete", tBool, cGeneral, &discrete, {"No", "Yes"} },
+            
+            { "Angular range", tInt, cGeneral, &angularRange, {} },
+            { "Angular offset", tInt, cGeneral, &angularOffset, {} },
             
             { "Foreground", tColour, cAppearance, &iemHelper.primaryColour, {} },
             { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
-            { "Arc", tColour, cAppearance, &arcColour, {} },
-            { "Receive Symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
-            { "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
+            { "Show arc", tBool, cAppearance, &showArc, {"No", "Yes"} },
+            { "Receive symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
+            { "Send symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
         };
     }
 
@@ -466,7 +456,6 @@ public:
         float startRad = degreesToRadians<float>(180 - knb->x_start_angle);
         float endRad = degreesToRadians<float>(180 - knb->x_end_angle);
         knob.setRotaryParameters({startRad, endRad, true});
-        knob.setArcWidth(knb->x_arc_width);
         knob.setNumberOfTicks(knb->x_ticks);
         knob.repaint();
     }
@@ -486,34 +475,38 @@ public:
             knob.setDoubleClickReturnValue(true, static_cast<int>(initialValue.getValue()));
             knb->x_init = static_cast<float>(initialValue.getValue());
         }
-        else if (value.refersToSameSourceAs(moveMode)) {
-            auto mode = static_cast<Slider::SliderStyle>(static_cast<int>(moveMode.getValue()) + 3);
-            knob.setSliderStyle(mode);
-            setModeMove(mode);
+        else if (value.refersToSameSourceAs(circular)) {
+            auto mode = static_cast<int>(circular.getValue());
+            knob.setSliderStyle(mode ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
+            knb->x_circular = mode;
             
-        }
-        else if (value.refersToSameSourceAs(arcColour)) {
-            auto colourStr = arcColour.toString();
-            knob.setArcColour(Colour::fromString(colourStr));
-            knb->x_acol = convert_to_iem_color(colourStr.toRawUTF8());
         }
         else if (value.refersToSameSourceAs(ticks)) {
             ticks = jmax(static_cast<int>(ticks.getValue()), 0);
             knb->x_ticks = static_cast<int>(ticks.getValue());
             updateRotaryParameters();
+            updateRange();
         }
-        else if (value.refersToSameSourceAs(arcThickness)) {
-            arcThickness = jmax(static_cast<int>(arcThickness.getValue()), 0);
-            knb->x_arc_width = static_cast<int>(arcThickness.getValue());
+        else if (value.refersToSameSourceAs(angularRange)) {
+            auto start = static_cast<int>(angularRange.getValue());
+            auto end = static_cast<int>(angularOffset.getValue());
+            pd->enqueueDirectMessages(knb, "angle", {pd::Atom(start), pd::Atom(end)});
             updateRotaryParameters();
         }
-        else if (value.refersToSameSourceAs(startAngle)) {
-            knb->x_start_angle = static_cast<int>(startAngle.getValue());
+        else if (value.refersToSameSourceAs(showArc)) {
+            bool arc = static_cast<bool>(showArc.getValue());
+            knob.showArc(arc);
+            knb->x_arc = arc;
+        }
+        else if (value.refersToSameSourceAs(angularOffset)) {
+            auto start = static_cast<int>(angularRange.getValue());
+            auto end = static_cast<int>(angularOffset.getValue());
+            pd->enqueueDirectMessages(knb, "angle", {pd::Atom(start), pd::Atom(end)});
             updateRotaryParameters();
         }
-        else if (value.refersToSameSourceAs(endAngle)) {
-            knb->x_end_angle = static_cast<int>(endAngle.getValue());
-            updateRotaryParameters();
+        else if (value.refersToSameSourceAs(discrete)) {
+            knb->x_discrete = static_cast<bool>(discrete.getValue());
+            updateRange();
         }
         else {
             iemHelper.valueChanged(value);
