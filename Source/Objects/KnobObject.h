@@ -58,7 +58,7 @@ public:
     {
         auto bounds = getBounds().toFloat().reduced(getWidth() * 0.13f);
         
-        auto const lineThickness = std::max(bounds.getWidth() * 0.08f, 1.5f);
+        auto const lineThickness = std::max(bounds.getWidth() * 0.07f, 1.5f);
         auto const arcThickness = lineThickness * 3.0f / bounds.getWidth();
 
         auto sliderPosProportional = (getValue() - getRange().getStart()) / getRange().getLength();
