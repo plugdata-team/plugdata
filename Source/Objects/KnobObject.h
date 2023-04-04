@@ -60,15 +60,13 @@ public:
         auto const lineThickness = std::max(bounds.getWidth() * 0.07f, 1.5f);
         auto const arcThickness = lineThickness * 3.0f / bounds.getWidth();
 
-        auto sliderPosProportional = (getValue() - getRange().getStart()) / getRange().getLength();
-        sliderPosProportional = std::isfinite(sliderPosProportional) ? sliderPosProportional : 0.0f;
+        auto sliderPosProportional = (getValue() - 0.01f) / (1 - 2 * 0.01f);
 
         auto startAngle = getRotaryParameters().startAngleRadians * -1 + MathConstants<float>::pi;
         auto endAngle = getRotaryParameters().endAngleRadians * -1 + MathConstants<float>::pi;
         float angle = startAngle  + sliderPosProportional * (endAngle - startAngle);
 
-        startAngle = jmin(startAngle, endAngle + MathConstants<float>::twoPi);
-        startAngle = jmax(startAngle, endAngle - MathConstants<float>::twoPi);
+        startAngle = std::clamp(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
         
         // draw range arc
         g.setColour(lnColour);
@@ -97,6 +95,12 @@ public:
         g.strokePath(wiperPath, PathStrokeType(lineThickness, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
 
         drawTicks(g, bounds, startAngle, endAngle, lineThickness);
+    }
+    
+    
+    void setInitialValue(float init, float min, float max)
+    {
+        
     }
 
     void setBgColour(Colour newBgColour)
@@ -199,10 +203,10 @@ public:
         updateRotaryParameters();
         
 
-        knob.setDoubleClickReturnValue(true, static_cast<int>(initialValue.getValue()));
+        knob.setDoubleClickReturnValue(true, getValue<int>(initialValue));
         knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
-        knob.setSliderStyle(static_cast<bool>(circular.getValue()) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
-        knob.showArc(static_cast<bool>(showArc.getValue()));
+        knob.setSliderStyle(getValue<bool>(circular) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
+        knob.showArc(getValue<bool>(showArc));
     }
     
     void setCircular(Slider::SliderStyle style)
@@ -266,9 +270,9 @@ public:
     void updateRange()
     {
         auto numTicks = std::max(static_cast<int>(ticks.getValue()) - 1, 1);
-        auto increment = static_cast<bool>(discrete.getValue()) ? 1.0f / numTicks : std::numeric_limits<float>::epsilon();
+        auto increment = static_cast<bool>(discrete.getValue()) ? 1.0 / numTicks : std::numeric_limits<double>::epsilon();
         
-        knob.setRange(0.0f, 1.0f, increment);
+        knob.setRange(0.0, 1.0, increment);
     }
 
     std::vector<hash32> getAllMessages() override {
@@ -428,8 +432,10 @@ public:
     void updateRotaryParameters()
     {
         auto* knb = static_cast<t_fake_knb*>(ptr);
-        float startRad = degreesToRadians<float>(180 - knb->x_start_angle);
-        float endRad = degreesToRadians<float>(180 - knb->x_end_angle);
+        
+        // For some reason, we need to compensate slightly to make 180 be exactly straight
+        float startRad = degreesToRadians<float>(180.0f - knb->x_start_angle);
+        float endRad = degreesToRadians<float>(180.0f - knb->x_end_angle);
         knob.setRotaryParameters({startRad, endRad, true});
         knob.setNumberOfTicks(knb->x_ticks);
         knob.repaint();

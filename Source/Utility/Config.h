@@ -16,3 +16,9 @@ struct ProjectInfo {
 
     static AudioDeviceManager* getDeviceManager();
 };
+
+template<typename T>
+T getValue(Value& v)
+{
+    return static_cast<T>(v.getValue());
+}
