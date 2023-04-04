@@ -228,7 +228,7 @@ public:
     
     bool isCircular()
     {
-        return ;
+        return static_cast<t_fake_knb*>(ptr)->x_circular;
     }
     
     void lookAndFeelChanged() override
