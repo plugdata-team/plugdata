@@ -6,9 +6,8 @@
 
 #include <JuceHeader.h>
 
-class ReversibleKnob : public Slider{
+class Knob : public Slider{
     
-    bool isInverted;
     Colour bgColour;
     Colour fgColour;
     Colour lnColour;
@@ -17,13 +16,13 @@ class ReversibleKnob : public Slider{
 
     int numberOfTicks = 0;
 public:
-    ReversibleKnob() : Slider(Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox)
+    Knob() : Slider(Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox)
     {
         setScrollWheelEnabled(false);
         setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
     }
 
-    ~ReversibleKnob() {}
+    ~Knob() {}
 
     void drawTicks(Graphics& g, Rectangle<float> knobBounds, float startAngle, float endAngle, float tickWidth)
     {
@@ -100,33 +99,6 @@ public:
         drawTicks(g, bounds, startAngle, endAngle, lineThickness);
     }
 
-    void setRangeFlipped(bool invert)
-    {
-        isInverted = invert;
-    }
-
-    bool isRangeFlipped()
-    {
-        return isInverted;
-    }
-
-    double proportionOfLengthToValue(double proportion) override
-    {
-        if (isInverted)
-            return Slider::proportionOfLengthToValue(1.0f - proportion);
-        else
-            return Slider::proportionOfLengthToValue(proportion);
-    };
-    double valueToProportionOfLength(double value) override
-    {
-        if(!std::isfinite(value)) return 0.0f;
-            
-        if (isInverted)
-            return 1.0f - (Slider::valueToProportionOfLength(value));
-        else
-            return Slider::valueToProportionOfLength(value);
-    };
-
     void setBgColour(Colour newBgColour)
     {
         bgColour = newBgColour;
@@ -174,14 +146,14 @@ class KnobObject : public ObjectBase {
         int             x_discrete;
     };
 
-    ReversibleKnob knob;
+    Knob knob;
 
     IEMHelper iemHelper;
 
     Value min = Value(0.0f);
     Value max = Value(0.0f);
     
-    Value initialValue, circular, ticks, angularRange, angularOffset, discrete, showArc;
+    Value initialValue, circular, ticks, angularRange, angularOffset, discrete, showArc, exponential;
 
     float value = 0.0f;
 
@@ -217,6 +189,7 @@ public:
         discrete = knb->x_discrete;
         circular = knb->x_circular;
         showArc = knb->x_arc;
+        exponential = knb->x_exp;
         
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1.0f);
@@ -225,6 +198,7 @@ public:
         
         updateRotaryParameters();
         
+
         knob.setDoubleClickReturnValue(true, static_cast<int>(initialValue.getValue()));
         knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
         knob.setSliderStyle(static_cast<bool>(circular.getValue()) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
@@ -248,8 +222,6 @@ public:
 
     void update() override
     {
-        knob.setRangeFlipped((static_cast<t_fake_knb*>(ptr)->x_min) > (static_cast<t_fake_knb*>(ptr)->x_max));
-
         min = getMinimum();
         max = getMaximum();
 
@@ -293,16 +265,10 @@ public:
 
     void updateRange()
     {
-        auto min = getMinimum();
-        auto max = getMaximum();
-        auto range = std::abs(max - min);
-        auto numTicks = std::max(static_cast<int>(ticks.getValue()) - 1, 0);
-        auto increment = static_cast<bool>(discrete.getValue()) ? range / numTicks : std::numeric_limits<float>::epsilon();
+        auto numTicks = std::max(static_cast<int>(ticks.getValue()) - 1, 1);
+        auto increment = static_cast<bool>(discrete.getValue()) ? 1.0f / numTicks : std::numeric_limits<float>::epsilon();
         
-        if (knob.isRangeFlipped())
-            knob.setRange(max, min, increment);
-        else
-            knob.setRange(min, max, increment);
+        knob.setRange(0.0f, 1.0f, increment);
     }
 
     std::vector<hash32> getAllMessages() override {
@@ -325,13 +291,11 @@ public:
         switch (hash(symbol)) {
         case hash("float"):
         case hash("set"): {
-            value = atoms[0].getFloat();
-            knob.setValue(value, dontSendNotification);
+            knob.setValue(getValue(), dontSendNotification);
             break;
         }
         case hash("range"): {
             if (atoms.size() >= 2) {
-                knob.setRangeFlipped(atoms[0].getFloat() > atoms[1].getFloat());
                 setParameterExcludingListener(min, atoms[0].getFloat());
                 setParameterExcludingListener(max, atoms[1].getFloat());
                 updateRange();
@@ -368,7 +332,7 @@ public:
             break;
         }
         case hash("exp"): {
-            //exp = atoms[0].getFloat();
+            exponential = atoms[0].getFloat();
             break;
         }
         default: {
@@ -425,6 +389,8 @@ public:
             { "Angular range", tInt, cGeneral, &angularRange, {} },
             { "Angular offset", tInt, cGeneral, &angularOffset, {} },
             
+            { "Exp", tFloat, cGeneral, &exponential, {} },
+            
             { "Foreground", tColour, cAppearance, &iemHelper.primaryColour, {} },
             { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
             { "Show arc", tBool, cAppearance, &showArc, {"No", "Yes"} },
@@ -435,7 +401,8 @@ public:
 
     float getValue()
     {
-        return static_cast<t_fake_knb*>(ptr)->x_fval;
+        auto* knb = static_cast<t_fake_knb*>(ptr);
+        return knb->x_pos;
     }
 
     float getMinimum()
@@ -451,13 +418,11 @@ public:
     void setMinimum(float value)
     {
         static_cast<t_fake_knb*>(ptr)->x_min = value;
-        knob.setRangeFlipped(static_cast<t_fake_knb*>(ptr)->x_min > static_cast<t_fake_knb*>(ptr)->x_max);
     }
 
     void setMaximum(float value)
     {
         static_cast<t_fake_knb*>(ptr)->x_max = value;
-        knob.setRangeFlipped(static_cast<t_fake_knb*>(ptr)->x_min > static_cast<t_fake_knb*>(ptr)->x_max);
     }
 
     void updateRotaryParameters()
@@ -469,6 +434,7 @@ public:
         knob.setNumberOfTicks(knb->x_ticks);
         knob.repaint();
     }
+
 
     void valueChanged(Value& value) override
     {
@@ -518,6 +484,9 @@ public:
             knb->x_discrete = static_cast<bool>(discrete.getValue());
             updateRange();
         }
+        else if (value.refersToSameSourceAs(exponential)) {
+            knb->x_exp = static_cast<bool>(exponential.getValue());
+        }
         else {
             iemHelper.valueChanged(value);
             knob.setFgColour(Colour::fromString(iemHelper.primaryColour.toString()));
@@ -526,6 +495,40 @@ public:
 
     void setValue(float v)
     {
-        sendFloatValue(v);
+        auto* knb = static_cast<t_fake_knb*>(ptr);
+        
+        knb->x_pos = v;
+        
+        t_float fval;
+        t_float pos = (knb->x_pos - 0.01f) / (1 - 2 * 0.01f);
+        if(pos < 0.0)
+            pos = 0.0;
+        else if(pos > 1.0)
+            pos = 1.0;
+        if(knb->x_discrete){
+            t_float ticks = (knb->x_ticks < 2 ? 2 : (float)knb->x_ticks) - 1;
+            pos = rint(pos * ticks) / ticks;
+        }
+        if(knb->x_exp == 1){ // log
+            if((knb->x_min <= 0 && knb->x_max >= 0) || (knb->x_min >= 0 && knb->x_max <= 0)){
+                pd_error(knb, "[knob]: range cannot contain '0' in log mode");
+                fval = knb->x_min;
+            }
+            else
+                fval = exp(pos * log(knb->x_max / knb->x_min)) * knb->x_min;
+        }
+        else{
+            if(knb->x_exp != 0){
+                if(knb->x_exp > 0)
+                    pos = pow(pos, knb->x_exp);
+                else
+                    pos = 1 - pow(1 - pos, -knb->x_exp);
+            }
+            fval = pos * (knb->x_max - knb->x_min) + knb->x_min;
+        }
+        if((fval < 1.0e-10) && (fval > -1.0e-10))
+            fval = 0.0;
+
+        sendFloatValue(fval);
     }
 };
