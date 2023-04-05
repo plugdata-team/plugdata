@@ -266,7 +266,7 @@ private:
         auto controlSelectBounds = colourSpaceBounds.removeFromBottom(heightLeft).reduced(10, 14);
         
         colourSpace.setBounds (colourSpaceBounds);
-        brightnessSelector.setBounds(bounds.withTrimmedBottom(heightLeft));
+        brightnessSelector.setBounds(bounds.withTrimmedBottom(heightLeft).reduced(0, 6));
         
         showHex.setBounds(controlSelectBounds.removeFromLeft(controlSelectBounds.getWidth() / 2));
         showRgb.setBounds(controlSelectBounds.withTrimmedLeft(-1));
@@ -337,7 +337,7 @@ private:
             g.drawImageAt(colourWheelHSV, margin, margin);
             
             // Draw 2px line to hide horrible aliasing
-            g.setColour(findColour(ComboBox::outlineColourId));
+            g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawEllipse(imageBounds.toFloat(), 2.5f);
         }
         
@@ -474,8 +474,14 @@ private:
             auto hs = owner.getHS();
             auto colour = Colour::fromHSV(hs.first, hs.second, 1.0f, 1.0f);
             
-            g.setGradientFill(ColourGradient(colour, 0.0f, 0.0f, Colours::black, getHeight() / 2, getHeight() / 2, false));
-            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(edge), Corners::defaultCornerRadius);
+            auto bounds = getLocalBounds().toFloat().reduced(edge);
+            auto radius = jmin(Corners::smallCornerRadius, bounds.getWidth() / 2.0f);
+
+            g.setGradientFill(ColourGradient(colour, 0.0f, 0.0f, Colours::black, bounds.getHeight() / 2, bounds.getHeight() / 2, false));
+            g.fillRoundedRectangle(bounds, radius);
+            
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawRoundedRectangle(bounds, radius, 1.0f);
         }
         
         void resized() override
