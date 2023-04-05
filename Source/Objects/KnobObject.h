@@ -463,7 +463,6 @@ public:
             auto mode = ::getValue<int>(circular);
             knob.setSliderStyle(mode ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
             knb->x_circular = mode;
-
         } else if (value.refersToSameSourceAs(ticks)) {
             ticks = jmax(::getValue<int>(ticks), 0);
             knb->x_ticks = ::getValue<int>(ticks);

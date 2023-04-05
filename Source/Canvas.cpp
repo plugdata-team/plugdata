@@ -600,6 +600,10 @@ void Canvas::mouseDown(MouseEvent const& e)
     }
     // Right click
     else {
+        if (!e.mods.isShiftDown()) {
+            deselectAll();
+        }
+        
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
 }

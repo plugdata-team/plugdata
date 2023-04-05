@@ -765,6 +765,10 @@ void Object::mouseDown(MouseEvent const& e)
     wasLockedOnMouseDown = false;
 
     if (e.mods.isRightButtonDown()) {
+        if (!e.mods.isShiftDown()) {
+            cnv->deselectAll();
+        }
+        
         cnv->setSelected(this, true);
 
         PopupMenu::dismissAllActiveMenus();
