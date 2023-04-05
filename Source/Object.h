@@ -122,9 +122,9 @@ private:
 
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
-
-    bool createEditorOnMouseDown = false;
     bool selectionStateChanged = false;
+        
+    bool createEditorOnMouseDown = false;
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;
     bool isHvccCompatible = true;

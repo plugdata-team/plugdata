@@ -762,6 +762,7 @@ void Object::mouseDown(MouseEvent const& e)
         return;
     }
 
+    auto wasSelected = selectedFlag;
     wasLockedOnMouseDown = false;
 
     if (e.mods.isPopupMenu()) {
@@ -794,7 +795,12 @@ void Object::mouseDown(MouseEvent const& e)
 
     ds.canvasDragStartPosition = cnv->getPosition();
 
+    if (!selectedFlag) {
+        selectionStateChanged = true;
+    }
+    
     cnv->updateSidebarSelection();
+    
 }
 
 void Object::mouseUp(MouseEvent const& e)
@@ -884,9 +890,11 @@ void Object::mouseUp(MouseEvent const& e)
         ds.wasDragDuplicated = false;
     }
 
-    if (gui && selectedFlag && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
+    if (gui && selectedFlag && !selectionStateChanged && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
         gui->showEditor();
     }
+    
+    selectionStateChanged = false;
 }
 
 void Object::mouseDrag(MouseEvent const& e)
