@@ -376,6 +376,8 @@ public:
         resized();
         repaint();
         cnv->repaint();
+        
+        cnv->triggerAsyncUpdate();
     }
 
     void mouseDrag(MouseEvent const& e) override
