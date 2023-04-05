@@ -600,7 +600,7 @@ void Canvas::mouseDown(MouseEvent const& e)
     }
     // Right click
     else {
-        if (!e.mods.isShiftDown()) {
+        if (!(e.mods.isShiftDown() && e.mods.isPopupMenu())) {
             deselectAll();
         }
         
