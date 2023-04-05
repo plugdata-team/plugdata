@@ -35,8 +35,10 @@ public:
         unsigned int red, green, blue;
         auto x = static_cast<t_fake_colors*>(ptr);
         sscanf(x->x_color, "#%02x%02x%02x", &red, &green, &blue);
+        
+        
 
-        ColourPicker::show(true, Colour(red, green, blue), object->getScreenBounds(), [_this = SafePointer(this), x](Colour c) {
+        ColourPicker::show(getTopLevelComponent(), true, Colour(red, green, blue), object->getScreenBounds(), [_this = SafePointer(this), x](Colour c) {
             if (!_this)
                 return;
 

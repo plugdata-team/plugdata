@@ -75,6 +75,7 @@ struct Icons {
     inline static const String DragCopyMode = "^";
     inline static const String Trash = "~";
     inline static const String Fullscreen = "&";
+    inline static const String Eyedropper = "@";
 };
 
 enum PlugDataColour {

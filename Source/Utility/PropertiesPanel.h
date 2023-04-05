@@ -257,7 +257,7 @@ public:
 
         void mouseDown(MouseEvent const& e) override
         {
-            ColourPicker::show(false, Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c) {
+            ColourPicker::show(getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c) {
                 if (!_this)
                     return;
 

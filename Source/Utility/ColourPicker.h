@@ -6,6 +6,142 @@
 
 #pragma once
 
+// Eyedropper will create a snapshot of the top level component,
+// to allow the user to pick colours from anywhere in the app
+class Eyedropper : public Timer, public MouseListener
+{
+    class EyedropperDisplayComponnent : public Component
+    {
+        Colour colour;
+    public:
+        
+        std::function<void()> onClick = [](){};
+        
+        EyedropperDisplayComponnent()
+        {
+            setVisible(true);
+            setAlwaysOnTop(true);
+            setInterceptsMouseClicks(true, true);
+            setSize(50, 50);
+            setMouseCursor(MouseCursor::CrosshairCursor);
+        }
+        
+        void show()
+        {
+            addToDesktop(ComponentPeer::windowIsTemporary);
+        }
+        
+        void hide()
+        {
+            removeFromDesktop();
+        }
+
+        void mouseDown(const MouseEvent& e) override
+        {
+            onClick();
+        }
+
+        void setColour(Colour& c)
+        {
+            colour = c;
+            repaint();
+        }
+        
+        void paint(Graphics& g) override
+        {
+            auto bounds = getLocalBounds().toFloat().withTrimmedTop(20).withTrimmedLeft(20).reduced(8);
+
+            Path shadowPath;
+            shadowPath.addEllipse(bounds.reduced(2));
+            StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.85f), 7, {0, 2}, 0);
+
+            g.setColour (colour);
+            g.fillEllipse (bounds);
+            
+            g.setColour (Colour::greyLevel (0.9f));
+            g.drawEllipse (bounds, 2.0f);
+        }
+    };
+    
+public:
+    
+    class EyedropperButton : public TextButton
+    {
+      void paint(Graphics& g)
+      {
+          TextButton::paint(g);
+          Fonts::drawIcon(g, Icons::Eyedropper, getLocalBounds().reduced(2), findColour(TextButton::textColourOffId));
+      }
+    };
+    
+    Eyedropper()
+    {
+        colourDisplayer.onClick = [this](){
+            
+            hideEyedropper();
+        };
+    }
+    
+    ~Eyedropper()
+    {
+        if(topLevel)
+        {
+            topLevel->removeMouseListener(this);
+        }
+    }
+    
+    void showEyedropper(Component* topLevelComponent, std::function<void(Colour)> cb)
+    {
+        callback = cb;
+        colourDisplayer.show();
+        topLevel = topLevelComponent;
+        topLevel->addMouseListener(this, true);
+        
+        timerCount = 0;
+        timerCallback();
+        startTimerHz(60);
+    }
+    
+    void hideEyedropper()
+    {
+        callback(currentColour);
+        callback = [](Colour){};
+        colourDisplayer.hide();
+        stopTimer();
+        topLevel->removeMouseListener(this);
+        topLevel = nullptr;
+    }
+    
+private:
+    
+    void setColour(Colour colour)
+    {
+        colourDisplayer.setColour(colour);
+        currentColour = colour;
+    }
+    
+    void timerCallback() override
+    {
+        timerCount--;
+        if(timerCount <= 0) {
+            componentImage = topLevel->createComponentSnapshot(topLevel->getLocalBounds(), false, 1.0f);
+            timerCount = 20;
+        }
+        
+        auto position = topLevel->getMouseXYRelative();
+        
+        colourDisplayer.setTopLeftPosition(topLevel->localPointToGlobal(position).translated(-20, -20));
+        setColour(componentImage.getPixelAt(position.x, position.y));
+    }
+    
+    std::function<void(Colour)> callback;
+    int timerCount = 0;
+    Component* topLevel = nullptr;
+    
+    EyedropperDisplayComponnent colourDisplayer;
+    Image componentImage;
+    Colour currentColour;
+};
 
 class ColourPicker  : public Component
 {
@@ -30,20 +166,20 @@ class ColourPicker  : public Component
     
 public:
     
-    static void show(bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> callback)
+    static void show(Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> callback)
     {
         if (isShowing)
             return;
         
         isShowing = true;
         
-        std::unique_ptr<ColourPicker> colourSelector = std::make_unique<ColourPicker>(onlySendCallbackOnClose, callback);
+        std::unique_ptr<ColourPicker> colourSelector = std::make_unique<ColourPicker>(topLevelComponent, onlySendCallbackOnClose, callback);
         
         colourSelector->setCurrentColour(currentColour);
         CallOutBox::launchAsynchronously(std::move(colourSelector), bounds, nullptr);
     }
     
-    ColourPicker (bool noLiveChangeCallback, std::function<void(Colour)> cb)
+    ColourPicker (Component* topLevelComponent, bool noLiveChangeCallback, std::function<void(Colour)> cb)
     : colour (Colours::white)
     , edgeGap (2)
     , callback(cb)
@@ -77,9 +213,11 @@ public:
         
         showRgb.setClickingTogglesState(true);
         showHex.setClickingTogglesState(true);
+
         
         addAndMakeVisible(showRgb);
         addAndMakeVisible(showHex);
+        addAndMakeVisible(showEyedropper);
         
         hexEditor.setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
         hexEditor.setJustificationType(Justification::centred);
@@ -101,6 +239,12 @@ public:
         
         showHex.onClick = [this](){
             setMode(true);
+        };
+        
+        showEyedropper.onClick = [this, topLevelComponent](){
+            eyedropper.showEyedropper(topLevelComponent, [this](Colour pickedColour){
+                setCurrentColour(pickedColour);
+            });
         };
         
         showRgb.setToggleState(true, dontSendNotification);
@@ -129,6 +273,7 @@ public:
         }
         
         hexEditor.setVisible(hex);
+        update(dontSendNotification);
         repaint();
         
         if(hex)
@@ -266,8 +411,11 @@ private:
         auto colourSpaceBounds = bounds.removeFromLeft(bounds.getWidth() - hueWidth);
 
         colourSpace.setBounds(colourSpaceBounds);
-        brightnessSelector.setBounds(bounds.withTrimmedBottom(heightLeft).translated(0, 8).expanded(0, 2));
+        brightnessSelector.setBounds(bounds.withTrimmedBottom(heightLeft).translated(-4, 8).expanded(0, 2));
         
+        
+        showEyedropper.setBounds(controlSelectBounds.removeFromRight(24).translated(2, 0));
+        controlSelectBounds.removeFromRight(6);
         showHex.setBounds(controlSelectBounds.removeFromLeft(controlSelectBounds.getWidth() / 2));
         showRgb.setBounds(controlSelectBounds.withTrimmedLeft(-1));
         
@@ -560,6 +708,9 @@ private:
     int edgeGap;
     
     TextButton showHex = TextButton("HEX"), showRgb = TextButton("RGB");
+    Eyedropper::EyedropperButton showEyedropper;
+    
+    Eyedropper eyedropper;
 
     bool onlyCallBackOnClose;
     
