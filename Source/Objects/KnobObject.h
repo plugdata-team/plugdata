@@ -582,13 +582,13 @@ public:
             setReceiveSymbol(receiveSymbol.toString());
             object->updateIolets();
         } else if (value.refersToSameSourceAs(primaryColour)) {
-            auto colour = Colour::fromString(primaryColour.toString());
-            //knb->x_fg = pd->generateSymbol(colour);
-            knob.setFgColour(colour);
+            auto colour = "#" + primaryColour.toString().substring(2);
+            knb->x_fg = pd->generateSymbol(colour);
+            knob.setFgColour(Colour::fromString(primaryColour.toString()));
             repaint();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
-            auto colour = Colour::fromString(secondaryColour.toString());
-            //knb->x_bg = pd->generateSymbol(colour);
+            auto colour = "#" + secondaryColour.toString().substring(2);
+            knb->x_bg = pd->generateSymbol(colour);
             repaint();
         }
     }
