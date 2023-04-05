@@ -297,12 +297,13 @@ private:
         
         void updateImage()
         {
+            const float antiAliasingRadius = 2.0f;
             const int circleRadius = imageSize / 2;
             
             colourWheelHSV = Image(Image::PixelFormat::RGB, imageSize, imageSize, true);
             
             Graphics g(colourWheelHSV);
-            
+
             for (int y = 0; y < imageSize; ++y)
             {
                 for (int x = 0; x < imageSize; ++x)
@@ -323,12 +324,17 @@ private:
                         // convert the HSV color to RGB
                         Colour colour = Colour::fromHSV(hue / MathConstants<float>::twoPi, saturation, value, 1.0f);
                         
+                        // calculate the alpha for anti-aliasing
+                        const float alpha = std::min(1.0f, (circleRadius - distance) / antiAliasingRadius);
+                        
+                        // apply the alpha to the color
+                        colour = colour.withAlpha(alpha);
+                        
                         // set the pixel to the calculated color
                         colourWheelHSV.setPixelAt(x, y, colour);
                     }
                 }
             }
-            
         }
         
         void paint(Graphics& g) override
@@ -336,9 +342,8 @@ private:
             // draw the image
             g.drawImageAt(colourWheelHSV, margin, margin);
             
-            // Draw 2px line to hide horrible aliasing
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawEllipse(imageBounds.toFloat(), 2.5f);
+            g.drawEllipse(imageBounds.toFloat().reduced(0.5f), 1.0f);
         }
         
         void mouseDown (const MouseEvent& e) override
