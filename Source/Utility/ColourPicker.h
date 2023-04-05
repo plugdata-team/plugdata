@@ -64,7 +64,6 @@ public:
             slider->setColour(Slider::textBoxTextColourId, findColour(PlugDataColour::popupMenuTextColourId));
         }
         
-        
         addAndMakeVisible (colourSpace);
         addAndMakeVisible (brightnessSelector);
         
@@ -260,13 +259,14 @@ private:
         auto bounds = getLocalBounds();
         
         auto sliderBounds = bounds.removeFromBottom(22 * numSliders + edgeGap);
+        
+        auto heightLeft = bounds.getHeight() - bounds.getWidth();
+        
+        auto controlSelectBounds = bounds.removeFromBottom(heightLeft).reduced(10, 6).translated(0, -12);
         auto colourSpaceBounds = bounds.removeFromLeft(bounds.getWidth() - hueWidth);
-        
-        auto heightLeft = colourSpaceBounds.getHeight() - colourSpaceBounds.getWidth();
-        auto controlSelectBounds = colourSpaceBounds.removeFromBottom(heightLeft).reduced(10, 14);
-        
-        colourSpace.setBounds (colourSpaceBounds);
-        brightnessSelector.setBounds(bounds.withTrimmedBottom(heightLeft).reduced(0, 6));
+
+        colourSpace.setBounds(colourSpaceBounds);
+        brightnessSelector.setBounds(bounds.withTrimmedBottom(heightLeft).translated(0, 8).expanded(0, 2));
         
         showHex.setBounds(controlSelectBounds.removeFromLeft(controlSelectBounds.getWidth() / 2));
         showRgb.setBounds(controlSelectBounds.withTrimmedLeft(-1));
