@@ -92,7 +92,7 @@ Rectangle<int> Object::getObjectBounds()
 Rectangle<int> Object::getSelectableBounds()
 {
     if (gui) {
-        return gui->getSelectableBounds().translated(Object::margin, Object::margin) + cnv->canvasOrigin;
+        return gui->getSelectableBounds() + cnv->canvasOrigin;
     }
 
     return getBounds().reduced(margin);
@@ -764,16 +764,9 @@ void Object::mouseDown(MouseEvent const& e)
 
     wasLockedOnMouseDown = false;
 
-    if (e.mods.isRightButtonDown()) {
-        if (!e.mods.isShiftDown()) {
-            cnv->deselectAll();
-        }
-        
-        cnv->setSelected(this, true);
-
+    if (e.mods.isPopupMenu()) {
         PopupMenu::dismissAllActiveMenus();
         Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
-
         return;
     }
     if (e.mods.isShiftDown()) {
