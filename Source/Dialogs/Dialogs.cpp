@@ -342,7 +342,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     bool hasSelection = !selectedBoxes.isEmpty();
     bool multiple = selectedBoxes.size() > 1;
 
-    Object* object = hasSelection && !multiple ? selectedBoxes.getFirst() : nullptr;
+    Object* object = hasSelection ? selectedBoxes.getFirst() : nullptr;
 
     // Find top-level object, so we never trigger it on an object inside a graph
     if (object && object->findParentComponentOfClass<Object>()) {
@@ -427,11 +427,11 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             object->gui->openFromMenu();
             break;
         case ToFront: { // To Front
-            // The double for loop makes sure that they keep their original order
             auto objects = cnv->patch.getObjects();
 
+            // The FORWARD double for loop makes sure that they keep their original order
             cnv->patch.startUndoSequence("ToFront");
-            for (int i = objects.size() - 1; i >= 0; i--) {
+            for (int i = 0; i < objects.size(); i++) {
                 for (auto* selectedBox : selectedBoxes) {
                     if (objects[i] == selectedBox->getPointer()) {
                         selectedBox->toFront(false);
@@ -448,7 +448,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             auto objects = cnv->patch.getObjects();
 
             cnv->patch.startUndoSequence("ToBack");
-            // The double for loop makes sure that they keep their original order
+            // The REVERSE double for loop makes sure that they keep their original order
             for (int i = objects.size() - 1; i >= 0; i--) {
                 for (auto* selectedBox : selectedBoxes) {
                     if (objects[i] == selectedBox->getPointer()) {
