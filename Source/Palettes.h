@@ -768,7 +768,7 @@ private:
             resized();
         }
     }
-
+        
     void mouseDrag(MouseEvent const& e) override
     {
         if (e.getDistanceFromDragStart() < 5)

@@ -127,14 +127,14 @@ public:
     Value zoomScale;
     Value splitZoomScale;
 
+    std::unique_ptr<Palettes> palettes;
+        
 private:
     // Used by standalone to handle dragging the window
     ComponentDragger windowDragger;
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-
-    std::unique_ptr<Palettes> palettes;
 
     int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
 

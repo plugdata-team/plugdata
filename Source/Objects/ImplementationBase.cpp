@@ -20,6 +20,7 @@ extern "C" {
 #include "PluginEditor.h"
 #include "Canvas.h"
 #include "Object.h"
+#include "Palettes.h"
 #include "ObjectBase.h"
 
 #include "ImplementationBase.h"
@@ -42,6 +43,13 @@ Canvas* ImplementationBase::getMainCanvas(void* patchPtr)
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
         for (auto* cnv : editor->canvases) {
+            if (cnv->patch.getPointer() == patchPtr) {
+                return cnv;
+            }
+        }
+        
+        if(auto* cnv = editor->palettes->getCurrentCanvas())
+        {
             if (cnv->patch.getPointer() == patchPtr) {
                 return cnv;
             }
