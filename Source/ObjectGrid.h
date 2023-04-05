@@ -47,7 +47,7 @@ private:
     Component::SafePointer<Component> start[2];
     Component::SafePointer<Component> end[2];
     DrawablePath gridLines[2];
-
+    
     int applySnap(SnapOrientation orientation, int position, Component* start, Component* end, bool horizontal);
     void updateMarker();
     void clear(bool horizontal);
