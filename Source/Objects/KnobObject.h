@@ -95,11 +95,7 @@ public:
 
         drawTicks(g, bounds, startAngle, endAngle, lineThickness);
     }
-
-    void setInitialValue(float init, float min, float max)
-    {
-    }
-
+    
     void setFgColour(Colour newFgColour)
     {
         fgColour = newFgColour;
@@ -182,12 +178,10 @@ public:
             stopEdition();
         };
 
-
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
-
     }
 
     void updateDoubleClickValue()
@@ -294,7 +288,9 @@ public:
             hash("arc"),
             hash("angle"),
             hash("ticks"),
-            // TODO: fix these
+            hash("send"),
+            hash("receive"),
+            hash("color")
         };
     }
 
@@ -587,14 +583,12 @@ public:
             object->updateIolets();
         } else if (value.refersToSameSourceAs(primaryColour)) {
             auto colour = Colour::fromString(primaryColour.toString());
-            //setForegroundColour(colour);
-            // TODO: fix this!
+            //knb->x_fg = pd->generateSymbol(colour);
             knob.setFgColour(colour);
             repaint();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
             auto colour = Colour::fromString(secondaryColour.toString());
-            //setBackgroundColour(colour);
-            // TODO: fix this!
+            //knb->x_bg = pd->generateSymbol(colour);
             repaint();
         }
     }
