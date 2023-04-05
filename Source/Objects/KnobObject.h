@@ -8,7 +8,6 @@
 
 class Knob : public Slider {
 
-    Colour bgColour;
     Colour fgColour;
     Colour lnColour;
 
@@ -101,12 +100,6 @@ public:
     {
     }
 
-    void setBgColour(Colour newBgColour)
-    {
-        bgColour = newBgColour;
-        repaint();
-    }
-
     void setFgColour(Colour newFgColour)
     {
         fgColour = newFgColour;
@@ -128,39 +121,47 @@ public:
 
 class KnobObject : public ObjectBase {
 
-    struct t_fake_knb {
-        t_iemgui x_gui;
-        float x_pos; // 0-1 normalized position
-        float x_exp;
-        float x_init;
-        int x_start_angle;
-        int x_end_angle;
-        int x_range;
-        int x_offset;
-        int x_ticks;
-        double x_min;
-        double x_max;
-        t_float x_fval;
-        int x_circular;
-        int x_arc;
-        int x_discrete;
+    struct t_fake_knob {
+        t_object       x_obj;
+        t_glist       *x_glist;
+        int            x_size;
+        t_float          x_pos;  // 0-1 normalized position
+        t_float          x_exp;
+        int             x_expmode;
+        t_float          x_init;
+        int            x_start_angle;
+        int            x_end_angle;
+        int            x_range;
+        int            x_offset;
+        int            x_ticks;
+        double         x_min;
+        double         x_max;
+        int            x_sel;
+        int            x_shift;
+        t_float        x_fval;
+        t_symbol      *x_fg;
+        t_symbol      *x_bg;
+        t_symbol      *x_snd;
+        t_symbol      *x_rcv;
+        int            x_circular;
+        int            x_arc;
+        int            x_zoom;
+        int            x_discrete;
     };
 
     Knob knob;
-
-    IEMHelper iemHelper;
 
     Value min = Value(0.0f);
     Value max = Value(0.0f);
 
     Value initialValue, circular, ticks, angularRange, angularOffset, discrete, showArc, exponential;
+    Value primaryColour, secondaryColour, sendSymbol, receiveSymbol;
 
     float value = 0.0f;
 
 public:
     KnobObject(void* obj, Object* object)
         : ObjectBase(obj, object)
-        , iemHelper(obj, object, this)
     {
         addAndMakeVisible(knob);
 
@@ -181,27 +182,12 @@ public:
             stopEdition();
         };
 
-        auto* knb = static_cast<t_fake_knb*>(ptr);
-        initialValue = knb->x_init;
-        ticks = knb->x_ticks;
-        angularRange = knb->x_range;
-        angularOffset = knb->x_offset;
-        discrete = knb->x_discrete;
-        circular = knb->x_circular;
-        showArc = knb->x_arc;
-        exponential = knb->x_exp;
 
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
 
-        updateRotaryParameters();
-
-        updateDoubleClickValue();
-        knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
-        knob.setSliderStyle(::getValue<bool>(circular) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
-        knob.showArc(::getValue<bool>(showArc));
     }
 
     void updateDoubleClickValue()
@@ -212,12 +198,12 @@ public:
 
     void setCircular(Slider::SliderStyle style)
     {
-        static_cast<t_fake_knb*>(ptr)->x_circular = style == Slider::SliderStyle::RotaryHorizontalVerticalDrag;
+        static_cast<t_fake_knob*>(ptr)->x_circular = style == Slider::SliderStyle::RotaryHorizontalVerticalDrag;
     }
 
     bool isCircular()
     {
-        return static_cast<t_fake_knb*>(ptr)->x_circular;
+        return static_cast<t_fake_knob*>(ptr)->x_circular;
     }
 
     void lookAndFeelChanged() override
@@ -226,36 +212,52 @@ public:
     }
 
     void update() override
-    {
-        min = getMinimum();
-        max = getMaximum();
-
-        updateRange();
-        updateDoubleClickValue();
-
+{
         auto currentValue = getValue();
         value = currentValue;
         knob.setValue(currentValue, dontSendNotification);
 
-        iemHelper.update();
+        auto* knb = static_cast<t_fake_knob*>(ptr);
+        initialValue = knb->x_init;
+        ticks = knb->x_ticks;
+        angularRange = knb->x_range;
+        angularOffset = knb->x_offset;
+        discrete = knb->x_discrete;
+        circular = knb->x_circular;
+        showArc = knb->x_arc;
+        exponential = knb->x_exp;
+        primaryColour = getForegroundColour().toString();
+        secondaryColour = getBackgroundColour().toString();
+        min = getMinimum();
+        max = getMaximum();
+        updateRange();
+        updateDoubleClickValue();
+        
+        sendSymbol = getSendSymbol();
+        receiveSymbol = getReceiveSymbol();
 
-        knob.setFgColour(Colour::fromString(iemHelper.primaryColour.toString()));
+        knob.setFgColour(getForegroundColour());
+    
+        updateRotaryParameters();
+
+        updateDoubleClickValue();
+        knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
+        knob.setSliderStyle(::getValue<bool>(circular) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
+        knob.showArc(::getValue<bool>(showArc));
     }
 
     bool hideInlets() override
     {
-        return iemHelper.hasReceiveSymbol();
+        return hasReceiveSymbol();
     }
 
     bool hideOutlets() override
     {
-        return iemHelper.hasSendSymbol();
+        return hasSendSymbol();
     }
 
     Rectangle<int> getPdBounds() override
     {
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-
         pd->lockAudioThread();
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
@@ -264,11 +266,14 @@ public:
         return Rectangle<int>(x, y, w + 1, h + 1);
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
-        iemHelper.setPdBounds(b.withTrimmedRight(-1).withTrimmedBottom(-1));
-    }
+        auto* knb = static_cast<t_fake_knob*>(ptr);
+        knb->x_obj.te_xpix = b.getX();
+        knb->x_obj.te_ypix = b.getY();
 
+        knb->x_size = b.getWidth() - 1;
+    }
     void updateRange()
     {
         auto numTicks = std::max(::getValue<int>(ticks) - 1, 1);
@@ -289,12 +294,19 @@ public:
             hash("arc"),
             hash("angle"),
             hash("ticks"),
-            IEMGUI_MESSAGES
+            // TODO: fix these
         };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        auto setColour = [this](Value& targetValue, pd::Atom& atom) {
+            if (atom.isSymbol()) {
+                auto colour = "#FF" + atom.getSymbol().fromFirstOccurrenceOf("#", false, false);
+                setParameterExcludingListener(targetValue, colour);
+            }
+        };
+        
         switch (hash(symbol)) {
         case hash("float"):
         case hash("set"): {
@@ -343,22 +355,35 @@ public:
             exponential = atoms[0].getFloat();
             break;
         }
-        default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
-            break;
+        case hash("send"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            return true;
+        }
+        case hash("receive"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            return true;
+        }
+        case hash("color"): {
+            if (atoms.size() > 0)
+                setColour(secondaryColour, atoms[0]);
+            if (atoms.size() > 1)
+                setColour(primaryColour, atoms[1]);
+            repaint();
+            return true;
         }
         }
 
         // Update the colours of the actual slider
         if (hash(symbol) == hash("color")) {
-            knob.setBgColour(Colour::fromString(iemHelper.secondaryColour.toString()));
-            knob.setFgColour(Colour::fromString(iemHelper.primaryColour.toString()));
+            knob.setFgColour(Colour::fromString(primaryColour.toString()));
         }
     }
 
     void paint(Graphics& g) override
     {
-        g.setColour(iemHelper.getBackgroundColour());
+        g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         bool selected = object->isSelected() && !cnv->isGraph;
@@ -381,6 +406,73 @@ public:
     {
         knob.setBounds(getLocalBounds());
     }
+    
+    bool hasSendSymbol()
+    {
+        return !getReceiveSymbol().isEmpty();
+    }
+    
+    
+    bool hasReceiveSymbol()
+    {
+        return !getReceiveSymbol().isEmpty();
+    }
+    
+    String getSendSymbol()
+    {
+        pd->setThis();
+
+        auto* knb = static_cast<t_fake_knob*>(ptr);
+        
+        if(!knb->x_snd || !knb->x_snd->s_name) return "";
+
+        auto sym = String::fromUTF8(knb->x_snd->s_name);
+        if(sym != "empty")
+        {
+            return sym;
+        }
+    
+        return "";
+    }
+
+    String getReceiveSymbol()
+    {
+        pd->setThis();
+
+        auto* knb = static_cast<t_fake_knob*>(ptr);
+        
+        if(!knb->x_rcv || !knb->x_rcv->s_name) return "";
+
+        auto sym = String::fromUTF8(knb->x_rcv->s_name);
+        if(sym != "empty")
+        {
+            return sym;
+        }
+    
+        return "";
+    }
+
+    void setSendSymbol(String const& symbol) const
+    {
+        pd->enqueueDirectMessages(ptr, "send", {pd::Atom(symbol)});
+    }
+
+    void setReceiveSymbol(String const& symbol) const
+    {
+        pd->enqueueDirectMessages(ptr, "receive", {pd::Atom(symbol)});
+    }
+
+    Colour getBackgroundColour() const
+    {
+        auto* bg = static_cast<t_fake_knob*>(ptr)->x_bg;
+        return Colour::fromString(String::fromUTF8(bg->s_name).replace("#", "ff"));
+    }
+
+    Colour getForegroundColour() const
+    {
+        auto* fg = static_cast<t_fake_knob*>(ptr)->x_fg;
+        return Colour::fromString(String::fromUTF8(fg->s_name).replace("#", "ff"));
+    }
 
     ObjectParameters getParameters() override
     {
@@ -398,43 +490,43 @@ public:
 
             { "Exp", tFloat, cGeneral, &exponential, {} },
 
-            { "Foreground", tColour, cAppearance, &iemHelper.primaryColour, {} },
-            { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
+            { "Foreground", tColour, cAppearance, &primaryColour, {} },
+            { "Background", tColour, cAppearance, &secondaryColour, {} },
             { "Show arc", tBool, cAppearance, &showArc, { "No", "Yes" } },
-            { "Receive symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
-            { "Send symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
         };
     }
 
     float getValue()
     {
-        auto* knb = static_cast<t_fake_knb*>(ptr);
+        auto* knb = static_cast<t_fake_knob*>(ptr);
         return knb->x_pos;
     }
 
     float getMinimum()
     {
-        return static_cast<t_fake_knb*>(ptr)->x_min;
+        return static_cast<t_fake_knob*>(ptr)->x_min;
     }
 
     float getMaximum()
     {
-        return static_cast<t_fake_knb*>(ptr)->x_max;
+        return static_cast<t_fake_knob*>(ptr)->x_max;
     }
 
     void setMinimum(float value)
     {
-        static_cast<t_fake_knb*>(ptr)->x_min = value;
+        static_cast<t_fake_knob*>(ptr)->x_min = value;
     }
 
     void setMaximum(float value)
     {
-        static_cast<t_fake_knb*>(ptr)->x_max = value;
+        static_cast<t_fake_knob*>(ptr)->x_max = value;
     }
 
     void updateRotaryParameters()
     {
-        auto* knb = static_cast<t_fake_knb*>(ptr);
+        auto* knb = static_cast<t_fake_knob*>(ptr);
 
         // For some reason, we need to compensate slightly to make 180 be exactly straight
         float startRad = degreesToRadians<float>(180.0f - knb->x_start_angle);
@@ -446,7 +538,7 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* knb = static_cast<t_fake_knb*>(ptr);
+        auto* knb = static_cast<t_fake_knob*>(ptr);
 
         if (value.refersToSameSourceAs(min)) {
             setMinimum(::getValue<float>(min));
@@ -487,15 +579,29 @@ public:
             updateRange();
         } else if (value.refersToSameSourceAs(exponential)) {
             knb->x_exp = ::getValue<bool>(exponential);
-        } else {
-            iemHelper.valueChanged(value);
-            knob.setFgColour(Colour::fromString(iemHelper.primaryColour.toString()));
+        } else if (value.refersToSameSourceAs(sendSymbol)) {
+            setSendSymbol(sendSymbol.toString());
+            object->updateIolets();
+        } else if (value.refersToSameSourceAs(receiveSymbol)) {
+            setReceiveSymbol(receiveSymbol.toString());
+            object->updateIolets();
+        } else if (value.refersToSameSourceAs(primaryColour)) {
+            auto colour = Colour::fromString(primaryColour.toString());
+            //setForegroundColour(colour);
+            // TODO: fix this!
+            knob.setFgColour(colour);
+            repaint();
+        } else if (value.refersToSameSourceAs(secondaryColour)) {
+            auto colour = Colour::fromString(secondaryColour.toString());
+            //setBackgroundColour(colour);
+            // TODO: fix this!
+            repaint();
         }
     }
 
     void setValue(float v)
     {
-        auto* knb = static_cast<t_fake_knb*>(ptr);
+        auto* knb = static_cast<t_fake_knob*>(ptr);
 
         knb->x_pos = v;
 
