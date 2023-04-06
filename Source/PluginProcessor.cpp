@@ -945,14 +945,10 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     // Close any opened patches
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
-            if (!editor)
-                return;
-
-            editor->splitView.getLeftTabbar()->clearTabs();
-            editor->splitView.getRightTabbar()->clearTabs();
-            editor->canvases.clear();
-        });
+        MessageManagerLock mmLock;
+        editor->splitView.getLeftTabbar()->clearTabs();
+        editor->splitView.getRightTabbar()->clearTabs();
+        editor->canvases.clear();
     }
 
     suspendProcessing(true);

@@ -442,7 +442,7 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
     float value = getValue<float>(scale);
 
     // Apply and limit zoom
-    value = std::clamp(value * scrollFactor, 0.5f, 2.0f);
+    value = std::clamp(value * scrollFactor, 0.3f, 3.0f);
 
     scale = value;
 }
@@ -648,10 +648,9 @@ void PluginEditor::closeTab(Canvas* cnv)
         tabbar->setCurrentTabIndex(tabIdx > 0 ? tabIdx - 1 : tabIdx);
 
     cnv->getTabbar()->removeTab(tabIdx);
-
-    pd->patches.removeObject(patch, false);
-
     canvases.removeObject(cnv);
+    
+    pd->patches.removeObject(patch, false);
 
     if (patch->closePatchOnDelete) {
         delete patch;
@@ -753,6 +752,7 @@ void PluginEditor::valueChanged(Value& v)
 {
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale) || v.refersToSameSourceAs(splitZoomScale)) {
+        
         float scale = getValue<float>(v);
 
         if (scale == 0) {
@@ -760,47 +760,26 @@ void PluginEditor::valueChanged(Value& v)
             zoomScale = 1.0f;
         }
 
-        auto lastMousePosition = Point<int>();
-        if (auto* cnv = getCurrentCanvas()) {
-            lastMousePosition = cnv->getMouseXYRelative();
-        }
-
         auto* tabbar = v.refersToSameSourceAs(zoomScale) ? splitView.getLeftTabbar() : splitView.getRightTabbar();
 
-        for (int i = 0; i < tabbar->getNumTabs(); i++) {
-            if (auto* cnv = tabbar->getCanvas(i)) {
-                cnv->hideSuggestions();
-                cnv->setTransform(AffineTransform().scaled(scale));
-            }
-        }
-
         if (auto* cnv = getCurrentCanvas()) {
-            cnv->checkBounds();
-
+            cnv->hideSuggestions();
+            
+            auto lastMousePosition = cnv->viewport->getMouseXYRelative().toFloat();
+            auto oldScaleFactor = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+            
             if (!cnv->viewport || pluginMode)
                 return;
+            
+            auto oldScaledPos = lastMousePosition * oldScaleFactor;
+            auto newScaledPos = lastMousePosition * scale;
 
-            auto totalBounds = Rectangle<int>();
+            auto offset = (oldScaledPos - newScaledPos) / scale;
 
-            for (auto* object : cnv->getSelectionOfType<Object>()) {
-                totalBounds = totalBounds.getUnion(object->getBoundsInParent().reduced(Object::margin));
-            }
-
-            // Check if we have any selection, if so, zoom towards that
-            if (!totalBounds.isEmpty()) {
-                auto pos = totalBounds.getCentre() * scale;
-                pos.x -= cnv->viewport->getViewWidth() * 0.5f;
-                pos.y -= cnv->viewport->getViewHeight() * 0.5f;
-                cnv->viewport->setViewPosition(pos);
-            }
-            // If we don't have a selection, zoom towards mouse cursor
-            else if (totalBounds.isEmpty() && cnv->getLocalBounds().contains(lastMousePosition)) {
-                auto pos = lastMousePosition - cnv->getMouseXYRelative();
-                pos = pos + cnv->viewport->getViewPosition();
-                cnv->viewport->setViewPosition(pos);
-            }
-
-            // Otherwise don't adjust viewport position
+            dynamic_cast<juce::AsyncUpdater*>(cnv->viewport)->handleUpdateNowIfNeeded();
+            cnv->viewport->setViewPosition(cnv->viewport->getViewPosition() - offset.roundToInt());
+            cnv->setTransform(AffineTransform().scaled(scale).translated(translation));
+            cnv->checkBounds();
         }
 
         zoomLabel->setZoomLevel(scale);
@@ -1352,14 +1331,14 @@ bool PluginEditor::perform(InvocationInfo const& info)
     case CommandIDs::ZoomIn: {
         auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
         float newScale = getValue<float>(scale) + 0.1f;
-        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
+        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.3f, 3.0f) * 10.))) / 10.;
 
         return true;
     }
     case CommandIDs::ZoomOut: {
         auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
         float newScale = getValue<float>(scale) - 0.1f;
-        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
+        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.3f, 3.0f) * 10.))) / 10.;
 
         return true;
     }
