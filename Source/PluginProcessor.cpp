@@ -837,7 +837,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     auto* editor = new PluginEditor(*this);
     setThis();
 
-    for (auto* patch : patches) {
+    for (auto patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
         editor->addTab(cnv);
     }
@@ -881,8 +881,8 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
 
-    for (auto* patch : patches) {
-        if (palettes.contains(patch))
+    for (auto patch : patches) {
+        if (palettes.contains(patch.get()))
             continue;
         ostream.writeString(patch->getCanvasContent());
         auto patchFile = patch->getCurrentFile();
@@ -951,8 +951,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
             editor->splitView.getLeftTabbar()->clearTabs();
             editor->splitView.getRightTabbar()->clearTabs();
-            editor->canvases.clear(); // TODO: THIS IS VERY UNSAFE!
-            // It leaves a dangling reference to pd::Patch on Canvas
+            editor->canvases.clear();
         });
     }
 
@@ -973,7 +972,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
         if (path.isNotEmpty() && location.existsAsFile()) // TODO: test if path's parent is temp dir
         {
-            auto* patch = loadPatch(location);
+            auto patch = loadPatch(location);
             if (patch)
                 patch->setTitle(location.getFileName());
         } else {
@@ -983,7 +982,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 // TODO: is there any way to make this local the the canvas?
                 libpd_add_to_search_path(parentPath.toRawUTF8());
             }
-            auto* patch = loadPatch(state);
+            auto patch = loadPatch(state);
             if (patch && ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists())) {
                 patch->setTitle("Untitled Patcher");
             } else if (patch && location.existsAsFile()) {
@@ -1076,10 +1075,10 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     }
 }
 
-pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
+pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
 {
     // First, check if patch is already opened
-    for (auto* patch : patches) {
+    for (auto patch : patches) {
         if (patch->getCurrentFile() == patchFile) {
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                 MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
@@ -1104,7 +1103,7 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
     // Stop the audio callback when loading a new patch
     suspendProcessing(true);
 
-    auto* newPatch = openPatch(patchFile);
+    auto newPatch = openPatch(patchFile);
 
     suspendProcessing(false);
 
@@ -1113,7 +1112,8 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
         return nullptr;
     }
 
-    auto* patch = patches.add(newPatch);
+    patches.add(newPatch);
+    auto patch = patches.getLast();
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
@@ -1129,7 +1129,7 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
     return patch;
 }
 
-pd::Patch* PluginProcessor::loadPatch(String patchText)
+pd::Patch::Ptr PluginProcessor::loadPatch(String patchText)
 {
     if (patchText.isEmpty())
         patchText = pd::Instance::defaultPatch;
@@ -1137,7 +1137,7 @@ pd::Patch* PluginProcessor::loadPatch(String patchText)
     auto patchFile = File::createTempFile(".pd");
     patchFile.replaceWithText(patchText);
 
-    auto* patch = loadPatch(patchFile);
+    auto patch = loadPatch(patchFile);
 
     // Set to unknown file when loading temp patch
     patch->setCurrentFile(File());
@@ -1499,7 +1499,7 @@ void PluginProcessor::savePatchTabPositions()
         if (i >= patches.size())
             break;
 
-        patches.set(i, patch, false);
+        patches.set(i, patch);
         i++;
     }
     patches.getLock().exit();

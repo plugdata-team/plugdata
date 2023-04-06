@@ -14,6 +14,7 @@ extern "C" {
 #include <concurrentqueue.h>
 
 #include "Utility/StringUtils.h"
+#include "Patch.h"
 
 class ObjectImplementationManager;
 
@@ -264,7 +265,7 @@ public:
     void processSend(dmessage mess);
 
     String getExtraInfo(File const& toOpen);
-    Patch* openPatch(File const& toOpen);
+    Patch::Ptr openPatch(File const& toOpen);
 
     virtual Colour getForegroundColour() = 0;
     virtual Colour getBackgroundColour() = 0;

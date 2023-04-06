@@ -606,7 +606,7 @@ String Instance::getExtraInfo(File const& toOpen)
     return String();
 }
 
-Patch* Instance::openPatch(File const& toOpen)
+Patch::Ptr Instance::openPatch(File const& toOpen)
 {
     t_canvas* cnv = nullptr;
 

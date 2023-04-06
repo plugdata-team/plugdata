@@ -15,11 +15,16 @@ using Connections = std::vector<std::tuple<void*, int, t_object*, int, t_object*
 class Instance;
 
 // The Pd patch.
-//! @details The class is a wrapper around a Pd patch. The lifetime of the internal patch\n
-//! is not guaranteed by the class.
-//! @see Instance, Object, Gui
-class Patch {
+// Wrapper around a Pd patch. The lifetime of the internal patch
+// is not guaranteed by the class.
+// Has reference counting, because both the Canvas and PluginProcessor hold a reference to it
+// That makes it tricky to clean up from the setStateInformation function, which may be called from any thread
+class Patch  : public ReferenceCountedObject
+{
 public:
+    
+    using Ptr = ReferenceCountedObjectPtr<Patch>;
+    
     Patch(void* ptr, Instance* instance, bool ownsPatch, File currentFile = File());
 
     ~Patch();

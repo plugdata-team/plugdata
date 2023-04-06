@@ -26,7 +26,7 @@ public:
 
     virtual void update() {};
 
-    void openSubpatch(std::unique_ptr<pd::Patch>& subpatch);
+    void openSubpatch(pd::Patch* subpatch);
     void closeOpenedSubpatchers();
 
     Canvas* getMainCanvas(void* patchPtr);

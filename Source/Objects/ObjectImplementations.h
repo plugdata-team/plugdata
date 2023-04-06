@@ -42,7 +42,7 @@ public:
         }
     }
 
-    std::unique_ptr<pd::Patch> subpatch = nullptr;
+    pd::Patch* subpatch = nullptr;
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(SubpatchImpl);
 };
@@ -497,6 +497,8 @@ public:
         } else {
             cnv = getMainCanvas(mouse->x_canvas);
         }
+        
+        freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
 
         if (!cnv)
             return;

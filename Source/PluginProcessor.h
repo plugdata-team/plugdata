@@ -106,8 +106,8 @@ public:
     void parseDataBuffer(XmlElement const& xml) override;
     XmlElement* m_temp_xml;
 
-    pd::Patch* loadPatch(String patch);
-    pd::Patch* loadPatch(File const& patch);
+    pd::Patch::Ptr loadPatch(String patch);
+    pd::Patch::Ptr loadPatch(File const& patch);
 
     void titleChanged() override;
 
@@ -119,7 +119,7 @@ public:
     Colour getOutlineColour() override;
 
     // All opened patches
-    OwnedArray<pd::Patch, CriticalSection> patches;
+    Array<pd::Patch::Ptr, CriticalSection> patches;
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 

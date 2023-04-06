@@ -11,6 +11,7 @@
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/TooltipWindowWithTarget.h"
 #include "Pd/MessageListener.h"
+#include "Pd/Patch.h"
 #include "Constants.h"
 
 namespace pd {
@@ -48,7 +49,7 @@ class Canvas : public Component
     , public pd::MessageListener
     , public AsyncUpdater {
 public:
-    Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr, bool isPalette = false);
+    Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr, bool isPalette = false);
 
     ~Canvas() override;
 
@@ -156,6 +157,7 @@ public:
     bool connectionCancelled = false;
     SafePointer<Iolet> nearestIolet;
 
+    pd::Patch::Ptr refCountedPatch;
     pd::Patch& patch;
 
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor

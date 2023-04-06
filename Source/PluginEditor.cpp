@@ -535,7 +535,7 @@ void PluginEditor::fileDragExit(StringArray const&)
 
 void PluginEditor::newProject()
 {
-    auto* patch = pd->loadPatch(pd::Instance::defaultPatch);
+    auto patch = pd->loadPatch(pd::Instance::defaultPatch);
     patch->setTitle("Untitled Patcher");
 }
 
@@ -581,7 +581,7 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 
 void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
 {
-    for (auto* patch : pd->patches) {
+    for (auto patch : pd->patches) {
         patch->deselectAll();
     }
 
@@ -640,7 +640,7 @@ void PluginEditor::closeTab(Canvas* cnv)
     auto* tabbar = cnv->getTabbar();
     auto const tabIdx = cnv->getTabIndex();
 
-    auto* patch = &cnv->patch;
+    auto patch = cnv->refCountedPatch;
 
     sidebar->hideParameters();
 
@@ -650,11 +650,7 @@ void PluginEditor::closeTab(Canvas* cnv)
     cnv->getTabbar()->removeTab(tabIdx);
     canvases.removeObject(cnv);
     
-    pd->patches.removeObject(patch, false);
-
-    if (patch->closePatchOnDelete) {
-        delete patch;
-    }
+    pd->patches.removeFirstMatchingValue(patch);
 
     if (auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas()) {
         leftCnv->tabChanged();

@@ -6,7 +6,7 @@
 
 class SubpatchObject final : public TextBase {
 
-    pd::Patch subpatch;
+    pd::Patch::Ptr subpatch;
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
 
@@ -15,13 +15,13 @@ class SubpatchObject final : public TextBase {
 public:
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)
-        , subpatch(ptr, cnv->pd, false)
+        , subpatch(new pd::Patch(ptr, cnv->pd, false))
     {
         isGraphChild = false;
         object->hvccMode.addListener(this);
 
         if (getValue<bool>(object->hvccMode)) {
-            checkHvccCompatibility(subpatch);
+            checkHvccCompatibility(subpatch.get());
         }
     }
 
@@ -33,7 +33,7 @@ public:
 
     void update() override
     {
-        hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
+        hideNameAndArgs = static_cast<bool>(subpatch->getPointer()->gl_hidetext);
     }
 
     void updateValue()
@@ -69,9 +69,9 @@ public:
         locked = isLocked;
     }
 
-    pd::Patch* getPatch() override
+    pd::Patch::Ptr getPatch() override
     {
-        return &subpatch;
+        return subpatch;
     }
 
     ObjectParameters getParameters() override
@@ -127,12 +127,11 @@ public:
         openSubpatch();
     }
 
-    static void checkHvccCompatibility(pd::Patch& patch, String prefix = "")
+    static void checkHvccCompatibility(pd::Patch::Ptr patch, String prefix = "")
     {
+        auto* instance = patch->instance;
 
-        auto* instance = patch.instance;
-
-        for (auto* object : patch.getObjects()) {
+        for (auto* object : patch->getObjects()) {
             const String name = libpd_get_object_class_name(object);
 
             if (name == "canvas" || name == "graph") {

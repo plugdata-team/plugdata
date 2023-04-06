@@ -29,19 +29,20 @@ extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
 
-Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph, bool palette)
+Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, bool palette)
     : editor(parent)
     , pd(parent->pd)
-    , patch(p)
+    , refCountedPatch(p)
+    , patch(*p)
     , pathUpdater(new ConnectionPathUpdater(this))
     , isPalette(palette)
     , graphArea(nullptr)
     , tooltipWindow(this, &pd->lnf.get())
 {
-    isGraphChild = glist_isgraph(p.getPointer());
-    hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
-    xRange = Array<var> { var(p.getPointer()->gl_x1), var(p.getPointer()->gl_x2) };
-    yRange = Array<var> { var(p.getPointer()->gl_y2), var(p.getPointer()->gl_y1) };
+    isGraphChild = glist_isgraph(patch.getPointer());
+    hideNameAndArgs = static_cast<bool>(patch.getPointer()->gl_hidetext);
+    xRange = Array<var> { var(patch.getPointer()->gl_x1), var(patch.getPointer()->gl_x2) };
+    yRange = Array<var> { var(patch.getPointer()->gl_y2), var(patch.getPointer()->gl_y1) };
 
     pd->registerMessageListener(patch.getPointer(), this);
 
@@ -421,7 +422,7 @@ void Canvas::performSynchronise()
     for (int n = objects.size() - 1; n >= 0; n--) {
         auto* object = objects[n];
         if (object->gui && patch.objectWasDeleted(object->getPointer())) {
-            setSelected(object, false);
+            setSelected(object, false, false);
             objects.remove(n);
         }
     }

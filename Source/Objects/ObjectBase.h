@@ -111,7 +111,7 @@ public:
     void moveToBack();
 
     virtual Canvas* getCanvas();
-    virtual pd::Patch* getPatch();
+    virtual pd::Patch::Ptr getPatch();
 
     // Override if you want a part of your object to ignore mouse clicks
     virtual bool canReceiveMouseEvent(int x, int y);

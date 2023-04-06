@@ -231,7 +231,7 @@ bool ObjectBase::click()
 
 void ObjectBase::openSubpatch()
 {
-    auto* subpatch = getPatch();
+    auto subpatch = getPatch();
 
     if (!subpatch)
         return;
@@ -257,7 +257,8 @@ void ObjectBase::openSubpatch()
         }
     }
 
-    auto* newPatch = cnv->editor->pd->patches.add(subpatch);
+    cnv->editor->pd->patches.add(subpatch);
+    auto newPatch = cnv->editor->pd->patches.getLast();
     auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
 
     newPatch->setCurrentFile(path);
@@ -473,7 +474,7 @@ Canvas* ObjectBase::getCanvas()
     return nullptr;
 };
 
-pd::Patch* ObjectBase::getPatch()
+pd::Patch::Ptr ObjectBase::getPatch()
 {
     return nullptr;
 };

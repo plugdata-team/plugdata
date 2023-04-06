@@ -13,14 +13,14 @@ class GraphOnParent final : public ObjectBase {
     Value hideNameAndArgs = Value(var(false));
     Value xRange, yRange;
 
-    pd::Patch subpatch;
+    pd::Patch::Ptr subpatch;
     std::unique_ptr<Canvas> canvas;
 
 public:
     // Graph On Parent
     GraphOnParent(void* obj, Object* object)
         : ObjectBase(obj, object)
-        , subpatch(ptr, cnv->pd, false)
+        , subpatch(new pd::Patch(ptr, cnv->pd, false))
     {
         resized();
     }
@@ -29,7 +29,7 @@ public:
     {
         auto* glist = static_cast<t_canvas*>(ptr);
         isGraphChild = true;
-        hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
+        hideNameAndArgs = static_cast<bool>(subpatch->getPointer()->gl_hidetext);
         xRange = Array<var> { var(glist->gl_x1), var(glist->gl_x2) };
         yRange = Array<var> { var(glist->gl_y2), var(glist->gl_y1) };
 
@@ -223,9 +223,9 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
-    pd::Patch* getPatch() override
+    pd::Patch::Ptr getPatch() override
     {
-        return &subpatch;
+        return subpatch;
     }
 
     Canvas* getCanvas() override

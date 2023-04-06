@@ -111,10 +111,10 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
     return nullptr;
 }
 
-void ImplementationBase::openSubpatch(std::unique_ptr<pd::Patch>& subpatch)
+void ImplementationBase::openSubpatch(pd::Patch* subpatch)
 {
     if (!subpatch) {
-        subpatch = std::make_unique<pd::Patch>(ptr, pd, false);
+        subpatch = new pd::Patch(ptr, pd, false);
     }
 
     auto* glist = subpatch->getPointer();
@@ -129,8 +129,9 @@ void ImplementationBase::openSubpatch(std::unique_ptr<pd::Patch>& subpatch)
         path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
-    auto* newPatch = pd->patches.add(subpatch.get());
-    newPatch->setCurrentFile(path);
+    pd->patches.add(subpatch);
+    
+    subpatch->setCurrentFile(path);
 
     if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
         // Check if subpatch is already opened
@@ -142,7 +143,7 @@ void ImplementationBase::openSubpatch(std::unique_ptr<pd::Patch>& subpatch)
             }
         }
 
-        auto* newCanvas = editor->canvases.add(new Canvas(editor, *newPatch, nullptr));
+        auto* newCanvas = editor->canvases.add(new Canvas(editor, subpatch, nullptr));
         editor->addTab(newCanvas);
     }
 }
@@ -257,7 +258,8 @@ void ObjectImplementationManager::clearObjectImplementationsForPatch(void* patch
 
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
         auto const name = String::fromUTF8(libpd_get_object_class_name(y));
-        if (name == "canvas" || name == "graph") {
+        
+        if (pd_class(&y->g_pd) == canvas_class) {
             clearObjectImplementationsForPatch(y);
         }
         objectImplementations.erase(y);

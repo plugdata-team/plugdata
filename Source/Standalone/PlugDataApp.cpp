@@ -222,7 +222,8 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
 {
     auto args = StringArray::fromTokens(arguments, true);
     size_t argc = args.size();
-    char const** argv = new char const*[argc];
+    
+    auto argv = std::vector<const char*>(argc);
 
     for (int i = 0; i < args.size(); i++) {
         argv[i] = args.getReference(i).toRawUTF8();
@@ -231,7 +232,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     t_namelist* openlist = nullptr;
     t_namelist* messagelist = nullptr;
 
-    int retval = parse_startup_arguments(argv, argc, &openlist, &messagelist);
+    int retval = parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
 
     StringArray openedPatches;
     /* open patches specifies with "-open" args */

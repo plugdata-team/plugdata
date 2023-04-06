@@ -787,6 +787,7 @@ void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize)
     }
     
     binbuf_gettext(b, buf, bufsize);
+    binbuf_free(b);
 }
 
 typedef t_pd* (*t_newgimme)(t_symbol* s, int argc, t_atom* argv);

@@ -589,7 +589,7 @@ void Object::updateTooltips()
         std::vector<std::pair<int, String>> inletMessages;
         std::vector<std::pair<int, String>> outletMessages;
 
-        if (auto* subpatch = gui->getPatch()) {
+        if (auto subpatch = gui->getPatch()) {
 
             // Check child objects of subpatch for inlet/outlet messages
             for (auto* obj : subpatch->getObjects()) {

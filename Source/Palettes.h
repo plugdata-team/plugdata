@@ -317,12 +317,16 @@ public:
 
     void showPalette(ValueTree palette)
     {
-
-        if (paletteTree.isValid()) {
+        if (paletteTree.isValid() && paletteTree != palette) {
             int lastMode = editModeButton.getToggleState();
             lastMode += lockModeButton.getToggleState() * 2;
             lastMode += dragModeButton.getToggleState() * 3;
             paletteTree.setProperty("Mode", lastMode, nullptr);
+        }
+        
+        if(paletteTree == palette && cnv)
+        {
+            return;
         }
 
         paletteTree = palette;
@@ -338,9 +342,9 @@ public:
         auto patchFile = File::createTempFile(".pd");
         patchFile.replaceWithText(patchText);
 
-        auto* newPatch = pd->openPatch(patchFile); // Don't delete old patch until canvas is replaced!
+        auto newPatch = pd->openPatch(patchFile); // Don't delete old patch until canvas is replaced!
         cnv = std::make_unique<Canvas>(editor, *newPatch, nullptr, true);
-        patch.reset(newPatch);
+        patch = newPatch;
         viewport.reset(cnv->viewport);
 
         cnv->paletteDragMode.referTo(dragModeButton.getToggleStateValue());
@@ -500,7 +504,7 @@ public:
 private:
     Value locked;
     pd::Instance* pd;
-    std::unique_ptr<pd::Patch> patch;
+    pd::Patch::Ptr patch;
     ValueTree paletteTree;
     PluginEditor* editor;
 
