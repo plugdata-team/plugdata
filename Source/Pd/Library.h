@@ -63,7 +63,7 @@ private:
     std::recursive_mutex libraryLock;
 
     FileSystemWatcher watcher;
-    ThreadPool objectSearchThread;
+    ThreadPool objectSearchThread = ThreadPool(1);
 
     ValueTree documentationTree;
 };

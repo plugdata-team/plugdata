@@ -778,7 +778,7 @@ void PluginEditor::valueChanged(Value& v)
 
             dynamic_cast<juce::AsyncUpdater*>(cnv->viewport)->handleUpdateNowIfNeeded();
             cnv->viewport->setViewPosition(cnv->viewport->getViewPosition() - offset.roundToInt());
-            cnv->setTransform(AffineTransform().scaled(scale).translated(translation));
+            cnv->setTransform(AffineTransform().scaled(scale));
             cnv->checkBounds();
         }
 
