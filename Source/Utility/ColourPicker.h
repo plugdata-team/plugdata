@@ -465,7 +465,7 @@ private:
                     if (distance <= circleRadius)
                     {
                         // calculate the color at this pixel using HSV color space
-                        const float hue = std::atan2f(dy, dx);
+                        const float hue = std::atan2(dy, dx);
                         const float saturation = distance / circleRadius;
                         const float value = 1.0f;
                         
