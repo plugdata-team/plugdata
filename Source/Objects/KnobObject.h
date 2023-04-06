@@ -354,12 +354,12 @@ public:
         case hash("send"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
-            return true;
+            break;
         }
         case hash("receive"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
-            return true;
+            break;
         }
         case hash("color"): {
             if (atoms.size() > 0)
@@ -367,7 +367,7 @@ public:
             if (atoms.size() > 1)
                 setColour(primaryColour, atoms[1]);
             repaint();
-            return true;
+            break;
         }
         }
 
