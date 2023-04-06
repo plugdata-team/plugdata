@@ -448,7 +448,7 @@ private:
             const float antiAliasingRadius = 2.0f;
             const int circleRadius = imageSize / 2;
             
-            colourWheelHSV = Image(Image::PixelFormat::RGB, imageSize, imageSize, true);
+            colourWheelHSV = Image(Image::PixelFormat::ARGB, imageSize, imageSize, true);
             
             Graphics g(colourWheelHSV);
 
@@ -577,8 +577,9 @@ private:
                 auto bounds = getLocalBounds().reduced(4).toFloat();
     
                 Path shadowPath;
-                shadowPath.addEllipse(bounds.reduced(2));
-                StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.75f), 5, {0, 2}, 0);
+                shadowPath.addEllipse(bounds);
+                StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.75f), 5, {0, 0}, 0);
+
                                 
                 auto hs = owner.getHS();
                 auto colour = Colour::fromHSV(hs.first, hs.second, 1.0f, 1.0f);
