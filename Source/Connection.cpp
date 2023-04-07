@@ -78,8 +78,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     setAlwaysOnTop(true);
 
     // Update position (TODO: don't invoke virtual functions from constructor!)
-    componentMovedOrResized(*outlet, true, true);
-    componentMovedOrResized(*inlet, true, true);
+    //componentMovedOrResized(*outlet, true, true);
+    //componentMovedOrResized(*inlet, true, true);
 
     valueChanged(presentationMode);
 
@@ -654,12 +654,27 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
 
+    // if we are moving both in / out object of connection, translate the path
+    if ((!toDraw.isEmpty() && outobj->isSelected() && inobj->isSelected())){
+        auto offset = pstart - oldStart;
+        toDraw.applyTransform(AffineTransform::translation(offset));
+        toDrawBounds = toDraw.getBounds().expanded(8).getSmallestIntegerContainer();
+        // update the plan to the new translation
+        if (currentPlan.size() >= 2) {
+            for (auto& point : currentPlan)
+            point += offset;
+        }
+        oldStart = pstart;
+        repaintArea();
+        return;
+    }
+
     if (currentPlan.size() <= 2) {
         updatePath();
         return;
     }
 
-    // If both inlet and outlet are selected we can just move the connection cord
+    // we shouldn't need to do this, this should be translated as well?!
     if ((outobj->isSelected() && inobj->isSelected()) || cnv->updatingBounds) {
         auto offset = pstart - currentPlan[0];
         for (auto& point : currentPlan)
@@ -758,6 +773,8 @@ void Connection::updatePath()
 
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
+
+    oldStart = pstart;
 
     if (!segmented) {
         toDraw = getNonSegmentedPath(pstart, pend);

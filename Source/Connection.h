@@ -36,6 +36,7 @@ public:
     WeakReference<Object> inobj, outobj;
 
     Path toDraw;
+    Point<float> oldStart = {0,0};
     Rectangle<int> toDrawBounds = {0,0,0,0};
     Rectangle<int> previousRepaintArea = {0,0,0,0};
     String lastId;
