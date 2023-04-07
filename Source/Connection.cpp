@@ -286,7 +286,7 @@ void Connection::renderConnectionPath(Graphics& g,
 
     if (isSelected) {
         baseColour = isSignal ? signalColour : dataColour;
-    } else if (isMouseOver) {
+    } else if (isHovering) {
         baseColour = isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
     }
