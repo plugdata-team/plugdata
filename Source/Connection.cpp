@@ -203,6 +203,9 @@ t_symbol* Connection::getPathState()
 
 bool Connection::hitTest(int x, int y)
 {
+    if (rateReducer.tooFast())
+        return false;
+
     if (inlet == nullptr || outlet == nullptr)
         return false;
 
@@ -210,6 +213,9 @@ bool Connection::hitTest(int x, int y)
         return false;
 
     if (locked == var(true) || !cnv->connectionsBeingCreated.isEmpty())
+        return false;
+
+    if (!toDrawBounds.contains(x,y))
         return false;
 
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
@@ -444,8 +450,6 @@ void Connection::mouseMove(MouseEvent const& e)
     } else {
         setMouseCursor(MouseCursor::NormalCursor);
     }
-
-    repaintArea();
 }
 
 void Connection::mouseEnter(MouseEvent const& e)
@@ -784,6 +788,8 @@ void Connection::updatePath()
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
 
+    toDrawBounds = toDraw.getBounds().toNearestInt().expanded(8);
+
     repaintArea();
 
     setBounds(cnv->getBounds().withPosition(0,0));
@@ -797,9 +803,11 @@ void Connection::updatePath()
 void Connection::repaintArea()
 {
     // repaint current and previous bounds, stops fast movements from building up
-    auto bounds = toDraw.getBounds().toNearestIntEdges().expanded(8);
-    repaint(bounds.getUnion(previousRepaintArea));
-    previousRepaintArea = bounds;
+    if (toDrawBounds != previousRepaintArea) {
+        repaint(toDrawBounds.getUnion(previousRepaintArea));
+        previousRepaintArea = toDrawBounds;
+    } else 
+        repaint(toDrawBounds);
 }
 
 void Connection::findPath()

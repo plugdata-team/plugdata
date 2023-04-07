@@ -35,6 +35,7 @@ public:
     WeakReference<Object> inobj, outobj;
 
     Path toDraw;
+    Rectangle<int> toDrawBounds = {0,0,0,0};
     Rectangle<int> previousRepaintArea = {0,0,0,0};
     String lastId;
 
@@ -91,8 +92,6 @@ public:
 
     void setPointer(void* ptr);
     void* getPointer();
-
-    Point<float> ctrlPointA, ctrlPointB;
 
     t_symbol* getPathState();
     void pushPathState();
@@ -157,6 +156,8 @@ private:
     std::vector<pd::Atom> lastValue;
     String lastSelector;
     std::mutex lastValueMutex;
+
+    RateReducer rateReducer = RateReducer(90);
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
