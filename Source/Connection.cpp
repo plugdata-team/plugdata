@@ -655,7 +655,8 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         setBounds(cnv->getBounds().withPosition(0,0));
 
     // if we are moving both in / out object of connection, translate the path
-    if ((!toDraw.isEmpty() && outobj->isSelected() && inobj->isSelected()) || cnv->updatingBounds){
+    // or we are moving the canvas
+    if (!toDraw.isEmpty() && ((outobj->isSelected() && inobj->isSelected()) || cnv->updatingBounds)){
         auto offset = pstart - oldStart;
         toDraw.applyTransform(AffineTransform::translation(offset));
         toDrawBounds = toDraw.getBounds().expanded(8).getSmallestIntegerContainer();
