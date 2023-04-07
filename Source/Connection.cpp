@@ -206,9 +206,6 @@ bool Connection::hitTest(int x, int y)
     if (!toDrawBounds.contains(x,y))
         return false;
 
-    if (rateReducer.tooFast())
-        return false;
-
     if (inlet == nullptr || outlet == nullptr)
         return false;
 
@@ -654,8 +651,11 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
 
+    if (cnv->updatingBounds)
+        setBounds(cnv->getBounds().withPosition(0,0));
+
     // if we are moving both in / out object of connection, translate the path
-    if ((!toDraw.isEmpty() && outobj->isSelected() && inobj->isSelected())){
+    if ((!toDraw.isEmpty() && outobj->isSelected() && inobj->isSelected()) || cnv->updatingBounds){
         auto offset = pstart - oldStart;
         toDraw.applyTransform(AffineTransform::translation(offset));
         toDrawBounds = toDraw.getBounds().expanded(8).getSmallestIntegerContainer();
@@ -670,15 +670,6 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
 
     if (currentPlan.size() <= 2) {
-        updatePath();
-        return;
-    }
-
-    // we shouldn't need to do this, this should be translated as well?!
-    if ((outobj->isSelected() && inobj->isSelected()) || cnv->updatingBounds) {
-        auto offset = pstart - currentPlan[0];
-        for (auto& point : currentPlan)
-            point += offset;
         updatePath();
         return;
     }
