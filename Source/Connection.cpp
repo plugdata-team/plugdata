@@ -203,6 +203,9 @@ t_symbol* Connection::getPathState()
 
 bool Connection::hitTest(int x, int y)
 {
+    if (!toDrawBounds.contains(x,y))
+        return false;
+
     if (rateReducer.tooFast())
         return false;
 
@@ -213,9 +216,6 @@ bool Connection::hitTest(int x, int y)
         return false;
 
     if (locked == var(true) || !cnv->connectionsBeingCreated.isEmpty())
-        return false;
-
-    if (!toDrawBounds.contains(x,y))
         return false;
 
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
@@ -490,14 +490,21 @@ void Connection::mouseEnter(MouseEvent const& e)
 
     setTooltip(tooltip);
 
+    stopTimer();
     isHovering = true;
+    repaintArea();
+}
+
+void Connection::timerCallback()
+{
+    stopTimer();
+    isHovering = false;
     repaintArea();
 }
 
 void Connection::mouseExit(MouseEvent const& e)
 {
-    isHovering = false;
-    repaintArea();
+    startTimer(300);
 }
 
 void Connection::mouseDown(MouseEvent const& e)

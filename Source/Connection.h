@@ -26,7 +26,8 @@ class Connection : public Component
     , public Value::Listener
     , public ChangeListener
     , public pd::MessageListener
-    , public SettableTooltipClient {
+    , public SettableTooltipClient 
+    , public Timer {
 public:
     int inIdx;
     int outIdx;
@@ -58,6 +59,8 @@ public:
         int connectionNum = 0);
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
+
+    void timerCallback() override;
 
     void paint(Graphics&) override;
     void repaintArea();
