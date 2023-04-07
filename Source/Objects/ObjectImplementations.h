@@ -443,7 +443,7 @@ class CanvasMouseObject final : public ImplementationBase
         int x_y;
     };
 
-    std::atomic<bool> zero;
+    std::atomic<bool> zero = false;
     Point<int> lastPosition;
     Point<int> zeroPosition;
     Component::SafePointer<Canvas> cnv;
