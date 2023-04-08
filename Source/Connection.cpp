@@ -543,8 +543,6 @@ void Connection::mouseDown(MouseEvent const& e)
 
 void Connection::mouseDrag(MouseEvent const& e)
 {LOG
-    if (cnv->updatingBounds)
-        return;
 
     if (selectedFlag && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
         cnv->connectingWithDrag = true;

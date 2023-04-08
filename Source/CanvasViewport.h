@@ -205,8 +205,8 @@ class CanvasViewport : public Viewport
 
         void updateThumbBounds()
         {
-            auto thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
-            auto thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
+            auto thumbStart = jmap<float>(currentRange.getStart(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
+            auto thumbEnd = jmap<float>(currentRange.getEnd(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
 
             if (isVertical)
                 thumbBounds = { 0, thumbStart, getWidth(), thumbEnd - thumbStart };
@@ -217,23 +217,17 @@ class CanvasViewport : public Viewport
 
         void paint(Graphics& g) override
         {
-            float roundedCorner;
-            if (isVertical)
-                roundedCorner = getWidth() * 0.5f;
-            else
-                roundedCorner = getHeight() * 0.5f;
-
             g.setColour(findColour(ScrollBar::ColourIds::thumbColourId));
-            g.fillRoundedRectangle(thumbBounds.reduced(1).toFloat(), 4.0f);
-
+            g.fillRoundedRectangle(thumbBounds.reduced(1), 4.0f);
         }
+
     private:
         bool isVertical = false;
         bool isMouseOver = false;
         bool isMouseDragging = false;
         Range<float> totalRange = {0,0};
         Range<float> currentRange = {0,0};
-        Rectangle<int> thumbBounds = {0,0};
+        Rectangle<float> thumbBounds = {0,0};
         CanvasViewport* viewport;
         Point<int> viewPosition = {0,0};
         FadeAnimator animator = FadeAnimator(this);
