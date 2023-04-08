@@ -32,7 +32,7 @@ class CanvasViewport : public Viewport
         {
             if (auto* viewedComponent = viewport->getViewedComponent()) {
                 if (enabled) {
-                    viewedComponent->addMouseListener(this, true);
+                    viewedComponent->addMouseListener(this, false);
                 } else {
                     viewedComponent->removeMouseListener(this);
                 }
@@ -52,7 +52,7 @@ class CanvasViewport : public Viewport
         {
             // We shouldn't need to do this, but there is something going wrong when you drag very quicly, then stop
             // Auto-repeating the drag makes it smoother, but it's not a perfect solution
-            beginDragAutoRepeat(10);
+            //beginDragAutoRepeat(16);
 
             float scale = 1.0f;
             if (auto* viewedComponent = viewport->getViewedComponent()) {
@@ -410,36 +410,36 @@ public:
         if (SettingsFile::getInstance()->getProperty<int>("infinite_canvas") && !cnv->isPalette) {
             newBounds = newBounds.getUnion(viewArea.expanded(infiniteCanvasMargin) * scale);
         }
-        for (auto* obj : cnv->objects) {
-            newBounds = newBounds.getUnion(obj->getBoundsInParent().reduced(Object::margin));
-        }
-        for (auto* c : cnv->connections) {
-            newBounds = newBounds.getUnion(c->getBoundsInParent());
-        }
+        //for (auto* obj : cnv->objects) {
+        //    newBounds = newBounds.getUnion(obj->getBoundsInParent().reduced(Object::margin));
+        //}
+        //for (auto* c : cnv->connections) {
+        //    newBounds = newBounds.getUnion(c->getBoundsInParent());
+        //}
 
-        cnv->setBounds(newBounds + cnv->getPosition());
+        //cnv->setBounds(newBounds + cnv->getPosition());
 
-        moveCanvasOrigin(-newBounds.getPosition());
+        //moveCanvasOrigin(-newBounds.getPosition());
+
+        //setViewPosition(-newBounds.getPosition())
 
         onScroll();
 
-        cnv->updatingBounds = false;
+        //cnv->updatingBounds = false;
     }
 
     void moveCanvasOrigin(Point<int> distance)
     {
         cnv->canvasOrigin += distance;
 
-        cnv->updatingBounds = true;
+        //cnv->updatingBounds = true;
 
-        for (auto* obj : cnv->objects) {
-            obj->setBounds(obj->getBounds() + distance);
-        }
-        for (auto* c : cnv->connections) {
-            c->componentMovedOrResized(*this, true, false);
-        }
+        //std::cout << distance.toString() << std::endl;
+        //for (auto* obj : cnv->objects) {
+        //    obj->updatePosition(distance);
+        //}
 
-        cnv->updatingBounds = false;
+        //cnv->updatingBounds = false;
     }
 
     void propertyChanged(String name, var value) override
@@ -456,7 +456,7 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& newVisibleArea) override
     {
-        triggerAsyncUpdate();
+        //triggerAsyncUpdate();
     }
 
     // Never respond to arrow keys, they have a different meaning
@@ -467,7 +467,7 @@ public:
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d) override
     {
-        triggerAsyncUpdate();
+        //triggerAsyncUpdate();
         Viewport::mouseWheelMove(e, d);
     }
 

@@ -86,7 +86,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
 
     updateOverlays();
 
-    setSize(600, 400);
+    setSize(128000, 128000);
 
     // Add lasso component
     addAndMakeVisible(&lasso);
@@ -170,6 +170,16 @@ int Canvas::getOverlays()
     return overlayState;
 }
 
+void Canvas::moved()
+{
+
+}
+
+void Canvas::resized()
+{
+    
+}
+
 void Canvas::updateOverlays()
 {
     int overlayState = getOverlays();
@@ -236,7 +246,7 @@ void Canvas::paint(Graphics& g)
 
     g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
 
-    g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
+    //g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
     auto clipBounds = g.getClipBounds();
 
     // Clip bounds so that we have the smallest lines that fit the viewport, but also

@@ -50,6 +50,7 @@ public:
     Rectangle<int> getSelectableBounds();
     Rectangle<int> getObjectBounds();
     void setObjectBounds(Rectangle<int> bounds);
+    void updatePosition(Point<int> distance);
 
     ComponentBoundsConstrainer* getConstrainer();
 

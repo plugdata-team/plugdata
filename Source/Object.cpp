@@ -103,6 +103,11 @@ void Object::setObjectBounds(Rectangle<int> bounds)
     setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
 }
 
+void Object::updatePosition(Point<int> distance)
+{
+    setTopLeftPosition(getBounds().getTopLeft() + distance);
+}
+
 void Object::initialise()
 {
     cnv->addAndMakeVisible(this);
