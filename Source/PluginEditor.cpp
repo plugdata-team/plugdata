@@ -749,10 +749,10 @@ void PluginEditor::valueChanged(Value& v)
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale) || v.refersToSameSourceAs(splitZoomScale)) {
         
-        float scale = getValue<float>(v);
+        float newScaleFactor = getValue<float>(v);
 
-        if (scale == 0) {
-            scale = 1.0f;
+        if (newScaleFactor == 0) {
+            newScaleFactor = 1.0f;
             zoomScale = 1.0f;
         }
 
@@ -761,24 +761,30 @@ void PluginEditor::valueChanged(Value& v)
         if (auto* cnv = getCurrentCanvas()) {
             cnv->hideSuggestions();
             
-            auto lastMousePosition = cnv->viewport->getMouseXYRelative().toFloat();
+            auto lastMousePosition = cnv->canvasOrigin.toFloat();
             auto oldScaleFactor = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
             
             if (!cnv->viewport || pluginMode)
                 return;
             
             auto oldScaledPos = lastMousePosition * oldScaleFactor;
-            auto newScaledPos = lastMousePosition * scale;
+            auto newScaledPos = lastMousePosition * newScaleFactor;
 
-            auto offset = (oldScaledPos - newScaledPos) / scale;
+            //auto offset = (newScaleFactor - oldScaleFactor) * lastMousePosition;
 
-            dynamic_cast<juce::AsyncUpdater*>(cnv->viewport)->handleUpdateNowIfNeeded();
-            cnv->viewport->setViewPosition(cnv->viewport->getViewPosition() - offset.roundToInt());
-            cnv->setTransform(AffineTransform().scaled(scale));
+            auto oldPosition = cnv->getMouseXYRelative() - cnv->canvasOrigin;
+
+            cnv->setTransform(AffineTransform().scaled(newScaleFactor));
             cnv->checkBounds();
+            dynamic_cast<juce::AsyncUpdater*>(cnv->viewport)->handleUpdateNowIfNeeded();
+            
+            auto newPosition = cnv->getMouseXYRelative() - cnv->canvasOrigin;
+            auto offset = (newPosition - oldPosition);
+            
+            cnv->setTopLeftPosition(cnv->getPosition() + offset);
         }
 
-        zoomLabel->setZoomLevel(scale);
+        zoomLabel->setZoomLevel(newScaleFactor);
     }
     // Update theme
     else if (v.refersToSameSourceAs(theme)) {

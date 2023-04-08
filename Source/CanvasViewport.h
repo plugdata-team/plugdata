@@ -404,6 +404,8 @@ public:
 
         float scale = 1.0f / editor->getZoomScaleForCanvas(cnv);
         float smallerScale = std::max(1.0f, scale);
+        
+        Point<int> offset;
 
         auto newBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, (getWidth() + 1 - getScrollBarThickness()) * smallerScale, (getHeight() + 1 - getScrollBarThickness()) * smallerScale);
 
@@ -418,7 +420,6 @@ public:
         }
 
         cnv->setBounds(newBounds + cnv->getPosition());
-
         moveCanvasOrigin(-newBounds.getPosition());
 
         onScroll();
