@@ -20,7 +20,7 @@ class CanvasViewport : public Viewport
     , public SettingsFileListener {
 
     inline static int const infiniteCanvasMargin = 48;
-
+        
     class MousePanner : public MouseListener {
     public:
         MousePanner(CanvasViewport* v)
@@ -333,6 +333,10 @@ public:
 
         Viewport::componentMovedOrResized(c, moved, resized);
         adjustScrollbarBounds();
+        
+        auto scale = cnv->editor->getZoomScaleForCanvas(cnv);
+        auto stepSize = std::min(16.0f, 16.0f * scale);
+        cnv->viewport->setSingleStepSizes(stepSize, stepSize);
 
         isUpdatingBounds = false;
     }

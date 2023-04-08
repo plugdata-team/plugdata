@@ -760,28 +760,25 @@ void PluginEditor::valueChanged(Value& v)
 
         if (auto* cnv = getCurrentCanvas()) {
             cnv->hideSuggestions();
-            
-            auto lastMousePosition = cnv->canvasOrigin.toFloat();
-            auto oldScaleFactor = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-            
+
             if (!cnv->viewport || pluginMode)
                 return;
             
-            auto oldScaledPos = lastMousePosition * oldScaleFactor;
-            auto newScaledPos = lastMousePosition * newScaleFactor;
-
-            //auto offset = (newScaleFactor - oldScaleFactor) * lastMousePosition;
-
-            auto oldPosition = cnv->getMouseXYRelative() - cnv->canvasOrigin;
-
+            // Save position of current mouse pos as a float relative to canvasOrigin
+            auto oldPosition = cnv->getLocalPoint(nullptr, Desktop::getInstance().getMainMouseSource().getScreenPosition()) - cnv->canvasOrigin.toFloat();
+            
+            // Apply transform and make sure viewport bounds get updated
             cnv->setTransform(AffineTransform().scaled(newScaleFactor));
             cnv->checkBounds();
             dynamic_cast<juce::AsyncUpdater*>(cnv->viewport)->handleUpdateNowIfNeeded();
             
-            auto newPosition = cnv->getMouseXYRelative() - cnv->canvasOrigin;
-            auto offset = (newPosition - oldPosition);
+            // After zooming, check where the mouse is now relative to origin
+            auto newPosition = cnv->getLocalPoint(nullptr, Desktop::getInstance().getMainMouseSource().getScreenPosition()) - cnv->canvasOrigin.toFloat();
             
-            cnv->setTopLeftPosition(cnv->getPosition() + offset);
+            // Calculate offset to keep our mouse position the same, compared to origin, as before this zoom action
+            auto offset = newPosition - oldPosition;
+            
+            cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
         }
 
         zoomLabel->setZoomLevel(newScaleFactor);
