@@ -88,7 +88,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
     valueChanged(presentationMode);
 
-    setBounds(cnv->getBounds().withPosition(0,0));
+    setBoundsInset(BorderSize<int>());
 
     updatePath();
     repaintArea();
