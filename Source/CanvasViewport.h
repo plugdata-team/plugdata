@@ -74,6 +74,173 @@ class CanvasViewport : public Viewport
         Point<int> downCanvasOrigin;
     };
 
+    class NewScrollBar : public Component {
+        struct FadeTimer : private ::Timer {
+                        std::function<bool()> callback;
+
+            void start(int interval, std::function<bool()> cb)
+            {
+                callback = cb;
+                startTimer(interval);
+            }
+
+            void timerCallback() override
+            {
+                if (callback())
+                    stopTimer();
+            }
+        };
+
+        struct FadeAnimator : private ::Timer {
+            FadeAnimator(Component* target)
+                : targetComponent(target)
+            {
+            }
+
+            void timerCallback()
+            {
+                auto alpha = targetComponent->getAlpha();
+                if (alphaTarget > alpha) {
+
+                    targetComponent->setAlpha(alpha + 0.3f);
+                } else if (alphaTarget < alpha) {
+                    float easedAlpha = pow(alpha, 0.5f);
+                    easedAlpha -= 0.015f;
+                    alpha = pow(easedAlpha, 2.0f);
+                    if (alpha < 0.01f)
+                        alpha = 0.0f;
+
+                    targetComponent->setAlpha(alpha);
+                } else {
+                    stopTimer();
+                }
+            }
+
+            void fadeIn()
+            {
+                alphaTarget = 1.0f;
+                startTimerHz(45);
+            }
+
+            void fadeOut()
+            {
+                alphaTarget = 0.0f;
+                startTimerHz(45);
+            }
+
+            Component* targetComponent;
+            float alphaTarget = 0.0f;
+        };
+    public:
+        NewScrollBar(bool isVertical, CanvasViewport* viewport) 
+            : isVertical(isVertical)
+            , viewport(viewport)
+        {
+
+        }
+        ~NewScrollBar()
+        {
+
+        }
+
+        bool hitTest(int x, int y) override
+        {
+            if (thumbBounds.contains(x,y))
+                return true;
+            return false;
+        }
+
+        void mouseDrag(MouseEvent const& e)
+        {
+            Point<float> delta;
+            float scale = 1.0f;
+            if (auto* viewedComponent = viewport->getViewedComponent()) {
+                scale = std::sqrt(std::abs(viewedComponent->getTransform().getDeterminant()));
+            }
+            if (isVertical) {
+                delta = Point<float>(0, e.getDistanceFromDragStartY());
+            } else {
+                delta = Point<float>(e.getDistanceFromDragStartX(), 0);
+            }
+            viewport->setViewPosition(viewPosition + (delta * 4).toInt());
+            repaint();
+        }
+
+        void mouseDown(MouseEvent const& e) override
+        {
+            isMouseDragging = true;
+            viewPosition = viewport->getViewPosition();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            if (e.mouseWasDraggedSinceMouseDown()){
+                isMouseDragging = false;
+                //animator.fadeOut();
+            }
+            repaint();
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            isMouseOver = true;
+            //animator.fadeIn();
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            isMouseOver = false;
+            if (!isMouseDragging)
+                //animator.fadeOut();
+            repaint();
+        }
+
+        void setRangeLimitsAndCurrentRange(float minTotal, float maxTotal, float minCurrent, float maxCurrent)
+        {
+            totalRange = {minTotal, maxTotal};
+            currentRange = {minCurrent, maxCurrent};
+            updateThumbBounds();
+        }
+
+        void updateThumbBounds()
+        {
+            auto thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
+            auto thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
+
+            if (isVertical)
+                thumbBounds = { 0, thumbStart, getWidth(), thumbEnd - thumbStart };
+            else
+                thumbBounds = { thumbStart, 0, thumbEnd - thumbStart, getHeight() };
+            repaint();
+        }
+
+        void paint(Graphics& g) override
+        {
+            float roundedCorner;
+            if (isVertical)
+                roundedCorner = getWidth() * 0.5f;
+            else
+                roundedCorner = getHeight() * 0.5f;
+
+            g.setColour(findColour(ScrollBar::ColourIds::thumbColourId));
+            g.fillRoundedRectangle(thumbBounds.reduced(1).toFloat(), 4.0f);
+
+        }
+    private:
+        bool isVertical = false;
+        bool isMouseOver = false;
+        bool isMouseDragging = false;
+        Range<float> totalRange = {0,0};
+        Range<float> currentRange = {0,0};
+        Rectangle<int> thumbBounds = {0,0};
+        CanvasViewport* viewport;
+        Point<int> viewPosition = {0,0};
+        FadeAnimator animator = FadeAnimator(this);
+        FadeTimer fadeTimer;
+    };
+
+/*
     class FadingScrollbar : public ScrollBar
         , public ScrollBar::Listener {
         struct FadeTimer : private ::Timer {
@@ -267,6 +434,7 @@ class CanvasViewport : public Viewport
         std::function<void()> onScrollStart = []() {};
         std::function<void()> onScrollEnd = []() {};
     };
+*/
 
     struct ViewportPositioner : public Component::Positioner {
         ViewportPositioner(Viewport& comp)
@@ -291,19 +459,30 @@ public:
         : editor(parent)
         , cnv(cnv)
     {
-        recreateScrollbars();
-
+        setScrollBarsShown(false, false);
+        
         setPositioner(new ViewportPositioner(*this));
-        adjustScrollbarBounds();
+        //adjustScrollbarBounds();
+        addAndMakeVisible(vbar);
+        addAndMakeVisible(hbar);
+    }
+
+    Rectangle<int> getTotalArea()
+    {
+        Rectangle<int> visibleObjectUnion;
+        for (auto object : cnv->objects) {
+            visibleObjectUnion = visibleObjectUnion.getUnion(object->getBounds());
+        }
+        return getViewArea().getUnion(visibleObjectUnion);
     }
 
     void lookAndFeelChanged() override
     {
-        if (!vbar || !hbar)
-            return;
+        //if (!vbar || !hbar)
+        //    return;
 
-        vbar->repaint();
-        hbar->repaint();
+        //vbar->repaint();
+        //hbar->repaint();
     }
 
     void enableMousePanning(bool enablePanning)
@@ -313,15 +492,26 @@ public:
 
     void adjustScrollbarBounds()
     {
-        if (!vbar || !hbar)
+        if (getViewArea().isEmpty())
             return;
 
-        auto thickness = getScrollBarThickness();
+        //auto thickness = getScrollBarThickness();
+        auto thickness = 8;
 
         auto contentArea = getLocalBounds().withTrimmedRight(thickness).withTrimmedBottom(thickness);
 
-        vbar->setBounds(contentArea.removeFromRight(thickness).withTrimmedBottom(thickness));
-        hbar->setBounds(contentArea.removeFromBottom(thickness));
+        vbar.setBounds(contentArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
+        hbar.setBounds(contentArea.removeFromBottom(thickness));
+
+        Rectangle<int> objectArea;
+        for (auto object : cnv->objects) {
+                objectArea = objectArea.getUnion(object->getBounds() * cnv->editor->getZoomScaleForCanvas(cnv));
+            }
+
+        auto totalArea = getViewArea().getUnion(objectArea);
+
+        hbar.setRangeLimitsAndCurrentRange(totalArea.getX(), totalArea.getRight(), getViewArea().getX(), getViewArea().getRight());
+        vbar.setRangeLimitsAndCurrentRange(totalArea.getY(), totalArea.getBottom(), getViewArea().getY(), getViewArea().getBottom());
     }
 
     void componentMovedOrResized(Component& c, bool moved, bool resized) override
@@ -359,40 +549,6 @@ public:
         // cnv->setBufferedToImage(isScrollingHorizontally || isScrollingVertically);
     }
 
-    ScrollBar* createScrollBarComponent(bool isVertical) override
-    {
-        auto isInfinite = SettingsFile::getInstance()->getProperty<bool>("infinite_canvas") && !cnv->isPalette;
-
-        if (isVertical) {
-            vbar = new FadingScrollbar(true, isInfinite);
-            vbar->onScrollStart = [this]() {
-                isScrollingHorizontally = true;
-                updateBufferState();
-            };
-
-            vbar->onScrollEnd = [this]() {
-                isScrollingVertically = false;
-                updateBufferState();
-            };
-            return vbar;
-        } else {
-            hbar = new FadingScrollbar(false, isInfinite);
-            hbar->onScrollStart = [this]() {
-                isScrollingHorizontally = true;
-                updateBufferState();
-            };
-
-            hbar->onScrollEnd = [this]() {
-                isScrollingHorizontally = false;
-                updateBufferState();
-            };
-            return hbar;
-        }
-
-        for (auto* scrollbar : std::vector<FadingScrollbar*> { hbar, vbar }) {
-        }
-    }
-
     void handleAsyncUpdate() override
     {
         if (cnv->updatingBounds || !getViewedComponent())
@@ -424,28 +580,17 @@ public:
         //setViewPosition(-newBounds.getPosition())
 
         onScroll();
-
-        //cnv->updatingBounds = false;
     }
 
     void moveCanvasOrigin(Point<int> distance)
     {
         cnv->canvasOrigin += distance;
-
-        //cnv->updatingBounds = true;
-
-        //std::cout << distance.toString() << std::endl;
-        //for (auto* obj : cnv->objects) {
-        //    obj->updatePosition(distance);
-        //}
-
-        //cnv->updatingBounds = false;
     }
 
     void propertyChanged(String name, var value) override
     {
         if (name == "infinite_canvas") {
-            recreateScrollbars();
+            //recreateScrollbars();
         }
     }
 
@@ -477,8 +622,10 @@ private:
     PluginEditor* editor;
     Canvas* cnv;
     MousePanner panner = MousePanner(this);
-    FadingScrollbar* vbar = nullptr;
-    FadingScrollbar* hbar = nullptr;
+    //FadingScrollbar* vbar = nullptr;
+    //FadingScrollbar* hbar = nullptr;
+    NewScrollBar vbar = NewScrollBar(true, this);
+    NewScrollBar hbar = NewScrollBar(false, this);
 
     bool isScrollingHorizontally = false;
     bool isScrollingVertically = false;
