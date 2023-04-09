@@ -710,9 +710,11 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
 
-    // if we are moving both in / out object of connection, translate the path
-    // or we are moving the canvas
-    if (!toDraw.isEmpty() && ((outobj->isSelected() && inobj->isSelected()))){
+    // if we are moving both in / out object of connection, or canvas 
+    // translate the path
+    // we need to opt-out of this multiple objects are being resized, as
+    // that transformation scales the objects
+    if (!cnv->objectsMultiResizing && !toDraw.isEmpty() && ((outobj->isSelected() && inobj->isSelected()))){
         auto offset = pstart - oldStart;
         toDraw.applyTransform(AffineTransform::translation(offset));
         toDrawBounds = toDraw.getBounds().toNearestInt().expanded(8);

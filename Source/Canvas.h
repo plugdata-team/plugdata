@@ -58,6 +58,8 @@ public:
 
     void recreateViewport();
 
+    bool objectsMultiResizing = false;
+
     Rectangle<int> canvasRepaintRegion = {0,0,0,0};
     Rectangle<int> canvasRepaintRegionPrevious = {0,0,0,0};
     void setCanvasRepaintRegion(Rectangle<int> region);

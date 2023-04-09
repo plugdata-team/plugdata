@@ -826,6 +826,7 @@ void Object::mouseUp(MouseEvent const& e)
 
         ds.wasResized = false;
         originalBounds.setBounds(0, 0, 0, 0);
+        cnv->objectsMultiResizing = false;
     } else {
         if (cnv->isGraph)
             return;
@@ -918,6 +919,7 @@ void Object::mouseDrag(MouseEvent const& e)
         auto dragDistance = cnv->objectGrid.performResize(this, e.getOffsetFromDragStart(), draggedBounds);
 
         auto toResize = cnv->getSelectionOfType<Object>();
+        cnv->objectsMultiResizing = true;
 
         for (auto* obj : toResize) {
 
@@ -925,7 +927,6 @@ void Object::mouseDrag(MouseEvent const& e)
                 continue;
 
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
-
             if (auto* constrainer = obj->getConstrainer()) {
                 constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(),
                     resizeZone.isDraggingLeftEdge(),
