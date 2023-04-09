@@ -333,10 +333,6 @@ public:
 
         Viewport::componentMovedOrResized(c, moved, resized);
         adjustScrollbarBounds();
-        
-        auto scale = cnv->editor->getZoomScaleForCanvas(cnv);
-        auto stepSize = std::min(16.0f, 16.0f * scale);
-        cnv->viewport->setSingleStepSizes(stepSize, stepSize);
 
         isUpdatingBounds = false;
     }
@@ -408,13 +404,15 @@ public:
 
         float scale = 1.0f / editor->getZoomScaleForCanvas(cnv);
         float smallerScale = std::max(1.0f, scale);
-        
-        Point<int> offset;
 
         auto newBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, (getWidth() + 1 - getScrollBarThickness()) * smallerScale, (getHeight() + 1 - getScrollBarThickness()) * smallerScale);
+        auto originalPosition = newBounds.getPosition();
 
         if (SettingsFile::getInstance()->getProperty<int>("infinite_canvas") && !cnv->isPalette) {
-            newBounds = newBounds.getUnion(viewArea.expanded(infiniteCanvasMargin) * scale);
+            if(!newBounds.contains(viewArea.expanded(infiniteCanvasMargin / 2) * scale))
+            {
+                newBounds = newBounds.getUnion(viewArea.expanded(infiniteCanvasMargin) * scale);
+            }
         }
         for (auto* obj : cnv->objects) {
             newBounds = newBounds.getUnion(obj->getBoundsInParent().reduced(Object::margin));
@@ -422,6 +420,8 @@ public:
         for (auto* c : cnv->connections) {
             newBounds = newBounds.getUnion(c->getBoundsInParent());
         }
+        
+        auto positionOffset = newBounds.getPosition() - originalPosition;
 
         cnv->setBounds(newBounds + cnv->getPosition());
         moveCanvasOrigin(-newBounds.getPosition());
@@ -473,7 +473,16 @@ public:
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d) override
     {
         triggerAsyncUpdate();
-        Viewport::mouseWheelMove(e, d);
+        
+        auto wheel = d;
+        
+        auto scale = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+        
+        // Reduce scroll sensitivity when zoomed out
+        wheel.deltaX *= std::min(1.0f, scale);
+        wheel.deltaY *= std::min(1.0f, scale);
+        
+        Viewport::mouseWheelMove(e, wheel);
     }
 
     std::function<void()> onScroll = []() {};
