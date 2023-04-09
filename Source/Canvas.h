@@ -58,9 +58,17 @@ public:
 
     void recreateViewport();
 
+    Rectangle<int> canvasRepaintRegion = {0,0,0,0};
+    Rectangle<int> canvasRepaintRegionPrevious = {0,0,0,0};
+    void setCanvasRepaintRegion(Rectangle<int> region);
+
+    Rectangle<int> newConnectionRepaintRegion = {0,0,0,0};
+    Rectangle<int> newConnectionRepaintRegionPrevious = {0,0,0,0};
+    void setNewConnectionRepaintRegion(Rectangle<int> region);
+
     void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
-
+    
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;

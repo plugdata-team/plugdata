@@ -15,10 +15,11 @@
 #include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
+#include "Canvas.h"
 
 using PathPlan = std::vector<Point<float>>;
 
-class Canvas;
+//class Canvas;
 class PathUpdater;
 
 class Connection : public Component
@@ -65,6 +66,7 @@ public:
 
     void paint(Graphics&) override;
     void repaintArea();
+    void forceRepaint();
 
     bool isSegmented();
     void setSegmented(bool segmented);
@@ -118,6 +120,10 @@ public:
 private:
     bool segmented = false;
 
+    bool allowRepaint = false;
+    int connectionID = 0;
+    bool forcePaint = false;
+
     Array<SafePointer<Connection>> reconnecting;
 
     Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
@@ -168,11 +174,12 @@ private:
 // TODO: hide behind Connection interface to reduce includes!
 class ConnectionBeingCreated : public Component {
     SafePointer<Iolet> iolet;
-    Component* cnv;
+    Canvas* cnv;
     Path connectionPath;
+    Rectangle<int> redrawBounds;
 
 public:
-    ConnectionBeingCreated(Iolet* target, Component* canvas)
+    ConnectionBeingCreated(Iolet* target, Canvas* canvas)
         : iolet(target)
         , cnv(canvas)
     {
@@ -211,25 +218,32 @@ public:
 
         connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
 
-        auto bounds = connectionPath.getBounds().getSmallestIntegerContainer().expanded(3);
+        auto bounds = connectionPath.getBounds().getSmallestIntegerContainer().expanded(8);
 
         // Make sure we have minimal bounds, expand slightly to take line thickness into account
         setBounds(bounds);
-
+        redrawBounds = getLocalBounds();
+        
+        // ALEX not connected yet- but do we even need this?
+        cnv->setNewConnectionRepaintRegion(bounds);
         // Remove bounds offset from path, because we've already set our origin by setting component bounds
         connectionPath.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
 
-        repaint();
-        iolet->repaint();
+        iolet->repaint(); // FIXME this will also trigger all connections to repaint
+        repaint(redrawBounds);
     }
 
     void paint(Graphics& g) override
     {
+        //std::cout << "painting the new connection -------" << std::endl;
         if (!iolet) {
             jassertfalse; // shouldn't happen
             return;
         }
         Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, true);
+        // debugging
+        //g.setColour(Colours::red);
+        //g.drawRect(redrawBounds, 2.0f);
     }
 
     Iolet* getIolet()

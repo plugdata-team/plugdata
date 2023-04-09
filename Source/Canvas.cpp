@@ -239,6 +239,25 @@ void Canvas::lookAndFeelChanged()
     lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
 }
 
+void Canvas::setCanvasRepaintRegion(Rectangle<int> region)
+{
+    // set the previous and current region, as fast movements need to repaint the frame before
+    canvasRepaintRegion = canvasRepaintRegionPrevious.getUnion(region);
+    canvasRepaintRegionPrevious = region;
+
+    // repaint all connections due to the different canvas area
+    // this can be optimised
+    for (auto* connection : connections) {
+        connection->repaintArea();
+    }
+}
+
+void Canvas::setNewConnectionRepaintRegion(Rectangle<int> region)
+{
+    newConnectionRepaintRegion = newConnectionRepaintRegionPrevious.getUnion(region);
+    newConnectionRepaintRegionPrevious = region;
+}
+
 void Canvas::paint(Graphics& g)
 {
     if (isGraph)
@@ -1396,7 +1415,8 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
         if (area.intersects(object->getSelectableBounds())) {
             itemsFound.add(object);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            setSelected(object, false, false);
+            itemsFound.removeFirstMatchingValue(object);
+
         }
     }
 
@@ -1404,7 +1424,7 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
         // If total bounds don't intersect, there can't be an intersection with the line
         // This is cheaper than checking the path intersection, so do this first
         if (!con->getBounds().intersects(lasso.getBounds())) {
-            setSelected(con, false, false);
+            itemsFound.removeFirstMatchingValue(con);
             continue;
         }
 
@@ -1412,7 +1432,7 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
         if (con->intersects(lasso.getBounds().translated(-con->getX(), -con->getY()).toFloat())) {
             itemsFound.add(con);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            setSelected(con, false, false);
+            itemsFound.removeFirstMatchingValue(con);
         }
     }
 }

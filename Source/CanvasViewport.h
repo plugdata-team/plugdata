@@ -217,7 +217,8 @@ class CanvasViewport : public Viewport
 
         void paint(Graphics& g) override
         {
-            g.setColour(findColour(ScrollBar::ColourIds::thumbColourId));
+            auto c = findColour(ScrollBar::ColourIds::thumbColourId);
+            g.setColour(isMouseOver || isMouseDragging ? c.brighter(0.25f) : c);
             g.fillRoundedRectangle(thumbBounds.reduced(1), 4.0f);
         }
 
@@ -545,34 +546,6 @@ public:
 
     void handleAsyncUpdate() override
     {
-        if (cnv->updatingBounds || !getViewedComponent())
-            return;
-
-        auto viewArea = getViewArea();
-
-        cnv->updatingBounds = true;
-
-        float scale = 1.0f / editor->getZoomScaleForCanvas(cnv);
-        float smallerScale = std::max(1.0f, scale);
-
-        auto newBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, (getWidth() + 1 - getScrollBarThickness()) * smallerScale, (getHeight() + 1 - getScrollBarThickness()) * smallerScale);
-
-        if (SettingsFile::getInstance()->getProperty<int>("infinite_canvas") && !cnv->isPalette) {
-            newBounds = newBounds.getUnion(viewArea.expanded(infiniteCanvasMargin) * scale);
-        }
-        //for (auto* obj : cnv->objects) {
-        //    newBounds = newBounds.getUnion(obj->getBoundsInParent().reduced(Object::margin));
-        //}
-        //for (auto* c : cnv->connections) {
-        //    newBounds = newBounds.getUnion(c->getBoundsInParent());
-        //}
-
-        //cnv->setBounds(newBounds + cnv->getPosition());
-
-        //moveCanvasOrigin(-newBounds.getPosition());
-
-        //setViewPosition(-newBounds.getPosition())
-
         onScroll();
     }
 
@@ -595,7 +568,14 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& newVisibleArea) override
     {
-        //triggerAsyncUpdate();
+        // set the canvas repaint region, we use this for connections, to limit when they will draw
+        // all connections outside of this region will not be painted
+        
+        float scale = 1.0f;
+        if (auto* viewedComponent = getViewedComponent()) {
+            scale = std::sqrt(std::abs(viewedComponent->getTransform().getDeterminant()));
+        }
+        cnv->setCanvasRepaintRegion(getViewArea() / scale);
     }
 
     // Never respond to arrow keys, they have a different meaning

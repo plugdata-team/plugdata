@@ -154,6 +154,11 @@ void Object::setSelected(bool shouldBeSelected)
     if (selectedFlag != shouldBeSelected) {
         selectedFlag = shouldBeSelected;
         repaint();
+        for (auto* connection : cnv->connections) {
+            if (connection->outobj == this || connection->inobj == this) {
+                connection->forceRepaint();
+            }
+        }
     }
 }
 

@@ -75,6 +75,11 @@ bool Iolet::hitTest(int x, int y)
 
 void Iolet::paint(Graphics& g)
 {
+    for (auto* connection : cnv->connections) {
+        if (connection->inlet == this || connection->outlet == this)
+            connection->forceRepaint();
+    }
+    
     auto bounds = getLocalBounds().toFloat().reduced(0.5f);
 
     bool isLocked = getValue<bool>(locked);
@@ -295,11 +300,11 @@ void Iolet::mouseUp(MouseEvent const& e)
 
                 cnv->nearestIolet = nullptr;
                 cnv->connectingWithDrag = false;
-                cnv->repaint();
+                //cnv->repaint(); ALEX maybe we don't do this?
             }
             if (!shiftIsDown || cnv->connectionsBeingCreated.size() != 1) {
                 cnv->connectionsBeingCreated.clear();
-                cnv->repaint();
+                //cnv->repaint(); ALEX maybe we don't do this when we manage everything ourselves?
                 cnv->connectingWithDrag = false;
             }
             if (cnv->nearestIolet) {
