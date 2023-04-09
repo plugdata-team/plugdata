@@ -240,6 +240,9 @@ void Canvas::lookAndFeelChanged()
     lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
 }
 
+/** Sets the canvas view repaint clip region to be used for connection painting
+ *  so we don't paint connections when they are outside of the view bounds (off screen)
+*/  
 void Canvas::setCanvasRepaintRegion(Rectangle<int> region)
 {
     // set the previous and current region, as fast movements need to repaint the frame before
@@ -247,10 +250,12 @@ void Canvas::setCanvasRepaintRegion(Rectangle<int> region)
     canvasRepaintRegionPrevious = region;
 
     // repaint all connections due to the different canvas area
-    // this can be optimised
-    for (auto* connection : connections) {
-        connection->repaintArea();
-    }
+    // not active now, but may use this in the future if we want 
+    // to stop any connection repainting that's not needed
+
+    //for (auto* connection : connections) {
+    //    connection->repaintArea();
+    //}
 }
 
 void Canvas::paint(Graphics& g)

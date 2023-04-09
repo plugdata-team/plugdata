@@ -429,6 +429,9 @@ void Connection::repaintArea()
 
 void Connection::paint(Graphics& g)
 {
+    // we could further control the painting of connections by specifying exactly what
+    // can redraw the connection, however this may not be needed at this point
+
     //if (!allowRepaint) 
     //        return;
 
