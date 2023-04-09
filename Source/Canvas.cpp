@@ -86,7 +86,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
 
     updateOverlays();
 
-    setSize(128000, 128000);
+    auto canvasSize = canvasOrigin * 2;
+    setSize(canvasSize.x, canvasSize.y);
 
     // Add lasso component
     addAndMakeVisible(&lasso);

@@ -200,7 +200,7 @@ public:
 
     ObjectGrid objectGrid = ObjectGrid(this);
 
-    Point<int> canvasOrigin = { 64000, 64000 };
+    Point<int> canvasOrigin = { 32000, 32000 };
     Point<int> viewportPositionBeforeMiddleDrag = { 0, 0 };
 
     std::unique_ptr<GraphArea> graphArea;

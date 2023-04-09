@@ -429,16 +429,17 @@ void Connection::repaintArea()
 
 void Connection::paint(Graphics& g)
 {
-    //std::cout << count++ << " painting " << connectionID << " bounds: " << toDrawBounds.toString() << std::endl; 
-
     //if (!allowRepaint) 
     //        return;
+
+    //allowRepaint = false;
+    
     g.reduceClipRegion(toDrawBounds);
     // clip the whole area to the viewregion, if it's not in the clip region don't paint it
     if (!g.clipRegionIntersects(cnv->canvasRepaintRegion))
             return;
 
-    std::cout << count++ << " doing painting for: " << connectionID << std::endl; 
+    //std::cout << count++ << " doing painting for: " << connectionID << std::endl; 
 
     renderConnectionPath(g,
         cnv,
