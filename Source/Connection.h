@@ -223,9 +223,7 @@ public:
         // Make sure we have minimal bounds, expand slightly to take line thickness into account
         setBounds(bounds);
         redrawBounds = getLocalBounds();
-        
-        // ALEX not connected yet- but do we even need this?
-        cnv->setNewConnectionRepaintRegion(bounds);
+
         // Remove bounds offset from path, because we've already set our origin by setting component bounds
         connectionPath.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
 

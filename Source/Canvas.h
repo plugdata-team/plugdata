@@ -62,10 +62,6 @@ public:
     Rectangle<int> canvasRepaintRegionPrevious = {0,0,0,0};
     void setCanvasRepaintRegion(Rectangle<int> region);
 
-    Rectangle<int> newConnectionRepaintRegion = {0,0,0,0};
-    Rectangle<int> newConnectionRepaintRegionPrevious = {0,0,0,0};
-    void setNewConnectionRepaintRegion(Rectangle<int> region);
-
     void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
     

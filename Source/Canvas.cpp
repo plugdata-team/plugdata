@@ -252,12 +252,6 @@ void Canvas::setCanvasRepaintRegion(Rectangle<int> region)
     }
 }
 
-void Canvas::setNewConnectionRepaintRegion(Rectangle<int> region)
-{
-    newConnectionRepaintRegion = newConnectionRepaintRegionPrevious.getUnion(region);
-    newConnectionRepaintRegionPrevious = region;
-}
-
 void Canvas::paint(Graphics& g)
 {
     if (isGraph)
