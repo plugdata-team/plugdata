@@ -309,17 +309,14 @@ public:
 
     void componentMovedOrResized(Component& c, bool moved, bool resized) override
     {
-        if (isUpdatingBounds || editor->pd->pluginMode != var(false))
+        if (editor->pd->pluginMode != var(false))
             return;
-
-        isUpdatingBounds = true;
 
         Viewport::componentMovedOrResized(c, moved, resized);
         adjustScrollbarBounds();
-
-        isUpdatingBounds = false;
     }
-        
+    
+    // TODO: do we need this?
     void visibleAreaChanged(const Rectangle<int>& r) override
     {
         adjustScrollbarBounds();
@@ -332,44 +329,13 @@ public:
 
         adjustScrollbarBounds();
 
-        // In case the window resizes, make sure we maintain the same origin point
-        auto oldCanvasOrigin = cnv->canvasOrigin;
         Viewport::resized();
-        setCanvasOrigin(oldCanvasOrigin);
-    }
-        
-    void scrollBarMoved (ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
-    {
-        auto newRangeStartInt = roundToInt (newRangeStart);
-    }
-
-
-    void updateBufferState()
-    {
-        // Uncomment this line to render canvas to image on scroll
-        // This isn't very advantageous yet, because the dots need to be repainted when view area changes!
-        // cnv->setBufferedToImage(isScrollingHorizontally || isScrollingVertically);
-    }
-
-    void moveCanvasOrigin(Point<int> distance)
-    {
-        cnv->canvasOrigin += distance;
-    }
-
-    void setCanvasOrigin(Point<int> newOrigin)
-    {
-        moveCanvasOrigin(newOrigin - cnv->canvasOrigin);
     }
 
     // Never respond to arrow keys, they have a different meaning
     bool keyPressed(KeyPress const& key) override
     {
         return false;
-    }
-
-    void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d) override
-    {
-        Viewport::mouseWheelMove(e, d);
     }
 
     std::function<void()> onScroll = []() {};
@@ -383,6 +349,4 @@ private:
 
     bool isScrollingHorizontally = false;
     bool isScrollingVertically = false;
-
-    bool isUpdatingBounds = false;
 };

@@ -648,7 +648,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
 
     // If both inlet and outlet are selected we can just move the connection cord
-    if ((outobj->isSelected() && inobj->isSelected()) || cnv->updatingBounds) {
+    if ((outobj->isSelected() && inobj->isSelected())) {
         auto offset = pstart - currentPlan[0];
         for (auto& point : currentPlan)
             point += offset;

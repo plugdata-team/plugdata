@@ -184,7 +184,6 @@ public:
 
     bool isGraph = false;
     bool hasParentCanvas = false;
-    bool updatingBounds = false; // used by connection
     bool isDraggingLasso = false;
     bool isPalette;
     bool isShowingMenu = false;
@@ -218,6 +217,8 @@ public:
 
     ObjectDragState dragState;
 
+    inline static constexpr int infiniteCanvasSize = 128000;
+        
 private:
     LassoComponent<WeakReference<Component>> lasso;
 

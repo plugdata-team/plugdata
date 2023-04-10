@@ -96,6 +96,8 @@ public:
             cnv->viewport->setBounds(viewportBounds);
             cnv->viewport->setViewedComponent(cnv, false);
             cnv->viewport->resized();
+            cnv->jumpToOrigin();
+            cnv->setSize(Canvas::infiniteCanvasSize, Canvas::infiniteCanvasSize);
         }
 
         // Restore Bounds & Resize Limits with the current position

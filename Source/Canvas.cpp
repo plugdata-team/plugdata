@@ -86,7 +86,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
 
     updateOverlays();
 
-    setSize(128000, 128000);
+    setSize(infiniteCanvasSize, infiniteCanvasSize);
 
     // Add lasso component
     addAndMakeVisible(&lasso);
@@ -224,12 +224,10 @@ void Canvas::recreateViewport()
 
 void Canvas::jumpToOrigin()
 {
-    updatingBounds = true;
-    auto origin = canvasOrigin + Point<int>(-1, -1);
     float scale = editor->getZoomScaleForCanvas(this);
 
-    viewport->setViewPosition(origin * scale);
-    updatingBounds = false;
+    setTopLeftPosition(-canvasOrigin + Point<int>(1, 1));
+    viewport->resized();
 }
 
 void Canvas::lookAndFeelChanged()
@@ -1341,7 +1339,14 @@ void Canvas::hideSuggestions()
 // Makes component selected
 void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus)
 {
-    selectedComponents.addToSelection(component);
+    if(!shouldNowBeSelected)
+    {
+        selectedComponents.deselect(component);
+    }
+    else {
+        selectedComponents.addToSelection(component);
+    }
+
 
     if (updateCommandStatus) {
         editor->updateCommandStatus();

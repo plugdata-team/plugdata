@@ -763,28 +763,27 @@ void Object::mouseDown(MouseEvent const& e)
         return;
     }
 
-    auto wasSelected = selectedFlag;
     wasLockedOnMouseDown = false;
 
-    if (e.mods.isPopupMenu()) {
-        
-        if (!e.mods.isShiftDown()) {
-            cnv->deselectAll();
-        }
-
-        cnv->setSelected(this, true);
-        
-        PopupMenu::dismissAllActiveMenus();
-        Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
-        return;
-    }
     if (e.mods.isShiftDown()) {
         // select multiple objects
         ds.wasSelectedOnMouseDown = selectedFlag;
     } else if (!selectedFlag) {
         cnv->deselectAll();
     }
-    cnv->setSelected(this, true); // TODO: can we move this up, so we don't need it twice?
+    
+    cnv->setSelected(this, true);
+    
+    if (e.mods.isPopupMenu()) {
+        
+        if (!e.mods.isShiftDown()) {
+            cnv->deselectAll();
+        }
+
+        PopupMenu::dismissAllActiveMenus();
+        Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
+        return;
+    }
 
     ds.componentBeingDragged = this;
 
@@ -829,6 +828,7 @@ void Object::mouseUp(MouseEvent const& e)
         if (e.mods.isShiftDown() && ds.wasSelectedOnMouseDown && !ds.didStartDragging) {
             // Unselect object if selected
             cnv->setSelected(this, false);
+            repaint();
         } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && selectedFlag && !ds.didStartDragging && !e.mods.isRightButtonDown()) {
 
             // Don't run normal deselectAll, that would clear the sidebar inspector as well
