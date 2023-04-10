@@ -73,6 +73,9 @@ public:
 
     void propertyChanged(String name, var value) override;
 
+    void moved() override;
+    void resized() override;
+
     int getOverlays();
     void updateOverlays();
 
@@ -193,7 +196,7 @@ public:
 
     ObjectGrid objectGrid = ObjectGrid(this);
 
-    Point<int> canvasOrigin = { 0, 0 };
+    Point<int> canvasOrigin = { 64000, 64000 };
     Point<int> viewportPositionBeforeMiddleDrag = { 0, 0 };
 
     std::unique_ptr<GraphArea> graphArea;

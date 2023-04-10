@@ -86,7 +86,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
 
     updateOverlays();
 
-    setSize(600, 400);
+    setSize(128000, 128000);
 
     // Add lasso component
     addAndMakeVisible(&lasso);
@@ -170,6 +170,15 @@ int Canvas::getOverlays()
     return overlayState;
 }
 
+void Canvas::moved()
+{
+}
+
+void Canvas::resized()
+{
+    
+}
+
 void Canvas::updateOverlays()
 {
     int overlayState = getOverlays();
@@ -216,7 +225,6 @@ void Canvas::recreateViewport()
 void Canvas::jumpToOrigin()
 {
     updatingBounds = true;
-    dynamic_cast<CanvasViewport*>(viewport)->handleAsyncUpdate();
     auto origin = canvasOrigin + Point<int>(-1, -1);
     float scale = editor->getZoomScaleForCanvas(this);
 
@@ -236,7 +244,7 @@ void Canvas::paint(Graphics& g)
 
     g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
 
-    g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
+    //g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
     auto clipBounds = g.getClipBounds();
 
     // Clip bounds so that we have the smallest lines that fit the viewport, but also
@@ -513,15 +521,6 @@ void Canvas::performSynchronise()
         auto scale = editor->getZoomScaleForCanvas(this);
         setTransform(AffineTransform().scaled(scale));
     }
-
-    // Resize canvas to fit objects
-    // By checking asynchronously, we make sure the objects bounds have been updated
-    MessageManager::callAsync([_this = SafePointer(this)]() {
-        if (!_this)
-            return;
-        _this->pd->waitForStateUpdate();
-        _this->checkBounds();
-    });
 
     editor->updateCommandStatus();
     repaint();
@@ -1231,12 +1230,9 @@ void Canvas::redo()
     synchroniseSplitCanvas();
 }
 
+// TODO: get rid of this
 void Canvas::checkBounds()
 {
-    if (viewport && viewport->getViewedComponent()) {
-        dynamic_cast<AsyncUpdater*>(viewport)->triggerAsyncUpdate();
-    }
-
     if (graphArea) {
         graphArea->updateBounds();
     }

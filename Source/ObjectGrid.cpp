@@ -482,7 +482,8 @@ Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
 
     Array<Object*> snappable;
 
-    auto viewBounds = reinterpret_cast<Viewport*>(cnv->viewport)->getViewArea();
+    auto scaleFactor = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+    auto viewBounds = reinterpret_cast<Viewport*>(cnv->viewport)->getViewArea() / scaleFactor;
 
     for (auto* object : cnv->objects) {
         if (draggedObject == object || object->isSelected() || !viewBounds.intersects(object->getBounds()))

@@ -103,6 +103,7 @@ void Object::setObjectBounds(Rectangle<int> bounds)
     setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
 }
 
+
 void Object::initialise()
 {
     cnv->addAndMakeVisible(this);

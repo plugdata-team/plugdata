@@ -32,11 +32,6 @@ public:
             addAndMakeVisible(*reloadLastOpenedPatch);
         }
 
-        infiniteCanvas.referTo(settingsFile->getPropertyAsValue("infinite_canvas"));
-        infiniteCanvas.addListener(this);
-        useInfiniteCanvas.reset(new PropertiesPanel::BoolComponent("Use infinite canvas", infiniteCanvas, { "No", "Yes" }));
-        addAndMakeVisible(*useInfiniteCanvas);
-
         scaleValue = settingsFile->getProperty<float>("global_scale");
         scaleValue.addListener(this);
         globalScale.reset(new PropertiesPanel::EditableComponent<float>("Global scale factor", scaleValue));
@@ -51,7 +46,6 @@ public:
             useMacTitlebarButtons->setBounds(bounds.removeFromTop(23));
             reloadLastOpenedPatch->setBounds(bounds.removeFromTop(23));
         }
-        useInfiniteCanvas->setBounds(bounds.removeFromTop(23));
         globalScale->setBounds(bounds.removeFromTop(23));
     }
 
@@ -76,12 +70,10 @@ public:
     Value nativeTitlebar;
     Value macTitlebarButtons;
     Value reloadPatch;
-    Value infiniteCanvas;
     Value scaleValue;
 
     std::unique_ptr<PropertiesPanel::BoolComponent> useNativeTitlebar;
     std::unique_ptr<PropertiesPanel::BoolComponent> useMacTitlebarButtons;
     std::unique_ptr<PropertiesPanel::BoolComponent> reloadLastOpenedPatch;
-    std::unique_ptr<PropertiesPanel::BoolComponent> useInfiniteCanvas;
     std::unique_ptr<PropertiesPanel::EditableComponent<float>> globalScale;
 };
