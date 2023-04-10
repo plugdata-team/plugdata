@@ -109,11 +109,17 @@ public:
     bool isSelected();
 
 private:
+    void resizeToFit();
+
     bool segmented = false;
 
     Array<SafePointer<Connection>> reconnecting;
 
     Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
+
+    Point<float> pStart, pEnd, pStartPrevious, pStartLocal, pEndLocal, pStartLocalFP, pEndLocalFP;
+
+    Point<float> previousPosition = {0,0};
 
     int getMultiConnectNumber();
     int getNumberOfConnections();
@@ -130,8 +136,6 @@ private:
     bool showConnectionOrder = false;
 
     Canvas* cnv;
-
-    Point<float> origin, offset;
 
     int dragIdx = -1;
 
@@ -194,8 +198,8 @@ public:
         if (rateReducer.tooFast())
             return;
 
-        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().getCentre());
-        auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition());
+        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
+        auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition().toFloat());
 
         auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
         auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;

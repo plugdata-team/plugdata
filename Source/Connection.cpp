@@ -83,8 +83,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
     valueChanged(presentationMode);
 
-    updatePath();
-    repaint();
+    //updatePath();
+    //repaint();
 
     updateOverlays(cnv->getOverlays());
 
@@ -138,8 +138,8 @@ void Connection::pushPathState()
         MemoryOutputStream stream;
 
         for (auto& point : currentPlan) {
-            stream.writeInt(point.x - outlet->getCanvasBounds().getCentre().x);
-            stream.writeInt(point.y - outlet->getCanvasBounds().getCentre().y);
+            stream.writeInt(point.x);
+            stream.writeInt(point.y);
         }
         auto base64 = stream.getMemoryBlock().toBase64Encoding();
         newPathState = cnv->pd->generateSymbol(base64);
@@ -175,7 +175,7 @@ void Connection::popPathState()
             auto x = stream.readInt();
             auto y = stream.readInt();
 
-            plan.emplace_back(x + outlet->getCanvasBounds().getCentreX(), y + outlet->getCanvasBounds().getCentreY());
+            plan.emplace_back(x, y);
         }
         segmented = !plan.empty();
     } else {
@@ -398,6 +398,11 @@ void Connection::paint(Graphics& g)
         isHovering,
         getNumberOfConnections(),
         getMultiConnectNumber());
+
+    //debug
+    g.setColour(Colours::red);
+    g.drawRect(getLocalBounds(), 1.0f);
+
 }
 
 bool Connection::isSegmented()
@@ -428,7 +433,7 @@ bool Connection::isSelected()
 
 void Connection::mouseMove(MouseEvent const& e)
 {
-    int n = getClosestLineIdx(e.getPosition().toFloat() + origin, currentPlan);
+    int n = getClosestLineIdx(e.getPosition().toFloat(), currentPlan);
 
     if (isSegmented() && currentPlan.size() > 2 && n > 0) {
         auto line = Line<float>(currentPlan[n - 1], currentPlan[n]);
@@ -508,7 +513,7 @@ void Connection::mouseDown(MouseEvent const& e)
     if (currentPlan.size() <= 2)
         return;
 
-    int n = getClosestLineIdx(e.position + origin, currentPlan);
+    int n = getClosestLineIdx(e.position, currentPlan);
     if (n < 0)
         return;
 
@@ -549,6 +554,7 @@ void Connection::mouseDrag(MouseEvent const& e)
         }
 
         updatePath();
+        resizeToFit();
         repaint();
     }
 }
@@ -589,7 +595,7 @@ int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& 
     for (int n = 2; n < plan.size() - 1; n++) {
         auto line = Line<float>(plan[n - 1], plan[n]);
         Point<float> nearest;
-        if (line.getDistanceFromPoint(position - offset, nearest) < 3) {
+        if (line.getDistanceFromPoint(position, nearest) < 3) {
             return n;
         }
     }
@@ -634,36 +640,56 @@ void Connection::reconnect(Iolet* target)
     }
 }
 
+void Connection::resizeToFit()
+{
+    pStart = getStartPoint();
+    pEnd = getEndPoint();
+    
+    auto newBounds = Rectangle<float>(pStart, pEnd).expanded(8).getSmallestIntegerContainer();
+    if (segmented) {
+        newBounds = newBounds.getUnion(cnv->getLocalArea(this, toDraw.getBounds().expanded(8).getSmallestIntegerContainer()));
+    }
+    if (newBounds != getBounds()) {
+        setBounds(newBounds);
+    }
+}
+
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
 {
     if (!inlet || !outlet)
         return;
 
-    auto pstart = getStartPoint();
-    auto pend = getEndPoint();
+    pStart = getStartPoint();
+    pEnd = getEndPoint();
 
-    if (currentPlan.size() <= 2) {
-        updatePath();
+    // If both inlet and outlet are selected we can move the connection
+    if ((outobj->isSelected() && inobj->isSelected())) {
+        auto offset = pStart - previousPosition;
+        previousPosition = pStart;
+        setTopLeftPosition(getBounds().getTopLeft() + offset.toInt());
+        repaint();
         return;
     }
+    previousPosition = pStart;
 
-    // If both inlet and outlet are selected we can just move the connection cord
-    if ((outobj->isSelected() && inobj->isSelected())) {
-        auto offset = pstart - currentPlan[0];
-        for (auto& point : currentPlan)
-            point += offset;
+    if (currentPlan.size() <= 2) {
+        resizeToFit();
         updatePath();
+        repaint();
         return;
     }
 
     int idx1 = 0;
     int idx2 = 1;
 
-    auto& position = pstart;
+    pStartLocal = getLocalPoint(cnv, pStart);
+    pEndLocal = getLocalPoint(cnv, pEnd);
+
+    auto& position = pStartLocal;
     if (&component == inlet || &component == inobj) {
         idx1 = static_cast<int>(currentPlan.size() - 1);
         idx2 = static_cast<int>(currentPlan.size() - 2);
-        position = pend;
+        position = pEndLocal;
     }
 
     if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
@@ -673,17 +699,27 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
 
     currentPlan[idx1] = position;
+    //pStart = getStartPoint();
+    //pEnd = getEndPoint();
+
+    resizeToFit();
     updatePath();
+    //pStart = getStartPoint();
+    //pEnd = getEndPoint();
+    //bounds = Rectangle<float>(pStart, pEnd).expanded(8).getSmallestIntegerContainer();
+    //setBounds(bounds.getUnion(toDraw.getBounds().expanded(8).getSmallestIntegerContainer()));
+
+    repaint();
 }
 
 Point<float> Connection::getStartPoint()
 {
-    return Point<float>(outlet->getCanvasBounds().toFloat().getCentreX(), outlet->getCanvasBounds().toFloat().getCentreY() - 0.5f);
+    return outlet->getCanvasBounds().toFloat().getCentre();
 }
 
 Point<float> Connection::getEndPoint()
 {
-    return Point<float>(inlet->getCanvasBounds().toFloat().getCentreX(), inlet->getCanvasBounds().toFloat().getCentreY());
+    return inlet->getCanvasBounds().toFloat().getCentre();
 }
 
 Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
@@ -744,18 +780,15 @@ void Connection::updatePath()
     if (!outlet || !inlet)
         return;
 
-    float left = std::min(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX()) - 4;
-    float top = std::min(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) - 4;
-    float right = std::max(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX()) + 4;
-    float bottom = std::max(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) + 4;
 
-    origin = Rectangle<float>(left, top, right - left, bottom - top).getPosition();
+    pStart = getStartPoint();
+    pEnd = getEndPoint();
 
-    auto pstart = getStartPoint() - origin;
-    auto pend = getEndPoint() - origin;
+    pStartLocal = getLocalPoint(cnv, pStart);
+    pEndLocal = getLocalPoint(cnv, pEnd);
 
     if (!segmented) {
-        toDraw = getNonSegmentedPath(pstart, pend);
+        toDraw = getNonSegmentedPath(pStartLocal, pEndLocal);
         currentPlan.clear();
     } else {
         if (currentPlan.empty()) {
@@ -764,42 +797,31 @@ void Connection::updatePath()
 
         auto snap = [this](Point<float> point, int idx1, int idx2) {
             if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
-                currentPlan[idx2].x = point.x + origin.x;
+                currentPlan[idx2].x = point.x;
             } else {
-                currentPlan[idx2].y = point.y + origin.y;
+                currentPlan[idx2].y = point.y;
             }
 
-            currentPlan[idx1] = point + origin;
+            currentPlan[idx1] = point;
         };
 
-        snap(pstart, 0, 1);
-        snap(pend, static_cast<int>(currentPlan.size() - 1), static_cast<int>(currentPlan.size() - 2));
+        snap(pStartLocal, 0, 1);
+        snap(pEndLocal, static_cast<int>(currentPlan.size() - 1), static_cast<int>(currentPlan.size() - 2));
 
         Path connectionPath;
-        connectionPath.startNewSubPath(pstart.toFloat());
+        connectionPath.startNewSubPath(pStartLocal);
 
         // Add points in between if we've found a path
         for (int n = 1; n < currentPlan.size() - 1; n++) {
             if (connectionPath.contains(currentPlan[n].toFloat()))
                 continue; // ??
 
-            connectionPath.lineTo(currentPlan[n].toFloat() - origin.toFloat());
+            connectionPath.lineTo(currentPlan[n].toFloat());
         }
 
-        connectionPath.lineTo(pend.toFloat());
+        connectionPath.lineTo(pEndLocal);
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
-
-    repaint();
-
-    auto bounds = toDraw.getBounds().expanded(8);
-    setBounds((bounds + origin).getSmallestIntegerContainer());
-
-    if (bounds.getX() < 0 || bounds.getY() < 0) {
-        toDraw.applyTransform(AffineTransform::translation(-bounds.getX() + 0.5f, -bounds.getY()));
-    }
-
-    offset = { -bounds.getX(), -bounds.getY() };
 
     startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
     endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 8.5f, 9.5f)));
@@ -810,8 +832,9 @@ void Connection::findPath()
     if (!outlet || !inlet)
         return;
 
-    auto pstart = getStartPoint();
-    auto pend = getEndPoint();
+    auto pStartFindPath = getStartPoint();
+    auto pEndFindPath = getEndPoint();
+
 
     auto pathStack = PathPlan();
     auto bestPath = PathPlan();
@@ -822,9 +845,9 @@ void Connection::findPath()
 
     float incrementX, incrementY;
 
-    auto distance = pstart.getDistanceFrom(pend);
-    auto distanceX = std::abs(pstart.x - pend.x);
-    auto distanceY = std::abs(pstart.y - pend.y);
+    auto distance = pStartFindPath.getDistanceFrom(pEndFindPath);
+    auto distanceX = std::abs(pStartFindPath.x - pEndFindPath.x);
+    auto distanceY = std::abs(pStartFindPath.y - pEndFindPath.y);
 
     int maxXResolution = std::clamp<int>(distanceX / 10, 6, 14);
     int maxYResolution = std::clamp<int>(distanceY / 10, 6, 14);
@@ -833,7 +856,7 @@ void Connection::findPath()
     int resolutionY = 6;
 
     auto obstacles = Array<Rectangle<float>>();
-    auto searchBounds = Rectangle<float>(pstart, pend);
+    auto searchBounds = Rectangle<float>(pStartFindPath, pEndFindPath);
 
     for (auto* object : cnv->objects) {
         if (object->getBounds().toFloat().intersects(searchBounds)) {
@@ -848,7 +871,7 @@ void Connection::findPath()
         incrementX = std::max<float>(1, distanceX / resolutionX);
         incrementY = std::max<float>(1, distanceY / resolutionY);
 
-        numFound = findLatticePaths(bestPath, pathStack, pend, pstart, { incrementX, incrementY });
+        numFound = findLatticePaths(bestPath, pathStack, pEndFindPath, pStartFindPath, { incrementX, incrementY });
 
         if (resolutionX < maxXResolution)
             resolutionX++;
@@ -861,44 +884,52 @@ void Connection::findPath()
         pathStack.clear();
     }
 
+    // =============== in local space now ==============
+
+    //pStartLocal = getLocalPoint(cnv, pStart);
+    //pEndLocal = getLocalPoint(cnv, pEnd);
+
+    pStartLocalFP = getLocalPoint(cnv, pStartFindPath);
+    pEndLocalFP = getLocalPoint(cnv, pEndFindPath);
+
     PathPlan simplifiedPath;
 
     bool direction;
     if (!bestPath.empty()) {
-        simplifiedPath.push_back(bestPath.front());
+        simplifiedPath.push_back(getLocalPoint(cnv, bestPath.front()));
 
         direction = bestPath[0].x == bestPath[1].x;
 
         if (!direction)
-            simplifiedPath.push_back(bestPath.front());
+            simplifiedPath.push_back(getLocalPoint(cnv, bestPath.front()));
 
         for (int n = 1; n < bestPath.size(); n++) {
             if ((bestPath[n].x != bestPath[n - 1].x && direction) || (bestPath[n].y != bestPath[n - 1].y && !direction)) {
-                simplifiedPath.push_back(bestPath[n - 1]);
+                simplifiedPath.push_back(getLocalPoint(cnv, bestPath[n - 1]));
                 direction = !direction;
             }
         }
 
-        simplifiedPath.push_back(bestPath.back());
+        simplifiedPath.push_back(getLocalPoint(cnv, bestPath.back()));
 
         if (!direction)
-            simplifiedPath.push_back(bestPath.back());
+            simplifiedPath.push_back(getLocalPoint(cnv, bestPath.back()));
     } else {
-        if (pend.y < pstart.y) {
-            int xHalfDistance = (pstart.x - pend.x) / 2;
+        if (pEndLocalFP.y < pStartLocalFP.y) {
+            auto xHalfDistance = (pStartLocalFP.x - pEndLocalFP.x) * 0.5f;
 
-            simplifiedPath.push_back(pend); // double to make it draggable
-            simplifiedPath.push_back(pend);
-            simplifiedPath.push_back({ pend.x + xHalfDistance, pend.y });
-            simplifiedPath.push_back({ pend.x + xHalfDistance, pstart.y });
-            simplifiedPath.push_back(pstart);
-            simplifiedPath.push_back(pstart);
+            simplifiedPath.push_back(pEndLocalFP); // double to make it draggable
+            simplifiedPath.push_back(pEndLocalFP);
+            simplifiedPath.push_back({ pEndLocalFP.x + xHalfDistance, pEndLocalFP.y });
+            simplifiedPath.push_back({ pEndLocalFP.x + xHalfDistance, pStartLocalFP.y });
+            simplifiedPath.push_back(pStartLocalFP);
+            simplifiedPath.push_back(pStartLocalFP);
         } else {
-            int yHalfDistance = (pstart.y - pend.y) / 2;
-            simplifiedPath.push_back(pend);
-            simplifiedPath.push_back({ pend.x, pend.y + yHalfDistance });
-            simplifiedPath.push_back({ pstart.x, pend.y + yHalfDistance });
-            simplifiedPath.push_back(pstart);
+            auto yHalfDistance = (pStartLocalFP.y - pEndLocalFP.y) * 0.5f;
+            simplifiedPath.push_back(pEndLocalFP);
+            simplifiedPath.push_back({ pEndLocalFP.x, pEndLocalFP.y + yHalfDistance });
+            simplifiedPath.push_back({ pStartLocalFP.x, pEndLocal.y + yHalfDistance });
+            simplifiedPath.push_back(pStartLocalFP);
         }
     }
     std::reverse(simplifiedPath.begin(), simplifiedPath.end());
