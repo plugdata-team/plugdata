@@ -526,9 +526,8 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
             i.shortcutKeyDescription = shortcutKey.trim();
 
             return i;
-        } else {
+        } else if(auto cnv = Component::SafePointer(parent->getCurrentCanvas())){
 
-            auto cnv = Component::SafePointer(parent->getCurrentCanvas());
             bool locked = getValue<bool>(cnv->locked) || getValue<bool>(cnv->commandLocked);
 
             PopupMenu::Item i;
