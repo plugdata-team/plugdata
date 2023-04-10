@@ -26,8 +26,7 @@ class Connection : public Component
     , public Value::Listener
     , public ChangeListener
     , public pd::MessageListener
-    , public SettableTooltipClient 
-    , public Timer {
+    , public SettableTooltipClient {
 public:
     int inIdx;
     int outIdx;
@@ -36,9 +35,6 @@ public:
     WeakReference<Object> inobj, outobj;
 
     Path toDraw;
-    Point<float> oldStart = {0,0};
-    Rectangle<int> toDrawBounds = {0,0,0,0};
-    Rectangle<int> previousRepaintArea = {0,0,0,0};
     String lastId;
 
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
@@ -61,10 +57,7 @@ public:
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
-    void timerCallback() override;
-
     void paint(Graphics&) override;
-    void repaintArea();
 
     bool isSegmented();
     void setSegmented(bool segmented);
@@ -122,8 +115,6 @@ private:
 
     Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
 
-    Rectangle<int> adjustedBounds;
-
     int getMultiConnectNumber();
     int getNumberOfConnections();
 
@@ -140,7 +131,7 @@ private:
 
     Canvas* cnv;
 
-    Point<float> offset;
+    Point<float> origin, offset;
 
     int dragIdx = -1;
 
@@ -160,8 +151,6 @@ private:
     std::vector<pd::Atom> lastValue;
     String lastSelector;
     std::mutex lastValueMutex;
-
-    RateReducer rateReducer = RateReducer(90);
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
@@ -205,8 +194,8 @@ public:
         if (rateReducer.tooFast())
             return;
 
-        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
-        auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition().toFloat());
+        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().getCentre());
+        auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition());
 
         auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
         auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
