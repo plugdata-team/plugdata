@@ -763,6 +763,39 @@ Point<float> Connection::getEndPoint()
     return inlet->getCanvasBounds().toFloat().getCentre();
 }
 
+void Connection::resamplePath(Path& path)
+{
+    const float dotProductThreshold = 0.99999f; // adjust this as needed
+    const float testLength = 1.0f;
+    Path resampledPath;
+    resampledPath.startNewSubPath(path.getPointAlongPath(0));
+
+    for (float i = testLength; i < path.getLength(); i += testLength)
+    {
+        Point<float> currPos = path.getPointAlongPath(i);
+        Point<float> nextPos = path.getPointAlongPath(i + testLength);
+        Point<float> prevPos = path.getPointAlongPath(i - testLength);
+
+        Point<float> prevToCurr = prevPos - currPos;
+        Point<float> currToNext = currPos - nextPos;
+
+        float prevToCurrLength = prevToCurr.getDistanceFromOrigin();
+        if (prevToCurrLength > 0)
+            prevToCurr /= prevToCurrLength;
+
+        float currToNextLength = currToNext.getDistanceFromOrigin();
+        if (currToNextLength > 0)
+            currToNext /= currToNextLength;
+
+        float dotProduct = currToNext.getDotProduct(prevToCurr);
+
+        if (dotProduct < dotProductThreshold)
+            resampledPath.lineTo(currPos);
+
+    }
+    resampledPath.lineTo(path.getPointAlongPath(path.getLength()));
+    path.swapWithPath(resampledPath);
+}
 
 Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
 {LOG
@@ -864,6 +897,12 @@ void Connection::updatePath()
         connectionPath.lineTo(pend.toFloat());
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
+
+    // turn off the experimental path resampler for now, it may be better to construct our own paths, instead of resampling
+    // when moving segmented paths it can glitch
+    //if (!PlugDataLook::getUseStraightConnections()) {
+    //    resamplePath(toDraw);
+    //}
 
     toDrawBounds = toDraw.getBounds().toNearestInt().expanded(8);
 

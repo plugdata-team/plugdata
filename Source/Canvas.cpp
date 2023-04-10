@@ -263,10 +263,14 @@ void Canvas::paint(Graphics& g)
     if (isGraph)
         return;
 
-    g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-
-    //g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
+    g.reduceClipRegion(canvasRepaintRegion);
     auto clipBounds = g.getClipBounds();
+
+    g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+    
+    // debugging
+    //g.setColour(Colours::red);
+    //g.drawRect(canvasRepaintRegion.reduced(10), 1.0f);
 
     // Clip bounds so that we have the smallest lines that fit the viewport, but also
     // compensate for line start, so the dashes don't stay fixed in place if they are drawn from

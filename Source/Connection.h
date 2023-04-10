@@ -89,6 +89,8 @@ public:
     Point<float> getStartPoint();
     Point<float> getEndPoint();
 
+    void resamplePath(Path& path);
+
     void reconnect(Iolet* target);
 
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
