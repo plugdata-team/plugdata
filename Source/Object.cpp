@@ -775,11 +775,6 @@ void Object::mouseDown(MouseEvent const& e)
     cnv->setSelected(this, true);
     
     if (e.mods.isPopupMenu()) {
-        
-        if (!e.mods.isShiftDown()) {
-            cnv->deselectAll();
-        }
-
         PopupMenu::dismissAllActiveMenus();
         Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
         return;
