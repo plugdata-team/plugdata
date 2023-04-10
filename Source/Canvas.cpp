@@ -239,10 +239,10 @@ void Canvas::paint(Graphics& g)
 {
     if (isGraph)
         return;
-
+    
     g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-
-    //g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
+    
+    g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
     auto clipBounds = g.getClipBounds();
 
     // Clip bounds so that we have the smallest lines that fit the viewport, but also
@@ -286,45 +286,46 @@ void Canvas::paint(Graphics& g)
         return;
 
     /*
-    ┌────────┐
-    │a      b│
-    │        │
-    │        │
-    │d      c│
-    └────────┘
-    */
-
+     ┌────────┐
+     │a      b│
+     │        │
+     │        │
+     │d      c│
+     └────────┘
+     */
+    
     // points for border
     auto pointA = Point<float>(clippedOrigin.x, clippedOrigin.y);
     auto pointB = Point<float>(patchWidthCanvas, clippedOrigin.y);
     auto pointC = Point<float>(patchWidthCanvas, patchHeightCanvas);
     auto pointD = Point<float>(clippedOrigin.x, patchHeightCanvas);
-
+    
     auto extentTop = Line<float>(pointA, pointB);
     auto extentLeft = Line<float>(pointA, pointD);
-
+    
     // arrange line points so that dashes appear to grow from origin and bottom right
     if (showOrigin) {
-
+        
+        
         // points for origin extending to edge of view
-        auto pointOriginB = Point<float>(getWidth(), clippedOrigin.y);
-        auto pointOriginD = Point<float>(clippedOrigin.x, getHeight());
-
+        auto pointOriginB = Point<float>(clipBounds.getRight(), clippedOrigin.y);
+        auto pointOriginD = Point<float>(clippedOrigin.x, clipBounds.getBottom());
+        
         extentTop = Line<float>(pointA, pointOriginB);
         extentLeft = Line<float>(pointA, pointOriginD);
     }
-
+    
     float dash[2] = { 5.0f, 5.0f };
-
+    
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-
+    
     g.drawDashedLine(extentLeft, dash, 2, 1.0f);
     g.drawDashedLine(extentTop, dash, 2, 1.0f);
-
+    
     if (showBorder) {
         auto extentRight = Line<float>(pointC, pointB);
         auto extentBottom = Line<float>(pointC, pointD);
-
+        
         g.drawDashedLine(extentRight, dash, 2, 1.0f);
         g.drawDashedLine(extentBottom, dash, 2, 1.0f);
     }
