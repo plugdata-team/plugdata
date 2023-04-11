@@ -764,18 +764,21 @@ void PluginEditor::valueChanged(Value& v)
 
             if (!cnv->viewport || pluginMode)
                 return;
+            
+            // Get floating point mouse position relative to screen
+            auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
 
-            // Save position of current mouse pos as a float relative to canvasOrigin
-            auto oldPosition = cnv->getLocalPoint(nullptr, Desktop::getInstance().getMainMouseSource().getScreenPosition());
+            // Get mouse position relative to canvas
+            auto oldPosition = cnv->getLocalPoint(nullptr, mousePosition);
             
             // Apply transform and make sure viewport bounds get updated
             cnv->setTransform(AffineTransform().scaled(newScaleFactor));
             cnv->checkBounds();
   
-            // After zooming, check where the mouse is now relative to origin
-            auto newPosition = cnv->getLocalPoint(nullptr, Desktop::getInstance().getMainMouseSource().getScreenPosition());
+            // After zooming, get mouse position relative to canvas again
+            auto newPosition = cnv->getLocalPoint(nullptr, mousePosition);
             
-            // Calculate offset to keep our mouse position the same, compared to origin, as before this zoom action
+            // Calculate offset to keep our mouse position the same as before this zoom action
             auto offset = newPosition - oldPosition;
             
             cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
