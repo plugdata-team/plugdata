@@ -141,11 +141,8 @@ private:
     TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pinButton, hideSidebarButton;
     TextButton editButton, runButton, presentButton;
 
-    // Creates a tooltip window, for objects that:
-    // - Have a parent with the type of the first template argument
-    // - Don't have a parent with the type of the second template argument
     TooltipWindowWithTarget<PluginEditor, Canvas> guiTooltipWindow;
-    TooltipWindowWithTarget<Canvas, Palettes> canvasTooltipWindow;
+    TooltipWindowWithTarget<Canvas, void> canvasTooltipWindow;
         
     TextButton seperators[8];
 

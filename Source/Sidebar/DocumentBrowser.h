@@ -388,16 +388,8 @@ public:
             auto* editor = dynamic_cast<PluginEditor*>(browser->pd->getActiveEditor());
             if (auto* cnv = editor->getCurrentCanvas()) {
                 cnv->attachNextObjectToMouse = true;
-                
-                auto lastPosition = cnv->lastMousePosition - Point<int>(Object::margin, Object::margin);
-                
-                if(cnv->viewport)
-                {
-                    // Get viewport area, compensate for zooming
-                    auto viewArea = cnv->viewport->getViewArea() / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-                    lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(lastPosition);
-                }
 
+                auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Object::margin, Object::margin));
                 auto filePath = file.getFullPathName().replaceCharacter('\\', '/');
                 cnv->objects.add(new Object(cnv, "msg " + filePath, lastPosition));
             }

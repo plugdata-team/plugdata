@@ -231,7 +231,6 @@ public:
     PaletteView(PluginEditor* e)
         : editor(e)
         , pd(e->pd)
-        , paletteTooltipWindow(e, &e->pd->lnf.get())
     {
 
         editModeButton.setButtonText(Icons::Edit);
@@ -291,8 +290,6 @@ public:
         };
 
         patchTitle.toBehind(&editModeButton);
-        
-        addAndMakeVisible(canvasContainer);
     }
 
     void savePalette()
@@ -348,10 +345,11 @@ public:
         auto newPatch = pd->openPatch(patchFile); // Don't delete old patch until canvas is replaced!
         cnv = std::make_unique<Canvas>(editor, *newPatch, nullptr, true);
         patch = newPatch;
+        viewport.reset(cnv->viewport);
 
         cnv->paletteDragMode.referTo(dragModeButton.getToggleStateValue());
 
-        canvasContainer.addAndMakeVisible(*cnv);
+        addAndMakeVisible(*viewport);
 
         auto name = paletteTree.getProperty("Name").toString();
         if (name.isNotEmpty()) {
@@ -378,12 +376,13 @@ public:
         cnv->lookAndFeelChanged();
         cnv->setColour(PlugDataColour::canvasBackgroundColourId, Colours::transparentBlack);
         cnv->setColour(PlugDataColour::canvasDotsColourId, Colours::transparentBlack);
-        
+
         resized();
         repaint();
         cnv->repaint();
         
         cnv->synchronise();
+        cnv->jumpToOrigin();
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -457,9 +456,6 @@ public:
         if (v.refersToSameSourceAs(locked)) {
             editModeButton.setToggleState(!getValue<bool>(locked), dontSendNotification);
         }
-        {
-            
-        }
     }
 
     void paint(Graphics& g) override
@@ -492,10 +488,9 @@ public:
 
         deleteButton.setBounds(secondPanel.removeFromRight(panelHeight + 6).expanded(2, 3));
 
-        canvasContainer.setBounds(b);
         if (cnv) {
-            const auto& origin = cnv->canvasOrigin;
-            cnv->setBounds(-origin.x, -origin.y, b.getWidth() + origin.x, b.getHeight() + origin.y);
+            cnv->viewport->getPositioner()->applyNewBounds(b);
+            cnv->checkBounds();
         }
     }
 
@@ -513,11 +508,10 @@ private:
     pd::Patch::Ptr patch;
     ValueTree paletteTree;
     PluginEditor* editor;
-        
-    Component canvasContainer;
 
     std::unique_ptr<DraggedComponentGroup> dragger = nullptr;
     std::unique_ptr<Canvas> cnv;
+    std::unique_ptr<Viewport> viewport;
 
     Label patchTitle;
 
@@ -526,8 +520,6 @@ private:
     TextButton dragModeButton;
 
     TextButton deleteButton;
-        
-    TooltipWindowWithTarget<Palettes, void> paletteTooltipWindow;
 
     std::function<StringArray()> getComboOptions = []() { return StringArray(); };
 };
@@ -594,6 +586,7 @@ public:
         : view(editor)
         , resizer(this)
     {
+
         if (!palettesFile.exists()) {
             palettesFile.create();
 
@@ -994,5 +987,6 @@ private:
         int dragStartWidth = 0;
         Component* target;
     };
+
     ResizerComponent resizer;
 };

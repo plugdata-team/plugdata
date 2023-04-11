@@ -835,7 +835,6 @@ void PluginEditor::updateCommandStatus()
 
         canvasTooltipWindow.hide(locked);
 
-        
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr)
             return;
@@ -1412,8 +1411,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
             [this](int result, String const& name, String const& size) {
                 if (result) {
                     auto* cnv = getCurrentCanvas(true);
-                    auto pos = cnv->viewport ? cnv->viewport->getViewArea().getCentre() : cnv->canvasOrigin;
-                    auto* object = new Object(cnv, "graph " + name + " " + size, pos);
+                    auto* object = new Object(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
                     cnv->objects.add(object);
                 }
             });
@@ -1425,13 +1423,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
         cnv = getCurrentCanvas(true);
 
         // Get viewport area, compensate for zooming
-        auto lastPosition = cnv->lastMousePosition - Point<int>(Object::margin, Object::margin);
-        
-        if(cnv->viewport)
-        {
-            auto viewArea = cnv->viewport->getViewArea() / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-            lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(lastPosition);
-        }
+        auto viewArea = cnv->viewport->getViewArea() / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+        auto lastPosition = viewArea.getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
 
         auto ID = static_cast<ObjectIDs>(info.commandID);
 

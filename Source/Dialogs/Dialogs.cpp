@@ -539,16 +539,8 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
             i.action = [parent, cnv, commandID]() {
                 if (!cnv)
                     return;
-                
-                
-                auto lastPosition = cnv->lastMousePosition - Point<int>(Object::margin, Object::margin);
-                
-                if(cnv->viewport)
-                {
-                    // Get viewport area, compensate for zooming
-                    auto viewArea = cnv->viewport->getViewArea() / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-                    lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(lastPosition);
-                }
+
+                auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
 
                 cnv->objects.add(new Object(cnv, objectNames.at(static_cast<ObjectIDs>(commandID)), lastPosition));
                 cnv->deselectAll();
