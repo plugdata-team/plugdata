@@ -250,7 +250,7 @@ public:
                     float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     if (invert)
                         y = getHeight() - y;
-                    g.drawHorizontalLine(y, static_cast<float>(i) * dw_points, static_cast<float>(i + 1) * dw_points);
+                    g.drawLine(static_cast<float>(i) * dw_points, y, static_cast<float>(i + 1) * dw_points, y, 2.0f);
                 }
                 break;
             }
