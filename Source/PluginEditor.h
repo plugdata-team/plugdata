@@ -141,8 +141,7 @@ private:
     TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pinButton, hideSidebarButton;
     TextButton editButton, runButton, presentButton;
 
-    TooltipWindowWithTarget<PluginEditor, Canvas> guiTooltipWindow;
-    TooltipWindowWithTarget<Canvas, void> canvasTooltipWindow;
+    CheckedTooltip tooltipWindow;
         
     TextButton seperators[8];
 

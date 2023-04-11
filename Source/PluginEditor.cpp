@@ -88,10 +88,17 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , statusbar(std::make_unique<Statusbar>(&p))
     , zoomLabel(std::make_unique<ZoomLabel>())
     , sidebar(std::make_unique<Sidebar>(&p, this))
-    , guiTooltipWindow(this, &pd->lnf.get())
-    , canvasTooltipWindow(this, &pd->lnf.get())
     , splitView(this)
     , openedDialog(nullptr)
+    , tooltipWindow(this, [](Component* c){
+        
+        if(auto* cnv = c->findParentComponentOfClass<Canvas>())
+        {
+            return !getValue<bool>(cnv->locked) || getValue<bool>(cnv->paletteDragMode);
+        }
+        
+        return true;
+    })
 {
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
@@ -832,8 +839,6 @@ void PluginEditor::updateCommandStatus()
         } else {
             editButton.setToggleState(true, dontSendNotification);
         }
-
-        canvasTooltipWindow.hide(locked);
 
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr)

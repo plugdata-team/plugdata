@@ -260,6 +260,12 @@ public:
         dragModeButton.setConnectedEdges(Button::ConnectedOnLeft);
         dragModeButton.onClick = [this]() {
             cnv->locked = true;
+            
+            // Make sure that iolets get repainted
+            for (auto* object : cnv->objects) {
+                for (auto* iolet : object->iolets)
+                    reinterpret_cast<Component*>(iolet)->repaint();
+            }
         };
 
         addAndMakeVisible(dragModeButton);

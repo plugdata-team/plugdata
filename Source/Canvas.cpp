@@ -241,7 +241,7 @@ void Canvas::paint(Graphics& g)
     
     g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
     
-    g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
+    if(viewport) g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
     auto clipBounds = g.getClipBounds();
 
     // Clip bounds so that we have the smallest lines that fit the viewport, but also
@@ -659,6 +659,8 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
 bool Canvas::autoscroll(MouseEvent const& e)
 {
+    if(!viewport) return;
+    
     auto x = viewport->getViewPositionX();
     auto y = viewport->getViewPositionY();
     auto oldY = y;
