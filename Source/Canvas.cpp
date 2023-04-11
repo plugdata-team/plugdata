@@ -37,7 +37,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
     , pathUpdater(new ConnectionPathUpdater(this))
     , isPalette(palette)
     , graphArea(nullptr)
-    , tooltipWindow(this, &pd->lnf.get())
 {
     isGraphChild = glist_isgraph(patch.getPointer());
     hideNameAndArgs = static_cast<bool>(patch.getPointer()->gl_hidetext);

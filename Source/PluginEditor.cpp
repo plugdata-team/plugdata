@@ -88,7 +88,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , statusbar(std::make_unique<Statusbar>(&p))
     , zoomLabel(std::make_unique<ZoomLabel>())
     , sidebar(std::make_unique<Sidebar>(&p, this))
-    , tooltipWindow(this, &pd->lnf.get())
+    , guiTooltipWindow(this, &pd->lnf.get())
+    , canvasTooltipWindow(this, &pd->lnf.get())
     , splitView(this)
     , openedDialog(nullptr)
 {
@@ -829,7 +830,7 @@ void PluginEditor::updateCommandStatus()
             editButton.setToggleState(true, dontSendNotification);
         }
 
-        cnv->tooltipWindow.hide(locked);
+        canvasTooltipWindow.hide(locked);
 
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr)

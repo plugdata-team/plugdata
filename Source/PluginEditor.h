@@ -141,8 +141,9 @@ private:
     TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pinButton, hideSidebarButton;
     TextButton editButton, runButton, presentButton;
 
-    TooltipWindowWithTarget<PluginEditor, Canvas> tooltipWindow;
-
+    TooltipWindowWithTarget<PluginEditor, Canvas> guiTooltipWindow;
+    TooltipWindowWithTarget<Canvas, void> canvasTooltipWindow;
+        
     TextButton seperators[8];
 
     std::unique_ptr<ZoomLabel> zoomLabel;
