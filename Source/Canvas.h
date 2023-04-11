@@ -9,7 +9,7 @@
 #include "ObjectGrid.h"          // move to impl
 #include "Utility/RateReducer.h" // move to impl
 #include "Utility/ModifierKeyListener.h"
-#include "Utility/TooltipWindowWithTarget.h"
+#include "Utility/CheckedTooltip.h"
 #include "Pd/MessageListener.h"
 #include "Pd/Patch.h"
 #include "Constants.h"
