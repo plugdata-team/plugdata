@@ -291,7 +291,7 @@ public:
         return colour.withAlpha((uint8) 0xff);
     }
     
-    void setCurrentColour (Colour c, NotificationType notification = sendNotification)
+    void setCurrentColour (Colour c, NotificationType notification = dontSendNotification)
     {
         if (c != colour)
         {
@@ -312,7 +312,7 @@ private:
         {
             v = newV;
             colour = Colour (h, s, v, colour.getFloatAlpha());
-            update (sendNotification);
+            update (dontSendNotification);
         }
     }
     
