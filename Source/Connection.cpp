@@ -389,7 +389,7 @@ void Connection::paint(Graphics& g)
     renderConnectionPath(g,
         cnv,
         toDraw,
-        outlet->isSignal,
+        outlet ? outlet->isSignal : false,
         isMouseOver(),
         showDirection,
         showConnectionOrder,
