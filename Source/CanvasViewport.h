@@ -53,10 +53,7 @@ class CanvasViewport : public Viewport
             // Auto-repeating the drag makes it smoother, but it's not a perfect solution
             //beginDragAutoRepeat(16);
 
-            float scale = 1.0f;
-            if (auto* viewedComponent = viewport->getViewedComponent()) {
-                scale = std::sqrt(std::abs(viewedComponent->getTransform().getDeterminant()));
-            }
+            float scale = std::sqrt(std::abs(viewport->cnv->getTransform().getDeterminant()));
 
             auto infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
             viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
@@ -292,8 +289,8 @@ public:
 
         vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
         hbar.setBounds(localArea.removeFromBottom(thickness));
-
-        float scale = 1.0f / editor->getZoomScaleForCanvas(cnv);
+        
+        float scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
         auto contentArea = getViewArea() * scale;
         
         Rectangle<int> objectArea;
