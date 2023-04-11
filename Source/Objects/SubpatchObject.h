@@ -112,7 +112,7 @@ public:
             checkGraphState();
         } else if (v.refersToSameSourceAs(object->hvccMode)) {
             if (getValue<bool>(v)) {
-                checkHvccCompatibility(subpatch);
+                checkHvccCompatibility(subpatch.get());
             }
         }
     }
@@ -135,7 +135,7 @@ public:
             const String name = libpd_get_object_class_name(object);
 
             if (name == "canvas" || name == "graph") {
-                auto patch = pd::Patch(object, instance, false);
+                pd::Patch::Ptr patch = new pd::Patch(object, instance, false);
 
                 char* text = nullptr;
                 int size = 0;
