@@ -48,8 +48,6 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        std::cout << locked << std::endl;
-        
         if (locked && click()) {
             return;
         }

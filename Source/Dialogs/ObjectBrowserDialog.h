@@ -144,7 +144,14 @@ public:
                 if (!cnv || !_this)
                     return;
 
-                auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
+                auto lastPosition = cnv->lastMousePosition - Point<int>(Object::margin, Object::margin);
+                
+                if(cnv->viewport)
+                {
+                    // Get viewport area, compensate for zooming
+                    auto viewArea = cnv->viewport->getViewArea() / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+                    lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(lastPosition);
+                }
 
                 cnv->attachNextObjectToMouse = true;
                 cnv->objects.add(new Object(cnv, _this->objectName, lastPosition));

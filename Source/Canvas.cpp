@@ -198,7 +198,7 @@ void Canvas::updateOverlays()
 
 void Canvas::recreateViewport()
 {
-    if (isGraph)
+    if (isGraph || isPalette)
         return;
 
     auto* canvasViewport = new CanvasViewport(editor, this);
@@ -223,6 +223,8 @@ void Canvas::recreateViewport()
 
 void Canvas::jumpToOrigin()
 {
+    if(!viewport) return;
+    
     float scale = editor->getZoomScaleForCanvas(this);
 
     setTopLeftPosition(-canvasOrigin + Point<int>(1, 1));
@@ -241,7 +243,8 @@ void Canvas::paint(Graphics& g)
     
     g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
     
-    g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
+    if(viewport) g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
+    
     auto clipBounds = g.getClipBounds();
 
     // Clip bounds so that we have the smallest lines that fit the viewport, but also
@@ -304,8 +307,6 @@ void Canvas::paint(Graphics& g)
     
     // arrange line points so that dashes appear to grow from origin and bottom right
     if (showOrigin) {
-        
-        
         // points for origin extending to edge of view
         auto pointOriginB = Point<float>(clipBounds.getRight(), clippedOrigin.y);
         auto pointOriginD = Point<float>(clippedOrigin.x, clipBounds.getBottom());
@@ -647,10 +648,12 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
         return;
     }
-
-    auto viewportEvent = e.getEventRelativeTo(viewport);
-    if (viewport && !ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
-        beginDragAutoRepeat(25);
+    
+    if(viewport) {
+        auto viewportEvent = e.getEventRelativeTo(viewport);
+        if (viewport && !ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
+            beginDragAutoRepeat(25);
+        }
     }
 
     // Drag lasso
@@ -659,6 +662,8 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
 bool Canvas::autoscroll(MouseEvent const& e)
 {
+    if(!viewport) return;
+    
     auto x = viewport->getViewPositionX();
     auto y = viewport->getViewPositionY();
     auto oldY = y;

@@ -134,8 +134,13 @@ void Object::timerCallback()
 {
     auto pos = cnv->getMouseXYRelative();
     if (pos != getBounds().getCentre()) {
-        auto viewArea = cnv->viewport->getViewArea() / cnv->editor->getZoomScaleForCanvas(cnv);
-        setCentrePosition(viewArea.getConstrainedPoint(pos));
+        if(cnv->viewport)
+        {
+            auto viewArea = cnv->viewport->getViewArea() / cnv->editor->getZoomScaleForCanvas(cnv);
+            pos = viewArea.getConstrainedPoint(pos);
+        }
+        
+        setCentrePosition(pos);
     }
 }
 
@@ -288,14 +293,6 @@ void Object::applyBounds()
                 object->gui->setPdBounds(bounds);
 
                 canvas_dirty(cnv->patch.getPointer(), 1);
-
-                // Resize canvas in case we dragged object out of bounds
-                if (!cnv->viewport->getViewArea().contains(object->getBounds())) {
-                    MessageManager::callAsync([o = object]() {
-                        if (o)
-                            o->cnv->checkBounds();
-                    });
-                }
             }
 
             patch->endUndoSequence("resize");

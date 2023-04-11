@@ -52,7 +52,7 @@ Rectangle<int> Iolet::getCanvasBounds()
 
 bool Iolet::hitTest(int x, int y)
 {
-    if (getValue<bool>(locked))
+   if (getValue<bool>(locked) && !cnv->isPalette)
         return false;
 
     Path smallBounds;
