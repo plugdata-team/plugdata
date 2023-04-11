@@ -225,8 +225,14 @@ void ObjectBase::closeOpenedSubpatchers()
 bool ObjectBase::click()
 {
     pd->setThis();
-
-    return libpd_has_click_function(static_cast<t_object*>(ptr));
+    
+    if(libpd_has_click_function(static_cast<t_object*>(ptr)))
+    {
+        pd->enqueueDirectMessages(ptr, "click", {});
+        return true;
+    }
+    
+    return false;
 }
 
 void ObjectBase::openSubpatch()

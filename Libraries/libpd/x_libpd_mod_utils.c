@@ -660,8 +660,13 @@ int libpd_has_click_function(t_object const* x)
 #else
     mlist = c->c_methods;
 #endif
-    for (i = c->c_nmethod, m = mlist; i--; m++)
-        if (m->me_name == gensym("click") && m->me_arg[0] == '\0') return 1;
+    for (i = c->c_nmethod, m = mlist; i--; m++) {
+        if (m->me_name && m->me_name->s_name && !strcmp(m->me_name->s_name, "click") && m->me_arg[0] == '\0') {
+            
+            return 1;
+        }
+        
+    }
     
     return 0;
 }

@@ -46,6 +46,8 @@ void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre,
 
     dialog->setViewedComponent(saveDialog);
     target->reset(dialog);
+    
+    centre->getTopLevelComponent()->toFront(true);
 }
 void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback)
 {
