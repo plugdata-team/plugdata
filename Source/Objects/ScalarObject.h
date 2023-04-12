@@ -194,6 +194,9 @@ public:
                 auto xOffset = canvas->isGraph ? glist->gl_xmargin : 0;
                 auto yOffset = canvas->isGraph ? glist->gl_ymargin : 0;
 
+                xOffset += canvas->canvasOrigin.x;
+                yOffset += canvas->canvasOrigin.y;
+                
                 pix[2 * i] = xCoord * bounds.getWidth() + xOffset;
                 pix[2 * i + 1] = yCoord * bounds.getHeight() + yOffset;
             }
