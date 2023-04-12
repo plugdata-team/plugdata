@@ -175,6 +175,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     connectionPathfind.setButtonText(Icons::Wand);
     protectButton.setButtonText(Icons::Protection);
     centreButton.setButtonText(Icons::Centre);
+    fitAllButton.setButtonText(Icons::FitAll);
 
     powerButton.setTooltip("Enable/disable DSP");
     powerButton.setClickingTogglesState(true);
@@ -195,6 +196,17 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
 
     addAndMakeVisible(centreButton);
+
+    fitAllButton.setTooltip("Zoom to fit all");
+    fitAllButton.getProperties().set("Style", "SmallIcon");
+    fitAllButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        if (auto* cnv = editor->getCurrentCanvas()) {
+            cnv->zoomToFitAll();
+        }
+    };
+
+    addChildComponent(fitAllButton);
 
     connectionStyleButton.setTooltip("Enable segmented connections");
     connectionStyleButton.setClickingTogglesState(true);
@@ -337,7 +349,7 @@ void Statusbar::resized()
     position(5); // Seperator
 
     centreButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-
+    fitAllButton.setBounds(centreButton.getBounds().getX(), 0, getHeight(), getHeight());
     position(7); // Seperator
 
     overlayButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
@@ -364,8 +376,24 @@ void Statusbar::resized()
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }
 
+void Statusbar::setCentreAndFitAllButtonColourState(bool areObjectsOutsideView)
+{
+    if (areObjectsOutsideView) {
+        centreButton.setColour(PlugDataColour::toolbarTextColourId, findColour(PlugDataColour::toolbarActiveColourId));
+        fitAllButton.setColour(PlugDataColour::toolbarTextColourId, findColour(PlugDataColour::toolbarActiveColourId));
+    } else {
+        centreButton.setColour(PlugDataColour::toolbarTextColourId, findColour(PlugDataColour::toolbarTextColourId));
+        fitAllButton.setColour(PlugDataColour::toolbarTextColourId, findColour(PlugDataColour::toolbarTextColourId));
+    }
+}
+
 void Statusbar::shiftKeyChanged(bool isHeld)
 {
+    if (isShiftHeld != isHeld) {
+        isShiftHeld = isHeld;
+        centreButton.setVisible(!isHeld);
+        fitAllButton.setVisible(isHeld);
+    }
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)

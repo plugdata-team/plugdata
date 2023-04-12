@@ -114,6 +114,7 @@ public:
 
     void checkBounds();
     void jumpToOrigin();
+    void zoomToFitAll();
 
     bool autoscroll(MouseEvent const& e);
 
