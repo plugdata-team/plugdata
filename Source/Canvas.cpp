@@ -633,7 +633,7 @@ void Canvas::mouseDown(MouseEvent const& e)
         editor->updateCommandStatus();
     }
     // Right click
-    else {
+    else if(!editor->pluginMode){
         if (!(e.mods.isShiftDown() && e.mods.isPopupMenu())) {
             deselectAll();
         }
