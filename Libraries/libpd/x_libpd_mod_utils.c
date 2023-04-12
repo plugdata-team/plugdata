@@ -665,7 +665,6 @@ int libpd_has_click_function(t_object const* x)
             
             return 1;
         }
-        
     }
     
     return 0;

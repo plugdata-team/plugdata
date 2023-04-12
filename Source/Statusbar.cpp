@@ -376,16 +376,6 @@ void Statusbar::resized()
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }
 
-
-void Statusbar::shiftKeyChanged(bool isHeld)
-{
-    if (isShiftHeld != isHeld) {
-        isShiftHeld = isHeld;
-        centreButton.setVisible(!isHeld);
-        fitAllButton.setVisible(isHeld);
-    }
-}
-
 void Statusbar::audioProcessedChanged(bool audioProcessed)
 {
     auto colour = findColour(audioProcessed ? PlugDataColour::levelMeterActiveColourId : PlugDataColour::signalColourId);

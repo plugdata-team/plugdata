@@ -118,31 +118,42 @@ public:
 class KnobObject : public ObjectBase {
 
     struct t_fake_knob {
-        t_object       x_obj;
-        t_glist       *x_glist;
-        int            x_size;
-        t_float          x_pos;  // 0-1 normalized position
-        t_float          x_exp;
-        int             x_expmode;
-        t_float          x_init;
-        int            x_start_angle;
-        int            x_end_angle;
-        int            x_range;
-        int            x_offset;
-        int            x_ticks;
-        double         x_min;
-        double         x_max;
-        int            x_sel;
-        int            x_shift;
-        t_float        x_fval;
-        t_symbol      *x_fg;
-        t_symbol      *x_bg;
-        t_symbol      *x_snd;
-        t_symbol      *x_rcv;
-        int            x_circular;
-        int            x_arc;
-        int            x_zoom;
-        int            x_discrete;
+        t_object    x_obj;
+        t_glist    *x_glist;
+        int         x_size;
+        t_float     x_pos; // 0-1 normalized position
+        t_float     x_exp;
+        int         x_expmode;
+        t_float     x_init;
+        int         x_start_angle;
+        int         x_end_angle;
+        int         x_range;
+        int         x_offset;
+        int         x_ticks;
+        double      x_min;
+        double      x_max;
+        int         x_sel;
+        int         x_shift;
+        t_float     x_fval;
+        t_symbol   *x_fg;
+        t_symbol   *x_bg;
+        t_symbol   *x_snd;
+        t_symbol   *x_rcv;
+        int         x_circular;
+        int         x_arc;
+        int         x_zoom;
+        int         x_discrete;
+        char        x_tag_obj[128];
+        char        x_tag_circle[128];
+        char        x_tag_arc[128];
+        char        x_tag_center[128];
+        char        x_tag_wiper[128];
+        char        x_tag_wpr_c[128];
+        char        x_tag_ticks[128];
+        char        x_tag_outline[128];
+        char        x_tag_in[128];
+        char        x_tag_out[128];
+        char        x_tag_sel[128];
     };
 
     Knob knob;

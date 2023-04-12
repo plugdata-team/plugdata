@@ -66,8 +66,6 @@ public:
 
     void resized() override;
 
-    void shiftKeyChanged(bool isHeld) override;
-
     void propertyChanged(String name, var value) override;
 
     void audioProcessedChanged(bool audioProcessed) override;
@@ -92,8 +90,6 @@ public:
     Slider volumeSlider;
 
     Value showDirection;
-
-    bool isShiftHeld;
 
     static constexpr int statusbarHeight = 30;
 
