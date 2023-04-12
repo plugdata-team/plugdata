@@ -72,8 +72,6 @@ public:
 
     void audioProcessedChanged(bool audioProcessed) override;
 
-    void setCentreAndFitAllButtonColourState(bool areObjectsOutsideView);
-
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
 
     LevelMeter* levelMeter;

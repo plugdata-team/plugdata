@@ -318,32 +318,8 @@ public:
     void visibleAreaChanged(const Rectangle<int>& r) override
     {
         adjustScrollbarBounds();
-        editor->statusbar->setCentreAndFitAllButtonColourState(areObjectsOutsideView());
-
     }
-
-    bool areObjectsOutsideView()
-    {
-        if (cnv->objects.isEmpty()) {
-            return false;
-        }
-
-        auto scale = editor->getZoomScaleForCanvas(cnv);
-
-        auto regionOfInterest = Rectangle<int>();
-        for (auto* object : cnv->objects) {
-            // test with 1 added to margin for padding, we may want to test if the objects are completely outside
-            regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin + 1));
-        }
-
-        auto viewArea = getViewArea().toFloat() / scale;
-
-        if (viewArea.contains(regionOfInterest.toFloat())){
-            return false;
-        } else 
-            return true;
-    }
-
+    
     void resized() override
     {
         if (editor->pd->pluginMode != var(false))

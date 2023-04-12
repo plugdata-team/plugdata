@@ -231,7 +231,7 @@ void Canvas::jumpToOrigin()
 
 void Canvas::zoomToFitAll()
 {
-    if (objects.isEmpty())
+    if (objects.isEmpty() || !viewport)
         return;
 
     auto scale = editor->getZoomScaleForCanvas(this);
@@ -255,13 +255,13 @@ void Canvas::zoomToFitAll()
         auto transform = getTransform();
         transform = transform.scaled(scale);
         setTransform(transform);
-        scale = transform.getScaleFactor();
-        editor->zoomScale.setValue(scale);
+        scale = std::sqrt(std::abs(transform.getDeterminant()));
+        editor->getZoomScaleValueForCanvas(this).setValue(scale);
     }
     //TODO we should set the fit all area to the centre of the view area - but this isn't working for some reason
     // for now we will set the top left of the region of interest
-    //setTopLeftPosition(-regionOfInterest.getCentre() + viewArea.getCentre());
-    setTopLeftPosition(-regionOfInterest.getTopLeft());
+    auto centre = viewport->getViewArea().withZeroOrigin().getCentre() / scale;
+    setTopLeftPosition(centre - regionOfInterest.getCentre());
     viewport->resized();
 }
 

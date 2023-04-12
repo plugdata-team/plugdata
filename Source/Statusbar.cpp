@@ -206,7 +206,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
         }
     };
 
-    addChildComponent(fitAllButton);
+    addAndMakeVisible(fitAllButton);
 
     connectionStyleButton.setTooltip("Enable segmented connections");
     connectionStyleButton.setClickingTogglesState(true);
@@ -349,7 +349,7 @@ void Statusbar::resized()
     position(5); // Seperator
 
     centreButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    fitAllButton.setBounds(centreButton.getBounds().getX(), 0, getHeight(), getHeight());
+    fitAllButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
     position(7); // Seperator
 
     overlayButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
@@ -376,16 +376,6 @@ void Statusbar::resized()
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }
 
-void Statusbar::setCentreAndFitAllButtonColourState(bool areObjectsOutsideView)
-{
-    if (areObjectsOutsideView) {
-        centreButton.setColour(PlugDataColour::toolbarTextColourId, findColour(PlugDataColour::toolbarActiveColourId));
-        fitAllButton.setColour(PlugDataColour::toolbarTextColourId, findColour(PlugDataColour::toolbarActiveColourId));
-    } else {
-        centreButton.setColour(PlugDataColour::toolbarTextColourId, findColour(PlugDataColour::toolbarTextColourId));
-        fitAllButton.setColour(PlugDataColour::toolbarTextColourId, findColour(PlugDataColour::toolbarTextColourId));
-    }
-}
 
 void Statusbar::shiftKeyChanged(bool isHeld)
 {
