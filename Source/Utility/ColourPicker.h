@@ -291,7 +291,7 @@ public:
         return colour.withAlpha((uint8) 0xff);
     }
     
-    void setCurrentColour (Colour c, NotificationType notification = dontSendNotification)
+    void setCurrentColour (Colour c, NotificationType notification = sendNotification)
     {
         if (c != colour)
         {
@@ -312,7 +312,7 @@ private:
         {
             v = newV;
             colour = Colour (h, s, v, colour.getFloatAlpha());
-            update (dontSendNotification);
+            update (sendNotification);
         }
     }
     
@@ -345,12 +345,12 @@ private:
     {
         if (sliders[0] != nullptr)
         {
-            sliders[0]->setValue ((int) colour.getRed(),   notification);
-            sliders[1]->setValue ((int) colour.getGreen(), notification);
-            sliders[2]->setValue ((int) colour.getBlue(),  notification);
+            sliders[0]->setValue ((int) colour.getRed(),   dontSendNotification);
+            sliders[1]->setValue ((int) colour.getGreen(), dontSendNotification);
+            sliders[2]->setValue ((int) colour.getBlue(),  dontSendNotification);
         }
         
-        hexEditor.setText(colour.toString().substring(2), notification);
+        hexEditor.setText(colour.toString().substring(2), dontSendNotification);
         
         colourSpace.updateIfNeeded();
         brightnessSelector.updateIfNeeded();
