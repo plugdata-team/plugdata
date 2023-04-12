@@ -72,12 +72,14 @@ public:
 
     void audioProcessedChanged(bool audioProcessed) override;
 
+    void setCentreAndFitAllButtonColourState(bool areObjectsOutsideView);
+
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
 
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
 
-    TextButton powerButton, connectionStyleButton, connectionPathfind, centreButton, protectButton;
+    TextButton powerButton, connectionStyleButton, connectionPathfind, centreButton, fitAllButton, protectButton;
 
     TextButton overlayButton, overlaySettingsButton;
     std::unique_ptr<OverlayDisplaySettings> overlayDisplaySettings;
@@ -92,6 +94,8 @@ public:
     Slider volumeSlider;
 
     Value showDirection;
+
+    bool isShiftHeld;
 
     static constexpr int statusbarHeight = 30;
 

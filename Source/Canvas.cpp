@@ -229,6 +229,42 @@ void Canvas::jumpToOrigin()
     viewport->resized();
 }
 
+void Canvas::zoomToFitAll()
+{
+    if (objects.isEmpty())
+        return;
+
+    auto scale = editor->getZoomScaleForCanvas(this);
+
+    auto regionOfInterest = Rectangle<int>();
+    for (auto* object : objects) {
+        regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
+    }
+
+    auto viewArea = viewport->getViewArea() / scale;
+
+    auto roiHeight = static_cast<float>(regionOfInterest.getHeight());
+    auto roiWidth = static_cast<float>(regionOfInterest.getWidth());
+    auto viewHeight = viewArea.getHeight();
+    auto viewWidth = viewArea.getWidth();
+
+    if (roiWidth > viewWidth || roiHeight > viewHeight) {
+        auto scaleWidth = viewWidth / roiWidth;
+        auto scaleHeight = viewHeight / roiHeight;
+        scale = jmin(scaleWidth, scaleHeight);
+        auto transform = getTransform();
+        transform = transform.scaled(scale);
+        setTransform(transform);
+        scale = transform.getScaleFactor();
+        editor->zoomScale.setValue(scale);
+    }
+    //TODO we should set the fit all area to the centre of the view area - but this isn't working for some reason
+    // for now we will set the top left of the region of interest
+    //setTopLeftPosition(-regionOfInterest.getCentre() + viewArea.getCentre());
+    setTopLeftPosition(-regionOfInterest.getTopLeft());
+    viewport->resized();
+}
+
 void Canvas::lookAndFeelChanged()
 {
     lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
@@ -659,7 +695,8 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
 bool Canvas::autoscroll(MouseEvent const& e)
 {
-    if(!viewport) return;
+    if(!viewport) 
+        return false;
     
     auto x = viewport->getViewPositionX();
     auto y = viewport->getViewPositionY();

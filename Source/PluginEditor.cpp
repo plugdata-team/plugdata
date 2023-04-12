@@ -765,7 +765,7 @@ void PluginEditor::valueChanged(Value& v)
         }
 
         auto* tabbar = v.refersToSameSourceAs(zoomScale) ? splitView.getLeftTabbar() : splitView.getRightTabbar();
-
+        
         if (auto* cnv = getCurrentCanvas()) {
             cnv->hideSuggestions();
 
@@ -794,6 +794,7 @@ void PluginEditor::valueChanged(Value& v)
             // Without this, future calls to getViewPosition() will give wrong results
             cnv->viewport->resized();
         }
+        
 
         zoomLabel->setZoomLevel(newScaleFactor);
     }
@@ -872,6 +873,7 @@ void PluginEditor::updateCommandStatus()
         presentButton.setEnabled(true);
 
         statusbar->centreButton.setEnabled(true);
+        statusbar->fitAllButton.setEnabled(true);
 
         addObjectMenuButton.setEnabled(!locked);
     } else {
@@ -883,6 +885,7 @@ void PluginEditor::updateCommandStatus()
         statusbar->connectionStyleButton.setEnabled(false);
         statusbar->connectionPathfind.setEnabled(false);
         statusbar->centreButton.setEnabled(false);
+        statusbar->fitAllButton.setEnabled(false);
 
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
