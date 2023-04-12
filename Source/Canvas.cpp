@@ -240,6 +240,9 @@ void Canvas::zoomToFitAll()
     for (auto* object : objects) {
         regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
     }
+    
+    // Add a bit of margin to make it nice
+    regionOfInterest = regionOfInterest.expanded(16);
 
     auto viewArea = viewport->getViewArea() / scale;
 

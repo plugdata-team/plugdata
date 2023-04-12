@@ -129,7 +129,7 @@ public:
             float value = getValue<float>(zoomValue);
 
             // Apply limits
-            value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.5f, 3.0f);
+            value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.2f, 3.0f);
 
             // Round in case we zoomed with scrolling
             value = static_cast<float>(static_cast<int>(round(value * 10.))) / 10.;

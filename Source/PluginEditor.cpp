@@ -450,7 +450,7 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
     float value = getValue<float>(scale);
 
     // Apply and limit zoom
-    value = std::clamp(value * scrollFactor, 0.5f, 3.0f);
+    value = std::clamp(value * scrollFactor, 0.2f, 3.0f);
 
     scale = value;
 }
@@ -1345,14 +1345,14 @@ bool PluginEditor::perform(InvocationInfo const& info)
     case CommandIDs::ZoomIn: {
         auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
         float newScale = getValue<float>(scale) + 0.1f;
-        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 3.0f) * 10.))) / 10.;
+        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.2f, 3.0f) * 10.))) / 10.;
 
         return true;
     }
     case CommandIDs::ZoomOut: {
         auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
         float newScale = getValue<float>(scale) - 0.1f;
-        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 3.0f) * 10.))) / 10.;
+        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.2f, 3.0f) * 10.))) / 10.;
 
         return true;
     }
