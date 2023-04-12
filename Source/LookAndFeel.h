@@ -1286,7 +1286,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           toolbar_active=\"ff5bcefa\" toolbar_hover=\"ff383838\" tab_background=\"ff232323\"\n"
     "           tab_text=\"ffffffff\" active_tab_background=\"ff3a3a3a\" active_tab_text=\"ffffffff\"\n"
     "           canvas_background=\"ff383838\" canvas_text=\"ffffffff\" canvas_dots=\"ffa0a0a0\"\n"
-    "           default_object_background=\"ff191919\" object_outline_colour=\"ff232323\"\n"
+    "           default_object_background=\"ff191919\" object_outline_colour=\"ff383838\"\n"
     "           selected_object_outline_colour=\"ffffacab\" outline_colour=\"ff575757\"\n"
     "           data_colour=\"ff5bcefa\" connection_colour=\"ffa0a0a0\" signal_colour=\"ffffacab\"\n"
     "           dialog_background=\"ff191919\" sidebar_colour=\"ff232323\" sidebar_text=\"ffffffff\"\n"
