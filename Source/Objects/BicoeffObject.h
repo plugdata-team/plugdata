@@ -516,14 +516,7 @@ public:
         addAndMakeVisible(graph);
 
         graph.graphChangeCallback = [this](float a1, float a2, float b0, float b1, float b2) {
-            t_atom at[5];
-            SETFLOAT(at, a1);
-            SETFLOAT(at + 1, a2);
-            SETFLOAT(at + 2, b0);
-            SETFLOAT(at + 3, b1);
-            SETFLOAT(at + 4, b2);
-
-            pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("biquad"), 5, at);
+            pd->enqueueDirectMessages(ptr, "biquad", {a1, a2, b0, b1, b2});
         };
     }
 
@@ -548,12 +541,8 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
-        t_atom size[2];
-        SETFLOAT(size, b.getWidth() - 1);
-        SETFLOAT(size + 1, b.getHeight() - 1);
-        pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("dim"), 2, size);
-
+        
+        pd->enqueueDirectMessages(ptr, "dim", {b.getWidth() - 1, b.getHeight() - 1});
         graph.saveProperties();
     }
 

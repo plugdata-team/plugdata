@@ -179,14 +179,10 @@ public:
             pic->x_size = getValue<int>(reportSize);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            t_atom atom;
-            SETSYMBOL(&atom, pd->generateSymbol(symbol));
-            pd_typedmess((t_pd*)pic, pd->generateSymbol("send"), 1, &atom);
+            pd->enqueueDirectMessages(ptr, "send", {symbol});
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            t_atom atom;
-            SETSYMBOL(&atom, pd->generateSymbol(symbol));
-            pd_typedmess((t_pd*)pic, pd->generateSymbol("receive"), 1, &atom);
+            pd->enqueueDirectMessages(ptr, "receive", {symbol});
         }
     }
 

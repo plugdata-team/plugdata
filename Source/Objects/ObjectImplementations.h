@@ -109,7 +109,7 @@ public:
         if (type == Key) {
             t_symbol* dummy;
             parseKey(keyCode, dummy);
-            pd_float((t_pd*)ptr, keyCode);
+            pd->enqueueDirectMessages(ptr, keyCode);
         } else if (type == KeyName) {
 
             String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
@@ -124,11 +124,7 @@ public:
             t_symbol* keysym = pd->generateSymbol(keyString);
             parseKey(keyCode, keysym);
 
-            t_atom argv[2];
-            SETFLOAT(argv, 1.0f);
-            SETSYMBOL(argv + 1, keysym);
-
-            pd_list((t_pd*)ptr, pd->generateSymbol("list"), 2, argv);
+            pd->enqueueDirectMessages(ptr, {1.0f, keysym});
         }
 
         // Never claim the keypress
@@ -189,7 +185,7 @@ public:
                     if (type == KeyUp) {
                         t_symbol* dummy;
                         parseKey(keyCode, dummy);
-                        pd_float((t_pd*)ptr, keyCode);
+                        pd->enqueueDirectMessages(ptr, keyCode);
                     } else if (type == KeyName) {
 
                         String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
@@ -203,12 +199,7 @@ public:
 
                         t_symbol* keysym = pd->generateSymbol(keyString);
                         parseKey(keyCode, keysym);
-
-                        t_atom argv[2];
-                        SETFLOAT(argv, 0.0f);
-                        SETSYMBOL(argv + 1, keysym);
-
-                        pd_list((t_pd*)ptr, pd->generateSymbol("list"), 2, argv);
+                        pd->enqueueDirectMessages(ptr, {1.0f, keysym});
                     }
 
                     keyPressTimes.remove(n);
@@ -373,13 +364,7 @@ public:
             return;
 
         if (!focusedComponent) {
-            t_atom args[2];
-
-            auto* active = static_cast<t_fake_active*>(ptr);
-
-            SETSYMBOL(args, canvasName);
-            SETFLOAT(args + 1, 0);
-            pd_typedmess((t_pd*)ptr, pd->generateSymbol("_focus"), 2, args);
+            pd->enqueueDirectMessages(ptr, "_focus", {canvasName, 0.0f});
             lastFocus = 0;
             return;
         }
@@ -406,20 +391,14 @@ public:
             name = gensym(buf);
 
             if (lastFocussedName != name) {
-                t_atom args[2];
-                SETSYMBOL(args, name);
-                SETFLOAT(args + 1, static_cast<float>(shouldHaveFocus));
-                pd_typedmess((t_pd*)ptr, pd->generateSymbol("_focus"), 2, args);
+                pd->enqueueDirectMessages(ptr, "_focus", {canvasName, static_cast<float>(shouldHaveFocus)});
                 lastFocussedName = name;
             }
             return;
         }
 
         if (shouldHaveFocus != lastFocus) {
-            t_atom args[2];
-            SETSYMBOL(args, canvasName);
-            SETFLOAT(args + 1, static_cast<float>(shouldHaveFocus));
-            pd_typedmess((t_pd*)ptr, pd->generateSymbol("_focus"), 2, args);
+            pd->enqueueDirectMessages(ptr, "_focus", {canvasName, static_cast<float>(shouldHaveFocus)});
             lastFocus = shouldHaveFocus;
         }
     }
@@ -797,38 +776,24 @@ public:
 
             auto pos = mouseSource.getScreenPosition();
 
-            t_atom args[2];
-            SETFLOAT(args, pos.x);
-            SETFLOAT(args + 1, pos.y);
-
-            pd_typedmess((t_pd*)(this->ptr), pd->generateSymbol("_getscreen"), 2, args);
+            pd->enqueueDirectMessages(ptr, "_getscreen", {pos.x, pos.y});
 
             lastPosition = pos;
         }
         if (mouseSource.isDragging()) {
             if (!isDown) {
-                t_atom args[1];
-                SETFLOAT(args, 0);
-
-                pd_typedmess((t_pd*)(this->ptr), pd->generateSymbol("_up"), 1, args);
+                pd->enqueueDirectMessages(ptr, "_up", {0.0f});
             }
             isDown = true;
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (mouseSource.getLastMouseDownTime() > lastMouseDownTime) {
             if (!isDown) {
-                t_atom args[1];
-                SETFLOAT(args, 0);
-
-                pd_typedmess((t_pd*)(this->ptr), pd->generateSymbol("_up"), 1, args);
+                pd->enqueueDirectMessages(ptr, "_up", {0.0f});
             }
             isDown = true;
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (isDown) {
-            t_atom args[1];
-            SETFLOAT(args, 1);
-
-            pd_typedmess((t_pd*)(this->ptr), pd->generateSymbol("_up"), 1, args);
-
+            pd->enqueueDirectMessages(ptr, "_up", {1.0f});
             isDown = false;
         }
     }

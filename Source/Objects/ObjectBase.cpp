@@ -462,7 +462,7 @@ bool ObjectBase::canOpenFromMenu()
 
 void ObjectBase::openFromMenu()
 {
-    pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open"), 0, nullptr);
+    pd->enqueueDirectMessages(ptr, "menu-open", {});
 };
 
 bool ObjectBase::hideInGraph()

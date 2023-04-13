@@ -507,8 +507,12 @@ public:
 
     float getValue()
     {
+        pd->lockAudioThread();
         auto* knb = static_cast<t_fake_knob*>(ptr);
-        return knb->x_pos;
+        auto pos = knb->x_pos;
+        pd->unlockAudioThread();
+        
+        return pos;
     }
 
     float getMinimum()

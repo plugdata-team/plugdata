@@ -403,19 +403,13 @@ public:
             updateAspectRatio();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            t_atom atom;
-            SETSYMBOL(&atom, pd->generateSymbol(symbol));
-            pd_typedmess((t_pd*)elseKeyboard, pd->generateSymbol("send"), 1, &atom);
+            pd->enqueueDirectMessages(ptr, "send", {symbol});
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            t_atom atom;
-            SETSYMBOL(&atom, pd->generateSymbol(symbol));
-            pd_typedmess((t_pd*)elseKeyboard, pd->generateSymbol("receive"), 1, &atom);
+            pd->enqueueDirectMessages(ptr, "receive", {symbol});
         } else if (value.refersToSameSourceAs(toggleMode)) {
             auto toggle = getValue<int>(toggleMode);
-            t_atom atom;
-            SETFLOAT(&atom, toggle);
-            pd_typedmess((t_pd*)elseKeyboard, pd->generateSymbol("toggle"), 1, &atom);
+            pd->enqueueDirectMessages(ptr, "toggle", {toggle});
             keyboard.setToggleMode(toggle);
         }
     }

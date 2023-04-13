@@ -63,6 +63,14 @@ public:
         , symbol(std::move(sym))
     {
     }
+    
+    // The pd hash constructor.
+    inline Atom(t_symbol* sym)
+        : type(SYMBOL)
+        , value(0)
+        , symbol(sym->s_name)
+    {
+    }
 
     // The c-string constructor.
     inline Atom(char const* sym)

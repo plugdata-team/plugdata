@@ -369,15 +369,10 @@ public:
             repaint();
         } else if (v.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            t_atom atom;
-            SETSYMBOL(&atom, pd->generateSymbol(symbol));
-            pd_typedmess((t_pd*)function, pd->generateSymbol("send"), 1, &atom);
+            pd->enqueueDirectMessages(ptr, "send", {symbol});
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
-
             auto symbol = receiveSymbol.toString();
-            t_atom atom;
-            SETSYMBOL(&atom, pd->generateSymbol(symbol));
-            pd_typedmess((t_pd*)function, pd->generateSymbol("receive"), 1, &atom);
+            pd->enqueueDirectMessages(ptr, "receive", {symbol});
 
         } else if (v.refersToSameSourceAs(range)) {
             setRange(getRange());

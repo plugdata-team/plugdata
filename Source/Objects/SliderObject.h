@@ -335,7 +335,6 @@ public:
             updateRange();
         } else if (value.refersToSameSourceAs(isLogarithmic)) {
             setLogScale(isLogarithmic == var(true));
-            updateRange();
         } else if (value.refersToSameSourceAs(steadyOnClick)) {
             bool steady = ::getValue<bool>(steadyOnClick);
             setSteadyOnClick(steady);
@@ -352,9 +351,16 @@ public:
 
     void setLogScale(bool log)
     {
-        auto* sym = pd->generateSymbol(log ? "log" : "lin");
-        pd_typedmess(static_cast<t_pd*>(ptr), sym, 0, nullptr);
-        update();
+        pd->enqueueFunction([_this = SafePointer(this), log](){
+            if(!_this) return;
+            
+            auto* sym = _this->pd->generateSymbol(log ? "log" : "lin");
+            pd_typedmess(static_cast<t_pd*>(_this->ptr), sym, 0, nullptr);
+            
+            MessageManager::callAsync([_this](){
+                if(_this) _this->update();
+            });
+        });
     }
 
     void setValue(float v)

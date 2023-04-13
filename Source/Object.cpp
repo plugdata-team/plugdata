@@ -833,9 +833,7 @@ void Object::mouseUp(MouseEvent const& e)
             cnv->objectGrid.clearAll();
 
             applyBounds();
-
-            cnv->pd->waitForStateUpdate(); // TODO: ?? why do this?
-
+            
             ds.didStartDragging = false;
         }
 
