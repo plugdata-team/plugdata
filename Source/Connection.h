@@ -194,8 +194,8 @@ public:
         if (rateReducer.tooFast())
             return;
 
-        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().getCentre());
-        auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition());
+        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
+        auto cursorPoint = e.getEventRelativeTo(cnv).position;
 
         auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
         auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
