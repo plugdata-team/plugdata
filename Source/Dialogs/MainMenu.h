@@ -4,13 +4,15 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "../PluginEditor.h"
+
 class MainMenu : public PopupMenu {
 
 public:
     MainMenu(PluginEditor* editor)
         : settingsTree(SettingsFile::getInstance()->getValueTree())
         , themeSelector(settingsTree)
-        , zoomSelector(settingsTree, editor->splitView.isRightTabbarActive())
+        , zoomSelector(editor, settingsTree, editor->splitView.isRightTabbarActive())
     {
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
@@ -96,8 +98,14 @@ public:
 
         Value zoomValue;
 
+        PluginEditor* _editor;
+
+        const float minZoom = 0.2f;
+        const float maxZoom = 3.0f;
+
     public:
-        ZoomSelector(ValueTree settingsTree, bool splitZoom)
+        ZoomSelector(PluginEditor* editor, ValueTree settingsTree, bool splitZoom)
+            : _editor(editor)
         {
             zoomValue = settingsTree.getPropertyAsValue(splitZoom ? "split_zoom" : "zoom", nullptr);
 
@@ -114,35 +122,61 @@ public:
             zoomReset.setConnectedEdges(12);
 
             zoomIn.onClick = [this]() {
-                applyZoom(true);
+                applyZoom(ZoomIn);
             };
             zoomOut.onClick = [this]() {
-                applyZoom(false);
+                applyZoom(ZoomOut);
             };
             zoomReset.onClick = [this]() {
-                resetZoom();
+                applyZoom(Reset);
             };
         }
 
-        void applyZoom(bool zoomIn)
+        enum ZoomType {ZoomIn, ZoomOut, Reset};
+
+        void applyZoom(ZoomType zoomEventType)
         {
-            float value = getValue<float>(zoomValue);
+            float scale = getValue<float>(zoomValue);
 
             // Apply limits
-            value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.2f, 3.0f);
+            switch(zoomEventType){
+            case ZoomIn:
+                scale = std::clamp(scale + 0.1f, minZoom, maxZoom);
+                break;
+            case ZoomOut:
+                scale = std::clamp(scale - 0.1f, minZoom, maxZoom);
+                break;
+            default:
+                scale = 1.0f;
+                break;
+            }
 
             // Round in case we zoomed with scrolling
-            value = static_cast<float>(static_cast<int>(round(value * 10.))) / 10.;
+            scale = static_cast<float>(static_cast<int>(round(scale * 10.))) / 10.;
 
-            zoomValue = value;
+            auto cnv = _editor->getCurrentCanvas();
 
-            zoomReset.setButtonText(String(value * 100.0f, 1) + "%");
-        }
+            // Get the current viewport position in canvas coordinates
+            auto oldViewportPosition = cnv->getLocalPoint(cnv->viewport, cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
 
-        void resetZoom()
-        {
-            zoomValue = 1.0f;
-            zoomReset.setButtonText("100.0%");
+            // Apply transform and make sure viewport bounds get updated
+            cnv->setTransform(AffineTransform::scale(scale));
+            cnv->viewport->resized();
+
+            // After zooming, get the new viewport position in canvas coordinates
+            auto newViewportPosition = cnv->getLocalPoint(cnv->viewport, cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
+
+            // Calculate offset to keep the center point of the viewport the same as before this zoom action
+            auto offset = newViewportPosition - oldViewportPosition;
+
+            // Set the new canvas position
+            // TODO: there is an accumulated error when zooming in/out
+            //       possibly we should save the canvas position as an additional Point<float> ?
+            cnv->setTopLeftPosition((cnv->getPosition().toFloat() + offset).roundToInt());
+
+            zoomValue = scale;
+
+            zoomReset.setButtonText(String(scale * 100.0f, 1) + "%");
         }
 
         void resized() override
