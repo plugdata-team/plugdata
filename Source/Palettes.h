@@ -498,7 +498,6 @@ public:
 
         if (cnv) {
             cnv->viewport->getPositioner()->applyNewBounds(b);
-            cnv->checkBounds();
         }
     }
 

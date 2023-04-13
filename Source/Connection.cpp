@@ -398,13 +398,13 @@ void Connection::paint(Graphics& g)
         getNumberOfConnections(),
         getMultiConnectNumber());
     
-    /*
+/*
     static Random rng;
 
     g.fillAll (Colour ((uint8) rng.nextInt (255),
                        (uint8) rng.nextInt (255),
                        (uint8) rng.nextInt (255),
-                       (uint8) 0x50)); */
+                       (uint8) 0x50));*/
     //debug
     
     /*

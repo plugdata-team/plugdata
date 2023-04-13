@@ -766,7 +766,6 @@ void PluginEditor::valueChanged(Value& v)
             
             // Apply transform and make sure viewport bounds get updated
             cnv->setTransform(AffineTransform().scaled(newScaleFactor));
-            cnv->checkBounds();
   
             // After zooming, get mouse position relative to canvas again
             auto newPosition = cnv->getLocalPoint(nullptr, mousePosition);

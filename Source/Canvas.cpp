@@ -816,10 +816,6 @@ bool Canvas::keyPressed(KeyPress const& key)
 
         for (auto* object : objects) {
             object->updateBounds();
-
-            if (!getBounds().contains(object->getBounds())) {
-                checkBounds();
-            }
         }
     };
 
@@ -1270,14 +1266,6 @@ void Canvas::redo()
     patch.deselectAll();
 
     synchroniseSplitCanvas();
-}
-
-// TODO: get rid of this
-void Canvas::checkBounds()
-{
-    if (graphArea) {
-        graphArea->updateBounds();
-    }
 }
 
 void Canvas::valueChanged(Value& v)

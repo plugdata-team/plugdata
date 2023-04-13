@@ -112,7 +112,6 @@ public:
     void undo();
     void redo();
 
-    void checkBounds();
     void jumpToOrigin();
     void zoomToFitAll();
 

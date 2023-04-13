@@ -144,7 +144,7 @@ public:
         }
     }
     
-    void handleAsyncUpdate()
+    void handleAsyncUpdate() override
     {
         onTabChange(getCurrentTabIndex());
     }

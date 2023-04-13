@@ -104,13 +104,6 @@ SplitView::SplitView(PluginEditor* parent)
     resizer->onMove = [this](int x) {
         splitViewWidth = static_cast<float>(x) / getWidth();
         resized();
-
-        if (auto* cnv = getLeftTabbar()->getCurrentCanvas()) {
-            cnv->checkBounds();
-        }
-        if (auto* cnv = getRightTabbar()->getCurrentCanvas()) {
-            cnv->checkBounds();
-        }
     };
     addChildComponent(resizer);
 

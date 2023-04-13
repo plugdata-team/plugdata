@@ -828,12 +828,8 @@ void Object::mouseUp(MouseEvent const& e)
         cnv->updateSidebarSelection();
 
         if (ds.didStartDragging) {
-
-            cnv->checkBounds();
             cnv->objectGrid.clearAll();
-
             applyBounds();
-            
             ds.didStartDragging = false;
         }
 
