@@ -25,6 +25,7 @@
 #include "Utility/GraphArea.h"
 #include "Utility/RateReducer.h"
 
+
 extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }

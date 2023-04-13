@@ -1532,7 +1532,7 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
 // it would be annoying to hear the bloop sound for every key that isn't a valid command
 bool PluginEditor::keyPressed(KeyPress const& key)
 {
-    return true;
+    return key != KeyPress::tabKey;
 }
 
 void PluginEditor::commandKeyChanged(bool isHeld)
