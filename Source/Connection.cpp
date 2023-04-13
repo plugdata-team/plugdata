@@ -397,8 +397,17 @@ void Connection::paint(Graphics& g)
         getMultiConnectNumber());
     
     //debug
-    //g.setColour(Colours::red);
-    //g.drawRect(getLocalBounds(), 1.0f);
+    
+    /*
+    g.setColour(Colours::orange);
+    for(auto& point : currentPlan)
+    {
+        auto local = getLocalPoint(cnv, point);
+        g.fillEllipse(local.x, local.y, 2, 2);
+    }
+
+    g.setColour(Colours::red);
+    g.drawRect(getLocalBounds(), 1.0f); */
 }
 
 bool Connection::isSegmented()
@@ -592,7 +601,8 @@ int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& 
     for (int n = 2; n < plan.size() - 1; n++) {
         auto line = Line<float>(plan[n - 1], plan[n]);
         Point<float> nearest;
-        if (line.getDistanceFromPoint(position - offset, nearest) < 3) {
+        
+        if (line.getDistanceFromPoint(cnv->getLocalPoint(this, position), nearest) < 3) {
             return n;
         }
     }
@@ -652,7 +662,7 @@ void Connection::resizeToFit()
     }
 
     toDrawLocalSpace = toDraw;
-    offset = getLocalPoint(cnv, pStart) - pStart;
+    auto offset = getLocalPoint(cnv, Point<int>(0, 0));
     toDrawLocalSpace.applyTransform(AffineTransform::translation(offset));
 
     startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDrawLocalSpace.getPointAlongPath(8.5f));
@@ -671,8 +681,19 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     if (outobj->isSelected() && inobj->isSelected() && !wasResized) {
         // calculate the offset for moving the whole connection
         auto pointOffset = pstart - previousPStart;
+        
+        // Prevent a repaint if we're not moving
+        // This will happen often since there's a move callback from both inlet and outlet
+        if(pointOffset.isOrigin()) return;
+        
         previousPStart = pstart;
-        setTopLeftPosition(getBounds().getTopLeft() + pointOffset.toInt());
+        setTopLeftPosition(getPosition() + pointOffset.toInt());
+        
+        for(auto& point : currentPlan)
+        {
+            point += pointOffset;
+        }
+        
         repaint();
         return;
     }
@@ -685,16 +706,18 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         return;
     }
 
-    int idx1 = 0;
-    int idx2 = 1;
+    bool isInlet = &component == inlet || &component == inobj;
+    int idx1 = isInlet ? static_cast<int>(currentPlan.size() - 1) : 0;
+    int idx2 = isInlet ? static_cast<int>(currentPlan.size() - 2) : 1;
+    auto& position = isInlet ? pend : pstart;
 
-    // if the inlet or in-object moves, then we also want to move the path line left / right
-    auto& position = pstart;
-    if (&component == inlet || &component == inobj) {
-        idx1 = static_cast<int>(currentPlan.size() - 1);
-        idx2 = static_cast<int>(currentPlan.size() - 2);
-        position = pend;
+    if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
+        currentPlan[idx2].x = position.x;
+    } else {
+        currentPlan[idx2].y = position.y;
     }
+
+    currentPlan[idx1] = position;
 
     if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
         currentPlan[idx2].x = position.x;
@@ -815,6 +838,14 @@ void Connection::updatePath()
         connectionPath.lineTo(pend);
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
+}
+
+void Connection::applyBestPath()
+{
+    findPath();
+    updatePath();
+    resizeToFit();
+    repaint();
 }
 
 void Connection::findPath()
@@ -995,7 +1026,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
 
 bool Connection::intersectsObject(Object* object)
 {
-    auto b = (object->getBounds() - getPosition()).toFloat();
+    auto b = object->getBounds().toFloat();
     return toDraw.intersectsLine({ b.getTopLeft(), b.getTopRight() })
         || toDraw.intersectsLine({ b.getTopLeft(), b.getBottomLeft() })
         || toDraw.intersectsLine({ b.getBottomRight(), b.getBottomLeft() })

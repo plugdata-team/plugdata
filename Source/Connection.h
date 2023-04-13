@@ -100,6 +100,8 @@ public:
     int findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> start, Point<float> end, Point<float> increment);
 
     void findPath();
+        
+    void applyBestPath();
 
     bool intersectsObject(Object* object);
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
@@ -133,7 +135,6 @@ private:
 
     Canvas* cnv;
 
-    Point<float> offset = Point<float>(); 
     Point<float> previousPStart = Point<float>();
 
     int dragIdx = -1;

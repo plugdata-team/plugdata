@@ -1319,8 +1319,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         statusbar->connectionStyleButton.setToggleState(true, sendNotification);
         for (auto* con : cnv->connections) {
             if (con->isSelected()) {
-                con->findPath();
-                con->updatePath();
+                con->applyBestPath();
             }
         }
 
