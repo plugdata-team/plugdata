@@ -1443,7 +1443,7 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
         }
 
         // Check if path intersects with lasso
-        if (con->intersects(lasso.getBounds().translated(-con->getX(), -con->getY()).toFloat())) {
+        if (con->intersects(lasso.getBounds().toFloat())) {
             itemsFound.add(con);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             setSelected(con, false, false);
