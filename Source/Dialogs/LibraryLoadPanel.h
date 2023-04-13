@@ -6,8 +6,6 @@
 
 #pragma once
 
-bool wantsNativeDialog();
-
 class LibraryLoadPanel : public Component
     , public TextEditor::Listener
     , private ListBoxModel {

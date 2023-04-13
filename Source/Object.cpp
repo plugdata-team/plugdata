@@ -985,8 +985,32 @@ void Object::mouseDrag(MouseEvent const& e)
         // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
         if (!cnv->objectRateReducer.tooFast() && ds.componentBeingDragged) {
             for (auto* object : selection) {
+                
+                auto newPosition = object->originalBounds.getPosition() + dragDistance;
+                
+                // Limit object movement inside palette
+                if(cnv->isPalette)
+                {
+                    auto bounds = object->getBounds().withPosition(newPosition);
+                    auto viewWidth = cnv->viewport->getWidth() - 12;
+                    if(bounds.getX() < 0)
+                    {
+                        bounds = bounds.withX(0);
+                    }
+                    if(bounds.getRight() > viewWidth)
+                    {
+                        bounds = bounds.withX(viewWidth - bounds.getWidth());
+                    }
+                    if(bounds.getY() < 0)
+                    {
+                        bounds = bounds.withY(0);
+                    }
+                    
+                    newPosition = bounds.getPosition();
+                }
+                
                 object->setBufferedToImage(true);
-                object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance);
+                object->setTopLeftPosition(newPosition);
             }
 
             auto draggedBounds = ds.componentBeingDragged->getBounds().expanded(6);

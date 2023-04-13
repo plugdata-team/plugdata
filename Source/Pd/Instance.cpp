@@ -14,6 +14,7 @@
 #include "Patch.h"
 #include "MessageListener.h"
 #include "Objects/ImplementationBase.h"
+#include "Utility/SettingsFile.h"
 
 extern "C" {
 
@@ -111,8 +112,6 @@ struct pd::Instance::internal {
     }
 };
 }
-
-bool wantsNativeDialog();
 
 namespace pd {
 
@@ -675,7 +674,7 @@ void Instance::createPanel(int type, char const* snd, char const* location)
         MessageManager::callAsync(
             [this, obj, defaultFile]() mutable {
                 auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
-                openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", wantsNativeDialog());
+                openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
                 openChooser->launchAsync(folderChooserFlags,
                     [this, obj](FileChooser const& fileChooser) {
                         auto const file = fileChooser.getResult();

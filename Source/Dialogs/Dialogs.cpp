@@ -281,7 +281,7 @@ void Dialogs::askToLocatePatch(PluginEditor* editor, String const& backupState, 
             locate.onClick = [this, dialog, callback] {
                 callback(File());
 
-                openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", wantsNativeDialog());
+                openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", SettingsFile::getInstance()->wantsNativeDialog());
 
                 openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [callback](FileChooser const& f) {
                     File openedFile = f.getResult();

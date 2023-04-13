@@ -37,6 +37,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
     , pathUpdater(new ConnectionPathUpdater(this))
     , isPalette(palette)
     , graphArea(nullptr)
+    , canvasOrigin(palette ? Point<int>(0, 0) : Point<int>(infiniteCanvasSize / 2, infiniteCanvasSize / 2))
 {
     isGraphChild = glist_isgraph(patch.getPointer());
     hideNameAndArgs = static_cast<bool>(patch.getPointer()->gl_hidetext);
@@ -698,7 +699,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
 bool Canvas::autoscroll(MouseEvent const& e)
 {
-    if(!viewport) 
+    if(!viewport || isPalette) 
         return false;
     
     auto x = viewport->getViewPositionX();

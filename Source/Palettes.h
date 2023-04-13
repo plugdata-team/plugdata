@@ -352,6 +352,8 @@ public:
         cnv = std::make_unique<Canvas>(editor, *newPatch, nullptr, true);
         patch = newPatch;
         viewport.reset(cnv->viewport);
+        
+        viewport->setScrollBarsShown(true, false, true, false);
 
         cnv->paletteDragMode.referTo(dragModeButton.getToggleStateValue());
 

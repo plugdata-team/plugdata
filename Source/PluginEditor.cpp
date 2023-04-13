@@ -64,23 +64,6 @@ public:
     }
 };
 
-bool wantsNativeDialog()
-{
-    if (ProjectInfo::isStandalone) {
-        return true;
-    }
-
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    File settingsFile = homeDir.getChildFile("Settings.xml");
-
-    auto settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-
-    if (!settingsTree.hasProperty("NativeDialog")) {
-        return true;
-    }
-
-    return static_cast<bool>(settingsTree.getProperty("NativeDialog"));
-}
 
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
@@ -391,7 +374,7 @@ void PluginEditor::resized()
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
 
-    zoomLabel->setTopLeftPosition(5, statusbar->getY() - 28);
+    zoomLabel->setTopLeftPosition(paletteWidth + 5, statusbar->getY() - 28);
     zoomLabel->setSize(55, 23);
 }
 
@@ -560,14 +543,14 @@ void PluginEditor::openProject()
         }
     };
 
-    openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", wantsNativeDialog());
+    openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", SettingsFile::getInstance()->wantsNativeDialog());
 
     openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
 }
 
 void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 {
-    saveChooser = std::make_unique<FileChooser>("Select a save file", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", wantsNativeDialog());
+    saveChooser = std::make_unique<FileChooser>("Select a save file", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", SettingsFile::getInstance()->wantsNativeDialog());
 
     saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
         [this, nestedCallback](FileChooser const& f) mutable {

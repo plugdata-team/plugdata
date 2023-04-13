@@ -6,8 +6,6 @@
 
 #pragma once
 
-bool wantsNativeDialog();
-
 class SearchPathComponent : public Component
     , public FileDragAndDropTarget
     , private ListBoxModel {
@@ -147,7 +145,7 @@ public:
 
     void returnKeyPressed(int row) override
     {
-        chooser = std::make_unique<FileChooser>(TRANS("Change folder..."), paths[row], "*", wantsNativeDialog());
+        chooser = std::make_unique<FileChooser>(TRANS("Change folder..."), paths[row], "*", SettingsFile::getInstance()->wantsNativeDialog());
         auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
 
         chooser->launchAsync(chooserFlags,

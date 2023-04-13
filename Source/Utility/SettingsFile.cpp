@@ -171,6 +171,19 @@ void SettingsFile::addToRecentlyOpened(File path)
     RecentlyOpenedFilesList::registerRecentFileNatively(path);
 }
 
+bool SettingsFile::wantsNativeDialog()
+{
+    if (ProjectInfo::isStandalone) {
+        return true;
+    }
+
+    if (!settingsTree.hasProperty("NativeDialog")) {
+        return true;
+    }
+
+    return static_cast<bool>(settingsTree.getProperty("NativeDialog"));
+}
+
 void SettingsFile::initialiseThemesTree()
 {
 

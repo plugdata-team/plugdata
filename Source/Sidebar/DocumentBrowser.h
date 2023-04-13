@@ -11,8 +11,6 @@
 #include "Utility/OSUtils.h"
 #include "Object.h"
 
-bool wantsNativeDialog();
-
 // Base classes for communication between parent and child classes
 class DocumentBrowserViewBase : public TreeView
     , public DirectoryContentsDisplayComponent {
@@ -755,7 +753,7 @@ public:
         addAndMakeVisible(resetFolderButton);
 
         loadFolderButton.onClick = [this]() {
-            openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", wantsNativeDialog());
+            openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", SettingsFile::getInstance()->wantsNativeDialog());
 
             openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
                 [this](FileChooser const& fileChooser) {
