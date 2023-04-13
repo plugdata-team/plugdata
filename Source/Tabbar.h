@@ -91,7 +91,7 @@ public:
 };
 
 class Canvas;
-class TabComponent : public TabbedComponent {
+class TabComponent : public TabbedComponent, public AsyncUpdater {
 
     TextButton newButton = TextButton(Icons::Add);
     WelcomePanel welcomePanel;
@@ -140,8 +140,13 @@ public:
             getTabbedButtonBar().setVisible(true);
             welcomePanel.setVisible(false);
             setTabBarDepth(26);
-            onTabChange(newCurrentTabIndex);
+            triggerAsyncUpdate();
         }
+    }
+    
+    void handleAsyncUpdate()
+    {
+        onTabChange(getCurrentTabIndex());
     }
 
     void resized() override
