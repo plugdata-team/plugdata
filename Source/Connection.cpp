@@ -83,9 +83,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
     valueChanged(presentationMode);
 
-    updatePath();
-    repaint();
-
     updateOverlays(cnv->getOverlays());
 
     cnv->pd->registerMessageListener(ptr, this);
@@ -215,11 +212,11 @@ bool Connection::hitTest(int x, int y)
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
 
     Point<float> nearestPoint;
-    toDraw.getNearestPoint(position, nearestPoint);
+    toDrawLocalSpace.getNearestPoint(position, nearestPoint);
 
     // Get outlet and inlet point
-    auto pstart = getStartPoint().toFloat();
-    auto pend = getEndPoint().toFloat();
+    auto pstart = getStartPoint();
+    auto pend = getEndPoint();
 
     if (selectedFlag && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position))) {
         repaint();
@@ -388,7 +385,7 @@ void Connection::paint(Graphics& g)
 {
     renderConnectionPath(g,
         cnv,
-        toDraw,
+        toDrawLocalSpace,
         outlet ? outlet->isSignal : false,
         isMouseOver(),
         showDirection,
@@ -398,6 +395,10 @@ void Connection::paint(Graphics& g)
         isHovering,
         getNumberOfConnections(),
         getMultiConnectNumber());
+    
+    //debug
+    //g.setColour(Colours::red);
+    //g.drawRect(getLocalBounds(), 1.0f);
 }
 
 bool Connection::isSegmented()
@@ -410,6 +411,7 @@ void Connection::setSegmented(bool isSegmented)
     segmented = isSegmented;
     pushPathState();
     updatePath();
+    resizeToFit();
     repaint();
 }
 
@@ -428,7 +430,7 @@ bool Connection::isSelected()
 
 void Connection::mouseMove(MouseEvent const& e)
 {
-    int n = getClosestLineIdx(e.getPosition().toFloat() + origin, currentPlan);
+    int n = getClosestLineIdx(e.getPosition().toFloat(), currentPlan);
 
     if (isSegmented() && currentPlan.size() > 2 && n > 0) {
         auto line = Line<float>(currentPlan[n - 1], currentPlan[n]);
@@ -508,7 +510,7 @@ void Connection::mouseDown(MouseEvent const& e)
     if (currentPlan.size() <= 2)
         return;
 
-    int n = getClosestLineIdx(e.position + origin, currentPlan);
+    int n = getClosestLineIdx(e.position, currentPlan);
     if (n < 0)
         return;
 
@@ -549,6 +551,7 @@ void Connection::mouseDrag(MouseEvent const& e)
         }
 
         updatePath();
+        resizeToFit();
         repaint();
     }
 }
@@ -634,6 +637,28 @@ void Connection::reconnect(Iolet* target)
     }
 }
 
+void Connection::resizeToFit()
+{
+    auto pStart = getStartPoint();
+    auto pEnd = getEndPoint();
+    
+    auto newBounds = Rectangle<float>(pStart, pEnd).expanded(8).getSmallestIntegerContainer();
+
+    if (segmented) {
+        newBounds = newBounds.getUnion(toDraw.getBounds().expanded(8).getSmallestIntegerContainer());
+    }
+    if (newBounds != getBounds()) {
+        setBounds(newBounds);
+    }
+
+    toDrawLocalSpace = toDraw;
+    offset = getLocalPoint(cnv, pStart) - pStart;
+    toDrawLocalSpace.applyTransform(AffineTransform::translation(offset));
+
+    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDrawLocalSpace.getPointAlongPath(8.5f));
+    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDrawLocalSpace.getPointAlongPath(std::max(toDrawLocalSpace.getLength() - 8.5f, 9.5f)));
+}
+
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
 {
     if (!inlet || !outlet)
@@ -642,23 +667,28 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
 
-    if (currentPlan.size() <= 2) {
-        updatePath();
+    // If both inlet and outlet are selected we can move the connection
+    if (outobj->isSelected() && inobj->isSelected() && !wasResized) {
+        // calculate the offset for moving the whole connection
+        auto pointOffset = pstart - previousPStart;
+        previousPStart = pstart;
+        setTopLeftPosition(getBounds().getTopLeft() + pointOffset.toInt());
+        repaint();
         return;
     }
+    previousPStart = pstart;
 
-    // If both inlet and outlet are selected we can just move the connection cord
-    if ((outobj->isSelected() && inobj->isSelected())) {
-        auto offset = pstart - currentPlan[0];
-        for (auto& point : currentPlan)
-            point += offset;
+    if (currentPlan.size() <= 2) {
         updatePath();
+        resizeToFit();
+        repaint();
         return;
     }
 
     int idx1 = 0;
     int idx2 = 1;
 
+    // if the inlet or in-object moves, then we also want to move the path line left / right
     auto& position = pstart;
     if (&component == inlet || &component == inobj) {
         idx1 = static_cast<int>(currentPlan.size() - 1);
@@ -673,17 +703,20 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
 
     currentPlan[idx1] = position;
+
     updatePath();
+    resizeToFit();
+    repaint();
 }
 
 Point<float> Connection::getStartPoint()
 {
-    return Point<float>(outlet->getCanvasBounds().toFloat().getCentreX(), outlet->getCanvasBounds().toFloat().getCentreY() - 0.5f);
+    return outlet->getCanvasBounds().toFloat().getCentre();;
 }
 
 Point<float> Connection::getEndPoint()
 {
-    return Point<float>(inlet->getCanvasBounds().toFloat().getCentreX(), inlet->getCanvasBounds().toFloat().getCentreY());
+    return inlet->getCanvasBounds().toFloat().getCentre();
 }
 
 Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
@@ -744,15 +777,8 @@ void Connection::updatePath()
     if (!outlet || !inlet)
         return;
 
-    float left = std::min(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX()) - 4;
-    float top = std::min(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) - 4;
-    float right = std::max(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX()) + 4;
-    float bottom = std::max(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) + 4;
-
-    origin = Rectangle<float>(left, top, right - left, bottom - top).getPosition();
-
-    auto pstart = getStartPoint() - origin;
-    auto pend = getEndPoint() - origin;
+    auto pstart = getStartPoint();
+    auto pend = getEndPoint();
 
     if (!segmented) {
         toDraw = getNonSegmentedPath(pstart, pend);
@@ -764,45 +790,31 @@ void Connection::updatePath()
 
         auto snap = [this](Point<float> point, int idx1, int idx2) {
             if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
-                currentPlan[idx2].x = point.x + origin.x;
+                currentPlan[idx2].x = point.x;
             } else {
-                currentPlan[idx2].y = point.y + origin.y;
+                currentPlan[idx2].y = point.y;
             }
 
-            currentPlan[idx1] = point + origin;
+            currentPlan[idx1] = point;
         };
 
         snap(pstart, 0, 1);
         snap(pend, static_cast<int>(currentPlan.size() - 1), static_cast<int>(currentPlan.size() - 2));
 
         Path connectionPath;
-        connectionPath.startNewSubPath(pstart.toFloat());
+        connectionPath.startNewSubPath(pstart);
 
         // Add points in between if we've found a path
         for (int n = 1; n < currentPlan.size() - 1; n++) {
             if (connectionPath.contains(currentPlan[n].toFloat()))
                 continue; // ??
 
-            connectionPath.lineTo(currentPlan[n].toFloat() - origin.toFloat());
+            connectionPath.lineTo(currentPlan[n].toFloat());
         }
 
-        connectionPath.lineTo(pend.toFloat());
+        connectionPath.lineTo(pend);
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
-
-    repaint();
-
-    auto bounds = toDraw.getBounds().expanded(8);
-    setBounds((bounds + origin).getSmallestIntegerContainer());
-
-    if (bounds.getX() < 0 || bounds.getY() < 0) {
-        toDraw.applyTransform(AffineTransform::translation(-bounds.getX() + 0.5f, -bounds.getY()));
-    }
-
-    offset = { -bounds.getX(), -bounds.getY() };
-
-    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
-    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 8.5f, 9.5f)));
 }
 
 void Connection::findPath()
