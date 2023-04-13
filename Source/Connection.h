@@ -34,7 +34,7 @@ public:
     WeakReference<Iolet> inlet, outlet;
     WeakReference<Object> inobj, outobj;
 
-    Path toDraw;
+    Path toDraw, toDrawLocalSpace;
     String lastId;
 
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
@@ -111,6 +111,8 @@ public:
 private:
     bool segmented = false;
 
+    void resizeToFit();
+
     Array<SafePointer<Connection>> reconnecting;
 
     Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
@@ -131,7 +133,8 @@ private:
 
     Canvas* cnv;
 
-    Point<float> origin, offset;
+    Point<float> offset = Point<float>(); 
+    Point<float> previousPStart = Point<float>();
 
     int dragIdx = -1;
 
