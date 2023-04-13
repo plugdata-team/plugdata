@@ -136,6 +136,11 @@ public:
 
         void applyZoom(ZoomType zoomEventType)
         {
+            auto cnv = _editor->getCurrentCanvas();
+
+            if (!cnv)
+                return;
+
             float scale = getValue<float>(zoomValue);
 
             // Apply limits
@@ -153,8 +158,6 @@ public:
 
             // Round in case we zoomed with scrolling
             scale = static_cast<float>(static_cast<int>(round(scale * 10.))) / 10.;
-
-            auto cnv = _editor->getCurrentCanvas();
 
             // Get the current viewport position in canvas coordinates
             auto oldViewportPosition = cnv->getLocalPoint(cnv->viewport, cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
