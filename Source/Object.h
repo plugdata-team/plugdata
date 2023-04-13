@@ -123,7 +123,7 @@ private:
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
     bool selectionStateChanged = false;
-        
+
     bool createEditorOnMouseDown = false;
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;

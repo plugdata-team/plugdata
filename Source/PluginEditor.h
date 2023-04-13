@@ -128,7 +128,7 @@ public:
     Value splitZoomScale;
 
     std::unique_ptr<Palettes> palettes;
-        
+
 private:
     // Used by standalone to handle dragging the window
     ComponentDragger windowDragger;
@@ -142,7 +142,7 @@ private:
     TextButton editButton, runButton, presentButton;
 
     CheckedTooltip tooltipWindow;
-        
+
     TextButton seperators[8];
 
     std::unique_ptr<ZoomLabel> zoomLabel;

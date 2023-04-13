@@ -10,8 +10,8 @@
 
 #include <concurrentqueue.h> // Move to impl
 #include "Constants.h"
-#include "Iolet.h"       // Move to impl
-#include "Pd/Instance.h" // Move to impl
+#include "Iolet.h"           // Move to impl
+#include "Pd/Instance.h"     // Move to impl
 #include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
@@ -100,7 +100,7 @@ public:
     int findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> start, Point<float> end, Point<float> increment);
 
     void findPath();
-        
+
     void applyBestPath();
 
     bool intersectsObject(Object* object);

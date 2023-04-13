@@ -25,7 +25,6 @@
 #include "Utility/GraphArea.h"
 #include "Utility/RateReducer.h"
 
-
 extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
@@ -177,7 +176,6 @@ void Canvas::moved()
 
 void Canvas::resized()
 {
-    
 }
 
 void Canvas::updateOverlays()
@@ -242,7 +240,7 @@ void Canvas::zoomToFitAll()
     for (auto* object : objects) {
         regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
     }
-    
+
     // Add a bit of margin to make it nice
     regionOfInterest = regionOfInterest.expanded(16);
 
@@ -263,8 +261,8 @@ void Canvas::zoomToFitAll()
         scale = std::sqrt(std::abs(transform.getDeterminant()));
         editor->getZoomScaleValueForCanvas(this).setValue(scale);
     }
-    //TODO we should set the fit all area to the centre of the view area - but this isn't working for some reason
-    // for now we will set the top left of the region of interest
+    // TODO we should set the fit all area to the centre of the view area - but this isn't working for some reason
+    //  for now we will set the top left of the region of interest
     auto centre = viewport->getViewArea().withZeroOrigin().getCentre() / scale;
     setTopLeftPosition(centre - regionOfInterest.getCentre());
     viewport->resized();
@@ -279,10 +277,11 @@ void Canvas::paint(Graphics& g)
 {
     if (isGraph)
         return;
-    
+
     g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-    
-    if(viewport) g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
+
+    if (viewport)
+        g.reduceClipRegion(viewport->getViewArea().transformedBy(getTransform().inverted()));
     auto clipBounds = g.getClipBounds();
 
     // Clip bounds so that we have the smallest lines that fit the viewport, but also
@@ -333,39 +332,38 @@ void Canvas::paint(Graphics& g)
      │d      c│
      └────────┘
      */
-    
+
     // points for border
     auto pointA = Point<float>(clippedOrigin.x, clippedOrigin.y);
     auto pointB = Point<float>(patchWidthCanvas, clippedOrigin.y);
     auto pointC = Point<float>(patchWidthCanvas, patchHeightCanvas);
     auto pointD = Point<float>(clippedOrigin.x, patchHeightCanvas);
-    
+
     auto extentTop = Line<float>(pointA, pointB);
     auto extentLeft = Line<float>(pointA, pointD);
-    
+
     // arrange line points so that dashes appear to grow from origin and bottom right
     if (showOrigin) {
-        
-        
+
         // points for origin extending to edge of view
         auto pointOriginB = Point<float>(clipBounds.getRight(), clippedOrigin.y);
         auto pointOriginD = Point<float>(clippedOrigin.x, clipBounds.getBottom());
-        
+
         extentTop = Line<float>(pointA, pointOriginB);
         extentLeft = Line<float>(pointA, pointOriginD);
     }
-    
+
     float dash[2] = { 5.0f, 5.0f };
-    
+
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-    
+
     g.drawDashedLine(extentLeft, dash, 2, 1.0f);
     g.drawDashedLine(extentTop, dash, 2, 1.0f);
-    
+
     if (showBorder) {
         auto extentRight = Line<float>(pointC, pointB);
         auto extentBottom = Line<float>(pointC, pointD);
-        
+
         g.drawDashedLine(extentRight, dash, 2, 1.0f);
         g.drawDashedLine(extentBottom, dash, 2, 1.0f);
     }
@@ -638,11 +636,11 @@ void Canvas::mouseDown(MouseEvent const& e)
         editor->updateCommandStatus();
     }
     // Right click
-    else if(!editor->pluginMode){
+    else if (!editor->pluginMode) {
         if (!(e.mods.isShiftDown() && e.mods.isPopupMenu())) {
             deselectAll();
         }
-        
+
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
 }
@@ -700,9 +698,9 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
 bool Canvas::autoscroll(MouseEvent const& e)
 {
-    if(!viewport || isPalette) 
+    if (!viewport || isPalette)
         return false;
-    
+
     auto x = viewport->getViewPositionX();
     auto y = viewport->getViewPositionY();
     auto oldY = y;
@@ -1371,14 +1369,11 @@ void Canvas::hideSuggestions()
 // Makes component selected
 void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus)
 {
-    if(!shouldNowBeSelected)
-    {
+    if (!shouldNowBeSelected) {
         selectedComponents.deselect(component);
-    }
-    else {
+    } else {
         selectedComponents.addToSelection(component);
     }
-
 
     if (updateCommandStatus) {
         editor->updateCommandStatus();

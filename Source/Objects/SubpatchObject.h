@@ -51,7 +51,7 @@ public:
         if (locked && click()) {
             return;
         }
-        
+
         //  If locked and it's a left click
         if (locked && !e.mods.isRightButtonDown() && !object->attachedToMouse) {
             openSubpatch();

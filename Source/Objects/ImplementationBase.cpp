@@ -47,9 +47,8 @@ Canvas* ImplementationBase::getMainCanvas(void* patchPtr)
                 return cnv;
             }
         }
-        
-        if(auto* cnv = editor->palettes->getCurrentCanvas())
-        {
+
+        if (auto* cnv = editor->palettes->getCurrentCanvas()) {
             if (cnv->patch.getPointer() == patchPtr) {
                 return cnv;
             }
@@ -130,7 +129,7 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
     }
 
     pd->patches.add(subpatch);
-    
+
     subpatch->setCurrentFile(path);
 
     if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
@@ -258,7 +257,7 @@ void ObjectImplementationManager::clearObjectImplementationsForPatch(void* patch
 
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
         auto const name = String::fromUTF8(libpd_get_object_class_name(y));
-        
+
         if (pd_class(&y->g_pd) == canvas_class) {
             clearObjectImplementationsForPatch(y);
         }

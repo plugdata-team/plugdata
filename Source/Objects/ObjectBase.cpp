@@ -128,16 +128,15 @@ String ObjectBase::getText()
     if (!cnv->patch.checkObject(ptr))
         return "";
 
-
     cnv->pd->setThis();
 
     char* text = nullptr;
     int size = 0;
-    
+
     cnv->pd->lockAudioThread();
     libpd_get_object_text(ptr, &text, &size);
     cnv->pd->unlockAudioThread();
-    
+
     if (text && size) {
 
         auto txt = String::fromUTF8(text, size);
@@ -229,13 +228,12 @@ void ObjectBase::closeOpenedSubpatchers()
 bool ObjectBase::click()
 {
     pd->setThis();
-    
-    if(libpd_has_click_function(static_cast<t_object*>(ptr)))
-    {
+
+    if (libpd_has_click_function(static_cast<t_object*>(ptr))) {
         pd->enqueueDirectMessages(ptr, "click", {});
         return true;
     }
-    
+
     return false;
 }
 
@@ -507,7 +505,8 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
     case hash("width"):
     case hash("height"): {
         MessageManager::callAsync([_this = SafePointer(this)]() {
-            if(_this) _this->object->updateBounds();
+            if (_this)
+                _this->object->updateBounds();
         });
         return;
     }

@@ -95,7 +95,7 @@ public:
 
         drawTicks(g, bounds, startAngle, endAngle, lineThickness);
     }
-    
+
     void setFgColour(Colour newFgColour)
     {
         fgColour = newFgColour;
@@ -118,42 +118,42 @@ public:
 class KnobObject : public ObjectBase {
 
     struct t_fake_knob {
-        t_object    x_obj;
-        t_glist    *x_glist;
-        int         x_size;
-        t_float     x_pos; // 0-1 normalized position
-        t_float     x_exp;
-        int         x_expmode;
-        t_float     x_init;
-        int         x_start_angle;
-        int         x_end_angle;
-        int         x_range;
-        int         x_offset;
-        int         x_ticks;
-        double      x_min;
-        double      x_max;
-        int         x_sel;
-        int         x_shift;
-        t_float     x_fval;
-        t_symbol   *x_fg;
-        t_symbol   *x_bg;
-        t_symbol   *x_snd;
-        t_symbol   *x_rcv;
-        int         x_circular;
-        int         x_arc;
-        int         x_zoom;
-        int         x_discrete;
-        char        x_tag_obj[128];
-        char        x_tag_circle[128];
-        char        x_tag_arc[128];
-        char        x_tag_center[128];
-        char        x_tag_wiper[128];
-        char        x_tag_wpr_c[128];
-        char        x_tag_ticks[128];
-        char        x_tag_outline[128];
-        char        x_tag_in[128];
-        char        x_tag_out[128];
-        char        x_tag_sel[128];
+        t_object x_obj;
+        t_glist* x_glist;
+        int x_size;
+        t_float x_pos; // 0-1 normalized position
+        t_float x_exp;
+        int x_expmode;
+        t_float x_init;
+        int x_start_angle;
+        int x_end_angle;
+        int x_range;
+        int x_offset;
+        int x_ticks;
+        double x_min;
+        double x_max;
+        int x_sel;
+        int x_shift;
+        t_float x_fval;
+        t_symbol* x_fg;
+        t_symbol* x_bg;
+        t_symbol* x_snd;
+        t_symbol* x_rcv;
+        int x_circular;
+        int x_arc;
+        int x_zoom;
+        int x_discrete;
+        char x_tag_obj[128];
+        char x_tag_circle[128];
+        char x_tag_arc[128];
+        char x_tag_center[128];
+        char x_tag_wiper[128];
+        char x_tag_wpr_c[128];
+        char x_tag_ticks[128];
+        char x_tag_outline[128];
+        char x_tag_in[128];
+        char x_tag_out[128];
+        char x_tag_sel[128];
     };
 
     Knob knob;
@@ -217,7 +217,7 @@ public:
     }
 
     void update() override
-{
+    {
         auto currentValue = getValue();
         value = currentValue;
         knob.setValue(currentValue, dontSendNotification);
@@ -237,12 +237,12 @@ public:
         max = getMaximum();
         updateRange();
         updateDoubleClickValue();
-        
+
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
 
         knob.setFgColour(getForegroundColour());
-    
+
         updateRotaryParameters();
 
         updateDoubleClickValue();
@@ -313,7 +313,7 @@ public:
                 setParameterExcludingListener(targetValue, colour);
             }
         };
-        
+
         switch (hash(symbol)) {
         case hash("float"):
         case hash("set"): {
@@ -413,32 +413,31 @@ public:
     {
         knob.setBounds(getLocalBounds());
     }
-    
+
     bool hasSendSymbol()
     {
         return !getReceiveSymbol().isEmpty();
     }
-    
-    
+
     bool hasReceiveSymbol()
     {
         return !getReceiveSymbol().isEmpty();
     }
-    
+
     String getSendSymbol()
     {
         pd->setThis();
 
         auto* knb = static_cast<t_fake_knob*>(ptr);
-        
-        if(!knb->x_snd || !knb->x_snd->s_name) return "";
+
+        if (!knb->x_snd || !knb->x_snd->s_name)
+            return "";
 
         auto sym = String::fromUTF8(knb->x_snd->s_name);
-        if(sym != "empty")
-        {
+        if (sym != "empty") {
             return sym;
         }
-    
+
         return "";
     }
 
@@ -447,26 +446,26 @@ public:
         pd->setThis();
 
         auto* knb = static_cast<t_fake_knob*>(ptr);
-        
-        if(!knb->x_rcv || !knb->x_rcv->s_name) return "";
+
+        if (!knb->x_rcv || !knb->x_rcv->s_name)
+            return "";
 
         auto sym = String::fromUTF8(knb->x_rcv->s_name);
-        if(sym != "empty")
-        {
+        if (sym != "empty") {
             return sym;
         }
-    
+
         return "";
     }
 
     void setSendSymbol(String const& symbol) const
     {
-        pd->enqueueDirectMessages(ptr, "send", {pd::Atom(symbol)});
+        pd->enqueueDirectMessages(ptr, "send", { pd::Atom(symbol) });
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
-        pd->enqueueDirectMessages(ptr, "receive", {pd::Atom(symbol)});
+        pd->enqueueDirectMessages(ptr, "receive", { pd::Atom(symbol) });
     }
 
     Colour getBackgroundColour() const
@@ -511,7 +510,7 @@ public:
         auto* knb = static_cast<t_fake_knob*>(ptr);
         auto pos = knb->x_pos;
         pd->unlockAudioThread();
-        
+
         return pos;
     }
 

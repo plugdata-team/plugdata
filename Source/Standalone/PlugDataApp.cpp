@@ -47,7 +47,7 @@ extern "C" {
 #    define snprintf _snprintf
 #endif
 
-struct t_namelist /* element in a linked list of stored strings */
+struct t_namelist               /* element in a linked list of stored strings */
 {
     struct t_namelist* nl_next; /* next in list */
     char* nl_string;            /* the string */
@@ -222,8 +222,8 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
 {
     auto args = StringArray::fromTokens(arguments, true);
     size_t argc = args.size();
-    
-    auto argv = std::vector<const char*>(argc);
+
+    auto argv = std::vector<char const*>(argc);
 
     for (int i = 0; i < args.size(); i++) {
         argv[i] = args.getReference(i).toRawUTF8();

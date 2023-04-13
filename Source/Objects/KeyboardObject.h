@@ -403,13 +403,13 @@ public:
             updateAspectRatio();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "send", {symbol});
+            pd->enqueueDirectMessages(ptr, "send", { symbol });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "receive", {symbol});
+            pd->enqueueDirectMessages(ptr, "receive", { symbol });
         } else if (value.refersToSameSourceAs(toggleMode)) {
             auto toggle = getValue<int>(toggleMode);
-            pd->enqueueDirectMessages(ptr, "toggle", {toggle});
+            pd->enqueueDirectMessages(ptr, "toggle", { toggle });
             keyboard.setToggleMode(toggle);
         }
     }

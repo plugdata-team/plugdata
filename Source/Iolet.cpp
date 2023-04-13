@@ -88,7 +88,7 @@ void Iolet::paint(Graphics& g)
     }
 
     auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
-    
+
     if ((down || over) && !isLocked)
         backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 

@@ -91,7 +91,8 @@ public:
 };
 
 class Canvas;
-class TabComponent : public TabbedComponent, public AsyncUpdater {
+class TabComponent : public TabbedComponent
+    , public AsyncUpdater {
 
     TextButton newButton = TextButton(Icons::Add);
     WelcomePanel welcomePanel;
@@ -143,7 +144,7 @@ public:
             triggerAsyncUpdate();
         }
     }
-    
+
     void handleAsyncUpdate() override
     {
         onTabChange(getCurrentTabIndex());

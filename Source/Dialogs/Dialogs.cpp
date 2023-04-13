@@ -46,7 +46,7 @@ void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre,
 
     dialog->setViewedComponent(saveDialog);
     target->reset(dialog);
-    
+
     centre->getTopLevelComponent()->toFront(true);
 }
 void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback)
@@ -528,7 +528,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
             i.shortcutKeyDescription = shortcutKey.trim();
 
             return i;
-        } else if(auto cnv = Component::SafePointer(parent->getCurrentCanvas())){
+        } else if (auto cnv = Component::SafePointer(parent->getCurrentCanvas())) {
 
             bool locked = getValue<bool>(cnv->locked) || getValue<bool>(cnv->commandLocked);
 

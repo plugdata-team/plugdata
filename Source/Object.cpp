@@ -103,7 +103,6 @@ void Object::setObjectBounds(Rectangle<int> bounds)
     setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
 }
 
-
 void Object::initialise()
 {
     cnv->addAndMakeVisible(this);
@@ -763,9 +762,9 @@ void Object::mouseDown(MouseEvent const& e)
     } else if (!selectedFlag) {
         cnv->deselectAll();
     }
-    
+
     cnv->setSelected(this, true);
-    
+
     if (e.mods.isPopupMenu()) {
         PopupMenu::dismissAllActiveMenus();
         Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
@@ -785,9 +784,8 @@ void Object::mouseDown(MouseEvent const& e)
     if (!selectedFlag) {
         selectionStateChanged = true;
     }
-    
+
     cnv->updateSidebarSelection();
-    
 }
 
 void Object::mouseUp(MouseEvent const& e)
@@ -875,7 +873,7 @@ void Object::mouseUp(MouseEvent const& e)
     if (gui && selectedFlag && !selectionStateChanged && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
         gui->showEditor();
     }
-    
+
     selectionStateChanged = false;
 }
 
@@ -979,30 +977,26 @@ void Object::mouseDrag(MouseEvent const& e)
         // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
         if (!cnv->objectRateReducer.tooFast() && ds.componentBeingDragged) {
             for (auto* object : selection) {
-                
+
                 auto newPosition = object->originalBounds.getPosition() + dragDistance;
-                
+
                 // Limit object movement inside palette
-                if(cnv->isPalette)
-                {
+                if (cnv->isPalette) {
                     auto bounds = object->getBounds().withPosition(newPosition);
                     auto viewWidth = cnv->viewport->getWidth() - 12;
-                    if(bounds.getX() < 0)
-                    {
+                    if (bounds.getX() < 0) {
                         bounds = bounds.withX(0);
                     }
-                    if(bounds.getRight() > viewWidth)
-                    {
+                    if (bounds.getRight() > viewWidth) {
                         bounds = bounds.withX(viewWidth - bounds.getWidth());
                     }
-                    if(bounds.getY() < 0)
-                    {
+                    if (bounds.getY() < 0) {
                         bounds = bounds.withY(0);
                     }
-                    
+
                     newPosition = bounds.getPosition();
                 }
-                
+
                 object->setBufferedToImage(true);
                 object->setTopLeftPosition(newPosition);
             }

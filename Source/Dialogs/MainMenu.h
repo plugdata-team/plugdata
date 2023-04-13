@@ -100,8 +100,8 @@ public:
 
         PluginEditor* _editor;
 
-        const float minZoom = 0.2f;
-        const float maxZoom = 3.0f;
+        float const minZoom = 0.2f;
+        float const maxZoom = 3.0f;
 
     public:
         ZoomSelector(PluginEditor* editor, ValueTree settingsTree, bool splitZoom)
@@ -132,7 +132,9 @@ public:
             };
         }
 
-        enum ZoomType {ZoomIn, ZoomOut, Reset};
+        enum ZoomType { ZoomIn,
+            ZoomOut,
+            Reset };
 
         void applyZoom(ZoomType zoomEventType)
         {
@@ -144,7 +146,7 @@ public:
             float scale = getValue<float>(zoomValue);
 
             // Apply limits
-            switch(zoomEventType){
+            switch (zoomEventType) {
             case ZoomIn:
                 scale = std::clamp(scale + 0.1f, minZoom, maxZoom);
                 break;

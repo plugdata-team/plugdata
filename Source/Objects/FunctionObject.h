@@ -369,10 +369,10 @@ public:
             repaint();
         } else if (v.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "send", {symbol});
+            pd->enqueueDirectMessages(ptr, "send", { symbol });
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "receive", {symbol});
+            pd->enqueueDirectMessages(ptr, "receive", { symbol });
 
         } else if (v.refersToSameSourceAs(range)) {
             setRange(getRange());

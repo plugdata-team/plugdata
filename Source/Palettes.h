@@ -260,7 +260,7 @@ public:
         dragModeButton.setConnectedEdges(Button::ConnectedOnLeft);
         dragModeButton.onClick = [this]() {
             cnv->locked = true;
-            
+
             // Make sure that iolets get repainted
             for (auto* object : cnv->objects) {
                 for (auto* iolet : object->iolets)
@@ -329,9 +329,8 @@ public:
             lastMode += dragModeButton.getToggleState() * 3;
             paletteTree.setProperty("Mode", lastMode, nullptr);
         }
-        
-        if(paletteTree == palette && cnv)
-        {
+
+        if (paletteTree == palette && cnv) {
             return;
         }
 
@@ -352,7 +351,7 @@ public:
         cnv = std::make_unique<Canvas>(editor, *newPatch, nullptr, true);
         patch = newPatch;
         viewport.reset(cnv->viewport);
-        
+
         viewport->setScrollBarsShown(true, false, true, false);
 
         cnv->paletteDragMode.referTo(dragModeButton.getToggleStateValue());
@@ -388,7 +387,7 @@ public:
         resized();
         repaint();
         cnv->repaint();
-        
+
         cnv->synchronise();
         cnv->jumpToOrigin();
     }
@@ -782,7 +781,7 @@ private:
             resized();
         }
     }
-        
+
     void mouseDrag(MouseEvent const& e) override
     {
         if (e.getDistanceFromDragStart() < 5)

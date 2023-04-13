@@ -491,13 +491,13 @@ Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
 
         snappable.add(object);
     }
-    
+
     auto centre = draggedObject->getBounds().getCentre();
 
-    std::sort(snappable.begin(), snappable.end(), [centre](Object* a, Object* b){
+    std::sort(snappable.begin(), snappable.end(), [centre](Object* a, Object* b) {
         auto distA = a->getBounds().getCentre().getDistanceFrom(centre);
         auto distB = b->getBounds().getCentre().getDistanceFrom(centre);
-        
+
         return distA < distB;
     });
 
@@ -543,4 +543,3 @@ void ObjectGrid::propertyChanged(String name, var value)
         gridSize = static_cast<int>(value);
     }
 }
-

@@ -69,8 +69,7 @@ public:
     }
 
     bool hasProperty(String name);
-        
-        
+
     bool wantsNativeDialog();
 
     Value getPropertyAsValue(String name);

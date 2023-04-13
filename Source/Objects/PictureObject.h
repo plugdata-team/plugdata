@@ -179,10 +179,10 @@ public:
             pic->x_size = getValue<int>(reportSize);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "send", {symbol});
+            pd->enqueueDirectMessages(ptr, "send", { symbol });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "receive", {symbol});
+            pd->enqueueDirectMessages(ptr, "receive", { symbol });
         }
     }
 

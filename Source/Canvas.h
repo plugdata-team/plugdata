@@ -193,7 +193,7 @@ public:
 
     ObjectGrid objectGrid = ObjectGrid(this);
 
-    const Point<int> canvasOrigin;
+    Point<int> const canvasOrigin;
     Point<int> viewportPositionBeforeMiddleDrag = { 0, 0 };
 
     std::unique_ptr<GraphArea> graphArea;
@@ -216,7 +216,7 @@ public:
     ObjectDragState dragState;
 
     inline static constexpr int infiniteCanvasSize = 128000;
-        
+
 private:
     LassoComponent<WeakReference<Component>> lasso;
 

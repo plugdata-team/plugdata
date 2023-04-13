@@ -14,11 +14,11 @@ struct t_fake_fielddesc {
         t_symbol* fd_symbol; /* the field is a constant symbol */
         t_symbol* fd_varsym; /* the field is variable and this is the name */
     } fd_un;
-    float fd_v1; /* min and max values */
+    float fd_v1;             /* min and max values */
     float fd_v2;
-    float fd_screen1; /* min and max screen values */
+    float fd_screen1;        /* min and max screen values */
     float fd_screen2;
-    float fd_quantum; /* quantization in value */
+    float fd_quantum;        /* quantization in value */
 };
 
 struct t_fake_curve {
@@ -83,7 +83,7 @@ public:
         }
     }
 
-    static int rangecolor(int n) /* 0 to 9 in 5 steps */
+    static int rangecolor(int n)   /* 0 to 9 in 5 steps */
     {
         int n2 = (n == 9 ? 8 : n); /* 0 to 8 */
         int ret = (n2 << 5);       /* 0 to 256 in 9 steps */
@@ -196,7 +196,7 @@ public:
 
                 xOffset += canvas->canvasOrigin.x;
                 yOffset += canvas->canvasOrigin.y;
-                
+
                 pix[2 * i] = xCoord * bounds.getWidth() + xOffset;
                 pix[2 * i + 1] = yCoord * bounds.getHeight() + yOffset;
             }

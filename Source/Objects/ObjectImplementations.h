@@ -124,7 +124,7 @@ public:
             t_symbol* keysym = pd->generateSymbol(keyString);
             parseKey(keyCode, keysym);
 
-            pd->enqueueDirectMessages(ptr, {1.0f, keysym});
+            pd->enqueueDirectMessages(ptr, { 1.0f, keysym });
         }
 
         // Never claim the keypress
@@ -199,7 +199,7 @@ public:
 
                         t_symbol* keysym = pd->generateSymbol(keyString);
                         parseKey(keyCode, keysym);
-                        pd->enqueueDirectMessages(ptr, {1.0f, keysym});
+                        pd->enqueueDirectMessages(ptr, { 1.0f, keysym });
                     }
 
                     keyPressTimes.remove(n);
@@ -364,7 +364,7 @@ public:
             return;
 
         if (!focusedComponent) {
-            pd->enqueueDirectMessages(ptr, "_focus", {canvasName, 0.0f});
+            pd->enqueueDirectMessages(ptr, "_focus", { canvasName, 0.0f });
             lastFocus = 0;
             return;
         }
@@ -391,14 +391,14 @@ public:
             name = gensym(buf);
 
             if (lastFocussedName != name) {
-                pd->enqueueDirectMessages(ptr, "_focus", {canvasName, static_cast<float>(shouldHaveFocus)});
+                pd->enqueueDirectMessages(ptr, "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
                 lastFocussedName = name;
             }
             return;
         }
 
         if (shouldHaveFocus != lastFocus) {
-            pd->enqueueDirectMessages(ptr, "_focus", {canvasName, static_cast<float>(shouldHaveFocus)});
+            pd->enqueueDirectMessages(ptr, "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
             lastFocus = shouldHaveFocus;
         }
     }
@@ -476,7 +476,7 @@ public:
         } else {
             cnv = getMainCanvas(mouse->x_canvas);
         }
-        
+
         freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
 
         if (!cnv)
@@ -776,24 +776,24 @@ public:
 
             auto pos = mouseSource.getScreenPosition();
 
-            pd->enqueueDirectMessages(ptr, "_getscreen", {pos.x, pos.y});
+            pd->enqueueDirectMessages(ptr, "_getscreen", { pos.x, pos.y });
 
             lastPosition = pos;
         }
         if (mouseSource.isDragging()) {
             if (!isDown) {
-                pd->enqueueDirectMessages(ptr, "_up", {0.0f});
+                pd->enqueueDirectMessages(ptr, "_up", { 0.0f });
             }
             isDown = true;
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (mouseSource.getLastMouseDownTime() > lastMouseDownTime) {
             if (!isDown) {
-                pd->enqueueDirectMessages(ptr, "_up", {0.0f});
+                pd->enqueueDirectMessages(ptr, "_up", { 0.0f });
             }
             isDown = true;
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (isDown) {
-            pd->enqueueDirectMessages(ptr, "_up", {1.0f});
+            pd->enqueueDirectMessages(ptr, "_up", { 1.0f });
             isDown = false;
         }
     }

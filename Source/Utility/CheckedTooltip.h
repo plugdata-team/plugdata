@@ -14,7 +14,8 @@ class CheckedTooltip : public TooltipWindow {
 public:
     CheckedTooltip(Component* target, std::function<bool(Component*)> checkTooltip, int timeout = 500)
         : TooltipWindow(target, timeout)
-        , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), Corners::defaultCornerRadius), checker(checkTooltip)
+        , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), Corners::defaultCornerRadius)
+        , checker(checkTooltip)
     {
         setOpaque(false);
         tooltipShadow.setOwner(this);
@@ -23,18 +24,16 @@ public:
     void hide(bool hidden)
     {
         // TooltipWindow already uses the setVisible flag internally, we can't use that, so we use setAlpha instead
-        //setAlpha(!hidden);
-        //tooltipShadow.setOwner(hidden ? nullptr : this);
+        // setAlpha(!hidden);
+        // tooltipShadow.setOwner(hidden ? nullptr : this);
     }
 
 private:
     String getTipFor(Component& c) override
     {
-        if(checker(&c))
-        {
+        if (checker(&c)) {
             return TooltipWindow::getTipFor(c);
-        }
-        else {
+        } else {
             return "";
         }
     }

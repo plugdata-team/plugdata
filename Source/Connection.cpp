@@ -86,7 +86,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     updateOverlays(cnv->getOverlays());
 
     cnv->pd->registerMessageListener(ptr, this);
-    
+
     setBufferedToImage(true);
 }
 
@@ -397,16 +397,16 @@ void Connection::paint(Graphics& g)
         isHovering,
         getNumberOfConnections(),
         getMultiConnectNumber());
-    
-/*
-    static Random rng;
 
-    g.fillAll (Colour ((uint8) rng.nextInt (255),
-                       (uint8) rng.nextInt (255),
-                       (uint8) rng.nextInt (255),
-                       (uint8) 0x50));*/
-    //debug
-    
+    /*
+        static Random rng;
+
+        g.fillAll (Colour ((uint8) rng.nextInt (255),
+                           (uint8) rng.nextInt (255),
+                           (uint8) rng.nextInt (255),
+                           (uint8) 0x50));*/
+    // debug
+
     /*
     g.setColour(Colours::orange);
     for(auto& point : currentPlan)
@@ -610,7 +610,7 @@ int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& 
     for (int n = 2; n < plan.size() - 1; n++) {
         auto line = Line<float>(plan[n - 1], plan[n]);
         Point<float> nearest;
-        
+
         if (line.getDistanceFromPoint(cnv->getLocalPoint(this, position), nearest) < 3) {
             return n;
         }
@@ -660,7 +660,7 @@ void Connection::resizeToFit()
 {
     auto pStart = getStartPoint();
     auto pEnd = getEndPoint();
-    
+
     auto newBounds = Rectangle<float>(pStart, pEnd).expanded(8).getSmallestIntegerContainer();
 
     if (segmented) {
@@ -690,19 +690,19 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     if (outobj->isSelected() && inobj->isSelected() && !wasResized) {
         // calculate the offset for moving the whole connection
         auto pointOffset = pstart - previousPStart;
-        
+
         // Prevent a repaint if we're not moving
         // This will happen often since there's a move callback from both inlet and outlet
-        if(pointOffset.isOrigin()) return;
-        
+        if (pointOffset.isOrigin())
+            return;
+
         previousPStart = pstart;
         setTopLeftPosition(getPosition() + pointOffset.toInt());
-        
-        for(auto& point : currentPlan)
-        {
+
+        for (auto& point : currentPlan) {
             point += pointOffset;
         }
-        
+
         return;
     }
     previousPStart = pstart;
@@ -742,7 +742,8 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 
 Point<float> Connection::getStartPoint()
 {
-    return outlet->getCanvasBounds().toFloat().getCentre();;
+    return outlet->getCanvasBounds().toFloat().getCentre();
+    ;
 }
 
 Point<float> Connection::getEndPoint()

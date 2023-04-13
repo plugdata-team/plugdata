@@ -69,7 +69,7 @@ public:
 
         addAndMakeVisible(content);
 
-        const auto& origin = cnv->canvasOrigin;
+        auto const& origin = cnv->canvasOrigin;
         cnv->setBounds(-origin.x, -origin.y, width + origin.x, height + origin.y);
 
         setAlwaysOnTop(true);

@@ -65,7 +65,6 @@ public:
     }
 };
 
-
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
@@ -74,13 +73,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
     , splitView(this)
     , openedDialog(nullptr)
-    , tooltipWindow(this, [](Component* c){
-        
-        if(auto* cnv = c->findParentComponentOfClass<Canvas>())
-        {
+    , tooltipWindow(this, [](Component* c) {
+        if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked) || getValue<bool>(cnv->paletteDragMode);
         }
-        
+
         return true;
     })
 {
@@ -345,7 +342,7 @@ void PluginEditor::resized()
     if (auto standalone = ProjectInfo::isStandalone ? dynamic_cast<DocumentWindow*>(getTopLevelComponent()) : nullptr)
         offset = standalone->isFullScreen() ? 0 : offset;
 #endif
-    
+
     zoomLabel->setBounds(paletteWidth + 5, getHeight() - Statusbar::statusbarHeight - 36, 55, 23);
 
     mainMenuButton.setBounds(20 + offset, 0, toolbarHeight, toolbarHeight);
@@ -376,7 +373,6 @@ void PluginEditor::resized()
 
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
-
 }
 
 void PluginEditor::parentSizeChanged()
@@ -411,7 +407,7 @@ void PluginEditor::parentSizeChanged()
         standalone->getMaximiseButton()->setVisible(visible);
     }
 #endif
-    
+
     resized();
 }
 
@@ -643,7 +639,7 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     cnv->getTabbar()->removeTab(tabIdx);
     canvases.removeObject(cnv);
-    
+
     pd->patches.removeFirstMatchingValue(patch);
 
     if (auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas()) {
@@ -742,7 +738,7 @@ void PluginEditor::valueChanged(Value& v)
 {
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale) || v.refersToSameSourceAs(splitZoomScale)) {
-        
+
         float newScaleFactor = getValue<float>(v);
 
         if (newScaleFactor == 0) {
@@ -751,35 +747,34 @@ void PluginEditor::valueChanged(Value& v)
         }
 
         auto* tabbar = v.refersToSameSourceAs(zoomScale) ? splitView.getLeftTabbar() : splitView.getRightTabbar();
-        
+
         if (auto* cnv = getCurrentCanvas()) {
             cnv->hideSuggestions();
 
             if (!cnv->viewport || pluginMode)
                 return;
-            
+
             // Get floating point mouse position relative to screen
             auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
 
             // Get mouse position relative to canvas
             auto oldPosition = cnv->getLocalPoint(nullptr, mousePosition);
-            
+
             // Apply transform and make sure viewport bounds get updated
             cnv->setTransform(AffineTransform().scaled(newScaleFactor));
-  
+
             // After zooming, get mouse position relative to canvas again
             auto newPosition = cnv->getLocalPoint(nullptr, mousePosition);
-            
+
             // Calculate offset to keep our mouse position the same as before this zoom action
             auto offset = newPosition - oldPosition;
-            
+
             cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
-            
+
             // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
             // Without this, future calls to getViewPosition() will give wrong results
             cnv->viewport->resized();
         }
-        
 
         zoomLabel->setZoomLevel(newScaleFactor);
     }

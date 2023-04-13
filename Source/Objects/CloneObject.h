@@ -29,10 +29,10 @@ struct t_out {
 
 struct t_fake_clone {
     t_object x_obj;
-    int x_n;       /* number of copies */
-    t_copy* x_vec; /* the copies */
+    int x_n;          /* number of copies */
+    t_copy* x_vec;    /* the copies */
     int x_nin;
-    t_in* x_invec; /* inlet proxies */
+    t_in* x_invec;    /* inlet proxies */
     int x_nout;
     t_out** x_outvec; /* outlet proxies */
     t_symbol* x_s;    /* name of abstraction */
