@@ -34,7 +34,7 @@ public:
     WeakReference<Iolet> inlet, outlet;
     WeakReference<Object> inobj, outobj;
 
-    Path toDraw;
+    Path toDraw, toDrawLocalSpace;
     String lastId;
 
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
@@ -100,6 +100,8 @@ public:
     int findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> start, Point<float> end, Point<float> increment);
 
     void findPath();
+        
+    void applyBestPath();
 
     bool intersectsObject(Object* object);
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
@@ -110,6 +112,8 @@ public:
 
 private:
     bool segmented = false;
+
+    void resizeToFit();
 
     Array<SafePointer<Connection>> reconnecting;
 
@@ -131,7 +135,7 @@ private:
 
     Canvas* cnv;
 
-    Point<float> origin, offset;
+    Point<float> previousPStart = Point<float>();
 
     int dragIdx = -1;
 
