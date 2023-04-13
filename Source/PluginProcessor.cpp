@@ -1102,9 +1102,11 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
 
     // Stop the audio callback when loading a new patch
     suspendProcessing(true);
-
+    lockAudioThread();
+    
     auto newPatch = openPatch(patchFile);
-
+    
+    unlockAudioThread();
     suspendProcessing(false);
 
     if (!newPatch->getPointer()) {

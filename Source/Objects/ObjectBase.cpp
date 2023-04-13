@@ -128,12 +128,16 @@ String ObjectBase::getText()
     if (!cnv->patch.checkObject(ptr))
         return "";
 
+
     cnv->pd->setThis();
 
     char* text = nullptr;
     int size = 0;
+    
+    cnv->pd->lockAudioThread();
     libpd_get_object_text(ptr, &text, &size);
-
+    cnv->pd->unlockAudioThread();
+    
     if (text && size) {
 
         auto txt = String::fromUTF8(text, size);

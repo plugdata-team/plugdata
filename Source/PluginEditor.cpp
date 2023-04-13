@@ -34,7 +34,8 @@ class ZoomLabel : public TextButton
 
     ComponentAnimator labelAnimator;
 
-    bool initRun = true;
+    // Ignore two times, when setting zoom scale and when setting split zoom scale
+    int initRun = 2;
 
 public:
     ZoomLabel()
@@ -44,8 +45,8 @@ public:
 
     void setZoomLevel(float value)
     {
-        if (initRun) {
-            initRun = false;
+        if (initRun > 0) {
+            initRun--;
             return;
         }
 
@@ -333,9 +334,9 @@ void PluginEditor::resized()
 
     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), getHeight() - toolbarHeight - (statusbar->getHeight()));
 
-    splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth) + 1, getHeight() - toolbarHeight - (statusbar->getHeight()));
+    splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth) + 1, getHeight() - toolbarHeight - Statusbar::statusbarHeight);
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), getHeight() - toolbarHeight);
-    statusbar->setBounds(0, getHeight() - statusbar->getHeight(), getWidth() - sidebar->getWidth(), statusbar->getHeight());
+    statusbar->setBounds(0, getHeight() - Statusbar::statusbarHeight, getWidth() - sidebar->getWidth(), statusbar->getHeight());
 
     auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
@@ -344,6 +345,8 @@ void PluginEditor::resized()
     if (auto standalone = ProjectInfo::isStandalone ? dynamic_cast<DocumentWindow*>(getTopLevelComponent()) : nullptr)
         offset = standalone->isFullScreen() ? 0 : offset;
 #endif
+    
+    zoomLabel->setBounds(paletteWidth + 5, getHeight() - Statusbar::statusbarHeight - 36, 55, 23);
 
     mainMenuButton.setBounds(20 + offset, 0, toolbarHeight, toolbarHeight);
     undoButton.setBounds(80 + offset, 0, toolbarHeight, toolbarHeight);
@@ -374,8 +377,6 @@ void PluginEditor::resized()
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
 
-    zoomLabel->setTopLeftPosition(paletteWidth + 5, statusbar->getY() - 28);
-    zoomLabel->setSize(55, 23);
 }
 
 void PluginEditor::parentSizeChanged()
@@ -410,6 +411,8 @@ void PluginEditor::parentSizeChanged()
         standalone->getMaximiseButton()->setVisible(visible);
     }
 #endif
+    
+    resized();
 }
 
 void PluginEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel)
