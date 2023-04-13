@@ -993,7 +993,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     }
     case CommandIDs::ZoomNormal: {
         result.setInfo("Zoom 100%", "Revert zoom to 100%", "Edit", 0);
-        result.addDefaultKeypress(33, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+        result.addDefaultKeypress(48, ModifierKeys::commandModifier);
         result.setActive(hasCanvas && !isDragging);
         break;
     }
