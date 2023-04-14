@@ -225,9 +225,9 @@ void ObjectImplementationManager::updateObjectImplementations()
             auto const name = String::fromUTF8(libpd_get_object_class_name(ptr));
 
             objectImplementations[ptr] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, ptr, pd));
-        } else {
-            objectImplementations[ptr]->update();
         }
+        
+        objectImplementations[ptr]->update();
     }
 }
 

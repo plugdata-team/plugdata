@@ -29,11 +29,11 @@ Iolet::Iolet(Object* parent, bool inlet)
     locked.referTo(object->cnv->locked);
     locked.addListener(this);
 
+    commandLocked.referTo(object->cnv->commandLocked);
+    commandLocked.addListener(this);
+    
     presentationMode.referTo(object->cnv->presentationMode);
     presentationMode.addListener(this);
-
-    bool isLocked = getValue<bool>(locked);
-    setInterceptsMouseClicks(!isLocked, true);
 
     bool isPresenting = getValue<bool>(presentationMode);
     setVisible(!isPresenting && !insideGraph);
@@ -54,7 +54,7 @@ bool Iolet::hitTest(int x, int y)
 {
     // If locked, don't intercept mouse clicks
     // Make an exception for palette drag mode, so we'll still get tooltips there
-    if (getValue<bool>(locked) && !getValue<bool>(cnv->paletteDragMode))
+    if ((getValue<bool>(locked) || getValue<bool>(commandLocked)) && !getValue<bool>(cnv->paletteDragMode))
         return false;
 
     Path smallBounds;
@@ -79,7 +79,7 @@ void Iolet::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat().reduced(0.5f);
 
-    bool isLocked = getValue<bool>(locked);
+    bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool down = isMouseButtonDown();
     bool over = isMouseOver();
 
@@ -451,6 +451,10 @@ Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Obj
 void Iolet::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(locked)) {
+        repaint();
+    }
+    if(v.refersToSameSourceAs(commandLocked))
+    {
         repaint();
     }
     if (v.refersToSameSourceAs(presentationMode)) {

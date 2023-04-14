@@ -576,7 +576,7 @@ void Canvas::updateDrawables()
 
 void Canvas::commandKeyChanged(bool isHeld)
 {
-    commandLocked = isHeld && locked.getValue() == var(false);
+    commandLocked = isHeld;
 }
 
 void Canvas::spaceKeyChanged(bool isHeld)

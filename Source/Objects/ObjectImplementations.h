@@ -72,11 +72,6 @@ public:
         : ImplementationBase(ptr, pd)
         , type(keyObjectType)
     {
-        if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
-            // Capture key events for whole window
-            editor->addKeyListener(this);
-            editor->addModifierKeyListener(this);
-        }
     }
 
     ~KeyObject()
@@ -84,6 +79,15 @@ public:
         if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
             editor->removeModifierKeyListener(this);
             editor->removeKeyListener(this);
+        }
+    }
+        
+    void update() override
+    {
+        if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
+            // Capture key events for whole window
+            editor->addKeyListener(this);
+            editor->addModifierKeyListener(this);
         }
     }
 
