@@ -354,7 +354,7 @@ void Connection::renderConnectionPath(Graphics& g,
         g.fillEllipse(endCableOrderDisplay);
         g.setColour(baseColour.darker(1.0f));
         g.drawEllipse(endCableOrderDisplay, 0.5f);
-        Fonts::drawStyledText(g, String(multiConnectNumber), endCableOrderDisplay.toNearestIntEdges(), cnv->findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
+        Fonts::drawStyledText(g, String(multiConnectNumber), endCableOrderDisplay, cnv->findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
     }
 
     // draw reconnect handles if connection is both selected & mouse is hovering over

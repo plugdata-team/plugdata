@@ -80,35 +80,40 @@ struct Fonts {
     }
 
     // For drawing bold, semibold or thin text
-    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, FontStyle style, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    static void drawStyledTextSetup(Graphics& g, Colour colour, FontStyle style, int fontHeight = 15)
     {
         Font font;
         switch (style) {
-        case Regular:
-            font = Fonts::getCurrentFont();
-            break;
-        case Bold:
-            font = Fonts::getBoldFont();
-            break;
-        case Semibold:
-            font = Fonts::getSemiBoldFont();
-            break;
-        case Thin:
-            font = Fonts::getThinFont();
-            break;
-        case Monospace:
-            font = Fonts::getMonospaceFont();
-            break;
+            case Regular:    font = Fonts::getCurrentFont();    break;
+            case Bold:       font = Fonts::getBoldFont();       break;
+            case Semibold:   font = Fonts::getSemiBoldFont();   break;
+            case Thin:       font = Fonts::getThinFont();       break;
+            case Monospace:  font = Fonts::getMonospaceFont();  break;
         }
 
         g.setFont(font.withHeight(fontHeight));
         g.setColour(colour);
+    }
+
+    // rectangle float version
+    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour colour, FontStyle style, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    {
+        drawStyledTextSetup(g, colour, style, fontHeight);
         g.drawText(textToDraw, bounds, justification);
     }
 
+    // rectangle int version
+    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, FontStyle style, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    {
+        drawStyledTextSetup(g, colour, style, fontHeight);
+        g.drawText(textToDraw, bounds, justification);
+    }
+
+    // int version
     static void drawStyledText(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour colour, FontStyle style, int fontHeight = 15, Justification justification = Justification::centredLeft)
     {
-        drawStyledText(g, textToDraw, { x, y, w, h }, colour, style, fontHeight, justification);
+        drawStyledTextSetup(g, colour, style, fontHeight);
+        g.drawText(textToDraw, Rectangle<int>(x, y, w, h), justification);
     }
 
     // For drawing regular text
