@@ -86,8 +86,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     updateOverlays(cnv->getOverlays());
 
     cnv->pd->registerMessageListener(ptr, this);
-
-    setBufferedToImage(true);
 }
 
 Connection::~Connection()
@@ -693,6 +691,9 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         // calculate the offset for moving the whole connection
         auto pointOffset = pstart - previousPStart;
 
+        // as we are moving the whole component, no need to redraw
+        setBufferedToImage(true);
+
         // Prevent a repaint if we're not moving
         // This will happen often since there's a move callback from both inlet and outlet
         if (pointOffset.isOrigin())
@@ -708,6 +709,10 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         return;
     }
     previousPStart = pstart;
+
+    // if buffered to image is true here it will take longer to redraw & buffer,
+    // and cause wiggling of cables, also greatly improves performance
+    setBufferedToImage(false);
 
     if (currentPlan.size() <= 2) {
         updatePath();
