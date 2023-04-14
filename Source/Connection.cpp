@@ -380,6 +380,7 @@ void Connection::updateOverlays(int overlay)
 {
     showDirection = overlay & Overlay::Direction;
     showConnectionOrder = overlay & Overlay::Order;
+    updatePath();
     resizeToFit();
     repaint();
 }
