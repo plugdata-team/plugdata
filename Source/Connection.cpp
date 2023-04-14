@@ -86,8 +86,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     updateOverlays(cnv->getOverlays());
 
     cnv->pd->registerMessageListener(ptr, this);
-
-    setBufferedToImage(true);
 }
 
 Connection::~Connection()
@@ -128,6 +126,8 @@ void Connection::valueChanged(Value& v)
 void Connection::lookAndFeelChanged()
 {
     updatePath();
+    resizeToFit();
+    repaint();
 }
 
 void Connection::pushPathState()
@@ -354,7 +354,7 @@ void Connection::renderConnectionPath(Graphics& g,
         g.fillEllipse(endCableOrderDisplay);
         g.setColour(baseColour.darker(1.0f));
         g.drawEllipse(endCableOrderDisplay, 0.5f);
-        Fonts::drawStyledText(g, String(multiConnectNumber), endCableOrderDisplay.toNearestIntEdges(), cnv->findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
+        Fonts::drawStyledText(g, String(multiConnectNumber), endCableOrderDisplay, cnv->findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
     }
 
     // draw reconnect handles if connection is both selected & mouse is hovering over
@@ -380,6 +380,7 @@ void Connection::updateOverlays(int overlay)
 {
     showDirection = overlay & Overlay::Direction;
     showConnectionOrder = overlay & Overlay::Order;
+    resizeToFit();
     repaint();
 }
 
@@ -568,6 +569,7 @@ void Connection::mouseDrag(MouseEvent const& e)
             currentPlan[n].y = mouseDownPosition + delta.y;
         }
 
+        setBufferedToImage(false);
         updatePath();
         resizeToFit();
         repaint();
@@ -661,17 +663,19 @@ void Connection::resizeToFit()
     auto pStart = getStartPoint();
     auto pEnd = getEndPoint();
 
-    auto newBounds = Rectangle<float>(pStart, pEnd).expanded(8).getSmallestIntegerContainer();
+    auto safteyMargin = showConnectionOrder ? 12 : 6;
+
+    auto newBounds = Rectangle<float>(pStart, pEnd).expanded(safteyMargin).getSmallestIntegerContainer();
 
     if (segmented) {
-        newBounds = newBounds.getUnion(toDraw.getBounds().expanded(8).getSmallestIntegerContainer());
+        newBounds = newBounds.getUnion(toDraw.getBounds().expanded(safteyMargin).getSmallestIntegerContainer());
     }
     if (newBounds != getBounds()) {
         setBounds(newBounds);
     }
 
     toDrawLocalSpace = toDraw;
-    auto offset = getLocalPoint(cnv, Point<int>(0, 0));
+    auto offset = getLocalPoint(cnv, Point<int>());
     toDrawLocalSpace.applyTransform(AffineTransform::translation(offset));
 
     startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDrawLocalSpace.getPointAlongPath(8.5f));
@@ -695,6 +699,9 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         // This will happen often since there's a move callback from both inlet and outlet
         if (pointOffset.isOrigin())
             return;
+        
+        // as we are moving the whole component, no need to redraw
+        setBufferedToImage(true);
 
         previousPStart = pstart;
         setTopLeftPosition(getPosition() + pointOffset.toInt());
@@ -706,6 +713,13 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         return;
     }
     previousPStart = pstart;
+
+    // if buffered to image is true here it will take longer to redraw & buffer,
+    // and cause wiggling of cables, also greatly improves performance
+    // 
+    // we may need to turn it off in other parts of this class, 
+    // if getCachedComponentImage() returns true setBufferedToImage is on
+    setBufferedToImage(false);
 
     if (currentPlan.size() <= 2) {
         updatePath();
