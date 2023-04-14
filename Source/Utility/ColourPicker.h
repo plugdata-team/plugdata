@@ -167,8 +167,15 @@ public:
 
         std::unique_ptr<ColourPicker> colourSelector = std::make_unique<ColourPicker>(topLevelComponent, onlySendCallbackOnClose, callback);
 
+        Component* parent = nullptr;
+        if(!ProjectInfo::canUseSemiTransparentWindows())
+        {
+            parent = topLevelComponent;
+            bounds = topLevelComponent->getLocalArea(nullptr, bounds);
+        }
+
         colourSelector->setCurrentColour(currentColour);
-        CallOutBox::launchAsynchronously(std::move(colourSelector), bounds, nullptr);
+        CallOutBox::launchAsynchronously(std::move(colourSelector), bounds, parent);
     }
 
     ColourPicker(Component* topLevelComponent, bool noLiveChangeCallback, std::function<void(Colour)> cb)

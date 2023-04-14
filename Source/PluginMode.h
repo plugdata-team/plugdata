@@ -112,7 +112,7 @@ public:
             }
             _editor->getConstrainer()->setFixedAspectRatio(0);
             _editor->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
-            _editor->setBounds(_bounds);
+            _editor->setBoundsConstrained(_bounds);
             _editor->getParentComponent()->resized();
         });
 

@@ -560,14 +560,14 @@ struct PlugDataLook : public LookAndFeel_V4 {
         // we check if the system is drawing with a dropshadow- hence semi transparent will be true
 #if JUCE_LINUX
         auto leftOffset = titleBarX;
-        if (maximiseButton != nullptr && areButtonsLeft && Desktop::canUseSemiTransparentWindows()) {
+        if (maximiseButton != nullptr && areButtonsLeft && ProjectInfo::canUseSemiTransparentWindows()) {
             if (maximiseButton->getToggleState())
                 leftOffset += 8;
             else
                 leftOffset += 25;
         }
 #else
-        auto leftOffset = areButtonsLeft && Desktop::canUseSemiTransparentWindows() ? titleBarX + 12 : titleBarX;
+        auto leftOffset = areButtonsLeft && ProjectInfo::canUseSemiTransparentWindows() ? titleBarX + 12 : titleBarX;
 #endif
 
         if (areButtonsLeft) {
@@ -646,7 +646,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override
     {
         auto background = findColour(PlugDataColour::popupMenuBackgroundColourId);
-
+        
+        // TODO: some popup menus are added to a component and some to desktop,
+        // which makes it really hard to decide whether they can be transparent or not!
+        // We can check it in this function by checking options.getParentComponent, but unfortunately not everywhere
         if (Desktop::canUseSemiTransparentWindows()) {
             Path shadowPath;
             shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);

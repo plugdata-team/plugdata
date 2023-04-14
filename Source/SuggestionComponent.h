@@ -414,14 +414,7 @@ private:
 
     bool canBeTransparent()
     {
-#if !PLUGDATA_STANDALONE
-        // Apple's hosts don't deal well with transparency,
-        auto hostType = PluginHostType();
-        if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
-            return false;
-        }
-#endif
-        return Desktop::canUseSemiTransparentWindows();
+        return ProjectInfo::canUseSemiTransparentWindows();
     }
 
     void paint(Graphics& g) override

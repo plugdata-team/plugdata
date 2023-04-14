@@ -17,6 +17,8 @@ struct ProjectInfo {
     static inline int const versionNumber = 0x700;
 
     static AudioDeviceManager* getDeviceManager();
+    
+    static bool canUseSemiTransparentWindows();
 };
 
 template<typename T>
