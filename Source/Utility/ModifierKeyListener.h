@@ -38,7 +38,6 @@ public:
 
     void setModifierKeys(ModifierKeys const& mods)
     {
-
         // Handle mod down
         if (mods.isShiftDown() && !shiftWasDown) {
             callListeners(Shift, true);
@@ -138,9 +137,11 @@ private:
     {
         // If a window that's not coming from our app is top-level, ignore
         // key commands
+#if PLUGDATA_STANDALONE
         if (!TopLevelWindow::getActiveTopLevelWindow()) {
             return;
         }
+#endif
 
         auto mods = ModifierKeys::getCurrentModifiersRealtime();
         setModifierKeys(mods);
