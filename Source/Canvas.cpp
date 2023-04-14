@@ -102,7 +102,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
     performSynchronise();
 
     // Start in unlocked mode if the patch is empty
-    if (objects.isEmpty()) {
+    if (objects.isEmpty() && !palette) {
         locked = false;
         patch.getPointer()->gl_edit = false;
     } else {
