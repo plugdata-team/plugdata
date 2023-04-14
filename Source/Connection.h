@@ -137,6 +137,9 @@ private:
 
     Point<float> previousPStart = Point<float>();
 
+    Point<float> pstart = Point<float>();
+    Point<float> pend = Point<float>();
+
     int dragIdx = -1;
 
     float mouseDownPosition = 0;

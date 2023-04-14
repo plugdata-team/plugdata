@@ -661,20 +661,19 @@ void Connection::reconnect(Iolet* target)
 
 void Connection::resizeToFit()
 {
-    auto pStart = getStartPoint();
-    auto pEnd = getEndPoint();
+    auto safteyMargin = showConnectionOrder ? 12 : 6;
 
-    auto newBounds = Rectangle<float>(pStart, pEnd).expanded(8).getSmallestIntegerContainer();
+    auto newBounds = Rectangle<float>(pstart, pend).expanded(safteyMargin).toNearestIntEdges();
 
     if (segmented) {
-        newBounds = newBounds.getUnion(toDraw.getBounds().expanded(8).getSmallestIntegerContainer());
+        newBounds = newBounds.getUnion(toDraw.getBounds().expanded(safteyMargin).toNearestIntEdges());
     }
     if (newBounds != getBounds()) {
         setBounds(newBounds);
     }
 
     toDrawLocalSpace = toDraw;
-    auto offset = getLocalPoint(cnv, Point<int>(0, 0));
+    auto offset = getLocalPoint(cnv, Point<float>());
     toDrawLocalSpace.applyTransform(AffineTransform::translation(offset));
 
     startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDrawLocalSpace.getPointAlongPath(8.5f));
@@ -686,8 +685,8 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     if (!inlet || !outlet)
         return;
 
-    auto pstart = getStartPoint();
-    auto pend = getEndPoint();
+    pstart = getStartPoint();
+    pend = getEndPoint();
 
     // If both inlet and outlet are selected we can move the connection
     if (outobj->isSelected() && inobj->isSelected() && !wasResized) {
@@ -812,8 +811,8 @@ void Connection::updatePath()
     if (!outlet || !inlet)
         return;
 
-    auto pstart = getStartPoint();
-    auto pend = getEndPoint();
+    pstart = getStartPoint();
+    pend = getEndPoint();
 
     if (!segmented) {
         toDraw = getNonSegmentedPath(pstart, pend);
