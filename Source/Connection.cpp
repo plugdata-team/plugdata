@@ -128,6 +128,8 @@ void Connection::valueChanged(Value& v)
 void Connection::lookAndFeelChanged()
 {
     updatePath();
+    resizeToFit();
+    repaint();
 }
 
 void Connection::pushPathState()
@@ -380,6 +382,7 @@ void Connection::updateOverlays(int overlay)
 {
     showDirection = overlay & Overlay::Direction;
     showConnectionOrder = overlay & Overlay::Order;
+    resizeToFit();
     repaint();
 }
 
