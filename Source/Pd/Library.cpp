@@ -58,7 +58,7 @@ void Library::updateLibrary()
             continue;
 
         auto newName = String::fromUTF8(m->me_name->s_name);
-        if (!(newName.startsWith("else/") || newName.startsWith("cyclone/"))) {
+        if (!(newName.startsWith("else/") || newName.startsWith("cyclone/") || newName.endsWith("_aliased"))) {
             allObjects.add(newName);
         }
     }
