@@ -81,9 +81,6 @@ public:
     {
         if (!cnv)
             return;
-
-        cnv->locked = false;
-        cnv->presentationMode = false;
     }
 
     void closePluginMode()
@@ -98,6 +95,8 @@ public:
             cnv->viewport->resized();
             cnv->jumpToOrigin();
             cnv->setSize(Canvas::infiniteCanvasSize, Canvas::infiniteCanvasSize);
+            cnv->locked = false;
+            cnv->presentationMode = false;
         }
 
         // Restore Bounds & Resize Limits with the current position
