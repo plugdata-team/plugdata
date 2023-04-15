@@ -400,16 +400,16 @@ void Connection::paint(Graphics& g)
         getNumberOfConnections(),
         getMultiConnectNumber());
 
-    /*
+#if (ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT)
         static Random rng;
 
         g.fillAll (Colour ((uint8) rng.nextInt (255),
                            (uint8) rng.nextInt (255),
                            (uint8) rng.nextInt (255),
-                           (uint8) 0x50));*/
-    // debug
+                           (uint8) 0x50));
+#endif
 
-    /*
+#if (ENABLE_CONNECTION_GRAPHICS_DEBUGGING)
     g.setColour(Colours::orange);
     for(auto& point : currentPlan)
     {
@@ -418,7 +418,8 @@ void Connection::paint(Graphics& g)
     }
 
     g.setColour(Colours::red);
-    g.drawRect(getLocalBounds(), 1.0f); */
+    g.drawRect(getLocalBounds(), 1.0f);
+#endif
 }
 
 bool Connection::isSegmented()
@@ -439,6 +440,8 @@ void Connection::setSelected(bool shouldBeSelected)
 {
     if (selectedFlag != shouldBeSelected) {
         selectedFlag = shouldBeSelected;
+        updatePath();
+        resizeToFit();
         repaint();
     }
 }
@@ -664,7 +667,9 @@ void Connection::resizeToFit()
     auto pStart = getStartPoint();
     auto pEnd = getEndPoint();
 
-    auto safteyMargin = showConnectionOrder ? 12 : 6;
+    // heuristics to allow the overlay & reconnection handle to paint inside bounds
+    // consider moving them to their own layers in future
+    auto safteyMargin = showConnectionOrder ? 13 : isSelected() ? 10 : 6;
 
     auto newBounds = Rectangle<float>(pStart, pEnd).expanded(safteyMargin).getSmallestIntegerContainer();
 
@@ -798,7 +803,7 @@ Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
 int Connection::getNumberOfConnections()
 {
     int count = 0;
-    for (auto connection : cnv->connections) {
+    for (auto* connection : cnv->connections) {
         if (outlet == connection->outlet) {
             count++;
         }
@@ -809,9 +814,9 @@ int Connection::getNumberOfConnections()
 int Connection::getMultiConnectNumber()
 {
     int count = 0;
-    for (auto connection : cnv->connections) {
+    for (auto* connection : cnv->connections) {
         if (outlet == connection->outlet) {
-            count += 1;
+            count++;
             if (this == connection)
                 return count;
         }
