@@ -54,10 +54,12 @@ public:
     bool isSubpatch();
     bool isAbstraction();
 
+    static String translatePatchAsString(String clipboardContent, Point<int> position);
+
     t_glist* getRoot();
 
     void copy();
-    void paste();
+    void paste(Point<int> position);
     void duplicate();
 
     void startUndoSequence(String name);
