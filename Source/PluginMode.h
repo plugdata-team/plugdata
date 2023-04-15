@@ -10,7 +10,6 @@ public:
         , editor(cnv->editor)
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds())
-        , viewportBounds(cnv->viewport->getBounds())
     {
         auto c = editor->getConstrainer();
         windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
@@ -85,18 +84,17 @@ public:
 
     void closePluginMode()
     {
-        editor->pd->pluginMode = var(false);
-
         if (cnv) {
             content.removeChildComponent(cnv);
             // Reset the canvas properties
-            cnv->viewport->setBounds(viewportBounds);
             cnv->viewport->setViewedComponent(cnv, false);
-            cnv->viewport->resized();
+            editor->resized();
+            cnv->patch.openInPluginMode = false;
             cnv->jumpToOrigin();
             cnv->setSize(Canvas::infiniteCanvasSize, Canvas::infiniteCanvasSize);
             cnv->locked = false;
             cnv->presentationMode = false;
+
         }
 
         // Restore Bounds & Resize Limits with the current position
@@ -285,7 +283,6 @@ private:
     std::vector<int> windowConstrainer;
 
     Rectangle<int> windowBounds;
-    Rectangle<int> viewportBounds;
     float const width = float(cnv->patchWidth.getValue()) + 1.0f;
     float const height = float(cnv->patchHeight.getValue()) + 1.0f;
 };

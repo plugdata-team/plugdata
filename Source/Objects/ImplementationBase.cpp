@@ -235,6 +235,8 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
 {
     Array<void*> implementations;
 
+    pd->lockAudioThread();
+    
     auto* glist = static_cast<t_glist*>(patch);
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
 
@@ -247,6 +249,8 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
             implementations.add(y);
         }
     }
+    
+    pd->unlockAudioThread();
 
     return implementations;
 }

@@ -126,7 +126,7 @@ t_glist* Patch::getRoot()
 {
     if (!ptr)
         return nullptr;
-
+    
     return canvas_getrootfor(getPointer());
 }
 
@@ -201,6 +201,7 @@ Connections Patch::getConnections() const
     t_outconnect* oc;
     t_linetraverser t;
 
+    instance->lockAudioThread();
     // Get connections from pd
     linetraverser_start(&t, getPointer());
 
@@ -208,6 +209,8 @@ Connections Patch::getConnections() const
     while ((oc = linetraverser_next(&t))) {
         connections.push_back({ oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob });
     }
+    
+    instance->unlockAudioThread();
 
     return connections;
 }
@@ -882,6 +885,21 @@ File Patch::getCurrentFile() const
 {
     return currentFile;
 }
+
+// This gets the raw patch path from Pd instead of our own stored path
+// We should probably move over to using this everywhere eventually
+File Patch::getPatchFile() const
+{
+    auto* dir = canvas_getdir(getPointer())->s_name;
+    auto* name = getPointer()->gl_name->s_name;
+
+    return File(String::fromUTF8(dir)).getChildFile(String::fromUTF8(name)).getFullPathName();
+}
+
+
+
+
+
 void Patch::setCurrentFile(File newFile)
 {
     currentFile = newFile;
@@ -932,14 +950,20 @@ bool Patch::connectionWasDeleted(void* ptr)
     t_outconnect* oc;
     t_linetraverser t;
 
+    instance->lockAudioThread();
+    
     // Get connections from pd
     linetraverser_start(&t, getPointer());
 
     while ((oc = linetraverser_next(&t))) {
-        if (oc == ptr)
+        if (oc == ptr) {
+            instance->unlockAudioThread();
             return false;
+        }
     }
 
+    instance->unlockAudioThread();
+    
     return true;
 }
 

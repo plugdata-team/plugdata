@@ -260,11 +260,13 @@ public:
     {
         cnv->pd->setThis();
 
+        pd->lockAudioThread();
         char* text;
         int size;
 
         binbuf_gettext(static_cast<t_message*>(ptr)->m_text.te_binbuf, &text, &size);
-
+        pd->unlockAudioThread();
+        
         auto result = String::fromUTF8(text, size);
         freebytes(text, size);
 

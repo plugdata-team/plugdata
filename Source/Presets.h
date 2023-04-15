@@ -51,7 +51,6 @@ struct Presets {
 
             // Remove all children to make preset more compact
             // Don't do this if we end up adding actual params!
-
             Array<XmlElement*> toBeDeleted;
 
             forEachXmlChildElement(*xmlState, child)

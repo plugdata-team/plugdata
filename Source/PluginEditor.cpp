@@ -257,7 +257,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addModifierKeyListener(this);
 
     // Restore Plugin Mode View
-    if (pd->pluginMode != var(false) && pd->pluginMode.toString().isNotEmpty())
+    if (pd->isInPluginMode())
         enablePluginMode(nullptr);
 }
 
@@ -322,7 +322,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
-    if (pd->pluginMode != var(false))
+    if (pd->isInPluginMode())
         return;
 
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
@@ -382,7 +382,7 @@ void PluginEditor::parentSizeChanged()
 
     auto* standalone = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
     // Hide TitleBar Buttons in Plugin Mode
-    bool visible = pd->pluginMode == var(false);
+    bool visible = !pd->isInPluginMode();
 #if JUCE_MAC
     if (!standalone->isUsingNativeTitleBar()) {
         // & hide TitleBar buttons when fullscreen on MacOS
@@ -422,7 +422,7 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
 {
     auto* cnv = getCurrentCanvas();
 
-    if (!cnv || pd->pluginMode != var(false))
+    if (!cnv || pd->isInPluginMode())
         return;
 
     auto event = e.getEventRelativeTo(getCurrentCanvas()->viewport);
@@ -727,8 +727,8 @@ void PluginEditor::addTab(Canvas* cnv)
     cnv->setVisible(true);
     cnv->jumpToOrigin();
 
-    
-    if ((!pd->pluginMode.getValue().isString() && pd->pluginMode == var(true)) || pd->pluginMode == cnv->patch.getCurrentFile().getFileName()) {
+    if(cnv->patch.openInPluginMode)
+    {
         enablePluginMode(cnv);
     }
 
@@ -1492,31 +1492,25 @@ Value& PluginEditor::getZoomScaleValueForCanvas(Canvas* cnv)
 void PluginEditor::enablePluginMode(Canvas* cnv)
 {
     if (!cnv) {
-        if (pd->pluginMode != var(false) && pd->pluginMode.toString().isNotEmpty()) {
+        if (pd->isInPluginMode()) {
             MessageManager::callAsync([_this = SafePointer(this), this]() {
                 if (!_this)
                     return;
+                
                 // Restore Plugin Mode View
-                bool canvasFound = false;
-                for (auto* cnv : canvases) {
-                    if (cnv->patch.getCurrentFile().getFileName() == pd->pluginMode.toString()) {
-                        enablePluginMode(cnv);
-                        canvasFound = true;
-                        break;
+                for(auto* canvas : canvases)
+                {
+                    if(canvas && canvas->patch.openInPluginMode)
+                    {
+                        enablePluginMode(canvas);
                     }
-                }
-                if (!canvasFound) {
-                    pd->pluginMode = var(false);
-                    resized();
-                    if (ProjectInfo::isStandalone)
-                        getTopLevelComponent()->resized();
                 }
             });
         } else {
             return;
         }
     } else {
-        pd->pluginMode = cnv->patch.getCurrentFile().getFileName();
+        cnv->patch.openInPluginMode = true;
         pluginMode = std::make_unique<PluginMode>(cnv);
     }
 }

@@ -81,6 +81,8 @@ public:
     void savePatch();
 
     File getCurrentFile() const;
+    File getPatchFile() const;
+    
     void setCurrentFile(File newFile);
 
     bool objectWasDeleted(void* ptr);
@@ -114,7 +116,8 @@ public:
 
     Instance* instance = nullptr;
     bool closePatchOnDelete;
-
+    bool openInPluginMode = false;
+    
 private:
     File currentFile;
 

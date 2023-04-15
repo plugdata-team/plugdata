@@ -97,6 +97,8 @@ public:
     void sendMidiBuffer();
     void sendPlayhead();
     void sendParameters();
+        
+    bool isInPluginMode();
 
     void messageEnqueued() override;
     void performParameterChange(int type, String name, float value) override;
@@ -142,9 +144,7 @@ public:
     std::unique_ptr<StatusbarSource> statusbarSource;
 
     Value tailLength = Value(0.0f);
-
-    Value pluginMode = Value(var(false));
-
+    
     // Just so we never have to deal with deleting the default LnF
     SharedResourcePointer<PlugDataLook> lnf;
 
