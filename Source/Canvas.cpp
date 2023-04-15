@@ -880,8 +880,17 @@ void Canvas::copySelection()
 void Canvas::pasteSelection()
 {
     patch.startUndoSequence("Paste");
-    // Tell pd to paste
-    patch.paste();
+
+    // Paste at mousePos, adds padding if pasted the same place
+    if (lastMousePosition == pastedPosition) {
+        pastedPadding.addXY(10, 10);
+    } else {
+        pastedPadding.setXY(-10, -10);
+    }
+    pastedPosition = lastMousePosition;
+    
+    // Tell pd to paste with offset applied to the clipboard string
+    patch.paste(Point<int>(pastedPosition.x + pastedPadding.x + 1540, pastedPosition.y + pastedPadding.y + 1540));
 
     deselectAll();
 
@@ -900,21 +909,6 @@ void Canvas::pasteSelection()
         }
     }
     sys_unlock();
-
-    // Paste at mousePos, adds padding if pasted the same place
-    if (lastMousePosition == pastedPosition) {
-        pastedPadding.addXY(10, 10);
-    } else {
-        pastedPadding.setXY(-10, -10);
-    }
-    pastedPosition = lastMousePosition;
-
-    if (getSelectionOfType<Object>().size() > 0) {
-        auto copyPosition = getSelectionOfType<Object>().getFirst()->getPosition();
-        patch.moveObjects(pastedObjects,
-            pastedPosition.x - copyPosition.x + pastedPadding.x,
-            pastedPosition.y - copyPosition.y + pastedPadding.y);
-    }
 
     patch.deselectAll();
     pastedObjects.clear();

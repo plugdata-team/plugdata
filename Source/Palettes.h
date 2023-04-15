@@ -12,6 +12,7 @@
 #include "Object.h"
 #include "Sidebar/Sidebar.h"
 #include "Pd/Instance.h"
+#include "Pd/Patch.h"
 
 class PluginEditor;
 class PaletteView : public Component
@@ -76,78 +77,8 @@ class PaletteView : public Component
         {
             auto position = target->getLocalPoint(nullptr, getScreenPosition()) + Point<int>(Object::margin, Object::margin) - target->canvasOrigin;
 
-            int minX = 9999999;
-            int minY = 9999999;
+            auto result = pd::Patch::translatePatchAsString(clipboardContent, position);
 
-            int canvasDepth = 0;
-
-            auto isObject = [](StringArray& tokens) {
-                return tokens[0] == "#X" && tokens[1] != "connect" && tokens[2].containsOnly("0123456789") && tokens[3].containsOnly("0123456789");
-            };
-
-            auto isStartingCanvas = [](StringArray& tokens) {
-                return tokens[0] == "#N" && tokens[1] == "canvas" && tokens[2].containsOnly("0123456789") && tokens[3].containsOnly("0123456789") && tokens[4].containsOnly("0123456789") && tokens[5].containsOnly("0123456789");
-            };
-
-            auto isEndingCanvas = [](StringArray& tokens) {
-                return tokens[0] == "#X" && tokens[1] == "restore" && tokens[2].containsOnly("0123456789") && tokens[3].containsOnly("0123456789");
-            };
-
-            for (auto& line : StringArray::fromLines(clipboardContent)) {
-
-                line = line.upToLastOccurrenceOf(";", false, false);
-
-                auto tokens = StringArray::fromTokens(line, true);
-
-                if (isStartingCanvas(tokens)) {
-                    canvasDepth++;
-                }
-
-                if (canvasDepth == 0 && isObject(tokens)) {
-                    minX = std::min(minX, tokens[2].getIntValue());
-                    minY = std::min(minY, tokens[3].getIntValue());
-                }
-
-                if (isEndingCanvas(tokens)) {
-                    if (canvasDepth == 1) {
-                        minX = std::min(minX, tokens[2].getIntValue());
-                        minY = std::min(minY, tokens[3].getIntValue());
-                    }
-                    canvasDepth--;
-                }
-            }
-
-            canvasDepth = 0;
-            auto toPaste = StringArray::fromLines(clipboardContent);
-            for (auto& line : toPaste) {
-                line = line.upToLastOccurrenceOf(";", false, false);
-                auto tokens = StringArray::fromTokens(line, true);
-                if (isStartingCanvas(tokens)) {
-                    canvasDepth++;
-                }
-
-                if (canvasDepth == 0 && isObject(tokens)) {
-                    tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
-                    tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
-
-                    line = tokens.joinIntoString(" ");
-                }
-
-                if (isEndingCanvas(tokens)) {
-                    if (canvasDepth == 1) {
-                        tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
-                        tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
-                    }
-
-                    line = tokens.joinIntoString(" ");
-
-                    canvasDepth--;
-                }
-
-                line += ";";
-            }
-
-            auto result = toPaste.joinIntoString("\n");
             libpd_paste(target->patch.getPointer(), result.toRawUTF8());
             target->synchronise();
         }

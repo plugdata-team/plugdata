@@ -465,14 +465,91 @@ void Patch::copy()
         });
 }
 
-void Patch::paste()
+String Patch::translatePatchAsString(String patchAsString, Point<int> position)
+{
+    int minX = std::numeric_limits<int>::max();
+    int minY = std::numeric_limits<int>::max();
+
+    int canvasDepth = 0;
+
+    auto isObject = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] != "connect" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
+    };
+
+    auto isStartingCanvas = [](StringArray& tokens) {
+        return tokens[0] == "#N" && tokens[1] == "canvas" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789") && tokens[4].containsOnly("-0123456789") && tokens[5].containsOnly("-0123456789");
+    };
+
+    auto isEndingCanvas = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] == "restore" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
+    };
+
+    for (auto& line : StringArray::fromLines(patchAsString)) {
+
+        line = line.upToLastOccurrenceOf(";", false, false);
+
+        auto tokens = StringArray::fromTokens(line, true);
+
+        if (isStartingCanvas(tokens)) {
+            canvasDepth++;
+        }
+
+        if (canvasDepth == 0 && isObject(tokens)) {
+            minX = std::min(minX, tokens[2].getIntValue());
+            minY = std::min(minY, tokens[3].getIntValue());
+        }
+
+        if (isEndingCanvas(tokens)) {
+            if (canvasDepth == 1) {
+                minX = std::min(minX, tokens[2].getIntValue());
+                minY = std::min(minY, tokens[3].getIntValue());
+            }
+            canvasDepth--;
+        }
+    }
+
+    canvasDepth = 0;
+    auto toPaste = StringArray::fromLines(patchAsString);
+    for (auto& line : toPaste) {
+        line = line.upToLastOccurrenceOf(";", false, false);
+        auto tokens = StringArray::fromTokens(line, true);
+        if (isStartingCanvas(tokens)) {
+            canvasDepth++;
+        }
+
+        if (canvasDepth == 0 && isObject(tokens)) {
+            tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
+            tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
+
+            line = tokens.joinIntoString(" ");
+        }
+
+        if (isEndingCanvas(tokens)) {
+            if (canvasDepth == 1) {
+                tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
+                tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
+            }
+
+            line = tokens.joinIntoString(" ");
+
+            canvasDepth--;
+        }
+
+        line += ";";
+    }
+    return toPaste.joinIntoString("\n");
+}
+
+void Patch::paste(Point<int> position)
 {
     if (!ptr)
         return;
 
     auto text = SystemClipboard::getTextFromClipboard();
 
-    instance->enqueueFunction([this, text]() mutable { libpd_paste(getPointer(), text.toRawUTF8()); });
+    auto translatedObjects = translatePatchAsString(text, position);
+
+    instance->enqueueFunction([this, translatedObjects]() mutable { libpd_paste(getPointer(), translatedObjects.toRawUTF8()); });
 }
 
 void Patch::duplicate()
