@@ -201,6 +201,7 @@ public:
             hash("float"),
             hash("send"),
             hash("receive"),
+            hash("list"),
         };
     }
 
@@ -209,7 +210,11 @@ public:
         switch (hash(symbol)) {
 
         case hash("set"):
-        case hash("float"): {
+        case hash("float"):
+        case hash("list"):
+        {
+            if(!atoms[0].isFloat()) break;
+            
             auto min = atomHelper.getMinimum();
             auto max = atomHelper.getMaximum();
 
