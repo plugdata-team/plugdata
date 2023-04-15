@@ -162,6 +162,7 @@ public:
         return {
             hash("float"),
             hash("set"),
+            hash("list"),
             IEMGUI_MESSAGES
         };
     }
@@ -170,9 +171,12 @@ public:
     {
         switch (hash(symbol)) {
         case hash("float"):
+        case hash("list"):
         case hash("set"): {
-            value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
-            input.setText(input.formatNumber(value), dontSendNotification);
+            if(atoms[0].isFloat()) {
+                value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
+                input.setText(input.formatNumber(value), dontSendNotification);
+            }
             break;
         }
         default: {
