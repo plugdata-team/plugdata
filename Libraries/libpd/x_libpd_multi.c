@@ -952,6 +952,7 @@ void libpd_init_else(void)
     setup_rand0x2ei();
     setup_rand0x2ei_tilde();
     //setup_rand0x2eseq();
+    numbox_tilde_setup();
     route2_setup();
     randpulse_tilde_setup();
     randpulse2_tilde_setup();
@@ -1186,7 +1187,6 @@ void libpd_init_cyclone(void)
     modulo_tilde_setup();
     mstosamps_tilde_setup();
     notequals_tilde_setup();
-    numbox_tilde_setup();
     onepole_tilde_setup();
     overdrive_tilde_setup();
     peakamp_tilde_setup();
