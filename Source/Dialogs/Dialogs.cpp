@@ -778,23 +778,29 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     menu.addItem(createCommandItem(ObjectIDs::NewGraphOnParent, "GraphOnParent"));
 
     menu.addSeparator();
+    
+    bool active = false;
+    if(auto* cnv = parent->getCurrentCanvas())
+    {
+        active = !getValue<bool>(cnv->locked);
+    }
 
-    menu.addSubMenu("UI", uiMenu);
-    menu.addSubMenu("General", generalMenu);
-    menu.addSubMenu("MIDI", midiMenu);
-    menu.addSubMenu("Array", arrayMenu);
-    menu.addSubMenu("List", listMenu);
-    menu.addSubMenu("Math", mathMenu);
-    menu.addSubMenu("Logic", logicMenu);
+    menu.addSubMenu("UI", uiMenu, active);
+    menu.addSubMenu("General", generalMenu, active);
+    menu.addSubMenu("MIDI", midiMenu, active);
+    menu.addSubMenu("Array", arrayMenu, active);
+    menu.addSubMenu("List", listMenu, active);
+    menu.addSubMenu("Math", mathMenu, active);
+    menu.addSubMenu("Logic", logicMenu, active);
 
     menu.addSeparator();
 
-    menu.addSubMenu("IO~", ioMenu);
-    menu.addSubMenu("Effects~", effectsMenu);
-    menu.addSubMenu("Oscillators~", oscillatorsMenu);
-    menu.addSubMenu("Filters~", filtersMenu);
-    menu.addSubMenu("Control~", controlMenu);
-    menu.addSubMenu("Math~", signalMathMenu);
+    menu.addSubMenu("IO~", ioMenu, active);
+    menu.addSubMenu("Effects~", effectsMenu, active);
+    menu.addSubMenu("Oscillators~", oscillatorsMenu, active);
+    menu.addSubMenu("Filters~", filtersMenu, active);
+    menu.addSubMenu("Control~", controlMenu, active);
+    menu.addSubMenu("Math~", signalMathMenu, active);
 
     return menu;
 }

@@ -736,7 +736,7 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
-        int editMode = getValue<bool>(v) ? 0 : -1;
+        int editMode = getValue<bool>(v) ? 0 : 1;
         if (lastEditMode != editMode) {
             auto* edit = static_cast<t_fake_edit*>(ptr);
             outlet_float(edit->x_obj.ob_outlet, edit->x_edit = editMode);

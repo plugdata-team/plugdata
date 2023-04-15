@@ -68,7 +68,7 @@ public:
     inline Atom(t_symbol* sym)
         : type(SYMBOL)
         , value(0)
-        , symbol(sym->s_name)
+        , symbol(String::fromUTF8(sym->s_name))
     {
     }
 

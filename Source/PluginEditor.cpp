@@ -727,7 +727,8 @@ void PluginEditor::addTab(Canvas* cnv)
     cnv->setVisible(true);
     cnv->jumpToOrigin();
 
-    if (pd->pluginMode == var(true) || pd->pluginMode == cnv->patch.getCurrentFile().getFileName()) {
+    
+    if ((!pd->pluginMode.getValue().isString() && pd->pluginMode == var(true)) || pd->pluginMode == cnv->patch.getCurrentFile().getFileName()) {
         enablePluginMode(cnv);
     }
 
