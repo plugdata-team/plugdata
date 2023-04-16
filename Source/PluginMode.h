@@ -9,26 +9,13 @@ public:
         : cnv(cnv)
         , editor(cnv->editor)
         , desktopWindow(editor->getPeer())
-        , windowBounds(editor->getBounds())
+        , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
-        auto c = editor->getConstrainer();
-        windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
+        // Reset zoom level
+        editor->zoomScale = 1.0f;
+        editor->zoomScale.getValueSource().sendChangeMessage(true);
 
-        // Set window constrainers
-        if (ProjectInfo::isStandalone) {
-            nativeTitleBarHeight = desktopWindow->getFrameSize().getTop();
-            desktopWindow->getConstrainer()->setSizeLimits(width / 2, height / 2 + titlebarHeight + nativeTitleBarHeight, width * 10, height * 10 + titlebarHeight + nativeTitleBarHeight);
-        }
-        editor->setResizeLimits(width / 2, height / 2 + titlebarHeight, width * 10, height * 10 + titlebarHeight);
-
-        // Set editor bounds
-        editor->setSize(width, height + titlebarHeight);
-
-        // Set local bounds
-        setBounds(0, 0, width, height + titlebarHeight);
-
-        // Add this view to the editor
-        editor->addAndMakeVisible(this);
+        nativeTitleBarHeight = ProjectInfo::isStandalone ? desktopWindow->getFrameSize().getTop() : 0;
 
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
@@ -41,6 +28,24 @@ public:
         editorButton->addListener(this);
         titleBar.addAndMakeVisible(*editorButton);
 
+        setAlwaysOnTop(true);
+        setWantsKeyboardFocus(true);
+        setInterceptsMouseClicks(false, false);
+        
+        // Add this view to the editor
+        editor->addAndMakeVisible(this);
+        
+        if (ProjectInfo::isStandalone) {
+            borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(editor, &pluginModeConstrainer);
+            borderResizer->setAlwaysOnTop(true);
+            addAndMakeVisible(borderResizer.get());
+        }
+        else {
+            cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(editor, &pluginModeConstrainer);
+            cornerResizer->setAlwaysOnTop(true);
+            addAndMakeVisible(cornerResizer.get());
+        }
+        
         if (ProjectInfo::isStandalone) {
             fullscreenButton = std::make_unique<TextButton>(Icons::Fullscreen);
             fullscreenButton->getProperties().set("Style", "LargeIcon");
@@ -67,9 +72,19 @@ public:
         auto const& origin = cnv->canvasOrigin;
         cnv->setBounds(-origin.x, -origin.y, width + origin.x, height + origin.y);
 
-        setAlwaysOnTop(true);
-        setWantsKeyboardFocus(true);
-        setInterceptsMouseClicks(false, false);
+        // Store old constrainers so we can restore them later
+        oldEditorConstrainer = editor->getConstrainer();
+        oldWindowConstrainer = desktopWindow->getConstrainer();
+        
+        pluginModeConstrainer.setSizeLimits(width / 2, height / 2 + titlebarHeight, width * 10, height * 10 + titlebarHeight + nativeTitleBarHeight);
+        
+        editor->setConstrainer(&pluginModeConstrainer);
+
+        // Set editor bounds
+        editor->setSize(width, height + titlebarHeight);
+
+        // Set local bounds
+        setBounds(0, 0, width, height + titlebarHeight);
     }
 
     ~PluginMode()
@@ -84,30 +99,23 @@ public:
             content.removeChildComponent(cnv);
             // Reset the canvas properties
             cnv->viewport->setViewedComponent(cnv, false);
-            editor->resized();
             cnv->patch.openInPluginMode = false;
             cnv->jumpToOrigin();
             cnv->setSize(Canvas::infiniteCanvasSize, Canvas::infiniteCanvasSize);
             cnv->locked = false;
             cnv->presentationMode = false;
-
         }
-
-        // Restore Bounds & Resize Limits with the current position
-        auto* _desktopWindow = desktopWindow;
-        auto* _editor = editor;
-        auto _windowConstrainer = windowConstrainer;
-        auto _bounds = windowBounds.withPosition(getTopLevelComponent()->getPosition());
-        MessageManager::callAsync([this, _desktopWindow, _editor, _windowConstrainer, _bounds]() {
-            if (ProjectInfo::isStandalone) {
-                _desktopWindow->getConstrainer()->setFixedAspectRatio(0);
-                _desktopWindow->getConstrainer()->setSizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
-                _desktopWindow->setBounds(_bounds, false);
-            }
-            _editor->getConstrainer()->setFixedAspectRatio(0);
-            _editor->setResizeLimits(_windowConstrainer[0], _windowConstrainer[1], _windowConstrainer[2], _windowConstrainer[3]);
-            _editor->setBoundsConstrained(_bounds);
-            _editor->getParentComponent()->resized();
+        
+        MessageManager::callAsync([
+            editor = this->editor,
+            bounds = windowBounds,
+            windowConstrainer = oldWindowConstrainer,
+            editorConstrainer = oldEditorConstrainer
+            ](){
+            editor->setConstrainer(editorConstrainer);
+            editor->setBoundsConstrained(bounds);
+            editor->getParentComponent()->resized();
+            editor->getActiveTabbar()->resized();
         });
 
         // Destroy this view
@@ -156,63 +164,65 @@ public:
         g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawText(cnv->patch.getTitle().trimCharactersAtEnd(".pd"), titleBar.getBounds(), Justification::centred);
     }
-
-    void parentSizeChanged() override
+    
+    void resized() override
     {
         if (ProjectInfo::isStandalone && desktopWindow->isFullScreen()) {
-
-            // Fullscreen / Kiosk Mode
-
-            // Determine the screen width and height
-            int const screenWidth = desktopWindow->getBounds().getWidth();
-            int const screenHeight = desktopWindow->getBounds().getHeight();
-
-            // Fill the screen
-            setBounds(0, 0, screenWidth, screenHeight);
-
             // Calculate the scale factor required to fit the editor in the screen
-            float const scaleX = static_cast<float>(screenWidth) / width;
-            float const scaleY = static_cast<float>(screenHeight) / height;
+            float const scaleX = static_cast<float>(getWidth()) / width;
+            float const scaleY = static_cast<float>(getHeight()) / height;
             float const scale = jmin(scaleX, scaleY);
-
+            
             // Calculate the position of the editor after scaling
             int const scaledWidth = static_cast<int>(width * scale);
             int const scaledHeight = static_cast<int>(height * scale);
-            int const x = (screenWidth - scaledWidth) / 2;
-            int const y = (screenHeight - scaledHeight) / 2;
-
+            int const x = (getWidth() - scaledWidth) / 2;
+            int const y = (getHeight() - scaledHeight) / 2;
+            
             // Apply the scale and position to the editor
             content.setTransform(content.getTransform().scale(scale));
             content.setTopLeftPosition(x / scale, y / scale);
-
+            
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
-        } else {
-
-            int const editorWidth = editor->getWidth();
-            float const scale = editorWidth / width;
+        }
+        else {
+            float const scale = getWidth() / width;
             float const resizeRatio = width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale));
 
-            int const editorHeight = editorWidth / resizeRatio - nativeTitleBarHeight;
-
             if (ProjectInfo::isStandalone) {
-#if JUCE_LINUX
-                editor->getConstrainer()->setFixedAspectRatio(resizeRatio);
-#else
-                desktopWindow->getConstrainer()->setFixedAspectRatio(resizeRatio);
-#endif
-            } else {
-                editor->getConstrainer()->setFixedAspectRatio(resizeRatio);
+                borderResizer->setBounds(getLocalBounds());
             }
-
-            setSize(editorWidth, editorHeight);
-
+            else {
+                int const resizerSize = 18;
+                cornerResizer->setBounds(getWidth() - resizerSize,
+                    getHeight() - resizerSize,
+                    resizerSize, resizerSize);
+            }
+            
+            pluginModeConstrainer.setFixedAspectRatio(resizeRatio);
+            
             content.setTransform(content.getTransform().scale(scale));
             content.setTopLeftPosition(0, titlebarHeight / scale);
 
-            titleBar.setBounds(0, 0, editorWidth, titlebarHeight);
+            titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
 
             editorButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
+        }
+    }
+
+    void parentSizeChanged() override
+    {
+        // Fullscreen / Kiosk Mode
+        if (ProjectInfo::isStandalone && desktopWindow->isFullScreen()) {
+
+            // Determine the screen size
+            auto const screenBounds = desktopWindow->getBounds();
+
+            // Fill the screen
+            setBounds(0, 0, screenBounds.getWidth(), screenBounds.getHeight());
+        } else {
+            setBounds(editor->getLocalBounds());
         }
     }
 
@@ -276,7 +286,16 @@ private:
     Component content;
 
     ComponentDragger windowDragger;
-    std::vector<int> windowConstrainer;
+        
+    ComponentBoundsConstrainer pluginModeConstrainer;
+    ComponentBoundsConstrainer* oldEditorConstrainer;
+    ComponentBoundsConstrainer* oldWindowConstrainer;
+        
+    // Used in plugin
+    std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
+    
+    // Used in standalone
+    std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
 
     Rectangle<int> windowBounds;
     float const width = float(cnv->patchWidth.getValue()) + 1.0f;

@@ -146,7 +146,11 @@ private:
     bool isMaximised = false;
     bool isDraggingFile = false;
 
+    // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
+    
+    // Used in standalone
+    std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };
