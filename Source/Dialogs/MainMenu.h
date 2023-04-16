@@ -77,8 +77,9 @@ public:
         bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") ? static_cast<bool>(settingsTree.getProperty("hvcc_mode")) : false;
         bool autoconnectEnabled = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;
         bool hasCanvas = editor->getCurrentCanvas() != nullptr;
-        ;
 
+
+        zoomSelector.setEnabled(hasCanvas);
         menuItems[getMenuItemIndex(MenuItem::Save)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::Close)]->isActive = hasCanvas;
@@ -107,10 +108,13 @@ public:
         ZoomSelector(PluginEditor* editor, ValueTree settingsTree, bool splitZoom)
             : _editor(editor)
         {
-            zoomValue = settingsTree.getPropertyAsValue(splitZoom ? "split_zoom" : "zoom", nullptr);
+            auto cnv = _editor->getCurrentCanvas();
+            auto buttonText = String("100.0%");
+            if (cnv)
+                buttonText = String(getValue<float>(cnv->zoomScale) * 100.0f, 1) + "%";
 
             zoomIn.setButtonText("+");
-            zoomReset.setButtonText(String(getValue<float>(zoomValue) * 100, 1) + "%");
+            zoomReset.setButtonText(buttonText);
             zoomOut.setButtonText("-");
 
             addAndMakeVisible(zoomIn);
@@ -143,7 +147,7 @@ public:
             if (!cnv)
                 return;
 
-            float scale = getValue<float>(zoomValue);
+            float scale = getValue<float>(cnv->zoomScale);
 
             // Apply limits
             switch (zoomEventType) {
@@ -179,7 +183,7 @@ public:
             //       possibly we should save the canvas position as an additional Point<float> ?
             cnv->setTopLeftPosition((cnv->getPosition().toFloat() + offset).roundToInt());
 
-            zoomValue = scale;
+            cnv->zoomScale = scale;
 
             zoomReset.setButtonText(String(scale * 100.0f, 1) + "%");
         }

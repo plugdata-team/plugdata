@@ -133,7 +133,7 @@ void Object::timerCallback()
 {
     auto pos = cnv->getMouseXYRelative();
     if (pos != getBounds().getCentre()) {
-        auto viewArea = cnv->viewport->getViewArea() / cnv->editor->getZoomScaleForCanvas(cnv);
+        auto viewArea = cnv->viewport->getViewArea() / getValue<float>(cnv->zoomScale);
         setCentrePosition(viewArea.getConstrainedPoint(pos));
     }
 }

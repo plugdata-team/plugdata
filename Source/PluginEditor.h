@@ -91,13 +91,11 @@ public:
 
     bool keyPressed(KeyPress const& key) override;
 
-    float getZoomScale();
-    float getZoomScaleForCanvas(Canvas* cnv);
-    Value& getZoomScaleValueForCanvas(Canvas* cnv);
-
     void enablePluginMode(Canvas* cnv);
 
     void commandKeyChanged(bool isHeld) override;
+
+    void setZoomLabelLevel(float value);
 
     TabComponent* getActiveTabbar();
 
@@ -121,10 +119,9 @@ public:
     SplitView splitView;
     DrawableRectangle selectedSplitRect;
 
-    Value zoomScale;
-    Value splitZoomScale;
-
     std::unique_ptr<Palettes> palettes;
+
+    std::unique_ptr<ZoomLabel> zoomLabel;
 
 private:
     // Used by standalone to handle dragging the window
@@ -141,8 +138,6 @@ private:
     CheckedTooltip tooltipWindow;
 
     TextButton seperators[8];
-
-    std::unique_ptr<ZoomLabel> zoomLabel;
 
 #if JUCE_MAC
     Rectangle<int> unmaximisedSize;

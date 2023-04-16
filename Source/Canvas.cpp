@@ -88,6 +88,10 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
 
     setSize(infiniteCanvasSize, infiniteCanvasSize);
 
+    // initialize per canvas zoom to 100% when first creating canvas
+    zoomScale.setValue(1.0f);
+    zoomScale.addListener(this);
+
     // Add lasso component
     addAndMakeVisible(&lasso);
     lasso.setAlwaysOnTop(true);
@@ -117,6 +121,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
 
 Canvas::~Canvas()
 {
+    zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer(), this);
 
@@ -223,8 +228,6 @@ void Canvas::recreateViewport()
 
 void Canvas::jumpToOrigin()
 {
-    float scale = editor->getZoomScaleForCanvas(this);
-
     setTopLeftPosition(-canvasOrigin + Point<int>(1, 1));
     viewport->resized();
 }
@@ -234,7 +237,7 @@ void Canvas::zoomToFitAll()
     if (objects.isEmpty() || !viewport)
         return;
 
-    auto scale = editor->getZoomScaleForCanvas(this);
+    auto scale = getValue<float>(zoomScale);
 
     auto regionOfInterest = Rectangle<int>();
     for (auto* object : objects) {
@@ -259,7 +262,7 @@ void Canvas::zoomToFitAll()
         transform = transform.scaled(scale);
         setTransform(transform);
         scale = std::sqrt(std::abs(transform.getDeterminant()));
-        editor->getZoomScaleValueForCanvas(this).setValue(scale);
+        zoomScale.setValue(scale);
     }
     // TODO we should set the fit all area to the centre of the view area - but this isn't working for some reason
     //  for now we will set the top left of the region of interest
@@ -555,8 +558,7 @@ void Canvas::performSynchronise()
     }
 
     if (!isGraph) {
-        auto scale = editor->getZoomScaleForCanvas(this);
-        setTransform(AffineTransform().scaled(scale));
+        setTransform(AffineTransform().scaled(getValue<float>(zoomScale)));
     }
 
     editor->updateCommandStatus();
@@ -1262,19 +1264,52 @@ void Canvas::redo()
 
 void Canvas::valueChanged(Value& v)
 {
-    if (v.refersToSameSourceAs(patchWidth)) {
+    // Update zoom
+    if (v.refersToSameSourceAs(zoomScale)) {
+
+        float newScaleFactor = getValue<float>(v);
+
+        if (newScaleFactor == 0) {
+            newScaleFactor = 1.0f;
+            zoomScale = 1.0f;
+        }
+
+        hideSuggestions();
+
+        if (!viewport || editor->pluginMode)
+            return;
+        // Get floating point mouse position relative to screen
+        auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
+        // Get mouse position relative to canvas
+        auto oldPosition = getLocalPoint(nullptr, mousePosition);
+        // Apply transform and make sure viewport bounds get updated
+        setTransform(AffineTransform().scaled(newScaleFactor));
+        // After zooming, get mouse position relative to canvas again
+        auto newPosition = getLocalPoint(nullptr, mousePosition);
+        // Calculate offset to keep our mouse position the same as before this zoom action
+        auto offset = newPosition - oldPosition;
+        setTopLeftPosition(getPosition() + offset.roundToInt());
+        // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
+        // Without this, future calls to getViewPosition() will give wrong results
+        viewport->resized();
+
+        // set and trigger the zoom label popup in the bottom left corner
+        // TODO: move this to viewport, and have one per viewport?
+        editor->setZoomLabelLevel(newScaleFactor);
+    }
+    else if (v.refersToSameSourceAs(patchWidth)) {
         // limit canvas width to smallest object (11px)
         patchWidth = jmax(11, getValue<int>(patchWidth));
         patch.getPointer()->gl_screenx2 = getValue<int>(patchWidth) + patch.getPointer()->gl_screenx1;
         repaint();
     }
-    if (v.refersToSameSourceAs(patchHeight)) {
+    else if (v.refersToSameSourceAs(patchHeight)) {
         patchHeight = jmax(11, getValue<int>(patchHeight));
         patch.getPointer()->gl_screeny2 = getValue<int>(patchHeight) + patch.getPointer()->gl_screeny1;
         repaint();
     }
     // When lock changes
-    if (v.refersToSameSourceAs(locked)) {
+    else if (v.refersToSameSourceAs(locked)) {
         bool editMode = !getValue<bool>(v);
 
         pd->enqueueFunction([this, editMode]() {

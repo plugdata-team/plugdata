@@ -14,10 +14,6 @@ public:
         auto c = editor->getConstrainer();
         windowConstrainer = { c->getMinimumWidth(), c->getMinimumHeight(), c->getMaximumWidth(), c->getMaximumHeight() };
 
-        // Reset zoom level
-        editor->zoomScale = 1.0f;
-        editor->zoomScale.getValueSource().sendChangeMessage(true);
-
         // Set window constrainers
         if (ProjectInfo::isStandalone) {
             nativeTitleBarHeight = desktopWindow->getFrameSize().getTop();

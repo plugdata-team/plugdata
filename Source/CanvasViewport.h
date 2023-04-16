@@ -288,10 +288,10 @@ public:
 
     void mouseMagnify(MouseEvent const& e, float scrollFactor)
     {
-        if (!cnv || editor->pd->isInPluginMode())
+        if (!cnv)
             return;
 
-        auto& scale = editor->splitView.isRightTabbarActive() ? editor->splitZoomScale : editor->zoomScale;
+        auto& scale = cnv->zoomScale;
 
         float value = getValue<float>(scale);
 
