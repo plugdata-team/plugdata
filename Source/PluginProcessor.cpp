@@ -1524,7 +1524,6 @@ void PluginProcessor::titleChanged()
 
 void PluginProcessor::savePatchTabPositions()
 {
-
     Array<std::tuple<pd::Patch*, int, int>> sortedPatches;
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {

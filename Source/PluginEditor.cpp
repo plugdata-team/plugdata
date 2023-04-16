@@ -258,6 +258,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
 PluginEditor::~PluginEditor()
 {
+    pd->savePatchTabPositions();
+    
     setVisible(false); // We can check the visible flag to detect if the pluginEditor is closing
     setConstrainer(nullptr);
 

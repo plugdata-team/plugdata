@@ -259,6 +259,12 @@ public:
                 // Create ghost tab & hide dragged tab
                 currentTabBounds = tabs->getTabButton(clickedTabIndex)->getBounds().translated(getTabBarDepth(), 0);
                 tabSnapshot = createComponentSnapshot(currentTabBounds, true, 2.0f);
+                
+                // Make sure the tab has a full outline
+                Graphics g(tabSnapshot);
+                g.setColour(findColour(PlugDataColour::outlineColourId));
+                g.drawRect(tabSnapshot.getBounds());
+                
                 tabSnapshotBounds = currentTabBounds;
                 tabs->getTabButton(clickedTabIndex)->setVisible(false);
             }
