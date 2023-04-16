@@ -36,7 +36,7 @@ public:
         editor->addAndMakeVisible(this);
         
         if (ProjectInfo::isStandalone) {
-            borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(editor, &pluginModeConstrainer);
+            borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(editor->getTopLevelComponent(), &pluginModeConstrainer);
             borderResizer->setAlwaysOnTop(true);
             addAndMakeVisible(borderResizer.get());
         }

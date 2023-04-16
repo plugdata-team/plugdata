@@ -423,7 +423,6 @@ class PlugDataWindow : public DocumentWindow
     , public SettingsFileListener {
 
     Image shadowImage;
-    std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> resizer;
     std::unique_ptr<StackDropShadower> dropShadower;
 
 public:
@@ -509,11 +508,6 @@ public:
 
                 setResizable(false, false);
 
-                //resizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(this, nullptr);
-                //resizer->setBorderThickness(BorderSize(4));
-                //resizer->setAlwaysOnTop(true);
-                //Component::addAndMakeVisible(resizer.get());
-
                 if (drawWindowShadow) {
 
 #if JUCE_MAC
@@ -531,7 +525,6 @@ public:
                 }
             } else {
                 setOpaque(true);
-                resizer.reset(nullptr);
                 dropShadower.reset(nullptr);
                 setDropShadowEnabled(true);
                 setResizable(true, false);
@@ -654,25 +647,8 @@ public:
 
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
 
-        if (resizer) {
-            if (isFullScreen()) {
-                resizer->setVisible(false);
-            } else if (!isUsingNativeTitleBar()) {
-                resizer->setVisible(true);
-
-                if (drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
-                    auto margin = mainComponent ? mainComponent->getMargin() : 18;
-                    titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
-                    resizer->setBounds(getLocalBounds().reduced(margin));
-                } else {
-                    resizer->setBounds(getLocalBounds());
-                }
-            }
-        }
-
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
 
-        /*
         if (auto* content = getContentComponent()) {
             content->resized();
             content->repaint();
@@ -680,7 +656,7 @@ public:
                 if (content->isShowing())
                     content->grabKeyboardFocus();
             });
-        } */
+        }
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
