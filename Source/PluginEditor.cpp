@@ -95,7 +95,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     setResizable(true, false);
 
     // In the standalone, the resizer handling is done on the window class
-    if (!ProjectInfo::isStandalone) {
+    if (ProjectInfo::isStandalone) {
+        borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(this, getConstrainer());
+        borderResizer->setAlwaysOnTop(true);
+        addAndMakeVisible(borderResizer.get());
+    }
+    else {
         cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
         cornerResizer->setAlwaysOnTop(true);
         addAndMakeVisible(cornerResizer.get());
@@ -358,7 +363,10 @@ void PluginEditor::resized()
 
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
 
-    if (!ProjectInfo::isStandalone) {
+    if (ProjectInfo::isStandalone) {
+        borderResizer->setBounds(getLocalBounds());
+    }
+    else {
         int const resizerSize = 18;
         cornerResizer->setBounds(getWidth() - resizerSize,
             getHeight() - resizerSize,

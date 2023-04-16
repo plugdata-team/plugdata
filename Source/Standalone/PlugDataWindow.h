@@ -461,9 +461,6 @@ public:
             pluginHolder->reloadPluginState();
         }
 
-        auto* c = editor->getConstrainer();
-        setResizeLimits(c->getMinimumWidth() + 7, c->getMinimumHeight() + 7, c->getMaximumWidth() + 7, c->getMaximumHeight() + 7);
-
         setContentOwned(mainComponent, true);
 
         // Make sure it gets updated on init
@@ -502,6 +499,8 @@ public:
 
             bool nativeWindow = static_cast<bool>(value);
 
+            auto* editor = getAudioProcessor()->getActiveEditor();
+            
             setUsingNativeTitleBar(nativeWindow);
 
             if (!nativeWindow) {
@@ -510,10 +509,10 @@ public:
 
                 setResizable(false, false);
 
-                resizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(this, getConstrainer());
-                resizer->setBorderThickness(BorderSize(4));
-                resizer->setAlwaysOnTop(true);
-                Component::addAndMakeVisible(resizer.get());
+                //resizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(this, nullptr);
+                //resizer->setBorderThickness(BorderSize(4));
+                //resizer->setAlwaysOnTop(true);
+                //Component::addAndMakeVisible(resizer.get());
 
                 if (drawWindowShadow) {
 
@@ -538,10 +537,7 @@ public:
                 setResizable(true, false);
             }
 
-            if (auto* editor = getAudioProcessor()->getActiveEditor()) {
-                editor->resized();
-            }
-
+            editor->resized();
             resized();
             repaint();
         }
@@ -676,6 +672,7 @@ public:
 
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
 
+        /*
         if (auto* content = getContentComponent()) {
             content->resized();
             content->repaint();
@@ -683,7 +680,7 @@ public:
                 if (content->isShowing())
                     content->grabKeyboardFocus();
             });
-        }
+        } */
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
