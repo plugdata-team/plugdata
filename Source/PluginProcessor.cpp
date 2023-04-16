@@ -142,12 +142,12 @@ PluginProcessor::PluginProcessor()
 
     auto currentThemeTree = settingsFile->getCurrentTheme();
 
-    updateSearchPaths();
-
     // ag: This needs to be done *after* the library data has been unpacked on
     // first launch.
-    loadLibs(pdlua_version);
+    initialisePd(pdlua_version);
     logMessage(pdlua_version);
+    
+    updateSearchPaths();
 
     objectLibrary = std::make_unique<pd::Library>();
     objectLibrary->appDirChanged = [this]() {

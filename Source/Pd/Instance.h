@@ -160,7 +160,7 @@ public:
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 
-    void loadLibs(String& pdlua_version);
+    void initialisePd(String& pdlua_version);
     void prepareDSP(int const nins, int const nouts, double const samplerate, int const blockSize);
     void startDSP();
     void releaseDSP();

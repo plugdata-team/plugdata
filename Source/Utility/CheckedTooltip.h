@@ -20,14 +20,7 @@ public:
         setOpaque(false);
         tooltipShadow.setOwner(this);
     }
-
-    void hide(bool hidden)
-    {
-        // TooltipWindow already uses the setVisible flag internally, we can't use that, so we use setAlpha instead
-        // setAlpha(!hidden);
-        // tooltipShadow.setOwner(hidden ? nullptr : this);
-    }
-
+    
 private:
     String getTipFor(Component& c) override
     {

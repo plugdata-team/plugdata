@@ -121,7 +121,26 @@ Instance::Instance(String const& symbol)
     libpd_multi_init();
 
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
+}
 
+Instance::~Instance()
+{
+    pd_free(static_cast<t_pd*>(m_message_receiver));
+    pd_free(static_cast<t_pd*>(m_midi_receiver));
+    pd_free(static_cast<t_pd*>(m_print_receiver));
+    pd_free(static_cast<t_pd*>(m_parameter_receiver));
+    pd_free(static_cast<t_pd*>(m_parameter_change_receiver));
+
+    // JYG added this
+    pd_free(static_cast<t_pd*>(m_databuffer_receiver));
+
+    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
+}
+
+// ag: Stuff to be done after unpacking the library data on first launch.
+void Instance::initialisePd(String& pdlua_version)
+{
     m_instance = libpd_new_instance();
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
@@ -129,8 +148,6 @@ Instance::Instance(String const& symbol)
     m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
         reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
-    // ag: need to defer this to suppress noise from chatty externals
-    // m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
 
     m_message_receiver = libpd_multi_receiver_new(this, "pd", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
@@ -194,46 +211,35 @@ Instance::Instance(String const& symbol)
     };
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, message_trigger);
+    
+    // Make sure we set the maininstance when initialising objects
+    // Whenever a new instance is created, the functions will be copied from this one
+    libpd_set_instance(libpd_get_instance(0));
 
+    static bool initialised = false;
+    if (!initialised) {
+
+        File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
+        auto library = homeDir.getChildFile("Library");
+        auto extra = library.getChildFile("Extra");
+
+        set_class_prefix(gensym("else"));
+        libpd_init_else();
+        set_class_prefix(gensym("cyclone"));
+        libpd_init_cyclone();
+        set_class_prefix(nullptr);
+
+        // Class prefix doesn't seem to work for pdlua
+        char vers[1000];
+        *vers = 0;
+        libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
+        if (*vers)
+            pdlua_version = vers;
+
+        initialised = true;
+    }
+    
     setThis();
-}
-
-Instance::~Instance()
-{
-    pd_free(static_cast<t_pd*>(m_message_receiver));
-    pd_free(static_cast<t_pd*>(m_midi_receiver));
-    pd_free(static_cast<t_pd*>(m_print_receiver));
-    pd_free(static_cast<t_pd*>(m_parameter_receiver));
-    pd_free(static_cast<t_pd*>(m_parameter_change_receiver));
-
-    // JYG added this
-    pd_free(static_cast<t_pd*>(m_databuffer_receiver));
-
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-    libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
-}
-
-// ag: Stuff to be done after unpacking the library data on first launch.
-void Instance::loadLibs(String& pdlua_version)
-{
-    setThis();
-
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    auto library = homeDir.getChildFile("Library");
-    auto extra = library.getChildFile("Extra");
-
-    set_class_prefix(gensym("else"));
-    libpd_init_else();
-    set_class_prefix(gensym("cyclone"));
-    libpd_init_cyclone();
-    set_class_prefix(nullptr);
-
-    // Class prefix doesn't seem to work for pdlua
-    char vers[1000];
-    *vers = 0;
-    libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
-    if (*vers)
-        pdlua_version = vers;
 
     // ag: need to do this here to suppress noise from chatty externals
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
