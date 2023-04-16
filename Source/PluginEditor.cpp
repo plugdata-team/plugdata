@@ -411,32 +411,6 @@ void PluginEditor::parentSizeChanged()
     resized();
 }
 
-void PluginEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel)
-{
-    if (e.mods.isCommandDown()) {
-        mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
-    }
-}
-
-void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
-{
-    auto* cnv = getCurrentCanvas();
-
-    if (!cnv || pd->isInPluginMode())
-        return;
-
-    auto event = e.getEventRelativeTo(getCurrentCanvas()->viewport);
-
-    auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
-
-    float value = getValue<float>(scale);
-
-    // Apply and limit zoom
-    value = std::clamp(value * scrollFactor, 0.2f, 3.0f);
-
-    scale = value;
-}
-
 void PluginEditor::mouseDown(MouseEvent const& e)
 {
     // no window dragging by toolbar in plugin!

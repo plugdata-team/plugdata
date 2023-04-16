@@ -54,9 +54,6 @@ public:
     void resized() override;
     void parentSizeChanged() override;
 
-    void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override;
-    void mouseMagnify(MouseEvent const& e, float scaleFactor) override;
-
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
