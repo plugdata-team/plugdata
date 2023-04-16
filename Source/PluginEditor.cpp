@@ -96,7 +96,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     // In the standalone, the resizer handling is done on the window class
     if (ProjectInfo::isStandalone) {
-        borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(this, getConstrainer());
+        borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(getTopLevelComponent(), getConstrainer());
         borderResizer->setAlwaysOnTop(true);
         addAndMakeVisible(borderResizer.get());
     }
