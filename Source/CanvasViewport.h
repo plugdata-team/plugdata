@@ -12,6 +12,7 @@
 #include "Connection.h"
 #include "Canvas.h"
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
 
 #include "Utility/SettingsFile.h"
 
@@ -275,6 +276,29 @@ public:
     void enableMousePanning(bool enablePanning)
     {
         panner.enablePanning(enablePanning);
+    }
+
+    void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
+    {
+        if (e.mods.isCommandDown() && !(editor->pd->isInPluginMode() || cnv->isPalette)) {
+            mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
+        }
+        Viewport::mouseWheelMove(e, wheel);
+    }
+
+    void mouseMagnify(MouseEvent const& e, float scrollFactor)
+    {
+        if (!cnv || editor->pd->isInPluginMode())
+            return;
+
+        auto& scale = editor->splitView.isRightTabbarActive() ? editor->splitZoomScale : editor->zoomScale;
+
+        float value = getValue<float>(scale);
+
+        // Apply and limit zoom
+        value = std::clamp(value * scrollFactor, 0.2f, 3.0f);
+
+        scale = value;
     }
 
     void adjustScrollbarBounds()
