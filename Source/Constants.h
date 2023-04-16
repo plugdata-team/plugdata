@@ -157,6 +157,8 @@ enum CommandIDs {
     ZoomIn,
     ZoomOut,
     ZoomNormal,
+    ZoomToFitAll,
+    GoToOrigin,
     Copy,
     Paste,
     Cut,
