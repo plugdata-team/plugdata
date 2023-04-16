@@ -645,8 +645,15 @@ public:
     {
         ResizableWindow::resized();
 
+        
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
 
+#if JUCE_LINUX
+        if (!isFullScreen() && !isUsingNativeTitleBar() && drawWindowShadow) {
+            titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
+        }
+#endif
+        
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
 
         if (auto* content = getContentComponent()) {
