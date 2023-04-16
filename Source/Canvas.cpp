@@ -1276,8 +1276,9 @@ void Canvas::valueChanged(Value& v)
 
         hideSuggestions();
 
-        if (!viewport || editor->pluginMode)
+        if (!viewport)
             return;
+        
         // Get floating point mouse position relative to screen
         auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
         // Get mouse position relative to canvas

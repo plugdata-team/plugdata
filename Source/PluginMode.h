@@ -11,10 +11,10 @@ public:
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
-        // Reset zoom level
-        editor->zoomScale = 1.0f;
-        editor->zoomScale.getValueSource().sendChangeMessage(true);
-
+        // Set zoom value and update synchronously
+        cnv->zoomScale.setValue(1.0f);
+        cnv->zoomScale.getValueSource().sendChangeMessage(true);
+        
         nativeTitleBarHeight = ProjectInfo::isStandalone ? desktopWindow->getFrameSize().getTop() : 0;
 
         // Titlebar
@@ -66,6 +66,7 @@ public:
         cnv->locked = true;
         cnv->presentationMode = true;
         cnv->viewport->setViewedComponent(nullptr);
+
 
         addAndMakeVisible(content);
 
