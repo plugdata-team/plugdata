@@ -75,7 +75,6 @@ public:
 
         // Store old constrainers so we can restore them later
         oldEditorConstrainer = editor->getConstrainer();
-        oldWindowConstrainer = desktopWindow->getConstrainer();
         
         pluginModeConstrainer.setSizeLimits(width / 2, height / 2 + titlebarHeight, width * 10, height * 10 + titlebarHeight + nativeTitleBarHeight);
         
@@ -110,7 +109,6 @@ public:
         MessageManager::callAsync([
             editor = this->editor,
             bounds = windowBounds,
-            windowConstrainer = oldWindowConstrainer,
             editorConstrainer = oldEditorConstrainer
             ](){
             editor->setConstrainer(editorConstrainer);
@@ -290,7 +288,6 @@ private:
         
     ComponentBoundsConstrainer pluginModeConstrainer;
     ComponentBoundsConstrainer* oldEditorConstrainer;
-    ComponentBoundsConstrainer* oldWindowConstrainer;
         
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
