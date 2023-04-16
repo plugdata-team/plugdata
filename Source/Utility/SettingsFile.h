@@ -99,8 +99,6 @@ private:
         { "grid_enabled", var(1) },
         { "grid_type", var(1) },
         { "grid_size", var(20) },
-        { "zoom", var(1.0f) },
-        { "split_zoom", var(1.0f) },
         { "default_font", var("Inter") },
         { "native_window", var(false) },
         { "reload_last_state", var(false) },

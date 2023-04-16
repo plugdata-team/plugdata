@@ -138,12 +138,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         settingsFile->setProperty("hvcc_mode", false);
     hvccMode.referTo(settingsFile->getPropertyAsValue("hvcc_mode"));
 
-    zoomScale.referTo(settingsFile->getPropertyAsValue("zoom"));
-    zoomScale.addListener(this);
-
-    splitZoomScale.referTo(settingsFile->getPropertyAsValue("split_zoom"));
-    splitZoomScale.addListener(this);
-
     palettes = std::make_unique<Palettes>(this);
 
     addChildComponent(*palettes);
@@ -255,10 +249,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addChildComponent(*zoomLabel);
 
-    // Initialise zoom factor
-    valueChanged(zoomScale);
-    valueChanged(splitZoomScale);
-
     addModifierKeyListener(this);
 
     // Restore Plugin Mode View
@@ -271,12 +261,15 @@ PluginEditor::~PluginEditor()
     setVisible(false); // We can check the visible flag to detect if the pluginEditor is closing
     setConstrainer(nullptr);
 
-    zoomScale.removeListener(this);
-    splitZoomScale.removeListener(this);
     theme.removeListener(this);
 
     pd->lastLeftTab = splitView.getLeftTabbar()->getCurrentTabIndex();
     pd->lastRightTab = splitView.getRightTabbar()->getCurrentTabIndex();
+}
+
+void PluginEditor::setZoomLabelLevel(float value)
+{
+    zoomLabel->setZoomLevel(value);
 }
 
 void PluginEditor::paint(Graphics& g)
@@ -719,50 +712,8 @@ void PluginEditor::addTab(Canvas* cnv)
 
 void PluginEditor::valueChanged(Value& v)
 {
-    // Update zoom
-    if (v.refersToSameSourceAs(zoomScale) || v.refersToSameSourceAs(splitZoomScale)) {
-
-        float newScaleFactor = getValue<float>(v);
-
-        if (newScaleFactor == 0) {
-            newScaleFactor = 1.0f;
-            zoomScale = 1.0f;
-        }
-
-        auto* tabbar = v.refersToSameSourceAs(zoomScale) ? splitView.getLeftTabbar() : splitView.getRightTabbar();
-
-        if (auto* cnv = getCurrentCanvas()) {
-            cnv->hideSuggestions();
-
-            if (!cnv->viewport || pluginMode)
-                return;
-
-            // Get floating point mouse position relative to screen
-            auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
-
-            // Get mouse position relative to canvas
-            auto oldPosition = cnv->getLocalPoint(nullptr, mousePosition);
-
-            // Apply transform and make sure viewport bounds get updated
-            cnv->setTransform(AffineTransform().scaled(newScaleFactor));
-
-            // After zooming, get mouse position relative to canvas again
-            auto newPosition = cnv->getLocalPoint(nullptr, mousePosition);
-
-            // Calculate offset to keep our mouse position the same as before this zoom action
-            auto offset = newPosition - oldPosition;
-
-            cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
-
-            // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
-            // Without this, future calls to getViewPosition() will give wrong results
-            cnv->viewport->resized();
-        }
-
-        zoomLabel->setZoomLevel(newScaleFactor);
-    }
     // Update theme
-    else if (v.refersToSameSourceAs(theme)) {
+    if (v.refersToSameSourceAs(theme)) {
         pd->setTheme(theme.toString());
         getTopLevelComponent()->repaint();
     }
@@ -1305,21 +1256,22 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ZoomIn: {
-        auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
+        auto& scale = getCurrentCanvas()->zoomScale;
         float newScale = getValue<float>(scale) + 0.1f;
         scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.2f, 3.0f) * 10.))) / 10.;
 
         return true;
     }
     case CommandIDs::ZoomOut: {
-        auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
+        auto& scale = getCurrentCanvas()->zoomScale;
         float newScale = getValue<float>(scale) - 0.1f;
         scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.2f, 3.0f) * 10.))) / 10.;
 
         return true;
     }
     case CommandIDs::ZoomNormal: {
-        zoomScale = 1.0f;
+        auto& scale = getCurrentCanvas()->zoomScale;
+        scale = 1.0f;
         return true;
     }
     case CommandIDs::Undo: {
@@ -1447,28 +1399,6 @@ bool PluginEditor::wantsRoundedCorners()
     } else {
         return true;
     }
-}
-
-float PluginEditor::getZoomScale()
-{
-    return static_cast<float>(splitView.isRightTabbarActive() ? splitZoomScale.getValue() : zoomScale.getValue());
-}
-
-float PluginEditor::getZoomScaleForCanvas(Canvas* cnv)
-{
-    if (cnv->isPalette)
-        return 1.0f;
-
-    return static_cast<float>(getZoomScaleValueForCanvas(cnv).getValue());
-}
-
-Value& PluginEditor::getZoomScaleValueForCanvas(Canvas* cnv)
-{
-    if (cnv->getTabbar() == splitView.getRightTabbar()) {
-        return splitZoomScale;
-    }
-
-    return zoomScale;
 }
 
 void PluginEditor::enablePluginMode(Canvas* cnv)

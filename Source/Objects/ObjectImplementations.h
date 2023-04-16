@@ -680,7 +680,7 @@ public:
         if (!cnv)
             return;
 
-        zoomScaleValue.referTo(cnv->editor->getZoomScaleValueForCanvas(cnv));
+        zoomScaleValue.referTo(cnv->zoomScale);
         zoomScaleValue.addListener(this);
         lastScale = getValue<float>(zoomScaleValue);
     }

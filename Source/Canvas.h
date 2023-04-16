@@ -191,6 +191,8 @@ public:
     Value xRange, yRange;
     Value patchWidth, patchHeight;
 
+    Value zoomScale;
+
     ObjectGrid objectGrid = ObjectGrid(this);
 
     Point<int> const canvasOrigin;
