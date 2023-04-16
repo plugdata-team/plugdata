@@ -549,6 +549,8 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
 
             return i;
         }
+        
+        return PopupMenu::Item();
     };
 
     menu.addItem("Open Object Browser...", [parent]() mutable {
