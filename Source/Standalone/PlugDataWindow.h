@@ -650,6 +650,7 @@ public:
 
 #if JUCE_LINUX
         if (!isFullScreen() && !isUsingNativeTitleBar() && drawWindowShadow) {
+            auto margin = mainComponent ? mainComponent->getMargin() : 18;
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
         }
 #endif
