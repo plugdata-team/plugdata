@@ -910,31 +910,31 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::ZoomIn: {
-        result.setInfo("Zoom in", "Zoom in", "Edit", 0);
+        result.setInfo("Zoom in", "Zoom in", "View", 0);
         result.addDefaultKeypress(61, ModifierKeys::commandModifier);
         result.setActive(hasCanvas && !isDragging);
         break;
     }
     case CommandIDs::ZoomOut: {
-        result.setInfo("Zoom out", "Zoom out", "Edit", 0);
+        result.setInfo("Zoom out", "Zoom out", "View", 0);
         result.addDefaultKeypress(45, ModifierKeys::commandModifier);
         result.setActive(hasCanvas && !isDragging);
         break;
     }
     case CommandIDs::ZoomNormal: {
-        result.setInfo("Zoom 100%", "Revert zoom to 100%", "Edit", 0);
+        result.setInfo("Zoom 100%", "Revert zoom to 100%", "View", 0);
         result.addDefaultKeypress(48, ModifierKeys::commandModifier);
         result.setActive(hasCanvas && !isDragging);
         break;
     }
     case CommandIDs::ZoomToFitAll: {
-        result.setInfo("Zoom to fit all", "Fit all objects in the viewport", "Edit", 0);
+        result.setInfo("Zoom to fit all", "Fit all objects in the viewport", "View", 0);
         result.addDefaultKeypress(41, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
         result.setActive(hasCanvas && !isDragging);
         break;
     }
     case CommandIDs::GoToOrigin: {
-        result.setInfo("Go to origin", "Jump to canvas origin", "Edit", 0);
+        result.setInfo("Go to origin", "Jump to canvas origin", "View", 0);
         result.addDefaultKeypress(57, ModifierKeys::commandModifier);
         result.setActive(hasCanvas && !isDragging);
         break;
@@ -991,13 +991,25 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::ShowBrowser: {
-        result.setInfo("Show Browser", "Open documentation browser panel", "Edit", 0);
+        result.setInfo("Show Browser", "Open documentation browser panel", "View", 0);
         result.addDefaultKeypress(66, ModifierKeys::commandModifier);
         result.setActive(true);
         break;
     }
+    case CommandIDs::ToggleSidebar: {
+        result.setInfo("Toggle Sidebar", "Show or hide the sidebar", "View", 0);
+        result.addDefaultKeypress(93, ModifierKeys::commandModifier);
+        result.setActive(true);
+        break; 
+    }
+    case CommandIDs::TogglePalettes: {
+        result.setInfo("Toggle Palettes", "Show or hide palettes", "View", 0);
+        result.addDefaultKeypress(91, ModifierKeys::commandModifier);
+        result.setActive(true);
+        break; 
+    }
     case CommandIDs::Search: {
-        result.setInfo("Search Current Patch", "Search for objects in current patch", "Edit", 0);
+        result.setInfo("Search Current Patch", "Search for objects in current patch", "View", 0);
         result.addDefaultKeypress(70, ModifierKeys::commandModifier);
         result.setActive(true);
         break;
@@ -1024,8 +1036,8 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 #endif
         break;
     }
-    case CommandIDs::ToggleGrid: {
-        result.setInfo("Toggle grid", "Toggle grid enablement", "Edit", 0);
+    case CommandIDs::ToggleSnapping: {
+        result.setInfo("Toggle Snapping", "Toggle object snapping", "Edit", 0);
         result.addDefaultKeypress(103, ModifierKeys::commandModifier);
         result.setActive(true);
         break;
@@ -1037,13 +1049,13 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::ShowSettings: {
-        result.setInfo("Open Settings", "Open settings panel", "Edit", 0);
+        result.setInfo("Open Settings", "Open settings panel", "View", 0);
         result.addDefaultKeypress(44, ModifierKeys::commandModifier); // Cmd + , to open settings
         result.setActive(true);
         break;
     }
     case CommandIDs::ShowReference: {
-        result.setInfo("Open Reference", "Open reference panel", "Edit", 0);
+        result.setInfo("Open Reference", "Open reference panel", "View", 0);
         result.addDefaultKeypress(KeyPress::F1Key, ModifierKeys::noModifiers); // f1 to open settings
 
         if (auto* cnv = getCurrentCanvas(true)) {
@@ -1141,11 +1153,21 @@ bool PluginEditor::perform(InvocationInfo const& info)
         sidebar->showPanel(sidebar->isShowingBrowser() ? 0 : 1);
         return true;
     }
+    case CommandIDs::ToggleSidebar: {
+        hideSidebarButton.triggerClick();
+        return true;
+    }
+    case CommandIDs::TogglePalettes: {
+        auto value = SettingsFile::getInstance()->getProperty<int>("show_palettes");
+        SettingsFile::getInstance()->setProperty("show_palettes", !value);
+        resized();
+        return true;
+    }
     case CommandIDs::Search: {
         sidebar->showPanel(3);
         return true;
     }
-    case CommandIDs::ToggleGrid: {
+    case CommandIDs::ToggleSnapping: {
         auto value = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
         SettingsFile::getInstance()->setProperty("grid_enabled", !value);
 
