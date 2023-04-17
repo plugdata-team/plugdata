@@ -248,7 +248,7 @@ public:
         int const dragDistance = std::abs(e.getDistanceFromDragStartX());
 
         if (dragDistance > 5) {
-            if (tabs->contains(e.getEventRelativeTo(tabs.get()).getPosition()) && newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
+            if ((tabs->contains(e.getEventRelativeTo(tabs.get()).getPosition()) || e.getDistanceFromDragStartY() < 0) && newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
                 moveTab(clickedTabIndex, newTabIndex, true);
                 clickedTabIndex = newTabIndex;
                 onTabMoved();
