@@ -1002,6 +1002,12 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setActive(true);
         break; 
     }
+    case CommandIDs::TogglePalettes: {
+        result.setInfo("Toggle Palettes", "Show or hide palettes", "Edit", 0);
+        result.addDefaultKeypress(91, ModifierKeys::commandModifier);
+        result.setActive(true);
+        break; 
+    }
     case CommandIDs::Search: {
         result.setInfo("Search Current Patch", "Search for objects in current patch", "Edit", 0);
         result.addDefaultKeypress(70, ModifierKeys::commandModifier);
@@ -1149,6 +1155,12 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::ToggleSidebar: {
         hideSidebarButton.triggerClick();
+        return true;
+    }
+    case CommandIDs::TogglePalettes: {
+        auto value = SettingsFile::getInstance()->getProperty<int>("show_palettes");
+        SettingsFile::getInstance()->setProperty("show_palettes", !value);
+        resized();
         return true;
     }
     case CommandIDs::Search: {

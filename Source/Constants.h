@@ -169,6 +169,7 @@ enum CommandIDs {
     SelectAll,
     ShowBrowser,
     ToggleSidebar,
+    TogglePalettes,
     Search,
     NextTab,
     PreviousTab,
