@@ -928,12 +928,14 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::ZoomToFitAll: {
-        result.setInfo("Zoom to fit all", "Fit all objects in the canvas", "Edit", 0);
+        result.setInfo("Zoom to fit all", "Fit all objects in the viewport", "Edit", 0);
+        result.addDefaultKeypress(41, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
         result.setActive(hasCanvas && !isDragging);
         break;
     }
     case CommandIDs::GoToOrigin: {
         result.setInfo("Go to origin", "Jump to canvas origin", "Edit", 0);
+        result.addDefaultKeypress(57, ModifierKeys::commandModifier);
         result.setActive(hasCanvas && !isDragging);
         break;
     }
