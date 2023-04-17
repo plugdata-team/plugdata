@@ -65,6 +65,8 @@ public:
             fullscreenButton->onClick = [this](){
                 auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
                 window->maximiseButtonPressed();
+                resized();
+                editor->resized();
             };
             titleBar.addAndMakeVisible(*fullscreenButton);
         }
@@ -88,7 +90,7 @@ public:
         // Store old constrainers so we can restore them later
         oldEditorConstrainer = editor->getConstrainer();
         
-        pluginModeConstrainer.setSizeLimits(width / 2, height / 2 + titlebarHeight, width * 10, height * 10 + titlebarHeight + nativeTitleBarHeight);
+        pluginModeConstrainer.setSizeLimits(width / 2, height / 2 + titlebarHeight, width * 10, height * 10 + titlebarHeight);
         
         editor->setConstrainer(&pluginModeConstrainer);
 
@@ -133,13 +135,23 @@ public:
         // Destroy this view
         editor->pluginMode.reset(nullptr);
     }
+    
+    
+    bool isWindowFullscreen()
+    {
+#if JUCE_LINUX
+        return OSUtils::isMaximised(desktopWindow->getNativeHandle());
+#else
+        return desktopWindow->isFullScreen();
+#endif
+    }
 
     void paint(Graphics& g) override
     {
         if (!cnv)
             return;
 
-        if (ProjectInfo::isStandalone && desktopWindow->isFullScreen()) {
+        if (ProjectInfo::isStandalone && isWindowFullscreen()) {
             // Fill background for Fullscreen / Kiosk Mode
             g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
             g.fillRect(editor->getTopLevelComponent()->getBounds());
@@ -168,7 +180,13 @@ public:
     
     void resized() override
     {
-        if (ProjectInfo::isStandalone && desktopWindow->isFullScreen()) {
+        float const controlsHeight = isWindowFullscreen() ? 0 : titlebarHeight + nativeTitleBarHeight;
+        float const scale = getWidth() / width;
+        float const resizeRatio = width / (height + (controlsHeight / scale));
+
+        pluginModeConstrainer.setFixedAspectRatio(resizeRatio);
+        
+        if (ProjectInfo::isStandalone && isWindowFullscreen()) {
             // Calculate the scale factor required to fit the editor in the screen
             float const scaleX = static_cast<float>(getWidth()) / width;
             float const scaleY = static_cast<float>(getHeight()) / height;
@@ -188,8 +206,6 @@ public:
             titleBar.setBounds(0, 0, 0, 0);
         }
         else {
-            float const scale = getWidth() / width;
-            float const resizeRatio = width / (height + ((titlebarHeight + nativeTitleBarHeight) / scale));
 
             if (ProjectInfo::isStandalone) {
                 borderResizer->setBounds(getLocalBounds());
@@ -200,8 +216,6 @@ public:
                     getHeight() - resizerSize,
                     resizerSize, resizerSize);
             }
-            
-            pluginModeConstrainer.setFixedAspectRatio(resizeRatio);
             
             content.setTransform(content.getTransform().scale(scale));
             content.setTopLeftPosition(0, titlebarHeight / scale);
@@ -215,7 +229,7 @@ public:
     void parentSizeChanged() override
     {
         // Fullscreen / Kiosk Mode
-        if (ProjectInfo::isStandalone && desktopWindow->isFullScreen()) {
+        if (ProjectInfo::isStandalone && isWindowFullscreen()) {
 
             // Determine the screen size
             auto const screenBounds = desktopWindow->getBounds();

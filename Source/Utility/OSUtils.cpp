@@ -223,13 +223,25 @@ bool OSUtils::isMaximised(void* handle)
     auto window = (Window)handle;
     auto* display = XOpenDisplay(nullptr);
 
+    if(!display) return false;
+    
     win.id = window;
     win.dpy = display;
 
     win.atoms.NET_WM_STATE = XInternAtom(win.dpy, "_NET_WM_STATE", False);
+    if (win.atoms.NET_WM_STATE == None) {
+       std::cerr << "Failed to get atom for _NET_WM_STATE\n";
+       XCloseDisplay(display);
+       return false;
+   }
 
     for (int i = 0; i < WINDOW_STATE_SIZE; ++i) {
         win.atoms.NET_WM_STATES[i] = XInternAtom(win.dpy, WINDOW_STATE_NAMES[i], False);
+        if (win.atoms.NET_WM_STATES[i] == None) {
+            std::cerr << "Failed to get atom for " << WINDOW_STATE_NAMES[i] << "\n";
+            XCloseDisplay(display);
+            return false;
+        }
     }
 
     long max_length = 1024;
@@ -270,6 +282,9 @@ bool OSUtils::isMaximised(void* handle)
         XFree(states);
     }
 
+    XSync(display, False);  // synchronize with X server before closing display
+    XCloseDisplay(display);
+    
     return state & WINDOW_STATE_MAXIMIZED;
 }
 
@@ -277,18 +292,31 @@ void OSUtils::maximiseLinuxWindow(void* handle)
 {
     auto win = (Window)handle;
     auto* display = XOpenDisplay(nullptr);
+    
+    if(!display) return;
+
+    Atom wm_state = XInternAtom(display, "_NET_WM_STATE", False);
+    Atom wm_state_maximized_horz = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+    Atom wm_state_maximized_vert = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+
+    // check if the atoms are valid
+    if (wm_state == None || wm_state_maximized_horz == None || wm_state_maximized_vert == None) {
+        XCloseDisplay(display);
+        return;
+    }
 
     XEvent ev;
     ev.xclient.window = win;
     ev.xclient.type = ClientMessage;
     ev.xclient.format = 32;
-    ev.xclient.message_type = XInternAtom(display, "_NET_WM_STATE", False);
+    ev.xclient.message_type = wm_state;
     ev.xclient.data.l[0] = 2;
-    ev.xclient.data.l[1] = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-    ev.xclient.data.l[2] = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+    ev.xclient.data.l[1] = wm_state_maximized_horz;
+    ev.xclient.data.l[2] = wm_state_maximized_vert;
     ev.xclient.data.l[3] = 1;
 
     XSendEvent(display, DefaultRootWindow(display), False, SubstructureRedirectMask | SubstructureNotifyMask, &ev);
+    XSync(display, False); // synchronize with the X server
 
     XCloseDisplay(display);
 }
