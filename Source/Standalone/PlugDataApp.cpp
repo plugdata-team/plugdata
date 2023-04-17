@@ -160,11 +160,6 @@ public:
         }
     }
 
-    PlugDataWindow* getWindow()
-    {
-        return mainWindow.get();
-    }
-
 protected:
     ApplicationProperties appProperties;
     std::unique_ptr<PlugDataWindow> mainWindow;

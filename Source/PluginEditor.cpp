@@ -93,12 +93,17 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     presentButton.setButtonText(Icons::Presentation);
 
     setResizable(true, false);
-
+    
     // In the standalone, the resizer handling is done on the window class
     if (ProjectInfo::isStandalone) {
-        borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(getTopLevelComponent(), getConstrainer());
-        borderResizer->setAlwaysOnTop(true);
-        addAndMakeVisible(borderResizer.get());
+        
+        // We need to attach this to the top-level component, which is not yet know during the constructor
+        // So we postpone initialisation of the resizer until PluginEditor has a parent component
+        MessageManager::callAsync([this](){
+            borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(getTopLevelComponent(), getConstrainer());
+            borderResizer->setAlwaysOnTop(true);
+            addAndMakeVisible(borderResizer.get());
+        });
     }
     else {
         cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
@@ -358,10 +363,10 @@ void PluginEditor::resized()
 
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
 
-    if (ProjectInfo::isStandalone) {
+    if (borderResizer && ProjectInfo::isStandalone) {
         borderResizer->setBounds(getLocalBounds());
     }
-    else {
+    else if(cornerResizer){
         int const resizerSize = 18;
         cornerResizer->setBounds(getWidth() - resizerSize,
             getHeight() - resizerSize,
