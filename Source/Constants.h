@@ -168,6 +168,7 @@ enum CommandIDs {
     CreateConnection,
     SelectAll,
     ShowBrowser,
+    ToggleSidebar,
     Search,
     NextTab,
     PreviousTab,

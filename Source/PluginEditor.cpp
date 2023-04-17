@@ -996,6 +996,12 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setActive(true);
         break;
     }
+    case CommandIDs::ToggleSidebar: {
+        result.setInfo("Toggle Sidebar", "Show or hide the sidebar", "Edit", 0);
+        result.addDefaultKeypress(93, ModifierKeys::commandModifier);
+        result.setActive(true);
+        break; 
+    }
     case CommandIDs::Search: {
         result.setInfo("Search Current Patch", "Search for objects in current patch", "Edit", 0);
         result.addDefaultKeypress(70, ModifierKeys::commandModifier);
@@ -1139,6 +1145,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::ShowBrowser: {
         sidebar->showPanel(sidebar->isShowingBrowser() ? 0 : 1);
+        return true;
+    }
+    case CommandIDs::ToggleSidebar: {
+        hideSidebarButton.triggerClick();
         return true;
     }
     case CommandIDs::Search: {
