@@ -1,9 +1,10 @@
 #pragma once
 
 #include "PluginEditor.h"
+#include "Standalone/PlugDataWindow.h"
 
 class PluginMode : public Component
-    , public Button::Listener {
+{
 public:
     PluginMode(Canvas* cnv)
         : cnv(cnv)
@@ -31,7 +32,11 @@ public:
         editorButton->getProperties().set("Style", "LargeIcon");
         editorButton->setTooltip("Show Editor..");
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
-        editorButton->addListener(this);
+        editorButton->onClick = [this]()
+        {
+            closePluginMode();
+        };
+        
         titleBar.addAndMakeVisible(*editorButton);
 
         setAlwaysOnTop(true);
@@ -57,7 +62,10 @@ public:
             fullscreenButton->getProperties().set("Style", "LargeIcon");
             fullscreenButton->setTooltip("Kiosk Mode..");
             fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
-            fullscreenButton->addListener(this);
+            fullscreenButton->onClick = [this](){
+                auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
+                window->maximiseButtonPressed();
+            };
             titleBar.addAndMakeVisible(*fullscreenButton);
         }
 
@@ -72,7 +80,6 @@ public:
         cnv->locked = true;
         cnv->presentationMode = true;
         cnv->viewport->setViewedComponent(nullptr);
-
 
         addAndMakeVisible(content);
 
@@ -125,17 +132,6 @@ public:
 
         // Destroy this view
         editor->pluginMode.reset(nullptr);
-    }
-
-    void buttonClicked(Button* button) override
-    {
-        if (button == fullscreenButton.get()) {
-            auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent());
-            window->setFullScreen(true);
-
-        } else if (button == editorButton.get()) {
-            closePluginMode();
-        }
     }
 
     void paint(Graphics& g) override
