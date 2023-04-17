@@ -17,7 +17,6 @@ public:
         : TextBase(obj, object)
         , subpatch(new pd::Patch(ptr, cnv->pd, false))
     {
-        isGraphChild = false;
         object->hvccMode.addListener(this);
 
         if (getValue<bool>(object->hvccMode)) {
@@ -33,7 +32,10 @@ public:
 
     void update() override
     {
+        isGraphChild = static_cast<bool>(subpatch->getPointer()->gl_isgraph);
         hideNameAndArgs = static_cast<bool>(subpatch->getPointer()->gl_hidetext);
+        
+        updateValue();
     }
 
     void updateValue()

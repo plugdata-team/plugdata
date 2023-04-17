@@ -23,13 +23,17 @@ public:
         , subpatch(new pd::Patch(ptr, cnv->pd, false))
     {
         resized();
+        
+        MessageManager::callAsync([_this = SafePointer(this)](){
+            if(_this) _this->checkGraphState();
+        });
     }
 
     void update() override
     {
         auto* glist = static_cast<t_canvas*>(ptr);
-        isGraphChild = true;
-        hideNameAndArgs = static_cast<bool>(subpatch->getPointer()->gl_hidetext);
+        isGraphChild = static_cast<bool>(glist->gl_isgraph);
+        hideNameAndArgs = static_cast<bool>(glist->gl_hidetext);
         xRange = Array<var> { var(glist->gl_x1), var(glist->gl_x2) };
         yRange = Array<var> { var(glist->gl_y2), var(glist->gl_y1) };
 
