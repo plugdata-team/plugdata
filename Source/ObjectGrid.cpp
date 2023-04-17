@@ -310,25 +310,25 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     if (resizeZone.isDraggingLeftEdge() && !isAlreadySnapped(true, dragOffset)) {
         newPosTopLeft.setX(roundToInt(newPosTopLeft.getX() / gridSize + 1) * gridSize);
         snappedPosition.x = newPosTopLeft.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
-        snappedPosition.x += (toDrag->cnv->canvasOrigin.x % gridSize) + 2;
+        snappedPosition.x += (toDrag->cnv->canvasOrigin.x % gridSize) + 1;
         dragOffset.x = snappedPosition.x;
     }
     if (resizeZone.isDraggingTopEdge() && !isAlreadySnapped(false, dragOffset)) {
         newPosTopLeft.setY(roundToInt(newPosTopLeft.getY() / gridSize + 1) * gridSize);
         snappedPosition.y = newPosTopLeft.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
-        snappedPosition.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 2;
+        snappedPosition.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 1;
         dragOffset.y = snappedPosition.y;
     }
     if (resizeZone.isDraggingRightEdge() && !isAlreadySnapped(true, dragOffset)) {
         newPosBotRight.setX(roundToInt(newPosBotRight.getX() / gridSize + 1) * gridSize);
         snappedPosition.x = newPosBotRight.x - toDrag->originalBounds.reduced(Object::margin).getRight() - gridSize;
-        snappedPosition.x += (toDrag->cnv->canvasOrigin.x % gridSize) + 2;
+        snappedPosition.x += (toDrag->cnv->canvasOrigin.x % gridSize) + 1;
         dragOffset.x = snappedPosition.x;
     }
     if (resizeZone.isDraggingBottomEdge() && !isAlreadySnapped(false, dragOffset)) {
         newPosBotRight.setY(roundToInt(newPosBotRight.getY() / gridSize + 1) * gridSize);
         snappedPosition.y = newPosBotRight.y - toDrag->originalBounds.reduced(Object::margin).getBottom() - gridSize;
-        snappedPosition.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 2;
+        snappedPosition.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 1;
         dragOffset.y = snappedPosition.y;
     }
 
