@@ -287,15 +287,30 @@ public:
         if (methods.getNumChildren())
             rightSideInfoText += "\n\nMethods:";
 
-        int numMethods = 1;
         for (auto method : methods) {
             auto type = method.getProperty("type").toString();
             auto description = method.getProperty("description").toString();
 
-            rightSideInfoText += "\n" + String(numMethods) + ": ";
+            rightSideInfoText += "\n";
             rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
             rightSideInfoText += description;
-            numMethods++;
+        }
+        
+        
+        auto flags = objectInfo.getChildWithName("flags");
+        if (flags.getNumChildren())
+            rightSideInfoText += "\n\nFlags:";
+
+        for (auto flag : flags) {
+            auto name = flag.getProperty("name").toString().trim();
+            auto description = flag.getProperty("description").toString();
+
+            if (!name.startsWith("-"))
+                name = "- " + name;
+            
+            rightSideInfoText += "\n";
+            rightSideInfoText += name + ": ";
+            rightSideInfoText += description;
         }
 
         rightSideInfo.setText(rightSideInfoText);
