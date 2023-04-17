@@ -52,11 +52,11 @@ add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-message("-- Preparing documentation")
+message(STATUS "Preparing documentation")
 execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
 
-message("-- Packaging resources")
+message(STATUS "Packaging resources")
 execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
 
@@ -320,8 +320,8 @@ if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
   unset(MESSAGE_QUIET)
   endif()
 else()
-  message("\n-- Warning: Building CLAP plugins requires at least cmake 3.21, you have ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}")
-  message("-- CLAP plugin build will be disabed\n")
+  message(NOTICE "\n\nWarning: Building CLAP plugins requires at least cmake 3.21, you have ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}")
+  message(NOTICE "CLAP plugin build will be disabed\n\n")
 endif()
 
 target_sources(plugdata_standalone PUBLIC ${plugdata_standalone_sources} ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
