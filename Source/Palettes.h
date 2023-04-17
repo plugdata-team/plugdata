@@ -231,7 +231,7 @@ public:
 
     void savePalette()
     {
-        if (cnv) {
+        if (cnv && paletteTree.isValid()) {
             paletteTree.setProperty("Patch", cnv->patch.getCanvasContent(), nullptr);
 
             if (paletteTree.isValid()) {
@@ -799,6 +799,7 @@ private:
 
                 if (button->getToggleState()) {
                     button->setToggleState(false, dontSendNotification);
+                    view.showPalette(ValueTree());
                     setViewHidden(true);
                 } else {
                     button->setToggleState(true, dontSendNotification);
