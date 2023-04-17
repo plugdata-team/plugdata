@@ -173,7 +173,7 @@ enum CommandIDs {
     Search,
     NextTab,
     PreviousTab,
-    ToggleGrid,
+    ToggleSnapping,
     ClearConsole,
     ShowSettings,
     ShowReference,

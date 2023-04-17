@@ -1036,8 +1036,8 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 #endif
         break;
     }
-    case CommandIDs::ToggleGrid: {
-        result.setInfo("Toggle grid", "Toggle grid enablement", "Edit", 0);
+    case CommandIDs::ToggleSnapping: {
+        result.setInfo("Toggle Snapping", "Toggle object snapping", "Edit", 0);
         result.addDefaultKeypress(103, ModifierKeys::commandModifier);
         result.setActive(true);
         break;
@@ -1167,7 +1167,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         sidebar->showPanel(3);
         return true;
     }
-    case CommandIDs::ToggleGrid: {
+    case CommandIDs::ToggleSnapping: {
         auto value = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
         SettingsFile::getInstance()->setProperty("grid_enabled", !value);
 
