@@ -11,6 +11,12 @@ public:
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
+        // Save original canvas properties
+        originalCanvasScale = getValue<float>(cnv->zoomScale);
+        originalCanvasPos = cnv->getPosition();
+        originalLockedMode = getValue<bool>(cnv->locked);
+        originalPresentationMode = getValue<bool>(cnv->presentationMode);
+
         // Set zoom value and update synchronously
         cnv->zoomScale.setValue(1.0f);
         cnv->zoomScale.getValueSource().sendChangeMessage(true);
@@ -70,8 +76,7 @@ public:
 
         addAndMakeVisible(content);
 
-        auto const& origin = cnv->canvasOrigin;
-        cnv->setBounds(-origin.x, -origin.y, width + origin.x, height + origin.y);
+        cnv->setTopLeftPosition(-cnv->canvasOrigin);
 
         // Store old constrainers so we can restore them later
         oldEditorConstrainer = editor->getConstrainer();
@@ -97,13 +102,14 @@ public:
     {
         if (cnv) {
             content.removeChildComponent(cnv);
-            // Reset the canvas properties
+            // Reset the canvas properties to before plugin mode was entered
             cnv->viewport->setViewedComponent(cnv, false);
             cnv->patch.openInPluginMode = false;
-            cnv->jumpToOrigin();
-            cnv->setSize(Canvas::infiniteCanvasSize, Canvas::infiniteCanvasSize);
-            cnv->locked = false;
-            cnv->presentationMode = false;
+            cnv->zoomScale.setValue(originalCanvasScale);
+            cnv->zoomScale.getValueSource().sendChangeMessage(true);
+            cnv->setTopLeftPosition(originalCanvasPos);
+            cnv->locked = originalLockedMode;
+            cnv->presentationMode = originalPresentationMode;
         }
         
         MessageManager::callAsync([
@@ -288,7 +294,12 @@ private:
         
     ComponentBoundsConstrainer pluginModeConstrainer;
     ComponentBoundsConstrainer* oldEditorConstrainer;
-        
+
+    Point<int> originalCanvasPos;
+    float originalCanvasScale;
+    bool originalLockedMode;
+    bool originalPresentationMode;
+
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
     
