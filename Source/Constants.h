@@ -166,6 +166,7 @@ enum CommandIDs {
     Duplicate,
     Encapsulate,
     CreateConnection,
+    RemoveConnections,
     SelectAll,
     ShowBrowser,
     ToggleSidebar,

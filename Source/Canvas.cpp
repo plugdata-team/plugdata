@@ -1059,6 +1059,25 @@ void Canvas::removeSelection()
     synchroniseSplitCanvas();
 }
 
+void Canvas::removeSelectedConnections()
+{
+    patch.startUndoSequence("Remove Connections");
+
+    for (auto* con : connections) {
+        if (con->isSelected()) {
+            patch.removeConnection(con->outobj->getPointer(), con->outIdx, con->inobj->getPointer(), con->inIdx, con->getPathState());
+        }
+    }
+
+    patch.endUndoSequence("Remove Connections");
+
+    // Load state from pd
+    synchronise();
+    handleUpdateNowIfNeeded();
+
+    synchroniseSplitCanvas();
+}
+
 void Canvas::encapsulateSelection()
 {
     auto selectedBoxes = getSelectionOfType<Object>();
