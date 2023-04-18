@@ -99,6 +99,7 @@ public:
 
     void copySelection();
     void removeSelection();
+    void removeSelectedConnections();
     void pasteSelection();
     void duplicateSelection();
 

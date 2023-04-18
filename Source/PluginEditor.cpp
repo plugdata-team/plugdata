@@ -984,9 +984,15 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::CreateConnection: {
-        result.setInfo("Create connection", "Create a connection between selected objects", "General", 0);
+        result.setInfo("Create connection", "Create a connection between selected objects", "Edit", 0);
         result.addDefaultKeypress(75, ModifierKeys::commandModifier);
         result.setActive(canConnect);
+        break;
+    }
+    case CommandIDs::RemoveConnections: {
+        result.setInfo("Remove Connections", "Delete all connections from selection", "Edit", 0);
+        result.addDefaultKeypress(75, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
         break;
     }
     case CommandIDs::SelectAll: {
@@ -1264,6 +1270,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
     case CommandIDs::CreateConnection: {
         cnv = getCurrentCanvas(true);
         return cnv->connectSelectedObjects();
+    }
+    case CommandIDs::RemoveConnections: {
+        cnv = getCurrentCanvas(true);
+        cnv->removeSelectedConnections();
+        return true;
     }
     case CommandIDs::SelectAll: {
         cnv = getCurrentCanvas(true);
