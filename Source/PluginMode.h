@@ -64,9 +64,11 @@ public:
             fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
             fullscreenButton->onClick = [this](){
                 auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
-                window->maximiseButtonPressed();
-                resized();
-                editor->resized();
+                // will have to have a linux / macos / windows version? 
+                // this is only for testing
+                window->setFullscreenKiosk(true);
+                isFullscreenKioskMode = true;
+                editor->setBounds(window->getBounds());
             };
             titleBar.addAndMakeVisible(*fullscreenButton);
         }
@@ -151,7 +153,7 @@ public:
         if (!cnv)
             return;
 
-        if (ProjectInfo::isStandalone && isWindowFullscreen()) {
+        if ((ProjectInfo::isStandalone && isWindowFullscreen()) || isFullscreenKioskMode) {
             // Fill background for Fullscreen / Kiosk Mode
             g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
             g.fillRect(editor->getTopLevelComponent()->getBounds());
@@ -186,7 +188,7 @@ public:
 
         pluginModeConstrainer.setFixedAspectRatio(resizeRatio);
         
-        if (ProjectInfo::isStandalone && isWindowFullscreen()) {
+        if ((ProjectInfo::isStandalone && isWindowFullscreen()) || isFullscreenKioskMode) {
             // Calculate the scale factor required to fit the editor in the screen
             float const scaleX = static_cast<float>(getWidth()) / width;
             float const scaleY = static_cast<float>(getHeight()) / height;
@@ -229,7 +231,7 @@ public:
     void parentSizeChanged() override
     {
         // Fullscreen / Kiosk Mode
-        if (ProjectInfo::isStandalone && isWindowFullscreen()) {
+        if ((ProjectInfo::isStandalone && isWindowFullscreen()) || isFullscreenKioskMode) {
 
             // Determine the screen size
             auto const screenBounds = desktopWindow->getBounds();
@@ -309,6 +311,8 @@ private:
     float originalCanvasScale;
     bool originalLockedMode;
     bool originalPresentationMode;
+
+    bool isFullscreenKioskMode = false;
 
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;

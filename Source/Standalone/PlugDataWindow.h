@@ -585,6 +585,12 @@ public:
             return false;
     }
 
+    void setFullscreenKiosk(bool isKiosk)
+    {
+        mainComponent->isKioskMode = true;
+        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea);
+    }
+
     void closeButtonPressed() override
     {
         // Save plugin state to allow reloading
@@ -649,6 +655,9 @@ public:
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
 
 #if JUCE_LINUX
+        if (mainComponent && mainComponent->isKioskMode)
+            return;
+
         if (!isFullScreen() && !isUsingNativeTitleBar() && drawWindowShadow) {
             auto margin = mainComponent ? mainComponent->getMargin() : 18;
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
@@ -710,7 +719,7 @@ private:
         void paintOverChildren(Graphics& g) override
         {
 #if JUCE_LINUX
-            if (!owner.isUsingNativeTitleBar() && !owner.hasOpenedDialog()) {
+            if (!isKioskMode && !owner.isUsingNativeTitleBar() && !owner.hasOpenedDialog()) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
 
                 if (!Desktop::canUseSemiTransparentWindows()) {
@@ -803,6 +812,11 @@ private:
 
         void resized() override
         {
+            if (isKioskMode) {
+                setTopLeftPosition(0,0);
+                return;
+            }
+
             auto r = getLocalBounds().reduced(getMargin());
 
             if (editor != nullptr) {
@@ -818,6 +832,8 @@ private:
 
             repaint();
         }
+    public:
+        bool isKioskMode = false;
 
     private:
         void componentMovedOrResized(Component&, bool, bool) override
