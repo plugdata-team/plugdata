@@ -24,8 +24,7 @@
 
 namespace pd {
 
-// TODO: this leaks!
-struct OfeliaMessageManager : public Timer
+struct OfeliaMessageManager : public Timer, public DeletedAtShutdown
 {
     void timerCallback() override
     {
