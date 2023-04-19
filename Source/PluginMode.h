@@ -66,6 +66,11 @@ public:
                 auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
                 // will have to have a linux / macos / windows version? 
                 // this is only for testing
+
+                // Fix for Linux:
+                window->setUsingNativeTitleBar(false);
+                desktopWindow = editor->getPeer();
+
                 window->setFullscreenKiosk(true);
                 isFullscreenKioskMode = true;
                 editor->setBounds(window->getBounds());
