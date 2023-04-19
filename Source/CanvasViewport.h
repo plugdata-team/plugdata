@@ -50,10 +50,6 @@ class CanvasViewport : public Viewport {
 
         void mouseDrag(MouseEvent const& e) override
         {
-            // We shouldn't need to do this, but there is something going wrong when you drag very quicly, then stop
-            // Auto-repeating the drag makes it smoother, but it's not a perfect solution
-            // beginDragAutoRepeat(16);
-
             float scale = std::sqrt(std::abs(viewport->cnv->getTransform().getDeterminant()));
 
             auto infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
@@ -71,7 +67,7 @@ class CanvasViewport : public Viewport {
         Point<int> downCanvasOrigin;
     };
 
-    class NewScrollBar : public Component {
+    class ViewportScrollBar : public Component {
         struct FadeTimer : private ::Timer {
             std::function<bool()> callback;
 
@@ -89,53 +85,57 @@ class CanvasViewport : public Viewport {
         };
 
         struct FadeAnimator : private ::Timer {
-            FadeAnimator(Component* target)
+            FadeAnimator(ViewportScrollBar* target)
                 : targetComponent(target)
             {
             }
 
             void timerCallback()
             {
-                auto alpha = targetComponent->getAlpha();
-                if (alphaTarget > alpha) {
-
-                    targetComponent->setAlpha(alpha + 0.3f);
-                } else if (alphaTarget < alpha) {
-                    float easedAlpha = pow(alpha, 0.5f);
-                    easedAlpha -= 0.015f;
-                    alpha = pow(easedAlpha, 2.0f);
-                    if (alpha < 0.01f)
-                        alpha = 0.0f;
-
-                    targetComponent->setAlpha(alpha);
+                auto growth = targetComponent->growAnimation;
+                if (growth < growthTarget) {
+                    growth += 0.1f;
+                    if (growth >= growthTarget) {
+                        stopTimer();
+                    }
+                targetComponent->setGrowAnimation(growth);
+                } else if (growth > growthTarget) {
+                    growth -= 0.1f;
+                    if (growth <= growthTarget) {
+                        growth = growthTarget;
+                        stopTimer();
+                    }
+                targetComponent->setGrowAnimation(growth);
                 } else {
                     stopTimer();
                 }
             }
 
-            void fadeIn()
+            void grow()
             {
-                alphaTarget = 1.0f;
-                startTimerHz(45);
+                growthTarget = 0.0f;
+                startTimerHz(60);
             }
 
-            void fadeOut()
+            void shrink()
             {
-                alphaTarget = 0.0f;
-                startTimerHz(45);
+                growthTarget = 1.0f;
+                startTimerHz(60);
             }
 
-            Component* targetComponent;
-            float alphaTarget = 0.0f;
+            ViewportScrollBar* targetComponent;
+            float growthTarget = 0.0f;
         };
 
     public:
-        NewScrollBar(bool isVertical, CanvasViewport* viewport)
+        ViewportScrollBar(bool isVertical, CanvasViewport* viewport)
             : isVertical(isVertical)
             , viewport(viewport)
         {
+            scrollBarThickness = viewport->getScrollBarThickness();
         }
-        ~NewScrollBar()
+
+        ~ViewportScrollBar()
         {
         }
 
@@ -162,6 +162,12 @@ class CanvasViewport : public Viewport {
             repaint();
         }
 
+        void setGrowAnimation(float newGrowValue)
+        {
+            growAnimation = newGrowValue;
+            repaint();
+        }
+
         void mouseDown(MouseEvent const& e) override
         {
             isMouseDragging = true;
@@ -172,7 +178,8 @@ class CanvasViewport : public Viewport {
         {
             if (e.mouseWasDraggedSinceMouseDown()) {
                 isMouseDragging = false;
-                // animator.fadeOut();
+                if (!isMouseOver)
+                    animator.shrink();
             }
             repaint();
         }
@@ -180,7 +187,7 @@ class CanvasViewport : public Viewport {
         void mouseEnter(MouseEvent const& e) override
         {
             isMouseOver = true;
-            // animator.fadeIn();
+            animator.grow();
             repaint();
         }
 
@@ -188,7 +195,7 @@ class CanvasViewport : public Viewport {
         {
             isMouseOver = false;
             if (!isMouseDragging)
-                // animator.fadeOut();
+                animator.shrink();
                 repaint();
         }
 
@@ -213,23 +220,31 @@ class CanvasViewport : public Viewport {
 
         void paint(Graphics& g) override
         {
-            float roundedCorner;
-            if (isVertical)
-                roundedCorner = getWidth() * 0.5f;
-            else
-                roundedCorner = getHeight() * 0.5f;
+            auto growPosition = scrollBarThickness * 0.5f * growAnimation;
+
+            auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
+            auto roundedCorner = growingBounds.getHeight() * 0.5f;
+            if (isVertical) {
+                growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
+                roundedCorner = growingBounds.getWidth() * 0.5f;
+            }
 
             g.setColour(findColour(ScrollBar::ColourIds::thumbColourId));
-            g.fillRoundedRectangle(thumbBounds.reduced(1).toFloat(), 4.0f);
+            g.fillRoundedRectangle(growingBounds, roundedCorner);
         }
 
     private:
         bool isVertical = false;
         bool isMouseOver = false;
         bool isMouseDragging = false;
+
+        float growAnimation = 1.0f;
+
+        int scrollBarThickness = 0;
+
         Range<float> totalRange = { 0, 0 };
         Range<float> currentRange = { 0, 0 };
-        Rectangle<int> thumbBounds = { 0, 0 };
+        Rectangle<float> thumbBounds = { 0, 0 };
         CanvasViewport* viewport;
         Point<int> viewPosition = { 0, 0 };
         FadeAnimator animator = FadeAnimator(this);
@@ -262,6 +277,8 @@ public:
         setScrollBarsShown(false, false);
 
         setPositioner(new ViewportPositioner(*this));
+
+        setScrollBarThickness(8);
 
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
@@ -306,8 +323,7 @@ public:
         if (getViewArea().isEmpty())
             return;
 
-        // auto thickness = getScrollBarThickness();
-        auto thickness = 8;
+        auto thickness = getScrollBarThickness();
         auto localArea = getLocalBounds().reduced(8);
 
         vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
@@ -367,8 +383,8 @@ private:
     PluginEditor* editor;
     Canvas* cnv;
     MousePanner panner = MousePanner(this);
-    NewScrollBar vbar = NewScrollBar(true, this);
-    NewScrollBar hbar = NewScrollBar(false, this);
+    ViewportScrollBar vbar = ViewportScrollBar(true, this);
+    ViewportScrollBar hbar = ViewportScrollBar(false, this);
 
     bool isScrollingHorizontally = false;
     bool isScrollingVertically = false;
