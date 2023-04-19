@@ -57,7 +57,6 @@ struct OfeliaMessageManager : public Timer
     static inline OfeliaMessageManager* instance = nullptr;
     
     CriticalSection const* audioLock = nullptr;
-    CriticalSection callbackLock;
     std::function<void()> callback = [](){};
     
     moodycamel::ConcurrentQueue<std::function<void()>> asyncQueue;
@@ -65,16 +64,6 @@ struct OfeliaMessageManager : public Timer
 
 } // namespace pd
 
-void ofelia_lock()
-{
-    auto* instance = pd::OfeliaMessageManager::getOrCreate();
-    instance->callbackLock.enter();
-}
-void ofelia_unlock()
-{
-    auto* instance = pd::OfeliaMessageManager::getOrCreate();
-    instance->callbackLock.exit();
-}
 
 void ofelia_audio_lock()
 {
@@ -98,15 +87,11 @@ void ofelia_call_async(std::function<void()> fn)
     auto* instance = pd::OfeliaMessageManager::getOrCreate();
     
     if(MessageManager::getInstance()->isThisTheMessageThread()) {
-        ofelia_lock();
         fn();
-        ofelia_unlock();
     }
     else {
         MessageManager::callAsync([fn](){
-            ofelia_lock();
             fn();
-            ofelia_unlock();
         });
     }
 }
