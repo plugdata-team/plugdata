@@ -16,6 +16,8 @@
 #include "Objects/ImplementationBase.h"
 #include "Utility/SettingsFile.h"
 
+#include "OfeliaMessageManager.h"
+
 extern "C" {
 
 #include <g_undo.h>
@@ -750,6 +752,7 @@ void Instance::unlockAudioThread()
 void Instance::setCallbackLock(CriticalSection const* lock)
 {
     audioLock = lock;
+    OfeliaMessageManager::setAudioCallbackLock(lock);
 };
 
 void Instance::updateObjectImplementations()
@@ -763,3 +766,6 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
 }
 
 } // namespace pd
+
+
+

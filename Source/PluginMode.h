@@ -180,7 +180,7 @@ public:
     
     void resized() override
     {
-        float const controlsHeight = isWindowFullscreen() ? 0 : titlebarHeight + nativeTitleBarHeight;
+        float const controlsHeight = isWindowFullscreen() ? 0 : titlebarHeight;
         float const scale = getWidth() / width;
         float const resizeRatio = width / (height + (controlsHeight / scale));
 
