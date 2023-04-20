@@ -1067,7 +1067,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     }
     case CommandIDs::ShowReference: {
         result.setInfo("Open Reference", "Open reference panel", "View", 0);
-        result.addDefaultKeypress(KeyPress::F1Key, ModifierKeys::noModifiers); // f1 to open settings
+        result.addDefaultKeypress(KeyPress::F1Key, ModifierKeys::noModifiers); // f1 to open reference
 
         if (auto* cnv = getCurrentCanvas(true)) {
             auto selection = cnv->getSelectionOfType<Object>();
@@ -1076,6 +1076,12 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         } else {
             result.setActive(false);
         }
+        break;
+    }
+    case CommandIDs::OpenObjectBrowser: {
+        result.setInfo("Open Object Browser", "Open object browser dialog", "View", 0);
+        result.addDefaultKeypress(63, ModifierKeys::shiftModifier); // shift + ? to open object browser
+        result.setActive(true);
         break;
     }
     }
@@ -1386,6 +1392,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
         }
 
         return false;
+    }
+    case CommandIDs::OpenObjectBrowser: {
+        Dialogs::showObjectBrowserDialog(&openedDialog, this);
+        return true;
     }
     case ObjectIDs::NewArray: {
 
