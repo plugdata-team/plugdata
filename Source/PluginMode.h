@@ -175,7 +175,7 @@ public:
 
         // TitleBar text
         g.setColour(findColour(PlugDataColour::panelTextColourId));
-        g.drawText(cnv->patch.getTitle().trimCharactersAtEnd(".pd"), titleBar.getBounds(), Justification::centred);
+        g.drawText(cnv->patch.getTitle().upToLastOccurrenceOf(".pd", false, true), titleBar.getBounds(), Justification::centred);
     }
     
     void resized() override
