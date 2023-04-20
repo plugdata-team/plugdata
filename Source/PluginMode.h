@@ -68,11 +68,15 @@ public:
                 // this is only for testing
 
                 // Fix for Linux:
+                originalNativeTitlebarMode = window->isUsingNativeTitleBar();
+                originalPluginWindowBounds = getBounds();
+                // we have to set this to true BEFORE calling set using native titlebar
+                // otherwise the resize and parent size changed functions will call into 
+                // linux window functions, and that will cause a crash
+                isFullscreenKioskMode = true;
                 window->setUsingNativeTitleBar(false);
                 desktopWindow = editor->getPeer();
-
                 window->setFullscreenKiosk(true);
-                isFullscreenKioskMode = true;
                 editor->setBounds(window->getBounds());
             };
             titleBar.addAndMakeVisible(*fullscreenButton);
@@ -143,10 +147,13 @@ public:
         editor->pluginMode.reset(nullptr);
     }
     
-    
     bool isWindowFullscreen()
     {
 #if JUCE_LINUX
+        // LINUX ONLY: if we check for fullscreen when in kiosk mode this will crash plugdata
+        // kiosk mode in Linux is only making a non-native window the screen bounds
+        if (isFullscreenKioskMode)
+            return true;
         return OSUtils::isMaximised(desktopWindow->getNativeHandle());
 #else
         return desktopWindow->isFullScreen();
@@ -158,10 +165,10 @@ public:
         if (!cnv)
             return;
 
-        if ((ProjectInfo::isStandalone && isWindowFullscreen()) || isFullscreenKioskMode) {
+        if (ProjectInfo::isStandalone && isWindowFullscreen()) {
             // Fill background for Fullscreen / Kiosk Mode
             g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-            g.fillRect(editor->getTopLevelComponent()->getBounds());
+            g.fillRect(editor->getTopLevelComponent()->getLocalBounds());
             return;
         }
 
@@ -193,7 +200,7 @@ public:
 
         pluginModeConstrainer.setFixedAspectRatio(resizeRatio);
         
-        if ((ProjectInfo::isStandalone && isWindowFullscreen()) || isFullscreenKioskMode) {
+        if (ProjectInfo::isStandalone && isWindowFullscreen()) {
             // Calculate the scale factor required to fit the editor in the screen
             float const scaleX = static_cast<float>(getWidth()) / width;
             float const scaleY = static_cast<float>(getHeight()) / height;
@@ -236,7 +243,7 @@ public:
     void parentSizeChanged() override
     {
         // Fullscreen / Kiosk Mode
-        if ((ProjectInfo::isStandalone && isWindowFullscreen()) || isFullscreenKioskMode) {
+        if (ProjectInfo::isStandalone && isWindowFullscreen()) {
 
             // Determine the screen size
             auto const screenBounds = desktopWindow->getBounds();
@@ -284,11 +291,21 @@ public:
 
     bool keyPressed(KeyPress const& key) override
     {
-        grabKeyboardFocus();
-        if (key.getModifiers().isAnyModifierKeyDown()) {
-            // Block All Modifiers
+        if (isFullscreenKioskMode && key == KeyPress::escapeKey) {
+            auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
+            
+            window->setFullscreenKiosk(false);
+            window->setUsingNativeTitleBar(originalNativeTitlebarMode);
+            isFullscreenKioskMode = false;
+            window->resized();
+            editor->setBounds(originalPluginWindowBounds);
             return true;
         } else {
+            grabKeyboardFocus();
+            if (key.getModifiers().isAnyModifierKeyDown()) {
+                // Block All Modifiers
+                return true;
+            }        
             // Pass other keypresses on to the editor
             return false;
         }
@@ -316,6 +333,9 @@ private:
     float originalCanvasScale;
     bool originalLockedMode;
     bool originalPresentationMode;
+
+    bool originalNativeTitlebarMode;
+    Rectangle<int> originalPluginWindowBounds;
 
     bool isFullscreenKioskMode = false;
 

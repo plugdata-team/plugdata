@@ -587,8 +587,16 @@ public:
 
     void setFullscreenKiosk(bool isKiosk)
     {
-        mainComponent->isKioskMode = true;
-        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea);
+        mainComponent->isKioskMode = isKiosk;
+        Rectangle<int> bounds;
+        if (isKiosk) {
+            bounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
+            mainComponent->oldBounds = getBounds();
+        } else {
+            bounds = mainComponent->oldBounds;
+        }
+        setBounds(bounds);
+        mainComponent->setBounds(bounds);
     }
 
     void closeButtonPressed() override
@@ -834,6 +842,7 @@ private:
         }
     public:
         bool isKioskMode = false;
+        Rectangle<int> oldBounds;
 
     private:
         void componentMovedOrResized(Component&, bool, bool) override
