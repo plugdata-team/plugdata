@@ -178,6 +178,7 @@ enum CommandIDs {
     ClearConsole,
     ShowSettings,
     ShowReference,
+    OpenObjectBrowser,
     NumItems
 };
 
