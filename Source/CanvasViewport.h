@@ -212,9 +212,9 @@ class CanvasViewport : public Viewport {
             auto thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
 
             if (isVertical)
-                thumbBounds = { 0, thumbStart, getWidth(), thumbEnd - thumbStart };
+                thumbBounds = Rectangle<float>(0, thumbStart, getWidth(), thumbEnd - thumbStart);
             else
-                thumbBounds = { thumbStart, 0, thumbEnd - thumbStart, getHeight() };
+                thumbBounds = Rectangle<float>(thumbStart, 0, thumbEnd - thumbStart, getHeight());
             repaint();
         }
 

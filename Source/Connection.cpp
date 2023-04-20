@@ -1148,7 +1148,9 @@ void ConnectionPathUpdater::timerCallback()
 
         // This will recreate the connection with the new connection path, and return the new pointer
         // Since we mostly used indices and object pointers to differentiate connections, this is fine
-
+        // TODO: this sometimes causes a crash
+        // this is either a threading issue, or something else...
+        // I think we can solve it by not recreting the connection?
         auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
         connection->ptr = static_cast<Connection::t_fake_outconnect*>(newConnection);
     }
