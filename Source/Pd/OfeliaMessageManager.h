@@ -24,9 +24,7 @@ namespace pd {
 struct OfeliaMessageManager : public Timer, public DeletedAtShutdown
 {
     void timerCallback() override;
-    
-    void setRunLoop(std::function<void()> fn);
-    
+        
     static OfeliaMessageManager* getOrCreate();
     
     static void setAudioCallbackLock(CriticalSection const* lock);

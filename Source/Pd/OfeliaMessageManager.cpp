@@ -27,16 +27,17 @@
 // So if async is not an option, make sure to use the ofelia_lock/unlock function at least
 
 
+
+extern void ofelia_set_audio_lock_impl(std::function<void()> fn);
+extern void ofelia_set_audio_unlock_impl(std::function<void()> fn);
+extern void ofelia_set_async_impl(std::function<void(std::function<void()>)> fn);
+extern void ofelia_set_run_loop_impl(std::function<void(std::function<void()>)> fn);
+
 namespace pd {
 
 void OfeliaMessageManager::timerCallback()
 {
     callback();
-}
-
-void OfeliaMessageManager::setRunLoop(std::function<void()> fn)
-{
-    callback = fn;
 }
 
 OfeliaMessageManager* OfeliaMessageManager::getOrCreate()
@@ -45,6 +46,35 @@ OfeliaMessageManager* OfeliaMessageManager::getOrCreate()
     {
         instance = new OfeliaMessageManager();
         instance->startTimerHz(60);
+        
+        ofelia_set_audio_lock_impl([]() {
+                auto* instance = getOrCreate();
+                if (auto* lock = instance->audioLock) {
+                    lock->enter();
+                }
+            });
+
+        ofelia_set_audio_unlock_impl([]() {
+                auto* instance = getOrCreate();
+                if (auto* lock = instance->audioLock) {
+                    lock->exit();
+                }
+            });
+        ofelia_set_async_impl([](std::function<void()> fn) {
+              auto* instance = pd::OfeliaMessageManager::getOrCreate();
+
+            if (MessageManager::getInstance()->isThisTheMessageThread()) {
+                fn();
+            } else {
+                MessageManager::callAsync([fn]() {
+                    fn();
+                });
+            }
+        });
+        ofelia_set_run_loop_impl([](std::function<void()> fn) {
+            auto* instance = pd::OfeliaMessageManager::getOrCreate();
+            instance->callback = fn;
+        });
     }
     
     return instance;
@@ -57,45 +87,9 @@ void OfeliaMessageManager::setAudioCallbackLock(CriticalSection const* lock)
 }
 
 OfeliaMessageManager* OfeliaMessageManager::instance = nullptr;
-    
+
 } // namespace pd
 
 
 
-void ofelia_audio_lock_impl()
-{
-    auto* instance = pd::OfeliaMessageManager::getOrCreate();
-    if(auto* lock = instance->audioLock) {
-        lock->enter();
-    }
-}
-void ofelia_audio_unlock_impl()
-{
-    auto* instance = pd::OfeliaMessageManager::getOrCreate();
-    
-    if(auto* lock = instance->audioLock) {
-        lock->exit();
-    }
-}
-
-void ofelia_call_async_impl(std::function<void()> fn)
-{
-    auto* instance = pd::OfeliaMessageManager::getOrCreate();
-    
-    if(MessageManager::getInstance()->isThisTheMessageThread()) {
-        fn();
-    }
-    else {
-        MessageManager::callAsync([fn](){
-            fn();
-        });
-    }
-}
-
-// This is a hook that ofelia can use to set up its message loop
-void ofelia_set_run_loop_impl(std::function<void()> fn)
-{
-    auto* instance = pd::OfeliaMessageManager::getOrCreate();
-    instance->setRunLoop(fn);
-}
 

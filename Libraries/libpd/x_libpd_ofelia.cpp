@@ -6,33 +6,54 @@
 
 #include <functional>
 
-extern void ofelia_audio_lock_impl();
-extern void ofelia_audio_unlock_impl();
-extern void ofelia_call_async_impl(std::function<void()> fn);
-extern void ofelia_set_run_loop_impl(std::function<void()> fn);
+// This is a workaround for the issue that you cannot call functions from the main program from inside a DLL on Windows
+struct ofxOfeliaCallbacks
+{
+    std::function<void()> lockFn;
+    std::function<void()> unlockFn;
+    std::function<void(std::function<void()>)> asyncFn;
+    std::function<void(std::function<void()>)> runloopFn;
+};
 
+ofxOfeliaCallbacks ofxCallbacks;
 
-void ofelia_audio_lock();
-void ofelia_audio_unlock();
-void ofelia_call_async(std::function<void()> fn);
-void ofelia_set_run_loop(std::function<void()> fn);
+void ofelia_set_audio_lock_impl(std::function<void()> fn)
+{
+    ofxCallbacks.lockFn = fn;
+}
+
+void ofelia_set_audio_unlock_impl(std::function<void()> fn)
+{
+    ofxCallbacks.unlockFn = fn;
+}
+
+void ofelia_set_async_impl(std::function<void(std::function<void()>)> fn)
+{
+    ofxCallbacks.asyncFn = fn;
+}
+
+void ofelia_set_run_loop_impl(std::function<void(std::function<void()>)> fn)
+{
+    ofxCallbacks.runloopFn = fn;
+}
+
 
 void ofelia_audio_lock()
 {
-    ofelia_audio_lock_impl();
+    ofxCallbacks.lockFn();
 }
 void ofelia_audio_unlock()
 {
-    ofelia_audio_unlock_impl();
+    ofxCallbacks.unlockFn();
 }
 
 void ofelia_call_async(std::function<void()> fn)
 {
-    ofelia_call_async_impl(fn);
+    ofxCallbacks.asyncFn(fn);
 }
 
 // This is a hook that ofelia can use to set up its message loop
 void ofelia_set_run_loop(std::function<void()> fn)
 {
-    ofelia_set_run_loop_impl(fn);
+    ofxCallbacks.runloopFn(fn);
 }
