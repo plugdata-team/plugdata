@@ -5,9 +5,6 @@
  */
 
 #pragma once
-#include "Instance.h"
-#include <concurrentqueue.h>
-
 
 // This file contains a set of helper functions that ofelia can use to make sure it draws on the message thread
 // macOS (and possibly other OS?) require that drawing is done from the message thread
@@ -26,78 +23,20 @@ namespace pd {
 
 struct OfeliaMessageManager : public Timer, public DeletedAtShutdown
 {
-    void timerCallback() override
-    {
-        callback();
-    }
+    void timerCallback() override;
     
-    void setRunLoop(std::function<void()> fn)
-    {
-        callback = fn;
-    }
+    void setRunLoop(std::function<void()> fn);
     
-    static OfeliaMessageManager* getOrCreate()
-    {
-        if(!instance)
-        {
-            instance = new OfeliaMessageManager();
-            instance->startTimerHz(60);
-        }
-        
-        return instance;
-    }
+    static OfeliaMessageManager* getOrCreate();
     
-    static void setAudioCallbackLock(CriticalSection const* lock)
-    {
-        auto* instance = getOrCreate();
-        instance->audioLock = lock;
-    }
+    static void setAudioCallbackLock(CriticalSection const* lock);
     
-    static inline OfeliaMessageManager* instance = nullptr;
+    static OfeliaMessageManager* instance;
     
     CriticalSection const* audioLock = nullptr;
     std::function<void()> callback = [](){};
-    
-    moodycamel::ConcurrentQueue<std::function<void()>> asyncQueue;
 };
 
 } // namespace pd
 
 
-void ofelia_audio_lock()
-{
-    auto* instance = pd::OfeliaMessageManager::getOrCreate();
-    
-    if(auto* lock = instance->audioLock) {
-        lock->enter();
-    }
-}
-void ofelia_audio_unlock()
-{
-    auto* instance = pd::OfeliaMessageManager::getOrCreate();
-    
-    if(auto* lock = instance->audioLock) {
-        lock->exit();
-    }
-}
-
-void ofelia_call_async(std::function<void()> fn)
-{
-    auto* instance = pd::OfeliaMessageManager::getOrCreate();
-    
-    if(MessageManager::getInstance()->isThisTheMessageThread()) {
-        fn();
-    }
-    else {
-        MessageManager::callAsync([fn](){
-            fn();
-        });
-    }
-}
-
-// This is a hook that ofelia can use to set up its message loop
-void ofelia_set_run_loop(std::function<void()> fn)
-{
-    auto* instance = pd::OfeliaMessageManager::getOrCreate();
-    instance->setRunLoop(fn);
-}
