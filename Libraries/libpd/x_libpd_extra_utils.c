@@ -65,6 +65,11 @@ char const* libpd_get_object_class_name(void* ptr)
     return class_getname(pd_class((t_pd*)ptr));
 }
 
+const unsigned int libpd_get_object_class_hash(void* ptr)
+{
+    return class_gethash(pd_class((t_pd*)ptr));
+}
+
 t_symbol* libpd_get_object_class_symbol(void* ptr)
 {
     return pd_class((t_pd*)ptr)->c_name;

@@ -443,9 +443,9 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 const& symbolHash, std::vector<pd::Atom>& atoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbolHash) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {

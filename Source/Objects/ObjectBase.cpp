@@ -168,7 +168,7 @@ String ObjectBase::getType() const
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
         // Deal with different text objects
-        switch (hash(libpd_get_object_class_name(ptr))) {
+        switch (libpd_get_object_class_hash(ptr)) {
         case hash("text"):
             if (static_cast<t_text*>(ptr)->te_type == T_OBJECT)
                 return String("invalid");
@@ -338,7 +338,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
 
-    auto const name = hash(libpd_get_object_class_name(ptr));
+    auto const name = libpd_get_object_class_hash(ptr);
 
     // check if object is a patcher object, or something else
     if (!pd_checkobject(static_cast<t_pd*>(ptr)) && name != hash("scalar")) {
@@ -492,12 +492,11 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
     return true;
 }
 
-void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
+void ObjectBase::receiveMessage(t_symbol* symbol, int argc, t_atom* argv)
 {
     auto atoms = pd::Atom::fromAtoms(argc, argv);
-    auto sym = hash(symbol);
 
-    switch (sym) {
+    switch (symbol->s_hash) {
     case hash("size"):
     case hash("delta"):
     case hash("pos"):
@@ -513,10 +512,10 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
     }
 
     auto messages = getAllMessages();
-    if (std::find(messages.begin(), messages.end(), hash("anything")) != messages.end() || std::find(messages.begin(), messages.end(), sym) != messages.end()) {
+    if (std::find(messages.begin(), messages.end(), hash("anything")) != messages.end() || std::find(messages.begin(), messages.end(), symbol->s_hash) != messages.end()) {
         MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
             if (_this)
-                _this->receiveObjectMessage(symbol, atoms);
+                _this->receiveObjectMessage(symbol->s_hash, atoms);
         });
     }
 }

@@ -190,15 +190,13 @@ void Instance::initialisePd(String& pdlua_version)
 
         bool cleanUp = false;
 
-        auto sym = String::fromUTF8(symbol->s_name);
-
         for (auto listener : listeners[target]) {
             // Check if the safepointer is still valid
             if (!listener) {
                 cleanUp = true;
                 continue;
             }
-            listener->receiveMessage(sym, argc, argv);
+            listener->receiveMessage(symbol, argc, argv);
         }
 
         // If any pointers were invalid, clean them up

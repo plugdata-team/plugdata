@@ -1494,9 +1494,9 @@ bool Canvas::panningModifierDown()
     return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }
 
-void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
+void Canvas::receiveMessage(t_symbol* symbol, int argc, t_atom* argv)
 {
-    switch (hash(symbol)) {
+    switch (symbol->s_hash) {
     case hash("obj"):
     case hash("msg"):
     case hash("floatatom"):

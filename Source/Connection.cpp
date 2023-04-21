@@ -477,15 +477,16 @@ void Connection::mouseEnter(MouseEvent const& e)
     lastValueMutex.lock();
     auto args = lastValue;
     auto name = lastSelector;
+    auto nameHash = lastHash;
     lastValueMutex.unlock();
 
     String tooltip;
 
-    if (name == "float" && args.size() >= 1) {
+    if (nameHash == hash("float") && args.size() >= 1) {
         tooltip = "(float) " + String(args[0].getFloat());
-    } else if (name == "symbol" && args.size() >= 1) {
+    } else if (nameHash == hash("symbol") && args.size() >= 1) {
         tooltip = "(symbol): " + args[0].getSymbol();
-    } else if (name == "list") {
+    } else if (nameHash == hash("list")) {
         StringArray result = { "(list)" };
         for (auto& arg : args) {
             if (arg.isFloat()) {
@@ -1160,11 +1161,12 @@ void ConnectionPathUpdater::timerCallback()
     stopTimer();
 }
 
-void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
+void Connection::receiveMessage(t_symbol* symbol, int argc, t_atom* argv)
 {
     if (lastValueMutex.try_lock()) {
         lastValue = pd::Atom::fromAtoms(argc, argv);
-        lastSelector = name;
+        lastSelector = symbol->s_name;
+        lastHash = symbol->s_hash;
         lastValueMutex.unlock();
     }
 }

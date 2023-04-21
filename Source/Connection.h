@@ -106,7 +106,7 @@ public:
     bool intersectsObject(Object* object);
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
-    void receiveMessage(String const& name, int argc, t_atom* argv) override;
+    void receiveMessage(t_symbol* symbol, int argc, t_atom* argv) override;
 
     bool isSelected();
 
@@ -154,6 +154,7 @@ private:
 
     std::vector<pd::Atom> lastValue;
     String lastSelector;
+    hash32 lastHash;
     std::mutex lastValueMutex;
 
     friend class ConnectionPathUpdater;

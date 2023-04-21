@@ -191,9 +191,9 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 const& symbolHash, std::vector<pd::Atom>& atoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbolHash) {
         case hash("float"):
         case hash("bang"):
         case hash("list"):
@@ -207,7 +207,7 @@ public:
             break;
         }
         default: {
-            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
+            bool wasIemMessage = iemHelper.receiveObjectMessage(symbolHash, atoms);
             if (!wasIemMessage) {
                 trigger();
             }

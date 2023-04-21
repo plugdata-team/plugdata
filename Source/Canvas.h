@@ -139,7 +139,7 @@ public:
 
     ObjectParameters& getInspectorParameters();
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
+    void receiveMessage(t_symbol* symbol, int argc, t_atom* argv) override;
 
     template<typename T>
     Array<T*> getSelectionOfType()

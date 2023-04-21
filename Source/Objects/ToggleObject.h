@@ -161,9 +161,9 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 const& symbolHash, std::vector<pd::Atom>& atoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbolHash) {
         case hash("bang"): {
             value = !value;
             setToggleStateFromFloat(value);
@@ -181,7 +181,7 @@ public:
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbolHash, atoms);
             break;
         }
         }

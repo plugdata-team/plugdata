@@ -78,7 +78,7 @@ public:
         };
     }
 
-    bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
+    bool receiveObjectMessage(hash32 const& symbolHash, std::vector<pd::Atom>& atoms)
     {
         auto setColour = [this](Value& targetValue, pd::Atom& atom) {
             if (atom.isSymbol()) {
@@ -103,7 +103,7 @@ public:
                 gui->setParameterExcludingListener(targetValue, colour.toString());
             }
         };
-        switch (hash(symbol)) {
+        switch (symbolHash) {
         case hash("send"): {
             if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());

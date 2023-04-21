@@ -41,9 +41,9 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 const& symbolHash, std::vector<pd::Atom>& atoms) override
     {
-        iemHelper.receiveObjectMessage(symbol, atoms);
+        iemHelper.receiveObjectMessage(symbolHash, atoms);
     }
 
     void update() override
