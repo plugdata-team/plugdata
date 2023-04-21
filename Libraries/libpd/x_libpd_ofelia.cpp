@@ -9,10 +9,10 @@
 // This is a workaround for the issue that you cannot call functions from the main program from inside a DLL on Windows
 struct ofxOfeliaCallbacks
 {
-    std::function<void()> lockFn;
-    std::function<void()> unlockFn;
-    std::function<void(std::function<void()>)> asyncFn;
-    std::function<void(std::function<void()>)> runloopFn;
+    std::function<void()> lockFn = [](){};
+    std::function<void()> unlockFn = [](){};
+    std::function<void(std::function<void()>)> asyncFn = [](std::function<void()>){};
+    std::function<void(std::function<void()>)> runloopFn = [](std::function<void()>){};
 };
 
 ofxOfeliaCallbacks ofxCallbacks;
