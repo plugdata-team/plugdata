@@ -16,6 +16,7 @@
 #include "PluginEditor.h" // might not need this?
 #include "LookAndFeel.h"
 #include "Pd/Patch.h"
+#include "Pd/MessageListener.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     : cnv(parent)
@@ -1160,11 +1161,11 @@ void ConnectionPathUpdater::timerCallback()
     stopTimer();
 }
 
-void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
+void Connection::receiveMessage(pd::MessageSymbol const& message, int argc, t_atom* argv)
 {
     if (lastValueMutex.try_lock()) {
         lastValue = pd::Atom::fromAtoms(argc, argv);
-        lastSelector = name;
+        lastSelector = message.name;
         lastValueMutex.unlock();
     }
 }

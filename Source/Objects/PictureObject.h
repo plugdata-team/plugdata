@@ -115,11 +115,11 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 const& symbol, std::vector<pd::Atom>& atoms) override
     {
         auto* pic = static_cast<t_fake_pic*>(ptr);
 
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("latch"): {
             latch = pic->x_latch;
             break;

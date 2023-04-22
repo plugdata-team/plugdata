@@ -13,6 +13,7 @@ extern "C" {
 
 #include <concurrentqueue.h>
 
+#include "MessageListener.h"
 #include "Utility/StringUtils.h"
 #include "Patch.h"
 
@@ -224,7 +225,7 @@ public:
     virtual void receiveList(String const& dest, std::vector<pd::Atom> const& list)
     {
     }
-    virtual void receiveMessage(String const& dest, String const& msg, std::vector<pd::Atom> const& list)
+    virtual void receiveMessage(MessageSymbol const& dest, String const& msg, std::vector<pd::Atom> const& list)
     {
     }
 
@@ -297,6 +298,7 @@ public:
     bool loadLibrary(String library);
 
     void* m_instance = nullptr;
+
     void* m_patch = nullptr;
     void* m_atoms = nullptr;
     void* m_message_receiver = nullptr;
@@ -323,6 +325,8 @@ private:
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
     CriticalSection messageListenerLock;
+
+    MessageSymbol messObject;
 
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 

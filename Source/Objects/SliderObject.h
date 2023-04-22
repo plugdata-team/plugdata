@@ -178,9 +178,9 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("set"): {
             value = atoms[0].getFloat();
@@ -221,7 +221,7 @@ public:
         }
 
         // Update the colours of the actual slider
-        if (hash(symbol) == hash("color")) {
+        if (symbol == hash("color")) {
             getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
             getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
         }

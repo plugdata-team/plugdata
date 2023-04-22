@@ -11,16 +11,12 @@ constexpr hash32 hash(char const* str)
 {
     hash32 result = EMPTY_HASH;
 
-    if (!str)
-        return result;
-
     while (*str) {
         result ^= (hash32)*str;       // NOTE: make this toupper(*s) or tolower(*s) if you want case-insensitive hashes
         result *= (hash32)0x01000193; // 32 bit magic FNV-1a prime
         str++;
     }
-
-    return result;
+    return  result;
 }
 
 /**

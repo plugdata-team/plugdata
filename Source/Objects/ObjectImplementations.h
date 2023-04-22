@@ -21,14 +21,14 @@ public:
         closeOpenedSubpatchers();
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(pd::MessageSymbol const& message, int argc, t_atom* argv) override
     {
         if (pd->isPerformingGlobalSync)
             return;
 
         auto atoms = pd::Atom::fromAtoms(argc, argv);
 
-        bool isVisMessage = symbol == "vis";
+        bool isVisMessage = message.name == "vis";
         if (isVisMessage && atoms[0].getFloat()) {
             MessageManager::callAsync([_this = WeakReference(this)] {
                 if (_this)
@@ -572,12 +572,12 @@ public:
         mouseMove(e);
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(pd::MessageSymbol const& message, int argc, t_atom* argv) override
     {
         if (!cnv || pd->isPerformingGlobalSync)
             return;
 
-        if (symbol == "zero") {
+        if (message.hash == hash("zero")) {
             zero = true;
         }
     }

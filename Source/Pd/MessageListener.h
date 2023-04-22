@@ -5,10 +5,18 @@
  */
 #pragma once
 
+#include "../Utility/HashUtils.h"
+
 namespace pd {
 
+struct MessageSymbol {
+    String name;
+    hash32 hash;
+};
+
 struct MessageListener {
-    virtual void receiveMessage(String const& name, int argc, t_atom* argv) {};
+
+    virtual void receiveMessage(MessageSymbol const& name, int argc, t_atom* argv) {};
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener);
 };

@@ -106,7 +106,7 @@ public:
     bool intersectsObject(Object* object);
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
-    void receiveMessage(String const& name, int argc, t_atom* argv) override;
+    void receiveMessage(pd::MessageSymbol const& message, int argc, t_atom* argv) override;
 
     bool isSelected();
 

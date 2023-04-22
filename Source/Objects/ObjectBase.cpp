@@ -492,12 +492,11 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
     return true;
 }
 
-void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
+void ObjectBase::receiveMessage(pd::MessageSymbol const& message, int argc, t_atom* argv)
 {
     auto atoms = pd::Atom::fromAtoms(argc, argv);
-    auto sym = hash(symbol);
 
-    switch (sym) {
+    switch (message.hash) {
     case hash("size"):
     case hash("delta"):
     case hash("pos"):
@@ -513,10 +512,10 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
     }
 
     auto messages = getAllMessages();
-    if (std::find(messages.begin(), messages.end(), hash("anything")) != messages.end() || std::find(messages.begin(), messages.end(), sym) != messages.end()) {
-        MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+    if (std::find(messages.begin(), messages.end(), hash("anything")) != messages.end() || std::find(messages.begin(), messages.end(), message.hash) != messages.end()) {
+        MessageManager::callAsync([_this = SafePointer(this), message, atoms]() mutable {
             if (_this)
-                _this->receiveObjectMessage(symbol, atoms);
+                _this->receiveObjectMessage(message.hash, atoms);
         });
     }
 }

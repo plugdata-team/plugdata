@@ -48,9 +48,9 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("coords"): {
             if (atoms.size() >= 8) {
 

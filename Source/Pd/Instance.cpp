@@ -12,7 +12,6 @@
 #include <algorithm>
 #include "Instance.h"
 #include "Patch.h"
-#include "MessageListener.h"
 #include "Objects/ImplementationBase.h"
 #include "Utility/SettingsFile.h"
 
@@ -185,12 +184,16 @@ void Instance::initialisePd(String& pdlua_version)
         ScopedLock lock(static_cast<Instance*>(instance)->messageListenerLock);
 
         auto& listeners = static_cast<Instance*>(instance)->messageListeners;
+        auto& messObject = static_cast<Instance*>(instance)->messObject;
+
         if (!symbol || !listeners.count(target))
             return;
 
         bool cleanUp = false;
 
-        auto sym = String::fromUTF8(symbol->s_name);
+        // rehash the symbol into a hash here, only needs to be done once per trigger
+        messObject.name = symbol->s_name;
+        messObject.hash = hash(String(symbol->s_name));
 
         for (auto listener : listeners[target]) {
             // Check if the safepointer is still valid
@@ -198,7 +201,7 @@ void Instance::initialisePd(String& pdlua_version)
                 cleanUp = true;
                 continue;
             }
-            listener->receiveMessage(sym, argc, argv);
+            listener->receiveMessage(messObject, argc, argv);
         }
 
         // If any pointers were invalid, clean them up
@@ -401,6 +404,9 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
 
 void Instance::processMessage(Message mess)
 {
+    messObject.name = mess.destination;
+    messObject.hash = hash(mess.destination);
+
     if (mess.destination == "pd") {
         receiveSysMessage(mess.selector, mess.list);
     }
@@ -429,7 +435,7 @@ void Instance::processMessage(Message mess)
     } else if (mess.selector == "list") {
         receiveList(mess.destination, mess.list);
     } else {
-        receiveMessage(mess.destination, mess.selector, mess.list);
+        receiveMessage(messObject, mess.selector, mess.list);
     }
 }
 

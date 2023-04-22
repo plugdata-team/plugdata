@@ -305,7 +305,7 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 const& symbol, std::vector<pd::Atom>& atoms) override
     {
         auto setColour = [this](Value& targetValue, pd::Atom& atom) {
             if (atom.isSymbol()) {
@@ -314,7 +314,7 @@ public:
             }
         };
 
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("set"): {
             knob.setValue(getValue(), dontSendNotification);
@@ -383,7 +383,7 @@ public:
         }
 
         // Update the colours of the actual slider
-        if (hash(symbol) == hash("color")) {
+        if (symbol == hash("color")) {
             knob.setFgColour(Colour::fromString(primaryColour.toString()));
         }
     }

@@ -111,9 +111,9 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(hash32 const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        switch (hash(symbol)) {
+        switch (symbol) {
         case hash("float"):
         case hash("set"): {
             selected = std::clamp<float>(atoms[0].getFloat(), 0.0f, numItems - 1);
