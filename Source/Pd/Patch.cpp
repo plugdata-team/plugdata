@@ -93,6 +93,8 @@ bool Patch::isDirty() const
 {
     if (!ptr)
         return false;
+    
+    const ScopedLock audioLock(*instance->audioLock);
 
     return getPointer()->gl_dirty;
 }
