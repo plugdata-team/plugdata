@@ -228,10 +228,14 @@ public:
     void reloadPluginState()
     {
         if (settings != nullptr) {
-            MemoryOutputStream data;
-            Base64::convertFromBase64(data, settings->getValue("filterState"));
-            if (data.getDataSize() > 0)
-                processor->setStateInformation(data.getData(), static_cast<int>(data.getDataSize()));
+            // Async to give the app a chance to start up before loading the patch
+            MessageManager::callAsync([this](){
+                MemoryOutputStream data;
+                Base64::convertFromBase64(data, settings->getValue("filterState"));
+                if (data.getDataSize() > 0)
+                    processor->setStateInformation(data.getData(), static_cast<int>(data.getDataSize()));
+            });
+
         }
     }
 

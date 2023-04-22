@@ -30,6 +30,8 @@
 #include "Dialogs/Dialogs.h"
 #include "Sidebar/Sidebar.h"
 
+#include "Pd/OfeliaMessageManager.h"
+
 #include "Standalone/InternalSynth.h"
 
 extern "C" {
@@ -120,6 +122,10 @@ PluginProcessor::PluginProcessor()
     atoms_playhead.resize(1);
 
     setCallbackLock(&AudioProcessor::getCallbackLock());
+    
+    // Initialise threading system for ofelia
+    pd::OfeliaMessageManager::create();
+    pd::OfeliaMessageManager::setAudioCallbackLock(audioLock);
 
     sendMessagesFromQueue();
 
@@ -1170,7 +1176,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
     }
 
     patches.add(newPatch);
-    auto patch = patches.getLast();
+    auto* patch = patches.getLast().get();
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {

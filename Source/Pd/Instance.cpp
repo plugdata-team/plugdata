@@ -752,7 +752,6 @@ void Instance::unlockAudioThread()
 void Instance::setCallbackLock(CriticalSection const* lock)
 {
     audioLock = lock;
-    OfeliaMessageManager::setAudioCallbackLock(lock);
 };
 
 void Instance::updateObjectImplementations()

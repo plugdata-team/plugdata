@@ -25,13 +25,13 @@ struct OfeliaMessageManager : public Timer, public DeletedAtShutdown
 {
     void timerCallback() override;
         
-    static OfeliaMessageManager* getOrCreate();
+    static void create();
     
     static void setAudioCallbackLock(CriticalSection const* lock);
     
     static OfeliaMessageManager* instance;
     
-    CriticalSection const* audioLock = nullptr;
+    static CriticalSection const* audioLock;
     std::function<void()> callback = [](){};
 };
 

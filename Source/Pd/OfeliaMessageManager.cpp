@@ -40,52 +40,46 @@ void OfeliaMessageManager::timerCallback()
     callback();
 }
 
-OfeliaMessageManager* OfeliaMessageManager::getOrCreate()
+void OfeliaMessageManager::create()
 {
-    if(!instance)
-    {
-        instance = new OfeliaMessageManager();
-        instance->startTimerHz(60);
-        
-        ofelia_set_audio_lock_impl([]() {
-                auto* instance = getOrCreate();
-                if (auto* lock = instance->audioLock) {
-                    lock->enter();
-                }
-            });
-
-        ofelia_set_audio_unlock_impl([]() {
-                auto* instance = getOrCreate();
-                if (auto* lock = instance->audioLock) {
-                    lock->exit();
-                }
-            });
-        ofelia_set_async_impl([](std::function<void()> fn) {
-              auto* instance = pd::OfeliaMessageManager::getOrCreate();
-
-            if (MessageManager::getInstance()->isThisTheMessageThread()) {
-                fn();
-            } else {
-                MessageManager::callAsync([fn]() {
-                    fn();
-                });
-            }
-        });
-        ofelia_set_run_loop_impl([](std::function<void()> fn) {
-            auto* instance = pd::OfeliaMessageManager::getOrCreate();
-            instance->callback = fn;
-        });
-    }
+    instance = new OfeliaMessageManager();
     
-    return instance;
+    ofelia_set_audio_lock_impl([]() {
+            if(audioLock) audioLock->enter();
+        });
+
+    ofelia_set_audio_unlock_impl([]() {
+            if(audioLock) audioLock->exit();
+        });
+    
+    ofelia_set_async_impl([](std::function<void()> fn) {
+        
+        // Don't start the timer unless ofelia is active
+        if(!instance->isTimerRunning())
+        {
+            instance->startTimerHz(60);
+        }
+        
+        if (MessageManager::getInstance()->isThisTheMessageThread()) {
+            fn();
+        }
+        else {
+            MessageManager::callAsync([fn]() {
+                fn();
+            });
+        }
+    });
+    ofelia_set_run_loop_impl([](std::function<void()> fn) {
+        instance->callback = fn;
+    });
 }
 
 void OfeliaMessageManager::setAudioCallbackLock(CriticalSection const* lock)
 {
-    auto* instance = getOrCreate();
-    instance->audioLock = lock;
+    audioLock = lock;
 }
 
+CriticalSection const* OfeliaMessageManager::audioLock = nullptr;
 OfeliaMessageManager* OfeliaMessageManager::instance = nullptr;
 
 } // namespace pd
