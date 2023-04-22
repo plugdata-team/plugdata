@@ -1048,7 +1048,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         forEachXmlChildElementWithTagName(*patchTree, p, "Patch")
         {
             auto content = p->getStringAttribute("Content");
-            auto location = p->getStringAttribute("File");
+            auto location = p->getStringAttribute("Location");
             auto pluginMode = p->getBoolAttribute("PluginMode");
             
             openPatch(content, location, pluginMode);
