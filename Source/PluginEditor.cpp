@@ -533,7 +533,14 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 {
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", SettingsFile::getInstance()->wantsNativeDialog());
 
-    saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
+    // The warnAboutOverwriting flag causes the save dialog not to show at all on some Linux distros, so we better disable it
+#if JUCE_LINUX
+    auto saveFlags = FileBrowserComponent::saveMode;
+#else
+    auto saveFlags = FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
+#endif
+
+    saveChooser->launchAsync(saveFlags,
         [this, nestedCallback](FileChooser const& f) mutable {
             File result = saveChooser->getResult();
 
