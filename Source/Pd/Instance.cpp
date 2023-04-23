@@ -34,25 +34,29 @@ struct pd::Instance::internal {
 
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
-        auto messageOutput = Message(String("bang"), hash("bang"), String::fromUTF8(recv), hash(recv) );
+        constexpr hash32 bangHash = hash("bang");
+        auto messageOutput = Message(String("bang"), bangHash, String::fromUTF8(recv), hash(recv) );
         ptr->enqueueFunctionAsync([ptr, messageOutput]() { ptr->processMessage(messageOutput); });
     }
 
     static void instance_multi_float(pd::Instance* ptr, char const* recv, float f)
     {
-        auto messageOutput = Message(String("float"), hash("float"), String::fromUTF8(recv), hash(recv), std::vector<Atom>(1, { f }));
+        constexpr hash32 floatHash = hash("float");
+        auto messageOutput = Message(String("float"), floatHash, String::fromUTF8(recv), hash(recv), std::vector<Atom>(1, { f }));
         ptr->enqueueFunctionAsync([ptr, messageOutput]() mutable { ptr->processMessage(messageOutput); });
     }
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)
     {
-        auto messageOutput = Message(String("symbol"), hash("symbol"), String::fromUTF8(recv), hash(recv), std::vector<Atom>(1, String::fromUTF8(sym)));
+        constexpr hash32 symbolHash = hash("symbol");
+        auto messageOutput = Message(String("symbol"), symbolHash, String::fromUTF8(recv), hash(recv), std::vector<Atom>(1, String::fromUTF8(sym)));
         ptr->enqueueFunctionAsync([ptr, messageOutput]() mutable { ptr->processMessage(messageOutput); });
     }
 
     static void instance_multi_list(pd::Instance* ptr, char const* recv, int argc, t_atom* argv)
     {
-        auto messageOutput = Message(String("list"), hash("list") , String::fromUTF8(recv), hash(recv), std::vector<Atom>(argc));
+        constexpr hash32 listHash = hash("list");
+        auto messageOutput = Message(String("list"), listHash, String::fromUTF8(recv), hash(recv), std::vector<Atom>(argc));
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
                 messageOutput.list[i] = Atom(atom_getfloat(argv + i));
