@@ -833,7 +833,7 @@ int libpd_ninlets(t_object const* x)
     return (n);
 }
 
-#if PDINSTANCE
+#ifdef PDINSTANCE
 #    define s_signal (pd_this->pd_s_signal)
 #endif
 
@@ -862,7 +862,7 @@ int libpd_issignaloutlet(t_object const* x, int m)
 }
 
 void* libpd_get_class_methods(t_class* o) {
-#if PDINSTANCE
+#ifdef PDINSTANCE
     return o->c_methods[pd_this->pd_instanceno];
 #else
     return o->c_methods;
