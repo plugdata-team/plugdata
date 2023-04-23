@@ -698,7 +698,7 @@ void Instance::createPanel(int type, char const* snd, char const* location)
     } else {
         MessageManager::callAsync(
             [this, obj, defaultFile]() mutable {
-                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
+                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
                 saveChooser = std::make_unique<FileChooser>("Save...", defaultFile, "", true);
 
                 saveChooser->launchAsync(folderChooserFlags,

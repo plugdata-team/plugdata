@@ -537,7 +537,7 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 #if JUCE_LINUX
     auto saveFlags = FileBrowserComponent::saveMode;
 #else
-    auto saveFlags = FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
+    auto saveFlags = FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting;
 #endif
 
     saveChooser->launchAsync(saveFlags,

@@ -407,8 +407,9 @@ public:
             addAndMakeVisible(browseButton);
 
             browseButton.onClick = [this]() {
-                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
+                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
 
+                // TODO: Shouldn't this be an open dialog ?!
                 saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", false);
 
                 saveChooser->launchAsync(folderChooserFlags,

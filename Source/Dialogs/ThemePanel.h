@@ -233,8 +233,13 @@ public:
                 auto themeXml = themeTree.toXmlString();
 
                 saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "*.plugdatatheme", true);
-
+                
+#if JUCE_LINUX
                 constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
+#else
+                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
+#endif
+
 
                 saveChooser->launchAsync(folderChooserFlags,
                     [this, themeXml](FileChooser const& fileChooser) mutable {
