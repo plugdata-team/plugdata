@@ -34,42 +34,45 @@ struct pd::Instance::internal {
 
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
-        ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({ String("bang"), String::fromUTF8(recv) }); });
+        auto messageOutput = Message(String("bang"), hash("bang"), String::fromUTF8(recv), hash(recv) );
+        ptr->enqueueFunctionAsync([ptr, messageOutput]() { ptr->processMessage(messageOutput); });
     }
 
     static void instance_multi_float(pd::Instance* ptr, char const* recv, float f)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({ String("float"), String::fromUTF8(recv), std::vector<Atom>(1, { f }) }); });
+        auto messageOutput = Message(String("float"), hash("float"), String::fromUTF8(recv), hash(recv), std::vector<Atom>(1, { f }));
+        ptr->enqueueFunctionAsync([ptr, messageOutput]() mutable { ptr->processMessage(messageOutput); });
     }
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String::fromUTF8(recv), std::vector<Atom>(1, String::fromUTF8(sym)) }); });
+        auto messageOutput = Message(String("symbol"), hash("symbol"), String::fromUTF8(recv), hash(recv), std::vector<Atom>(1, String::fromUTF8(sym)));
+        ptr->enqueueFunctionAsync([ptr, messageOutput]() mutable { ptr->processMessage(messageOutput); });
     }
 
     static void instance_multi_list(pd::Instance* ptr, char const* recv, int argc, t_atom* argv)
     {
-        Message mess { String("list"), String::fromUTF8(recv), std::vector<Atom>(argc) };
+        auto messageOutput = Message(String("list"), hash("list") , String::fromUTF8(recv), hash(recv), std::vector<Atom>(argc));
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
-                mess.list[i] = Atom(atom_getfloat(argv + i));
+                messageOutput.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
+                messageOutput.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
         }
 
-        ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(mess); });
+        ptr->enqueueFunctionAsync([ptr, messageOutput]() mutable { ptr->processMessage(messageOutput); });
     }
 
     static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int argc, t_atom* argv)
     {
-        Message mess { msg, String::fromUTF8(recv), std::vector<Atom>(argc) };
+        auto messageOutput = Message(msg, hash(msg), String::fromUTF8(recv), hash(recv), std::vector<Atom>(argc));
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
-                mess.list[i] = Atom(atom_getfloat(argv + i));
+                messageOutput.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
+                messageOutput.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
         }
-        ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
+        ptr->enqueueFunctionAsync([ptr, messageOutput]() mutable { ptr->processMessage(std::move(messageOutput)); });
     }
 
     static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity)
@@ -405,37 +408,58 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
 void Instance::processMessage(Message mess)
 {
     messObject.name = mess.destination;
-    messObject.hash = hash(mess.destination);
+    messObject.hash = mess.destinationHash;
 
-    if (mess.destination == "pd") {
+    switch(mess.destinationHash) {
+    case hash("pd"): {
         receiveSysMessage(mess.selector, mess.list);
+        break;
     }
-    if (mess.destination == "param" && mess.list.size() >= 2) {
-        if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-            return;
-        auto name = mess.list[0].getSymbol();
-        float value = mess.list[1].getFloat();
-        performParameterChange(0, name, value);
-    } else if (mess.destination == "param_change" && mess.list.size() >= 2) {
-        if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-            return;
-        auto name = mess.list[0].getSymbol();
-        int state = mess.list[1].getFloat() != 0;
-        performParameterChange(1, name, state);
-        // JYG added This
-    } else if (mess.destination == "databuffer") {
+    case hash("param"): {
+        if (mess.list.size() >= 2) {
+            if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+                return;
+            auto name = mess.list[0].getSymbol();
+            float value = mess.list[1].getFloat();
+            performParameterChange(0, name, value);
+        }
+        break;
+    }
+    case hash("param_change"): {
+        if (mess.list.size() >= 2) {
+            if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+                return;
+            auto name = mess.list[0].getSymbol();
+            int state = mess.list[1].getFloat() != 0;
+            performParameterChange(1, name, state);
+        }
+        break;
+    }
+    // JYG added This
+    case hash("databuffer"): {
         fillDataBuffer(mess.list);
+        break;
+    }
+    default:
+        break;
+    }
 
-    } else if (mess.selector == "bang") {
+    switch(mess.selectorHash) {
+    case hash("bang"):
         receiveBang(mess.destination);
-    } else if (mess.selector == "float") {
+        break;
+    case hash("float"):
         receiveFloat(mess.destination, mess.list[0].getFloat());
-    } else if (mess.selector == "symbol") {
+        break;
+    case hash("symbol"):
         receiveSymbol(mess.destination, mess.list[0].getSymbol());
-    } else if (mess.selector == "list") {
+        break;
+    case hash("list"):
         receiveList(mess.destination, mess.list);
-    } else {
+        break;
+    default:
         receiveMessage(messObject, mess.selector, mess.list);
+        break;
     }
 }
 

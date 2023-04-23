@@ -128,9 +128,20 @@ private:
 class MessageListener;
 class Patch;
 class Instance {
-    struct Message {
+    class Message {
+    public:
+        Message(String selector, hash32 selectorHash, String destination, hash32 destinationHash, std::vector<pd::Atom> list = {})
+            : selector(selector)
+            , selectorHash(selectorHash)
+            , destination(destination)
+            , destinationHash(destinationHash)
+            , list(list)
+        {
+        }
         String selector;
+        hash32 selectorHash;
         String destination;
+        hash32 destinationHash;
         std::vector<pd::Atom> list;
     };
 
