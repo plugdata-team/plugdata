@@ -281,7 +281,11 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
 juce::JUCEApplicationBase* juce_CreateApplication();
 juce::JUCEApplicationBase* juce_CreateApplication() { return new PlugDataApp(); }
 
+#if JUCE_WINDOWS
+int __stdcall WinMain (struct HINSTANCE__*, struct HINSTANCE__*, char*, int)
+#else
 int main (int argc, char* argv[])
+#endif
 {
     juce::JUCEApplicationBase::createInstance = &juce_CreateApplication;
     

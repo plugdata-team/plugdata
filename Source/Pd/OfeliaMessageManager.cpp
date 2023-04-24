@@ -14,8 +14,8 @@
 
 
 // This file contains a set of helper functions that ofelia can use to make sure it draws on the message thread
-// macOS (and possibly other OS?) require that drawing is done from the message thread
-// It's also generally good to send all your window management function from the same thread
+// Most OS require that drawing and window management is done from the message thread
+
 // With ofelia in pd-vanilla, it's okay because Pd only has one thread (the GUI runs in a separate process)
 // In plugdata though, it's a problem because our main thread is the GUI thread,
 // not the audio thread where we run Pd.
