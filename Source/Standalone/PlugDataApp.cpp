@@ -30,6 +30,8 @@
 
 #include "Dialogs/Dialogs.h"
 
+#include "Pd/OfeliaMessageManager.h"
+
 extern "C" {
 #include <x_libpd_multi.h>
 }
@@ -276,5 +278,36 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     return retval;
 }
 
-// This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION(PlugDataApp)
+juce::JUCEApplicationBase* juce_CreateApplication();
+juce::JUCEApplicationBase* juce_CreateApplication() { return new PlugDataApp(); }
+
+int main (int argc, char* argv[])
+{
+    juce::JUCEApplicationBase::createInstance = &juce_CreateApplication;
+    
+    ScopedJuceInitialiser_GUI libraryInitialiser;
+    jassert (PlugDataApp::createInstance != nullptr);
+
+    const std::unique_ptr<JUCEApplicationBase> app (PlugDataApp::createInstance());
+    jassert (app != nullptr);
+
+    if (! app->initialiseApp())
+        return app->shutdownApp();
+    
+    auto* messageManager = MessageManager::getInstance();
+    
+    messageManager->setCurrentThreadAsMessageThread();
+
+    while(!messageManager->hasStopMessageBeenSent()) {
+        JUCE_TRY
+        {
+            // loop until a quit message is received..
+            messageManager->runDispatchLoopUntil(1);
+            pd::OfeliaMessageManager::pollEvents();
+
+        }
+        JUCE_CATCH_EXCEPTION
+    }
+
+    return app->shutdownApp();
+}

@@ -35,11 +35,6 @@ extern void ofelia_set_run_loop_impl(std::function<void(std::function<void()>)> 
 
 namespace pd {
 
-void OfeliaMessageManager::timerCallback()
-{
-    callback();
-}
-
 void OfeliaMessageManager::create()
 {
     instance = new OfeliaMessageManager();
@@ -54,12 +49,6 @@ void OfeliaMessageManager::create()
     
     ofelia_set_async_impl([](std::function<void()> fn) {
         
-        // Don't start the timer unless ofelia is active
-        if(!instance->isTimerRunning())
-        {
-            instance->startTimerHz(60);
-        }
-        
         if (MessageManager::getInstance()->isThisTheMessageThread()) {
             fn();
         }
@@ -70,8 +59,28 @@ void OfeliaMessageManager::create()
         }
     });
     ofelia_set_run_loop_impl([](std::function<void()> fn) {
-        instance->callback = fn;
+        instance->runLoop = fn;
     });
+}
+
+void OfeliaMessageManager::pollEvents()
+{
+    if(instance)
+    {
+        static auto lastPollTime = Time::getMillisecondCounter();
+        auto currentTime = Time::getMillisecondCounter();
+        
+        // 16 ms is approximately 60 fps
+        // I needed to make it slightly shorter to make it actually hit 60 fps
+        // It appears that openFrameworks will automatically cap it!
+        if(currentTime - lastPollTime > 10) {
+        
+            instance->runLoop();
+            
+            lastPollTime = currentTime;
+
+        }
+    }
 }
 
 void OfeliaMessageManager::setAudioCallbackLock(CriticalSection const* lock)

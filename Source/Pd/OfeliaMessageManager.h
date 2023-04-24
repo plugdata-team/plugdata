@@ -21,18 +21,18 @@
 
 namespace pd {
 
-struct OfeliaMessageManager : public Timer, public DeletedAtShutdown
-{
-    void timerCallback() override;
-        
+struct OfeliaMessageManager : public DeletedAtShutdown
+{        
     static void create();
     
     static void setAudioCallbackLock(CriticalSection const* lock);
     
+    static void pollEvents();
+    
     static OfeliaMessageManager* instance;
     
     static CriticalSection const* audioLock;
-    std::function<void()> callback = [](){};
+    std::function<void()> runLoop = [](){};
 };
 
 } // namespace pd

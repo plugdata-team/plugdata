@@ -37,7 +37,6 @@ void ofelia_set_run_loop_impl(std::function<void(std::function<void()>)> fn)
     ofxCallbacks.runloopFn = fn;
 }
 
-
 void ofelia_audio_lock()
 {
     ofxCallbacks.lockFn();
