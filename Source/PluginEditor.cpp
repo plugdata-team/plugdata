@@ -575,7 +575,8 @@ void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
     }
 
     if (cnv->patch.getCurrentFile().existsAsFile()) {
-        cnv->patch.savePatch();
+        // FIXME: we shouldn't need to give the cnv what it already knows about
+        cnv->patch.savePatch(cnv->patch.getCurrentFile());
         SettingsFile::getInstance()->addToRecentlyOpened(cnv->patch.getCurrentFile());
         nestedCallback();
     } else {

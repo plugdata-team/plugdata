@@ -113,6 +113,8 @@ public:
 
     bool isSelected();
 
+    bool isValidObject = false;
+
 private:
     void initialise();
 

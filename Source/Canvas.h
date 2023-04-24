@@ -97,6 +97,9 @@ public:
 
     void hideAllActiveEditors();
 
+    void saveCanvasState();
+    void restoreCanvasState();
+
     void copySelection();
     void removeSelection();
     void removeSelectedConnections();
@@ -168,6 +171,7 @@ public:
     SelectedItemSet<WeakReference<Component>> selectedComponents;
 
     OwnedArray<Object> objects;
+    Array<Object*> previousCanvasState;
     OwnedArray<Connection> connections;
     OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
 

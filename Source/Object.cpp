@@ -290,8 +290,6 @@ void Object::applyBounds()
                 libpd_undo_apply(cnv->patch.getPointer(), obj);
 
                 object->gui->setPdBounds(bounds);
-
-                canvas_dirty(cnv->patch.getPointer(), 1);
             }
 
             patch->endUndoSequence("resize");
@@ -319,6 +317,7 @@ void Object::updateBounds()
 
 void Object::setType(String const& newType, void* existingObject)
 {
+    isValidObject = true;
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 

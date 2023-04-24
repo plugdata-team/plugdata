@@ -75,10 +75,11 @@ public:
 
     void setCurrent();
 
-    bool isDirty() const;
+    bool isDirty();
+
+    String savedPatch;
 
     void savePatch(File const& location);
-    void savePatch();
 
     File getCurrentFile() const;
     File getPatchFile() const;

@@ -867,6 +867,23 @@ void Canvas::hideAllActiveEditors()
     }
 }
 
+void Canvas::saveCanvasState()
+{
+    previousCanvasState.clearQuick();
+    for (auto* object : objects) {
+        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer()))) {
+            previousCanvasState.add(object);
+        }
+    }
+}
+
+void Canvas::restoreCanvasState()
+{
+    for (auto* obj : previousCanvasState) {
+        setSelected(obj, true);
+    }
+}
+
 void Canvas::copySelection()
 {
     // Tell pd to select all objects that are currently selected

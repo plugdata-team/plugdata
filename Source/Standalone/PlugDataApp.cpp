@@ -198,7 +198,7 @@ void PlugDataWindow::closeAllPatches()
 
     if (canvas) {
         MessageManager::callAsync([this, editor, canvas, patch, deleteFunc]() mutable {
-            if (patch->isDirty()) {
+            if (canvas->patch.isDirty()) {
                 Dialogs::showSaveDialog(&editor->openedDialog, editor, patch->getTitle(),
                     [this, editor, canvas, deleteFunc](int result) mutable {
                         if (!canvas)

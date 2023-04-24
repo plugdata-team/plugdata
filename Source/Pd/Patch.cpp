@@ -89,14 +89,19 @@ Rectangle<int> Patch::getBounds() const
     return { 0, 0, 0, 0 };
 }
 
-bool Patch::isDirty() const
+bool Patch::isDirty()
 {
     if (!ptr)
         return false;
     
-    const ScopedLock audioLock(*instance->audioLock);
+    auto currentPatchState = getCanvasContent();
+    auto hasPatchChanged = savedPatch.compare(currentPatchState);
 
-    return getPointer()->gl_dirty;
+    if (hasPatchChanged != 0) {
+        return true;
+    }
+
+    return false;
 }
 
 void Patch::savePatch(File const& location)
@@ -104,22 +109,29 @@ void Patch::savePatch(File const& location)
     if (!ptr)
         return;
 
-    String fullPathname = location.getParentDirectory().getFullPathName();
-    String filename = location.getFileName();
+    auto fileLocation = location;
+    fileLocation.setReadOnly(false, false);
 
-    auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
-    auto* file = instance->generateSymbol(filename);
+    if (location.getFullPathName().isEmpty()){
+        fileLocation = currentFile;
+    }
 
-    setTitle(filename);
-    canvas_dirty(getPointer(), 0);
+    setTitle(fileLocation.getFileName());
 
-    instance->lockAudioThread();
-
-    libpd_savetofile(getPointer(), file, dir);
-
-    instance->unlockAudioThread();
-
-    instance->reloadAbstractions(location, getPointer());
+    instance->enqueueFunction(
+        [this, fileLocation]() {
+            savedPatch = getCanvasContent();
+            MessageManager::callAsync([this, fileLocation]() mutable { 
+                FileOutputStream outputStream(fileLocation); 
+                if (outputStream.openedOk()) {
+                    outputStream.setPosition(0);
+                    outputStream.truncate();
+                    outputStream << savedPatch;
+                    outputStream.flush();
+                    post("save to: %s", fileLocation.getFullPathName().toUTF8());
+                }
+            });
+        });
 
     currentFile = location;
 }
@@ -146,28 +158,6 @@ bool Patch::isAbstraction()
         return false;
 
     return canvas_isabstraction(getPointer());
-}
-
-void Patch::savePatch()
-{
-    if (!ptr)
-        return;
-
-    String fullPathname = currentFile.getParentDirectory().getFullPathName();
-    String filename = currentFile.getFileName();
-
-    auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
-    auto* file = instance->generateSymbol(filename);
-
-    setTitle(filename);
-    canvas_dirty(getPointer(), 0);
-
-    instance->lockAudioThread();
-
-    libpd_savetofile(getPointer(), file, dir);
-    instance->unlockAudioThread();
-
-    instance->reloadAbstractions(currentFile, getPointer());
 }
 
 void Patch::setCurrent()
