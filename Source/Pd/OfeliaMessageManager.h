@@ -27,7 +27,7 @@ struct OfeliaMessageManager : public DeletedAtShutdown
     
     static void setAudioCallbackLock(CriticalSection const* lock);
     
-    static void pollEvents();
+    static int pollEvents();
     
     static OfeliaMessageManager* instance;
     

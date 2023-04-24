@@ -63,24 +63,26 @@ void OfeliaMessageManager::create()
     });
 }
 
-void OfeliaMessageManager::pollEvents()
+// This function will run ofelia's event loop
+// It returns an int that indicates how long the JUCE run loop can run to maintain 60fps
+int OfeliaMessageManager::pollEvents()
 {
     if(instance)
     {
-        static auto lastPollTime = Time::getMillisecondCounter();
-        auto currentTime = Time::getMillisecondCounter();
+        auto startTime = Time::currentTimeMillis();
         
-        // 16 ms is approximately 60 fps
-        // I needed to make it slightly shorter to make it actually hit 60 fps
-        // It appears that openFrameworks will automatically cap it!
-        if(currentTime - lastPollTime > 10) {
+        instance->runLoop();
         
-            instance->runLoop();
-            
-            lastPollTime = currentTime;
-
-        }
+        auto endTime = Time::currentTimeMillis();
+        
+        // 16 ms is approximately 60 fps, but to hit 60fps, we need to use 15
+        // From that, we subtract how long the last drawing took to determine
+        // for how long the JUCE message manager can run
+        return std::max<int>(1, 16 - (endTime - startTime));
     }
+    
+    // Try to reduce overhead by letting the JUCE message manager make longer loops when ofelia is inactive
+    return 800;
 }
 
 void OfeliaMessageManager::setAudioCallbackLock(CriticalSection const* lock)

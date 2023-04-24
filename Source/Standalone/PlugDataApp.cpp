@@ -298,12 +298,14 @@ int main (int argc, char* argv[])
     
     messageManager->setCurrentThreadAsMessageThread();
 
+    int loopRunTime = 800;
+    
     while(!messageManager->hasStopMessageBeenSent()) {
         JUCE_TRY
         {
             // loop until a quit message is received..
-            messageManager->runDispatchLoopUntil(1);
-            pd::OfeliaMessageManager::pollEvents();
+            messageManager->runDispatchLoopUntil(loopRunTime);
+            loopRunTime = pd::OfeliaMessageManager::pollEvents();
 
         }
         JUCE_CATCH_EXCEPTION
