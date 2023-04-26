@@ -915,7 +915,7 @@ String Patch::getCanvasContent()
     char* buf;
     int bufsize;
     libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
-
+    
     auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
 
     freebytes(static_cast<void*>(buf), static_cast<size_t>(bufsize) * sizeof(char));

@@ -94,8 +94,23 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             case MainMenu::MenuItem::Close: {
-                if (editor->getCurrentCanvas())
-                    editor->closeTab(editor->getCurrentCanvas(false));
+                if (auto* canvas = editor->getCurrentCanvas()) {
+                    MessageManager::callAsync([editor, cnv = Component::SafePointer(canvas)]() mutable {
+                        if (cnv && cnv->patch.isDirty()) {
+                            Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
+                                [cnv, editor](int result) mutable {
+                                    if (!cnv)
+                                        return;
+                                    if (result == 2)
+                                        editor->saveProject([editor, cnv]() mutable { editor->closeTab(cnv); });
+                                    else if (result == 1)
+                                        editor->closeTab(cnv);
+                                });
+                        } else {
+                            editor->closeTab(cnv);
+                        }
+                    });
+                }
                 break;
             }
             case MainMenu::MenuItem::CloseAll: {

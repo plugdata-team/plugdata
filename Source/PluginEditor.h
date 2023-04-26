@@ -65,7 +65,7 @@ public:
 
     void addTab(Canvas* cnv);
     void closeTab(Canvas* cnv);
-    void closeAllTabs();
+    void closeAllTabs(bool quitAfterComplete = false);
 
     void quit(bool askToSave);
 

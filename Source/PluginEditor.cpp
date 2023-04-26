@@ -601,13 +601,45 @@ Canvas* PluginEditor::getCurrentCanvas(bool canBePalette)
     return getActiveTabbar()->getCurrentCanvas();
 }
 
-void PluginEditor::closeAllTabs()
+void PluginEditor::closeAllTabs(bool quitAfterComplete)
 {
-    bool complete = false;
-    while (!complete) {
-        closeTab(canvases.getFirst());
-        if (canvases.size() == 0)
-            complete = true;
+    auto* canvas = canvases.getLast();
+    if (!canvas) {
+        if(quitAfterComplete)
+        {
+            JUCEApplication::quit();
+        }
+        return;
+    }
+
+    auto* tabbar = canvas->getTabbar();
+    auto* patch = &canvas->patch;
+
+    auto deleteFunc = [this, tabbar, canvas, patch, quitAfterComplete]() {
+        if (!canvas) {
+            return;
+        }
+
+        closeTab(canvas);
+        closeAllTabs(quitAfterComplete);
+    };
+
+    if (canvas) {
+        MessageManager::callAsync([this, canvas, patch, deleteFunc]() mutable {
+            if (patch->isDirty()) {
+                Dialogs::showSaveDialog(&openedDialog, this, patch->getTitle(),
+                    [this, canvas, deleteFunc](int result) mutable {
+                        if (!canvas)
+                            return;
+                        if (result == 2)
+                            saveProject([&deleteFunc]() mutable { deleteFunc(); });
+                        else if (result == 1)
+                            deleteFunc();
+                    });
+            } else {
+                deleteFunc();
+            }
+        });
     }
 }
 

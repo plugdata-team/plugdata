@@ -179,40 +179,7 @@ void PlugDataWindow::closeAllPatches()
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
     auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor());
 
-    auto* canvas = editor->canvases.getLast();
-    if (!canvas) {
-        JUCEApplication::quit();
-        return;
-    }
-
-    auto* tabbar = canvas->getTabbar();
-    auto* patch = &canvas->patch;
-
-    auto deleteFunc = [this, editor, tabbar, canvas, patch]() {
-        if (!canvas)
-            return;
-
-        editor->closeTab(canvas);
-        closeAllPatches();
-    };
-
-    if (canvas) {
-        MessageManager::callAsync([this, editor, canvas, patch, deleteFunc]() mutable {
-            if (patch->isDirty()) {
-                Dialogs::showSaveDialog(&editor->openedDialog, editor, patch->getTitle(),
-                    [this, editor, canvas, deleteFunc](int result) mutable {
-                        if (!canvas)
-                            return;
-                        if (result == 2)
-                            editor->saveProject([&deleteFunc]() mutable { deleteFunc(); });
-                        else if (result == 1)
-                            deleteFunc();
-                    });
-            } else {
-                deleteFunc();
-            }
-        });
-    }
+    editor->closeAllTabs(true);
 }
 
 int PlugDataWindow::parseSystemArguments(String const& arguments)
@@ -282,7 +249,9 @@ juce::JUCEApplicationBase* juce_CreateApplication();
 juce::JUCEApplicationBase* juce_CreateApplication() { return new PlugDataApp(); }
 
 #if JUCE_WINDOWS
+JUCE_BEGIN_IGNORE_WARNINGS_MSVC(28251)
 int __stdcall WinMain (struct HINSTANCE__*, struct HINSTANCE__*, char*, int)
+JUCE_END_IGNORE_WARNINGS_MSVC
 #else
 int main (int argc, char* argv[])
 #endif
@@ -309,6 +278,10 @@ int main (int argc, char* argv[])
         {
             // loop until a quit message is received..
             messageManager->runDispatchLoopUntil(loopRunTime);
+            
+            // Returns how long the openGL render took in ms, so we can adjust how long
+            // juce will run to hit 60fps
+            // If Ofelia is not running, it will return a high number to reduce overhead
             loopRunTime = pd::OfeliaMessageManager::pollEvents();
 
         }
