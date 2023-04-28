@@ -168,14 +168,15 @@ public:
 
     void showObject(String name)
     {
+        inlets.clear();
+        outlets.clear();
+        
         bool valid = name.isNotEmpty();
 
         if (!valid) {
             objectName = "";
             unknownInletLayout = false;
             unknownOutletLayout = false;
-            inlets.clear();
-            outlets.clear();
             repaint();
             return;
         }
