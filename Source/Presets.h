@@ -6,18 +6,97 @@
 
 #pragma once
 
+
 struct Presets {
     static inline const std::vector<std::pair<String, String>> presets = {
-        { "Default Preset", "AAAAAEAAAAAAAAAAAAAAAMIAAABWQzIhuQAAADw/eG1sIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IlVURi04Ij8+IDxwbHVnZGF0YV9zYXZlIFZlcnNpb249IjAuNy4xIiBTcGxpdEluZGV4PSIwIiBPdmVyc2FtcGxpbmc9IjAiIExhdGVuY3k9IjY0IiBUYWlsTGVuZ3RoPSIwLjAiIExlZ2FjeT0iMCIgV2lkdGg9IjEwMDAiIEhlaWdodD0iNjUwIiBQbHVnaW5Nb2RlPSIwIi8+AA==" },
-        { "LIRA-8", "AQAAAAAke1BSRVNFVF9ESVJ9L0xJUkEtOC9MSVJBLTgucGQAQAAAAAAAAAAAAAAAyQAAAFZDMiHAAAAAPD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4gPHBsdWdkYXRhX3NhdmUgVmVyc2lvbj0iMC43LjEiIFNwbGl0SW5kZXg9IjEiIE92ZXJzYW1wbGluZz0iMCIgTGF0ZW5jeT0iNjQiIFRhaWxMZW5ndGg9IjAuMCIgTGVnYWN5PSIwIiBXaWR0aD0iMzg1IiBIZWlnaHQ9IjcxNyIgUGx1Z2luTW9kZT0iTElSQS04LnBkIi8+AA==" },
+        /*{ "Default Preset", "AAAAAEAAAAAAAAAAAAAAAMIAAABWQzIhuQAAADw/eG1sIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IlVURi04Ij8+IDxwbHVnZGF0YV9zYXZlIFZlcnNpb249IjAuNy4xIiBTcGxpdEluZGV4PSIwIiBPdmVyc2FtcGxpbmc9IjAiIExhdGVuY3k9IjY0IiBUYWlsTGVuZ3RoPSIwLjAiIExlZ2FjeT0iMCIgV2lkdGg9IjEwMDAiIEhlaWdodD0iNjUwIiBQbHVnaW5Nb2RlPSIwIi8+AA==" },*/
+        { "LIRA-8", "AQAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAAA3AQAAVkMyIS4BAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSIzODUiIEhlaWdodD0iNzE3IiBQbHVnaW5Nb2RlPSJMSVJBLTgucGQiPjxQYXRjaGVzPjxQYXRjaCBDb250ZW50PSIiIExvY2F0aW9uPSIke1BSRVNFVF9ESVJ9L0xJUkEtOC9MSVJBLTgucGQiIFBsdWdpbk1vZGU9IjEiLz48L1BhdGNoZXM+PC9wbHVnZGF0YV9zYXZlPgA=" },
         { "AlmondOrgan",
-            "AQAAAAAke1BSRVNFVF9ESVJ9L0FsbW9uZE9yZ2FuL0FsbW9uZE9yZ2FuLnBkAEAAAAAAAAAAAAAAAM4AAABWQzIhxQAAADw/eG1sIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IlVURi04Ij8+IDxwbHVnZGF0YV9zYXZlIFZlcnNpb249IjAuNy4xIiBTcGxpdEluZGV4PSIxIiBPdmVyc2FtcGxpbmc9IjAiIExhdGVuY3k9IjY0IiBUYWlsTGVuZ3RoPSIwLjAiIExlZ2FjeT0iMCIgV2lkdGg9IjcyMiIgSGVpZ2h0PSIzNjUiIFBsdWdpbk1vZGU9IkFsbW9uZE9yZ2FuLnBkIi8+AA==" },
-        { "MiniMock", "AQAAAAAke1BSRVNFVF9ESVJ9L01pbmlNb2NrL01pbmlNb2NrLnBkAEAAAAAAAAAAAAAAAMwAAABWQzIhwwAAADw/eG1sIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IlVURi04Ij8+IDxwbHVnZGF0YV9zYXZlIFZlcnNpb249IjAuNy4xIiBTcGxpdEluZGV4PSIxIiBPdmVyc2FtcGxpbmc9IjAiIExhdGVuY3k9IjY0IiBUYWlsTGVuZ3RoPSIwLjAiIExlZ2FjeT0iMCIgV2lkdGg9IjEwNTQiIEhlaWdodD0iMzczIiBQbHVnaW5Nb2RlPSJNaW5pTW9jay5wZCIvPgA=" },
-        { "Castafiore", "AQAAAAAke1BSRVNFVF9ESVJ9L0Nhc3RhZmlvcmUvQ2FzdGFmaW9yZS5wZABAAAAAAAAAAAAAAADNAAAAVkMyIcQAAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSIzMDIiIEhlaWdodD0iMjQyIiBQbHVnaW5Nb2RlPSJDYXN0YWZpb3JlLnBkIi8+AA==" },
-        { "Bulgroz", "AQAAAAAke1BSRVNFVF9ESVJ9L0J1bGdyb3ovQnVsZ3Jvei5wZABAAAAAAAAAAAAAAADKAAAAVkMyIcEAAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI0NjEiIEhlaWdodD0iMjAxIiBQbHVnaW5Nb2RlPSJCdWxncm96LnBkIi8+AA==" },
-        { "Pong", "AQAAAAAke1BSRVNFVF9ESVJ9L1BvbmcvUG9uZy5wZABAAAAAAAAAAAAAAADHAAAAVkMyIb4AAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI1MDAiIEhlaWdodD0iNTIwIiBQbHVnaW5Nb2RlPSJQb25nLnBkIi8+AA==" }
+            "AQAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAABGAQAAVkMyIT0BAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI3MjIiIEhlaWdodD0iMzY1IiBQbHVnaW5Nb2RlPSJBbG1vbmRPcmdhbi5wZCI+PFBhdGNoZXM+PFBhdGNoIENvbnRlbnQ9IiIgTG9jYXRpb249IiR7UFJFU0VUX0RJUn0vQWxtb25kT3JnYW4vQWxtb25kT3JnYW4ucGQiIFBsdWdpbk1vZGU9IjEiLz48L1BhdGNoZXM+PC9wbHVnZGF0YV9zYXZlPgA=" },
+        { "MiniMock", "AQAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAAA+AQAAVkMyITUBAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSIxMDU0IiBIZWlnaHQ9IjM3MyIgUGx1Z2luTW9kZT0iTWluaU1vY2sucGQiPjxQYXRjaGVzPjxQYXRjaCBDb250ZW50PSIiIExvY2F0aW9uPSIke1BSRVNFVF9ESVJ9L01pbmlNb2NrL01pbmlNb2NrLnBkIiBQbHVnaW5Nb2RlPSIxIi8+PC9QYXRjaGVzPjwvcGx1Z2RhdGFfc2F2ZT4A" },
+        { "Castafiore", "AQAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAABDAQAAVkMyIToBAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSIzMDIiIEhlaWdodD0iMjQyIiBQbHVnaW5Nb2RlPSJDYXN0YWZpb3JlLnBkIj48UGF0Y2hlcz48UGF0Y2ggQ29udGVudD0iIiBMb2NhdGlvbj0iJHtQUkVTRVRfRElSfS9DYXN0YWZpb3JlL0Nhc3RhZmlvcmUucGQiIFBsdWdpbk1vZGU9IjEiLz48L1BhdGNoZXM+PC9wbHVnZGF0YV9zYXZlPgA=" },
+        { "Bulgroz", "AQAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAAA6AQAAVkMyITEBAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI0NjEiIEhlaWdodD0iMjAxIiBQbHVnaW5Nb2RlPSJCdWxncm96LnBkIj48UGF0Y2hlcz48UGF0Y2ggQ29udGVudD0iIiBMb2NhdGlvbj0iJHtQUkVTRVRfRElSfS9CdWxncm96L0J1bGdyb3oucGQiIFBsdWdpbk1vZGU9IjEiLz48L1BhdGNoZXM+PC9wbHVnZGF0YV9zYXZlPgA=" },
+        { "Pong", "AQAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAAAxAQAAVkMyISgBAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI1MDAiIEhlaWdodD0iNTIwIiBQbHVnaW5Nb2RlPSJQb25nLnBkIj48UGF0Y2hlcz48UGF0Y2ggQ29udGVudD0iIiBMb2NhdGlvbj0iJHtQUkVTRVRfRElSfS9Qb25nL1BvbmcucGQiIFBsdWdpbk1vZGU9IjEiLz48L1BhdGNoZXM+PC9wbHVnZGF0YV9zYXZlPgA=" }
     };
+    
+    
+    static bool fixPresets()
+    {
+        for(auto& [name, content] : presets)
+        {
+            std::cout << "name: " << name << std::endl;
+            fixPreset(content);
+        }
+        
+        return true;
+    }
+    static void fixPreset(String preset)
+    {
+        MemoryOutputStream b64_ostream;
+        Base64::convertFromBase64(b64_ostream, preset);
+        
+        MemoryInputStream istream(b64_ostream.getData(), b64_ostream.getDataSize(), true);
 
+        istream.readInt();
+        //jassert(istream.readInt() == 1);
+
+        int numPatches = 1;
+
+        istream.readString();
+        auto patchFile = istream.readString();
+
+        auto latency = istream.readInt();
+        auto oversampling = istream.readInt();
+        auto tailLength = istream.readFloat();
+
+        auto xmlSize = istream.readInt();
+
+        auto* xmlData = new char[xmlSize];
+        istream.read(xmlData, xmlSize);
+
+        std::unique_ptr<XmlElement> xmlState(AudioProcessor::getXmlFromBinary(xmlData, xmlSize));
+        
+        auto* patches = new XmlElement("Patches");
+        auto* patch =  new XmlElement("Patch");
+        
+        patch->setAttribute("Content", "");
+        patch->setAttribute("Location", patchFile);
+        patch->setAttribute("PluginMode", true);
+        
+        patches->addChildElement(patch);
+        xmlState->addChildElement(patches);
+        
+        MemoryBlock outBlock;
+        
+        // Now reconstruct the modified save file
+        MemoryOutputStream ostream(outBlock, false);
+
+        ostream.writeInt(1);
+
+        ostream.writeString("");
+        ostream.writeString("${PRESET_DIR}/" + patchFile.fromFirstOccurrenceOf("Extra/Presets/", false, false));
+
+        ostream.writeInt(latency);
+        ostream.writeInt(oversampling);
+        ostream.writeFloat(tailLength);
+
+        MemoryBlock xmlBlock;
+        AudioProcessor::copyXmlToBinary(*xmlState, xmlBlock);
+        ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
+        ostream.write(xmlBlock.getData(), xmlBlock.getSize());
+
+        auto block = ostream.getMemoryBlock();
+
+        MemoryOutputStream base64_ostream;
+        Base64::convertToBase64(base64_ostream, block.getData(), block.getSize());
+        auto result = base64_ostream.toString();
+        std::cout << result << std::endl;
+        SystemClipboard::copyTextToClipboard(result);
+        
+    }
+    
+    //static inline bool wasRan = fixPresets();
+    
     static void createPreset(AudioProcessor* processor)
     {
         File presetDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
