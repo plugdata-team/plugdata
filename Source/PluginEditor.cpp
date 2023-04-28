@@ -103,6 +103,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(getTopLevelComponent(), getConstrainer());
             borderResizer->setAlwaysOnTop(true);
             addAndMakeVisible(borderResizer.get());
+            resized(); // Makes sure resizer gets resized
         });
     }
     else {

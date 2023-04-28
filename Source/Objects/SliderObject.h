@@ -15,7 +15,7 @@ public:
         setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         setScrollWheelEnabled(false);
         getProperties().set("Style", "SliderObject");
-        setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
+        setVelocityModeParameters(1.0f, 1, 0.0f, true, ModifierKeys::shiftModifier);
     }
 
     ~ReversibleSlider() { }
