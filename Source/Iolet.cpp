@@ -338,6 +338,9 @@ void Iolet::createConnection()
         cnv->patch.startUndoSequence("Connecting");
 
         for (auto& c : object->cnv->connectionsBeingCreated) {
+            
+            if(!c->getIolet()) continue;
+            
             // Check type for input and output
             bool sameDirection = isInlet == c->getIolet()->isInlet;
 
