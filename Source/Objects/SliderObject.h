@@ -15,7 +15,7 @@ public:
         setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         setScrollWheelEnabled(false);
         getProperties().set("Style", "SliderObject");
-        setVelocityModeParameters(1.0f, 1, 0.0f, true, ModifierKeys::shiftModifier);
+        setVelocityModeParameters(1.0f, 1, 0.0f, false);
     }
 
     ~ReversibleSlider() { }
@@ -24,20 +24,39 @@ public:
     {
         isInverted = invert;
     }
+    
+    void mouseDown(const MouseEvent& e) override
+    {
+        if(ModifierKeys::getCurrentModifiersRealtime().isShiftDown())
+        {
+            setVelocityBasedMode(true);
+        }
+        else {
+            setVelocityBasedMode(false);
+        }
+            
+        Slider::mouseDown(e);
+    }
+    
+    void mouseUp(const MouseEvent& e) override
+    {
+        setVelocityBasedMode(false);
+        Slider::mouseUp(e);
+    }
 
     bool isRangeFlipped()
     {
         return isInverted;
     }
 
-    double proportionOfLengthToValue(double proportion)
+    double proportionOfLengthToValue(double proportion) override
     {
         if (isInverted)
             return Slider::proportionOfLengthToValue(1.0f - proportion);
         else
             return Slider::proportionOfLengthToValue(proportion);
     };
-    double valueToProportionOfLength(double value)
+    double valueToProportionOfLength(double value) override
     {
         if (isInverted)
             return 1.0f - (Slider::valueToProportionOfLength(value));
