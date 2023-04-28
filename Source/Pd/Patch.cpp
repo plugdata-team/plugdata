@@ -117,10 +117,10 @@ void Patch::savePatch(File const& location)
 
     libpd_savetofile(getPointer(), file, dir);
 
-    instance->unlockAudioThread();
-
     instance->reloadAbstractions(location, getPointer());
 
+    instance->unlockAudioThread();
+    
     currentFile = location;
 }
 

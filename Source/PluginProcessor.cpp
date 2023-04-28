@@ -1471,8 +1471,6 @@ void PluginProcessor::updateConsole()
 
 void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 {
-    suspendProcessing(true);
-
     auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor());
 
     setThis();
@@ -1501,8 +1499,6 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
     }
 
     isPerformingGlobalSync = false;
-
-    suspendProcessing(false);
 
     if (editor) {
         editor->updateCommandStatus();
