@@ -192,24 +192,20 @@ void Instance::initialisePd(String& pdlua_version)
 
         auto sym = String::fromUTF8(symbol->s_name);
 
-        for (auto listener : listeners[target]) {
-            // Check if the safepointer is still valid
-            if (!listener) {
-                cleanUp = true;
-                continue;
-            }
-            listener->receiveMessage(sym, argc, argv);
+        // Create a new vector to hold the null listeners
+        std::vector<std::vector<WeakReference<pd::MessageListener>>::iterator> nullListeners;
+
+        for (auto it = listeners[target].begin(); it != listeners[target].end(); ++it) {
+            auto listener = it->get();
+            if (listener) {
+                it->get()->receiveMessage(sym, argc, argv);
+            } else
+                nullListeners.push_back(it);
         }
 
-        // If any pointers were invalid, clean them up
-        // TODO: profile if this is really the best place to do that
-        if (cleanUp) {
-            for (int i = listeners[target].size() - 1; i >= 0; i--) {
-                if (!listeners[target][i]) {
-                    listeners[target].erase(listeners[target].begin() + i);
-                }
-            }
-        }
+        // Remove all the null listeners from the original vector using the iterators in the nullListeners vector
+        for (auto it : nullListeners)
+            listeners[target].erase(it);
     };
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, message_trigger);
