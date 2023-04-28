@@ -188,8 +188,6 @@ void Instance::initialisePd(String& pdlua_version)
         if (!symbol || !listeners.count(target))
             return;
 
-        bool cleanUp = false;
-
         auto sym = String::fromUTF8(symbol->s_name);
 
         // Create a new vector to hold the null listeners
