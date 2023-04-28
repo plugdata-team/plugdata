@@ -202,8 +202,10 @@ void Instance::initialisePd(String& pdlua_version)
         }
 
         // Remove all the null listeners from the original vector using the iterators in the nullListeners vector
-        for (auto it : nullListeners)
-            listeners[target].erase(it);
+        for(int i = nullListeners.size() - 1; i >= 0; i--)
+        {
+            listeners[target].erase(nullListeners[i]);
+        }            
     };
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, message_trigger);
