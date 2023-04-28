@@ -65,7 +65,6 @@ public:
     {
         int handleSize = 20;
 
-        applyBounds();
         resizer.setBounds(getWidth() - handleSize, getHeight() - handleSize, handleSize, handleSize);
 
         canvas->updateDrawables();
