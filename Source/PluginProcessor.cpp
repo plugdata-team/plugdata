@@ -1057,6 +1057,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             auto location = p->getStringAttribute("Location");
             auto pluginMode = p->getBoolAttribute("PluginMode");
             
+            auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+            location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
+            
             openPatch(content, location, pluginMode);
         }
     }

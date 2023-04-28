@@ -104,6 +104,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             borderResizer->setAlwaysOnTop(true);
             addAndMakeVisible(borderResizer.get());
             resized(); // Makes sure resizer gets resized
+            
+            if(pluginMode)
+            {
+                borderResizer->toBehind(pluginMode.get());
+            }
         });
     }
     else {

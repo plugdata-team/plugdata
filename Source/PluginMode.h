@@ -139,11 +139,15 @@ public:
     
     bool isWindowFullscreen()
     {
+        if(ProjectInfo::isStandalone) {
 #if JUCE_LINUX
-        return OSUtils::isMaximised(desktopWindow->getNativeHandle());
+            return OSUtils::isMaximised(desktopWindow->getNativeHandle());
 #else
-        return desktopWindow->isFullScreen();
+            return desktopWindow->isFullScreen();
 #endif
+        }
+        
+        return false;
     }
 
     void paint(Graphics& g) override
