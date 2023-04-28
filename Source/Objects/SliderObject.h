@@ -7,7 +7,8 @@
 class ReversibleSlider : public Slider {
 
     bool isInverted;
-
+    bool isVertical;
+    
 public:
     ReversibleSlider()
     {
@@ -25,14 +26,35 @@ public:
         isInverted = invert;
     }
     
+    void setOrientation(bool vertical)
+    {
+        isVertical = vertical;
+        
+        if (isVertical)
+            setSliderStyle(Slider::LinearBarVertical);
+        else
+            setSliderStyle(Slider::LinearBar);
+        
+        resized();
+    }
+    
+    void resized() override
+    {
+        setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
+        Slider::resized();
+    }
+    
     void mouseDown(const MouseEvent& e) override
     {
+        auto normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
+        auto highSensitivity = normalSensitivity * 10;
+        
         if(ModifierKeys::getCurrentModifiersRealtime().isShiftDown())
         {
-            setVelocityBasedMode(true);
+            setMouseDragSensitivity(highSensitivity);
         }
         else {
-            setVelocityBasedMode(false);
+            setMouseDragSensitivity(normalSensitivity);
         }
             
         Slider::mouseDown(e);
@@ -40,7 +62,7 @@ public:
     
     void mouseUp(const MouseEvent& e) override
     {
-        setVelocityBasedMode(false);
+        setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
         Slider::mouseUp(e);
     }
 
@@ -130,13 +152,9 @@ public:
         auto currentValue = getValue();
         value = currentValue;
         slider.setValue(currentValue, dontSendNotification);
-
+        slider.setOrientation(isVertical);
+        
         isLogarithmic = isLogScale();
-
-        if (isVertical)
-            slider.setSliderStyle(Slider::LinearBarVertical);
-        else
-            slider.setSliderStyle(Slider::LinearBar);
 
         iemHelper.update();
 
@@ -270,10 +288,6 @@ public:
     void resized() override
     {
         slider.setBounds(getLocalBounds());
-
-        // TODO: we would also want to have a high precision mode, use keypress to change sensitivity etc
-        // Currently we set the sensitivity to 1:1 of current slider size
-        slider.setMouseDragSensitivity(isVertical ? slider.getHeight() : slider.getWidth());
     }
 
     ObjectParameters getParameters() override
