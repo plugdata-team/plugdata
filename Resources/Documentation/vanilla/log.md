@@ -10,18 +10,18 @@ see_also:
 - div
 - expr
 arguments:
-- description: initialize value of right inlet 
-  default: 0
+- description: initial base value
+  default: e
   type: float
 inlets:
   1st:
   - type: bang
     description: trigger calculation and output value
   - type: float
-    description: set value on left-hand side and trigger output
+    description: set input value and trigger output
   2nd:
   - type: float
-    description: set value on right-hand side
+    description: set base value
 outlets:
   1st:
   - type: float
