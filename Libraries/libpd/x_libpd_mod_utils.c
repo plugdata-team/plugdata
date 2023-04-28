@@ -42,6 +42,8 @@ struct _instanceeditor
 
 extern int glist_getindex(t_glist* cnv, t_gobj* y);
 extern void canvas_savedeclarationsto(t_canvas *x, t_binbuf *b);
+extern void canvas_savetemplatesto(t_canvas *x, t_binbuf *b, int wholething);
+extern void canvas_saveto(t_canvas *x, t_binbuf *b)
 
 void libpd_get_search_paths(char** paths, int* numItems) {
 
@@ -457,12 +459,26 @@ void libpd_duplicate(t_canvas* cnv)
  body (and which is called recursively.) */
 void libpd_savetofile(t_canvas* cnv, t_symbol* filename, t_symbol* dir)
 {
-    t_atom args[3];
-    SETSYMBOL(args, filename);
-    SETSYMBOL(args + 1, dir);
-    SETFLOAT(args + 2, 0);
-    
-    pd_typedmess(cnv, gensym("savetofile"), 3, args);
+    t_binbuf *b = binbuf_new();
+    canvas_savetemplatesto(cnv, b, 1);
+    canvas_saveto(cnv, b);
+    errno = 0;
+    if (binbuf_write(b, filename->s_name, dir->s_name, 0))
+        post("%s/%s: %s", dir->s_name, filename->s_name,
+            (errno ? strerror(errno) : "write failed"));
+    else
+    {
+            /* if not an abstraction, reset title bar and directory */
+        if (!cnv->gl_owner)
+        {
+            canvas_rename(cnv, filename, dir);
+            /* update window list in case Save As changed the window name */
+            canvas_updatewindowlist();
+        }
+        post("saved to: %s/%s", dir->s_name, filename->s_name);
+        canvas_dirty(cnv, 0);
+    }
+    binbuf_free(b);
 }
 
 t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y)
