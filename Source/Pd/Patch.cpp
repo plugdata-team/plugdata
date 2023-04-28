@@ -179,16 +179,12 @@ void Patch::setCurrent()
 
     instance->lockAudioThread();
 
-    canvas_setcurrent(getPointer());
-
-    canvas_vis(static_cast<t_canvas*>(ptr), 1);
-
-    t_atom args[1];
-    SETFLOAT(args, 1);
-    pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("map"), 1, args);
-
+    // This is the same as calling canvas_vis and canvas_map,
+    // but all the other stuff inside those functions is just for tcl/tk anyway
+    getPointer()->gl_havewindow = 1;
+    getPointer()-> gl_mapped = 1;
+    
     canvas_create_editor(getPointer()); // can't hurt to make sure of this!
-    canvas_unsetcurrent(getPointer());
 
     instance->unlockAudioThread();
 }
