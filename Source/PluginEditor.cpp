@@ -673,7 +673,6 @@ void PluginEditor::closeTab(Canvas* cnv)
     pd->updateObjectImplementations();
 
     splitView.closeEmptySplits();
-    updateCommandStatus();
 
     pd->savePatchTabPositions();
 
