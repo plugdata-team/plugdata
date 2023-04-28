@@ -378,6 +378,8 @@ void Connection::renderConnectionPath(Graphics& g,
 
 void Connection::updateOverlays(int overlay)
 {
+    if(!inlet || !outlet) return;
+    
     showDirection = overlay & Overlay::Direction;
     showConnectionOrder = overlay & Overlay::Order;
     updatePath();
@@ -664,6 +666,8 @@ void Connection::reconnect(Iolet* target)
 
 void Connection::resizeToFit()
 {
+    if(!inlet || !outlet) return;
+    
     auto pStart = getStartPoint();
     auto pEnd = getEndPoint();
 
@@ -763,7 +767,6 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 Point<float> Connection::getStartPoint()
 {
     return outlet->getCanvasBounds().toFloat().getCentre();
-    ;
 }
 
 Point<float> Connection::getEndPoint()
