@@ -203,7 +203,7 @@ public:
 
                         t_symbol* keysym = pd->generateSymbol(keyString);
                         parseKey(keyCode, keysym);
-                        pd->enqueueDirectMessages(ptr, { 1.0f, keysym });
+                        pd->enqueueDirectMessages(ptr, { 0.0f, keysym });
                     }
 
                     keyPressTimes.remove(n);

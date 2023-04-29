@@ -212,7 +212,7 @@ void ObjectImplementationManager::updateObjectImplementations()
         auto& [ptr, implementation] = *it;
         auto found = std::find(allImplementations.begin(), allImplementations.end(), ptr);
 
-        if (allImplementations.size() && found == allImplementations.end()) {
+        if (found == allImplementations.end()) {
             objectImplementations.erase(it++);
         } else {
             it++;
