@@ -92,8 +92,8 @@ struct TextObjectHelper {
                     auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
                     auto x = oldBounds.getX() - widthDiff;
                     auto y = oldBounds.getY(); // don't allow y resize
-
-                    libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x, y);
+                    
+                    libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                 }
 
                 // Set new width

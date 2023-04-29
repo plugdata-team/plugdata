@@ -157,7 +157,7 @@ public:
                     auto x = oldBounds.getX() - widthDiff;
                     auto y = oldBounds.getY();
 
-                    libpd_moveobj(patch, reinterpret_cast<t_gobj*>(atom), x, y);
+                    libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                 }
 
                 // Set new width

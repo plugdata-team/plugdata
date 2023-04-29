@@ -906,6 +906,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
 
+            std::cout << newBounds.getX() << std::endl;
             if (auto* constrainer = obj->getConstrainer()) {
                 constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(),
                     resizeZone.isDraggingLeftEdge(),
