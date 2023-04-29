@@ -87,9 +87,6 @@ public:
 
         cnv->setTopLeftPosition(-cnv->canvasOrigin);
 
-        // Store old constrainers so we can restore them later
-        oldEditorConstrainer = editor->getConstrainer();
-        
         pluginModeConstrainer.setSizeLimits(width / 2, height / 2 + titlebarHeight, width * 10, height * 10 + titlebarHeight);
         
         editor->setConstrainer(&pluginModeConstrainer);
@@ -103,8 +100,6 @@ public:
 
     ~PluginMode()
     {
-        if (!cnv)
-            return;
     }
 
     void closePluginMode()
@@ -123,10 +118,9 @@ public:
         
         MessageManager::callAsync([
             editor = this->editor,
-            bounds = windowBounds,
-            editorConstrainer = oldEditorConstrainer
+            bounds = windowBounds
             ](){
-            editor->setConstrainer(editorConstrainer);
+            editor->setConstrainer(editor->defaultConstrainer);
             editor->setBoundsConstrained(bounds);
             editor->getParentComponent()->resized();
             editor->getActiveTabbar()->resized();
@@ -307,7 +301,6 @@ private:
     ComponentDragger windowDragger;
         
     ComponentBoundsConstrainer pluginModeConstrainer;
-    ComponentBoundsConstrainer* oldEditorConstrainer;
 
     Point<int> originalCanvasPos;
     float originalCanvasScale;

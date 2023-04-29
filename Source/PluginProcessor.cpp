@@ -1182,10 +1182,18 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
     auto* patch = patches.getLast().get();
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
+        MessageManager::callAsync([this, patch, _editor = Component::SafePointer(editor)]() mutable {
             if (!_editor)
                 return;
+            
+            // There are some subroutines that get called when we create a canvas, that will lock the audio thread
+            // By locking it around this whole function, we can prevent slowdowns from constantly locking/unlocking the audio thread
+            lockAudioThread();
+            
             auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr));
+            
+            unlockAudioThread();
+            
             _editor->addTab(cnv);
         });
     }

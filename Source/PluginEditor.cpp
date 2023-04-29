@@ -73,6 +73,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
     , splitView(this)
     , openedDialog(nullptr)
+    , defaultConstrainer(getConstrainer())
     , tooltipWindow(this, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked) || getValue<bool>(cnv->paletteDragMode);

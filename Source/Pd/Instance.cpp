@@ -561,9 +561,9 @@ void Instance::enqueueDirectMessages(void* object, float const msg)
 void Instance::waitForStateUpdate()
 {
     // No action needed
-    if (m_function_queue.size_approx() == 0) {
+    if (m_function_queue.size_approx() == 0 || numLocksHeld > 0) {
         return;
-    }
+    }    
 
     waitingForStateUpdate = true;
 
@@ -574,7 +574,7 @@ void Instance::waitForStateUpdate()
 
     // Dequeuing should never take more than a few seconds, it should happen at audio rate
     // By never blocking infinitely, and attempting to dequeue inbetween tries, we can possibly prevent deadlocks
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i++) {
         messageEnqueued();
         if (updateWait.wait(200)) {
             waitingForStateUpdate = false;

@@ -123,6 +123,8 @@ public:
 
     std::unique_ptr<ZoomLabel> zoomLabel;
 
+    ComponentBoundsConstrainer* defaultConstrainer;
+        
 private:
     // Used by standalone to handle dragging the window
     ComponentDragger windowDragger;
