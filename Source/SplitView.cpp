@@ -121,6 +121,11 @@ SplitView::SplitView(PluginEditor* parent)
             splitFocusIndex = i;
             editor->openProject();
         };
+        
+        tabbar.openProjectFile = [this, i](File patchFile) {
+            splitFocusIndex = i;
+            editor->pd->loadPatch(patchFile);
+        };
 
         tabbar.onTabChange = [this, i, &tabbar](int idx) {
             splitFocusIndex = i;

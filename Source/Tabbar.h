@@ -58,36 +58,134 @@ class WelcomePanel : public Component {
             repaint();
         }
     };
+    
+    class RecentlyOpenedListBox : public Component, public ListBoxModel
+    {
+    public:
+        RecentlyOpenedListBox()
+        {
+            listBox.setModel(this);
+            listBox.setClickingTogglesRowSelection(true);
+            update();
+            
+            listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
+            
+            addAndMakeVisible(listBox);
+        }
+        
+        void update()
+        {
+            items.clear();
+            
+            auto settingsTree = SettingsFile::getInstance()->getValueTree();
+            auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
+            if (recentlyOpenedTree.isValid()) {
+                for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
+                    auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
+                    items.add({path.getFileName(), path});
+                }
+            }
+            
+            listBox.updateContent();
+        }
+           
+        std::function<void(File)> onPatchOpen = [](File){};
+        
+    private:
+        int getNumRows() override
+        {
+            return items.size();
+        }
+        
+        void listBoxItemClicked(int row, const MouseEvent& e) override
+        {
+            if(e.getNumberOfClicks() >= 2)
+            {
+                onPatchOpen(items[row].second);
+            }
+        }
+        
+        void paint (Graphics& g) override
+        {
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawRoundedRectangle(1, 36, getWidth() - 2, getHeight() - 37, Corners::defaultCornerRadius, 1.0f);
+            
+            Fonts::drawStyledText(g, "Recently Opened", 0, 0, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
+
+        }
+        
+        void resized() override
+        {
+            listBox.setBounds(getLocalBounds().withTrimmedTop(35));
+        }
+        
+        void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
+        {
+            if (rowIsSelected) {
+                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
+            }
+
+            auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            
+            Fonts::drawText(g, items[rowNumber].first, 12, 0, width - 9, height, colour, 15);
+        }
+   
+        ListBox listBox;
+        Array<std::pair<String, File>> items;
+    };
 
 public:
-    WelcomePanel()
+    WelcomePanel() : newButton(Icons::New, "New patch", "Create a new empty patch")
+                   , openButton(Icons::Open, "Open patch...", "Open a saved patch")
+                    
+            
     {
-        newButton = std::make_unique<WelcomeButton>(Icons::New, "New patch", "Create a new empty patch");
-        openButton = std::make_unique<WelcomeButton>(Icons::Open, "Open patch...", "Open a saved patch");
-
-        addAndMakeVisible(newButton.get());
-        addAndMakeVisible(openButton.get());
+        addAndMakeVisible(newButton);
+        addAndMakeVisible(openButton);
+        addAndMakeVisible(recentlyOpened);
     }
 
     void resized() override
     {
-        newButton->setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(15, -30));
-        openButton->setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(15, 30));
+        newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -70));
+        openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -10));
+        
+        if(getHeight() > 400) {
+            recentlyOpened.setBounds(getLocalBounds().withSizeKeepingCentre(275, 160).translated(0, 110));
+            recentlyOpened.setVisible(true);
+        }
+        else {
+            recentlyOpened.setVisible(false);
+        }
     }
-
+            
+    void show()
+    {
+        recentlyOpened.update();
+        setVisible(true);
+    }
+            
+    void hide()
+    {
+        setVisible(false);
+    }
+            
     void paint(Graphics& g) override
     {
         auto styles = Font(32).getAvailableStyles();
 
         g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
 
-        Fonts::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+        Fonts::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 195, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
-        Fonts::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
+        Fonts::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 160, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
     }
 
-    std::unique_ptr<WelcomeButton> newButton;
-    std::unique_ptr<WelcomeButton> openButton;
+    WelcomeButton newButton;
+    WelcomeButton openButton;
+            
+    RecentlyOpenedListBox recentlyOpened;
 };
 
 class Canvas;
@@ -103,6 +201,7 @@ public:
     std::function<void(int)> onTabChange = [](int) {};
     std::function<void()> newTab = []() {};
     std::function<void()> openProject = []() {};
+    std::function<void(File&)> openProjectFile = [](File&) {};
     std::function<void(int tabIndex, String const& tabName)> rightClick = [](int tabIndex, String const& tabName) {};
 
     TabComponent()
@@ -118,14 +217,18 @@ public:
 
         addAndMakeVisible(welcomePanel);
 
-        welcomePanel.newButton->onClick = [this]() {
+        welcomePanel.newButton.onClick = [this]() {
             newTab();
         };
 
-        welcomePanel.openButton->onClick = [this]() {
+        welcomePanel.openButton.onClick = [this]() {
             openProject();
         };
-
+        
+        welcomePanel.recentlyOpened.onPatchOpen = [this](File patchFile) {
+            openProjectFile(patchFile);
+        };
+        
         setVisible(false);
         setTabBarDepth(0);
         tabs.get()->addMouseListener(this, true);
@@ -136,10 +239,10 @@ public:
         if (getNumTabs() == 0) {
             setTabBarDepth(0);
             getTabbedButtonBar().setVisible(false);
-            welcomePanel.setVisible(true);
+            welcomePanel.show();
         } else {
             getTabbedButtonBar().setVisible(true);
-            welcomePanel.setVisible(false);
+            welcomePanel.hide();
             setTabBarDepth(26);
             triggerAsyncUpdate();
         }
