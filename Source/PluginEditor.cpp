@@ -875,10 +875,23 @@ void PluginEditor::getAllCommands(Array<CommandID>& commands)
     for (int n = NewObject; n < NumEssentialObjects; n++) {
         commands.add(n);
     }
+    
+    commands.add(StandardApplicationCommandIDs::quit);
 }
 
 void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result)
 {
+    
+    if (commandID == StandardApplicationCommandIDs::quit)
+    {
+        result.setInfo (TRANS("Quit"),
+                        TRANS("Quits the application"),
+                        "Application", 0);
+
+        result.defaultKeypresses.add (KeyPress ('q', ModifierKeys::commandModifier, 0));
+        return;
+    }
+    
     bool hasObjectSelection = false;
     bool hasSelection = false;
     bool isDragging = false;
@@ -1203,6 +1216,14 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 bool PluginEditor::perform(InvocationInfo const& info)
 {
     switch (info.commandID) {
+    case StandardApplicationCommandIDs::quit: {
+        if(ProjectInfo::isStandalone) {
+            quit(true);
+            return true;
+        }
+        
+        return false;
+    }
     case CommandIDs::NewProject: {
         newProject();
         return true;
