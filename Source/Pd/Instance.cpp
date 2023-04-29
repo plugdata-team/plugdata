@@ -561,7 +561,7 @@ void Instance::enqueueDirectMessages(void* object, float const msg)
 void Instance::waitForStateUpdate()
 {
     // No action needed
-    if (m_function_queue.size_approx() == 0 || numLocksHeld > 0) {
+    if (m_function_queue.size_approx() == 0) {
         return;
     }    
 
