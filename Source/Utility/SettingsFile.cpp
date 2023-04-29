@@ -158,7 +158,7 @@ void SettingsFile::addToRecentlyOpened(File path)
 
         // Find oldest entry
         for (int i = 0; i < recentlyOpened.getNumChildren(); i++) {
-            auto time = static_cast<int>(recentlyOpened.getChild(i).getProperty("Time"));
+            auto time = static_cast<int64>(recentlyOpened.getChild(i).getProperty("Time"));
             if (time < minTime) {
                 minIdx = i;
                 minTime = time;
