@@ -683,7 +683,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
         }
 
-        g.fillRoundedRectangle(button.getLocalBounds().reduced(3).toFloat(), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
 
         int w = button.getWidth();
         int h = button.getHeight();

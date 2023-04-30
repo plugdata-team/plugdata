@@ -127,7 +127,7 @@ void Sidebar::resized()
     auto bounds = getLocalBounds();
     int buttonWidth = getWidth() / 4;
     
-    auto tabbarBounds = bounds.removeFromTop(30).reduced(0, 2);
+    auto tabbarBounds = bounds.removeFromTop(30).reduced(0, 1);
 
     consoleButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     browserButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
