@@ -60,7 +60,7 @@ public:
     LibraryLoadPanel()
     {
         listBox.setOutlineThickness(0);
-        listBox.setRowHeight(25);
+        listBox.setRowHeight(26);
 
         listBox.setModel(this);
         addAndMakeVisible(listBox);
@@ -231,7 +231,7 @@ private:
             changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
         }
 
-        auto addButtonBounds = listBox.getRowPosition(getNumRows(), false).translated(0, 5).withHeight(25);
+        auto addButtonBounds = listBox.getRowPosition(getNumRows(), false).translated(0, 5).withHeight(28);
         addButton.setBounds(addButtonBounds);
     }
 

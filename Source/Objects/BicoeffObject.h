@@ -195,7 +195,7 @@ public:
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-        g.setColour(object->findColour(PlugDataColour::outlineColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
         g.drawVerticalLine(filterX1 * getWidth(), 0, getHeight());
         g.drawVerticalLine(filterX2 * getWidth(), 0, getHeight());

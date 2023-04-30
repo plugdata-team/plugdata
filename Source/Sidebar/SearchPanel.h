@@ -20,7 +20,7 @@ public:
         : editor(pluginEditor)
     {
         listBox.setModel(this);
-        listBox.setRowHeight(28);
+        listBox.setRowHeight(26);
         listBox.setOutlineThickness(0);
         listBox.deselectAllRows();
 
@@ -198,7 +198,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 29, getWidth(), 29);
 
         auto colour = findColour(PlugDataColour::sidebarTextColourId);

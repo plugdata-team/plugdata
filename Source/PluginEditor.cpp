@@ -315,7 +315,7 @@ void PluginEditor::paint(Graphics& g)
         g.fillRect(0, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight());
     }
 
-    g.setColour(findColour(PlugDataColour::outlineColourId));
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight, 1.0f);
 }
 
@@ -721,7 +721,7 @@ void PluginEditor::addTab(Canvas* cnv)
     closeTabButton->setSize(28, 28);
 
     // Add the close button to the tab button
-    tabButton->setExtraComponent(closeTabButton, TabBarButton::beforeText);
+    tabButton->setExtraComponent(closeTabButton, TabBarButton::afterText);
 
     closeTabButton->onClick = [this, focusedTabbar, tabButton]() mutable {
         // We cant use the index from earlier because it might have changed!

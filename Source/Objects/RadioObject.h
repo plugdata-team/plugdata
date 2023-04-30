@@ -172,7 +172,7 @@ public:
 
         float size = (isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems);
 
-        g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
         for (int i = 1; i < numItems; i++) {
             if (isVertical) {

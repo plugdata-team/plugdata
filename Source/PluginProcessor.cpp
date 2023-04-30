@@ -1243,7 +1243,7 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
 
 Colour PluginProcessor::getOutlineColour()
 {
-    return lnf->findColour(PlugDataColour::outlineColourId);
+    return lnf->findColour(PlugDataColour::guiObjectInternalOutlineColour);
 }
 
 Colour PluginProcessor::getForegroundColour()

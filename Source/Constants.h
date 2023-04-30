@@ -84,6 +84,7 @@ enum PlugDataColour {
     toolbarTextColourId,
     toolbarActiveColourId,
     toolbarHoverColourId,
+    toolbarOutlineColourId,
 
     tabBackgroundColourId,
     tabTextColourId,
@@ -95,6 +96,7 @@ enum PlugDataColour {
     canvasDotsColourId,
 
     guiObjectBackgroundColourId,
+    guiObjectInternalOutlineColour,
     textObjectBackgroundColourId,
 
     objectOutlineColourId,
@@ -518,7 +520,7 @@ const std::map<ObjectIDs, String> objectNames {
 };
 
 struct Corners {
-    inline static float const windowCornerRadius = 7.5f;
+    inline static float const windowCornerRadius = 12.5f;
     inline static float const defaultCornerRadius = 6.0f;
     inline static float const smallCornerRadius = 4.0f;
     inline static float objectCornerRadius = 2.75f;

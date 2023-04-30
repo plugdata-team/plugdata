@@ -74,6 +74,11 @@ public:
         p.lineTo(isOpen() ? 1.0f : 0.0f, isOpen() ? 0.0f : 1.0f);
 
         auto arrowArea = area.reduced(5, 9).translated(4, 0).toFloat();
+        
+        if(!isOpen())
+        {
+            arrowArea = arrowArea.reduced(1);
+        }
 
         g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
         g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(arrowArea, true));
@@ -89,7 +94,7 @@ public:
     }
     int getItemHeight() const override
     {
-        return 24;
+        return 26;
     }
     var getDragSourceDescription() override
     {
@@ -355,7 +360,7 @@ public:
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
 
             auto y = getSelectedItem(0)->getItemPosition(true).getY();
-            auto selectedRect = Rectangle<float>(3.0f, y + 2.0f, getWidth() - 6.0f, 20.0f);
+            auto selectedRect = Rectangle<float>(3.0f, y + 2.0f, getWidth() - 6.0f, 22.0f);
 
             g.fillRoundedRectangle(selectedRect, Corners::defaultCornerRadius);
         }
@@ -486,7 +491,7 @@ public:
         : searchPath(directory)
     {
         listBox.setModel(this);
-        listBox.setRowHeight(28);
+        listBox.setRowHeight(32);
         listBox.setOutlineThickness(0);
         listBox.deselectAllRows();
 
@@ -836,10 +841,10 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 29, getWidth(), 29);
     }
 

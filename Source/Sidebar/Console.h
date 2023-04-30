@@ -143,7 +143,7 @@ public:
                 if (isSelected) {
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 2).toFloat(), Corners::defaultCornerRadius);
+                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 1).toFloat(), Corners::defaultCornerRadius);
 
                     bool connectedOnTop = false;
                     bool connectedOnBottom = false;
@@ -187,7 +187,7 @@ public:
                     textColour = Colours::red;
 
                 // Draw text
-                Fonts::drawFittedText(g, message, getLocalBounds().reduced(14, 2), textColour, numLines, 0.9f, 13);
+                Fonts::drawFittedText(g, message, getLocalBounds().reduced(14, 2), textColour, numLines, 0.9f, 14);
             }
         };
 

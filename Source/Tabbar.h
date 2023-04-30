@@ -208,8 +208,8 @@ public:
         : TabbedComponent(TabbedButtonBar::TabsAtTop)
     {
         addAndMakeVisible(newButton);
-        newButton.getProperties().set("FontScale", 0.4f);
-        newButton.getProperties().set("Style", "Icon");
+        newButton.getProperties().set("Style", "LargeIcon");
+        newButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         newButton.setTooltip("New patch");
         newButton.onClick = [this]() {
             newTab();
@@ -243,7 +243,7 @@ public:
         } else {
             getTabbedButtonBar().setVisible(true);
             welcomePanel.hide();
-            setTabBarDepth(26);
+            setTabBarDepth(30);
             triggerAsyncUpdate();
         }
     }
@@ -259,7 +259,7 @@ public:
         auto content = getLocalBounds();
 
         welcomePanel.setBounds(content);
-        newButton.setBounds(0, 0, depth, depth);
+        newButton.setBounds(3, -3, depth, depth + 6); // slighly offset to make it centred next to the tabs
 
         auto tabBounds = content.removeFromTop(depth).withTrimmedLeft(depth);
         tabs->setBounds(tabBounds);
@@ -278,15 +278,13 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
-        g.fillRect(getLocalBounds().removeFromTop(26));
+        g.fillRect(getLocalBounds().removeFromTop(30));
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, getTabBarDepth(), getWidth(), getTabBarDepth());
-
-        g.drawLine(Line<float>(getTabBarDepth() - 0.5f, 0, getTabBarDepth() - 0.5f, getTabBarDepth()), 1.0f);
 
         g.drawLine(0, 0, getWidth(), 0);
         g.drawLine(0, 0, 0, getBottom());
@@ -360,13 +358,13 @@ public:
 
             if (tabSnapshot.isNull() && (getParentWidth() != getWidth() || getNumTabs() > 1)) {
                 // Create ghost tab & hide dragged tab
-                currentTabBounds = tabs->getTabButton(clickedTabIndex)->getBounds().translated(getTabBarDepth(), 0);
-                tabSnapshot = createComponentSnapshot(currentTabBounds, true, 2.0f);
+                auto* tabButton = tabs->getTabButton(clickedTabIndex);
+                currentTabBounds = tabButton->getBounds().translated(getTabBarDepth(), 0);
                 
-                // Make sure the tab has a full outline
-                Graphics g(tabSnapshot);
-                g.setColour(findColour(PlugDataColour::outlineColourId));
-                g.drawRect(tabSnapshot.getBounds());
+                tabSnapshot = Image(Image::PixelFormat::ARGB, tabButton->getWidth(), tabButton->getHeight(), true);
+                
+                auto g = Graphics(tabSnapshot);
+                getLookAndFeel().drawTabButton(*tabButton, g, false, false);
                 
                 tabSnapshotBounds = currentTabBounds;
                 tabs->getTabButton(clickedTabIndex)->setVisible(false);

@@ -231,7 +231,7 @@ public:
         Point<float> point_c(left_x, centre_y - 5.0);
         triangle.addTriangle(point_a, point_b, point_c);
 
-        auto normalColour = object->findColour(PlugDataColour::objectOutlineColourId);
+        auto normalColour = object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
         auto highlightColour = object->findColour(PlugDataColour::objectSelectedOutlineColourId);
         bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
 

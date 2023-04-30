@@ -110,14 +110,14 @@ void Sidebar::paint(Graphics& g)
 
     // Background for buttons
     g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-    g.fillRect(0, 0, getWidth(), 26);
+    g.fillRect(0, 0, getWidth(), 30);
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::outlineColourId));
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(0, 0, getWidth(), 0);
-    g.drawLine(0, 26, getWidth(), 26);
+    g.drawLine(0, 30, getWidth(), 30);
     g.drawLine(0.0f, getHeight() - 29.5f, static_cast<float>(getWidth()), getHeight() - 29.5f);
     g.drawLine(0.5f, 0, 0.5f, getHeight() - 29.5f);
 }
@@ -125,8 +125,9 @@ void Sidebar::paintOverChildren(Graphics& g)
 void Sidebar::resized()
 {
     auto bounds = getLocalBounds();
-    auto tabbarBounds = bounds.removeFromTop(26);
     int buttonWidth = getWidth() / 4;
+    
+    auto tabbarBounds = bounds.removeFromTop(30).reduced(0, 2);
 
     consoleButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     browserButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));

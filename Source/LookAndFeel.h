@@ -16,21 +16,23 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
 
     { toolbarBackgroundColourId, { "Toolbar background", "toolbar_background", "Toolbar" } },
     { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
-    { toolbarHoverColourId, { "Toolbar Hover", "toolbar_hover", "Toolbar" } },
-    { toolbarActiveColourId, { "Toolbar Active Text", "toolbar_active", "Toolbar" } },
+    { toolbarHoverColourId, { "Toolbar hover", "toolbar_hover", "Toolbar" } },
+    { toolbarActiveColourId, { "Toolbar active text", "toolbar_active", "Toolbar" } },
+    { toolbarOutlineColourId, { "Toolbar outline colour", "toolbar_outline_colour", "Toolbar" } },
 
-    { tabBackgroundColourId, { "Tab Background", "tab_background", "Tabbar" } },
+    { tabBackgroundColourId, { "Tab background", "tabbar_background", "Tabbar" } },
 
     { tabTextColourId, { "Tab text", "tab_text", "Tabbar" } },
-    { activeTabBackgroundColourId, { "Active tab background", "active_tab_background", "Tabbar" } },
-    { activeTabTextColourId, { "Active tab text", "active_tab_text", "Tabbar" } },
+    { activeTabBackgroundColourId, { "Selected tab background", "selected_tab_background", "Tabbar" } },
+    { activeTabTextColourId, { "Selected tab text", "selected_tab_text", "Tabbar" } },
 
     { canvasBackgroundColourId, { "Canvas background", "canvas_background", "Canvas" } },
     { canvasTextColourId, { "Canvas text", "canvas_text", "Canvas" } },
-    { canvasDotsColourId, { "Canvas dots Colour", "canvas_dots", "Canvas" } },
+    { canvasDotsColourId, { "Canvas dots colour", "canvas_dots", "Canvas" } },
     { outlineColourId, { "Outline colour", "outline_colour", "Canvas" } },
 
     { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
+    { guiObjectInternalOutlineColour, { "GUI Object internal outline colour", "gui_internal_outline_colour", "Object" } },
     { textObjectBackgroundColourId, { "Text object background", "text_object_background", "Object" } },
     { commentTextColourId, { "Comment text colour", "comment_text_colour", "Object" } },
     { objectOutlineColourId, { "Object outline colour", "object_outline_colour", "Object" } },
@@ -351,7 +353,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
-        auto backgroundColour = findColour(shouldDrawButtonAsHighlighted || shouldDrawButtonAsDown || button.getToggleState() ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId);
+        bool active = shouldDrawButtonAsHighlighted || shouldDrawButtonAsDown || button.getToggleState();
+        
 
         auto cornerSize = Corners::defaultCornerRadius;
         auto flatOnLeft = button.isConnectedOnLeft();
@@ -360,8 +363,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
         auto flatOnBottom = button.isConnectedOnBottom();
 
         if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
+            auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId);
+            
             auto bounds = button.getLocalBounds().toFloat();
-            bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.2f)).translated(-0.5f, -0.25f);
+            bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f)).translated(-0.5f, -0.25f);
 
             backgroundColour = backgroundColour.contrasting(0.05f);
 
@@ -377,7 +382,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(backgroundColour);
             g.fillPath(path);
         } else {
-            auto bounds = button.getLocalBounds().toFloat().reduced(4.0f, 8.0f).translated(-0.5f, -0.25f);
+            auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+            auto bounds = button.getLocalBounds().toFloat().reduced(2.0f, 6.0f).translated(-0.5f, -0.25f);
 
             g.setColour(backgroundColour);
             g.fillRoundedRectangle(bounds, cornerSize);
@@ -500,7 +506,18 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
         // For large buttons, the icon should actually be smaller
         if (but.getProperties()["Style"] == "LargeIcon") {
-            return Fonts::getIconFont().withHeight(buttonHeight * 0.34f);
+            
+            auto flatOnLeft = but.isConnectedOnLeft();
+            auto flatOnRight = but.isConnectedOnRight();
+            auto flatOnTop = but.isConnectedOnTop();
+            auto flatOnBottom = but.isConnectedOnBottom();
+            
+            if(flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
+            {
+                return Fonts::getIconFont().withHeight(buttonHeight * 0.345f);
+            }
+            
+            return Fonts::getIconFont().withHeight(buttonHeight * 0.375f);
         }
 
         return { buttonHeight / 1.7f };
@@ -604,6 +621,40 @@ struct PlugDataLook : public LookAndFeel_V4 {
             minimiseButton->setBounds(x, titleBarY, buttonW, titleBarH);
         }
     }
+    
+    Rectangle<int> getTabButtonExtraComponentBounds (const TabBarButton& button, Rectangle<int>& textArea, Component& comp) override
+    {
+        Rectangle<int> extraComp;
+        
+        auto area = textArea.reduced(4);
+
+        auto orientation = button.getTabbedButtonBar().getOrientation();
+
+        if (button.getExtraComponentPlacement() == TabBarButton::beforeText)
+        {
+            switch (orientation)
+            {
+                case TabbedButtonBar::TabsAtBottom:
+                case TabbedButtonBar::TabsAtTop:     extraComp = area.removeFromLeft   (comp.getWidth()); break;
+                case TabbedButtonBar::TabsAtLeft:    extraComp = area.removeFromBottom (comp.getHeight()); break;
+                case TabbedButtonBar::TabsAtRight:   extraComp = area.removeFromTop    (comp.getHeight()); break;
+                default:                             jassertfalse; break;
+            }
+        }
+        else
+        {
+            switch (orientation)
+            {
+                case TabbedButtonBar::TabsAtBottom:
+                case TabbedButtonBar::TabsAtTop:     extraComp = area.removeFromRight  (comp.getWidth()); break;
+                case TabbedButtonBar::TabsAtLeft:    extraComp = area.removeFromTop    (comp.getHeight()); break;
+                case TabbedButtonBar::TabsAtRight:   extraComp = area.removeFromBottom (comp.getHeight()); break;
+                default:                             jassertfalse; break;
+            }
+        }
+
+        return extraComp;
+    }
 
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
     {
@@ -619,19 +670,25 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
         bool isActive = button.getToggleState();
-        g.setColour(findColour(isActive ? PlugDataColour::activeTabBackgroundColourId : PlugDataColour::tabBackgroundColourId));
+        
+        if(isActive)
+        {
+            g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
+        }
+        else if(isMouseOver)
+        {
+            g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId).interpolatedWith(findColour(PlugDataColour::tabBackgroundColourId), 0.4f));
+        }
+        else {
+            g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
+        }
 
-        g.fillRect(button.getLocalBounds());
+        g.fillRoundedRectangle(button.getLocalBounds().reduced(3).toFloat(), Corners::defaultCornerRadius);
 
         int w = button.getWidth();
         int h = button.getHeight();
-
-        if (button.getIndex() != button.getTabbedButtonBar().getNumTabs() - 1) {
-            g.setColour(button.findColour(PlugDataColour::outlineColourId));
-            g.drawLine(Line<float>(w - 0.5f, 0, w - 0.5f, h), 1.0f);
-        }
-
-        drawTabButtonText(button, g, isMouseOver, isMouseDown);
+        
+        drawTabButtonText(button, g, false, false);
     }
 
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override
@@ -640,7 +697,28 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Font getTabButtonFont(TabBarButton&, float height) override
     {
-        return Fonts::getCurrentFont().withHeight(height * 0.47f);
+        return Fonts::getCurrentFont().withHeight(height * 0.44f);
+    }
+    
+    void getIdealPopupMenuItemSize (const String& text, const bool isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override
+    {
+        if (isSeparator)
+        {
+            idealWidth = 50;
+            idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight / 10 : 10;
+        }
+        else
+        {
+            auto font = getPopupMenuFont();
+
+            if (standardMenuItemHeight > 0 && font.getHeight() > (float) standardMenuItemHeight / 1.3f)
+                font.setHeight ((float) standardMenuItemHeight / 1.3f);
+
+            idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt (font.getHeight() * 1.3f);
+            idealWidth = font.getStringWidth (text) + idealHeight * 2;
+            
+            idealHeight += 2;
+        }
     }
 
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override
@@ -1171,11 +1249,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
     // clang-format off
     static inline const String defaultThemesXml = "<ColourThemes>\n"
     "    <Theme theme=\"max\" toolbar_background=\"ff333333\" toolbar_text=\"ffe4e4e4\"\n"
-    "           toolbar_active=\"ff72aedf\" toolbar_hover=\"ff72aedf\" tab_background=\"ff333333\"\n"
-    "           tab_text=\"ffe4e4e4\" active_tab_background=\"ff494949\" active_tab_text=\"ff72aedf\"\n"
+    "           toolbar_active=\"ff72aedf\" toolbar_hover=\"ff72aedf\" tabbar_background=\"ff333333\"\n"
+    "           tab_text=\"ffe4e4e4\" selected_tab_background=\"ff494949\" selected_tab_text=\"ff72aedf\"\n"
     "           canvas_background=\"ffe5e5e5\" canvas_text=\"ffeeeeee\" canvas_dots=\"ff7f7f7f\"\n"
     "           default_object_background=\"ff333333\" object_outline_colour=\"ff696969\"\n"
-    "           selected_object_outline_colour=\"ff72aedf\" outline_colour=\"ff393939\"\n"
+    "           selected_object_outline_colour=\"ff72aedf\" gui_internal_outline_colour=\"ff696969\" toolbar_outline_colour=\"ff393939\" outline_colour=\"ff393939\"\n"
     "           data_colour=\"ff72aedf\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffe1ef00\"\n"
     "           dialog_background=\"ff333333\" sidebar_colour=\"ff3e3e3e\" sidebar_text=\"ffe4e4e4\"\n"
     "           sidebar_background_active=\"ff72aedf\" sidebar_active_text=\"ffe4e4e4\"\n"
@@ -1190,12 +1268,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           searchbar_colour=\"ff3e3e3e\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"1\"/>\n"
     "    <Theme theme=\"classic\" toolbar_background=\"ffffffff\" toolbar_text=\"ff000000\"\n"
-    "           toolbar_active=\"ff787878\" toolbar_hover=\"ffaaaaaa\" tab_background=\"ffffffff\"\n"
-    "           tab_text=\"ff000000\" active_tab_background=\"ffffffff\" active_tab_text=\"ff000000\"\n"
+    "           toolbar_active=\"ff787878\" toolbar_hover=\"ffaaaaaa\" tabbar_background=\"ffffffff\"\n"
+    "           tab_text=\"ff000000\" selected_tab_background=\"ffffffff\" selected_tab_text=\"ff000000\"\n"
     "           canvas_background=\"ffffffff\" canvas_text=\"ff000000\" canvas_dots=\"ffffffff\"\n"
     "           default_object_background=\"ffffffff\" text_object_background=\"ffffffff\"\n"
     "           object_outline_colour=\"ff000000\" selected_object_outline_colour=\"ff000000\"\n"
-    "           outline_colour=\"ff000000\" iolet_area_colour=\"ffffffff\" iolet_outline_colour=\"ff000000\"\n"
+    "           gui_internal_outline_colour=\"ff000000\" toolbar_outline_colour=\"ff000000\" outline_colour=\"ff000000\" iolet_area_colour=\"ffffffff\" iolet_outline_colour=\"ff000000\"\n"
     "           data_colour=\"ff000000\" connection_colour=\"ff000000\" signal_colour=\"ff000000\"\n"
     "           dialog_background=\"ffffffff\" sidebar_colour=\"ffffffff\" sidebar_text=\"ff000000\"\n"
     "           sidebar_background_active=\"ff000000\" sidebar_active_text=\"ffffffff\"\n"
@@ -1209,11 +1287,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           dashed_signal_connections=\"0\" straight_connections=\"1\"\n"
     "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"1\"/>\n"
     "    <Theme theme=\"classic_dark\" toolbar_background=\"ff000000\" toolbar_text=\"ffffffff\"\n"
-    "           toolbar_active=\"ff787878\" toolbar_hover=\"ff888888\" tab_background=\"ff000000\"\n"
-    "           tab_text=\"ffffffff\" active_tab_background=\"ff000000\" active_tab_text=\"ffffffff\"\n"
+    "           toolbar_active=\"ff787878\" toolbar_hover=\"ff888888\" tabbar_background=\"ff000000\"\n"
+    "           tab_text=\"ffffffff\" selected_tab_background=\"ff000000\" selected_tab_text=\"ffffffff\"\n"
     "           canvas_background=\"ff000000\" canvas_text=\"ffffffff\" canvas_dots=\"ff000000\"\n"
     "           default_object_background=\"ff000000\" object_outline_colour=\"ffffffff\"\n"
-    "           selected_object_outline_colour=\"ffffffff\" outline_colour=\"ffffffff\"\n"
+    "           selected_object_outline_colour=\"ffffffff\" gui_internal_outline_colour=\"ffffffff\" toolbar_outline_colour=\"ffffffff\" outline_colour=\"ffffffff\"\n"
     "           data_colour=\"ffffffff\" connection_colour=\"ffffffff\" signal_colour=\"ffffffff\"\n"
     "           dialog_background=\"ff000000\" sidebar_colour=\"ff000000\" sidebar_text=\"ffffffff\"\n"
     "           sidebar_background_active=\"ffffffff\" sidebar_active_text=\"ff000000\"\n"
@@ -1228,11 +1306,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           searchbar_colour=\"ff000000\" dashed_signal_connections=\"0\" straight_connections=\"1\"\n"
     "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"1\"/>\n"
     "    <Theme theme=\"dark\" toolbar_background=\"ff191919\" toolbar_text=\"ffe1e1e1\"\n"
-    "           toolbar_active=\"ff42a2c8\" toolbar_hover=\"ff282828\" tab_background=\"ff191919\"\n"
-    "           tab_text=\"ffe1e1e1\" active_tab_background=\"ff232323\" active_tab_text=\"ffe1e1e1\"\n"
+    "           toolbar_active=\"ff42a2c8\" toolbar_hover=\"ff282828\" tabbar_background=\"ff191919\"\n"
+    "           tab_text=\"ffe1e1e1\" selected_tab_background=\"ff2e2e2e\" selected_tab_text=\"ffe1e1e1\"\n"
     "           canvas_background=\"ff232323\" canvas_text=\"ffe1e1e1\" canvas_dots=\"ff7f7f7f\"\n"
     "           default_object_background=\"ff191919\" object_outline_colour=\"ff696969\"\n"
-    "           selected_object_outline_colour=\"ff42a2c8\" outline_colour=\"ff393939\"\n"
+    "           selected_object_outline_colour=\"ff42a2c8\" gui_internal_outline_colour=\"ff696969\" toolbar_outline_colour=\"ff2f2f2f\" outline_colour=\"ff393939\"\n"
     "           data_colour=\"ff42a2c8\" connection_colour=\"ffe1e1e1\" signal_colour=\"ffff8500\"\n"
     "           dialog_background=\"ff191919\" sidebar_colour=\"ff191919\" sidebar_text=\"ffe1e1e1\"\n"
     "           sidebar_background_active=\"ff282828\" sidebar_active_text=\"ffe1e1e1\"\n"
@@ -1246,39 +1324,39 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           iolet_outline_colour=\"ff696969\" comment_text_colour=\"ffe1e1e1\"\n"
     "           searchbar_colour=\"ff232323\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
-    "    <Theme theme=\"light\" toolbar_background=\"ffebebeb\" toolbar_text=\"ff5a5a5a\"\n"
-    "           toolbar_active=\"ff007aff\" toolbar_hover=\"ffd9d9d9\" tab_background=\"ffe4e4e4\"\n"
-    "           tab_text=\"ff5a5a5a\" active_tab_background=\"fffafafa\" active_tab_text=\"ff5a5a5a\"\n"
-    "           canvas_background=\"fffafafa\" canvas_text=\"ff5a5a5a\" canvas_dots=\"ff909090\"\n"
+    "    <Theme theme=\"light\" toolbar_background=\"ffebebeb\" toolbar_text=\"ff4d4d4d\"\n"
+    "           toolbar_active=\"ff007aff\" toolbar_hover=\"ffd9d9d9\" tabbar_background=\"ffebebeb\"\n"
+    "           tab_text=\"ff4d4d4d\" selected_tab_background=\"ffdbdbdb\" selected_tab_text=\"ff4d4d4d\"\n"
+    "           canvas_background=\"fffafafa\" canvas_text=\"ff4d4d4d\" canvas_dots=\"ff909090\"\n"
     "           default_object_background=\"ffe4e4e4\" object_outline_colour=\"ffa8a8a8\"\n"
-    "           selected_object_outline_colour=\"ff007aff\" outline_colour=\"ffc8c8c8\"\n"
+    "           selected_object_outline_colour=\"ff007aff\" gui_internal_outline_colour=\"ffa8a8a8\" toolbar_outline_colour=\"ffd6d6d6\" outline_colour=\"ffc8c8c8\"\n"
     "           data_colour=\"ff007aff\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\"\n"
-    "           dialog_background=\"ffe4e4e4\" sidebar_colour=\"ffefefef\" sidebar_text=\"ff5a5a5a\"\n"
-    "           sidebar_background_active=\"ffdfdfdf\" sidebar_active_text=\"ff5a5a5a\"\n"
-    "           levelmeter_active=\"ff007aff\" levelmeter_inactive=\"ffeeeeee\" levelmeter_track=\"ff5a5a5a\"\n"
-    "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"fffafafa\" panel_text=\"ff5a5a5a\"\n"
-    "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
+    "           dialog_background=\"ffe4e4e4\" sidebar_colour=\"ffefefef\" sidebar_text=\"ff4d4d4d\"\n"
+    "           sidebar_background_active=\"ffdfdfdf\" sidebar_active_text=\"ff4d4d4d\"\n"
+    "           levelmeter_active=\"ff007aff\" levelmeter_inactive=\"ffeeeeee\" levelmeter_track=\"ff4d4d4d\"\n"
+    "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"fffafafa\" panel_text=\"ff4d4d4d\"\n"
+    "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff4d4d4d\"\n"
     "           popup_background=\"ffe6e6e6\" popup_background_active=\"ffd5d5d5\"\n"
-    "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" slider_thumb=\"ff007aff\"\n"
+    "           popup_text=\"ff4d4d4d\" popup_active_text=\"ff4d4d4d\" slider_thumb=\"ff007aff\"\n"
     "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff007aff\" grid_colour=\"ff007aff\"\n"
     "           caret_colour=\"ff007aff\" square_object_corners=\"0\"\n"
     "           text_object_background=\"fffafafa\" iolet_area_colour=\"fffafafa\"\n"
-    "           iolet_outline_colour=\"ffa8a8a8\" comment_text_colour=\"ff5a5a5a\"\n"
+    "           iolet_outline_colour=\"ffa8a8a8\" comment_text_colour=\"ff4d4d4d\"\n"
     "           searchbar_colour=\"fffafafa\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"0\" square_iolets=\"0\"/>\n"
     "    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
-    "           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffc0bbb2\" tab_background=\"ffd2cdc4\"\n"
-    "           tab_text=\"ff5a5a5a\" active_tab_background=\"ffdedad3\" active_tab_text=\"ff5a5a5a\"\n"
+    "           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffc0bbb2\" tabbar_background=\"ffd2cdc4\"\n"
+    "           tab_text=\"ff5a5a5a\" selected_tab_background=\"ffc0bbb2\" selected_tab_text=\"ff5a5a5a\"\n"
     "           canvas_background=\"ffe3dfd9\" canvas_text=\"ff5a5a5a\" canvas_dots=\"ff909090\"\n"
     "           default_object_background=\"ffe3dfd9\" object_outline_colour=\"ff968e82\"\n"
-    "           selected_object_outline_colour=\"ff5da0c4\" outline_colour=\"ff968e82\"\n"
+    "           selected_object_outline_colour=\"ff5da0c4\" gui_internal_outline_colour=\"ff968e82\" toolbar_outline_colour=\"ffbdb3a4\" outline_colour=\"ff968e82\"\n"
     "           data_colour=\"ff5da0c4\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8502\"\n"
     "           dialog_background=\"ffd2cdc4\" sidebar_colour=\"ffdedad3\" sidebar_text=\"ff5a5a5a\"\n"
     "           sidebar_background_active=\"ffefefef\" sidebar_active_text=\"ff5a5a5a\"\n"
     "           levelmeter_active=\"ff5da0c4\" levelmeter_inactive=\"ffd2cdc4\" levelmeter_track=\"ff5a5a5a\"\n"
     "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"ffe3dfd9\" panel_text=\"ff5a5a5a\"\n"
     "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
-    "           popup_background=\"ffd2cdc4\" popup_background_active=\"ffdedad3\"\n"
+    "           popup_background=\"ffd2cdc4\" popup_background_active=\"ffc0bbb2\"\n"
     "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" slider_thumb=\"ff5da0c4\"\n"
     "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff5da0c4\" grid_colour=\"ff5da0c4\"\n"
     "           caret_colour=\"ff5da0c4\" iolet_area_colour=\"ffe3dfd9\" iolet_outline_colour=\"ff968e82\"\n"
@@ -1286,11 +1364,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           searchbar_colour=\"ffe3dfd9\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
     "    <Theme theme=\"fangs\" toolbar_background=\"ff232323\" toolbar_text=\"ffffffff\"\n"
-    "           toolbar_active=\"ff5bcefa\" toolbar_hover=\"ff383838\" tab_background=\"ff232323\"\n"
-    "           tab_text=\"ffffffff\" active_tab_background=\"ff3a3a3a\" active_tab_text=\"ffffffff\"\n"
+    "           toolbar_active=\"ff5bcefa\" toolbar_hover=\"ff383838\" tabbar_background=\"ff232323\"\n"
+    "           tab_text=\"ffffffff\" selected_tab_background=\"ff3a3a3a\" selected_tab_text=\"ffffffff\"\n"
     "           canvas_background=\"ff383838\" canvas_text=\"ffffffff\" canvas_dots=\"ffa0a0a0\"\n"
     "           default_object_background=\"ff191919\" object_outline_colour=\"ff383838\"\n"
-    "           selected_object_outline_colour=\"ffffacab\" outline_colour=\"ff575757\"\n"
+    "           selected_object_outline_colour=\"ffffacab\" gui_internal_outline_colour=\"ff626262\" toolbar_outline_colour=\"ff343434\" outline_colour=\"ff383838\"\n"
     "           data_colour=\"ff5bcefa\" connection_colour=\"ffa0a0a0\" signal_colour=\"ffffacab\"\n"
     "           dialog_background=\"ff191919\" sidebar_colour=\"ff232323\" sidebar_text=\"ffffffff\"\n"
     "           sidebar_background_active=\"ff383838\" sidebar_active_text=\"ffffffff\"\n"
@@ -1322,6 +1400,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         selectedThemes = { "light", "dark" };
     }
+    
 
     static Colour getThemeColour(ValueTree themeTree, PlugDataColour colourId)
     {

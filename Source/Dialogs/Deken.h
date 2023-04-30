@@ -842,7 +842,7 @@ private:
             installButton.setBounds(getWidth() - 40, 1, 26, 30);
             uninstallButton.setBounds(getWidth() - 40, 1, 26, 30);
             reinstallButton.setBounds(getWidth() - 70, 1, 26, 30);
-            addToPathButton.setBounds(getWidth() - 100, 1, 26, 30);
+            addToPathButton.setBounds(getWidth() - 100, 1, 28, 30);
         }
     };
 };

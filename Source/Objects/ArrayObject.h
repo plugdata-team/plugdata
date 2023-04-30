@@ -216,7 +216,7 @@ public:
                 if (invert)
                     p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
-                g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
                 g.strokePath(p, PathStrokeType(1));
                 break;
             }
@@ -237,12 +237,12 @@ public:
                 if (invert)
                     p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
-                g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
                 g.fillPath(p);
                 break;
             }
             case PdArray::DrawType::Points: {
-                g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
                 float const dw_points = w / static_cast<float>(points.size());
 

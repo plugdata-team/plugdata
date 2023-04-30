@@ -480,7 +480,7 @@ public:
             y += height;
         }
 
-        addParameterButton.setBounds(0, y, getWidth(), 26);
+        addParameterButton.setBounds(0, y, getWidth(), 28);
     }
 
     int getNumEnabled()

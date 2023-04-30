@@ -134,7 +134,7 @@ public:
         g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
         g.drawRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
-        g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         g.drawRoundedRectangle(bounds.reduced(6), Corners::objectCornerRadius, 1.5f);
 
         if (state) {
