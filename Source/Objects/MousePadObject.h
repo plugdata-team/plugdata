@@ -7,7 +7,8 @@
 // ELSE mousepad
 class MousePadObject final : public ObjectBase {
     bool isPressed = false;
-
+        
+   
     Point<int> lastPosition;
 
     typedef struct _pad {
@@ -27,8 +28,80 @@ class MousePadObject final : public ObjectBase {
 
 public:
     MousePadObject(void* ptr, Object* object)
-        : ObjectBase(ptr, object)
+        : ObjectBase(ptr, object), mouseListener(this)
     {
+        mouseListener.globalMouseDown = [this, object](const MouseEvent& e){
+            
+            auto relativeEvent = e.getEventRelativeTo(this);
+
+            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !object->cnv->isShowing() || isPressed)
+                return;
+
+            pd->setThis();
+
+            auto* x = static_cast<t_pad*>(this->ptr);
+            t_atom at[3];
+
+            x->x_x = relativeEvent.getPosition().x;
+            x->x_y = getHeight() - relativeEvent.getPosition().y;
+
+            SETFLOAT(at, 1.0f);
+            sys_lock();
+            outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
+            sys_unlock();
+
+            isPressed = true;
+            
+        };
+        mouseListener.globalMouseUp = [this](const MouseEvent& e){
+            
+            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed) || !isLocked())
+                return;
+
+            auto* x = static_cast<t_pad*>(this->ptr);
+            t_atom at[1];
+            SETFLOAT(at, 0);
+            outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
+            isPressed = false;
+            
+        };
+
+        mouseListener.globalMouseMove = [this](const MouseEvent& e){
+            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked())
+                return;
+
+            auto* x = static_cast<t_pad*>(this->ptr);
+
+            auto relativeEvent = e.getEventRelativeTo(this);
+
+            // Don't repeat values
+            if (relativeEvent.getPosition() == lastPosition)
+                return;
+
+            int xPos = relativeEvent.getPosition().x;
+            int yPos = getHeight() - relativeEvent.getPosition().y;
+
+            lastPosition = relativeEvent.getPosition();
+
+            pd->setThis();
+
+            pd->enqueueFunction([x, xPos, yPos]() {
+                x->x_x = xPos;
+                x->x_y = yPos;
+
+                t_atom at[3];
+                SETFLOAT(at, xPos);
+                SETFLOAT(at + 1, yPos);
+
+                outlet_anything(x->x_obj.ob_outlet, gensym("list"), 2, at);
+            });
+        };
+        
+        mouseListener.globalMouseDrag = [this](const MouseEvent& e){
+            mouseListener.globalMouseMove(e);
+        };
+        
+        setInterceptsMouseClicks(false, false);
     }
 
     ~MousePadObject()
@@ -47,78 +120,6 @@ public:
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     };
-
-    void mouseDown(MouseEvent const& e) override
-    {
-        auto relativeEvent = e.getEventRelativeTo(this);
-
-        if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !object->cnv->isShowing() || isPressed)
-            return;
-
-        pd->setThis();
-
-        auto* x = static_cast<t_pad*>(ptr);
-        t_atom at[3];
-
-        x->x_x = relativeEvent.getPosition().x;
-        x->x_y = getHeight() - relativeEvent.getPosition().y;
-
-        SETFLOAT(at, 1.0f);
-        sys_lock();
-        outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
-        sys_unlock();
-
-        isPressed = true;
-    }
-
-    void mouseDrag(MouseEvent const& e) override
-    {
-        mouseMove(e);
-    }
-
-    void mouseMove(MouseEvent const& e) override
-    {
-        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked())
-            return;
-
-        auto* x = static_cast<t_pad*>(ptr);
-
-        auto relativeEvent = e.getEventRelativeTo(this);
-
-        // Don't repeat values
-        if (relativeEvent.getPosition() == lastPosition)
-            return;
-
-        int xPos = relativeEvent.getPosition().x;
-        int yPos = getHeight() - relativeEvent.getPosition().y;
-
-        lastPosition = { xPos, yPos };
-
-        pd->setThis();
-
-        pd->enqueueFunction([x, xPos, yPos]() {
-            x->x_x = xPos;
-            x->x_y = yPos;
-
-            t_atom at[3];
-            SETFLOAT(at, xPos);
-            SETFLOAT(at + 1, yPos);
-
-            outlet_anything(x->x_obj.ob_outlet, gensym("list"), 2, at);
-        });
-    }
-
-    void mouseUp(MouseEvent const& e) override
-    {
-        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed) || !isLocked())
-            return;
-
-        auto* x = static_cast<t_pad*>(ptr);
-        t_atom at[1];
-        SETFLOAT(at, 0);
-        outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
-        isPressed = false;
-    }
 
     void setPdBounds(Rectangle<int> b) override
     {
@@ -171,4 +172,6 @@ public:
             break;
         }
     }
+    
+    GlobalMouseListener mouseListener;
 };

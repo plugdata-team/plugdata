@@ -442,7 +442,6 @@ public:
 
     ~CanvasMouseObject()
     {
-
         pd->unregisterMessageListener(ptr, this);
         if (!cnv)
             return;

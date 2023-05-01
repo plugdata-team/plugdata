@@ -297,13 +297,19 @@ public:
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
+        // Check event time to filter out duplicate events
+        // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
+        if(e.eventTime == lastScrollTime) return;
+            
         if (e.mods.isCommandDown() && !(editor->pd->isInPluginMode() || cnv->isPalette)) {
             mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
         }
+ 
         Viewport::mouseWheelMove(e, wheel);
+        lastScrollTime = e.eventTime;
     }
 
-    void mouseMagnify(MouseEvent const& e, float scrollFactor)
+    void mouseMagnify(MouseEvent const& e, float scrollFactor) override
     {
         if (!cnv)
             return;
@@ -380,6 +386,8 @@ public:
     std::function<void()> onScroll = []() {};
 
 private:
+    
+    Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;
     MousePanner panner = MousePanner(this);
