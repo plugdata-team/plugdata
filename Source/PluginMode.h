@@ -21,7 +21,7 @@ public:
         // Set zoom value and update synchronously
         cnv->zoomScale.setValue(1.0f);
         cnv->zoomScale.getValueSource().sendChangeMessage(true);
-        
+
         nativeTitleBarHeight = ProjectInfo::isStandalone ? desktopWindow->getFrameSize().getTop() : 0;
 
         // Titlebar
@@ -36,16 +36,16 @@ public:
         {
             closePluginMode();
         };
-        
+
         titleBar.addAndMakeVisible(*editorButton);
 
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
         setInterceptsMouseClicks(false, false);
-        
+
         // Add this view to the editor
         editor->addAndMakeVisible(this);
-        
+
         if (ProjectInfo::isStandalone) {
             borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(editor->getTopLevelComponent(), &pluginModeConstrainer);
             borderResizer->setAlwaysOnTop(true);
@@ -56,7 +56,7 @@ public:
             cornerResizer->setAlwaysOnTop(true);
             addAndMakeVisible(cornerResizer.get());
         }
-        
+
         if (ProjectInfo::isStandalone) {
             fullscreenButton = std::make_unique<TextButton>(Icons::Fullscreen);
             fullscreenButton->getProperties().set("Style", "LargeIcon");
@@ -64,9 +64,20 @@ public:
             fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
             fullscreenButton->onClick = [this](){
                 auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
-                window->maximiseButtonPressed();
-                resized();
-                editor->resized();
+                // will have to have a linux / macos / windows version?
+                // this is only for testing
+
+                // Fix for Linux:
+                originalNativeTitlebarMode = window->isUsingNativeTitleBar();
+                originalPluginWindowBounds = getBounds();
+                // we have to set this to true BEFORE calling set using native titlebar
+                // otherwise the resize and parent size changed functions will call into
+                // linux window functions, and that will cause a crash
+                isFullscreenKioskMode = true;
+                window->setUsingNativeTitleBar(false);
+                desktopWindow = editor->getPeer();
+                window->setFullscreenKiosk(true);
+                editor->setBounds(window->getBounds());
             };
             titleBar.addAndMakeVisible(*fullscreenButton);
         }
@@ -88,7 +99,7 @@ public:
         cnv->setTopLeftPosition(-cnv->canvasOrigin);
 
         pluginModeConstrainer.setSizeLimits(width / 2, height / 2 + titlebarHeight, width * 10, height * 10 + titlebarHeight);
-        
+
         editor->setConstrainer(&pluginModeConstrainer);
 
         // Set editor bounds
@@ -115,7 +126,7 @@ public:
             cnv->locked = originalLockedMode;
             cnv->presentationMode = originalPresentationMode;
         }
-        
+
         MessageManager::callAsync([
             editor = this->editor,
             bounds = windowBounds
@@ -129,18 +140,21 @@ public:
         // Destroy this view
         editor->pluginMode.reset(nullptr);
     }
-    
-    
+
     bool isWindowFullscreen()
     {
         if(ProjectInfo::isStandalone) {
 #if JUCE_LINUX
-            return OSUtils::isMaximised(desktopWindow->getNativeHandle());
+        // LINUX ONLY: if we check for fullscreen when in kiosk mode this will crash plugdata
+        // kiosk mode in Linux is only making a non-native window the screen bounds
+        if (isFullscreenKioskMode)
+            return true;
+        return OSUtils::isMaximised(desktopWindow->getNativeHandle());
 #else
             return desktopWindow->isFullScreen();
 #endif
         }
-        
+
         return false;
     }
 
@@ -152,7 +166,7 @@ public:
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
             // Fill background for Fullscreen / Kiosk Mode
             g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-            g.fillRect(editor->getTopLevelComponent()->getBounds());
+            g.fillRect(editor->getTopLevelComponent()->getLocalBounds());
             return;
         }
 
@@ -175,7 +189,7 @@ public:
         g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawText(cnv->patch.getTitle().upToLastOccurrenceOf(".pd", false, true), titleBar.getBounds(), Justification::centred);
     }
-    
+
     void resized() override
     {
         float const controlsHeight = isWindowFullscreen() ? 0 : titlebarHeight;
@@ -183,23 +197,23 @@ public:
         float const resizeRatio = width / (height + (controlsHeight / scale));
 
         pluginModeConstrainer.setFixedAspectRatio(resizeRatio);
-        
+
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
             // Calculate the scale factor required to fit the editor in the screen
             float const scaleX = static_cast<float>(getWidth()) / width;
             float const scaleY = static_cast<float>(getHeight()) / height;
             float const scale = jmin(scaleX, scaleY);
-            
+
             // Calculate the position of the editor after scaling
             int const scaledWidth = static_cast<int>(width * scale);
             int const scaledHeight = static_cast<int>(height * scale);
             int const x = (getWidth() - scaledWidth) / 2;
             int const y = (getHeight() - scaledHeight) / 2;
-            
+
             // Apply the scale and position to the editor
             content.setTransform(content.getTransform().scale(scale));
             content.setTopLeftPosition(x / scale, y / scale);
-            
+
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
         }
@@ -214,7 +228,7 @@ public:
                     getHeight() - resizerSize,
                     resizerSize, resizerSize);
             }
-            
+
             content.setTransform(content.getTransform().scale(scale));
             content.setTopLeftPosition(0, titlebarHeight / scale);
 
@@ -275,11 +289,21 @@ public:
 
     bool keyPressed(KeyPress const& key) override
     {
-        grabKeyboardFocus();
-        if (key.getModifiers().isAnyModifierKeyDown()) {
-            // Block All Modifiers
+        if (isFullscreenKioskMode && key == KeyPress::escapeKey) {
+            auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
+
+            window->setFullscreenKiosk(false);
+            window->setUsingNativeTitleBar(originalNativeTitlebarMode);
+            isFullscreenKioskMode = false;
+            window->resized();
+            editor->setBounds(originalPluginWindowBounds);
             return true;
         } else {
+            grabKeyboardFocus();
+            if (key.getModifiers().isAnyModifierKeyDown()) {
+                // Block All Modifiers
+                return true;
+            }
             // Pass other keypresses on to the editor
             return false;
         }
@@ -299,7 +323,7 @@ private:
     Component content;
 
     ComponentDragger windowDragger;
-        
+
     ComponentBoundsConstrainer pluginModeConstrainer;
 
     Point<int> originalCanvasPos;
@@ -307,9 +331,14 @@ private:
     bool originalLockedMode;
     bool originalPresentationMode;
 
+    bool originalNativeTitlebarMode;
+    Rectangle<int> originalPluginWindowBounds;
+
+    bool isFullscreenKioskMode = false;
+
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
-    
+
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
 
