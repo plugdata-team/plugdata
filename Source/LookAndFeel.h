@@ -766,7 +766,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             auto r = area.reduced(margin + 5, 0);
             r.removeFromTop(roundToInt(((float)r.getHeight() * 0.5f) - 0.5f));
 
-            g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(0.8f));
+            g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(0.6f));
             g.fillRect(r.removeFromTop(1));
         } else {
             auto r = area.reduced(margin, 1);

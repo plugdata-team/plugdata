@@ -27,7 +27,7 @@ public:
         auto menuMargin = getLookAndFeel().getPopupMenuBorderSize();
         
         // Apply a slight offset to the menu so we have enough space for the arrow...
-        menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, 1 - (menuMargin - 3)));
+        menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, menuMargin - 3));
         
         if(parent)
         {
@@ -49,7 +49,11 @@ public:
     {
         auto localArea = getLocalArea(targetComponent, targetComponent->getLocalBounds());
 
-        auto menuMargin = getLookAndFeel().getPopupMenuBorderSize() - 2.5f;
+        auto margin = getLookAndFeel().getPopupMenuBorderSize();
+        
+        // Heuristic to make it align for all popup menu margins
+        auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, 0.5f, 2.5f);
+        
         auto arrowHeight = 12;
         auto arrowWidth = 22;
         auto arrowX = localArea.getX() + targetComponent->getWidth() / 2 - arrowWidth / 2;
