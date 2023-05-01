@@ -18,9 +18,9 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    void attachToMenu(Component* menuToAttachTo)
+    void attachToMenu(Component* menuToAttachTo, Component* parent)
     {
-        addToDesktop(ComponentPeer::windowIsTemporary);
+        
         setAlwaysOnTop(true);
         setVisible(true);
         
@@ -29,8 +29,19 @@ public:
         // Apply a slight offset to the menu so we have enough space for the arrow...
         menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, -(menuMargin - 3)));
         
-        setBounds(targetComponent->getScreenBounds().getUnion(menuToAttachTo->getScreenBounds().removeFromTop(menuMargin + 1)));
-        
+        if(parent)
+        {
+            auto targetBounds = parent->getLocalArea(targetComponent, targetComponent->getLocalBounds());
+            auto menuTop = parent->getLocalArea(menuToAttachTo, menuToAttachTo->getLocalBounds()).removeFromTop(menuMargin + 1);
+            parent->addAndMakeVisible(this);
+            setBounds(targetBounds.getUnion(menuTop));
+        }
+        else
+        {
+            addToDesktop(ComponentPeer::windowIsTemporary);
+            setBounds(targetComponent->getScreenBounds().getUnion(menuToAttachTo->getScreenBounds().removeFromTop(menuMargin + 1)));
+        }
+
         menuBounds = getLocalArea(menuToAttachTo, menuToAttachTo->getLocalBounds());
     }
 
@@ -74,7 +85,7 @@ public:
         });
 
         if (auto* popupMenuComponent = Component::getCurrentlyModalComponent(0)) {
-            arrow->attachToMenu(popupMenuComponent);
+            arrow->attachToMenu(popupMenuComponent, options.getParentComponent());
         }
     }
 

@@ -510,8 +510,8 @@ public:
             updateResults(input.getText());
         };
 
-        closeButton.getProperties().set("Style", "SmallIcon");
-        closeButton.onClick = [this]() {
+        clearButton.getProperties().set("Style", "SmallIcon");
+        clearButton.onClick = [this]() {
             input.clear();
             input.giveAwayKeyboardFocus();
             listBox.setVisible(false);
@@ -520,9 +520,9 @@ public:
         };
 
         input.setInterceptsMouseClicks(true, true);
-        closeButton.setAlwaysOnTop(true);
+        clearButton.setAlwaysOnTop(true);
 
-        addAndMakeVisible(closeButton);
+        addAndMakeVisible(clearButton);
         addAndMakeVisible(listBox);
         addAndMakeVisible(input);
 
@@ -690,7 +690,7 @@ public:
 
         input.setBounds(inputBounds);
 
-        closeButton.setBounds(inputBounds.removeFromRight(30));
+        clearButton.setBounds(inputBounds.removeFromRight(32));
 
         listBox.setBounds(tableBounds);
     }
@@ -703,7 +703,7 @@ private:
     DirectoryContentsList& searchPath;
     Array<File> searchResult;
     TextEditor input;
-    TextButton closeButton = TextButton(Icons::ClearText);
+    TextButton clearButton = TextButton(Icons::ClearText);
 };
 
 class DocumentBrowser : public DocumentBrowserBase {

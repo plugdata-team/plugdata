@@ -663,7 +663,7 @@ public:
 
         input.setBounds(inputBounds);
 
-        clearButton.setBounds(inputBounds.removeFromRight(30));
+        clearButton.setBounds(inputBounds.removeFromRight(32));
         updateSpinner.setBounds(inputBounds.removeFromRight(30));
 
         tableBounds.removeFromLeft(Sidebar::dragbarWidth);

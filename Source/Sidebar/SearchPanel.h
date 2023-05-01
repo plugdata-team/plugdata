@@ -35,17 +35,17 @@ public:
         input.addKeyListener(this);
         listBox.addKeyListener(this);
 
-        closeButton.getProperties().set("Style", "SmallIcon");
-        closeButton.onClick = [this]() {
+        clearButton.getProperties().set("Style", "SmallIcon");
+        clearButton.onClick = [this]() {
             clearSearchTargets();
             input.clear();
             input.giveAwayKeyboardFocus();
             input.repaint();
         };
 
-        closeButton.setAlwaysOnTop(true);
+        clearButton.setAlwaysOnTop(true);
 
-        addAndMakeVisible(closeButton);
+        addAndMakeVisible(clearButton);
         addAndMakeVisible(listBox);
         addAndMakeVisible(input);
 
@@ -394,7 +394,7 @@ public:
         tableBounds.removeFromTop(4);
 
         input.setBounds(inputBounds);
-        closeButton.setBounds(inputBounds.removeFromRight(30));
+        clearButton.setBounds(inputBounds.removeFromRight(32));
         listBox.setBounds(tableBounds);
     }
 
@@ -403,7 +403,7 @@ private:
 
     Array<std::tuple<String, String, SafePointer<Object>, void*>> searchResult;
     TextEditor input;
-    TextButton closeButton = TextButton(Icons::ClearText);
+    TextButton clearButton = TextButton(Icons::ClearText);
 
     PluginEditor* editor;
 };
