@@ -29,12 +29,10 @@ public:
     MousePadObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
-        cnv->addMouseListener(this, true);
     }
 
     ~MousePadObject()
     {
-        cnv->removeMouseListener(this);
     }
 
     void paint(Graphics& g) override
