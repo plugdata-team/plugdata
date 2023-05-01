@@ -165,9 +165,9 @@ void Patch::savePatch()
     instance->lockAudioThread();
 
     libpd_savetofile(getPointer(), file, dir);
-    instance->unlockAudioThread();
-
     instance->reloadAbstractions(currentFile, getPointer());
+    
+    instance->unlockAudioThread();
 }
 
 void Patch::setCurrent()
