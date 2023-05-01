@@ -343,5 +343,5 @@ private:
 
     int pendingUpdates = 0;
 
-    std::array<TextButton, 5> buttons = { TextButton(Icons::ClearLarge), TextButton(Icons::Restore), TextButton(Icons::Error), TextButton(Icons::Message), TextButton(Icons::AutoScroll) };
+    std::array<TextButton, 5> buttons = { TextButton(Icons::Clear), TextButton(Icons::Restore), TextButton(Icons::Error), TextButton(Icons::Message), TextButton(Icons::AutoScroll) };
 };

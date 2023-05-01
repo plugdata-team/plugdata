@@ -20,7 +20,7 @@ struct Icons {
     inline static const String Hide = "i";
     inline static const String Show = "i";
     inline static const String Clear = "k";
-    inline static const String ClearLarge = "l";
+    inline static const String ClearText = "l";
     inline static const String Lock = "m";
     inline static const String Unlock = "n";
     inline static const String ConnectionStyle = "o";

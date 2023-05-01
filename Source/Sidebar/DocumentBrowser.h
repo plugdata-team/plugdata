@@ -703,7 +703,7 @@ private:
     DirectoryContentsList& searchPath;
     Array<File> searchResult;
     TextEditor input;
-    TextButton closeButton = TextButton(Icons::Clear);
+    TextButton closeButton = TextButton(Icons::ClearText);
 };
 
 class DocumentBrowser : public DocumentBrowserBase {

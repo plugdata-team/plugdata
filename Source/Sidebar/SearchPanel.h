@@ -403,7 +403,7 @@ private:
 
     Array<std::tuple<String, String, SafePointer<Object>, void*>> searchResult;
     TextEditor input;
-    TextButton closeButton = TextButton(Icons::Clear);
+    TextButton closeButton = TextButton(Icons::ClearText);
 
     PluginEditor* editor;
 };

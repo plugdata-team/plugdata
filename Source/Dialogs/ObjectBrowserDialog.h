@@ -622,7 +622,7 @@ private:
 
     Array<String> searchResult;
     TextEditor input;
-    TextButton clearButton = TextButton(Icons::Clear);
+    TextButton clearButton = TextButton(Icons::ClearText);
 
     std::unordered_map<String, String> objectDescriptions;
 };

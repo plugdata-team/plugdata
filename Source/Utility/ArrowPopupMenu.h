@@ -27,7 +27,7 @@ public:
         auto menuMargin = getLookAndFeel().getPopupMenuBorderSize();
         
         // Apply a slight offset to the menu so we have enough space for the arrow...
-        menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, -(menuMargin - 4)));
+        menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, -(menuMargin - 3)));
         
         setBounds(targetComponent->getScreenBounds().getUnion(menuToAttachTo->getScreenBounds().removeFromTop(menuMargin + 1)));
         

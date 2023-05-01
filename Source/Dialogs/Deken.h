@@ -694,7 +694,7 @@ private:
     PackageManager* packageManager = PackageManager::getInstance();
 
     TextEditor input;
-    TextButton clearButton = TextButton(Icons::Clear);
+    TextButton clearButton = TextButton(Icons::ClearText);
 
     Spinner updateSpinner;
 
