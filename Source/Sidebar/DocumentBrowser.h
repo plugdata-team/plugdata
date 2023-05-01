@@ -741,11 +741,11 @@ public:
         resetFolderButton.getProperties().set("Style", "SmallIcon");
 
 #if JUCE_MAC
-        String revealTip = "Show in Finder";
+        String revealTip = "Reveal in Finder";
 #elif JUCE_WINDOWS
-        String revealTip = "Show in Explorer";
+        String revealTip = "Reveal in Explorer";
 #else
-        String revealTip = "Show in file browser";
+        String revealTip = "Reveal in file browser";
 #endif
 
         revealButton.setTooltip(revealTip);

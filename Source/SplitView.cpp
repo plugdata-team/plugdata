@@ -156,15 +156,30 @@ SplitView::SplitView(PluginEditor* parent)
 
         tabbar.rightClick = [this, &tabbar, i](int tabIndex, String const& tabName) {
             PopupMenu tabMenu;
-
-            bool enabled = true;
+            
+#if JUCE_MAC
+        String revealTip = "Reveal in Finder";
+#elif JUCE_WINDOWS
+        String revealTip = "Reveal in Explorer";
+#else
+        String revealTip = "Reveal in file browser";
+#endif
+            
+            auto* cnv = tabbar.getCanvas(tabIndex);
+            if(!cnv) return;
+            
+            bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
+            
+            tabMenu.addItem(revealTip, canReveal, false, [this, cnv]() {
+                cnv->patch.getCurrentFile().revealToUser();
+            });
+            
+            bool canSplit = true;
             if (i == 0 && !splitView)
-                enabled = getLeftTabbar()->getNumTabs() > 1;
-            tabMenu.addItem(i == 0 ? "Split Right" : "Split Left", enabled, false, [this, tabIndex, &tabbar, i]() {
-                if (auto* cnv = tabbar.getCanvas(tabIndex)) {
-                    splitCanvasView(cnv, i == 0);
-                }
-
+                canSplit = getLeftTabbar()->getNumTabs() > 1;
+            
+            tabMenu.addItem(i == 0 ? "Split Right" : "Split Left", canSplit, false, [this, cnv, &tabbar, i]() {
+                splitCanvasView(cnv, i == 0);
                 closeEmptySplits();
             });
             // Show the popup menu at the mouse position
