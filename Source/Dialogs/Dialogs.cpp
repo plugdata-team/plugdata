@@ -15,6 +15,8 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
+#include "Utility/ArrowPopupMenu.h"
+
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
 #include "Objects/ObjectBase.h"
@@ -72,7 +74,8 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 {
     auto* popup = new MainMenu(editor);
 
-    popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(220).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
+    
+    ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(220).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
         [editor, popup, centre, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
             switch (result) {
             case MainMenu::MenuItem::NewPatch: {
@@ -505,7 +508,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
 
     auto menu = createObjectMenu(parent);
 
-    menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent), attachToMouseCallback);
+    ArrowPopupMenu::showMenuAsync(&menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent), attachToMouseCallback);
 }
 
 PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
