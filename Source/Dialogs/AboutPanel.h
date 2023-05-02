@@ -28,7 +28,7 @@ public:
         g.drawFittedText("Inter font by Rasmus Andersson", 150, 210, getWidth() - 150, 50, Justification::left, 2);
         g.drawFittedText("Made with JUCE", 150, 230, getWidth() - 150, 50, Justification::left, 2);
 
-        g.drawFittedText("Special thanks to: Deskew Technologies, BonefishSam, DSBHproject, CFDAF, AurelienConil, jamescorrea, Soundworlds-JO, vasilymilovidov, grabanton, polarity, chee, kreth608, Joshua A.C. Newman and ludnny for supporting this project", 150, 270, getWidth() - 200, 80, Justification::left, 3);
+        g.drawFittedText("Special thanks to: Deskew Technologies, BonefishSam, DSBHproject, CFDAF, AurelienConil, jamescorrea, Soundworlds-JO, vasilymilovidov, grabanton, polarity, rubenlorenzo, chee, kreth608, Joshua A.C. Newman, ludnny, duddex, mungbean and droussel for supporting this project", 150, 270, getWidth() - 200, 80, Justification::left, 3);
 
         g.drawFittedText("This program is published under the terms of the GPL3 license", 150, 340, getWidth() - 150, 50, Justification::left, 2);
 

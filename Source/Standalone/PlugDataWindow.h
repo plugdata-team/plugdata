@@ -589,20 +589,6 @@ public:
             return false;
     }
 
-    void setFullscreenKiosk(bool isKiosk)
-    {
-        mainComponent->isKioskMode = isKiosk;
-        Rectangle<int> bounds;
-        if (isKiosk) {
-            bounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
-            mainComponent->oldBounds = getBounds();
-        } else {
-            bounds = mainComponent->oldBounds;
-        }
-        setBounds(bounds);
-        mainComponent->setBounds(bounds);
-    }
-
     void closeButtonPressed() override
     {
         // Save plugin state to allow reloading
@@ -638,7 +624,7 @@ public:
 #if JUCE_LINUX
     void paint(Graphics& g) override
     {
-        if (drawWindowShadow && !isUsingNativeTitleBar()) {
+        if (drawWindowShadow && !isUsingNativeTitleBar() && !isFullScreen()) {
             auto b = getLocalBounds();
             Path localPath;
             localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
@@ -667,9 +653,6 @@ public:
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
 
 #if JUCE_LINUX
-        if (mainComponent && mainComponent->isKioskMode)
-            return;
-
         if (!isFullScreen() && !isUsingNativeTitleBar() && drawWindowShadow) {
             auto margin = mainComponent ? mainComponent->getMargin() : 18;
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
@@ -731,7 +714,7 @@ private:
         void paintOverChildren(Graphics& g) override
         {
 #if JUCE_LINUX
-            if (!isKioskMode && !owner.isUsingNativeTitleBar() && !owner.hasOpenedDialog()) {
+            if (!owner.isUsingNativeTitleBar() && !owner.hasOpenedDialog()) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
 
                 if (!Desktop::canUseSemiTransparentWindows()) {
@@ -760,7 +743,7 @@ private:
 
         int getMargin() const
         {
-            if (owner.isUsingNativeTitleBar()) {
+            if (owner.isUsingNativeTitleBar() || owner.isFullScreen()) {
                 return 0;
             }
 
@@ -824,11 +807,6 @@ private:
 
         void resized() override
         {
-            if (isKioskMode) {
-                setTopLeftPosition(0,0);
-                return;
-            }
-
             auto r = getLocalBounds().reduced(getMargin());
 
             if (editor != nullptr) {
@@ -845,7 +823,6 @@ private:
             repaint();
         }
     public:
-        bool isKioskMode = false;
         Rectangle<int> oldBounds;
 
     private:
