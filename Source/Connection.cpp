@@ -16,6 +16,7 @@
 #include "PluginEditor.h" // might not need this?
 #include "LookAndFeel.h"
 #include "Pd/Patch.h"
+#include "Dialogs/ConnectionMessageDisplay.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     : cnv(parent)
@@ -85,7 +86,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
     updateOverlays(cnv->getOverlays());
 
-    cnv->pd->registerMessageListener(ptr, this);
+    setPointer(ptr);
 }
 
 Connection::~Connection()
@@ -187,7 +188,13 @@ void Connection::popPathState()
 
 void Connection::setPointer(void* newPtr)
 {
+    auto originalPointer = ptr;
     ptr = static_cast<t_fake_outconnect*>(newPtr);
+    cnv->pd->registerMessageListener(ptr, this);
+    if (originalPointer != ptr) {
+        // do we even need to unregister, doesn't it get cleaned up automatically?
+        cnv->pd->unregisterMessageListener(originalPointer, this);
+    }
 }
 
 void* Connection::getPointer()
@@ -474,12 +481,10 @@ void Connection::mouseMove(MouseEvent const& e)
     repaint();
 }
 
-void Connection::mouseEnter(MouseEvent const& e)
+String Connection::getMessageTooltip()
 {
-    lastValueMutex.lock();
     auto args = lastValue;
     auto name = lastSelector;
-    lastValueMutex.unlock();
 
     String tooltip;
 
@@ -510,20 +515,28 @@ void Connection::mouseEnter(MouseEvent const& e)
         tooltip = result.joinIntoString(" ");
     }
 
-    setTooltip(tooltip);
+    return tooltip;
+}
 
+void Connection::mouseEnter(MouseEvent const& e)
+{
     isHovering = true;
+    mouseHoverPos = e.getScreenPosition();
+    cnv->editor->connectionMessageDisplay->setConnection(this);
     repaint();
 }
 
 void Connection::mouseExit(MouseEvent const& e)
 {
+    cnv->editor->connectionMessageDisplay->setConnection(nullptr);
     isHovering = false;
     repaint();
 }
 
 void Connection::mouseDown(MouseEvent const& e)
 {
+    cnv->editor->connectionMessageDisplay->setConnection(nullptr);
+
     // Deselect all other connection if shift or command is not down
     if (!e.mods.isCommandDown() && !e.mods.isShiftDown()) {
         cnv->deselectAll();
@@ -550,6 +563,8 @@ void Connection::mouseDown(MouseEvent const& e)
 
 void Connection::mouseDrag(MouseEvent const& e)
 {
+    cnv->editor->connectionMessageDisplay->setConnection(nullptr);
+
     if (selectedFlag && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
         cnv->connectingWithDrag = true;
         reconnect(inlet);
@@ -1108,7 +1123,6 @@ bool Connection::straightLineIntersectsObject(Line<float> toCheck, Array<Object*
 
 void ConnectionPathUpdater::timerCallback()
 {
-
     std::pair<Component::SafePointer<Connection>, t_symbol*> currentConnection;
 
     canvas->patch.startUndoSequence("SetConnectionPaths");
@@ -1155,7 +1169,7 @@ void ConnectionPathUpdater::timerCallback()
         // this is either a threading issue, or something else...
         // I think we can solve it by not recreting the connection?
         auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
-        connection->ptr = static_cast<Connection::t_fake_outconnect*>(newConnection);
+        connection->setPointer(newConnection);
     }
 
     canvas->patch.endUndoSequence("SetConnectionPaths");
@@ -1165,9 +1179,8 @@ void ConnectionPathUpdater::timerCallback()
 
 void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 {
-    if (lastValueMutex.try_lock()) {
-        lastValue = pd::Atom::fromAtoms(argc, argv);
-        lastSelector = name;
-        lastValueMutex.unlock();
-    }
+    // indicator TODO
+    //messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
+    lastValue = pd::Atom::fromAtoms(argc, argv);
+    lastSelector = name;
 }

@@ -23,11 +23,13 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Objects/ObjectBase.h" // TODO: We shouldn't need this!
+#include "Dialogs/ConnectionMessageDisplay.h"
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
 #include "PluginMode.h"
+
 
 class ZoomLabel : public TextButton
     , public Timer {
@@ -266,6 +268,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Restore Plugin Mode View
     if (pd->isInPluginMode())
         enablePluginMode(nullptr);
+
+    connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
+    addChildComponent(connectionMessageDisplay.get());
 }
 
 PluginEditor::~PluginEditor()

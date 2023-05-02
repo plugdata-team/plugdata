@@ -25,8 +25,7 @@ class Connection : public Component
     , public ComponentListener
     , public Value::Listener
     , public ChangeListener
-    , public pd::MessageListener
-    , public SettableTooltipClient {
+    , public pd::MessageListener {
 public:
     int inIdx;
     int outIdx;
@@ -77,6 +76,8 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
+    Point<int> mouseHoverPos = { 0, 0 };
+
     Point<float> getStartPoint();
     Point<float> getEndPoint();
 
@@ -109,6 +110,10 @@ public:
     void receiveMessage(String const& name, int argc, t_atom* argv) override;
 
     bool isSelected();
+
+    String getMessageTooltip();
+    
+    std::atomic<int> messageActivity;
 
 private:
     bool segmented = false;
@@ -154,7 +159,9 @@ private:
 
     std::vector<pd::Atom> lastValue;
     String lastSelector;
-    std::mutex lastValueMutex;
+    int64 lastMessageTime = 0;
+
+    std::vector<std::pair<String, std::vector<pd::Atom>>> messageQueue;
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
