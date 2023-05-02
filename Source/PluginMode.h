@@ -291,6 +291,7 @@ public:
             originalPluginWindowBounds = getBounds();
             editor->setConstrainer(nullptr);
             window->setUsingNativeTitleBar(false);
+            desktopWindow = window->getPeer();
             
 #if JUCE_LINUX
             auto bounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
@@ -306,7 +307,6 @@ public:
 #if !JUCE_LINUX
             window->setFullScreen(false);
 #endif
-            
             editor->setConstrainer(&pluginModeConstrainer);
             setBounds(originalPluginWindowBounds);
             editor->setBounds(originalPluginWindowBounds);
@@ -315,6 +315,8 @@ public:
             window->getContentComponent()->resized();
 
             window->setUsingNativeTitleBar(SettingsFile::getInstance()->getProperty<bool>("native_window"));
+            desktopWindow = window->getPeer();
+            
             borderResizer->setVisible(true);
         }
     }
