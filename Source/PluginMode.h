@@ -307,7 +307,7 @@ public:
         else {
 
 #if JUCE_LINUX
-            window->setLinuxKioskMode(true);
+            window->setLinuxKioskMode(false);
 #else
             window->setFullScreen(false);
 #endif
