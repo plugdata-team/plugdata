@@ -94,7 +94,9 @@ bool Patch::isDirty() const
     if (!ptr)
         return false;
     
-    const ScopedLock audioLock(*instance->audioLock);
+    // Don't lock for now:
+    // TODO: this is not thread safe, but otherwise this sometimes causes deadlocks
+    //const ScopedLock audioLock(*instance->audioLock);
 
     return getPointer()->gl_dirty;
 }
