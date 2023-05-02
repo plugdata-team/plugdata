@@ -12,7 +12,6 @@ public:
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
-
         // If the window is already maximised, unmaximise it to prevent problems
         #if JUCE_LINUX
             if(OSUtils::isMaximised(desktopWindow->getNativeHandle()))
@@ -76,25 +75,7 @@ public:
             fullscreenButton->setTooltip("Kiosk Mode..");
             fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
             fullscreenButton->onClick = [this](){
-                auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
-                // will have to have a linux / macos / windows version?
-                // this is only for testing
-
-                // Fix for Linux:
-                originalPluginWindowBounds = getBounds();
-                // we have to set this to true BEFORE calling set using native titlebar
-                // otherwise the resize and parent size changed functions will call into
-                // linux window functions, and that will cause a crash
-                isFullscreenKioskMode = true;
-
-#if JUCE_LINUX
-                //OSUtils::maximiseLinuxWindow(getPeer()->getNativeHandle());
-#endif
-                
-                editor->setConstrainer(nullptr);
-                window->setUsingNativeTitleBar(false);
-                window->setFullScreen(true);
-                borderResizer->setVisible(false);
+                setKioskMode(true);
             };
             titleBar.addAndMakeVisible(*fullscreenButton);
         }
@@ -306,28 +287,36 @@ public:
             windowDragger.dragComponent(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()), nullptr);
     }
 
-    bool keyPressed(KeyPress const& key) override
+    void setKioskMode(bool shouldBeBiosk)
     {
-        if (isFullscreenKioskMode && key == KeyPress::escapeKey) {
-            MessageManager::callAsync([this, _this = SafePointer(this)](){
-            
-            if(!_this) return;
+        auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
 
-            auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
-
-            window->setFullScreen(false);
+        borderResizer->setVisible(!shouldBeBiosk);
+        
+        if(shouldBeBiosk)
+        {
+            originalPluginWindowBounds = getBounds();
+            editor->setConstrainer(nullptr);
+            window->setUsingNativeTitleBar(false);
+            window->setFullScreen(true);
+        }
+        else {
             window->setUsingNativeTitleBar(SettingsFile::getInstance()->getProperty<bool>("native_window"));
-            isFullscreenKioskMode = false;
+            window->setFullScreen(false);
 
             editor->setBounds(originalPluginWindowBounds);
             editor->setConstrainer(&pluginModeConstrainer);
+            
             setBounds(originalPluginWindowBounds);
             window->resized();
             window->getContentComponent()->resized();
+        }
+    }
 
-            borderResizer->setVisible(true);
-            });
-
+    bool keyPressed(KeyPress const& key) override
+    {
+        if (ProjectInfo::isStandalone && desktopWindow->isFullScreen() && key == KeyPress::escapeKey) {
+            setKioskMode(false);
             return true;
         } else {
             grabKeyboardFocus();
@@ -363,8 +352,6 @@ private:
     bool originalPresentationMode;
 
     Rectangle<int> originalPluginWindowBounds;
-
-    bool isFullscreenKioskMode = false;
 
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
