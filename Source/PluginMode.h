@@ -144,10 +144,9 @@ public:
     bool isWindowFullscreen()
     {
         if(ProjectInfo::isStandalone) {
-            return desktopWindow->isFullScreen();
+            return isFullScreenKioskMode;
         }
         
-
         return false;
     }
 
@@ -254,16 +253,6 @@ public:
             return true;
         }
     }
-    
-    ComponentBoundsConstrainer* getConstrainer()
-    {
-        if(isWindowFullscreen())
-        {
-            return nullptr;
-        }
-
-        return &pluginModeConstrainer;
-    }
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -295,6 +284,8 @@ public:
         
         if(!window) return;
         
+        isFullScreenKioskMode = shouldBeBiosk;
+        
         if(shouldBeBiosk)
         {
             originalPluginWindowBounds = getBounds();
@@ -319,7 +310,7 @@ public:
 
     bool keyPressed(KeyPress const& key) override
     {
-        if (ProjectInfo::isStandalone && desktopWindow->isFullScreen() && key == KeyPress::escapeKey) {
+        if (isWindowFullscreen() && key == KeyPress::escapeKey) {
             setKioskMode(false);
             return true;
         } else {
@@ -354,6 +345,7 @@ private:
     float originalCanvasScale;
     bool originalLockedMode;
     bool originalPresentationMode;
+    bool isFullScreenKioskMode = false;
 
     Rectangle<int> originalPluginWindowBounds;
 
