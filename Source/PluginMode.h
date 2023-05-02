@@ -288,7 +288,7 @@ public:
         
         if(shouldBeBiosk)
         {
-            originalPluginWindowBounds = getBounds();
+            originalPluginWindowBounds = window->getBounds();
             editor->setConstrainer(nullptr);
             window->setUsingNativeTitleBar(false);
             desktopWindow = window->getPeer();
