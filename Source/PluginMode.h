@@ -12,18 +12,20 @@ public:
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
-        // If the window is already maximised, unmaximise it to prevent problems
-        #if JUCE_LINUX
+        if(ProjectInfo::isStandalone) {
+            // If the window is already maximised, unmaximise it to prevent problems
+#if JUCE_LINUX
             if(OSUtils::isMaximised(desktopWindow->getNativeHandle()))
             {
                 OSUtils::maximiseLinuxWindow(desktopWindow->getNativeHandle());
             }
-        #else
+#else
             if(desktopWindow->isFullScreen())
             {
                 desktopWindow->setFullScreen(false);
             }
-        #endif
+#endif
+        }
         // Save original canvas properties
         originalCanvasScale = getValue<float>(cnv->zoomScale);
         originalCanvasPos = cnv->getPosition();
@@ -290,8 +292,8 @@ public:
     void setKioskMode(bool shouldBeBiosk)
     {
         auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
-
-        borderResizer->setVisible(!shouldBeBiosk);
+        
+        if(!window) return;
         
         if(shouldBeBiosk)
         {
@@ -299,10 +301,12 @@ public:
             editor->setConstrainer(nullptr);
             window->setUsingNativeTitleBar(false);
             window->setFullScreen(true);
+            borderResizer->setVisible(false);
         }
         else {
             window->setUsingNativeTitleBar(SettingsFile::getInstance()->getProperty<bool>("native_window"));
             window->setFullScreen(false);
+            borderResizer->setVisible(true);
 
             editor->setBounds(originalPluginWindowBounds);
             editor->setConstrainer(&pluginModeConstrainer);
