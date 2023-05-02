@@ -230,6 +230,8 @@ public:
         }
     }
 
+
+
     void parentSizeChanged() override
     {
         // Fullscreen / Kiosk Mode
@@ -296,14 +298,17 @@ public:
             auto bounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
             window->setBounds(bounds);
             editor->setBounds(bounds);
+            window->setLinuxKioskMode(true);
 #else
             window->setFullScreen(true);
 #endif
-            
             borderResizer->setVisible(false);
         }
         else {
-#if !JUCE_LINUX
+
+#if JUCE_LINUX
+            window->setLinuxKioskMode(true);
+#else
             window->setFullScreen(false);
 #endif
             

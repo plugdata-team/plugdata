@@ -622,9 +622,15 @@ public:
     }
 
 #if JUCE_LINUX
+
+    void setLinuxKioskMode(bool isKiosk)
+    {
+        mainComponent->isKioskMode = isKiosk;
+    }
+    
     void paint(Graphics& g) override
     {
-        if (drawWindowShadow && !isUsingNativeTitleBar() && !isFullScreen()) {
+        if (drawWindowShadow && !isUsingNativeTitleBar() && !mainComponent->isKioskMode) {
             auto b = getLocalBounds();
             Path localPath;
             localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
@@ -653,7 +659,7 @@ public:
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
 
 #if JUCE_LINUX
-        if (!isFullScreen() && !isUsingNativeTitleBar() && drawWindowShadow) {
+        if (mainComponent && mainComponent->isKioskMode && !isUsingNativeTitleBar() && drawWindowShadow) {
             auto margin = mainComponent ? mainComponent->getMargin() : 18;
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
         }
@@ -743,7 +749,7 @@ private:
 
         int getMargin() const
         {
-            if (owner.isUsingNativeTitleBar() || owner.isFullScreen()) {
+            if (owner.isUsingNativeTitleBar() || isKioskMode) {
                 return 0;
             }
 
@@ -823,6 +829,7 @@ private:
             repaint();
         }
     public:
+        bool isKioskMode = false;
         Rectangle<int> oldBounds;
 
     private:
