@@ -295,16 +295,16 @@ public:
             borderResizer->setVisible(false);
         }
         else {
-            window->setUsingNativeTitleBar(SettingsFile::getInstance()->getProperty<bool>("native_window"));
             window->setFullScreen(false);
-            borderResizer->setVisible(true);
-
-            editor->setBounds(originalPluginWindowBounds);
             editor->setConstrainer(&pluginModeConstrainer);
-            
             setBounds(originalPluginWindowBounds);
+            editor->setBounds(originalPluginWindowBounds);
+            window->setBounds(originalPluginWindowBounds);
             window->resized();
             window->getContentComponent()->resized();
+
+            window->setUsingNativeTitleBar(SettingsFile::getInstance()->getProperty<bool>("native_window"));
+            borderResizer->setVisible(true);
         }
     }
 
