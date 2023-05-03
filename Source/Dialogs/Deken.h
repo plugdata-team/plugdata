@@ -839,10 +839,10 @@ private:
 
         void resized() override
         {
-            installButton.setBounds(getWidth() - 40, 1, 26, 30);
-            uninstallButton.setBounds(getWidth() - 40, 1, 26, 30);
-            reinstallButton.setBounds(getWidth() - 70, 1, 26, 30);
-            addToPathButton.setBounds(getWidth() - 100, 1, 28, 30);
+            installButton.setBounds(getWidth() - 40, 1, 30, 30);
+            uninstallButton.setBounds(getWidth() - 40, 1, 30, 30);
+            reinstallButton.setBounds(getWidth() - 70, 1, 30, 30);
+            addToPathButton.setBounds(getWidth() - 100, 1, 30, 30);
         }
     };
 };
