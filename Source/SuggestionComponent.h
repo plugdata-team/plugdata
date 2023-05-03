@@ -170,7 +170,7 @@ class SuggestionComponent : public Component
             auto buttonArea = getLocalBounds().withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat().reduced(4, 0.5f);
 
             g.setColour(backgroundColour);
-            g.fillRoundedRectangle(buttonArea, Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(buttonArea, Corners::largeCornerRadius);
 
             auto colour = getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
 

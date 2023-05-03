@@ -358,9 +358,9 @@ public:
         adjustScrollbarBounds();
     }
 
-    // TODO: do we need this?
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
+        onScroll();
         adjustScrollbarBounds();
     }
 
