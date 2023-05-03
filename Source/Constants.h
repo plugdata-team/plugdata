@@ -61,7 +61,7 @@ struct Icons {
     inline static const String Info = "W";
     inline static const String History = "X";
     inline static const String Protection = "Y";
-    inline static const String Direction = "{";
+    inline static const String DevTools = "{";
 
     inline static const String SavePatch = "Z";
     inline static const String ClosePatch = "[";
@@ -521,8 +521,9 @@ const std::map<ObjectIDs, String> objectNames {
 
 struct Corners {
     inline static float const windowCornerRadius = 12.5f;
+    inline static float const largeCornerRadius = 8.0f;
     inline static float const defaultCornerRadius = 6.0f;
-    inline static float const smallCornerRadius = 4.0f;
+    inline static float const smallCornerRadius = 5.0f;
     inline static float objectCornerRadius = 2.75f;
 };
 

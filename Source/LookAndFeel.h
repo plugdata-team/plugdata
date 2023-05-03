@@ -738,10 +738,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(background);
 
             auto bounds = Rectangle<float>(0, 0, width, height).reduced(7);
-            g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(bounds, Corners::largeCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(bounds, Corners::defaultCornerRadius, 1.0f);
+            g.drawRoundedRectangle(bounds, Corners::largeCornerRadius, 1.0f);
         } else {
             auto bounds = Rectangle<float>(0, 0, width, height);
 
@@ -774,7 +774,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isHighlighted && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-                g.fillRoundedRectangle(r.toFloat().reduced(4, 0), 4.0f);
+                g.fillRoundedRectangle(r.toFloat().reduced(4, 0), Corners::smallCornerRadius);
                 colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
 
@@ -804,7 +804,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             if (hasSubMenu) {
                 auto arrowH = 0.6f * getPopupMenuFont().getAscent();
 
-                auto x = static_cast<float>(r.removeFromRight((int)arrowH).getX());
+                auto x = static_cast<float>(r.removeFromRight((int)arrowH + 3).getX());
                 auto halfH = static_cast<float>(r.getCentreY());
 
                 Path path;

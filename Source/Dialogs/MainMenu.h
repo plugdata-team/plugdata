@@ -233,7 +233,7 @@ public:
             auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-                g.fillRoundedRectangle(r.toFloat().reduced(2, 0), 4.0f);
+                g.fillRoundedRectangle(r.toFloat().reduced(2, 0), Corners::smallCornerRadius);
 
                 colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
@@ -247,21 +247,17 @@ public:
             auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
 
             if (menuItemIcon.isNotEmpty()) {
-                Fonts::drawIcon(g, menuItemIcon, iconArea, colour, std::min(15.0f, maxFontHeight), false);
+                Fonts::drawIcon(g, menuItemIcon, iconArea.translated(3.5f, 0.0f), colour, std::min(15.0f, maxFontHeight), true);
             } else if (hasTickBox) {
 
                 g.setColour(colour);
-                g.drawRoundedRectangle(iconArea.toFloat().translated(0, 0.5f), 4.0f, 1.0f);
+                g.drawRoundedRectangle(iconArea.toFloat().translated(3.5f, 0.5f).reduced(1.0f), 4.0f, 1.0f);
 
                 if (isTicked) {
                     g.setColour(colour);
                     auto tick = getLookAndFeel().getTickShape(1.0f);
-                    g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.toFloat().translated(0, 0.5f).reduced(2.5f, 3.5f), false));
+                    g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.toFloat().translated(3.5f, 0.5f).reduced(2.5f, 3.5f), false));
                 }
-
-                /*
-                auto tick = lnf.getTickShape(1.0f);
-                g.fillPath(tick, tick.getTransformToScaleToFit(, true)); */
             }
 
             r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
@@ -270,7 +266,7 @@ public:
             if (hasSubMenu) {
                 auto arrowH = 0.6f * Font(fontHeight).getAscent();
 
-                auto x = static_cast<float>(r.removeFromRight((int)arrowH).getX());
+                auto x = static_cast<float>(r.removeFromRight((int)arrowH + 2).getX());
                 auto halfH = static_cast<float>(r.getCentreY());
 
                 Path path;
@@ -401,7 +397,7 @@ public:
         new IconMenuItem(Icons::CloseAllPatches, "Close all patches", false, false),
 
         new IconMenuItem("", "Compiled Mode", false, true),
-        new IconMenuItem("", "Compile...", false, false),
+        new IconMenuItem(Icons::DevTools, "Compile...", false, false),
 
         new IconMenuItem("", "Plugin Mode", false, true),
 
