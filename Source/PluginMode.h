@@ -308,13 +308,14 @@ public:
             window->setFullScreen(false);
 #endif
             editor->setConstrainer(&pluginModeConstrainer);
-            setBounds(originalPluginWindowBounds);
+            setBounds(originalPluginWindowBounds.withZeroOrigin());
             editor->setBounds(originalPluginWindowBounds);
-            window->setBounds(originalPluginWindowBounds.translated(0, -nativeTitleBarHeight));
-            window->resized();
-            window->getContentComponent()->resized();
+            
+            bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
+            window->setBounds(originalPluginWindowBounds.translated(0, isUsingNativeTitlebar ? -nativeTitleBarHeight : 0));
 
-            window->setUsingNativeTitleBar(SettingsFile::getInstance()->getProperty<bool>("native_window"));
+            window->getContentComponent()->resized();
+            window->setUsingNativeTitleBar(isUsingNativeTitlebar);
             desktopWindow = window->getPeer();
             
             borderResizer->setVisible(true);
