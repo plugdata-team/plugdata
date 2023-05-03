@@ -396,7 +396,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             cachedImage = { Image::ARGB, box.getWidth(), box.getHeight(), true };
             Graphics g2(cachedImage);
 
-            StackShadow::renderDropShadow(g2, path, Colour(0, 0, 0).withAlpha(0.4f), 8, { 0, 2 });
+            StackShadow::renderDropShadow(g2, path, Colour(0, 0, 0).withAlpha(0.3f), 7, { 0, 2 });
         }
 
         g.setColour(Colours::black);

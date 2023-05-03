@@ -69,7 +69,7 @@ public:
         }
         else {
             
-            auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, -8.0f, 6.0f);
+            auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, -8.0f, 5.78f);
             
             arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getBottom() - arrowHeight + menuMargin, arrowWidth, arrowHeight);
             
@@ -85,7 +85,7 @@ public:
         g.saveState();
         g.reduceClipRegion(arrowBounds.toNearestInt());
         
-        StackShadow::renderDropShadow(g, arrowOutline, Colour(0, 0, 0).withAlpha(0.25f));
+        StackShadow::renderDropShadow(g, arrowOutline, Colour(0, 0, 0).withAlpha(0.3f), 7, {0, 2});
         
         g.restoreState();
         
