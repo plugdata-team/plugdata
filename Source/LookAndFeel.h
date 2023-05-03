@@ -383,7 +383,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.fillPath(path);
         } else {
             auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
-            auto bounds = button.getLocalBounds().toFloat().reduced(2.0f, 6.0f).translated(-0.5f, -0.25f);
+            auto bounds = button.getLocalBounds().toFloat().reduced(2.0f, 4.0f).translated(-0.5f, -0.25f);
 
             g.setColour(backgroundColour);
             g.fillRoundedRectangle(bounds, cornerSize);
