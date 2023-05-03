@@ -74,13 +74,12 @@ public:
     }
 
 private:
-    static inline bool isShowing = false;
 
     OwnedArray<TextButton> buttons = {
         new ConsoleSettingsButton(Icons::Clear, "Clear", false),
         new ConsoleSettingsButton(Icons::Restore, "Restore", false),
-        new ConsoleSettingsButton(Icons::Error, "Show Errors", true),
         new ConsoleSettingsButton(Icons::Message, "Show Messages", true),
+        new ConsoleSettingsButton(Icons::Error, "Show Errors", true),
         new ConsoleSettingsButton(Icons::AutoScroll, "Autoscroll", true) };
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleSettings)
@@ -153,29 +152,13 @@ public:
     {
         console->update();
         resized();
+        repaint();
     }
 
     void deselect()
     {
         console->selectedItems.clear();
         repaint();
-    }
-
-    void paint(Graphics& g) override
-    {
-        // Draw background if we don't have enough messages to fill the panel
-        auto h = 24;
-        auto y = console->getTotalHeight();
-        auto idx = static_cast<int>(console->messages.size());
-        while (y < console->getHeight()) {
-
-            if (y + h > console->getHeight()) {
-                h = console->getHeight() - y;
-            }
-
-            idx++;
-            y += h;
-        }
     }
 
     class ConsoleComponent : public Component {
@@ -242,8 +225,8 @@ public:
                 auto& [message, type, length] = console.pd->getConsoleMessages()[idx];
 
                 // Check if message type should be visible
-                if ((type == 1 && !showMessages) || (type == 0 && !showErrors)) {
-                    return;
+                if ((type == 0 && !showMessages) || (type == 1 && !showErrors)) {
+                    return; 
                 }
 
                 // Approximate number of lines from string length and current width
@@ -332,7 +315,7 @@ public:
                     messages[row]->repaint();
                 }
 
-                if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
+                if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
                     continue;
 
                 totalHeight += std::max(0, height);
@@ -371,7 +354,7 @@ public:
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
                 auto height = numLines * 13 + 12;
 
-                if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
+                if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
                     continue;
 
                 totalHeight += std::max(0, height);
@@ -388,6 +371,9 @@ public:
 
         void resized() override
         {
+            auto showMessages = getValue<bool>(settingsValues[2]);
+            auto showErrors = getValue<bool>(settingsValues[3]);
+            
             int totalHeight = 2;
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 if (row >= messages.size())
@@ -397,6 +383,9 @@ public:
 
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
                 auto height = numLines * 13 + 12;
+                
+                if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
+                    continue;
 
                 messages[row]->setBounds(0, totalHeight, getWidth(), height);
 
