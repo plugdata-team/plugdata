@@ -56,24 +56,31 @@ public:
         
         auto arrowHeight = 12;
         auto arrowWidth = 22;
-        auto arrowX = localArea.getX() + targetComponent->getWidth() / 2 - arrowWidth / 2;
-        auto arrowY = localArea.getBottom() - arrowHeight;
-        
-        auto startPoint = Point<float>();
 
+        auto arrowBounds = Rectangle<float>(localArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getY() - arrowHeight + menuMargin, arrowWidth, arrowHeight);
+        
         Path arrow;
-        arrow.startNewSubPath(localArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getY() + menuMargin);
-        arrow.lineTo(localArea.getCentreX(), menuBounds.getY() - arrowHeight + menuMargin);
-        arrow.lineTo(localArea.getCentreX() + (arrowWidth / 2.0f), menuBounds.getY() + menuMargin);
+        arrow.startNewSubPath(arrowBounds.getBottomLeft());
+        arrow.lineTo(arrowBounds.getCentreX(), arrowBounds.getY());
+        arrow.lineTo(arrowBounds.getBottomRight());
         
         auto arrowOutline = arrow;
         arrow.closeSubPath();
+        
+        // Reduce clip region before drawing shadow to ensure there's no shadow at the bottom
+        g.saveState();
+        g.reduceClipRegion(arrowBounds.toNearestInt());
+        
+        StackShadow::renderDropShadow(g, arrowOutline, Colour(0, 0, 0).withAlpha(0.25f));
+        
+        g.restoreState();
         
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillPath(arrow);
         
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.strokePath(arrowOutline, PathStrokeType(1.0f));
+        
     }
 
     static void showMenuAsync(PopupMenu* menu, const PopupMenu::Options& options, std::function<void (int)> userCallback)
