@@ -38,7 +38,7 @@ public:
                 colour = findColour(PlugDataColour::toolbarActiveColourId);
             }
      
-            Fonts::drawIcon(g, icon, getLocalBounds(), colour, 14, false);
+            Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(6), colour, 14, false);
         }
     };
 
@@ -60,7 +60,7 @@ public:
 
     void resized() override
     {
-        auto buttonBounds = getLocalBounds().reduced(2);
+        auto buttonBounds = getLocalBounds();
         
         int buttonHeight = buttonBounds.getHeight() / 2;
 

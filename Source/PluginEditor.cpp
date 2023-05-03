@@ -86,7 +86,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
     addObjectMenuButton.setButtonText(Icons::Add);
-    hideSidebarButton.setButtonText(Icons::Hide);
+    hideSidebarButton.setButtonText(Icons::SidePanel);
 
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
@@ -227,7 +227,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         bool show = !hideSidebarButton.getToggleState();
 
         sidebar->showSidebar(show);
-        hideSidebarButton.setButtonText(show ? Icons::Hide : Icons::Show);
+        hideSidebarButton.setButtonText(Icons::SidePanel);
         hideSidebarButton.setTooltip(show ? "Hide Sidebar" : "Show Sidebar");
 
         repaint();
