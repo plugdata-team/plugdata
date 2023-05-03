@@ -288,7 +288,7 @@ public:
         
         if(shouldBeBiosk)
         {
-            originalPluginWindowBounds = getBounds();
+            originalPluginWindowBounds = window->getBounds();
             editor->setConstrainer(nullptr);
             window->setUsingNativeTitleBar(false);
             desktopWindow = window->getPeer();
@@ -310,7 +310,7 @@ public:
             editor->setConstrainer(&pluginModeConstrainer);
             setBounds(originalPluginWindowBounds);
             editor->setBounds(originalPluginWindowBounds);
-            window->setBounds(originalPluginWindowBounds);
+            window->setBounds(originalPluginWindowBounds.translated(0, -nativeTitleBarHeight));
             window->resized();
             window->getContentComponent()->resized();
 
