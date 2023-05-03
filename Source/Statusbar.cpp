@@ -19,6 +19,7 @@
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
 
+
 class LevelMeter : public Component
     , public StatusbarSource::Listener {
     int totalBlocks = 15;
@@ -371,7 +372,7 @@ void Statusbar::resized()
     volumeSlider.setBounds(levelMeterPosition, 2, 100, getHeight() - 4);
 
     // Offset to make text look centred
-    oversampleSelector.setBounds(position(getHeight(), true) + 3, 0, getHeight(), getHeight());
+    oversampleSelector.setBounds(position(getHeight(), true) + 3, 1, getHeight() - 2, getHeight() - 2);
 
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }

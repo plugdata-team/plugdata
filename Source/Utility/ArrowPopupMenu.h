@@ -9,6 +9,7 @@
 // but we cannot solve this through the LookAndFeel because there is no real way to get the screen bounds of the actual menu
 // So instead, we have to get the menu by using Component::getCurrentlyModalComponent()
 
+
 class ArrowPopupMenu : public Component{
 public:
     ArrowPopupMenu(Component* target)
