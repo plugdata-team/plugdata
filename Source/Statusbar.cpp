@@ -360,7 +360,7 @@ void Statusbar::resized()
     snapEnableButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
     snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1, 0).withTrimmedRight(8));
 
-    pos = 0; // reset position for elements on the left
+    pos = 5; // reset position for elements on the right
 
     protectButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 

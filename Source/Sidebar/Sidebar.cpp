@@ -78,6 +78,36 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
         showPanel(3);
     };
     addAndMakeVisible(searchButton);
+    
+    panelSettingsButton.setTooltip("Show panel settings");
+    panelSettingsButton.setConnectedEdges(12);
+    panelSettingsButton.getProperties().set("Style", "SmallIcon");
+    panelSettingsButton.onClick = [this, parent]() {
+        
+        auto bounds = parent->getLocalArea(this, panelSettingsButton.getBounds());
+        if(currentPanel == 0)
+        {
+            
+            console->showCalloutBox(bounds, parent);
+        }
+        if(currentPanel == 1)
+        {
+            browser->showCalloutBox(bounds, parent);
+        }
+    };
+    
+    addAndMakeVisible(panelSettingsButton);
+
+    
+    panelPinButton.setTooltip("Pin panel");
+    panelPinButton.setConnectedEdges(12);
+    panelPinButton.getProperties().set("Style", "SmallIcon");
+    panelPinButton.setClickingTogglesState(true);
+    panelPinButton.onClick = [this]() {
+        pinSidebar(panelPinButton.getToggleState());
+    };
+    addAndMakeVisible(panelPinButton);
+    
 
     browserButton.setRadioGroupId(1100);
     automationButton.setRadioGroupId(1100);
@@ -111,6 +141,14 @@ void Sidebar::paint(Graphics& g)
     // Background for buttons
     g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
     g.fillRect(0, 0, getWidth(), 30);
+        
+    if(inspector->isVisible()){
+        Fonts::drawStyledText(g, "Inspector", Rectangle<int>(0, 30, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+    }
+    else {
+        Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 30, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+    }
+
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
@@ -120,6 +158,9 @@ void Sidebar::paintOverChildren(Graphics& g)
     g.drawLine(0, 30, getWidth(), 30);
     g.drawLine(0.0f, getHeight() - 29.5f, static_cast<float>(getWidth()), getHeight() - 29.5f);
     g.drawLine(0.5f, 0, 0.5f, getHeight() - 29.5f);
+    
+    g.drawLine(0, 60, getWidth(), 60);
+    
 }
 
 void Sidebar::resized()
@@ -133,7 +174,14 @@ void Sidebar::resized()
     browserButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     automationButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     searchButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
+    
+    auto panelTitleBarBounds = bounds.removeFromTop(30);
+    
+    panelSettingsButton.setBounds(panelTitleBarBounds.removeFromRight(30));
+    panelPinButton.setBounds(panelTitleBarBounds.removeFromLeft(30));
 
+    bounds.removeFromBottom(30);
+    
     browser->setBounds(bounds);
     console->setBounds(bounds);
     inspector->setBounds(bounds);
@@ -212,6 +260,10 @@ void Sidebar::showPanel(int panelToShow)
     hideParameters();
 
     currentPanel = panelToShow;
+    
+    panelSettingsButton.setVisible(currentPanel < 2);
+    
+    repaint();
 }
 
 bool Sidebar::isShowingBrowser()
@@ -264,8 +316,11 @@ void Sidebar::showParameters(String const& name, ObjectParameters& params)
     inspector->setTitle(name.upToFirstOccurrenceOf(" ", false, false));
 
     if (!pinned) {
+        panelSettingsButton.setVisible(false);
         inspector->setVisible(true);
     }
+    
+    repaint();
 }
 
 void Sidebar::showParameters()
@@ -273,16 +328,20 @@ void Sidebar::showParameters()
     inspector->loadParameters(lastParameters);
 
     if (!pinned) {
+        panelSettingsButton.setVisible(currentPanel < 2);
         inspector->setVisible(true);
         console->setVisible(false);
         browser->setVisible(false);
         searchPanel->setVisible(false);
         automationPanel->setVisible(false);
     }
+    
+    repaint();
 }
 void Sidebar::hideParameters()
 {
     if (!pinned) {
+        panelSettingsButton.setVisible(currentPanel < 2);
         inspector->setVisible(false);
     }
 
@@ -292,6 +351,9 @@ void Sidebar::hideParameters()
     }
 
     console->deselect();
+    
+    
+    repaint();
 }
 
 bool Sidebar::isShowingConsole() const

@@ -67,6 +67,9 @@ private:
     TextButton browserButton = TextButton(Icons::Documentation);
     TextButton automationButton = TextButton(Icons::Parameters);
     TextButton searchButton = TextButton(Icons::Search);
+    
+    TextButton panelSettingsButton = TextButton(Icons::Settings);
+    TextButton panelPinButton = TextButton(Icons::Pin);
 
     Console* console;
     Inspector* inspector;
@@ -74,6 +77,7 @@ private:
     AutomationPanel* automationPanel;
     SearchPanel* searchPanel;
 
+    StringArray panelNames = { "Console", "Documentation Browser", "Automation Parameters", "Search" };
     int currentPanel = 0;
 
     int dragStartWidth = 0;

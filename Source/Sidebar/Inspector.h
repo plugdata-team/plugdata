@@ -27,7 +27,7 @@ public:
 
         Fonts::drawText(g, title, getLocalBounds().removeFromTop(23), findColour(PlugDataColour::sidebarTextColourId), 15, Justification::centred);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 23, getWidth(), 23);
     }
 

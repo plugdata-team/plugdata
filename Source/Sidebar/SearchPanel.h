@@ -192,7 +192,7 @@ public:
         input.setColour(TextEditor::textColourId, textColour);
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRect(getLocalBounds().withTrimmedBottom(30));
+        g.fillRect(getLocalBounds());
     }
 
     void paintOverChildren(Graphics& g) override

@@ -87,7 +87,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     redoButton.setButtonText(Icons::Redo);
     addObjectMenuButton.setButtonText(Icons::Add);
     hideSidebarButton.setButtonText(Icons::Hide);
-    pinButton.setButtonText(Icons::Pin);
 
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
@@ -158,7 +157,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(splitView);
     addAndMakeVisible(*sidebar);
 
-    for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &pinButton, &hideSidebarButton }) {
+    for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &hideSidebarButton }) {
         button->getProperties().set("Style", "LargeIcon");
         // button->setConnectedEdges(Button::Conn);
         addAndMakeVisible(button);
@@ -230,18 +229,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         sidebar->showSidebar(show);
         hideSidebarButton.setButtonText(show ? Icons::Hide : Icons::Show);
         hideSidebarButton.setTooltip(show ? "Hide Sidebar" : "Show Sidebar");
-        pinButton.setVisible(show);
 
         repaint();
         resized();
     };
-
-    // Hide pin sidebar panel
-    pinButton.setTooltip("Pin Panel");
-    pinButton.getProperties().set("Style", "LargeIcon");
-    pinButton.setClickingTogglesState(true);
-    pinButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-    pinButton.onClick = [this]() { sidebar->pinSidebar(pinButton.getToggleState()); };
 
     addAndMakeVisible(hideSidebarButton);
 
@@ -345,7 +336,7 @@ void PluginEditor::resized()
 
     splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth) + 1, getHeight() - toolbarHeight - Statusbar::statusbarHeight);
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), getHeight() - toolbarHeight);
-    statusbar->setBounds(0, getHeight() - Statusbar::statusbarHeight, getWidth() - sidebar->getWidth(), statusbar->getHeight());
+    statusbar->setBounds(0, getHeight() - Statusbar::statusbarHeight, getWidth(), statusbar->getHeight());
 
     auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
@@ -384,7 +375,6 @@ void PluginEditor::resized()
     int pinPosition = hidePosition - 60;
 
     hideSidebarButton.setBounds(hidePosition, 0, toolbarHeight, toolbarHeight);
-    pinButton.setBounds(pinPosition, 0, toolbarHeight, toolbarHeight);
 
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();

@@ -11,6 +11,73 @@
 #include "Utility/OSUtils.h"
 #include "Object.h"
 
+class DocumentBrowserSettings : public Component {
+public:
+    
+    struct DocumentBrowserSettingsButton : public TextButton
+    {
+        const String icon;
+        const String description;
+        
+        DocumentBrowserSettingsButton(String iconString, String descriptionString) : icon(iconString), description(descriptionString)
+        {
+        }
+        
+        void paint(Graphics& g) override
+        {
+            auto colour = findColour(PlugDataColour::toolbarTextColourId);
+
+            Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(30), colour, 14);
+            
+            if(isMouseOver())
+            {
+                colour = colour.brighter(0.4f);
+            }
+            if(getToggleState())
+            {
+                colour = findColour(PlugDataColour::toolbarActiveColourId);
+            }
+     
+            Fonts::drawIcon(g, icon, getLocalBounds(), colour, 14, false);
+        }
+    };
+
+    DocumentBrowserSettings(std::function<void()> chooseCustomLocation, std::function<void()> resetDefaultLocation)
+    {
+        addAndMakeVisible(customLocationButton);
+        addAndMakeVisible(restoreLocationButton);
+        
+        customLocationButton.onClick = [chooseCustomLocation](){
+            chooseCustomLocation();
+        };
+        
+        restoreLocationButton.onClick = [resetDefaultLocation](){
+            resetDefaultLocation();
+        };
+
+        setSize(180, 70);
+    }
+
+    void resized() override
+    {
+        auto buttonBounds = getLocalBounds().reduced(2);
+        
+        int buttonHeight = buttonBounds.getHeight() / 2;
+
+        customLocationButton.setBounds(buttonBounds.removeFromTop(buttonHeight));
+        restoreLocationButton.setBounds(buttonBounds.removeFromTop(buttonHeight));
+    }
+
+private:
+    static inline bool isShowing = false;
+
+    DocumentBrowserSettingsButton customLocationButton = DocumentBrowserSettingsButton(Icons::Open, "Show custom folder...");
+    DocumentBrowserSettingsButton restoreLocationButton = DocumentBrowserSettingsButton(Icons::Restore, "Show default folder");
+
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserSettings)
+};
+
 // Base classes for communication between parent and child classes
 class DocumentBrowserViewBase : public TreeView
     , public DirectoryContentsDisplayComponent {
@@ -353,8 +420,6 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
-
         // Paint selected row
         if (getNumSelectedFiles()) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
@@ -736,56 +801,6 @@ public:
             }
         };
 
-        revealButton.getProperties().set("Style", "SmallIcon");
-        loadFolderButton.getProperties().set("Style", "SmallIcon");
-        resetFolderButton.getProperties().set("Style", "SmallIcon");
-
-#if JUCE_MAC
-        String revealTip = "Reveal in Finder";
-#elif JUCE_WINDOWS
-        String revealTip = "Reveal in Explorer";
-#else
-        String revealTip = "Reveal in file browser";
-#endif
-
-        revealButton.setTooltip(revealTip);
-        addAndMakeVisible(revealButton);
-
-        loadFolderButton.setTooltip("Choose location to show");
-        addAndMakeVisible(loadFolderButton);
-
-        resetFolderButton.setTooltip("Reset to default location");
-        addAndMakeVisible(resetFolderButton);
-
-        loadFolderButton.onClick = [this]() {
-            openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", SettingsFile::getInstance()->wantsNativeDialog());
-
-            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
-                [this](FileChooser const& fileChooser) {
-                    const auto file = fileChooser.getResult();
-                    if (file.exists()) {
-                        auto path = file.getFullPathName();
-                        pd->settingsFile->setProperty("browser_path", path);
-                        directory.setDirectory(path, true, true);
-                    }
-                });
-        };
-
-        resetFolderButton.onClick = [this]() {
-            auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
-            auto path = location.getFullPathName();
-            pd->settingsFile->setProperty("browser_path", path);
-            directory.setDirectory(path, true, true);
-        };
-
-        revealButton.onClick = [this]() {
-            if (searchComponent.hasSelection()) {
-                searchComponent.getSelection().revealToUser();
-            } else if (fileList.getSelectedFile().exists()) {
-                fileList.getSelectedFile().revealToUser();
-            }
-        };
-
         addAndMakeVisible(searchComponent);
 
         if (!fileList.getSelectedFile().exists())
@@ -813,30 +828,7 @@ public:
     void resized() override
     {
         searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 30));
-
         fileList.setBounds(getLocalBounds().withHeight(getHeight() - 60).withY(30).reduced(2, 0));
-
-        auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
-
-        Array<TextButton*> buttons = { &revealButton, &loadFolderButton, &resetFolderButton };
-
-        for (auto* b : buttons) {
-            auto item = FlexItem(*b).withMinWidth(8.0f).withMinHeight(8.0f).withMaxHeight(27);
-            item.flexGrow = 1.0f;
-            item.flexShrink = 1.0f;
-            fb.items.add(item);
-        }
-
-        auto bounds = getLocalBounds().toFloat();
-
-        fb.performLayout(bounds.removeFromBottom(30));
-    }
-
-    void paint(Graphics& g) override
-    {
-        // Background for statusbar part
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -846,6 +838,35 @@ public:
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 29, getWidth(), 29);
+    }
+    
+    void showCalloutBox(Rectangle<int> bounds, PluginEditor* editor)
+    {
+        auto openFolderCallback = [this]() {
+            openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", SettingsFile::getInstance()->wantsNativeDialog());
+
+            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+                [this](FileChooser const& fileChooser) {
+                    const auto file = fileChooser.getResult();
+                    if (file.exists()) {
+                        auto path = file.getFullPathName();
+                        pd->settingsFile->setProperty("browser_path", path);
+                        directory.setDirectory(path, true, true);
+                    }
+                });
+        };
+    
+        
+        auto resetFolderCallback = [this]() {
+            auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
+            auto path = location.getFullPathName();
+            pd->settingsFile->setProperty("browser_path", path);
+            directory.setDirectory(path, true, true);
+        };
+
+        
+        auto docsSettings = std::make_unique<DocumentBrowserSettings>(openFolderCallback, resetFolderCallback);
+        CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, editor);
     }
 
 private:
