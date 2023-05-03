@@ -97,6 +97,7 @@ public:
 
             textLabel.setText(groupName, dontSendNotification);
             textLabel.setInterceptsMouseClicks(false, false);
+            textLabel.setFont(Font(14));
             addAndMakeVisible(textLabel);
 
             snapValue = SettingsFile::getInstance()->getProperty<int>(property);

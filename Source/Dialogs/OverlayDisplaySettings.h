@@ -61,6 +61,7 @@ public:
 
             textLabel.setText(groupName, dontSendNotification);
             textLabel.setTooltip(toolTip);
+            textLabel.setFont(Font(14));
             addAndMakeVisible(textLabel);
 
             auto editState = static_cast<int>(settings.getProperty("edit"));
@@ -116,12 +117,15 @@ public:
         auto overlayTree = settingsTree.getChildWithName("Overlays");
 
         canvasLabel.setText("Canvas", dontSendNotification);
+        canvasLabel.setFont(Font(14));
         addAndMakeVisible(canvasLabel);
 
         objectLabel.setText("Object", dontSendNotification);
+        objectLabel.setFont(Font(14));
         addAndMakeVisible(objectLabel);
 
         connectionLabel.setText("Connection", dontSendNotification);
+        connectionLabel.setFont(Font(14));
         addAndMakeVisible(connectionLabel);
 
         buttonGroups.add(new OverlaySelector(overlayTree, Origin, "origin", "Origin", "0,0 point of canvas"));
