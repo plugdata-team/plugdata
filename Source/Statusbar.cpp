@@ -19,6 +19,7 @@
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
 
+#include "Utility/ArrowPopupMenu.h"
 
 class LevelMeter : public Component
     , public StatusbarSource::Listener {
@@ -159,9 +160,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
         menu.addItem(2, "2x");
         menu.addItem(3, "4x");
         menu.addItem(4, "8x");
-
+        
         auto* editor = pd->getActiveEditor();
-        menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&oversampleSelector).withParentComponent(editor),
+        ArrowPopupMenu::showMenuAsync(&menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&oversampleSelector).withParentComponent(editor),
             [this](int result) {
                 if (result != 0) {
                     oversampleSelector.setButtonText(String(1 << (result - 1)) + "x");

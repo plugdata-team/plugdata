@@ -10,7 +10,8 @@
 // So instead, we have to get the menu by using Component::getCurrentlyModalComponent()
 
 
-class ArrowPopupMenu : public Component{
+class ArrowPopupMenu : public Component, public ComponentListener
+{
 public:
     ArrowPopupMenu(Component* target)
         : targetComponent(target)
@@ -18,9 +19,21 @@ public:
         setWantsKeyboardFocus(false);
         setInterceptsMouseClicks(false, false);
     }
+    
+    ~ArrowPopupMenu()
+    {
+        if(menuComponent)
+        {
+            menuComponent->removeComponentListener(this);
+        }
+    }
 
     void attachToMenu(Component* menuToAttachTo, Component* parent)
     {
+        menuParent = parent;
+        menuComponent = menuToAttachTo;
+        
+        menuComponent->addComponentListener(this);
         
         setAlwaysOnTop(true);
         setVisible(true);
@@ -29,41 +42,41 @@ public:
         
         // Apply a slight offset to the menu so we have enough space for the arrow...
         menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, menuMargin - 3));
-        
-        if(parent)
-        {
-            auto targetBounds = parent->getLocalArea(targetComponent, targetComponent->getLocalBounds());
-            auto menuTop = parent->getLocalArea(menuToAttachTo, menuToAttachTo->getLocalBounds()).removeFromTop(menuMargin + 1);
-            parent->addAndMakeVisible(this);
-            setBounds(targetBounds.getUnion(menuTop));
-        }
-        else
-        {
-            addToDesktop(ComponentPeer::windowIsTemporary);
-            setBounds(targetComponent->getScreenBounds().getUnion(menuToAttachTo->getScreenBounds().removeFromTop(menuMargin + 1)));
-        }
-
-        menuBounds = getLocalArea(menuToAttachTo, menuToAttachTo->getLocalBounds());
     }
 
     void paint(Graphics& g) override
     {
-        auto localArea = getLocalArea(targetComponent, targetComponent->getLocalBounds());
+        auto targetArea = getLocalArea(targetComponent, targetComponent->getLocalBounds());
 
         auto margin = getLookAndFeel().getPopupMenuBorderSize();
-        
-        // Heuristic to make it align for all popup menu margins
-        auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, 0.5f, 2.5f);
-        
+                
         auto arrowHeight = 12;
         auto arrowWidth = 22;
-
-        auto arrowBounds = Rectangle<float>(localArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getY() - arrowHeight + menuMargin, arrowWidth, arrowHeight);
         
         Path arrow;
-        arrow.startNewSubPath(arrowBounds.getBottomLeft());
-        arrow.lineTo(arrowBounds.getCentreX(), arrowBounds.getY());
-        arrow.lineTo(arrowBounds.getBottomRight());
+        Rectangle<float> arrowBounds;
+        
+        // Check if we need to draw an arrow up or down
+        if(targetArea.getY() <= menuBounds.getY()) {
+            
+            auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, 0.5f, 2.5f);
+            
+            arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getY() - arrowHeight + menuMargin, arrowWidth, arrowHeight);
+            
+            arrow.startNewSubPath(arrowBounds.getBottomLeft());
+            arrow.lineTo(arrowBounds.getCentreX(), arrowBounds.getY());
+            arrow.lineTo(arrowBounds.getBottomRight());
+        }
+        else {
+            
+            auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, 0.5f, 5.5f);
+            
+            arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getBottom() - arrowHeight + menuMargin, arrowWidth, arrowHeight);
+            
+            arrow.startNewSubPath(arrowBounds.getTopLeft());
+            arrow.lineTo(arrowBounds.getCentreX(), arrowBounds.getBottom());
+            arrow.lineTo(arrowBounds.getTopRight());
+        }
         
         auto arrowOutline = arrow;
         arrow.closeSubPath();
@@ -100,9 +113,35 @@ public:
             arrow->attachToMenu(popupMenuComponent, options.getParentComponent());
         }
     }
+    
+    void componentMovedOrResized(Component& component, bool moved, bool resized) override
+    {
+        if(!menuComponent) return;
+        
+        auto menuMargin = getLookAndFeel().getPopupMenuBorderSize();
+        
+        
+        if(menuParent)
+        {
+            auto targetBounds = menuParent->getLocalArea(targetComponent, targetComponent->getLocalBounds());
+            auto menuTop = menuParent->getLocalArea(menuComponent.getComponent(), menuComponent->getLocalBounds()).removeFromTop(menuMargin + 1);
+            
+            menuParent->addAndMakeVisible(this);
+            setBounds(targetBounds.getUnion(menuTop));
+        }
+        else
+        {
+            addToDesktop(ComponentPeer::windowIsTemporary);
+            setBounds(targetComponent->getScreenBounds().getUnion(menuComponent->getScreenBounds().removeFromTop(menuMargin + 1)));
+        }
+
+        menuBounds = getLocalArea(menuComponent.getComponent(), menuComponent->getLocalBounds());
+    }
 
 private:
     
     Rectangle<int> menuBounds;
-    Component* targetComponent;
+    Component* targetComponent = nullptr;
+    Component* menuParent = nullptr;
+    SafePointer<Component> menuComponent;
 };
