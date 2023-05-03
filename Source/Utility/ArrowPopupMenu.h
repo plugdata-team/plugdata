@@ -69,7 +69,7 @@ public:
         }
         else {
             
-            auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, 0.5f, 5.5f);
+            auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, -8.0f, 6.0f);
             
             arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getBottom() - arrowHeight + menuMargin, arrowWidth, arrowHeight);
             
