@@ -259,7 +259,7 @@ public:
         auto content = getLocalBounds();
 
         welcomePanel.setBounds(content);
-        newButton.setBounds(3, -2, depth, depth + 4); // slighly offset to make it centred next to the tabs
+        newButton.setBounds(3, 0, depth, depth); // slighly offset to make it centred next to the tabs
 
         auto tabBounds = content.removeFromTop(depth).withTrimmedLeft(depth);
         tabs->setBounds(tabBounds);

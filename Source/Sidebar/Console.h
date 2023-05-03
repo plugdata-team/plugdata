@@ -66,6 +66,7 @@ public:
     {
         auto buttonBounds = getLocalBounds();
         
+        
         int buttonHeight = buttonBounds.getHeight() / buttons.size();
 
         for (auto* button : buttons) {

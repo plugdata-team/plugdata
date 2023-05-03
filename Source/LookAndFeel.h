@@ -366,7 +366,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId);
             
             auto bounds = button.getLocalBounds().toFloat();
-            bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f)).translated(-0.5f, -0.25f);
+            bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
 
             backgroundColour = backgroundColour.contrasting(0.05f);
 
@@ -383,7 +383,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.fillPath(path);
         } else {
             auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
-            auto bounds = button.getLocalBounds().toFloat().reduced(2.0f, 4.0f).translated(-0.5f, -0.25f);
+            auto bounds = button.getLocalBounds().toFloat().reduced(2.0f, 4.0f);
 
             g.setColour(backgroundColour);
             g.fillRoundedRectangle(bounds, cornerSize);
@@ -420,11 +420,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
             drawToolbarButtonBackground(g, button, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
             return;
         }
-        if (button.getProperties()["Style"] == "TextIcon") {
-            drawTextButtonBackground(g, button, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
-            return;
-        }
-
         if (button.getProperties()["Style"].toString().contains("Icon")) {
             return;
         } else {
@@ -437,12 +432,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
         if (button.getProperties()["Style"] == "LargeIcon") {
             button.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarTextColourId));
             button.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+            
+            g.saveState();
+            g.addTransform(AffineTransform::translation(0.25f, 0.0f)); // This heuristic makes sure the icon appears exactly centred
             LookAndFeel_V4::drawButtonText(g, button, isMouseOverButton, isButtonDown);
-        } else if (button.getProperties()["Style"] == "TextIcon") {
-            button.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarBackgroundColourId));
-            button.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarBackgroundColourId));
-            LookAndFeel_V4::drawButtonText(g, button, isMouseOverButton, isButtonDown);
-        } else if (button.getProperties()["Style"] == "SmallIcon") {
+            g.restoreState();
+        }
+        else if (button.getProperties()["Style"] == "SmallIcon") {
             Font font(getTextButtonFont(button, button.getHeight()));
             g.setFont(font);
 
@@ -1333,7 +1329,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff007aff\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\"\n"
     "           dialog_background=\"ffe4e4e4\" sidebar_colour=\"ffefefef\" sidebar_text=\"ff4d4d4d\"\n"
     "           sidebar_background_active=\"ffdfdfdf\" sidebar_active_text=\"ff4d4d4d\"\n"
-    "           levelmeter_active=\"ff007aff\" levelmeter_inactive=\"ffeeeeee\" levelmeter_track=\"ff4d4d4d\"\n"
+    "           levelmeter_active=\"ff007aff\" levelmeter_inactive=\"fff6f6f6\" levelmeter_track=\"ff4d4d4d\"\n"
     "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"fffafafa\" panel_text=\"ff4d4d4d\"\n"
     "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff4d4d4d\"\n"
     "           popup_background=\"ffe6e6e6\" popup_background_active=\"ffd5d5d5\"\n"
