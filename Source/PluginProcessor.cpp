@@ -1048,32 +1048,33 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         }
     };
     
-    // If xmltree contains new patch format, use that
-    if(auto* patchTree = xmlState->getChildByName("Patches"))
-    {
-        forEachXmlChildElementWithTagName(*patchTree, p, "Patch")
-        {
-            auto content = p->getStringAttribute("Content");
-            auto location = p->getStringAttribute("Location");
-            auto pluginMode = p->getBoolAttribute("PluginMode");
-            
-            auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
-            location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
-            
-            openPatch(content, location, pluginMode);
-        }
-    }
-    // Otherwise, load from legacy format
-    else {
-        for(auto& [content, location] : patches)
-        {
-            openPatch(content, location);
-        }
-    }
-
-    jassert(xmlState);
-
     if (xmlState) {
+        
+        // If xmltree contains new patch format, use that
+        if(auto* patchTree = xmlState->getChildByName("Patches"))
+        {
+            forEachXmlChildElementWithTagName(*patchTree, p, "Patch")
+            {
+                auto content = p->getStringAttribute("Content");
+                auto location = p->getStringAttribute("Location");
+                auto pluginMode = p->getBoolAttribute("PluginMode");
+                
+                auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+                location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
+                
+                openPatch(content, location, pluginMode);
+            }
+        }
+        // Otherwise, load from legacy format
+        else {
+            for(auto& [content, location] : patches)
+            {
+                openPatch(content, location);
+            }
+        }
+
+        jassert(xmlState);
+        
         PlugDataParameter::loadStateInformation(*xmlState, getParameters());
 
         auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
