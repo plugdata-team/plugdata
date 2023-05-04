@@ -17,6 +17,7 @@
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
 
+class ConnectionMessageDisplay;
 class Sidebar;
 class Statusbar;
 class ZoomLabel;
@@ -125,6 +126,7 @@ public:
 
     ComponentBoundsConstrainer* defaultConstrainer;
         
+    std::unique_ptr<ConnectionMessageDisplay> connectionMessageDisplay;
 private:
     // Used by standalone to handle dragging the window
     ComponentDragger windowDragger;
