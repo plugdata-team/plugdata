@@ -6,42 +6,6 @@
 
 class FunctionObject final : public ObjectBase {
 
-    struct t_fake_function {
-        t_object x_obj;
-        t_glist* x_glist;
-        t_edit_proxy* x_proxy;
-        int x_state;
-        int x_n_states;
-        int x_flag;
-        int x_s_flag;
-        int x_r_flag;
-        int x_sel;
-        int x_width;
-        int x_height;
-        int x_init;
-        int x_grabbed; // number of grabbed point, for moving it/deleting it
-        int x_shift;
-        int x_snd_set;
-        int x_rcv_set;
-        int x_zoom;
-        int x_edit;
-        t_symbol* x_send;
-        t_symbol* x_receive;
-        t_symbol* x_snd_raw;
-        t_symbol* x_rcv_raw;
-        float* x_points;
-        float* x_dur;
-        float x_total_duration;
-        float x_min;
-        float x_max;
-        float x_min_point;
-        float x_max_point;
-        float x_pointer_x;
-        float x_pointer_y;
-        unsigned char x_fgcolor[3];
-        unsigned char x_bgcolor[3];
-    };
-
     int hoverIdx = -1;
     int dragIdx = -1;
     bool newPointAdded = false;

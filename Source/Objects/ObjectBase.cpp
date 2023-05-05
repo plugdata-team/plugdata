@@ -23,6 +23,7 @@ extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
 
+#include "AllGuis.h"
 #include "Object.h"
 #include "Iolet.h"
 #include "Canvas.h"

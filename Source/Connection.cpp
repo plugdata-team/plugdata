@@ -1146,7 +1146,7 @@ void ConnectionPathUpdater::timerCallback()
         linetraverser_start(&t, connection->cnv->patch.getPointer());
 
         while (auto* oc = linetraverser_next(&t)) {
-            if (reinterpret_cast<Connection::t_fake_outconnect*>(oc) == connection->ptr) {
+            if (reinterpret_cast<t_fake_outconnect*>(oc) == connection->ptr) {
 
                 outObj = t.tr_ob;
                 outIdx = t.tr_outno;

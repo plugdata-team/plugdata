@@ -317,14 +317,6 @@ public:
 class CanvasActiveObject final : public ImplementationBase
     , public FocusChangeListener {
 
-    struct t_fake_active {
-        t_object x_obj;
-        void* x_proxy;
-        t_symbol* x_cname;
-        int x_right_click;
-        int x_on;
-        int x_name;
-    };
 
     bool lastFocus = 0;
 
@@ -411,20 +403,6 @@ public:
 class CanvasMouseObject final : public ImplementationBase
     , public MouseListener
     , public pd::MessageListener {
-
-    struct t_fake_canvas_mouse {
-        t_object x_obj;
-        void* x_proxy;
-        t_outlet* x_outlet_x;
-        t_outlet* x_outlet_y;
-        t_canvas* x_canvas;
-        int x_edit;
-        int x_pos;
-        int x_offset_x;
-        int x_offset_y;
-        int x_x;
-        int x_y;
-    };
 
     std::atomic<bool> zero = false;
     Point<int> lastPosition;
@@ -585,11 +563,7 @@ public:
 class CanvasVisibleObject final : public ImplementationBase
     , public ComponentListener
     , public Timer {
-    struct t_fake_canvas_vis {
-        t_object x_obj;
-        void* x_proxy;
-        t_canvas* x_canvas;
-    };
+
 
     bool lastFocus = 0;
     Component::SafePointer<Canvas> cnv;
@@ -651,12 +625,6 @@ public:
 
 class CanvasZoomObject final : public ImplementationBase
     , public Value::Listener {
-    struct t_fake_zoom {
-        t_object x_obj;
-        void* x_proxy;
-        t_canvas* x_canvas;
-        int x_zoom;
-    };
 
     float lastScale;
     Value zoomScaleValue;
@@ -700,12 +668,6 @@ public:
 
 class CanvasEditObject final : public ImplementationBase
     , public Value::Listener {
-    struct t_fake_edit {
-        t_object x_obj;
-        void* x_proxy;
-        t_canvas* x_canvas;
-        int x_edit;
-    };
 
     bool lastEditMode;
     Component::Component::SafePointer<Canvas> cnv;
@@ -747,17 +709,6 @@ public:
 // Else "mouse" component
 class MouseObject final : public ImplementationBase
     , public Timer {
-    typedef struct _mouse {
-        t_object x_obj;
-        int x_hzero;
-        int x_vzero;
-        int x_zero;
-        int x_wx;
-        int x_wy;
-        t_glist* x_glist;
-        t_outlet* x_horizontal;
-        t_outlet* x_vertical;
-    } t_mouse;
 
 public:
     MouseObject(void* ptr, PluginProcessor* pd)
@@ -767,7 +718,7 @@ public:
         lastPosition = mouseSource.getScreenPosition();
         lastMouseDownTime = mouseSource.getLastMouseDownTime();
         startTimer(timerInterval);
-        canvas = static_cast<t_mouse*>(ptr)->x_glist;
+        canvas = static_cast<t_fake_mouse*>(ptr)->x_glist;
     }
 
     void timerCallback() override

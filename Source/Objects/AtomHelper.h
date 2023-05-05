@@ -4,27 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-// False GATOM
-typedef struct _gatom {
-    t_text a_text;
-    int a_flavor;                     /* A_FLOAT, A_SYMBOL, or A_LIST */
-    t_glist* a_glist;                 /* owning glist */
-    t_float a_toggle;                 /* value to toggle to */
-    t_float a_draghi;                 /* high end of drag range */
-    t_float a_draglo;                 /* low end of drag range */
-    t_symbol* a_label;                /* symbol to show as label next to box */
-    t_symbol* a_symfrom;              /* "receive" name -- bind ourselves to this */
-    t_symbol* a_symto;                /* "send" name -- send to this on output */
-    t_binbuf* a_revertbuf;            /* binbuf to revert to if typing canceled */
-    int a_dragindex;                  /* index of atom being dragged */
-    int a_fontsize;
-    unsigned int a_shift : 1;         /* was shift key down when drag started? */
-    unsigned int a_wherelabel : 2;    /* 0-3 for left, right, above, below */
-    unsigned int a_grabbed : 1;       /* 1 if we've grabbed keyboard */
-    unsigned int a_doubleclicked : 1; /* 1 if dragging from a double click */
-    t_symbol* a_expanded_to;          /* a_symto after $0, $1, ...  expansion */
-} t_fake_gatom;
-
 static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 {
     int ac = binbuf_getnatom(x->a_text.te_binbuf);

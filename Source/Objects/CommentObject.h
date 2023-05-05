@@ -162,10 +162,10 @@ public:
                     return;
 
                 auto* cstr = value.toRawUTF8();
-                auto* messobj = static_cast<t_message*>(ptr);
+                auto* commentObj = static_cast<t_text*>(ptr);
                 auto* canvas = _this->cnv->patch.getPointer();
 
-                libpd_renameobj(canvas, &messobj->m_text.te_g, cstr, value.getNumBytesAsUTF8());
+                libpd_renameobj(canvas, &commentObj->te_g, cstr, value.getNumBytesAsUTF8());
             });
     }
 

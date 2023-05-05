@@ -6,16 +6,6 @@
 
 #include "../Utility/ColourPicker.h"
 
-struct t_fake_colors {
-    t_object x_obj;
-    t_int x_hex;
-    t_int x_gui;
-    t_int x_rgb;
-    t_int x_ds;
-    t_symbol* x_id;
-    char x_color[MAXPDSTRING];
-};
-
 class ColourPickerObject final : public TextBase {
 public:
     ColourPickerObject(void* ptr, Object* object)

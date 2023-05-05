@@ -6,36 +6,6 @@
 
 #include "Dialogs/Dialogs.h"
 
-struct t_fake_textbuf {
-    t_object b_ob;
-    t_binbuf* b_binbuf;
-    t_canvas* b_canvas;
-    t_guiconnect* b_guiconnect;
-    t_symbol* b_sym;
-};
-
-struct t_fake_qlist {
-    t_fake_textbuf x_textbuf;
-    t_outlet* x_bangout;
-    int x_onset; /* playback position */
-    t_clock* x_clock;
-    t_float x_tempo;
-    double x_whenclockset;
-    t_float x_clockdelay;
-    int x_rewound; /* we've been rewound since last start */
-    int x_innext;  /* we're currently inside the "next" routine */
-};
-
-struct t_fake_text_define {
-    t_fake_textbuf x_textbuf;
-    t_outlet* x_out;
-    t_outlet* x_notifyout;
-    t_symbol* x_bindsym;
-    t_scalar* x_scalar;   /* faux scalar (struct text-scalar) to point to */
-    t_gpointer x_gp;      /* pointer to it */
-    t_canvas* x_canvas;   /* owning canvas whose stub we use for x_gp */
-    unsigned char x_keep; /* whether to embed contents in patch on save */
-};
 
 class TextFileObject final : public TextBase {
 

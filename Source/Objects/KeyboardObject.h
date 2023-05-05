@@ -198,46 +198,6 @@ public:
 // ELSE keyboard
 class KeyboardObject final : public ObjectBase
     , public Timer {
-    typedef struct _edit_proxy {
-        t_object p_obj;
-        t_symbol* p_sym;
-        t_clock* p_clock;
-        struct _keyboard* p_cnv;
-    } t_edit_proxy;
-
-    typedef struct _keyboard {
-        t_object x_obj;
-        t_glist* x_glist;
-        t_edit_proxy* x_proxy;
-        int* x_tgl_notes; // to store which notes should be played
-        int x_velocity;   // to store velocity
-        int x_last_note;  // to store last note
-        float x_vel_in;   // to store the second inlet values
-        float x_space;
-        int x_width;
-        int x_height;
-        int x_octaves;
-        int x_first_c;
-        int x_low_c;
-        int x_toggle_mode;
-        int x_norm;
-        int x_zoom;
-        int x_shift;
-        int x_xpos;
-        int x_ypos;
-        int x_snd_set;
-        int x_rcv_set;
-        int x_flag;
-        int x_s_flag;
-        int x_r_flag;
-        int x_edit;
-        t_symbol* x_receive;
-        t_symbol* x_rcv_raw;
-        t_symbol* x_send;
-        t_symbol* x_snd_raw;
-        t_symbol* x_bindsym;
-        t_outlet* x_out;
-    } t_keyboard;
 
     Value lowC;
     Value octaves;
@@ -260,7 +220,7 @@ public:
         keyboard.setScrollButtonsVisible(false);
 
         keyboard.noteOn = [this](int note, int velocity) {
-            auto* elseKeyboard = static_cast<t_keyboard*>(this->ptr);
+            auto* elseKeyboard = static_cast<t_fake_keyboard*>(this->ptr);
 
             cnv->pd->enqueueFunction(
                 [_this = SafePointer(this), elseKeyboard, note, velocity]() mutable {
@@ -279,7 +239,7 @@ public:
         };
 
         keyboard.noteOff = [this](int note) {
-            auto* elseKeyboard = static_cast<t_keyboard*>(this->ptr);
+            auto* elseKeyboard = static_cast<t_fake_keyboard*>(this->ptr);
 
             cnv->pd->enqueueFunction(
                 [_this = SafePointer(this), elseKeyboard, note]() mutable {
@@ -304,7 +264,7 @@ public:
 
     void update() override
     {
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
         lowC.setValue(elseKeyboard->x_low_c);
         octaves.setValue(elseKeyboard->x_octaves);
         toggleMode.setValue(elseKeyboard->x_toggle_mode);
@@ -330,7 +290,7 @@ public:
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
         auto bounds = Rectangle<int>(x, y, elseKeyboard->x_space * numWhiteKeys, elseKeyboard->x_height);
 
         pd->unlockAudioThread();
@@ -342,7 +302,7 @@ public:
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
         elseKeyboard->x_height = b.getHeight();
     }
 
@@ -355,7 +315,7 @@ public:
 
         keyboard.setKeyWidth(keyWidth);
 
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
         elseKeyboard->x_space = keyWidth;
 
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
@@ -391,7 +351,7 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
 
         if (value.refersToSameSourceAs(lowC)) {
             lowC = std::clamp<int>(getValue<int>(lowC), -1, 9);
@@ -416,7 +376,7 @@ public:
 
     void updateValue()
     {
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
 
         for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
             if (elseKeyboard->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {

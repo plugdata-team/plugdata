@@ -32,7 +32,7 @@ MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 The OSC webpage is http://cnmat.cnmat.berkeley.edu/OpenSoundControl
 */
 
-#include "../../shared/OSC.h"
+#include "../shared/OSC.h"
 
 #define SECONDS_FROM_1900_to_1970 2208988800LL /* 17 leap years */
 #define TWO_TO_THE_32_OVER_ONE_MILLION 4295LL

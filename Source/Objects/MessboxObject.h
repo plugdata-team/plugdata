@@ -322,33 +322,4 @@ public:
     {
         return false;
     }
-
-    struct t_fake_messbox {
-        t_object x_obj;
-        t_canvas* x_canvas;
-        t_glist* x_glist;
-        t_symbol* x_bind_sym;
-        void* x_proxy;
-        t_symbol* x_dollzero;
-        int x_flag;
-        int x_height;
-        int x_width;
-        int x_resizing;
-        int x_active;
-        int x_selected;
-        char x_fgcolor[8];
-        unsigned int x_fg[3]; // fg RGB color
-        char x_bgcolor[8];
-        unsigned int x_bg[3]; // bg RGB color
-        int x_font_size;
-        int x_zoom;
-        t_symbol* x_font_weight;
-        char* tcl_namespace;
-        char* x_cv_id;
-        char* frame_id;
-        char* text_id;
-        //    char            *handle_id;
-        char* window_tag;
-        char* all_tag;
-    };
 };

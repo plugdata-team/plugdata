@@ -4,32 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-typedef struct _edit_proxy {
-    t_object p_obj;
-    t_symbol* p_sym;
-    t_clock* p_clock;
-    struct _button* p_cnv;
-} t_edit_proxy;
-
-typedef struct _button {
-    t_object x_obj;
-    t_glist* x_glist;
-    t_edit_proxy* x_proxy;
-    t_symbol* x_bindname;
-    int x_x;
-    int x_y;
-    int x_w;
-    int x_h;
-    int x_sel;
-    int x_zoom;
-    int x_edit;
-    int x_state;
-    unsigned char x_bgcolor[3];
-    unsigned char x_fgcolor[3];
-} t_fake_button;
 
 class ButtonObject : public ObjectBase {
-
+    
     bool state = false;
     bool alreadyTriggered = false;
 

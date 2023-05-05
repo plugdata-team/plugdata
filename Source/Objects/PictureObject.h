@@ -6,41 +6,6 @@
 
 // ELSE pic
 class PictureObject final : public ObjectBase {
-    typedef struct _edit_proxy {
-        t_object p_obj;
-        t_symbol* p_sym;
-        t_clock* p_clock;
-        struct _pic* p_cnv;
-    } t_edit_proxy;
-
-    typedef struct _pic {
-        t_object x_obj;
-        t_glist* x_glist;
-        t_edit_proxy* x_proxy;
-        int x_zoom;
-        int x_width;
-        int x_height;
-        int x_snd_set;
-        int x_rcv_set;
-        int x_edit;
-        int x_init;
-        int x_def_img;
-        int x_sel;
-        int x_outline;
-        int x_s_flag;
-        int x_r_flag;
-        int x_flag;
-        int x_size;
-        int x_latch;
-        t_symbol* x_fullname;
-        t_symbol* x_filename;
-        t_symbol* x_x;
-        t_symbol* x_receive;
-        t_symbol* x_rcv_raw;
-        t_symbol* x_send;
-        t_symbol* x_snd_raw;
-        t_outlet* x_outlet;
-    } t_fake_pic;
 
     Value path, latch, outline, reportSize, sendSymbol, receiveSymbol;
     File imageFile;

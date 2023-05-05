@@ -13,6 +13,7 @@ extern "C" {
 #include <x_libpd_extra_utils.h>
 }
 
+#include "AllGuis.h"
 #include "Utility/HashUtils.h"
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"

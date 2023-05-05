@@ -6,44 +6,6 @@
 
 #include "Utility/GlobalMouseListener.h"
 
-struct t_fake_fielddesc {
-    char fd_type; /* LATER consider removing this? */
-    char fd_var;
-    union {
-        t_float fd_float;    /* the field is a constant float */
-        t_symbol* fd_symbol; /* the field is a constant symbol */
-        t_symbol* fd_varsym; /* the field is variable and this is the name */
-    } fd_un;
-    float fd_v1;             /* min and max values */
-    float fd_v2;
-    float fd_screen1;        /* min and max screen values */
-    float fd_screen2;
-    float fd_quantum;        /* quantization in value */
-};
-
-struct t_fake_curve {
-    t_object x_obj;
-    int x_flags; /* CLOSED, BEZ, NOMOUSERUN, NOMOUSEEDIT */
-    t_fake_fielddesc x_fillcolor;
-    t_fake_fielddesc x_outlinecolor;
-    t_fake_fielddesc x_width;
-    t_fake_fielddesc x_vis;
-    int x_npoints;
-    t_fake_fielddesc* x_vec;
-    t_canvas* x_canvas;
-};
-
-struct t_fake_drawnumber {
-    t_object x_obj;
-    t_symbol* x_fieldname;
-    t_fake_fielddesc x_xloc;
-    t_fake_fielddesc x_yloc;
-    t_fake_fielddesc x_color;
-    t_fake_fielddesc x_vis;
-    t_symbol* x_label;
-    t_canvas* x_canvas;
-};
-
 extern "C" {
 
 int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,

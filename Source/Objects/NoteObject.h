@@ -4,68 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct t_fake_note {
-    t_object x_obj;
-    t_edit_proxy* x_proxy;
-    t_glist* x_glist;
-    t_canvas* x_cv;
-    t_binbuf* x_binbuf;
-    char* x_buf;   // text buf
-    int x_bufsize; // text buf size
-    int x_keynum;
-    int x_init;
-    int x_resized;
-    int x_changed;
-    int x_edit;
-    int x_max_pixwidth;
-    int x_text_width;
-    int x_width;
-    int x_height;
-    int x_bbset;
-    int x_bbpending;
-    int x_x1;
-    int x_y1;
-    int x_x2;
-    int x_y2;
-    int x_newx2;
-    int x_dragon;
-    int x_select;
-    int x_fontsize;
-    int x_shift;
-    int x_selstart;
-    int x_start_ndx;
-    int x_end_ndx;
-    int x_selend;
-    int x_active;
-    unsigned char x_red;
-    unsigned char x_green;
-    unsigned char x_blue;
-    unsigned char x_bg[3]; // background color
-    char x_color[8];
-    char x_bgcolor[8];
-    t_symbol* x_keysym;
-    t_symbol* x_bindsym;
-    t_symbol* x_fontname;
-    t_symbol* x_receive;
-    t_symbol* x_rcv_raw;
-    int x_rcv_set;
-    int x_flag;
-    int x_r_flag;
-    //    int             x_old;
-    int x_text_flag;
-    int x_text_n;
-    int x_text_size;
-    int x_zoom;
-    int x_fontface;
-    int x_bold;
-    int x_italic;
-    int x_underline;
-    int x_bg_flag;
-    int x_textjust; // 0: left, 1: center, 2: right
-    int x_outline;
-    t_pd* x_handle;
-};
-
 class NoteObject final : public ObjectBase {
 
     Colour textColour;

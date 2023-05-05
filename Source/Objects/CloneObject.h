@@ -7,41 +7,6 @@
 extern "C" {
 t_glist* clone_get_instance(t_gobj*, int);
 int clone_get_n(t_gobj*);
-
-struct t_copy {
-    t_glist* c_gl;
-    int c_on; /* DSP running */
-};
-
-struct t_in {
-    t_class* i_pd;
-    struct _clone* i_owner;
-    int i_signal;
-    int i_n;
-};
-
-struct t_out {
-    t_class* o_pd;
-    t_outlet* o_outlet;
-    int o_signal;
-    int o_n;
-};
-
-struct t_fake_clone {
-    t_object x_obj;
-    int x_n;          /* number of copies */
-    t_copy* x_vec;    /* the copies */
-    int x_nin;
-    t_in* x_invec;    /* inlet proxies */
-    int x_nout;
-    t_out** x_outvec; /* outlet proxies */
-    t_symbol* x_s;    /* name of abstraction */
-    int x_argc;       /* creation arguments for abstractions */
-    t_atom* x_argv;
-    int x_phase;
-    int x_startvoice;    /* number of first voice, 0 by default */
-    int x_suppressvoice; /* suppress voice number as $1 arg */
-};
 }
 
 class CloneObject final : public TextBase {

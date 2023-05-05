@@ -4,62 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-typedef struct _comment {
-    t_object x_obj;
-    t_edit_proxy* x_proxy;
-    t_glist* x_glist;
-    t_canvas* x_cv;
-    t_binbuf* x_binbuf;
-    char const* x_buf; // text buf
-    int x_bufsize;     // text buf size
-    int x_keynum;
-    t_symbol* x_keysym;
-    int x_init;
-    int x_changed;
-    int x_edit;
-    int x_max_pixwidth;
-    int x_bbset;
-    int x_bbpending;
-    int x_x1;
-    int x_y1;
-    int x_x2;
-    int x_y2;
-    int x_newx2;
-    int x_dragon;
-    int x_select;
-    int x_fontsize;
-    unsigned char x_red;
-    unsigned char x_green;
-    unsigned char x_blue;
-    char x_color[8];
-    char x_bgcolor[8];
-    int x_shift;
-    int x_selstart;
-    int x_start_ndx;
-    int x_end_ndx;
-    int x_selend;
-    int x_active;
-    t_symbol* x_bindsym;
-    t_symbol* x_fontname;
-    t_symbol* x_receive;
-    t_symbol* x_rcv_raw;
-    int x_rcv_set;
-    int x_flag;
-    int x_r_flag;
-    int x_old;
-    int x_text_flag;
-    int x_text_n;
-    int x_text_size;
-    int x_zoom;
-    int x_fontface;
-    int x_bold;
-    int x_italic;
-    int x_underline;
-    int x_bg_flag;
-    int x_textjust;       // 0: left, 1: center, 2: right
-    unsigned int x_bg[3]; // background color
-    t_pd* x_handle;
-} t_fake_comment;
+
 
 // This object is a dumb version of [cyclone/comment] that only serves to make cyclone's documentation readable
 class CycloneCommentObject final : public ObjectBase {

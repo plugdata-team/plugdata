@@ -11,21 +11,6 @@ class MousePadObject final : public ObjectBase {
    
     Point<int> lastPosition;
 
-    typedef struct _pad {
-        t_object x_obj;
-        t_glist* x_glist;
-        void* x_proxy; // dont have this object and dont need it
-        t_symbol* x_bindname;
-        int x_x;
-        int x_y;
-        int x_w;
-        int x_h;
-        int x_sel;
-        int x_zoom;
-        int x_edit;
-        unsigned char x_color[3];
-    } t_pad;
-
 public:
     MousePadObject(void* ptr, Object* object)
         : ObjectBase(ptr, object), mouseListener(this)
@@ -39,7 +24,7 @@ public:
 
             pd->setThis();
 
-            auto* x = static_cast<t_pad*>(this->ptr);
+            auto* x = static_cast<t_fake_pad*>(this->ptr);
             t_atom at[3];
 
             x->x_x = relativeEvent.getPosition().x;
@@ -58,7 +43,7 @@ public:
             if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed) || !isLocked())
                 return;
 
-            auto* x = static_cast<t_pad*>(this->ptr);
+            auto* x = static_cast<t_fake_pad*>(this->ptr);
             t_atom at[1];
             SETFLOAT(at, 0);
             outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
@@ -70,7 +55,7 @@ public:
             if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked())
                 return;
 
-            auto* x = static_cast<t_pad*>(this->ptr);
+            auto* x = static_cast<t_fake_pad*>(this->ptr);
 
             auto relativeEvent = e.getEventRelativeTo(this);
 
@@ -110,7 +95,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto* x = static_cast<t_pad*>(ptr);
+        auto* x = static_cast<t_fake_pad*>(ptr);
         auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
         g.setColour(fillColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
@@ -125,7 +110,7 @@ public:
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        auto* pad = static_cast<t_pad*>(ptr);
+        auto* pad = static_cast<t_fake_pad*>(ptr);
         pad->x_w = b.getWidth() - 1;
         pad->x_h = b.getHeight() - 1;
     }

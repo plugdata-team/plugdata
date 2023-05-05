@@ -6,35 +6,9 @@
 
 #include "Utility/DraggableNumber.h"
 
-typedef struct _numbox {
-    t_object x_obj;
-    t_clock* x_clock_update;
-    t_symbol* x_fg;
-    t_symbol* x_bg;
-    t_glist* x_glist;
-    t_float x_display;
-    t_float x_in_val;
-    t_float x_out_val;
-    t_float x_set_val;
-    t_float x_max;
-    t_float x_min;
-    t_float x_sr_khz;
-    t_float x_inc;
-    t_float x_ramp_step;
-    t_float x_ramp_val;
-    int x_ramp_ms;
-    int x_rate;
-    int x_numwidth;
-    int x_fontsize;
-    int x_clicked;
-    int x_width, x_height;
-    int x_zoom;
-    int x_outmode;
-    char x_buf[32]; // number buffer
-} t_numbox;
-
 class NumboxTildeObject final : public ObjectBase
     , public Timer {
+    
     DraggableNumber input;
 
     int nextInterval = 100;
@@ -82,7 +56,7 @@ public:
         min = getMinimum();
         max = getMaximum();
 
-        auto* object = static_cast<t_numbox*>(ptr);
+        auto* object = static_cast<t_fake_numbox*>(ptr);
         interval = object->x_rate;
         ramp = object->x_ramp_ms;
         init = object->x_set_val;
@@ -137,7 +111,7 @@ public:
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto* nbx = static_cast<t_numbox*>(object->getPointer());
+                auto* nbx = static_cast<t_fake_numbox*>(object->getPointer());
 
                 nbx->x_fontsize = object->gui->getHeight() - 4;
 
@@ -169,7 +143,7 @@ public:
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        auto* nbx = static_cast<t_numbox*>(ptr);
+        auto* nbx = static_cast<t_fake_numbox*>(ptr);
         nbx->x_width = b.getWidth();
         nbx->x_height = b.getHeight();
         nbx->x_fontsize = b.getHeight() - 4;
@@ -203,14 +177,14 @@ public:
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(::getValue<float>(max));
         } else if (value.refersToSameSourceAs(interval)) {
-            auto* nbx = static_cast<t_numbox*>(ptr);
+            auto* nbx = static_cast<t_fake_numbox*>(ptr);
             nbx->x_rate = ::getValue<float>(interval);
 
         } else if (value.refersToSameSourceAs(ramp)) {
-            auto* nbx = static_cast<t_numbox*>(ptr);
+            auto* nbx = static_cast<t_fake_numbox*>(ptr);
             nbx->x_ramp_ms = ::getValue<float>(ramp);
         } else if (value.refersToSameSourceAs(init)) {
-            auto* nbx = static_cast<t_numbox*>(ptr);
+            auto* nbx = static_cast<t_fake_numbox*>(ptr);
             nbx->x_set_val = ::getValue<float>(init);
         } else if (value.refersToSameSourceAs(primaryColour)) {
             setForegroundColour(primaryColour.toString());
@@ -222,8 +196,7 @@ public:
     void setForegroundColour(String colour)
     {
         // Remove alpha channel and add #
-
-        ((t_numbox*)ptr)->x_fg = pd->generateSymbol("#" + colour.substring(2));
+        static_cast<t_fake_numbox*>(ptr)->x_fg = pd->generateSymbol("#" + colour.substring(2));
 
         auto col = Colour::fromString(colour);
         getLookAndFeel().setColour(Label::textColourId, col);
@@ -235,7 +208,7 @@ public:
 
     void setBackgroundColour(String colour)
     {
-        ((t_numbox*)ptr)->x_bg = pd->generateSymbol("#" + colour.substring(2));
+        static_cast<t_fake_numbox*>(ptr)->x_bg = pd->generateSymbol("#" + colour.substring(2));
         repaint();
     }
 
@@ -270,7 +243,7 @@ public:
 
     float getValue()
     {
-        auto* obj = static_cast<t_numbox*>(ptr);
+        auto* obj = static_cast<t_fake_numbox*>(ptr);
 
         mode = obj->x_outmode;
 
@@ -281,24 +254,24 @@ public:
 
     float getMinimum()
     {
-        return (static_cast<t_numbox*>(ptr))->x_min;
+        return (static_cast<t_fake_numbox*>(ptr))->x_min;
     }
 
     float getMaximum()
     {
-        return (static_cast<t_numbox*>(ptr))->x_max;
+        return (static_cast<t_fake_numbox*>(ptr))->x_max;
     }
 
     void setMinimum(float minValue)
     {
-        static_cast<t_numbox*>(ptr)->x_min = minValue;
+        static_cast<t_fake_numbox*>(ptr)->x_min = minValue;
 
         input.setMinimum(minValue);
     }
 
     void setMaximum(float maxValue)
     {
-        static_cast<t_numbox*>(ptr)->x_max = maxValue;
+        static_cast<t_fake_numbox*>(ptr)->x_max = maxValue;
 
         input.setMaximum(maxValue);
     }

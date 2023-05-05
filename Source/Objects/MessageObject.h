@@ -4,22 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-typedef struct _messresponder {
-    t_pd mr_pd;
-    t_outlet* mr_outlet;
-} t_messresponder;
-
-typedef struct _message {
-    t_text m_text;
-    t_messresponder m_messresponder;
-    t_glist* m_glist;
-    t_clock* m_clock;
-} t_message;
-
 class MessageObject final : public ObjectBase
     , public KeyListener
     , public TextEditor::Listener {
-
+    
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
 
@@ -264,7 +252,7 @@ public:
         char* text;
         int size;
 
-        binbuf_gettext(static_cast<t_message*>(ptr)->m_text.te_binbuf, &text, &size);
+        binbuf_gettext(static_cast<t_text*>(ptr)->te_binbuf, &text, &size);
         pd->unlockAudioThread();
         
         auto result = String::fromUTF8(text, size);
@@ -281,10 +269,10 @@ public:
                     return;
 
                 auto* cstr = value.toRawUTF8();
-                auto* messobj = static_cast<t_message*>(ptr);
+                auto* messobj = static_cast<t_text*>(ptr);
                 auto* canvas = _this->cnv->patch.getPointer();
 
-                libpd_renameobj(canvas, &messobj->m_text.te_g, cstr, value.getNumBytesAsUTF8());
+                libpd_renameobj(canvas, &messobj->te_g, cstr, value.getNumBytesAsUTF8());
             });
     }
 

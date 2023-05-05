@@ -10,6 +10,7 @@
 
 #include <concurrentqueue.h> // Move to impl
 #include "Constants.h"
+#include "Objects/AllGuis.h"
 #include "Iolet.h"           // Move to impl
 #include "Pd/Instance.h"     // Move to impl
 #include "Pd/MessageListener.h"
@@ -149,11 +150,6 @@ private:
 
     void valueChanged(Value& v) override;
 
-    struct t_fake_outconnect {
-        void* oc_next;
-        t_pd* oc_to;
-        t_symbol* outconnect_path_data;
-    };
 
     t_fake_outconnect* ptr;
 
