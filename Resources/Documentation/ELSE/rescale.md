@@ -52,8 +52,8 @@ methods:
     description: sets the exponential factor, -1, 0 or 1 sets to linear
   - type: clip <float>
     description: non zero sets clipping on, 0 sets it off
-   - type: log <float>
-    description: non zero sets to log mode
+  - type: log <float>
+  description: non zero sets to log mode
 
 draft: false
 ---

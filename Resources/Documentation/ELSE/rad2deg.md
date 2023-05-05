@@ -26,8 +26,8 @@ outlets:
     description: converted value in degrees
 
 flags:
-  - name: -pos
-    description: wraps to positive values only
+- name: -pos
+  description: wraps to positive values only
 
 draft: false
 ---

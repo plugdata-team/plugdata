@@ -8,9 +8,6 @@ categories:
 
 pdcategory: ELSE
 
-arguments:
-  - none
-
 inlets:
 
 outlets:
@@ -25,12 +22,12 @@ outlets:
     description: Pd flavor information
 
 methods:
-  - type: about
-    description: prints library information on the terminal
-  - type: version
-    description: outputs version information as a list
+- type: about
+  description: prints library information on the terminal
+- type: version
+  description: outputs version information as a list
 
-draft: true #category?
+draft: true
 ---
 
 The else binary does gives some basic information about the ELSE library in Pd's window at creation time (but only once if multiple else objects are loaded) and loads an object browser plugin. It accepts the "about" message that prints this basic information (version, release date, etc) on the terminal on demand and also accepts the "version" message that outputs the version information as a list.

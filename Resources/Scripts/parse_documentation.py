@@ -220,7 +220,6 @@ def markdownToXml(root, md):
       for section in sections["pdcategory"].split(","):
         ET.SubElement(categories, "category", name=section)
 
-
     if "arguments" in sections:
       for argument in sectionsFromHyphens(sections["arguments"]):
         if not len(argument): continue
@@ -228,6 +227,7 @@ def markdownToXml(root, md):
         defaultValue = sectionMap["default"] if "default" in sectionMap else ""
         ET.SubElement(arguments, "argument", type=sectionMap["type"], description=sectionMap["description"], default=defaultValue)
 
+    print(title)
     if "flags" in sections:
       for flag in sectionsFromHyphens(sections["flags"]):
         sectionMap = getSections(flag, { "name", "description", "default" })

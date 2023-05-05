@@ -17,7 +17,7 @@ arguments:
   default: 0
 
 flags:
-- type: -rate <float>
+- name: -rate <float>
   description: sets refresh rate in ms (default 5, minimum 1)
 
 inlets:

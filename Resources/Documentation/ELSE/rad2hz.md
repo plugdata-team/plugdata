@@ -8,9 +8,6 @@ categories:
 
 pdcategory: ELSE, Data Math, Converters
 
-arguments:
-- none
-
 inlets: 
   1st:
   - type: list

@@ -34,7 +34,7 @@ flags:
 - name: -bng
   description: sets to bang mode (default latch)
 - name: -tgl
-description: sets to toggle mode (default latch)
+  description: sets to toggle mode (default latch)
 - name: -dim <float, float>
   description: x/y dimensions (default = 20, 20)
 - name: size <float>
@@ -46,11 +46,11 @@ description: sets to toggle mode (default latch)
 
 methods:
   - type: latch
-   description: sets to latch mode
-   - type: tgl
+    description: sets to latch mode
+  - type: tgl
     description: sets to toggle mode
-    - type: bng
-     description: sets to bang mode
+  - type: bng
+    description: sets to bang mode
   - type: dim <f, f>
     description: sets horizontal and vertical size in pixels
   - type: size <float>
