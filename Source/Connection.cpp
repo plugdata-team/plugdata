@@ -494,7 +494,7 @@ StringArray Connection::getMessageFormated()
     }
     else if (name == "symbol" && args.size() >= 1) {
         formatedMessage.add("symbol:");
-        formatedMessage.add(String(args[0].getFloat()));
+        formatedMessage.add(String(args[0].getSymbol()));
     }
     else if (name == "list") {
         formatedMessage.add("list:");

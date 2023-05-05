@@ -72,7 +72,7 @@ private:
 
             messageItemsWithFormat.add(TextStringWithMetrics(stringItem, fontStyle, stringWidth));
 
-            // set up font for next item
+            // set up font for next item/s
             fontStyle = FontStyle::Monospace;
             textFont = Font(Fonts::getMonospaceFont());
 
