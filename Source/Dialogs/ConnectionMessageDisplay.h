@@ -89,12 +89,24 @@ private:
 
     void paint(Graphics& g) override
     {
-        Path backgroundShadow;
-        auto internalBounds = getLocalBounds().reduced(8);
-        backgroundShadow.addRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
-        StackShadow::renderDropShadow(g, backgroundShadow, Colour(0, 0, 0).withAlpha(0.4f), 8, { 0, 0 });
+        Path messageDisplay;
+        auto internalBounds = getLocalBounds().reduced(8).toFloat();
+        messageDisplay.addRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
+
+        if (cachedImage.isNull() || previousBounds != getBounds()) {
+            cachedImage = { Image::ARGB, getWidth(), getHeight(), true };
+            Graphics g2(cachedImage);
+
+            StackShadow::renderDropShadow(g2, messageDisplay, Colour(0, 0, 0).withAlpha(0.3f), 6);
+        }
+
+        g.setColour(Colours::black);
+        g.drawImageAt(cachedImage, 0, 0);
+
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.fillRoundedRectangle(internalBounds.expanded(1), Corners::defaultCornerRadius);
         g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
-        g.fillRoundedRectangle(internalBounds.toFloat(), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
 
         // indicator - TODO
         //if(activeConnection.getComponent()) {
@@ -107,6 +119,8 @@ private:
         //    g.fillPath(indicatorPath);
         //}
         Fonts::drawStyledText(g, textString, 8 + 4, 0, getWidth(), getHeight(), findColour(PlugDataColour::panelTextColourId), FontStyle::Regular, 14, Justification::centredLeft);
+
+        previousBounds = getBounds();
     }
 
     PluginEditor* editor;
@@ -118,4 +132,7 @@ private:
 
     Point<float> circlePosition = { 8 + 4, 36 / 2 };
     float circleRadius = 3.0f;
+
+    Image cachedImage;
+    Rectangle<int> previousBounds;
 };
