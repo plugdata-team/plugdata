@@ -6,7 +6,7 @@
 #include "m_pd.h"
 #include "g_canvas.h"
 
-#include "../extra_source/compat.h"
+
 
 #ifndef _WIN32
 #include "s_utf8.h"

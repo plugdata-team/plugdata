@@ -3,7 +3,7 @@
 #include "m_pd.h"
 #include "g_canvas.h"
 
-//#include "../extra_source/compat.h"
+//
 
 #define BLACK_ON    "#FF0000"
 #define BLACK_OFF   "#000000"

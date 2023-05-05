@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../extra_source/compat.h"
+
 
 #define MINDIGITS      1
 #define MAX_NUMBOX_LEN 32
