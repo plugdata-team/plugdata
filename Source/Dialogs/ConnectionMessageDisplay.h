@@ -4,14 +4,12 @@
 #include "Constants.h"
 #include "LookAndFeel.h"
 #include "../Connection.h"
-#include "../PluginEditor.h"
 
 class ConnectionMessageDisplay 
     : public Component
     , public MultiTimer {
 public:
-    ConnectionMessageDisplay(PluginEditor* editor)
-        : editor(editor)
+    ConnectionMessageDisplay()
     {
         setSize(200,36);
         startTimer(RepaintTimer, 1000/60);
@@ -142,7 +140,6 @@ private:
         previousBounds = getBounds();
     }
 
-    PluginEditor* editor;
     static inline bool isShowing = false;
 
     StringArray textString;
