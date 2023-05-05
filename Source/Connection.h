@@ -111,7 +111,7 @@ public:
 
     bool isSelected();
 
-    String getMessageTooltip();
+    StringArray getMessageFormated();
     
     std::atomic<int> messageActivity;
 

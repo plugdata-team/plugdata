@@ -13,7 +13,7 @@ public:
     ConnectionMessageDisplay(PluginEditor* editor)
         : editor(editor)
     {
-        setSize(36,36);
+        setSize(200,36);
         startTimer(RepaintTimer, 1000/60);
         setVisible(false);
         // needed to stop the component from gaining mouse focus
@@ -48,19 +48,22 @@ public:
 private:
     void updateTextString(bool isHoverEntered = false)
     {
-        textString = activeConnection->getMessageTooltip();
+        textString = activeConnection->getMessageFormated();
 
-        if (textString.isEmpty())
-            textString = String("no message yet");
+        if (textString[0].isEmpty()) {
+            haveMessage = false;
+            textString = StringArray("no message yet");
+        } else
+            haveMessage = true;
 
-        Font textFont(Fonts::getCurrentFont());
-        auto stringWidth = textFont.withHeight(14).getStringWidth(textString);
+        //Font textFont(Fonts::getCurrentFont());
+        //auto stringWidth = textFont.withHeight(14).getStringWidth(textString);
         // add margin and padding
-        stringWidth += (8 * 2) + (4 + 4);
+        //stringWidth += (8 * 2) + (4 + 4);
 
         // only make the size wider, to fit changing values
-        if (stringWidth > getWidth() || isHoverEntered)
-            setSize(stringWidth, 36);
+        //if (stringWidth > getWidth() || isHoverEntered)
+        //    setSize(stringWidth, 36);
 
         repaint();
     }
@@ -117,14 +120,34 @@ private:
         //    g.setColour(findColour(PlugDataColour::panelTextColourId));
         //    g.fillPath(indicatorPath);
         //}
-        Fonts::drawStyledText(g, textString, 8 + 4, 0, getWidth(), getHeight(), findColour(PlugDataColour::panelTextColourId), FontStyle::Regular, 14, Justification::centredLeft);
+        bool firstStringProcessed = false;
+        int startPostionX = 8 + 4;
+        for (auto stringItem : textString) {
+            if (!firstStringProcessed) {
+                auto fontStyle = haveMessage ? FontStyle::Bold : FontStyle::Regular;
+                Font textFont(Fonts::getCurrentFont().getTypefaceName(), 14, fontStyle);
+                auto stringWidth = textFont.getStringWidth(stringItem);
+                Fonts::drawStyledText(g, stringItem, startPostionX, 0, stringWidth, getHeight(), findColour(PlugDataColour::panelTextColourId), fontStyle, 14, Justification::centredLeft);
+
+                startPostionX += stringWidth + 4;
+                firstStringProcessed = true;
+            }
+            else {
+                auto stringWidth = stringItem.length() * 8;
+                Fonts::drawStyledText(g, stringItem, startPostionX, 0, stringWidth, getHeight(), findColour(PlugDataColour::panelTextColourId), FontStyle::Monospace, 14, Justification::centredLeft);
+                startPostionX += stringWidth + 4;
+            }
+        }
 
         previousBounds = getBounds();
     }
 
     PluginEditor* editor;
     static inline bool isShowing = false;
-    String textString;
+
+    StringArray textString;
+    bool haveMessage = false;
+
     Component::SafePointer<Connection> activeConnection;
     int mouseDelay = 500;
     enum TimerID {RepaintTimer, MouseHoverDelay, MouseHoverExitDelay};

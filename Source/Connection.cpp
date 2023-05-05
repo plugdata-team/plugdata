@@ -481,41 +481,41 @@ void Connection::mouseMove(MouseEvent const& e)
     repaint();
 }
 
-String Connection::getMessageTooltip()
+StringArray Connection::getMessageFormated()
 {
     auto args = lastValue;
     auto name = lastSelector;
 
-    String tooltip;
-
+    StringArray formatedMessage;
+    
     if (name == "float" && args.size() >= 1) {
-        tooltip = "(float) " + String(args[0].getFloat());
-    } else if (name == "symbol" && args.size() >= 1) {
-        tooltip = "(symbol): " + args[0].getSymbol();
-    } else if (name == "list") {
-        StringArray result = { "(list)" };
-        for (auto& arg : args) {
-            if (arg.isFloat()) {
-                result.add(String(arg.getFloat()));
-            } else if (arg.isSymbol()) {
-                result.add(arg.getSymbol());
-            }
-        }
-        tooltip = result.joinIntoString(" ");
-    } else {
-        StringArray result = { name };
-        for (auto& arg : args) {
-            if (arg.isFloat()) {
-                result.add(String(arg.getFloat()));
-            } else if (arg.isSymbol()) {
-                result.add(arg.getSymbol());
-            }
-        }
-
-        tooltip = result.joinIntoString(" ");
+        formatedMessage.add("float:");
+        formatedMessage.add(String(args[0].getFloat()));
     }
-
-    return tooltip;
+    else if (name == "symbol" && args.size() >= 1) {
+        formatedMessage.add("symbol:");
+        formatedMessage.add(String(args[0].getFloat()));
+    }
+    else if (name == "list") {
+        formatedMessage.add("list:");
+        for (auto& arg : args) {
+            if (arg.isFloat()) {
+                formatedMessage.add(String(arg.getFloat()));
+            } else if (arg.isSymbol()) {
+                formatedMessage.add(arg.getSymbol());
+            }
+        }
+    } else {
+        formatedMessage.add(name);
+        for (auto& arg : args) {
+            if (arg.isFloat()) {
+                formatedMessage.add(String(arg.getFloat()));
+            } else if (arg.isSymbol()) {
+                formatedMessage.add(arg.getSymbol());
+            }
+        }
+    }
+    return formatedMessage;
 }
 
 void Connection::mouseEnter(MouseEvent const& e)
