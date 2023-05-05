@@ -6,7 +6,7 @@
 #include "m_pd.h"
 #include "g_canvas.h"
 
-#include "compat.h"
+#include "../extra_source/compat.h"
 
 #ifndef _WIN32
 #include "s_utf8.h"
@@ -542,7 +542,7 @@ static void note_get_rcv(t_note* x){
                 if(x->x_r_flag){ // we got a receive flag, let's get it
                     for(i = 0;  i <= n_args; i++){
                         atom_string(binbuf_getvec(bb) + i, buf, 128);
-                        if(gensym(buf) == gensym("@receive")){
+                        if(gensym(buf) == gensym("-receive")){
                             i++;
                             atom_string(binbuf_getvec(bb) + i, buf, 128);
                             x->x_rcv_raw = gensym(buf);
@@ -1042,7 +1042,7 @@ void note_properties(t_gobj *z, t_glist *gl){
 
 static void note_ok(t_note *x, t_symbol *s, int ac, t_atom *av){
     s = NULL; // received when applying changes in properties
-    t_atom undo[11];
+    t_atom undo[12];
     SETSYMBOL(undo+0, x->x_fontname);
     SETFLOAT(undo+1, x->x_fontsize);
     SETFLOAT(undo+2, x->x_max_pixwidth);
@@ -1061,7 +1061,8 @@ static void note_ok(t_note *x, t_symbol *s, int ac, t_atom *av){
     SETSYMBOL(undo+8, gensym(x->x_bgcolor));
     SETSYMBOL(undo+9, gensym(x->x_color));
     SETFLOAT(undo+10, x->x_outline);
-    pd_undo_set_objectstate(x->x_glist, (t_pd*)x, gensym("ok"), 11, undo, ac, av);
+    SETSYMBOL(undo+11, x->x_rcv_raw);
+    pd_undo_set_objectstate(x->x_glist, (t_pd*)x, gensym("ok"), 12, undo, ac, av);
     x->x_changed = 0;
     t_float temp_f;
     if(atom_getsymbolarg(0, ac, av) != x->x_fontname){
@@ -1154,6 +1155,7 @@ static void note_ok(t_note *x, t_symbol *s, int ac, t_atom *av){
     int outline = atom_getfloatarg(10, ac, av);
     if(x->x_outline != outline)
         note_outline(x, outline);
+    note_receive(x, atom_getsymbolarg(11, ac, av));    
     if(x->x_changed){
         canvas_dirty(x->x_glist, 1);
         note_redraw(x);

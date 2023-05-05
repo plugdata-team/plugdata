@@ -32,7 +32,7 @@ MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 The OSC webpage is http://cnmat.cnmat.berkeley.edu/OpenSoundControl
 */
 
-#include "../shared/OSC.h"
+#include "../../shared/OSC.h"
 
 #define SC_BUFFER_SIZE 64000
 

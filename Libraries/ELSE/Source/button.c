@@ -3,7 +3,7 @@
 #include "m_pd.h"
 #include "g_canvas.h"
 
-#include "compat.h"
+#include "../extra_source/compat.h"
 
 static t_class *button_class, *edit_proxy_class;
 static t_widgetbehavior button_widgetbehavior;
@@ -17,9 +17,11 @@ typedef struct _edit_proxy{
 
 typedef struct _button{
     t_object        x_obj;
+    t_clock        *x_clock;
     t_glist        *x_glist;
     t_edit_proxy   *x_proxy;
     t_symbol       *x_bindname;
+    int             x_mode;
     int             x_x;
     int             x_y;
     int             x_w;
@@ -96,20 +98,81 @@ static void button_getrect(t_gobj *z, t_glist *glist, int *xp1, int *yp1, int *x
 
 static void button_save(t_gobj *z, t_binbuf *b){
   t_button *x = (t_button *)z;
-  binbuf_addv(b, "ssiisiiiiiiii", gensym("#X"),gensym("obj"),
+  binbuf_addv(b, "ssiisiiiiiiiii", gensym("#X"),gensym("obj"),
     (int)x->x_obj.te_xpix, (int)x->x_obj.te_ypix,
     atom_getsymbol(binbuf_getvec(x->x_obj.te_binbuf)),
     x->x_w, x->x_h,
     x->x_bgcolor[0], x->x_bgcolor[1], x->x_bgcolor[2],
-    x->x_fgcolor[0], x->x_fgcolor[1], x->x_fgcolor[2]);
+    x->x_fgcolor[0], x->x_fgcolor[1], x->x_fgcolor[2],
+    x->x_mode);
   binbuf_addv(b, ";");
 }
 
 static void button_mouserelease(t_button* x){
-    if(!x->x_glist->gl_edit){ // ignore if toggle or edit mode!
+    if(!x->x_glist->gl_edit && x->x_mode == 0){
         outlet_float(x->x_obj.ob_outlet, x->x_state = 0);
         sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%2.2x%2.2x%2.2x\n",
             glist_getcanvas(x->x_glist), x, x->x_bgcolor[0], x->x_bgcolor[1], x->x_bgcolor[2]);
+    }
+}
+
+static void button_unflash(t_button *x){
+    sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%2.2x%2.2x%2.2x\n",
+        glist_getcanvas(x->x_glist), x, x->x_bgcolor[0], x->x_bgcolor[1], x->x_bgcolor[2]);
+}
+
+static void button_flash(t_button *x){
+    outlet_bang(x->x_obj.ob_outlet);
+    sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%2.2x%2.2x%2.2x\n",
+        glist_getcanvas(x->x_glist), x, x->x_fgcolor[0], x->x_fgcolor[1], x->x_fgcolor[2]);
+    clock_delay(x->x_clock, 250);
+}
+
+static void button_toggle(t_button *x){
+    outlet_float(x->x_obj.ob_outlet, x->x_state = !x->x_state);
+    if(x->x_state)
+        sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%2.2x%2.2x%2.2x\n",
+            glist_getcanvas(x->x_glist), x, x->x_fgcolor[0], x->x_fgcolor[1], x->x_fgcolor[2]);
+    else
+        sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%2.2x%2.2x%2.2x\n",
+            glist_getcanvas(x->x_glist), x, x->x_bgcolor[0], x->x_bgcolor[1], x->x_bgcolor[2]);
+}
+
+static void button_bang(t_button *x){
+    if(x->x_mode == 1)
+        button_toggle(x);
+    else if(x->x_mode == 2)
+        button_flash(x);
+}
+
+static void button_set(t_button *x, t_floatarg f){
+    if(x->x_mode != 2){
+        int state = (int)(f != 0);
+        if(x->x_state != state){
+            x->x_state = state;
+            if(x->x_state)
+                sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%2.2x%2.2x%2.2x\n",
+                    glist_getcanvas(x->x_glist), x, x->x_fgcolor[0], x->x_fgcolor[1], x->x_fgcolor[2]);
+            else
+                sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%2.2x%2.2x%2.2x\n",
+                    glist_getcanvas(x->x_glist), x, x->x_bgcolor[0], x->x_bgcolor[1], x->x_bgcolor[2]);
+        }
+    }
+}
+
+static void button_float(t_button *x, t_floatarg f){
+    if(x->x_mode != 2){
+        int state = (int)(f != 0);
+        if(x->x_state != state){
+            x->x_state = state;
+            outlet_float(x->x_obj.ob_outlet, x->x_state);
+            if(x->x_state)
+                sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%2.2x%2.2x%2.2x\n",
+                    glist_getcanvas(x->x_glist), x, x->x_fgcolor[0], x->x_fgcolor[1], x->x_fgcolor[2]);
+            else
+                sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%2.2x%2.2x%2.2x\n",
+                    glist_getcanvas(x->x_glist), x, x->x_bgcolor[0], x->x_bgcolor[1], x->x_bgcolor[2]);
+        }
     }
 }
 
@@ -121,11 +184,27 @@ int shift, int alt, int dbl, int doit){
     x->x_x = (xpix - xpos) / x->x_zoom;
     x->x_y = x->x_h - (ypix - ypos) / x->x_zoom;
     if(doit){
-        outlet_float(x->x_obj.ob_outlet, x->x_state = 1);
-        sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%2.2x%2.2x%2.2x\n",
-            glist_getcanvas(x->x_glist), x, x->x_fgcolor[0], x->x_fgcolor[1], x->x_fgcolor[2]);
+        if(x->x_mode == 0){ // latch
+            outlet_float(x->x_obj.ob_outlet, x->x_state = 1);
+            sys_vgui(".x%lx.c itemconfigure %lxBASE -fill #%2.2x%2.2x%2.2x\n",
+                glist_getcanvas(x->x_glist), x, x->x_fgcolor[0], x->x_fgcolor[1], x->x_fgcolor[2]);
+        }
+        else
+            button_bang(x);
     }
     return(1);
+}
+
+static void button_latch(t_button *x){
+    x->x_mode = 0;
+}
+
+static void button_tgl(t_button *x){
+    x->x_mode = 1;
+}
+
+static void button_bng(t_button *x){
+    x->x_mode = 2;
 }
 
 static void button_size(t_button *x, t_floatarg f){
@@ -247,6 +326,7 @@ static t_edit_proxy * edit_proxy_new(t_button *x, t_symbol *s){
 
 static void *button_new(t_symbol *s, int ac, t_atom *av){
     t_button *x = (t_button *)pd_new(button_class);
+    x->x_clock = clock_new(x, (t_method)button_unflash);
     t_canvas *cv = canvas_getcurrent();
     x->x_glist = (t_glist*)cv;
     char buf[MAXPDSTRING];
@@ -255,12 +335,13 @@ static void *button_new(t_symbol *s, int ac, t_atom *av){
     x->x_proxy = edit_proxy_new(x, gensym(buf));
     sprintf(buf, "#%lx", (long)x);
     pd_bind(&x->x_obj.ob_pd, x->x_bindname = gensym(buf));
-    x->x_edit = cv->gl_edit;    x->x_zoom = x->x_glist->gl_zoom;
+    x->x_edit = cv->gl_edit; x->x_zoom = x->x_glist->gl_zoom;
     x->x_x = x->x_y = 0;
     x->x_fgcolor[0] = 128;
     x->x_fgcolor[1] = 128;
     x->x_fgcolor[2] = 159;
     x->x_bgcolor[0] = x->x_bgcolor[1] = x->x_bgcolor[2] = 255;
+    x->x_mode = 0;
     int w = 20, h = 20;
     if(ac && av->a_type == A_FLOAT){ // 1st Width
         w = av->a_w.w_float;
@@ -286,6 +367,10 @@ static void *button_new(t_symbol *s, int ac, t_atom *av){
                                 if(ac && av->a_type == A_FLOAT){ // Blue
                                     x->x_fgcolor[2] = (unsigned char)av->a_w.w_float;
                                     ac--, av++;
+                                    if(ac && av->a_type == A_FLOAT){ // MODE
+                                        x->x_mode = (unsigned char)av->a_w.w_float;
+                                        ac--, av++;
+                                    }
                                 }
                             }
                         }
@@ -304,6 +389,14 @@ static void *button_new(t_symbol *s, int ac, t_atom *av){
                     ac-=3, av+=3;
                 }
                 else goto errstate;
+            }
+            else if(s == gensym("-tgl")){
+                    x->x_mode = 1;
+                    ac--, av++;
+            }
+            else if(s == gensym("-bang")){
+                    x->x_mode = 2;
+                    ac--, av++;
             }
             else if(s == gensym("-size")){
                 if(ac >= 2 && (av+1)->a_type == A_FLOAT){
@@ -355,10 +448,16 @@ static void *button_new(t_symbol *s, int ac, t_atom *av){
 void button_setup(void){
     button_class = class_new(gensym("button"), (t_newmethod)button_new,
         (t_method)button_free, sizeof(t_button), 0, A_GIMME, 0);
-        class_addmethod(button_class, (t_method)button_dim, gensym("dim"), A_FLOAT, A_FLOAT, 0);
-        class_addmethod(button_class, (t_method)button_size, gensym("size"), A_FLOAT, 0);
+    class_addbang(button_class, button_bang);
+    class_addfloat(button_class, button_float);
+    class_addmethod(button_class, (t_method)button_dim, gensym("dim"), A_FLOAT, A_FLOAT, 0);
+    class_addmethod(button_class, (t_method)button_size, gensym("size"), A_FLOAT, 0);
     class_addmethod(button_class, (t_method)button_width, gensym("width"), A_FLOAT, 0);
     class_addmethod(button_class, (t_method)button_height, gensym("height"), A_FLOAT, 0);
+    class_addmethod(button_class, (t_method)button_set, gensym("set"), A_FLOAT, 0);
+    class_addmethod(button_class, (t_method)button_bng, gensym("bng"), 0);
+    class_addmethod(button_class, (t_method)button_tgl, gensym("tgl"), 0);
+    class_addmethod(button_class, (t_method)button_latch, gensym("latch"), 0);
     class_addmethod(button_class, (t_method)button_bgcolor, gensym("bgcolor"), A_FLOAT, A_FLOAT, A_FLOAT, 0);
     class_addmethod(button_class, (t_method)button_fgcolor, gensym("fgcolor"), A_FLOAT, A_FLOAT, A_FLOAT, 0);
     class_addmethod(button_class, (t_method)button_zoom, gensym("zoom"), A_CANT, 0);

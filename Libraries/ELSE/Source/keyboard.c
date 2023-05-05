@@ -3,7 +3,7 @@
 #include "m_pd.h"
 #include "g_canvas.h"
 
-#include "compat.h"
+//#include "../extra_source/compat.h"
 
 #define BLACK_ON    "#FF0000"
 #define BLACK_OFF   "#000000"
@@ -197,10 +197,15 @@ static int find_note(t_keyboard* x, float xpos, float ypos){
 static void keyboard_motion(t_keyboard *x, t_floatarg dx, t_floatarg dy){
     if(x->x_toggle_mode || x->x_shift || x->x_glist->gl_edit) // ignore if toggle or edit mode!
         return;
-    x->x_xpos += dx, x->x_ypos += dy;
-    if(x->x_xpos < 0 || x->x_xpos >= x->x_width) // ignore if out of bounds
+    x->x_xpos = (x->x_xpos + dx);
+    x->x_ypos = (x->x_ypos + dy);
+/*    post("before x->x_xpos = %d , x_ypos = %d", x->x_xpos, x->x_ypos);
+    x->x_xpos /= x->x_zoom;
+    x->x_ypos /= x->x_zoom;
+    post("after x->x_xpos = %d , x_ypos = %d", x->x_xpos, x->x_ypos);*/
+    if(x->x_xpos < 0 || x->x_xpos >= x->x_width * x->x_zoom) // ignore if out of bounds
         return;
-    int note = find_note(x, x->x_xpos, x->x_ypos);
+    int note = find_note(x, x->x_xpos / x->x_zoom, x->x_ypos / x->x_zoom);
     if(note != x->x_last_note){
         keyboard_note_off(x, x->x_last_note);
         keyboard_note_on(x, x->x_last_note = note);
@@ -210,9 +215,10 @@ static void keyboard_motion(t_keyboard *x, t_floatarg dx, t_floatarg dy){
 static int keyboard_click(t_keyboard *x, t_glist *gl, int xpos, int ypos, int shift, int alt, int dbl, int doit){
     alt = dbl = 0; // remove warning
     if(doit){
-        x->x_xpos = xpos - text_xpix(&x->x_obj, gl), x->x_ypos = ypos - text_ypix(&x->x_obj, gl);
+        x->x_xpos = (xpos - text_xpix(&x->x_obj, gl));
+        x->x_ypos = (ypos - text_ypix(&x->x_obj, gl));
         glist_grab(gl, &x->x_obj.te_g, (t_glistmotionfn)keyboard_motion, 0, xpos, ypos);
-        int note = find_note(x, x->x_xpos, x->x_ypos);
+        int note = find_note(x, x->x_xpos / x->x_zoom, x->x_ypos / x->x_zoom);
         x->x_toggle_mode || (x->x_shift = shift) ? keyboard_play_tgl(x, note) : keyboard_note_on(x, x->x_last_note = note);
     }
     return(1);
@@ -300,8 +306,8 @@ static void keyboard_getrect(t_gobj *z, t_glist *owner, int *xp1, int *yp1, int 
     t_keyboard *x = (t_keyboard *)z;
     *xp1 = text_xpix(&x->x_obj, owner);
     *yp1 = text_ypix(&x->x_obj, owner) ;
-    *xp2 = text_xpix(&x->x_obj, owner) + x->x_width;
-    *yp2 = text_ypix(&x->x_obj, owner) + x->x_height;
+    *xp2 = text_xpix(&x->x_obj, owner) + x->x_width*x->x_zoom;
+    *yp2 = text_ypix(&x->x_obj, owner) + x->x_height*x->x_zoom;
 }
 
 void keyboard_displace(t_gobj *z, t_glist *glist, int dx, int dy){
@@ -322,10 +328,10 @@ static void keyboard_delete(t_gobj *z, t_glist *glist){
 
 static void keyboard_vis(t_gobj *z, t_glist *glist, int vis){
     t_keyboard *x = (t_keyboard *)z;
-    t_canvas *cv = glist_getcanvas(glist);
     if(vis){
         keyboard_draw(x, glist);
-        sys_vgui(".x%lx.c bind %xrr <ButtonRelease> {pdsend [concat %s _mouserelease \\;]}\n", cv, x, x->x_bindsym->s_name);
+        sys_vgui(".x%lx.c bind %xrr <ButtonRelease> {pdsend [concat %s _mouserelease \\;]}\n",
+            glist_getcanvas(glist), x, x->x_bindsym->s_name);
     }
     else
         keyboard_erase(x, glist);
@@ -585,8 +591,8 @@ static void keyboard_save(t_gobj *z, t_binbuf *b){
 static void keyboard_apply(t_keyboard *x, t_symbol *s, int ac, t_atom *av){ // Apply property windows
     s = NULL;
     t_atom undo[8];
-    SETFLOAT(undo+0, (int)x->x_space / x->x_zoom);
-    SETFLOAT(undo+1, (int)x->x_height / x->x_zoom);
+    SETFLOAT(undo+0, (int)x->x_space);
+    SETFLOAT(undo+1, (int)x->x_height);
     SETFLOAT(undo+2, x->x_octaves);
     SETFLOAT(undo+3, x->x_low_c);
     SETFLOAT(undo+4, x->x_norm);

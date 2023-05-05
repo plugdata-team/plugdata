@@ -21,7 +21,7 @@ typedef struct _function{
 static t_class *function_class;
     
 static t_int *functionsig_perform(t_int *w){
-	t_function *x = (t_function *)(w[1]);
+    t_function *x = (t_function *)(w[1]);
     t_sample *in = (t_float *)(w[2]);
     t_sample *out = (t_float *)(w[3]);
     int n = (int)(w[4]);
@@ -57,7 +57,7 @@ static void function_init(t_function *x, int ac, t_atom* av){ // ???
         return;
     float *dur, *val, tdur = 0;
     x->x_durations[0] = 0;
-    x->x_last_point = x->x_exp ? (int)ac/3 : (int)ac/2; 
+    x->x_last_point = x->x_exp ? (int)ac/3 : (int)ac/2;
     if(x->x_last_point > MAX_SIZE){
         post("[function~]: too many lines, maximum is %d", MAX_SIZE);
         return;
@@ -166,7 +166,7 @@ errstate:
 
 void function_tilde_setup(void){
     function_class = class_new(gensym("function~"), (t_newmethod)function_new, 0,
-    	sizeof(t_function), 0, A_GIMME, 0);
+        sizeof(t_function), 0, A_GIMME, 0);
     CLASS_MAINSIGNALIN(function_class, t_function, x_f);
     class_addmethod(function_class, (t_method)functionsig_dsp, gensym("dsp"), 0);
     class_addmethod(function_class, (t_method)function_exp, gensym("exp"), A_GIMME, 0);

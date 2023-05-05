@@ -105,7 +105,7 @@ static t_int *fbdelay_perform(t_int *w){
             double b = x->x_ybuf[ndx];
             double c = x->x_ybuf[ndx1];
             double d = x->x_ybuf[ndx2];
-            y_n = b + interp_spline(frac, a, b, c, d);
+            y_n = interp_spline(frac, a, b, c, d);
         }
         if(!x->x_gain)
             ain[i] = ain[i] == 0 ? 0 : copysign(exp(log(0.001) * ms/fabs(ain[i])), ain[i]);

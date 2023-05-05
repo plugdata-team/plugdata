@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "compat.h"
+#include "../extra_source/compat.h"
 
 #define MINDIGITS      1
 #define MAX_NUMBOX_LEN 32
@@ -48,7 +48,7 @@ typedef struct _numbox{
 static t_class *numbox_class;
 t_widgetbehavior numbox_widgetbehavior;
 
-//////////////////////////////////////////////////////// Helper and Drawing functions ////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////// Helper and Drawing functions /////////////////////////////////////////////////////////////////
 char *set_x_buf(t_numbox *x){
     sprintf(x->x_buf, "~%g", x->x_display = x->x_outmode ? x->x_out_val : x->x_in_val);
     int bufsize = (int)strlen(x->x_buf), i, e;
@@ -67,11 +67,11 @@ char *set_x_buf(t_numbox *x){
     return(x->x_buf);
 }
 
-static void numbox_draw_number(t_numbox *x){ // update number value
+static void numbox_update_number(t_numbox *x){ // update number value
     if(glist_isvisible(x->x_glist) && gobj_shouldvis((t_gobj *)x, x->x_glist)){
-        t_canvas *cv = glist_getcanvas(x->x_glist);
+       t_canvas *cv = glist_getcanvas(x->x_glist);
         if(x->x_clicked && x->x_buf[0] && x->x_outmode){ // keyboard input values
-            char *cp = x->x_buf;
+             char *cp = x->x_buf;
             int sl = (int)strlen(x->x_buf);
             x->x_buf[sl] = '>';
             x->x_buf[sl+1] = 0;
@@ -87,17 +87,18 @@ static void numbox_draw_number(t_numbox *x){ // update number value
     }
 }
 
-static void numbox_resize(t_numbox *x){
-    int xpos = text_xpix(&x->x_obj, x->x_glist), ypos = text_ypix(&x->x_obj, x->x_glist);
-    sys_vgui(".x%lx.c coords %lxBASE %d %d %d %d\n", glist_getcanvas(x->x_glist), x,
-        xpos, ypos, xpos+x->x_width*x->x_zoom, ypos+x->x_height*x->x_zoom);
-}
-
 static void clock_update(t_numbox *x){
     t_float newdisplay = x->x_outmode ? x->x_out_val : x->x_in_val;
-    if(memcmp(&newdisplay, &x->x_display, sizeof(newdisplay))) // bitwise comparison
-        numbox_draw_number(x);
+    if(memcmp(&newdisplay, &x->x_display, sizeof(newdisplay))){ // bitwise comparison
+        numbox_update_number(x);
+    }
     clock_delay(x->x_clock_update, x->x_rate);
+}
+
+static void numbox_resize(t_numbox *x){
+    int x1 = text_xpix(&x->x_obj, x->x_glist), y1 = text_ypix(&x->x_obj, x->x_glist);
+    sys_vgui(".x%lx.c coords %lxBASE %d %d %d %d\n", glist_getcanvas(x->x_glist), x,
+        x1, y1, x1+x->x_width*x->x_zoom, y1+x->x_height*x->x_zoom);
 }
 
 static void numbox_width_calc(t_numbox *x){
@@ -117,7 +118,7 @@ static void numbox_width(t_numbox *x, t_floatarg f){
         x->x_numwidth = width;
         numbox_width_calc(x);
         numbox_resize(x);
-        numbox_draw_number(x);
+        numbox_update_number(x);
     }
 }
 
@@ -150,17 +151,19 @@ static void numbox_ramp(t_numbox *x, t_floatarg f){
 
 static void numbox_float(t_numbox *x, t_floatarg f){ // set float value and update GUI
     t_float ftocompare = f;
+    if(x->x_min != 0 && x->x_max != 0) // clip
+       ftocompare = f < x->x_min ? x->x_min : f > x->x_max ? x->x_max : f;
     if(memcmp(&ftocompare, &x->x_out_val, sizeof(ftocompare))){ // bitwise comparison
         x->x_out_val = ftocompare;
         if(x->x_outmode){
-            numbox_draw_number(x);
+            numbox_update_number(x);
             if(x->x_ramp_ms > 0)
                 x->x_ramp_step = (x->x_out_val - x->x_ramp_val) / (x->x_ramp_ms * x->x_sr_khz);
         }
     }
 }
 
-static void numbox_set(t_numbox *x, t_symbol *s, int ac, t_atom *av){
+static void numbox_init(t_numbox *x, t_symbol *s, int ac, t_atom *av){
     s = NULL;
     if(!ac)
         x->x_set_val = x->x_out_val;
@@ -228,14 +231,14 @@ static void numbox_key(void *z, t_symbol *keysym, t_floatarg fkey){
         x->x_clicked = 0;
         pd_unbind((t_pd *)x, gensym("#keyname"));
         sys_vgui(".x%lx.c itemconfigure %lxBASE -width %d\n", glist_getcanvas(x->x_glist), x, x->x_zoom);
-        numbox_draw_number(x);
+        numbox_update_number(x);
     }
     else if(((c >= '0') && (c <= '9')) || (c == '.') || (c == '-') ||
     (c == 'e') || (c == '+') || (c == 'E')){ // number characters
         if(strlen(x->x_buf) < (MAX_NUMBOX_LEN-2)){
             buf[0] = c;
             strcat(x->x_buf, buf);
-            numbox_draw_number(x);
+            numbox_update_number(x);
         }
     }
     else if((c == '\b') || (c == 127)){ // backspace / delete
@@ -243,7 +246,7 @@ static void numbox_key(void *z, t_symbol *keysym, t_floatarg fkey){
         if(sl < 0)
             sl = 0;
         x->x_buf[sl] = 0;
-        numbox_draw_number(x);
+        numbox_update_number(x);
     }
     else if(((c == '\n') || (c == 13)) && x->x_buf[0] != 0){ // enter
         numbox_float(x, atof(x->x_buf)); // atof converts string to float
@@ -258,8 +261,12 @@ static void numbox_motion(t_numbox *x, t_floatarg dx, t_floatarg dy, t_floatarg 
 }
 
 static int numbox_newclick(t_gobj *z, struct _glist *glist, int xpix, int ypix, int shift, int alt, int dbl, int doit){
-    dbl = alt = 0;
+    alt = 0;
     t_numbox* x = (t_numbox *)z;
+    if(dbl){
+        numbox_float(x, x->x_set_val);
+        return(1);
+    }
     if(doit && x->x_outmode){
         x->x_inc = shift ? 0.01 : 1;
         x->x_clicked = 1;
@@ -279,7 +286,7 @@ static void numbox_delete(t_gobj *z, t_glist *glist){
 static void numbox_getrect(t_gobj *z, t_glist *glist, int *xp1, int *yp1, int *xp2, int *yp2){
     t_numbox* x = (t_numbox*)z;
     *xp1 = text_xpix(&x->x_obj, glist), *yp1 = text_ypix(&x->x_obj, glist);
-    *xp2 = *xp1 + x->x_width, *yp2 = *yp1 + x->x_height;
+    *xp2 = *xp1 + x->x_width*x->x_zoom, *yp2 = *yp1 + x->x_height*x->x_zoom;
 }
 
 static void numbox_select(t_gobj *z, t_glist *glist, int sel){
@@ -304,19 +311,22 @@ static void numbox_displace(t_gobj *z, t_glist *glist, int dx, int dy){
 
 void numbox_vis(t_gobj *z, t_glist *glist, int vis){
     t_numbox* x = (t_numbox*)z;
-    if(vis){ // draw it
-        int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist), zoom = x->x_zoom;
-        int w = x->x_width*zoom, h = x->x_height*zoom, size = x->x_fontsize*zoom;
-        int half = h/2, d = zoom + h/(34*zoom), iow = IOWIDTH * zoom, ioh = 3*zoom; // d?? / why not ioheight??
+    if(vis){ // draw
         t_canvas *cv = glist_getcanvas(glist);
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -width %d -outline black -fill %s -tags [list %lxBASE %lxALL]\n",
-            cv, xpos, ypos, xpos+w, ypos+h, zoom, x->x_bg->s_name, x, x);
+        int x1 = text_xpix(&x->x_obj, glist), y1 = text_ypix(&x->x_obj, glist), zoom = x->x_zoom;
+        int x2 = x1 + x->x_width*zoom, y2 = y1 + x->x_height*zoom;
+    // draw base / background
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d -width %d -outline black -fill %s -tags [list %lxBASE %lxALL]\n", cv, x1, y1, x2, y2, zoom, x->x_bg->s_name, x, x);
+    // draw inlet/outlet
+        int iow = IOWIDTH*zoom, ioh = OHEIGHT*zoom;
         sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags [list %lxIN %lxALL]\n",
-            cv, xpos, ypos, xpos+iow, ypos-zoom+ioh, x, x);
+            cv, x1, y1, x1+iow, y1+ioh-zoom, x, x);
         sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags [list %lxOUT %lxALL]\n",
-            cv, xpos, ypos+h+zoom-ioh, xpos+iow, ypos+h, x, x);
+            cv, x1, y2-ioh+zoom, x1+iow, y2, x, x);
+    // draw number
+        int size = x->x_fontsize*zoom, half = x->x_height*zoom/2, d = zoom + x->x_height/(34*zoom); // d??
         sys_vgui(".x%lx.c create text %d %d -text {%s} -anchor w -font {{%s} -%d} -fill %s -tags [list %lxNUM %lxALL]\n",
-            cv, xpos+2*zoom, ypos+half+d, set_x_buf(x), def_font, size, x->x_fg->s_name, x, x, x);
+            cv, x1+2*zoom, y1+half+d, set_x_buf(x), def_font, size, x->x_fg->s_name, x, x);
     }
     else // erase
         sys_vgui(".x%lx.c delete %lxALL\n", glist_getcanvas(glist), x);
@@ -358,8 +368,8 @@ static void numbox_dialog(t_numbox *x, t_symbol *s, int ac, t_atom *av){
     numbox_rate(x, rate);
     numbox_range(x, min, max);
     t_atom at[1];
-    SETFLOAT(at,initial);
-    numbox_set(x, NULL, 1, at);
+    SETFLOAT(at, initial);
+    numbox_init(x, NULL, 1, at);
     SETSYMBOL(at, bgcolor);
     numbox_bg(x, NULL, 1, at);
     SETSYMBOL(at, fgcolor);
@@ -418,8 +428,9 @@ static void numbox_free(t_numbox *x){
     gfxstub_deleteforkey(x);
 }
 
-static void *numbox_new(t_symbol *sym, int ac, t_atom *av){
-    t_numbox *x = (t_numbox *)pd_new(numbox_class);;
+static void *numbox_new(t_symbol *s, int ac, t_atom *av){
+    s = NULL;
+    t_numbox *x = (t_numbox *)pd_new(numbox_class);
     x->x_glist = (t_glist *)canvas_getcurrent();
     x->x_zoom = x->x_glist->gl_zoom;
     x->x_in_val = x->x_set_val = x->x_out_val = 0.0;
@@ -441,7 +452,7 @@ static void *numbox_new(t_symbol *sym, int ac, t_atom *av){
     }
     else while(ac > 0){
         if(av->a_type == A_SYMBOL){
-            sym = atom_getsymbolarg(0, ac, av);
+            t_symbol *sym = atom_getsymbolarg(0, ac, av);
             if(sym == gensym("-width")){
                 if(ac >= 2 && (av+1)->a_type == A_FLOAT){
                     width = atom_getintarg(1, ac, av);
@@ -538,7 +549,7 @@ void numbox_tilde_setup(void){
     class_addmethod(numbox_class, (t_method)numbox_width, gensym("width"), A_FLOAT, 0);
     class_addmethod(numbox_class, (t_method)numbox_size, gensym("size"), A_FLOAT, 0);
     class_addmethod(numbox_class, (t_method)numbox_range, gensym("range"), A_FLOAT, A_FLOAT, 0);
-    class_addmethod(numbox_class, (t_method)numbox_set, gensym("set"), A_GIMME, 0);
+    class_addmethod(numbox_class, (t_method)numbox_init, gensym("init"), A_GIMME, 0);
     class_addmethod(numbox_class, (t_method)numbox_bg, gensym("bgcolor"), A_GIMME, 0);
     class_addmethod(numbox_class, (t_method)numbox_fg, gensym("fgcolor"), A_GIMME, 0);
     class_addmethod(numbox_class, (t_method)numbox_zoom, gensym("zoom"), A_CANT, 0);
@@ -553,4 +564,5 @@ void numbox_tilde_setup(void){
     class_setwidget(numbox_class, &numbox_widgetbehavior);
     class_setsavefn(numbox_class, numbox_save);
     class_setpropertiesfn(numbox_class, numbox_properties);
+    #include "../extra_source/numbox~_dialog.c"
 }

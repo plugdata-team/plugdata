@@ -2,6 +2,7 @@
 
 #include "m_pd.h"
 #include "g_canvas.h"
+#include "m_imp.h"
 #include <string.h>
 #include <math.h>
 
@@ -111,11 +112,9 @@ static void dir_load(t_dir *x){
 }
 
 static void dir_loadir(t_dir *x, t_symbol *dirname, int init){
-    if(!strcmp(dirname->s_name, "")){
-        pd_error(x, "[dir]: no symbol given to 'open'");
-        return;
-    }
     char tempdir[MAXPDSTRING];
+    if(!strcmp(dirname->s_name, ""))
+        dirname = dir_class->c_externdir;
     strcpy(tempdir, x->x_directory); // tempdir = x->x_directory
     char *pch = strchr(dirname->s_name, ':');
     if(pch-dirname->s_name == 1) // absolute windows
@@ -285,7 +284,6 @@ static void *dir_new(t_symbol *s, int ac, t_atom* av){
     x->x_getdir = gensym(getdir_name);
     free(getdir_name);
 #endif
-    
     strncpy(x->x_directory, x->x_getdir->s_name, MAXPDSTRING); // default
     dirname == &s_ ? dir_loadir(x, x->x_getdir, 1) : dir_loadir(x, dirname, 1);
     x->x_out1 = outlet_new(&x->x_obj, &s_anything);

@@ -4,7 +4,7 @@
 #include <g_canvas.h>
 #include <string.h>
 
-#include "compat.h"
+#include "../extra_source/compat.h"
 
 #ifdef _MSC_VER
 #pragma warning( disable : 4244 )

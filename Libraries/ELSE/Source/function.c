@@ -6,7 +6,7 @@
 #include <g_canvas.h>
 #include "buffer.h"
 
-#include "compat.h"
+#include "../extra_source/compat.h"
 
 static t_class *function_class, *edit_proxy_class;
 static t_widgetbehavior function_widgetbehavior;
