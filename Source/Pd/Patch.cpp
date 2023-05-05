@@ -184,7 +184,7 @@ void Patch::setCurrent()
     // This is the same as calling canvas_vis and canvas_map,
     // but all the other stuff inside those functions is just for tcl/tk anyway
     getPointer()->gl_havewindow = 1;
-    getPointer()-> gl_mapped = 1;
+    getPointer()->gl_mapped = 1;
     
     canvas_create_editor(getPointer()); // can't hurt to make sure of this!
 

@@ -903,14 +903,14 @@ void Canvas::pasteSelection()
 
     std::vector<void*> pastedObjects;
 
-    sys_lock();
+    pd->lockAudioThread();
     for (auto* object : objects) {
         if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer()))) {
             setSelected(object, true);
             pastedObjects.emplace_back(object->getPointer());
         }
     }
-    sys_unlock();
+    pd->unlockAudioThread();
 
     patch.deselectAll();
     pastedObjects.clear();

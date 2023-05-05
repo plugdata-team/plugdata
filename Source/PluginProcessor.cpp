@@ -55,7 +55,7 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
         busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
 
         for (int i = 1; i < numOutputBuses; i++)
-            busesProperties.addBus(false, "Aux " + String(i), AudioChannelSet::stereo(), false);
+            busesProperties.addBus(false, "Aux Output" + String(i), AudioChannelSet::stereo(), false);
     }
 
     return busesProperties;
@@ -1049,7 +1049,6 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     };
     
     if (xmlState) {
-        
         // If xmltree contains new patch format, use that
         if(auto* patchTree = xmlState->getChildByName("Patches"))
         {

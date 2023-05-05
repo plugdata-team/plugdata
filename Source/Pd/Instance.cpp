@@ -121,7 +121,7 @@ Instance::Instance(String const& symbol)
     : consoleHandler(this)
 {
     libpd_multi_init();
-
+    
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
 }
 
@@ -469,23 +469,21 @@ void Instance::processSend(dmessage mess)
                 if (mess.list[i].isFloat())
                     SETFLOAT(argv + i, mess.list[i].getFloat());
                 else if (mess.list[i].isSymbol()) {
-                    sys_lock();
                     SETSYMBOL(argv + i, generateSymbol(mess.list[i].getSymbol()));
-                    sys_unlock();
                 } else
                     SETFLOAT(argv + i, 0.0);
             }
-            sys_lock();
+            lockAudioThread();
             pd_list(static_cast<t_pd*>(mess.object), generateSymbol("list"), static_cast<int>(mess.list.size()), argv);
-            sys_unlock();
+            unlockAudioThread();
         } else if (mess.selector == "float" && !mess.list.empty() && mess.list[0].isFloat()) {
-            sys_lock();
+            lockAudioThread();
             pd_float(static_cast<t_pd*>(mess.object), mess.list[0].getFloat());
-            sys_unlock();
+            unlockAudioThread();
         } else if (mess.selector == "symbol" && !mess.list.empty() && mess.list[0].isSymbol()) {
-            sys_lock();
+            lockAudioThread();
             pd_symbol(static_cast<t_pd*>(mess.object), generateSymbol(mess.list[0].getSymbol()));
-            sys_unlock();
+            unlockAudioThread();
         } else {
             sendMessage(static_cast<t_pd*>(mess.object), mess.selector.toRawUTF8(), mess.list);
         }
@@ -748,6 +746,14 @@ void Instance::unlockAudioThread()
 void Instance::setCallbackLock(CriticalSection const* lock)
 {
     audioLock = lock;
+    set_instance_lock(static_cast<const void*>(lock),
+        [](void* lock){
+            static_cast<CriticalSection*>(lock)->enter();
+        },
+        [](void* lock){
+            static_cast<CriticalSection*>(lock)->exit();
+        }
+    );
 };
 
 void Instance::updateObjectImplementations()

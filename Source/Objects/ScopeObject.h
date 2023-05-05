@@ -275,17 +275,17 @@ public:
             bufferSize = std::clamp<int>(getValue<int>(bufferSize), 0, SCOPE_MAXBUFSIZE * 4);
 
             pd->setThis();
-            sys_lock();
+            pd->lockAudioThread();
 
             scope->x_bufsize = bufferSize.getValue();
             scope->x_bufphase = 0;
 
-            sys_unlock();
+            pd->unlockAudioThread();
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
             pd->setThis();
-            sys_lock();
+            pd->lockAudioThread();
             scope->x_period = limitValueMin(v, 0);
-            sys_unlock();
+            pd->unlockAudioThread();
         } else if (v.refersToSameSourceAs(signalRange)) {
             auto min = static_cast<float>(signalRange.getValue().getArray()->getReference(0));
             auto max = static_cast<float>(signalRange.getValue().getArray()->getReference(1));

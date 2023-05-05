@@ -46,9 +46,9 @@ public:
             x->x_y = getHeight() - relativeEvent.getPosition().y;
 
             SETFLOAT(at, 1.0f);
-            sys_lock();
+            pd->lockAudioThread();
             outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
-            sys_unlock();
+            pd->unlockAudioThread();
 
             isPressed = true;
             

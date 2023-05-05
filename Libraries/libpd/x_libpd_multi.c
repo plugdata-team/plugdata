@@ -5,6 +5,7 @@
  */
 
 #include <m_pd.h>
+#include <s_inter.h>
 #include <s_net.h>
 #include <s_stuff.h>
 
@@ -256,6 +257,7 @@ static int defaultfontshit[] = {
     16, 10, 22, 20, 12, 26, 24, 14, 32, 32, 20, 38, 48, 28, 58, 72, 44, 88
 }; // normal & zoomed (2x)
 #define NDEFAULTFONT (sizeof(defaultfontshit) / sizeof(*defaultfontshit))
+
 
 static void libpd_defaultfont_init(void)
 {
