@@ -29,7 +29,6 @@ public:
         activeConnection = SafePointer<Connection>(connection);
         if (activeConnection.getComponent()) {
             auto canvasConnectionPath = activeConnection->toDraw;
-            setCentrePosition(getParentComponent()->getLocalPoint(nullptr, connection->mouseHoverPos).translated(0, -(getHeight() * 0.5)));
             startTimer(MouseHoverDelay, mouseDelay);
             stopTimer(MouseHoverExitDelay);
             updateTextString(true);
@@ -95,8 +94,10 @@ private:
             break;
             }
         case MouseHoverDelay: {
-            if (activeConnection.getComponent())
+            if (activeConnection.getComponent()) {
+                setCentrePosition(getParentComponent()->getLocalPoint(nullptr, activeConnection->mouseHoverPos).translated(0, -(getHeight() * 0.5)));
                 setVisible(activeConnection.getComponent());
+            }
             break;
         }
         case MouseHoverExitDelay: {
