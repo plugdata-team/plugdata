@@ -65,18 +65,17 @@ private:
         repaint();
     }
 
-    void timerCallback(int ID) override
+    void timerCallback(int timerID) override
     {
-        if (!activeConnection.getComponent() && ID != MouseHoverExitDelay)
-            return;
-
-        switch (ID) {
+        switch (timerID) {
         case RepaintTimer: {
-            updateTextString();
+            if (activeConnection.getComponent())
+                updateTextString();
             break;
             }
         case MouseHoverDelay: {
-            setVisible(activeConnection.getComponent());
+            if (activeConnection.getComponent())
+                setVisible(activeConnection.getComponent());
             break;
         }
         case MouseHoverExitDelay: {
