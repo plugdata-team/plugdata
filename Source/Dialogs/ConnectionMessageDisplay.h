@@ -46,22 +46,42 @@ public:
 private:
     void updateTextString(bool isHoverEntered = false)
     {
-        textString = activeConnection->getMessageFormated();
+        messageItemsWithFormat.clear();
+
+        auto haveMessage = true;
+        auto textString = activeConnection->getMessageFormated();
 
         if (textString[0].isEmpty()) {
             haveMessage = false;
             textString = StringArray("no message yet");
-        } else
-            haveMessage = true;
+        }
 
-        //Font textFont(Fonts::getCurrentFont());
-        //auto stringWidth = textFont.withHeight(14).getStringWidth(textString);
-        // add margin and padding
-        //stringWidth += (8 * 2) + (4 + 4);
+        auto fontStyle = haveMessage ? FontStyle::Bold : FontStyle::Regular;
+        auto textFont = Font(Fonts::getCurrentFont());
+        textFont.setSizeAndStyle(14, fontStyle, 1.0f, 0.0f);
+        int stringWidth;
+        int totalStringWidth = (8 * 2) + 4;
+        String stringItem;
+        bool firstOrLast = false;
+        for (int i = 0; i < textString.size(); i++){
+            firstOrLast = i == 0 ||  i == textString.size() - 1 ? true : false;
+            stringItem = textString[i];
+            stringItem += firstOrLast ? "" : ",";
+            // first item uses system font
+            stringWidth = textFont.getStringWidth(stringItem);
 
+            messageItemsWithFormat.add(TextStringWithMetrics(stringItem, fontStyle, stringWidth));
+
+            // set up font for next item
+            fontStyle = FontStyle::Monospace;
+            textFont = Font(Fonts::getMonospaceFont());
+
+            // calculate total needed width
+            totalStringWidth += stringWidth + 4;
+        }
         // only make the size wider, to fit changing values
-        //if (stringWidth > getWidth() || isHoverEntered)
-        //    setSize(stringWidth, 36);
+        if (totalStringWidth > getWidth() || isHoverEntered)
+            setSize(totalStringWidth, 36);
 
         repaint();
     }
@@ -118,32 +138,24 @@ private:
         //    g.setColour(findColour(PlugDataColour::panelTextColourId));
         //    g.fillPath(indicatorPath);
         //}
-        bool firstStringProcessed = false;
+
         int startPostionX = 8 + 4;
-        for (auto stringItem : textString) {
-            if (!firstStringProcessed) {
-                auto fontStyle = haveMessage ? FontStyle::Bold : FontStyle::Regular;
-                Font textFont(Fonts::getCurrentFont().getTypefaceName(), 14, fontStyle);
-                auto stringWidth = textFont.getStringWidth(stringItem);
-                Fonts::drawStyledText(g, stringItem, startPostionX, 0, stringWidth, getHeight(), findColour(PlugDataColour::panelTextColourId), fontStyle, 14, Justification::centredLeft);
-
-                startPostionX += stringWidth + 4;
-                firstStringProcessed = true;
-            }
-            else {
-                auto stringWidth = stringItem.length() * 8;
-                Fonts::drawStyledText(g, stringItem, startPostionX, 0, stringWidth, getHeight(), findColour(PlugDataColour::panelTextColourId), FontStyle::Monospace, 14, Justification::centredLeft);
-                startPostionX += stringWidth + 4;
-            }
+        for (auto item : messageItemsWithFormat) {
+            Fonts::drawStyledText(g, item.text, startPostionX, 0, item.width, getHeight(), findColour(PlugDataColour::panelTextColourId), item.fontStyle, 14, Justification::centredLeft);
+            startPostionX += item.width + 4;
         }
-
-        previousBounds = getBounds();
+        //previousBounds = getBounds();
     }
 
     static inline bool isShowing = false;
 
-    StringArray textString;
-    bool haveMessage = false;
+    struct TextStringWithMetrics {
+        TextStringWithMetrics(String text, FontStyle fontStyle, int width) : text(text), fontStyle(fontStyle), width(width){};
+        String text;
+        FontStyle fontStyle;
+        int width;
+    };
+    Array<TextStringWithMetrics> messageItemsWithFormat;
 
     Component::SafePointer<Connection> activeConnection;
     int mouseDelay = 500;
