@@ -47,7 +47,7 @@
 #X text 223 496 - a periodically repeating waveform;
 #X obj 103 440 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X obj 103 460 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
-#X text 135 442 float/signal - phase sync (ressets internal phase);
+#X text 135 442 float/signal - phase sync (resets internal phase);
 #X text 135 462 float/signal - phase offset (modulation input), f 50;
 #X text 154 640 3) float;
 #X text 208 625 - sets frequency in Hz (default 0), f 43;

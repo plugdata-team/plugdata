@@ -129,7 +129,7 @@
 #X obj 122 378 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 201 411 signal -;
 #X text 270 379 phase offset (modulation input);
-#X text 270 359 phase sync (ressets internal phase);
+#X text 270 359 phase sync (resets internal phase);
 #X text 165 359 float/signal -;
 #X text 267 411 sawtooth wave signal;
 #X text 159 510 1) float;

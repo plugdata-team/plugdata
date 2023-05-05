@@ -66,7 +66,7 @@
 #X text 109 493 1) symbol;
 #X text 171 493 -;
 #X text 191 352 signal -;
-#X text 256 352 phase sync (impulse ressets internal phase);
+#X text 256 352 phase sync (impulse resets internal phase);
 #X text 257 407 bandlimited oscillator signal;
 #X text 115 511 2) float;
 #X text 115 528 3) float;

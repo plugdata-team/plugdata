@@ -83,7 +83,7 @@
 #X obj 106 405 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X obj 106 428 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X obj 106 460 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
-#X text 148 407 float/signal - delay time (im ms), f 54;
+#X text 148 407 float/signal - delay time (in ms), f 54;
 #X text 148 430 float/signal - decay time (in ms), f 54;
 #X obj 131 154 noise~;
 #X obj 178 186 *~;

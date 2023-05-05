@@ -32,8 +32,8 @@
 #X msg 89 200 connect localhost 8004;
 #X obj 172 383 tgl 19 0 empty empty empty 0 -8 0 10 #dfdfdf #000000 #000000 0 1;
 #X text 198 385 <-- connection status;
-#X text 186 456 disconect;
-#X text 251 456 - disconnects from netwrok;
+#X text 186 456 disconnect;
+#X text 251 456 - disconnects from network;
 #X text 210 509 float;
 #X text 252 509 - connection status;
 #X text 226 541 address (optional \, default 'localhost');
@@ -48,7 +48,7 @@
 #X obj 389 356 else/osc.receive 8006;
 #X text 102 474 connect <symbol \, float>;
 #X text 152 541 1) symbol -;
-#X text 55 89 [osc.send] sends OSC messages over the network and is an abstraction based on [osc.format] and [netsend]. A connect message expects a list with addres and port. The port is a symbol (either 'localhost' or an IP address) but it's optional. If no address is given \, it defaults to 'localhost'. A connect message will disconnect and reconnect to the new address/port and a 'disconnect' message closes the connection. The [osc.send] object sends OSC messages to [osc.reveive] objects with a matching port., f 70;
+#X text 55 89 [osc.send] sends OSC messages over the network and is an abstraction based on [osc.format] and [netsend]. A connect message expects a list with address and port. The port is a symbol (either 'localhost' or an IP address) but it's optional. If no address is given \, it defaults to 'localhost'. A connect message will disconnect and reconnect to the new address/port and a 'disconnect' message closes the connection. The [osc.send] object sends OSC messages to [osc.receive] objects with a matching port., f 70;
 #X obj 172 361 else/osc.send 8004;
 #X obj 172 413 print status;
 #X obj 20 358 else/osc.receive;

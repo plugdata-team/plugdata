@@ -24,7 +24,7 @@ inlets:
     description: signal input to the delay line
   2nd:
   - type: float/signal
-    description: delay time (im ms)
+    description: delay time (in ms)
   3rd:
   - type: float/signal
     description: decay time (in ms)

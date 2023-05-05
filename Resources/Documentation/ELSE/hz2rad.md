@@ -8,25 +8,17 @@ categories:
 pdcategory: ELSE, Data Math, Converters
 
 arguments:
-- type: float
-  description: initial frequency value
-  default: 0
+- none
 
 inlets:
   1st:
-  - type: float/list
+  - type: list
     description: Hz value(s)
-  - type: bang
-    description: convert or output the last converted value (only float)
 
 outlets:
   1st:
-  - type: float/list
+  - type: list
     description: converted radians per sample value(s)
-
-methods:
-  - type: set
-    description: sets next value to be converted via bang (only float)
 
 draft: false
 ---

@@ -361,7 +361,7 @@ messages or '-send'/'-receive' flags., f 31;
 #X msg 386 181 receive empty \, send empty, f 16;
 #X text 76 154 Setting these to 'empty' removes the send/receive symbols.
 , f 32;
-#X text 75 112 Make sure to escape "\$0" properly with backlashes (as
+#X text 75 112 Make sure to escape "\$0" properly with backslashes (as
 in: "\\\$0")., f 24;
 #X obj 169 302 else/display;
 #X obj 65 309 else/display;

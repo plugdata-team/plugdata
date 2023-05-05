@@ -173,7 +173,7 @@
 #X obj 21 216 else/ratio2cents~;
 #X obj 21 243 else/cents2ratio;
 #X text 56 89 Use [cents2ratio~] to convert a signal representing an
-interval in cents to an interval respresented as a decmal rational
+interval in cents to an interval represented as a decimal rational
 number. The conversion formula is \; ratio = pow(2 \, (cents/1200))
 , f 68;
 #X obj 198 181 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;

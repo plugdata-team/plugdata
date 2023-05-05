@@ -43,7 +43,7 @@
 #X obj 122 369 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 201 402 signal -;
 #X text 270 370 phase offset (modulation input);
-#X text 270 350 phase sync (ressets internal phase);
+#X text 270 350 phase sync (resets internal phase);
 #X text 165 350 float/signal -;
 #X text 159 504 1) float;
 #X text 218 523 - initial phase offset (default 0);

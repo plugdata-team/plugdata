@@ -367,7 +367,7 @@
 #X obj 973 249 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X text 257 227 <= bang when finished;
 #X text 106 293 Note that the ramp is in wrap mode by default \, where it automatically wraps between the min and max values. You can set it to clip mode or reset mode with the -mode flag or message as in the rightmost example., f 49;
-#X text 412 24 You can have a resset point outside the minimum and maximum range. Below \, the value is resset to -1 \, but it wraps around when it falls within the min/max range (when in wrap mode)., f 47;
+#X text 412 24 You can have a reset point outside the minimum and maximum range. Below \, the value is reset to -1 \, but it wraps around when it falls within the min/max range (when in wrap mode)., f 47;
 #X text 733 26 You can change to "clip" mode \, - where it'll clip (or "stop") at the min/max boundaries - or also "reset" mode - where it'll reset back to the reset point and stop after reaching the limits., f 49;
 #N canvas 207 34 366 264 (subpatch) 0;
 #X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3 #fcfcfc 0 1;

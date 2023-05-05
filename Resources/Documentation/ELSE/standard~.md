@@ -38,6 +38,9 @@ methods:
   - type: k <float>
     description: sets the value of k
 
+info: This object was based on SuperCollider's "StandardN" UGEN;
+The standard map is an area preserving map of a cylinder discovered by the plasma physicist Boris Chirikov.
+
 draft: false
 ---
 
@@ -46,6 +49,3 @@ y[n] = (y[n-1] + k * sin(x[n-1])) % 2pi;
 x[n] = (x[n-1] + y[n]) % 2pi;
 out = (x[n] - pi) / pi;
 The output rate of the equation is given in Hz (default: Nyquist).
-
-This object was based on SuperCollider's "StandardN" UGEN;
-The standard map is an area preserving map of a cylinder discovered by the plasma physicist Boris Chirikov.

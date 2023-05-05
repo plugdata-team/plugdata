@@ -42,7 +42,7 @@
 #X obj 118 374 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 180 375 signal;
-#X text 230 374 - impulse ressets to starting value;
+#X text 230 374 - impulse resets to starting value;
 #N canvas 207 34 366 264 (subpatch) 0;
 #X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
 #fcfcfc 0 1;
@@ -161,12 +161,12 @@
 #X obj 200 284 print~;
 #X obj 296 192 else/impseq~;
 #X text 144 321 float/signal;
-#X text 230 338 - ressets sum to starting point;
+#X text 230 338 - resets sum to starting point;
 #X text 230 354 - sets starting sum;
 #X text 166 431 1) float - starting sum (default 0);
 #X text 64 92 [add~] starts accumulating input values to a starting
 sum value (0 by default). The starting sum can be set as an argument
-or the 'set' message. You can resset the to the starting sum point
+or the 'set' message. You can reset the to the starting sum point
 with a bang or with an impulse signal in the right inlet.;
 #X obj 227 219 else/add~ 10;
 #X obj 227 249 else/numbox~ 8 12 100 #c0c0c4 #440008 10 0 0 0;

@@ -420,7 +420,7 @@
 #X obj 122 387 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X obj 122 409 cnv 17 3 17 empty empty 3 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 164 410 float/signal - phase offset (modulation input);
-#X text 164 389 float/signal - phase sync (ressets internal phase);
+#X text 164 389 float/signal - phase sync (resets internal phase);
 #X text 60 86 [fbsine~] is a sinusoidal oscillator with phase modulation feedback. Like [else/sine~] \, it accepts negative frequencies \, has inlets for phase modulation and phase sync. Additionally \, it has a feedback value., f 61;
 #X connect 20 0 30 0;
 #X connect 30 0 27 0;

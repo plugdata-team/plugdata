@@ -1,91 +1,64 @@
-#N canvas 522 53 561 521 10;
-#X obj 4 259 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 366 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 401 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
-0;
-#X obj 111 375 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 112 267 cnv 17 3 50 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 4 490 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
-0;
-#X obj 262 171 bng 16 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
+#N canvas 492 53 561 507 10;
+#X obj 4 259 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 366 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 401 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 130 375 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 131 267 cnv 17 3 50 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 480 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 182 170 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X text 172 286 bang;
 #X text 178 304 set;
-#X text 136 267 float/list;
-#N canvas 919 164 250 209 lists 0;
-#X obj 43 99 else/fold;
-#X text 42 26 It also works with lists:;
-#X obj 43 130 else/display;
-#X obj 43 65 else/initmess -0.7 0.7 1.3;
-#X connect 0 0 2 0;
-#X connect 3 0 0 0;
-#X restore 481 233 pd lists;
-#X obj 162 146 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 244 232 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X text 150 375 float/list;
-#X text 202 267 - value to be folded;
-#X text 202 286 - fold or output the last folded value (only float)
-;
-#X text 202 304 - sets next value to be folded via bang (only float)
-;
+#X obj 82 145 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 164 231 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X text 202 286 - fold or output the last folded value (only float);
+#X text 202 304 - sets next value to be folded via bang (only float);
 #X text 216 375 - folded value(s);
-#X obj 2 3 cnv 15 301 42 empty empty fold 20 20 2 37 -233017 -1 0;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
-0;
+#X obj 2 3 cnv 15 301 42 empty empty fold 20 20 2 37 #e0e0e0 #000000 0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 2 3 graph;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
-0;
-#X obj 26 40 cnv 4 4 4 empty empty Folds 0 28 2 18 -233017 -1 0;
-#X obj 76 40 cnv 4 4 4 empty empty between 0 28 2 18 -233017 -1 0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
-0;
-#X obj 147 39 cnv 4 4 4 empty empty two 0 28 2 18 -233017 -1 0;
-#X obj 187 39 cnv 4 4 4 empty empty values 0 28 2 18 -233017 -1 0;
-#X text 61 86 [fold] folds between a low and high value. This is like
-a mirroring function \, where an out of bounds value folds back until
-it is in the given range.;
-#X text 120 145 input;
-#X msg 244 145 set 2.9;
-#X obj 244 200 else/fold, f 20;
-#X obj 112 321 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
-;
-#X obj 112 342 cnv 17 3 17 empty empty 2 5 9 0 16 -228856 -162280 0
-;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 26 40 cnv 4 4 4 empty empty Folds 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 76 40 cnv 4 4 4 empty empty between 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 147 39 cnv 4 4 4 empty empty two 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 187 39 cnv 4 4 4 empty empty values 0 28 2 18 #e0e0e0 #000000 0;
+#X text 65 86 [fold] folds between a low and high value. This is like a mirroring function \, where an out of bounds value folds back until it is in the given range., f 68;
+#X text 40 144 input;
+#X msg 164 144 set 2.9;
+#X obj 164 199 else/fold, f 20;
+#X obj 131 321 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 131 342 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 202 322 - lowest fold value;
 #X text 201 343 - highest fold value;
 #X text 166 322 float;
 #X text 166 343 float;
-#X text 110 412 1) list -;
-#X text 175 413 floats set fold's range \, 2 floats sets minimum and
-maximum. No arguments loads default values (0 and 1). 1 float sets
-maximum value (and lowest value is set to 0). If the maximum value
-is less than the minimum \, the maximum becomes the minimum and vice-versa.
-;
-#X text 159 230 folded value;
-#X obj 302 172 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 361 172 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X text 317 153 min;
-#X text 376 153 max;
-#X connect 6 0 33 0;
-#X connect 11 0 33 0;
-#X connect 32 0 33 0;
-#X connect 33 0 12 0;
-#X connect 43 0 33 1;
-#X connect 44 0 33 2;
+#X text 103 412 1) list -;
+#X text 168 413 floats set fold's range \, 2 floats sets minimum and maximum. No arguments loads default values (0 and 1). 1 float sets maximum value (and lowest value is set to 0). If the maximum value is less than the minimum \, the maximum becomes the minimum and vice-versa.;
+#X text 246 232 folded value;
+#X obj 222 171 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 281 171 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X text 237 152 min;
+#X text 296 152 max;
+#X text 172 267 list;
+#X text 202 267 - value(s) to be folded;
+#X text 172 375 list;
+#X obj 376 184 else/fold;
+#X obj 376 215 else/display;
+#X obj 376 150 else/initmess -0.7 0.7 1.3;
+#X text 24 198 see also:;
+#X obj 26 225 else/fold~;
+#X connect 6 0 29 0;
+#X connect 9 0 29 0;
+#X connect 28 0 29 0;
+#X connect 29 0 10 0;
+#X connect 39 0 29 1;
+#X connect 40 0 29 2;
+#X connect 46 0 47 0;
+#X connect 48 0 46 0;

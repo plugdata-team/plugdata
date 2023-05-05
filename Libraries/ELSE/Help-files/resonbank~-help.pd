@@ -45,7 +45,7 @@
 #X floatatom 302 349 5 0 0 0 - - - 0;
 #X msg 302 370 rampall \$1;
 #X text 43 21 A ramp time as the second argument sets a transition time in ms between parameter changes of resonant frequency \, decay time and amplitude. By default \, this is set to 10 ms. You can also send a list of ramp time for each filter in the bank with the 'ramp' message (just like 'freq'/'decay'/'amp')., f 62;
-#X text 44 86 The 'rampall' message sets a ramp time for all filters. The 'decayall' and 'ampall' messages set decay and amplitude values for all filters. These messsages are all available as flags as well., f 62;
+#X text 44 86 The 'rampall' message sets a ramp time for all filters. The 'decayall' and 'ampall' messages set decay and amplitude values for all filters. These messages are all available as flags as well., f 62;
 #X connect 0 0 2 0;
 #X connect 2 0 11 0;
 #X connect 3 0 11 0;

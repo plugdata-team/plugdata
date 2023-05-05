@@ -1,45 +1,29 @@
 #N canvas 534 23 561 680 10;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 23 40 cnv 4 4 4 empty empty Load 0 28 2 18 #e0e0e0 #000000 0
-;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 68 40 cnv 4 4 4 empty empty pictures 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 3 3 cnv 15 301 42 empty empty pic 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 40 cnv 4 4 4 empty empty Load 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 68 40 cnv 4 4 4 empty empty pictures 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 3 3 cnv 15 301 42 empty empty pic 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 3 3 graph;
-#X obj 4 366 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 478 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 559 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 98 373 cnv 17 3 99 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 4 654 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
+#X obj 4 366 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 478 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 559 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000 0;
+#X obj 98 373 cnv 17 3 99 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 654 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
 #X text 127 371 open <symbol>;
 #X text 213 371 - open an image file named by the symbol, f 50;
 #X obj 229 335 else/display;
-#X obj 98 485 cnv 17 3 42 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
+#X obj 98 485 cnv 17 3 42 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 181 484 bang;
 #X text 213 484 - a bang is output if you click on the image;
 #X text 127 445 send <symbol>;
@@ -50,29 +34,16 @@
 #X obj 317 306 else/display;
 #X obj 73 332 else/display;
 #X obj 317 272 r \$0-pic-snd;
-#X text 73 393 Note that when you set a receive or send symbol \, the
-corresponding inlet/outlet does not get drawn when you're in edit mode.
-This is an indicative that the object has a send or receive symbol.
-, f 57;
-#X obj 73 186 else/pic 1 else/pdlogo.gif \$0-pic-snd \$0-pic-rcv 0
-0;
-#X text 47 39 You can set send/receive names with the -send/-receive
-flags or the 'send'/'receive' messages - make sure to escape "\$0"
-properly with backslashes (as in: "\\\$0"). Setting these to 'empty'
-removes the send/receive symbols., f 67;
+#X text 73 393 Note that when you set a receive or send symbol \, the corresponding inlet/outlet does not get drawn when you're in edit mode. This is an indicative that the object has a send or receive symbol., f 57;
+#X obj 73 186 else/pic 1 else/pdlogo.gif \$0-pic-snd \$0-pic-rcv 0 0;
+#X text 47 39 You can set send/receive names with the -send/-receive flags or the 'send'/'receive' messages - make sure to escape "\$0" properly with backslashes (as in: "\\\$0"). Setting these to 'empty' removes the send/receive symbols., f 67;
 #X text 210 244 <= click;
-#X obj 73 116 else/initmess send \\\$0-pic-snd \, receive \\\$0-pic-rcv
-;
+#X obj 73 116 else/initmess send \\\$0-pic-snd \, receive \\\$0-pic-rcv;
 #X obj 320 223 s \$0-pic-rcv;
 #X msg 320 194 latch \$1;
-#X obj 320 170 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000 0 1;
+#X obj 320 170 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X msg 90 150 send empty \, receive empty;
-#X text 57 462 Note that inside the properties window you don't need
-to escape the special characters of "$" and also spaces \, both of
-which are allowed. Also note that other special characters are not
-allowed \, such as braces \, backslashes \, commas and semicolons.
-, f 69;
+#X text 57 462 Note that inside the properties window you don't need to escape the special characters of "$" and also spaces \, both of which are allowed. Also note that other special characters are not allowed \, such as braces \, backslashes \, commas and semicolons., f 69;
 #X connect 2 0 0 0;
 #X connect 4 0 1 0;
 #X connect 7 0 4 0;
@@ -104,8 +75,7 @@ allowed \, such as braces \, backslashes \, commas and semicolons.
 #X obj 113 486 else/display;
 #X text 245 398 <= open;
 #N canvas 457 127 400 491 (subpatch) 0;
-#X obj 104 232 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 104 232 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 124 270 sel 0 1;
 #X obj 151 363 s \$0-set;
 #X obj 104 39 r \$0-set;
@@ -127,15 +97,10 @@ allowed \, such as braces \, backslashes \, commas and semicolons.
 #X restore 114 82 pd;
 #X obj 114 221 else/display;
 #X text 246 136 <= open;
-#X text 56 37 Using [pic] to create toggle on/off buttons. See subpatch
-below:, f 35;
-#X text 373 31 NOTE: you can also connect the bang output into a counter
-and make it go through a sequence of images and emulate an animated
-gif for instance., f 37;
-#X text 373 86 I was just too lazy to give you an example for that.
-, f 37;
-#X text 72 276 Another idea is that you can also adapat the patch above
-to behave like a bang with a flash time. See below., f 41;
+#X text 56 37 Using [pic] to create toggle on/off buttons. See subpatch below:, f 35;
+#X text 373 31 NOTE: you can also connect the bang output into a counter and make it go through a sequence of images and emulate an animated gif for instance., f 37;
+#X text 373 86 I was just too lazy to give you an example for that., f 37;
+#X text 72 276 Another idea is that you can also adapat the patch above to behave like a bang with a flash time. See below., f 41;
 #N canvas 457 127 474 484 (subpatch) 0;
 #X msg 214 283 open else/green.gif;
 #X msg 121 283 open else/red.gif;
@@ -157,87 +122,55 @@ to behave like a bang with a flash time. See below., f 41;
 #X restore 409 317 pd;
 #X obj 409 459 else/display;
 #X text 541 371 <= open;
-#X text 387 178 The examples to the left are using pic in the default
-"bang mode"., f 36;
-#X text 387 213 Below we have the [pic] object into the 'latch' mode
-\, where it sends 1 when clicking into the object and a 0 when you
-release the mouse button. This way you can program it to load different
-images for each state., f 36;
+#X text 387 178 The examples to the left are using pic in the default "bang mode"., f 36;
+#X text 387 213 Below we have the [pic] object into the 'latch' mode \, where it sends 1 when clicking into the object and a 0 when you release the mouse button. This way you can program it to load different images for each state., f 36;
 #X connect 0 0 1 0;
 #X connect 3 0 4 0;
 #X connect 10 0 11 0;
 #X restore 463 307 pd examples;
 #N canvas 616 241 776 349 more 0;
 #X text 67 109 default image =>;
-#X text 23 209 Now please get into and out of edit mode so you can
-see how the [pic] object creates an outline and inlet/outlet when you're
-in edit mode., f 50;
+#X text 23 209 Now please get into and out of edit mode so you can see how the [pic] object creates an outline and inlet/outlet when you're in edit mode., f 50;
 #X obj 174 99 else/pic 0 empty empty empty 0 0;
-#X text 14 30 When you have an empty filename or an error opening a
-file (via properties window \, flag or message) \, [pic] loads a default
-image of a question mark:, f 51;
-#X text 23 160 Note that once you have a loaded image \, setting the
-filename to "empty doesn't draw the question mark image back., f 50
-;
-#X text 367 94 For instance \, below \, we have \$0 used in the send
-symbol. Using something like "\$1" is also possible and useful if you're
-using the object in an abstraction \, then you can load a value passed
-as an argument into a parameter., f 59;
+#X text 14 30 When you have an empty filename or an error opening a file (via properties window \, flag or message) \, [pic] loads a default image of a question mark:, f 51;
+#X text 23 160 Note that once you have a loaded image \, setting the filename to "empty doesn't draw the question mark image back., f 50;
+#X text 367 94 For instance \, below \, we have \$0 used in the send symbol. Using something like "\$1" is also possible and useful if you're using the object in an abstraction \, then you can load a value passed as an argument into a parameter., f 59;
 #X obj 397 301 else/display;
 #X obj 397 163 else/pic 0 else/pdlogo.gif \$0-snd empty 0 0;
 #X obj 567 192 r \$0-snd;
 #X obj 567 217 else/display;
-#X text 20 259 Note that when you set a receive or send symbol \, the
-corresponding inlet/outlet does not get drawn when you're in edit mode.
-This is an indicative that the object has a send or receive symbol.
-, f 52;
-#X text 367 27 Also note that all the parameters that you can set by
-inserting a symbol into a field in the properties window can also load
-dollar sign arguments (\$0 \, \$1 \, \$2 \, and so on). Namely \, these
-parameters are: name and send/receive symbols., f 59;
+#X text 20 259 Note that when you set a receive or send symbol \, the corresponding inlet/outlet does not get drawn when you're in edit mode. This is an indicative that the object has a send or receive symbol., f 52;
+#X text 367 27 Also note that all the parameters that you can set by inserting a symbol into a field in the properties window can also load dollar sign arguments (\$0 \, \$1 \, \$2 \, and so on). Namely \, these parameters are: name and send/receive symbols., f 59;
 #X connect 7 0 6 0;
 #X connect 8 0 9 0;
 #X restore 487 171 pd more details;
 #X f 7;
 #N canvas 835 231 468 365 outline 0;
 #X msg 181 155 outline \$1;
-#X obj 181 118 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 181 118 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 181 188 else/pic 0 else/tklogo.gif empty empty 0 0;
-#X text 66 33 You can always have an outline of the picture (and not
-only while in edit mode) if you set the outline mode with the 'outline'
-message \, the -outline flag or via properties window \, in which case
-a non zero value sets to outline mode.;
+#X text 66 33 You can always have an outline of the picture (and not only while in edit mode) if you set the outline mode with the 'outline' message \, the -outline flag or via properties window \, in which case a non zero value sets to outline mode.;
 #X connect 0 0 2 0;
 #X connect 1 0 0 0;
 #X restore 469 229 pd outline;
 #X obj 229 197 else/pic 0 else/pdlogo.gif empty empty 0 0;
-#X obj 4 532 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
+#X obj 4 532 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
 #X text 259 539 (none);
-#X text 124 607 -outline: sets to outline mode (default no outline)
-, f 57;
+#X text 124 607 -outline: sets to outline mode (default no outline), f 57;
 #X text 115 246 right click for properties =====>, f 17;
 #X text 115 415 outline <float>;
 #X text 213 415 - non zero sets to outline mode, f 50;
-#X text 124 565 -open <symbol>: sets file name to open (default 'empty')
-, f 57;
-#X text 124 579 -send <symbol>: sets send symbol (default 'empty')
-, f 57;
-#X text 124 593 -receive <symbol>: sets receive symbol (default 'empty')
-, f 57;
+#X text 124 565 -open <symbol>: sets file name to open (default 'empty'), f 57;
+#X text 124 579 -send <symbol>: sets send symbol (default 'empty'), f 57;
+#X text 124 593 -receive <symbol>: sets receive symbol (default 'empty'), f 57;
 #X text 133 386 set <symbol>;
-#X text 213 386 - same as open \, but pd doesn't ask to save changes
-;
+#X text 213 386 - same as open \, but pd doesn't ask to save changes;
 #X text 181 514 list;
-#N canvas 640 92 711 748 zoom 0;
+#N canvas 640 23 711 723 zoom 0;
 #X obj 33 81 else/canvas.zoom;
-#X text 17 12 When in zoom mode \, [pic] cannot zoom into the loaded
-image. A possible workaround is to use [canvas.zoom] and load an image
-twice as big when the patch window gets zoomed in., f 52;
+#X text 17 12 When in zoom mode \, [pic] cannot zoom into the loaded image. A possible workaround is to use [canvas.zoom] and load an image twice as big when the patch window gets zoomed in., f 52;
 #X obj 33 195 else/pic 0 else/pdlogo.gif empty empty 0 0;
-#X obj 33 102 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 33 102 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 33 124 select 0 1, f 44;
 #X obj 33 334 else/display;
 #X msg 33 152 open else/pdlogo.gif;
@@ -250,21 +183,17 @@ twice as big when the patch window gets zoomed in., f 52;
 #X connect 6 0 2 0;
 #X connect 7 0 2 0;
 #X restore 487 330 pd zoom;
-#X text 124 621 -size: sets to "report size" mode (default no report)
-, f 57;
+#X text 124 621 -size: sets to "report size" mode (default no report), f 57;
 #X text 133 430 size <float>;
 #X text 213 430 - non zero sets to report size mode, f 50;
 #N canvas 651 230 503 428 size 0;
 #X msg 215 133 open else/tklogo.gif;
 #X msg 238 159 open else/pdlogo.gif;
 #X obj 215 197 else/pic 0 else/pdlogo.gif empty empty 1 0;
-#X obj 151 131 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 151 131 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X msg 151 158 size \$1;
 #X obj 215 341 else/display;
-#X text 82 40 You can set [pic] to report the image size after it loads
-with the -size' flag or 'size' message. In this case \, it sends a
-list of width and height.;
+#X text 82 40 You can set [pic] to report the image size after it loads with the -size' flag or 'size' message. In this case \, it sends a list of width and height.;
 #X connect 0 0 2 0;
 #X connect 1 0 2 0;
 #X connect 2 0 5 0;
@@ -272,42 +201,32 @@ list of width and height.;
 #X connect 4 0 2 0;
 #X restore 487 284 pd size;
 #X text 127 400 latch <float>;
-#X text 43 89 [pic] loads image pictures that you can interact with.
-It only works with file types: .gif \, .ppm & .pgm. you click on the
-picture and it sends a bang (default) or 1 when clicking and 0 when
-releasing (when in latch mode)., f 68;
+#X text 43 89 [pic] loads image pictures that you can interact with. It only works with file types: .gif \, .ppm & .pgm. you click on the picture and it sends a bang (default) or 1 when clicking and 0 when releasing (when in latch mode)., f 68;
 #X text 146 209 click the image =====>, f 12;
 #X msg 168 168 latch \$1;
-#X obj 168 143 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000 0 1;
+#X obj 168 143 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X text 213 400 - non-zero sets to latch mode, f 50;
 #X text 175 499 float;
 #X text 213 499 - 1/0 when in latch mode;
 #X text 213 514 - pic width/height when in report size mode;
-#X text 124 636 -latch: sets to "latch" mode (default "bang" mode)
-, f 57;
+#X text 124 636 -latch: sets to "latch" mode (default "bang" mode), f 57;
 #N canvas 835 231 478 475 open/set 0;
 #X obj 153 414 else/display;
 #X obj 153 276 else/pic 0 else/tklogo.gif empty empty 0 0;
-#X text 62 32 The open and set messages are basically the same \, but
-opening a file will make pd ask you if you want to save changes when
-you close the patch. Since this can be an undesired annoyance \, you
-can use the 'set' message instead.;
-#X text 62 141 Nonetheless \, inside the properties window you don't
-need to escape spaces with backslashes. Also note that other special
-characters are not allowed in the properties window \, such as braces
-\, backslashes \, commas and semicolons., f 59;
+#X text 62 32 The open and set messages are basically the same \, but opening a file will make pd ask you if you want to save changes when you close the patch. Since this can be an undesired annoyance \, you can use the 'set' message instead.;
+#X text 62 141 Nonetheless \, inside the properties window you don't need to escape spaces with backslashes. Also note that other special characters are not allowed in the properties window \, such as braces \, backslashes \, commas and semicolons., f 59;
 #X msg 153 223 open else/tklogo.gif;
 #X msg 176 249 set else/pdlogo.gif;
-#X text 61 84 Note you can use backslash to escape spaces in a message
-so you can open file names that contain spaces. You can also open an
-image by typing a new file name into the properties window.;
+#X text 61 84 Note you can use backslash to escape spaces in a message so you can open file names that contain spaces. You can also open an image by typing a new file name into the properties window.;
 #X connect 1 0 0 0;
 #X connect 4 0 1 0;
 #X connect 5 0 1 0;
 #X restore 463 206 pd open/set;
 #X msg 229 145 open else/tklogo.gif;
 #X msg 252 170 open else/pdlogo.gif;
+#X text 39 292 see also:;
+#X obj 51 318 else/button 20 20 255 255 255 128 128 159 0;
+#X text 78 320 <-- button;
 #X connect 31 0 19 0;
 #X connect 52 0 31 0;
 #X connect 53 0 52 0;

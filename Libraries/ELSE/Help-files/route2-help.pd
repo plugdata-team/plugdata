@@ -59,7 +59,7 @@
 #X text 196 477 input message if no match was found, f 51;
 #X obj 247 285 else/route2 x 2, f 21;
 #X obj 36 373 route;
-#X text 219 510 list of adrresses to route to (floats or symbols);
+#X text 219 510 list of addresses to route to (floats or symbols);
 #X text 64 84 [route2] is similar to route \, but it doesn't trim the
 list selector and always outputs messages with a proper selector. Another
 difference is that you can mix floats and symbols as arguments. Each

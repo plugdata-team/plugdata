@@ -41,7 +41,7 @@ flags:
 
 methods:
   - type: open <symbol>
-    description: opens a directory and loads contents
+    description: opens a directory and loads contents, no symbol opens binary's directory
   - type: reopen
     description: reloads contents of the last opened directory
   - type: reset

@@ -15,7 +15,10 @@ arguments:
 - type: float
   description: non-0 sets "position mode"
   default: 0
-
+- type: float
+description: non-0 allows output in edit mode
+default: 0
+    
 inlets:
   1st:
   - type: zero

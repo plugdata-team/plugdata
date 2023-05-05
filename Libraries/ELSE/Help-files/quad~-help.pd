@@ -64,7 +64,7 @@ nyquist).;
 0;
 #X obj 164 40 cnv 4 4 4 empty empty map 0 28 2 18 #e0e0e0 #000000 0
 ;
-#X text 84 91 [quad~] gerenates a chaotic signal from the difference
+#X text 84 91 [quad~] generates a chaotic signal from the difference
 equation \; y[n] = a * y[n-1]^2 + b * y[n-1] + c;
 #X text 197 480 - sets initial value of y[n-1] (default 0);
 #X obj 212 224 else/quad~;

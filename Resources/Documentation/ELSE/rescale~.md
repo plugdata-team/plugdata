@@ -9,17 +9,28 @@ categories:
 pdcategory: ELSE, Signal Math
 
 arguments:
-- type: list
-  description: <min out, max out, exp factor> or <min in, max in, min out, max out, exp factor>
-  default: 0, 127, 0, 1, 1
+- type: float
+  description: minimum output value
+  default: 0
+- type: float
+  description: maximum output value
+  default: 1
+- type: float
+  description: exponential value
+  default: 0, linear
 
 inlets:
   1st:
   - type: signal
     description: value to perform the scaling function on
-  nth:
+    
+  2nd:
   - type: signal
-    description: range parameters
+    description: minimum output value
+      
+   3rd:
+    - type: signal
+      description: maximum output value
 
 outlets:
   1st:
@@ -27,17 +38,24 @@ outlets:
     description: the rescaled signal
 
 flags:
-  - name: -clip
-    description: sets clipping on
+- name: -noclip
+  description: sets clipping off
+- name: -in <float, float> 
+  description: sets min/max input values
+- name: -exp <float> 
+  description: sets exponential factor
+- name: -noclip
+  description: sets to log mode
     
 methods:
-  - type: exp <float>
-    description: sets the exponential factor
-  - type: clip <float>
-    description: 1 - clipping in, 0 - off
-
+- type: exp <float>
+  description: sets the exponential factor, -1, 0 or 1 sets to linear
+- type: clip <float>
+  description: non zero sets clipping on, 0 sets it off
+ - type: log <float>
+  description: non zero sets to log mode
 
 draft: false
 ---
 
-By default, [rescale~] rescales input values from -1 to 1 into another range of values (0-1 by default). You can also set an exponential factor (1 by default - linear). All these parameters can be changed by arguments.
+By default, [rescale~] rescales input values from -1 to 1 into another range of values (0-1 by default).  You can also set to log or exponential factor (0 by default - linear).

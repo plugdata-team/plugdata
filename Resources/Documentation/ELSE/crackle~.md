@@ -10,7 +10,7 @@ pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float
-  description: parameter 'p'
+  description: 'p' parameter
   default: 0.5
 
 inlets:

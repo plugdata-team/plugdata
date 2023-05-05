@@ -1,90 +1,65 @@
-#N canvas 522 53 573 501 10;
-#X obj 4 239 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 346 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 381 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
-0;
-#X obj 111 355 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 112 247 cnv 17 3 50 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 4 461 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
-0;
-#X obj 262 151 bng 16 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
-#X text 172 266 bang;
-#X text 178 284 set;
-#X text 136 247 float/list;
-#N canvas 919 164 262 235 lists 0;
-#X text 55 34 It also works with lists:;
-#X obj 53 115 else/wrap2;
-#X obj 53 146 else/display;
-#X obj 53 79 else/initmess -0.7 0.7 1.3;
-#X connect 1 0 2 0;
-#X connect 3 0 1 0;
-#X restore 481 213 pd lists;
-#X obj 162 126 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 244 212 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X text 150 355 float/list;
-#X text 216 355 - folded value(s);
-#X obj 2 3 cnv 15 301 42 empty empty wrap2 20 20 2 37 -233017 -1 0
-;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
-0;
+#N canvas 522 53 563 550 10;
+#X obj 4 299 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 406 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 441 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 131 415 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 132 307 cnv 17 3 50 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 521 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 262 201 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X text 168 326 bang;
+#X text 174 344 set;
+#X obj 220 151 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X text 201 415 - folded value(s);
+#X obj 2 3 cnv 15 301 42 empty empty wrap2 20 20 2 37 #e0e0e0 #000000 0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 2 3 graph;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
-0;
-#X obj 26 40 cnv 4 4 4 empty empty Wrap 0 28 2 18 -233017 -1 0;
-#X obj 75 40 cnv 4 4 4 empty empty between 0 28 2 18 -233017 -1 0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
-0;
-#X obj 146 39 cnv 4 4 4 empty empty two 0 28 2 18 -233017 -1 0;
-#X obj 186 39 cnv 4 4 4 empty empty values 0 28 2 18 -233017 -1 0;
-#X text 120 125 input;
-#X msg 244 125 set 2.9;
-#X obj 112 301 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
-;
-#X obj 112 322 cnv 17 3 17 empty empty 2 5 9 0 16 -228856 -162280 0
-;
-#X text 166 302 float;
-#X text 166 323 float;
-#X text 110 392 1) list -;
-#X text 159 210 folded value;
-#X obj 302 152 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 361 152 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X text 317 133 min;
-#X text 376 133 max;
-#X obj 244 180 else/wrap2, f 20;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 26 40 cnv 4 4 4 empty empty Wrap 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 75 40 cnv 4 4 4 empty empty between 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 146 39 cnv 4 4 4 empty empty two 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 186 39 cnv 4 4 4 empty empty values 0 28 2 18 #e0e0e0 #000000 0;
+#X text 293 149 input;
+#X msg 244 175 set 2.9;
+#X obj 132 361 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 132 382 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X text 162 362 float;
+#X text 162 383 float;
+#X text 110 452 1) list -;
+#X text 159 263 folded value;
+#X obj 302 202 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 361 202 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X text 317 183 min;
+#X text 386 183 max;
 #X text 61 86 [wrap2] wraps between a minimum and maximum value.;
-#X text 202 302 - lowest wrap value;
-#X text 201 323 - highest wrap value;
-#X text 202 247 - value to be wrapped;
-#X text 202 266 - fold or output the last wrapped value (only float)
-;
-#X text 202 284 - sets next value to be wrapped via bang (only float)
-;
-#X text 175 393 floats set wrap2's range \, 2 floats sets minimum and
-maximum. No arguments loads default values (0 and 1). 1 float sets
-maximum value (and lowest value is set to 0). If the maximum value
-is less than the minimum \, the maximum becomes the minimum and vice-versa.
-;
-#X connect 6 0 39 0;
-#X connect 11 0 39 0;
-#X connect 28 0 39 0;
-#X connect 35 0 39 1;
-#X connect 36 0 39 2;
-#X connect 39 0 12 0;
+#X text 202 362 - lowest wrap value;
+#X text 201 383 - highest wrap value;
+#X text 202 307 - value to be wrapped;
+#X text 202 326 - fold or output the last wrapped value (only float);
+#X text 202 344 - sets next value to be wrapped via bang (only float);
+#X text 175 453 floats set wrap2's range \, 2 floats sets minimum and maximum. No arguments loads default values (0 and 1). 1 float sets maximum value (and lowest value is set to 0). If the maximum value is less than the minimum \, the maximum becomes the minimum and vice-versa.;
+#X obj 21 258 else/wrap2~;
+#X text 21 232 see also:;
+#X obj 47 127 else/initmess -0.7 0.7 1.3;
+#X listbox 47 148 16 0 0 0 - - - 0;
+#X obj 244 260 else/display;
+#X text 168 307 list;
+#X text 168 415 list;
+#X obj 244 230 else/wrap2 -0.5 0.5, f 20;
+#X obj 223 124 hsl 120 15 -10 10 0 0 empty empty empty -2 -8 0 10 #dfdfdf #000000 #000000 0 1;
+#X connect 6 0 49 0;
+#X connect 9 0 49 0;
+#X connect 24 0 49 0;
+#X connect 31 0 49 1;
+#X connect 32 0 49 2;
+#X connect 44 0 45 0;
+#X connect 45 0 49 0;
+#X connect 49 0 46 0;
+#X connect 50 0 9 0;

@@ -54,7 +54,7 @@
 #X msg 49 43 low \$1;
 #X text 351 31 If the fundamental frequency input is '100' \, the number of harmonics is 2 and the lowest harmonic is 1 \, then you have '100' and '200' as the partial's frequencies. Now \, if the lowest harmonic is 2 \, then you have '200' and '300'., f 34;
 #X obj 164 248 else/blip~ 0 20;
-#X text 351 122 The spectral multiplier 'm' is a factor that scales each successive harmonic by. If m = 0.5 and you start with 1st harmonic and ask for 4 harmonics \, you get 1 \, 0.5 \, 0.25 and 0.125 as the amplitude list. A factor of 1 creates an impulse like waveform. Negative values and vaues outside the -1 and 1 range is possible., f 34;
+#X text 351 122 The spectral multiplier 'm' is a factor that scales each successive harmonic by. If m = 0.5 and you start with 1st harmonic and ask for 4 harmonics \, you get 1 \, 0.5 \, 0.25 and 0.125 as the amplitude list. A factor of 1 creates an impulse like waveform. Negative values and values outside the -1 and 1 range is possible., f 34;
 #X obj 52 313 else/out~;
 #X text 218 204 Hz;
 #X text 304 204 'm';

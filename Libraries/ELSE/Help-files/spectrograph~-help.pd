@@ -178,7 +178,7 @@ f 51;
 #X text 366 285 Nyquist;
 #X text 27 285 0 Hz;
 #X text 46 87 [spectrograph~] is an abstraction for visualizing FFT
-amplitudes from 0hz to Nyquist. It uses a hann table for the abalysis.
+amplitudes from 0hz to Nyquist. It uses a hann table for the analysis.
 , f 64;
 #X obj 60 126 noise~;
 #N canvas 988 95 431 534 rate 0;

@@ -32,7 +32,7 @@
 #X text 164 398 float/signal - phase offset (modulation input);
 #X text 165 356 float/signal - pulse width (from 0 to 1);
 #X text 267 431 square wave signal;
-#X text 164 378 float/signal - phase sync (ressets internal phase);
+#X text 164 378 float/signal - phase sync (resets internal phase);
 #X text 168 510 1) float;
 #X text 168 529 2) float;
 #X text 168 547 3) float;

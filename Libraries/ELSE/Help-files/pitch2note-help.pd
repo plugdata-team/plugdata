@@ -1,73 +1,47 @@
 #N canvas 489 23 563 458 10;
-#X obj 4 253 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 354 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 385 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 136 362 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 137 262 cnv 17 3 56 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 4 428 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#X obj 4 253 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 354 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 385 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000 0;
+#X obj 146 362 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 147 262 cnv 17 3 56 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 428 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 23 40 cnv 4 4 4 empty empty Convert 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 208 40 cnv 4 4 4 empty empty note 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 3 3 cnv 15 301 42 empty empty pitch2note 20 20 2 37 #e0e0e0
-#000000 0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 40 cnv 4 4 4 empty empty Convert 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 208 40 cnv 4 4 4 empty empty note 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 3 3 cnv 15 301 42 empty empty pitch2note 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 3 3 graph;
-#X obj 231 215 else/display;
-#X obj 247 40 cnv 4 4 4 empty empty name 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 186 40 cnv 4 4 4 empty empty to 0 28 2 18 #e0e0e0 #000000 0
-;
-#X obj 90 40 cnv 4 4 4 empty empty MIDI 0 28 2 18 #e0e0e0 #000000 0
-;
-#X obj 140 40 cnv 4 4 4 empty empty pitch 0 28 2 18 #e0e0e0 #000000
-0;
-#X text 56 189 see also:;
-#X obj 231 157 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc
-#000000 #000000 0 256;
-#X obj 49 211 else/note2pitch;
-#X obj 137 325 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X text 160 325 anything/list;
-#N canvas 786 93 662 387 other-scales 0;
+#X obj 221 215 else/display;
+#X obj 247 40 cnv 4 4 4 empty empty name 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 186 40 cnv 4 4 4 empty empty to 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 90 40 cnv 4 4 4 empty empty MIDI 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 140 40 cnv 4 4 4 empty empty pitch 0 28 2 18 #e0e0e0 #000000 0;
+#X text 52 190 see also:;
+#X obj 221 157 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc #000000 #000000 0 256;
+#X obj 45 212 else/note2pitch;
+#X obj 147 325 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
+#N canvas 704 93 662 387 other-scales 0;
 #X obj 98 326 else/display;
 #X text 204 192 set arbitrary symbols;
 #X obj 98 78 else/keyboard 17 80 4 3 0 0 empty empty;
-#X obj 98 210 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc
-#000000 #000000 0 256;
+#X obj 98 210 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc #000000 #000000 0 256;
 #X obj 98 180 stripnote;
-#X text 150 41 You can set your own arbitrary scale in the right inlet
-;
+#X text 150 41 You can set your own arbitrary scale in the right inlet;
 #X obj 185 170 loadbang;
 #X msg 185 213 C C# D Eb E F F# G G# A Bb B;
 #X obj 98 293 else/pitch2note;
 #X msg 200 238 C C# D D# E E# F# Fx G# A A# B;
-#X text 414 231 anything is possible \, you can even use "x" and "bb"
-for double sharp/flats, f 21;
+#X text 414 231 anything is possible \, you can even use "x" and "bb" for double sharp/flats, f 21;
 #X msg 207 263 C Db D Eb Fb F Gb G Ab Bbb Bb B;
 #X connect 2 0 4 0;
 #X connect 3 0 8 0;
@@ -78,12 +52,11 @@ for double sharp/flats, f 21;
 #X connect 9 0 8 1;
 #X connect 11 0 8 1;
 #X restore 434 182 pd other-scales;
-#X text 187 277 chromatic - sets to chromatic mode (default);
-#X text 247 325 - user defined scales;
+#X text 177 277 chromatic - sets to chromatic mode (default);
+#X text 237 325 - user defined scales;
 #N canvas 784 163 582 443 unicode 0;
 #X obj 61 368 else/display;
-#X obj 61 230 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc
-#000000 #000000 0 256;
+#X obj 61 230 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc #000000 #000000 0 256;
 #X msg 86 258 chromatic;
 #X msg 109 283 sharp;
 #X msg 116 307 flat;
@@ -93,9 +66,7 @@ for double sharp/flats, f 21;
 #X obj 61 200 stripnote;
 #X obj 61 91 else/keyboard 17 80 4 3 0 0 empty empty;
 #X obj 61 340 else/pitch2note -unicode;
-#X text 87 35 The "-unicode" flag sets to unicode mode \, where sharps
-and flats are represented by the unicode characters "♯" and "♭"
-(which are supported by Pd's default font).;
+#X text 87 35 The "-unicode" flag sets to unicode mode \, where sharps and flats are represented by the unicode characters "♯" and "♭" (which are supported by Pd's default font).;
 #X connect 1 0 10 0;
 #X connect 2 0 10 0;
 #X connect 3 0 10 0;
@@ -106,10 +77,9 @@ and flats are represented by the unicode characters "♯" and "♭"
 #X restore 434 203 pd unicode;
 #X text 170 393 -unicode: sets to unicode moode;
 #X text 170 410 -list: sets to list output mode;
-#N canvas 993 163 583 403 accidentals 0;
+#N canvas 783 163 583 403 accidentals 0;
 #X obj 61 331 else/display;
-#X obj 61 193 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc
-#000000 #000000 0 256;
+#X obj 61 193 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc #000000 #000000 0 256;
 #X msg 86 221 chromatic;
 #X msg 109 246 sharp;
 #X msg 116 270 flat;
@@ -118,8 +88,7 @@ and flats are represented by the unicode characters "♯" and "♭"
 #X text 151 246 All sharp (even B# and E#);
 #X text 154 269 All flat (even Cb and Fb);
 #X text 203 174 Try the different preset modes;
-#X text 151 221 when accidental \, sharp if rising \, flat otherwise
-(default);
+#X text 151 221 when accidental \, sharp if rising \, flat otherwise (default);
 #X obj 61 303 else/pitch2note;
 #X connect 1 0 11 0;
 #X connect 2 0 11 0;
@@ -129,11 +98,9 @@ and flats are represented by the unicode characters "♯" and "♭"
 #X connect 6 0 5 0;
 #X connect 11 0 0 0;
 #X restore 434 161 pd accidentals;
-#X text 172 362 symbol/list;
-#N canvas 786 163 580 481 list 0;
+#N canvas 718 127 580 481 list 0;
 #X obj 61 418 else/display;
-#X obj 61 230 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc
-#000000 #000000 0 256;
+#X obj 61 230 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc #000000 #000000 0 256;
 #X msg 86 258 chromatic;
 #X msg 109 283 sharp;
 #X msg 116 307 flat;
@@ -143,11 +110,8 @@ and flats are represented by the unicode characters "♯" and "♭"
 #X obj 61 200 stripnote;
 #X obj 61 91 else/keyboard 17 80 4 3 0 0 empty empty;
 #X obj 61 390 else/pitch2note -list -unicode;
-#X text 99 31 The "-list" flag sets to list output mode \, where the
-output is a list with the note symbol and octave number. You can combine
-both flags of course (in any order).;
-#X text 179 350 A list input also outputs note and ocatves separately
-;
+#X text 99 31 The "-list" flag sets to list output mode \, where the output is a list with the note symbol and octave number. You can combine both flags of course (in any order).;
+#X text 179 350 A list input also outputs note and ocatves separately;
 #X msg 119 351 60 66 74;
 #X connect 1 0 10 0;
 #X connect 2 0 10 0;
@@ -158,17 +122,16 @@ both flags of course (in any order).;
 #X connect 10 0 0 0;
 #X connect 13 0 10 0;
 #X restore 434 223 pd list;
-#X text 211 291 sharp - sets to sharp mode;
-#X text 217 305 flat - sets to flat mode;
-#X obj 231 187 else/pitch2note;
-#X text 179 262 float/list;
-#X text 247 262 - MIDI pitch value(s), f 35;
-#X text 247 362 - note name(s);
-#X msg 165 157 60 66 74;
-#X text 62 89 [pitch2note] converts a MIDI pitch value to note names
-(such as Eb3). The names end with an octave number \, in a way that
-middle C (MIDI pitch = 60) represents C4 represents. Float inputs are
-rounded to integers., f 66;
-#X connect 24 0 39 0;
-#X connect 39 0 18 0;
-#X connect 43 0 39 0;
+#X text 201 291 sharp - sets to sharp mode;
+#X text 207 305 flat - sets to flat mode;
+#X obj 221 187 else/pitch2note;
+#X text 237 262 - MIDI pitch value(s), f 35;
+#X text 239 362 - note name(s);
+#X msg 155 157 60 66 74;
+#X text 62 89 [pitch2note] converts a MIDI pitch value to note names (such as Eb3). The names end with an octave number \, in a way that middle C (MIDI pitch = 60) represents C4 represents. Float inputs are rounded to integers., f 66;
+#X text 206 262 list;
+#X text 181 325 anything;
+#X text 205 362 list;
+#X connect 24 0 37 0;
+#X connect 37 0 18 0;
+#X connect 40 0 37 0;

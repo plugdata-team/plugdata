@@ -98,7 +98,7 @@
 #X text 151 369 anything;
 #X text 209 370 - unmatched message;
 #X text 123 412 1) anything -;
-#X text 209 412 list of OSC adrresses to route to;
+#X text 209 412 list of OSC addresses to route to;
 #X msg 199 163 /hz/a 440;
 #X msg 212 185 /hz/b 880;
 #X obj 199 235 else/osc.route /hz;
@@ -127,7 +127,7 @@
 #X obj 314 404 else/display;
 #X text 177 263 characters separated by a minus sign in brackets indicate the range of characters to match to, f 48;
 #X msg 130 302 /[!BA] 1;
-#X text 191 303 an exclamation in the beggining of brackets negates the list and matches to any other character, f 34;
+#X text 191 303 an exclamation in the beginning of brackets negates the list and matches to any other character, f 34;
 #X msg 136 323 /[!A] !;
 #X obj 638 149 else/display;
 #X obj 708 149 else/display;

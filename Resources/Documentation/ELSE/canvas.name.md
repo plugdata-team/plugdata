@@ -24,8 +24,6 @@ outlets:
     description: canvas name
 
 flags:
-- name: -w
-  description: for 'window' name
 - name: -env
   description: sets depth to "environment" mode
 

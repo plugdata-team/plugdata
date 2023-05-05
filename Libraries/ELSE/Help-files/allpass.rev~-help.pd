@@ -131,7 +131,7 @@ the expression: a = exp(log(0.001) * D/t60).;
 #X connect 56 0 59 0;
 #X connect 59 0 4 0;
 #X restore 438 287 pd Details and \; Filter Equation;
-#X text 156 411 float/signal - delay time (im ms), f 54;
+#X text 156 411 float/signal - delay time (in ms), f 54;
 #X text 156 436 float/signal - decay time (in ms), f 54;
 #X text 111 495 1) float - maximum and initial delay time in ms (default
 0), f 60;

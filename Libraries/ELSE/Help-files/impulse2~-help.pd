@@ -175,7 +175,7 @@ Another feature is phase modulation., f 53;
 #X text 164 356 float/signal - phase offset (modulation input);
 #X text 165 314 float/signal - pulse width (from 0 to 1);
 #X text 164 293 float/signal - frequency in hz;
-#X text 164 336 float/signal - phase sync (ressets internal phase)
+#X text 164 336 float/signal - phase sync (resets internal phase)
 ;
 #X text 60 87 A variant of [else/impulse~] \, [impulse2~] (or [imp2~]
 for short) is a two-sided impulse oscillator that accepts negative

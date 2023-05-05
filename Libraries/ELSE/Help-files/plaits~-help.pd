@@ -29,7 +29,7 @@
 #X text 248 465 - regular signal output;
 #X obj 88 486 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 202 487 signal;
-#X text 248 487 - secondary (auxiliar) signal output;
+#X text 248 487 - secondary (auxiliary) signal output;
 #X obj 88 507 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 167 590 1) float - pitch (default 0), f 50;
 #X text 167 605 2) float - harmonics (default 0), f 50;
@@ -206,7 +206,7 @@
 #X text 190 217 13;
 #X text 190 233 14;
 #X text 190 249 15;
-#X text 65 37 Plaits hass 16 synthesis techniques (or 'models'/'engines'). It also contains a built-in LPG (Low-Pass Gate) (with cutoff and decay settings) that you can use to trigger an enveloped sound. The controls are: 'Frequency' \, 'Harmonics' \, 'Timbre' and 'Morph' and the way they act depends on the chosen engine. Plaits has an auxiliary audio output with a different sound also depending on the model used. The 'model' message is used to choose between these options. For a description of each option \, check subpatches below:, f 111;
+#X text 65 37 Plaits has 16 synthesis techniques (or 'models'/'engines'). It also contains a built-in LPG (Low-Pass Gate) (with cutoff and decay settings) that you can use to trigger an enveloped sound. The controls are: 'Frequency' \, 'Harmonics' \, 'Timbre' and 'Morph' and the way they act depends on the chosen engine. Plaits has an auxiliary audio output with a different sound also depending on the model used. The 'model' message is used to choose between these options. For a description of each option \, check subpatches below:, f 111;
 #X floatatom 178 334 5 0 0 0 - - - 12;
 #X text 222 337 pitch;
 #N canvas 574 80 492 391 LPG 0;

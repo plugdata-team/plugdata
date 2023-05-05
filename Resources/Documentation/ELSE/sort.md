@@ -10,7 +10,7 @@ pdcategory: ELSE, Data Management
 
 arguments:
 - type: float
-  description: ascending if larger or equal than 0, descending otherwise
+  description: >= 0 — ascending, descending otherwise
   default: 0
 
 inlets:

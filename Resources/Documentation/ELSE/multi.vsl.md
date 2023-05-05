@@ -50,8 +50,8 @@ flags:
     description: sets line color in RGB (default: 0 0 0), f 72;
  - name: -set <list>
     description: sets slider's values (default: 0 0 0 0 0 0 0 0), f 72;
- - name: -mode <float>
-    description: non zero sets to 'list mode' (default 0), f 72;
+ - name -mode <float>
+    description: non zro sets to 'list mode' (default 0), f 72;
 
 
 methods:

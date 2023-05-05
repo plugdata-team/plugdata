@@ -1,84 +1,56 @@
-#N canvas 573 23 559 500 10;
-#X obj 4 337 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 402 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 439 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 83 411 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 4 472 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 184 151 hsl 180 15 0.5 2 1 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 224 206 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X text 300 232 sets next value to be converted via bang, f 21;
-#X text 156 363 bang;
-#X text 162 379 set;
-#X text 120 347 float/list;
-#N canvas 970 92 249 221 lists 0;
-#X text 45 26 it also works with lists:;
-#X obj 52 106 else/ratio2cents;
-#X obj 52 137 else/display;
-#X obj 52 69 else/initmess 0.25 1.5 4;
-#X connect 1 0 2 0;
-#X connect 3 0 1 0;
-#X restore 478 298 pd lists;
-#X obj 181 179 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 224 303 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 3 3 cnv 15 301 42 empty empty ratio2cents 20 20 2 37 #e0e0e0
-#000000 0;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#N canvas 573 23 559 489 10;
+#X obj 4 327 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 392 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 429 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 106 401 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 462 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 135 143 hsl 180 15 0.5 2 1 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 175 198 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X text 136 352 bang;
+#X text 142 368 set;
+#X obj 132 171 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 175 295 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 3 3 cnv 15 301 42 empty empty ratio2cents 20 20 2 37 #e0e0e0 #000000 0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 2 3 graph;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 23 40 cnv 4 4 4 empty empty Rational/Cents 0 28 2 18 #e0e0e0
-#000000 0;
-#X obj 138 40 cnv 4 4 4 empty empty conversion 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X text 139 178 ratio;
-#X text 184 302 cents;
-#X text 189 411 - converted cents value(s);
-#X msg 241 238 set 0.25;
-#X text 119 411 float/list;
-#X text 189 363 - convert or output the last converted value (only
-float);
-#X text 189 379 - sets next value to be converted via bang (only float)
-;
-#X obj 87 346 cnv 17 3 50 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 224 271 else/ratio2cents 1.5;
-#X text 248 201 converts set value or sends last output, f 21;
-#X text 189 347 - rational value(s);
-#X text 135 448 1) float - initial rational value \, needs to be >=
-0 (default 1), f 64;
-#X text 32 252 see also:;
-#X obj 30 300 else/ratio2cents~;
-#X obj 31 276 else/cents2ratio;
-#X text 61 86 Use [ratio2cents] to convert intervals described as rational
-numbers (expressed as float point decimal values) to intervals in cents.
-The conversion formula is \; cents = log2(rational) * 1200, f 72;
-#X connect 5 0 12 0;
-#X connect 6 0 34 0;
-#X connect 12 0 34 0;
-#X connect 29 0 34 0;
-#X connect 34 0 13 0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 40 cnv 4 4 4 empty empty Rational/Cents 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 138 40 cnv 4 4 4 empty empty conversion 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X text 90 170 ratio;
+#X text 264 295 cents;
+#X text 169 401 - converted cents value(s);
+#X msg 192 234 set 0.25;
+#X text 169 352 - convert or output the last converted value (only float);
+#X text 169 368 - sets next value to be converted via bang (only float);
+#X obj 107 336 cnv 17 3 50 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 175 268 else/ratio2cents 1.5;
+#X text 199 193 converts set value or sends last output, f 21;
+#X text 169 336 - rational value(s);
+#X text 135 438 1) float - initial rational value \, needs to be >= 0 (default 1), f 64;
+#X text 30 235 see also:;
+#X obj 28 283 else/ratio2cents~;
+#X obj 29 259 else/cents2ratio;
+#X text 136 336 list;
+#X text 135 401 list;
+#X text 61 86 Use [ratio2cents] to convert intervals described as rational numbers (expressed as float point decimal values) to intervals in cents. The conversion formula is: cents = log2(rational) * 1200, f 72;
+#X text 251 224 sets next value to be converted, f 11;
+#X obj 370 241 else/ratio2cents;
+#X obj 370 272 else/display;
+#X obj 370 204 else/initmess 0.25 1.5 4;
+#X connect 5 0 9 0;
+#X connect 6 0 30 0;
+#X connect 9 0 30 0;
+#X connect 26 0 30 0;
+#X connect 30 0 10 0;
+#X connect 41 0 42 0;
+#X connect 43 0 41 0;

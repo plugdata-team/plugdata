@@ -19,7 +19,7 @@
 #X text 178 328 clear;
 #X text 161 428 1) float;
 #X text 225 309 - signal to be shifted in frequency;
-#X text 225 352 - the requency shift value;
+#X text 225 352 - the frequency shift value;
 #X obj 294 147 hsl 128 15 -220 220 0 0 empty empty empty -2 -8 0 10
 #dcdcdc #000000 #000000 0 1;
 #X obj 291 168 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10

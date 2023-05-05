@@ -39,6 +39,6 @@ outlets:
 draft: false
 ---
 
-[quad~] gerenates a chaotic signal from the difference equation;
+[quad~] generates a chaotic signal from the difference equation;
 y[n] = a * y[n-1]^2 + b * y[n-1] + c
 

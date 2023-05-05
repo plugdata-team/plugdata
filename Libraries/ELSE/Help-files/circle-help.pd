@@ -386,7 +386,7 @@ messages or '-send'/'-receive' flags., f 31;
 #X msg 65 222 0 0;
 #X obj 354 234 else/circle 127 -1 1 -1 1 1 255 255 255 255 255 255
 0 0 0 1 0 0 63.5 63.5 empty empty 0;
-#X text 76 110 Make sure to escape "\$0" properly with backlashes (as
+#X text 76 110 Make sure to escape "\$0" properly with backslashes (as
 in: "\\\$0")., f 24;
 #X obj 169 301 else/display;
 #X obj 65 309 else/display;

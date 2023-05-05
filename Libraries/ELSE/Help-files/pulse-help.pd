@@ -40,7 +40,7 @@
 #X text 271 303 frequency in hz;
 #X obj 135 344 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 271 368 phase sync (ressets internal phase);
+#X text 271 368 phase sync (resets internal phase);
 #X text 164 475 1) float;
 #X text 230 475 - frequency in hertz (default 0);
 #X text 164 495 2) float;

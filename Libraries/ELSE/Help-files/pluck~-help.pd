@@ -213,7 +213,7 @@ control rate., f 77;
 7020 hz \, which in a 44100 sample rate puts the pole at zero \, leaving
 only a zero at nyquist. This setting is the same as an average of two
 samples \, which was the original filter in the original Karplu-Strong
-Algorith. When reaching nyquist for the cutoff \, you have no fiter
+Algorithm. When reaching nyquist for the cutoff \, you have no filter
 action. It's as if it's disabled., f 51;
 #X obj 200 224 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 1 0 0 0;

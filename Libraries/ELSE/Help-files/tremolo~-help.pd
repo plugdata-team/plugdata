@@ -1,64 +1,49 @@
 #N canvas 547 33 562 458 10;
-#X obj 219 149 else/player~ violin.wav 1 1;
-#X obj 219 180 else/tremolo~ 5 0.75;
-#X obj 306 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
-#X obj 345 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 458 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
+#X obj 219 137 else/player~ violin.wav 1 1;
+#X obj 219 190 else/tremolo~ 5 0.75;
+#X obj 306 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
+#X obj 345 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 458 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 305 5 graph;
-#X obj 22 42 cnv 4 4 4 empty empty Amplitude 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 3 5 cnv 15 301 42 empty empty tremolo~ 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 22 42 cnv 4 4 4 empty empty Amplitude 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 3 5 cnv 15 301 42 empty empty tremolo~ 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 5 graph;
-#X obj 1 279 cnv 3 550 3 empty \$0-pddp.cnv.inlets inlets 8 12 0 13
-#dcdcdc #000000 0;
-#X obj 130 287 cnv 17 3 17 empty \$0-pddp.cnv.let.0 0 5 9 0 16 #dcdcdc
-#9c9c9c 0;
-#X obj 130 309 cnv 17 3 17 empty \$0-pddp.cnv.let.1 1 5 9 0 16 #dcdcdc
-#9c9c9c 0;
+#X obj 1 279 cnv 3 550 3 empty \$0-pddp.cnv.inlets inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 130 287 cnv 17 3 17 empty \$0-pddp.cnv.let.0 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 130 309 cnv 17 3 17 empty \$0-pddp.cnv.let.1 1 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 172 287 signal;
-#X obj 130 332 cnv 17 3 17 empty \$0-pddp.cnv.let.2 2 5 9 0 16 #dcdcdc
-#9c9c9c 0;
+#X obj 130 332 cnv 17 3 17 empty \$0-pddp.cnv.let.2 2 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 178 332 float;
 #X text 178 309 float;
 #X obj 219 216 else/out~;
-#X obj 1 357 cnv 3 550 3 empty \$0-pddp.cnv.outlets outlets 8 12 0
-13 #dcdcdc #000000 0;
-#X obj 131 365 cnv 17 3 17 empty \$0-pddp.cnv.let.0 0 5 9 0 16 #dcdcdc
-#9c9c9c 0;
+#X obj 1 357 cnv 3 550 3 empty \$0-pddp.cnv.outlets outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 131 365 cnv 17 3 17 empty \$0-pddp.cnv.let.0 0 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 173 365 signal;
-#X obj 2 390 cnv 3 550 3 empty \$0-pddp.cnv.argument arguments 8 12
-0 13 #dcdcdc #000000 0;
+#X obj 2 390 cnv 3 550 3 empty \$0-pddp.cnv.argument arguments 8 12 0 13 #dcdcdc #000000 0;
 #X text 161 397 1) float;
 #X text 161 413 2) float;
-#X obj 2 432 cnv 15 552 21 empty \$0-pddp.cnv.footer empty 20 12 0
-14 #dcdcdc #404040 0;
+#X obj 2 432 cnv 15 552 21 empty \$0-pddp.cnv.footer empty 20 12 0 14 #dcdcdc #404040 0;
 #X text 223 397 - tremolo frequency (default 0), f 49;
 #X text 223 413 - tremolo depth (default 1), f 49;
 #X text 222 287 - input signal to be processed, f 49;
 #X text 222 309 - tremolo frequency, f 49;
 #X text 222 332 - tremolo depth (from 0 to 1), f 49;
 #X text 223 365 - tremoloed signal, f 49;
-#X text 78 94 The [tremolo~] abstraction performs amplitude modulation
-It takes a signal input \, a tremolo frequency and a tremolo depth.
-Classic amplitude modulation is achieved with a depth of 1!, f 61
-;
-#X obj 112 42 cnv 4 4 4 empty empty modulation 0 28 2 18 #e0e0e0 #000000
-0;
+#X obj 112 42 cnv 4 4 4 empty empty modulation 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 277 173 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 336 173 nbx 5 14 0 1 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X text 343 156 depth;
+#X text 272 156 frequency;
+#X text 78 94 The [tremolo~] abstraction performs amplitude modulation. It takes a signal input \, a tremolo frequency and a tremolo depth. Classic amplitude modulation is achieved with a depth of 1!, f 61;
 #X connect 0 0 1 0;
 #X connect 1 0 20 0;
+#X connect 35 0 1 1;
+#X connect 36 0 1 2;

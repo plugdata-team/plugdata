@@ -25,7 +25,7 @@ outlets:
 flags:
   - name: -size <float>
     description: font size (default: patch's, minimum 8)
-  - name: -set <float>
+  - name: -init <float>
     description: sets initial generating value
   - name: -width <float>
     description: sets digit width (default: 6, minimum 1)

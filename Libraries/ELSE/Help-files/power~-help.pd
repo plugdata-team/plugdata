@@ -57,7 +57,7 @@
 #X text 156 436 1) float - exponential factor (default 1);
 #X obj 145 42 cnv 4 4 4 empty empty waveshaper 0 28 2 18 #e0e0e0 #000000
 0;
-#X text 46 89 [power~] is a power functiona waveshaper for signals
+#X text 46 89 [power~] is a power function waveshaper for signals
 that extends the usual definition of exponentiation and returns -pow(-a
 \, b) when you have a negative signal input. This allows not only the
 output of negative values but also the exponentiation of negative values

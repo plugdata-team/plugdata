@@ -30,6 +30,8 @@ inlets:
   1st:
   - type: float/signal
     description: frequency of oscillator 1
+    pm - sets to phase modulation
+    fm - sets to frequency modulation
     
   2nd:
   - type: signal
@@ -48,12 +50,6 @@ outlets:
   2nd:
   - type: signal
     description: output of oscillator 2
-
-methods:
-  - name: fm
-    description: sets to phase modulation
-  - name: pm
-    description: sets to frequency modulation
 
 draft: false
 ---

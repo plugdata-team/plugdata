@@ -1,77 +1,53 @@
-#N canvas 719 106 560 444 10;
-#X obj 197 238 else/display;
-#X obj 169 183 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
-0;
+#N canvas 483 33 560 450 10;
+#X obj 197 243 else/display;
+#X obj 169 188 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
-0;
-#X obj 23 40 cnv 4 4 4 empty empty Convert 0 28 2 18 -233017 -1 0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
-0;
-#X obj 205 40 cnv 4 4 4 empty empty decimal 0 28 2 18 -233017 -1 0
-;
-#X obj 186 40 cnv 4 4 4 empty empty to 0 28 2 18 -233017 -1 0;
-#X obj 89 40 cnv 4 4 4 empty empty hexadecimal 0 28 2 18 -233017 -1
-0;
-#X obj 3 3 cnv 15 301 42 empty empty hex2dec 20 20 2 37 -233017 -1
-0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 40 cnv 4 4 4 empty empty Convert 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 205 40 cnv 4 4 4 empty empty decimal 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 186 40 cnv 4 4 4 empty empty to 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 89 40 cnv 4 4 4 empty empty hexadecimal 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 3 3 cnv 15 301 42 empty empty hex2dec 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 3 3 graph;
-#X obj 4 274 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 349 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 384 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
-0;
-#X obj 87 358 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 88 283 cnv 17 3 35 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 4 417 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
-0;
-#X obj 88 323 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
-;
-#X text 160 300 bang;
-#X symbolatom 207 183 10 0 0 0 - - -;
-#X symbolatom 335 183 10 0 0 0 - - -;
-#X text 190 324 - hexadecimal value to convert when receiving a bang
-;
-#X text 190 300 - convert and output \, or output the last converted
-value(s);
-#X text 190 358 - the converted decimal value(s);
-#X text 136 284 anything;
-#X text 190 284 - hexadecimal value(s) to convert (outputs the result)
-;
-#X text 136 324 anything;
-#X text 160 358 list;
-#X text 55 86 [hex2dec] converts hexadecimal values to decimal ones.
-It takes symbols whose format allows lower and upper case letters and
-can also include "0x" or "0X" prefixes (necessary in the case of lists
-and arguments to avoid confusion with floats \, which are ignored).
-List and symbol selectors aren't necessary., f 71;
-#X msg 347 210 0x96;
-#X msg 326 160 0xAB 0xCD;
-#X msg 197 156 0xe0 0xb0;
-#X obj 197 211 else/hex2dec 0xf0 0xf8;
-#X text 118 393 1) anything - hexadecimal values to convert (default
-0x0);
-#X connect 1 0 37 0;
-#X connect 24 0 37 0;
-#X connect 25 0 37 1;
-#X connect 34 0 37 1;
-#X connect 35 0 37 1;
-#X connect 36 0 37 0;
-#X connect 37 0 0 0;
+#X obj 4 279 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 354 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 389 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 87 363 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 88 288 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 422 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 88 328 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X text 160 305 bang;
+#X symbolatom 207 188 10 0 0 0 - - - 0;
+#X symbolatom 335 188 10 0 0 0 - - - 0;
+#X text 190 329 - hexadecimal value to convert when receiving a bang;
+#X text 190 305 - convert and output \, or output the last converted value(s);
+#X text 190 363 - the converted decimal value(s);
+#X text 136 289 anything;
+#X text 190 289 - hexadecimal value(s) to convert (outputs the result);
+#X text 136 329 anything;
+#X text 160 363 list;
+#X text 55 86 [hex2dec] converts hexadecimal values to decimal ones. It takes symbols whose format allows lower and upper case letters and can also include "0x" or "0X" prefixes (necessary in the case of lists and arguments to avoid confusion with floats \, which are ignored). List and symbol selectors aren't necessary., f 71;
+#X msg 347 215 0x96;
+#X obj 197 216 else/hex2dec 0xf0 0xf8;
+#X text 118 398 1) anything - hexadecimal values to convert (default 0x0);
+#X text 36 217 see also:;
+#X obj 37 242 else/dec2hex;
+#X msg 326 165 list 0xAB 0xCD;
+#X msg 197 161 0xe0 0xb0;
+#X connect 1 0 35 0;
+#X connect 24 0 35 0;
+#X connect 25 0 35 1;
+#X connect 34 0 35 1;
+#X connect 35 0 0 0;
+#X connect 39 0 35 1;
+#X connect 40 0 35 0;

@@ -31,7 +31,7 @@ outlets:
   - type: anything
     description: bang at the end of sequence or 'n' number of messages
 
-
+click: clicking on the object opens [store]'s window
 
 methods:
   - type: goto <float>
@@ -46,9 +46,7 @@ methods:
     description: opens [text] window
   - type: hide
     description: closes [text] window
-  - type: click
-    description: clicking on the object opens [store]'s window
-    
+
 draft: false
 ---
 

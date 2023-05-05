@@ -470,7 +470,7 @@ set, f 30;
 \, [savestate] and uses [else/retrieve] to communicate with [receive]
 objects. Note that it also works with [else/receiver] as in this example
 and also with built in receive names as shown in the later examples.
-The way it works is that it gets data from what's conneted to [receive]
+The way it works is that it gets data from what's connected to [receive]
 or [receiver] objects that match its arguments and stores it as a preset.
 When loading the preset \, it then sends the data back to the [receive]/[receiver]
 objects., f 96;

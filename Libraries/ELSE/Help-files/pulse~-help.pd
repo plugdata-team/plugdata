@@ -394,7 +394,7 @@ are from 0 to 1 and values beyond that are wrapped within this range.
 #X text 156 312 float/signal - phase offset (modulation input);
 #X text 157 270 float/signal - pulse width (from 0 to 1);
 #X text 156 249 float/signal - frequency in hz;
-#X text 156 292 float/signal - phase sync (ressets internal phase)
+#X text 156 292 float/signal - phase sync (resets internal phase)
 ;
 #X obj 214 206 else/numbox~ 6 10 100 #C0C0C4 #440008 10 0 0 0;
 #X text 36 177 see also:;
