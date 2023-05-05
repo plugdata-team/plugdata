@@ -156,7 +156,7 @@ class Instance {
     } midievent;
 
 public:
-    Instance(String const& symbol);
+    Instance(String const& symbol, CriticalSection const* lock);
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 
@@ -291,8 +291,6 @@ public:
     void lockAudioThread();
     bool tryLockAudioThread();
     void unlockAudioThread();
-
-    void setCallbackLock(CriticalSection const* lock);
 
     bool loadLibrary(String library);
 

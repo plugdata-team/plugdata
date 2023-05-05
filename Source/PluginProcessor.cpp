@@ -70,7 +70,7 @@ PluginProcessor::PluginProcessor()
     : AudioProcessor(buildBusesProperties())
     ,
 #endif
-    pd::Instance("plugdata")
+    pd::Instance("plugdata", &AudioProcessor::getCallbackLock())
     , internalSynth(std::make_unique<InternalSynth>())
 {
     // Make sure to use dots for decimal numbers, pd requires that
@@ -121,8 +121,6 @@ PluginProcessor::PluginProcessor()
     atoms_playhead.reserve(3);
     atoms_playhead.resize(1);
 
-    setCallbackLock(&AudioProcessor::getCallbackLock());
-    
     // Initialise threading system for ofelia
     pd::OfeliaMessageManager::create();
     pd::OfeliaMessageManager::setAudioCallbackLock(audioLock);
