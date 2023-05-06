@@ -36,6 +36,8 @@ public:
 
     Path toDraw, toDrawLocalSpace;
     String lastId;
+        
+    std::atomic<int> messageActivity;
 
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
     ~Connection() override;
@@ -113,24 +115,25 @@ public:
     bool isSelected();
 
     StringArray getMessageFormated();
-    
-    std::atomic<int> messageActivity;
-
+            
 private:
-    bool segmented = false;
 
     void resizeToFit();
-
-    Array<SafePointer<Connection>> reconnecting;
-
-    Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
 
     int getMultiConnectNumber();
     int getNumberOfConnections();
 
+    void valueChanged(Value& v) override;
+        
     void setSelected(bool shouldBeSelected);
-    bool selectedFlag = false;
+   
+    Array<SafePointer<Connection>> reconnecting;
+    Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
 
+    
+    bool selectedFlag = false;
+    bool segmented = false;
+        
     PathPlan currentPlan;
 
     Value locked;
@@ -147,8 +150,6 @@ private:
 
     float mouseDownPosition = 0;
     bool isHovering = false;
-
-    void valueChanged(Value& v) override;
 
 
     t_fake_outconnect* ptr;

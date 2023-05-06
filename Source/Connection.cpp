@@ -483,8 +483,12 @@ void Connection::mouseMove(MouseEvent const& e)
 
 StringArray Connection::getMessageFormated()
 {
+    auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
+
+    connectionMessageLock.enter();
     auto args = lastValue;
     auto name = lastSelector;
+    connectionMessageLock.exit();
 
     StringArray formatedMessage;
     
@@ -1179,8 +1183,17 @@ void ConnectionPathUpdater::timerCallback()
 
 void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 {
-    // indicator TODO
+    // TODO: indicator
     //messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
-    lastValue = pd::Atom::fromAtoms(argc, argv);
-    lastSelector = name;
+    
+    auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
+    
+    // We can either lock or tryLock over here:
+    // The advantage of try-locking is that the audio thread will never have to wait for the message thread
+    // The advantage of regular locking is that we ensure every single message arrives, even if we need to wait for it
+    if(connectionMessageLock.tryEnter()) {
+        lastValue = pd::Atom::fromAtoms(argc, argv);
+        lastSelector = name;
+        connectionMessageLock.exit();
+    }
 }
