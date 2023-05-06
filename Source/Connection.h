@@ -79,8 +79,6 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    Point<int> mouseHoverPos = { 0, 0 };
-
     Point<float> getStartPoint();
     Point<float> getEndPoint();
 
