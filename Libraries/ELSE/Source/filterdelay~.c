@@ -3,6 +3,7 @@
 #include <math.h>
 #include "m_pd.h"
 #include "buffer.h"
+#include "math.h"
 
 #define DELSIZE 1048576
 

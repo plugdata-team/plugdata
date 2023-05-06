@@ -1,7 +1,9 @@
 // Porres 2017
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include "m_pd.h"
-#include "math.h"
 #include "magic.h"
 
 static t_class *imp_class;
