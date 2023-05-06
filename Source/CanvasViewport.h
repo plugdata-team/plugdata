@@ -19,8 +19,6 @@
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport {
 
-    inline static int const infiniteCanvasMargin = 48;
-
     class MousePanner : public MouseListener {
     public:
         MousePanner(CanvasViewport* v)
