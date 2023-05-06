@@ -188,6 +188,10 @@ public:
             input.setText(atoms[0].getSymbol(), dontSendNotification);
             break;
         }
+        case hash("float"): {
+            input.setText("float", dontSendNotification);
+            break;
+        }
         case hash("send"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
