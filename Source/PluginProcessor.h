@@ -191,7 +191,7 @@ private:
 
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
-    static inline const String else_version = "ELSE v1.0-rc7";
+    static inline const String else_version = "ELSE v1.0-rc8";
     static inline const String cyclone_version = "cyclone v0.7-0";
     // this gets updated with live version data later
     static String pdlua_version;

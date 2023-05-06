@@ -9,8 +9,8 @@
 class Knob : public Slider {
 
     Colour fgColour;
-    Colour lnColour;
-
+    Colour arcColour;
+    
     bool drawArc;
 
     int numberOfTicks = 0;
@@ -54,7 +54,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto bounds = getBounds().toFloat().reduced(getWidth() * 0.13f);
+        auto bounds = getLocalBounds().toFloat().reduced(getWidth() * 0.13f);
 
         auto const lineThickness = std::max(bounds.getWidth() * 0.07f, 1.5f);
         auto const arcThickness = lineThickness * 3.0f / bounds.getWidth();
@@ -68,7 +68,7 @@ public:
         startAngle = std::clamp(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
 
         // draw range arc
-        g.setColour(lnColour);
+        g.setColour(arcColour);
         auto arcBounds = bounds.reduced(lineThickness);
         auto arcRadius = arcBounds.getWidth() * 0.5;
         auto arcWidth = (arcRadius - lineThickness) / arcRadius;
@@ -102,9 +102,9 @@ public:
         repaint();
     }
 
-    void setOutlineColour(Colour newOutlineColour)
+    void setArcColour(Colour newOutlineColour)
     {
-        lnColour = newOutlineColour;
+        arcColour = newOutlineColour;
         repaint();
     }
 
@@ -122,8 +122,8 @@ class KnobObject : public ObjectBase {
     Value min = Value(0.0f);
     Value max = Value(0.0f);
 
-    Value initialValue, circular, ticks, angularRange, angularOffset, discrete, showArc, exponential;
-    Value primaryColour, secondaryColour, sendSymbol, receiveSymbol;
+    Value initialValue, circular, ticks, angularRange, angularOffset, discrete, outline, showArc, exponential;
+    Value primaryColour, secondaryColour, arcColour, sendSymbol, receiveSymbol;
 
     float value = 0.0f;
 
@@ -172,11 +172,6 @@ public:
         return static_cast<t_fake_knob*>(ptr)->x_circular;
     }
 
-    void lookAndFeelChanged() override
-    {
-        knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
-    }
-
     void update() override
     {
         auto currentValue = getValue();
@@ -194,6 +189,9 @@ public:
         exponential = knb->x_exp;
         primaryColour = getForegroundColour().toString();
         secondaryColour = getBackgroundColour().toString();
+        arcColour = getArcColour().toString();
+        outline = knb->x_outline;
+        
         min = getMinimum();
         max = getMaximum();
         updateRange();
@@ -203,11 +201,10 @@ public:
         receiveSymbol = getReceiveSymbol();
 
         knob.setFgColour(getForegroundColour());
-
+        knob.setArcColour(getArcColour());
         updateRotaryParameters();
 
         updateDoubleClickValue();
-        knob.setOutlineColour(object->findColour(PlugDataColour::outlineColourId));
         knob.setSliderStyle(::getValue<bool>(circular) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
         knob.showArc(::getValue<bool>(showArc));
     }
@@ -351,23 +348,29 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-    }
+        if(::getValue<bool>(outline)) {
+            g.setColour(Colour::fromString(secondaryColour.toString()));
+            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-    void paintOverChildren(Graphics& g) override
-    {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+            
+            g.setColour(outlineColour);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        }
+        else {
+            
+            auto bounds = getLocalBounds().toFloat().reduced(getWidth() * 0.13f);
+            auto const lineThickness = std::max(bounds.getWidth() * 0.07f, 1.5f);
+            bounds = bounds.reduced(lineThickness - 0.5f);
+            
+            g.setColour(Colour::fromString(secondaryColour.toString()));
+            g.fillEllipse(bounds);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+            g.setColour(outlineColour);
+            g.drawEllipse(bounds, 1.0f);
+        }
     }
 
     void resized() override
@@ -440,6 +443,12 @@ public:
         auto* fg = static_cast<t_fake_knob*>(ptr)->x_fg;
         return Colour::fromString(String::fromUTF8(fg->s_name).replace("#", "ff"));
     }
+    
+    Colour getArcColour() const
+    {
+        auto* mg = static_cast<t_fake_knob*>(ptr)->x_mg;
+        return Colour::fromString(String::fromUTF8(mg->s_name).replace("#", "ff"));
+    }
 
     ObjectParameters getParameters() override
     {
@@ -457,9 +466,12 @@ public:
 
             { "Exp", tFloat, cGeneral, &exponential, {} },
 
-            { "Foreground", tColour, cAppearance, &primaryColour, {} },
-            { "Background", tColour, cAppearance, &secondaryColour, {} },
+            { "Foreground color", tColour, cAppearance, &primaryColour, {} },
+            { "Background color", tColour, cAppearance, &secondaryColour, {} },
+            { "Arc color", tColour, cAppearance, &arcColour, {} },
+            { "Fill background", tBool, cAppearance, &outline, { "No", "Yes" } },
             { "Show arc", tBool, cAppearance, &showArc, { "No", "Yes" } },
+            
             { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
             { "Send symbol", tString, cGeneral, &sendSymbol, {} },
         };
@@ -548,7 +560,12 @@ public:
         } else if (value.refersToSameSourceAs(discrete)) {
             knb->x_discrete = ::getValue<bool>(discrete);
             updateRange();
-        } else if (value.refersToSameSourceAs(exponential)) {
+        }
+        else if (value.refersToSameSourceAs(outline)) {
+            knb->x_outline = ::getValue<bool>(outline);
+            repaint();
+        }
+        else if (value.refersToSameSourceAs(exponential)) {
             knb->x_exp = ::getValue<bool>(exponential);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
@@ -564,6 +581,12 @@ public:
         } else if (value.refersToSameSourceAs(secondaryColour)) {
             auto colour = "#" + secondaryColour.toString().substring(2);
             knb->x_bg = pd->generateSymbol(colour);
+            repaint();
+        }
+        else if (value.refersToSameSourceAs(arcColour)) {
+            auto colour = "#" + arcColour.toString().substring(2);
+            knb->x_mg = pd->generateSymbol(colour);
+            knob.setArcColour(Colour::fromString(arcColour.toString()));
             repaint();
         }
     }

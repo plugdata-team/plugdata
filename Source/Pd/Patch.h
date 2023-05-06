@@ -146,7 +146,7 @@ private:
         { "function", "200 100 empty empty 0 1 bgColour_rgb lblColour_rgb 0 0 0 0 0 1000 0" },
         { "messbox", "180 60 bgColour_rgb lblColour_rgb 0 12" },
         { "note", "0 14 Inter empty 0 lblColour_rgb 0 bgColour_rgb 0 0 note" },
-        { "knob", "50 0 127 0 0 empty empty bgColour fgColour fgColour 0 0 0 0 1 270 0 0;" }
+        { "knob", "50 0 127 0 0 empty empty bgColour lnColour fgColour 1 0 0 0 1 270 0 0" }
     };
 
     friend class Instance;
