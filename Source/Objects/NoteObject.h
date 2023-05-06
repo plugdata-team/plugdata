@@ -338,8 +338,8 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            { "Text colour", tColour, cAppearance, &primaryColour, {} },
-            { "Background colour", tColour, cAppearance, &secondaryColour, {} },
+            { "Text color", tColour, cAppearance, &primaryColour, {} },
+            { "Background color", tColour, cAppearance, &secondaryColour, {} },
             { "Font", tFont, cAppearance, &font, {} },
             { "Font size", tInt, cAppearance, &fontSize, {} },
             { "Outline", tBool, cAppearance, &outline, { "No", "Yes" } },
@@ -348,7 +348,7 @@ public:
             { "Underline", tBool, cAppearance, &underline, { "No", "Yes" } },
             { "Fill background", tBool, cAppearance, &fillBackground, { "No", "Yes" } },
             { "Justification", tCombo, cAppearance, &justification, { "Left", "Centered", "Right" } },
-            { "Receive Symbol", tString, cGeneral, &receiveSymbol, { "Left", "Centered", "Right" } },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, { "Left", "Centered", "Right" } },
         };
     }
 

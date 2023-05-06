@@ -67,10 +67,10 @@ public:
         return {
             { "Foreground", tColour, cAppearance, &primaryColour, {} },
             { "Background", tColour, cAppearance, &secondaryColour, {} },
-            { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
             { "Label", tString, cLabel, &labelText, {} },
-            { "Label Colour", tColour, cLabel, &labelColour, {} },
+            { "Label color", tColour, cLabel, &labelColour, {} },
             { "Label X", tInt, cLabel, &labelX, {} },
             { "Label Y", tInt, cLabel, &labelY, {} },
             { "Label Height", tInt, cLabel, &labelHeight, {} },

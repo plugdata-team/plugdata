@@ -327,8 +327,8 @@ public:
             { "Start octave", tInt, cGeneral, &lowC, {} },
             { "Num. octaves", tInt, cGeneral, &octaves, {} },
             { "Toggle Mode", tBool, cGeneral, &toggleMode, { "Off", "On" } },
-            { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
         };
     }
 

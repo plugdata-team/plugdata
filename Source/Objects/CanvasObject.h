@@ -113,10 +113,10 @@ public:
     {
         return {
             { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
-            { "Receive Symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
-            { "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
+            { "Receive symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
+            { "Send symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
             { "Label", tString, cLabel, &iemHelper.labelText, {} },
-            { "Label Colour", tColour, cLabel, &iemHelper.labelColour, {} },
+            { "Label color", tColour, cLabel, &iemHelper.labelColour, {} },
             { "Label X", tInt, cLabel, &iemHelper.labelX, {} },
             { "Label Y", tInt, cLabel, &iemHelper.labelY, {} },
             { "Label Height", tInt, cLabel, &iemHelper.labelHeight, {} },

@@ -276,8 +276,8 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            { "Text colour", tColour, cAppearance, &primaryColour, {} },
-            { "Background colour", tColour, cAppearance, &secondaryColour, {} },
+            { "Text color", tColour, cAppearance, &primaryColour, {} },
+            { "Background color", tColour, cAppearance, &secondaryColour, {} },
             { "Font size", tInt, cAppearance, &fontSize, {} },
             { "Bold", tBool, cAppearance, &bold, { "No", "Yes" } }
         };

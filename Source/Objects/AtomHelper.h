@@ -169,8 +169,8 @@ public:
     {
         return {
             { "Font size", tCombo, cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } },
-            { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
             { "Label", tString, cLabel, &labelText, {} },
             { "Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } }
         };
