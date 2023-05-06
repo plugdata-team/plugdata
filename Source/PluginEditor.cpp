@@ -260,7 +260,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     if (pd->isInPluginMode())
         enablePluginMode(nullptr);
 
-    connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
+    connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>();
     addChildComponent(connectionMessageDisplay.get());
 }
 

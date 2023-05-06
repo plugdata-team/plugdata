@@ -112,7 +112,7 @@ public:
 
     bool isSelected();
 
-    String getMessageTooltip();
+    StringArray getMessageFormated();
     
     std::atomic<int> messageActivity;
 
@@ -155,9 +155,6 @@ private:
 
     std::vector<pd::Atom> lastValue;
     String lastSelector;
-    int64 lastMessageTime = 0;
-
-    std::vector<std::pair<String, std::vector<pd::Atom>>> messageQueue;
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
