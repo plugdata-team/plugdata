@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2023 Timothy Schoen and Alex Mitchell
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -102,7 +108,9 @@ private:
             constrainedBounds = proposedPosition.constrainedWithin(viewArea);
         }
 
-        setBounds(constrainedBounds);
+        if (getBounds() != constrainedBounds)
+            setBounds(constrainedBounds);
+
         repaint();
     }
 
@@ -196,7 +204,7 @@ private:
     int mouseDelay = 500;
     Point<int> mousePosition;
     enum TimerID {RepaintTimer, MouseHoverDelay, MouseHoverExitDelay};
-    Rectangle<int> constrainedBounds;
+    Rectangle<int> constrainedBounds = { 0, 0, 0, 0 };
 
     Point<float> circlePosition = { 8 + 4, 36 / 2 };
     float circleRadius = 3.0f;
