@@ -227,7 +227,6 @@ def markdownToXml(root, md):
         defaultValue = sectionMap["default"] if "default" in sectionMap else ""
         ET.SubElement(arguments, "argument", type=sectionMap["type"], description=sectionMap["description"], default=defaultValue)
 
-    print(title)
     if "flags" in sections:
       for flag in sectionsFromHyphens(sections["flags"]):
         sectionMap = getSections(flag, { "name", "description", "default" })
