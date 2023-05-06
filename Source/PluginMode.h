@@ -292,21 +292,11 @@ public:
             editor->setConstrainer(nullptr);
             window->setUsingNativeTitleBar(false);
             desktopWindow = window->getPeer();
-            
-#if JUCE_LINUX
-            auto bounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
-            window->setBounds(bounds);
-            editor->setBounds(bounds);
-#else
             window->setFullScreen(true);
-#endif
-            
             borderResizer->setVisible(false);
         }
         else {
-#if !JUCE_LINUX
             window->setFullScreen(false);
-#endif
             editor->setConstrainer(&pluginModeConstrainer);
             setBounds(originalPluginWindowBounds.withZeroOrigin());
             editor->setBounds(originalPluginWindowBounds);
