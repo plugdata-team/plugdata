@@ -14,7 +14,6 @@ public:
     ConnectionMessageDisplay()
     {
         setSize(36,36);
-        startTimer(RepaintTimer, 1000/60);
         setVisible(false);
         // needed to stop the component from gaining mouse focus
         setInterceptsMouseClicks(false, false);
@@ -24,26 +23,32 @@ public:
     {
     }
 
-    /** Set the current connection show message display overlay, to clear give it a nullptr
+    /** Activate the current connection info display overlay, to hide give it a nullptr
     */
-    void setConnection(Connection* connection)
+    void setConnection(Connection* connection, Point<int> screenPosition = { 0, 0 })
     {
+        // multiple events can hide the display, so we don't need to do anything
+        // if this object has already been set to null
+        if (activeConnection == nullptr && connection == nullptr)
+            return;
+
         activeConnection = SafePointer<Connection>(connection);
         if (activeConnection.getComponent()) {
-            mousePosition = activeConnection->mouseHoverPos;
+            mousePosition = screenPosition;
             startTimer(MouseHoverDelay, mouseDelay);
             stopTimer(MouseHoverExitDelay);
+            startTimer(RepaintTimer, 1000/60);
             updateTextString(true);
         }
         else {
-            setVisible(false);
-            stopTimer(MouseHoverDelay);
+            hideDisplay();
             // to copy tooltip behaviour, any successful interaction will cause the next interaction to have no delay
             mouseDelay = 0;
+            stopTimer(MouseHoverDelay);
             startTimer(MouseHoverExitDelay, 500);
         }
     }
-        
+
     CriticalSection& getLock()
     {
         return connectionMessageLock;
@@ -87,34 +92,43 @@ private:
         }
 
         Rectangle<int> proposedPosition;
-        // only make the size wider, to fit changing values
+        // only make the size wider, to fit changing size of values
         if (totalStringWidth > getWidth() || isHoverEntered) {
             proposedPosition.setSize(totalStringWidth, 36);
-        } else 
-            proposedPosition.setSize(getWidth(), getHeight());
+            // make sure the proposed position is inside the viewport area
+            proposedPosition.setCentre(getParentComponent()->getLocalPoint(nullptr, mousePosition).translated(0, -(getHeight() * 0.5)));
+            auto activeCanvas = static_cast<PluginEditor*>(getParentComponent())->getCurrentCanvas();
+            auto viewArea = getParentComponent()->getLocalArea(activeCanvas, activeCanvas->viewport->getViewArea() / getValue<float>(activeCanvas->zoomScale));
+            constrainedBounds = proposedPosition.constrainedWithin(viewArea);
+        }
 
-        // make sure the proposed position is inside the viewport area
-        proposedPosition.setCentre(getParentComponent()->getLocalPoint(nullptr, mousePosition).translated(0, -(getHeight() * 0.5)));
-        auto activeCanvas = static_cast<PluginEditor*>(getParentComponent())->getCurrentCanvas();
-        auto viewArea = getParentComponent()->getLocalArea(activeCanvas, activeCanvas->viewport->getViewArea() / getValue<float>(activeCanvas->zoomScale));
-        auto constrainedPosition = proposedPosition.constrainedWithin(viewArea);
-        setBounds(constrainedPosition);
-
+        setBounds(constrainedBounds);
         repaint();
+    }
+
+    void hideDisplay()
+    {
+        stopTimer(RepaintTimer);
+        setVisible(false);
     }
 
     void timerCallback(int timerID) override
     {
         switch (timerID) {
         case RepaintTimer: {
-            if (activeConnection.getComponent())
+            if (activeConnection.getComponent()) {
                 updateTextString();
+            } else {
+                hideDisplay();
+            }
             break;
             }
         case MouseHoverDelay: {
             if (activeConnection.getComponent()) {
                 updateTextString();
                 setVisible(true);
+            } else {
+                hideDisplay();
             }
             break;
         }
@@ -182,6 +196,7 @@ private:
     int mouseDelay = 500;
     Point<int> mousePosition;
     enum TimerID {RepaintTimer, MouseHoverDelay, MouseHoverExitDelay};
+    Rectangle<int> constrainedBounds;
 
     Point<float> circlePosition = { 8 + 4, 36 / 2 };
     float circleRadius = 3.0f;
