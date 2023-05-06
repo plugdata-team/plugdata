@@ -55,6 +55,7 @@ public:
         
         Path arrow;
         Rectangle<float> arrowBounds;
+        Rectangle<float> extensionBounds;
         
         // Check if we need to draw an arrow up or down
         if(targetArea.getY() <= menuBounds.getY()) {
@@ -62,6 +63,9 @@ public:
             auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, 0.5f, 2.5f);
             
             arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getY() - arrowHeight + menuMargin, arrowWidth, arrowHeight);
+            
+            extensionBounds = arrowBounds;
+            extensionBounds = extensionBounds.removeFromBottom(1).withTrimmedBottom(-2).reduced(1, 0);
             
             arrow.startNewSubPath(arrowBounds.getBottomLeft());
             arrow.lineTo(arrowBounds.getCentreX(), arrowBounds.getY());
@@ -72,6 +76,9 @@ public:
             auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, -8.0f, 5.78f);
             
             arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getBottom() - arrowHeight + menuMargin, arrowWidth, arrowHeight);
+            
+            extensionBounds = arrowBounds;
+            extensionBounds = extensionBounds.removeFromTop(1).withTrimmedTop(-2).reduced(1, 0);
             
             arrow.startNewSubPath(arrowBounds.getTopLeft());
             arrow.lineTo(arrowBounds.getCentreX(), arrowBounds.getBottom());
@@ -90,6 +97,7 @@ public:
         g.restoreState();
         
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.fillRect(extensionBounds);
         g.fillPath(arrow);
         
         g.setColour(findColour(PlugDataColour::outlineColourId));
