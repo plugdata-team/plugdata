@@ -1,5 +1,5 @@
 // porres 2023, inspired by and modified from Tom Erbe's [+delay~]
-
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include "m_pd.h"
 #include "buffer.h"
