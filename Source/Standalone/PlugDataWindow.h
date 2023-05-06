@@ -648,7 +648,6 @@ public:
     void resized() override
     {
         ResizableWindow::resized();
-
         
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
 

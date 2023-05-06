@@ -189,6 +189,13 @@ public:
         float const resizeRatio = width / (height + (controlsHeight / scale));
 
         pluginModeConstrainer.setFixedAspectRatio(resizeRatio);
+      
+        // Detect if the user exited fullscreen with the macOS's fullscreen button
+#if JUCE_MAC
+        if (ProjectInfo::isStandalone && isWindowFullscreen() && !desktopWindow->isFullScreen()) {
+            setKioskMode(false);
+        }
+#endif
         
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
 
