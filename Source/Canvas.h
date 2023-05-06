@@ -218,7 +218,7 @@ public:
 
     ObjectDragState dragState;
 
-    inline static constexpr int infiniteCanvasSize = 128000;
+    inline static constexpr int infiniteCanvasSize = 512000;
 
 private:
     LassoComponent<WeakReference<Component>> lasso;
