@@ -149,11 +149,9 @@ void Instance::initialisePd(String& pdlua_version)
     
     set_instance_lock(static_cast<const void*>(audioLock),
         [](void* lock){
-            std::cout << "Entered lock" << std::endl;
             static_cast<CriticalSection*>(lock)->enter();
         },
         [](void* lock){
-            std::cout << "Exitted lock" << std::endl;
             static_cast<CriticalSection*>(lock)->exit();
         }
     );
