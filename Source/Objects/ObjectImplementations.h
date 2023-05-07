@@ -501,9 +501,11 @@ public:
 
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
 
+        pd->lockAudioThread();
         outlet_float(mouse->x_outlet_y, (float)pos.y);
         outlet_float(mouse->x_outlet_x, (float)pos.x);
         outlet_float(mouse->x_obj.ob_outlet, 1.0);
+        pd->unlockAudioThread();
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -515,7 +517,10 @@ public:
             return;
 
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
+        
+        pd->lockAudioThread();
         outlet_float(mouse->x_obj.ob_outlet, 0.0f);
+        pd->unlockAudioThread();
     }
 
     void mouseMove(MouseEvent const& e) override
@@ -539,8 +544,11 @@ public:
         if (positionChanged) {
             auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
 
+            pd->lockAudioThread();
             outlet_float(mouse->x_outlet_y, (float)pos.y);
             outlet_float(mouse->x_outlet_x, (float)pos.x);
+            pd->unlockAudioThread();
+
         }
     }
 
@@ -603,7 +611,9 @@ public:
             auto* vis = static_cast<t_fake_canvas_vis*>(ptr);
 
             lastFocus = cnv->isShowing();
+            pd->lockAudioThread();
             outlet_float(vis->x_obj.ob_outlet, static_cast<int>(cnv->isShowing()));
+            pd->unlockAudioThread();
         }
     }
 
@@ -660,7 +670,11 @@ public:
         float newScale = getValue<float>(zoomScaleValue);
         if (lastScale != newScale) {
             auto* zoom = static_cast<t_fake_zoom*>(ptr);
+            
+            pd->lockAudioThread();
             outlet_float(zoom->x_obj.ob_outlet, newScale);
+            pd->unlockAudioThread();
+            
             lastScale = newScale;
         }
     }
@@ -700,7 +714,9 @@ public:
         int editMode = getValue<bool>(v) ? 0 : 1;
         if (lastEditMode != editMode) {
             auto* edit = static_cast<t_fake_edit*>(ptr);
+            pd->lockAudioThread();
             outlet_float(edit->x_obj.ob_outlet, edit->x_edit = editMode);
+            pd->unlockAudioThread();
             lastEditMode = editMode;
         }
     }

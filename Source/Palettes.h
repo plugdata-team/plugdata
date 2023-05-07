@@ -79,7 +79,9 @@ class PaletteView : public Component
 
             auto result = pd::Patch::translatePatchAsString(clipboardContent, position);
 
-            libpd_paste(target->patch.getPointer(), result.toRawUTF8());
+            auto* ptr = target->patch.getPointer();
+            target->pd->enqueueFunction([ptr, result]() mutable { libpd_paste(ptr, result.toRawUTF8()); });
+            
             target->synchronise();
         }
 
