@@ -217,9 +217,11 @@ public:
         int ac = binbuf_getnatom(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
         t_atom* av = binbuf_getvec(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
 
+        auto atoms = pd::Atom::fromAtoms(ac, av);
+        
         pd->unlockAudioThread();
         
-        return pd::Atom::fromAtoms(ac, av);
+        return atoms;
     }
 
     void setList(std::vector<pd::Atom> const value)
