@@ -64,8 +64,10 @@ Patch::~Patch()
     // when the object is deleted
     if (closePatchOnDelete && ptr && instance) {
         instance->setThis();
+        instance->lockAudioThread();
         instance->clearObjectImplementationsForPatch(this); // Make sure that there are no object implementations running in the background!
         libpd_closefile(ptr);
+        instance->unlockAudioThread();
     }
 }
 
