@@ -163,6 +163,7 @@ public:
             hash("float"),
             hash("set"),
             hash("list"),
+            hash("range"),
             IEMGUI_MESSAGES
         };
     }
@@ -176,6 +177,13 @@ public:
             if(atoms[0].isFloat()) {
                 value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
                 input.setText(input.formatNumber(value), dontSendNotification);
+            }
+            break;
+        }
+        case hash("range"): {
+            if(atoms[0].isFloat() && atoms[1].isFloat()) {
+                min = getMinimum();
+                max = getMaximum();
             }
             break;
         }
