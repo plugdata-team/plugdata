@@ -130,7 +130,7 @@ public:
         }
         case hash("number"): {
             if (atoms.size() >= 1)
-                setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
+                max = getMaximum();
             break;
         }
         default: {
