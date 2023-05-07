@@ -322,18 +322,24 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
     };
 
     for (auto& path : patchHelpPaths) {
+        
+        if(!path.exists()) continue;
+        
         auto file = findHelpPatch(path, true);
         if (file.existsAsFile()) {
             return file;
         }
     }
 
-    auto* helpdir = class_gethelpdir(pd_class(&reinterpret_cast<t_gobj*>(obj)->g_pd));
-
-    // Search for files int the patch directory
-    auto file = findHelpPatch(String::fromUTF8(helpdir), true);
-    if (file.existsAsFile()) {
-        return file;
+    auto* rawHelpDir = class_gethelpdir(pd_class(&reinterpret_cast<t_gobj*>(obj)->g_pd));
+    helpDir = String::fromUTF8(rawHelpDir);
+    
+    if(helpDir.isNotEmpty() && File(helpDir).exists()) {
+        // Search for files int the patch directory
+        auto file = findHelpPatch(helpDir, true);
+        if (file.existsAsFile()) {
+            return file;
+        }
     }
 
     return File();

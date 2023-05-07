@@ -174,14 +174,14 @@ public:
         case hash("float"):
         case hash("list"):
         case hash("set"): {
-            if(atoms[0].isFloat()) {
+            if(!atoms.empty() && atoms[0].isFloat()) {
                 value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
                 input.setText(input.formatNumber(value), dontSendNotification);
             }
             break;
         }
         case hash("range"): {
-            if(atoms[0].isFloat() && atoms[1].isFloat()) {
+            if(atoms.size() >= 2 && atoms[0].isFloat() && atoms[1].isFloat()) {
                 min = getMinimum();
                 max = getMaximum();
             }
