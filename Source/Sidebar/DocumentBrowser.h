@@ -825,8 +825,8 @@ public:
 
     void resized() override
     {
-        searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 30));
-        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 60).withY(30).reduced(2, 0));
+        searchComponent.setBounds(getLocalBounds());
+        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 30).withY(30).reduced(2, 0));
     }
 
     void paintOverChildren(Graphics& g) override

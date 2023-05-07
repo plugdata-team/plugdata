@@ -176,6 +176,10 @@ public:
         if (!isVisible()) {
             clearSearchTargets();
         }
+        else
+        {
+            updateResults();
+        }
     }
 
     void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
@@ -388,7 +392,7 @@ public:
 
     void resized() override
     {
-        auto tableBounds = getLocalBounds().withTrimmedBottom(30);
+        auto tableBounds = getLocalBounds();
         auto inputBounds = tableBounds.removeFromTop(28);
 
         tableBounds.removeFromTop(4);
