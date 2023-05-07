@@ -285,6 +285,17 @@ public:
             windowDragger.dragComponent(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()), nullptr);
     }
 
+    void setFullScreen(PlugDataWindow* window, bool shouldBeFullScreen)
+    {
+#if JUCE_LINUX
+        // linux can make the window take up the whole display by simply setting the bounds to that of the display
+        auto bounds = shouldBeFullScreen ? Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea : originalPluginWindowBounds;
+        desktopWindow->setBounds(bounds, shouldBeFullScreen);
+#else
+        window->setFullScreen(shouldBeFullScreen);
+#endif
+    }
+
     void setKioskMode(bool shouldBeBiosk)
     {
         auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
@@ -299,11 +310,11 @@ public:
             editor->setConstrainer(nullptr);
             window->setUsingNativeTitleBar(false);
             desktopWindow = window->getPeer();
-            window->setFullScreen(true);
+            setFullScreen(window, true);
             borderResizer->setVisible(false);
         }
         else {
-            window->setFullScreen(false);
+            setFullScreen(window, false);
             editor->setConstrainer(&pluginModeConstrainer);
             setBounds(originalPluginWindowBounds.withZeroOrigin());
             editor->setBounds(originalPluginWindowBounds);
