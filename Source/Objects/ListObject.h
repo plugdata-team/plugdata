@@ -188,6 +188,25 @@ public:
         bottomTriangle = bottomTriangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(bottomTriangle);
     }
+    
+    // If we already know the atoms, this will allow a lock-free update
+    void updateValue(std::vector<pd::Atom> array)
+    {
+        if (!listLabel.isBeingEdited()) {
+            String message;
+            for (auto const& atom : array) {
+                if (message.isNotEmpty()) {
+                    message += " ";
+                }
+                if (atom.isFloat()) {
+                    message += String(atom.getFloat());
+                } else if (atom.isSymbol()) {
+                    message += String(atom.getSymbol());
+                }
+            }
+            listLabel.setText(message, NotificationType::dontSendNotification);
+        }
+    }
 
     void updateValue()
     {
@@ -256,7 +275,7 @@ public:
         case hash("symbol"):
         case hash("list"):
         case hash("set"): {
-            updateValue();
+            updateValue(atoms);
             break;
         }
         case hash("send"): {
