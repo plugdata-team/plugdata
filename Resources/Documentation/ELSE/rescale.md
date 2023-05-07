@@ -44,7 +44,7 @@ flags:
     description: sets min/max input values
   - name: -exp <float> 
     description: sets exponential factor
-  - name: -noclip
+  - name: -log
     description: sets to log mode
 
 methods:
