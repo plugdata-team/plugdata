@@ -567,6 +567,7 @@ void fold_setup();
 void fold_tilde_setup();
 void fontsize_setup();
 void format_setup();
+void filterdelay_tilde_setup();
 void setup_freq0x2eshift_tilde();
 void function_setup();
 void function_tilde_setup();
@@ -856,6 +857,7 @@ void libpd_init_else(void)
     fold_tilde_setup();
     fontsize_setup();
     format_setup();
+    filterdelay_tilde_setup();
     setup_freq0x2eshift_tilde();
     function_setup();
     function_tilde_setup();
