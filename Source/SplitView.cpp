@@ -129,8 +129,11 @@ SplitView::SplitView(PluginEditor* parent)
 
         tabbar.onTabChange = [this, i, &tabbar](int idx) {
             splitFocusIndex = i;
+            
+            editor->updateCommandStatus();
+            
             auto* cnv = tabbar.getCurrentCanvas();
-
+            
             if (!cnv || idx == -1 || editor->pd->isPerformingGlobalSync)
                 return;
 
@@ -140,8 +143,6 @@ SplitView::SplitView(PluginEditor* parent)
             if (auto* splitCnv = splits[1 - i].getCurrentCanvas()) {
                 splitCnv->tabChanged();
             }
-
-            editor->updateCommandStatus();
         };
 
         tabbar.onFocusGrab = [this, &tabbar]() {

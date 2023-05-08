@@ -660,10 +660,10 @@ void PluginEditor::closeTab(Canvas* cnv)
     if (tabbar->getCurrentTabIndex() == tabIdx)
         tabbar->setCurrentTabIndex(tabIdx > 0 ? tabIdx - 1 : tabIdx);
 
-    cnv->getTabbar()->removeTab(tabIdx);
+    tabbar->removeTab(tabIdx);
     canvases.removeObject(cnv);
 
-    pd->patches.removeFirstMatchingValue(patch);
+    pd->patches.removeAllInstancesOf(patch);
 
     if (auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas()) {
         leftCnv->tabChanged();

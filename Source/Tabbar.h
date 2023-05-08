@@ -244,8 +244,9 @@ public:
             getTabbedButtonBar().setVisible(true);
             welcomePanel.hide();
             setTabBarDepth(30);
-            triggerAsyncUpdate();
         }
+        
+        triggerAsyncUpdate();
     }
 
     void handleAsyncUpdate() override
