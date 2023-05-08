@@ -1,4 +1,4 @@
-#N canvas 482 23 564 642 10;
+#N canvas 416 23 564 642 10;
 #X obj 2 4 cnv 15 301 42 empty empty knob 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
@@ -55,7 +55,7 @@
 #X obj 131 251 else/knob 50 0 127 0 0 empty empty #dfdfdf #afafaf black 0 0 0 0 1 320 0 0;
 #X obj 236 252 else/knob 50 -50 50 0 0 empty empty #dfdfdf #afafaf black 0 0 0 0 1 320 0 0;
 #X obj 878 265 else/knob 150 0 127 0 0 empty empty #ffffff #606060 #c00402 0 0 0 0 1 320 0 0;
-#X obj 535 200 else/knob 100 0 127 0 0 empty empty #dfdfdf #afafaf black 0 0 0 0 1 360 0 0;
+#X obj 535 200 else/knob 100 0 127 0 0 empty empty #dfdfdf #afafaf black 0 1 0 0 1 360 0 0;
 #X obj 44 146 loadbang;
 #X text 19 6 By default \, the angular range is 320 degrees. The object also draws an 'arc' by default \, with its own background color \, which is useful to dislay the initial and final position. You can change this with the 'arc' or 'angle' messages \, proerties or flags. A full 360 degree is possible and the arc is then useful to differentiate from the fully turned down (background color) to the turned up [knob] (foreground color). The efault range is 0 to 127 but you can change that in the same way. A float sets and outputs values \, which get clipped to the [knob]'s range. A 'set' message only sets the value (no output)., f 65;
 #X text 19 345 The 'init' message sets the initial value for when the object is loaded (0 by default). Unlike iemguis \, this value is not output when loading the patch \, so you need [loadbang] if you want that. If you only send it 'init' \, then [knob] saves the current state by capturing the current value as the initialization value. This initial value is also where the arc starts \, hence \, in the examle above to the right \, it starts in the top middle position. Double clicking on the object restores to the initial state., f 65;
@@ -100,14 +100,14 @@
 #X connect 41 0 28 0;
 #X restore 495 106 pd basic;
 #N canvas 422 73 772 634 +parameters 0;
-#X obj 327 123 else/knob 90 0 1 4 0 empty empty #9a9f9c #feffc6 #402420 0 0 2 0 0 320 0 0;
+#X obj 327 123 else/knob 90 0 1 4 1 empty empty #9a9f9c #feffc6 #402420 2 0 2 0 0 320 0 0;
 #X obj 574 98 else/rescale;
 #X floatatom 327 232 11 0 0 0 - - - 12;
 #X msg 327 86 exp \$1;
 #X floatatom 327 59 5 0 0 0 - - - 0;
 #X obj 327 31 else/initmess 4;
-#X obj 564 448 else/knob 110 110 1760 1 440 empty empty #202020 #bbbbbb #00faff 0 0 0 0 1 320 0 0;
-#X floatatom 564 582 11 0 0 0 - - - 12;
+#X obj 564 438 else/knob 110 110 1760 1 440 empty empty #202020 #bbbbbb #00faff 320 0 0 0 1 320 0 1;
+#X floatatom 564 572 11 0 0 0 - - - 12;
 #X floatatom 200 288 4 0 0 0 - \$0-discrete - 16;
 #X msg 172 129 discrete \$1;
 #X obj 172 101 tgl 19 0 empty empty empty 0 -8 0 10 #dfdfdf #000000 #000000 0 1;
@@ -124,8 +124,8 @@
 #X text 227 264 10;
 #X obj 172 175 else/knob 90 0 10 0 0 \$0-discrete empty #000000 #afafaf #dfdfdf 0 0 11 1 0 320 0 0;
 #X obj 380 81 else/rescale -exp 4 0 1, f 12;
-#X msg 564 400 log \$1;
-#X obj 564 367 tgl 22 0 empty empty empty 0 -8 0 10 #dfdfdf #000000 #000000 0 1;
+#X msg 564 390 log \$1;
+#X obj 564 359 tgl 22 0 empty empty empty 0 -8 0 10 #dfdfdf #000000 #000000 0 1;
 #X obj 380 60 else/midi.learn;
 #A saved;
 #X text 656 97 <-- see also;
@@ -137,7 +137,7 @@
 #X text 488 21 [knob] has an exponential and log feature just like the [rescale] object. For more details \, check the help file of [rescale]. Note that sometimes you may need to use [rescale] as well \, like when knob receives data from MIDI controllers (see example to the left)., f 42;
 #X text 453 130 The example to the left has an initial quartic function setting and a range from 0 to 1 (well suited for setting a volume gain \, for instance). There are 2 ticks to indicate start and end position., f 48;
 #X text 40 16 You can set a number of internal ticks. If you also set it to discrete mode as below \, [knob] changes in discrete steps according to the number of ticks. Note that the first and last ticks are a bit thicker and wider. The numbers are comments., f 40;
-#X obj 564 338 loadbang;
+#X obj 564 330 loadbang;
 #X text 333 283 In log mode \, the range cannot reach or cross a value of 0! This mode supersedes the 'exp' mode \, so the 'exp' value is ignored., f 68;
 #X text 333 398 The log mode is well suited for setting things like frequencies. To the right we have a frequency range that is from 110 to 1760 \, which covers 4 octaves from A2 to A6. The mid point is A4 (440 hz)., f 33;
 #X text 333 485 You can see that how when the knob reaches the mid point of the slider you have '440' as the mid value between 110 and 1760! You can also double click to go directly to this mid value. Other usages include a frequency or gain multiplier \, from 0.5 to 2 for instance \, where 1 is the mid point., f 33;
@@ -146,9 +146,9 @@
 #X text 333 338 You can set to log mode with the 'log' message or flag. You can also set it via the properties window., f 33;
 #X text 45 145 Note that you can also use arrows to navigate the knob and in this case the step change is discrete as well., f 13;
 #X text 39 503 Try also arrow keys here. It now loops as well., f 14;
-#X msg 623 416 jump \$1;
-#X obj 623 385 tgl 22 0 empty empty empty 0 -8 0 10 #dfdfdf #000000 #000000 0 1;
-#X text 653 386 <- jump on click;
+#X msg 623 406 jump \$1;
+#X obj 623 375 tgl 22 0 empty empty empty 0 -8 0 10 #dfdfdf #000000 #000000 0 1;
+#X text 653 376 <- jump on click;
 #X connect 0 0 2 0;
 #X connect 3 0 0 0;
 #X connect 4 0 3 0;
@@ -214,5 +214,4 @@
 #X text 89 560 -size <float> | -init <float> | -range <float \, float> | -bgcolor <list> | -mgcolor <list> | -fgcolor <list> | -noarc | -outline | -circular | -angle <float> | -offset <float> | -send <symbol> | -receive <symbol> | -ticks <float> | -circular | -discrete | -jump, f 73;
 #X text 135 502 jump <float>;
 #X text 218 502 - non zero sets to jump on click mode (default: 0), f 54;
-#X text 38 111 THIS OBJECT IS STILL EXPERIMENTAL!!!!, f 20;
 #X connect 60 0 24 0;
