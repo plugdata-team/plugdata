@@ -15,10 +15,7 @@ public:
         if(ProjectInfo::isStandalone) {
             // If the window is already maximised, unmaximise it to prevent problems
 #if JUCE_LINUX
-            if(OSUtils::isX11WindowMaximised(desktopWindow->getNativeHandle()))
-            {
-                OSUtils::maximiseX11Window(desktopWindow->getNativeHandle());
-            }
+            OSUtils::maximiseX11Window(desktopWindow->getNativeHandle(), false);
 #else
             if(desktopWindow->isFullScreen())
             {
