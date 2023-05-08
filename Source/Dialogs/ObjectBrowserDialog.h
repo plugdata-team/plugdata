@@ -485,7 +485,8 @@ public:
     void paint(Graphics& g) override
     {
         if (listBox.isVisible()) {
-            g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+            g.fillRoundedRectangle(getLocalBounds(), Corners::windowCornerRadius);
         }
     }
 
