@@ -20,7 +20,7 @@
 #X obj 549 260 rescale~;
 #X obj 549 230 rampnoise~ 1;
 #X obj 161 247 initmess 0 0.33 1 0.34 1 0.33 0 \; LFO 2.25 \; depth 25;
-#X obj 161 500 *~;
+#X obj 161 469 *~;
 #X obj 161 431 function~;
 #X obj 86 503 r~ \$0-in;
 #X obj 321 507 f2s~ 10;

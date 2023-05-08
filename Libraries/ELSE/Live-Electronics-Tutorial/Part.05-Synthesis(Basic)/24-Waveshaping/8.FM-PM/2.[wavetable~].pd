@@ -1,50 +1,30 @@
 #N canvas 427 62 866 521 12;
 #X declare -path else;
-#X floatatom 231 178 5 0 0 0 - - -;
+#X floatatom 231 178 5 0 0 0 - - - 0;
 #X obj 231 212 osc~ 40;
 #X obj 231 258 *~;
-#X obj 304 207 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 307 183 hsl 128 15 0 3 0 0 empty empty empty -2 -8 0 10 -228856
--1 -1 0 1;
+#X obj 304 207 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 307 183 hsl 128 15 0 3 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X text 340 182 amplitude;
-#X obj 517 92 cnv 15 278 178 empty empty empty 20 12 0 14 -191407 -66577
-0;
+#X obj 517 92 cnv 15 278 178 empty empty empty 20 12 0 14 #dfdfdf #404040 0;
 #N canvas 0 22 450 300 (subpatch) 0;
 #X array shape 515 float 0;
 #X coords 0 1 514 -1 280 180 1;
 #X restore 516 91 graph;
-#X obj 164 412 hsl 128 15 0 1 0 0 empty empty empty -2 -6 0 10 -228856
--1 -1 0 0;
-#X obj 587 314 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
--66577 0;
+#X obj 164 412 hsl 128 15 0 1 0 0 empty empty empty -2 -6 0 10 #dcdcdc #000000 #000000 0 0;
+#X obj 587 314 cnv 15 198 138 empty empty empty 20 12 0 14 #dcdcdc #404040 0;
 #N canvas 0 22 450 300 (subpatch) 0;
 #X array \$0-waveshape 441 float 1;
-#A 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0;
+#A 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
 #X coords 0 1.1 440 -1.1 200 140 1;
 #X restore 586 313 graph;
 #X text 572 308 1;
 #X text 566 440 -1;
 #X text 572 375 0;
 #N canvas 967 146 403 154 plot 0;
-#X obj 50 41 initmess \; shape sinesum 512 1 0.5 1 0.3 0.2 0.9 \, normalize
-\; pd dsp 1;
+#X obj 50 41 initmess \; shape sinesum 512 1 0.5 1 0.3 0.2 0.9 \, normalize \; pd dsp 1;
 #X restore 743 72 pd plot;
-#X obj 388 357 hsl 128 15 0 1 0 0 empty empty empty -2 -6 0 10 -228856
--1 -1 0 0;
+#X obj 388 357 hsl 128 15 0 1 0 0 empty empty empty -2 -6 0 10 #dcdcdc #000000 #000000 0 0;
 #X obj 122 355 wavetable~ shape;
 #X obj 346 320 shaper~ shape;
 #X obj 231 325 rescale~;
@@ -60,8 +40,7 @@
 #X obj 324 48 inlet~;
 #X obj 135 135 metro 441;
 #X obj 135 84 loadbang;
-#X obj 135 111 tgl 15 0 empty empty empty 17 7 0 10 -203904 -1 -1 1
-1;
+#X obj 135 111 tgl 15 0 empty empty empty 17 7 0 10 #c4c4fc #000000 #000000 0 1;
 #X msg 58 166 \; pd dsp 1;
 #X obj 205 259 tabwrite~ \$0-waveshape;
 #X obj 222 188 r~ \$0-lookup;
@@ -99,10 +78,8 @@
 #X restore 346 381 pd out;
 #X text 418 357 amplitude;
 #X text 199 411 amplitude;
-#X text 61 31 Since phase modulation is related to waveshaping \, we
-can use the phase input of [wavetable~] as a waveshaper., f 49;
-#X text 61 82 This example has more didactic purposes than practical
-ones. Compare the result of both outputs below., f 49;
+#X text 61 31 Since phase modulation is related to waveshaping \, we can use the phase input of [wavetable~] as a waveshaper., f 49;
+#X text 61 82 This example has more didactic purposes than practical ones. Compare the result of both outputs below., f 49;
 #X obj 580 29 declare -path else;
 #X connect 0 0 1 0;
 #X connect 1 0 2 0;

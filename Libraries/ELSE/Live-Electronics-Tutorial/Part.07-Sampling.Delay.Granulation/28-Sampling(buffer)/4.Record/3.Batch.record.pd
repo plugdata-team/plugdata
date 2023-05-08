@@ -1,9 +1,8 @@
 #N canvas 323 29 1043 496 12;
 #X declare -path else;
 #X obj 844 50 declare -path else;
-#X obj 147 301 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X text 168 299 <= finished;
+#X obj 147 301 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X text 174 302 <= finished;
 #X obj 147 212 osc~;
 #X obj 147 186 rescale~ 500 1500;
 #X obj 147 158 stepnoise~ 7;
@@ -12,23 +11,16 @@
 #X text 43 228 record 10 seconds =>, f 10;
 #X obj 333 238 osc~;
 #X obj 333 212 rescale~ 500 1500;
-#X obj 146 343 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
 #X obj 333 184 stepnoise~ 5.7;
-#X obj 530 390 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X obj 531 230 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
 #X msg 847 269 start;
 #X text 643 185 click =>;
-#X text 554 231 <= record;
+#X text 559 231 <= record;
 #X obj 530 362 batch.write~ \$0-batch 2;
 #X obj 847 298 tabplayer~ \$0-batch 2;
 #X obj 847 340 out~;
-#X obj 146 413 out~;
+#X obj 146 420 out~;
 #X obj 714 185 sample~ \$0-batch -ch 2 -ms 2000;
-#X text 579 109 Similarly \, we have [batch.write~] that batch records
-into arrays \, and you can also use [sample~] as a buffer.;
+#X text 579 109 Similarly \, we have [batch.write~] that batch records into arrays \, and you can also use [sample~] as a buffer.;
 #X obj 545 298 rescale~ 500 1500;
 #X obj 545 324 cusp~;
 #X obj 545 270 stepnoise~ 15.7;
@@ -36,13 +28,11 @@ into arrays \, and you can also use [sample~] as a buffer.;
 #X obj 688 270 stepnoise~ 15.7;
 #X obj 688 324 standard~;
 #X obj 406 308 setdsp~ 1;
-#X obj 146 377 play.file~ ./rec-test.wav;
-#X text 38 26 In the quick introduction to Pd in this tutorial \, we've
-seen the 'fast-forwad' message we can send to Pd. The [batch.rec~]
-external \, from ELSE \, is an abstraction that uses this feature to
-record as fast as your processor can handle and render a patch into
-a recorded sound file. But don't start the batch process when you have
-audio coming out of your speakers!!! Check its help file., f 69;
+#X text 38 26 In the quick introduction to Pd in this tutorial \, we've seen the 'fast-forwad' message we can send to Pd. The [batch.rec~] external \, from ELSE \, is an abstraction that uses this feature to record as fast as your processor can handle and render a patch into a recorded sound file. But don't start the batch process when you have audio coming out of your speakers!!! Check its help file., f 69;
+#X obj 530 390 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 531 230 bng 22 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 146 384 play.file~ 2;
+#X msg 146 351 open ./rec-test.wav;
 #X connect 3 0 7 0;
 #X connect 4 0 3 0;
 #X connect 5 0 4 0;
@@ -50,18 +40,18 @@ audio coming out of your speakers!!! Check its help file., f 69;
 #X connect 7 0 1 0;
 #X connect 9 0 7 1;
 #X connect 10 0 9 0;
-#X connect 11 0 31 0;
-#X connect 12 0 10 0;
-#X connect 14 0 18 0;
-#X connect 15 0 19 0;
-#X connect 18 0 13 0;
-#X connect 19 0 20 0;
-#X connect 19 1 20 1;
-#X connect 24 0 25 0;
-#X connect 25 0 18 0;
-#X connect 26 0 24 0;
-#X connect 27 0 29 0;
-#X connect 28 0 27 0;
-#X connect 29 0 18 1;
-#X connect 31 0 21 0;
-#X connect 31 1 21 1;
+#X connect 11 0 10 0;
+#X connect 12 0 16 0;
+#X connect 15 0 29 0;
+#X connect 16 0 17 0;
+#X connect 16 1 17 1;
+#X connect 21 0 22 0;
+#X connect 22 0 15 0;
+#X connect 23 0 21 0;
+#X connect 24 0 26 0;
+#X connect 25 0 24 0;
+#X connect 26 0 15 1;
+#X connect 30 0 15 0;
+#X connect 31 0 18 0;
+#X connect 31 1 18 1;
+#X connect 32 0 31 0;

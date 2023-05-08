@@ -13,19 +13,11 @@
 #X obj 741 284 sh~ -tr;
 #X obj 797 252 rampnoise~ 20;
 #X msg 665 252 thresh \$1;
-#X obj 665 232 nbx 5 14 -0.9 0.9 0 0 empty empty empty 0 -8 0 10 #dcdcdc
-#000000 #000000 0 256;
-#X obj 668 211 hsl 128 15 -0.9 0.9 0 0 empty empty empty -2 -8 0 10
-#dcdcdc #000000 #000000 0 1;
+#X obj 665 232 nbx 5 14 -0.9 0.9 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 668 211 hsl 128 15 -0.9 0.9 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 741 386 bl.saw~;
 #X obj 741 358 rescale~ 50 250;
-#X text 476 62 The [sh~] object also has another mode called "trigger"
-(set with the "-tr" flag). This allows it to be triggered by pulses
-in a way that if the trigger signal goes above the threshold \, then
-the input is sampled and held. The object will only be retriggered
-if the trigger signal falls below the threshold first. You can set
-a new threshold value with the "thresh" message. Check both examples
-below.;
+#X text 476 62 The [sh~] object also has another mode called "trigger" (set with the "-tr" flag). This allows it to be triggered by pulses in a way that if the trigger signal goes above the threshold \, then the input is sampled and held. The object will only be retriggered if the trigger signal falls below the threshold first. You can set a new threshold value with the "thresh" message. Check both examples below.;
 #X obj 174 419 plate.rev~ 50 0.6 0.25 0.8 0.6, f 18;
 #X obj 515 444 plate.rev~ 50 0.6 0.25 0.8 0.6, f 18;
 #X obj 741 418 plate.rev~ 50 0.6 0.25 0.8 0.6, f 18;
@@ -33,14 +25,8 @@ below.;
 #X obj 174 471 out~;
 #X obj 515 496 out~;
 #X obj 741 470 out~;
-#X text 42 28 By default \, [sh~] operates in "gate" mode \, in which
-it lets the signal through if the trigger signal is above a threshold
-value (0 by default)., f 55;
-#X text 42 90 This works great with impulses \, but if you have a gate
-like a pulse \, you don't have a sample and hold behaviour. Let's check
-the patch below \, where we have a [rampnoise~] object that either
-is passed through or not. Down next \, [glide~] smoothens the values
-to avoid discontinuities when the gate is reopened., f 55;
+#X text 42 28 By default \, [sh~] operates in "gate" mode \, in which it lets the signal through if the trigger signal is above a threshold value (0 by default)., f 55;
+#X text 42 90 This works great with impulses \, but if you have a gate like a pulse \, you don't have a sample and hold behaviour. Let's check the patch below \, where we have a [rampnoise~] object that either is passed through or not. Down next \, [glide~] smoothens the values to avoid discontinuities when the gate is reopened., f 55;
 #X obj 174 328 glide2~ 100;
 #X obj 64 226 rampnoise~ 7;
 #X obj 174 293 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;

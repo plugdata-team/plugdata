@@ -1,29 +1,20 @@
 #N canvas 475 33 807 566 12;
 #X declare -path else;
-#X obj 444 159 nbx 5 14 -1e+37 1e+37 0 0 empty Hz empty 0 -8 0 10 #dcdcdc
-#000000 #000000 0 256;
-#X obj 139 93 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 61 110 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X text 202 148 width;
+#X obj 444 159 nbx 5 14 -1e+37 1e+37 0 0 empty Hz empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 139 93 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 61 110 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X text 205 147 width;
 #X obj 139 148 rescale~;
 #X obj 108 212 graph~ 500 7 -1.1 1.1;
 #X obj 501 262 graph~ 447 12;
-#X text 42 21 We can use an oscillator to modulate the pulse width
-of a square wave. This is "Pulse Width Modulation" - or "PMW" for short.
-, f 46;
-#X text 53 459 Modulation frequencies above 20Hz also generates spectral
-components similarly to FM/PM. The same is true with the saw/triangular
-wave example., f 48;
-#X obj 528 139 nbx 5 14 -1e+37 1e+37 0 0 empty mod empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X text 42 21 We can use an oscillator to modulate the pulse width of a square wave. This is "Pulse Width Modulation" - or "PMW" for short., f 46;
+#X text 53 459 Modulation frequencies above 20Hz also generates spectral components similarly to FM/PM. The same is true with the saw/triangular wave example., f 48;
+#X obj 528 139 nbx 5 14 -1e+37 1e+37 0 0 empty mod empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 528 165 osc~ 0.5;
-#X text 592 195 width;
+#X text 596 195 width;
 #X obj 528 195 rescale~;
 #X obj 139 119 osc~ 0.25;
-#X text 423 87 The PWM concept also applies to [vsaw~] \, which generates
-sawtooth/triangular waves., f 42;
+#X text 423 87 The PWM concept also applies to [vsaw~] \, which generates sawtooth/triangular waves., f 42;
 #X obj 583 30 declare -path else;
 #X obj 108 369 out~;
 #X obj 501 419 out~;

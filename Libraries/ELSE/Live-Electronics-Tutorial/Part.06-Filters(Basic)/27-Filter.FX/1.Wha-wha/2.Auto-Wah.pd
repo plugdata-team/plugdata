@@ -1,41 +1,27 @@
 #N canvas 616 23 514 591 12;
 #X declare -path else;
-#X obj 270 467 hsl 128 15 3 10 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 270 467 hsl 128 15 3 10 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X text 319 490 Q;
 #X text 265 342 dB, f 3;
 #X obj 152 520 out~;
 #X obj 152 478 lowpass~ 0 5;
-#X obj 267 489 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X floatatom 243 397 5 0 0 0 - - - 0;
-#X floatatom 295 397 5 0 0 0 - - - 0;
-#X floatatom 347 397 5 0 0 0 - - - 0;
-#X floatatom 399 397 5 0 0 0 - - - 0;
+#X obj 267 489 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X floatatom 288 391 5 0 0 0 - - - 0;
+#X floatatom 385 391 5 0 0 0 - - - 0;
 #X obj 344 22 declare -path else;
 #X obj 152 262 play.file~ pointy-pick.aif 1 1;
-#X text 34 68 We can adapt the wha wha patch to have an amplitude analysis
-controlling the cutoff filter instead of a LFO. This is much like the
-"Envelope Filter" example from Subtractive Synthesis as applied to
-audio \, and known as "Auto Wah" (used a lot in funk music \, by the
-way) because the wha wha control is automatically set by the input
-amplitude., f 61;
-#X text 34 164 The [mov.rms~] object is used then as an envelope follower.
-We get this amplitude average in dB and rescale to a frequency range
-with [rescale~]. In the example below we rescale the input from -40
-to -5 dB into the range of 100 to 4000 Hz., f 61;
 #X obj 192 307 mov.rms~ -db 256;
-#X obj 192 426 rescale~ -clip -40 -5 100 4000;
 #X obj 192 342 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 192 426 rescale~ -in -40 -5 100 4000;
+#X text 34 68 We can adapt the wha wha patch to have an amplitude analysis controlling the cutoff filter instead of a LFO. This is much like the "Envelope Filter" example from Subtractive Synthesis but applied to audio and known as "Auto Wah" (used a lot in funk music by the way) - because the wha wha control is automatically set by the input amplitude., f 61;
+#X text 34 164 The [mov.rms~] object is used as an envelope follower. We get this amplitude average in dB and rescale to a frequency range with [rescale~]. In the example below we rescale the input from -40 to -5 dB into the range of 100 to 4000 Hz., f 61;
 #X connect 0 0 5 0;
 #X connect 4 0 3 0;
 #X connect 5 0 4 2;
-#X connect 6 0 15 1;
-#X connect 7 0 15 2;
-#X connect 8 0 15 3;
-#X connect 9 0 15 4;
-#X connect 11 0 4 0;
-#X connect 11 0 14 0;
-#X connect 14 0 16 0;
-#X connect 15 0 4 1;
-#X connect 16 0 15 0;
+#X connect 6 0 12 1;
+#X connect 7 0 12 2;
+#X connect 9 0 4 0;
+#X connect 9 0 10 0;
+#X connect 10 0 11 0;
+#X connect 11 0 12 0;
+#X connect 12 0 4 1;

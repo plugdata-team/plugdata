@@ -1,6 +1,6 @@
 #N canvas 341 80 923 429 12;
 #X declare -path else;
-#X obj 361 178 cnv 15 498 198 empty \$0-lin . 484 102 0 44 #f8f8f8 #fc0400 0;
+#X obj 361 178 cnv 15 498 198 empty \$0-lin . -7 102 0 44 #f8f8f8 #fc0400 0;
 #N canvas 0 22 450 300 (subpatch) 0;
 #X array \$0-interp 8 float 3;
 #A 0 -0.129999 0.22 -0.159999 0.519999 -0.39 0.7 -0.98 0.98;
