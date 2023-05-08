@@ -20,8 +20,8 @@ struct OSUtils {
     static void createHardLink(std::string from, std::string to);
     static bool runAsAdmin(std::string file, std::string lpParameters, void* hWnd);
 #elif defined(__unix__) && !defined(__APPLE__)
-    static void maximiseLinuxWindow(void* handle);
-    static bool isMaximised(void* handle);
+    static void maximiseX11Window(void* handle, bool shouldBeMaximised);
+    static bool isX11WindowMaximised(void* handle);
 #elif JUCE_MAC
     static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
     static void HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);

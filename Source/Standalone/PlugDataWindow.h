@@ -607,8 +607,9 @@ public:
 #if JUCE_LINUX
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
-                b->setToggleState(!OSUtils::isMaximised(peer->getNativeHandle()), dontSendNotification);
-                OSUtils::maximiseLinuxWindow(getPeer()->getNativeHandle());
+                bool shouldBeMaximised = !OSUtils::isX11WindowMaximised(peer->getNativeHandle());
+                b->setToggleState(shouldBeMaximised, dontSendNotification);
+                OSUtils::maximiseX11Window(getPeer()->getNativeHandle(), shouldBeMaximised);
             } else {
                 b->setToggleState(false, dontSendNotification);
             }
