@@ -19,7 +19,7 @@ public:
             
             auto relativeEvent = e.getEventRelativeTo(this);
 
-            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !object->cnv->isShowing() || isPressed)
+            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !cnv->isShowing() || isPressed )
                 return;
 
             pd->setThis();
@@ -40,7 +40,7 @@ public:
         };
         mouseListener.globalMouseUp = [this](const MouseEvent& e){
             
-            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed) || !isLocked())
+            if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed || !isLocked() || !cnv->isShowing())
                 return;
 
             auto* x = static_cast<t_fake_pad*>(this->ptr);
@@ -52,7 +52,7 @@ public:
         };
 
         mouseListener.globalMouseMove = [this](const MouseEvent& e){
-            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked())
+            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked() || !cnv->isShowing())
                 return;
 
             auto* x = static_cast<t_fake_pad*>(this->ptr);

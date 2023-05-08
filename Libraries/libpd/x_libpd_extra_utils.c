@@ -117,8 +117,10 @@ void libpd_array_get_scale(void* array, float* min, float* max)
     if (array) {
         cnv = ((t_fake_garray*)array)->x_glist;
         if (cnv) {
+            sys_lock();
             *min = cnv->gl_y2;
             *max = cnv->gl_y1;
+            sys_unlock();
             return;
         }
     }
@@ -132,8 +134,10 @@ void libpd_array_set_scale(void* array, float min, float max)
     if (array) {
         cnv = ((t_fake_garray*)array)->x_glist;
         if (cnv) {
+            sys_lock();
             cnv->gl_y2 = min;
             cnv->gl_y1 = max;
+            sys_unlock();
             return;
         }
     }
@@ -141,14 +145,18 @@ void libpd_array_set_scale(void* array, float min, float max)
 
 int libpd_array_get_style(void* array)
 {
+    sys_lock();
     t_fake_garray* arr = (t_fake_garray*)array;
     if (arr && arr->x_scalar) {
         t_scalar* scalar = arr->x_scalar;
         t_template* scalartplte = template_findbyname(scalar->sc_template);
         if (scalartplte) {
-            return (int)template_getfloat(scalartplte, gensym("style"), scalar->sc_vec, 0);
+            int result = (int)template_getfloat(scalartplte, gensym("style"), scalar->sc_vec, 0);
+            sys_unlock();
+            return result;
         }
     }
+    sys_unlock();
     return 0;
 }
 

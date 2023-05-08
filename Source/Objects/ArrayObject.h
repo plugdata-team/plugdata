@@ -486,6 +486,7 @@ public:
 
     void timerCallback() override
     {
+        pd->lockAudioThread();
         // Check if size has changed
         int currentSize = graph.array.size();
         if (graph.vec.size() != currentSize) {
@@ -496,6 +497,7 @@ public:
 
         // Update values
         graph.update();
+        pd->unlockAudioThread();
     }
 
     void updateLabel() override
