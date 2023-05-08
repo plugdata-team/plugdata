@@ -19,7 +19,7 @@ protected:
 
     bool isMinLimited = false, isMaxLimited = false;
     bool onlyIntegers = false;
-    float min, max;
+    float min = 0.0f, max = 0.0f;
 
 public:
     std::function<void(float)> valueChanged = [](float) {};
