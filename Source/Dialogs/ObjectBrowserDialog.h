@@ -486,7 +486,7 @@ public:
     {
         if (listBox.isVisible()) {
             g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds(), Corners::windowCornerRadius);
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
         }
     }
 
