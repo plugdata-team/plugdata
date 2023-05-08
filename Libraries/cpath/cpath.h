@@ -1406,7 +1406,6 @@ int cpathLoadFlags(cpath_dir *dir, cpath_file *file, void *data) {
         file->isReg = 0;
     }
     file->isSym = FILE_IS(find, REPARSE_POINT);
-    file->extension = NULL;
 #else
     if (dir->dirent == NULL || dir->dirent->d_type == DT_UNKNOWN) {
         if (!cpathGetFileInfo(file)) {
@@ -1423,6 +1422,7 @@ int cpathLoadFlags(cpath_dir *dir, cpath_file *file, void *data) {
         file->statLoaded = 0;
     }
 #endif
+    file->extension = NULL;
     return 1;
 }
 
