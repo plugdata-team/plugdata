@@ -610,8 +610,7 @@
 #X connect 11 0 4 1;
 #X connect 11 0 7 1;
 #X restore 1081 60 pd line16;
-#X text 280 28 feedback delay network with a Hadamard matrix ("butterfly
-algorithm"), f 69;
+#X text 280 28 feedback delay network with a Hadamard matrix ("butterfly algorithm"), f 69;
 #X connect 0 0 3 0;
 #X connect 0 0 50 1;
 #X connect 1 0 45 1;
@@ -850,8 +849,7 @@ algorithm"), f 69;
 #X floatatom 61 86 5 0 0 0 - - - 0;
 #X obj 166 281 f;
 #X msg 61 276 0;
-#X obj 112 121 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
-#000000 #000000;
+#X obj 112 121 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
 #X obj 146 145 + 1;
 #X floatatom 112 172 5 0 0 0 - - - 0;
 #X obj 166 357 outlet;
@@ -891,11 +889,7 @@ algorithm"), f 69;
 #N canvas 698 243 656 624 set-delay-lengths 0;
 #X obj 218 32 inlet;
 #X floatatom 218 109 5 0 2 0 - - - 0;
-#X obj 218 136 expr pow(2 \, $f1) \; pow(3 \, $f1) \; pow(5 \, $f1)
-\; pow(6 \, $f1) \; pow(11 \, $f1) \; pow(13 \, $f1) \; pow(17 \, $f1)
-\; pow(19 \, $f1) \; pow(23 \, $f1) \; pow(29 \, $f1) \; pow(31 \,
-$f1) \; pow(37 \, $f1) \; pow(41 \, $f1) \; pow(43 \, $f1) \; pow(47
-\, $f1) \; pow(53 \, $f1) \;, f 40;
+#X obj 218 136 expr pow(2 \, $f1) \; pow(3 \, $f1) \; pow(5 \, $f1) \; pow(6 \, $f1) \; pow(11 \, $f1) \; pow(13 \, $f1) \; pow(17 \, $f1) \; pow(19 \, $f1) \; pow(23 \, $f1) \; pow(29 \, $f1) \; pow(31 \, $f1) \; pow(37 \, $f1) \; pow(41 \, $f1) \; pow(43 \, $f1) \; pow(47 \, $f1) \; pow(53 \, $f1) \;, f 40;
 #X obj 244 548 s \$0-t2;
 #X obj 233 570 s \$0-t1;
 #X obj 258 526 s \$0-t3;
@@ -956,12 +950,10 @@ $f1) \; pow(37 \, $f1) \; pow(41 \, $f1) \; pow(43 \, $f1) \; pow(47
 #X text 307 29 size;
 #X text 319 161 time average (in seconds);
 #X text 298 235 t/t60;
-#X text 54 261 decay = 0.001^(t/T60) \, where t is the mean of all
-delay lengths, f 32;
+#X text 54 261 decay = 0.001^(t/T60) \, where t is the mean of all delay lengths, f 32;
 #X text 47 30 decay (t60) in seconds;
 #X obj 267 378 s~ \$0-fb;
-#X text 55 351 feedback factor = decay/sqrt(n) \, where n is the order
-of the matrix, f 33;
+#X text 55 351 feedback factor = decay/sqrt(n) \, where n is the order of the matrix, f 33;
 #X obj 267 206 else/hot;
 #X connect 0 0 4 0;
 #X connect 1 0 10 0;
@@ -1009,7 +1001,7 @@ of the matrix, f 33;
 #X obj 129 213 clip 0 1;
 #X obj 129 271 s~ \$0-damp;
 #X obj 129 242 else/float2sig~ 20;
-#X obj 238 142 else/rescale -clip 0 1 -1 1;
+#X obj 238 142 else/rescale -in 0 1 -1 1;
 #X connect 0 0 5 0;
 #X connect 2 0 5 0;
 #X connect 4 0 3 0;

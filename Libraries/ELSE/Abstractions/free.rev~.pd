@@ -23,7 +23,7 @@
 #X obj 59 50 inlet;
 #X obj 59 164 s~ \$0-wet-dry;
 #X obj 59 131 else/f2s~ 10;
-#X obj 59 93 else/rescale -clip 0 1 -1 1;
+#X obj 59 93 else/rescale -in 0 1 -1 1;
 #X connect 0 0 3 0;
 #X connect 2 0 1 0;
 #X connect 3 0 2 0;
@@ -32,7 +32,7 @@
 #X obj 59 50 inlet;
 #X obj 59 160 s~ \$0-width;
 #X obj 60 127 else/f2s~ 10;
-#X obj 59 89 else/rescale -clip 0 1 -1 1;
+#X obj 59 89 else/rescale -in 0 1 -1 1;
 #X connect 0 0 3 0;
 #X connect 2 0 1 0;
 #X connect 3 0 2 0;
@@ -41,7 +41,7 @@
 #X obj 42 40 inlet;
 #X obj 42 142 s~ \$0-fb;
 #X obj 42 111 else/f2s~ 10;
-#X obj 42 74 else/rescale -clip 0 1 0 1 -2;
+#X obj 42 74 else/rescale -in 0 1 0 1 -2;
 #X connect 0 0 3 0;
 #X connect 2 0 1 0;
 #X connect 3 0 2 0;

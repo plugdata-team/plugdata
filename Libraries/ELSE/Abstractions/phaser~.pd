@@ -3,7 +3,7 @@
 #X obj 75 198 outlet~;
 #X text 197 136 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 199 117 Alexandre Torres Porres (2019);
-#N canvas 854 311 458 264 guts 0;
+#N canvas 779 305 458 264 guts 0;
 #X obj 211 56 inlet;
 #X obj 57 56 inlet~;
 #X obj 57 211 outlet~;
@@ -30,7 +30,7 @@
 #X obj 57 179 else/xfade~;
 #X obj 88 131 else/allpass.filt~ \$1;
 #X obj 244 143 else/f2s~ 10;
-#X obj 244 120 else/rescale -clip 0 1 -1 0;
+#X obj 244 120 else/rescale -in 0 1 -1 0;
 #X connect 0 0 3 0;
 #X connect 1 0 5 0;
 #X connect 1 0 6 0;

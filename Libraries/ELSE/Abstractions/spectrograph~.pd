@@ -1,8 +1,7 @@
-#N canvas 739 259 598 342 10;
+#N canvas 571 103 598 342 10;
 #X declare -path else;
-#N canvas 404 490 523 256 guts 0;
-#X obj 243 67 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#N canvas 334 270 523 256 guts 0;
+#X obj 243 67 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X text 261 66 before saving;
 #X obj 74 40 inlet~;
 #X obj 138 41 inlet;
@@ -101,8 +100,7 @@
 #X msg 393 170 resize \$1;
 #X obj 393 233 s \$0-Amp;
 #X obj 392 116 * 0.5;
-#X obj 109 180 expr pow(size_\$0 - 1 \, $f1/( size_\$0 - 2)) \; $f1
-+ 1;
+#X obj 109 180 expr pow(size_\$0 - 1 \, $f1/( size_\$0 - 2)) \; $f1 + 1;
 #X obj 109 152 else/loop;
 #X connect 3 0 4 0;
 #X connect 4 0 11 0;
@@ -160,7 +158,7 @@
 #X connect 7 0 4 0;
 #X connect 8 0 0 0;
 #X restore 74 92 pd fft;
-#N canvas 834 210 643 645 set 0;
+#N canvas 723 101 643 645 set 0;
 #X obj 85 46 inlet;
 #X obj 336 525 s \$0-scale-mode;
 #X obj 336 501 != 0;
@@ -219,10 +217,8 @@
 #X msg 263 101 const 0;
 #X obj 263 126 send;
 #X obj 298 126 r \$0-name;
-#X obj 48 62 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000;
-#X msg 70 165 \; pd-\$1-array-cnv graph \$1-graph \; pd-\$1-graph pop
-\, array \$2 0 float 1 \; \$1-set-array set \$2, f 46;
+#X obj 48 62 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
+#X msg 70 165 \; pd-\$1-array-cnv graph \$1-graph \; pd-\$1-graph pop \, array \$2 0 float 1 \; \$1-set-array set \$2 \; \$2 edit 0, f 46;
 #X connect 0 0 1 0;
 #X connect 1 0 12 0;
 #X connect 3 0 0 0;
@@ -359,7 +355,7 @@
 #X connect 21 0 7 0;
 #X connect 23 0 21 0;
 #X restore 194 525 pd set-dim;
-#N canvas 879 344 951 533 route 0;
+#N canvas 415 213 951 533 route 0;
 #X obj 245 411 s \$0-scale-mode;
 #X obj 198 208 != 0;
 #X obj 365 201 != 0;
@@ -499,10 +495,8 @@
 #X restore 103 67 pd guts;
 #X text 215 46 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 214 32 Alexandre Torres Porres (2017-2018);
-#X obj 142 41 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000;
-#X obj 54 103 cnv 15 296 136 empty \$0-bgcnv empty 20 12 0 14 #a0b4bc
-#404040 0;
+#X obj 142 41 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
+#X obj 54 103 cnv 15 296 136 empty \$0-bgcnv empty 20 12 0 14 #a0b4bc #404040 0;
 #N canvas 444 284 552 544 \$0-array-cnv 0;
 #X coords 0 1 100 -1 298 138 2 99 19;
 #X restore 52 101 pd \$0-array-cnv;

@@ -186,7 +186,7 @@
 #X obj 154 303 t a b;
 #X obj 44 156 t b a;
 #X obj 689 276 else/canvas.file 1;
-#X msg 830 255 \$1 file not fount;
+#X msg 830 255 \$1 file not found;
 #X obj 830 280 print [gran.player~];
 #X connect 0 0 4 0;
 #X connect 1 0 2 0;
@@ -489,7 +489,7 @@ range;
 #X obj 743 265 s \$0-grain-size;
 #X obj 83 121 else/click;
 #X obj 304 214 else/canvas.file 1;
-#X msg 326 240 \$1 file not fount;
+#X msg 326 240 \$1 file not found;
 #X obj 326 265 print [gran.player~];
 #X connect 0 0 7 0;
 #X connect 1 0 2 0;
