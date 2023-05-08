@@ -164,22 +164,86 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 #if defined(__unix__) && !defined(__APPLE__)
 bool OSUtils::isX11WindowMaximised(void* handle)
 {
+    enum window_state_t {
+        WINDOW_STATE_NONE = 0,
+        WINDOW_STATE_MODAL = (1 << 0),
+        WINDOW_STATE_STICKY = (1 << 1),
+        WINDOW_STATE_MAXIMIZED_VERT = (1 << 2),
+        WINDOW_STATE_MAXIMIZED_HORZ = (1 << 3),
+        WINDOW_STATE_MAXIMIZED = (WINDOW_STATE_MAXIMIZED_VERT | WINDOW_STATE_MAXIMIZED_HORZ),
+        WINDOW_STATE_SHADED = (1 << 4),
+        WINDOW_STATE_SKIP_TASKBAR = (1 << 5),
+        WINDOW_STATE_SKIP_PAGER = (1 << 6),
+        WINDOW_STATE_HIDDEN = (1 << 7),
+        WINDOW_STATE_FULLSCREEN = (1 << 8),
+        WINDOW_STATE_ABOVE = (1 << 9),
+        WINDOW_STATE_BELOW = (1 << 10),
+        WINDOW_STATE_DEMANDS_ATTENTION = (1 << 11),
+        WINDOW_STATE_FOCUSED = (1 << 12),
+        WINDOW_STATE_SIZE = 13,
+    };
+
+    /* state names */
+    static char const* WINDOW_STATE_NAMES[] = {
+        "_NET_WM_STATE_MODAL",
+        "_NET_WM_STATE_STICKY",
+        "_NET_WM_STATE_MAXIMIZED_VERT",
+        "_NET_WM_STATE_MAXIMIZED_HORZ",
+        "_NET_WM_STATE_SHADED",
+        "_NET_WM_STATE_SKIP_TASKBAR",
+        "_NET_WM_STATE_SKIP_PAGER",
+        "_NET_WM_STATE_HIDDEN",
+        "_NET_WM_STATE_FULLSCREEN",
+        "_NET_WM_STATE_ABOVE",
+        "_NET_WM_STATE_BELOW",
+        "_NET_WM_STATE_DEMANDS_ATTENTION",
+        "_NET_WM_STATE_FOCUSED"
+    };
+
+
     auto* display = juce::XWindowSystem::getInstance()->getDisplay();
-    auto& atoms = juce::XWindowSystem::getInstance()->getAtoms();
-    
+
     juce::XWindowSystemUtilities::ScopedXLock xLock;
-    juce::XWindowSystemUtilities::GetXProperty prop (display, (::Window)handle, atoms.state, 0, 64, false, atoms.state);
 
-    if (prop.success && prop.actualType == atoms.state
-        && prop.actualFormat == 32 && prop.numItems > 0)
-    {
-        unsigned long state;
-        memcpy (&state, prop.data, sizeof (unsigned long));
+    Atom net_wm_state;
+    Atom net_wm_states[WINDOW_STATE_SIZE];
 
-        return state == IconicState;
+    auto window = (Window)handle;
+
+    if(!display) return false;
+    
+    net_wm_state = XInternAtom(display, "_NET_WM_STATE", False);
+
+    for (int i = 0; i < WINDOW_STATE_SIZE; i++) {
+            net_wm_states[i] = XInternAtom(display, WINDOW_STATE_NAMES[i], False);
     }
 
-    return false;
+    long max_length = 1024;
+    Atom actual_type;
+    int actual_format;
+    unsigned long bytes_after, i, num_states = 0;
+    Atom* states = nullptr;
+    window_state_t state = WINDOW_STATE_NONE;
+
+    if (XGetWindowProperty(display, window, net_wm_state, 0l, max_length, False, XA_ATOM,
+            &actual_type, &actual_format, &num_states, &bytes_after, (unsigned char**)&states)
+        == Success) {
+
+        // for every state we get from the server
+        for (i = 0; i < num_states; ++i) {
+            // for every (known) state
+            for (int n = 0; n < WINDOW_STATE_SIZE; ++n) {
+                // test the state at index i
+                if (states[i] == net_wm_states[n]) {
+                    state = static_cast<window_state_t>(static_cast<int>(state) | (1 << n));
+                    break;
+                }
+            }
+        }
+        XFree(states);
+    }
+
+    return state & WINDOW_STATE_MAXIMIZED;
 }
 
 void OSUtils::maximiseX11Window(void* handle, bool shouldBeMaximised)
