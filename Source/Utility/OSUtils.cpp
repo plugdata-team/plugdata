@@ -4,6 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
+#include <juce_gui_basics/juce_gui_basics.h>
+
 #include <juce_core/juce_core.h>
 #include "OSUtils.h"
 
@@ -159,16 +162,6 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
-extern "C" {
-#    include <X11/Xlib.h>
-#    include <X11/Xatom.h>
-}
-
-#    include <unistd.h>
-#    include <cstdio>
-#    include <cstring>
-#    include <cstdlib>
-
 bool OSUtils::isMaximised(void* handle)
 {
     typedef enum {
@@ -290,35 +283,7 @@ bool OSUtils::isMaximised(void* handle)
 
 void OSUtils::maximiseLinuxWindow(void* handle)
 {
-    auto win = (Window)handle;
-    auto* display = XOpenDisplay(nullptr);
-    
-    if(!display) return;
-
-    Atom wm_state = XInternAtom(display, "_NET_WM_STATE", False);
-    Atom wm_state_maximized_horz = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-    Atom wm_state_maximized_vert = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-
-    // check if the atoms are valid
-    if (wm_state == None || wm_state_maximized_horz == None || wm_state_maximized_vert == None) {
-        XCloseDisplay(display);
-        return;
-    }
-
-    XEvent ev;
-    ev.xclient.window = win;
-    ev.xclient.type = ClientMessage;
-    ev.xclient.format = 32;
-    ev.xclient.message_type = wm_state;
-    ev.xclient.data.l[0] = 2;
-    ev.xclient.data.l[1] = wm_state_maximized_horz;
-    ev.xclient.data.l[2] = wm_state_maximized_vert;
-    ev.xclient.data.l[3] = 1;
-
-    XSendEvent(display, DefaultRootWindow(display), False, SubstructureRedirectMask | SubstructureNotifyMask, &ev);
-    XSync(display, False); // synchronize with the X server
-
-    XCloseDisplay(display);
+    juce::XWindowSystem::getInstance()->setMaximised((::Window)handle, !OSUtils::isMaximised(handle));
 }
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()

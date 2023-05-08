@@ -608,13 +608,11 @@ public:
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
                 b->setToggleState(!OSUtils::isMaximised(peer->getNativeHandle()), dontSendNotification);
+                OSUtils::maximiseLinuxWindow(getPeer()->getNativeHandle());
             } else {
                 b->setToggleState(false, dontSendNotification);
             }
         }
-
-        OSUtils::maximiseLinuxWindow(getPeer()->getNativeHandle());
-
 #else
         setFullScreen(!isFullScreen());
 #endif

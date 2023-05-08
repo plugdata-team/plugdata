@@ -1,6 +1,6 @@
 #include "Config.h"
 #include <juce_audio_devices/juce_audio_devices.h>
-#include "Standalone/PlugDataWindow.h"
+#include <juce_gui_basics/juce_gui_basics.h>
 
 #if PLUGDATA_FX
 char const* ProjectInfo::projectName = "plugdata-fx";
