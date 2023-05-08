@@ -61,8 +61,8 @@ public:
 
         auto sliderPosProportional = (getValue() - 0.01f) / (1 - 2 * 0.01f);
 
-        auto startAngle = getRotaryParameters().startAngleRadians * -1 + MathConstants<float>::pi;
-        auto endAngle = getRotaryParameters().endAngleRadians * -1 + MathConstants<float>::pi;
+        auto startAngle = getRotaryParameters().startAngleRadians;
+        auto endAngle = getRotaryParameters().endAngleRadians;
         float angle = startAngle + sliderPosProportional * (endAngle - startAngle);
 
         startAngle = std::clamp(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
@@ -256,6 +256,7 @@ public:
             hash("discrete"),
             hash("arc"),
             hash("angle"),
+            hash("offset"),
             hash("ticks"),
             hash("send"),
             hash("receive"),
@@ -288,9 +289,15 @@ public:
             break;
         }
         case hash("angle"): {
-            if (atoms.size() >= 2) {
+            if (atoms.size()) {
                 setParameterExcludingListener(angularRange, atoms[0].getFloat());
-                setParameterExcludingListener(angularOffset, atoms[1].getFloat());
+                updateRotaryParameters();
+            }
+            break;
+        }
+        case hash("offset"): {
+            if (atoms.size()) {
+                setParameterExcludingListener(angularOffset, atoms[0].getFloat());
                 updateRotaryParameters();
             }
             break;
@@ -511,9 +518,8 @@ public:
     {
         auto* knb = static_cast<t_fake_knob*>(ptr);
 
-        // For some reason, we need to compensate slightly to make 180 be exactly straight
-        float startRad = degreesToRadians<float>(180.0f - knb->x_start_angle);
-        float endRad = degreesToRadians<float>(180.0f - knb->x_end_angle);
+        float startRad = degreesToRadians<float>(knb->x_start_angle) + MathConstants<float>::twoPi;
+        float endRad = degreesToRadians<float>(knb->x_end_angle) + MathConstants<float>::twoPi;
         knob.setRotaryParameters({ startRad, endRad, true });
         knob.setNumberOfTicks(knb->x_ticks);
         knob.repaint();
@@ -544,18 +550,16 @@ public:
             updateRotaryParameters();
             updateRange();
         } else if (value.refersToSameSourceAs(angularRange)) {
-            auto start = ::getValue<int>(angularRange);
-            auto end = ::getValue<int>(angularOffset);
-            pd->enqueueDirectMessages(knb, "angle", { pd::Atom(start), pd::Atom(end) });
+            auto range = ::getValue<int>(angularRange);
+            pd->enqueueDirectMessages(knb, "angle", { pd::Atom(range) });
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(showArc)) {
             bool arc = ::getValue<bool>(showArc);
             knob.showArc(arc);
             knb->x_arc = arc;
         } else if (value.refersToSameSourceAs(angularOffset)) {
-            auto start = ::getValue<int>(angularRange);
-            auto end = ::getValue<int>(angularOffset);
-            pd->enqueueDirectMessages(knb, "angle", { pd::Atom(start), pd::Atom(end) });
+            auto offset = ::getValue<int>(angularOffset);
+            pd->enqueueDirectMessages(knb, "offset", { pd::Atom(offset) });
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(discrete)) {
             knb->x_discrete = ::getValue<bool>(discrete);
