@@ -1422,7 +1422,6 @@ int cpathLoadFlags(cpath_dir *dir, cpath_file *file, void *data) {
         file->statLoaded = 0;
     }
 #endif
-    file->extension = NULL;
     return 1;
 }
 
@@ -2420,6 +2419,7 @@ public:
 
     inline Opt<File, Error::Type> GetNextFile() {
         RawFile file;
+        file.extension = NULL;
         if (!internals::cpathGetNextFile(&dir, &file)) {
             return Error::FromErrno();
         } else {
