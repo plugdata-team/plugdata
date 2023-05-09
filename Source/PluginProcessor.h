@@ -134,7 +134,7 @@ public:
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
 
-    static inline const String versionSuffix = "-test5";
+    static inline const String versionSuffix = "";
     File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + versionSuffix);
 
     File abstractions = versionDataDir.getChildFile("Abstractions");
