@@ -190,6 +190,14 @@ protected:
         v = clampedValue;
         return clampedValue;
     }
+        
+    template<typename T>
+    T limitValueRange(Value& v, T min, T max)
+    {
+        auto clampedValue = std::clamp<T>(getValue<T>(v), min, max);
+        v = clampedValue;
+        return clampedValue;
+    }
 
 public:
     void* ptr;

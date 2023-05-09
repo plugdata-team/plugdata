@@ -257,6 +257,7 @@ public:
     {
         if (editor != nullptr) {
             editor->giveAwayKeyboardFocus();
+            cnv->grabKeyboardFocus();
         }
     }
 
