@@ -391,7 +391,7 @@ public:
 
     bool hasSendSymbol()
     {
-        return !getReceiveSymbol().isEmpty();
+        return !getSendSymbol().isEmpty();
     }
 
     bool hasReceiveSymbol()
