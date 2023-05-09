@@ -91,7 +91,7 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 What works:
 - Nearly complete support for pd
 - Most ELSE and cyclone library objects work
-- LV2, AU and VST3 formats available, tested on Windows (x64), Mac (ARM/x64) and Linux (ARM/x64)
+- VST3, LV2, CLAP and AU format available, tested on Windows (x86/x64), Mac (arm64/x64) and Linux (arm64/armhf/x64)
 - Receive 512 DAW parameters using the [param] abstraction
 - Receive DAW playhead position, tempo and more using the [playhead] abstraction
 
