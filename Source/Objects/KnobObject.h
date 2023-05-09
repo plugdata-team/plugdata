@@ -258,7 +258,6 @@ public:
             hash("set"),
             hash("range"),
             hash("circular"),
-            hash("exp"),
             hash("discrete"),
             hash("arc"),
             hash("angle"),
@@ -327,10 +326,6 @@ public:
             setParameterExcludingListener(ticks, atoms[0].getFloat());
             updateRotaryParameters();
             updateRange();
-            break;
-        }
-        case hash("exp"): {
-            exponential = atoms[0].getFloat();
             break;
         }
         case hash("send"): {
