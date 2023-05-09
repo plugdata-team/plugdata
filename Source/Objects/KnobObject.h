@@ -295,14 +295,16 @@ public:
         }
         case hash("angle"): {
             if (atoms.size()) {
-                setParameterExcludingListener(angularRange, atoms[0].getFloat());
+                auto range = std::clamp<int>(atoms[0].getFloat(), 0, 360);
+                setParameterExcludingListener(angularRange, range);
                 updateRotaryParameters();
             }
             break;
         }
         case hash("offset"): {
             if (atoms.size()) {
-                setParameterExcludingListener(angularOffset, atoms[0].getFloat());
+                auto offset = std::clamp<int>(atoms[0].getFloat(), -180, 180);
+                setParameterExcludingListener(angularOffset, offset);
                 updateRotaryParameters();
             }
             break;

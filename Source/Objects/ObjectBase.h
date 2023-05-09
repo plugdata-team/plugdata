@@ -179,7 +179,7 @@ protected:
     T limitValueMax(Value& v, T max)
     {
         auto clampedValue = std::min<T>(max, getValue<T>(v));
-        v = clampedValue;
+        setParameterExcludingListener(v, clampedValue);
         return clampedValue;
     }
 
@@ -187,7 +187,7 @@ protected:
     T limitValueMin(Value& v, T min)
     {
         auto clampedValue = std::max<T>(min, getValue<T>(v));
-        v = clampedValue;
+        setParameterExcludingListener(v, clampedValue);
         return clampedValue;
     }
         
@@ -195,7 +195,7 @@ protected:
     T limitValueRange(Value& v, T min, T max)
     {
         auto clampedValue = std::clamp<T>(getValue<T>(v), min, max);
-        v = clampedValue;
+        setParameterExcludingListener(v, clampedValue);
         return clampedValue;
     }
 
