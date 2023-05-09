@@ -580,6 +580,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         uiMenu.addItem(createCommandItem(ObjectIDs::NewBang, "Bang"));
         uiMenu.addItem(createCommandItem(ObjectIDs::NewToggle, "Toggle"));
         uiMenu.addItem(createCommandItem(ObjectIDs::NewButton, "Button"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewKnob, "Knob"));
         uiMenu.addItem(createCommandItem(ObjectIDs::NewVerticalSlider, "Vertical Slider"));
         uiMenu.addItem(createCommandItem(ObjectIDs::NewHorizontalSlider, "Horizontal Slider"));
         uiMenu.addItem(createCommandItem(ObjectIDs::NewVerticalRadio, "Vertical Radio"));
