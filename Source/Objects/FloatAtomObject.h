@@ -211,10 +211,10 @@ public:
 
         case hash("set"):
         case hash("float"):
-        case hash("list"):
-        {
-            if(!atoms[0].isFloat()) break;
-            
+        case hash("list"): {
+            if (!atoms[0].isFloat())
+                break;
+
             auto min = atomHelper.getMinimum();
             auto max = atomHelper.getMaximum();
 

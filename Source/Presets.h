@@ -6,7 +6,6 @@
 
 #pragma once
 
-
 struct Presets {
     static inline const std::vector<std::pair<String, String>> presets = {
         { "Default Preset", "AAAAAEAAAAAAAAAAAAAAAMIAAABWQzIhuQAAADw/eG1sIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IlVURi04Ij8+IDxwbHVnZGF0YV9zYXZlIFZlcnNpb249IjAuNy4xIiBTcGxpdEluZGV4PSIwIiBPdmVyc2FtcGxpbmc9IjAiIExhdGVuY3k9IjY0IiBUYWlsTGVuZ3RoPSIwLjAiIExlZ2FjeT0iMCIgV2lkdGg9IjEwMDAiIEhlaWdodD0iNjUwIiBQbHVnaW5Nb2RlPSIwIi8+AA==" },
@@ -18,27 +17,25 @@ struct Presets {
         { "Bulgroz", "AQAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAAA6AQAAVkMyITEBAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI0NjEiIEhlaWdodD0iMjAxIiBQbHVnaW5Nb2RlPSJCdWxncm96LnBkIj48UGF0Y2hlcz48UGF0Y2ggQ29udGVudD0iIiBMb2NhdGlvbj0iJHtQUkVTRVRfRElSfS9CdWxncm96L0J1bGdyb3oucGQiIFBsdWdpbk1vZGU9IjEiLz48L1BhdGNoZXM+PC9wbHVnZGF0YV9zYXZlPgA=" },
         { "Pong", "AQAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAAAxAQAAVkMyISgBAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI1MDAiIEhlaWdodD0iNTIwIiBQbHVnaW5Nb2RlPSJQb25nLnBkIj48UGF0Y2hlcz48UGF0Y2ggQ29udGVudD0iIiBMb2NhdGlvbj0iJHtQUkVTRVRfRElSfS9Qb25nL1BvbmcucGQiIFBsdWdpbk1vZGU9IjEiLz48L1BhdGNoZXM+PC9wbHVnZGF0YV9zYXZlPgA=" }
     };
-    
-    
+
     static bool fixPresets()
     {
-        for(auto& [name, content] : presets)
-        {
+        for (auto& [name, content] : presets) {
             std::cout << "name: " << name << std::endl;
             fixPreset(content);
         }
-        
+
         return true;
     }
     static void fixPreset(String preset)
     {
         MemoryOutputStream b64_ostream;
         Base64::convertFromBase64(b64_ostream, preset);
-        
+
         MemoryInputStream istream(b64_ostream.getData(), b64_ostream.getDataSize(), true);
 
         istream.readInt();
-        //jassert(istream.readInt() == 1);
+        // jassert(istream.readInt() == 1);
 
         int numPatches = 1;
 
@@ -55,19 +52,19 @@ struct Presets {
         istream.read(xmlData, xmlSize);
 
         std::unique_ptr<XmlElement> xmlState(AudioProcessor::getXmlFromBinary(xmlData, xmlSize));
-        
+
         auto* patches = new XmlElement("Patches");
-        auto* patch =  new XmlElement("Patch");
-        
+        auto* patch = new XmlElement("Patch");
+
         patch->setAttribute("Content", "");
         patch->setAttribute("Location", patchFile);
         patch->setAttribute("PluginMode", true);
-        
+
         patches->addChildElement(patch);
         xmlState->addChildElement(patches);
-        
+
         MemoryBlock outBlock;
-        
+
         // Now reconstruct the modified save file
         MemoryOutputStream ostream(outBlock, false);
 
@@ -92,11 +89,10 @@ struct Presets {
         auto result = base64_ostream.toString();
         std::cout << result << std::endl;
         SystemClipboard::copyTextToClipboard(result);
-        
     }
-    
-    //static inline bool wasRan = fixPresets();
-    
+
+    // static inline bool wasRan = fixPresets();
+
     static void createPreset(AudioProcessor* processor)
     {
         File presetDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library").getChildFile("Extra").getChildFile("Presets");

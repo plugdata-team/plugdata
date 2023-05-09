@@ -6,7 +6,6 @@
 
 #include "Dialogs/Dialogs.h"
 
-
 class TextFileObject final : public TextBase {
 
     std::unique_ptr<Component> textEditor;

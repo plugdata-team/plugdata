@@ -8,7 +8,7 @@
 
 class NumboxTildeObject final : public ObjectBase
     , public Timer {
-    
+
     DraggableNumber input;
 
     int nextInterval = 100;

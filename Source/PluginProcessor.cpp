@@ -150,7 +150,7 @@ PluginProcessor::PluginProcessor()
     // first launch.
     initialisePd(pdlua_version);
     logMessage(pdlua_version);
-    
+
     updateSearchPaths();
 
     objectLibrary = std::make_unique<pd::Library>();
@@ -860,17 +860,14 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     return editor;
 }
 
-
 bool PluginProcessor::isInPluginMode()
 {
-    for(auto& patch : patches)
-    {
-        if(patch->openInPluginMode)
-        {
+    for (auto& patch : patches) {
+        if (patch->openInPluginMode) {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -900,25 +897,25 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
 
     auto* patchesTree = new XmlElement("Patches");
-    
+
     for (auto patch : patches) {
-        
+
         if (palettes.contains(patch.get()))
             continue;
-        
+
         auto content = patch->getCanvasContent();
         auto patchFile = patch->getCurrentFile().getFullPathName();
-        
+
         // Write legacy format
         ostream.writeString(content);
         ostream.writeString(patchFile);
-        
+
         auto* patchTree = new XmlElement("Patch");
         // Write new format
         patchTree->setAttribute("Content", content);
         patchTree->setAttribute("Location", patchFile);
         patchTree->setAttribute("PluginMode", patch->openInPluginMode);
-        
+
         patchesTree->addChildElement(patchTree);
     }
     unlockAudioThread();
@@ -945,9 +942,9 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         xml.setAttribute("Width", lastUIWidth);
         xml.setAttribute("Height", lastUIHeight);
     }
-    
+
     xml.addChildElement(patchesTree);
-    
+
     // JYG added This
     m_temp_xml = &xml;
     // signal to patches that we need to collect extra data to save into the host session
@@ -995,7 +992,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     int numPatches = istream.readInt();
 
     Array<std::pair<String, File>> patches;
-    
+
     for (int i = 0; i < numPatches; i++) {
         auto state = istream.readString();
         auto path = istream.readString();
@@ -1004,10 +1001,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
         auto location = File(path);
-        
-        patches.add({state, location});
+
+        patches.add({ state, location });
     }
-    
 
     auto legacyLatency = istream.readInt();
     auto legacyOversampling = istream.readInt();
@@ -1019,11 +1015,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     istream.read(xmlData, xmlSize);
 
     std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
-    
-    auto openPatch = [this](const String& content, const File& location, bool pluginMode = false)
-    {
-        if (location.getFullPathName().isNotEmpty() && location.existsAsFile())
-        {
+
+    auto openPatch = [this](String const& content, File const& location, bool pluginMode = false) {
+        if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
             auto patch = loadPatch(location);
             if (patch) {
                 patch->setTitle(location.getFileName());
@@ -1045,33 +1039,31 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             }
         }
     };
-    
+
     if (xmlState) {
         // If xmltree contains new patch format, use that
-        if(auto* patchTree = xmlState->getChildByName("Patches"))
-        {
+        if (auto* patchTree = xmlState->getChildByName("Patches")) {
             forEachXmlChildElementWithTagName(*patchTree, p, "Patch")
             {
                 auto content = p->getStringAttribute("Content");
                 auto location = p->getStringAttribute("Location");
                 auto pluginMode = p->getBoolAttribute("PluginMode");
-                
+
                 auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
                 location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
-                
+
                 openPatch(content, location, pluginMode);
             }
         }
         // Otherwise, load from legacy format
         else {
-            for(auto& [content, location] : patches)
-            {
+            for (auto& [content, location] : patches) {
                 openPatch(content, location);
             }
         }
 
         jassert(xmlState);
-        
+
         PlugDataParameter::loadStateInformation(*xmlState, getParameters());
 
         auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
@@ -1183,15 +1175,15 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
         MessageManager::callAsync([this, patch, _editor = Component::SafePointer(editor)]() mutable {
             if (!_editor)
                 return;
-            
+
             // There are some subroutines that get called when we create a canvas, that will lock the audio thread
             // By locking it around this whole function, we can prevent slowdowns from constantly locking/unlocking the audio thread
             lockAudioThread();
-            
+
             auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr));
-            
+
             unlockAudioThread();
-            
+
             _editor->addTab(cnv);
         });
     }

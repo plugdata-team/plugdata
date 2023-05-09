@@ -140,7 +140,7 @@ private:
         if (ProjectInfo::isStandalone && !TopLevelWindow::getActiveTopLevelWindow()) {
             return;
         }
-        
+
         auto mods = ModifierKeys::getCurrentModifiersRealtime();
         setModifierKeys(mods);
     }

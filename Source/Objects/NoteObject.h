@@ -21,13 +21,13 @@ public:
         : ObjectBase(obj, object)
     {
         locked = getValue<bool>(object->locked);
-        
+
         // Lock around it, to make sure this gets called synchronously
         // Unfortunately note needs to receive the vis message to make it initialise
         pd->lockAudioThread();
         (*static_cast<t_pd*>(ptr))->c_wb->w_visfn(static_cast<t_gobj*>(ptr), object->cnv->patch.getPointer(), 1);
         pd->unlockAudioThread();
-            
+
         addAndMakeVisible(noteEditor);
 
         noteEditor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));

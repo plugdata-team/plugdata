@@ -175,9 +175,7 @@ public:
     {
         if (!isVisible()) {
             clearSearchTargets();
-        }
-        else
-        {
+        } else {
             updateResults();
         }
     }

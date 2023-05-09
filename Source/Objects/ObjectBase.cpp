@@ -514,9 +514,9 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
 
     auto messages = getAllMessages();
     if (std::find(messages.begin(), messages.end(), hash("anything")) != messages.end() || std::find(messages.begin(), messages.end(), sym) != messages.end()) {
-        
+
         auto atoms = pd::Atom::fromAtoms(argc, argv);
-        
+
         MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
             if (_this)
                 _this->receiveObjectMessage(symbol, atoms);

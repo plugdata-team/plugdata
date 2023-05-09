@@ -67,7 +67,7 @@ private:
     TextButton browserButton = TextButton(Icons::Documentation);
     TextButton automationButton = TextButton(Icons::Parameters);
     TextButton searchButton = TextButton(Icons::Search);
-    
+
     TextButton panelSettingsButton = TextButton(Icons::Settings);
     TextButton panelPinButton = TextButton(Icons::Pin);
 

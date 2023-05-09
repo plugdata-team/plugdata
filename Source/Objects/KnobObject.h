@@ -11,7 +11,7 @@ class Knob : public Slider {
 
     Colour fgColour;
     Colour arcColour;
-    
+
     bool drawArc;
 
     int numberOfTicks = 0;
@@ -192,7 +192,7 @@ public:
         secondaryColour = getBackgroundColour().toString();
         arcColour = getArcColour().toString();
         outline = knb->x_outline;
-        
+
         min = getMinimum();
         max = getMaximum();
         updateRange();
@@ -359,20 +359,18 @@ public:
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        if(::getValue<bool>(outline)) {
+        if (::getValue<bool>(outline)) {
             g.setColour(Colour::fromString(secondaryColour.toString()));
             g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-            
             g.setColour(outlineColour);
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-        }
-        else {
-            
+        } else {
+
             auto bounds = getLocalBounds().toFloat().reduced(getWidth() * 0.13f);
             auto const lineThickness = std::max(bounds.getWidth() * 0.07f, 1.5f);
             bounds = bounds.reduced(lineThickness - 0.5f);
-            
+
             g.setColour(Colour::fromString(secondaryColour.toString()));
             g.fillEllipse(bounds);
 
@@ -451,19 +449,19 @@ public:
         auto fg = String::fromUTF8(static_cast<t_fake_knob*>(ptr)->x_fg->s_name);
         return convertTclColour(fg);
     }
-    
+
     Colour getArcColour() const
     {
         auto mg = String::fromUTF8(static_cast<t_fake_knob*>(ptr)->x_mg->s_name);
         return convertTclColour(mg);
     }
-    
-    Colour convertTclColour(const String& colourStr) const
+
+    Colour convertTclColour(String const& colourStr) const
     {
-        if(tclColours.count(colourStr)) {
+        if (tclColours.count(colourStr)) {
             return tclColours[colourStr];
         }
-        
+
         return Colour::fromString(colourStr.replace("#", "ff"));
     }
 
@@ -488,7 +486,7 @@ public:
             { "Arc color", tColour, cAppearance, &arcColour, {} },
             { "Fill background", tBool, cAppearance, &outline, { "No", "Yes" } },
             { "Show arc", tBool, cAppearance, &showArc, { "No", "Yes" } },
-            
+
             { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
             { "Send symbol", tString, cGeneral, &sendSymbol, {} },
         };
@@ -574,12 +572,10 @@ public:
         } else if (value.refersToSameSourceAs(discrete)) {
             knb->x_discrete = ::getValue<bool>(discrete);
             updateRange();
-        }
-        else if (value.refersToSameSourceAs(outline)) {
+        } else if (value.refersToSameSourceAs(outline)) {
             knb->x_outline = ::getValue<bool>(outline);
             repaint();
-        }
-        else if (value.refersToSameSourceAs(exponential)) {
+        } else if (value.refersToSameSourceAs(exponential)) {
             knb->x_exp = ::getValue<bool>(exponential);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
@@ -596,8 +592,7 @@ public:
             auto colour = "#" + secondaryColour.toString().substring(2);
             knb->x_bg = pd->generateSymbol(colour);
             repaint();
-        }
-        else if (value.refersToSameSourceAs(arcColour)) {
+        } else if (value.refersToSameSourceAs(arcColour)) {
             auto colour = "#" + arcColour.toString().substring(2);
             knb->x_mg = pd->generateSymbol(colour);
             knob.setArcColour(Colour::fromString(arcColour.toString()));

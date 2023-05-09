@@ -23,9 +23,10 @@ public:
         , subpatch(new pd::Patch(ptr, cnv->pd, false))
     {
         resized();
-        
-        MessageManager::callAsync([_this = SafePointer(this)](){
-            if(_this) _this->checkGraphState();
+
+        MessageManager::callAsync([_this = SafePointer(this)]() {
+            if (_this)
+                _this->checkGraphState();
         });
     }
 

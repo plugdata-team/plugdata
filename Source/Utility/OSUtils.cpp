@@ -200,7 +200,6 @@ bool OSUtils::isX11WindowMaximised(void* handle)
         "_NET_WM_STATE_FOCUSED"
     };
 
-
     auto* display = juce::XWindowSystem::getInstance()->getDisplay();
 
     juce::XWindowSystemUtilities::ScopedXLock xLock;
@@ -210,12 +209,13 @@ bool OSUtils::isX11WindowMaximised(void* handle)
 
     auto window = (Window)handle;
 
-    if(!display) return false;
-    
+    if (!display)
+        return false;
+
     net_wm_state = XInternAtom(display, "_NET_WM_STATE", False);
 
     for (int i = 0; i < WINDOW_STATE_SIZE; i++) {
-            net_wm_states[i] = XInternAtom(display, WINDOW_STATE_NAMES[i], False);
+        net_wm_states[i] = XInternAtom(display, WINDOW_STATE_NAMES[i], False);
     }
 
     long max_length = 1024;

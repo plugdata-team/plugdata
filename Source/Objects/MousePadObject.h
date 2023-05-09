@@ -7,19 +7,18 @@
 // ELSE mousepad
 class MousePadObject final : public ObjectBase {
     bool isPressed = false;
-        
-   
+
     Point<int> lastPosition;
 
 public:
     MousePadObject(void* ptr, Object* object)
-        : ObjectBase(ptr, object), mouseListener(this)
+        : ObjectBase(ptr, object)
+        , mouseListener(this)
     {
-        mouseListener.globalMouseDown = [this, object](const MouseEvent& e){
-            
+        mouseListener.globalMouseDown = [this, object](MouseEvent const& e) {
             auto relativeEvent = e.getEventRelativeTo(this);
 
-            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !cnv->isShowing() || isPressed )
+            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !cnv->isShowing() || isPressed)
                 return;
 
             pd->setThis();
@@ -36,10 +35,8 @@ public:
             pd->unlockAudioThread();
 
             isPressed = true;
-            
         };
-        mouseListener.globalMouseUp = [this](const MouseEvent& e){
-            
+        mouseListener.globalMouseUp = [this](MouseEvent const& e) {
             if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed || !isLocked() || !cnv->isShowing())
                 return;
 
@@ -48,10 +45,9 @@ public:
             SETFLOAT(at, 0);
             outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
             isPressed = false;
-            
         };
 
-        mouseListener.globalMouseMove = [this](const MouseEvent& e){
+        mouseListener.globalMouseMove = [this](MouseEvent const& e) {
             if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked() || !cnv->isShowing())
                 return;
 
@@ -81,11 +77,11 @@ public:
                 outlet_anything(x->x_obj.ob_outlet, gensym("list"), 2, at);
             });
         };
-        
-        mouseListener.globalMouseDrag = [this](const MouseEvent& e){
+
+        mouseListener.globalMouseDrag = [this](MouseEvent const& e) {
             mouseListener.globalMouseMove(e);
         };
-        
+
         setInterceptsMouseClicks(false, false);
     }
 
@@ -157,6 +153,6 @@ public:
             break;
         }
     }
-    
+
     GlobalMouseListener mouseListener;
 };

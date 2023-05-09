@@ -170,7 +170,7 @@ public:
     {
         inlets.clear();
         outlets.clear();
-        
+
         bool valid = name.isNotEmpty();
 
         if (!valid) {
@@ -296,8 +296,7 @@ public:
             rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
             rightSideInfoText += description;
         }
-        
-        
+
         auto flags = objectInfo.getChildWithName("flags");
         if (flags.getNumChildren())
             rightSideInfoText += "\n\nFlags:";
@@ -308,7 +307,7 @@ public:
 
             if (!name.startsWith("-"))
                 name = "- " + name;
-            
+
             rightSideInfoText += "\n";
             rightSideInfoText += name + ": ";
             rightSideInfoText += description;

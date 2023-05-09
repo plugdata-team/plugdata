@@ -35,15 +35,15 @@ bool ProjectInfo::canUseSemiTransparentWindows()
 #if !JUCE_MAC || PLUGDATA_STANDALONE
     return Desktop::canUseSemiTransparentWindows();
 #else
-    
-// Apple's plugin hosts will show an ugly pink edge below transparent edges
-// This is a "security feature" and will probably not be removed anytime soon
-    
+
+    // Apple's plugin hosts will show an ugly pink edge below transparent edges
+    // This is a "security feature" and will probably not be removed anytime soon
+
     auto hostType = PluginHostType();
     if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
         return false;
     }
-    
+
     return Desktop::canUseSemiTransparentWindows();
 #endif
 }

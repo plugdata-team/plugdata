@@ -3,8 +3,7 @@
 #include "PluginEditor.h"
 #include "Standalone/PlugDataWindow.h"
 
-class PluginMode : public Component
-{
+class PluginMode : public Component {
 public:
     PluginMode(Canvas* cnv)
         : cnv(cnv)
@@ -12,13 +11,12 @@ public:
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
-        if(ProjectInfo::isStandalone) {
+        if (ProjectInfo::isStandalone) {
             // If the window is already maximised, unmaximise it to prevent problems
 #if JUCE_LINUX
             OSUtils::maximiseX11Window(desktopWindow->getNativeHandle(), false);
 #else
-            if(desktopWindow->isFullScreen())
-            {
+            if (desktopWindow->isFullScreen()) {
                 desktopWindow->setFullScreen(false);
             }
 #endif
@@ -43,8 +41,7 @@ public:
         editorButton->getProperties().set("Style", "LargeIcon");
         editorButton->setTooltip("Show Editor..");
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
-        editorButton->onClick = [this]()
-        {
+        editorButton->onClick = [this]() {
             closePluginMode();
         };
 
@@ -61,8 +58,7 @@ public:
             borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(editor->getTopLevelComponent(), &pluginModeConstrainer);
             borderResizer->setAlwaysOnTop(true);
             addAndMakeVisible(borderResizer.get());
-        }
-        else {
+        } else {
             cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(editor, &pluginModeConstrainer);
             cornerResizer->setAlwaysOnTop(true);
             addAndMakeVisible(cornerResizer.get());
@@ -73,7 +69,7 @@ public:
             fullscreenButton->getProperties().set("Style", "LargeIcon");
             fullscreenButton->setTooltip("Kiosk Mode..");
             fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
-            fullscreenButton->onClick = [this](){
+            fullscreenButton->onClick = [this]() {
                 setKioskMode(true);
             };
             titleBar.addAndMakeVisible(*fullscreenButton);
@@ -124,10 +120,8 @@ public:
             cnv->presentationMode = originalPresentationMode;
         }
 
-        MessageManager::callAsync([
-            editor = this->editor,
-            bounds = windowBounds
-            ](){
+        MessageManager::callAsync([editor = this->editor,
+                                      bounds = windowBounds]() {
             editor->setConstrainer(editor->defaultConstrainer);
             editor->setBoundsConstrained(bounds);
             editor->getParentComponent()->resized();
@@ -140,10 +134,10 @@ public:
 
     bool isWindowFullscreen()
     {
-        if(ProjectInfo::isStandalone) {
+        if (ProjectInfo::isStandalone) {
             return isFullScreenKioskMode;
         }
-        
+
         return false;
     }
 
@@ -186,14 +180,14 @@ public:
         float const resizeRatio = width / (height + (controlsHeight / scale));
 
         pluginModeConstrainer.setFixedAspectRatio(resizeRatio);
-      
+
         // Detect if the user exited fullscreen with the macOS's fullscreen button
 #if JUCE_MAC
         if (ProjectInfo::isStandalone && isWindowFullscreen() && !desktopWindow->isFullScreen()) {
             setKioskMode(false);
         }
 #endif
-        
+
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
 
             // Calculate the scale factor required to fit the editor in the screen
@@ -213,12 +207,10 @@ public:
 
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
-        }
-        else {
+        } else {
             if (ProjectInfo::isStandalone) {
                 borderResizer->setBounds(getLocalBounds());
-            }
-            else {
+            } else {
                 int const resizerSize = 18;
                 cornerResizer->setBounds(getWidth() - resizerSize,
                     getHeight() - resizerSize,
@@ -296,33 +288,32 @@ public:
     void setKioskMode(bool shouldBeBiosk)
     {
         auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
-        
-        if(!window) return;
-        
+
+        if (!window)
+            return;
+
         isFullScreenKioskMode = shouldBeBiosk;
-        
-        if(shouldBeBiosk)
-        {
+
+        if (shouldBeBiosk) {
             originalPluginWindowBounds = window->getBounds();
             editor->setConstrainer(nullptr);
             window->setUsingNativeTitleBar(false);
             desktopWindow = window->getPeer();
             setFullScreen(window, true);
             borderResizer->setVisible(false);
-        }
-        else {
+        } else {
             setFullScreen(window, false);
             editor->setConstrainer(&pluginModeConstrainer);
             setBounds(originalPluginWindowBounds.withZeroOrigin());
             editor->setBounds(originalPluginWindowBounds);
-            
+
             bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
             window->setBounds(originalPluginWindowBounds.translated(0, isUsingNativeTitlebar ? -nativeTitleBarHeight : 0));
 
             window->getContentComponent()->resized();
             window->setUsingNativeTitleBar(isUsingNativeTitlebar);
             desktopWindow = window->getPeer();
-            
+
             borderResizer->setVisible(true);
         }
     }

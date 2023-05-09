@@ -13,31 +13,29 @@
 
 class DocumentBrowserSettings : public Component {
 public:
-    
-    struct DocumentBrowserSettingsButton : public TextButton
-    {
+    struct DocumentBrowserSettingsButton : public TextButton {
         const String icon;
         const String description;
-        
-        DocumentBrowserSettingsButton(String iconString, String descriptionString) : icon(iconString), description(descriptionString)
+
+        DocumentBrowserSettingsButton(String iconString, String descriptionString)
+            : icon(iconString)
+            , description(descriptionString)
         {
         }
-        
+
         void paint(Graphics& g) override
         {
             auto colour = findColour(PlugDataColour::toolbarTextColourId);
 
             Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(30), colour, 14);
-            
-            if(isMouseOver())
-            {
+
+            if (isMouseOver()) {
                 colour = colour.brighter(0.4f);
             }
-            if(getToggleState())
-            {
+            if (getToggleState()) {
                 colour = findColour(PlugDataColour::toolbarActiveColourId);
             }
-     
+
             Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(6), colour, 14, false);
         }
     };
@@ -46,12 +44,12 @@ public:
     {
         addAndMakeVisible(customLocationButton);
         addAndMakeVisible(restoreLocationButton);
-        
-        customLocationButton.onClick = [chooseCustomLocation](){
+
+        customLocationButton.onClick = [chooseCustomLocation]() {
             chooseCustomLocation();
         };
-        
-        restoreLocationButton.onClick = [resetDefaultLocation](){
+
+        restoreLocationButton.onClick = [resetDefaultLocation]() {
             resetDefaultLocation();
         };
 
@@ -61,7 +59,7 @@ public:
     void resized() override
     {
         auto buttonBounds = getLocalBounds();
-        
+
         int buttonHeight = buttonBounds.getHeight() / 2;
 
         customLocationButton.setBounds(buttonBounds.removeFromTop(buttonHeight));
@@ -69,7 +67,6 @@ public:
     }
 
 private:
-    
     DocumentBrowserSettingsButton customLocationButton = DocumentBrowserSettingsButton(Icons::Open, "Show custom folder...");
     DocumentBrowserSettingsButton restoreLocationButton = DocumentBrowserSettingsButton(Icons::Restore, "Show default folder");
 
@@ -139,9 +136,8 @@ public:
         p.lineTo(isOpen() ? 1.0f : 0.0f, isOpen() ? 0.0f : 1.0f);
 
         auto arrowArea = area.reduced(5, 9).translated(4, 0).toFloat();
-        
-        if(!isOpen())
-        {
+
+        if (!isOpen()) {
             arrowArea = arrowArea.reduced(1);
         }
 
@@ -837,7 +833,7 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 29, getWidth(), 29);
     }
-    
+
     void showCalloutBox(Rectangle<int> bounds, PluginEditor* editor)
     {
         auto openFolderCallback = [this]() {
@@ -853,8 +849,7 @@ public:
                     }
                 });
         };
-    
-        
+
         auto resetFolderCallback = [this]() {
             auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
             auto path = location.getFullPathName();
@@ -862,7 +857,6 @@ public:
             directory.setDirectory(path, true, true);
         };
 
-        
         auto docsSettings = std::make_unique<DocumentBrowserSettings>(openFolderCallback, resetFolderCallback);
         CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, editor);
     }

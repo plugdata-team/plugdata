@@ -118,7 +118,8 @@ struct pd::Instance::internal {
 namespace pd {
 
 Instance::Instance(String const& symbol, CriticalSection const* lock)
-    : consoleHandler(this), audioLock(lock)
+    : consoleHandler(this)
+    , audioLock(lock)
 {
     libpd_multi_init();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
@@ -143,19 +144,17 @@ Instance::~Instance()
 void Instance::initialisePd(String& pdlua_version)
 {
     m_instance = libpd_new_instance();
-    
+
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-    
-    
-    set_instance_lock(static_cast<const void*>(audioLock),
-        [](void* lock){
+
+    set_instance_lock(
+        static_cast<void const*>(audioLock),
+        [](void* lock) {
             static_cast<CriticalSection*>(lock)->enter();
         },
-        [](void* lock){
+        [](void* lock) {
             static_cast<CriticalSection*>(lock)->exit();
-        }
-    );
-    
+        });
 
     m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
@@ -212,14 +211,13 @@ void Instance::initialisePd(String& pdlua_version)
         }
 
         // Remove all the null listeners from the original vector using the iterators in the nullListeners vector
-        for(int i = nullListeners.size() - 1; i >= 0; i--)
-        {
+        for (int i = nullListeners.size() - 1; i >= 0; i--) {
             listeners[target].erase(nullListeners[i]);
-        }            
+        }
     };
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, message_trigger);
-    
+
     // Make sure we set the maininstance when initialising objects
     // Whenever a new instance is created, the functions will be copied from this one
     libpd_set_instance(libpd_get_instance(0));
@@ -246,7 +244,7 @@ void Instance::initialisePd(String& pdlua_version)
 
         initialised = true;
     }
-    
+
     setThis();
 
     // ag: need to do this here to suppress noise from chatty externals
@@ -571,7 +569,7 @@ void Instance::waitForStateUpdate()
     // No action needed
     if (m_function_queue.size_approx() == 0) {
         return;
-    }    
+    }
 
     waitingForStateUpdate = true;
 
@@ -746,7 +744,7 @@ bool Instance::tryLockAudioThread()
 }
 
 void Instance::unlockAudioThread()
-{    
+{
     numLocksHeld--;
     audioLock->exit();
 }
@@ -762,6 +760,3 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
 }
 
 } // namespace pd
-
-
-

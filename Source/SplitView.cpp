@@ -121,7 +121,7 @@ SplitView::SplitView(PluginEditor* parent)
             splitFocusIndex = i;
             editor->openProject();
         };
-        
+
         tabbar.openProjectFile = [this, i](File patchFile) {
             splitFocusIndex = i;
             editor->pd->loadPatch(patchFile);
@@ -129,11 +129,11 @@ SplitView::SplitView(PluginEditor* parent)
 
         tabbar.onTabChange = [this, i, &tabbar](int idx) {
             splitFocusIndex = i;
-            
+
             editor->updateCommandStatus();
-            
+
             auto* cnv = tabbar.getCurrentCanvas();
-            
+
             if (!cnv || idx == -1 || editor->pd->isPerformingGlobalSync)
                 return;
 
@@ -157,28 +157,29 @@ SplitView::SplitView(PluginEditor* parent)
 
         tabbar.rightClick = [this, &tabbar, i](int tabIndex, String const& tabName) {
             PopupMenu tabMenu;
-            
+
 #if JUCE_MAC
-        String revealTip = "Reveal in Finder";
+            String revealTip = "Reveal in Finder";
 #elif JUCE_WINDOWS
-        String revealTip = "Reveal in Explorer";
+            String revealTip = "Reveal in Explorer";
 #else
-        String revealTip = "Reveal in file browser";
+            String revealTip = "Reveal in file browser";
 #endif
-            
+
             auto* cnv = tabbar.getCanvas(tabIndex);
-            if(!cnv) return;
-            
+            if (!cnv)
+                return;
+
             bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
-            
+
             tabMenu.addItem(revealTip, canReveal, false, [this, cnv]() {
                 cnv->patch.getCurrentFile().revealToUser();
             });
-            
+
             bool canSplit = true;
             if (i == 0 && !splitView)
                 canSplit = getLeftTabbar()->getNumTabs() > 1;
-            
+
             tabMenu.addItem(i == 0 ? "Split Right" : "Split Left", canSplit, false, [this, cnv, &tabbar, i]() {
                 splitCanvasView(cnv, i == 0);
                 closeEmptySplits();

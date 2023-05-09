@@ -354,7 +354,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
         bool active = shouldDrawButtonAsHighlighted || shouldDrawButtonAsDown || button.getToggleState();
-        
 
         auto cornerSize = Corners::defaultCornerRadius;
         auto flatOnLeft = button.isConnectedOnLeft();
@@ -364,7 +363,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
             auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId);
-            
+
             auto bounds = button.getLocalBounds().toFloat();
             bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
 
@@ -432,13 +431,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
         if (button.getProperties()["Style"] == "LargeIcon") {
             button.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarTextColourId));
             button.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
-            
+
             g.saveState();
             g.addTransform(AffineTransform::translation(0.25f, 0.0f)); // This heuristic makes sure the icon appears exactly centred
             LookAndFeel_V4::drawButtonText(g, button, isMouseOverButton, isButtonDown);
             g.restoreState();
-        }
-        else if (button.getProperties()["Style"] == "SmallIcon") {
+        } else if (button.getProperties()["Style"] == "SmallIcon") {
             Font font(getTextButtonFont(button, button.getHeight()));
             g.setFont(font);
 
@@ -502,17 +500,16 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
         // For large buttons, the icon should actually be smaller
         if (but.getProperties()["Style"] == "LargeIcon") {
-            
+
             auto flatOnLeft = but.isConnectedOnLeft();
             auto flatOnRight = but.isConnectedOnRight();
             auto flatOnTop = but.isConnectedOnTop();
             auto flatOnBottom = but.isConnectedOnBottom();
-            
-            if(flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
-            {
+
+            if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
                 return Fonts::getIconFont().withHeight(buttonHeight * 0.345f);
             }
-            
+
             return Fonts::getIconFont().withHeight(buttonHeight * 0.375f);
         }
 
@@ -617,35 +614,46 @@ struct PlugDataLook : public LookAndFeel_V4 {
             minimiseButton->setBounds(x, titleBarY, buttonW, titleBarH);
         }
     }
-    
-    Rectangle<int> getTabButtonExtraComponentBounds (const TabBarButton& button, Rectangle<int>& textArea, Component& comp) override
+
+    Rectangle<int> getTabButtonExtraComponentBounds(TabBarButton const& button, Rectangle<int>& textArea, Component& comp) override
     {
         Rectangle<int> extraComp;
-        
+
         auto area = textArea.reduced(4);
 
         auto orientation = button.getTabbedButtonBar().getOrientation();
 
-        if (button.getExtraComponentPlacement() == TabBarButton::beforeText)
-        {
-            switch (orientation)
-            {
-                case TabbedButtonBar::TabsAtBottom:
-                case TabbedButtonBar::TabsAtTop:     extraComp = area.removeFromLeft   (comp.getWidth()); break;
-                case TabbedButtonBar::TabsAtLeft:    extraComp = area.removeFromBottom (comp.getHeight()); break;
-                case TabbedButtonBar::TabsAtRight:   extraComp = area.removeFromTop    (comp.getHeight()); break;
-                default:                             jassertfalse; break;
+        if (button.getExtraComponentPlacement() == TabBarButton::beforeText) {
+            switch (orientation) {
+            case TabbedButtonBar::TabsAtBottom:
+            case TabbedButtonBar::TabsAtTop:
+                extraComp = area.removeFromLeft(comp.getWidth());
+                break;
+            case TabbedButtonBar::TabsAtLeft:
+                extraComp = area.removeFromBottom(comp.getHeight());
+                break;
+            case TabbedButtonBar::TabsAtRight:
+                extraComp = area.removeFromTop(comp.getHeight());
+                break;
+            default:
+                jassertfalse;
+                break;
             }
-        }
-        else
-        {
-            switch (orientation)
-            {
-                case TabbedButtonBar::TabsAtBottom:
-                case TabbedButtonBar::TabsAtTop:     extraComp = area.removeFromRight  (comp.getWidth()); break;
-                case TabbedButtonBar::TabsAtLeft:    extraComp = area.removeFromTop    (comp.getHeight()); break;
-                case TabbedButtonBar::TabsAtRight:   extraComp = area.removeFromBottom (comp.getHeight()); break;
-                default:                             jassertfalse; break;
+        } else {
+            switch (orientation) {
+            case TabbedButtonBar::TabsAtBottom:
+            case TabbedButtonBar::TabsAtTop:
+                extraComp = area.removeFromRight(comp.getWidth());
+                break;
+            case TabbedButtonBar::TabsAtLeft:
+                extraComp = area.removeFromTop(comp.getHeight());
+                break;
+            case TabbedButtonBar::TabsAtRight:
+                extraComp = area.removeFromBottom(comp.getHeight());
+                break;
+            default:
+                jassertfalse;
+                break;
             }
         }
 
@@ -666,16 +674,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
         bool isActive = button.getToggleState();
-        
-        if(isActive)
-        {
+
+        if (isActive) {
             g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
-        }
-        else if(isMouseOver)
-        {
+        } else if (isMouseOver) {
             g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId).interpolatedWith(findColour(PlugDataColour::tabBackgroundColourId), 0.4f));
-        }
-        else {
+        } else {
             g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
         }
 
@@ -683,7 +687,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         int w = button.getWidth();
         int h = button.getHeight();
-        
+
         drawTabButtonText(button, g, false, false);
     }
 
@@ -695,24 +699,21 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         return Fonts::getCurrentFont().withHeight(height * 0.44f);
     }
-    
-    void getIdealPopupMenuItemSize (const String& text, const bool isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override
+
+    void getIdealPopupMenuItemSize(String const& text, bool const isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override
     {
-        if (isSeparator)
-        {
+        if (isSeparator) {
             idealWidth = 50;
             idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight / 10 : 10;
-        }
-        else
-        {
+        } else {
             auto font = getPopupMenuFont();
 
-            if (standardMenuItemHeight > 0 && font.getHeight() > (float) standardMenuItemHeight / 1.3f)
-                font.setHeight ((float) standardMenuItemHeight / 1.3f);
+            if (standardMenuItemHeight > 0 && font.getHeight() > (float)standardMenuItemHeight / 1.3f)
+                font.setHeight((float)standardMenuItemHeight / 1.3f);
 
-            idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt (font.getHeight() * 1.3f);
-            idealWidth = font.getStringWidth (text) + idealHeight * 2;
-            
+            idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
+            idealWidth = font.getStringWidth(text) + idealHeight * 2;
+
             idealHeight += 2;
         }
     }
@@ -720,7 +721,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override
     {
         auto background = findColour(PlugDataColour::popupMenuBackgroundColourId);
-        
+
         // TODO: some popup menus are added to a component and some to desktop,
         // which makes it really hard to decide whether they can be transparent or not!
         // We can check it in this function by checking options.getParentComponent, but unfortunately not everywhere
@@ -1396,7 +1397,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         selectedThemes = { "light", "dark" };
     }
-    
 
     static Colour getThemeColour(ValueTree themeTree, PlugDataColour colourId)
     {

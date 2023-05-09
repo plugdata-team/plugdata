@@ -125,8 +125,9 @@ public:
     std::unique_ptr<ZoomLabel> zoomLabel;
 
     ComponentBoundsConstrainer* defaultConstrainer;
-        
+
     std::unique_ptr<ConnectionMessageDisplay> connectionMessageDisplay;
+
 private:
     // Used by standalone to handle dragging the window
     ComponentDragger windowDragger;
@@ -152,7 +153,7 @@ private:
 
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
-    
+
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
 

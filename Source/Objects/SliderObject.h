@@ -8,7 +8,7 @@ class ReversibleSlider : public Slider {
 
     bool isInverted;
     bool isVertical;
-    
+
 public:
     ReversibleSlider()
     {
@@ -25,42 +25,40 @@ public:
     {
         isInverted = invert;
     }
-    
+
     void setOrientation(bool vertical)
     {
         isVertical = vertical;
-        
+
         if (isVertical)
             setSliderStyle(Slider::LinearBarVertical);
         else
             setSliderStyle(Slider::LinearBar);
-        
+
         resized();
     }
-    
+
     void resized() override
     {
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
         Slider::resized();
     }
-    
-    void mouseDown(const MouseEvent& e) override
+
+    void mouseDown(MouseEvent const& e) override
     {
         auto normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
         auto highSensitivity = normalSensitivity * 10;
-        
-        if(ModifierKeys::getCurrentModifiersRealtime().isShiftDown())
-        {
+
+        if (ModifierKeys::getCurrentModifiersRealtime().isShiftDown()) {
             setMouseDragSensitivity(highSensitivity);
-        }
-        else {
+        } else {
             setMouseDragSensitivity(normalSensitivity);
         }
-            
+
         Slider::mouseDown(e);
     }
-    
-    void mouseUp(const MouseEvent& e) override
+
+    void mouseUp(MouseEvent const& e) override
     {
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
         Slider::mouseUp(e);
@@ -153,7 +151,7 @@ public:
         value = currentValue;
         slider.setValue(currentValue, dontSendNotification);
         slider.setOrientation(isVertical);
-        
+
         isLogarithmic = isLogScale();
 
         iemHelper.update();

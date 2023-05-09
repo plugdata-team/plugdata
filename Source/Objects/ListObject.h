@@ -188,7 +188,7 @@ public:
         bottomTriangle = bottomTriangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(bottomTriangle);
     }
-    
+
     // If we already know the atoms, this will allow a lock-free update
     void updateValue(std::vector<pd::Atom> array)
     {
@@ -230,16 +230,16 @@ public:
     std::vector<pd::Atom> getList() const
     {
         cnv->pd->setThis();
-        
+
         pd->lockAudioThread();
 
         int ac = binbuf_getnatom(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
         t_atom* av = binbuf_getvec(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
 
         auto atoms = pd::Atom::fromAtoms(ac, av);
-        
+
         pd->unlockAudioThread();
-        
+
         return atoms;
     }
 

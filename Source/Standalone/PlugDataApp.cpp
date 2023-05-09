@@ -250,40 +250,39 @@ juce::JUCEApplicationBase* juce_CreateApplication() { return new PlugDataApp(); 
 
 #if JUCE_WINDOWS
 JUCE_BEGIN_IGNORE_WARNINGS_MSVC(28251)
-int __stdcall WinMain (struct HINSTANCE__*, struct HINSTANCE__*, char*, int)
-JUCE_END_IGNORE_WARNINGS_MSVC
+int __stdcall WinMain(struct HINSTANCE__*, struct HINSTANCE__*, char*, int)
+    JUCE_END_IGNORE_WARNINGS_MSVC
 #else
-int main (int argc, char* argv[])
+int main(int argc, char* argv[])
 #endif
 {
     juce::JUCEApplicationBase::createInstance = &juce_CreateApplication;
-    
+
     ScopedJuceInitialiser_GUI libraryInitialiser;
-    jassert (PlugDataApp::createInstance != nullptr);
+    jassert(PlugDataApp::createInstance != nullptr);
 
-    const std::unique_ptr<JUCEApplicationBase> app (PlugDataApp::createInstance());
-    jassert (app != nullptr);
+    const std::unique_ptr<JUCEApplicationBase> app(PlugDataApp::createInstance());
+    jassert(app != nullptr);
 
-    if (! app->initialiseApp())
+    if (!app->initialiseApp())
         return app->shutdownApp();
-    
+
     auto* messageManager = MessageManager::getInstance();
-    
+
     messageManager->setCurrentThreadAsMessageThread();
 
     int loopRunTime = 800;
-    
-    while(!messageManager->hasStopMessageBeenSent()) {
+
+    while (!messageManager->hasStopMessageBeenSent()) {
         JUCE_TRY
         {
             // loop until a quit message is received..
             messageManager->runDispatchLoopUntil(loopRunTime);
-            
+
             // Returns how long the openGL render took in ms, so we can adjust how long
             // juce will run to hit 60fps
             // If Ofelia is not running, it will return a high number to reduce overhead
             loopRunTime = pd::OfeliaMessageManager::pollEvents();
-
         }
         JUCE_CATCH_EXCEPTION
     }

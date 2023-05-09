@@ -58,67 +58,65 @@ class WelcomePanel : public Component {
             repaint();
         }
     };
-    
-    class RecentlyOpenedListBox : public Component, public ListBoxModel
-    {
+
+    class RecentlyOpenedListBox : public Component
+        , public ListBoxModel {
     public:
         RecentlyOpenedListBox()
         {
             listBox.setModel(this);
             listBox.setClickingTogglesRowSelection(true);
             update();
-            
+
             listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
-            
+
             addAndMakeVisible(listBox);
         }
-        
+
         void update()
         {
             items.clear();
-            
+
             auto settingsTree = SettingsFile::getInstance()->getValueTree();
             auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
             if (recentlyOpenedTree.isValid()) {
                 for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
                     auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
-                    items.add({path.getFileName(), path});
+                    items.add({ path.getFileName(), path });
                 }
             }
-            
+
             listBox.updateContent();
         }
-           
-        std::function<void(File)> onPatchOpen = [](File){};
-        
+
+        std::function<void(File)> onPatchOpen = [](File) {};
+
     private:
         int getNumRows() override
         {
             return items.size();
         }
-        
-        void listBoxItemClicked(int row, const MouseEvent& e) override
+
+        void listBoxItemClicked(int row, MouseEvent const& e) override
         {
-            if(e.getNumberOfClicks() >= 2)
-            {
+            if (e.getNumberOfClicks() >= 2) {
                 onPatchOpen(items[row].second);
             }
         }
-        
-        void paint (Graphics& g) override
+
+        void paint(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawRoundedRectangle(1, 36, getWidth() - 2, getHeight() - 37, Corners::defaultCornerRadius, 1.0f);
-            
-            Fonts::drawStyledText(g, "Recently Opened", 0, 0, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
 
+            Fonts::drawStyledText(g, "Recently Opened", 0, 0, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
         }
-        
+
         void resized() override
         {
             listBox.setBounds(getLocalBounds().withTrimmedTop(35));
         }
-        
+
         void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
         {
             if (rowIsSelected) {
@@ -127,19 +125,19 @@ class WelcomePanel : public Component {
             }
 
             auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-            
+
             Fonts::drawText(g, items[rowNumber].first, 12, 0, width - 9, height, colour, 15);
         }
-   
+
         ListBox listBox;
         Array<std::pair<String, File>> items;
     };
 
 public:
-    WelcomePanel() : newButton(Icons::New, "New patch", "Create a new empty patch")
-                   , openButton(Icons::Open, "Open patch...", "Open a saved patch")
-                    
-            
+    WelcomePanel()
+        : newButton(Icons::New, "New patch", "Create a new empty patch")
+        , openButton(Icons::Open, "Open patch...", "Open a saved patch")
+
     {
         addAndMakeVisible(newButton);
         addAndMakeVisible(openButton);
@@ -150,27 +148,26 @@ public:
     {
         newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -70));
         openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -10));
-        
-        if(getHeight() > 400) {
+
+        if (getHeight() > 400) {
             recentlyOpened.setBounds(getLocalBounds().withSizeKeepingCentre(275, 160).translated(0, 110));
             recentlyOpened.setVisible(true);
-        }
-        else {
+        } else {
             recentlyOpened.setVisible(false);
         }
     }
-            
+
     void show()
     {
         recentlyOpened.update();
         setVisible(true);
     }
-            
+
     void hide()
     {
         setVisible(false);
     }
-            
+
     void paint(Graphics& g) override
     {
         auto styles = Font(32).getAvailableStyles();
@@ -184,7 +181,7 @@ public:
 
     WelcomeButton newButton;
     WelcomeButton openButton;
-            
+
     RecentlyOpenedListBox recentlyOpened;
 };
 
@@ -224,11 +221,11 @@ public:
         welcomePanel.openButton.onClick = [this]() {
             openProject();
         };
-        
+
         welcomePanel.recentlyOpened.onPatchOpen = [this](File patchFile) {
             openProjectFile(patchFile);
         };
-        
+
         setVisible(false);
         setTabBarDepth(0);
         tabs.get()->addMouseListener(this, true);
@@ -245,7 +242,7 @@ public:
             welcomePanel.hide();
             setTabBarDepth(30);
         }
-        
+
         triggerAsyncUpdate();
     }
 
@@ -361,12 +358,12 @@ public:
                 // Create ghost tab & hide dragged tab
                 auto* tabButton = tabs->getTabButton(clickedTabIndex);
                 currentTabBounds = tabButton->getBounds().translated(getTabBarDepth(), 0);
-                
+
                 tabSnapshot = Image(Image::PixelFormat::ARGB, tabButton->getWidth(), tabButton->getHeight(), true);
-                
+
                 auto g = Graphics(tabSnapshot);
                 getLookAndFeel().drawTabButton(*tabButton, g, false, false);
-                
+
                 tabSnapshotBounds = currentTabBounds;
                 tabs->getTabButton(clickedTabIndex)->setVisible(false);
             }

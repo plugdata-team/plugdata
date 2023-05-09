@@ -13,13 +13,13 @@
 #include "../PluginEditor.h"
 #include "../CanvasViewport.h"
 
-class ConnectionMessageDisplay 
+class ConnectionMessageDisplay
     : public Component
     , public MultiTimer {
 public:
     ConnectionMessageDisplay()
     {
-        setSize(36,36);
+        setSize(36, 36);
         setVisible(false);
         // needed to stop the component from gaining mouse focus
         setInterceptsMouseClicks(false, false);
@@ -30,7 +30,7 @@ public:
     }
 
     /** Activate the current connection info display overlay, to hide give it a nullptr
-    */
+     */
     void setConnection(Connection* connection, Point<int> screenPosition = { 0, 0 })
     {
         // multiple events can hide the display, so we don't need to do anything
@@ -43,10 +43,9 @@ public:
             mousePosition = screenPosition;
             startTimer(MouseHoverDelay, mouseDelay);
             stopTimer(MouseHoverExitDelay);
-            startTimer(RepaintTimer, 1000/60);
+            startTimer(RepaintTimer, 1000 / 60);
             updateTextString(true);
-        }
-        else {
+        } else {
             hideDisplay();
             // to copy tooltip behaviour, any successful interaction will cause the next interaction to have no delay
             mouseDelay = 0;
@@ -80,8 +79,8 @@ private:
         int totalStringWidth = (8 * 2) + 4;
         String stringItem;
         bool firstOrLast = false;
-        for (int i = 0; i < textString.size(); i++){
-            firstOrLast = i == 0 ||  i == textString.size() - 1 ? true : false;
+        for (int i = 0; i < textString.size(); i++) {
+            firstOrLast = i == 0 || i == textString.size() - 1 ? true : false;
             stringItem = textString[i];
             stringItem += firstOrLast ? "" : ",";
             // first item uses system font
@@ -130,7 +129,7 @@ private:
                 hideDisplay();
             }
             break;
-            }
+        }
         case MouseHoverDelay: {
             if (activeConnection.getComponent()) {
                 updateTextString();
@@ -170,7 +169,7 @@ private:
         g.fillRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
 
         // indicator - TODO
-        //if(activeConnection.getComponent()) {
+        // if(activeConnection.getComponent()) {
         //    Path indicatorPath;
         //    indicatorPath.addPieSegment(circlePosition.x - circleRadius,
         //                          circlePosition.y - circleRadius,
@@ -193,7 +192,10 @@ private:
     static inline bool isShowing = false;
 
     struct TextStringWithMetrics {
-        TextStringWithMetrics(String text, FontStyle fontStyle, int width) : text(text), fontStyle(fontStyle), width(width){};
+        TextStringWithMetrics(String text, FontStyle fontStyle, int width)
+            : text(text)
+            , fontStyle(fontStyle)
+            , width(width) {};
         String text;
         FontStyle fontStyle;
         int width;
@@ -203,7 +205,9 @@ private:
     Component::SafePointer<Connection> activeConnection;
     int mouseDelay = 500;
     Point<int> mousePosition;
-    enum TimerID {RepaintTimer, MouseHoverDelay, MouseHoverExitDelay};
+    enum TimerID { RepaintTimer,
+        MouseHoverDelay,
+        MouseHoverExitDelay };
     Rectangle<int> constrainedBounds = { 0, 0, 0, 0 };
 
     Point<float> circlePosition = { 8 + 4, 36 / 2 };
@@ -211,6 +215,6 @@ private:
 
     Image cachedImage;
     Rectangle<int> previousBounds;
-        
+
     CriticalSection connectionMessageLock;
 };

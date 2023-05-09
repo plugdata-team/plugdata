@@ -81,7 +81,7 @@ class PaletteView : public Component
 
             auto* ptr = target->patch.getPointer();
             target->pd->enqueueFunction([ptr, result]() mutable { libpd_paste(ptr, result.toRawUTF8()); });
-            
+
             target->synchronise();
         }
 
@@ -277,15 +277,14 @@ public:
         // Make sure there aren't any properties still open in sidebar
         editor->sidebar->hideParameters();
 
-        
         auto patchFile = File::createTempFile(".pd");
         patchFile.replaceWithText(patchText);
 
         auto newPatch = pd->openPatch(patchFile); // Don't delete old patch until canvas is replaced!
         cnv = std::make_unique<Canvas>(editor, *newPatch, nullptr, true);
-        
+
         patch = newPatch;
-        
+
         viewport.reset(cnv->viewport);
 
         viewport->setScrollBarsShown(true, false, true, false);

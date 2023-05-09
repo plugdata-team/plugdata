@@ -96,14 +96,14 @@ class CanvasViewport : public Viewport {
                     if (growth >= growthTarget) {
                         stopTimer();
                     }
-                targetComponent->setGrowAnimation(growth);
+                    targetComponent->setGrowAnimation(growth);
                 } else if (growth > growthTarget) {
                     growth -= 0.1f;
                     if (growth <= growthTarget) {
                         growth = growthTarget;
                         stopTimer();
                     }
-                targetComponent->setGrowAnimation(growth);
+                    targetComponent->setGrowAnimation(growth);
                 } else {
                     stopTimer();
                 }
@@ -194,7 +194,7 @@ class CanvasViewport : public Viewport {
             isMouseOver = false;
             if (!isMouseDragging)
                 animator.shrink();
-                repaint();
+            repaint();
         }
 
         void setRangeLimitsAndCurrentRange(float minTotal, float maxTotal, float minCurrent, float maxCurrent)
@@ -297,12 +297,13 @@ public:
     {
         // Check event time to filter out duplicate events
         // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
-        if(e.eventTime == lastScrollTime) return;
-            
+        if (e.eventTime == lastScrollTime)
+            return;
+
         if (e.mods.isCommandDown() && !(editor->pd->isInPluginMode() || cnv->isPalette)) {
             mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
         }
- 
+
         Viewport::mouseWheelMove(e, wheel);
         lastScrollTime = e.eventTime;
     }
@@ -384,7 +385,6 @@ public:
     std::function<void()> onScroll = []() {};
 
 private:
-    
     Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;

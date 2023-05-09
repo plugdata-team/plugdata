@@ -74,7 +74,6 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 {
     auto* popup = new MainMenu(editor);
 
-    
     ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(220).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
         [editor, popup, centre, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
             switch (result) {
@@ -567,7 +566,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
 
             return i;
         }
-        
+
         return PopupMenu::Item();
     };
 
@@ -798,10 +797,9 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     menu.addItem(createCommandItem(ObjectIDs::NewGraphOnParent, "GraphOnParent"));
 
     menu.addSeparator();
-    
+
     bool active = false;
-    if(auto* cnv = parent->getCurrentCanvas())
-    {
+    if (auto* cnv = parent->getCurrentCanvas()) {
         active = !getValue<bool>(cnv->locked);
     }
 

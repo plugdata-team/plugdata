@@ -78,27 +78,23 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
         showPanel(3);
     };
     addAndMakeVisible(searchButton);
-    
+
     panelSettingsButton.setTooltip("Show panel settings");
     panelSettingsButton.setConnectedEdges(12);
     panelSettingsButton.getProperties().set("Style", "SmallIcon");
     panelSettingsButton.onClick = [this, parent]() {
-        
         auto bounds = parent->getLocalArea(this, panelSettingsButton.getBounds());
-        if(currentPanel == 0)
-        {
-            
+        if (currentPanel == 0) {
+
             console->showCalloutBox(bounds, parent);
         }
-        if(currentPanel == 1)
-        {
+        if (currentPanel == 1) {
             browser->showCalloutBox(bounds, parent);
         }
     };
-    
+
     addAndMakeVisible(panelSettingsButton);
 
-    
     panelPinButton.setTooltip("Pin panel");
     panelPinButton.setConnectedEdges(12);
     panelPinButton.getProperties().set("Style", "SmallIcon");
@@ -107,7 +103,6 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
         pinSidebar(panelPinButton.getToggleState());
     };
     addAndMakeVisible(panelPinButton);
-    
 
     browserButton.setRadioGroupId(1100);
     automationButton.setRadioGroupId(1100);
@@ -141,14 +136,12 @@ void Sidebar::paint(Graphics& g)
     // Background for buttons
     g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
     g.fillRect(0, 0, getWidth(), 30);
-        
-    if(inspector->isVisible()){
+
+    if (inspector->isVisible()) {
         Fonts::drawStyledText(g, "Inspector", Rectangle<int>(0, 30, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
-    }
-    else {
+    } else {
         Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 30, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
     }
-
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
@@ -158,28 +151,27 @@ void Sidebar::paintOverChildren(Graphics& g)
     g.drawLine(0, 30, getWidth(), 30);
     g.drawLine(0.0f, getHeight() + 0.5f, static_cast<float>(getWidth()), getHeight() + 0.5f);
     g.drawLine(0.5f, 0, 0.5f, getHeight() + 0.5f);
-    
+
     g.drawLine(0, 60, getWidth(), 60);
-    
 }
 
 void Sidebar::resized()
 {
     auto bounds = getLocalBounds();
     int buttonWidth = getWidth() / 4;
-    
+
     auto tabbarBounds = bounds.removeFromTop(30).reduced(0, 1);
 
     consoleButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     browserButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     automationButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     searchButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
-    
+
     auto panelTitleBarBounds = bounds.removeFromTop(30);
-    
+
     panelSettingsButton.setBounds(panelTitleBarBounds.removeFromRight(30));
     panelPinButton.setBounds(panelTitleBarBounds.removeFromLeft(30));
-    
+
     browser->setBounds(bounds);
     console->setBounds(bounds);
     inspector->setBounds(bounds);
@@ -258,9 +250,9 @@ void Sidebar::showPanel(int panelToShow)
     hideParameters();
 
     currentPanel = panelToShow;
-    
+
     panelSettingsButton.setVisible(currentPanel < 2);
-    
+
     repaint();
 }
 
@@ -317,7 +309,7 @@ void Sidebar::showParameters(String const& name, ObjectParameters& params)
         panelSettingsButton.setVisible(false);
         inspector->setVisible(true);
     }
-    
+
     repaint();
 }
 
@@ -333,7 +325,7 @@ void Sidebar::showParameters()
         searchPanel->setVisible(false);
         automationPanel->setVisible(false);
     }
-    
+
     repaint();
 }
 void Sidebar::hideParameters()
@@ -349,8 +341,7 @@ void Sidebar::hideParameters()
     }
 
     console->deselect();
-    
-    
+
     repaint();
 }
 

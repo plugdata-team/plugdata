@@ -385,8 +385,9 @@ void Connection::renderConnectionPath(Graphics& g,
 
 void Connection::updateOverlays(int overlay)
 {
-    if(!inlet || !outlet) return;
-    
+    if (!inlet || !outlet)
+        return;
+
     showDirection = overlay & Overlay::Direction;
     showConnectionOrder = overlay & Overlay::Order;
     updatePath();
@@ -410,18 +411,17 @@ void Connection::paint(Graphics& g)
         getMultiConnectNumber());
 
 #if (ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT)
-        static Random rng;
+    static Random rng;
 
-        g.fillAll (Colour ((uint8) rng.nextInt (255),
-                           (uint8) rng.nextInt (255),
-                           (uint8) rng.nextInt (255),
-                           (uint8) 0x50));
+    g.fillAll(Colour((uint8)rng.nextInt(255),
+        (uint8)rng.nextInt(255),
+        (uint8)rng.nextInt(255),
+        (uint8)0x50));
 #endif
 
 #if (ENABLE_CONNECTION_GRAPHICS_DEBUGGING)
     g.setColour(Colours::orange);
-    for(auto& point : currentPlan)
-    {
+    for (auto& point : currentPlan) {
         auto local = getLocalPoint(cnv, point);
         g.fillEllipse(local.x, local.y, 2, 2);
     }
@@ -491,16 +491,14 @@ StringArray Connection::getMessageFormated()
     connectionMessageLock.exit();
 
     StringArray formatedMessage;
-    
+
     if (name == "float" && args.size() >= 1) {
         formatedMessage.add("float:");
         formatedMessage.add(String(args[0].getFloat()));
-    }
-    else if (name == "symbol" && args.size() >= 1) {
+    } else if (name == "symbol" && args.size() >= 1) {
         formatedMessage.add("symbol:");
         formatedMessage.add(String(args[0].getSymbol()));
-    }
-    else if (name == "list") {
+    } else if (name == "list") {
         formatedMessage.add("list:");
         for (auto& arg : args) {
             if (arg.isFloat()) {
@@ -684,14 +682,16 @@ void Connection::reconnect(Iolet* target)
 
 void Connection::resizeToFit()
 {
-    if(!inlet || !outlet) return;
-    
+    if (!inlet || !outlet)
+        return;
+
     auto pStart = getStartPoint();
     auto pEnd = getEndPoint();
 
     // heuristics to allow the overlay & reconnection handle to paint inside bounds
     // consider moving them to their own layers in future
-    auto safteyMargin = showConnectionOrder ? 13 : isSelected() ? 10 : 6;
+    auto safteyMargin = showConnectionOrder ? 13 : isSelected() ? 10
+                                                                : 6;
 
     auto newBounds = Rectangle<float>(pStart, pEnd).expanded(safteyMargin).getSmallestIntegerContainer();
 
@@ -727,7 +727,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         // This will happen often since there's a move callback from both inlet and outlet
         if (pointOffset.isOrigin())
             return;
-        
+
         // as we are moving the whole component, no need to redraw
         setBufferedToImage(true);
 
@@ -744,8 +744,8 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 
     // if buffered to image is true here it will take longer to redraw & buffer,
     // and cause wiggling of cables, also greatly improves performance
-    // 
-    // we may need to turn it off in other parts of this class, 
+    //
+    // we may need to turn it off in other parts of this class,
     // if getCachedComponentImage() returns true setBufferedToImage is on
     setBufferedToImage(false);
 
@@ -1183,14 +1183,14 @@ void ConnectionPathUpdater::timerCallback()
 void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 {
     // TODO: indicator
-    //messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
-    
+    // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
+
     auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
-    
+
     // We can either lock or tryLock over here:
     // The advantage of try-locking is that the audio thread will never have to wait for the message thread
     // The advantage of regular locking is that we ensure every single message arrives, even if we need to wait for it
-    if(connectionMessageLock.tryEnter()) {
+    if (connectionMessageLock.tryEnter()) {
         lastValue = pd::Atom::fromAtoms(argc, argv);
         lastSelector = name;
         connectionMessageLock.exit();

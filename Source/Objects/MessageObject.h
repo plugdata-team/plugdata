@@ -7,7 +7,7 @@
 class MessageObject final : public ObjectBase
     , public KeyListener
     , public TextEditor::Listener {
-    
+
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
 
@@ -254,7 +254,7 @@ public:
 
         binbuf_gettext(static_cast<t_text*>(ptr)->te_binbuf, &text, &size);
         pd->unlockAudioThread();
-        
+
         auto result = String::fromUTF8(text, size);
         freebytes(text, size);
 

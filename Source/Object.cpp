@@ -181,14 +181,12 @@ void Object::valueChanged(Value& v)
             gui->setInterceptsMouseClicks(!dragMode, !dragMode);
     }
 
-    if(v.refersToSameSourceAs(cnv->presentationMode))
-    {
+    if (v.refersToSameSourceAs(cnv->presentationMode)) {
         // else it was a lock/unlock/presentation mode action
         // Hide certain objects in GOP
         setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
     }
-    if(v.refersToSameSourceAs(cnv->locked) || v.refersToSameSourceAs(cnv->commandLocked))
-    {
+    if (v.refersToSameSourceAs(cnv->locked) || v.refersToSameSourceAs(cnv->commandLocked)) {
         if (gui) {
             gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         }

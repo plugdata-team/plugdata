@@ -11,8 +11,8 @@
 #include <concurrentqueue.h> // Move to impl
 #include "Constants.h"
 #include "Objects/AllGuis.h"
-#include "Iolet.h"           // Move to impl
-#include "Pd/Instance.h"     // Move to impl
+#include "Iolet.h"       // Move to impl
+#include "Pd/Instance.h" // Move to impl
 #include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
@@ -36,7 +36,7 @@ public:
 
     Path toDraw, toDrawLocalSpace;
     String lastId;
-        
+
     std::atomic<int> messageActivity;
 
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
@@ -113,25 +113,23 @@ public:
     bool isSelected();
 
     StringArray getMessageFormated();
-            
-private:
 
+private:
     void resizeToFit();
 
     int getMultiConnectNumber();
     int getNumberOfConnections();
 
     void valueChanged(Value& v) override;
-        
+
     void setSelected(bool shouldBeSelected);
-   
+
     Array<SafePointer<Connection>> reconnecting;
     Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
 
-    
     bool selectedFlag = false;
     bool segmented = false;
-        
+
     PathPlan currentPlan;
 
     Value locked;
@@ -148,7 +146,6 @@ private:
 
     float mouseDownPosition = 0;
     bool isHovering = false;
-
 
     t_fake_outconnect* ptr;
 

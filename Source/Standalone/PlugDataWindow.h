@@ -229,13 +229,12 @@ public:
     {
         if (settings != nullptr) {
             // Async to give the app a chance to start up before loading the patch
-            MessageManager::callAsync([this](){
+            MessageManager::callAsync([this]() {
                 MemoryOutputStream data;
                 Base64::convertFromBase64(data, settings->getValue("filterState"));
                 if (data.getDataSize() > 0)
                     processor->setStateInformation(data.getData(), static_cast<int>(data.getDataSize()));
             });
-
         }
     }
 
@@ -503,7 +502,7 @@ public:
             bool nativeWindow = static_cast<bool>(value);
 
             auto* editor = getAudioProcessor()->getActiveEditor();
-            
+
             setUsingNativeTitleBar(nativeWindow);
 
             if (!nativeWindow) {
@@ -647,7 +646,7 @@ public:
     void resized() override
     {
         ResizableWindow::resized();
-        
+
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
 
 #if JUCE_LINUX
@@ -656,7 +655,7 @@ public:
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
         }
 #endif
-        
+
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
 
         if (auto* content = getContentComponent()) {
@@ -820,6 +819,7 @@ private:
 
             repaint();
         }
+
     public:
         Rectangle<int> oldBounds;
 

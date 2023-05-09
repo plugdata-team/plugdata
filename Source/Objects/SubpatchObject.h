@@ -34,7 +34,7 @@ public:
     {
         isGraphChild = static_cast<bool>(subpatch->getPointer()->gl_isgraph);
         hideNameAndArgs = static_cast<bool>(subpatch->getPointer()->gl_hidetext);
-        
+
         updateValue();
     }
 

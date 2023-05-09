@@ -30,7 +30,6 @@
 #include "Object.h"
 #include "PluginMode.h"
 
-
 class ZoomLabel : public TextButton
     , public Timer {
 
@@ -95,25 +94,23 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     presentButton.setButtonText(Icons::Presentation);
 
     setResizable(true, false);
-    
+
     // In the standalone, the resizer handling is done on the window class
     if (ProjectInfo::isStandalone) {
-        
+
         // We need to attach this to the top-level component, which is not yet know during the constructor
         // So we postpone initialisation of the resizer until PluginEditor has a parent component
-        MessageManager::callAsync([this](){
+        MessageManager::callAsync([this]() {
             borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(getTopLevelComponent(), getConstrainer());
             borderResizer->setAlwaysOnTop(true);
             addAndMakeVisible(borderResizer.get());
             resized(); // Makes sure resizer gets resized
-            
-            if(pluginMode)
-            {
+
+            if (pluginMode) {
                 borderResizer->toBehind(pluginMode.get());
             }
         });
-    }
-    else {
+    } else {
         cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
         cornerResizer->setAlwaysOnTop(true);
         addAndMakeVisible(cornerResizer.get());
@@ -267,7 +264,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 PluginEditor::~PluginEditor()
 {
     pd->savePatchTabPositions();
-    
+
     setVisible(false); // We can check the visible flag to detect if the pluginEditor is closing
     setConstrainer(nullptr);
 
@@ -368,8 +365,7 @@ void PluginEditor::resized()
 
     if (borderResizer && ProjectInfo::isStandalone) {
         borderResizer->setBounds(getLocalBounds());
-    }
-    else if(cornerResizer){
+    } else if (cornerResizer) {
         int const resizerSize = 18;
         cornerResizer->setBounds(getWidth() - resizerSize,
             getHeight() - resizerSize,
@@ -607,8 +603,7 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete)
 {
     auto* canvas = canvases.getLast();
     if (!canvas) {
-        if(quitAfterComplete)
-        {
+        if (quitAfterComplete) {
             JUCEApplication::quit();
         }
         return;
@@ -749,8 +744,7 @@ void PluginEditor::addTab(Canvas* cnv)
     cnv->setVisible(true);
     cnv->jumpToOrigin();
 
-    if(cnv->patch.openInPluginMode)
-    {
+    if (cnv->patch.openInPluginMode) {
         enablePluginMode(cnv);
     }
 
@@ -870,23 +864,22 @@ void PluginEditor::getAllCommands(Array<CommandID>& commands)
     for (int n = NewObject; n < NumEssentialObjects; n++) {
         commands.add(n);
     }
-    
+
     commands.add(StandardApplicationCommandIDs::quit);
 }
 
 void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result)
 {
-    
-    if (commandID == StandardApplicationCommandIDs::quit)
-    {
-        result.setInfo (TRANS("Quit"),
-                        TRANS("Quits the application"),
-                        "Application", 0);
 
-        result.defaultKeypresses.add (KeyPress ('q', ModifierKeys::commandModifier, 0));
+    if (commandID == StandardApplicationCommandIDs::quit) {
+        result.setInfo(TRANS("Quit"),
+            TRANS("Quits the application"),
+            "Application", 0);
+
+        result.defaultKeypresses.add(KeyPress('q', ModifierKeys::commandModifier, 0));
         return;
     }
-    
+
     bool hasObjectSelection = false;
     bool hasSelection = false;
     bool isDragging = false;
@@ -1064,13 +1057,13 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setInfo("Toggle Sidebar", "Show or hide the sidebar", "View", 0);
         result.addDefaultKeypress(93, ModifierKeys::commandModifier);
         result.setActive(true);
-        break; 
+        break;
     }
     case CommandIDs::TogglePalettes: {
         result.setInfo("Toggle Palettes", "Show or hide palettes", "View", 0);
         result.addDefaultKeypress(91, ModifierKeys::commandModifier);
         result.setActive(true);
-        break; 
+        break;
     }
     case CommandIDs::Search: {
         result.setInfo("Search Current Patch", "Search for objects in current patch", "View", 0);
@@ -1212,11 +1205,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
 {
     switch (info.commandID) {
     case StandardApplicationCommandIDs::quit: {
-        if(ProjectInfo::isStandalone) {
+        if (ProjectInfo::isStandalone) {
             quit(true);
             return true;
         }
-        
+
         return false;
     }
     case CommandIDs::NewProject: {
@@ -1541,12 +1534,10 @@ void PluginEditor::enablePluginMode(Canvas* cnv)
             MessageManager::callAsync([_this = SafePointer(this), this]() {
                 if (!_this)
                     return;
-                
+
                 // Restore Plugin Mode View
-                for(auto* canvas : canvases)
-                {
-                    if(canvas && canvas->patch.openInPluginMode)
-                    {
+                for (auto* canvas : canvases) {
+                    if (canvas && canvas->patch.openInPluginMode) {
                         enablePluginMode(canvas);
                     }
                 }

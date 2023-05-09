@@ -322,9 +322,10 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
     };
 
     for (auto& path : patchHelpPaths) {
-        
-        if(!path.exists()) continue;
-        
+
+        if (!path.exists())
+            continue;
+
         auto file = findHelpPatch(path, true);
         if (file.existsAsFile()) {
             return file;
@@ -333,8 +334,8 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
 
     auto* rawHelpDir = class_gethelpdir(pd_class(&reinterpret_cast<t_gobj*>(obj)->g_pd));
     helpDir = String::fromUTF8(rawHelpDir);
-    
-    if(helpDir.isNotEmpty() && File(helpDir).exists()) {
+
+    if (helpDir.isNotEmpty() && File(helpDir).exists()) {
         // Search for files int the patch directory
         auto file = findHelpPatch(helpDir, true);
         if (file.existsAsFile()) {

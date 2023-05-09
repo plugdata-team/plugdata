@@ -160,7 +160,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
         menu.addItem(2, "2x");
         menu.addItem(3, "4x");
         menu.addItem(4, "8x");
-        
+
         auto* editor = pd->getActiveEditor();
         ArrowPopupMenu::showMenuAsync(&menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&oversampleSelector).withParentComponent(editor),
             [this](int result) {

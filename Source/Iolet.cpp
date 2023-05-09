@@ -31,7 +31,7 @@ Iolet::Iolet(Object* parent, bool inlet)
 
     commandLocked.referTo(object->cnv->commandLocked);
     commandLocked.addListener(this);
-    
+
     presentationMode.referTo(object->cnv->presentationMode);
     presentationMode.addListener(this);
 
@@ -338,9 +338,10 @@ void Iolet::createConnection()
         cnv->patch.startUndoSequence("Connecting");
 
         for (auto& c : object->cnv->connectionsBeingCreated) {
-            
-            if(!c->getIolet()) continue;
-            
+
+            if (!c->getIolet())
+                continue;
+
             // Check type for input and output
             bool sameDirection = isInlet == c->getIolet()->isInlet;
 
@@ -456,8 +457,7 @@ void Iolet::valueChanged(Value& v)
     if (v.refersToSameSourceAs(locked)) {
         repaint();
     }
-    if(v.refersToSameSourceAs(commandLocked))
-    {
+    if (v.refersToSameSourceAs(commandLocked)) {
         repaint();
     }
     if (v.refersToSameSourceAs(presentationMode)) {

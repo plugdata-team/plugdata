@@ -95,10 +95,10 @@ bool Patch::isDirty() const
 {
     if (!ptr)
         return false;
-    
+
     // Don't lock for now:
     // TODO: this is not thread safe, but otherwise this sometimes causes deadlocks
-    //const ScopedLock audioLock(*instance->audioLock);
+    // const ScopedLock audioLock(*instance->audioLock);
 
     return getPointer()->gl_dirty;
 }
@@ -124,7 +124,7 @@ void Patch::savePatch(File const& location)
     instance->reloadAbstractions(location, getPointer());
 
     instance->unlockAudioThread();
-    
+
     currentFile = location;
 }
 
@@ -132,7 +132,7 @@ t_glist* Patch::getRoot()
 {
     if (!ptr)
         return nullptr;
-    
+
     return canvas_getrootfor(getPointer());
 }
 
@@ -170,7 +170,7 @@ void Patch::savePatch()
 
     libpd_savetofile(getPointer(), file, dir);
     instance->reloadAbstractions(currentFile, getPointer());
-    
+
     instance->unlockAudioThread();
 }
 
@@ -187,7 +187,7 @@ void Patch::setCurrent()
     // but all the other stuff inside those functions is just for tcl/tk anyway
     getPointer()->gl_havewindow = 1;
     getPointer()->gl_mapped = 1;
-    
+
     canvas_create_editor(getPointer()); // can't hurt to make sure of this!
 
     instance->unlockAudioThread();
@@ -211,7 +211,7 @@ Connections Patch::getConnections() const
     while ((oc = linetraverser_next(&t))) {
         connections.push_back({ oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob });
     }
-    
+
     instance->unlockAudioThread();
 
     return connections;
@@ -898,10 +898,6 @@ File Patch::getPatchFile() const
     return File(String::fromUTF8(dir)).getChildFile(String::fromUTF8(name)).getFullPathName();
 }
 
-
-
-
-
 void Patch::setCurrentFile(File newFile)
 {
     currentFile = newFile;
@@ -915,7 +911,7 @@ String Patch::getCanvasContent()
     char* buf;
     int bufsize;
     libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
-    
+
     auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
 
     freebytes(static_cast<void*>(buf), static_cast<size_t>(bufsize) * sizeof(char));
@@ -953,7 +949,7 @@ bool Patch::connectionWasDeleted(void* ptr)
     t_linetraverser t;
 
     instance->lockAudioThread();
-    
+
     // Get connections from pd
     linetraverser_start(&t, getPointer());
 
@@ -965,7 +961,7 @@ bool Patch::connectionWasDeleted(void* ptr)
     }
 
     instance->unlockAudioThread();
-    
+
     return true;
 }
 

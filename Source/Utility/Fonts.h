@@ -84,11 +84,21 @@ struct Fonts {
     {
         Font font;
         switch (style) {
-            case Regular:    font = Fonts::getCurrentFont();    break;
-            case Bold:       font = Fonts::getBoldFont();       break;
-            case Semibold:   font = Fonts::getSemiBoldFont();   break;
-            case Thin:       font = Fonts::getThinFont();       break;
-            case Monospace:  font = Fonts::getMonospaceFont();  break;
+        case Regular:
+            font = Fonts::getCurrentFont();
+            break;
+        case Bold:
+            font = Fonts::getBoldFont();
+            break;
+        case Semibold:
+            font = Fonts::getSemiBoldFont();
+            break;
+        case Thin:
+            font = Fonts::getThinFont();
+            break;
+        case Monospace:
+            font = Fonts::getMonospaceFont();
+            break;
         }
 
         g.setFont(font.withHeight(fontHeight));

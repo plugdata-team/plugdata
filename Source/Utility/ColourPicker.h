@@ -168,8 +168,7 @@ public:
         std::unique_ptr<ColourPicker> colourSelector = std::make_unique<ColourPicker>(topLevelComponent, onlySendCallbackOnClose, callback);
 
         Component* parent = nullptr;
-        if(!ProjectInfo::canUseSemiTransparentWindows())
-        {
+        if (!ProjectInfo::canUseSemiTransparentWindows()) {
             parent = topLevelComponent;
             bounds = topLevelComponent->getLocalArea(nullptr, bounds);
         }

@@ -20,7 +20,7 @@ public:
         setOpaque(false);
         tooltipShadow.setOwner(this);
     }
-    
+
 private:
     String getTipFor(Component& c) override
     {

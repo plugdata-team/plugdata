@@ -6,32 +6,30 @@
 
 class ConsoleSettings : public Component {
 public:
-    
-    struct ConsoleSettingsButton : public TextButton
-    {
+    struct ConsoleSettingsButton : public TextButton {
         const String icon;
         const String description;
-        
-        ConsoleSettingsButton(String iconString, String descriptionString, bool toggleButton) : icon(iconString), description(descriptionString)
+
+        ConsoleSettingsButton(String iconString, String descriptionString, bool toggleButton)
+            : icon(iconString)
+            , description(descriptionString)
         {
             setClickingTogglesState(toggleButton);
         }
-        
+
         void paint(Graphics& g) override
         {
             auto colour = findColour(PlugDataColour::toolbarTextColourId);
 
             Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14);
-            
-            if(isMouseOver())
-            {
+
+            if (isMouseOver()) {
                 colour = colour.brighter(0.4f);
             }
-            if(getToggleState())
-            {
+            if (getToggleState()) {
                 colour = findColour(PlugDataColour::toolbarActiveColourId);
             }
-     
+
             Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(6), colour, 14, false);
         }
     };
@@ -43,15 +41,13 @@ public:
             addAndMakeVisible(*button);
             i++;
         }
-        
+
         for (int i = 0; i < buttons.size(); i++) {
-            
-            if(buttons[i]->getClickingTogglesState())
-            {
+
+            if (buttons[i]->getClickingTogglesState()) {
                 // For toggle buttons, assign the button state to the Value
                 buttons[i]->getToggleStateValue().referTo(settingsValues[i]);
-            }
-            else {
+            } else {
                 // For action buttons, just trigger the Value on an off to send a change message
                 buttons[i]->onClick = [settingsValues, i]() mutable {
                     settingsValues[i] = !getValue<bool>(settingsValues[i]);
@@ -65,8 +61,7 @@ public:
     void resized() override
     {
         auto buttonBounds = getLocalBounds();
-        
-        
+
         int buttonHeight = buttonBounds.getHeight() / buttons.size();
 
         for (auto* button : buttons) {
@@ -75,19 +70,19 @@ public:
     }
 
 private:
-
     OwnedArray<TextButton> buttons = {
         new ConsoleSettingsButton(Icons::Clear, "Clear", false),
         new ConsoleSettingsButton(Icons::Restore, "Restore", false),
         new ConsoleSettingsButton(Icons::Message, "Show Messages", true),
         new ConsoleSettingsButton(Icons::Error, "Show Errors", true),
-        new ConsoleSettingsButton(Icons::AutoScroll, "Autoscroll", true) };
-    
+        new ConsoleSettingsButton(Icons::AutoScroll, "Autoscroll", true)
+    };
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleSettings)
 };
 
-
-class Console : public Component, public Value::Listener {
+class Console : public Component
+    , public Value::Listener {
 
 public:
     explicit Console(pd::Instance* instance)
@@ -102,16 +97,15 @@ public:
 
         addAndMakeVisible(viewport);
 
-        for(int i = 0; i < settingsValues.size(); i++)
-        {
+        for (int i = 0; i < settingsValues.size(); i++) {
             settingsValues[i].addListener(this);
         }
-        
+
         // Show messages, show errors and autoscroll should be enabled by default
         settingsValues[2] = true;
         settingsValues[3] = true;
         settingsValues[4] = true;
-        
+
         resized();
     }
 
@@ -121,19 +115,15 @@ public:
 
     void valueChanged(Value& v) override
     {
-        if(v.refersToSameSourceAs(settingsValues[0]))
-        {
+        if (v.refersToSameSourceAs(settingsValues[0])) {
             console->clear();
-        }
-        else if(v.refersToSameSourceAs(settingsValues[1]))
-        {
+        } else if (v.refersToSameSourceAs(settingsValues[1])) {
             console->restore();
-        }
-        else {
+        } else {
             update();
         }
     }
-    
+
     void resized() override
     {
         auto bounds = getLocalBounds();
@@ -192,7 +182,7 @@ public:
             {
                 auto isSelected = console.selectedItems.contains(this);
                 auto showMessages = getValue<bool>(console.settingsValues[2]);
-                auto showErrors =  getValue<bool>(console.settingsValues[3]);
+                auto showErrors = getValue<bool>(console.settingsValues[3]);
 
                 if (isSelected) {
                     // Draw selected background
@@ -227,7 +217,7 @@ public:
 
                 // Check if message type should be visible
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors)) {
-                    return; 
+                    return;
                 }
 
                 // Approximate number of lines from string length and current width
@@ -252,7 +242,7 @@ public:
     public:
         std::deque<std::unique_ptr<ConsoleMessage>> messages;
         Array<SafePointer<ConsoleMessage>> selectedItems;
-        
+
         ConsoleComponent(pd::Instance* instance, std::array<Value, 5>& b, Viewport& v)
             : settingsValues(b)
             , viewport(v)
@@ -374,7 +364,7 @@ public:
         {
             auto showMessages = getValue<bool>(settingsValues[2]);
             auto showErrors = getValue<bool>(settingsValues[3]);
-            
+
             int totalHeight = 2;
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 if (row >= messages.size())
@@ -384,7 +374,7 @@ public:
 
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
                 auto height = numLines * 13 + 12;
-                
+
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
                     continue;
 
@@ -396,7 +386,7 @@ public:
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
     };
-    
+
     void showCalloutBox(Rectangle<int> bounds, PluginEditor* editor)
     {
         auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
@@ -404,12 +394,9 @@ public:
     }
 
 private:
-    
-    
     std::array<Value, 5> settingsValues;
     ConsoleComponent* console;
     Viewport viewport;
 
     int pendingUpdates = 0;
-
 };

@@ -81,7 +81,7 @@ public:
             editor->removeKeyListener(this);
         }
     }
-        
+
     void update() override
     {
         if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
@@ -317,7 +317,6 @@ public:
 class CanvasActiveObject final : public ImplementationBase
     , public FocusChangeListener {
 
-
     bool lastFocus = 0;
 
     t_symbol* lastFocussedName;
@@ -517,7 +516,7 @@ public:
             return;
 
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
-        
+
         pd->lockAudioThread();
         outlet_float(mouse->x_obj.ob_outlet, 0.0f);
         pd->unlockAudioThread();
@@ -548,7 +547,6 @@ public:
             outlet_float(mouse->x_outlet_y, (float)pos.y);
             outlet_float(mouse->x_outlet_x, (float)pos.x);
             pd->unlockAudioThread();
-
         }
     }
 
@@ -571,7 +569,6 @@ public:
 class CanvasVisibleObject final : public ImplementationBase
     , public ComponentListener
     , public Timer {
-
 
     bool lastFocus = 0;
     Component::SafePointer<Canvas> cnv;
@@ -670,11 +667,11 @@ public:
         float newScale = getValue<float>(zoomScaleValue);
         if (lastScale != newScale) {
             auto* zoom = static_cast<t_fake_zoom*>(ptr);
-            
+
             pd->lockAudioThread();
             outlet_float(zoom->x_obj.ob_outlet, newScale);
             pd->unlockAudioThread();
-            
+
             lastScale = newScale;
         }
     }

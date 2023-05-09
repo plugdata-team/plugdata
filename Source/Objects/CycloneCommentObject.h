@@ -4,8 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
-
 // This object is a dumb version of [cyclone/comment] that only serves to make cyclone's documentation readable
 class CycloneCommentObject final : public ObjectBase {
 

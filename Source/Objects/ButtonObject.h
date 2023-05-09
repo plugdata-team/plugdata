@@ -4,9 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 class ButtonObject : public ObjectBase {
-    
+
     bool state = false;
     bool alreadyTriggered = false;
 

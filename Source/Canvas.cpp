@@ -890,7 +890,7 @@ void Canvas::pasteSelection()
         pastedPadding.setXY(-10, -10);
     }
     pastedPosition = lastMousePosition;
-    
+
     // Tell pd to paste with offset applied to the clipboard string
     patch.paste(Point<int>(pastedPosition.x + pastedPadding.x + 1540, pastedPosition.y + pastedPadding.y + 1540));
 
@@ -1163,7 +1163,7 @@ void Canvas::encapsulateSelection()
             patch.selectObject(object->getPointer()); // TODO: do this inside enqueue
         }
     }
-    auto centre = bounds.getCentre();
+    auto centre = bounds.getCentre() - canvasOrigin;
 
     auto copypasta = String("#N canvas 733 172 450 300 0 1;\n") + "$$_COPY_HERE_$$" + newEdgeObjects + newInternalConnections + "#X restore " + String(centre.x) + " " + String(centre.y) + " pd;\n";
 
@@ -1297,7 +1297,7 @@ void Canvas::valueChanged(Value& v)
 
         if (!viewport)
             return;
-        
+
         // Get floating point mouse position relative to screen
         auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
         // Get mouse position relative to canvas
@@ -1316,14 +1316,12 @@ void Canvas::valueChanged(Value& v)
         // set and trigger the zoom label popup in the bottom left corner
         // TODO: move this to viewport, and have one per viewport?
         editor->setZoomLabelLevel(newScaleFactor);
-    }
-    else if (v.refersToSameSourceAs(patchWidth)) {
+    } else if (v.refersToSameSourceAs(patchWidth)) {
         // limit canvas width to smallest object (11px)
         patchWidth = jmax(11, getValue<int>(patchWidth));
         patch.getPointer()->gl_screenx2 = getValue<int>(patchWidth) + patch.getPointer()->gl_screenx1;
         repaint();
-    }
-    else if (v.refersToSameSourceAs(patchHeight)) {
+    } else if (v.refersToSameSourceAs(patchHeight)) {
         patchHeight = jmax(11, getValue<int>(patchHeight));
         patch.getPointer()->gl_screeny2 = getValue<int>(patchHeight) + patch.getPointer()->gl_screeny1;
         repaint();
