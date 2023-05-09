@@ -31,7 +31,7 @@
 #X obj 110 287 cnv 17 3 160 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X obj 109 453 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X obj 109 473 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
-#X text 143 454 float/signal - phase sync (ressets internal phase);
+#X text 143 454 float/signal - phase sync (resets internal phase);
 #X text 143 474 float/signal - phase offset (modulation input), f 50;
 #X text 139 285 float/signal - sets frequency in hertz, f 62;
 #X text 221 619 - array name (optional \, default none), f 43;

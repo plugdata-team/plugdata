@@ -278,7 +278,7 @@
 #X restore 434 222 pd distributions;
 #X text 113 326 interp <float>;
 #X text 95 355 dist <f \, f \, f \, f>;
-#X text 203 354 - sets distributions and parametes \, see [pd distributions];
+#X text 203 354 - sets distributions and parameters \, see [pd distributions];
 #N canvas 697 82 417 377 seed 0;
 #X obj 258 280 else/gendyn~;
 #X text 37 21 Pseudo random number generators aren't true random number generators. Instead \, an algorithm is used to provide a sequence of numbers that seems random. The same sequence can be reproduced if you set a "seed" value \, which can be any integer number., f 52;
@@ -302,7 +302,7 @@
 #X obj 4 414 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000 0;
 #X text 125 423 -n <f> | -frange <f f> | -freq_step <f> | -amp_step <f> | -interp <f> | -seed <f> | -dist <f f f f> |;
 #X text 204 387 - dynamic stochastic synthesis output;
-#X text 42 89 [gendyn~] implements "Dynamic Strochastic Synthesis" based on Xenakis' 'GenDyn' algorhythm. The waveform has a given number of points (linearly interpolated by default). The period of each point and its value changes according to a random walk (a.k.a. brownian motion) with given distributions., f 79;
+#X text 42 89 [gendyn~] implements "Dynamic Strochastic Synthesis" based on Xenakis' 'GenDyn' algorythm. The waveform has a given number of points (linearly interpolated by default). The period of each point and its value changes according to a random walk (a.k.a. brownian motion) with given distributions., f 79;
 #X text 203 326 - sets interpolation mode (default 1 \, linear);
 #X obj 41 223 else/rand.dist;
 #X connect 16 0 17 0;

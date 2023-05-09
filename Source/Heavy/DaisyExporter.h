@@ -52,7 +52,7 @@ public:
 
         flashButton.setEnabled(validPatchSelected);
 
-        bool flash = static_cast<int>(exportTypeValue.getValue()) == 3;
+        bool flash = getValue<int>(exportTypeValue) == 3;
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
 
@@ -60,7 +60,7 @@ public:
         romOptimisation->setVisible(flash);
 
         if (v.refersToSameSourceAs(targetBoardValue)) {
-            int idx = static_cast<int>(targetBoardValue.getValue());
+            int idx = getValue<int>(targetBoardValue);
 
             // Custom board option
             if (idx == 8) {
@@ -83,9 +83,9 @@ public:
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
-        auto target = static_cast<int>(targetBoardValue.getValue()) - 1;
-        bool compile = static_cast<int>(exportTypeValue.getValue()) - 1;
-        bool flash = static_cast<int>(exportTypeValue.getValue()) == 3;
+        auto target = getValue<int>(targetBoardValue) - 1;
+        bool compile = getValue<int>(exportTypeValue) - 1;
+        bool flash = getValue<int>(exportTypeValue) == 3;
 
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
 
@@ -277,8 +277,8 @@ public:
     bool setMakefileVariables(File makefile)
     {
 
-        int ramType = static_cast<int>(ramOptimisationType.getValue());
-        int romType = static_cast<int>(romOptimisationType.getValue());
+        int ramType = getValue<int>(ramOptimisationType);
+        int romType = getValue<int>(romOptimisationType);
 
         auto linkerDir = Toolchain::dir.getChildFile("etc").getChildFile("linkers");
         File linkerFile;

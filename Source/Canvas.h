@@ -6,36 +6,56 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "ObjectGrid.h"          // move to impl
+#include "Utility/RateReducer.h" // move to impl
+#include "Utility/ModifierKeyListener.h"
+#include "Utility/CheckedTooltip.h"
+#include "Pd/MessageListener.h"
+#include "Pd/Patch.h"
+#include "Constants.h"
 
-#include "Object.h"
-#include "Pd/PdPatch.h"
-#include "PluginProcessor.h"
-#include "ObjectGrid.h"
-#include "Utility/RateReducer.h"
+namespace pd {
+class Patch;
+}
 
 class SuggestionComponent;
 struct GraphArea;
 class Iolet;
+class Object;
+class Connection;
 class PluginEditor;
+class PluginProcessor;
 class ConnectionPathUpdater;
 class ConnectionBeingCreated;
 class TabComponent;
 
+struct ObjectDragState {
+    bool wasDragDuplicated = false;
+    bool didStartDragging = false;
+    bool wasSelectedOnMouseDown = false;
+    bool wasResized = false;
+    Point<int> canvasDragStartPosition = { 0, 0 };
+    Component::SafePointer<Object> componentBeingDragged;
+    Component::SafePointer<Object> objectSnappingInbetween;
+    Component::SafePointer<Connection> connectionToSnapInbetween;
+};
+
 class Canvas : public Component
     , public Value::Listener
+    , public SettingsFileListener
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
     , public FocusChangeListener
-    , public pd::MessageListener {
+    , public pd::MessageListener
+    , public AsyncUpdater {
 public:
-    Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
+    Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr, bool isPalette = false);
 
     ~Canvas() override;
 
     PluginEditor* editor;
     PluginProcessor* pd;
-        
+
     void recreateViewport();
 
     void lookAndFeelChanged() override;
@@ -46,10 +66,23 @@ public:
     void mouseUp(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
 
+    void commandKeyChanged(bool isHeld) override;
     void spaceKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
+    void altKeyChanged(bool isHeld) override;
 
-    void synchronise(bool updatePosition = true);
+    void propertyChanged(String name, var value) override;
+
+    void moved() override;
+    void resized() override;
+
+    int getOverlays();
+    void updateOverlays();
+
+    void synchroniseSplitCanvas();
+    void synchronise();
+    void performSynchronise();
+    void handleAsyncUpdate() override;
 
     void updateDrawables();
 
@@ -66,6 +99,7 @@ public:
 
     void copySelection();
     void removeSelection();
+    void removeSelectedConnections();
     void pasteSelection();
     void duplicateSelection();
 
@@ -79,18 +113,14 @@ public:
     void undo();
     void redo();
 
-    void checkBounds();
+    void jumpToOrigin();
+    void zoomToFitAll();
 
     bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions
     void deselectAll();
     void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true);
-    bool isSelected(Component* component) const;
-
-    void objectMouseDown(Object* component, MouseEvent const& e);
-    void objectMouseUp(Object* component, MouseEvent const& e);
-    void objectMouseDrag(MouseEvent const& e);
 
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
 
@@ -128,8 +158,10 @@ public:
     Viewport* viewport = nullptr;
 
     bool connectingWithDrag = false;
+    bool connectionCancelled = false;
     SafePointer<Iolet> nearestIolet;
 
+    pd::Patch::Ptr refCountedPatch;
     pd::Patch& patch;
 
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
@@ -142,58 +174,66 @@ public:
     Value locked;
     Value commandLocked;
     Value presentationMode;
-    Value gridEnabled;
+    Value showDirection;
+    Value paletteDragMode;
+    Value altMode;
+
+    bool showOrigin = false;
+    bool showBorder = false;
 
     bool isGraph = false;
     bool hasParentCanvas = false;
-    bool updatingBounds = false; // used by connection
     bool isDraggingLasso = false;
+    bool isPalette;
+    bool isShowingMenu = false;
 
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
     Value xRange, yRange;
+    Value patchWidth, patchHeight;
+
+    Value zoomScale;
 
     ObjectGrid objectGrid = ObjectGrid(this);
 
-    Point<int> canvasOrigin = { 0, 0 };
-    Point<int> canvasDragStartPosition = { 0, 0 };
+    Point<int> const canvasOrigin;
     Point<int> viewportPositionBeforeMiddleDrag = { 0, 0 };
 
-    GraphArea* graphArea = nullptr;
+    std::unique_ptr<GraphArea> graphArea;
     SuggestionComponent* suggestor = nullptr;
 
     bool attachNextObjectToMouse = false;
-    bool wasDragDuplicated = false;
-    bool wasSelectedOnMouseDown = false;
-    SafePointer<Object> lastSelectedObject = nullptr; // For auto patching
-    SafePointer<Connection> lastSelectedConnection;   // For auto patching
-
-    // Multi-dragger variables
-    bool didStartDragging = false;
+    // TODO: Move to drag state!
+    SafePointer<Object> lastSelectedObject;         // For auto patching
+    SafePointer<Connection> lastSelectedConnection; // For auto patching
 
     int const minimumMovementToStartDrag = 5;
-    SafePointer<Object> componentBeingDragged = nullptr;
 
     Point<int> lastMousePosition;
     Point<int> pastedPosition;
     Point<int> pastedPadding;
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
+    RateReducer objectRateReducer = RateReducer(90);
+
+    ObjectDragState dragState;
+
+    inline static constexpr int infiniteCanvasSize = 128000;
 
 private:
-    SafePointer<Object> objectSnappingInbetween;
-    SafePointer<Connection> connectionToSnapInbetween;
-
     LassoComponent<WeakReference<Component>> lasso;
 
     RateReducer canvasRateReducer = RateReducer(90);
-    RateReducer objectRateReducer = RateReducer(90);
 
     // Properties that can be shown in the inspector by right-clicking on canvas
-    ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
+    ObjectParameters parameters = {
+        { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
         { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } },
         { "X range", tRange, cGeneral, &xRange, {} },
-        { "Y range", tRange, cGeneral, &yRange, {} } };
+        { "Y range", tRange, cGeneral, &yRange, {} },
+        { "Width", tInt, cGeneral, &patchWidth, {} },
+        { "Height", tInt, cGeneral, &patchHeight, {} }
+    };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

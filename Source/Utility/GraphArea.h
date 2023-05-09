@@ -6,7 +6,8 @@
 
 // Graph bounds component
 class GraphArea : public Component
-    , public ComponentDragger {
+    , public ComponentDragger
+    , public Value::Listener {
     ResizableCornerComponent resizer;
     Canvas* canvas;
 
@@ -18,12 +19,25 @@ public:
         addAndMakeVisible(resizer);
         updateBounds();
         setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+
+        canvas->locked.addListener(this);
+        valueChanged(canvas->locked);
+    }
+
+    ~GraphArea()
+    {
+        canvas->locked.removeListener(this);
+    }
+
+    void valueChanged(Value& v) override
+    {
+        setVisible(!getValue<bool>(v));
     }
 
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::resizeableCornerColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), PlugDataLook::objectCornerRadius, PlugDataLook::smallCornerRadius);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), Corners::objectCornerRadius, 2.0f);
     }
 
     bool hitTest(int x, int y) override
@@ -43,7 +57,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        setPdBounds();
+        applyBounds();
         repaint();
     }
 
@@ -51,7 +65,6 @@ public:
     {
         int handleSize = 20;
 
-        setPdBounds();
         resizer.setBounds(getWidth() - handleSize, getHeight() - handleSize, handleSize, handleSize);
 
         canvas->updateDrawables();
@@ -59,11 +72,11 @@ public:
         repaint();
     }
 
-    void setPdBounds()
+    void applyBounds()
     {
         t_canvas* cnv = canvas->patch.getPointer();
-        
-        canvas->pd->enqueueFunction([cnv, _this = SafePointer(this)](){
+
+        canvas->pd->enqueueFunction([cnv, _this = SafePointer(this)]() {
             if (_this && cnv) {
                 cnv->gl_pixwidth = _this->getWidth();
                 cnv->gl_pixheight = _this->getHeight();

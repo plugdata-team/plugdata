@@ -1,7 +1,7 @@
 // Porres 2016
 
 #include "m_pd.h"
-#include <math.h>
+#include "math.h"
 #include "magic.h"
 
 static t_class *imp2_class;
@@ -30,7 +30,7 @@ static t_int *imp2_perform_magic(t_int *w){
     int nblock = (t_int)(w[2]);
     t_float *in1 = (t_float *)(w[3]); // freq
     t_float *in2 = (t_float *)(w[4]); // width
-    t_float *in3 = (t_float *)(w[5]); // sync
+    t_float *in3 = (t_float *)(w[5]); // trig
     t_float *in4 = (t_float *)(w[6]); // phase
     t_float *out = (t_float *)(w[7]);
     double phase = x->x_phase;
@@ -176,7 +176,7 @@ static void imp2_dsp(t_imp2 *x, t_signal **sp){
                 sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[3]->s_vec, sp[4]->s_vec);
     }
     else{
-        dsp_add(imp2_perform, 7, x, sp[0]->s_n,
+        dsp_add(imp2_perform_magic, 7, x, sp[0]->s_n,
                 sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[3]->s_vec, sp[4]->s_vec);
     }
 }
@@ -192,6 +192,7 @@ static void *imp2_free(t_imp2 *x)
 
 static void *imp2_new(t_symbol *s, int ac, t_atom *av)
 {
+    s = NULL;
     t_imp2 *x = (t_imp2 *)pd_new(imp2_class);
     t_float f1 = 0, f2 = 0.5, f3 = 0;
     if (ac && av->a_type == A_FLOAT)
@@ -208,12 +209,14 @@ static void *imp2_new(t_symbol *s, int ac, t_atom *av)
     t_float init_freq = f1;
     
     t_float init_width = f2;
-    init_width < 0 ? 0 : init_width >= 1 ? 0 : init_width; // clipping width input
+    init_width = init_width < 0 ? 0 : init_width >= 1 ? 0 : init_width; // clipping width input
     
     t_float init_phase = f3;
-    init_phase < 0 ? 0 : init_phase >= 1 ? 0 : init_phase; // clipping phase input
+    init_phase = init_phase < 0 ? 0 : init_phase >= 1 ? 0 : init_phase; // clipping phase input
     if (init_phase == 0 && init_freq > 0)
         x->x_phase = 1.;
+    else
+         x->x_phase = init_phase;
     
     x->x_last_phase_offset = 0;
     x->x_freq = init_freq;

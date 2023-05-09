@@ -42,7 +42,7 @@ number (starting from zero) and "-" \, such as: "0-" \, "1-" \, "2-"
 #X text 40 42 Multi channel recording is possible (up to 64 channels)
 when you specify it with a second argument. The number of channels
 defines the number 'n' of inlets - where the first outlets are the
-channel inputs and the two righmost are the range intlets.;
+channel inputs and the two rightmost are the range inlets.;
 #X obj 304 256 tgl 20 0 empty empty empty 0 -6 0 8 #dcdcdc #000000
 #000000 0 1;
 #X msg 501 280 show, f 5;

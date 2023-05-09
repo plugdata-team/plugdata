@@ -1,0 +1,45 @@
+#N canvas 420 108 730 378 10;
+#X obj 205 284 text define \$0-parameters;
+#X obj 460 102 hsl 128 15 0 127 0 0 \$0-s-parameter-1 \$0-r-parameter-1
+parameter-1 -2 -8 0 10 -262144 -1 -1 6500 1;
+#X obj 205 176 r \$0-write;
+#X obj 444 208 gui.link \$0 0 parameter-1;
+#X obj 205 237 del 100;
+#X obj 316 87 loadbang;
+#X obj 316 108 t b b;
+#X obj 316 150 s \$0-loadbang-1;
+#X obj 343 129 s \$0-loadbang-0;
+#X msg 59 256 read ./parameters.txt;
+#X msg 205 258 write ./parameters.txt;
+#X obj 59 235 r \$0-loadbang-0;
+#X obj 460 132 hsl 128 15 0 127 0 0 \$0-s-parameter-2 \$0-r-parameter-2
+parameter-2 -2 -8 0 10 -262144 -1 -1 5400 1;
+#X obj 460 162 hsl 128 15 0 127 0 0 \$0-s-parameter-3 \$0-r-parameter-3
+parameter-3 -2 -8 0 10 -262144 -1 -1 5400 1;
+#X obj 444 228 gui.link \$0 1 parameter-2;
+#X obj 444 248 gui.link \$0 2 parameter-3;
+#X text 475 278 gui.link arguments;
+#X text 485 298 ID = \$0;
+#X text 485 318 # = Parameter number;
+#X text 485 338 parameter name;
+#X obj 205 197 spigot;
+#X obj 282 168 loadbang;
+#X obj 282 189 t b b;
+#X obj 282 210 del 100;
+#X msg 282 231 1;
+#X msg 312 231 0;
+#X connect 2 0 20 0;
+#X connect 4 0 10 0;
+#X connect 5 0 6 0;
+#X connect 6 0 7 0;
+#X connect 6 1 8 0;
+#X connect 9 0 0 0;
+#X connect 10 0 0 0;
+#X connect 11 0 9 0;
+#X connect 20 0 4 0;
+#X connect 21 0 22 0;
+#X connect 22 0 23 0;
+#X connect 22 1 25 0;
+#X connect 23 0 24 0;
+#X connect 24 0 20 1;
+#X connect 25 0 20 1;

@@ -6,8 +6,6 @@
 
 #pragma once
 
-bool wantsNativeDialog();
-
 class SearchPathComponent : public Component
     , public FileDragAndDropTarget
     , private ListBoxModel {
@@ -29,12 +27,12 @@ class SearchPathComponent : public Component
             auto colour = findColour(PlugDataColour::panelTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
+                g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
 
                 colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
-            PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
-            PlugDataLook::drawText(g, "Add search path", textBounds, colour, 14);
+            Fonts::drawIcon(g, Icons::Add, iconBounds, colour, 12);
+            Fonts::drawText(g, "Add search path", textBounds, colour, 14);
         }
 
         void mouseEnter(MouseEvent const& e) override
@@ -129,12 +127,12 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
+            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
 
-        PlugDataLook::drawText(g, paths[rowNumber], 12, 0, width - 9, height, colour, 14);
+        Fonts::drawText(g, paths[rowNumber], 12, 0, width - 9, height, colour, 14);
     }
 
     void deleteKeyPressed(int row) override
@@ -147,7 +145,7 @@ public:
 
     void returnKeyPressed(int row) override
     {
-        chooser = std::make_unique<FileChooser>(TRANS("Change folder..."), paths[row], "*", wantsNativeDialog());
+        chooser = std::make_unique<FileChooser>(TRANS("Change folder..."), paths[row], "*", SettingsFile::getInstance()->wantsNativeDialog());
         auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
 
         chooser->launchAsync(chooserFlags,

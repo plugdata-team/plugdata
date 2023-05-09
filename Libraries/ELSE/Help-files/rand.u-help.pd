@@ -92,7 +92,7 @@
 #X msg 186 142 clear;
 #X text 199 314 - clears the memory and sets a new 'n' size, f 53;
 #X text 199 371 - unrepeated random value, f 38;
-#X text 180 458 1) float - size (defaul 1);
+#X text 180 458 1) float - size (default 1);
 #X text 39 92 [rand.u] generates an unrepeated random values (from 0 to size-1). After the whole sequence is output \, a bang is sent in the right outlet., f 72;
 #X obj 231 192 else/rand.u 4;
 #X text 16 195 see also:;

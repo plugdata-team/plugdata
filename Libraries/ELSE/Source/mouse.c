@@ -569,8 +569,10 @@ static void mouse_reset(t_mouse *x){
 }
 
 static void mouse_free(t_mouse *x){
+#ifndef PDINSTANCE
     mouse_gui_stoppolling((t_pd *)x);
     mouse_gui_unbindmouse((t_pd *)x);
+#endif
 }
 
 static void *mouse_new(void){
@@ -579,11 +581,22 @@ static void *mouse_new(void){
     x->x_horizontal = outlet_new((t_object *)x, &s_float);
     x->x_vertical = outlet_new((t_object *)x, &s_float);
     x->x_glist = (t_glist *)canvas_getcurrent();
+    
+    // The system mouse uses for binding doesn't work for multi-instance Pd
+    // Ideally we would solve this, but that's kind of complicated
+    // This at least makes sure there is no crash, and since many multi-instance applications of Pd
+    // (plugdata, camomile) don't use tcl/tk anyway, it won't matter
+#ifndef PDINSTANCE
     mouse_gui_bindmouse((t_pd *)x);
     mouse_gui_willpoll();
     mouse_reset(x);
     mouse_updatepos(x);
     mouse_gui_startpolling((t_pd *)x, 1);
+#else
+    x->x_hzero = x->x_vzero = 0;
+    mouse_updatepos(x);
+#endif
+    
     return(x);
 }
 

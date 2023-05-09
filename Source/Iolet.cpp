@@ -3,15 +3,21 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
 
 #include "Iolet.h"
 
+#include "Object.h"
 #include "Canvas.h"
 #include "Connection.h"
 #include "LookAndFeel.h"
+#include "Pd/Patch.h"
 
 Iolet::Iolet(Object* parent, bool inlet)
-    : object(parent), insideGraph(parent->cnv->isGraph)
+    : object(parent)
+    , insideGraph(parent->cnv->isGraph)
 {
     isInlet = inlet;
     setSize(8, 8);
@@ -23,13 +29,13 @@ Iolet::Iolet(Object* parent, bool inlet)
     locked.referTo(object->cnv->locked);
     locked.addListener(this);
 
+    commandLocked.referTo(object->cnv->commandLocked);
+    commandLocked.addListener(this);
+
     presentationMode.referTo(object->cnv->presentationMode);
     presentationMode.addListener(this);
 
-    bool isLocked = static_cast<bool>(locked.getValue());
-    setInterceptsMouseClicks(!isLocked, true);
-
-    bool isPresenting = static_cast<bool>(presentationMode.getValue());
+    bool isPresenting = getValue<bool>(presentationMode);
     setVisible(!isPresenting && !insideGraph);
 
     // Drawing cirles is more expensive than you might think, especially because there can be a lot of iolets!
@@ -41,12 +47,14 @@ Iolet::Iolet(Object* parent, bool inlet)
 Rectangle<int> Iolet::getCanvasBounds()
 {
     // Get bounds relative to canvas, used for positioning connections
-    return getBounds() + object->getPosition();
+    return cnv->getLocalArea(this, getLocalBounds());
 }
 
 bool Iolet::hitTest(int x, int y)
 {
-    if (static_cast<bool>(locked.getValue()))
+    // If locked, don't intercept mouse clicks
+    // Make an exception for palette drag mode, so we'll still get tooltips there
+    if ((getValue<bool>(locked) || getValue<bool>(commandLocked)) && !getValue<bool>(cnv->paletteDragMode))
         return false;
 
     Path smallBounds;
@@ -71,7 +79,7 @@ void Iolet::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat().reduced(0.5f);
 
-    bool isLocked = static_cast<bool>(locked.getValue());
+    bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
     bool down = isMouseButtonDown();
     bool over = isMouseOver();
 
@@ -84,7 +92,7 @@ void Iolet::paint(Graphics& g)
     if ((down || over) && !isLocked)
         backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
-    if (isLocked) {
+    if (isLocked && !getValue<bool>(cnv->paletteDragMode)) {
         backgroundColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f);
     }
 
@@ -124,10 +132,10 @@ void Iolet::paint(Graphics& g)
 void Iolet::mouseDrag(MouseEvent const& e)
 {
     // Ignore when locked or if middlemouseclick?
-    if (static_cast<bool>(locked.getValue()) || e.mods.isMiddleButtonDown())
+    if (getValue<bool>(locked) || e.mods.isMiddleButtonDown())
         return;
 
-    if (cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
+    if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
         MessageManager::callAsync([_this = SafePointer(this)]() {
             _this->createConnection();
             _this->object->cnv->connectingWithDrag = true;
@@ -160,7 +168,7 @@ void Iolet::mouseDrag(MouseEvent const& e)
 
 void Iolet::mouseUp(MouseEvent const& e)
 {
-    if (static_cast<bool>(locked.getValue()) || e.mods.isRightButtonDown())
+    if (getValue<bool>(locked) || e.mods.isRightButtonDown())
         return;
 
     // This might end up calling Canvas::synchronise, at which point we are not sure this class will survive, so we do an async call
@@ -302,6 +310,7 @@ void Iolet::mouseUp(MouseEvent const& e)
                 cnv->nearestIolet = nullptr;
             }
         }
+        cnv->connectionCancelled = false;
     });
 }
 
@@ -327,8 +336,12 @@ void Iolet::createConnection()
     if (!cnv->connectionsBeingCreated.isEmpty()) {
 
         cnv->patch.startUndoSequence("Connecting");
-        
+
         for (auto& c : object->cnv->connectionsBeingCreated) {
+
+            if (!c->getIolet())
+                continue;
+
             // Check type for input and output
             bool sameDirection = isInlet == c->getIolet()->isInlet;
 
@@ -444,15 +457,18 @@ void Iolet::valueChanged(Value& v)
     if (v.refersToSameSourceAs(locked)) {
         repaint();
     }
+    if (v.refersToSameSourceAs(commandLocked)) {
+        repaint();
+    }
     if (v.refersToSameSourceAs(presentationMode)) {
-        setVisible(!static_cast<bool>(presentationMode.getValue()) && !insideGraph && !hideIolet);
+        setVisible(!getValue<bool>(presentationMode) && !insideGraph && !hideIolet);
         repaint();
     }
 }
 
-
-void Iolet::setHidden(bool hidden) {
+void Iolet::setHidden(bool hidden)
+{
     hideIolet = hidden;
-    setVisible(!static_cast<bool>(presentationMode.getValue()) && !insideGraph && !hideIolet);
+    setVisible(!getValue<bool>(presentationMode) && !insideGraph && !hideIolet);
     repaint();
 }

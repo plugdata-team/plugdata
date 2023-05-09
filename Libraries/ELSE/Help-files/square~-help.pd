@@ -284,7 +284,7 @@ are from 0 to 1 and values beyond that are wrapped within this range.
 #X text 60 87 [square~] is a square oscillator that accepts negative
 frequencies \, has inlets for pulse width \, phase sync and phase modulation.
 ;
-#X text 164 326 float/signal - phase sync (ressets internal phase)
+#X text 164 326 float/signal - phase sync (resets internal phase)
 ;
 #X text 379 160 see also:;
 #X obj 447 160 else/bl.square~;

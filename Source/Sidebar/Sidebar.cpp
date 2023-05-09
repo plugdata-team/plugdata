@@ -4,9 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <JuceHeader.h>
-#include "Pd/PdInstance.h"
-#include "LookAndFeel.h"
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
+#include "Pd/Instance.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "Canvas.h"
@@ -77,6 +79,31 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     };
     addAndMakeVisible(searchButton);
 
+    panelSettingsButton.setTooltip("Show panel settings");
+    panelSettingsButton.setConnectedEdges(12);
+    panelSettingsButton.getProperties().set("Style", "SmallIcon");
+    panelSettingsButton.onClick = [this, parent]() {
+        auto bounds = parent->getLocalArea(this, panelSettingsButton.getBounds());
+        if (currentPanel == 0) {
+
+            console->showCalloutBox(bounds, parent);
+        }
+        if (currentPanel == 1) {
+            browser->showCalloutBox(bounds, parent);
+        }
+    };
+
+    addAndMakeVisible(panelSettingsButton);
+
+    panelPinButton.setTooltip("Pin panel");
+    panelPinButton.setConnectedEdges(12);
+    panelPinButton.getProperties().set("Style", "SmallIcon");
+    panelPinButton.setClickingTogglesState(true);
+    panelPinButton.onClick = [this]() {
+        pinSidebar(panelPinButton.getToggleState());
+    };
+    addAndMakeVisible(panelPinButton);
+
     browserButton.setRadioGroupId(1100);
     automationButton.setRadioGroupId(1100);
     consoleButton.setRadioGroupId(1100);
@@ -104,32 +131,46 @@ void Sidebar::paint(Graphics& g)
 {
     // Sidebar
     g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-    g.fillRect(0, 0, getWidth(), getHeight() - 30);
+    g.fillRect(0, 0, getWidth(), getHeight());
 
     // Background for buttons
     g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-    g.fillRect(0, 0, getWidth(), 26);
+    g.fillRect(0, 0, getWidth(), 30);
+
+    if (inspector->isVisible()) {
+        Fonts::drawStyledText(g, "Inspector", Rectangle<int>(0, 30, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+    } else {
+        Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 30, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+    }
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::outlineColourId));
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(0, 0, getWidth(), 0);
-    g.drawLine(0, 26, getWidth(), 26);
-    g.drawLine(0.0f, getHeight() - 29.5f, static_cast<float>(getWidth()), getHeight() - 29.5f);
-    g.drawLine(0.5f, 0, 0.5f, getHeight() - 29.5f);
+    g.drawLine(0, 30, getWidth(), 30);
+    g.drawLine(0.0f, getHeight() + 0.5f, static_cast<float>(getWidth()), getHeight() + 0.5f);
+    g.drawLine(0.5f, 0, 0.5f, getHeight() + 0.5f);
+
+    g.drawLine(0, 60, getWidth(), 60);
 }
 
 void Sidebar::resized()
 {
     auto bounds = getLocalBounds();
-    auto tabbarBounds = bounds.removeFromTop(26);
     int buttonWidth = getWidth() / 4;
+
+    auto tabbarBounds = bounds.removeFromTop(30).reduced(0, 1);
 
     consoleButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     browserButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     automationButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     searchButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
+
+    auto panelTitleBarBounds = bounds.removeFromTop(30);
+
+    panelSettingsButton.setBounds(panelTitleBarBounds.removeFromRight(30));
+    panelPinButton.setBounds(panelTitleBarBounds.removeFromLeft(30));
 
     browser->setBounds(bounds);
     console->setBounds(bounds);
@@ -140,7 +181,7 @@ void Sidebar::resized()
 
 void Sidebar::mouseDown(MouseEvent const& e)
 {
-    Rectangle<int> dragBar(0, dragbarWidth, 15, getHeight());
+    Rectangle<int> dragBar(0, 0, dragbarWidth, getHeight() - 30);
     if (dragBar.contains(e.getEventRelativeTo(this).getPosition()) && !sidebarHidden) {
         draggingSidebar = true;
         dragStartWidth = getWidth();
@@ -153,7 +194,7 @@ void Sidebar::mouseDrag(MouseEvent const& e)
 {
     if (draggingSidebar) {
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
-        newWidth = std::clamp(newWidth, 100, std::max(getParentWidth() / 2, 150));
+        newWidth = std::clamp(newWidth, 200, std::max(getParentWidth() / 2, 150));
 
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         getParentComponent()->resized();
@@ -170,7 +211,7 @@ void Sidebar::mouseUp(MouseEvent const& e)
 void Sidebar::mouseMove(MouseEvent const& e)
 {
 
-    bool resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth;
+    bool resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth && e.getEventRelativeTo(this).getPosition().getY() < getHeight() - 30;
     e.originalComponent->setMouseCursor(resizeCursor ? MouseCursor::LeftRightResizeCursor : MouseCursor::NormalCursor);
 }
 
@@ -209,6 +250,10 @@ void Sidebar::showPanel(int panelToShow)
     hideParameters();
 
     currentPanel = panelToShow;
+
+    panelSettingsButton.setVisible(currentPanel < 2);
+
+    repaint();
 }
 
 bool Sidebar::isShowingBrowser()
@@ -232,7 +277,7 @@ void Sidebar::showSidebar(bool show)
 
     if (!show) {
         lastWidth = getWidth();
-        int newWidth = dragbarWidth;
+        int newWidth = 0;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
     } else {
         int newWidth = lastWidth;
@@ -261,8 +306,11 @@ void Sidebar::showParameters(String const& name, ObjectParameters& params)
     inspector->setTitle(name.upToFirstOccurrenceOf(" ", false, false));
 
     if (!pinned) {
+        panelSettingsButton.setVisible(false);
         inspector->setVisible(true);
     }
+
+    repaint();
 }
 
 void Sidebar::showParameters()
@@ -270,16 +318,20 @@ void Sidebar::showParameters()
     inspector->loadParameters(lastParameters);
 
     if (!pinned) {
+        panelSettingsButton.setVisible(currentPanel < 2);
         inspector->setVisible(true);
         console->setVisible(false);
         browser->setVisible(false);
         searchPanel->setVisible(false);
         automationPanel->setVisible(false);
     }
+
+    repaint();
 }
 void Sidebar::hideParameters()
 {
     if (!pinned) {
+        panelSettingsButton.setVisible(currentPanel < 2);
         inspector->setVisible(false);
     }
 
@@ -289,6 +341,8 @@ void Sidebar::hideParameters()
     }
 
     console->deselect();
+
+    repaint();
 }
 
 bool Sidebar::isShowingConsole() const

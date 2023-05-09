@@ -8,6 +8,44 @@ ELSE (EL Locus Solus's externals) with Live Electronics Tutorial
 
 
 ----------------------------------------------------------------------------
+1.0-0 Release Candidate 8:
+----------------------------------------------------------------------------
+
+**LIBRARY:**
+
+Breaking changes:
+- [rescale]/[rescale~] drastic changes have been made to these objects, kind of a new one altogether, changed arguments, flags and now it always only has 2 inlets.
+- [hz2rad]/[rad2hz] removed argument, set and bang method.
+- [canvas.name] no more '-w' flag as it is now the default and only option.
+- [numbox~] 'set' method renamed to 'init', input values are now clipped to min/max range
+
+Enhancements/fixes:
+- [else]: now loads a browser tcl/tk plugin for browsing ELSE's object and adding them to your patch when right clicking anywhere on a patch. Fixed the warning to say that the Live-Electronics-Tutorial is part of the downloaded package. The object was also simplified to not print info all the time and the argument was removed.
+- [rad2hz] fixed result output.
+- [rescale]/[rescale~] fixed clip mode when range is inverted, added log mode.
+- [dir] open message without a symbol opens the directory where the binary resides
+- [fbdelay~] fixed regression bug from rc5 where this was blowing up
+- [openfile] now opens files from search paths, not only in the patch's directory
+- [numbox~] implemented a new double click feature that sets to the 'init' value and fixed a zooming issue.
+- [keyboard] fixed a zooming issue.
+- [button] added toggle/bang mode, bang/float/set messages.
+- [note] fixed setting receive name from properties and loading receive flag.
+- [plaits~] fixed parameter's out of range issues
+- [graph~]/[spectrograph~] do not allow mouse clicks on arrays no more...
+- [sfont~] fixed compilation for linux manjaro.
+- [canvas.mouse] A third argument allows output even in edit mode.
+- 2 new objects for a total of 477: [knob] (yay, finally a knob) and [filterdelay~].
+
+--------------------------------------
+
+**TUTORIAL:**
+- new example about [filterdelay~]
+- Total number of examples is now 500!!!
+
+--------------------------------------
+
+
+----------------------------------------------------------------------------
 1.0-0 Release Candidate 7:
 ----------------------------------------------------------------------------
 
@@ -58,7 +96,7 @@ Enhancements/fixes:
 - [pipe2] fixed time management bug.
 - [eqdiv] fixed loading arguments.
 - [resonbank~]: added 'decayall'/'ampall' messages/flags.
-- 8 new objects for a total of 473: [sclae2freq], [osc.route], [osc.parse], [osc.format], [osc.send], [osc.receive], [pdlua] and [pdluax] (these aren't really part of ELSE but were included [version 0.11.1]).
+- 8 new objects for a total of 473: [scale2freq], [osc.route], [osc.parse], [osc.format], [osc.send], [osc.receive], [pdlua] and [pdluax] (these aren't really part of ELSE but were included [version 0.11.1]).
 
 
 --------------------------------------

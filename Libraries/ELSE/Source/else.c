@@ -1,6 +1,8 @@
 // porres
 
 #include "m_pd.h"
+#include "m_imp.h"
+#include <string.h>
 
 typedef struct else_obj{
     t_object  x_obj;
@@ -10,7 +12,7 @@ typedef struct else_obj{
 
 t_class *else_obj_class;
 
-static int printed;
+//static int printed;
 
 static int min_major = 0;
 static int min_minor = 53;
@@ -21,7 +23,7 @@ static int else_minor = 0;
 static int else_bugfix = 0;
 
 #define STATUS "rc"
-static int status_number = 7;
+static int status_number = 8;
 
 static void else_obj_version(t_else_obj *x){
     int ac = 5;
@@ -53,18 +55,18 @@ static void else_obj_version(t_else_obj *x){
     outlet_list(x->x_obj.te_outlet,  &s_list, ac, at);
 }
 
-void print_else_obj(t_else_obj *x){
+void else_obj_about(t_else_obj *x){
     int major = 0, minor = 0, bugfix = 0;
     sys_getversion(&major, &minor, &bugfix);
     post("");
     post("-------------------------------------------------------------------");
     post("  -----> ELSE - EL Locus Solus' Externals for Pure Data <-----");
     post("-------------------------------------------------------------------");
-    post("- Version: %d.%d-%d %s-%d; Released march 1st 2023", else_major, else_minor, else_bugfix, STATUS, status_number);
+    post("- Version: %d.%d-%d %s-%d; Released may 10th 2023", else_major, else_minor, else_bugfix, STATUS, status_number);
     post("- Author: Alexandre Torres Porres");
     post("- Repository: https://github.com/porres/pd-else");
     post("- License: Do What The Fuck You Want To Public License");
-    post("(unless otherwise noted in particular objects)");
+    post("(unless otherwise noted in particular objects, check the code)");
     if((major > min_major)
        || (major == min_major && minor > min_minor)
        || (major == min_major && minor == min_minor && bugfix >= min_bugfix)){
@@ -82,31 +84,23 @@ void print_else_obj(t_else_obj *x){
 #endif
     }
     post("-------------------------------------------------------------------");
-    post("- NOTE: There's an accompanying tutorial by Alexandre Torres");
-    post("Porres which we recommend. You can find the tutorial under");
-    post("\"Live-Electronics-Tutorial\" at: https://github.com/porres/pd-else");
+    post("- NOTE: There's an accompanying tutorial by Alexandre Torres Porres.");
+    post("You can find it as part of the ELSE library download, look for the");
+    post("\"Live-Electronics-Tutorial\" folder inside the ELSE folder.");
     post("Please check its README on how to install it!");
     post("-------------------------------------------------------------------");
     post("- ALSO NOTE: Loading this binary did not install the ELSE library");
-    post("you still need to add it to the \"preferences=>path\"");
-    post("or use [declare -path else]");
+    post("you still need to add it to the \"preferences => path\"");
+    post("or use [declare -path else]. But it did install a plugin for");
+    post("browsing ELSE's objects when right clicking on a patch canvas!");
     post("-------------------------------------------------------------------");
     post("  -----> ELSE - EL Locus Solus' Externals for Pure Data <-----");
     post("-------------------------------------------------------------------");
     post("");
 }
 
-static void else_obj_about(t_else_obj *x){
-    print_else_obj(x);
-}
-
-static void *else_obj_new(t_floatarg f1){
+static void *else_obj_new(void){
     t_else_obj *x = (t_else_obj *)pd_new(else_obj_class);
-    printed = f1 != 0;
-    if(!printed){
-        else_obj_about(x);
-        printed = 1;
-    }
     outlet_new((t_object *)x, 0);
     x->x_out2 = outlet_new((t_object *)x, &s_list);
     x->x_out3 = outlet_new((t_object *)x, &s_list);
@@ -114,12 +108,12 @@ static void *else_obj_new(t_floatarg f1){
 }
 
 void else_setup(void){
-    else_obj_class = class_new(gensym("else"), (t_newmethod)else_obj_new, 0, sizeof(t_else_obj), 0, A_DEFFLOAT, 0);
+    else_obj_class = class_new(gensym("else"), (t_newmethod)else_obj_new, 0, sizeof(t_else_obj), 0, 0);
     t_else_obj *x = (t_else_obj *)pd_new(else_obj_class);
     class_addmethod(else_obj_class, (t_method)else_obj_about, gensym("about"), 0);
     class_addmethod(else_obj_class, (t_method)else_obj_version, gensym("version"), 0);
-   if(!printed){
-       print_else_obj(x);
-       printed = 1;
-    }
+    else_obj_about(x);
+    char else_dir[MAXPDSTRING];
+    strcpy(else_dir, else_obj_class->c_externdir->s_name);
+    sys_vgui("eval [read [open [file join %s else-browser.tcl]]]\n", else_obj_class->c_externdir->s_name);
 }

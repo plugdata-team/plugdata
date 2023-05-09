@@ -33,11 +33,18 @@ public:
 
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
-            editor->setBorder({ 1, 1, 0, 0 });
+            editor->setBorder({ 0, 1, 3, 0 });
+
+            editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->addKeyListener(this);
         };
 
         input.setMinimumHorizontalScale(0.9f);
+    }
+
+    void update() override
+    {
+        atomHelper.update();
     }
 
     void lock(bool locked) override
@@ -62,11 +69,9 @@ public:
         atomHelper.setPdBounds(b);
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
-        atomHelper.checkBounds(oldBounds, newBounds, resizingOnLeft);
-        object->updateBounds();
-        return true;
+        return atomHelper.createConstrainer(object);
     }
 
     ObjectParameters getParameters() override
@@ -108,7 +113,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -119,11 +124,18 @@ public:
         triangle = triangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(triangle);
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+
+        bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
+
+        if (highlighed) {
+            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
+        }
     }
 
     bool hideInlets() override
@@ -157,6 +169,16 @@ public:
         return false;
     }
 
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("set"),
+            hash("symbol"),
+            hash("send"),
+            hash("receive")
+        };
+    }
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
@@ -164,6 +186,10 @@ public:
         case hash("set"):
         case hash("symbol"): {
             input.setText(atoms[0].getSymbol(), dontSendNotification);
+            break;
+        }
+        case hash("float"): {
+            input.setText("float", dontSendNotification);
             break;
         }
         case hash("send"): {

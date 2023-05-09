@@ -16,7 +16,7 @@ public:
         , iemHelper(ptr, object, this)
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
-        locked = static_cast<bool>(object->locked.getValue());
+        locked = getValue<bool>(object->locked);
     }
 
     bool hideInlets() override
@@ -34,29 +34,47 @@ public:
         iemHelper.updateLabel(label);
     }
 
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            IEMGUI_MESSAGES
+        };
+    }
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         iemHelper.receiveObjectMessage(symbol, atoms);
     }
 
-    void initialiseParameters() override
+    void update() override
     {
-        iemHelper.initialiseParameters();
+        iemHelper.update();
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    Rectangle<int> getSelectableBounds() override
     {
-        iemHelper.setPdBounds(b.removeFromRight(1).removeFromBottom(1));
+        auto* cnvObj = reinterpret_cast<t_my_canvas*>(iemHelper.iemgui);
+        return { cnvObj->x_gui.x_obj.te_xpix, cnvObj->x_gui.x_obj.te_ypix, cnvObj->x_gui.x_w, cnvObj->x_gui.x_h };
     }
 
     bool canReceiveMouseEvent(int x, int y) override
     {
-        return !locked;
+        return !locked && Rectangle<int>(static_cast<t_iemgui*>(ptr)->x_w, static_cast<t_iemgui*>(ptr)->x_h).contains(x - Object::margin, y - Object::margin);
     }
 
     void lock(bool isLocked) override
     {
         locked = isLocked;
+    }
+
+    void setPdBounds(Rectangle<int> b) override
+    {
+        auto* cnvObj = reinterpret_cast<t_my_canvas*>(iemHelper.iemgui);
+
+        cnvObj->x_gui.x_obj.te_xpix = b.getX();
+        cnvObj->x_gui.x_obj.te_ypix = b.getY();
+        cnvObj->x_vis_w = b.getWidth() - 1;
+        cnvObj->x_vis_h = b.getHeight() - 1;
     }
 
     Rectangle<int> getPdBounds() override
@@ -69,16 +87,21 @@ public:
         auto bounds = Rectangle<int>(x, y, static_cast<t_my_canvas*>(ptr)->x_vis_w + 1, static_cast<t_my_canvas*>(ptr)->x_vis_h + 1);
 
         pd->unlockAudioThread();
-
         return bounds;
     }
-    
+
     void paint(Graphics& g) override
     {
         auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
 
         g.setColour(bgcolour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
+
+        if (!locked) {
+            auto draggableRect = Rectangle<float>(static_cast<t_iemgui*>(ptr)->x_w, static_cast<t_iemgui*>(ptr)->x_h);
+            g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : object->findColour(PlugDataColour::objectOutlineColourId));
+            g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
+        }
     }
 
     void valueChanged(Value& v) override
@@ -90,10 +113,10 @@ public:
     {
         return {
             { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
-            { "Receive Symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
-            { "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
+            { "Receive symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
+            { "Send symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
             { "Label", tString, cLabel, &iemHelper.labelText, {} },
-            { "Label Colour", tColour, cLabel, &iemHelper.labelColour, {} },
+            { "Label color", tColour, cLabel, &iemHelper.labelColour, {} },
             { "Label X", tInt, cLabel, &iemHelper.labelX, {} },
             { "Label Y", tInt, cLabel, &iemHelper.labelY, {} },
             { "Label Height", tInt, cLabel, &iemHelper.labelHeight, {} },

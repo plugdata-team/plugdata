@@ -4,7 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../PluginEditor.h"
+#include "PluginEditor.h"
+#include "Pd/Patch.h"
 
 struct ExporterBase : public Component
     , public Value::Listener
@@ -67,7 +68,7 @@ struct ExporterBase : public Component
             addAndMakeVisible(panel);
         }
 
-        if (auto* cnv = editor->getCurrentCanvas()) {
+        if (auto* cnv = editor->getCurrentCanvas(false)) {
             openedPatchFile = File::createTempFile(".pd");
             Toolchain::deleteTempFileLater(openedPatchFile);
             openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, false, "\n");
@@ -86,7 +87,12 @@ struct ExporterBase : public Component
         }
 
         exportButton.onClick = [this]() {
+
+#if JUCE_LINUX
             constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
+#else
+            constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
+#endif
 
             saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", true);
 
@@ -166,7 +172,7 @@ struct ExporterBase : public Component
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(inputPatchValue)) {
-            int idx = static_cast<int>(v.getValue());
+            int idx = getValue<int>(v);
 
             if (idx == 1) {
                 patchFile = openedPatchFile;

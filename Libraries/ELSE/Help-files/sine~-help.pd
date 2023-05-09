@@ -22,7 +22,7 @@
 #X text 201 377 signal -;
 #X text 154 455 1) float;
 #X text 257 343 phase offset (modulation input);
-#X text 257 323 phase sync (ressets internal phase);
+#X text 257 323 phase sync (resets internal phase);
 #X obj 218 135 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #N canvas 403 51 838 490 sync 0;
 #X text 472 19 Syncing the phase with control messages is useful for LFOs and control with MIDI. A sync with audio is useful for the "hard sync" technique \, where an oscillator is synced according to the frequency of a master frequency., f 56;

@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2022 Timothy Schoen and Alex Mitchell
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -7,13 +7,21 @@
 #pragma once
 
 #include "Utility/GlobalMouseListener.h"
-#include "LookAndFeel.h"
+
+#include "Object.h"
+#include "Connection.h"
+#include "Canvas.h"
+#include "PluginEditor.h"
+#include "PluginProcessor.h"
+
+#include "Utility/SettingsFile.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport {
+
     class MousePanner : public MouseListener {
     public:
-        MousePanner(Viewport* v)
+        MousePanner(CanvasViewport* v)
             : viewport(v)
         {
         }
@@ -22,7 +30,7 @@ class CanvasViewport : public Viewport {
         {
             if (auto* viewedComponent = viewport->getViewedComponent()) {
                 if (enabled) {
-                    viewedComponent->addMouseListener(this, true);
+                    viewedComponent->addMouseListener(this, false);
                 } else {
                     viewedComponent->removeMouseListener(this);
                 }
@@ -35,16 +43,15 @@ class CanvasViewport : public Viewport {
         {
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
+            downCanvasOrigin = viewport->cnv->canvasOrigin;
         }
 
         void mouseDrag(MouseEvent const& e) override
         {
-            float scale = 1.0f;
-            if (auto* viewedComponent = viewport->getViewedComponent()) {
-                scale = std::sqrt(std::abs(viewedComponent->getTransform().getDeterminant()));
-            }
+            float scale = std::sqrt(std::abs(viewport->cnv->getTransform().getDeterminant()));
 
-            viewport->setViewPosition(downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
+            auto infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
+            viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
         }
 
         void mouseUp(MouseEvent const& e) override
@@ -53,12 +60,12 @@ class CanvasViewport : public Viewport {
         }
 
     private:
-        Viewport* viewport;
+        CanvasViewport* viewport;
         Point<int> downPosition;
+        Point<int> downCanvasOrigin;
     };
 
-    class FadingScrollbar : public ScrollBar
-        , public ScrollBar::Listener {
+    class ViewportScrollBar : public Component {
         struct FadeTimer : private ::Timer {
             std::function<bool()> callback;
 
@@ -66,11 +73,6 @@ class CanvasViewport : public Viewport {
             {
                 callback = cb;
                 startTimer(interval);
-            }
-
-            void stop()
-            {
-                stopTimer();
             }
 
             void timerCallback() override
@@ -81,95 +83,168 @@ class CanvasViewport : public Viewport {
         };
 
         struct FadeAnimator : private ::Timer {
-            FadeAnimator(Component* target)
+            FadeAnimator(ViewportScrollBar* target)
                 : targetComponent(target)
             {
             }
 
             void timerCallback()
             {
-                auto alpha = targetComponent->getAlpha();
-                if (alphaTarget > alpha) {
-                    targetComponent->setAlpha(alpha + 0.2f);
-                } else if (alphaTarget < alpha) {
-                    float easedAlpha = pow(alpha, 1.0f / 2.0f);
-                    easedAlpha -= 0.01f;
-                    alpha = pow(easedAlpha, 2.0f);
-                    if (alpha < 0.01f)
-                        alpha = 0.0f;
-                    targetComponent->setAlpha(alpha);
+                auto growth = targetComponent->growAnimation;
+                if (growth < growthTarget) {
+                    growth += 0.1f;
+                    if (growth >= growthTarget) {
+                        stopTimer();
+                    }
+                    targetComponent->setGrowAnimation(growth);
+                } else if (growth > growthTarget) {
+                    growth -= 0.1f;
+                    if (growth <= growthTarget) {
+                        growth = growthTarget;
+                        stopTimer();
+                    }
+                    targetComponent->setGrowAnimation(growth);
                 } else {
                     stopTimer();
                 }
             }
 
-            void fadeIn()
+            void grow()
             {
-                alphaTarget = 1.0f;
+                growthTarget = 0.0f;
                 startTimerHz(60);
             }
 
-            void fadeOut()
+            void shrink()
             {
-                alphaTarget = 0.0f;
+                growthTarget = 1.0f;
                 startTimerHz(60);
             }
 
-            Component* targetComponent;
-            float alphaTarget = 0.0f;
+            ViewportScrollBar* targetComponent;
+            float growthTarget = 0.0f;
         };
 
     public:
-        FadingScrollbar(bool isVertical)
-            : ScrollBar(isVertical)
+        ViewportScrollBar(bool isVertical, CanvasViewport* viewport)
+            : isVertical(isVertical)
+            , viewport(viewport)
         {
-            ScrollBar::setVisible(true);
-            addListener(this);
-            fadeOut();
+            scrollBarThickness = viewport->getScrollBarThickness();
         }
 
-        void fadeIn(bool fadeOutAfterInterval)
+        ~ViewportScrollBar()
         {
-            setVisible(true);
-            animator.fadeIn();
+        }
 
-            if (fadeOutAfterInterval) {
-                fadeTimer.start(800, [this]() {
-                    fadeOut();
-                    return true;
-                });
+        bool hitTest(int x, int y) override
+        {
+            if (thumbBounds.contains(x, y))
+                return true;
+            return false;
+        }
+
+        void mouseDrag(MouseEvent const& e) override
+        {
+            Point<float> delta;
+            float scale = 1.0f;
+            if (auto* viewedComponent = viewport->getViewedComponent()) {
+                scale = std::sqrt(std::abs(viewedComponent->getTransform().getDeterminant()));
             }
+            if (isVertical) {
+                delta = Point<float>(0, e.getDistanceFromDragStartY());
+            } else {
+                delta = Point<float>(e.getDistanceFromDragStartX(), 0);
+            }
+            viewport->setViewPosition(viewPosition + (delta * 4).toInt());
+            repaint();
         }
 
-        void fadeOut()
+        void setGrowAnimation(float newGrowValue)
         {
-            animator.fadeOut();
+            growAnimation = newGrowValue;
+            repaint();
         }
 
-        std::function<void()> onScroll = []() {};
-
-    private:
-        void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
+        void mouseDown(MouseEvent const& e) override
         {
-            onScroll();
-            fadeIn(true);
+            isMouseDragging = true;
+            viewPosition = viewport->getViewPosition();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            if (e.mouseWasDraggedSinceMouseDown()) {
+                isMouseDragging = false;
+                if (!isMouseOver)
+                    animator.shrink();
+            }
+            repaint();
         }
 
         void mouseEnter(MouseEvent const& e) override
         {
-            fadeIn(false);
+            isMouseOver = true;
+            animator.grow();
+            repaint();
         }
 
         void mouseExit(MouseEvent const& e) override
         {
-            fadeOut();
+            isMouseOver = false;
+            if (!isMouseDragging)
+                animator.shrink();
+            repaint();
         }
 
-        // Don't allow the viewport to manage scrollbar visibility!
-        void setVisible(bool shouldBeVisible) override
+        void setRangeLimitsAndCurrentRange(float minTotal, float maxTotal, float minCurrent, float maxCurrent)
         {
+            totalRange = { minTotal, maxTotal };
+            currentRange = { minCurrent, maxCurrent };
+            updateThumbBounds();
         }
 
+        void updateThumbBounds()
+        {
+            auto thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
+            auto thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
+
+            if (isVertical)
+                thumbBounds = Rectangle<float>(0, thumbStart, getWidth(), thumbEnd - thumbStart);
+            else
+                thumbBounds = Rectangle<float>(thumbStart, 0, thumbEnd - thumbStart, getHeight());
+            repaint();
+        }
+
+        void paint(Graphics& g) override
+        {
+            auto growPosition = scrollBarThickness * 0.5f * growAnimation;
+
+            auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
+            auto roundedCorner = growingBounds.getHeight() * 0.5f;
+            if (isVertical) {
+                growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
+                roundedCorner = growingBounds.getWidth() * 0.5f;
+            }
+
+            g.setColour(findColour(ScrollBar::ColourIds::thumbColourId));
+            g.fillRoundedRectangle(growingBounds, roundedCorner);
+        }
+
+    private:
+        bool isVertical = false;
+        bool isMouseOver = false;
+        bool isMouseDragging = false;
+
+        float growAnimation = 1.0f;
+
+        int scrollBarThickness = 0;
+
+        Range<float> totalRange = { 0, 0 };
+        Range<float> currentRange = { 0, 0 };
+        Rectangle<float> thumbBounds = { 0, 0 };
+        CanvasViewport* viewport;
+        Point<int> viewPosition = { 0, 0 };
         FadeAnimator animator = FadeAnimator(this);
         FadeTimer fadeTimer;
     };
@@ -197,19 +272,20 @@ public:
         : editor(parent)
         , cnv(cnv)
     {
-        recreateScrollbars();
+        setScrollBarsShown(false, false);
 
         setPositioner(new ViewportPositioner(*this));
-        adjustScrollbarBounds();
+
+        setScrollBarThickness(8);
+
+        addAndMakeVisible(vbar);
+        addAndMakeVisible(hbar);
     }
 
     void lookAndFeelChanged() override
     {
-        if (!vbar || !hbar)
-            return;
-
-        vbar->repaint();
-        hbar->repaint();
+        hbar.repaint();
+        vbar.repaint();
     }
 
     void enableMousePanning(bool enablePanning)
@@ -217,54 +293,105 @@ public:
         panner.enablePanning(enablePanning);
     }
 
+    void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
+    {
+        // Check event time to filter out duplicate events
+        // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
+        if (e.eventTime == lastScrollTime)
+            return;
+
+        if (e.mods.isCommandDown() && !(editor->pd->isInPluginMode() || cnv->isPalette)) {
+            mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
+        }
+
+        Viewport::mouseWheelMove(e, wheel);
+        lastScrollTime = e.eventTime;
+    }
+
+    void mouseMagnify(MouseEvent const& e, float scrollFactor) override
+    {
+        if (!cnv)
+            return;
+
+        auto& scale = cnv->zoomScale;
+
+        float value = getValue<float>(scale);
+
+        // Apply and limit zoom
+        value = std::clamp(value * scrollFactor, 0.2f, 3.0f);
+
+        scale = value;
+    }
+
     void adjustScrollbarBounds()
     {
-        if (!vbar || !hbar)
+        if (getViewArea().isEmpty())
             return;
 
         auto thickness = getScrollBarThickness();
+        auto localArea = getLocalBounds().reduced(8);
 
-        auto contentArea = getLocalBounds().withTrimmedRight(thickness).withTrimmedBottom(thickness);
+        vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
+        hbar.setBounds(localArea.removeFromBottom(thickness));
 
-        vbar->setBounds(contentArea.removeFromRight(thickness).withTrimmedBottom(thickness));
-        hbar->setBounds(contentArea.removeFromBottom(thickness));
+        float scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+        auto contentArea = getViewArea() * scale;
+
+        Rectangle<int> objectArea;
+        for (auto object : cnv->objects) {
+            objectArea = objectArea.getUnion(object->getBounds());
+        }
+
+        auto totalArea = contentArea.getUnion(objectArea);
+
+        hbar.setRangeLimitsAndCurrentRange(totalArea.getX(), totalArea.getRight(), contentArea.getX(), contentArea.getRight());
+        vbar.setRangeLimitsAndCurrentRange(totalArea.getY(), totalArea.getBottom(), contentArea.getY(), contentArea.getBottom());
     }
 
     void componentMovedOrResized(Component& c, bool moved, bool resized) override
     {
+        if (editor->pd->isInPluginMode())
+            return;
+
         Viewport::componentMovedOrResized(c, moved, resized);
+        adjustScrollbarBounds();
+    }
+
+    void visibleAreaChanged(Rectangle<int> const& r) override
+    {
+        onScroll();
         adjustScrollbarBounds();
     }
 
     void resized() override
     {
-        Viewport::resized();
+        vbar.setVisible(isVerticalScrollBarShown());
+        hbar.setVisible(isHorizontalScrollBarShown());
+
+        if (editor->pd->isInPluginMode())
+            return;
+
         adjustScrollbarBounds();
+
+        Viewport::resized();
     }
 
-    ScrollBar* createScrollBarComponent(bool isVertical) override
+    // Never respond to arrow keys, they have a different meaning
+    bool keyPressed(KeyPress const& key) override
     {
-        if (isVertical) {
-            vbar = new FadingScrollbar(true);
-            vbar->onScroll = [this]() {
-                onScroll();
-            };
-            return vbar;
-        } else {
-            hbar = new FadingScrollbar(false);
-            hbar->onScroll = [this]() {
-                onScroll();
-            };
-            return hbar;
-        }
+        return false;
     }
 
     std::function<void()> onScroll = []() {};
 
 private:
+    Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;
     MousePanner panner = MousePanner(this);
-    FadingScrollbar* vbar = nullptr;
-    FadingScrollbar* hbar = nullptr;
+    ViewportScrollBar vbar = ViewportScrollBar(true, this);
+    ViewportScrollBar hbar = ViewportScrollBar(false, this);
+
+    bool isScrollingHorizontally = false;
+    bool isScrollingVertically = false;
 };

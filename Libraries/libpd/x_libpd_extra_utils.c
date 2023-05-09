@@ -30,26 +30,6 @@ typedef struct _fake_garray {
     unsigned int x_edit : 1;        /* we can edit the array */
 } t_fake_garray;
 
-typedef struct _gatom {
-    t_text a_text;
-    int a_flavor;          /* A_FLOAT, A_SYMBOL, or A_LIST */
-    t_glist* a_glist;      /* owning glist */
-    t_float a_toggle;      /* value to toggle to */
-    t_float a_draghi;      /* high end of drag range */
-    t_float a_draglo;      /* low end of drag range */
-    t_symbol* a_label;     /* symbol to show as label next to box */
-    t_symbol* a_symfrom;   /* "receive" name -- bind ourselves to this */
-    t_symbol* a_symto;     /* "send" name -- send to this on output */
-    t_binbuf* a_revertbuf; /* binbuf to revert to if typing canceled */
-    int a_dragindex;       /* index of atom being dragged */
-    int a_fontsize;
-    unsigned int a_shift : 1;         /* was shift key down when drag started? */
-    unsigned int a_wherelabel : 2;    /* 0-3 for left, right, above, below */
-    unsigned int a_grabbed : 1;       /* 1 if we've grabbed keyboard */
-    unsigned int a_doubleclicked : 1; /* 1 if dragging from a double click */
-    t_symbol* a_expanded_to;          /* a_symto after $0, $1, ...  expansion */
-} t_fake_gatom;
-
 void* libpd_create_canvas(char const* name, char const* path)
 {
     t_canvas* cnv = (t_canvas*)libpd_openfile(name, path);
@@ -63,6 +43,11 @@ void* libpd_create_canvas(char const* name, char const* path)
 char const* libpd_get_object_class_name(void* ptr)
 {
     return class_getname(pd_class((t_pd*)ptr));
+}
+
+t_symbol* libpd_get_object_class_symbol(void* ptr)
+{
+    return pd_class((t_pd*)ptr)->c_name;
 }
 
 void libpd_get_object_text(void* ptr, char** text, int* size)
@@ -132,8 +117,10 @@ void libpd_array_get_scale(void* array, float* min, float* max)
     if (array) {
         cnv = ((t_fake_garray*)array)->x_glist;
         if (cnv) {
+            sys_lock();
             *min = cnv->gl_y2;
             *max = cnv->gl_y1;
+            sys_unlock();
             return;
         }
     }
@@ -147,8 +134,10 @@ void libpd_array_set_scale(void* array, float min, float max)
     if (array) {
         cnv = ((t_fake_garray*)array)->x_glist;
         if (cnv) {
+            sys_lock();
             cnv->gl_y2 = min;
             cnv->gl_y1 = max;
+            sys_unlock();
             return;
         }
     }
@@ -156,14 +145,18 @@ void libpd_array_set_scale(void* array, float min, float max)
 
 int libpd_array_get_style(void* array)
 {
+    sys_lock();
     t_fake_garray* arr = (t_fake_garray*)array;
     if (arr && arr->x_scalar) {
         t_scalar* scalar = arr->x_scalar;
         t_template* scalartplte = template_findbyname(scalar->sc_template);
         if (scalartplte) {
-            return (int)template_getfloat(scalartplte, gensym("style"), scalar->sc_vec, 0);
+            int result = (int)template_getfloat(scalartplte, gensym("style"), scalar->sc_vec, 0);
+            sys_unlock();
+            return result;
         }
     }
+    sys_unlock();
     return 0;
 }
 

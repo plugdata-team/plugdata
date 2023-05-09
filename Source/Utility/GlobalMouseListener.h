@@ -1,5 +1,4 @@
 #pragma once
-#include <JuceHeader.h>
 
 class GlobalMouseListener : public MouseListener {
     Component* target;

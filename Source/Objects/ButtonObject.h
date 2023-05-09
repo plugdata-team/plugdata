@@ -4,30 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-typedef struct _edit_proxy {
-    t_object p_obj;
-    t_symbol* p_sym;
-    t_clock* p_clock;
-    struct _button* p_cnv;
-} t_edit_proxy;
-
-typedef struct _button {
-    t_object x_obj;
-    t_glist* x_glist;
-    t_edit_proxy* x_proxy;
-    t_symbol* x_bindname;
-    int x_x;
-    int x_y;
-    int x_w;
-    int x_h;
-    int x_sel;
-    int x_zoom;
-    int x_edit;
-    int x_state;
-    unsigned char x_bgcolor[3];
-    unsigned char x_fgcolor[3];
-} t_fake_button;
-
 class ButtonObject : public ObjectBase {
 
     bool state = false;
@@ -40,23 +16,17 @@ public:
     ButtonObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        parent->constrainer->setFixedAspectRatio(1);
+        onConstrainerCreate = [this]() {
+            constrainer->setFixedAspectRatio(1);
+        };
     }
 
-    void initialiseParameters() override
+    void update() override
     {
         auto* button = static_cast<t_fake_button*>(ptr);
 
         primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
         secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
-
-        auto params = getParameters();
-        for (auto& [name, type, cat, value, list] : params) {
-            value->addListener(this);
-
-            // Push current parameters to pd
-            valueChanged(*value);
-        }
 
         repaint();
     }
@@ -91,7 +61,7 @@ public:
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h);
+        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
 
         pd->unlockAudioThread();
 
@@ -103,8 +73,8 @@ public:
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* button = static_cast<t_fake_button*>(ptr);
-        button->x_w = b.getWidth();
-        button->x_h = b.getHeight();
+        button->x_w = b.getWidth() - 1;
+        button->x_h = b.getHeight() - 1;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -133,19 +103,19 @@ public:
         auto const bounds = getLocalBounds().toFloat();
 
         g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(bounds.reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius);
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
 
         g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
-        g.drawRoundedRectangle(bounds.reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
-        g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
-        g.drawRoundedRectangle(bounds.reduced(6), PlugDataLook::objectCornerRadius, 1.5f);
+        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        g.drawRoundedRectangle(bounds.reduced(6), Corners::objectCornerRadius, 1.5f);
 
         if (state) {
             g.setColour(Colour::fromString(primaryColour.toString()));
-            g.fillRoundedRectangle(bounds.reduced(6), PlugDataLook::objectCornerRadius);
+            g.fillRoundedRectangle(bounds.reduced(6), Corners::objectCornerRadius);
         }
     }
 
@@ -174,6 +144,14 @@ public:
             button->x_bgcolor[2] = col.getBlue();
             repaint();
         }
+    }
+
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("bgcolor"),
+            hash("fgcolor")
+        };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

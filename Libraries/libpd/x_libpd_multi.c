@@ -5,6 +5,7 @@
  */
 
 #include <m_pd.h>
+#include <s_inter.h>
 #include <s_net.h>
 #include <s_stuff.h>
 
@@ -256,6 +257,7 @@ static int defaultfontshit[] = {
     16, 10, 22, 20, 12, 26, 24, 14, 32, 32, 20, 38, 48, 28, 58, 72, 44, 88
 }; // normal & zoomed (2x)
 #define NDEFAULTFONT (sizeof(defaultfontshit) / sizeof(*defaultfontshit))
+
 
 static void libpd_defaultfont_init(void)
 {
@@ -565,6 +567,7 @@ void fold_setup();
 void fold_tilde_setup();
 void fontsize_setup();
 void format_setup();
+void filterdelay_tilde_setup();
 void setup_freq0x2eshift_tilde();
 void function_setup();
 void function_tilde_setup();
@@ -590,6 +593,7 @@ void impulse_tilde_setup();
 void impulse2_tilde_setup();
 void initmess_setup();
 void keyboard_setup();
+void keycode_setup();
 void lag_tilde_setup();
 void lag2_tilde_setup();
 void lastvalue_tilde_setup();
@@ -638,9 +642,7 @@ void pimp_tilde_setup();
 void pimpmul_tilde_setup();
 void pink_tilde_setup();
 void pluck_tilde_setup();
-#ifndef _MSC_VER
 void plaits_tilde_setup();
-#endif
 void pmosc_tilde_setup();
 void power_tilde_setup();
 void properties_setup();
@@ -744,6 +746,8 @@ void xselect_tilde_setup();
 void xselect2_tilde_setup();
 void zerocross_tilde_setup();
 
+void knob_setup();
+
 void pdlua_setup(const char *datadir, char *vers, int vers_len);
 
 void libpd_init_pdlua(const char *datadir, char *vers, int vers_len)
@@ -753,6 +757,8 @@ void libpd_init_pdlua(const char *datadir, char *vers, int vers_len)
 
 void libpd_init_else(void)
 {
+    knob_setup();
+    
     above_tilde_setup();
     add_tilde_setup();
     adsr_tilde_setup();
@@ -851,6 +857,7 @@ void libpd_init_else(void)
     fold_tilde_setup();
     fontsize_setup();
     format_setup();
+    filterdelay_tilde_setup();
     setup_freq0x2eshift_tilde();
     function_setup();
     function_tilde_setup();
@@ -876,6 +883,7 @@ void libpd_init_else(void)
     impulse2_tilde_setup();
     initmess_setup();
     keyboard_setup();
+    keycode_setup();
     lag_tilde_setup();
     lag2_tilde_setup();
     lastvalue_tilde_setup();
@@ -923,9 +931,7 @@ void libpd_init_else(void)
     pimp_tilde_setup();
     pimpmul_tilde_setup();
     pink_tilde_setup();
-#ifndef _MSC_VER
     plaits_tilde_setup();
-#endif
     pluck_tilde_setup();
     pmosc_tilde_setup();
     power_tilde_setup();
@@ -950,6 +956,7 @@ void libpd_init_else(void)
     setup_rand0x2ei();
     setup_rand0x2ei_tilde();
     //setup_rand0x2eseq();
+    numbox_tilde_setup();
     route2_setup();
     randpulse_tilde_setup();
     randpulse2_tilde_setup();
@@ -1184,7 +1191,6 @@ void libpd_init_cyclone(void)
     modulo_tilde_setup();
     mstosamps_tilde_setup();
     notequals_tilde_setup();
-    numbox_tilde_setup();
     onepole_tilde_setup();
     overdrive_tilde_setup();
     peakamp_tilde_setup();

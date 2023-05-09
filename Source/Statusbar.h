@@ -4,7 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 #pragma once
-#include <JuceHeader.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
 
@@ -12,7 +13,8 @@ class Canvas;
 class LevelMeter;
 class MidiBlinker;
 class PluginProcessor;
-class gridSizeSlider;
+class OverlayDisplaySettings;
+class SnapSettings;
 
 class StatusbarSource : public Timer {
 
@@ -52,7 +54,6 @@ private:
 
 class Statusbar : public Component
     , public SettingsFileListener
-    , public Value::Listener
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
     PluginProcessor* pd;
@@ -61,18 +62,11 @@ public:
     explicit Statusbar(PluginProcessor* processor);
     ~Statusbar();
 
-    void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
 
     void resized() override;
 
-    void shiftKeyChanged(bool isHeld) override;
-    void commandKeyChanged(bool isHeld) override;
-
     void propertyChanged(String name, var value) override;
-    void valueChanged(Value& v) override;
-
-    void attachToCanvas(Canvas* cnv);
 
     void audioProcessedChanged(bool audioProcessed) override;
 
@@ -81,7 +75,13 @@ public:
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
 
-    std::unique_ptr<TextButton> powerButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, gridButton, protectButton;
+    TextButton powerButton, connectionStyleButton, connectionPathfind, centreButton, fitAllButton, protectButton;
+
+    TextButton overlayButton, overlaySettingsButton;
+    std::unique_ptr<OverlayDisplaySettings> overlayDisplaySettings;
+
+    TextButton snapEnableButton, snapSettingsButton;
+    std::unique_ptr<SnapSettings> snapSettings;
 
     TextButton oversampleSelector;
 
@@ -89,9 +89,7 @@ public:
 
     Slider volumeSlider;
 
-    Value locked;
-    Value commandLocked; // Temporary lock mode
-    Value presentationMode;
+    Value showDirection;
 
     static constexpr int statusbarHeight = 30;
 

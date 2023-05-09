@@ -18,8 +18,9 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
-        value = getValue();
-        object->constrainer->setFixedAspectRatio(1);
+        onConstrainerCreate = [this]() {
+            constrainer->setFixedAspectRatio(1);
+        };
     }
 
     bool hideInlets() override
@@ -47,23 +48,25 @@ public:
         iemHelper.setPdBounds(b);
     }
 
-    void initialiseParameters() override
+    void update() override
     {
         nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
-        iemHelper.initialiseParameters();
+        iemHelper.update();
+
+        value = getValue();
         setToggleStateFromFloat(value);
     }
 
     void paint(Graphics& g) override
     {
         g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
         auto toggledColour = iemHelper.getForegroundColour();
         auto untoggledColour = toggledColour.interpolatedWith(iemHelper.getBackgroundColour(), 0.8f);
@@ -86,7 +89,7 @@ public:
     {
         if (!alreadyToggled) {
             startEdition();
-            auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
+            auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
             sendToggleValue(newValue);
             setToggleStateFromFloat(newValue);
             stopEdition();
@@ -94,12 +97,12 @@ public:
         }
     }
 
-    void sendToggleValue(bool newValue)
+    void sendToggleValue(int newValue)
     {
-        pd->enqueueFunction([ptr = this->ptr, pd = this->pd, patch = &cnv->patch, newValue](){
-            
-            if(patch->objectWasDeleted(ptr)) return;
-            
+        pd->enqueueFunction([ptr = this->ptr, pd = this->pd, patch = &cnv->patch, newValue]() {
+            if (patch->objectWasDeleted(ptr))
+                return;
+
             t_atom atom;
             SETFLOAT(&atom, newValue);
             pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
@@ -120,7 +123,7 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         startEdition();
-        auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
+        auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
         sendToggleValue(newValue);
         setToggleStateFromFloat(newValue);
         stopEdition();
@@ -146,6 +149,16 @@ public:
         value = newValue;
         toggleState = std::abs(newValue) > std::numeric_limits<float>::epsilon();
         repaint();
+    }
+
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("bang"),
+            hash("float"),
+            hash("nonzero"),
+            IEMGUI_MESSAGES
+        };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

@@ -4,13 +4,15 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "../PluginEditor.h"
+
 class MainMenu : public PopupMenu {
 
 public:
     MainMenu(PluginEditor* editor)
         : settingsTree(SettingsFile::getInstance()->getValueTree())
         , themeSelector(settingsTree)
-        , zoomSelector(settingsTree, editor->splitView.isRightTabbarActive())
+        , zoomSelector(editor, settingsTree, editor->splitView.isRightTabbarActive())
     {
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
@@ -55,6 +57,14 @@ public:
 
         addSeparator();
 
+        addCustomItem(getMenuItemID(MenuItem::EnablePalettes), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]), nullptr, "Enable Palettes");
+
+        addSeparator();
+
+        addCustomItem(getMenuItemID(MenuItem::PluginMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::PluginMode)]), nullptr, "Plugin Mode");
+
+        addSeparator();
+
         addCustomItem(getMenuItemID(MenuItem::AutoConnect), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::AutoConnect)]), nullptr, "Auto-connect objects");
 
         addSeparator();
@@ -63,18 +73,22 @@ public:
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
 
         // Toggles hvcc compatibility mode
+        bool palettesEnabled = settingsTree.hasProperty("show_palettes") ? static_cast<bool>(settingsTree.getProperty("show_palettes")) : false;
         bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") ? static_cast<bool>(settingsTree.getProperty("hvcc_mode")) : false;
         bool autoconnectEnabled = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;
         bool hasCanvas = editor->getCurrentCanvas() != nullptr;
-        ;
 
+        zoomSelector.setEnabled(hasCanvas);
         menuItems[getMenuItemIndex(MenuItem::Save)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::Close)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::CloseAll)]->isActive = hasCanvas;
+        menuItems[getMenuItemIndex(MenuItem::PluginMode)]->isActive = hasCanvas;
 
+        menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]->isTicked = palettesEnabled;
         menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
         menuItems[getMenuItemIndex(MenuItem::AutoConnect)]->isTicked = autoconnectEnabled;
+        menuItems[getMenuItemIndex(MenuItem::PluginMode)]->isTicked = false;
     }
 
     class ZoomSelector : public Component {
@@ -84,13 +98,22 @@ public:
 
         Value zoomValue;
 
+        PluginEditor* _editor;
+
+        float const minZoom = 0.2f;
+        float const maxZoom = 3.0f;
+
     public:
-        ZoomSelector(ValueTree settingsTree, bool splitZoom)
+        ZoomSelector(PluginEditor* editor, ValueTree settingsTree, bool splitZoom)
+            : _editor(editor)
         {
-            zoomValue = settingsTree.getPropertyAsValue(splitZoom ? "split_zoom" : "zoom", nullptr);
+            auto cnv = _editor->getCurrentCanvas();
+            auto buttonText = String("100.0%");
+            if (cnv)
+                buttonText = String(getValue<float>(cnv->zoomScale) * 100.0f, 1) + "%";
 
             zoomIn.setButtonText("+");
-            zoomReset.setButtonText(String(static_cast<float>(zoomValue.getValue()) * 100, 1) + "%");
+            zoomReset.setButtonText(buttonText);
             zoomOut.setButtonText("-");
 
             addAndMakeVisible(zoomIn);
@@ -102,35 +125,66 @@ public:
             zoomReset.setConnectedEdges(12);
 
             zoomIn.onClick = [this]() {
-                applyZoom(true);
+                applyZoom(ZoomIn);
             };
             zoomOut.onClick = [this]() {
-                applyZoom(false);
+                applyZoom(ZoomOut);
             };
             zoomReset.onClick = [this]() {
-                resetZoom();
+                applyZoom(Reset);
             };
         }
 
-        void applyZoom(bool zoomIn)
+        enum ZoomType { ZoomIn,
+            ZoomOut,
+            Reset };
+
+        void applyZoom(ZoomType zoomEventType)
         {
-            float value = static_cast<float>(zoomValue.getValue());
+            auto cnv = _editor->getCurrentCanvas();
+
+            if (!cnv)
+                return;
+
+            float scale = getValue<float>(cnv->zoomScale);
 
             // Apply limits
-            value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.5f, 2.0f);
+            switch (zoomEventType) {
+            case ZoomIn:
+                scale = std::clamp(scale + 0.1f, minZoom, maxZoom);
+                break;
+            case ZoomOut:
+                scale = std::clamp(scale - 0.1f, minZoom, maxZoom);
+                break;
+            default:
+                scale = 1.0f;
+                break;
+            }
 
             // Round in case we zoomed with scrolling
-            value = static_cast<float>(static_cast<int>(round(value * 10.))) / 10.;
+            scale = static_cast<float>(static_cast<int>(round(scale * 10.))) / 10.;
 
-            zoomValue = value;
+            // Get the current viewport position in canvas coordinates
+            auto oldViewportPosition = cnv->getLocalPoint(cnv->viewport, cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
 
-            zoomReset.setButtonText(String(value * 100.0f, 1) + "%");
-        }
+            // Apply transform and make sure viewport bounds get updated
+            cnv->setTransform(AffineTransform::scale(scale));
+            cnv->viewport->resized();
 
-        void resetZoom()
-        {
-            zoomValue = 1.0f;
-            zoomReset.setButtonText("100.0%");
+            // After zooming, get the new viewport position in canvas coordinates
+            auto newViewportPosition = cnv->getLocalPoint(cnv->viewport, cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
+
+            // Calculate offset to keep the center point of the viewport the same as before this zoom action
+            auto offset = newViewportPosition - oldViewportPosition;
+
+            // Set the new canvas position
+            // TODO: there is an accumulated error when zooming in/out
+            //       possibly we should save the canvas position as an additional Point<float> ?
+            cnv->setTopLeftPosition((cnv->getPosition().toFloat() + offset).roundToInt());
+
+            cnv->zoomScale = scale;
+
+            zoomReset.setButtonText(String(scale * 100.0f, 1) + "%");
         }
 
         void resized() override
@@ -168,7 +222,7 @@ public:
         void getIdealSize(int& idealWidth, int& idealHeight) override
         {
             idealWidth = 70;
-            idealHeight = 22;
+            idealHeight = 24;
         }
 
         void paint(Graphics& g) override
@@ -178,7 +232,7 @@ public:
             auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-                g.fillRoundedRectangle(r.toFloat().reduced(2, 0), 4.0f);
+                g.fillRoundedRectangle(r.toFloat().reduced(2, 0), Corners::smallCornerRadius);
 
                 colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
@@ -192,21 +246,17 @@ public:
             auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
 
             if (menuItemIcon.isNotEmpty()) {
-                PlugDataLook::drawIcon(g, menuItemIcon, iconArea, colour, std::min(15.0f, maxFontHeight), false);
+                Fonts::drawIcon(g, menuItemIcon, iconArea.translated(3.5f, 0.0f), colour, std::min(15.0f, maxFontHeight), true);
             } else if (hasTickBox) {
 
                 g.setColour(colour);
-                g.drawRoundedRectangle(iconArea.toFloat().translated(0, 0.5f), 4.0f, 1.0f);
+                g.drawRoundedRectangle(iconArea.toFloat().translated(3.5f, 0.5f).reduced(1.0f), 4.0f, 1.0f);
 
                 if (isTicked) {
                     g.setColour(colour);
                     auto tick = getLookAndFeel().getTickShape(1.0f);
-                    g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.toFloat().translated(0, 0.5f).reduced(2.5f, 3.5f), false));
+                    g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.toFloat().translated(3.5f, 0.5f).reduced(2.5f, 3.5f), false));
                 }
-
-                /*
-                auto tick = lnf.getTickShape(1.0f);
-                g.fillPath(tick, tick.getTransformToScaleToFit(, true)); */
             }
 
             r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
@@ -215,7 +265,7 @@ public:
             if (hasSubMenu) {
                 auto arrowH = 0.6f * Font(fontHeight).getAscent();
 
-                auto x = static_cast<float>(r.removeFromRight((int)arrowH).getX());
+                auto x = static_cast<float>(r.removeFromRight((int)arrowH + 2).getX());
                 auto halfH = static_cast<float>(r.getCentreY());
 
                 Path path;
@@ -227,11 +277,11 @@ public:
             }
 
             r.removeFromRight(3);
-            PlugDataLook::drawFittedText(g, menuItemText, r, colour, fontHeight);
+            Fonts::drawFittedText(g, menuItemText, r, colour, fontHeight);
 
             /*
             if (shortcutKeyText.isNotEmpty()) {
-             PlugDataLook::drawText(g, shortcutKeyText, r.translated(-2, 0), findColour(PopupMenu::textColourId), f2.getHeight() * 0.75f, Justification::centredRight);
+             Fonts::drawText(g, shortcutKeyText, r.translated(-2, 0), findColour(PopupMenu::textColourId), f2.getHeight() * 0.75f, Justification::centredRight);
             } */
         }
     };
@@ -314,7 +364,9 @@ public:
         CloseAll,
         CompiledMode,
         Compile,
+        PluginMode,
         AutoConnect,
+        EnablePalettes,
         Settings,
         About
     };
@@ -344,9 +396,12 @@ public:
         new IconMenuItem(Icons::CloseAllPatches, "Close all patches", false, false),
 
         new IconMenuItem("", "Compiled Mode", false, true),
-        new IconMenuItem("", "Compile...", false, false),
+        new IconMenuItem(Icons::DevTools, "Compile...", false, false),
+
+        new IconMenuItem("", "Plugin Mode", false, true),
 
         new IconMenuItem("", "Auto-connect objects", false, true),
+        new IconMenuItem("", "Enable palettes", false, true),
 
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),

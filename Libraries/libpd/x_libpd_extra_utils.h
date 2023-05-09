@@ -16,6 +16,7 @@ extern "C" {
 void* libpd_create_canvas(char const* name, char const* path);
 
 char const* libpd_get_object_class_name(void* ptr);
+t_symbol* libpd_get_object_class_symbol(void* ptr);
 void libpd_get_object_text(void* ptr, char** text, int* size);
 void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int* h);
 

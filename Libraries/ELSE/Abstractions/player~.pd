@@ -44,11 +44,11 @@
 #X msg 296 387 sr \$1;
 #X obj 300 142 else/canvas.file 1;
 #X obj 327 196 print [player~];
-#X msg 327 171 \$1 file not fount;
+#X msg 327 171 \$1 file not found;
 #X obj 300 107 r \$0-file;
 #X obj 27 277 else/canvas.file 1;
 #X obj 27 340 print [player~];
-#X msg 27 315 \$1 file not fount;
+#X msg 27 315 \$1 file not found;
 #X connect 0 0 20 0;
 #X connect 1 0 2 0;
 #X connect 1 1 0 0;

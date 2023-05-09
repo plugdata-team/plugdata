@@ -46,18 +46,18 @@ jobs:
         AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
       run: ./.github/scripts/package-macOS.sh
 
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-macOS-Universal
-        path: plugdata-macOS-Universal.pkg
-
     - name: Upload to server
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         GIT_HASH: ${{ github.sha }}
       run: ./.github/scripts/upload-ftp.sh plugdata-macOS-Universal.pkg
+
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: plugdata-macOS-Universal
+        path: plugdata-macOS-Universal.pkg
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -100,12 +100,6 @@ jobs:
       run: |
         ./.github/scripts/package-Windows.sh "x64"
 
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-Win64
-        path: plugdata-Win64.msi
-
     - name: Upload to server
       shell: bash
       env:
@@ -113,6 +107,12 @@ jobs:
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         GIT_HASH: ${{ github.sha }}
       run: ./.github/scripts/upload-ftp.sh plugdata-Win64.msi
+
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: plugdata-Win64
+        path: plugdata-Win64.msi
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -156,12 +156,6 @@ jobs:
       run: |
         ./.github/scripts/package-Windows.sh "x86"
 
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-Win32
-        path: plugdata-Win32.msi
-
     - name: Upload to server
       shell: bash
       env:
@@ -169,6 +163,12 @@ jobs:
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         GIT_HASH: ${{ github.sha }}
       run: ./.github/scripts/upload-ftp.sh plugdata-Win32.msi
+
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: plugdata-Win32
+        path: plugdata-Win32.msi
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -252,18 +252,18 @@ jobs:
           working-directory: ${{github.workspace}}
           run: ./.github/scripts/package-Linux.sh ${{ matrix.name }}
 
-        - name: Archive Artifacts
-          uses: actions/upload-artifact@v3
-          with:
-              name: plugdata-${{ matrix.name }}
-              path: plugdata-${{ matrix.name }}.tar.gz
-
         - name: Upload to server
           env:
               FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
               FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
               GIT_HASH: ${{ github.sha }}
           run: ./.github/scripts/upload-ftp.sh plugdata-${{ matrix.name }}.tar.gz
+
+        - name: Archive Artifacts
+          uses: actions/upload-artifact@v3
+          with:
+              name: plugdata-${{ matrix.name }}
+              path: plugdata-${{ matrix.name }}.tar.gz
 
         - name: Release Artifacts
           uses: softprops/action-gh-release@v1

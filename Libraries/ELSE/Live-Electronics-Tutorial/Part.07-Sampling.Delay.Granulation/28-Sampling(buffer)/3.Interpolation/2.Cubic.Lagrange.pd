@@ -55,7 +55,7 @@
 #X restore 525 266 graph;
 #X text 491 468 copy:;
 #X text 723 467 copies:;
-#N canvas 861 296 257 312 plot 1;
+#N canvas 861 296 257 312 plot 0;
 #X msg 81 237 label_pos \$2 \$1;
 #X obj 135 128 / 7;
 #X obj 81 265 s \$0-dot;

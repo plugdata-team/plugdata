@@ -1,5 +1,6 @@
 // plaits ported to Pd, by Porres 2023
 // MIT Liscense
+
 #include <stdint.h>
 #include "plaits/dsp/dsp.h"
 #include "plaits/dsp/engine/engine.h"
@@ -128,15 +129,15 @@ void plts_model(t_plts *x, t_floatarg f){
 }
 
 void plts_harmonics(t_plts *x, t_floatarg f){
-    x->harmonics = f;
+    x->harmonics = f < 0 ? 0 : f > 1 ? 1 : f;
 }
 
 void plts_timbre(t_plts *x, t_floatarg f){
-    x->timbre = f;
+    x->timbre = f < 0 ? 0 : f > 1 ? 1 : f;
 }
 
 void plts_morph(t_plts *x, t_floatarg f){
-    x->morph = f;
+    x->morph = f < 0 ? 0 : f > 1 ? 1 : f;
 }
 
 void plts_bang(t_plts *x){
@@ -144,11 +145,11 @@ void plts_bang(t_plts *x){
 }
 
 void plts_lpg_cutoff(t_plts *x, t_floatarg f){
-    x->lpg_cutoff = f;
+    x->lpg_cutoff = f < 0 ? 0 : f > 1 ? 1 : f;
 }
 
 void plts_decay(t_plts *x, t_floatarg f){
-    x->decay = f;
+    x->decay = f < 0 ? 0 : f > 1 ? 1 : f;
 }
 
 void plts_hz(t_plts *x){
@@ -172,8 +173,10 @@ void plts_trigger_mode(t_plts *x, t_floatarg f){
 }
 
 static float plts_get_pitch(t_plts *x, t_floatarg f){
-    if(x->pitch_mode == 0)
-        return(log2f(f/440) + 0.75);
+    if(x->pitch_mode == 0){
+        f = log2f((f < 0 ? f * -1 : f)/440) + 0.75;
+        return(f);
+    }
     else if(x->pitch_mode == 1)
         return((f - 60) / 12);
     else if(x->pitch_mode == 2)
@@ -240,7 +243,7 @@ t_int *plts_perform(t_int *w){
         }
         else
             x->modulations.trigger = (trig[x->block_size * j] != 0);
-        plaits::Voice::Frame output[x->block_size];
+        plaits::Voice::Frame output[24];
         x->voice.Render(x->patch, x->modulations, output, x->block_size);
         for(int i = 0; i < x->block_size; i++){
             out[i + (x->block_size * j)] = output[i].out / 32768.0f;

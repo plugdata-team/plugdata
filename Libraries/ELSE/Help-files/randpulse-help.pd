@@ -49,7 +49,7 @@
 ;
 #X text 145 309 float/signal - pulse width (from 0 to 1);
 #X text 144 248 float/signal - frequency in hz;
-#X text 144 331 float/signal - phase sync (ressets internal phase)
+#X text 144 331 float/signal - phase sync (resets internal phase)
 ;
 #X obj 24 40 cnv 4 4 4 empty empty Random 0 28 2 18 #e0e0e0 #000000
 0;

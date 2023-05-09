@@ -35,7 +35,7 @@
 #X obj 164 258 else/osc.format;
 #X obj 164 307 else/osc.parse;
 #X obj 16 296 else/osc.parse;
-#X text 232 233 <-- message to be formated as an OSC message;
+#X text 232 233 <-- message to be formatted as an OSC message;
 #X text 229 407 - formatted OSC message;
 #X text 47 85 [osc.format] is similar to Vanilla's [oscformat]. This is still way too simple and experimental. It is used in the [osc.send] abstraction and can be used for edge and lower level cases. It takes anything messages or lists whose first element is an address that start with "/". The type of data for each element in the message is either a float or a string only depenfing on the atom type \, so there are only these options (so far). You can't send bundles either. Use the original Vanilla [oscformat] or mrpeach's packOSC object for more complete objects., f 78;
 #X connect 17 0 30 0;

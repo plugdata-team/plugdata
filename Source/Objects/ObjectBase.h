@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
-#include "PluginProcessor.h"
-#include "Sidebar/Sidebar.h"
 #include "Utility/HashUtils.h"
+#include "Pd/Instance.h"
+#include "Pd/MessageListener.h"
+#include "Constants.h"
 
+class PluginProcessor;
 class Canvas;
 
 namespace pd {
@@ -66,14 +66,22 @@ public:
     virtual void showEditor() {};
     virtual void hideEditor() {};
 
+    bool hitTest(int x, int y) override;
+
     // Some objects need to show/hide iolets when send/receive symbols are set
     virtual bool hideInlets() { return false; }
     virtual bool hideOutlets() { return false; }
 
-    virtual bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) { return false; };
+    virtual std::vector<hash32> getAllMessages() { return {}; }
 
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getPdBounds() = 0;
+
+    // Gets position from pd and applies it to Object
+    virtual Rectangle<int> getSelectableBounds()
+    {
+        return getPdBounds();
+    }
 
     // Push current object bounds into pd
     virtual void setPdBounds(Rectangle<int> newBounds) = 0;
@@ -82,7 +90,7 @@ public:
     virtual void updateDrawables() {};
 
     // Called after creation, to initialise parameter listeners
-    virtual void initialiseParameters();
+    virtual void update() {};
 
     virtual void tabChanged() {};
 
@@ -103,7 +111,7 @@ public:
     void moveToBack();
 
     virtual Canvas* getCanvas();
-    virtual pd::Patch* getPatch();
+    virtual pd::Patch::Ptr getPatch();
 
     // Override if you want a part of your object to ignore mouse clicks
     virtual bool canReceiveMouseEvent(int x, int y);
@@ -114,7 +122,7 @@ public:
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
     void openSubpatch();
-        
+
     // Attempt to send "click" message to object. Returns false if the object has no such method
     bool click();
 
@@ -141,6 +149,8 @@ public:
     // Global flag to find out if any GUI object is currently being interacted with
     static bool isBeingEdited();
 
+    ComponentBoundsConstrainer* getConstrainer();
+
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var value);
@@ -155,11 +165,20 @@ protected:
     // Send a float value to Pd
     void sendFloatValue(float value);
 
+    // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
+    template<typename T>
+    void colourToHexArray(Colour colour, T* hex)
+    {
+        hex[0] = colour.getRed();
+        hex[1] = colour.getGreen();
+        hex[2] = colour.getBlue();
+    }
+
     // Min and max limit a juce::Value
     template<typename T>
     T limitValueMax(Value& v, T max)
     {
-        auto clampedValue = std::min<T>(max, static_cast<T>(v.getValue()));
+        auto clampedValue = std::min<T>(max, getValue<T>(v));
         v = clampedValue;
         return clampedValue;
     }
@@ -167,7 +186,7 @@ protected:
     template<typename T>
     T limitValueMin(Value& v, T min)
     {
-        auto clampedValue = std::max<T>(min, static_cast<T>(v.getValue()));
+        auto clampedValue = std::max<T>(min, getValue<T>(v));
         v = clampedValue;
         return clampedValue;
     }
@@ -179,9 +198,14 @@ public:
     PluginProcessor* pd;
 
 protected:
+    std::function<void()> onConstrainerCreate = []() {};
+
+    virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
+
     std::unique_ptr<ObjectLabel> label;
     static inline constexpr int maxSize = 1000000;
     static inline std::atomic<bool> edited = false;
+    std::unique_ptr<ComponentBoundsConstrainer> constrainer;
 
     friend class IEMHelper;
     friend class AtomHelper;

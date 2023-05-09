@@ -19,3 +19,9 @@
 [submodule "Libraries/clap-juce-extensions"]
 	path = Libraries/clap-juce-extensions
 	url = https://github.com/free-audio/clap-juce-extensions.git
+[submodule "Libraries/filesystem"]
+	path = Libraries/filesystem
+	url = https://github.com/boostorg/filesystem.git
+[submodule "Libraries/cpath"]
+	path = Libraries/cpath
+	url = https://github.com/BraedonWooding/cpath

@@ -3,9 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-#include <JuceHeader.h>
-
-#if PLUGDATA_STANDALONE
+#include <juce_audio_utils/juce_audio_utils.h>
 
 class RoundedListBox : public ListBox {
 
@@ -19,13 +17,13 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::defaultCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::defaultCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::defaultCornerRadius, 1.0f);
     }
 };
 
@@ -169,7 +167,7 @@ public:
 
         if (items.isEmpty()) {
             // TODO: fix colour
-            PlugDataLook::drawText(g, noItemsMessage, 0, 0, getWidth(), getHeight() / 2, Colours::grey, 0.5f * (float)getRowHeight(), Justification::centred);
+            Fonts::drawText(g, noItemsMessage, 0, 0, getWidth(), getHeight() / 2, Colours::grey, 0.5f * (float)getRowHeight(), Justification::centred);
         }
     }
 
@@ -997,7 +995,7 @@ private:
                 RoundedListBox::paint(g);
 
                 if (items.isEmpty()) {
-                    PlugDataLook::drawText(g, noItemsMessage,
+                    Fonts::drawText(g, noItemsMessage,
                         0, 0, getWidth(), getHeight() / 2,
                         Colours::grey, 0.5f * (float)getRowHeight(), Justification::centred);
                 }
@@ -1124,8 +1122,6 @@ public:
     }
 };
 
-#else
-
 class DAWAudioSettings : public Component
     , public Value::Listener {
 
@@ -1171,7 +1167,7 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(latencyValue)) {
-            processor->setLatencySamples(static_cast<int>(latencyValue.getValue()));
+            processor->setLatencySamples(getValue<int>(latencyValue));
         }
     }
 
@@ -1186,5 +1182,3 @@ public:
 
     std::unique_ptr<PropertiesPanel::BoolComponent> nativeDialogToggle;
 };
-
-#endif

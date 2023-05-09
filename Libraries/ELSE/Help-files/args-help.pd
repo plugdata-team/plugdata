@@ -96,7 +96,7 @@ is a very simple example on how it works.;
 #X obj 457 342 else/args-example foo 100 \$0-x \\\$0 \$1 \$2-x;
 #X msg 457 318 bang;
 #X text 60 326 Note how dollar signs (such as "\$0" \, "\$1" or "\$2-x")
-get expanded unless you escape them with a backlash ("\$2-x" may appear
+get expanded unless you escape them with a backslash ("\$2-x" may appear
 as an unexpanded symbol \, but it actually gets expanded if this abstraction
 is called inside another that contains arguments).;
 #X text 415 38 When you send any message (float \, list \, symbol)

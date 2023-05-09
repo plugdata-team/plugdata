@@ -181,7 +181,7 @@
 #X obj 99 126 else/initmess send \\\$0-function-out \, receive \\\$0-function-in;
 #X obj 343 191 s \$0-function-in;
 #X obj 345 235 r \$0-function-out;
-#X text 94 40 You can also set send/receive names with the 'send'/'receive' messages or '-send'/'-receive' flags. Make sure to escape "\$0" properly with backlashes (as in: "\\\$0") when using messages. Setting these to 'empty' removes the send/receive symbols., f 67;
+#X text 94 40 You can also set send/receive names with the 'send'/'receive' messages or '-send'/'-receive' flags. Make sure to escape "\$0" properly with backslashes (as in: "\\\$0") when using messages. Setting these to 'empty' removes the send/receive symbols., f 67;
 #X text 103 372 Note that when you set a receive or send symbol \, the corresponding inlet/outlet does not get drawn when you're in edit mode. This is an indicative that the object has a send or receive symbol., f 66;
 #X connect 1 0 4 0;
 #X connect 2 0 7 0;

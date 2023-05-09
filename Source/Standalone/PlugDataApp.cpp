@@ -18,11 +18,19 @@
    EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR PURPOSE, ARE
    DISCLAIMED.
 */
+#include <juce_gui_basics/juce_gui_basics.h>
 
-#include <JuceHeader.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "PlugDataWindow.h"
-#include "../Canvas.h"
-#include "../PluginProcessor.h"
+#include "Canvas.h"
+#include "PluginProcessor.h"
+#include "PluginEditor.h"
+
+#include "Dialogs/Dialogs.h"
+
+#include "Pd/OfeliaMessageManager.h"
 
 extern "C" {
 #include <x_libpd_multi.h>
@@ -41,7 +49,7 @@ extern "C" {
 #    define snprintf _snprintf
 #endif
 
-struct t_namelist /* element in a linked list of stored strings */
+struct t_namelist               /* element in a linked list of stored strings */
 {
     struct t_namelist* nl_next; /* next in list */
     char* nl_string;            /* the string */
@@ -154,15 +162,16 @@ public:
         }
     }
 
-    PlugDataWindow* getWindow()
-    {
-        return mainWindow.get();
-    }
-
 protected:
     ApplicationProperties appProperties;
     std::unique_ptr<PlugDataWindow> mainWindow;
 };
+
+bool PlugDataWindow::hasOpenedDialog()
+{
+    auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
+    return editor->openedDialog.get() != nullptr;
+}
 
 void PlugDataWindow::closeAllPatches()
 {
@@ -170,48 +179,15 @@ void PlugDataWindow::closeAllPatches()
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
     auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor());
 
-    auto* canvas = editor->canvases.getLast();
-    if (!canvas) {
-        JUCEApplication::quit();
-        return;
-    }
-
-    auto* tabbar = canvas->getTabbar();
-    auto* patch = &canvas->patch;
-
-    auto deleteFunc = [this, editor, tabbar, canvas, patch]() {
-        if (!canvas)
-            return;
-
-        editor->closeTab(canvas);
-        closeAllPatches();
-    };
-
-    if (canvas) {
-        MessageManager::callAsync([this, editor, canvas, patch, deleteFunc]() mutable {
-            // Don't show save dialog, if patch is still open in another view
-            if (patch->isDirty()) {
-                Dialogs::showSaveDialog(&editor->openedDialog, editor, patch->getTitle(),
-                    [this, editor, canvas, deleteFunc](int result) mutable {
-                        if (!canvas)
-                            return;
-                        if (result == 2)
-                            editor->saveProject([&deleteFunc]() mutable { deleteFunc(); });
-                        else if (result == 1)
-                            deleteFunc();
-                    });
-            } else {
-                deleteFunc();
-            }
-        });
-    }
+    editor->closeAllTabs(true);
 }
 
 int PlugDataWindow::parseSystemArguments(String const& arguments)
 {
     auto args = StringArray::fromTokens(arguments, true);
     size_t argc = args.size();
-    char const** argv = new char const*[argc];
+
+    auto argv = std::vector<char const*>(argc);
 
     for (int i = 0; i < args.size(); i++) {
         argv[i] = args.getReference(i).toRawUTF8();
@@ -220,7 +196,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     t_namelist* openlist = nullptr;
     t_namelist* messagelist = nullptr;
 
-    int retval = parse_startup_arguments(argv, argc, &openlist, &messagelist);
+    int retval = parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
 
     StringArray openedPatches;
     /* open patches specifies with "-open" args */
@@ -269,5 +245,47 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     return retval;
 }
 
-// This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION(PlugDataApp)
+juce::JUCEApplicationBase* juce_CreateApplication();
+juce::JUCEApplicationBase* juce_CreateApplication() { return new PlugDataApp(); }
+
+#if JUCE_WINDOWS
+JUCE_BEGIN_IGNORE_WARNINGS_MSVC(28251)
+int __stdcall WinMain(struct HINSTANCE__*, struct HINSTANCE__*, char*, int)
+    JUCE_END_IGNORE_WARNINGS_MSVC
+#else
+int main(int argc, char* argv[])
+#endif
+{
+    juce::JUCEApplicationBase::createInstance = &juce_CreateApplication;
+
+    ScopedJuceInitialiser_GUI libraryInitialiser;
+    jassert(PlugDataApp::createInstance != nullptr);
+
+    const std::unique_ptr<JUCEApplicationBase> app(PlugDataApp::createInstance());
+    jassert(app != nullptr);
+
+    if (!app->initialiseApp())
+        return app->shutdownApp();
+
+    auto* messageManager = MessageManager::getInstance();
+
+    messageManager->setCurrentThreadAsMessageThread();
+
+    int loopRunTime = 800;
+
+    while (!messageManager->hasStopMessageBeenSent()) {
+        JUCE_TRY
+        {
+            // loop until a quit message is received..
+            messageManager->runDispatchLoopUntil(loopRunTime);
+
+            // Returns how long the openGL render took in ms, so we can adjust how long
+            // juce will run to hit 60fps
+            // If Ofelia is not running, it will return a high number to reduce overhead
+            loopRunTime = pd::OfeliaMessageManager::pollEvents();
+        }
+        JUCE_CATCH_EXCEPTION
+    }
+
+    return app->shutdownApp();
+}

@@ -390,7 +390,7 @@ from a MIDI file or the [sysexin] object. You can also use vanilla's
 other MIDI objects like [pgmin] of course or the ones from ELSE \,
 such as [pgm.in] \, see [pd MIDI-input] below.;
 #X text 32 143 The bank message is not a proper MIDI message on its
-own but it is usualy given by the control message number 0 as in the
+own but it is usually given by the control message number 0 as in the
 last example - control change is also responsible for other usual parameters
 as we'll see in this example.;
 #X text 32 23 We've seen the list message which acts in the same way
@@ -421,7 +421,7 @@ files. It is based on FluidSynth., f 74;
 #X text 127 374 -v: set to verbosity mode, f 61;
 #X text 127 389 -ch <float>: set number of channels from 16 (default)
 to 256, f 61;
-#X text 127 403 -g <float>: overal gain from 0.1 to 1 (default 0.4)
+#X text 127 403 -g <float>: overall gain from 0.1 to 1 (default 0.4)
 , f 61;
 #X obj 357 206 print info;
 #N canvas 404 151 550 423 ALL 0;
@@ -525,7 +525,7 @@ where using here., f 72;
 #X obj 128 460 s \$0-tuning;
 #X msg 216 223 base 60;
 #X obj 67 232 s \$0-tuning;
-#X text 103 57 eigth tones;
+#X text 103 57 eighth tones;
 #X text 268 223 (default);
 #X obj 52 646 s \$0-tuning;
 #X msg 62 547 sel-tuning 0 0 2;
@@ -569,7 +569,7 @@ numbers (0-127) on bank 0 and different channels (1-8). These are equal
 divisions of the octave from 13 to 20 steps. A scale name is also generated.
 Set a different input channel to play each scale on the parent patch.
 , f 47;
-#X text 10 113 or select a program in chanel 1, f 11;
+#X text 10 113 or select a program in channel 1, f 11;
 #X obj 87 78 else/loop 8;
 #X obj 87 206 else/eqdiv;
 #X obj 87 236 else/insert scale;

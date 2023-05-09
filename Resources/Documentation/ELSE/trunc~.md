@@ -8,8 +8,6 @@ categories:
 
 pdcategory: ELSE, Signal Math
 
-arguments:
-
 inlets:
   1st:
   - type: signal

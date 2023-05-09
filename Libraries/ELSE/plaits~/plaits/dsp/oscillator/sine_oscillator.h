@@ -38,6 +38,9 @@
 
 #include "plaits/resources.h"
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 namespace plaits {
 
 class SineOscillator {

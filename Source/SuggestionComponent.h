@@ -5,6 +5,7 @@
  */
 
 #include "PluginEditor.h"
+#include "PluginProcessor.h" // TODO: We shouldn't need this!
 
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
 class AutoCompleteComponent
@@ -115,7 +116,7 @@ private:
         auto completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
 
         auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.65f);
-        PlugDataLook::drawText(g, suggestion, completionBounds, colour);
+        Fonts::drawText(g, suggestion, completionBounds, colour);
     }
 };
 // Suggestions component that shows up when objects are edited
@@ -162,24 +163,24 @@ class SuggestionComponent : public Component
 
         void paint(Graphics& g) override
         {
-            auto scrollbarIndent = parent->port->canScrollVertically() ? 5 : 0;
+            auto scrollbarIndent = parent->port->canScrollVertically() ? 6 : 0;
 
             auto backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : PlugDataColour::popupMenuBackgroundColourId);
 
-            auto buttonArea = getLocalBounds().reduced(6, 2).withTrimmedRight(scrollbarIndent).toFloat();
+            auto buttonArea = getLocalBounds().withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat().reduced(4, 0.5f);
 
             g.setColour(backgroundColour);
-            g.fillRoundedRectangle(buttonArea, PlugDataLook::defaultCornerRadius);
+            g.fillRoundedRectangle(buttonArea, Corners::largeCornerRadius);
 
             auto colour = getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
 
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
             auto leftIndent = drawIcon ? 34 : 11;
-            auto rightIndent = 11;
+            auto rightIndent = 14;
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
             if (textWidth > 0)
-                PlugDataLook::drawStyledText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, colour, Semibold, 13);
+                Fonts::drawStyledText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, colour, Semibold, 13);
 
             if (objectDescription.isNotEmpty()) {
                 auto textLength = Fonts::getSemiBoldFont().withHeight(13).getStringWidth(getButtonText());
@@ -188,7 +189,7 @@ class SuggestionComponent : public Component
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
                 // Draw seperator (which is an en dash)
-                PlugDataLook::drawText(g, String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), colour, 13);
+                Fonts::drawText(g, String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), colour, 13);
             }
 
             if (type == -1)
@@ -201,9 +202,9 @@ class SuggestionComponent : public Component
                 auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(6, 0);
-                g.fillRoundedRectangle(iconbound.toFloat(), PlugDataLook::smallCornerRadius);
+                g.fillRoundedRectangle(iconbound.toFloat(), Corners::smallCornerRadius);
 
-                PlugDataLook::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
+                Fonts::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
             }
         }
 
@@ -214,7 +215,8 @@ class SuggestionComponent : public Component
 public:
     SuggestionComponent()
         : resizer(this, &constrainer)
-        , currentBox(nullptr), windowMargin(canBeTransparent() ? 22 : 0)
+        , currentBox(nullptr)
+        , windowMargin(canBeTransparent() ? 22 : 0)
     {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
@@ -285,7 +287,7 @@ public:
         }
 
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
-        
+
         updateBounds();
 
         setVisible(false);
@@ -376,10 +378,10 @@ public:
 
         int yScroll = port->getViewPositionY();
         port->setBounds(b);
-        buttonholder->setBounds(b.getX() + 6, b.getY(), b.getWidth(), std::min(numOptions, 20) * 25 + 8);
+        buttonholder->setBounds(b.getX() + 6, b.getY(), b.getWidth(), std::min(numOptions, 20) * 26 + 8);
 
         for (int i = 0; i < buttons.size(); i++)
-            buttons[i]->setBounds(2, (i * 25) + 4, getWidth() - 4, 24);
+            buttons[i]->setBounds(2, (i * 26) + 4, getWidth() - 4, 24);
 
         int const resizerSize = 12;
 
@@ -409,39 +411,32 @@ private:
     {
         return getLocalBounds().reduced(windowMargin).contains(x, y);
     }
-        
-    bool canBeTransparent() {
-#if !PLUGDATA_STANDALONE
-        // Apple's hosts don't deal well with transparency,
-        auto hostType = PluginHostType();
-        if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
-            return false;
-        }
-#endif
-        return Desktop::canUseSemiTransparentWindows();
+
+    bool canBeTransparent()
+    {
+        return ProjectInfo::canUseSemiTransparentWindows();
     }
 
     void paint(Graphics& g) override
     {
         auto b = getLocalBounds().reduced(windowMargin);
 
-        if(!canBeTransparent()) {
+        if (!canBeTransparent()) {
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-        }
-        else {
+        } else {
             Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(4.0f), PlugDataLook::windowCornerRadius);
+            localPath.addRoundedRectangle(b.toFloat().reduced(4.0f), Corners::windowCornerRadius);
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 16, { 0, 3 });
         }
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
-        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), PlugDataLook::defaultCornerRadius);
+        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId).darker(0.1f));
-        g.drawRoundedRectangle(port->getBounds().toFloat().reduced(0.5f), PlugDataLook::defaultCornerRadius, 1.0f);
+        g.drawRoundedRectangle(port->getBounds().toFloat().reduced(0.5f), Corners::defaultCornerRadius, 1.0f);
     }
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
@@ -537,15 +532,27 @@ private:
         // If there's a space, open arguments panel
         if (currentText.contains(" ")) {
             state = ShowingArguments;
-            auto found = library.getArguments()[currentText.upToFirstOccurrenceOf(" ", false, false)];
-            for (int i = 0; i < std::min<int>(buttons.size(), static_cast<int>(found.size())); i++) {
-                auto& [type, description, init] = found[i];
+            auto name = currentText.upToFirstOccurrenceOf(" ", false, false);
+            auto objectInfo = library->getObjectInfo(name);
+            auto found = objectInfo.getChildWithName("arguments").createCopy();
+            for (auto flag : objectInfo.getChildWithName("flags")) {
+                auto flagCopy = flag.createCopy();
+                auto name = flagCopy.getProperty("name").toString().trim();
+                if (!name.startsWith("-"))
+                    name = "-" + name;
+                flagCopy.setProperty("type", name, nullptr);
+                found.appendChild(flagCopy, nullptr);
+            }
+
+            numOptions = std::min<int>(buttons.size(), found.getNumChildren());
+            for (int i = 0; i < numOptions; i++) {
+                auto type = found.getChild(i).getProperty("type").toString();
+                auto description = found.getChild(i).getProperty("description").toString();
+
                 buttons[i]->setText(type, description, false);
                 buttons[i]->setInterceptsMouseClicks(false, false);
                 buttons[i]->setToggleState(false, dontSendNotification);
             }
-
-            numOptions = static_cast<int>(found.size());
 
             for (int i = numOptions; i < buttons.size(); i++) {
                 buttons[i]->setText("", "", false);
@@ -568,12 +575,11 @@ private:
             buttons[currentidx]->setToggleState(true, dontSendNotification);
         }
 
-        
         auto filterNonHvccObjectsIfNeeded = [_this = SafePointer(this)](StringArray& toFilter) {
             if (!_this || !_this->currentBox)
                 return;
 
-            if (static_cast<bool>(_this->currentBox->cnv->editor->hvccMode.getValue())) {
+            if (getValue<bool>(_this->currentBox->cnv->editor->hvccMode)) {
 
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {
@@ -586,13 +592,12 @@ private:
             }
         };
 
-        
         // Update suggestions
-        auto found = library.autocomplete(currentText);
+        auto found = library->autocomplete(currentText);
 
         // When hvcc mode is enabled, show only hvcc compatible objects
         filterNonHvccObjectsIfNeeded(found);
-        
+
         if (found.isEmpty()) {
             autoCompleteComponent->enableAutocomplete(false);
             deselectAll();
@@ -610,13 +615,9 @@ private:
             for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
                 auto& name = suggestions[i];
 
-                auto descriptions = library.getObjectDescriptions();
+                auto description = library->getObjectInfo(name).getProperty("description").toString();
+                buttons[i]->setText(name, description, true);
 
-                if (descriptions.find(name) != descriptions.end()) {
-                    buttons[i]->setText(name, descriptions[name], true);
-                } else {
-                    buttons[i]->setText(name, "", true);
-                }
                 buttons[i]->setInterceptsMouseClicks(true, false);
             }
 
@@ -666,7 +667,7 @@ private:
             applySuggestionsToButtons(found, currentText);
         }
 
-        library.getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText, sortSuggestions](StringArray s) mutable {
+        library->getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText, sortSuggestions](StringArray s) mutable {
             filterNonHvccObjectsIfNeeded(s);
 
             // This means the extra suggestions have returned too late to still be relevant
@@ -708,6 +709,6 @@ private:
 
     TextEditor* openedEditor = nullptr;
     SafePointer<Object> currentBox;
-        
+
     int windowMargin;
 };

@@ -1,0 +1,4 @@
+Castafiore is a real-time pitch shifter effect using delay lines to transpose between -2 and 2 octaves.
+
+Version: 1.0
+Author: Pierre Guillot

@@ -6,16 +6,16 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
-extern "C" {
 #include <m_pd.h>
-}
 
-#include <concurrentqueue.h>
-#include "Iolet.h"
-#include "Pd/PdInstance.h"
+#include <concurrentqueue.h> // Move to impl
+#include "Constants.h"
+#include "Objects/AllGuis.h"
+#include "Iolet.h"       // Move to impl
+#include "Pd/Instance.h" // Move to impl
+#include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
+#include "Utility/ModifierKeyListener.h"
 
 using PathPlan = std::vector<Point<float>>;
 
@@ -25,22 +25,37 @@ class PathUpdater;
 class Connection : public Component
     , public ComponentListener
     , public Value::Listener
-    , public pd::MessageListener
-    , public SettableTooltipClient {
+    , public ChangeListener
+    , public pd::MessageListener {
 public:
     int inIdx;
     int outIdx;
 
-    SafePointer<Iolet> inlet, outlet;
-    SafePointer<Object> inobj, outobj;
+    WeakReference<Iolet> inlet, outlet;
+    WeakReference<Object> inobj, outobj;
 
-    Path toDraw;
+    Path toDraw, toDrawLocalSpace;
     String lastId;
+
+    std::atomic<int> messageActivity;
 
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
     ~Connection() override;
 
-    static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = { 0, 0 }, bool isHovering = false);
+    void updateOverlays(int overlay);
+
+    static void renderConnectionPath(Graphics& g,
+        Canvas* cnv,
+        Path connectionPath,
+        bool isSignal,
+        bool isMouseOver = false,
+        bool showDirection = false,
+        bool showConnectionOrder = false,
+        bool isSelected = false,
+        Point<int> mousePos = { 0, 0 },
+        bool isHovering = false,
+        int connections = 0,
+        int connectionNum = 0);
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
@@ -52,6 +67,8 @@ public:
     void updatePath();
 
     void lookAndFeelChanged() override;
+
+    void changeListenerCallback(ChangeBroadcaster* source) override;
 
     bool hitTest(int x, int y) override;
 
@@ -86,47 +103,60 @@ public:
 
     void findPath();
 
+    void applyBestPath();
+
     bool intersectsObject(Object* object);
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
     void receiveMessage(String const& name, int argc, t_atom* argv) override;
 
+    bool isSelected();
+
+    StringArray getMessageFormated();
+
 private:
-    bool wasSelected = false;
-    bool segmented = false;
+    void resizeToFit();
+
+    int getMultiConnectNumber();
+    int getNumberOfConnections();
+
+    void valueChanged(Value& v) override;
+
+    void setSelected(bool shouldBeSelected);
 
     Array<SafePointer<Connection>> reconnecting;
+    Rectangle<float> startReconnectHandle, endReconnectHandle, endCableOrderDisplay;
 
-    Rectangle<float> startReconnectHandle, endReconnectHandle;
+    bool selectedFlag = false;
+    bool segmented = false;
 
     PathPlan currentPlan;
 
     Value locked;
     Value presentationMode;
 
+    bool showDirection = false;
+    bool showConnectionOrder = false;
+
     Canvas* cnv;
 
-    Point<float> origin, offset;
+    Point<float> previousPStart = Point<float>();
 
     int dragIdx = -1;
 
     float mouseDownPosition = 0;
     bool isHovering = false;
 
-    void valueChanged(Value& v) override;
-
-    struct t_fake_outconnect {
-        void* oc_next;
-        t_pd* oc_to;
-        t_symbol* outconnect_path_data;
-    };
-
     t_fake_outconnect* ptr;
+
+    std::vector<pd::Atom> lastValue;
+    String lastSelector;
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
+// TODO: hide behind Connection interface to reduce includes!
 class ConnectionBeingCreated : public Component {
     SafePointer<Iolet> iolet;
     Component* cnv;
@@ -164,8 +194,8 @@ public:
         if (rateReducer.tooFast())
             return;
 
-        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().getCentre());
-        auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition());
+        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
+        auto cursorPoint = e.getEventRelativeTo(cnv).position;
 
         auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
         auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;

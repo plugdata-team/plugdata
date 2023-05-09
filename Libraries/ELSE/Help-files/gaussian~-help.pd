@@ -75,7 +75,7 @@ higher in the case of low frequencies., f 62;
 ;
 #X text 164 336 float/signal - phase offset (modulation input);
 #X text 164 273 float/signal - frequency in hz;
-#X text 164 316 float/signal - phase sync (ressets internal phase)
+#X text 164 316 float/signal - phase sync (resets internal phase)
 ;
 #N canvas 519 92 847 522 sync 0;
 #X text 517 49 Syncing the phase with control messages is useful for

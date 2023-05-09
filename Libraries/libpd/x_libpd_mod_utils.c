@@ -42,6 +42,8 @@ struct _instanceeditor
 
 extern int glist_getindex(t_glist* cnv, t_gobj* y);
 extern void canvas_savedeclarationsto(t_canvas *x, t_binbuf *b);
+extern void canvas_savetemplatesto(t_canvas *x, t_binbuf *b, int wholething);
+extern void canvas_saveto(t_canvas *x, t_binbuf *b);
 
 void libpd_get_search_paths(char** paths, int* numItems) {
 
@@ -53,7 +55,6 @@ void libpd_get_search_paths(char** paths, int* numItems) {
     }
     
     *numItems = i;
-    *paths = malloc(i * sizeof(char*));
     
     pathList = STUFF->st_searchpath;
     i = 0;
@@ -458,12 +459,26 @@ void libpd_duplicate(t_canvas* cnv)
  body (and which is called recursively.) */
 void libpd_savetofile(t_canvas* cnv, t_symbol* filename, t_symbol* dir)
 {
-    t_atom args[3];
-    SETSYMBOL(args, filename);
-    SETSYMBOL(args + 1, dir);
-    SETFLOAT(args + 2, 0);
-    
-    pd_typedmess(cnv, gensym("savetofile"), 3, args);
+    t_binbuf *b = binbuf_new();
+    canvas_savetemplatesto(cnv, b, 1);
+    canvas_saveto(cnv, b);
+    errno = 0;
+    if (binbuf_write(b, filename->s_name, dir->s_name, 0))
+        post("%s/%s: %s", dir->s_name, filename->s_name,
+            (errno ? strerror(errno) : "write failed"));
+    else
+    {
+            /* if not an abstraction, reset title bar and directory */
+        if (!cnv->gl_owner)
+        {
+            canvas_rename(cnv, filename, dir);
+            /* update window list in case Save As changed the window name */
+            canvas_updatewindowlist();
+        }
+        post("saved to: %s/%s", dir->s_name, filename->s_name);
+        canvas_dirty(cnv, 0);
+    }
+    binbuf_free(b);
 }
 
 t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y)
@@ -649,6 +664,28 @@ int libpd_can_redo(t_canvas* cnv)
     return 0;
 }
 
+int libpd_has_click_function(t_object const* x)
+{
+    
+    const t_class *c = x->te_g.g_pd;
+    t_methodentry *m, *mlist;
+    int i;
+
+#ifdef PDINSTANCE
+    mlist = c->c_methods[pd_this->pd_instanceno];
+#else
+    mlist = c->c_methods;
+#endif
+    for (i = c->c_nmethod, m = mlist; i--; m++) {
+        if (m->me_name && m->me_name->s_name && !strcmp(m->me_name->s_name, "click") && m->me_arg[0] == '\0') {
+            
+            return 1;
+        }
+    }
+    
+    return 0;
+}
+
 // Can probably be used as a general purpose undo action on an object?
 void libpd_undo_apply(t_canvas* cnv, t_gobj* obj)
 {
@@ -695,6 +732,8 @@ void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* si
 
     canvas_undo_add(cnv, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(cnv, src_i, nout, dest_i, nin, connection_path));
     glist_noselect(cnv);
+    
+    canvas_dirty(cnv, 1);
 }
 
 void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize)
@@ -768,6 +807,7 @@ void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize)
     }
     
     binbuf_gettext(b, buf, bufsize);
+    binbuf_free(b);
 }
 
 typedef t_pd* (*t_newgimme)(t_symbol* s, int argc, t_atom* argv);
@@ -809,7 +849,7 @@ int libpd_ninlets(t_object const* x)
     return (n);
 }
 
-#if PDINSTANCE
+#ifdef PDINSTANCE
 #    define s_signal (pd_this->pd_s_signal)
 #endif
 
@@ -835,4 +875,12 @@ int libpd_issignaloutlet(t_object const* x, int m)
     for (o2 = x->ob_outlet, n = 0; o2 && m--; o2 = o2->o_next)
         ;
     return (o2 && (o2->o_sym == &s_signal));
+}
+
+void* libpd_get_class_methods(t_class* o) {
+#ifdef PDINSTANCE
+    return o->c_methods[pd_this->pd_instanceno];
+#else
+    return o->c_methods;
+#endif
 }

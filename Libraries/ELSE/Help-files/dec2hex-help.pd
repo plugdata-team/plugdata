@@ -1,70 +1,48 @@
-#N canvas 663 92 559 451 10;
-#X obj 231 241 else/display;
-#X obj 346 177 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 203 176 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
-#X obj 241 176 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
-0;
+#N canvas 476 63 559 436 10;
+#X obj 213 227 else/display;
+#X obj 328 163 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 185 162 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 223 162 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
-0;
-#X obj 23 40 cnv 4 4 4 empty empty Convert 0 28 2 18 -233017 -1 0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
-0;
-#X obj 90 40 cnv 4 4 4 empty empty decimal 0 28 2 18 -233017 -1 0;
-#X obj 158 40 cnv 4 4 4 empty empty to 0 28 2 18 -233017 -1 0;
-#X obj 184 40 cnv 4 4 4 empty empty hexadecimal 0 28 2 18 -233017 -1
-0;
-#X obj 3 3 cnv 15 301 42 empty empty dec2hex 20 20 2 37 -233017 -1
-0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 40 cnv 4 4 4 empty empty Convert 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 90 40 cnv 4 4 4 empty empty decimal 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 158 40 cnv 4 4 4 empty empty to 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 184 40 cnv 4 4 4 empty empty hexadecimal 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 3 3 cnv 15 301 42 empty empty dec2hex 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 3 3 graph;
-#X obj 4 278 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 353 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 388 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
-0;
-#X obj 112 362 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 113 287 cnv 17 3 35 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 4 421 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
-0;
-#X text 203 362 - the converted hexadecimal value;
-#X text 161 362 symbol;
-#X obj 113 327 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
-;
-#X text 173 306 bang;
-#X obj 231 209 else/dec2hex 10 16;
-#X msg 336 152 100 200;
-#X msg 231 145 248 256;
-#X text 137 288 float/list;
-#X text 137 328 float/list;
-#X text 203 288 - decimal value(s) to convert (outputs the result)
-;
-#X text 203 306 - convert and output;
-#X text 203 328 - decimal value(s) to convert (at bangs);
-#X text 62 92 [dec2hex] converts decimal values to hexadecimal ones.
-The output is preceded by "0x" and the letters in the hexadecimal values
-are upper case. You can also convert lists. Only floats are converted
-\, symbols are ignored., f 67;
-#X text 118 397 1) float/list - decimal value(s) to convert (default
-0);
+#X obj 4 262 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 337 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 372 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 122 346 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 123 271 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 405 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X text 198 346 - the converted hexadecimal value;
+#X text 155 346 symbol;
+#X obj 123 311 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X text 167 290 bang;
+#X obj 213 195 else/dec2hex 10 16;
+#X msg 318 138 100 200;
+#X msg 213 131 248 256;
+#X text 198 272 - decimal value(s) to convert (outputs the result);
+#X text 198 290 - convert and output;
+#X text 198 312 - decimal value(s) to convert (at bangs);
+#X text 167 272 list;
+#X text 167 312 list;
+#X text 62 92 [dec2hex] converts decimal values to hexadecimal ones. The output is preceded by "0x" and the letters in the hexadecimal values are upper case., f 67;
+#X obj 39 221 else/hex2dec;
+#X text 37 195 see also:;
+#X text 149 381 1) list - decimal value(s) to convert (default 0);
 #X connect 1 0 28 1;
 #X connect 2 0 28 0;
 #X connect 3 0 28 0;

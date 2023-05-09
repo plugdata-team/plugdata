@@ -1532,7 +1532,9 @@ static void zl_mode(t_zl *x, t_symbol *s, int ac, t_atom *av){
         t_symbol *modesym = av->a_w.w_symbol;
         int i;
         for(i = 0; i < ZL_N_MODES; i++){
-            if(modesym == zl_modesym[i]){
+            // Because the gensym() happens before object creation,
+            // we can't compare the symbols if we want it to work in multi-instance pd
+            if(strcmp(modesym->s_name, zl_modesym[i]->s_name) == 0){
             x->x_mode = i;
             zl_setmodearg(x, 0, ac - 1, av + 1);
             break;

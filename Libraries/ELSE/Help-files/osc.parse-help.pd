@@ -33,7 +33,7 @@
 #X obj 156 227 else/osc.format;
 #X obj 156 277 else/osc.parse;
 #X obj 16 272 else/osc.parse;
-#X text 224 202 <-- message to be formated as an OSC message;
+#X text 224 202 <-- message to be formatted as an OSC message;
 #X text 229 348 - formatted OSC message;
 #X obj 16 249 else/osc.receive;
 #X text 229 384 - parsed OSC message;

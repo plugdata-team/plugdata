@@ -4,6 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "Statusbar.h"
 #include "LookAndFeel.h"
 
@@ -11,6 +15,11 @@
 #include "PluginEditor.h"
 #include "Canvas.h"
 #include "Connection.h"
+
+#include "Dialogs/OverlayDisplaySettings.h"
+#include "Dialogs/SnapSettings.h"
+
+#include "Utility/ArrowPopupMenu.h"
 
 class LevelMeter : public Component
     , public StatusbarSource::Listener {
@@ -99,7 +108,7 @@ class MidiBlinker : public Component
 public:
     void paint(Graphics& g) override
     {
-        PlugDataLook::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), findColour(ComboBox::textColourId), 11, Justification::centredRight);
+        Fonts::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), findColour(ComboBox::textColourId), 11, Justification::centredRight);
 
         auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
@@ -127,71 +136,17 @@ public:
     bool blinkMidiOut = false;
 };
 
-class GridSizeSlider : public PopupMenu::CustomComponent {
-public:
-    GridSizeSlider(Canvas* leftCnv, Canvas* rightCnv)
-    {
-        addAndMakeVisible(slider.get());
-        slider->setRange(5, 30, 5);
-        slider->setValue(SettingsFile::getInstance()->getProperty<int>("grid_size"));
-        slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
-        slider->setColour(Slider::ColourIds::trackColourId, findColour(PlugDataColour::panelBackgroundColourId));
-
-        slider->onValueChange = [this, leftCnv, rightCnv]() {
-            SettingsFile::getInstance()->setProperty("grid_size", slider->getValue());
-            if (leftCnv)
-                leftCnv->repaint();
-            if (rightCnv)
-                rightCnv->repaint();
-        };
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto b = getLocalBounds().reduced(12, 0);
-        int x = b.getX();
-        int spacing = b.getWidth() / 6;
-
-        for (int i = 5; i <= 30; i += 5) {
-            auto textBounds = Rectangle<int>(x, b.getY(), spacing, b.getHeight());
-            PlugDataLook::drawStyledText(g, String(i), textBounds, findColour(PlugDataColour::toolbarTextColourId), Monospace, 10, Justification::centredTop);
-            x += spacing;
-        }
-    }
-
-    void getIdealSize(int& idealWidth, int& idealHeight) override
-    {
-        idealWidth = 150;
-        idealHeight = 25;
-    }
-
-    void resized() override
-    {
-        auto bounds = getLocalBounds();
-        bounds.reduce(10, 0);
-        slider->setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() + 10);
-    }
-
-private:
-    std::unique_ptr<Slider> slider = std::make_unique<Slider>();
-};
-
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
     levelMeter = new LevelMeter();
     midiBlinker = new MidiBlinker();
 
-    pd->statusbarSource.addListener(levelMeter);
-    pd->statusbarSource.addListener(midiBlinker);
-    pd->statusbarSource.addListener(this);
+    pd->statusbarSource->addListener(levelMeter);
+    pd->statusbarSource->addListener(midiBlinker);
+    pd->statusbarSource->addListener(this);
 
     setWantsKeyboardFocus(true);
-
-    commandLocked.referTo(pd->commandLocked);
-
-    locked.addListener(this);
-    commandLocked.addListener(this);
 
     oversampleSelector.setTooltip("Set oversampling");
     oversampleSelector.getProperties().set("FontScale", 0.5f);
@@ -207,7 +162,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
         menu.addItem(4, "8x");
 
         auto* editor = pd->getActiveEditor();
-        menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&oversampleSelector).withParentComponent(editor),
+        ArrowPopupMenu::showMenuAsync(&menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&oversampleSelector).withParentComponent(editor),
             [this](int result) {
                 if (result != 0) {
                     oversampleSelector.setButtonText(String(1 << (result - 1)) + "x");
@@ -217,96 +172,49 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
     addAndMakeVisible(oversampleSelector);
 
-    powerButton = std::make_unique<TextButton>(Icons::Power);
-    lockButton = std::make_unique<TextButton>(Icons::Lock);
-    connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
-    connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
-    presentationButton = std::make_unique<TextButton>(Icons::Presentation);
-    gridButton = std::make_unique<TextButton>(Icons::Grid);
-    protectButton = std::make_unique<TextButton>(Icons::Protection);
+    powerButton.setButtonText(Icons::Power);
+    connectionStyleButton.setButtonText(Icons::ConnectionStyle);
+    connectionPathfind.setButtonText(Icons::Wand);
+    protectButton.setButtonText(Icons::Protection);
+    centreButton.setButtonText(Icons::Centre);
+    fitAllButton.setButtonText(Icons::FitAll);
 
-    presentationButton->setTooltip("Presentation Mode");
-    presentationButton->setClickingTogglesState(true);
-    presentationButton->getProperties().set("Style", "SmallIcon");
-    presentationButton->getToggleStateValue().referTo(presentationMode);
+    powerButton.setTooltip("Enable/disable DSP");
+    powerButton.setClickingTogglesState(true);
+    powerButton.getProperties().set("Style", "SmallIcon");
+    addAndMakeVisible(powerButton);
 
-    presentationButton->onClick = [this]() {
-        // When presenting we are always locked
-        // A bit different from Max's presentation mode
-        if (presentationButton->getToggleState()) {
-            locked = var(true);
+    powerButton.onClick = [this]() { powerButton.getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
+
+    powerButton.setToggleState(pd_getdspstate(), dontSendNotification);
+
+    centreButton.setTooltip("Move view to origin");
+    centreButton.getProperties().set("Style", "SmallIcon");
+    centreButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        if (auto* cnv = editor->getCurrentCanvas()) {
+            cnv->jumpToOrigin();
         }
     };
 
-    addAndMakeVisible(presentationButton.get());
+    addAndMakeVisible(centreButton);
 
-    powerButton->setTooltip("Enable/disable DSP");
-    powerButton->setClickingTogglesState(true);
-    powerButton->getProperties().set("Style", "SmallIcon");
-    addAndMakeVisible(powerButton.get());
-
-    gridButton->setTooltip("Grid Options");
-    gridButton->getProperties().set("Style", "SmallIcon");
-    gridButton->onClick = [this]() {
-        PopupMenu gridSelector;
-        int gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
-        gridSelector.addItem("Snap to Grid", true, gridEnabled == 2 || gridEnabled == 3, [this, gridEnabled]() {
-            if (gridEnabled == 0) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 2);
-            } else if (gridEnabled == 1) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 3);
-            } else if (gridEnabled == 2) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 0);
-            } else {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 1);
-            }
-        });
-        gridSelector.addItem("Snap to Objects", true, gridEnabled == 1 || gridEnabled == 3, [this, gridEnabled]() {
-            if (gridEnabled == 0) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 1);
-            } else if (gridEnabled == 1) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 0);
-            } else if (gridEnabled == 2) {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 3);
-            } else {
-                SettingsFile::getInstance()->setProperty("grid_enabled", 2);
-            }
-        });
-        gridSelector.addSeparator();
-
-        auto* leftCanvas = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->splitView.getLeftTabbar()->getCurrentCanvas();
-        auto* rightCanvas = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->splitView.getRightTabbar()->getCurrentCanvas();
-        gridSelector.addCustomItem(1, std::make_unique<GridSizeSlider>(leftCanvas, rightCanvas), nullptr, "Grid Size");
-
-        gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
-    };
-
-    addAndMakeVisible(gridButton.get());
-
-    // Initialise grid state
-    propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
-
-    powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
-
-    powerButton->setToggleState(pd_getdspstate(), dontSendNotification);
-
-    lockButton->setTooltip("Edit Mode");
-    lockButton->setClickingTogglesState(true);
-    lockButton->getProperties().set("Style", "SmallIcon");
-    lockButton->getToggleStateValue().referTo(locked);
-    addAndMakeVisible(lockButton.get());
-    lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
-    lockButton->onClick = [this]() {
-        if (static_cast<bool>(presentationMode.getValue())) {
-            presentationMode = false;
+    fitAllButton.setTooltip("Zoom to fit all");
+    fitAllButton.getProperties().set("Style", "SmallIcon");
+    fitAllButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        if (auto* cnv = editor->getCurrentCanvas()) {
+            cnv->zoomToFitAll();
         }
     };
 
-    connectionStyleButton->setTooltip("Enable segmented connections");
-    connectionStyleButton->setClickingTogglesState(true);
-    connectionStyleButton->getProperties().set("Style", "SmallIcon");
-    connectionStyleButton->onClick = [this]() {
-        bool segmented = connectionStyleButton->getToggleState();
+    addAndMakeVisible(fitAllButton);
+
+    connectionStyleButton.setTooltip("Enable segmented connections");
+    connectionStyleButton.setClickingTogglesState(true);
+    connectionStyleButton.getProperties().set("Style", "SmallIcon");
+    connectionStyleButton.onClick = [this]() {
+        bool segmented = connectionStyleButton.getToggleState();
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
 
         auto* cnv = editor->getCurrentCanvas();
@@ -319,24 +227,23 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
         // cnv->patch.endUndoSequence("ChangeSegmentedPaths");
     };
+    addAndMakeVisible(connectionStyleButton);
 
-    addAndMakeVisible(connectionStyleButton.get());
+    connectionPathfind.setTooltip("Find best connection path");
+    connectionPathfind.getProperties().set("Style", "SmallIcon");
+    connectionPathfind.onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
+    addAndMakeVisible(connectionPathfind);
 
-    connectionPathfind->setTooltip("Find best connection path");
-    connectionPathfind->getProperties().set("Style", "SmallIcon");
-    connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
-    addAndMakeVisible(connectionPathfind.get());
-
-    protectButton->setTooltip("Clip output signal and filter non-finite values");
-    protectButton->getProperties().set("Style", "SmallIcon");
-    protectButton->setClickingTogglesState(true);
-    protectButton->setToggleState(SettingsFile::getInstance()->getProperty<int>("protected"), dontSendNotification);
-    protectButton->onClick = [this]() {
-        int state = protectButton->getToggleState();
+    protectButton.setTooltip("Clip output signal and filter non-finite values");
+    protectButton.getProperties().set("Style", "SmallIcon");
+    protectButton.setClickingTogglesState(true);
+    protectButton.setToggleState(SettingsFile::getInstance()->getProperty<int>("protected"), dontSendNotification);
+    protectButton.onClick = [this]() {
+        int state = protectButton.getToggleState();
         pd->setProtectedMode(state);
         SettingsFile::getInstance()->setProperty("protected", state);
     };
-    addAndMakeVisible(*protectButton);
+    addAndMakeVisible(protectButton);
 
     addAndMakeVisible(volumeSlider);
     volumeSlider.setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
@@ -352,63 +259,75 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     levelMeter->toBehind(&volumeSlider);
 
+    overlayButton.setButtonText(Icons::Eye);
+    overlaySettingsButton.setButtonText(Icons::ThinDown);
+
+    overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
+    overlaySettingsButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        overlayDisplaySettings->show(editor, editor->getLocalArea(this, overlaySettingsButton.getBounds()));
+    };
+
+    snapEnableButton.setButtonText(Icons::Magnet);
+    snapSettingsButton.setButtonText(Icons::ThinDown);
+
+    snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
+
+    snapSettings = std::make_unique<SnapSettings>();
+
+    snapSettingsButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        snapSettings->show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
+    };
+
+    // overlay button
+    overlayButton.getProperties().set("Style", "SmallIcon");
+    overlaySettingsButton.getProperties().set("Style", "SmallIcon");
+
+    overlayButton.setClickingTogglesState(true);
+    overlaySettingsButton.setClickingTogglesState(false);
+
+    addAndMakeVisible(overlayButton);
+    addAndMakeVisible(overlaySettingsButton);
+
+    overlayButton.setConnectedEdges(Button::ConnectedOnRight);
+    overlaySettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
+
+    overlayButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").getPropertyAsValue("alt_mode", nullptr));
+    overlayButton.setTooltip(String("Show overlays"));
+    overlaySettingsButton.setTooltip(String("Overlay settings"));
+
+    // snapping button
+    snapEnableButton.getProperties().set("Style", "SmallIcon");
+    snapSettingsButton.getProperties().set("Style", "SmallIcon");
+
+    snapEnableButton.setClickingTogglesState(true);
+    snapSettingsButton.setClickingTogglesState(false);
+
+    addAndMakeVisible(snapEnableButton);
+    addAndMakeVisible(snapSettingsButton);
+
+    snapEnableButton.setConnectedEdges(Button::ConnectedOnRight);
+    snapSettingsButton.setConnectedEdges(Button::ConnectedOnLeft);
+
+    snapEnableButton.setTooltip(String("Enable snapping"));
+    snapSettingsButton.setTooltip(String("Snap settings"));
+
     setSize(getWidth(), statusbarHeight);
 }
 
 Statusbar::~Statusbar()
 {
-    pd->statusbarSource.removeListener(levelMeter);
-    pd->statusbarSource.removeListener(midiBlinker);
-    pd->statusbarSource.removeListener(this);
+    pd->statusbarSource->removeListener(levelMeter);
+    pd->statusbarSource->removeListener(midiBlinker);
+    pd->statusbarSource->removeListener(this);
 
     delete midiBlinker;
     delete levelMeter;
 }
 
-void Statusbar::attachToCanvas(Canvas* cnv)
-{
-    locked.referTo(cnv->locked);
-    lockButton->getToggleStateValue().referTo(cnv->locked);
-}
-
 void Statusbar::propertyChanged(String name, var value)
 {
-    if (name == "grid_enabled") {
-        int gridEnabled = static_cast<int>(value);
-        if (gridEnabled == 0) {
-            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
-            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
-        } else if (gridEnabled == 1) {
-            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
-            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::gridLineColourId).brighter(0.4f));
-        } else if (gridEnabled == 2) {
-            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::signalColourId));
-            // TODO: fix weird colour id usage
-            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::signalColourId).brighter(0.4f));
-        } else if (gridEnabled == 3) {
-            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::signalColourId));
-            // TODO: fix weird colour id usage
-            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::signalColourId).brighter(0.4f));
-        }
-    }
-}
-
-void Statusbar::valueChanged(Value& v)
-{
-    bool lockIcon = locked == var(true) || commandLocked == var(true);
-    lockButton->setButtonText(lockIcon ? Icons::Lock : Icons::Unlock);
-
-    if (v.refersToSameSourceAs(commandLocked)) {
-        auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
-        lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
-    }
-}
-
-void Statusbar::lookAndFeelChanged()
-{
-    // Makes sure it gets updated on theme change
-    auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
-    lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
 }
 
 void Statusbar::paint(Graphics& g)
@@ -426,54 +345,44 @@ void Statusbar::resized()
         return inverse ? getWidth() - pos : result;
     };
 
-    lockButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    connectionStyleButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    connectionPathfind.setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    position(3); // Seperator
+    position(5); // Seperator
 
-    connectionStyleButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    connectionPathfind->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    centreButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    fitAllButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    position(7); // Seperator
 
-    position(3); // Seperator
+    overlayButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1, 0).withTrimmedRight(8));
 
-    gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    position(getHeight() - 8);
 
-    pos = 0; // reset position for elements on the left
+    snapEnableButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1, 0).withTrimmedRight(8));
 
-    protectButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    pos = 5; // reset position for elements on the right
 
-    powerButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    protectButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+
+    powerButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     int levelMeterPosition = position(100, true);
     levelMeter->setBounds(levelMeterPosition, 2, 100, getHeight() - 4);
     volumeSlider.setBounds(levelMeterPosition, 2, 100, getHeight() - 4);
 
     // Offset to make text look centred
-    oversampleSelector.setBounds(position(getHeight(), true) + 3, 0, getHeight(), getHeight());
+    oversampleSelector.setBounds(position(getHeight(), true) + 3, 1, getHeight() - 2, getHeight() - 2);
 
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
-}
-
-void Statusbar::shiftKeyChanged(bool isHeld)
-{
-    if (isHeld && SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
-        gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
-        gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
-    } else if (SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
-        propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
-    }
-}
-
-void Statusbar::commandKeyChanged(bool isHeld)
-{
-    commandLocked = isHeld && locked.getValue() == var(false);
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)
 {
     auto colour = findColour(audioProcessed ? PlugDataColour::levelMeterActiveColourId : PlugDataColour::signalColourId);
 
-    powerButton->setColour(TextButton::textColourOnId, colour);
+    powerButton.setColour(TextButton::textColourOnId, colour);
 }
 
 StatusbarSource::StatusbarSource()

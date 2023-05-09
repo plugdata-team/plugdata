@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 class Connection;
 class Object;
 class Canvas;
@@ -35,7 +33,7 @@ public:
     static Iolet* findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
 
     void createConnection();
-        
+
     void setHidden(bool hidden);
 
     void clearConnections();
@@ -48,17 +46,17 @@ public:
     bool isSignal;
 
     bool isTargeted = false;
-        
-    const bool insideGraph;
-        
 
     Canvas* cnv;
 
 private:
+    bool const insideGraph;
     bool hideIolet = false;
-        
+
     Value locked;
+    Value commandLocked;
     Value presentationMode;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Iolet)
+    JUCE_DECLARE_WEAK_REFERENCEABLE(Iolet)
 };

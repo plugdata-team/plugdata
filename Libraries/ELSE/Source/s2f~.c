@@ -1,5 +1,5 @@
+// porres
 
-#include <string.h>
 #include "m_pd.h"
 
 typedef struct _s2f{
@@ -32,7 +32,8 @@ static void s2f_correct(t_s2f *x){
     x->x_offset = (x->x_rqoffset < x->x_nblock ? x->x_rqoffset : x->x_nblock - 1);
     x->x_npoints = x->x_deltime * x->x_ksr - x->x_nblock + x->x_offset;
     if((x->x_on = !x->x_stopped)){
-        if(!wason) x->x_nleft = x->x_offset;
+        if(!wason)
+            x->x_nleft = x->x_offset;
     }
     else if(wason)
         clock_unset(x->x_clock);
@@ -48,7 +49,7 @@ static void s2f_start(t_s2f *x){
 
 static void s2f_stop(t_s2f *x){
     x->x_stopped = 1;
-    if (x->x_on){
+    if(x->x_on){
         clock_unset(x->x_clock);
         x->x_on = 0;
     }
@@ -90,7 +91,7 @@ static t_int *s2f_perform(t_int *w){
         else
             x->x_nleft -= x->x_nblock;
     }
-    return(w + 3);
+    return(w+3);
 }
 
 static void s2f_dsp(t_s2f *x, t_signal **sp){
@@ -102,8 +103,8 @@ static void s2f_dsp(t_s2f *x, t_signal **sp){
 }
 
 static void s2f_free(t_s2f *x){
-    if (x->x_clock)
-            clock_free(x->x_clock);
+    if(x->x_clock)
+        clock_free(x->x_clock);
 }
 
 static void *s2f_new(t_symbol *s, int argc, t_atom * argv){
@@ -134,15 +135,12 @@ static void *s2f_new(t_symbol *s, int argc, t_atom * argv){
 					break;
 			};
 			argnum++;
-			argc--;
-			argv++;
+			argc--, argv++;
 		}
-		else if(argv -> a_type == A_SYMBOL){
-			t_symbol *curarg = atom_getsymbolarg(0, argc, argv);
-            if(!strcmp(curarg->s_name, "-off")){
+		else if(argv -> a_type == A_SYMBOL && !argnum){
+            if(atom_getsymbolarg(0, argc, argv) == gensym("-off")){
                 active = 0;
-                argc--;
-                argv++;
+                argc--, argv++;
 			}
 			else
 				goto errstate;
@@ -158,26 +156,22 @@ static void *s2f_new(t_symbol *s, int argc, t_atom * argv){
 	s2f_float(x, active);
     return(x);
 	errstate:
-		pd_error(x, "s2f~: improper args");
-		return NULL;
+		pd_error(x, "[s2f~]: improper args");
+		return(NULL);
 }
 
 void s2f_tilde_setup(void){
-    s2f_class = class_new(gensym("s2f~"),
-        (t_newmethod)s2f_new, (t_method)s2f_free, sizeof(t_s2f), 0, A_GIMME,0);
+    s2f_class = class_new(gensym("s2f~"), (t_newmethod)s2f_new,
+        (t_method)s2f_free, sizeof(t_s2f), 0, A_GIMME,0);
 	class_domainsignalin(s2f_class, -1);
 	class_addfloat(s2f_class, (t_method)s2f_float);
     class_addmethod(s2f_class, (t_method)s2f_dsp, gensym("dsp"), A_CANT, 0);
     class_addbang(s2f_class, (t_method)s2f_bang);
     class_addmethod(s2f_class, (t_method)s2f_ms, gensym("\f"), A_FLOAT, 0);
-    class_addmethod(s2f_class, (t_method)s2f_offset,
-		    gensym("offset"), A_FLOAT, 0);
-    class_addmethod(s2f_class, (t_method)s2f_set,
-                    gensym("set"), A_FLOAT, 0);
-    class_addmethod(s2f_class, (t_method)s2f_start,
-		    gensym("start"), 0);
-    class_addmethod(s2f_class, (t_method)s2f_stop,
-                    gensym("stop"), 0);
+    class_addmethod(s2f_class, (t_method)s2f_offset, gensym("offset"), A_FLOAT, 0);
+    class_addmethod(s2f_class, (t_method)s2f_set, gensym("set"), A_FLOAT, 0);
+    class_addmethod(s2f_class, (t_method)s2f_start, gensym("start"), 0);
+    class_addmethod(s2f_class, (t_method)s2f_stop, gensym("stop"), 0);
     class_sethelpsymbol(s2f_class, gensym("sig2float~"));
 }
 

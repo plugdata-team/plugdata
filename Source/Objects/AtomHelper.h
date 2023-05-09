@@ -4,27 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-// False GATOM
-typedef struct _gatom {
-    t_text a_text;
-    int a_flavor;          /* A_FLOAT, A_SYMBOL, or A_LIST */
-    t_glist* a_glist;      /* owning glist */
-    t_float a_toggle;      /* value to toggle to */
-    t_float a_draghi;      /* high end of drag range */
-    t_float a_draglo;      /* low end of drag range */
-    t_symbol* a_label;     /* symbol to show as label next to box */
-    t_symbol* a_symfrom;   /* "receive" name -- bind ourselves to this */
-    t_symbol* a_symto;     /* "send" name -- send to this on output */
-    t_binbuf* a_revertbuf; /* binbuf to revert to if typing canceled */
-    int a_dragindex;       /* index of atom being dragged */
-    int a_fontsize;
-    unsigned int a_shift : 1;         /* was shift key down when drag started? */
-    unsigned int a_wherelabel : 2;    /* 0-3 for left, right, above, below */
-    unsigned int a_grabbed : 1;       /* 1 if we've grabbed keyboard */
-    unsigned int a_doubleclicked : 1; /* 1 if dragging from a double click */
-    t_symbol* a_expanded_to;          /* a_symto after $0, $1, ...  expansion */
-} t_fake_gatom;
-
 static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 {
     int ac = binbuf_getnatom(x->a_text.te_binbuf);
@@ -34,14 +13,14 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
         binbuf_addv(x->a_text.te_binbuf, "f", 0.);
     } else if (x->a_flavor == A_SYMBOL && (ac != 1 || av[0].a_type != A_SYMBOL)) {
         binbuf_clear(x->a_text.te_binbuf);
-        binbuf_addv(x->a_text.te_binbuf, "s", &s_);
+        binbuf_addv(x->a_text.te_binbuf, "s", gensym("symbol"));
     }
     return (binbuf_getvec(x->a_text.te_binbuf));
 }
 
 class AtomHelper {
 
-    int const atomSizes[8] = { 0, 8, 10, 12, 16, 24, 36};
+    static inline int const atomSizes[8] = { 0, 8, 10, 12, 16, 24, 36 };
 
     Object* object;
     ObjectBase* gui;
@@ -55,7 +34,7 @@ class AtomHelper {
 public:
     Value labelColour;
     Value labelPosition = Value(0.0f);
-    Value fontSize = Value(18.0f);
+    Value fontSize = Value(5.0f);
     Value labelText;
     Value sendSymbol;
     Value receiveSymbol;
@@ -67,6 +46,10 @@ public:
         , pd(parent->cnv->pd)
         , atom(static_cast<t_fake_gatom*>(ptr))
     {
+    }
+
+    void update()
+    {
         labelText = getLabelText();
         labelPosition = static_cast<int>(atom->a_wherelabel + 1);
 
@@ -77,6 +60,9 @@ public:
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
+
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
     }
 
     Rectangle<int> getPdBounds()
@@ -86,7 +72,7 @@ public:
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), atom, &x, &y, &w, &h);
 
-        w = std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
+        w = (std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer())) + 3;
 
         auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
 
@@ -100,45 +86,78 @@ public:
         libpd_moveobj(cnv->patch.getPointer(), reinterpret_cast<t_gobj*>(atom), b.getX(), b.getY());
 
         auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        atom->a_text.te_width = b.getWidth() / fontWidth;
+        atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
     }
 
-    void checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft)
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer(Object* object)
     {
-        auto* patch = cnv->patch.getPointer();
+        class AtomObjectBoundsConstrainer : public ComponentBoundsConstrainer {
+        public:
+            Object* object;
+            AtomHelper* helper;
 
-        auto fontWidth = glist_fontwidth(patch);
+            AtomObjectBoundsConstrainer(Object* parent, AtomHelper* atomHelper)
+                : object(parent)
+                , helper(atomHelper)
+            {
+            }
+            /*
+             * Custom version of checkBounds that takes into consideration
+             * the padding around plugdata node objects when resizing
+             * to allow the aspect ratio to be interpreted correctly.
+             * Otherwise resizing objects with an aspect ratio will
+             * resize the object size **including** margins, and not follow the
+             * actual size of the visible object
+             */
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool isStretchingTop,
+                bool isStretchingLeft,
+                bool isStretchingBottom,
+                bool isStretchingRight) override
+            {
 
-        // Remove margin
-        newBounds = newBounds.reduced(Object::margin);
-        oldBounds = oldBounds.reduced(Object::margin);
+                auto oldBounds = old.reduced(Object::margin);
+                auto newBounds = bounds.reduced(Object::margin);
 
-        // Calculate the width in text characters for both
-        auto oldCharWidth = oldBounds.getWidth() / fontWidth;
-        auto newCharWidth = std::max(minWidth, newBounds.getWidth() / fontWidth);
+                auto* atom = static_cast<t_fake_gatom*>(object->getPointer());
+                auto* patch = object->cnv->patch.getPointer();
 
-        // If we're resizing the left edge, move the object left
-        if (resizingOnLeft) {
-            auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
-            auto x = oldBounds.getX() - widthDiff;
-            auto y = oldBounds.getY();
+                auto fontWidth = glist_fontwidth(patch);
 
-            libpd_moveobj(patch, reinterpret_cast<t_gobj*>(atom), x, y);
-        }
+                // Calculate the width in text characters for both
+                auto oldCharWidth = (oldBounds.getWidth() - 3) / fontWidth;
+                auto newCharWidth = std::max(minWidth, (newBounds.getWidth() - 3) / fontWidth);
 
-        // Set new width
-        atom->a_text.te_width = newCharWidth;
+                // If we're resizing the left edge, move the object left
+                if (isStretchingLeft) {
+                    auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
+                    auto x = oldBounds.getX() - widthDiff;
+                    auto y = oldBounds.getY();
 
-        auto newHeight = newBounds.getHeight();
-        auto heightIdx = std::clamp<int>(std::upper_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
-        
-        setFontHeight(atomSizes[heightIdx]);
-        gui->setParameterExcludingListener(fontSize, heightIdx + 1);
+                    libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                }
+
+                // Set new width
+                atom->a_text.te_width = newCharWidth;
+
+                auto newHeight = newBounds.getHeight() - Object::doubleMargin;
+                auto heightIdx = std::clamp<int>(std::upper_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
+
+                helper->setFontHeight(atomSizes[heightIdx]);
+                object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
+
+                bounds = helper->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+            }
+        };
+
+        return std::make_unique<AtomObjectBoundsConstrainer>(object, this);
     }
 
     int getAtomHeight() const
     {
-        int idx = static_cast<int>(fontSize.getValue()) - 1;
+        int idx = getValue<int>(fontSize) - 1;
         if (idx == 0) {
             return cnv->patch.getPointer()->gl_font + 7;
         } else {
@@ -150,8 +169,8 @@ public:
     {
         return {
             { "Font size", tCombo, cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } },
-            { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
             { "Label", tString, cLabel, &labelText, {} },
             { "Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } }
         };
@@ -160,7 +179,7 @@ public:
     void valueChanged(Value& v)
     {
         if (v.refersToSameSourceAs(labelPosition)) {
-            setLabelPosition(static_cast<int>(labelPosition.getValue()));
+            setLabelPosition(getValue<int>(labelPosition));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(fontSize)) {
             gui->updateLabel();
@@ -175,6 +194,25 @@ public:
             setReceiveSymbol(receiveSymbol.toString());
             object->updateIolets();
         }
+    }
+
+    float getMinimum()
+    {
+        return atom->a_draglo;
+    }
+
+    float getMaximum()
+    {
+        return atom->a_draghi;
+    }
+
+    void setMinimum(float value)
+    {
+        atom->a_draglo = value;
+    }
+    void setMaximum(float value)
+    {
+        atom->a_draghi = value;
     }
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
@@ -198,7 +236,12 @@ public:
             label->setFont(Font(fontHeight));
             label->setText(text, dontSendNotification);
 
-            label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+            auto textColour = object->findColour(PlugDataColour::canvasTextColourId);
+            if (std::abs(textColour.getBrightness() - object->findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
+                textColour = object->findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
+            }
+
+            label->setColour(Label::textColourId, textColour);
 
             object->cnv->addAndMakeVisible(label.get());
         } else {
@@ -213,13 +256,12 @@ public:
 
     void setFontHeight(float newSize)
     {
-        pd->enqueueFunctionAsync([obj = atom, patch = &cnv->patch, newSize](){
-            
-            if(patch->objectWasDeleted(obj)) return;
-            
+        pd->enqueueFunctionAsync([obj = atom, patch = &cnv->patch, newSize]() {
+            if (patch->objectWasDeleted(obj))
+                return;
+
             obj->a_fontsize = newSize;
         });
-        
     }
 
     Rectangle<int> getLabelBounds() const

@@ -6,22 +6,21 @@
 #include <string.h>
 
 typedef struct _openfile{
-    t_object   x_ob;
+    t_object   x_obj;
     int        x_isboxed;
     char      *x_vistext;
     int        x_vissize;
     int        x_vislength;
     int        x_rtextactive;
     t_symbol  *x_dirsym;
-    t_symbol  *x_ulink;
-    int        x_linktype;
+    t_symbol  *x_filename;
+//    int        x_linktype;
 }t_openfile;
 
 static t_class *openfile_class;
 static t_class *openfilebox_class;
 
-// Code that might be merged back to g_text.c starts here: 
-
+// Code that might be merged back to g_text.c starts here:
 static void openfile_getrect(t_gobj *z, t_glist *glist, int *xp1, int *yp1, int *xp2, int *yp2){
     t_openfile *x = (t_openfile *)z;
     int width, height;
@@ -40,10 +39,8 @@ static void openfile_getrect(t_gobj *z, t_glist *glist, int *xp1, int *yp1, int 
     }
     else
         width = height = 10;
-    x1 = text_xpix((t_text *)x, glist);
-    y1 = text_ypix((t_text *)x, glist);
-    x2 = x1 + width;
-    y2 = y1 + height;
+    x1 = text_xpix((t_text *)x, glist), y1 = text_ypix((t_text *)x, glist);
+    x2 = x1 + width, y2 = y1 + height;
     y1 += 1;
     *xp1 = x1;
     *yp1 = y1;
@@ -61,6 +58,7 @@ static void openfile_displace(t_gobj *z, t_glist *glist, int dx, int dy){
     }
 }
 
+// does it make a difference?????
 static void openfile_select(t_gobj *z, t_glist *glist, int state){
     t_openfile *x = (t_openfile *)z;
     t_rtext *y = glist_findrtext(glist, (t_text *)x);
@@ -69,7 +67,7 @@ static void openfile_select(t_gobj *z, t_glist *glist, int state){
         sys_vgui(".x%lx.c itemconfigure %s -fill blue\n", glist, rtext_gettag(y));
     else
         sys_vgui(".x%lx.c itemconfigure %s -text {%s} -fill #0000dd -activefill #e70000\n",
-                 glist, rtext_gettag(y), x->x_vistext);
+            glist, rtext_gettag(y), x->x_vistext);
 }
 
 static void openfile_activate(t_gobj *z, t_glist *glist, int state){
@@ -85,15 +83,31 @@ static void openfile_vis(t_gobj *z, t_glist *glist, int vis){
     if(vis){
         rtext_draw(y);
         sys_vgui(".x%lx.c itemconfigure %s -text {%s} -fill #0000dd -activefill #e70000\n",
-                 glist_getcanvas(glist), rtext_gettag(y), x->x_vistext);
+            glist_getcanvas(glist), rtext_gettag(y), x->x_vistext);
     }
     else
         rtext_erase(y);
 }
 
+static t_symbol* openfile_doopen(t_symbol *fn){
+    static char fname[MAXPDSTRING];
+    char *bufptr;
+    int fd = canvas_open(canvas_getcurrent(), fn->s_name, "", fname, &bufptr, MAXPDSTRING, 1);
+    if(fd < 0)
+        return(NULL);
+    else{
+        fname[strlen(fname)]='/';
+        sys_close(fd);
+        return(gensym(fname));
+    }
+}
+
 static void openfile_click(t_openfile *x, t_floatarg xpos, t_floatarg ypos, t_floatarg shift, t_floatarg ctrl, t_floatarg alt){
     alt = ctrl = shift = ypos = xpos = 0;
-    sys_vgui("openfile_open {%s} {%s}\n", x->x_ulink->s_name, x->x_dirsym->s_name);
+    t_symbol *fn = openfile_doopen(x->x_filename);
+    if(fn != NULL)
+        x->x_filename = fn;
+    sys_vgui("openfile_open {%s} {%s}\n", x->x_filename->s_name, x->x_dirsym->s_name);
 }
 
 static int openfile_wbclick(t_gobj *z, t_glist *glist, int xpix, int ypix, int shift, int alt, int dbl, int doit){
@@ -123,7 +137,7 @@ static void openfile_bang(t_openfile *x){
 }
 
 static void openfile_open(t_openfile *x, t_symbol *s){
-    x->x_ulink = s;
+    x->x_filename = s;
     openfile_click(x, 0, 0, 0, 0, 0);
 }
 
@@ -187,7 +201,7 @@ static void *openfile_new(t_symbol *s, int ac, t_atom *av){
     xgen.x_isboxed = 1;
     xgen.x_vistext = 0;
     xgen.x_vissize = 0;
-    xgen.x_ulink = 0;
+    xgen.x_filename = 0;
     int argn = 0;
     while(ac > 0){
         if(av->a_type == A_SYMBOL){
@@ -199,7 +213,7 @@ static void *openfile_new(t_symbol *s, int ac, t_atom *av){
                 if(!ac)
                     goto errstate;
                 if(av->a_type == A_SYMBOL){
-                    xgen.x_ulink = atom_getsymbolarg(0, ac, av);
+                    xgen.x_filename = atom_getsymbolarg(0, ac, av);
                     if(ac == 1)
                         xgen.x_vistext = openfile_hyperlink(&xgen.x_vissize, ac, av);
                     ac--, av++;
@@ -213,7 +227,7 @@ static void *openfile_new(t_symbol *s, int ac, t_atom *av){
             }
             else{
                 argn = 1;
-                xgen.x_ulink = atom_getsymbolarg(0, ac, av);
+                xgen.x_filename = atom_getsymbolarg(0, ac, av);
                 ac--, av++;
                 if(ac)
                     goto errstate;
@@ -229,12 +243,12 @@ static void *openfile_new(t_symbol *s, int ac, t_atom *av){
     x->x_vissize = xgen.x_vissize;
     x->x_vislength = (x->x_vistext ? strlen(x->x_vistext) : 0);
     x->x_rtextactive = 0;
-    x->x_ulink = xgen.x_ulink ? xgen.x_ulink : &s_;
+    x->x_filename = xgen.x_filename ? xgen.x_filename : &s_;
     if(!x->x_vistext){
-        x->x_vislength = strlen(x->x_ulink->s_name);
+        x->x_vislength = strlen(x->x_filename->s_name);
         x->x_vissize = x->x_vislength + 1;
         x->x_vistext = getbytes(x->x_vissize);
-        strcpy(x->x_vistext, x->x_ulink->s_name);
+        strcpy(x->x_vistext, x->x_filename->s_name);
     }
     return(x);
 errstate:

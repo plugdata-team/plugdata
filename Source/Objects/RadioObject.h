@@ -3,7 +3,6 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-#include <JuceHeader.h>
 
 class RadioObject final : public ObjectBase {
 
@@ -22,18 +21,25 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
-        isVertical = static_cast<t_radio*>(ptr)->x_orientation;
+    }
 
-        max = getMaximum();
-        max.addListener(this);
-
+    void update() override
+    {
         selected = getValue();
 
-        valueChanged(max);
-
-        if (selected > static_cast<int>(max.getValue())) {
-            selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
+        if (selected > ::getValue<int>(max)) {
+            selected = std::min<int>(::getValue<int>(max) - 1, selected);
         }
+
+        isVertical = static_cast<t_radio*>(ptr)->x_orientation;
+        numItems = getMaximum();
+        max = numItems;
+
+        iemHelper.update();
+
+        onConstrainerCreate = [this]() {
+            updateAspectRatio();
+        };
     }
 
     bool hideInlets() override
@@ -51,16 +57,28 @@ public:
         iemHelper.updateLabel(label);
     }
 
-    void initialiseParameters() override
-    {
-        iemHelper.initialiseParameters();
-    }
-
     void setPdBounds(Rectangle<int> b) override
     {
         // radio stores it's height and width as a square to allow changing orientation via message: "orientation 0/1"
         b = isVertical ? b.withHeight(b.getWidth()) : b.withWidth(b.getHeight());
         iemHelper.setPdBounds(b);
+    }
+
+    Rectangle<int> getPdBounds() override
+    {
+        pd->lockAudioThread();
+
+        int x = 0, y = 0, w = 0, h = 0;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+
+        pd->unlockAudioThread();
+
+        auto* radio = static_cast<t_radio*>(ptr);
+
+        auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
+        auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
+
+        return { x, y, width, height };
     }
 
     void toggleObject(Point<int> position) override
@@ -82,6 +100,17 @@ public:
         }
     }
 
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("float"),
+            hash("set"),
+            hash("orientation"),
+            hash("number"),
+            IEMGUI_MESSAGES
+        };
+    }
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
@@ -101,7 +130,7 @@ public:
         }
         case hash("number"): {
             if (atoms.size() >= 1)
-                setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
+                max = getMaximum();
             break;
         }
         default: {
@@ -136,37 +165,14 @@ public:
         return static_cast<t_radio*>(ptr)->x_on;
     }
 
-    Rectangle<int> getPdBounds() override
-    {
-        pd->lockAudioThread();
-
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h);
-
-        auto* radio = static_cast<t_radio*>(ptr);
-
-        if (isVertical) {
-            bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_w * numItems);
-        } else {
-            bounds.setSize(radio->x_gui.x_h * numItems, radio->x_gui.x_h);
-        }
-
-        pd->unlockAudioThread();
-
-        return bounds;
-    }
-
     void paint(Graphics& g) override
     {
         g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-        int size = (isVertical ? getHeight() / numItems : getHeight());
-        // int minSize = 12;
-        // size = std::max(size, minSize);
+        float size = (isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems);
 
-        g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
         for (int i = 1; i < numItems; i++) {
             if (isVertical) {
@@ -178,21 +184,20 @@ public:
 
         g.setColour(iemHelper.getForegroundColour());
 
-        int currentValue = selected;
-        int selectionX = isVertical ? 0 : currentValue * size;
-        int selectionY = isVertical ? currentValue * size : 0;
+        float selectionX = isVertical ? 0 : selected * size;
+        float selectionY = isVertical ? selected * size : 0;
 
-        auto selectionBounds = Rectangle<int>(selectionX, selectionY, size, size);
-        g.fillRoundedRectangle(selectionBounds.reduced(5).toFloat(), PlugDataLook::objectCornerRadius / 2.0f);
+        auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size);
+        g.fillRoundedRectangle(selectionBounds.reduced(5), Corners::objectCornerRadius / 2.0f);
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     ObjectParameters getParameters() override
@@ -214,20 +219,20 @@ public:
         auto minShortSide = object->minimumSize;
         if (isVertical) {
             object->setSize(object->getWidth(), verticalLength);
-            object->constrainer->setMinimumSize(minShortSide, minLongSide);
+            constrainer->setMinimumSize(minShortSide, minLongSide);
         } else {
             object->setSize(horizontalLength, object->getHeight());
-            object->constrainer->setMinimumSize(minLongSide, minShortSide);
+            constrainer->setMinimumSize(minLongSide, minShortSide);
         }
-        object->constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
+        constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
     }
 
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(max)) {
-            if (static_cast<int>(max.getValue()) != numItems) {
+            if (::getValue<int>(max) != numItems) {
                 limitValueMin(value, 1);
-                numItems = static_cast<int>(max.getValue());
+                numItems = ::getValue<int>(max);
                 updateAspectRatio();
                 setMaximum(numItems);
             }

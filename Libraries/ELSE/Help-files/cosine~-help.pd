@@ -223,7 +223,7 @@
 #X text 201 388 signal -;
 #X text 154 466 1) float;
 #X text 257 354 phase offset (modulation input);
-#X text 257 334 phase sync (ressets internal phase);
+#X text 257 334 phase sync (resets internal phase);
 #X text 213 485 - initial phase offset (default 0);
 #X text 257 388 sine wave signal;
 #X text 154 485 2) float;

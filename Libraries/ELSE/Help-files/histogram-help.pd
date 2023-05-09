@@ -30,7 +30,7 @@
 #X text 128 542 -size <float>: sets table size (default 128);
 #X text 180 336 clear - clears histogram table, f 56;
 #X text 174 367 export - export histogram table as a list, f 57;
-#X text 132 351 query <float> - query number of occurances of an index, f 64;
+#X text 132 351 query <float> - query number of occurrences of an index, f 64;
 #X text 138 412 size <float> - clears and resizes table, f 63;
 #X obj 207 232 else/histogram -size 8;
 #A saved;
@@ -39,7 +39,7 @@
 #N canvas 540 120 685 423 example 0;
 #X obj 66 59 keyboard 17 80 2 3 0 0 empty empty;
 #X msg 91 172 query 60;
-#X text 154 166 query for occurrances (output in right outlet), f 24;
+#X text 154 166 query for occurrences (output in right outlet), f 24;
 #X text 63 32 list input works for note on messages;
 #X msg 102 204 clear;
 #X obj 66 242 else/histogram;
@@ -85,9 +85,9 @@
 #X text 64 95 [histogram] records into a table how many times it received a positive integer number (treated as indexes \, floats are truncated). A list input is treated as MIDI note messages and only note ons are recorded., f 68;
 #X listbox 207 261 7 0 0 0 - - - 12;
 #X obj 111 509 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
-#X text 180 510 float - number of occurances at 'query' message, f 54;
+#X text 180 510 float - number of occurrences at 'query' message, f 54;
 #X text 186 486 list - table values at 'export' message, f 53;
-#X text 186 464 list - occurances and index after input, f 53;
+#X text 186 464 list - occurrences and index after input, f 53;
 #X text 295 198 clears the memory;
 #X obj 21 256 else/rand.hist;
 #X obj 21 233 else/rand.dist;

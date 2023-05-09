@@ -11,6 +11,9 @@ option(VERBOSE "" OFF)
 
 set (CMAKE_CXX_STANDARD 20)
 
+#set(CMAKE_CXX_VISIBILITY_PRESET visible)
+#set(CMAKE_C_VISIBILITY_PRESET visible)
+
 function(message)
     if (NOT MESSAGE_QUIET)
         _message(${ARGN})
@@ -31,24 +34,33 @@ if(RUN_CLANG_TIDY)
   set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 endif()
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING 
+    "Default build type: Release" FORCE)
+endif()
+
 set(HARDENED_RUNTIME_ENABLED YES)
 set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
 
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(plugdata VERSION 0.7.0 LANGUAGES C CXX)
+project(plugdata VERSION 0.7.1 LANGUAGES C CXX)
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-message("-- Packaging resources")
+message(STATUS "Preparing documentation")
+execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
+
+
+message(STATUS "Packaging resources")
 execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
 
-set(PLUGDATA_VERSION                    "0.7.0")
+set(PLUGDATA_VERSION                    "0.7.1")
 set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
@@ -64,10 +76,35 @@ set(PLUGDATA_PLUGINS_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
 
 set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 
-file(GLOB PlugDataGlobalSources
+file(GLOB plugdata_resources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode_*.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterVariable.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IBMPlexMono.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/GoNotoCurrent.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Documentation.bin
+    )
+
+file(GLOB StandaloneBinarySources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/GeneralUser_GS.sf3
+    )
+
+juce_add_binary_data(PlugDataBinaryData SOURCES ${plugdata_resources})
+set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+juce_add_binary_data(StandaloneBinaryData HEADER_NAME "StandaloneBinaryData.h" NAMESPACE StandaloneBinaryData SOURCES ${StandaloneBinarySources} )
+set_target_properties(StandaloneBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+
+file(GLOB plugdata_global_sources
     ${CMAKE_CACHEFILE_DIR}/plugdata_artefacts/JuceLibraryCode/JuceHeader.h)
 
-file(GLOB PlugDataSources
+file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/*.h
     ${SOURCES_DIRECTORY}/*.cpp
     ${SOURCES_DIRECTORY}/Utility/*.h
@@ -84,15 +121,81 @@ file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/Heavy/*.h
 )
 
-source_group("Source" FILES ${PlugDataGlobalSources})
-
 if(APPLE)
-  list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm ${SOURCES_DIRECTORY}/Utility/OSUtils.mm)
+  list(APPEND plugdata_sources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm ${SOURCES_DIRECTORY}/Utility/OSUtils.mm)
 else()
-  list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.cxx)
+  list(APPEND plugdata_sources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.cxx)
 endif()
 
-foreach(core_SOURCE ${PlugDataSources})
+set(PLUGDATA_COMPILE_DEFINITIONS
+    JUCE_DONT_DECLARE_PROJECTINFO=1
+    JUCE_ALLOW_STATIC_NULL_VARIABLES=0
+    JUCE_DISPLAY_SPLASH_SCREEN=0
+    JUCE_ENABLE_REPAINT_DEBUGGING=0
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_REPORT_APP_USAGE=0
+    JUCE_LOG_ASSERTIONS=1
+    JUCE_STRICT_REFCOUNTEDPOINTER=1
+    JUCE_WEB_BROWSER=0 
+    JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
+    JUCE_USE_COREIMAGE_LOADER=0
+    PLUGDATA_VERSION="${PLUGDATA_VERSION}"
+)
+
+set(ENABLE_ALL_CANVAS_DEBUGGING 0)
+
+if (ENABLE_ALL_CANVAS_DEBUGGING)
+    set(ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT 1)
+    set(ENABLE_CONNECTION_GRAPHICS_DEBUGGING 1)
+else()
+    set(ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT 0)
+    set(ENABLE_CONNECTION_GRAPHICS_DEBUGGING 0)
+endif()
+
+list(APPEND PLUGDATA_COMPILE_DEFINITIONS
+     ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT=${ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT}
+     ENABLE_CONNECTION_GRAPHICS_DEBUGGING=${ENABLE_CONNECTION_GRAPHICS_DEBUGGING}
+)
+
+set(LIBPD_MULTI_COMPILE_DEFINITIONS
+    PDINSTANCE=1
+    PDTHREADS=1
+)
+
+
+set(libs
+  PlugDataBinaryData
+  juce::juce_audio_utils
+  juce::juce_audio_plugin_client
+  juce::juce_dsp
+)
+
+if(UNIX AND NOT APPLE)
+    set(PLUGDATA_COMPILE_DEFINITIONS
+    ${PLUGDATA_COMPILE_DEFINITIONS}
+    JUCE_USE_XRENDER=1
+    )
+    list(APPEND libs curl X11)
+endif()
+
+list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
+
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
+
+add_library(plugdata_core STATIC ${plugdata_sources} ${plugdata_global_sources})
+target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS})
+target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source)
+target_link_libraries(plugdata_core PUBLIC ${libs})
+target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+
+source_group("Source" FILES ${plugdata_global_sources})
+
+foreach(core_SOURCE ${plugdata_sources})
 		# Get the path of the file relative to the current source directory
 		file(RELATIVE_PATH core_SOURCE_relative "${SOURCES_DIRECTORY}" "${core_SOURCE}")
 
@@ -105,16 +208,18 @@ foreach(core_SOURCE ${PlugDataSources})
 		source_group("Source\\${core_SOURCE_group}" FILES "${core_SOURCE}")
 endforeach()
 
-file(GLOB plugdata_standaloneSources
-    ${SOURCES_DIRECTORY}/Standalone/*.cpp
-    ${SOURCES_DIRECTORY}/Standalone/*.h)
-source_group("Source\\Standalone" FILES ${plugdata_standaloneSources})
+file(GLOB plugdata_standalone_sources
+    ${SOURCES_DIRECTORY}/Standalone/PlugDataApp.cpp
+    ${SOURCES_DIRECTORY}/Standalone/PlugDataWindow.h
+    ${SOURCES_DIRECTORY}/Standalone/InternalSynth.h)
+source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
 
 juce_add_gui_app(plugdata_standalone
     PRODUCT_NAME                "plugdata"
     VERSION                     ${PLUGDATA_VERSION}
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     MICROPHONE_PERMISSION_ENABLED TRUE
+    CAMERA_PERMISSION_ENABLED   TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     DOCUMENT_BROWSER_ENABLED     TRUE
@@ -216,86 +321,24 @@ if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
   unset(MESSAGE_QUIET)
   endif()
 else()
-  message("\n-- Warning: Building CLAP plugins requires at least cmake 3.21, you have ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}")
-  message("-- CLAP plugin build will be disabed\n")
+  message(NOTICE "\n\nWarning: Building CLAP plugins requires at least cmake 3.21, you have ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}")
+  message(NOTICE "CLAP plugin build will be disabed\n\n")
 endif()
+
+target_sources(plugdata_standalone PUBLIC ${plugdata_standalone_sources} ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
+target_sources(plugdata PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
+target_sources(plugdata_fx PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
+if(APPLE)
+target_sources(plugdata_midi PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
+endif()
+
+target_compile_definitions(plugdata_standalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1 PLUGDATA_STANDALONE=1)
+target_compile_definitions(plugdata PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS})
+target_compile_definitions(plugdata_fx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS} PLUGDATA_FX=1)
 
 if(APPLE)
-set_target_properties(plugdata PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-set_target_properties(plugdata_fx PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS} PLUGDATA_MIDI=1)
 endif()
-
-juce_generate_juce_header(plugdata_standalone)
-set_target_properties(plugdata_standalone PROPERTIES CXX_STANDARD 20)
-target_sources(plugdata_standalone PRIVATE ${PlugDataSources} ${plugdata_standaloneSources})
-
-juce_generate_juce_header(plugdata)
-set_target_properties(plugdata PROPERTIES CXX_STANDARD 20)
-target_sources(plugdata PRIVATE ${PlugDataSources} ${plugdata_standaloneSources})
-
-juce_generate_juce_header(plugdata_fx)
-set_target_properties(plugdata_fx PROPERTIES CXX_STANDARD 20)
-target_sources(plugdata_fx PRIVATE ${PlugDataSources})
-
-if(APPLE)
-juce_generate_juce_header(plugdata_midi)
-
-set_target_properties(plugdata_midi PROPERTIES CXX_STANDARD 20)
-set_target_properties(plugdata_midi PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-target_sources(plugdata_midi PRIVATE ${PlugDataSources})
-endif()
-
-
-set(LIBPD_MULTI_COMPILE_DEFINITIONS
-    PDINSTANCE=1
-    PDTHREADS=1
-)
-
-set(STANDALONE_COMPILE_DEFINITIONS
-    JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
-    PLUGDATA_STANDALONE=1)
-
-set(PLUGDATA_COMPILE_DEFINITIONS
-    JUCE_APP_CONFIG_HEADER="${SOURCES_DIRECTORY}/PluginConfig.h"
-    JUCE_DONT_DECLARE_PROJECTINFO=1
-    JUCE_ALLOW_STATIC_NULL_VARIABLES=0
-    JUCE_DISPLAY_SPLASH_SCREEN=0
-    JUCE_VST3_CAN_REPLACE_VST2=0
-    JUCE_REPORT_APP_USAGE=0
-    JUCE_LOG_ASSERTIONS=1
-    JUCE_STRICT_REFCOUNTEDPOINTER=1
-    JUCE_WEB_BROWSER=0
-    PLUGDATA_VERSION="${PLUGDATA_VERSION}"
-)
-
-
-if(UNIX AND NOT APPLE)
-    set(PLUGDATA_COMPILE_DEFINITIONS
-    ${PLUGDATA_COMPILE_DEFINITIONS}
-    JUCE_MODAL_LOOPS_PERMITTED=1
-    JUCE_USE_XRENDER=1
-    )
-    target_link_libraries(plugdata_standalone PUBLIC "-Wl,-export-dynamic")
-endif()
-
-target_compile_definitions(plugdata_standalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${STANDALONE_COMPILE_DEFINITIONS})
-
-target_compile_definitions(plugdata PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-target_compile_definitions(plugdata PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
-
-target_compile_definitions(plugdata_fx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-target_compile_definitions(plugdata_fx PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
-
-if(APPLE)
-target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-target_compile_definitions(plugdata_midi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
-endif()
-
-list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/")
-list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
-list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
-list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
-list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
 target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(plugdata PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
@@ -305,57 +348,26 @@ if(APPLE)
 target_include_directories(plugdata_midi PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 endif()
 
-file(GLOB PlugDataBinaryDataSources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode_*.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IBMPlexMono.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/GoNotoCurrent.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
-    )
-
-file(GLOB StandaloneBinarySources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/GeneralUser_GS.sf3
-    )
-
-juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
-set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-juce_add_binary_data(StandaloneBinaryData HEADER_NAME "StandaloneBinaryData.h" NAMESPACE StandaloneBinaryData SOURCES ${StandaloneBinarySources} )
-set_target_properties(StandaloneBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-set(libs
-  PlugDataBinaryData
-  juce::juce_audio_utils
-  juce::juce_audio_plugin_client
-  juce::juce_dsp
-)
-
 # Add pd file icons for mac
 if(APPLE)
 set_target_properties(plugdata_standalone PROPERTIES
   RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/pd-file.icns")
 endif()
 
-if(MSVC)
-  list(APPEND libs pthreadVC3)
+
+if(UNIX AND NOT APPLE)
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-Wl,-export-dynamic")
 elseif(APPLE)
-  target_link_libraries(plugdata_midi PRIVATE pd-multi ${libs})
-elseif(UNIX AND NOT APPLE)
-  list(APPEND libs curl X11)
-endif()
-
-if(MSVC)
-target_link_libraries(plugdata_standalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib ${libs} StandaloneBinaryData)
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-framework Carbon")
+  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi  "-framework Carbon")
+  target_link_libraries(plugdata PRIVATE "-framework Carbon")
+  target_link_libraries(plugdata_fx PRIVATE "-framework Carbon")
 else()
-target_link_libraries(plugdata_standalone PRIVATE pd ${libs} StandaloneBinaryData)
+ target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib StandaloneBinaryData)
 endif()
 
-target_link_libraries(plugdata PRIVATE pd-multi ${libs})
-target_link_libraries(plugdata_fx PRIVATE pd-multi ${libs})
+target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
+target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)
 
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
@@ -464,5 +476,3 @@ elseif(UNIX AND NOT APPLE) # Linux or BSD
 endif()
 
 #add_custom_target(plugdata_standalone ALL)
-
-#

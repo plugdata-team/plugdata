@@ -1,0 +1,4 @@
+The Almond Organ is a twelve voices synthesizer inspired by the Hammond organ.
+
+Version: 1.0
+Author: Pierre Guillot

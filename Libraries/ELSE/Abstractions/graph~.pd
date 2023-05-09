@@ -1,11 +1,9 @@
 #N canvas 394 143 679 330 10;
 #X declare -path else;
-#X obj 53 102 cnv 15 198 138 empty \$0-bgcnv empty 20 12 0 14 #dfdfdf
-#404040 0;
+#X obj 53 102 cnv 15 198 138 empty \$0-bgcnv empty 20 12 0 14 #dfdfdf #404040 0;
 #N canvas 576 23 518 259 guts 0;
 #X obj 125 173 tabwrite~;
-#X obj 241 69 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#X obj 241 69 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X text 259 68 before saving;
 #X obj 62 42 inlet~;
 #X obj 126 43 inlet;
@@ -30,8 +28,7 @@
 #X obj 106 77 r \$0-metro;
 #X obj 106 131 metro;
 #X obj 106 166 outlet;
-#X obj 77 78 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000
-0 1;
+#X obj 77 78 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 77 46 r \$0-metro-tgl;
 #X connect 0 0 2 1;
 #X connect 1 0 2 0;
@@ -40,7 +37,7 @@
 #X connect 5 0 4 0;
 #X restore 140 133 pd metro;
 #N canvas 414 149 517 424 set-args 0;
-#N canvas 600 342 1032 360 flags 0;
+#N canvas 334 342 1032 360 flags 0;
 #X obj 45 54 inlet;
 #X obj 45 123 route float;
 #X obj 139 123 route float;
@@ -50,8 +47,7 @@
 #X obj 139 152 s \$0-set-skip;
 #X obj 327 123 route list;
 #X obj 327 152 s \$0-set-dim;
-#X obj 45 87 route -size -skip -range -dim -bgcolor -fgcolor -width
-, f 108;
+#X obj 45 87 route -size -skip -range -dim -bgcolor -fgcolor -width, f 108;
 #X obj 412 126 route list;
 #X obj 508 126 route list;
 #X obj 597 127 route float;
@@ -76,7 +72,7 @@
 #X restore 318 314 pd flags;
 #X obj 198 351 s \$0-metro-tgl;
 #X obj 226 15 inlet;
-#N canvas 232 412 1230 521 route 0;
+#N canvas 136 225 1230 521 route 0;
 #X obj 109 170 route float;
 #X obj 256 170 route float;
 #X obj 404 170 route list;
@@ -98,8 +94,7 @@
 #X obj 551 264 else/changed;
 #X obj 1013 319 r \$0-name;
 #X obj 998 341 s;
-#X obj 109 134 route size skip range dim bgcolor fgcolor width, f
-173;
+#X obj 109 134 route size skip range dim bgcolor fgcolor width, f 173;
 #X msg 998 286 width \$1;
 #X obj 998 256 max 1;
 #X obj 700 222 else/insert rgb;
@@ -260,8 +255,7 @@
 #X restore 197 109 pd range;
 #X obj 272 134 s \$0-set-dim;
 #X obj 272 109 pack;
-#X obj 69 83 unpack float float float float float float symbol float
-float, f 71;
+#X obj 69 83 unpack float float float float float float symbol float float, f 71;
 #X obj 372 267 s \$0-set-bg;
 #X obj 472 163 s \$0-set-fg;
 #X obj 546 133 s \$0-set-width;
@@ -287,7 +281,7 @@ float, f 71;
 #X connect 12 0 13 0;
 #X connect 14 0 11 0;
 #X restore 225 314 pd load-args;
-#N canvas 960 183 536 484 default 0;
+#N canvas 830 183 536 484 default 0;
 #X obj 244 46 inlet;
 #N canvas 721 286 382 266 set-array 0;
 #N canvas 64 23 381 397 init-name 0;
@@ -341,8 +335,7 @@ float, f 71;
 #X obj 243 93 r pd-dsp-stopped;
 #X msg 243 116 const 0;
 #X obj 243 154 send;
-#X msg 57 179 \; pd-\$1-array-cnv graph \$1-graph \; pd-\$1-graph pop
-\, array \$2 0 float 1 \; \$1-set-array set \$2;
+#X msg 57 179 \; pd-\$1-array-cnv graph \$1-graph \; pd-\$1-graph pop \, array \$2 0 float 1 \; \$1-set-array set \$2;
 #X obj 57 87 t b b;
 #X connect 0 0 1 0;
 #X connect 1 0 9 0;
@@ -366,29 +359,29 @@ float, f 71;
 #X obj 180 393 s \$0-bgcnv;
 #X obj 111 385 r \$0-name;
 #X obj 96 407 s;
-#X msg 96 350 color 0 \, width 1, f 8;
 #X msg 180 352 color #dfdfdf;
 #X msg 244 245 10;
+#X msg 96 320 color 0 \, width 1 \, edit 0, f 8;
 #X connect 0 0 4 0;
-#X connect 4 0 15 0;
+#X connect 4 0 14 0;
 #X connect 4 0 7 0;
 #X connect 4 0 8 0;
-#X connect 4 0 14 0;
 #X connect 4 0 13 0;
+#X connect 4 0 15 0;
 #X connect 4 1 5 0;
 #X connect 4 2 1 0;
 #X connect 5 0 6 0;
 #X connect 7 0 3 0;
 #X connect 8 0 9 0;
 #X connect 11 0 12 1;
-#X connect 13 0 12 0;
-#X connect 14 0 10 0;
-#X connect 15 0 2 0;
+#X connect 13 0 10 0;
+#X connect 14 0 2 0;
+#X connect 15 0 12 0;
 #X restore 226 209 pd default;
 #X obj 225 291 route float list;
 #X obj 198 263 t b a;
 #X obj 141 239 route bang;
-#N canvas 588 367 629 538 set-dim 0;
+#N canvas 588 208 629 538 set-dim 0;
 #X obj 172 378 s \$0-bgcnv;
 #X msg 172 349 vis_size \$1 \$2;
 #X obj 209 239 - 2;
@@ -472,8 +465,7 @@ float, f 71;
 #X restore 112 45 pd guts;
 #X text 344 49 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 346 30 Alexandre Torres Porres (2017-2018);
-#X obj 167 46 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000;
+#X obj 167 46 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
 #N canvas 929 310 511 457 \$0-array-cnv 0;
 #X coords 0 1 100 -1 200 140 2 99 19;
 #X restore 52 101 pd \$0-array-cnv;

@@ -9,7 +9,7 @@ class ObjectReferenceDialog : public Component {
 
 public:
     ObjectReferenceDialog(PluginEditor* editor, bool showBackButton)
-        : library(editor->pd->objectLibrary)
+        : library(*editor->pd->objectLibrary)
     {
         // We only need to respond to explicit repaints anyway!
         setBufferedToImage(true);
@@ -36,7 +36,7 @@ public:
 
     void resized() override
     {
-        backButton.setBounds(2, 0, 55, 55);
+        backButton.setBounds(8, 6, 42, 48);
 
         auto buttonBounds = getLocalBounds().removeFromBottom(80).reduced(30, 0).translated(0, -30);
         buttonBounds.removeFromTop(10);
@@ -50,7 +50,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         if (objectName.isEmpty())
             return;
@@ -60,7 +60,7 @@ public:
         auto infoBounds = leftPanelBounds.withTrimmedBottom(100).withTrimmedTop(100).withTrimmedLeft(5).reduced(10);
         auto objectDisplayBounds = leftPanelBounds.removeFromTop(140);
 
-        PlugDataLook::drawStyledText(g, "Reference: " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), findColour(PlugDataColour::panelTextColourId), Bold, 16, Justification::centred);
+        Fonts::drawStyledText(g, "Reference: " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), findColour(PlugDataColour::panelTextColourId), Bold, 16, Justification::centred);
 
         auto colour = findColour(PlugDataColour::panelTextColourId);
 
@@ -72,21 +72,21 @@ public:
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
-            PlugDataLook::drawText(g, infoNames[i], localBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
-            PlugDataLook::drawText(g, infoText[i], localBounds, colour, 15, Justification::topLeft);
+            Fonts::drawText(g, infoNames[i], localBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
+            Fonts::drawText(g, infoText[i], localBounds, colour, 15, Justification::topLeft);
         }
 
         auto descriptionBounds = infoBounds.removeFromTop(25);
-        PlugDataLook::drawText(g, "Description: ", descriptionBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
+        Fonts::drawText(g, "Description: ", descriptionBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
 
-        PlugDataLook::drawFittedText(g, description, descriptionBounds.withHeight(180), colour, 10, 0.9f, 15, Justification::topLeft);
+        Fonts::drawFittedText(g, description, descriptionBounds.withHeight(180), colour, 10, 0.9f, 15, Justification::topLeft);
 
         if (!unknownInletLayout && !unknownOutletLayout) {
             drawObject(g, objectDisplayBounds);
         } else {
             auto questionMarkBounds = objectDisplayBounds.withSizeKeepingCentre(48, 48);
             g.drawRoundedRectangle(questionMarkBounds.toFloat(), 6.0f, 3.0f);
-            PlugDataLook::drawText(g, "?", questionMarkBounds, colour, 40, Justification::centred);
+            Fonts::drawText(g, "?", questionMarkBounds, colour, 40, Justification::centred);
         }
     }
 
@@ -99,10 +99,10 @@ public:
 
         auto outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-        g.drawRoundedRectangle(outlineBounds, PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(outlineBounds, Corners::objectCornerRadius, 1.0f);
 
         auto textBounds = outlineBounds.reduced(2.0f);
-        PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
+        Fonts::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
 
         auto themeTree = SettingsFile::getInstance()->getCurrentTheme();
 
@@ -168,39 +168,43 @@ public:
 
     void showObject(String name)
     {
+        inlets.clear();
+        outlets.clear();
+
         bool valid = name.isNotEmpty();
 
         if (!valid) {
             objectName = "";
             unknownInletLayout = false;
             unknownOutletLayout = false;
-            inlets.clear();
-            outlets.clear();
             repaint();
             return;
         }
 
-        auto const ioletDescriptions = library.getIoletDescriptions()[name];
-        auto const& inletDescriptions = ioletDescriptions[0];
-        auto const& outletDescriptions = ioletDescriptions[1];
-        auto methods = library.getMethods()[name];
-
-        inlets.resize(inletDescriptions.size());
-        outlets.resize(outletDescriptions.size());
-
         bool hasUnknownInletLayout = false;
-
-        for (int i = 0; i < inlets.size(); i++) {
-            inlets[i] = inletDescriptions[i].first.contains("(signal)");
-            if (inletDescriptions[i].second)
-                hasUnknownInletLayout = true;
-        }
-
         bool hasUnknownOutletLayout = false;
-        for (int i = 0; i < outlets.size(); i++) {
-            outlets[i] = outletDescriptions[i].first.contains("(signal)");
-            if (outletDescriptions[i].second)
-                hasUnknownOutletLayout = true;
+
+        StringArray inletDescriptions;
+        StringArray outletDescriptions;
+
+        auto objectInfo = library.getObjectInfo(name);
+        auto ioletDescriptions = objectInfo.getChildWithName("iolets");
+        for (auto iolet : ioletDescriptions) {
+            auto variable = iolet.getProperty("variable").toString() == "1";
+
+            if (iolet.getType() == Identifier("inlet")) {
+                if (variable)
+                    hasUnknownInletLayout = true;
+                auto tooltip = iolet.getProperty("tooltip").toString();
+                inletDescriptions.add(tooltip);
+                inlets.push_back(tooltip.contains("(signal)"));
+            } else {
+                if (variable)
+                    hasUnknownOutletLayout = true;
+                auto tooltip = iolet.getProperty("tooltip").toString();
+                outletDescriptions.add(tooltip);
+                outlets.push_back(tooltip.contains("(signal)"));
+            }
         }
 
         unknownInletLayout = hasUnknownInletLayout;
@@ -210,11 +214,13 @@ public:
         categories = "";
         origin = "";
 
-        // Inverse lookup :(
-        for (auto const& [cat, objects] : library.getObjectCategories()) {
-            if (pd::Library::objectOrigins.contains(cat) && objects.contains(name)) {
+        auto categoriesTree = objectInfo.getChildWithName("categories");
+
+        for (auto category : categoriesTree) {
+            auto cat = category.getProperty("name").toString();
+            if (pd::Library::objectOrigins.contains(cat)) {
                 origin = cat;
-            } else if (objects.contains(name)) {
+            } else {
                 categories += cat + ", ";
             }
         }
@@ -229,7 +235,7 @@ public:
             origin = "Unknown";
         }
 
-        description = library.getObjectDescriptions()[name];
+        description = objectInfo.getProperty("description");
 
         if (description.isEmpty()) {
             description = "No description available";
@@ -239,18 +245,21 @@ public:
 
         String rightSideInfoText;
 
-        auto arguments = library.getArguments()[name];
+        auto arguments = objectInfo.getChildWithName("arguments");
 
-        if (arguments.size())
+        if (arguments.getNumChildren())
             rightSideInfoText += "Arguments:";
 
         int numArgs = 1;
 
-        for (auto [type, description, defaultValue] : arguments) {
+        for (auto argument : arguments) {
+            auto type = argument.getProperty("type").toString();
+            auto desc = argument.getProperty("description").toString();
+            auto def = argument.getProperty("default").toString();
             rightSideInfoText += "\n" + String(numArgs) + ": ";
             rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
-            rightSideInfoText += description;
-            rightSideInfoText += defaultValue.isNotEmpty() && !description.contains("(default") ? " (default: " + defaultValue + ")" : "";
+            rightSideInfoText += desc;
+            rightSideInfoText += def.isNotEmpty() && !desc.contains("(default") ? " (default: " + def + ")" : "";
 
             numArgs++;
         }
@@ -259,10 +268,9 @@ public:
             rightSideInfoText += "\n\nInlets:";
 
         int numIn = 1;
-        for (auto [description, type] : inletDescriptions) {
+        for (auto description : inletDescriptions) {
             description = description.replace("\n", "\n      ");
             rightSideInfoText += "\n" + String(numIn) + ":\n    " + description;
-
             numIn++;
         }
 
@@ -270,22 +278,39 @@ public:
             rightSideInfoText += "\n\nOutlets:";
 
         int numOut = 1;
-        for (auto [description, type] : outletDescriptions) {
-            description = description.replace("\n", "\n    ");
-            rightSideInfoText += "\n" + String(numOut) + ":\n    " + description;
-
+        for (auto description : outletDescriptions) {
+            description = description.replace("\n", "\n      ");
+            rightSideInfoText += "\n" + String(numIn) + ":\n    " + description;
             numOut++;
         }
 
-        if (methods.size())
+        auto methods = objectInfo.getChildWithName("methods");
+        if (methods.getNumChildren())
             rightSideInfoText += "\n\nMethods:";
 
-        int numMethods = 1;
-        for (auto [type, description] : methods) {
-            rightSideInfoText += "\n" + String(numMethods) + ": ";
+        for (auto method : methods) {
+            auto type = method.getProperty("type").toString();
+            auto description = method.getProperty("description").toString();
+
+            rightSideInfoText += "\n";
             rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
             rightSideInfoText += description;
-            numMethods++;
+        }
+
+        auto flags = objectInfo.getChildWithName("flags");
+        if (flags.getNumChildren())
+            rightSideInfoText += "\n\nFlags:";
+
+        for (auto flag : flags) {
+            auto name = flag.getProperty("name").toString().trim();
+            auto description = flag.getProperty("description").toString();
+
+            if (!name.startsWith("-"))
+                name = "- " + name;
+
+            rightSideInfoText += "\n";
+            rightSideInfoText += name + ": ";
+            rightSideInfoText += description;
         }
 
         rightSideInfo.setText(rightSideInfoText);

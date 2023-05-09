@@ -5,7 +5,9 @@
  */
 
 #pragma once
+#include <juce_gui_extra/juce_gui_extra.h>
 #include "DraggableNumber.h"
+#include "ColourPicker.h"
 
 class PropertiesPanel : public PropertyPanel {
 
@@ -170,9 +172,15 @@ public:
             toggleStateValue.referTo(value);
         }
 
+        bool hitTest(int x, int y) override
+        {
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            return bounds.contains(x, y);
+        }
+
         void paint(Graphics& g) override
         {
-            bool isDown = static_cast<bool>(toggleStateValue.getValue());
+            bool isDown = getValue<bool>(toggleStateValue);
             bool isHovered = isMouseOver();
 
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
@@ -184,7 +192,7 @@ public:
             }
 
             auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-            PlugDataLook::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
+            Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
 
             // Paint label
             Property::paint(g);
@@ -202,62 +210,13 @@ public:
 
         void mouseUp(MouseEvent const& e) override
         {
-            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-
-            if (bounds.contains(e.getMouseDownPosition())) {
-                toggleStateValue = !static_cast<bool>(toggleStateValue.getValue());
-                repaint();
-            }
+            toggleStateValue = !getValue<bool>(toggleStateValue);
+            repaint();
         }
 
     private:
         std::vector<String> textOptions;
         Value toggleStateValue;
-    };
-
-    struct ColourPicker : public ColourSelector
-        , public ChangeListener {
-        static inline bool isShowing = false;
-
-        ColourPicker(std::function<void(Colour)> cb)
-            : ColourSelector(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace)
-            , callback(cb)
-        {
-            setSize(300, 400);
-            addChangeListener(this);
-
-            auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-
-            setColour(ColourSelector::backgroundColourId, lnf.findColour(PlugDataColour::panelBackgroundColourId));
-        }
-
-        ~ColourPicker()
-        {
-            removeChangeListener(this);
-            isShowing = false;
-        }
-
-        static void show(Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> callback)
-        {
-
-            if (isShowing)
-                return;
-
-            isShowing = true;
-
-            std::unique_ptr<ColourPicker> colourSelector = std::make_unique<ColourPicker>(callback);
-
-            colourSelector->setCurrentColour(currentColour);
-            CallOutBox::launchAsynchronously(std::move(colourSelector), bounds, nullptr);
-        }
-
-    private:
-        void changeListenerCallback(ChangeBroadcaster* source) override
-        {
-            callback(dynamic_cast<ColourSelector*>(source)->getCurrentColour());
-        }
-
-        std::function<void(Colour)> callback = [](Colour) {};
     };
 
     struct ColourComponent : public Property {
@@ -280,7 +239,7 @@ public:
             g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
             g.fillRect(bounds);
 
-            PlugDataLook::drawText(g, String("#") + currentColour.toString().substring(2).toUpperCase(), bounds, textColour, 14.0f, Justification::centred);
+            Fonts::drawText(g, String("#") + currentColour.toString().substring(2).toUpperCase(), bounds, textColour, 14.0f, Justification::centred);
 
             // Paint label
             Property::paint(g);
@@ -298,14 +257,12 @@ public:
 
         void mouseDown(MouseEvent const& e) override
         {
-            if (hideLabel && e.getPosition().x < getWidth() / 2)
-                return;
-
-            ColourPicker::show(Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c) {
+            ColourPicker::show(getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c) {
                 if (!_this)
                     return;
 
                 _this->currentColour = c.toString();
+                _this->repaint();
             });
         }
 
@@ -450,8 +407,9 @@ public:
             addAndMakeVisible(browseButton);
 
             browseButton.onClick = [this]() {
-                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
+                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
 
+                // TODO: Shouldn't this be an open dialog ?!
                 saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", false);
 
                 saveChooser->launchAsync(folderChooserFlags,

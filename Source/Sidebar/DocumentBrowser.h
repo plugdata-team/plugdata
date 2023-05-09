@@ -8,11 +8,70 @@
 // 1. Sort by folders first
 // 2. Improve simplicity and efficiency by not using OS file icons (they look bad anyway)
 
-#if JUCE_WINDOWS
-#    include "../Utility/OSUtils.h"
-#endif
+#include "Utility/OSUtils.h"
+#include "Object.h"
 
-bool wantsNativeDialog();
+class DocumentBrowserSettings : public Component {
+public:
+    struct DocumentBrowserSettingsButton : public TextButton {
+        const String icon;
+        const String description;
+
+        DocumentBrowserSettingsButton(String iconString, String descriptionString)
+            : icon(iconString)
+            , description(descriptionString)
+        {
+        }
+
+        void paint(Graphics& g) override
+        {
+            auto colour = findColour(PlugDataColour::toolbarTextColourId);
+
+            Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(30), colour, 14);
+
+            if (isMouseOver()) {
+                colour = colour.brighter(0.4f);
+            }
+            if (getToggleState()) {
+                colour = findColour(PlugDataColour::toolbarActiveColourId);
+            }
+
+            Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(6), colour, 14, false);
+        }
+    };
+
+    DocumentBrowserSettings(std::function<void()> chooseCustomLocation, std::function<void()> resetDefaultLocation)
+    {
+        addAndMakeVisible(customLocationButton);
+        addAndMakeVisible(restoreLocationButton);
+
+        customLocationButton.onClick = [chooseCustomLocation]() {
+            chooseCustomLocation();
+        };
+
+        restoreLocationButton.onClick = [resetDefaultLocation]() {
+            resetDefaultLocation();
+        };
+
+        setSize(180, 70);
+    }
+
+    void resized() override
+    {
+        auto buttonBounds = getLocalBounds();
+
+        int buttonHeight = buttonBounds.getHeight() / 2;
+
+        customLocationButton.setBounds(buttonBounds.removeFromTop(buttonHeight));
+        restoreLocationButton.setBounds(buttonBounds.removeFromTop(buttonHeight));
+    }
+
+private:
+    DocumentBrowserSettingsButton customLocationButton = DocumentBrowserSettingsButton(Icons::Open, "Show custom folder...");
+    DocumentBrowserSettingsButton restoreLocationButton = DocumentBrowserSettingsButton(Icons::Restore, "Show default folder");
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserSettings)
+};
 
 // Base classes for communication between parent and child classes
 class DocumentBrowserViewBase : public TreeView
@@ -72,11 +131,18 @@ public:
     void paintOpenCloseButton(Graphics& g, Rectangle<float> const& area, Colour backgroundColour, bool isMouseOver) override
     {
         Path p;
-        p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
-        g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
+        p.startNewSubPath(0.0f, 0.0f);
+        p.lineTo(0.5f, 0.5f);
+        p.lineTo(isOpen() ? 1.0f : 0.0f, isOpen() ? 0.0f : 1.0f);
 
-        auto pathArea = area.translated(3, 0);
-        g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 3.5f), true));
+        auto arrowArea = area.reduced(5, 9).translated(4, 0).toFloat();
+
+        if (!isOpen()) {
+            arrowArea = arrowArea.reduced(1);
+        }
+
+        g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
+        g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(arrowArea, true));
     }
 
     bool mightContainSubItems() override
@@ -89,7 +155,7 @@ public:
     }
     int getItemHeight() const override
     {
-        return 24;
+        return 26;
     }
     var getDragSourceDescription() override
     {
@@ -170,12 +236,12 @@ public:
         auto colour = isSelected() ? owner.findColour(PlugDataColour::sidebarActiveTextColourId) : owner.findColour(PlugDataColour::sidebarTextColourId);
 
         if (isDirectory) {
-            PlugDataLook::drawIcon(g, Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
+            Fonts::drawIcon(g, Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
         } else {
-            PlugDataLook::drawIcon(g, Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
+            Fonts::drawIcon(g, Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
         }
 
-        PlugDataLook::drawFittedText(g, file.getFileName(), x, 0, width - x, height, colour);
+        Fonts::drawFittedText(g, file.getFileName(), x, 0, width - x, height, colour);
     }
 
     String getAccessibilityName() override
@@ -265,6 +331,7 @@ public:
         refresh();
         addListener(this);
         getViewport()->getVerticalScrollBar().addListener(this);
+        getViewport()->setScrollBarsShown(true, false);
         startTimer(1500);
     }
 
@@ -347,16 +414,14 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
-
         // Paint selected row
         if (getNumSelectedFiles()) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
 
             auto y = getSelectedItem(0)->getItemPosition(true).getY();
-            auto selectedRect = Rectangle<float>(3.0f, y + 2.0f, getWidth() - 6.0f, 20.0f);
+            auto selectedRect = Rectangle<float>(3.0f, y + 2.0f, getWidth() - 6.0f, 22.0f);
 
-            g.fillRoundedRectangle(selectedRect, PlugDataLook::smallCornerRadius);
+            g.fillRoundedRectangle(selectedRect, Corners::defaultCornerRadius);
         }
     }
     // Paint file drop outline
@@ -436,10 +501,10 @@ public:
                 if (file.isDirectory()) {
 
                     // Create NTFS directory junction
-                    createJunction(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
+                    OSUtils::createJunction(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
                 } else {
                     // Create hard link
-                    createHardLink(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
+                    OSUtils::createHardLink(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
                 }
 
 #else
@@ -485,7 +550,7 @@ public:
         : searchPath(directory)
     {
         listBox.setModel(this);
-        listBox.setRowHeight(28);
+        listBox.setRowHeight(32);
         listBox.setOutlineThickness(0);
         listBox.deselectAllRows();
 
@@ -504,8 +569,8 @@ public:
             updateResults(input.getText());
         };
 
-        closeButton.getProperties().set("Style", "SmallIcon");
-        closeButton.onClick = [this]() {
+        clearButton.getProperties().set("Style", "SmallIcon");
+        clearButton.onClick = [this]() {
             input.clear();
             input.giveAwayKeyboardFocus();
             listBox.setVisible(false);
@@ -514,9 +579,9 @@ public:
         };
 
         input.setInterceptsMouseClicks(true, true);
-        closeButton.setAlwaysOnTop(true);
+        clearButton.setAlwaysOnTop(true);
 
-        addAndMakeVisible(closeButton);
+        addAndMakeVisible(clearButton);
         addAndMakeVisible(listBox);
         addAndMakeVisible(input);
 
@@ -531,6 +596,8 @@ public:
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setInterceptsMouseClicks(false, true);
+
+        lookAndFeelChanged();
         repaint();
     }
 
@@ -568,18 +635,21 @@ public:
         }
     }
 
+    void lookAndFeelChanged() override
+    {
+        input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
+        input.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+    }
+
     void paintOverChildren(Graphics& g) override
     {
-        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+
         auto textColour = findColour(PlugDataColour::sidebarTextColourId);
 
-        input.setColour(TextEditor::backgroundColourId, backgroundColour.brighter(0.7f));
-        input.setColour(TextEditor::textColourId, textColour);
-
-        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, textColour, 12);
+        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, textColour, 12);
 
         if (input.getText().isEmpty()) {
-            PlugDataLook::drawText(g, "Type to search documentation", 30, 0, 300, 30, textColour.withAlpha(0.5f), 14);
+            Fonts::drawFittedText(g, "Type to search documentation", 30, 0, getWidth() - 60, 30, textColour.withAlpha(0.5f), 1, 0.9f, 14);
         }
     }
 
@@ -587,14 +657,14 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, PlugDataLook::smallCornerRadius);
+            g.fillRoundedRectangle(5, 2, w - 10, h - 4, Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
         const String item = searchResult[rowNumber].getFileName();
 
-        PlugDataLook::drawText(g, item, h + 4, 0, w - 4, h, colour);
-        PlugDataLook::drawIcon(g, Icons::File, 12, 0, h, colour, 12, false);
+        Fonts::drawText(g, item, h + 4, 0, w - 4, h, colour);
+        Fonts::drawIcon(g, Icons::File, 12, 0, h, colour, 12, false);
     }
 
     int getNumRows() override
@@ -626,13 +696,8 @@ public:
             if (!file.hasFileExtension("pd"))
                 return;
 
-            // Insert in front if the query matches a whole word
-            if (fileName.containsWholeWordIgnoreCase(query) && !searchResult.contains(file)) {
-                searchResult.insert(0, file);
-            }
-            // Insert in back if it contains the query
-            else if (fileName.containsIgnoreCase(query)) {
-                searchResult.addIfNotAlreadyThere(file);
+            if (fileName.containsIgnoreCase(query)) {
+                searchResult.add(file);
             }
         };
 
@@ -640,8 +705,8 @@ public:
             auto file = searchPath.getFile(i);
 
             if (file.isDirectory()) {
-                for (auto& child : RangedDirectoryIterator(file, true)) {
-                    addFile(child.getFile());
+                for (auto& child : OSUtils::iterateDirectory(file, true, false)) {
+                    addFile(child);
                 }
             } else {
                 addFile(file);
@@ -684,7 +749,7 @@ public:
 
         input.setBounds(inputBounds);
 
-        closeButton.setBounds(inputBounds.removeFromRight(30));
+        clearButton.setBounds(inputBounds.removeFromRight(32));
 
         listBox.setBounds(tableBounds);
     }
@@ -697,7 +762,7 @@ private:
     DirectoryContentsList& searchPath;
     Array<File> searchResult;
     TextEditor input;
-    TextButton closeButton = TextButton(Icons::Clear);
+    TextButton clearButton = TextButton(Icons::ClearText);
 };
 
 class DocumentBrowser : public DocumentBrowserBase {
@@ -730,56 +795,6 @@ public:
             }
         };
 
-        revealButton.getProperties().set("Style", "SmallIcon");
-        loadFolderButton.getProperties().set("Style", "SmallIcon");
-        resetFolderButton.getProperties().set("Style", "SmallIcon");
-
-#if JUCE_MAC
-        String revealTip = "Show in Finder";
-#elif JUCE_WINDOWS
-        String revealTip = "Show in Explorer";
-#else
-        String revealTip = "Show in file browser";
-#endif
-
-        revealButton.setTooltip(revealTip);
-        addAndMakeVisible(revealButton);
-
-        loadFolderButton.setTooltip("Choose location to show");
-        addAndMakeVisible(loadFolderButton);
-
-        resetFolderButton.setTooltip("Reset to default location");
-        addAndMakeVisible(resetFolderButton);
-
-        loadFolderButton.onClick = [this]() {
-            openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", wantsNativeDialog());
-
-            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
-                [this](FileChooser const& fileChooser) {
-                    const auto file = fileChooser.getResult();
-                    if (file.exists()) {
-                        auto path = file.getFullPathName();
-                        pd->settingsFile->setProperty("browser_path", path);
-                        directory.setDirectory(path, true, true);
-                    }
-                });
-        };
-
-        resetFolderButton.onClick = [this]() {
-            auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
-            auto path = location.getFullPathName();
-            pd->settingsFile->setProperty("browser_path", path);
-            directory.setDirectory(path, true, true);
-        };
-
-        revealButton.onClick = [this]() {
-            if (searchComponent.hasSelection()) {
-                searchComponent.getSelection().revealToUser();
-            } else if (fileList.getSelectedFile().exists()) {
-                fileList.getSelectedFile().revealToUser();
-            }
-        };
-
         addAndMakeVisible(searchComponent);
 
         if (!fileList.getSelectedFile().exists())
@@ -806,40 +821,44 @@ public:
 
     void resized() override
     {
-        searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 30));
-
-        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 60).withY(30));
-
-        auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
-
-        Array<TextButton*> buttons = { &revealButton, &loadFolderButton, &resetFolderButton };
-
-        for (auto* b : buttons) {
-            auto item = FlexItem(*b).withMinWidth(8.0f).withMinHeight(8.0f).withMaxHeight(27);
-            item.flexGrow = 1.0f;
-            item.flexShrink = 1.0f;
-            fb.items.add(item);
-        }
-
-        auto bounds = getLocalBounds().toFloat();
-
-        fb.performLayout(bounds.removeFromBottom(30));
-    }
-
-    void paint(Graphics& g) override
-    {
-        // Background for statusbar part
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, PlugDataLook::defaultCornerRadius);
+        searchComponent.setBounds(getLocalBounds());
+        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 30).withY(30).reduced(2, 0));
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 29, getWidth(), 29);
+    }
+
+    void showCalloutBox(Rectangle<int> bounds, PluginEditor* editor)
+    {
+        auto openFolderCallback = [this]() {
+            openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", SettingsFile::getInstance()->wantsNativeDialog());
+
+            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+                [this](FileChooser const& fileChooser) {
+                    const auto file = fileChooser.getResult();
+                    if (file.exists()) {
+                        auto path = file.getFullPathName();
+                        pd->settingsFile->setProperty("browser_path", path);
+                        directory.setDirectory(path, true, true);
+                    }
+                });
+        };
+
+        auto resetFolderCallback = [this]() {
+            auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
+            auto path = location.getFullPathName();
+            pd->settingsFile->setProperty("browser_path", path);
+            directory.setDirectory(path, true, true);
+        };
+
+        auto docsSettings = std::make_unique<DocumentBrowserSettings>(openFolderCallback, resetFolderCallback);
+        CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, editor);
     }
 
 private:

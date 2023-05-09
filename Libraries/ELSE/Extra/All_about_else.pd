@@ -1,37 +1,29 @@
-#N canvas 642 101 385 409 10;
+#N canvas 473 23 408 442 10;
 #X declare -path else;
-#X text 30 183 Check declare's help file for more information.;
-#X obj 18 11 cnv 15 350 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#X text 33 179 Check declare's help file for more information.;
+#X obj 18 11 cnv 15 350 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 352 42 2 100 100;
 #X restore 17 10 pd;
-#X obj 57 18 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 167 25 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 187 25 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 224 25 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 263 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 301 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X text 32 359 Bug/Issue report:;
-#X text 31 260 Check ELSE's readme:;
-#X text 33 326 ELSE's repository;
+#X obj 57 18 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 167 25 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 187 25 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 224 25 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 263 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 301 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X text 32 394 Bug/Issue report:;
+#X text 34 256 Check ELSE's readme:;
+#X text 33 361 ELSE's repository;
 #X text 147 72 ELSE's meta =>;
 #X obj 243 72 else-meta;
-#X obj 215 219 else;
-#X text 31 117 You can install the ELSE library by adding it to"Preferences
-=> Path". Or you can also use [declare] as follows:, f 51;
-#X text 31 217 Also \, check the else binary:;
-#X obj 202 152 declare -path else;
-#X obj 163 260 else/openfile -h README.pdf;
-#X obj 235 293 else/openfile -h All_objects.pd;
-#X obj 144 326 else/openfile -h http://www.github.com/porres/pd-else
-;
-#X obj 144 359 else/openfile -h https://github.com/porres/pd-issues
-;
-#X text 31 293 All objects in the ELSE library:;
+#X obj 218 215 else;
+#X text 34 113 You can install the ELSE library by adding it to"Preferences => Path". Or you can also use [declare] as follows:, f 51;
+#X text 34 213 Also \, check the else binary:;
+#X obj 205 148 declare -path else;
+#X obj 166 256 else/openfile -h README.pdf;
+#X obj 235 328 else/openfile -h All_objects.pd;
+#X obj 144 361 else/openfile -h http://www.github.com/porres/pd-else;
+#X obj 144 394 else/openfile -h https://github.com/porres/pd-issues;
+#X text 31 328 All objects in the ELSE library:;
+#X obj 163 286 else/openfile -h changelog.txt;
+#X text 34 286 Check the CHANGELOG:;

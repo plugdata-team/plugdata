@@ -6,43 +6,8 @@
 
 // ELSE pic
 class PictureObject final : public ObjectBase {
-    typedef struct _edit_proxy {
-        t_object p_obj;
-        t_symbol* p_sym;
-        t_clock* p_clock;
-        struct _pic* p_cnv;
-    } t_edit_proxy;
 
-    typedef struct _pic {
-        t_object x_obj;
-        t_glist* x_glist;
-        t_edit_proxy* x_proxy;
-        int x_zoom;
-        int x_width;
-        int x_height;
-        int x_snd_set;
-        int x_rcv_set;
-        int x_edit;
-        int x_init;
-        int x_def_img;
-        int x_sel;
-        int x_outline;
-        int x_s_flag;
-        int x_r_flag;
-        int x_flag;
-        int x_size;
-        int x_latch;
-        t_symbol* x_fullname;
-        t_symbol* x_filename;
-        t_symbol* x_x;
-        t_symbol* x_receive;
-        t_symbol* x_rcv_raw;
-        t_symbol* x_send;
-        t_symbol* x_snd_raw;
-        t_outlet* x_outlet;
-    } t_pic;
-
-    Value path;
+    Value path, latch, outline, reportSize, sendSymbol, receiveSymbol;
     File imageFile;
     Image img;
 
@@ -50,17 +15,102 @@ public:
     PictureObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
-        auto* pic = static_cast<t_pic*>(ptr);
+        auto* pic = static_cast<t_fake_pic*>(ptr);
 
         if (pic && pic->x_filename) {
             auto filePath = String::fromUTF8(pic->x_filename->s_name);
-            openFile(filePath);
+
+            // Call async prevents a bug when renaming an object to pic
+            MessageManager::callAsync([_this = SafePointer(this), filePath]() {
+                if (_this) {
+                    _this->openFile(filePath);
+                }
+            });
+        }
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (getValue<bool>(latch)) {
+            auto* pic = static_cast<t_fake_pic*>(ptr);
+            pd->enqueueFunction([pic]() {
+                outlet_float(pic->x_outlet, 1.0f);
+            });
+        } else {
+            auto* pic = static_cast<t_fake_pic*>(ptr);
+            pd->enqueueFunction([pic]() {
+                outlet_bang(pic->x_outlet);
+            });
+        }
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (getValue<bool>(latch)) {
+            auto* pic = static_cast<t_fake_pic*>(ptr);
+            pd->enqueueFunction([pic]() {
+                outlet_float(pic->x_outlet, 0.0f);
+            });
+        }
+    }
+
+    void update() override
+    {
+        auto* pic = static_cast<t_fake_pic*>(ptr);
+
+        if (pic->x_fullname) {
+            path = String::fromUTF8(pic->x_fullname->s_name);
+        }
+
+        latch = pic->x_latch;
+        outline = pic->x_outline;
+        reportSize = pic->x_size;
+        sendSymbol = pic->x_snd_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_snd_raw->s_name);
+        receiveSymbol = pic->x_rcv_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_rcv_raw->s_name);
+
+        repaint();
+    }
+
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("latch"),
+            hash("outline"),
+            hash("open"),
+        };
+    }
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        auto* pic = static_cast<t_fake_pic*>(ptr);
+
+        switch (hash(symbol)) {
+        case hash("latch"): {
+            latch = pic->x_latch;
+            break;
+        }
+        case hash("outline"): {
+            outline = pic->x_outline;
+            break;
+        }
+        case hash("open"): {
+            if (atoms.size() >= 1)
+                openFile(atoms[0].getSymbol());
+            break;
+        }
         }
     }
 
     ObjectParameters getParameters() override
     {
-        return { { "File", tString, cGeneral, &path, {} } };
+        return {
+            { "File", tString, cGeneral, &path, {} },
+            { "Latch", tBool, cGeneral, &latch, { "No", "Yes" } },
+            { "Outline", tBool, cAppearance, &outline, { "No", "Yes" } },
+            { "Report Size", tBool, cAppearance, &reportSize, { "No", "Yes" } },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send symbol", tString, cGeneral, &sendSymbol, {} }
+        };
     };
 
     void paint(Graphics& g) override
@@ -68,20 +118,36 @@ public:
         if (imageFile.existsAsFile()) {
             g.drawImageAt(img, 0, 0);
         } else {
-            PlugDataLook::drawText(g, "?", getLocalBounds(), object->findColour(PlugDataColour::canvasTextColourId), 30, Justification::centred);
+            Fonts::drawText(g, "?", getLocalBounds(), object->findColour(PlugDataColour::canvasTextColourId), 30, Justification::centred);
         }
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        if (getValue<bool>(outline)) {
+            g.setColour(outlineColour);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        }
     }
 
     void valueChanged(Value& value) override
     {
+        auto* pic = static_cast<t_fake_pic*>(ptr);
+
         if (value.refersToSameSourceAs(path)) {
             openFile(path.toString());
+        } else if (value.refersToSameSourceAs(latch)) {
+            pic->x_latch = getValue<int>(latch);
+        } else if (value.refersToSameSourceAs(outline)) {
+            pic->x_outline = getValue<int>(latch);
+        } else if (value.refersToSameSourceAs(reportSize)) {
+            pic->x_size = getValue<int>(reportSize);
+        } else if (value.refersToSameSourceAs(sendSymbol)) {
+            auto symbol = sendSymbol.toString();
+            pd->enqueueDirectMessages(ptr, "send", { symbol });
+        } else if (value.refersToSameSourceAs(receiveSymbol)) {
+            auto symbol = receiveSymbol.toString();
+            pd->enqueueDirectMessages(ptr, "receive", { symbol });
         }
     }
 
@@ -89,7 +155,7 @@ public:
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        auto* pic = static_cast<t_pic*>(ptr);
+        auto* pic = static_cast<t_fake_pic*>(ptr);
         pic->x_width = b.getWidth();
         pic->x_height = b.getHeight();
     }
@@ -105,19 +171,6 @@ public:
         pd->unlockAudioThread();
 
         return bounds;
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
-        case hash("open"): {
-            if (atoms.size() >= 1)
-                openFile(atoms[0].getSymbol());
-            break;
-        }
-        default:
-            break;
-        }
     }
 
     void openFile(String location)
@@ -149,35 +202,32 @@ public:
             return File(name);
         };
 
-        auto* pic = static_cast<t_pic*>(ptr);
+        auto* pic = static_cast<t_fake_pic*>(ptr);
 
         imageFile = findFile(location);
 
         auto pathString = imageFile.getFullPathName();
-        auto* charptr = pathString.toRawUTF8();
+        auto fileNameString = imageFile.getFileName();
 
-        pic->x_filename = pd->generateSymbol(charptr);
-        pic->x_fullname = pd->generateSymbol(charptr);
+        auto* rawFileName = fileNameString.toRawUTF8();
+        auto* rawPath = pathString.toRawUTF8();
+
+        pic->x_filename = pd->generateSymbol(rawFileName);
+        pic->x_fullname = pd->generateSymbol(rawPath);
 
         img = ImageFileFormat::loadFrom(imageFile);
 
         pic->x_width = img.getWidth();
         pic->x_height = img.getHeight();
 
+        if (getValue<bool>(reportSize)) {
+            t_atom coordinates[2];
+            SETFLOAT(coordinates, img.getWidth());
+            SETFLOAT(coordinates + 1, img.getHeight());
+            outlet_list(pic->x_outlet, pd->generateSymbol("list"), 2, coordinates);
+        }
+
         object->updateBounds();
         repaint();
-    }
-
-    static char const* pic_filepath(t_pic* x, char const* filename)
-    {
-        static char fname[MAXPDSTRING];
-        char* bufptr;
-        int fd = open_via_path(canvas_getdir(glist_getcanvas(x->x_glist))->s_name, filename, "", fname, &bufptr, MAXPDSTRING, 1);
-        if (fd > 0) {
-            fname[strlen(fname)] = '/';
-            sys_close(fd);
-            return (fname);
-        } else
-            return (0);
     }
 };

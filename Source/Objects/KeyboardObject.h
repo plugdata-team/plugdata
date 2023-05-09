@@ -3,14 +3,19 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-#include <JuceHeader.h>
 
 // Inherit to customise drawing
 class MIDIKeyboard : public MidiKeyboardComponent {
 
     Object* object;
 
+    bool toggleMode = false;
+    std::set<int> heldKeys;
+
 public:
+    std::function<void(int, int)> noteOn;
+    std::function<void(int)> noteOff;
+
     MIDIKeyboard(Object* parent, MidiKeyboardState& stateToUse, Orientation orientationToUse)
         : MidiKeyboardComponent(stateToUse, orientationToUse)
         , object(parent)
@@ -30,13 +35,13 @@ public:
     int getCountOfWhiteNotesInRange()
     {
         /*
-        ┌──┬─┬─┬─┬──┬──┬─┬─┬─┬─┬─┬──┐
-        │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
-        │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
-        │  └┼┘ └┼┘  │  └┼┘ └┼┘ └┼┘  │
-        │ 0 │ 2 │ 4 │ 5 │ 7 │ 9 │11 │
-        └───┴───┴───┴───┴───┴───┴───┘
-        */
+         ┌──┬─┬─┬─┬──┬──┬─┬─┬─┬─┬─┬──┐
+         │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
+         │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
+         │  └┼┘ └┼┘  │  └┼┘ └┼┘ └┼┘  │
+         │ 0 │ 2 │ 4 │ 5 │ 7 │ 9 │11 │
+         └───┴───┴───┴───┴───┴───┴───┘
+         */
         int count = 0;
         for (int i = getRangeStart(); i <= getRangeEnd(); i++) {
             if (i % 12 == 0 || i % 12 == 2 || i % 12 == 4 || i % 12 == 5 || i % 12 == 7 || i % 12 == 9 || i % 12 == 11) {
@@ -46,10 +51,73 @@ public:
         return count;
     }
 
+    bool mouseDownOnKey(int midiNoteNumber, MouseEvent const& e) override
+    {
+        if (toggleMode) {
+            if (heldKeys.count(midiNoteNumber)) {
+                heldKeys.erase(midiNoteNumber);
+                noteOff(midiNoteNumber);
+            } else {
+                heldKeys.insert(midiNoteNumber);
+                noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
+            }
+        } else {
+            heldKeys.insert(midiNoteNumber);
+            noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
+        }
+
+        repaint();
+        return false;
+    }
+
+    bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
+    {
+        if (!toggleMode && !heldKeys.count(midiNoteNumber)) {
+            for (auto& note : heldKeys) {
+                noteOff(note);
+            }
+
+            heldKeys.clear();
+
+            heldKeys.insert(midiNoteNumber);
+            noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
+
+            repaint();
+        }
+
+        return true;
+    }
+
+    void mouseUpOnKey(int midiNoteNumber, MouseEvent const& e) override
+    {
+        if (!toggleMode) {
+            heldKeys.erase(midiNoteNumber);
+            noteOff(midiNoteNumber);
+        }
+
+        repaint();
+    }
+
+    // Override to fix bug in JUCE
+    void mouseUp(MouseEvent const& e) override
+    {
+        auto keys = heldKeys;
+        for (auto& key : keys) {
+            mouseUpOnKey(key, e);
+        }
+    }
+
+    void setToggleMode(bool enableToggleMode)
+    {
+        toggleMode = enableToggleMode;
+    }
+
     void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
     {
         // TODO: this should be a theme preference, or setting for keyboard
         // yeah but we can set a less ugly default colour for now!
+
+        isDown = heldKeys.count(midiNoteNumber);
 
         auto c = Colour(225, 225, 225);
         if (isOver)
@@ -64,12 +132,12 @@ public:
         // Rounded first and last keys to fix objects
         if (midiNoteNumber == getRangeStart()) {
             Path keyPath;
-            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), PlugDataLook::objectCornerRadius, PlugDataLook::objectCornerRadius, true, false, true, false);
+            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius, true, false, true, false);
 
             g.fillPath(keyPath);
         } else if (midiNoteNumber == getRangeEnd()) {
             Path keyPath;
-            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), PlugDataLook::objectCornerRadius, PlugDataLook::objectCornerRadius, false, true, false, true);
+            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius, false, true, false, true);
 
             g.fillPath(keyPath);
         } else {
@@ -116,6 +184,8 @@ public:
         // TODO: this should be a theme preference, or setting for keyboard
         auto c = Colour(90, 90, 90);
 
+        isDown = heldKeys.count(midiNoteNumber);
+
         if (isOver)
             c = Colour(101, 101, 101);
         if (isDown)
@@ -127,52 +197,15 @@ public:
 };
 // ELSE keyboard
 class KeyboardObject final : public ObjectBase
-    , public Timer
-    , public MidiKeyboardStateListener {
-    typedef struct _edit_proxy {
-        t_object p_obj;
-        t_symbol* p_sym;
-        t_clock* p_clock;
-        struct _keyboard* p_cnv;
-    } t_edit_proxy;
-
-    typedef struct _keyboard {
-        t_object x_obj;
-        t_glist* x_glist;
-        t_edit_proxy* x_proxy;
-        int* x_tgl_notes; // to store which notes should be played
-        int x_velocity;   // to store velocity
-        int x_last_note;  // to store last note
-        float x_vel_in;   // to store the second inlet values
-        float x_space;
-        int x_width;
-        int x_height;
-        int x_octaves;
-        int x_first_c;
-        int x_low_c;
-        int x_toggle_mode;
-        int x_norm;
-        int x_zoom;
-        int x_shift;
-        int x_xpos;
-        int x_ypos;
-        int x_snd_set;
-        int x_rcv_set;
-        int x_flag;
-        int x_s_flag;
-        int x_r_flag;
-        int x_edit;
-        t_symbol* x_receive;
-        t_symbol* x_rcv_raw;
-        t_symbol* x_send;
-        t_symbol* x_snd_raw;
-        t_symbol* x_bindsym;
-        t_outlet* x_out;
-    } t_keyboard;
+    , public Timer {
 
     Value lowC;
     Value octaves;
     int numWhiteKeys = 0;
+
+    Value sendSymbol;
+    Value receiveSymbol;
+    Value toggleMode;
 
     MidiKeyboardState state;
     MIDIKeyboard keyboard;
@@ -186,20 +219,68 @@ public:
         keyboard.setMidiChannel(1);
         keyboard.setScrollButtonsVisible(false);
 
-        state.addListener(this);
+        keyboard.noteOn = [this](int note, int velocity) {
+            auto* elseKeyboard = static_cast<t_fake_keyboard*>(this->ptr);
+
+            cnv->pd->enqueueFunction(
+                [_this = SafePointer(this), elseKeyboard, note, velocity]() mutable {
+                    if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
+                        return;
+
+                    int ac = 2;
+                    t_atom at[2];
+                    SETFLOAT(at, note);
+                    SETFLOAT(at + 1, velocity);
+
+                    outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
+                    if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
+                        pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
+                });
+        };
+
+        keyboard.noteOff = [this](int note) {
+            auto* elseKeyboard = static_cast<t_fake_keyboard*>(this->ptr);
+
+            cnv->pd->enqueueFunction(
+                [_this = SafePointer(this), elseKeyboard, note]() mutable {
+                    if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
+                        return;
+
+                    int ac = 2;
+                    t_atom at[2];
+                    SETFLOAT(at, note);
+                    SETFLOAT(at + 1, 0);
+
+                    outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
+                    if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
+                        pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
+                });
+        };
 
         addAndMakeVisible(keyboard);
 
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        startTimer(150);
+    }
+
+    void update() override
+    {
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
         lowC.setValue(elseKeyboard->x_low_c);
         octaves.setValue(elseKeyboard->x_octaves);
+        toggleMode.setValue(elseKeyboard->x_toggle_mode);
 
-        valueChanged(lowC);
-        valueChanged(octaves);
+        auto sndSym = String::fromUTF8(elseKeyboard->x_send->s_name);
+        auto rcvSym = String::fromUTF8(elseKeyboard->x_receive->s_name);
 
-        startTimer(150);
+        sendSymbol = sndSym != "empty" ? sndSym : "";
+        receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
-        object->updateBounds();
+        MessageManager::callAsync([this] {
+            updateAspectRatio();
+
+            // Call async to make sure pd obj has updated
+            object->updateBounds();
+        });
     }
 
     Rectangle<int> getPdBounds() override
@@ -209,8 +290,8 @@ public:
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
-        auto bounds = Rectangle<int>(x, y, keyboard.getWidth(), elseKeyboard->x_height);
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
+        auto bounds = Rectangle<int>(x, y, elseKeyboard->x_space * numWhiteKeys, elseKeyboard->x_height);
 
         pd->unlockAudioThread();
 
@@ -221,7 +302,7 @@ public:
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
         elseKeyboard->x_height = b.getHeight();
     }
 
@@ -229,68 +310,32 @@ public:
     {
         float keyWidth = static_cast<float>(object->getHeight() - Object::doubleMargin) / keyRatio;
 
+        if (keyWidth <= 0)
+            return;
+
         keyboard.setKeyWidth(keyWidth);
+
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
+        elseKeyboard->x_space = keyWidth;
+
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
-    }
-
-    void handleNoteOn(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
-    {
-        if (midiChannel != 1)
-            return;
-
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
-
-        cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), elseKeyboard, note, velocity]() mutable {
-                if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
-                    return;
-
-                int ac = 2;
-                t_atom at[2];
-                SETFLOAT(at, note);
-                SETFLOAT(at + 1, velocity * 127);
-
-                outlet_list(elseKeyboard->x_out, &s_list, ac, at);
-                if (elseKeyboard->x_send != &s_ && elseKeyboard->x_send->s_thing)
-                    pd_list(elseKeyboard->x_send->s_thing, &s_list, ac, at);
-            });
-    }
-
-    void handleNoteOff(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
-    {
-        if (midiChannel != 1)
-            return;
-
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
-
-        cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), elseKeyboard, note]() mutable {
-                if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
-                    return;
-
-                int ac = 2;
-                t_atom at[2];
-                SETFLOAT(at, note);
-                SETFLOAT(at + 1, 0);
-
-                outlet_list(elseKeyboard->x_out, &s_list, ac, at);
-                if (elseKeyboard->x_send != &s_ && elseKeyboard->x_send->s_thing)
-                    pd_list(elseKeyboard->x_send->s_thing, &s_list, ac, at);
-            });
     }
 
     ObjectParameters getParameters() override
     {
         return {
             { "Start octave", tInt, cGeneral, &lowC, {} },
-            { "Num. octaves", tInt, cGeneral, &octaves, {} }
+            { "Num. octaves", tInt, cGeneral, &octaves, {} },
+            { "Toggle Mode", tBool, cGeneral, &toggleMode, { "Off", "On" } },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
         };
     }
 
     void updateAspectRatio()
     {
-        int numOctaves = static_cast<int>(octaves.getValue());
-        int lowest = static_cast<int>(lowC.getValue());
+        int numOctaves = getValue<int>(octaves);
+        int lowest = getValue<int>(lowC);
         int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
         keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12) - 1, 127));
 
@@ -300,28 +345,38 @@ public:
         numWhiteKeys = keyboard.getCountOfWhiteNotesInRange();
 
         object->setSize(horizontalLength + Object::doubleMargin, object->getHeight());
-        object->constrainer->setFixedAspectRatio(horizontalLength / static_cast<float>(object->getHeight() - Object::doubleMargin));
-        object->constrainer->setMinimumSize((object->minimumSize / 5.0f) * numWhiteKeys, object->minimumSize);
+        constrainer->setFixedAspectRatio(horizontalLength / static_cast<float>(object->getHeight() - Object::doubleMargin));
+        constrainer->setMinimumSize((object->minimumSize / 5.0f) * numWhiteKeys, object->minimumSize);
     }
 
     void valueChanged(Value& value) override
     {
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
 
         if (value.refersToSameSourceAs(lowC)) {
-            lowC = std::clamp<int>(static_cast<int>(lowC.getValue()), -1, 9);
-            elseKeyboard->x_low_c = static_cast<int>(lowC.getValue());
+            lowC = std::clamp<int>(getValue<int>(lowC), -1, 9);
+            elseKeyboard->x_low_c = getValue<int>(lowC);
             updateAspectRatio();
         } else if (value.refersToSameSourceAs(octaves)) {
-            octaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
-            elseKeyboard->x_octaves = static_cast<int>(octaves.getValue());
+            octaves = std::clamp<int>(getValue<int>(octaves), 1, 11);
+            elseKeyboard->x_octaves = getValue<int>(octaves);
             updateAspectRatio();
+        } else if (value.refersToSameSourceAs(sendSymbol)) {
+            auto symbol = sendSymbol.toString();
+            pd->enqueueDirectMessages(ptr, "send", { symbol });
+        } else if (value.refersToSameSourceAs(receiveSymbol)) {
+            auto symbol = receiveSymbol.toString();
+            pd->enqueueDirectMessages(ptr, "receive", { symbol });
+        } else if (value.refersToSameSourceAs(toggleMode)) {
+            auto toggle = getValue<int>(toggleMode);
+            pd->enqueueDirectMessages(ptr, "toggle", { toggle });
+            keyboard.setToggleMode(toggle);
         }
     }
 
     void updateValue()
     {
-        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
 
         for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
             if (elseKeyboard->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
@@ -331,6 +386,21 @@ public:
                 state.noteOff(2, i, 1.0f);
             }
         }
+    }
+
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("float"),
+            hash("list"),
+            hash("set"),
+            hash("lowc"),
+            hash("oct"),
+            hash("8ves"),
+            hash("send"),
+            hash("receive"),
+            hash("toggle")
+        };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
@@ -348,7 +418,7 @@ public:
             break;
         }
         case hash("oct"): {
-            setParameterExcludingListener(lowC, std::clamp<int>(static_cast<int>(lowC.getValue()) + static_cast<int>(atoms[0].getFloat()), -1, 9));
+            setParameterExcludingListener(lowC, std::clamp<int>(getValue<int>(lowC) + static_cast<int>(atoms[0].getFloat()), -1, 9));
             updateAspectRatio();
             break;
         }
@@ -356,6 +426,20 @@ public:
             setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
             updateAspectRatio();
             break;
+        }
+        case hash("send"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case hash("receive"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case hash("toggle"): {
+            setParameterExcludingListener(toggleMode, atoms[0].getFloat());
+            keyboard.setToggleMode(static_cast<bool>(atoms[0].getFloat()));
         }
         default:
             break;
@@ -373,10 +457,10 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 };

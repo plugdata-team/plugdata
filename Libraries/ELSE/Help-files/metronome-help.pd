@@ -344,7 +344,7 @@ the usual multiples of "2" (4/4 \, 6/6 \, 15/16 \, etc). These can
 be integers or floats (which can also be defined as fractions) and
 are also known as 'irrational' time signatures (or 'non power of two').
 This allows you to set tuplets as the tempo. Note that any time signature
-you can set as a messgae can also be set as an argument., f 86;
+you can set as a message can also be set as an argument., f 86;
 #X text 19 93 The denominator of a time signature defines the tempo
 value as a fraction of a whole note (whose value is "1"). A quarter
 note is "1/4" \, so a "4/4" time signature defines 4 beats of quarter
@@ -509,7 +509,7 @@ or aggregate. This is where the 'sub-bar' count is meaningful as each
 time signature counts as a sub bar. You can sum up to 10 different
 'sub-bars' and you can also use 'irrational' and crazy denominators
 as shown before., f 85;
-#X text 67 455 Note thar if you change from one complex time signature
+#X text 67 455 Note that if you change from one complex time signature
 to another time signature before the last sub-bar (so you still have
 one or more sub-bars to go) \, it won't wait until all sub-bars finish.
 This means the next sub-bar will already reflect the time signature

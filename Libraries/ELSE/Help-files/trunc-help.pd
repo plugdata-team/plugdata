@@ -1,70 +1,45 @@
-#N canvas 456 63 562 375 10;
-#X obj 4 253 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 285 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 320 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 86 294 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 87 262 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 4 350 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 238 140 hsl 180 15 -10 10 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X text 125 261 float/list;
-#N canvas 1113 230 294 192 lists 0;
-#X text 64 27 it also works with lists:;
-#X obj 65 118 else/display;
-#X obj 65 60 else/initmess -3.2 4.1 7.9;
-#X obj 65 87 else/trunc;
-#X connect 2 0 3 0;
-#X connect 3 0 1 0;
-#X restore 482 223 pd lists;
-#X obj 235 168 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 235 225 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X text 125 294 float/list;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#N canvas 456 63 560 409 10;
+#X obj 4 283 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 315 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 350 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 138 324 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 138 292 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 380 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 212 173 hsl 180 15 -10 10 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 209 198 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 209 255 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X text 227 328 (none);
-#X text 193 167 input;
-#X text 185 225 output;
-#X obj 235 193 else/trunc;
-#X obj 23 40 cnv 4 4 4 empty empty Truncate 0 28 2 18 #e0e0e0 #000000
-0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X text 227 358 (none);
+#X text 294 198 input;
+#X text 159 255 output;
+#X obj 209 223 else/trunc;
+#X obj 23 40 cnv 4 4 4 empty empty Truncate 0 28 2 18 #e0e0e0 #000000 0;
 #X obj 94 40 cnv 4 4 4 empty empty to 0 28 2 18 #e0e0e0 #000000 0;
-#X obj 3 2 cnv 15 301 42 empty empty trunc 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 3 2 cnv 15 301 42 empty empty trunc 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 3 3 graph;
-#X obj 116 40 cnv 4 4 4 empty empty integer 0 28 2 18 #e0e0e0 #000000
-0;
-#X text 36 200 see also:;
-#X obj 36 219 else/trunc~;
-#X text 74 86 [trunc] truncates floats and lists towards zero \, that
-means only the integer value is considered \, like in vanilla's [int].
-, f 63;
-#X text 191 261 - input value(s) to trunc function;
-#X text 191 294 - output value(s) of trunc function;
-#X connect 6 0 9 0;
-#X connect 9 0 23 0;
-#X connect 23 0 10 0;
+#X obj 116 40 cnv 4 4 4 empty empty integer 0 28 2 18 #e0e0e0 #000000 0;
+#X text 16 227 see also:;
+#X obj 16 246 else/trunc~;
+#X text 74 86 [trunc] truncates floats and lists towards zero \, that means only the integer value is considered \, like in vanilla's [int]., f 63;
+#X text 211 291 - input value(s) to trunc function;
+#X text 211 324 - output value(s) of trunc function;
+#X text 176 291 list;
+#X text 176 324 list;
+#X obj 159 127 else/initmess -3.2 4.1 7.9;
+#X listbox 159 148 15 0 0 0 - - - 0;
+#X connect 6 0 7 0;
+#X connect 7 0 20 0;
+#X connect 20 0 8 0;
+#X connect 33 0 34 0;
+#X connect 34 0 20 0;

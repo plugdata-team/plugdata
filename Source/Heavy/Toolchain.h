@@ -4,6 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "../Constants.h"
+
 struct Toolchain {
 #if JUCE_WINDOWS
     inline static File dir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("usr");
@@ -90,16 +93,16 @@ struct ToolchainInstaller : public Component
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
             if (isMouseOver()) {
-                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, PlugDataLook::smallCornerRadius);
+                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, Corners::defaultCornerRadius);
             }
 
             auto colour = findColour(PlugDataColour::panelTextColourId);
 
-            PlugDataLook::drawIcon(g, iconText, 20, 5, 40, colour, 24);
+            Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24);
 
-            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
+            Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
 
-            PlugDataLook::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
+            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
         }
 
         void mouseUp(MouseEvent const& e)
@@ -166,36 +169,36 @@ struct ToolchainInstaller : public Component
     {
         auto colour = findColour(PlugDataColour::panelTextColourId);
         if (needsUpdate) {
-            PlugDataLook::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::horizontallyCentred);
         } else {
-            PlugDataLook::drawStyledText(g, "Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::horizontallyCentred);
         }
 
         if (needsUpdate) {
-            PlugDataLook::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::centred);
+            Fonts::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::horizontallyCentred);
         } else {
-            PlugDataLook::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::centred);
+            Fonts::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::horizontallyCentred);
         }
 
         if (installProgress != 0.0f) {
-            float width = getWidth() - 90.0f;
-            float right = jmap(installProgress, 90.f, width);
+            float width = getWidth() - 180.0f;
+            float progress = jmap(installProgress, 0.0f, width - 3.0f);
 
-            Path downloadPath;
-            downloadPath.addLineSegment({ 90, 300, right, 300 }, 1.0f);
+            float downloadBarBgHeight = 11.0f;
+            float downloadBarHeight = downloadBarBgHeight - 3.0f;
 
-            Path fullPath;
-            fullPath.addLineSegment({ 90, 300, width, 300 }, 1.0f);
+            auto downloadBarBg = Rectangle<float>(90.0f, 300.0f - (downloadBarBgHeight * 0.5), width, downloadBarBgHeight);
+            auto downloadBar = Rectangle<float>(91.5f, 300.0f - (downloadBarHeight * 0.5), progress, downloadBarHeight);
 
             g.setColour(findColour(PlugDataColour::panelTextColourId));
-            g.strokePath(fullPath, PathStrokeType(11.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
+            g.fillRoundedRectangle(downloadBarBg, Corners::defaultCornerRadius);
 
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
+            g.fillRoundedRectangle(downloadBar, Corners::smallCornerRadius);
         }
 
         if (errorMessage.isNotEmpty()) {
-            PlugDataLook::drawText(g, errorMessage, Rectangle<int>(90, 300, getWidth(), 20), Colours::red, 15);
+            Fonts::drawText(g, errorMessage, Rectangle<int>(90, 300, getWidth(), 20), Colours::red, 15);
         }
 
         if (isTimerRunning()) {
@@ -205,7 +208,7 @@ struct ToolchainInstaller : public Component
 
     void resized() override
     {
-        installButton.setBounds(getLocalBounds().withSizeKeepingCentre(450, 50).translated(15, -30));
+        installButton.setBounds(getLocalBounds().withSizeKeepingCentre(450, 50).translated(0, -30));
     }
 
     void run() override
@@ -293,7 +296,7 @@ struct ToolchainInstaller : public Component
 
         // Since we interact with ComponentPeer, better call it from the message thread
         MessageManager::callAsync([this, usbDriverInstaller, driverSpec]() mutable {
-            runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer()->getNativeHandle());
+            OSUtils::runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer()->getNativeHandle());
         });
 #endif
 

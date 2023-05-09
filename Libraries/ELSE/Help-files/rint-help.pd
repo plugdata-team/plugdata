@@ -1,70 +1,43 @@
-#N canvas 504 125 562 354 10;
-#X obj 239 133 nbx 6 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 3 323 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#N canvas 937 321 278 200 lists 0;
-#X text 55 33 it also works with lists:;
-#X obj 43 134 else/display;
-#X obj 43 99 else/rint;
-#X obj 43 66 else/initmess 0.333 0.666 -0.999;
-#X connect 2 0 1 0;
-#X connect 3 0 2 0;
-#X restore 483 188 pd lists;
-#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
-#X obj 344 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 22 40 cnv 4 4 4 empty empty Rounds 0 28 2 18 #e0e0e0 #000000
-0;
+#N canvas 428 68 561 386 10;
+#X obj 177 135 nbx 6 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 3 360 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
+#X obj 344 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 22 40 cnv 4 4 4 empty empty Rounds 0 28 2 18 #e0e0e0 #000000 0;
 #X obj 86 40 cnv 4 4 4 empty empty to 0 28 2 18 #e0e0e0 #000000 0;
-#X obj 457 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 477 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 514 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 463 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 501 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
+#X obj 457 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 477 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 514 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 463 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 501 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 252 42 1;
 #X restore 304 3 graph;
-#X obj 2 2 cnv 15 301 42 empty empty rint 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 2 2 cnv 15 301 42 empty empty rint 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 3 graph;
-#X obj 207 40 cnv 4 4 4 empty empty integer 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 145 40 cnv 4 4 4 empty empty nearest 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 110 40 cnv 4 4 4 empty empty the 0 28 2 18 #e0e0e0 #000000 0
-;
-#X text 63 88 [rint] takes floats and rounds them to the nearest integer
-value., f 64;
-#X obj 212 132 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X obj 239 185 else/display;
-#X obj 239 158 else/rint 4.5;
-#X obj 26 181 else/rint~;
-#X text 30 156 see also:;
-#X obj 4 223 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 255 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 290 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 116 264 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 117 232 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X text 155 231 float/list;
-#X text 155 264 float/list;
-#X text 227 298 (none);
-#X text 221 231 - input value(s) to round function;
-#X text 221 264 - output value(s) of round function;
-#X connect 0 0 21 0;
-#X connect 19 0 21 0;
-#X connect 21 0 20 0;
+#X obj 207 40 cnv 4 4 4 empty empty integer 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 145 40 cnv 4 4 4 empty empty nearest 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 110 40 cnv 4 4 4 empty empty the 0 28 2 18 #e0e0e0 #000000 0;
+#X text 63 88 [rint] takes floats and rounds them to the nearest integer value., f 67;
+#X obj 177 216 else/display;
+#X obj 177 189 else/rint 4.5;
+#X obj 26 211 else/rint~;
+#X text 30 186 see also:;
+#X obj 4 260 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 292 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 327 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 149 301 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 150 269 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X text 227 335 (none);
+#X text 221 268 - input value(s) to round function;
+#X text 221 301 - output value(s) of round function;
+#X text 188 268 list;
+#X text 188 301 list;
+#X obj 253 122 else/initmess 0.333 0.666 -0.999;
+#X listbox 253 147 20 0 0 0 - - - 0;
+#X connect 0 0 19 0;
+#X connect 19 0 18 0;
+#X connect 32 0 33 0;
+#X connect 33 0 19 0;

@@ -38,7 +38,7 @@
 #X text 187 172 reset;
 #X text 150 310 set <float>;
 #X text 192 294 bang;
-#X text 230 294 - ressets sum to starting point;
+#X text 230 294 - resets sum to starting point;
 #X text 230 310 - sets starting sum;
 #X text 166 372 1) float - starting sum (default 0);
 #X obj 254 203 else/add 10;
@@ -49,7 +49,7 @@
 #X text 186 277 float;
 #X text 64 92 [add] starts accumulating input values to a starting
 sum value (0 by default). The starting sum can be set as an argument
-or the 'set' message. You can resset the to the starting sum point
+or the 'set' message. You can reset the to the starting sum point
 with a bang., f 64;
 #X obj 6 365 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
 0;

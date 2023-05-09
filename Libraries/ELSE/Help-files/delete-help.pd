@@ -18,7 +18,7 @@
 #X restore 305 3 pd;
 #X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
 0;
-#X obj 23 40 cnv 4 4 4 empty empty delete\\\ elemen(s)\\\ from\\\ message
+#X obj 23 40 cnv 4 4 4 empty empty delete\\\ element(s)\\\ from\\\ message
 0 28 2 18 #e0e0e0 #000000 0;
 #X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
 0;

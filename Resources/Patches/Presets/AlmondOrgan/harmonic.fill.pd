@@ -1,0 +1,18 @@
+#N canvas 413 55 332 300 10;
+#X obj 25 109 list prepend cosinesum 2048 0;
+#X obj 25 131 list trim;
+#X obj 25 153 t b a;
+#X obj 25 65 bang;
+#X obj 25 86 array get \$0-values;
+#X msg 25 175 normalize 1;
+#X obj 25 21 array define \$0-values 10;
+#X obj 25 44 clone -s 1 9 harmonic.set \$2 \$0-values;
+#X obj 25 196 s \$1;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
+#X connect 2 0 5 0;
+#X connect 2 1 8 0;
+#X connect 3 0 4 0;
+#X connect 4 0 0 0;
+#X connect 5 0 8 0;
+#X connect 7 0 3 0;

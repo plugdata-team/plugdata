@@ -106,7 +106,7 @@
 #X obj 122 335 cnv 17 3 17 empty empty 3 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 164 336 float/signal - phase offset (modulation input);
 #X text 164 273 float/signal - frequency in hz;
-#X text 164 316 float/signal - phase sync (ressets internal phase);
+#X text 164 316 float/signal - phase sync (resets internal phase);
 #X text 60 86 [vsaw~] is a variable sawtooth waveform oscillator that also becomes a triangular osccilator. It accepts negative frequencies \, has inlets for width \, phase sync and phase modulation., f 57;
 #N canvas 280 50 847 522 sync 0;
 #X text 517 49 Syncing the phase with control messages is useful for LFOs and control with MIDI. A sync with audio is useful for the "hard sync" technique \, where an oscillator is synced according to the frequency of a master frequency., f 44;

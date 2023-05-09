@@ -3,11 +3,20 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "Connection.h"
 
 #include "Canvas.h"
 #include "Iolet.h"
+#include "Object.h"
+#include "PluginProcessor.h"
+#include "PluginEditor.h" // might not need this?
 #include "LookAndFeel.h"
+#include "Pd/Patch.h"
+#include "Dialogs/ConnectionMessageDisplay.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     : cnv(parent)
@@ -17,6 +26,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     , inobj(inlet->object)
     , ptr(static_cast<t_fake_outconnect*>(oc))
 {
+    cnv->selectedComponents.addChangeListener(this);
 
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);
@@ -74,15 +84,15 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
     valueChanged(presentationMode);
 
-    updatePath();
-    repaint();
+    updateOverlays(cnv->getOverlays());
 
-    cnv->pd->registerMessageListener(ptr, this);
+    setPointer(ptr);
 }
 
 Connection::~Connection()
 {
     cnv->pd->unregisterMessageListener(ptr, this);
+    cnv->selectedComponents.removeChangeListener(this);
 
     if (outlet) {
         outlet->repaint();
@@ -101,6 +111,12 @@ Connection::~Connection()
     }
 }
 
+void Connection::changeListenerCallback(ChangeBroadcaster* source)
+{
+    if (auto selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
+        setSelected(selectedItems->isSelected(this));
+}
+
 void Connection::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(presentationMode)) {
@@ -111,6 +127,8 @@ void Connection::valueChanged(Value& v)
 void Connection::lookAndFeelChanged()
 {
     updatePath();
+    resizeToFit();
+    repaint();
 }
 
 void Connection::pushPathState()
@@ -170,7 +188,13 @@ void Connection::popPathState()
 
 void Connection::setPointer(void* newPtr)
 {
+    auto originalPointer = ptr;
     ptr = static_cast<t_fake_outconnect*>(newPtr);
+    cnv->pd->registerMessageListener(ptr, this);
+    if (originalPointer != ptr) {
+        // do we even need to unregister, doesn't it get cleaned up automatically?
+        cnv->pd->unregisterMessageListener(originalPointer, this);
+    }
 }
 
 void* Connection::getPointer()
@@ -185,6 +209,9 @@ t_symbol* Connection::getPathState()
 
 bool Connection::hitTest(int x, int y)
 {
+    if (inlet == nullptr || outlet == nullptr)
+        return false;
+
     if (Canvas::panningModifierDown())
         return false;
 
@@ -194,13 +221,13 @@ bool Connection::hitTest(int x, int y)
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
 
     Point<float> nearestPoint;
-    toDraw.getNearestPoint(position, nearestPoint);
+    toDrawLocalSpace.getNearestPoint(position, nearestPoint);
 
     // Get outlet and inlet point
-    auto pstart = getStartPoint().toFloat();
-    auto pend = getEndPoint().toFloat();
+    auto pstart = getStartPoint();
+    auto pend = getEndPoint();
 
-    if (cnv->isSelected(this) && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position))) {
+    if (selectedFlag && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position))) {
         repaint();
         return true;
     }
@@ -237,13 +264,25 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     return false;
 }
 
-void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver, bool isSelected, Point<int> mousePos, bool isHovering)
+void Connection::renderConnectionPath(Graphics& g,
+    Canvas* cnv,
+    Path connectionPath,
+    bool isSignal,
+    bool isMouseOver,
+    bool showDirection,
+    bool showConnectionOrder,
+    bool isSelected,
+    Point<int> mousePos,
+    bool isHovering,
+    int connectionCount,
+    int multiConnectNumber)
 {
-
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
     auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
     auto handleColour = isSignal ? dataColour : signalColour;
+
+    auto connectionLength = connectionPath.getLength();
 
     if (isSelected) {
         baseColour = isSignal ? signalColour : dataColour;
@@ -274,10 +313,61 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
     innerStroke.setEndStyle(PathStrokeType::EndCapStyle::rounded);
     g.strokePath(innerPath, innerStroke);
 
+    // draw direction arrow if button is toggled (per canvas, default state is false)
+    //            c
+    //            |\
+    //            | \
+    //            |  \
+    //  ___path___|   \a___path___
+    //            |   /
+    //            |  /
+    //            | /
+    //            |/
+    //            b
+
+    // setup arrow parameters
+    float arrowWidth = 8.0f;
+    float arrowLength = 12.0f;
+
+    if (showDirection && connectionLength > arrowLength * 2) {
+        // get the center point of the connection path
+        auto arrowCenter = connectionLength * 0.5f;
+        auto arrowBase = connectionPath.getPointAlongPath(arrowCenter - (arrowLength * 0.5f));
+        auto arrowTip = connectionPath.getPointAlongPath(arrowCenter + (arrowLength * 0.5f));
+
+        Line<float> arrowLine(arrowBase, arrowTip);
+        auto point_a = arrowTip;
+        auto point_b = arrowLine.getPointAlongLine(0.0f, -(arrowWidth * 0.5f));
+        auto point_c = arrowLine.getPointAlongLine(0.0f, (arrowWidth * 0.5f));
+
+        // create the arrow path
+        Path arrow;
+        arrow.addTriangle(point_a, point_b, point_c);
+
+        // draw the arrow
+        g.setColour(baseColour);
+        g.fillPath(arrow);
+
+        // draw arrow outline to aid in visibility for dark / light themes
+        g.setColour(baseColour.darker(1.0f));
+        PathStrokeType arrowOutline(0.5f);
+        g.strokePath(arrow, arrowOutline);
+    }
+
+    // draw connection index number
+    if (showConnectionOrder && !isSignal && connectionCount > 1) {
+        auto endCableOrderDisplay = Rectangle<float>(13, 13).withCentre(connectionPath.getPointAlongPath(jmax(connectionPath.getLength() - 8.5f * 3, 9.5f)));
+        g.setColour(baseColour);
+        g.fillEllipse(endCableOrderDisplay);
+        g.setColour(baseColour.darker(1.0f));
+        g.drawEllipse(endCableOrderDisplay, 0.5f);
+        Fonts::drawStyledText(g, String(multiConnectNumber), endCableOrderDisplay, cnv->findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
+    }
+
     // draw reconnect handles if connection is both selected & mouse is hovering over
     if (isSelected && isHovering) {
         auto startReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(8.5f));
-        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(std::max(connectionPath.getLength() - 8.5f, 9.5f)));
+        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(jmax(connectionLength - 8.5f, 9.5f)));
 
         bool overStart = startReconnectHandle.contains(mousePos.toFloat());
         bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
@@ -293,9 +383,52 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
     }
 }
 
+void Connection::updateOverlays(int overlay)
+{
+    if (!inlet || !outlet)
+        return;
+
+    showDirection = overlay & Overlay::Direction;
+    showConnectionOrder = overlay & Overlay::Order;
+    updatePath();
+    resizeToFit();
+    repaint();
+}
+
 void Connection::paint(Graphics& g)
 {
-    renderConnectionPath(g, cnv, toDraw, outlet->isSignal, isMouseOver(), cnv->isSelected(this), getMouseXYRelative(), isHovering);
+    renderConnectionPath(g,
+        cnv,
+        toDrawLocalSpace,
+        outlet ? outlet->isSignal : false,
+        isMouseOver(),
+        showDirection,
+        showConnectionOrder,
+        selectedFlag,
+        getMouseXYRelative(),
+        isHovering,
+        getNumberOfConnections(),
+        getMultiConnectNumber());
+
+#if (ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT)
+    static Random rng;
+
+    g.fillAll(Colour((uint8)rng.nextInt(255),
+        (uint8)rng.nextInt(255),
+        (uint8)rng.nextInt(255),
+        (uint8)0x50));
+#endif
+
+#if (ENABLE_CONNECTION_GRAPHICS_DEBUGGING)
+    g.setColour(Colours::orange);
+    for (auto& point : currentPlan) {
+        auto local = getLocalPoint(cnv, point);
+        g.fillEllipse(local.x, local.y, 2, 2);
+    }
+
+    g.setColour(Colours::red);
+    g.drawRect(getLocalBounds(), 1.0f);
+#endif
 }
 
 bool Connection::isSegmented()
@@ -308,12 +441,28 @@ void Connection::setSegmented(bool isSegmented)
     segmented = isSegmented;
     pushPathState();
     updatePath();
+    resizeToFit();
     repaint();
+}
+
+void Connection::setSelected(bool shouldBeSelected)
+{
+    if (selectedFlag != shouldBeSelected) {
+        selectedFlag = shouldBeSelected;
+        updatePath();
+        resizeToFit();
+        repaint();
+    }
+}
+
+bool Connection::isSelected()
+{
+    return selectedFlag;
 }
 
 void Connection::mouseMove(MouseEvent const& e)
 {
-    int n = getClosestLineIdx(e.getPosition().toFloat() + origin, currentPlan);
+    int n = getClosestLineIdx(e.getPosition().toFloat(), currentPlan);
 
     if (isSegmented() && currentPlan.size() > 2 && n > 0) {
         auto line = Line<float>(currentPlan[n - 1], currentPlan[n]);
@@ -332,21 +481,62 @@ void Connection::mouseMove(MouseEvent const& e)
     repaint();
 }
 
+StringArray Connection::getMessageFormated()
+{
+    auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
+
+    connectionMessageLock.enter();
+    auto args = lastValue;
+    auto name = lastSelector;
+    connectionMessageLock.exit();
+
+    StringArray formatedMessage;
+
+    if (name == "float" && args.size() >= 1) {
+        formatedMessage.add("float:");
+        formatedMessage.add(String(args[0].getFloat()));
+    } else if (name == "symbol" && args.size() >= 1) {
+        formatedMessage.add("symbol:");
+        formatedMessage.add(String(args[0].getSymbol()));
+    } else if (name == "list") {
+        formatedMessage.add("list:");
+        for (auto& arg : args) {
+            if (arg.isFloat()) {
+                formatedMessage.add(String(arg.getFloat()));
+            } else if (arg.isSymbol()) {
+                formatedMessage.add(arg.getSymbol());
+            }
+        }
+    } else {
+        formatedMessage.add(name);
+        for (auto& arg : args) {
+            if (arg.isFloat()) {
+                formatedMessage.add(String(arg.getFloat()));
+            } else if (arg.isSymbol()) {
+                formatedMessage.add(arg.getSymbol());
+            }
+        }
+    }
+    return formatedMessage;
+}
+
 void Connection::mouseEnter(MouseEvent const& e)
 {
     isHovering = true;
+    cnv->editor->connectionMessageDisplay->setConnection(this, e.getScreenPosition());
     repaint();
 }
 
 void Connection::mouseExit(MouseEvent const& e)
 {
+    cnv->editor->connectionMessageDisplay->setConnection(nullptr);
     isHovering = false;
     repaint();
 }
 
 void Connection::mouseDown(MouseEvent const& e)
 {
-    wasSelected = cnv->isSelected(this);
+    cnv->editor->connectionMessageDisplay->setConnection(nullptr);
 
     // Deselect all other connection if shift or command is not down
     if (!e.mods.isCommandDown() && !e.mods.isShiftDown()) {
@@ -359,7 +549,7 @@ void Connection::mouseDown(MouseEvent const& e)
     if (currentPlan.size() <= 2)
         return;
 
-    int n = getClosestLineIdx(e.position + origin, currentPlan);
+    int n = getClosestLineIdx(e.position, currentPlan);
     if (n < 0)
         return;
 
@@ -374,11 +564,13 @@ void Connection::mouseDown(MouseEvent const& e)
 
 void Connection::mouseDrag(MouseEvent const& e)
 {
-    if (wasSelected && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
+    cnv->editor->connectionMessageDisplay->setConnection(nullptr);
+
+    if (selectedFlag && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
         cnv->connectingWithDrag = true;
         reconnect(inlet);
     }
-    if (wasSelected && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
+    if (selectedFlag && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
         cnv->connectingWithDrag = true;
         reconnect(outlet);
     }
@@ -399,7 +591,9 @@ void Connection::mouseDrag(MouseEvent const& e)
             currentPlan[n].y = mouseDownPosition + delta.y;
         }
 
+        setBufferedToImage(false);
         updatePath();
+        resizeToFit();
         repaint();
     }
 }
@@ -412,10 +606,10 @@ void Connection::mouseUp(MouseEvent const& e)
         dragIdx = -1;
     }
 
-    if (wasSelected && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.position)) {
+    if (selectedFlag && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.position)) {
         reconnect(inlet);
     }
-    if (wasSelected && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.position)) {
+    if (selectedFlag && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.position)) {
         reconnect(outlet);
     }
     if (reconnecting.size()) {
@@ -440,7 +634,8 @@ int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& 
     for (int n = 2; n < plan.size() - 1; n++) {
         auto line = Line<float>(plan[n - 1], plan[n]);
         Point<float> nearest;
-        if (line.getDistanceFromPoint(position - offset, nearest) < 3) {
+
+        if (line.getDistanceFromPoint(cnv->getLocalPoint(this, position), nearest) < 3) {
             return n;
         }
     }
@@ -459,7 +654,7 @@ void Connection::reconnect(Iolet* target)
 
     if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
         for (auto* c : otherEdge->object->getConnections()) {
-            if (c == this || !cnv->isSelected(c))
+            if (c == this || !c->isSelected())
                 continue;
 
             connections.add(c);
@@ -481,8 +676,38 @@ void Connection::reconnect(Iolet* target)
         reconnecting.add(SafePointer(c));
 
         // Make sure we're deselected and remove object
-        cnv->setSelected(c, false);
+        cnv->setSelected(c, false, false);
     }
+}
+
+void Connection::resizeToFit()
+{
+    if (!inlet || !outlet)
+        return;
+
+    auto pStart = getStartPoint();
+    auto pEnd = getEndPoint();
+
+    // heuristics to allow the overlay & reconnection handle to paint inside bounds
+    // consider moving them to their own layers in future
+    auto safteyMargin = showConnectionOrder ? 13 : isSelected() ? 10
+                                                                : 6;
+
+    auto newBounds = Rectangle<float>(pStart, pEnd).expanded(safteyMargin).getSmallestIntegerContainer();
+
+    if (segmented) {
+        newBounds = newBounds.getUnion(toDraw.getBounds().expanded(safteyMargin).getSmallestIntegerContainer());
+    }
+    if (newBounds != getBounds()) {
+        setBounds(newBounds);
+    }
+
+    toDrawLocalSpace = toDraw;
+    auto offset = getLocalPoint(cnv, Point<int>());
+    toDrawLocalSpace.applyTransform(AffineTransform::translation(offset));
+
+    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDrawLocalSpace.getPointAlongPath(8.5f));
+    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDrawLocalSpace.getPointAlongPath(std::max(toDrawLocalSpace.getLength() - 8.5f, 9.5f)));
 }
 
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
@@ -493,29 +718,48 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
 
+    // If both inlet and outlet are selected we can move the connection
+    if (outobj->isSelected() && inobj->isSelected() && !wasResized) {
+        // calculate the offset for moving the whole connection
+        auto pointOffset = pstart - previousPStart;
+
+        // Prevent a repaint if we're not moving
+        // This will happen often since there's a move callback from both inlet and outlet
+        if (pointOffset.isOrigin())
+            return;
+
+        // as we are moving the whole component, no need to redraw
+        setBufferedToImage(true);
+
+        previousPStart = pstart;
+        setTopLeftPosition(getPosition() + pointOffset.toInt());
+
+        for (auto& point : currentPlan) {
+            point += pointOffset;
+        }
+
+        return;
+    }
+    previousPStart = pstart;
+
+    // if buffered to image is true here it will take longer to redraw & buffer,
+    // and cause wiggling of cables, also greatly improves performance
+    //
+    // we may need to turn it off in other parts of this class,
+    // if getCachedComponentImage() returns true setBufferedToImage is on
+    setBufferedToImage(false);
+
     if (currentPlan.size() <= 2) {
         updatePath();
+        resizeToFit();
+        repaint();
         return;
     }
 
-    // If both inlet and outlet are selected we can just move the connection cord
-    if ((cnv->isSelected(outobj) && cnv->isSelected(inobj)) || cnv->updatingBounds) {
-        auto offset = pstart - currentPlan[0];
-        for (auto& point : currentPlan)
-            point += offset;
-        updatePath();
-        return;
-    }
-
-    int idx1 = 0;
-    int idx2 = 1;
-
-    auto& position = pstart;
-    if (&component == inlet || &component == inobj) {
-        idx1 = static_cast<int>(currentPlan.size() - 1);
-        idx2 = static_cast<int>(currentPlan.size() - 2);
-        position = pend;
-    }
+    bool isInlet = &component == inlet || &component == inobj;
+    int idx1 = isInlet ? static_cast<int>(currentPlan.size() - 1) : 0;
+    int idx2 = isInlet ? static_cast<int>(currentPlan.size() - 2) : 1;
+    auto& position = isInlet ? pend : pstart;
 
     if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
         currentPlan[idx2].x = position.x;
@@ -524,17 +768,28 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
 
     currentPlan[idx1] = position;
+
+    if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
+        currentPlan[idx2].x = position.x;
+    } else {
+        currentPlan[idx2].y = position.y;
+    }
+
+    currentPlan[idx1] = position;
+
     updatePath();
+    resizeToFit();
+    repaint();
 }
 
 Point<float> Connection::getStartPoint()
 {
-    return Point<float>(outlet->getCanvasBounds().toFloat().getCentreX(), outlet->getCanvasBounds().toFloat().getCentreY() - 0.5f);
+    return outlet->getCanvasBounds().toFloat().getCentre();
 }
 
 Point<float> Connection::getEndPoint()
 {
-    return Point<float>(inlet->getCanvasBounds().toFloat().getCentreX(), inlet->getCanvasBounds().toFloat().getCentreY());
+    return inlet->getCanvasBounds().toFloat().getCentre();
 }
 
 Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
@@ -566,20 +821,37 @@ Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
     return connectionPath;
 }
 
+int Connection::getNumberOfConnections()
+{
+    int count = 0;
+    for (auto* connection : cnv->connections) {
+        if (outlet == connection->outlet) {
+            count++;
+        }
+    }
+    return count;
+}
+
+int Connection::getMultiConnectNumber()
+{
+    int count = 0;
+    for (auto* connection : cnv->connections) {
+        if (outlet == connection->outlet) {
+            count++;
+            if (this == connection)
+                return count;
+        }
+    }
+    return -1;
+};
+
 void Connection::updatePath()
 {
     if (!outlet || !inlet)
         return;
 
-    float left = std::min(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX()) - 4;
-    float top = std::min(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) - 4;
-    float right = std::max(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX()) + 4;
-    float bottom = std::max(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) + 4;
-
-    origin = Rectangle<float>(left, top, right - left, bottom - top).getPosition();
-
-    auto pstart = getStartPoint() - origin;
-    auto pend = getEndPoint() - origin;
+    auto pstart = getStartPoint();
+    auto pend = getEndPoint();
 
     if (!segmented) {
         toDraw = getNonSegmentedPath(pstart, pend);
@@ -591,45 +863,39 @@ void Connection::updatePath()
 
         auto snap = [this](Point<float> point, int idx1, int idx2) {
             if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
-                currentPlan[idx2].x = point.x + origin.x;
+                currentPlan[idx2].x = point.x;
             } else {
-                currentPlan[idx2].y = point.y + origin.y;
+                currentPlan[idx2].y = point.y;
             }
 
-            currentPlan[idx1] = point + origin;
+            currentPlan[idx1] = point;
         };
 
         snap(pstart, 0, 1);
         snap(pend, static_cast<int>(currentPlan.size() - 1), static_cast<int>(currentPlan.size() - 2));
 
         Path connectionPath;
-        connectionPath.startNewSubPath(pstart.toFloat());
+        connectionPath.startNewSubPath(pstart);
 
         // Add points in between if we've found a path
         for (int n = 1; n < currentPlan.size() - 1; n++) {
             if (connectionPath.contains(currentPlan[n].toFloat()))
                 continue; // ??
 
-            connectionPath.lineTo(currentPlan[n].toFloat() - origin.toFloat());
+            connectionPath.lineTo(currentPlan[n].toFloat());
         }
 
-        connectionPath.lineTo(pend.toFloat());
+        connectionPath.lineTo(pend);
         toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
+}
 
+void Connection::applyBestPath()
+{
+    findPath();
+    updatePath();
+    resizeToFit();
     repaint();
-
-    auto bounds = toDraw.getBounds().expanded(8);
-    setBounds((bounds + origin).getSmallestIntegerContainer());
-
-    if (bounds.getX() < 0 || bounds.getY() < 0) {
-        toDraw.applyTransform(AffineTransform::translation(-bounds.getX() + 0.5f, -bounds.getY()));
-    }
-
-    offset = { -bounds.getX(), -bounds.getY() };
-
-    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
-    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 8.5f, 9.5f)));
 }
 
 void Connection::findPath()
@@ -810,7 +1076,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
 
 bool Connection::intersectsObject(Object* object)
 {
-    auto b = (object->getBounds() - getPosition()).toFloat();
+    auto b = object->getBounds().toFloat();
     return toDraw.intersectsLine({ b.getTopLeft(), b.getTopRight() })
         || toDraw.intersectsLine({ b.getTopLeft(), b.getBottomLeft() })
         || toDraw.intersectsLine({ b.getBottomRight(), b.getBottomLeft() })
@@ -860,7 +1126,6 @@ bool Connection::straightLineIntersectsObject(Line<float> toCheck, Array<Object*
 
 void ConnectionPathUpdater::timerCallback()
 {
-
     std::pair<Component::SafePointer<Connection>, t_symbol*> currentConnection;
 
     canvas->patch.startUndoSequence("SetConnectionPaths");
@@ -884,7 +1149,7 @@ void ConnectionPathUpdater::timerCallback()
         linetraverser_start(&t, connection->cnv->patch.getPointer());
 
         while (auto* oc = linetraverser_next(&t)) {
-            if (reinterpret_cast<Connection::t_fake_outconnect*>(oc) == connection->ptr) {
+            if (reinterpret_cast<t_fake_outconnect*>(oc) == connection->ptr) {
 
                 outObj = t.tr_ob;
                 outIdx = t.tr_outno;
@@ -903,9 +1168,11 @@ void ConnectionPathUpdater::timerCallback()
 
         // This will recreate the connection with the new connection path, and return the new pointer
         // Since we mostly used indices and object pointers to differentiate connections, this is fine
-
+        // TODO: this sometimes causes a crash
+        // this is either a threading issue, or something else...
+        // I think we can solve it by not recreting the connection?
         auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
-        connection->ptr = static_cast<Connection::t_fake_outconnect*>(newConnection);
+        connection->setPointer(newConnection);
     }
 
     canvas->patch.endUndoSequence("SetConnectionPaths");
@@ -915,38 +1182,17 @@ void ConnectionPathUpdater::timerCallback()
 
 void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 {
-    auto args = std::vector<t_atom>(argv, argv + argc);
+    // TODO: indicator
+    // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
 
-    MessageManager::callAsync([_this = SafePointer(this), name, args]() mutable {
-        if (!_this)
-            return;
+    auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
 
-        if (name == "float" && args.size() >= 1) {
-            _this->setTooltip("(float) " + String(atom_getfloat(args.data())));
-        } else if (name == "symbol" && args.size() >= 1) {
-            _this->setTooltip("(symbol): " + String::fromUTF8(atom_getsymbol(args.data())->s_name));
-        } else if (name == "list") {
-            StringArray result = { "(list)" };
-            for (auto& arg : args) {
-                if (arg.a_type == A_FLOAT) {
-                    result.add(String(atom_getfloat(&arg)));
-                } else if (arg.a_type == A_SYMBOL) {
-                    result.add(String::fromUTF8(atom_getsymbol(&arg)->s_name));
-                }
-            }
-
-            _this->setTooltip(result.joinIntoString(" "));
-        } else {
-            StringArray result = { name };
-            for (auto& arg : args) {
-                if (arg.a_type == A_FLOAT) {
-                    result.add(String(atom_getfloat(&arg)));
-                } else if (arg.a_type == A_SYMBOL) {
-                    result.add(String::fromUTF8(atom_getsymbol(&arg)->s_name));
-                }
-            }
-
-            _this->setTooltip(result.joinIntoString(" "));
-        }
-    });
+    // We can either lock or tryLock over here:
+    // The advantage of try-locking is that the audio thread will never have to wait for the message thread
+    // The advantage of regular locking is that we ensure every single message arrives, even if we need to wait for it
+    if (connectionMessageLock.tryEnter()) {
+        lastValue = pd::Atom::fromAtoms(argc, argv);
+        lastSelector = name;
+        connectionMessageLock.exit();
+    }
 }

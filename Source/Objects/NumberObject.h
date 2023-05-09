@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Utility/DraggableNumber.h"
+#include "Utility/DraggableNumber.h"
 
 class NumberObject final : public ObjectBase {
 
@@ -25,8 +25,6 @@ public:
         , input(false)
 
     {
-        value = getValue();
-
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
@@ -34,7 +32,7 @@ public:
             editor->setBorder({ 0, 11, 3, 0 });
 
             if (editor != nullptr) {
-                editor->setInputRestrictions(0, ".-0123456789");
+                editor->setInputRestrictions(0, "e.-0123456789");
             }
         };
 
@@ -43,16 +41,9 @@ public:
             stopEdition();
         };
 
-        value = getValue();
-
         input.setBorderSize({ 1, 15, 1, 1 });
 
         addAndMakeVisible(input);
-
-        input.setText(input.formatNumber(value), dontSendNotification);
-
-        min = getMinimum();
-        max = getMaximum();
 
         addMouseListener(this, true);
 
@@ -64,17 +55,23 @@ public:
             sendFloatValue(newValue);
         };
 
-        input.setMinimum(static_cast<float>(min.getValue()));
-        input.setMaximum(static_cast<float>(max.getValue()));
-
         input.dragEnd = [this]() {
             stopEdition();
         };
     }
 
-    void initialiseParameters() override
+    void update() override
     {
-        iemHelper.initialiseParameters();
+        value = getValue();
+        input.setText(input.formatNumber(value), dontSendNotification);
+
+        min = getMinimum();
+        max = getMaximum();
+
+        input.setMinimum(::getValue<float>(min));
+        input.setMaximum(::getValue<float>(max));
+
+        iemHelper.update();
     }
 
     bool hideInlets() override
@@ -98,7 +95,7 @@ public:
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h + 1);
+        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
 
         pd->unlockAudioThread();
 
@@ -111,7 +108,7 @@ public:
 
         auto* nbx = static_cast<t_my_numbox*>(ptr);
 
-        nbx->x_gui.x_w = b.getWidth();
+        nbx->x_gui.x_w = b.getWidth() - 1;
         nbx->x_gui.x_h = b.getHeight() - 1;
 
         nbx->x_numwidth = (b.getWidth() / 9) - 1;
@@ -160,13 +157,34 @@ public:
         return allParameters;
     }
 
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("float"),
+            hash("set"),
+            hash("list"),
+            hash("range"),
+            IEMGUI_MESSAGES
+        };
+    }
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
         case hash("float"):
+        case hash("list"):
         case hash("set"): {
-            value = std::clamp(atoms[0].getFloat(), static_cast<float>(min.getValue()), static_cast<float>(max.getValue()));
-            input.setText(input.formatNumber(value), dontSendNotification);
+            if (!atoms.empty() && atoms[0].isFloat()) {
+                value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
+                input.setText(input.formatNumber(value), dontSendNotification);
+            }
+            break;
+        }
+        case hash("range"): {
+            if (atoms.size() >= 2 && atoms[0].isFloat() && atoms[1].isFloat()) {
+                min = getMinimum();
+                max = getMaximum();
+            }
             break;
         }
         default: {
@@ -179,9 +197,9 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
-            setMinimum(static_cast<float>(min.getValue()));
+            setMinimum(::getValue<float>(min));
         } else if (value.refersToSameSourceAs(max)) {
-            setMaximum(static_cast<float>(max.getValue()));
+            setMaximum(::getValue<float>(max));
         } else {
             iemHelper.valueChanged(value);
         }
@@ -190,13 +208,13 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -221,9 +239,9 @@ public:
         Point<float> point_c(left_x, centre_y - 5.0);
         triangle.addTriangle(point_a, point_b, point_c);
 
-        auto normalColour = object->findColour(PlugDataColour::objectOutlineColourId);
+        auto normalColour = object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
         auto highlightColour = object->findColour(PlugDataColour::objectSelectedOutlineColourId);
-        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
+        bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
 
         g.setColour(highlighed ? highlightColour : normalColour);
         g.fillPath(triangle);

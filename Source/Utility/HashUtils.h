@@ -1,9 +1,7 @@
 #pragma once
 
-#include <JuceHeader.h>
-
-typedef uint32_t hash32;
-typedef uint8_t u8;
+using hash32 = uint32_t;
+using u8 = uint8_t;
 #define EMPTY_HASH ((hash32)0x811c9dc5)
 
 /**
@@ -12,6 +10,9 @@ typedef uint8_t u8;
 constexpr hash32 hash(char const* str)
 {
     hash32 result = EMPTY_HASH;
+
+    if (!str)
+        return result;
 
     while (*str) {
         result ^= (hash32)*str;       // NOTE: make this toupper(*s) or tolower(*s) if you want case-insensitive hashes

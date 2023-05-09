@@ -136,7 +136,7 @@ static void click_click(t_gobj *z, t_canvas *x){
     if(objs == NULL) {
         t_atom arg;
         SETFLOAT(&arg, 1);
-        pd_typedmess(z, gensym("vis"), 1, &arg);
+        pd_typedmess((t_pd *)z, gensym("vis"), 1, &arg);
     }
     while(objs){
         t_canvas* cv = (t_canvas*)objs->obj;

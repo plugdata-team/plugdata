@@ -1,33 +1,24 @@
-#N canvas 492 28 828 714 12;
+#N canvas 417 25 828 698 12;
 #X declare -path else;
 #X obj 362 338 *~;
-#X obj 418 188 nbx 5 14 -1e+37 1e+37 0 0 empty Hz2 empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 342 188 nbx 5 14 -1e+37 1e+37 0 0 empty Hz1 empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 418 188 nbx 5 14 -1e+37 1e+37 0 0 empty Hz2 empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 342 188 nbx 5 14 -1e+37 1e+37 0 0 empty Hz1 empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 418 213 osc~ 90;
-#X obj 362 630 out~;
+#X obj 362 622 out~;
 #X obj 342 212 osc~ 300;
 #X obj 125 298 graph~ 500 16;
-#X obj 362 468 graph~ 500 17;
+#X obj 362 460 graph~ 500 17;
 #X obj 417 298 graph~ 500 17;
-#X text 33 60 We can modulate the amplitude of any signal (called the
-"carrier" signal) by multiplying it by any oscillating signal (called
-"modulator" signal). The modulating signal is usually an oscillator
-\, whose frequency is the modulating frequency., f 51;
-#X text 425 62 Here we have an amplitude modulation example where both
-the carrier and modulator signals are sine wave oscillators. This is
-"classic" amplitude modulation because the modulator signal has a DC-Offset
-so that it is "unipolar" and only has positive values (from 0 to 1).
-, f 52;
+#X text 33 60 We can modulate the amplitude of any signal (called the "carrier" signal) by multiplying it by any oscillating signal (called "modulator" signal). The modulating signal is usually an oscillator \, whose frequency is the modulating frequency., f 51;
+#X text 425 62 Here we have an amplitude modulation example where both the carrier and modulator signals are sine wave oscillators. This is "classic" amplitude modulation because the modulator signal has a DC-Offset so that it is "unipolar" and only has positive values (from 0 to 1)., f 52;
 #X obj 418 246 rescale~;
 #X text 484 247 DC-Offset (from 0 to 1);
 #X text 620 428 -1;
 #X text 626 360 0;
 #X text 625 292 1;
-#X text 566 599 -1;
-#X text 572 531 0;
-#X text 571 463 1;
+#X text 566 591 -1;
+#X text 572 523 0;
+#X text 571 455 1;
 #X text 103 429 -1;
 #X text 109 361 0;
 #X text 108 293 1;

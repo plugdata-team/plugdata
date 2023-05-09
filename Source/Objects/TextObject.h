@@ -24,7 +24,7 @@ struct TextObjectHelper {
             w = std::max(charWidth, minWidth) * fontWidth;
         } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
             w = std::clamp(idealTextWidth, minWidth * fontWidth, fontWidth * 60);
-        } else { // If width was set manually, calculate what the width is
+        } else {                     // If width was set manually, calculate what the width is
             w = std::max(charWidth, minWidth) * fontWidth + offset;
         }
 
@@ -37,31 +37,6 @@ struct TextObjectHelper {
         return { x, y, w, h };
     }
 
-    static void checkBounds(void* patch, void* obj, Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft, int fontWidth, int maxIolets = 0)
-    {
-        // Remove margin
-        newBounds = newBounds.reduced(Object::margin);
-        oldBounds = oldBounds.reduced(Object::margin);
-
-        auto minimumWidth = std::max(minWidth, (maxIolets * 18) / fontWidth);
-
-        // Calculate the width in text characters for both
-        auto oldCharWidth = oldBounds.getWidth() / fontWidth;
-        auto newCharWidth = std::max(minimumWidth, newBounds.getWidth() / fontWidth);
-
-        // If we're resizing the left edge, move the object left
-        if (resizingOnLeft) {
-            auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
-            auto x = oldBounds.getX() - widthDiff;
-            auto y = oldBounds.getY(); // don't allow y resize
-
-            libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(obj), x, y);
-        }
-
-        // Set new width
-        TextObjectHelper::setWidthInChars(obj, newCharWidth);
-    }
-
     static int getWidthInChars(void* ptr)
     {
         return static_cast<t_text*>(ptr)->te_width;
@@ -70,6 +45,65 @@ struct TextObjectHelper {
     static int setWidthInChars(void* ptr, int newWidth)
     {
         return static_cast<t_text*>(ptr)->te_width = newWidth;
+    }
+
+    static std::unique_ptr<ComponentBoundsConstrainer> createConstrainer(Object* object)
+    {
+        class TextObjectBoundsConstrainer : public ComponentBoundsConstrainer {
+        public:
+            Object* object;
+
+            TextObjectBoundsConstrainer(Object* parent)
+                : object(parent)
+            {
+            }
+            /*
+             * Custom version of checkBounds that takes into consideration
+             * the padding around plugdata node objects when resizing
+             * to allow the aspect ratio to be interpreted correctly.
+             * Otherwise resizing objects with an aspect ratio will
+             * resize the object size **including** margins, and not follow the
+             * actual size of the visible object
+             */
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool isStretchingTop,
+                bool isStretchingLeft,
+                bool isStretchingBottom,
+                bool isStretchingRight) override
+            {
+                auto fontWidth = glist_fontwidth(object->cnv->patch.getPointer());
+                auto* patch = object->cnv->patch.getPointer();
+
+                // Remove margin
+                auto newBounds = bounds.reduced(Object::margin);
+                auto oldBounds = old.reduced(Object::margin);
+
+                auto maxIolets = std::max({ 1, object->numInputs, object->numOutputs });
+                auto minimumWidth = std::max(TextObjectHelper::minWidth, (maxIolets * 18) / fontWidth);
+
+                // Calculate the width in text characters for both
+                auto oldCharWidth = oldBounds.getWidth() / fontWidth;
+                auto newCharWidth = std::max(minimumWidth, newBounds.getWidth() / fontWidth);
+
+                // If we're resizing the left edge, move the object left
+                if (isStretchingLeft) {
+                    auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
+                    auto x = oldBounds.getX() - widthDiff;
+                    auto y = oldBounds.getY(); // don't allow y resize
+
+                    libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                }
+
+                // Set new width
+                TextObjectHelper::setWidthInChars(object->getPointer(), newCharWidth);
+
+                bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+            }
+        };
+
+        return std::make_unique<TextObjectBoundsConstrainer>(object);
     }
 
     static String fixNewlines(String text)
@@ -170,7 +204,7 @@ public:
         , isValid(valid)
     {
         objectText = getText();
-        isLocked = static_cast<bool>(cnv->locked.getValue());
+        isLocked = getValue<bool>(cnv->locked);
     }
 
     virtual ~TextBase()
@@ -181,7 +215,7 @@ public:
     {
         auto backgroundColour = object->findColour(PlugDataColour::textObjectBackgroundColourId);
         g.setColour(backgroundColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         auto ioletAreaColour = object->findColour(PlugDataColour::ioletAreaColourId);
 
@@ -195,13 +229,13 @@ public:
             auto textArea = border.subtractedFrom(getLocalBounds());
 
             auto scale = getWidth() < 40 ? 0.9f : 1.0f;
-            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
+            Fonts::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
         }
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
 
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
@@ -210,7 +244,7 @@ public:
         }
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     // Override to cancel default behaviour
@@ -252,17 +286,8 @@ public:
         numLines = newNumLines;
 
         pd->unlockAudioThread();
-        
-        return newBounds;
-    }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
-    {
-        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        auto* patch = cnv->patch.getPointer();
-        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth, std::max(object->numInputs, object->numOutputs));
-        object->updateBounds();
-        return true;
+        return newBounds;
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -273,10 +298,10 @@ public:
             TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
         }
     }
-        
-    void mouseDown(const MouseEvent& e) override
+
+    void mouseDown(MouseEvent const& e) override
     {
-        if(isLocked) {
+        if (isLocked) {
             click();
         }
     }
@@ -369,6 +394,11 @@ public:
     bool hideInGraph() override
     {
         return true;
+    }
+
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+    {
+        return TextObjectHelper::createConstrainer(object);
     }
 };
 

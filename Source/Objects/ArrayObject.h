@@ -141,7 +141,9 @@ public:
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
 
-        object->constrainer->setMinimumSize(100 - Object::doubleMargin, 40 - Object::doubleMargin);
+        MessageManager::callAsync([this] {
+            object->getConstrainer()->setMinimumSize(100 - Object::doubleMargin, 40 - Object::doubleMargin);
+        });
     }
 
     void setArray(PdArray& graph)
@@ -214,7 +216,7 @@ public:
                 if (invert)
                     p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
-                g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
                 g.strokePath(p, PathStrokeType(1));
                 break;
             }
@@ -235,12 +237,12 @@ public:
                 if (invert)
                     p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
-                g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
                 g.fillPath(p);
                 break;
             }
             case PdArray::DrawType::Points: {
-                g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
                 float const dw_points = w / static_cast<float>(points.size());
 
@@ -248,7 +250,7 @@ public:
                     float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     if (invert)
                         y = getHeight() - y;
-                    g.drawHorizontalLine(y, static_cast<float>(i) * dw_points, static_cast<float>(i + 1) * dw_points);
+                    g.drawLine(static_cast<float>(i) * dw_points, y, static_cast<float>(i + 1) * dw_points, y, 2.0f);
                 }
                 break;
             }
@@ -261,11 +263,11 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         if (error) {
             // TODO: error colour
-            PlugDataLook::drawText(g, "array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, "array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
             error = false;
         } else {
             paintGraph(g);
@@ -449,19 +451,19 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
     }
 
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.drawHorizontalLine(39, 0, getWidth());
 
         if (!title.isEmpty()) {
-            PlugDataLook::drawText(g, title, 0, 0, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, title, 0, 0, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
         }
     }
 };
@@ -479,23 +481,12 @@ public:
         graph.setBounds(getLocalBounds());
         addAndMakeVisible(&graph);
 
-        auto scale = array.getScale();
-        Array<var> arr = { var(scale[0]), var(scale[1]) };
-        range = var(arr);
-        size = var(static_cast<int>(graph.array.size()));
-        saveContents = array.willSaveContent();
-        name = String(array.getUnexpandedName());
-        drawMode = static_cast<int>(array.getDrawType()) + 1;
-
-        labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
-
-        updateLabel();
-
         startTimer(20);
     }
 
     void timerCallback() override
     {
+        pd->lockAudioThread();
         // Check if size has changed
         int currentSize = graph.array.size();
         if (graph.vec.size() != currentSize) {
@@ -506,6 +497,7 @@ public:
 
         // Update values
         graph.update();
+        pd->unlockAudioThread();
     }
 
     void updateLabel() override
@@ -573,24 +565,26 @@ public:
         graph.setBounds(getLocalBounds());
     }
 
-    void initialiseParameters() override
+    void update() override
     {
-        auto params = getParameters();
-        for (auto& [name, type, cat, value, list] : params) {
-            value->addListener(this);
+        auto scale = array.getScale();
+        Array<var> arr = { var(scale[0]), var(scale[1]) };
+        range = var(arr);
+        size = var(static_cast<int>(graph.array.size()));
+        saveContents = array.willSaveContent();
+        name = String(array.getUnexpandedName());
+        drawMode = static_cast<int>(array.getDrawType()) + 1;
 
-            // Push current parameters to pd
-            valueChanged(*value);
-        }
+        labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
     }
 
     void updateSettings()
     {
         auto arrName = name.getValue().toString();
-        auto arrSize = std::max(0, static_cast<int>(size.getValue()));
-        auto arrDrawMode = static_cast<int>(drawMode.getValue()) - 1;
+        auto arrSize = std::max(0, getValue<int>(size));
+        auto arrDrawMode = getValue<int>(drawMode) - 1;
 
-        if (arrSize != static_cast<int>(size.getValue())) {
+        if (arrSize != getValue<int>(size)) {
             size = arrSize;
         }
 
@@ -601,7 +595,7 @@ public:
             arrDrawMode = 0;
         }
 
-        auto arrSaveContents = static_cast<bool>(saveContents.getValue());
+        auto arrSaveContents = getValue<bool>(saveContents);
 
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
 
@@ -642,11 +636,11 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     PdArray getArray() const
@@ -664,9 +658,24 @@ public:
 
     void openFromMenu() override
     {
+        if (dialog) {
+            dialog->toFront(true);
+            return;
+        }
+
         dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         dialog->onClose = [this]() {
             dialog.reset(nullptr);
+        };
+    }
+
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("float"),
+            hash("symbol"),
+            hash("list"),
+            hash("edit")
         };
     }
 
@@ -678,13 +687,12 @@ public:
         case hash("list"): {
             break;
         }
-            /*
-    case objectMessage::msg_edit: {
-        if(!atoms.empty()) {
-            editable = atoms[0].getFloat();
-            setInterceptsMouseClicks(false, editable);
+        case hash("edit"): {
+            if (!atoms.empty()) {
+                editable = atoms[0].getFloat();
+                setInterceptsMouseClicks(false, editable);
+            }
         }
-    } */
         default:
             break;
         }
@@ -695,7 +703,7 @@ private:
 
     PdArray array;
     GraphicalArray graph;
-    std::unique_ptr<ArrayEditorDialog> dialog;
+    std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
 
     Value labelColour;
     bool editable = true;
@@ -703,7 +711,7 @@ private:
 
 // Actual text object, marked final for optimisation
 class ArrayDefineObject final : public TextBase {
-    std::unique_ptr<ArrayEditorDialog> editor;
+    std::unique_ptr<ArrayEditorDialog> editor = nullptr;
 
 public:
     ArrayDefineObject(void* obj, Object* parent, bool isValid = true)
@@ -728,6 +736,11 @@ public:
 
     void openArrayEditor()
     {
+        if (editor) {
+            editor->toFront(true);
+            return;
+        }
+
         auto* c = reinterpret_cast<t_canvas*>(static_cast<t_canvas*>(ptr)->gl_list);
         auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
         auto array = PdArray(glist, cnv->pd->m_instance);

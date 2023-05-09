@@ -4,19 +4,30 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#if JUCE_WINDOWS
+#pragma once
 
-void createJunction(std::string from, std::string to);
-void createHardLink(std::string from, std::string to);
-bool runAsAdmin(std::string file, std::string lpParameters, void* hWnd);
+#include <string>
 
+struct OSUtils {
+    enum KeyboardLayout {
+        QWERTY,
+        AZERTY
+        /* QWERTZ */
+    };
+
+#if defined(_WIN32) || defined(_WIN64)
+    static void createJunction(std::string from, std::string to);
+    static void createHardLink(std::string from, std::string to);
+    static bool runAsAdmin(std::string file, std::string lpParameters, void* hWnd);
+#elif defined(__unix__) && !defined(__APPLE__)
+    static void maximiseX11Window(void* handle, bool shouldBeMaximised);
+    static bool isX11WindowMaximised(void* handle);
 #elif JUCE_MAC
-
-void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
-
-#elif JUCE_LINUX
-
-void maximiseLinuxWindow(void* handle);
-bool isMaximised(void* handle);
-
+    static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
+    static void HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);
 #endif
+
+    static juce::Array<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles);
+
+    static KeyboardLayout getKeyboardLayout();
+};

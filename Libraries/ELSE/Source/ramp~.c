@@ -99,6 +99,7 @@ static t_int *ramp_perform(t_int *w){
                     temp = max;
                     max = min;
                     min = temp;
+                    range = max - min;
                 };
                 if(x->x_mode == 0){ // loop
                     x->x_clip = 0;

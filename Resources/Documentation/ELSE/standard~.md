@@ -38,11 +38,11 @@ methods:
   - type: k <float>
     description: sets the value of k
 
-info: This object was based on SuperCollider's "StandardN" UGEN;
-The standard map is an area preserving map of a cylinder discovered by the plasma physicist Boris Chirikov.
-
 draft: false
 ---
+
+This object was based on SuperCollider's "StandardN" UGEN;
+The standard map is an area preserving map of a cylinder discovered by the plasma physicist Boris Chirikov.
 
 [standard~] is a standard map chaotic generator. The sound is generated with the difference equations;
 y[n] = (y[n-1] + k * sin(x[n-1])) % 2pi;

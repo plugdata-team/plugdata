@@ -22,11 +22,6 @@ public:
     MessboxObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        auto* messbox = static_cast<t_fake_messbox*>(ptr);
-
-        bold = messbox->x_font_weight == pd->generateSymbol("bold");
-        fontSize = messbox->x_font_size;
-
         editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         editor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
@@ -56,24 +51,19 @@ public:
         resized();
         repaint();
 
-        bool isLocked = static_cast<bool>(object->cnv->locked.getValue());
+        bool isLocked = getValue<bool>(object->cnv->locked);
         editor.setReadOnly(!isLocked);
     }
 
-    void initialiseParameters() override
+    void update() override
     {
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
 
+        bold = messbox->x_font_weight == pd->generateSymbol("bold");
+        fontSize = messbox->x_font_size;
+
         primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
         secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
-
-        auto params = getParameters();
-        for (auto& [name, type, cat, value, list] : params) {
-            value->addListener(this);
-
-            // Push current parameters to pd
-            valueChanged(*value);
-        }
 
         repaint();
     }
@@ -93,9 +83,9 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
-        
+
         libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-        
+
         messbox->x_width = b.getWidth();
         messbox->x_height = b.getHeight();
     }
@@ -111,16 +101,25 @@ public:
         auto bounds = getLocalBounds();
         // Draw background
         g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+    }
+
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("set"),
+            hash("append"),
+            hash("bang"),
+        };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
@@ -277,10 +276,10 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            { "Text colour", tColour, cAppearance, &primaryColour, {} },
-            { "Background colour", tColour, cAppearance, &secondaryColour, {} },
+            { "Text color", tColour, cAppearance, &primaryColour, {} },
+            { "Background color", tColour, cAppearance, &secondaryColour, {} },
             { "Font size", tInt, cAppearance, &fontSize, {} },
-            { "Bold", tBool, cAppearance, &bold, { "no", "yes" } }
+            { "Bold", tBool, cAppearance, &bold, { "No", "Yes" } }
         };
     }
 
@@ -289,29 +288,25 @@ public:
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
         if (value.refersToSameSourceAs(primaryColour)) {
 
-            editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-
             auto col = Colour::fromString(primaryColour.toString());
-            messbox->x_fg[0] = col.getRed();
-            messbox->x_fg[1] = col.getGreen();
-            messbox->x_fg[2] = col.getBlue();
+            editor.applyColourToAllText(col);
+
+            colourToHexArray(col, messbox->x_fg);
             repaint();
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
-            messbox->x_bg[0] = col.getRed();
-            messbox->x_bg[1] = col.getGreen();
-            messbox->x_bg[2] = col.getBlue();
+            colourToHexArray(col, messbox->x_bg);
             repaint();
         }
         if (value.refersToSameSourceAs(fontSize)) {
-            auto size = static_cast<int>(fontSize.getValue());
+            auto size = getValue<int>(fontSize);
             editor.applyFontToAllText(editor.getFont().withHeight(size));
             messbox->x_font_size = size;
         }
         if (value.refersToSameSourceAs(bold)) {
-            auto size = static_cast<int>(fontSize.getValue());
-            if (static_cast<bool>(bold.getValue())) {
+            auto size = getValue<int>(fontSize);
+            if (getValue<bool>(bold)) {
                 auto boldFont = Fonts::getBoldFont();
                 editor.applyFontToAllText(boldFont.withHeight(size));
                 messbox->x_font_weight = pd->generateSymbol("normal");
@@ -327,33 +322,4 @@ public:
     {
         return false;
     }
-
-    struct t_fake_messbox {
-        t_object x_obj;
-        t_canvas* x_canvas;
-        t_glist* x_glist;
-        t_symbol* x_bind_sym;
-        void* x_proxy;
-        t_symbol* x_dollzero;
-        int x_flag;
-        int x_height;
-        int x_width;
-        int x_resizing;
-        int x_active;
-        int x_selected;
-        char x_fgcolor[8];
-        unsigned int x_fg[3]; // fg RGB color
-        char x_bgcolor[8];
-        unsigned int x_bg[3]; // bg RGB color
-        int x_font_size;
-        int x_zoom;
-        t_symbol* x_font_weight;
-        char* tcl_namespace;
-        char* x_cv_id;
-        char* frame_id;
-        char* text_id;
-        //    char            *handle_id;
-        char* window_tag;
-        char* all_tag;
-    };
 };

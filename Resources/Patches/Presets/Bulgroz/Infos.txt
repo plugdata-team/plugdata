@@ -1,0 +1,6 @@
+Bulgroz is an effect that reverse sound using delay lines and window functions allowing real time audio processing.
+Two sentences which the length depends on the window size are continuously playing in phase opposition.
+The effect is compatible with two channels.
+
+Version: 1.0
+Author: Pierre Guillot

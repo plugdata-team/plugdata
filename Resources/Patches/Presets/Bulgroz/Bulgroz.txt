@@ -1,0 +1,11 @@
+param -name Window Size -label ms -min 0 -max 10000 -default 220;
+program short;
+program medium;
+program long;
+iolayout 2 2;
+code zWrt;
+type effect;
+image Bulgroz.png;
+description Infos.txt;
+manufacturer Pierre Guillot;
+compatibility 1.0.7;

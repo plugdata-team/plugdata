@@ -8,7 +8,7 @@ last_update: '0.28'
 inlets:
   1st:
   - type: bang
-    description: stops the loop
+    description: starts the loop
   - type: float
     description: set number of iterations in the loop
   2nd:

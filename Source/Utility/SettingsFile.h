@@ -5,7 +5,7 @@
  */
 
 #pragma once
-#include "Pd/PdLibrary.h"
+#include "Pd/Library.h"
 
 struct SettingsFileListener {
     SettingsFileListener();
@@ -36,11 +36,11 @@ public:
     ValueTree getTheme(String name);
     ValueTree getCurrentTheme();
 
-    void initialisePathsTree();
-
     void addToRecentlyOpened(File path);
 
+    void initialisePathsTree();
     void initialiseThemesTree();
+    void initialiseOverlayTree();
 
     void reloadSettings();
 
@@ -57,7 +57,9 @@ public:
     template<typename T>
     T getProperty(String name)
     {
-        jassert(isInitialised);
+        if (!isInitialised) {
+            initialise();
+        }
 
         if constexpr (std::is_same<T, String>::value) {
             return settingsTree.getProperty(name).toString();
@@ -68,9 +70,13 @@ public:
 
     bool hasProperty(String name);
 
+    bool wantsNativeDialog();
+
     Value getPropertyAsValue(String name);
 
     ValueTree getValueTree();
+
+    void setGlobalScale(float newScale);
 
 private:
     bool isInitialised = false;
@@ -91,13 +97,28 @@ private:
         { "protected", var(1) },
         { "internal_synth", var(0) },
         { "grid_enabled", var(1) },
+        { "grid_type", var(1) },
         { "grid_size", var(20) },
-        { "zoom", var(1.0f) },
-        { "split_zoom", var(1.0f) },
         { "default_font", var("Inter") },
         { "native_window", var(false) },
         { "reload_last_state", var(false) },
-        { "autoconnect", var(true) }
+        { "autoconnect", var(true) },
+        { "origin", var(0) },
+        { "border", var(0) },
+        { "index", var(0) },
+        { "coordinate", var(0) },
+        { "activation_state", var(0) },
+        { "order", var(0) },
+        { "direction", var(0) },
+        { "global_scale", var(1.0f) },
+        { "show_palettes", var(true) },
+        { "macos_buttons",
+#if JUCE_MAC
+            var(true)
+#else
+            var(false)
+#endif
+        },
     };
 
     StringArray childTrees {

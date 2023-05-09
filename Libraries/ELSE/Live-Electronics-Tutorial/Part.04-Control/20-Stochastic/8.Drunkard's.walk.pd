@@ -1,16 +1,11 @@
-#N canvas 704 219 568 378 12;
+#N canvas 463 40 568 378 12;
 #X declare -path else;
-#X obj 133 265 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -228856
--1 -1 4176 1;
+#X obj 133 265 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 130 205 impulse 10;
 #X obj 317 208 drunkard~ 0.2;
 #X obj 130 236 drunkard 8;
 #X obj 353 28 declare -path else;
-#X text 55 75 These objects from the ELSE library generate random numbers
-within a given step range from the last output. This can be thought
-of a special and simple case of markov chaib and promotes what is called
-a "random walk" \, or a "drunkards's walk". Check their help files.
-, f 67;
+#X text 55 75 These objects from the ELSE library generate random numbers within a given step range from the last output. This can be thought of a special and simple case of markov chaib and promotes what is called a "random walk" \, or a "drunkards's walk". Check their help files., f 67;
 #X obj 317 264 osc~;
 #X obj 317 294 out~;
 #X obj 317 176 impulse~ 5;

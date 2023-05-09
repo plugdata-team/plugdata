@@ -3,25 +3,20 @@
 #X obj 349 456 loadbang;
 #X obj 45 314 s~ \$0-in;
 #X obj 45 256 sig~ 40;
-#X obj 45 230 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 45 230 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 547 139 r~ \$0-in;
 #X obj 694 416 r~ \$0-in;
 #X obj 831 443 r~ \$0-fb;
-#X obj 321 326 hsl 128 15 -0.999 0.999 0 0 empty fb empty -2 -6 0 8
-#dcdcdc #000000 #000000 0 1;
+#X obj 321 326 hsl 128 15 -0.999 0.999 0 0 empty fb empty -2 -6 0 8 #dcdcdc #000000 #000000 0 1;
 #X text 352 325 feedback;
 #X floatatom 318 348 0 0 0 0 - - - 0;
 #X floatatom 132 235 5 0 0 0 - - - 0;
 #X floatatom 247 304 5 0 75 0 - - - 0;
 #X floatatom 180 263 5 1 100 0 - - - 0;
-#X obj 135 213 hsl 128 15 0.01 3 1 0 empty rate empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 135 213 hsl 128 15 0.01 3 1 0 empty rate empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X text 184 212 rate;
-#X obj 250 281 hsl 128 15 5 75 1 0 empty delmax empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 183 241 hsl 128 15 0 8 0 0 empty delmin empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 250 281 hsl 128 15 5 75 1 0 empty delmax empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 183 241 hsl 128 15 0 8 0 0 empty delmin empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X text 221 240 delay min.;
 #X text 280 280 delay max.;
 #X obj 132 269 osc~;
@@ -32,7 +27,7 @@
 #X obj 842 167 r~ \$0-fb;
 #X msg 349 487 \; rate 0.07 \; delmin 0.1 \; delmax 8 \; fb 0.9;
 #X msg 240 487 \; rate 0.04 \; delmin 0.4 \; delmax 16 \; fb -0.8;
-#X obj 95 492 out~;
+#X obj 95 498 out~;
 #X obj 739 507 out~;
 #X obj 739 473 comb.rev~ 75 1 1 0;
 #X obj 547 198 comb.rev~ 75 1 1 0;
@@ -50,31 +45,15 @@
 #X obj 577 168 r~ \$0-lfo;
 #X obj 749 166 r~ \$0-lfo;
 #X obj 769 416 r~ \$0-lfo;
-#X text 34 23 Originally \, the Flanger FX was developed by holding
-the "flange" of a tape roll to change its speed \, then mix with the
-original signal \, which generates phase cancelling because of the
-phase differences between the original and the delayed signal., f
-61;
+#X text 34 23 Originally \, the Flanger FX was developed by holding the "flange" of a tape roll to change its speed \, then mix with the original signal \, which generates phase cancelling because of the phase differences between the original and the delayed signal., f 61;
 #X text 239 467 Presets:;
 #X obj 556 473 flanger~ 0.1 10 0.8;
-#X text 34 99 A flanger can be implemented with both a feedforward
-and a feedback delay line. First \, let's see an example with just
-a single feedback line below (the same as last example). The rate is
-the frequency of the LFO that controls the delay time in ms \, and
-a "depth" is given by the minimum and maximum delay times., f 61;
+#X text 34 99 A flanger can be implemented with both a feedforward and a feedback delay line. First \, let's see an example with just a single feedback line below (the same as last example). The rate is the frequency of the LFO that controls the delay time in ms \, and a "depth" is given by the minimum and maximum delay times., f 61;
 #X text 529 112 feedforward flanger;
 #X text 718 112 feedback flanger;
 #X obj 735 13 declare -path else;
-#X text 499 53 The [comb.rev~] object below now uses just a feedforward
-line for a feedforward flanger \, but also just a feedback line as
-the patch to the right.;
-#X text 497 296 And now for a flanger with both feedforward and feedback
-lines. Note that a negative feedback value can cancel the feed forward
-line because of the polarity inversion. We avoid it by using the same
-coefficient for both feed forward and feed back lines. This is the
-basis of the simple [flanger~] object from the ELSE library \, which
-takes directly a rate \, depth and coefficient values \, check its
-help file., f 56;
+#X text 499 53 The [comb.rev~] object below now uses just a feedforward line for a feedforward flanger \, but also just a feedback line as the patch to the right.;
+#X text 497 296 And now for a flanger with both feedforward and feedback lines. Note that a negative feedback value can cancel the feed forward line because of the polarity inversion. We avoid it by using the same coefficient for both feed forward and feed back lines. This is the basis of the simple [flanger~] object from the ELSE library \, which takes directly a rate \, depth and coefficient values \, check its help file., f 56;
 #X obj 96 408 fbdelay~ -gain 75;
 #X connect 0 0 25 0;
 #X connect 2 0 35 0;

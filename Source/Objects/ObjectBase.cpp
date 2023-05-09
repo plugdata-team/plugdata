@@ -4,27 +4,35 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_utils/juce_audio_utils.h>
+
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "ObjectBase.h"
 
 extern "C" {
-
-void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 
 #include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
 #include <g_all_guis.h>
 #include <g_undo.h>
+
+void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
 
+#include "AllGuis.h"
 #include "Object.h"
+#include "Iolet.h"
 #include "Canvas.h"
 #include "Tabbar.h"
 #include "SuggestionComponent.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
-#include "Pd/PdPatch.h"
-#include "Utility/ObjectBoundsConstrainer.h"
+#include "Pd/Patch.h"
+#include "Sidebar/Sidebar.h"
 
 #include "IEMHelper.h"
 #include "AtomHelper.h"
@@ -32,15 +40,14 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "TextObject.h"
 #include "ToggleObject.h"
 #include "MessageObject.h"
-#include "MouseObject.h"
 #include "BangObject.h"
 #include "ButtonObject.h"
 #include "RadioObject.h"
 #include "SliderObject.h"
+#include "KnobObject.h"
 #include "ArrayObject.h"
 #include "GraphOnParent.h"
 #include "KeyboardObject.h"
-#include "KeyObject.h"
 #include "MessboxObject.h"
 #include "MousePadObject.h"
 #include "NumberObject.h"
@@ -57,10 +64,11 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
 #include "TextDefineObject.h"
-#include "CanvasListenerObjects.h"
 #include "ScopeObject.h"
 #include "FunctionObject.h"
 #include "BicoeffObject.h"
+#include "NoteObject.h"
+#include "ColourPickerObject.h"
 
 // Class for non-patchable objects
 class NonPatchable : public ObjectBase {
@@ -72,7 +80,7 @@ public:
         parent->setVisible(false);
     }
 
-    Rectangle<int> getPdBounds() override { return {0, 0, 1, 1}; };
+    Rectangle<int> getPdBounds() override { return { 0, 0, 1, 1 }; };
     void setPdBounds(Rectangle<int> newBounds) override {};
 };
 
@@ -90,15 +98,19 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 {
     pd->registerMessageListener(ptr, this);
 
-    updateLabel(); // TODO: fix virtual call from constructor
-
     setWantsKeyboardFocus(true);
 
     setLookAndFeel(new PlugDataLook());
 
     MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this) {
-            _this->initialiseParameters();
+            _this->updateLabel();
+            _this->constrainer = _this->createConstrainer();
+            _this->onConstrainerCreate();
+
+            for (auto& [name, type, cat, value, list] : _this->getParameters()) {
+                value->addListener(_this.getComponent());
+            }
         }
     });
 }
@@ -121,7 +133,10 @@ String ObjectBase::getText()
 
     char* text = nullptr;
     int size = 0;
+
+    cnv->pd->lockAudioThread();
     libpd_get_object_text(ptr, &text, &size);
+    cnv->pd->unlockAudioThread();
 
     if (text && size) {
 
@@ -136,9 +151,9 @@ String ObjectBase::getText()
 String ObjectBase::getType() const
 {
     // TODO: callback lock can cause deadlock :(
-    // We have a lot of threading problems to fix...
-
     // ScopedLock lock(*pd->getCallbackLock());
+
+    pd->setThis();
 
     if (ptr) {
         // Check if it's an abstraction or subpatch
@@ -186,6 +201,16 @@ String ObjectBase::getType() const
     return {};
 }
 
+// Make sure the object can't be triggered if that palette is in drag mode
+bool ObjectBase::hitTest(int x, int y)
+{
+    if (cnv->isPalette && getValue<bool>(cnv->paletteDragMode)) {
+        return false;
+    }
+
+    return Component::hitTest(x, y);
+}
+
 // Called in destructor of subpatch and graph class
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
@@ -201,38 +226,21 @@ void ObjectBase::closeOpenedSubpatchers()
     }
 }
 
-
 bool ObjectBase::click()
 {
     pd->setThis();
 
-    auto* pdObj = static_cast<t_gobj*>(ptr)->g_pd;
-    
-    // Check if click method exists, if so, call it
-    t_methodentry* mlist;
-    
-    auto* pdinstance = pd_this;
-#if PDINSTANCE
-        mlist = pdObj->c_methods[pdinstance->pd_instanceno];
-#else
-        mlist = pdObj->c_methods;
-#endif
-    
-    for(int i = 0; i < pdObj->c_nmethod; i++)
-    {
-        auto& method = mlist[i];
-        if(mlist[i].me_name == gensym("click") && mlist[i].me_arg[0] == '\0') {
-            pd->enqueueDirectMessages(ptr, "click", {});
-            return true;
-        }
+    if (libpd_has_click_function(static_cast<t_object*>(ptr))) {
+        pd->enqueueDirectMessages(ptr, "click", {});
+        return true;
     }
-    
+
     return false;
 }
 
 void ObjectBase::openSubpatch()
 {
-    auto* subpatch = getPatch();
+    auto subpatch = getPatch();
 
     if (!subpatch)
         return;
@@ -258,13 +266,13 @@ void ObjectBase::openSubpatch()
         }
     }
 
-    auto* newPatch = cnv->editor->pd->patches.add(subpatch);
+    cnv->editor->pd->patches.add(subpatch);
+    auto newPatch = cnv->editor->pd->patches.getLast();
     auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
 
     newPatch->setCurrentFile(path);
 
     cnv->editor->addTab(newCanvas);
-    newCanvas->checkBounds();
 }
 
 void ObjectBase::moveToFront()
@@ -282,29 +290,13 @@ void ObjectBase::moveToBack()
 void ObjectBase::paint(Graphics& g)
 {
     g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-    bool selected = cnv->isSelected(object) && !cnv->isGraph;
+    bool selected = object->isSelected() && !cnv->isGraph;
     auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
     g.setColour(outlineColour);
-    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
-}
-
-void ObjectBase::initialiseParameters()
-{
-    getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
-    getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
-
-    auto params = getParameters();
-    for (auto& [name, type, cat, value, list] : params) {
-        value->addListener(this);
-
-        // Push current parameters to pd
-        valueChanged(*value);
-    }
-
-    repaint();
+    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 }
 
 ObjectParameters ObjectBase::getParameters()
@@ -332,20 +324,21 @@ void ObjectBase::stopEdition()
 
 void ObjectBase::sendFloatValue(float newValue)
 {
-    pd->enqueueFunction([newValue, patch = &cnv->patch, ptr = this->ptr](){
-        
-        if(patch->objectWasDeleted(ptr)) return;
-        
+    pd->enqueueFunction([newValue, patch = &cnv->patch, ptr = this->ptr]() {
+        if (patch->objectWasDeleted(ptr))
+            return;
+
         t_atom atom;
         SETFLOAT(&atom, newValue);
         pd_typedmess(static_cast<t_pd*>(ptr), patch->instance->generateSymbol("set"), 1, &atom);
         pd_bang(static_cast<t_pd*>(ptr));
     });
-
 }
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 {
+    parent->cnv->pd->setThis();
+
     auto const name = hash(libpd_get_object_class_name(ptr));
 
     // check if object is a patcher object, or something else
@@ -393,14 +386,15 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         }
         case hash("pad"):
             return new MousePadObject(ptr, parent);
-        case hash("mouse"):
-            return new MouseObject(ptr, parent);
         case hash("keyboard"):
             return new KeyboardObject(ptr, parent);
         case hash("pic"):
             return new PictureObject(ptr, parent);
         case hash("text define"):
             return new TextDefineObject(ptr, parent);
+        case hash("textfile"):
+        case hash("qlist"):
+            return new TextFileObject(ptr, parent);
         case hash("gatom"): {
             if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT) {
                 return new FloatAtomObject(ptr, parent);
@@ -441,13 +435,8 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             }
             break;
         }
-        case hash("key"):
-            return new KeyObject(ptr, parent, KeyObject::Key);
-        case hash("keyname"):
-            return new KeyObject(ptr, parent, KeyObject::KeyName);
-        case hash("keyup"):
-            return new KeyObject(ptr, parent, KeyObject::KeyUp);
-        // ELSE's [oscope~] and cyclone [scope~] are basically the same object
+        case hash("colors"):
+            return new ColourPickerObject(ptr, parent);
         case hash("oscope~"):
             return new OscopeObject(ptr, parent);
         case hash("scope~"):
@@ -458,16 +447,10 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new BicoeffObject(ptr, parent);
         case hash("messbox"):
             return new MessboxObject(ptr, parent);
-        case hash("canvas.active"):
-            return new CanvasActiveObject(ptr, parent);
-        case hash("canvas.mouse"):
-            return new CanvasMouseObject(ptr, parent);
-        case hash("canvas.vis"):
-            return new CanvasVisibleObject(ptr, parent);
-        case hash("canvas.zoom"):
-            return new CanvasZoomObject(ptr, parent);
-        case hash("canvas.edit"):
-            return new CanvasEditObject(ptr, parent);
+        case hash("note"):
+            return new NoteObject(ptr, parent);
+        case hash("knob"):
+            return new KnobObject(ptr, parent);
         default:
             break;
         }
@@ -482,7 +465,7 @@ bool ObjectBase::canOpenFromMenu()
 
 void ObjectBase::openFromMenu()
 {
-    pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open"), 0, nullptr);
+    pd->enqueueDirectMessages(ptr, "menu-open", {});
 };
 
 bool ObjectBase::hideInGraph()
@@ -500,7 +483,7 @@ Canvas* ObjectBase::getCanvas()
     return nullptr;
 };
 
-pd::Patch* ObjectBase::getPatch()
+pd::Patch::Ptr ObjectBase::getPatch()
 {
     return nullptr;
 };
@@ -512,25 +495,33 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
 
 void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
 {
-    auto atoms = pd::Atom::fromAtoms(argc, argv);
+    auto sym = hash(symbol);
 
-    MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-        if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
-            return;
+    switch (sym) {
+    case hash("size"):
+    case hash("delta"):
+    case hash("pos"):
+    case hash("dim"):
+    case hash("width"):
+    case hash("height"): {
+        MessageManager::callAsync([_this = SafePointer(this)]() {
+            if (_this)
+                _this->object->updateBounds();
+        });
+        return;
+    }
+    }
 
-        switch (hash(symbol)) {
-        case hash("size"):
-        case hash("delta"):
-        case hash("pos"):
-        case hash("dim"):
-        case hash("width"):
-        case hash("height"):
-            _this->object->updateBounds();
-            break;
-        default:
-            _this->receiveObjectMessage(symbol, atoms);
-        }
-    });
+    auto messages = getAllMessages();
+    if (std::find(messages.begin(), messages.end(), hash("anything")) != messages.end() || std::find(messages.begin(), messages.end(), sym) != messages.end()) {
+
+        auto atoms = pd::Atom::fromAtoms(argc, argv);
+
+        MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+            if (_this)
+                _this->receiveObjectMessage(symbol, atoms);
+        });
+    }
 }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var value)
@@ -547,4 +538,61 @@ ObjectLabel* ObjectBase::getLabel()
 bool ObjectBase::isBeingEdited()
 {
     return edited;
+}
+
+ComponentBoundsConstrainer* ObjectBase::getConstrainer()
+{
+    return constrainer.get();
+}
+
+std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
+{
+    class ObjectBoundsConstrainer : public ComponentBoundsConstrainer {
+    public:
+        ObjectBoundsConstrainer()
+        {
+            setMinimumSize(Object::minimumSize, Object::minimumSize);
+        }
+        /*
+         * Custom version of checkBounds that takes into consideration
+         * the padding around plugdata node objects when resizing
+         * to allow the aspect ratio to be interpreted correctly.
+         * Otherwise resizing objects with an aspect ratio will
+         * resize the object size **including** margins, and not follow the
+         * actual size of the visible object
+         */
+        void checkBounds(Rectangle<int>& bounds,
+            Rectangle<int> const& old,
+            Rectangle<int> const& limits,
+            bool isStretchingTop,
+            bool isStretchingLeft,
+            bool isStretchingBottom,
+            bool isStretchingRight) override
+        {
+            // we remove the margin from the resizing object
+            BorderSize<int> border(Object::margin);
+            border.subtractFrom(bounds);
+
+            // we also have to remove the margin from the old object, but don't alter the old object
+            ComponentBoundsConstrainer::checkBounds(bounds, border.subtractedFrom(old), limits, isStretchingTop,
+                isStretchingLeft,
+                isStretchingBottom,
+                isStretchingRight);
+
+            // put back the margins
+            border.addTo(bounds);
+
+            // If we're stretching in only one direction, make sure to keep the position on the other axis the same.
+            // This prevents ice-skating when the canvas is zoomed in
+            auto isStretchingWidth = isStretchingLeft || isStretchingRight;
+            auto isStretchingHeight = isStretchingBottom || isStretchingTop;
+
+            if (getFixedAspectRatio() != 0.0f && (isStretchingWidth ^ isStretchingHeight)) {
+
+                bounds = isStretchingHeight ? bounds.withX(old.getX()) : bounds.withY(old.getY());
+            }
+        }
+    };
+
+    return std::make_unique<ObjectBoundsConstrainer>();
 }

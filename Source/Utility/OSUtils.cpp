@@ -4,6 +4,37 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
+#include <juce_gui_basics/juce_gui_basics.h>
+
+#include <juce_core/juce_core.h>
+#include "OSUtils.h"
+
+#if defined(__APPLE__)
+#    define HAS_STD_FILESYSTEM 0
+#elif defined(__unix__)
+#    if defined(__cpp_lib_filesystem) || defined(__cpp_lib_experimental_filesystem)
+#        define HAS_STD_FILESYSTEM 1
+#    else
+#        define HAS_STD_FILESYSTEM 0
+#    endif
+#elif defined(_WIN32) || defined(_WIN64)
+#    define HAS_STD_FILESYSTEM 1
+#endif
+
+#if HAS_STD_FILESYSTEM
+#    if defined(__cpp_lib_filesystem)
+#        include <filesystem>
+#    elif defined(__cpp_lib_experimental_filesystem)
+#        include <experimental/filesystem>
+namespace std {
+namespace filesystem = experimental::filesystem;
+}
+#    endif
+#else
+#    include "../Libraries/cpath/cpath.h"
+#endif
+
 #if defined(_WIN32) || defined(_WIN64)
 
 #    define REPARSE_MOUNTPOINT_HEADER_SIZE 8
@@ -18,21 +49,20 @@
 #    include <ShellAPI.h>
 
 #    include <stdio.h>
-#    include <string>
 #    include <filesystem>
 
-typedef struct {
-    DWORD ReparseTag;
-    DWORD ReparseDataLength;
-    WORD Reserved;
-    WORD ReparseTargetLength;
-    WORD ReparseTargetMaximumLength;
-    WORD Reserved1;
-    WCHAR ReparseTarget[1];
-} REPARSE_MOUNTPOINT_DATA_BUFFER, *PREPARSE_MOUNTPOINT_DATA_BUFFER;
-
-void createJunction(std::string from, std::string to)
+void OSUtils::createJunction(std::string from, std::string to)
 {
+
+    typedef struct {
+        DWORD ReparseTag;
+        DWORD ReparseDataLength;
+        WORD Reserved;
+        WORD ReparseTargetLength;
+        WORD ReparseTargetMaximumLength;
+        WORD Reserved1;
+        WCHAR ReparseTarget[1];
+    } REPARSE_MOUNTPOINT_DATA_BUFFER, *PREPARSE_MOUNTPOINT_DATA_BUFFER;
 
     auto szJunction = (LPCTSTR)from.c_str();
     auto szPath = (LPCTSTR)to.c_str();
@@ -86,14 +116,14 @@ void createJunction(std::string from, std::string to)
     ::CloseHandle(hDir);
 }
 
-void createHardLink(std::string from, std::string to)
+void OSUtils::createHardLink(std::string from, std::string to)
 {
     std::filesystem::create_hard_link(from, to);
 }
 
 // Function to run a command as admin on Windows
 // It should spawn a dialog, asking for permissions
-bool runAsAdmin(std::string command, std::string parameters, void* hWndPtr)
+bool OSUtils::runAsAdmin(std::string command, std::string parameters, void* hWndPtr)
 {
 
     HWND hWnd = (HWND)hWndPtr;
@@ -116,77 +146,76 @@ bool runAsAdmin(std::string command, std::string parameters, void* hWndPtr)
     return (bool)retval;
 }
 
-#endif
+OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
+{
+    TCHAR buff[KL_NAMELENGTH];
+    bool result = GetKeyboardLayoutNameA(buff);
+
+    if (buff == "French" || buff == "Belgian French" || buff == "Belgian (Comma)" || buff == "Belgian (Period)") {
+        return AZERTY;
+    }
+
+    return QWERTY;
+}
+
+#endif // Windows
 
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
-extern "C" {
-#    include <X11/Xlib.h>
-#    include <X11/Xatom.h>
-}
-
-typedef enum {
-    WINDOW_STATE_NONE = 0,
-    WINDOW_STATE_MODAL = (1 << 0),
-    WINDOW_STATE_STICKY = (1 << 1),
-    WINDOW_STATE_MAXIMIZED_VERT = (1 << 2),
-    WINDOW_STATE_MAXIMIZED_HORZ = (1 << 3),
-    WINDOW_STATE_MAXIMIZED = (WINDOW_STATE_MAXIMIZED_VERT | WINDOW_STATE_MAXIMIZED_HORZ),
-    WINDOW_STATE_SHADED = (1 << 4),
-    WINDOW_STATE_SKIP_TASKBAR = (1 << 5),
-    WINDOW_STATE_SKIP_PAGER = (1 << 6),
-    WINDOW_STATE_HIDDEN = (1 << 7),
-    WINDOW_STATE_FULLSCREEN = (1 << 8),
-    WINDOW_STATE_ABOVE = (1 << 9),
-    WINDOW_STATE_BELOW = (1 << 10),
-    WINDOW_STATE_DEMANDS_ATTENTION = (1 << 11),
-    WINDOW_STATE_FOCUSED = (1 << 12),
-    WINDOW_STATE_SIZE = 13,
-} window_state_t;
-
-typedef struct {
-
-    Display* dpy;
-    Window id;
-
-    struct {
-        Atom NET_WM_STATE;
-        Atom NET_WM_STATES[WINDOW_STATE_SIZE];
-    } atoms;
-
-} window_t;
-
-/* state names */
-
-static char const* WINDOW_STATE_NAMES[] = {
-    "_NET_WM_STATE_MODAL",
-    "_NET_WM_STATE_STICKY",
-    "_NET_WM_STATE_MAXIMIZED_VERT",
-    "_NET_WM_STATE_MAXIMIZED_HORZ",
-    "_NET_WM_STATE_SHADED",
-    "_NET_WM_STATE_SKIP_TASKBAR",
-    "_NET_WM_STATE_SKIP_PAGER",
-    "_NET_WM_STATE_HIDDEN",
-    "_NET_WM_STATE_FULLSCREEN",
-    "_NET_WM_STATE_ABOVE",
-    "_NET_WM_STATE_BELOW",
-    "_NET_WM_STATE_DEMANDS_ATTENTION",
-    "_NET_WM_STATE_FOCUSED"
-};
-
-bool isMaximised(void* handle)
+bool OSUtils::isX11WindowMaximised(void* handle)
 {
-    window_t win;
+    enum window_state_t {
+        WINDOW_STATE_NONE = 0,
+        WINDOW_STATE_MODAL = (1 << 0),
+        WINDOW_STATE_STICKY = (1 << 1),
+        WINDOW_STATE_MAXIMIZED_VERT = (1 << 2),
+        WINDOW_STATE_MAXIMIZED_HORZ = (1 << 3),
+        WINDOW_STATE_MAXIMIZED = (WINDOW_STATE_MAXIMIZED_VERT | WINDOW_STATE_MAXIMIZED_HORZ),
+        WINDOW_STATE_SHADED = (1 << 4),
+        WINDOW_STATE_SKIP_TASKBAR = (1 << 5),
+        WINDOW_STATE_SKIP_PAGER = (1 << 6),
+        WINDOW_STATE_HIDDEN = (1 << 7),
+        WINDOW_STATE_FULLSCREEN = (1 << 8),
+        WINDOW_STATE_ABOVE = (1 << 9),
+        WINDOW_STATE_BELOW = (1 << 10),
+        WINDOW_STATE_DEMANDS_ATTENTION = (1 << 11),
+        WINDOW_STATE_FOCUSED = (1 << 12),
+        WINDOW_STATE_SIZE = 13,
+    };
+
+    /* state names */
+    static char const* WINDOW_STATE_NAMES[] = {
+        "_NET_WM_STATE_MODAL",
+        "_NET_WM_STATE_STICKY",
+        "_NET_WM_STATE_MAXIMIZED_VERT",
+        "_NET_WM_STATE_MAXIMIZED_HORZ",
+        "_NET_WM_STATE_SHADED",
+        "_NET_WM_STATE_SKIP_TASKBAR",
+        "_NET_WM_STATE_SKIP_PAGER",
+        "_NET_WM_STATE_HIDDEN",
+        "_NET_WM_STATE_FULLSCREEN",
+        "_NET_WM_STATE_ABOVE",
+        "_NET_WM_STATE_BELOW",
+        "_NET_WM_STATE_DEMANDS_ATTENTION",
+        "_NET_WM_STATE_FOCUSED"
+    };
+
+    auto* display = juce::XWindowSystem::getInstance()->getDisplay();
+
+    juce::XWindowSystemUtilities::ScopedXLock xLock;
+
+    Atom net_wm_state;
+    Atom net_wm_states[WINDOW_STATE_SIZE];
+
     auto window = (Window)handle;
-    auto* display = XOpenDisplay(nullptr);
 
-    win.id = window;
-    win.dpy = display;
+    if (!display)
+        return false;
 
-    win.atoms.NET_WM_STATE = XInternAtom(win.dpy, "_NET_WM_STATE", False);
+    net_wm_state = XInternAtom(display, "_NET_WM_STATE", False);
 
-    for (int i = 0; i < WINDOW_STATE_SIZE; ++i) {
-        win.atoms.NET_WM_STATES[i] = XInternAtom(win.dpy, WINDOW_STATE_NAMES[i], False);
+    for (int i = 0; i < WINDOW_STATE_SIZE; i++) {
+        net_wm_states[i] = XInternAtom(display, WINDOW_STATE_NAMES[i], False);
     }
 
     long max_length = 1024;
@@ -196,57 +225,114 @@ bool isMaximised(void* handle)
     Atom* states = nullptr;
     window_state_t state = WINDOW_STATE_NONE;
 
-    if (XGetWindowProperty(win.dpy,
-            win.id,
-            win.atoms.NET_WM_STATE,
-            0l,
-            max_length,
-            False,
-            XA_ATOM,
-            &actual_type,
-            &actual_format,
-            &num_states,
-            &bytes_after,
-            (unsigned char**)&states)
+    if (XGetWindowProperty(display, window, net_wm_state, 0l, max_length, False, XA_ATOM,
+            &actual_type, &actual_format, &num_states, &bytes_after, (unsigned char**)&states)
         == Success) {
+
         // for every state we get from the server
         for (i = 0; i < num_states; ++i) {
-
             // for every (known) state
             for (int n = 0; n < WINDOW_STATE_SIZE; ++n) {
-
                 // test the state at index i
-                if (states[i] == win.atoms.NET_WM_STATES[n]) {
-
+                if (states[i] == net_wm_states[n]) {
                     state = static_cast<window_state_t>(static_cast<int>(state) | (1 << n));
                     break;
                 }
             }
         }
-
         XFree(states);
     }
 
     return state & WINDOW_STATE_MAXIMIZED;
 }
 
-void maximiseLinuxWindow(void* handle)
+void OSUtils::maximiseX11Window(void* handle, bool shouldBeMaximised)
 {
-    auto win = (Window)handle;
-    auto* display = XOpenDisplay(nullptr);
-
-    XEvent ev;
-    ev.xclient.window = win;
-    ev.xclient.type = ClientMessage;
-    ev.xclient.format = 32;
-    ev.xclient.message_type = XInternAtom(display, "_NET_WM_STATE", False);
-    ev.xclient.data.l[0] = 2;
-    ev.xclient.data.l[1] = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-    ev.xclient.data.l[2] = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-    ev.xclient.data.l[3] = 1;
-
-    XSendEvent(display, DefaultRootWindow(display), False, SubstructureRedirectMask | SubstructureNotifyMask, &ev);
-
-    XCloseDisplay(display);
+    juce::XWindowSystem::getInstance()->setMaximised((::Window)handle, shouldBeMaximised);
 }
+
+OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
+{
+    char* line = NULL;
+    size_t size = 0;
+    ssize_t len;
+    KeyboardLayout result = QWERTY;
+    FILE* in;
+
+    in = popen("LANG=C LC_ALL=C setxkbmap -print", "rb");
+    if (!in)
+        return QWERTY;
+
+    while (1) {
+        len = getline(&line, &size, in);
+        if (strstr(line, "aliases(qwerty)"))
+            result = QWERTY;
+        if (strstr(line, "aliases(azerty)"))
+            result = AZERTY;
+    }
+
+    free(line);
+    pclose(in);
+
+    return result;
+}
+#endif // Linux/BSD
+
+// Use std::filesystem directory iterator if available
+// On old versions of GCC and macos <10.15, std::filesystem is not available
+#if HAS_STD_FILESYSTEM
+
+juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles)
+{
+    juce::Array<juce::File> result;
+
+    if (recursive) {
+        for (auto const& dirEntry : std::filesystem::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
+            auto isDir = dirEntry.is_directory();
+            if ((isDir && !onlyFiles) || !isDir) {
+                result.add(juce::File(dirEntry.path().string()));
+            }
+        }
+    } else {
+        for (auto const& dirEntry : std::filesystem::directory_iterator(directory.getFullPathName().toStdString())) {
+            auto isDir = dirEntry.is_directory();
+            if ((isDir && !onlyFiles) || !isDir) {
+                result.add(juce::File(dirEntry.path().string()));
+            }
+        }
+    }
+
+    return result;
+}
+
+// Otherwise use cpath
+#else
+
+static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool recursive, bool onlyFiles)
+{
+    juce::Array<juce::File> result;
+
+    while (cpath::Opt<cpath::File, cpath::Error::Type> file = dir.GetNextFile()) {
+        auto isDir = file->IsDir();
+
+        if (isDir && recursive && !file->IsSpecialHardLink()) {
+            result.addArray(iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles));
+        }
+        if ((isDir && !onlyFiles) || !isDir) {
+            result.add(juce::File(juce::String(file->GetPath().GetRawPath()->buf)));
+        }
+    }
+
+    dir.Close();
+
+    return result;
+}
+
+juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles)
+{
+    auto pathName = directory.getFullPathName();
+    auto dir = cpath::Dir(pathName.toRawUTF8());
+    return iterateDirectoryRecurse(std::move(dir), recursive, onlyFiles);
+}
+
 #endif

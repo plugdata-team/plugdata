@@ -4,6 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "SettingsFile.h"
 #include "LookAndFeel.h"
 
@@ -59,6 +63,9 @@ SettingsFile* SettingsFile::initialise()
 
     initialisePathsTree();
     initialiseThemesTree();
+    initialiseOverlayTree();
+
+    Desktop::getInstance().setGlobalScaleFactor(getProperty<float>("global_scale"));
 
     saveSettings();
 
@@ -151,7 +158,7 @@ void SettingsFile::addToRecentlyOpened(File path)
 
         // Find oldest entry
         for (int i = 0; i < recentlyOpened.getNumChildren(); i++) {
-            auto time = static_cast<int>(recentlyOpened.getChild(i).getProperty("Time"));
+            auto time = static_cast<int64>(recentlyOpened.getChild(i).getProperty("Time"));
             if (time < minTime) {
                 minIdx = i;
                 minTime = time;
@@ -160,6 +167,21 @@ void SettingsFile::addToRecentlyOpened(File path)
 
         recentlyOpened.removeChild(minIdx, nullptr);
     }
+
+    RecentlyOpenedFilesList::registerRecentFileNatively(path);
+}
+
+bool SettingsFile::wantsNativeDialog()
+{
+    if (ProjectInfo::isStandalone) {
+        return true;
+    }
+
+    if (!settingsTree.hasProperty("NativeDialog")) {
+        return true;
+    }
+
+    return static_cast<bool>(settingsTree.getProperty("NativeDialog"));
 }
 
 void SettingsFile::initialiseThemesTree()
@@ -232,11 +254,33 @@ void SettingsFile::initialiseThemesTree()
                 auto defaultTree = defaultColourThemesTree.getChildWithProperty("theme", themeName);
 
                 // For when we add new colours in the future
-                if (!themeTree.hasProperty(colourName)) {
+                if (!themeTree.hasProperty(colourName) || themeTree.getProperty(colourName).toString().isEmpty() || themeTree.getProperty(colourName).toString() == "00000000") {
                     themeTree.setProperty(colourName, defaultTree.getProperty(colourName).toString(), nullptr);
                 }
             }
         }
+    }
+}
+
+void SettingsFile::initialiseOverlayTree()
+{
+    std::map<String, int> defaults = {
+        { "edit", Origin | ActivationState },
+        { "lock", None },
+        { "run", None },
+        { "alt", Origin | Border | ActivationState | Index | Coordinate | Order | Direction }
+    };
+
+    auto overlayTree = settingsTree.getChildWithName("Overlays");
+
+    if (!overlayTree.isValid()) {
+        overlayTree = ValueTree("Overlays");
+
+        for (auto& [name, settings] : defaults) {
+            overlayTree.setProperty(name, settings, nullptr);
+        }
+
+        settingsTree.appendChild(overlayTree, nullptr);
     }
 }
 
@@ -305,6 +349,12 @@ void SettingsFile::timerCallback()
     // Use timer to group changes together
     saveSettings();
     stopTimer();
+}
+
+void SettingsFile::setGlobalScale(float newScale)
+{
+    setProperty("global_scale", newScale);
+    Desktop::getInstance().setGlobalScaleFactor(newScale);
 }
 
 void SettingsFile::saveSettings()

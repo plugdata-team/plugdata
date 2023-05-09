@@ -5,7 +5,7 @@
  */
 
 #include "ObjectReferenceDialog.h"
-#include "../Canvas.h"
+#include "Canvas.h"
 
 class CategoriesListBox : public ListBox
     , public ListBoxModel {
@@ -43,12 +43,12 @@ public:
         }
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
+            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
 
-        PlugDataLook::drawText(g, categories[rowNumber], 12, 0, width - 9, height, colour, 15);
+        Fonts::drawText(g, categories[rowNumber], 12, 0, width - 9, height, colour, 15);
     }
 
     void initialise(StringArray newCategories)
@@ -77,7 +77,12 @@ public:
         setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         setColour(ListBox::outlineColourId, Colours::transparentBlack);
 
-        descriptions = library.getObjectDescriptions();
+        for (auto object : library.getAllObjects()) {
+            auto info = library.getObjectInfo(object);
+            if (info.hasProperty("name") && info.hasProperty("description")) {
+                descriptions[info.getProperty("name").toString()] = info.getProperty("description").toString();
+            }
+        }
     }
 
     int getNumRows() override
@@ -92,16 +97,16 @@ public:
 
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
+            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
 
         auto textBounds = Rectangle<int>(0, 0, width, height).reduced(18, 6);
 
-        PlugDataLook::drawStyledText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
+        Fonts::drawStyledText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
 
-        PlugDataLook::drawText(g, objectDescription, textBounds, colour, 14);
+        Fonts::drawText(g, objectDescription, textBounds, colour, 14);
     }
 
     void selectedRowsChanged(int row) override
@@ -128,7 +133,7 @@ class ObjectViewer : public Component {
 public:
     ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference)
         : reference(objectReference)
-        , library(editor->pd->objectLibrary)
+        , library(*editor->pd->objectLibrary)
     {
         addChildComponent(openHelp);
         addChildComponent(openReference);
@@ -192,7 +197,7 @@ public:
         auto objectDisplayBounds = infoBounds.removeFromTop(100).reduced(60);
 
         auto colour = findColour(PlugDataColour::panelTextColourId);
-        PlugDataLook::drawStyledText(g, objectName, getLocalBounds().removeFromTop(35).translated(0, 4), colour, Bold, 16.0f, Justification::centred);
+        Fonts::drawStyledText(g, objectName, getLocalBounds().removeFromTop(35).translated(0, 4), colour, Bold, 16.0f, Justification::centred);
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
@@ -202,21 +207,21 @@ public:
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
-            PlugDataLook::drawText(g, infoNames[i], localBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
-            PlugDataLook::drawText(g, infoText[i], localBounds, colour, 15, Justification::topLeft);
+            Fonts::drawText(g, infoNames[i], localBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
+            Fonts::drawText(g, infoText[i], localBounds, colour, 15, Justification::topLeft);
         }
 
         auto descriptionBounds = infoBounds.removeFromTop(25);
-        PlugDataLook::drawText(g, "Description: ", descriptionBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
+        Fonts::drawText(g, "Description: ", descriptionBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
 
-        PlugDataLook::drawFittedText(g, description, descriptionBounds.withHeight(180), colour, 10, 0.9f, 15, Justification::topLeft);
+        Fonts::drawFittedText(g, description, descriptionBounds.withHeight(180), colour, 10, 0.9f, 15, Justification::topLeft);
 
         if (!unknownInletLayout && !unknownOutletLayout) {
             drawObject(g, objectDisplayBounds);
         } else {
             auto questionMarkBounds = objectDisplayBounds.withSizeKeepingCentre(48, 48);
             g.drawRoundedRectangle(questionMarkBounds.toFloat(), 6.0f, 3.0f);
-            PlugDataLook::drawText(g, "?", questionMarkBounds, colour, 40, Justification::centred);
+            Fonts::drawText(g, "?", questionMarkBounds, colour, 40, Justification::centred);
         }
     }
 
@@ -229,7 +234,7 @@ public:
 
         auto outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-        g.drawRoundedRectangle(outlineBounds, PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(outlineBounds, Corners::objectCornerRadius, 1.0f);
 
         auto squareIolets = PlugDataLook::getUseSquareIolets();
 
@@ -251,7 +256,7 @@ public:
         };
 
         auto textBounds = outlineBounds.reduced(2.0f);
-        PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
+        Fonts::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
 
         auto ioletBounds = outlineBounds.reduced(8, 0);
 
@@ -301,36 +306,34 @@ public:
         // openHelp.setVisible(valid);
         openReference.setVisible(valid);
 
+        inlets.clear();
+        outlets.clear();
+
         if (!valid) {
             objectName = "";
             unknownInletLayout = false;
             unknownOutletLayout = false;
-            inlets.clear();
-            outlets.clear();
             repaint();
             return;
         }
 
-        auto ioletDescriptions = library.getIoletDescriptions()[name];
-        auto& inletDescriptions = ioletDescriptions[0];
-        auto& outletDescriptions = ioletDescriptions[1];
-
-        inlets.resize(inletDescriptions.size());
-        outlets.resize(outletDescriptions.size());
-
         bool hasUnknownInletLayout = false;
-
-        for (int i = 0; i < inlets.size(); i++) {
-            inlets[i] = inletDescriptions[i].first.contains("(signal)");
-            if (inletDescriptions[i].second)
-                hasUnknownInletLayout = true;
-        }
-
         bool hasUnknownOutletLayout = false;
-        for (int i = 0; i < outlets.size(); i++) {
-            outlets[i] = outletDescriptions[i].first.contains("(signal)");
-            if (outletDescriptions[i].second)
-                hasUnknownOutletLayout = true;
+
+        auto objectInfo = library.getObjectInfo(name);
+        auto ioletDescriptions = objectInfo.getChildWithName("iolets");
+        for (auto iolet : ioletDescriptions) {
+            auto variable = iolet.getProperty("variable").toString() == "1";
+
+            if (iolet.getType() == Identifier("inlet")) {
+                if (variable)
+                    hasUnknownInletLayout = true;
+                inlets.push_back(iolet.getProperty("tooltip").toString().contains("(signal)"));
+            } else {
+                if (variable)
+                    hasUnknownOutletLayout = true;
+                outlets.push_back(iolet.getProperty("tooltip").toString().contains("(signal)"));
+            }
         }
 
         unknownInletLayout = hasUnknownInletLayout;
@@ -340,11 +343,13 @@ public:
         categories = "";
         origin = "";
 
-        // Inverse lookup :(
-        for (auto const& [cat, objects] : library.getObjectCategories()) {
-            if (pd::Library::objectOrigins.contains(cat) && objects.contains(name)) {
+        auto categoriesTree = objectInfo.getChildWithName("categories");
+
+        for (auto category : categoriesTree) {
+            auto cat = category.getProperty("name").toString();
+            if (pd::Library::objectOrigins.contains(cat)) {
                 origin = cat;
-            } else if (objects.contains(name)) {
+            } else {
                 categories += cat + ", ";
             }
         }
@@ -359,7 +364,7 @@ public:
             origin = "Unknown";
         }
 
-        description = library.getObjectDescriptions()[name];
+        description = objectInfo.getProperty("description").toString();
 
         if (description.isEmpty()) {
             description = "No description available";
@@ -444,10 +449,11 @@ public:
 
         setInterceptsMouseClicks(false, true);
 
-        objectDescriptions = library.getObjectDescriptions();
-
         for (auto& object : library.getAllObjects()) {
-            if (!objectDescriptions.count(object)) {
+            auto objectInfo = library.getObjectInfo(object);
+            if (objectInfo.isValid()) {
+                objectDescriptions[object] = objectInfo.getProperty("description").toString();
+            } else {
                 objectDescriptions[object] = "";
             }
         }
@@ -479,17 +485,18 @@ public:
     void paint(Graphics& g) override
     {
         if (listBox.isVisible()) {
-            g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
         }
     }
 
     void paintOverChildren(Graphics& g) override
     {
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
-        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
+        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
 
         if (input.getText().isEmpty()) {
-            PlugDataLook::drawText(g, "Type to search for objects", 30, 0, 300, 30, findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f), 14);
+            Fonts::drawFittedText(g, "Type to search for objects", 30, 0, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
         }
     }
 
@@ -497,7 +504,7 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, PlugDataLook::smallCornerRadius);
+            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::defaultCornerRadius);
         }
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(ComboBox::textColourId));
@@ -511,7 +518,7 @@ public:
         auto textWidth = w - leftIndent - rightIndent;
 
         if (textWidth > 0)
-            PlugDataLook::drawStyledText(g, item, leftIndent, yIndent, textWidth, h - yIndent * 2, colour, Semibold, 12, Justification::left);
+            Fonts::drawStyledText(g, item, leftIndent, yIndent, textWidth, h - yIndent * 2, colour, Semibold, 12, Justification::left);
 
         auto objectDescription = objectDescriptions[item];
 
@@ -538,9 +545,9 @@ public:
         auto iconbound = g.getClipBounds().reduced(6);
         iconbound.setWidth(iconbound.getHeight());
         iconbound.translate(6, 0);
-        g.fillRoundedRectangle(iconbound.toFloat(), PlugDataLook::smallCornerRadius);
+        g.fillRoundedRectangle(iconbound.toFloat(), Corners::defaultCornerRadius);
 
-        PlugDataLook::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
+        Fonts::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
     }
 
     int getNumRows() override
@@ -604,7 +611,7 @@ public:
 
         input.setBounds(inputBounds);
 
-        clearButton.setBounds(inputBounds.removeFromRight(25));
+        clearButton.setBounds(inputBounds.removeFromRight(32));
 
         listBox.setBounds(tableBounds);
     }
@@ -616,7 +623,7 @@ private:
 
     Array<String> searchResult;
     TextEditor input;
-    TextButton clearButton = TextButton(Icons::Clear);
+    TextButton clearButton = TextButton(Icons::ClearText);
 
     std::unordered_map<String, String> objectDescriptions;
 };
@@ -626,13 +633,21 @@ class ObjectBrowserDialog : public Component {
 public:
     ObjectBrowserDialog(Component* pluginEditor, Dialog* parent)
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
-        , objectsList(editor->pd->objectLibrary)
+        , objectsList(*editor->pd->objectLibrary)
         , objectReference(editor, true)
         , objectViewer(editor, objectReference)
-        , objectSearch(editor->pd->objectLibrary)
+        , objectSearch(*editor->pd->objectLibrary)
     {
-        auto& library = editor->pd->objectLibrary;
-        objectsByCategory = library.getObjectCategories();
+        auto& library = *editor->pd->objectLibrary;
+
+        for (auto& object : library.getAllObjects()) {
+            auto categoriesTree = library.getObjectInfo(object).getChildWithName("categories");
+
+            for (auto category : categoriesTree) {
+                auto cat = category.getProperty("name").toString();
+                objectsByCategory[cat].add(object);
+            }
+        }
 
         addAndMakeVisible(categoriesList);
         addAndMakeVisible(objectsList);
@@ -674,6 +689,7 @@ public:
             categories.insert(2, pd::Library::objectOrigins[i]);
         }
 
+        /*
 #if JUCE_DEBUG
         auto objectDescriptions = library.getObjectDescriptions();
 
@@ -688,7 +704,7 @@ public:
         std::cout << "Num Left:" << numEmpty << std::endl;
         float percentage = 1.0f - (numEmpty / static_cast<float>(objectsByCategory["All"].size()));
         std::cout << "Percentage done:" << percentage << std::endl;
-#endif
+#endif */
 
         categoriesList.changeCallback = [this](String const& category) {
             objectsList.showObjects(objectsByCategory[category]);
@@ -721,7 +737,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
     }
 
 private:

@@ -5,18 +5,21 @@
 */
 
 #pragma once
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_dsp/juce_dsp.h>
+#include "Utility/Config.h"
 
-#include <JuceHeader.h>
+#include "Pd/Instance.h"
+#include "Pd/Patch.h"
 
-#include "Pd/PdInstance.h"
-#include "Pd/PdLibrary.h"
-#include "Utility/SettingsFile.h"
-#include "Statusbar.h"
+namespace pd {
+class Library;
+}
 
-#if PLUGDATA_STANDALONE
-#    include "Utility/InternalSynth.h"
-#endif
-
+class InternalSynth;
+class SettingsFile;
+class StatusbarSource;
 class PlugDataLook;
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
@@ -65,8 +68,8 @@ public:
     void receiveAftertouch(int const channel, int const value) override;
     void receivePolyAftertouch(int const channel, int const pitch, int const value) override;
     void receiveMidiByte(int const port, int const byte) override;
+    void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
 
-    void receiveDSPState(bool dsp) override;
     void updateDrawables() override;
 
     void updateConsole() override;
@@ -95,11 +98,18 @@ public:
     void sendPlayhead();
     void sendParameters();
 
+    bool isInPluginMode();
+
     void messageEnqueued() override;
     void performParameterChange(int type, String name, float value) override;
 
-    pd::Patch* loadPatch(String patch);
-    pd::Patch* loadPatch(File const& patch);
+    // Jyg added this
+    void fillDataBuffer(std::vector<pd::Atom> const& list) override;
+    void parseDataBuffer(XmlElement const& xml) override;
+    XmlElement* m_temp_xml;
+
+    pd::Patch::Ptr loadPatch(String patch);
+    pd::Patch::Ptr loadPatch(File const& patch);
 
     void titleChanged() override;
 
@@ -111,7 +121,7 @@ public:
     Colour getOutlineColour() override;
 
     // All opened patches
-    OwnedArray<pd::Patch, CriticalSection> patches;
+    Array<pd::Patch::Ptr, CriticalSection> patches;
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
@@ -120,18 +130,18 @@ public:
 
     SettingsFile* settingsFile;
 
-    pd::Library objectLibrary;
+    std::unique_ptr<pd::Library> objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-        
-    static inline const String versionSuffix = "-0";
+
+    static inline const String versionSuffix = "-test5";
     File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + versionSuffix);
 
     File abstractions = versionDataDir.getChildFile("Abstractions");
 
     Value commandLocked = Value(var(false));
 
-    StatusbarSource statusbarSource;
+    std::unique_ptr<StatusbarSource> statusbarSource;
 
     Value tailLength = Value(0.0f);
 
@@ -150,12 +160,10 @@ public:
     int lastLeftTab = -1;
     int lastRightTab = -1;
 
-#if PLUGDATA_STANDALONE
+    // Only used by standalone!
     OwnedArray<MidiOutput> midiOutputs;
-
-    InternalSynth internalSynth;
+    std::unique_ptr<InternalSynth> internalSynth;
     std::atomic<bool> enableInternalSynth = false;
-#endif
 
 private:
     void processInternal();
@@ -179,10 +187,11 @@ private:
     int minOut = 2;
 
     int lastSplitIndex = -1;
+    int lastSetProgram = 0;
 
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
-    static inline const String else_version = "ELSE v1.0-rc7";
+    static inline const String else_version = "ELSE v1.0-rc8";
     static inline const String cyclone_version = "cyclone v0.7-0";
     // this gets updated with live version data later
     static String pdlua_version;

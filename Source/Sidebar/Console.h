@@ -4,13 +4,91 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class Console : public Component {
+class ConsoleSettings : public Component {
+public:
+    struct ConsoleSettingsButton : public TextButton {
+        const String icon;
+        const String description;
+
+        ConsoleSettingsButton(String iconString, String descriptionString, bool toggleButton)
+            : icon(iconString)
+            , description(descriptionString)
+        {
+            setClickingTogglesState(toggleButton);
+        }
+
+        void paint(Graphics& g) override
+        {
+            auto colour = findColour(PlugDataColour::toolbarTextColourId);
+
+            Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14);
+
+            if (isMouseOver()) {
+                colour = colour.brighter(0.4f);
+            }
+            if (getToggleState()) {
+                colour = findColour(PlugDataColour::toolbarActiveColourId);
+            }
+
+            Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(6), colour, 14, false);
+        }
+    };
+
+    ConsoleSettings(std::array<Value, 5>& settingsValues)
+    {
+        auto i = 0;
+        for (auto* button : buttons) {
+            addAndMakeVisible(*button);
+            i++;
+        }
+
+        for (int i = 0; i < buttons.size(); i++) {
+
+            if (buttons[i]->getClickingTogglesState()) {
+                // For toggle buttons, assign the button state to the Value
+                buttons[i]->getToggleStateValue().referTo(settingsValues[i]);
+            } else {
+                // For action buttons, just trigger the Value on an off to send a change message
+                buttons[i]->onClick = [settingsValues, i]() mutable {
+                    settingsValues[i] = !getValue<bool>(settingsValues[i]);
+                };
+            }
+        }
+
+        setSize(150, 150);
+    }
+
+    void resized() override
+    {
+        auto buttonBounds = getLocalBounds();
+
+        int buttonHeight = buttonBounds.getHeight() / buttons.size();
+
+        for (auto* button : buttons) {
+            button->setBounds(buttonBounds.removeFromTop(buttonHeight));
+        }
+    }
+
+private:
+    OwnedArray<TextButton> buttons = {
+        new ConsoleSettingsButton(Icons::Clear, "Clear", false),
+        new ConsoleSettingsButton(Icons::Restore, "Restore", false),
+        new ConsoleSettingsButton(Icons::Message, "Show Messages", true),
+        new ConsoleSettingsButton(Icons::Error, "Show Errors", true),
+        new ConsoleSettingsButton(Icons::AutoScroll, "Autoscroll", true)
+    };
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleSettings)
+};
+
+class Console : public Component
+    , public Value::Listener {
 
 public:
     explicit Console(pd::Instance* instance)
     {
         // Viewport takes ownership
-        console = new ConsoleComponent(instance, buttons, viewport);
+        console = new ConsoleComponent(instance, settingsValues, viewport);
 
         viewport.setViewedComponent(console);
         viewport.setScrollBarsShown(true, false);
@@ -19,31 +97,14 @@ public:
 
         addAndMakeVisible(viewport);
 
-        std::vector<String> tooltips = { "Clear logs", "Restore logs", "Show errors", "Show messages", "Enable autoscroll" };
-
-        std::vector<std::function<void()>> callbacks = {
-            [this]() { console->clear(); },
-            [this]() { console->restore(); },
-            [this]() { console->update(); },
-            [this]() { console->update(); },
-            [this]() { console->update(); },
-        };
-
-        auto i = 0;
-        for (auto& button : buttons) {
-            button.getProperties().set("Style", "SmallIcon");
-            button.setConnectedEdges(12);
-            addAndMakeVisible(button);
-
-            button.onClick = callbacks[i];
-            button.setTooltip(tooltips[i]);
-            i++;
+        for (int i = 0; i < settingsValues.size(); i++) {
+            settingsValues[i].addListener(this);
         }
 
-        for (int n = 2; n < 5; n++) {
-            buttons[n].setClickingTogglesState(true);
-            buttons[n].setToggleState(true, dontSendNotification);
-        }
+        // Show messages, show errors and autoscroll should be enabled by default
+        settingsValues[2] = true;
+        settingsValues[3] = true;
+        settingsValues[4] = true;
 
         resized();
     }
@@ -52,22 +113,22 @@ public:
     {
     }
 
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(settingsValues[0])) {
+            console->clear();
+        } else if (v.refersToSameSourceAs(settingsValues[1])) {
+            console->restore();
+        } else {
+            update();
+        }
+    }
+
     void resized() override
     {
-        auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
+        auto bounds = getLocalBounds();
 
-        for (auto& b : buttons) {
-            auto item = FlexItem(b).withMinWidth(8.0f).withMinHeight(8.0f).withMaxHeight(27);
-            item.flexGrow = 1.0f;
-            item.flexShrink = 1.0f;
-            fb.items.add(item);
-        }
-
-        auto bounds = getLocalBounds().toFloat();
-
-        fb.performLayout(bounds.removeFromBottom(30));
-
-        viewport.setBounds(bounds.toNearestInt());
+        viewport.setBounds(bounds);
 
         auto width = viewport.canScrollVertically() ? viewport.getWidth() - 5.0f : viewport.getWidth();
         console->setSize(width, std::max<int>(console->getTotalHeight(), viewport.getHeight()));
@@ -82,29 +143,13 @@ public:
     {
         console->update();
         resized();
+        repaint();
     }
 
     void deselect()
     {
         console->selectedItems.clear();
         repaint();
-    }
-
-    void paint(Graphics& g) override
-    {
-        // Draw background if we don't have enough messages to fill the panel
-        auto h = 24;
-        auto y = console->getTotalHeight();
-        auto idx = static_cast<int>(console->messages.size());
-        while (y < console->getHeight()) {
-
-            if (y + h > console->getHeight()) {
-                h = console->getHeight() - y;
-            }
-
-            idx++;
-            y += h;
-        }
     }
 
     class ConsoleComponent : public Component {
@@ -135,15 +180,14 @@ public:
 
             void paint(Graphics& g)
             {
-                bool isSelected = console.selectedItems.contains(this);
-
-                bool showMessages = console.buttons[2].getToggleState();
-                bool showErrors = console.buttons[3].getToggleState();
+                auto isSelected = console.selectedItems.contains(this);
+                auto showMessages = getValue<bool>(console.settingsValues[2]);
+                auto showErrors = getValue<bool>(console.settingsValues[3]);
 
                 if (isSelected) {
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 2).toFloat(), PlugDataLook::smallCornerRadius);
+                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 1).toFloat(), Corners::defaultCornerRadius);
 
                     bool connectedOnTop = false;
                     bool connectedOnBottom = false;
@@ -172,7 +216,7 @@ public:
                 auto& [message, type, length] = console.pd->getConsoleMessages()[idx];
 
                 // Check if message type should be visible
-                if ((type == 1 && !showMessages) || (type == 0 && !showErrors)) {
+                if ((type == 0 && !showMessages) || (type == 1 && !showErrors)) {
                     return;
                 }
 
@@ -187,11 +231,11 @@ public:
                     textColour = Colours::red;
 
                 // Draw text
-                PlugDataLook::drawFittedText(g, message, getLocalBounds().reduced(14, 2), textColour, numLines, 0.9f, 13);
+                Fonts::drawFittedText(g, message, getLocalBounds().reduced(14, 2), textColour, numLines, 0.9f, 14);
             }
         };
 
-        std::array<TextButton, 5>& buttons;
+        std::array<Value, 5>& settingsValues;
         Viewport& viewport;
 
         pd::Instance* pd; // instance to get console messages from
@@ -199,8 +243,8 @@ public:
         std::deque<std::unique_ptr<ConsoleMessage>> messages;
         Array<SafePointer<ConsoleMessage>> selectedItems;
 
-        ConsoleComponent(pd::Instance* instance, std::array<TextButton, 5>& b, Viewport& v)
-            : buttons(b)
+        ConsoleComponent(pd::Instance* instance, std::array<Value, 5>& b, Viewport& v)
+            : settingsValues(b)
             , viewport(v)
             , pd(instance)
         {
@@ -248,8 +292,8 @@ public:
                 messages.push_back(std::make_unique<ConsoleMessage>(messages.size(), *this));
             }
 
-            auto showMessages = buttons[2].getToggleState();
-            auto showErrors = buttons[3].getToggleState();
+            auto showMessages = getValue<bool>(settingsValues[2]);
+            auto showErrors = getValue<bool>(settingsValues[3]);
 
             int totalHeight = 0;
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
@@ -262,7 +306,7 @@ public:
                     messages[row]->repaint();
                 }
 
-                if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
+                if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
                     continue;
 
                 totalHeight += std::max(0, height);
@@ -271,7 +315,7 @@ public:
             setSize(getWidth(), std::max<int>(getTotalHeight(), viewport.getHeight()));
             resized();
 
-            if (buttons[4].getToggleState()) {
+            if (getValue<bool>(settingsValues[4])) {
                 viewport.setViewPositionProportionately(0.0f, 1.0f);
             }
         }
@@ -293,15 +337,15 @@ public:
         // Get total height of messages, also taking multi-line messages into account
         int getTotalHeight()
         {
-            auto showMessages = buttons[2].getToggleState();
-            auto showErrors = buttons[3].getToggleState();
+            auto showMessages = getValue<bool>(settingsValues[2]);
+            auto showErrors = getValue<bool>(settingsValues[3]);
             auto totalHeight = 0;
 
             for (auto& [message, type, length] : pd->getConsoleMessages()) {
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
                 auto height = numLines * 13 + 12;
 
-                if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
+                if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
                     continue;
 
                 totalHeight += std::max(0, height);
@@ -318,6 +362,9 @@ public:
 
         void resized() override
         {
+            auto showMessages = getValue<bool>(settingsValues[2]);
+            auto showErrors = getValue<bool>(settingsValues[3]);
+
             int totalHeight = 2;
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 if (row >= messages.size())
@@ -328,6 +375,9 @@ public:
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
                 auto height = numLines * 13 + 12;
 
+                if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
+                    continue;
+
                 messages[row]->setBounds(0, totalHeight, getWidth(), height);
 
                 totalHeight += height;
@@ -337,11 +387,16 @@ public:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
     };
 
+    void showCalloutBox(Rectangle<int> bounds, PluginEditor* editor)
+    {
+        auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
+        CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, editor);
+    }
+
 private:
+    std::array<Value, 5> settingsValues;
     ConsoleComponent* console;
     Viewport viewport;
 
     int pendingUpdates = 0;
-
-    std::array<TextButton, 5> buttons = { TextButton(Icons::ClearLarge), TextButton(Icons::Restore), TextButton(Icons::Error), TextButton(Icons::Message), TextButton(Icons::AutoScroll) };
 };

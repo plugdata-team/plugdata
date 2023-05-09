@@ -6,7 +6,7 @@
 
 class SubpatchObject final : public TextBase {
 
-    pd::Patch subpatch;
+    pd::Patch::Ptr subpatch;
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
 
@@ -15,18 +15,12 @@ class SubpatchObject final : public TextBase {
 public:
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)
-        , subpatch(ptr, cnv->pd, false)
+        , subpatch(new pd::Patch(ptr, cnv->pd, false))
     {
-        isGraphChild = false;
-        hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
-
-        isGraphChild.addListener(this);
-        hideNameAndArgs.addListener(this);
-
         object->hvccMode.addListener(this);
 
-        if (static_cast<bool>(object->hvccMode.getValue())) {
-            checkHvccCompatibility(subpatch);
+        if (getValue<bool>(object->hvccMode)) {
+            checkHvccCompatibility(subpatch.get());
         }
     }
 
@@ -36,22 +30,30 @@ public:
         closeOpenedSubpatchers();
     }
 
+    void update() override
+    {
+        isGraphChild = static_cast<bool>(subpatch->getPointer()->gl_isgraph);
+        hideNameAndArgs = static_cast<bool>(subpatch->getPointer()->gl_hidetext);
+
+        updateValue();
+    }
+
     void updateValue()
     {
         // Change from subpatch to graph
         if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
             cnv->setSelected(object, false);
-            object->cnv->editor->sidebar.hideParameters();
+            object->cnv->editor->sidebar->hideParameters();
             object->setType(objectText, ptr);
         }
     };
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(locked && click()) {
+        if (locked && click()) {
             return;
         }
-        
+
         //  If locked and it's a left click
         if (locked && !e.mods.isRightButtonDown() && !object->attachedToMouse) {
             openSubpatch();
@@ -62,20 +64,6 @@ public:
         }
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        switch (hash(symbol)) {
-        case hash("vis"): {
-            if (atoms[0].getFloat() == 1) {
-                openSubpatch();
-            } else {
-                closeOpenedSubpatchers();
-            }
-            break;
-        }
-        }
-    }
-
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
     void lock(bool isLocked) override
@@ -83,9 +71,9 @@ public:
         locked = isLocked;
     }
 
-    pd::Patch* getPatch() override
+    pd::Patch::Ptr getPatch() override
     {
-        return &subpatch;
+        return subpatch;
     }
 
     ObjectParameters getParameters() override
@@ -95,12 +83,13 @@ public:
 
     void checkGraphState()
     {
-        if(!ptr) return;
-        
+        if (!ptr)
+            return;
+
         pd->setThis();
-        
-        int isGraph = static_cast<bool>(isGraphChild.getValue());
-        int hideText = static_cast<bool>(hideNameAndArgs.getValue());
+
+        int isGraph = getValue<bool>(isGraphChild);
+        int hideText = getValue<bool>(hideNameAndArgs);
 
         canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
         repaint();
@@ -112,7 +101,7 @@ public:
             // Change from subpatch to graph
             if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
                 cnv->setSelected(object, false);
-                object->cnv->editor->sidebar.hideParameters();
+                object->cnv->editor->sidebar->hideParameters();
                 object->setType(getText(), ptr);
                 return;
             }
@@ -124,8 +113,8 @@ public:
         if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
             checkGraphState();
         } else if (v.refersToSameSourceAs(object->hvccMode)) {
-            if (static_cast<bool>(v.getValue())) {
-                checkHvccCompatibility(subpatch);
+            if (getValue<bool>(v)) {
+                checkHvccCompatibility(subpatch.get());
             }
         }
     }
@@ -140,16 +129,15 @@ public:
         openSubpatch();
     }
 
-    static void checkHvccCompatibility(pd::Patch& patch, String prefix = "")
+    static void checkHvccCompatibility(pd::Patch::Ptr patch, String prefix = "")
     {
+        auto* instance = patch->instance;
 
-        auto* instance = patch.instance;
-
-        for (auto* object : patch.getObjects()) {
+        for (auto* object : patch->getObjects()) {
             const String name = libpd_get_object_class_name(object);
 
             if (name == "canvas" || name == "graph") {
-                auto patch = pd::Patch(object, instance, false);
+                pd::Patch::Ptr patch = new pd::Patch(object, instance, false);
 
                 char* text = nullptr;
                 int size = 0;

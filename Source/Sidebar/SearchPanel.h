@@ -4,6 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "Object.h"
+#include "../Objects/ObjectBase.h"
+
 #include <m_pd.h>
 #include <m_imp.h>
 #include <x_libpd_extra_utils.h>
@@ -17,7 +20,7 @@ public:
         : editor(pluginEditor)
     {
         listBox.setModel(this);
-        listBox.setRowHeight(28);
+        listBox.setRowHeight(26);
         listBox.setOutlineThickness(0);
         listBox.deselectAllRows();
 
@@ -32,17 +35,17 @@ public:
         input.addKeyListener(this);
         listBox.addKeyListener(this);
 
-        closeButton.getProperties().set("Style", "SmallIcon");
-        closeButton.onClick = [this]() {
+        clearButton.getProperties().set("Style", "SmallIcon");
+        clearButton.onClick = [this]() {
             clearSearchTargets();
             input.clear();
             input.giveAwayKeyboardFocus();
             input.repaint();
         };
 
-        closeButton.setAlwaysOnTop(true);
+        clearButton.setAlwaysOnTop(true);
 
-        addAndMakeVisible(closeButton);
+        addAndMakeVisible(clearButton);
         addAndMakeVisible(listBox);
         addAndMakeVisible(input);
 
@@ -119,8 +122,8 @@ public:
         if (isPositiveAndBelow(row, searchResult.size())) {
             auto [name, prefix, object, ptr] = searchResult[row];
 
-            if (auto* cnv = editor->getCurrentCanvas()) {
-                highlightSearchTarget(object);
+            if (object) {
+                highlightSearchTarget(object.getComponent());
             }
         }
     }
@@ -141,7 +144,7 @@ public:
         }
 
         if (auto* viewport = cnv->viewport) {
-            float scale = cnv->editor->getZoomScale();
+            float scale = getValue<float>(cnv->zoomScale);
             auto pos = target->getBounds().reduced(Object::margin).getCentre() * scale;
 
             pos.x -= viewport->getViewWidth() * 0.5f;
@@ -172,6 +175,8 @@ public:
     {
         if (!isVisible()) {
             clearSearchTargets();
+        } else {
+            updateResults();
         }
     }
 
@@ -182,34 +187,34 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto searchBarColour = findColour(PlugDataColour::searchBarColourId);
         auto textColour = findColour(PlugDataColour::sidebarTextColourId);
 
-        input.setColour(TextEditor::backgroundColourId, backgroundColour.brighter(0.7f));
+        input.setColour(TextEditor::backgroundColourId, searchBarColour);
         input.setColour(TextEditor::textColourId, textColour);
 
-        g.setColour(backgroundColour);
-        g.fillRect(getLocalBounds().withTrimmedBottom(30));
+        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        g.fillRect(getLocalBounds());
     }
 
     void paintOverChildren(Graphics& g) override
     {
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 29, getWidth(), 29);
 
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
-        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
+        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
 
         if (input.getText().isEmpty()) {
-            PlugDataLook::drawText(g, "Type to search in patch", 30, 0, 300, 30, colour.withAlpha(0.5f), 14);
+            Fonts::drawFittedText(g, "Type to search in patch", 30, 0, getWidth() - 60, 30, colour.withAlpha(0.5f), 1, 0.9f, 14);
         }
     }
 
-    std::pair<String, String> formatSearchResultString(String name, String prefix, int x, int y)
+    std::pair<String, String> formatSearchResultString(String name, String prefix, Rectangle<int> bounds)
     {
 
-        auto positionString = " (" + String(x) + ", " + String(y) + ")";
+        auto positionString = " (" + String(bounds.getX()) + ":" + String(bounds.getY()) + "  " + String(bounds.getWidth()) + "×" + String(bounds.getHeight()) + ")";
 
         int maxWidth = getWidth() - 20;
 
@@ -235,22 +240,25 @@ public:
 
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, PlugDataLook::smallCornerRadius);
+            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
 
         auto const& [name, prefix, object, ptr] = searchResult[rowNumber];
 
-        auto [x, y] = object->getPosition();
+        if (!object)
+            return;
 
-        auto [text, size] = formatSearchResultString(name, prefix, x, y);
+        auto pdBounds = object->gui->getPdBounds();
+
+        auto [text, size] = formatSearchResultString(name, prefix, pdBounds);
 
         auto positionTextWidth = Fonts::getCurrentFont().getStringWidth(size);
         auto positionTextX = getWidth() - positionTextWidth - 16;
 
-        PlugDataLook::drawText(g, text, 12, 0, positionTextX - 16, h, colour, 14);
-        PlugDataLook::drawFittedText(g, size, positionTextX, 0, positionTextWidth, h, colour, 1, 0.9f, 14);
+        Fonts::drawText(g, text, 12, 0, positionTextX - 16, h, colour, 14);
+        Fonts::drawFittedText(g, size, positionTextX, 0, positionTextWidth, h, colour, 1, 0.9f, 14);
     }
 
     int getNumRows() override
@@ -292,12 +300,12 @@ public:
         input.grabKeyboardFocus();
     }
 
-    static Array<std::tuple<String, String, Object*, void*>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, String const& query, Object* topLevelObject = nullptr, String prefix = "")
+    static Array<std::tuple<String, String, SafePointer<Object>, void*>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, String const& query, Object* topLevelObject = nullptr, String prefix = "")
     {
 
         auto* instance = patch.instance;
 
-        Array<std::tuple<String, String, Object*, void*>> result;
+        Array<std::tuple<String, String, SafePointer<Object>, void*>> result;
 
         Array<std::pair<void*, Object*>> subpatches;
 
@@ -382,22 +390,22 @@ public:
 
     void resized() override
     {
-        auto tableBounds = getLocalBounds().withTrimmedBottom(30);
+        auto tableBounds = getLocalBounds();
         auto inputBounds = tableBounds.removeFromTop(28);
 
         tableBounds.removeFromTop(4);
 
         input.setBounds(inputBounds);
-        closeButton.setBounds(inputBounds.removeFromRight(30));
+        clearButton.setBounds(inputBounds.removeFromRight(32));
         listBox.setBounds(tableBounds);
     }
 
 private:
     ListBox listBox;
 
-    Array<std::tuple<String, String, Object*, void*>> searchResult;
+    Array<std::tuple<String, String, SafePointer<Object>, void*>> searchResult;
     TextEditor input;
-    TextButton closeButton = TextButton(Icons::Clear);
+    TextButton clearButton = TextButton(Icons::ClearText);
 
     PluginEditor* editor;
 };

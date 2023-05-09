@@ -8,8 +8,10 @@
 
 static int srl_is_valid(t_symbol const* s)
 {
-    return (!!s && s != &s_);
+    return (!!s && s != gensym(""));
 }
+
+#define IEMGUI_MESSAGES hash("send"), hash("receive"), hash("color"), hash("label"), hash("label_pos"), hash("label_font"), hash("vis_size"), hash("init")
 
 extern "C" {
 char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
@@ -25,23 +27,16 @@ public:
         , pd(parent->cnv->pd)
         , iemgui(static_cast<t_iemgui*>(ptr))
     {
-
-        labelX = iemgui->x_ldx;
-        labelY = iemgui->x_ldy;
-        labelHeight = getFontHeight();
-        labelText = getExpandedLabelText();
-
-        sendSymbol = getSendSymbol();
-        receiveSymbol = getReceiveSymbol();
-
-        initialise = getInit();
     }
 
-    void initialiseParameters()
+    void update()
     {
         primaryColour = Colour(getForegroundColour()).toString();
         secondaryColour = Colour(getBackgroundColour()).toString();
         labelColour = Colour(getLabelColour()).toString();
+
+        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
+        gui->getLookAndFeel().setColour(Label::textColourId, Colour::fromString(primaryColour.toString()));
 
         gui->getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
         gui->getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
@@ -54,14 +49,15 @@ public:
 
         gui->getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
 
-        auto params = gui->getParameters();
-        for (auto& [name, type, cat, value, list] : params) {
-            value->addListener(gui);
+        labelX = iemgui->x_ldx;
+        labelY = iemgui->x_ldy;
+        labelHeight = getFontHeight();
+        labelText = getExpandedLabelText();
 
-            // Push current parameters to pd
-            // TODO: How about we don't do that tho?
-            valueChanged(*value);
-        }
+        sendSymbol = getSendSymbol();
+        receiveSymbol = getReceiveSymbol();
+
+        initialise = getInit();
 
         gui->repaint();
     }
@@ -71,10 +67,10 @@ public:
         return {
             { "Foreground", tColour, cAppearance, &primaryColour, {} },
             { "Background", tColour, cAppearance, &secondaryColour, {} },
-            { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
             { "Label", tString, cLabel, &labelText, {} },
-            { "Label Colour", tColour, cLabel, &labelColour, {} },
+            { "Label color", tColour, cLabel, &labelColour, {} },
             { "Label X", tInt, cLabel, &labelX, {} },
             { "Label Y", tInt, cLabel, &labelY, {} },
             { "Label Height", tInt, cLabel, &labelHeight, {} },
@@ -82,7 +78,7 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
+    bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
     {
         auto setColour = [this](Value& targetValue, pd::Atom& atom) {
             if (atom.isSymbol()) {
@@ -111,12 +107,12 @@ public:
         case hash("send"): {
             if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
-            break;
+            return true;
         }
         case hash("receive"): {
             if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
-            break;
+            return true;
         }
         case hash("color"): {
             if (atoms.size() > 0)
@@ -127,14 +123,14 @@ public:
                 setColour(labelColour, atoms[2]);
             gui->repaint();
             gui->updateLabel();
-            break;
+            return true;
         }
         case hash("label"): {
             if (atoms.size() >= 1) {
                 gui->setParameterExcludingListener(labelText, atoms[0].getSymbol());
                 gui->updateLabel();
             }
-            break;
+            return true;
         }
         case hash("label_pos"): {
             if (atoms.size() >= 2) {
@@ -142,33 +138,31 @@ public:
                 gui->setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
             }
-            break;
+            return true;
         }
         case hash("label_font"): {
             if (atoms.size() >= 2) {
                 gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
             }
-            break;
+            return true;
         }
         case hash("vis_size"): {
             if (atoms.size() >= 2) {
-                pd->lockAudioThread();
-                auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
-                pd->unlockAudioThread();
-
-                object->setObjectBounds(bounds);
+                object->updateBounds();
             }
-            break;
+            return true;
         }
         case hash("init"): {
             if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
-            break;
+            return true;
         }
         default:
             break;
         }
+
+        return false;
     }
 
     void valueChanged(Value& v)
@@ -207,28 +201,28 @@ public:
             setLabelColour(Colour::fromString(labelColour.toString()));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelX)) {
-            setLabelPosition({ static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue()) });
+            setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelY)) {
-            setLabelPosition({ static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue()) });
+            setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
-            setFontHeight(static_cast<int>(labelHeight.getValue()));
+            setFontHeight(getValue<int>(labelHeight));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelText)) {
             setLabelText(labelText.toString());
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(initialise)) {
-            setInit(static_cast<bool>(initialise.getValue()));
+            setInit(getValue<bool>(initialise));
         }
     }
 
     void setInit(bool init)
     {
-        pd->enqueueFunctionAsync([this, init](){
-            
-            if(cnv->patch.objectWasDeleted(iemgui)) return;
-            
+        pd->enqueueFunctionAsync([this, init]() {
+            if (cnv->patch.objectWasDeleted(iemgui))
+                return;
+
             iemgui->x_isa.x_loadinit = init;
         });
     }
@@ -244,7 +238,7 @@ public:
         auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
         pd->unlockAudioThread();
 
-        return bounds;
+        return bounds.withTrimmedRight(-1).withTrimmedBottom(-1);
     }
 
     void setPdBounds(Rectangle<int> const b)
@@ -252,8 +246,8 @@ public:
         iemgui->x_obj.te_xpix = b.getX();
         iemgui->x_obj.te_ypix = b.getY();
 
-        iemgui->x_w = b.getWidth();
-        iemgui->x_h = b.getHeight();
+        iemgui->x_w = b.getWidth() - 1;
+        iemgui->x_h = b.getHeight() - 1;
     }
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
@@ -292,7 +286,7 @@ public:
             int fontHeight = getFontHeight();
             int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
 
-            int const posx = objectBounds.getX() + iemgui->x_ldx;
+            int const posx = objectBounds.getX() + iemgui->x_ldx + 4;
             int const posy = objectBounds.getY() + iemgui->x_ldy;
 
             return { posx, posy, labelLength, fontHeight };
@@ -304,7 +298,7 @@ public:
     String getSendSymbol()
     {
         pd->setThis();
-        
+
         t_symbol* srlsym[3];
         iemgui_all_sym2dollararg(iemgui, srlsym);
 
@@ -318,7 +312,7 @@ public:
     String getReceiveSymbol()
     {
         pd->setThis();
-    
+
         t_symbol* srlsym[3];
         iemgui_all_sym2dollararg(iemgui, srlsym);
 

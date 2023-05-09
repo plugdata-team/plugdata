@@ -21,7 +21,7 @@
 #X text 206 365 signal -;
 #X text 184 401 1) float;
 #X text 270 333 phase offset (modulation input);
-#X text 270 313 phase sync (ressets internal phase);
+#X text 270 313 phase sync (resets internal phase);
 #X obj 218 158 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
 #X text 278 157 <= hz;

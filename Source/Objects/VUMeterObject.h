@@ -15,7 +15,9 @@ public:
     {
         // we need to make this a specific size as it has two inlets
         // which will become squashed together if too close
-        object->constrainer->setMinimumSize(20, 20 * 2);
+        onConstrainerCreate = [this]() {
+            constrainer->setMinimumSize(20, 20 * 2);
+        };
     }
 
     bool hideInlets() override
@@ -43,9 +45,9 @@ public:
         return iemHelper.getParameters();
     }
 
-    void initialiseParameters() override
+    void update() override
     {
-        iemHelper.initialiseParameters();
+        iemHelper.update();
     }
 
     Rectangle<int> getPdBounds() override
@@ -66,7 +68,7 @@ public:
         int width = getWidth();
 
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         auto outerBorderWidth = 2.0f;
         auto totalBlocks = 30;
@@ -111,18 +113,26 @@ public:
 
         if (getWidth() > g.getCurrentFont().getStringWidth(textValue + " dB")) {
             // Check noscale flag, otherwise display next to slider
-            PlugDataLook::drawFittedText(g, textValue + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
+            Fonts::drawFittedText(g, textValue + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
         } else if (getWidth() > g.getCurrentFont().getStringWidth(textValue)) {
-            PlugDataLook::drawFittedText(g, textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
+            Fonts::drawFittedText(g, textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
         } else {
-            PlugDataLook::drawFittedText(g, String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
+            Fonts::drawFittedText(g, String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
         }
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+    }
+
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("float"),
+            IEMGUI_MESSAGES
+        };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

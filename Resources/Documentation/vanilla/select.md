@@ -20,8 +20,8 @@ inlets:
     description: if there's one argument, an inlet is created to update it
 outlets:
   nth:
-  - type: float/symbol
-    description: bang if input matches $arg
+  - type: bang
+    description: if input matches $arg
   2nd: #rightmost
   - type: float/symbol
     description: value if input didn't match

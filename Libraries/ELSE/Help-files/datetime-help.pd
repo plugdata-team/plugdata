@@ -15,7 +15,7 @@
 #X obj 60 96 bng 25 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #551312
 #000000;
 #X listbox 156 179 22 0 0 0 - - - 16;
-#X text 56 29 Formating the list values;
+#X text 56 29 Formatting the list values;
 #X obj 60 64 else/tempo -on -ms 1000;
 #X obj 60 133 else/datetime;
 #X obj 156 143 else/format list %d/%.2d/%.2d (%s);
@@ -67,7 +67,7 @@ and time (left outlet) as lists., f 53;
 #X text 118 216 time: hour \, min \, sec;
 #X text 163 251 - outputs date and time, f 53;
 #X text 130 268 seed;
-#X text 175 267 get number of seconds since the beggining of the month
+#X text 175 267 get number of seconds since the beginning of the month
 to use it as a seed value, f 51;
 #X obj 96 342 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;

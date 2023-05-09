@@ -82,7 +82,7 @@ public:
     void paint(Graphics& g) override
     {
         if (errorMessage.isNotEmpty()) {
-            PlugDataLook::drawText(g, errorMessage, 0, getHeight() - 70, getWidth(), 23, Colours::red, 15, Justification::centred);
+            Fonts::drawText(g, errorMessage, 0, getHeight() - 70, getWidth(), 23, Colours::red, 15, Justification::centred);
         }
     }
 
@@ -234,7 +234,11 @@ public:
 
                 saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "*.plugdatatheme", true);
 
+#if JUCE_LINUX
                 constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
+#else
+                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
+#endif
 
                 saveChooser->launchAsync(folderChooserFlags,
                     [this, themeXml](FileChooser const& fileChooser) mutable {
@@ -505,7 +509,7 @@ public:
         auto bounds = getLocalBounds().removeFromLeft(getWidth() / 2).withTrimmedLeft(6);
 
         auto themeRow = bounds.removeFromTop(23);
-        PlugDataLook::drawText(g, "theme", themeRow, findColour(PlugDataColour::panelTextColourId));
+        Fonts::drawText(g, "theme", themeRow, findColour(PlugDataColour::panelTextColourId));
 
         auto fullThemeRow = getLocalBounds().removeFromTop(23);
         g.setColour(findColour(PlugDataColour::outlineColourId));

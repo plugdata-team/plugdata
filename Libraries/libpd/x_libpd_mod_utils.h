@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2015-2018 Pierre Guillot.
+ // Copyright (c) 2015-2023 Pierre Guillot and Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -87,6 +87,8 @@ int libpd_ninlets(t_object const* x);
 int libpd_can_undo(t_canvas* cnv);
 int libpd_can_redo(t_canvas* cnv);
 
+int libpd_has_click_function(t_object const* x);
+
 void libpd_tofront(t_canvas* cnv, t_gobj* obj);
 void libpd_toback(t_canvas* cnv, t_gobj* obj);
 
@@ -99,6 +101,8 @@ void libpd_canvas_saveto(t_canvas* cnv, t_binbuf* b);
 
 void* libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
 int libpd_canconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
+
+void* libpd_get_class_methods(t_class* o);
 
 #ifdef __cplusplus
 }

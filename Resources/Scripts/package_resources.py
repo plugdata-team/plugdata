@@ -78,8 +78,6 @@ copyFile("../Patches/param.pd", "./Abstractions")
 #copyFile("../Patches/beat.pd", "./Abstractions")
 
 globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
-
-copyDir("../Documentation", "./Documentation/pddp")
 copyDir("../../Libraries/ELSE/Help-files/", "./Documentation/9.else")
 
 copyFile("../../Libraries/ELSE/sfont~/sfont~-help.pd", "./Documentation/9.else")
@@ -102,6 +100,7 @@ makeDir("Extra/GS")
 
 copyDir("../../Libraries/ELSE/Extra", "Extra/else");
 copyDir("../../Libraries/ELSE/sfont~/sf", "Extra/else/sf");
+copyDir("../Patches/Presets", "./Extra/Presets")
 globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else");
 
 # pd-lua

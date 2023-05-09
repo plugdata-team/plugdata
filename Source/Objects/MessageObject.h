@@ -4,18 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-typedef struct _messresponder {
-    t_pd mr_pd;
-    t_outlet* mr_outlet;
-} t_messresponder;
-
-typedef struct _message {
-    t_text m_text;
-    t_messresponder m_messresponder;
-    t_glist* m_glist;
-    t_clock* m_clock;
-} t_message;
-
 class MessageObject final : public ObjectBase
     , public KeyListener
     , public TextEditor::Listener {
@@ -32,6 +20,10 @@ class MessageObject final : public ObjectBase
 public:
     MessageObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
+    {
+    }
+
+    void update() override
     {
         objectText = getSymbol();
     }
@@ -52,17 +44,8 @@ public:
         newBounds.setWidth(newBounds.getWidth() + 5);
 
         pd->unlockAudioThread();
-        
-        return newBounds;
-    }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
-    {
-        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        auto* patch = cnv->patch.getPointer();
-        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth);
-        object->updateBounds();
-        return true;
+        return newBounds;
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -83,14 +66,14 @@ public:
     {
         // Draw background
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         // Draw text
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds().withTrimmedRight(5));
             auto scale = getWidth() < 50 ? 0.5f : 1.0f;
 
-            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
+            Fonts::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
         }
     }
 
@@ -103,7 +86,7 @@ public:
 
         if (isDown) {
             g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(b.reduced(1).toFloat(), PlugDataLook::objectCornerRadius, 3.0f);
+            g.drawRoundedRectangle(b.reduced(1).toFloat(), Corners::objectCornerRadius, 3.0f);
 
             g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
             g.fillPath(flagPath);
@@ -112,16 +95,28 @@ public:
             g.fillPath(flagPath);
         }
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+    }
+
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("set"),
+            hash("add"),
+            hash("add2"),
+            hash("addcomma"),
+            hash("addsemi"),
+            hash("adddollar"),
+            hash("adddollsym")
+        };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        // TODO: select messages
         String v = getSymbol();
 
         if (objectText != v) {
@@ -187,9 +182,10 @@ public:
             outgoingEditor.reset();
 
             object->updateBounds(); // Recalculate bounds
-            
-            pd->enqueueFunction([_this = SafePointer(this)](){
-                if(!_this) return;
+
+            pd->enqueueFunction([_this = SafePointer(this)]() {
+                if (!_this)
+                    return;
                 _this->setPdBounds(_this->object->getObjectBounds());
             });
 
@@ -252,10 +248,12 @@ public:
     {
         cnv->pd->setThis();
 
+        pd->lockAudioThread();
         char* text;
         int size;
 
-        binbuf_gettext(static_cast<t_message*>(ptr)->m_text.te_binbuf, &text, &size);
+        binbuf_gettext(static_cast<t_text*>(ptr)->te_binbuf, &text, &size);
+        pd->unlockAudioThread();
 
         auto result = String::fromUTF8(text, size);
         freebytes(text, size);
@@ -271,10 +269,10 @@ public:
                     return;
 
                 auto* cstr = value.toRawUTF8();
-                auto* messobj = static_cast<t_message*>(ptr);
+                auto* messobj = static_cast<t_text*>(ptr);
                 auto* canvas = _this->cnv->patch.getPointer();
 
-                libpd_renameobj(canvas, &messobj->m_text.te_g, cstr, value.getNumBytesAsUTF8());
+                libpd_renameobj(canvas, &messobj->te_g, cstr, value.getNumBytesAsUTF8());
             });
     }
 
@@ -294,5 +292,10 @@ public:
     bool hideInGraph() override
     {
         return true;
+    }
+
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+    {
+        return TextObjectHelper::createConstrainer(object);
     }
 };

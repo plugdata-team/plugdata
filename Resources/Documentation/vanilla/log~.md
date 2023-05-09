@@ -26,6 +26,8 @@ outlets:
 arguments:
   - type: float 
     description: initial base value
+    default: e
+
 draft: false
 ---
 computes the logarithm of the left inlet, to the base 'e' (about 2.718), or to another base specified by the inlet or a creation argument.

@@ -81,7 +81,7 @@ to periodically trigger processes such as with [sh~] below.;
 #X obj 104 333 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 252 334 phase offset (modulation input);
-#X text 252 314 phase sync (ressets internal phase);
+#X text 252 314 phase sync (resets internal phase);
 #X text 147 314 float/signal -;
 #X text 173 403 1) float;
 #X text 239 422 - initial phase offset (default 0);

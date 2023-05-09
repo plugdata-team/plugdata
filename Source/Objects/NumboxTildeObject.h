@@ -4,37 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Utility/DraggableNumber.h"
-
-typedef struct _numbox {
-    t_object x_obj;
-    t_clock* x_clock_update;
-    t_symbol* x_fg;
-    t_symbol* x_bg;
-    t_glist* x_glist;
-    t_float x_display;
-    t_float x_in_val;
-    t_float x_out_val;
-    t_float x_set_val;
-    t_float x_max;
-    t_float x_min;
-    t_float x_sr_khz;
-    t_float x_inc;
-    t_float x_ramp_step;
-    t_float x_ramp_val;
-    int x_ramp_ms;
-    int x_rate;
-    int x_numwidth;
-    int x_fontsize;
-    int x_clicked;
-    int x_width, x_height;
-    int x_zoom;
-    int x_outmode;
-    char x_buf[32]; // number buffer
-} t_numbox;
+#include "Utility/DraggableNumber.h"
 
 class NumboxTildeObject final : public ObjectBase
     , public Timer {
+
     DraggableNumber input;
 
     int nextInterval = 100;
@@ -67,12 +41,22 @@ public:
 
         addAndMakeVisible(input);
 
+        addMouseListener(this, true);
+
+        input.valueChanged = [this](float value) { sendFloatValue(value); };
+
+        startTimer(nextInterval);
+        repaint();
+    }
+
+    void update() override
+    {
         input.setText(input.formatNumber(getValue()), dontSendNotification);
 
         min = getMinimum();
         max = getMaximum();
 
-        auto* object = static_cast<t_numbox*>(ptr);
+        auto* object = static_cast<t_fake_numbox*>(ptr);
         interval = object->x_rate;
         ramp = object->x_ramp_ms;
         init = object->x_set_val;
@@ -85,14 +69,7 @@ public:
         getLookAndFeel().setColour(Label::textWhenEditingColourId, fg);
         getLookAndFeel().setColour(TextEditor::textColourId, fg);
 
-        addMouseListener(this, true);
-
-        input.valueChanged = [this](float value) { sendFloatValue(value); };
-
-        mode = static_cast<t_numbox*>(ptr)->x_outmode;
-
-        startTimer(nextInterval);
-        repaint();
+        mode = object->x_outmode;
     }
 
     Rectangle<int> getPdBounds() override
@@ -108,29 +85,65 @@ public:
         return bounds;
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
-        auto* nbx = static_cast<t_numbox*>(ptr);
+        class NumboxTildeBoundsConstrainer : public ComponentBoundsConstrainer {
+        public:
+            Object* object;
 
-        nbx->x_fontsize = getHeight() - 4;
+            NumboxTildeBoundsConstrainer(Object* parent)
+                : object(parent)
+            {
+            }
+            /*
+             * Custom version of checkBounds that takes into consideration
+             * the padding around plugdata node objects when resizing
+             * to allow the aspect ratio to be interpreted correctly.
+             * Otherwise resizing objects with an aspect ratio will
+             * resize the object size **including** margins, and not follow the
+             * actual size of the visible object
+             */
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool isStretchingTop,
+                bool isStretchingLeft,
+                bool isStretchingBottom,
+                bool isStretchingRight) override
+            {
+                auto* nbx = static_cast<t_fake_numbox*>(object->getPointer());
 
-        int width = newBounds.reduced(Object::margin).getWidth();
-        int numWidth = (2.0f * (-6.0f + width - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
-        width = (nbx->x_fontsize - (nbx->x_fontsize / 2) + 2) * (numWidth + 2) + 2;
+                nbx->x_fontsize = object->gui->getHeight() - 4;
 
-        int height = jlimit(18, maxSize, newBounds.getHeight() - Object::doubleMargin);
-        if (getWidth() != width || getHeight() != height) {
-            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
-        }
+                int width = bounds.reduced(Object::margin).getWidth();
+                int numWidth = (2.0f * (-6.0f + width - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
+                width = (nbx->x_fontsize - (nbx->x_fontsize / 2) + 2) * (numWidth + 2) + 2;
 
-        return true;
+                BorderSize<int> border(Object::margin);
+                border.subtractFrom(bounds);
+
+                // we also have to remove the margin from the old object, but don't alter the old object
+                ComponentBoundsConstrainer::checkBounds(bounds, border.subtractedFrom(old), limits, isStretchingTop,
+                    isStretchingLeft,
+                    isStretchingBottom,
+                    isStretchingRight);
+
+                // put back the margins
+                border.addTo(bounds);
+            }
+        };
+
+        auto constrainer = std::make_unique<NumboxTildeBoundsConstrainer>(object);
+        constrainer->setMinimumSize(30, 15);
+
+        return constrainer;
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        auto* nbx = static_cast<t_numbox*>(ptr);
+        auto* nbx = static_cast<t_fake_numbox*>(ptr);
         nbx->x_width = b.getWidth();
         nbx->x_height = b.getHeight();
         nbx->x_fontsize = b.getHeight() - 4;
@@ -160,19 +173,19 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
-            setMinimum(static_cast<float>(min.getValue()));
+            setMinimum(::getValue<float>(min));
         } else if (value.refersToSameSourceAs(max)) {
-            setMaximum(static_cast<float>(max.getValue()));
+            setMaximum(::getValue<float>(max));
         } else if (value.refersToSameSourceAs(interval)) {
-            auto* nbx = static_cast<t_numbox*>(ptr);
-            nbx->x_rate = static_cast<float>(interval.getValue());
+            auto* nbx = static_cast<t_fake_numbox*>(ptr);
+            nbx->x_rate = ::getValue<float>(interval);
 
         } else if (value.refersToSameSourceAs(ramp)) {
-            auto* nbx = static_cast<t_numbox*>(ptr);
-            nbx->x_ramp_ms = static_cast<float>(ramp.getValue());
+            auto* nbx = static_cast<t_fake_numbox*>(ptr);
+            nbx->x_ramp_ms = ::getValue<float>(ramp);
         } else if (value.refersToSameSourceAs(init)) {
-            auto* nbx = static_cast<t_numbox*>(ptr);
-            nbx->x_set_val = static_cast<float>(init.getValue());
+            auto* nbx = static_cast<t_fake_numbox*>(ptr);
+            nbx->x_set_val = ::getValue<float>(init);
         } else if (value.refersToSameSourceAs(primaryColour)) {
             setForegroundColour(primaryColour.toString());
         } else if (value.refersToSameSourceAs(secondaryColour)) {
@@ -183,8 +196,7 @@ public:
     void setForegroundColour(String colour)
     {
         // Remove alpha channel and add #
-
-        ((t_numbox*)ptr)->x_fg = pd->generateSymbol("#" + colour.substring(2));
+        static_cast<t_fake_numbox*>(ptr)->x_fg = pd->generateSymbol("#" + colour.substring(2));
 
         auto col = Colour::fromString(colour);
         getLookAndFeel().setColour(Label::textColourId, col);
@@ -196,26 +208,26 @@ public:
 
     void setBackgroundColour(String colour)
     {
-        ((t_numbox*)ptr)->x_bg = pd->generateSymbol("#" + colour.substring(2));
+        static_cast<t_fake_numbox*>(ptr)->x_bg = pd->generateSymbol("#" + colour.substring(2));
         repaint();
     }
 
     void paintOverChildren(Graphics& g) override
     {
         auto iconBounds = Rectangle<int>(2, 0, getHeight(), getHeight());
-        PlugDataLook::drawIcon(g, mode ? Icons::ThinDown : Icons::Sine, iconBounds, object->findColour(PlugDataColour::dataColourId));
+        Fonts::drawIcon(g, mode ? Icons::ThinDown : Icons::Sine, iconBounds, object->findColour(PlugDataColour::dataColourId));
     }
 
     void paint(Graphics& g) override
     {
         g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        bool selected = object->isSelected() && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::guiObjectInternalOutlineColour);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     void timerCallback() override
@@ -231,7 +243,7 @@ public:
 
     float getValue()
     {
-        auto* obj = static_cast<t_numbox*>(ptr);
+        auto* obj = static_cast<t_fake_numbox*>(ptr);
 
         mode = obj->x_outmode;
 
@@ -242,24 +254,24 @@ public:
 
     float getMinimum()
     {
-        return (static_cast<t_numbox*>(ptr))->x_min;
+        return (static_cast<t_fake_numbox*>(ptr))->x_min;
     }
 
     float getMaximum()
     {
-        return (static_cast<t_numbox*>(ptr))->x_max;
+        return (static_cast<t_fake_numbox*>(ptr))->x_max;
     }
 
     void setMinimum(float minValue)
     {
-        static_cast<t_numbox*>(ptr)->x_min = minValue;
+        static_cast<t_fake_numbox*>(ptr)->x_min = minValue;
 
         input.setMinimum(minValue);
     }
 
     void setMaximum(float maxValue)
     {
-        static_cast<t_numbox*>(ptr)->x_max = maxValue;
+        static_cast<t_fake_numbox*>(ptr)->x_max = maxValue;
 
         input.setMaximum(maxValue);
     }

@@ -37,21 +37,21 @@ flags:
  - name: -dim <float \, float>
    description: sets x/y dimensions (default: 200 127), f 72;
  - name: -init <float>
-    description: non-0 sets to init mode (default: 0), f 72;
+   description: non-0 sets to init mode (default: 0), f 72;
  - name: -send <symbol>
-    description: sets send symbol (default: empty), f 72;
+   description: sets send symbol (default: empty), f 72;
  - name: -receive <symbol>
-    description: sets receive symbol (default: empty), f 72;
+   description: sets receive symbol (default: empty), f 72;
  - name: -bgcolor <f \, f \, f>
-    description: sets background color in RGB (default: 255 255 255), f 72;
+   description: sets background color in RGB (default: 255 255 255), f 72;
  - name: -fgcolor <f \, f \, f>
-    description: sets foreground color in RGB (default: 220 220 220), f 72;
+   description: sets foreground color in RGB (default: 220 220 220), f 72;
  - name: -linecolor <f \, f \, f>
-    description: sets line color in RGB (default: 0 0 0), f 72;
+   description: sets line color in RGB (default: 0 0 0), f 72;
  - name: -set <list>
-    description: sets slider's values (default: 0 0 0 0 0 0 0 0), f 72;
- - name -mode <float>
-    description: non zro sets to 'list mode' (default 0), f 72;
+   description: sets slider's values (default: 0 0 0 0 0 0 0 0), f 72;
+ - name: -mode <float>
+   description: non zro sets to 'list mode' (default 0), f 72;
 
 
 methods:

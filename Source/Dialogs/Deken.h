@@ -425,6 +425,8 @@ public:
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
+        input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
+        input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 1, 23, 3, 1 });
         input.getProperties().set("NoOutline", true);
@@ -523,16 +525,16 @@ public:
     void paint(Graphics& g) override
     {
         if (errorMessage.isNotEmpty()) {
-            PlugDataLook::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
+            Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
         }
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, findColour(PlugDataColour::panelTextColourId), 12);
+        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, findColour(PlugDataColour::panelTextColourId), 12);
 
         if (input.getText().isEmpty()) {
-            PlugDataLook::drawText(g, "Type to search for objects or libraries", 32, 0, 350, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
+            Fonts::drawFittedText(g, "Type to search for objects or libraries", 30, 0, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
         }
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -661,7 +663,7 @@ public:
 
         input.setBounds(inputBounds);
 
-        clearButton.setBounds(inputBounds.removeFromRight(30));
+        clearButton.setBounds(inputBounds.removeFromRight(32));
         updateSpinner.setBounds(inputBounds.removeFromRight(30));
 
         tableBounds.removeFromLeft(Sidebar::dragbarWidth);
@@ -692,7 +694,7 @@ private:
     PackageManager* packageManager = PackageManager::getInstance();
 
     TextEditor input;
-    TextButton clearButton = TextButton(Icons::Clear);
+    TextButton clearButton = TextButton(Icons::ClearText);
 
     Spinner updateSpinner;
 
@@ -810,7 +812,7 @@ private:
 
         void paint(Graphics& g) override
         {
-            PlugDataLook::drawFittedText(g, packageInfo.name, 5, 0, 200, getHeight(), findColour(ComboBox::textColourId));
+            Fonts::drawFittedText(g, packageInfo.name, 5, 0, 200, getHeight(), findColour(ComboBox::textColourId));
 
             // draw progressbar
             if (deken.packageManager->getDownloadForPackage(packageInfo)) {
@@ -829,18 +831,18 @@ private:
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             } else {
-                PlugDataLook::drawFittedText(g, packageInfo.version, 150, 0, 150, getHeight(), findColour(PlugDataColour::panelTextColourId));
-                PlugDataLook::drawFittedText(g, packageInfo.author, 330, 0, 110, getHeight(), findColour(PlugDataColour::panelTextColourId));
-                PlugDataLook::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                Fonts::drawFittedText(g, packageInfo.version, 150, 0, 150, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                Fonts::drawFittedText(g, packageInfo.author, 330, 0, 110, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                Fonts::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
             }
         }
 
         void resized() override
         {
-            installButton.setBounds(getWidth() - 40, 1, 26, 30);
-            uninstallButton.setBounds(getWidth() - 40, 1, 26, 30);
-            reinstallButton.setBounds(getWidth() - 70, 1, 26, 30);
-            addToPathButton.setBounds(getWidth() - 100, 1, 26, 30);
+            installButton.setBounds(getWidth() - 40, 1, 30, 30);
+            uninstallButton.setBounds(getWidth() - 40, 1, 30, 30);
+            reinstallButton.setBounds(getWidth() - 70, 1, 30, 30);
+            addToPathButton.setBounds(getWidth() - 100, 1, 30, 30);
         }
     };
 };

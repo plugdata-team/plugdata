@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 # ------------------------------------------------------------------------------#
 # LIBPD PROJECT IN C
 # ------------------------------------------------------------------------------#
-project(libpd VERSION 1.0.0 LANGUAGES C)
+project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
@@ -175,6 +175,7 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/x_libpd_mod_utils.h
     ${LIBPD_PATH}/x_libpd_multi.c
     ${LIBPD_PATH}/x_libpd_multi.h
+    ${LIBPD_PATH}/x_libpd_ofelia.cpp
 )
 
 include_directories(${LIBPD_PATH})
@@ -194,9 +195,7 @@ file(GLOB_RECURSE PLAITS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/*.cc
 )
 
-if(UNIX)
 list(APPEND ELSE_SOURCES ${PLAITS_SOURCES})
-endif()
 
 file(GLOB_RECURSE AUBIO_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*.c

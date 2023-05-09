@@ -20,16 +20,18 @@ public:
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {
+        onConstrainerCreate = [this]() {
+            constrainer->setFixedAspectRatio(1);
+        };
+    }
+
+    void update() override
+    {
         auto* bng = static_cast<t_bng*>(ptr);
         bangInterrupt = bng->x_flashtime_break;
         bangHold = bng->x_flashtime_hold;
 
-        parent->constrainer->setFixedAspectRatio(1);
-    }
-
-    void initialiseParameters() override
-    {
-        iemHelper.initialiseParameters();
+        iemHelper.update();
     }
 
     bool hideInlets() override
@@ -60,14 +62,15 @@ public:
     void toggleObject(Point<int> position) override
     {
         if (!alreadyBanged) {
-            pd->enqueueFunction([this](){
-                if(cnv->patch.objectWasDeleted(ptr)) return;
-                
+            pd->enqueueFunction([this]() {
+                if (cnv->patch.objectWasDeleted(ptr))
+                    return;
+
                 startEdition();
                 pd_bang(static_cast<t_pd*>(ptr));
                 stopEdition();
             });
-            
+
             trigger();
             alreadyBanged = true;
         }
@@ -80,9 +83,10 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        pd->enqueueFunction([this](){
-            if(cnv->patch.objectWasDeleted(ptr)) return;
-            
+        pd->enqueueFunction([this]() {
+            if (cnv->patch.objectWasDeleted(ptr))
+                return;
+
             startEdition();
             pd_bang(static_cast<t_pd*>(ptr));
             stopEdition();
@@ -96,13 +100,13 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
         auto const bounds = getLocalBounds().reduced(1).toFloat();
         auto const width = std::max(bounds.getWidth(), bounds.getHeight());
@@ -110,7 +114,7 @@ public:
         float const circleOuter = 80.f * (width * 0.01f);
         float const circleThickness = std::max(width * 0.06f, 1.5f);
 
-        g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
 
         if (bangState) {
@@ -121,8 +125,9 @@ public:
 
     void trigger()
     {
-        if(bangState) return;
-        
+        if (bangState)
+            return;
+
         bangState = true;
         repaint();
 
@@ -131,7 +136,7 @@ public:
 
         int holdTime = bangHold.getValue();
 
-        if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2) {
+        if (timeSinceLast < getValue<int>(bangHold) * 2) {
             holdTime = timeSinceLast / 2;
         }
         if (holdTime < bangInterrupt) {
@@ -179,6 +184,13 @@ public:
         }
     }
 
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("anything")
+        };
+    }
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
@@ -195,7 +207,10 @@ public:
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
+            if (!wasIemMessage) {
+                trigger();
+            }
             break;
         }
         }

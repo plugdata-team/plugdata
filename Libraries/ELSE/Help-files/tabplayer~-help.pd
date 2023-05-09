@@ -12,7 +12,7 @@
 #N canvas 918 108 448 523 multichannel 0;
 #X msg 141 297 stop;
 #X obj 290 357 bng 30 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
-#X text 30 19 Multi channel playback is possible (up to 64 channels) when you specify it with a second argument. The number of channels defines the number 'n' of outlets - where the first outlets are the channel inputs and the righmost is the bang outlet.;
+#X text 30 19 Multi channel playback is possible (up to 64 channels) when you specify it with a second argument. The number of channels defines the number 'n' of outlets - where the first outlets are the channel inputs and the rightmost is the bang outlet.;
 #X text 30 91 If more than one channel is set \, the name convention for multi channel arrays is the table name preceded by the channel number (starting from zero) and "-" \, such as: "0-" \, "1-" \, "2-" \, "3-" \, and so on...;
 #X obj 101 237 else/sample~ stereo_\$0 stereo.wav;
 #X msg 101 209 show;

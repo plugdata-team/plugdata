@@ -6,8 +6,7 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-#include "LookAndFeel.h"
+#include "Constants.h"
 
 class PluginEditor;
 class Canvas;
@@ -32,14 +31,14 @@ public:
         grabKeyboardFocus();
 
         if (showCloseButton) {
-            closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
+            closeButton.reset(getLookAndFeel().createDocumentWindowButton(5));
             addAndMakeVisible(closeButton.get());
             closeButton->onClick = [this]() {
                 closeDialog();
             };
             closeButton->setAlwaysOnTop(true);
         }
-        
+
         // Some parts of the code check for an active dialog to decide if it needs to paint an outline
         getTopLevelComponent()->repaint();
     }
@@ -65,17 +64,17 @@ public:
         auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
 
         if (wantsRoundedCorners()) {
-            g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::windowCornerRadius);
+            g.fillRoundedRectangle(bounds.toFloat(), Corners::windowCornerRadius);
         } else {
             g.fillRect(bounds);
         }
 
         if (viewedComponent) {
             g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
-            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), PlugDataLook::windowCornerRadius);
+            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
+            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
         }
     }
 
@@ -100,7 +99,6 @@ public:
     {
         if (key == KeyPress::escapeKey) {
             closeDialog();
-
             return true;
         }
 
@@ -137,6 +135,8 @@ struct Dialogs {
     static void showSettingsDialog(PluginEditor* editor);
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
+
+    static void askToLocatePatch(PluginEditor* editor, String const& backupState, std::function<void(File)> callback);
 
     static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback);
 
