@@ -5,6 +5,7 @@
  */
 
 #include <JuceHeader.h>
+#include "TclColours.h"
 
 class Knob : public Slider {
 
@@ -441,20 +442,29 @@ public:
 
     Colour getBackgroundColour() const
     {
-        auto* bg = static_cast<t_fake_knob*>(ptr)->x_bg;
-        return Colour::fromString(String::fromUTF8(bg->s_name).replace("#", "ff"));
+        auto bg = String::fromUTF8(static_cast<t_fake_knob*>(ptr)->x_bg->s_name);
+        return convertTclColour(bg);
     }
 
     Colour getForegroundColour() const
     {
-        auto* fg = static_cast<t_fake_knob*>(ptr)->x_fg;
-        return Colour::fromString(String::fromUTF8(fg->s_name).replace("#", "ff"));
+        auto fg = String::fromUTF8(static_cast<t_fake_knob*>(ptr)->x_fg->s_name);
+        return convertTclColour(fg);
     }
     
     Colour getArcColour() const
     {
-        auto* mg = static_cast<t_fake_knob*>(ptr)->x_mg;
-        return Colour::fromString(String::fromUTF8(mg->s_name).replace("#", "ff"));
+        auto mg = String::fromUTF8(static_cast<t_fake_knob*>(ptr)->x_mg->s_name);
+        return convertTclColour(mg);
+    }
+    
+    Colour convertTclColour(const String& colourStr) const
+    {
+        if(tclColours.count(colourStr)) {
+            return tclColours[colourStr];
+        }
+        
+        return Colour::fromString(colourStr.replace("#", "ff"));
     }
 
     ObjectParameters getParameters() override
