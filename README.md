@@ -16,11 +16,9 @@
   </p>
 </p>
 
-<img width="1046" alt="Screenshot 2023-01-16 at 15 00 08" src="https://user-images.githubusercontent.com/44585538/212699165-d5aa1bb8-f212-403c-9ea6-45114c6a42fa.png">
+<img width="1046" alt="Screenshot 2023-03-06 at 03 42 45" src="https://user-images.githubusercontent.com/44585538/223007516-d2d15339-2cc5-4fdb-8ded-23639b48b50b.png">
 
-
-<img width="1046" alt="Screenshot 2023-01-10 at 15 45 01" src="https://user-images.githubusercontent.com/44585538/211581898-7f3b6079-369e-4ff7-930b-aaffd18a4c04.png">
-
+<img width="1046" alt="Screenshot 2023-03-06 at 03 37 07" src="https://user-images.githubusercontent.com/44585538/223007522-227912ff-c972-4082-8bee-ac20c354822b.png">
 
 plugdata is a plugin wrapper for Pure Data, featuring a new GUI made with JUCE. This is still a WIP, and there are probably still some bugs. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
 
@@ -38,8 +36,12 @@ Join the Discord here, for sharing patches, reporting issues or requesting featu
 **-Linux:**
 - Option 1: [OBS repository/packages](https://software.opensuse.org//download.html?project=home%3Aplugdata&package=plugdata)
   The repository contains the packages plugdata, plugdata-vst3 and plugdata-lv2 (lv2-plugdata and vst3-plugdata on some distros). If you get a package without the repo, it will only contain the standalone version.
+    - Plugin versions can be found here:
+      - Deb/Ubuntu: https://software.opensuse.org/package/plugdata-vst3 and https://software.opensuse.org/package/plugdata-lv2
+      - RPM based distros: https://software.opensuse.org/package/vst3-plugdata and https://software.opensuse.org/package/lv2-plugdata
 - Option 2: Arch User Repository (Arch only).
   Has the [plugdata-bin](https://aur.archlinux.org/packages/plugdata-bin) package for the latest stable version, or the [plugdata-git](https://aur.archlinux.org/packages/plugdata-git) package for the latest experimental build.
+
 - Option 3: Get the binaries from the latest [official release](https://github.com/plugdata-team/plugdata/tags)
 
 If you have a GitHub account, you can also download a recent experimental build from the actions tab.
@@ -75,7 +77,6 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 - [Inter](https://rsms.me/inter/) font by Rasmus Andersson
 - [Kiwi](https://github.com/Musicoll/Kiwi) by Eliott Paris, Pierre Guillot and Jean Millot
 - [FluidLite](https://github.com/divideconcept/FluidLite) by divideconcept, based on [Fluidsynth](https://github.com/FluidSynth/fluidsynth)
-- [FluidR3Mono](https://github.com/musescore/MuseScore/blob/master/share/sound/FluidR3Mono_License.md) soundfont by Frank Wen,  Michael Cowgill, S. Christian Collins, Ethan Winer, Michael Schorsch
 - [LV2 PlugIn Technology](http://lv2plug.in) by Steve Harris, David Robillard and others
 - [VST PlugIn Technology](https://www.steinberg.net/en/company/technologies/vst3.html) by Steinberg Media Technologies
 - [Audio Unit PlugIn Technology](https://developer.apple.com/documentation/audiounit) by Apple
@@ -89,8 +90,5 @@ What works:
 - Receive DAW playhead position, tempo and more using the [playhead] abstraction
 
 Known issues:
-- Broken ELSE objects: 
-  - [bicoeff]
-  - [messbox]
-  - [note]
+- Broken ELSE objects: See [#174](https://github.com/plugdata-team/plugdata/issues/174)
 - There may still be some more bugs
