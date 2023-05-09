@@ -693,15 +693,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
     
     void drawTabButtonText (TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
-        auto area = button.getLocalBounds().toFloat();
+        auto area = button.getLocalBounds().reduced(4, 1).toFloat();
 
-        auto length = area.getWidth();
-        auto depth  = area.getHeight();
-
-        if (button.getTabbedButtonBar().isVertical())
-            std::swap (length, depth);
-
-        Font font (getTabButtonFont (button, depth));
+        Font font (getTabButtonFont (button, area.getHeight()));
         font.setUnderline (button.hasKeyboardFocus (false));
 
         AffineTransform t;
@@ -726,20 +720,19 @@ struct PlugDataLook : public LookAndFeel_V4 {
         else
             col = button.getTabBackgroundColour().contrasting();
 
-        g.setColour (col);
-        g.setFont (font);
-        g.addTransform (t);
+        g.setColour(col);
+        g.setFont(font);
+        g.addTransform(t);
         
         auto buttonText = button.getButtonText().trim();
-        auto textAreaWidth = button.getTextArea().getWidth() - 6;
-        if(font.getStringWidth(buttonText) > textAreaWidth) {
-            length = textAreaWidth;
+        if(font.getStringWidthFloat(buttonText) > area.getWidth() * 0.4f) {
+            area = button.getTextArea().toFloat();
         }
 
         g.drawFittedText (buttonText,
-                          0, 0, (int) length, (int) depth,
+                          area.getX(), area.getY(), (int) area.getWidth(), (int) area.getHeight(),
                           Justification::centred,
-                          jmax (1, ((int) depth) / 12));
+                          jmax (1, ((int) area.getHeight()) / 12));
     }
 
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override
