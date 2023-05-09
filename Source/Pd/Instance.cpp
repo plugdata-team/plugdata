@@ -726,18 +726,10 @@ bool Instance::loadLibrary(String libraryToLoad)
     return sys_load_lib(nullptr, libraryToLoad.toRawUTF8());
 }
 
-
-int numHeld = 0;
 void Instance::lockAudioThread()
 {
     if (waitingForStateUpdate) // In this case, the message thread is waiting for the audio thread, so never lock in that case!
         return;
-    
-    if(MessageManager::getInstance()->isThisTheMessageThread())
-    {
-        numHeld++;
-        std::cout << "LOCK!" << std::endl;
-    }
 
     numLocksHeld++;
     audioLock->enter();
@@ -746,11 +738,6 @@ void Instance::lockAudioThread()
 bool Instance::tryLockAudioThread()
 {
     if (audioLock->tryEnter()) {
-        if(MessageManager::getInstance()->isThisTheMessageThread())
-        {
-            numHeld++;
-            std::cout << "LOCK!" << std::endl;
-        }
         numLocksHeld++;
         return true;
     }
@@ -759,14 +746,7 @@ bool Instance::tryLockAudioThread()
 }
 
 void Instance::unlockAudioThread()
-{
-    
-    if(MessageManager::getInstance()->isThisTheMessageThread())
-    {
-        numHeld--;
-        std::cout << "UNLOCK!" << std::endl;
-    }
-    
+{    
     numLocksHeld--;
     audioLock->exit();
 }
