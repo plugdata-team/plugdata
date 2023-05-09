@@ -16,13 +16,19 @@
   </p>
 </p>
 
-<img width="1046" alt="Screenshot 2023-03-06 at 03 42 45" src="https://user-images.githubusercontent.com/44585538/223007516-d2d15339-2cc5-4fdb-8ded-23639b48b50b.png">
+<p align="middle">
+  <img width="1082" alt="cipher" src="https://github.com/plugdata-team/plugdata/assets/44585538/0eb0c97e-bf68-4252-a297-0f7c7a7ff747">
 
-<img width="1046" alt="Screenshot 2023-03-06 at 03 37 07" src="https://user-images.githubusercontent.com/44585538/223007522-227912ff-c972-4082-8bee-ac20c354822b.png">
+  <img width="1115" alt="amaranth" src="https://github.com/plugdata-team/plugdata/assets/44585538/33beb62b-1e84-4f0d-81b8-4c130c6c5cf1">
+</p>
 
 plugdata is a plugin wrapper for Pure Data, featuring a new GUI made with JUCE. This is still a WIP, and there are probably still some bugs. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
 
 Join the Discord here, for sharing patches, reporting issues or requesting features: https://discord.gg/eT2RxdF9Nq
+
+<p align="middle">
+<img width="431" alt="LIRA-8" src="https://github.com/plugdata-team/plugdata/assets/44585538/1eb2e36f-6552-4caa-8e7b-2cd6adf03917">
+</p>
 
 ## Installation
 
