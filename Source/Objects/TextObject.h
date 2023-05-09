@@ -256,7 +256,6 @@ public:
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
         if (editor != nullptr) {
-            editor->giveAwayKeyboardFocus();
             cnv->grabKeyboardFocus();
         }
     }

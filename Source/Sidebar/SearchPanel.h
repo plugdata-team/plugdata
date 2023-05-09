@@ -39,7 +39,7 @@ public:
         clearButton.onClick = [this]() {
             clearSearchTargets();
             input.clear();
-            input.giveAwayKeyboardFocus();
+            grabKeyboardFocus(); // steal focus from text editor
             input.repaint();
         };
 

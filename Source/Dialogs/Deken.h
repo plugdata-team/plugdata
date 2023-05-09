@@ -438,7 +438,7 @@ public:
         clearButton.setAlwaysOnTop(true);
         clearButton.onClick = [this]() {
             input.clear();
-            input.giveAwayKeyboardFocus();
+            grabKeyboardFocus(); // steal focus from text editor
             input.repaint();
             filterResults();
         };
