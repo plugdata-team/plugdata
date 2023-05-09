@@ -203,8 +203,8 @@ jobs:
             - name: Fedora-37-x64
               os: fedora:37
               pacman: dnf
-            - name: Fedora-36-x64
-              os: fedora:36
+            - name: Fedora-38-x64
+              os: fedora:38
               pacman: dnf
             - name: OpenSUSE-Leap-x64
               os: opensuse/leap
