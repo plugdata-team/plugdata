@@ -62,9 +62,11 @@ public:
 
         auto sliderPosProportional = (getValue() - 0.01f) / (1 - 2 * 0.01f);
 
+        
         auto startAngle = getRotaryParameters().startAngleRadians;
         auto endAngle = getRotaryParameters().endAngleRadians;
-        float angle = startAngle + sliderPosProportional * (endAngle - startAngle);
+        
+        float angle = jmap<float>(sliderPosProportional, startAngle, endAngle);
 
         startAngle = std::clamp(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
 
@@ -79,8 +81,10 @@ public:
 
         // draw arc
         if (drawArc) {
+            auto centre = jmap<double>(getDoubleClickReturnValue(), startAngle, endAngle);
+            
             Path arc;
-            arc.addPieSegment(arcBounds, startAngle, angle, arcWidth);
+            arc.addPieSegment(arcBounds, centre, angle, arcWidth);
             g.setColour(fgColour);
             g.fillPath(arc);
         }
@@ -160,7 +164,8 @@ public:
     void updateDoubleClickValue()
     {
         auto val = jmap<float>(::getValue<int>(initialValue), getMinimum(), getMaximum(), 0.0f, 1.0f);
-        knob.setDoubleClickReturnValue(true, val);
+        knob.setDoubleClickReturnValue(true, std::clamp(val, 0.0f, 1.0f));
+        knob.repaint();
     }
 
     void setCircular(Slider::SliderStyle style)
@@ -253,7 +258,6 @@ public:
             hash("set"),
             hash("range"),
             hash("circular"),
-            hash("exp"),
             hash("discrete"),
             hash("arc"),
             hash("angle"),
@@ -291,14 +295,16 @@ public:
         }
         case hash("angle"): {
             if (atoms.size()) {
-                setParameterExcludingListener(angularRange, atoms[0].getFloat());
+                auto range = std::clamp<int>(atoms[0].getFloat(), 0, 360);
+                setParameterExcludingListener(angularRange, range);
                 updateRotaryParameters();
             }
             break;
         }
         case hash("offset"): {
             if (atoms.size()) {
-                setParameterExcludingListener(angularOffset, atoms[0].getFloat());
+                auto offset = std::clamp<int>(atoms[0].getFloat(), -180, 180);
+                setParameterExcludingListener(angularOffset, offset);
                 updateRotaryParameters();
             }
             break;
@@ -322,10 +328,6 @@ public:
             setParameterExcludingListener(ticks, atoms[0].getFloat());
             updateRotaryParameters();
             updateRange();
-            break;
-        }
-        case hash("exp"): {
-            exponential = atoms[0].getFloat();
             break;
         }
         case hash("send"): {
@@ -386,7 +388,7 @@ public:
 
     bool hasSendSymbol()
     {
-        return !getReceiveSymbol().isEmpty();
+        return !getSendSymbol().isEmpty();
     }
 
     bool hasReceiveSymbol()
@@ -558,17 +560,17 @@ public:
             updateRotaryParameters();
             updateRange();
         } else if (value.refersToSameSourceAs(angularRange)) {
-            auto range = ::getValue<int>(angularRange);
+            auto range = limitValueRange(angularRange, 0, 360);
             pd->enqueueDirectMessages(knb, "angle", { pd::Atom(range) });
+            updateRotaryParameters();
+        } else if (value.refersToSameSourceAs(angularOffset)) {
+            auto offset = limitValueRange(angularOffset, -180, 180);
+            pd->enqueueDirectMessages(knb, "offset", { pd::Atom(offset) });
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(showArc)) {
             bool arc = ::getValue<bool>(showArc);
             knob.showArc(arc);
             knb->x_arc = arc;
-        } else if (value.refersToSameSourceAs(angularOffset)) {
-            auto offset = ::getValue<int>(angularOffset);
-            pd->enqueueDirectMessages(knb, "offset", { pd::Atom(offset) });
-            updateRotaryParameters();
         } else if (value.refersToSameSourceAs(discrete)) {
             knb->x_discrete = ::getValue<bool>(discrete);
             updateRange();

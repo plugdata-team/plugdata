@@ -28,12 +28,10 @@ public:
             // Check if input is valid
             if (nameEditor.isEmpty()) {
                 nameEditor.setColour(TextEditor::outlineColourId, Colours::red);
-                nameEditor.giveAwayKeyboardFocus();
                 nameEditor.repaint();
             }
             if (sizeEditor.getText().getIntValue() < 0) {
                 sizeEditor.setColour(TextEditor::outlineColourId, Colours::red);
-                sizeEditor.giveAwayKeyboardFocus();
                 sizeEditor.repaint();
             }
             if (nameEditor.getText().isNotEmpty() && sizeEditor.getText().getIntValue() >= 0) {

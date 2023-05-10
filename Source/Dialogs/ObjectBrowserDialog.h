@@ -422,7 +422,7 @@ public:
         clearButton.getProperties().set("Style", "SmallIcon");
         clearButton.onClick = [this]() {
             input.clear();
-            input.giveAwayKeyboardFocus();
+            grabKeyboardFocus(); // steal focus from text editor
             listBox.setVisible(false);
             setInterceptsMouseClicks(false, true);
             input.repaint();

@@ -690,6 +690,50 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         drawTabButtonText(button, g, false, false);
     }
+    
+    void drawTabButtonText (TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
+    {
+        auto area = button.getLocalBounds().reduced(4, 1).toFloat();
+
+        Font font (getTabButtonFont (button, area.getHeight()));
+        font.setUnderline (button.hasKeyboardFocus (false));
+
+        AffineTransform t;
+
+        switch (button.getTabbedButtonBar().getOrientation())
+        {
+            case TabbedButtonBar::TabsAtLeft:   t = t.rotated (MathConstants<float>::pi * -0.5f).translated (area.getX(), area.getBottom()); break;
+            case TabbedButtonBar::TabsAtRight:  t = t.rotated (MathConstants<float>::pi *  0.5f).translated (area.getRight(), area.getY()); break;
+            case TabbedButtonBar::TabsAtTop:
+            case TabbedButtonBar::TabsAtBottom: t = t.translated (area.getX(), area.getY()); break;
+            default:                            jassertfalse; break;
+        }
+
+        Colour col;
+
+        if (button.isFrontTab() && (button.isColourSpecified (TabbedButtonBar::frontTextColourId)
+                                        || isColourSpecified (TabbedButtonBar::frontTextColourId)))
+            col = findColour (TabbedButtonBar::frontTextColourId);
+        else if (button.isColourSpecified (TabbedButtonBar::tabTextColourId)
+                     || isColourSpecified (TabbedButtonBar::tabTextColourId))
+            col = findColour (TabbedButtonBar::tabTextColourId);
+        else
+            col = button.getTabBackgroundColour().contrasting();
+
+        g.setColour(col);
+        g.setFont(font);
+        g.addTransform(t);
+        
+        auto buttonText = button.getButtonText().trim();
+        if(font.getStringWidthFloat(buttonText) > area.getWidth() * 0.4f) {
+            area = button.getTextArea().toFloat();
+        }
+
+        g.drawFittedText (buttonText,
+                          area.getX(), area.getY(), (int) area.getWidth(), (int) area.getHeight(),
+                          Justification::centred,
+                          jmax (1, ((int) area.getHeight()) / 12));
+    }
 
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override
     {
