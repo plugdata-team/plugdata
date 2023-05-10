@@ -135,11 +135,10 @@ public:
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = {
-            { "Non-zero value", tFloat, cGeneral, &nonZero, {} }
+            makeObjectParam("Non-zero value", tFloat, cGeneral, &nonZero, {})
         };
 
-        auto iemParameters = iemHelper.getParameters();
-        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+        iemHelper.addIemParameters(&allParameters);
 
         return allParameters;
     }

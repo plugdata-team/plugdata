@@ -291,14 +291,13 @@ public:
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = {
-            { "Minimum", tFloat, cGeneral, &min, {} },
-            { "Maximum", tFloat, cGeneral, &max, {} },
-            { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "Off", "On" } },
-            { "Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" } }
+            makeObjectParam("Minimum", tFloat, cGeneral, &min, {} ),
+            makeObjectParam("Maximum", tFloat, cGeneral, &max, {} ),
+            makeObjectParam("Logarithmic", tBool, cGeneral, &isLogarithmic, { "Off", "On" } ),
+            makeObjectParam("Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" } )
         };
 
-        auto iemParameters = iemHelper.getParameters();
-        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+        iemHelper.addIemParameters(&allParameters);
 
         return allParameters;
     }

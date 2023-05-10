@@ -338,17 +338,17 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            { "Text color", tColour, cAppearance, &primaryColour, {} },
-            { "Background color", tColour, cAppearance, &secondaryColour, {} },
-            { "Font", tFont, cAppearance, &font, {} },
-            { "Font size", tInt, cAppearance, &fontSize, {} },
-            { "Outline", tBool, cAppearance, &outline, { "No", "Yes" } },
-            { "Bold", tBool, cAppearance, &bold, { "No", "Yes" } },
-            { "Italic", tBool, cAppearance, &italic, { "No", "Yes" } },
-            { "Underline", tBool, cAppearance, &underline, { "No", "Yes" } },
-            { "Fill background", tBool, cAppearance, &fillBackground, { "No", "Yes" } },
-            { "Justification", tCombo, cAppearance, &justification, { "Left", "Centered", "Right" } },
-            { "Receive symbol", tString, cGeneral, &receiveSymbol, { "Left", "Centered", "Right" } },
+            makeObjectParam("Text color", tColour, cAppearance, &primaryColour, {} ),
+            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour, {} ),
+            makeObjectParam("Font", tFont, cAppearance, &font, {} ),
+            makeObjectParam("Font size", tInt, cAppearance, &fontSize, {} ),
+            makeObjectParam("Outline", tBool, cAppearance, &outline, { "No", "Yes" } ),
+            makeObjectParam("Bold", tBool, cAppearance, &bold, { "No", "Yes" } ),
+            makeObjectParam("Italic", tBool, cAppearance, &italic, { "No", "Yes" } ),
+            makeObjectParam("Underline", tBool, cAppearance, &underline, { "No", "Yes" } ),
+            makeObjectParam("Fill background", tBool, cAppearance, &fillBackground, { "No", "Yes" } ),
+            makeObjectParam("Justification", tCombo, cAppearance, &justification, { "Left", "Centered", "Right" } ),
+            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {} )
         };
     }
 

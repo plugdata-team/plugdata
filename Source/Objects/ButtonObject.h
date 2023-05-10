@@ -122,8 +122,8 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            { "Foreground", tColour, cAppearance, &primaryColour, {} },
-            { "Background", tColour, cAppearance, &secondaryColour, {} },
+            makeObjectParam("Foreground", tColour, cAppearance, &primaryColour, {} ),
+            makeObjectParam("Background", tColour, cAppearance, &secondaryColour, {} )
         };
     }
 

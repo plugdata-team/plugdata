@@ -470,27 +470,27 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            { "Minimum", tFloat, cGeneral, &min, {} },
-            { "Maximum", tFloat, cGeneral, &max, {} },
+            makeObjectParam("Minimum", tFloat, cGeneral, &min, {}, 0),
+            makeObjectParam("Maximum", tFloat, cGeneral, &max, {}, 127),
 
-            { "Initial value", tFloat, cGeneral, &initialValue, {} },
-            { "Circular drag", tBool, cGeneral, &circular, { "No", "Yes" } },
-            { "Ticks", tInt, cGeneral, &ticks, {} },
-            { "Discrete", tBool, cGeneral, &discrete, { "No", "Yes" } },
+            makeObjectParam("Initial value", tFloat, cGeneral, &initialValue, {}, 0),
+            makeObjectParam("Circular drag", tBool, cGeneral, &circular, { "No", "Yes" }, "No"),
+            makeObjectParam("Ticks", tInt, cGeneral, &ticks, {}, 0),
+            makeObjectParam("Discrete", tBool, cGeneral, &discrete, { "No", "Yes" }, "No"),
 
-            { "Angular range", tInt, cGeneral, &angularRange, {} },
-            { "Angular offset", tInt, cGeneral, &angularOffset, {} },
+            makeObjectParam("Angular range", tInt, cGeneral, &angularRange, {}, 270),
+            makeObjectParam("Angular offset", tInt, cGeneral, &angularOffset, {}, 0),
 
-            { "Exp", tFloat, cGeneral, &exponential, {} },
+            makeObjectParam("Exp", tFloat, cGeneral, &exponential, {}, 0),
 
-            { "Foreground color", tColour, cAppearance, &primaryColour, {} },
-            { "Background color", tColour, cAppearance, &secondaryColour, {} },
-            { "Arc color", tColour, cAppearance, &arcColour, {} },
-            { "Fill background", tBool, cAppearance, &outline, { "No", "Yes" } },
-            { "Show arc", tBool, cAppearance, &showArc, { "No", "Yes" } },
+            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour, {} ),
+            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour, {} ),
+            makeObjectParam("Arc color", tColour, cAppearance, &arcColour, {} ),
+            makeObjectParam("Fill background", tBool, cAppearance, &outline, { "No", "Yes" }, "Yes"),
+            makeObjectParam("Show arc", tBool, cAppearance, &showArc, { "No", "Yes" }, "Yes"),
 
-            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
+            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {}, ""),
+            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol, {}, "")
         };
     }
 

@@ -149,10 +149,12 @@ public:
     ObjectParameters getParameters() override
     {
 
-        ObjectParameters allParameters = { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
+        ObjectParameters allParameters = {
+            makeObjectParam("Minimum", tFloat, cGeneral, &min, {} ),
+            makeObjectParam("Maximum", tFloat, cGeneral, &max, {} )
+        };
 
-        auto iemParameters = iemHelper.getParameters();
-        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+        iemHelper.addIemParameters(&allParameters);
 
         return allParameters;
     }

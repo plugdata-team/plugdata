@@ -78,7 +78,10 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } } };
+        return {
+            makeObjectParam("Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } ),
+            makeObjectParam("Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } )
+        };
     };
 
     void checkGraphState()

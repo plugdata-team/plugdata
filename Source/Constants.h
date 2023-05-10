@@ -77,6 +77,8 @@ struct Icons {
     inline static const String Trash = "~";
     inline static const String Fullscreen = "&";
     inline static const String Eyedropper = "@";
+
+    inline static const String Reset = "'";
 };
 
 enum PlugDataColour {
@@ -568,6 +570,23 @@ enum OverlayItem {
     OverlayOrder
 };
 
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>; // name, type and pointer to value, list of items only for combobox and bool
+using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>, var>;
 
-using ObjectParameters = std::vector<ObjectParameter>;                                                     // List of elements and update function
+using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
+
+
+/**
+ *  @brief Generate a parameter set
+ *
+ *  @param pString parameter name
+ *  @param pType type of parameter
+ *  @param pCat category where it will be placed in inspector
+ *  @param pVal value to attach to parameter
+ *  @param pVecString list of string values, (such as { "Yes", "No" } )
+ *  @param pDefault default value of parameter
+ *  @param pTooltip TODO: string for tooltip display
+*/
+static ObjectParameter makeObjectParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal, std::vector<String> pVecString = std::vector<String>(), var pDefault = var())
+{
+    return std::make_tuple(pString, pType, pCat, pVal, pVecString, pDefault);
+}

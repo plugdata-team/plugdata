@@ -4,16 +4,31 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "Utility/PropertiesPanel.h"
+#include "../Utility/PropertiesPanel.h"
 
 class Inspector : public Component {
 
     PropertiesPanel panel;
     String title;
+    TextButton resetButton;
+    ObjectParameters properties;
 
 public:
     Inspector()
     {
+        resetButton.setButtonText(Icons::Reset);
+        resetButton.getProperties().set("Style", "LargeIcon");
+        resetButton.setTooltip("Reset to default");
+        resetButton.setSize(23,23);
+
+        addAndMakeVisible(resetButton);
+        resetButton.onClick = [this](){
+            for (auto [name, type, category, value, options, defaultVal] : properties) {
+                if (!defaultVal.isVoid())
+                    value->setValue(defaultVal);
+            }
+        };
+
         addAndMakeVisible(panel);
     }
 
@@ -34,6 +49,7 @@ public:
     void resized() override
     {
         panel.setBounds(getLocalBounds().withTrimmedTop(28));
+        resetButton.setTopLeftPosition(getLocalBounds().withTrimmedRight(23).getRight(), 0);
     }
 
     void setTitle(String const& name)
@@ -67,15 +83,16 @@ public:
 
     void loadParameters(ObjectParameters& params)
     {
+        properties = params;
+
         StringArray names = { "General", "Appearance", "Label", "Extra" };
 
         panel.clear();
 
         for (int i = 0; i < 4; i++) {
             Array<PropertyComponent*> panels;
-
             int idx = 0;
-            for (auto& [name, type, category, value, options] : params) {
+            for (auto& [name, type, category, value, options, defaultVal] : params) {
                 if (static_cast<int>(category) == i) {
                     panels.add(createPanel(type, name, value, options));
                     idx++;

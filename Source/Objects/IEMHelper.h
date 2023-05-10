@@ -65,17 +65,23 @@ public:
     ObjectParameters getParameters()
     {
         return {
-            { "Foreground", tColour, cAppearance, &primaryColour, {} },
-            { "Background", tColour, cAppearance, &secondaryColour, {} },
-            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
-            { "Label", tString, cLabel, &labelText, {} },
-            { "Label color", tColour, cLabel, &labelColour, {} },
-            { "Label X", tInt, cLabel, &labelX, {} },
-            { "Label Y", tInt, cLabel, &labelY, {} },
-            { "Label Height", tInt, cLabel, &labelHeight, {} },
-            { "Initialise", tBool, cGeneral, &initialise, { "No", "Yes" } }
+            makeObjectParam("Foreground", tColour, cAppearance, &primaryColour, {} ),
+            makeObjectParam("Background", tColour, cAppearance, &secondaryColour, {} ),
+            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {} ),
+            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol, {} ),
+            makeObjectParam("Label", tString, cLabel, &labelText, {} ),
+            makeObjectParam("Label color", tColour, cLabel, &labelColour, {} ),
+            makeObjectParam("Label X", tInt, cLabel, &labelX, {} ),
+            makeObjectParam("Label Y", tInt, cLabel, &labelY, {} ),
+            makeObjectParam("Label Height", tInt, cLabel, &labelHeight, {} ),
+            makeObjectParam("Initialise", tBool, cGeneral, &initialise, { "No", "Yes" } )
         };
+    }
+
+    void addIemParameters(ObjectParameters* objectParams)
+    {
+        for (auto param : getParameters())
+            objectParams->emplace_back(param);
     }
 
     bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
