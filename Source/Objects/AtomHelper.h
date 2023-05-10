@@ -168,12 +168,18 @@ public:
     ObjectParameters getParameters()
     {
         return {
-            { "Font size", tCombo, cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } },
-            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
-            { "Label", tString, cLabel, &labelText, {} },
-            { "Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } }
+            makeObjectParam("Font size", tCombo, cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } ),
+            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {} ),
+            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol, {} ),
+            makeObjectParam("Label", tString, cLabel, &labelText, {} ),
+            makeObjectParam("Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } )
         };
+    }
+
+    void addAtomParameters(ObjectParameters* objectParams)
+    {
+        for (auto param : getParameters())
+            objectParams->emplace_back(param);
     }
 
     void valueChanged(Value& v)

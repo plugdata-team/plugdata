@@ -162,12 +162,11 @@ public:
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = {
-            { "Minimum flash time", tInt, cGeneral, &bangInterrupt, {} },
-            { "Maximum flash time", tInt, cGeneral, &bangHold, {} },
+            makeObjectParam("Minimum flash time", tInt, cGeneral, &bangInterrupt, {} ),
+            makeObjectParam("Maximum flash time", tInt, cGeneral, &bangHold, {} )
         };
 
-        auto iemParameters = iemHelper.getParameters();
-        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+        iemHelper.addIemParameters(&allParameters);
 
         return allParameters;
     }

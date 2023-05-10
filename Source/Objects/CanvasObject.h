@@ -112,14 +112,14 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
-            { "Receive symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
-            { "Send symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
-            { "Label", tString, cLabel, &iemHelper.labelText, {} },
-            { "Label color", tColour, cLabel, &iemHelper.labelColour, {} },
-            { "Label X", tInt, cLabel, &iemHelper.labelX, {} },
-            { "Label Y", tInt, cLabel, &iemHelper.labelY, {} },
-            { "Label Height", tInt, cLabel, &iemHelper.labelHeight, {} },
+            makeObjectParam("Background", tColour, cAppearance, &iemHelper.secondaryColour, {} ),
+            makeObjectParam("Receive symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} ),
+            makeObjectParam("Send symbol", tString, cGeneral, &iemHelper.sendSymbol, {} ),
+            makeObjectParam("Label", tString, cLabel, &iemHelper.labelText, {} ),
+            makeObjectParam("Label color", tColour, cLabel, &iemHelper.labelColour, {} ),
+            makeObjectParam("Label X", tInt, cLabel, &iemHelper.labelX, {} ),
+            makeObjectParam("Label Y", tInt, cLabel, &iemHelper.labelY, {} ),
+            makeObjectParam("Label Height", tInt, cLabel, &iemHelper.labelHeight, {} )
         };
     }
 };

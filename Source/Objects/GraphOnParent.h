@@ -240,10 +240,12 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
-            { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } },
-            { "X range", tRange, cGeneral, &xRange, {} },
-            { "Y range", tRange, cGeneral, &yRange, {} } };
+        return { 
+            makeObjectParam("Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } ),
+            makeObjectParam("Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } ),
+            makeObjectParam("X range", tRange, cGeneral, &xRange, {} ),
+            makeObjectParam("Y range", tRange, cGeneral, &yRange, {} )
+        };
     };
 
     void checkGraphState()
