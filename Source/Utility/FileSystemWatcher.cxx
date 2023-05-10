@@ -19,7 +19,7 @@ For more information visit www.rabiensoftware.com
  #include <ctime>
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) || JUCE_BSD
  #include <sys/inotify.h>
  #include <limits.h>
  #include <unistd.h>
@@ -350,7 +350,24 @@ public:
 };
 #endif
 
-#if defined JUCE_MAC || defined JUCE_WINDOWS || defined JUCE_LINUX
+#if JUCE_BSD
+class FileSystemWatcher::Impl
+{
+public:
+    Impl (FileSystemWatcher& o, File f) : owner (o), folder (f)
+    {
+    }
+
+    ~Impl()
+    {
+    }
+
+    FileSystemWatcher& owner;
+    const File folder;
+};
+#endif
+
+#if defined JUCE_MAC || defined JUCE_WINDOWS || defined JUCE_LINUX || defined JUCE_BSD
 FileSystemWatcher::FileSystemWatcher()
 {
 }

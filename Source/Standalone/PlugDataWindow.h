@@ -603,7 +603,7 @@ public:
 
     void maximiseButtonPressed() override
     {
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
                 bool shouldBeMaximised = !OSUtils::isX11WindowMaximised(peer->getNativeHandle());
@@ -619,7 +619,7 @@ public:
         resized();
     }
 
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
     void paint(Graphics& g) override
     {
         if (drawWindowShadow && !isUsingNativeTitleBar() && !isFullScreen()) {
@@ -649,7 +649,7 @@ public:
 
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
 
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
         if (!isFullScreen() && !isUsingNativeTitleBar() && drawWindowShadow) {
             auto margin = mainComponent ? mainComponent->getMargin() : 18;
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
@@ -710,7 +710,7 @@ private:
 
         void paintOverChildren(Graphics& g) override
         {
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
             if (!owner.isUsingNativeTitleBar() && !owner.hasOpenedDialog()) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
 
@@ -744,7 +744,7 @@ private:
                 return 0;
             }
 
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
             if (drawWindowShadow) {
                 if (auto* maximiseButton = owner.getMaximiseButton()) {
                     bool maximised = maximiseButton->getToggleState();

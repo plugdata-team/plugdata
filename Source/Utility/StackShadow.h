@@ -719,9 +719,11 @@ public:
     }
 };
 
+#if !JUCE_BSD
 namespace juce {
 bool isWindowOnCurrentVirtualDesktop(void* x);
 }
+#endif
 
 class StackDropShadower : private ComponentListener {
 public:
@@ -1020,7 +1022,11 @@ private:
             auto const newHasReasonToHide = [this]() {
                 if (!component.wasObjectDeleted() && isWindows && component->isOnDesktop()) {
                     startTimerHz(5);
+#if JUCE_BSD
+                    return false;
+#else
                     return !isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
+#endif
                 }
 
                 stopTimer();

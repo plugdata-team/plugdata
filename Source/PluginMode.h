@@ -13,7 +13,7 @@ public:
     {
         if (ProjectInfo::isStandalone) {
             // If the window is already maximised, unmaximise it to prevent problems
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
             OSUtils::maximiseX11Window(desktopWindow->getNativeHandle(), false);
 #else
             if (desktopWindow->isFullScreen()) {
@@ -276,7 +276,7 @@ public:
 
     void setFullScreen(PlugDataWindow* window, bool shouldBeFullScreen)
     {
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
         // linux can make the window take up the whole display by simply setting the bounds to that of the display
         auto bounds = shouldBeFullScreen ? Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea : originalPluginWindowBounds;
         desktopWindow->setBounds(bounds, shouldBeFullScreen);
