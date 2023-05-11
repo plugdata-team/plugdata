@@ -543,10 +543,10 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            makeObjectParam("Name", tString, cGeneral, &name, {} ),
-            makeObjectParam("Size", tInt, cGeneral, &size, {} ),
+            makeObjectParam("Name", tString, cGeneral, &name),
+            makeObjectParam("Size", tInt, cGeneral, &size),
             makeObjectParam("Draw Mode", tCombo, cGeneral, &drawMode, { "Points", "Polygon", "Bezier Curve" } ),
-            makeObjectParam("Y Range", tRange, cGeneral, &range, {} ),
+            makeObjectParam("Y Range", tRange, cGeneral, &range),
             makeObjectParam("Save Contents", tBool, cGeneral, &saveContents, { "No", "Yes" } )
         };
     }

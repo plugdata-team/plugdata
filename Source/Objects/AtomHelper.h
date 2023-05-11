@@ -169,9 +169,9 @@ public:
     {
         return {
             makeObjectParam("Font size", tCombo, cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } ),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {} ),
-            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol, {} ),
-            makeObjectParam("Label", tString, cLabel, &labelText, {} ),
+            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol),
+            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol),
+            makeObjectParam("Label", tString, cLabel, &labelText),
             makeObjectParam("Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } )
         };
     }

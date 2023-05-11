@@ -483,9 +483,9 @@ public:
 
             makeObjectParam("Exp", tFloat, cGeneral, &exponential, {}, 0),
 
-            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour, {} ),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour, {} ),
-            makeObjectParam("Arc color", tColour, cAppearance, &arcColour, {} ),
+            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
+            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
+            makeObjectParam("Arc color", tColour, cAppearance, &arcColour),
             makeObjectParam("Fill background", tBool, cAppearance, &outline, { "No", "Yes" }, "Yes"),
             makeObjectParam("Show arc", tBool, cAppearance, &showArc, { "No", "Yes" }, "Yes"),
 

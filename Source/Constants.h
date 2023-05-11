@@ -574,19 +574,59 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 
 using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
 
-
+// parameter overloads for different sorts of parameters
 /**
- *  @brief Generate a parameter set
+ *  @brief Generate a parameter set with string name options & default
  *
  *  @param pString parameter name
  *  @param pType type of parameter
  *  @param pCat category where it will be placed in inspector
  *  @param pVal value to attach to parameter
- *  @param pVecString list of string values, (such as { "Yes", "No" } )
+ *  @param pVecString list of string name options, (such as { "Yes", "No" } )
  *  @param pDefault default value of parameter
- *  @param pTooltip TODO: string for tooltip display
 */
-static ObjectParameter makeObjectParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal, std::vector<String> pVecString = std::vector<String>(), var pDefault = var())
+static ObjectParameter makeObjectParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal, std::vector<String> pVecString, var pDefault)
 {
     return std::make_tuple(pString, pType, pCat, pVal, pVecString, pDefault);
+}
+
+/**
+ *  @brief Generate a parameter set with string name options without default
+ *
+ *  @param pString parameter name
+ *  @param pType type of parameter
+ *  @param pCat category where it will be placed in inspector
+ *  @param pVal value to attach to parameter
+ *  @param pVecString list of string name options, (such as { "Yes", "No" } )
+*/
+static ObjectParameter makeObjectParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal, std::vector<String> pVecString)
+{
+    return std::make_tuple(pString, pType, pCat, pVal, pVecString, var());
+}
+
+/**
+ *  @brief Generate a parameter set for value without string name options
+ *
+ *  @param pString parameter name
+ *  @param pType type of parameter
+ *  @param pCat category where it will be placed in inspector
+ *  @param pVal value to attach to parameter
+*/
+static ObjectParameter makeObjectParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal)
+{
+    return std::make_tuple(pString, pType, pCat, pVal, std::vector<String>(), var());
+}
+
+/**
+ *  @brief Generate a parameter set for value with defaults, but without string name options 
+ *
+ *  @param pString parameter name
+ *  @param pType type of parameter
+ *  @param pCat category where it will be placed in inspector
+ *  @param pVal value to attach to parameter
+ *  @param pDefault default value of parameter
+*/
+static ObjectParameter makeObjectParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal, var pDefault)
+{
+    return std::make_tuple(pString, pType, pCat, pVal, std::vector<String>(), pDefault);
 }

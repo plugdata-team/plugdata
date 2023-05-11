@@ -324,11 +324,11 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            makeObjectParam("Start octave", tInt, cGeneral, &lowC, {} ),
-            makeObjectParam("Num. octaves", tInt, cGeneral, &octaves, {} ),
+            makeObjectParam("Start octave", tInt, cGeneral, &lowC),
+            makeObjectParam("Num. octaves", tInt, cGeneral, &octaves),
             makeObjectParam("Toggle Mode", tBool, cGeneral, &toggleMode, { "Off", "On" } ),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {} ),
-            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol, {} )
+            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol),
+            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol)
         };
     }
 

@@ -291,8 +291,8 @@ public:
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = {
-            makeObjectParam("Minimum", tFloat, cGeneral, &min, {} ),
-            makeObjectParam("Maximum", tFloat, cGeneral, &max, {} ),
+            makeObjectParam("Minimum", tFloat, cGeneral, &min),
+            makeObjectParam("Maximum", tFloat, cGeneral, &max),
             makeObjectParam("Logarithmic", tBool, cGeneral, &isLogarithmic, { "Off", "On" } ),
             makeObjectParam("Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" } )
         };

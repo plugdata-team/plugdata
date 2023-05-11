@@ -160,13 +160,13 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            makeObjectParam("Minimum", tFloat, cGeneral, &min, {} ),
-            makeObjectParam("Maximum", tFloat, cGeneral, &max, {} ),
-            makeObjectParam("Interval (ms)", tFloat, cGeneral, &interval, {} ),
-            makeObjectParam("Ramp time (ms)", tFloat, cGeneral, &ramp, {} ),
-            makeObjectParam("Initial value", tFloat, cGeneral, &init, {} ),
-            makeObjectParam("Foreground", tColour, cAppearance, &primaryColour, {} ),
-            makeObjectParam("Background", tColour, cAppearance, &secondaryColour, {} )
+            makeObjectParam("Minimum", tFloat, cGeneral, &min),
+            makeObjectParam("Maximum", tFloat, cGeneral, &max),
+            makeObjectParam("Interval (ms)", tFloat, cGeneral, &interval),
+            makeObjectParam("Ramp time (ms)", tFloat, cGeneral, &ramp),
+            makeObjectParam("Initial value", tFloat, cGeneral, &init),
+            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
+            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour)
 
         };
     }

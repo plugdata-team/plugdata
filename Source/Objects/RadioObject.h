@@ -203,7 +203,7 @@ public:
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = {
-            makeObjectParam("Options", tInt, cGeneral, &max, {} ) 
+            makeObjectParam("Options", tInt, cGeneral, &max) 
         };
 
         iemHelper.addIemParameters(&allParameters);

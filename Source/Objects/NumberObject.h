@@ -150,8 +150,8 @@ public:
     {
 
         ObjectParameters allParameters = {
-            makeObjectParam("Minimum", tFloat, cGeneral, &min, {} ),
-            makeObjectParam("Maximum", tFloat, cGeneral, &max, {} )
+            makeObjectParam("Minimum", tFloat, cGeneral, &min),
+            makeObjectParam("Maximum", tFloat, cGeneral, &max)
         };
 
         iemHelper.addIemParameters(&allParameters);
