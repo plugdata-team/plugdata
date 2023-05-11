@@ -474,9 +474,9 @@ public:
             makeObjectParam("Maximum", tFloat, cGeneral, &max, {}, 127),
 
             makeObjectParam("Initial value", tFloat, cGeneral, &initialValue, {}, 0),
-            makeObjectParam("Circular drag", tBool, cGeneral, &circular, { "No", "Yes" }, "No"),
+            makeObjectParam("Circular drag", tBool, cGeneral, &circular, { "No", "Yes" }, false),
             makeObjectParam("Ticks", tInt, cGeneral, &ticks, {}, 0),
-            makeObjectParam("Discrete", tBool, cGeneral, &discrete, { "No", "Yes" }, "No"),
+            makeObjectParam("Discrete", tBool, cGeneral, &discrete, { "No", "Yes" }, false),
 
             makeObjectParam("Angular range", tInt, cGeneral, &angularRange, {}, 270),
             makeObjectParam("Angular offset", tInt, cGeneral, &angularOffset, {}, 0),
@@ -486,8 +486,8 @@ public:
             makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour, {} ),
             makeObjectParam("Background color", tColour, cAppearance, &secondaryColour, {} ),
             makeObjectParam("Arc color", tColour, cAppearance, &arcColour, {} ),
-            makeObjectParam("Fill background", tBool, cAppearance, &outline, { "No", "Yes" }, "Yes"),
-            makeObjectParam("Show arc", tBool, cAppearance, &showArc, { "No", "Yes" }, "Yes"),
+            makeObjectParam("Fill background", tBool, cAppearance, &outline, { "No", "Yes" }, true),
+            makeObjectParam("Show arc", tBool, cAppearance, &showArc, { "No", "Yes" }, true),
 
             makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {}, ""),
             makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol, {}, "")

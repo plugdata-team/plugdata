@@ -5,22 +5,45 @@
  */
 
 #pragma once
-#include <juce_gui_extra/juce_gui_extra.h>
+#include <JuceHeader.h>
 #include "DraggableNumber.h"
 #include "ColourPicker.h"
 
 class PropertiesPanel : public PropertyPanel {
 
 public:
-    class Property : public PropertyComponent {
+    class Property : public PropertyComponent, public Value::Listener {
 
     protected:
         bool hideLabel = false;
 
     public:
-        Property(String const& propertyName)
+        Property(String const& propertyName, Value& value)
             : PropertyComponent(propertyName, 23)
         {
+            propertyValues.add(Value(value));
+            addListeners();
+        }
+
+        Property(String const& propertyName, Array<Value*> values)
+            : PropertyComponent(propertyName, 23)
+        {
+            for (auto* value : values) {
+                propertyValues.add(Value(*value));
+            }
+            addListeners();
+        }
+
+        ~Property()
+        {
+            for (auto value : propertyValues)
+                value.removeListener(this);
+        }
+
+        void addListeners()
+        {
+            for (auto value : propertyValues)
+                value.addListener(this);
         }
 
         void setHideLabel(bool labelHidden)
@@ -38,11 +61,22 @@ public:
         }
 
         void refresh() override {};
+
+        void valueChanged(Value& v) override
+        {
+            for (auto value : propertyValues) {
+                if (v.refersToSameSourceAs(value))
+                    repaint();
+            }
+        }
+
+    private:
+        Array<Value> propertyValues;
     };
 
     struct ComboComponent : public Property {
         ComboComponent(String const& propertyName, Value& value, std::vector<String> options)
-            : Property(propertyName)
+            : Property(propertyName, value)
         {
             for (int n = 0; n < options.size(); n++) {
                 comboBox.addItem(options[n], n + 1);
@@ -90,7 +124,7 @@ public:
         StringArray options = Font::findAllTypefaceNames();
 
         FontComponent(String const& propertyName, Value& value)
-            : Property(propertyName)
+            : Property(propertyName, value)
         {
             options.addIfNotAlreadyThere("Inter");
 
@@ -131,7 +165,7 @@ public:
         int numProperties;
 
         MultiPropertyComponent(String const& propertyName, Array<Value*> values)
-            : Property(propertyName)
+            : Property(propertyName, values)
             , numProperties(values.size())
         {
             for (int i = 0; i < numProperties; i++) {
@@ -142,7 +176,7 @@ public:
         }
 
         MultiPropertyComponent(String const& propertyName, Array<Value*> values, std::vector<String> options)
-            : Property(propertyName)
+            : Property(propertyName, values)
             , numProperties(values.size())
         {
             for (int i = 0; i < numProperties; i++) {
@@ -166,7 +200,7 @@ public:
 
     struct BoolComponent : public Property {
         BoolComponent(String const& propertyName, Value& value, std::vector<String> options)
-            : Property(propertyName)
+            : Property(propertyName, value)
             , textOptions(options)
         {
             toggleStateValue.referTo(value);
@@ -221,7 +255,7 @@ public:
 
     struct ColourComponent : public Property {
         ColourComponent(String const& propertyName, Value& value)
-            : Property(propertyName)
+            : Property(propertyName, value)
             , currentColour(value)
         {
             repaint();
@@ -284,7 +318,7 @@ public:
         float min, max;
 
         RangeComponent(String propertyName, Value& value)
-            : Property(propertyName)
+            : Property(propertyName, value)
             , property(value)
             , minLabel(false)
             , maxLabel(false)
@@ -341,7 +375,7 @@ public:
         Value& property;
 
         EditableComponent(String propertyName, Value& value)
-            : Property(propertyName)
+            : Property(propertyName, value)
             , property(value)
         {
             if constexpr (std::is_arithmetic<T>::value) {
@@ -392,7 +426,7 @@ public:
         std::unique_ptr<FileChooser> saveChooser;
 
         FilePathComponent(String propertyName, Value& value)
-            : Property(propertyName)
+            : Property(propertyName, value)
             , property(value)
         {
 
