@@ -5,7 +5,7 @@
  */
 
 #pragma once
-#include <juce_gui_extra/juce_gui_extra.h>
+#include <JuceHeader.h>
 #include "DraggableNumber.h"
 #include "ColourPicker.h"
 
@@ -164,12 +164,18 @@ public:
         }
     };
 
-    struct BoolComponent : public Property {
+    struct BoolComponent : public Property, public Value::Listener {
         BoolComponent(String const& propertyName, Value& value, std::vector<String> options)
             : Property(propertyName)
             , textOptions(options)
+            , toggleStateValue(value)
         {
-            toggleStateValue.referTo(value);
+            toggleStateValue.addListener(this);
+        }
+
+        ~BoolComponent()
+        {
+            toggleStateValue.removeListener(this);
         }
 
         bool hitTest(int x, int y) override
@@ -214,20 +220,30 @@ public:
             repaint();
         }
 
+        void valueChanged(Value& v) override
+        {
+            if (v.refersToSameSourceAs(toggleStateValue))
+                repaint();
+        }
+
     private:
         std::vector<String> textOptions;
         Value toggleStateValue;
     };
 
-    struct ColourComponent : public Property {
+    struct ColourComponent : public Property, public Value::Listener {
         ColourComponent(String const& propertyName, Value& value)
             : Property(propertyName)
             , currentColour(value)
         {
+            currentColour.addListener(this);
             repaint();
         }
 
-        ~ColourComponent() override = default;
+        ~ColourComponent() override
+        {
+            currentColour.removeListener(this);
+        }
 
         void paint(Graphics& g) override
         {
@@ -270,6 +286,12 @@ public:
         {
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
             return bounds.contains(x, y);
+        }
+
+        void valueChanged(Value& v) override
+        {
+            if (v.refersToSameSourceAs(currentColour))
+                repaint();
         }
 
     private:

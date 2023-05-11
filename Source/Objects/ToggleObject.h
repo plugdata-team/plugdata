@@ -135,7 +135,7 @@ public:
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = {
-            makeObjectParam("Non-zero value", tFloat, cGeneral, &nonZero, {})
+            makeObjectParam("Non-zero value", tFloat, cGeneral, &nonZero)
         };
 
         iemHelper.addIemParameters(&allParameters);

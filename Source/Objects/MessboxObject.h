@@ -276,9 +276,9 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            makeObjectParam("Text color", tColour, cAppearance, &primaryColour, {} ),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour, {} ),
-            makeObjectParam("Font size", tInt, cAppearance, &fontSize, {} ),
+            makeObjectParam("Text color", tColour, cAppearance, &primaryColour),
+            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
+            makeObjectParam("Font size", tInt, cAppearance, &fontSize),
             makeObjectParam("Bold", tBool, cAppearance, &bold, { "No", "Yes" } )
         };
     }

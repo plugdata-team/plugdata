@@ -229,16 +229,16 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            makeObjectParam("Foreground", tColour, cAppearance, &primaryColour, {} ),
-            makeObjectParam("Grid", tColour, cAppearance, &gridColour, {} ),
-            makeObjectParam("Background", tColour, cAppearance, &secondaryColour, {} ),
+            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
+            makeObjectParam("Grid color", tColour, cAppearance, &gridColour),
+            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
             makeObjectParam("Trigger mode", tCombo, cGeneral, &triggerMode, { "None", "Up", "Down" } ),
-            makeObjectParam("Trigger value", tFloat, cGeneral, &triggerValue, {} ),
-            makeObjectParam("Samples per point", tInt, cGeneral, &samplesPerPoint, {} ),
-            makeObjectParam("Buffer size", tInt, cGeneral, &bufferSize, {} ),
-            makeObjectParam("Delay", tInt, cGeneral, &delay, {} ),
-            makeObjectParam("Signal range", tRange, cGeneral, &signalRange, {} ),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {} )
+            makeObjectParam("Trigger value", tFloat, cGeneral, &triggerValue),
+            makeObjectParam("Samples per point", tInt, cGeneral, &samplesPerPoint),
+            makeObjectParam("Buffer size", tInt, cGeneral, &bufferSize),
+            makeObjectParam("Delay", tInt, cGeneral, &delay),
+            makeObjectParam("Signal range", tRange, cGeneral, &signalRange),
+            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol)
         };
     }
 

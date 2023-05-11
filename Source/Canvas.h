@@ -229,10 +229,10 @@ private:
     ObjectParameters parameters = {
         makeObjectParam("Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" }),
         makeObjectParam("Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" }),
-        makeObjectParam("X range", tRange, cGeneral, &xRange, {}),
-        makeObjectParam("Y range", tRange, cGeneral, &yRange, {}),
-        makeObjectParam("Width", tInt, cGeneral, &patchWidth, {}),
-        makeObjectParam("Height", tInt, cGeneral, &patchHeight, {})
+        makeObjectParam("X range", tRange, cGeneral, &xRange),
+        makeObjectParam("Y range", tRange, cGeneral, &yRange),
+        makeObjectParam("Width", tInt, cGeneral, &patchWidth),
+        makeObjectParam("Height", tInt, cGeneral, &patchHeight)
     };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)

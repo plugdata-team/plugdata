@@ -16,15 +16,22 @@ class Inspector : public Component {
 public:
     Inspector()
     {
+        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
         resetButton.setButtonText(Icons::Reset);
         resetButton.getProperties().set("Style", "LargeIcon");
         resetButton.setTooltip("Reset to default");
         resetButton.setSize(23,23);
 
         addAndMakeVisible(resetButton);
-        resetButton.onClick = [this](){
+        resetButton.onClick = [this, lnf = std::ref(lnf)](){
             for (auto [name, type, category, value, options, defaultVal] : properties) {
-                if (!defaultVal.isVoid())
+                if (name == "Foreground color") {
+                    value->setValue(lnf.get().findColour(PlugDataColour::canvasTextColourId).toString());
+                }
+                else if (name == "Background color") {
+                    value->setValue(lnf.get().findColour(PlugDataColour::guiObjectBackgroundColourId).toString());
+                }
+                else if (!defaultVal.isVoid())
                     value->setValue(defaultVal);
             }
         };

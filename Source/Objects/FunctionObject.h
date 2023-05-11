@@ -347,11 +347,11 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            makeObjectParam("Foreground", tColour, cAppearance, &primaryColour, {} ),
-            makeObjectParam("Background", tColour, cAppearance, &secondaryColour, {} ),
-            makeObjectParam("Range", tRange, cGeneral, &range, {} ),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {} ),
-            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol, {} )
+            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
+            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
+            makeObjectParam("Range", tRange, cGeneral, &range),
+            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol),
+            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol)
         };
     }
 

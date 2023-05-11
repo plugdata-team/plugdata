@@ -65,15 +65,15 @@ public:
     ObjectParameters getParameters()
     {
         return {
-            makeObjectParam("Foreground", tColour, cAppearance, &primaryColour, {} ),
-            makeObjectParam("Background", tColour, cAppearance, &secondaryColour, {} ),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {} ),
-            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol, {} ),
-            makeObjectParam("Label", tString, cLabel, &labelText, {} ),
-            makeObjectParam("Label color", tColour, cLabel, &labelColour, {} ),
-            makeObjectParam("Label X", tInt, cLabel, &labelX, {} ),
-            makeObjectParam("Label Y", tInt, cLabel, &labelY, {} ),
-            makeObjectParam("Label Height", tInt, cLabel, &labelHeight, {} ),
+            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
+            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
+            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol),
+            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol),
+            makeObjectParam("Label", tString, cLabel, &labelText),
+            makeObjectParam("Label color", tColour, cLabel, &labelColour),
+            makeObjectParam("Label X", tInt, cLabel, &labelX),
+            makeObjectParam("Label Y", tInt, cLabel, &labelY),
+            makeObjectParam("Label Height", tInt, cLabel, &labelHeight),
             makeObjectParam("Initialise", tBool, cGeneral, &initialise, { "No", "Yes" } )
         };
     }

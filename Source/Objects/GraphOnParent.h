@@ -243,8 +243,8 @@ public:
         return { 
             makeObjectParam("Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } ),
             makeObjectParam("Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } ),
-            makeObjectParam("X range", tRange, cGeneral, &xRange, {} ),
-            makeObjectParam("Y range", tRange, cGeneral, &yRange, {} )
+            makeObjectParam("X range", tRange, cGeneral, &xRange),
+            makeObjectParam("Y range", tRange, cGeneral, &yRange)
         };
     };
 
