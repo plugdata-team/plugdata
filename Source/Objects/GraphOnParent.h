@@ -241,10 +241,10 @@ public:
     ObjectParameters getParameters() override
     {
         return { 
-            makeObjectParam("Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } ),
-            makeObjectParam("Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } ),
-            makeObjectParam("X range", tRange, cGeneral, &xRange),
-            makeObjectParam("Y range", tRange, cGeneral, &yRange)
+            makeParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" } ),
+            makeParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" } ),
+            makeParamRange("X range", cGeneral, &xRange),
+            makeParamRange("Y range", cGeneral, &yRange)
         };
     };
 

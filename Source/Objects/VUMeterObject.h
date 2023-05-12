@@ -42,7 +42,11 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return iemHelper.getParameters();
+        ObjectParameters params;
+        params.push_back(makeParamReceiveSymbol(&iemHelper.receiveSymbol));
+        params.push_back(makeParamSendSymbol(&iemHelper.sendSymbol, "nosndno"));
+        iemHelper.addIemParameters(&params, false, false, -1);
+        return params;
     }
 
     void update() override

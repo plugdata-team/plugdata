@@ -128,7 +128,9 @@ class KnobObject : public ObjectBase {
     Value max = Value(0.0f);
 
     Value initialValue, circular, ticks, angularRange, angularOffset, discrete, outline, showArc, exponential;
-    Value primaryColour, secondaryColour, arcColour, sendSymbol, receiveSymbol;
+    Value arcColour;
+
+    Value primaryColour, secondaryColour, sendSymbol, receiveSymbol;
 
     float value = 0.0f;
 
@@ -470,27 +472,25 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            makeObjectParam("Minimum", tFloat, cGeneral, &min, {}, 0),
-            makeObjectParam("Maximum", tFloat, cGeneral, &max, {}, 127),
+            makeParamFloat("Minimum", cGeneral, &min, 0.0f),
+            makeParamFloat("Maximum", cGeneral, &max, 127.0f),
+            makeParamFloat("Initial value", cGeneral, &initialValue, 0.0f),
+            makeParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0),
+            makeParamInt("Ticks", cGeneral, &ticks, 0),
+            makeParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0),
+            makeParamInt("Angular range", cGeneral, &angularRange, 270),
+            makeParamInt("Angular offset", cGeneral, &angularOffset, 0),
+            makeParamFloat("Exp", cGeneral, &exponential, 0.0f),
 
-            makeObjectParam("Initial value", tFloat, cGeneral, &initialValue, {}, 0),
-            makeObjectParam("Circular drag", tBool, cGeneral, &circular, { "No", "Yes" }, "No"),
-            makeObjectParam("Ticks", tInt, cGeneral, &ticks, {}, 0),
-            makeObjectParam("Discrete", tBool, cGeneral, &discrete, { "No", "Yes" }, "No"),
+            makeParamReceiveSymbol(&receiveSymbol),
+            makeParamSendSymbol(&sendSymbol),
 
-            makeObjectParam("Angular range", tInt, cGeneral, &angularRange, {}, 270),
-            makeObjectParam("Angular offset", tInt, cGeneral, &angularOffset, {}, 0),
+            makeParamColourFG(&primaryColour),
+            makeParamColourBG(&secondaryColour),
 
-            makeObjectParam("Exp", tFloat, cGeneral, &exponential, {}, 0),
-
-            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
-            makeObjectParam("Arc color", tColour, cAppearance, &arcColour),
-            makeObjectParam("Fill background", tBool, cAppearance, &outline, { "No", "Yes" }, "Yes"),
-            makeObjectParam("Show arc", tBool, cAppearance, &showArc, { "No", "Yes" }, "Yes"),
-
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {}, ""),
-            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol, {}, "")
+            makeParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour),
+            makeParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1),
+            makeParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1),
         };
     }
 

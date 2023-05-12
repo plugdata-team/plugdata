@@ -62,25 +62,30 @@ public:
         gui->repaint();
     }
 
-    ObjectParameters getParameters()
+    ObjectParameters getParameters(bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
     {
-        return {
-            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol),
-            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol),
-            makeObjectParam("Label", tString, cLabel, &labelText),
-            makeObjectParam("Label color", tColour, cLabel, &labelColour),
-            makeObjectParam("Label X", tInt, cLabel, &labelX),
-            makeObjectParam("Label Y", tInt, cLabel, &labelY),
-            makeObjectParam("Label Height", tInt, cLabel, &labelHeight),
-            makeObjectParam("Initialise", tBool, cGeneral, &initialise, { "No", "Yes" } )
-        };
+        ObjectParameters params;
+        if (withAppearance) {
+            params.push_back(makeParamColourFG(&primaryColour));
+            params.push_back(makeParamColourBG(&secondaryColour));
+        }
+        if (withSymbols) {
+            params.push_back(makeParamReceiveSymbol(&receiveSymbol));
+            params.push_back(makeParamSendSymbol(&sendSymbol));
+        }
+        params.push_back(makeParamString("Label", cLabel, &labelText, ""));
+        params.push_back(makeParamColourLabel(&labelColour));
+        
+        params.push_back(makeParamInt("Label X", cLabel, &labelX, labelPosX));
+        params.push_back(makeParamInt("Label Y", cLabel, &labelY, labelPosY));
+        params.push_back(makeParamInt("Label Height", cLabel, &labelHeight, labelHeightY));
+        params.push_back(makeParamBool("Initialise", cGeneral, &initialise, { "No", "Yes" }, 0));
+        return params;
     }
 
-    void addIemParameters(ObjectParameters* objectParams)
+    void addIemParameters(ObjectParameters* objectParams, bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
     {
-        for (auto param : getParameters())
+        for (auto param : getParameters(withAppearance, withSymbols, labelPosX, labelPosY, labelHeightY))
             objectParams->emplace_back(param);
     }
 

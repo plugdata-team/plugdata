@@ -124,8 +124,8 @@ public:
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = { 
-            makeObjectParam("Minimum", tFloat, cGeneral, &min),
-            makeObjectParam("Maximum", tFloat, cGeneral, &max)
+            makeParamFloat("Minimum", cGeneral, &min),
+            makeParamFloat("Maximum", cGeneral, &max)
         };
 
         atomHelper.addAtomParameters(&allParameters);

@@ -574,59 +574,69 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 
 using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
 
-// parameter overloads for different sorts of parameters
-/**
- *  @brief Generate a parameter set with string name options & default
- *
- *  @param pString parameter name
- *  @param pType type of parameter
- *  @param pCat category where it will be placed in inspector
- *  @param pVal value to attach to parameter
- *  @param pVecString list of string name options, (such as { "Yes", "No" } )
- *  @param pDefault default value of parameter
-*/
-static ObjectParameter makeObjectParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal, std::vector<String> pVecString, var pDefault)
+// overloads for making different types of parameters
+
+static ObjectParameter makeParamFloat(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
 {
-    return std::make_tuple(pString, pType, pCat, pVal, pVecString, pDefault);
+    return std::make_tuple(pString, tFloat, pCat, pVal, std::vector<String>(), pDefault);
 }
 
-/**
- *  @brief Generate a parameter set with string name options without default
- *
- *  @param pString parameter name
- *  @param pType type of parameter
- *  @param pCat category where it will be placed in inspector
- *  @param pVal value to attach to parameter
- *  @param pVecString list of string name options, (such as { "Yes", "No" } )
-*/
-static ObjectParameter makeObjectParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal, std::vector<String> pVecString)
+static ObjectParameter makeParamInt(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
 {
-    return std::make_tuple(pString, pType, pCat, pVal, pVecString, var());
+    return std::make_tuple(pString, tInt, pCat, pVal, std::vector<String>(), pDefault);
 }
 
-/**
- *  @brief Generate a parameter set for value without string name options
- *
- *  @param pString parameter name
- *  @param pType type of parameter
- *  @param pCat category where it will be placed in inspector
- *  @param pVal value to attach to parameter
-*/
-static ObjectParameter makeObjectParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal)
+static ObjectParameter makeParamBool(String pString, ParameterCategory pCat, Value* pVal, std::vector<String> pList, var pDefault = var())
 {
-    return std::make_tuple(pString, pType, pCat, pVal, std::vector<String>(), var());
+    return std::make_tuple(pString, tBool, pCat, pVal, pList, pDefault);
 }
 
-/**
- *  @brief Generate a parameter set for value with defaults, but without string name options 
- *
- *  @param pString parameter name
- *  @param pType type of parameter
- *  @param pCat category where it will be placed in inspector
- *  @param pVal value to attach to parameter
- *  @param pDefault default value of parameter
-*/
-static ObjectParameter makeObjectParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal, var pDefault)
+static ObjectParameter makeParamString(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
 {
-    return std::make_tuple(pString, pType, pCat, pVal, std::vector<String>(), pDefault);
+    return std::make_tuple(pString, tString, pCat, pVal, std::vector<String>(), pDefault);
+}
+
+static ObjectParameter makeParamColour(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
+{
+    return std::make_tuple(pString, tColour, pCat, pVal, std::vector<String>(), pDefault);
+}
+
+static ObjectParameter makeParamColourFG(Value* pVal)
+{
+    return std::make_tuple("Foreground color", tColour, cAppearance, pVal, std::vector<String>(), PlugDataColour::canvasTextColourId);
+}
+
+static ObjectParameter makeParamColourBG(Value* pVal)
+{
+    return std::make_tuple("Foreground color", tColour, cAppearance, pVal, std::vector<String>(), PlugDataColour::guiObjectBackgroundColourId);
+}
+
+static ObjectParameter makeParamColourLabel(Value* pVal)
+{
+    return std::make_tuple("Label color", tColour, cLabel, pVal, std::vector<String>(), PlugDataColour::canvasTextColourId);
+}
+
+static ObjectParameter makeParamReceiveSymbol(Value* pVal)
+{
+    return std::make_tuple("Receive Symbol", tString, cGeneral, pVal, std::vector<String>(), "");
+}
+
+static ObjectParameter makeParamSendSymbol(Value* pVal, String pDefault = "")
+{
+    return std::make_tuple("Send Symbol", tString, cGeneral, pVal, std::vector<String>(), pDefault);
+}
+
+static ObjectParameter makeParamCombo(String pString, ParameterCategory pCat, Value* pVal, std::vector<String> pStringList, var pDefault = var())
+{
+    return std::make_tuple(pString, tCombo, pCat, pVal, pStringList, pDefault);
+}
+
+static ObjectParameter makeParamRange(String pString, ParameterCategory pCat, Value* pVal, Array<var> pDefault = Array<var>())
+{
+    return std::make_tuple(pString, tRange, pCat, pVal, std::vector<String>(), pDefault);
+}
+
+static ObjectParameter makeParamFont(String pString, ParameterCategory pCat, Value* pVal, String pDefault = String())
+{
+    return std::make_tuple(pString, tFont, pCat, pVal, std::vector<String>(), pDefault);
 }

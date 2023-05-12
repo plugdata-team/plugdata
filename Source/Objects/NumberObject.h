@@ -13,8 +13,8 @@ class NumberObject final : public ObjectBase {
 
     float preFocusValue;
 
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
+    Value min = Value(-std::numeric_limits<float>::infinity());
+    Value max = Value(std::numeric_limits<float>::infinity());
 
     float value = 0.0f;
 
@@ -150,8 +150,8 @@ public:
     {
 
         ObjectParameters allParameters = {
-            makeObjectParam("Minimum", tFloat, cGeneral, &min),
-            makeObjectParam("Maximum", tFloat, cGeneral, &max)
+            makeParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36),
+            makeParamFloat("Maximum", cGeneral, &max,  9.999999933815813e36)
         };
 
         iemHelper.addIemParameters(&allParameters);

@@ -229,16 +229,16 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Grid color", tColour, cAppearance, &gridColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
-            makeObjectParam("Trigger mode", tCombo, cGeneral, &triggerMode, { "None", "Up", "Down" } ),
-            makeObjectParam("Trigger value", tFloat, cGeneral, &triggerValue),
-            makeObjectParam("Samples per point", tInt, cGeneral, &samplesPerPoint),
-            makeObjectParam("Buffer size", tInt, cGeneral, &bufferSize),
-            makeObjectParam("Delay", tInt, cGeneral, &delay),
-            makeObjectParam("Signal range", tRange, cGeneral, &signalRange),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol)
+            makeParamColourFG(&primaryColour),
+            makeParamColour("Grid color", cAppearance, &gridColour, PlugDataColour::guiObjectInternalOutlineColour),
+            makeParamColourBG(&secondaryColour),
+            makeParamCombo("Trigger mode", cGeneral, &triggerMode, { "None", "Up", "Down" }, 1),
+            makeParamFloat("Trigger value", cGeneral, &triggerValue, 0.0f),
+            makeParamInt("Samples per point", cGeneral, &samplesPerPoint, 256),
+            makeParamInt("Buffer size", cGeneral, &bufferSize, 128),
+            makeParamInt("Delay", cGeneral, &delay, 0),
+            makeParamReceiveSymbol(&receiveSymbol),
+            makeParamSendSymbol(&sendSymbol),
         };
     }
 

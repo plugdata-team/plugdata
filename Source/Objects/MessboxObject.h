@@ -276,10 +276,10 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            makeObjectParam("Text color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
-            makeObjectParam("Font size", tInt, cAppearance, &fontSize),
-            makeObjectParam("Bold", tBool, cAppearance, &bold, { "No", "Yes" } )
+            makeParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId),
+            makeParamColourBG(&secondaryColour),
+            makeParamInt("Font size", cAppearance, &fontSize, 12),
+            makeParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0)
         };
     }
 

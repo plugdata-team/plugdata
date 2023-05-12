@@ -111,15 +111,9 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeObjectParam("Background color", tColour, cAppearance, &iemHelper.secondaryColour),
-            makeObjectParam("Receive symbol", tString, cGeneral, &iemHelper.receiveSymbol),
-            makeObjectParam("Send symbol", tString, cGeneral, &iemHelper.sendSymbol),
-            makeObjectParam("Label", tString, cLabel, &iemHelper.labelText),
-            makeObjectParam("Label color", tColour, cLabel, &iemHelper.labelColour),
-            makeObjectParam("Label X", tInt, cLabel, &iemHelper.labelX),
-            makeObjectParam("Label Y", tInt, cLabel, &iemHelper.labelY),
-            makeObjectParam("Label Height", tInt, cLabel, &iemHelper.labelHeight)
-        };
+        ObjectParameters params;
+        params.push_back(makeParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour));
+        iemHelper.addIemParameters(&params, false, true, 20, 12, 14);
+        return params;
     }
 };

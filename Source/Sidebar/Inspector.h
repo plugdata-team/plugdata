@@ -18,21 +18,20 @@ public:
     {
         auto& lnf = LookAndFeel::getDefaultLookAndFeel();
         resetButton.setButtonText(Icons::Reset);
-        resetButton.getProperties().set("Style", "LargeIcon");
+        resetButton.getProperties().set("Style", "SmallIcon");
         resetButton.setTooltip("Reset to default");
         resetButton.setSize(23,23);
 
         addAndMakeVisible(resetButton);
         resetButton.onClick = [this, lnf = std::ref(lnf)](){
             for (auto [name, type, category, value, options, defaultVal] : properties) {
-                if (name == "Foreground color") {
-                    value->setValue(lnf.get().findColour(PlugDataColour::canvasTextColourId).toString());
+                if (!defaultVal.isVoid()) {
+                    if (type == tColour) {
+                        value->setValue(lnf.get().findColour(defaultVal).toString());
+                    } else {
+                        value->setValue(defaultVal);
+                    }
                 }
-                else if (name == "Background color") {
-                    value->setValue(lnf.get().findColour(PlugDataColour::guiObjectBackgroundColourId).toString());
-                }
-                else if (!defaultVal.isVoid())
-                    value->setValue(defaultVal);
             }
         };
 

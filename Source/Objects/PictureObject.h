@@ -104,12 +104,12 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            makeObjectParam("File", tString, cGeneral, &path),
-            makeObjectParam("Latch", tBool, cGeneral, &latch, { "No", "Yes" } ),
-            makeObjectParam("Outline", tBool, cAppearance, &outline, { "No", "Yes" } ),
-            makeObjectParam("Report Size", tBool, cAppearance, &reportSize, { "No", "Yes" } ),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol),
-            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol)
+            makeParamString("File", cGeneral, &path, ""),
+            makeParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0),
+            makeParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0),
+            makeParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0),
+            makeParamReceiveSymbol(&receiveSymbol),
+            makeParamSendSymbol(&sendSymbol),
         };
     };
 

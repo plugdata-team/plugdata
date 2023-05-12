@@ -338,17 +338,17 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            makeObjectParam("Text color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
-            makeObjectParam("Font", tFont, cAppearance, &font),
-            makeObjectParam("Font size", tInt, cAppearance, &fontSize),
-            makeObjectParam("Outline", tBool, cAppearance, &outline, { "No", "Yes" } ),
-            makeObjectParam("Bold", tBool, cAppearance, &bold, { "No", "Yes" } ),
-            makeObjectParam("Italic", tBool, cAppearance, &italic, { "No", "Yes" } ),
-            makeObjectParam("Underline", tBool, cAppearance, &underline, { "No", "Yes" } ),
-            makeObjectParam("Fill background", tBool, cAppearance, &fillBackground, { "No", "Yes" } ),
-            makeObjectParam("Justification", tCombo, cAppearance, &justification, { "Left", "Centered", "Right" } ),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol)
+            makeParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId),
+            makeParamColourBG(&secondaryColour),
+            makeParamFont("Font", cAppearance, &font, "Inter"),
+            makeParamInt("Font size", cAppearance, &fontSize, 14),
+            makeParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0),
+            makeParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0),
+            makeParamBool("Italic", cAppearance, &italic, { "No", "Yes" }, 0),
+            makeParamBool("Underline", cAppearance, &underline, { "No", "Yes" }, 0),
+            makeParamBool("Fill background", cAppearance, &fillBackground, { "No", "Yes" }, 0),
+            makeParamCombo("Justification", cAppearance, &justification, { "Left", "Centered", "Right" }, 1),
+            makeParamReceiveSymbol(&receiveSymbol)
         };
     }
 

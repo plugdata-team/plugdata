@@ -291,10 +291,10 @@ public:
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = {
-            makeObjectParam("Minimum", tFloat, cGeneral, &min),
-            makeObjectParam("Maximum", tFloat, cGeneral, &max),
-            makeObjectParam("Logarithmic", tBool, cGeneral, &isLogarithmic, { "Off", "On" } ),
-            makeObjectParam("Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" } )
+            makeParamFloat("Minimum", cGeneral, &min, 0.0f),
+            makeParamFloat("Maximum", cGeneral, &max, 127.0f),
+            makeParamBool("Logarithmic", cGeneral, &isLogarithmic, { "Off", "On" }, 0),
+            makeParamBool("Steady", cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" }, 1)
         };
 
         iemHelper.addIemParameters(&allParameters);

@@ -227,12 +227,12 @@ private:
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = {
-        makeObjectParam("Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" }),
-        makeObjectParam("Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" }),
-        makeObjectParam("X range", tRange, cGeneral, &xRange),
-        makeObjectParam("Y range", tRange, cGeneral, &yRange),
-        makeObjectParam("Width", tInt, cGeneral, &patchWidth),
-        makeObjectParam("Height", tInt, cGeneral, &patchHeight)
+        makeParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" }, 0),
+        makeParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" }, 0),
+        makeParamRange("X range", cGeneral, &xRange, { 0.0f, 1.0f } ),
+        makeParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f } ),
+        makeParamInt("Width", cGeneral, &patchWidth, 527),
+        makeParamInt("Height", cGeneral, &patchHeight, 327)
     };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)

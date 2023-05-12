@@ -168,11 +168,11 @@ public:
     ObjectParameters getParameters()
     {
         return {
-            makeObjectParam("Font size", tCombo, cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } ),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol),
-            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol),
-            makeObjectParam("Label", tString, cLabel, &labelText),
-            makeObjectParam("Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } )
+            makeParamCombo("Font size", cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } ),
+            makeParamReceiveSymbol(&receiveSymbol),
+            makeParamSendSymbol(&sendSymbol),
+            makeParamString("Label", cLabel, &labelText, ""),
+            makeParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" } )
         };
     }
 
