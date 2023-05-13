@@ -62,9 +62,10 @@ public:
         gui->repaint();
     }
 
-    ObjectParameters getParameters(bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
+    ObjectParameters makeIemParameters(bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
     {
         ObjectParameters params;
+
         if (withAppearance) {
             params.addParamColourFG(&primaryColour);
             params.addParamColourBG(&secondaryColour);
@@ -96,7 +97,8 @@ public:
      */
     void addIemParameters(ObjectParameters& objectParams, bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
     {
-        for (auto param : getParameters(withAppearance, withSymbols, labelPosX, labelPosY, labelHeightY).getParameters())
+        auto IemParams = makeIemParameters(withAppearance, withSymbols, labelPosX, labelPosY, labelHeightY);
+        for (auto param : IemParams.getParameters())
             objectParams.addParam(param);
     }
 
