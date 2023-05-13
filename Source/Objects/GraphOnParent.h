@@ -28,6 +28,11 @@ public:
             if (_this)
                 _this->checkGraphState();
         });
+
+        objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
+        objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
+        objectParameters.addParamRange("X range", cGeneral, &xRange);
+        objectParameters.addParamRange("Y range", cGeneral, &yRange);
     }
 
     void update() override
@@ -240,12 +245,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return { 
-            makeParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" } ),
-            makeParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" } ),
-            makeParamRange("X range", cGeneral, &xRange),
-            makeParamRange("Y range", cGeneral, &yRange)
-        };
+        return objectParameters;
     };
 
     void checkGraphState()

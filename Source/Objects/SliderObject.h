@@ -130,6 +130,12 @@ public:
                 constrainer->setMinimumSize(minLongSide, minShortSide);
             }
         };
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
+        objectParameters.addParamBool("Logarithmic", cGeneral, &isLogarithmic, { "Off", "On" }, 0);
+        objectParameters.addParamBool("Steady", cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" }, 1);
+        iemHelper.addIemParameters(this);
     }
 
     void update() override
@@ -290,16 +296,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters allParameters = {
-            makeParamFloat("Minimum", cGeneral, &min, 0.0f),
-            makeParamFloat("Maximum", cGeneral, &max, 127.0f),
-            makeParamBool("Logarithmic", cGeneral, &isLogarithmic, { "Off", "On" }, 0),
-            makeParamBool("Steady", cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" }, 1)
-        };
-
-        iemHelper.addIemParameters(&allParameters);
-
-        return allParameters;
+        return objectParameters;
     }
 
     float getValue()

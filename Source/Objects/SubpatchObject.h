@@ -22,6 +22,9 @@ public:
         if (getValue<bool>(object->hvccMode)) {
             checkHvccCompatibility(subpatch.get());
         }
+
+        objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
+        objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
     }
 
     ~SubpatchObject()
@@ -78,10 +81,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" } ),
-            makeParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" } )
-        };
+        return objectParameters;
     };
 
     void checkGraphState()

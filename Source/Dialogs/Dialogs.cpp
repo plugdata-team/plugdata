@@ -407,7 +407,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(ToFront, "To Front", object != nullptr);
     popupMenu.addItem(ToBack, "To Back", object != nullptr);
     popupMenu.addSeparator();
-    popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.empty()));
+    popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.getParameters().isEmpty()));
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
         cnv->isShowingMenu = false;

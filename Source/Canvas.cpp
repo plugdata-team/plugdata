@@ -117,6 +117,13 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
 
     editor->addModifierKeyListener(this);
     Desktop::getInstance().addFocusChangeListener(this);
+
+    parameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" }, 0);
+    parameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" }, 0);
+    parameters.addParamRange("X range", cGeneral, &xRange, { 0.0f, 1.0f });
+    parameters.addParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f });
+    parameters.addParamInt("Width", cGeneral, &patchWidth, 527);
+    parameters.addParamInt("Height", cGeneral, &patchHeight, 327);
 }
 
 Canvas::~Canvas()
@@ -780,7 +787,7 @@ void Canvas::updateSidebarSelection()
 
         if (commandLocked == var(true)) {
             editor->sidebar->hideParameters();
-        } else if (!params.empty() || editor->sidebar->isPinned()) {
+        } else if (!params.getParameters().isEmpty() || editor->sidebar->isPinned()) {
             editor->sidebar->showParameters(object->gui->getText(), params);
         } else {
             editor->sidebar->hideParameters();

@@ -21,6 +21,9 @@ public:
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
         };
+
+        objectParameters.addParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f);
+        iemHelper.addIemParameters(this, true, true, -1);
     }
 
     bool hideInlets() override
@@ -134,13 +137,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters allParameters = {
-            makeParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f)
-        };
-
-        iemHelper.addIemParameters(&allParameters, true, true, -1);
-
-        return allParameters;
+        return objectParameters;
     }
 
     void setToggleStateFromFloat(float newValue)

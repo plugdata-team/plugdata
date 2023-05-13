@@ -55,6 +55,10 @@ public:
         input.dragEnd = [this]() {
             stopEdition();
         };
+        
+        objectParameters.addParamFloat("Minimum", cGeneral, &min);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max);
+        atomHelper.addAtomParameters(this);
     }
 
     void update() override
@@ -166,14 +170,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters allParameters = { 
-            makeParamFloat("Minimum", cGeneral, &min),
-            makeParamFloat("Maximum", cGeneral, &max)
-        };
-
-        atomHelper.addAtomParameters(&allParameters);
-
-        return allParameters;
+        return objectParameters;
     }
 
     void valueChanged(Value& value) override

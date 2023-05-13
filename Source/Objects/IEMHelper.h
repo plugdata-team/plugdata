@@ -66,27 +66,27 @@ public:
     {
         ObjectParameters params;
         if (withAppearance) {
-            params.push_back(makeParamColourFG(&primaryColour));
-            params.push_back(makeParamColourBG(&secondaryColour));
+            params.addParamColourFG(&primaryColour);
+            params.addParamColourBG(&secondaryColour);
         }
         if (withSymbols) {
-            params.push_back(makeParamReceiveSymbol(&receiveSymbol));
-            params.push_back(makeParamSendSymbol(&sendSymbol));
+            params.addParamReceiveSymbol(&receiveSymbol);
+            params.addParamSendSymbol(&sendSymbol);
         }
-        params.push_back(makeParamString("Label", cLabel, &labelText, ""));
-        params.push_back(makeParamColourLabel(&labelColour));
-        
-        params.push_back(makeParamInt("Label X", cLabel, &labelX, labelPosX));
-        params.push_back(makeParamInt("Label Y", cLabel, &labelY, labelPosY));
-        params.push_back(makeParamInt("Label Height", cLabel, &labelHeight, labelHeightY));
-        params.push_back(makeParamBool("Initialise", cGeneral, &initialise, { "No", "Yes" }, 0));
+        params.addParamString("Label", cLabel, &labelText, "");
+        params.addParamColourLabel(&labelColour);
+        params.addParamInt("Label X", cLabel, &labelX, labelPosX);
+        params.addParamInt("Label Y", cLabel, &labelY, labelPosY);
+        params.addParamInt("Label Height", cLabel, &labelHeight, labelHeightY);
+        params.addParamBool("Initialise", cGeneral, &initialise, { "No", "Yes" }, 0);
+
         return params;
     }
 
-    void addIemParameters(ObjectParameters* objectParams, bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
+    void addIemParameters(ObjectBase* object, bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
     {
-        for (auto param : getParameters(withAppearance, withSymbols, labelPosX, labelPosY, labelHeightY))
-            objectParams->emplace_back(param);
+        for (auto param : getParameters(withAppearance, withSymbols, labelPosX, labelPosY, labelHeightY).getParameters())
+            object->getParameters().addParam(param);
     }
 
     bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
@@ -468,4 +468,6 @@ public:
     Value initialise;
     Value sendSymbol;
     Value receiveSymbol;
+
+    ObjectParameters objectParameters;
 };

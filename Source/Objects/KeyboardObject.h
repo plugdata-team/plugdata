@@ -259,6 +259,12 @@ public:
 
         addAndMakeVisible(keyboard);
 
+        objectParameters.addParamInt("Start octave", cGeneral, &lowC, 2);
+        objectParameters.addParamInt("Num. octaves", cGeneral, &octaves, 4);
+        objectParameters.addParamBool("Toggle Mode", cGeneral, &toggleMode, { "Off", "On" }, 0);
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
+
         startTimer(150);
     }
 
@@ -323,13 +329,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeParamInt("Start octave", cGeneral, &lowC, 2),
-            makeParamInt("Num. octaves", cGeneral, &octaves, 4),
-            makeParamBool("Toggle Mode", cGeneral, &toggleMode, { "Off", "On" }, 0),
-            makeParamReceiveSymbol(&receiveSymbol),
-            makeParamSendSymbol(&sendSymbol)
-        };
+        return objectParameters;
     }
 
     void updateAspectRatio()

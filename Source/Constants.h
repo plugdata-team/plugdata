@@ -531,24 +531,6 @@ struct Corners {
     inline static float objectCornerRadius = 2.75f;
 };
 
-enum ParameterType {
-    tString,
-    tInt,
-    tFloat,
-    tColour,
-    tBool,
-    tCombo,
-    tRange,
-    tFont
-};
-
-enum ParameterCategory {
-    cGeneral,
-    cAppearance,
-    cLabel,
-    cExtra
-};
-
 enum Overlay {
     None = 0,
     Origin = 1,
@@ -569,74 +551,3 @@ enum OverlayItem {
     OverlayDirection,
     OverlayOrder
 };
-
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>, var>;
-
-using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
-
-// overloads for making different types of parameters
-
-static ObjectParameter makeParamFloat(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
-{
-    return std::make_tuple(pString, tFloat, pCat, pVal, std::vector<String>(), pDefault);
-}
-
-static ObjectParameter makeParamInt(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
-{
-    return std::make_tuple(pString, tInt, pCat, pVal, std::vector<String>(), pDefault);
-}
-
-static ObjectParameter makeParamBool(String pString, ParameterCategory pCat, Value* pVal, std::vector<String> pList, var pDefault = var())
-{
-    return std::make_tuple(pString, tBool, pCat, pVal, pList, pDefault);
-}
-
-static ObjectParameter makeParamString(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
-{
-    return std::make_tuple(pString, tString, pCat, pVal, std::vector<String>(), pDefault);
-}
-
-static ObjectParameter makeParamColour(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
-{
-    return std::make_tuple(pString, tColour, pCat, pVal, std::vector<String>(), pDefault);
-}
-
-static ObjectParameter makeParamColourFG(Value* pVal)
-{
-    return std::make_tuple("Foreground color", tColour, cAppearance, pVal, std::vector<String>(), PlugDataColour::canvasTextColourId);
-}
-
-static ObjectParameter makeParamColourBG(Value* pVal)
-{
-    return std::make_tuple("Foreground color", tColour, cAppearance, pVal, std::vector<String>(), PlugDataColour::guiObjectBackgroundColourId);
-}
-
-static ObjectParameter makeParamColourLabel(Value* pVal)
-{
-    return std::make_tuple("Label color", tColour, cLabel, pVal, std::vector<String>(), PlugDataColour::canvasTextColourId);
-}
-
-static ObjectParameter makeParamReceiveSymbol(Value* pVal)
-{
-    return std::make_tuple("Receive Symbol", tString, cGeneral, pVal, std::vector<String>(), "");
-}
-
-static ObjectParameter makeParamSendSymbol(Value* pVal, String pDefault = "")
-{
-    return std::make_tuple("Send Symbol", tString, cGeneral, pVal, std::vector<String>(), pDefault);
-}
-
-static ObjectParameter makeParamCombo(String pString, ParameterCategory pCat, Value* pVal, std::vector<String> pStringList, var pDefault = var())
-{
-    return std::make_tuple(pString, tCombo, pCat, pVal, pStringList, pDefault);
-}
-
-static ObjectParameter makeParamRange(String pString, ParameterCategory pCat, Value* pVal, Array<var> pDefault = Array<var>())
-{
-    return std::make_tuple(pString, tRange, pCat, pVal, std::vector<String>(), pDefault);
-}
-
-static ObjectParameter makeParamFont(String pString, ParameterCategory pCat, Value* pVal, String pDefault = String())
-{
-    return std::make_tuple(pString, tFont, pCat, pVal, std::vector<String>(), pDefault);
-}

@@ -58,6 +58,10 @@ public:
         input.dragEnd = [this]() {
             stopEdition();
         };
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max, 9.999999933815813e36);
+        iemHelper.addIemParameters(this);
     }
 
     void update() override
@@ -148,15 +152,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-
-        ObjectParameters allParameters = {
-            makeParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36),
-            makeParamFloat("Maximum", cGeneral, &max,  9.999999933815813e36)
-        };
-
-        iemHelper.addIemParameters(&allParameters);
-
-        return allParameters;
+        return objectParameters;
     }
 
     std::vector<hash32> getAllMessages() override

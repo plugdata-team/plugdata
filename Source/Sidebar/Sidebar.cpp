@@ -289,7 +289,7 @@ void Sidebar::pinSidebar(bool pin)
 {
     pinned = pin;
 
-    if (!pinned && lastParameters.empty()) {
+    if (!pinned && lastParameters.getParameters().isEmpty()) {
         hideParameters();
     }
 }

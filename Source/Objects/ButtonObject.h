@@ -19,6 +19,9 @@ public:
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
         };
+
+        objectParameters.addParamColourFG(&primaryColour);
+        objectParameters.addParamColourBG(&secondaryColour);
     }
 
     void update() override
@@ -121,10 +124,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeParamColourFG(&primaryColour),
-            makeParamColourBG(&secondaryColour)
-        };
+        return objectParameters;
     }
 
     void valueChanged(Value& value) override

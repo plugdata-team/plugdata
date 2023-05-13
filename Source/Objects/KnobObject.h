@@ -161,6 +161,26 @@ public:
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
+        objectParameters.addParamFloat("Initial value", cGeneral, &initialValue, 0.0f);
+        objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
+        objectParameters.addParamInt("Ticks", cGeneral, &ticks, 0);
+        objectParameters.addParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0);
+        objectParameters.addParamInt("Angular range", cGeneral, &angularRange, 270);
+        objectParameters.addParamInt("Angular offset", cGeneral, &angularOffset, 0);
+        objectParameters.addParamFloat("Exp", cGeneral, &exponential, 0.0f);
+        
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
+        
+        objectParameters.addParamColourFG(&primaryColour);
+        objectParameters.addParamColourBG(&secondaryColour);
+        
+        objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
+        objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
     }
 
     void updateDoubleClickValue()
@@ -471,27 +491,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeParamFloat("Minimum", cGeneral, &min, 0.0f),
-            makeParamFloat("Maximum", cGeneral, &max, 127.0f),
-            makeParamFloat("Initial value", cGeneral, &initialValue, 0.0f),
-            makeParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0),
-            makeParamInt("Ticks", cGeneral, &ticks, 0),
-            makeParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0),
-            makeParamInt("Angular range", cGeneral, &angularRange, 270),
-            makeParamInt("Angular offset", cGeneral, &angularOffset, 0),
-            makeParamFloat("Exp", cGeneral, &exponential, 0.0f),
-
-            makeParamReceiveSymbol(&receiveSymbol),
-            makeParamSendSymbol(&sendSymbol),
-
-            makeParamColourFG(&primaryColour),
-            makeParamColourBG(&secondaryColour),
-
-            makeParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour),
-            makeParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1),
-            makeParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1),
-        };
+        return objectParameters;
     }
 
     float getValue()

@@ -75,6 +75,18 @@ public:
 
             object->updateBounds();
         };
+
+        objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
+        objectParameters.addParamColourBG(&secondaryColour);
+        objectParameters.addParamFont("Font", cAppearance, &font, "Inter");
+        objectParameters.addParamInt("Font size", cAppearance, &fontSize, 14);
+        objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Italic", cAppearance, &italic, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Underline", cAppearance, &underline, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Fill background", cAppearance, &fillBackground, { "No", "Yes" }, 0);
+        objectParameters.addParamCombo("Justification", cAppearance, &justification, { "Left", "Centered", "Right" }, 1);
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
     }
 
     void update() override
@@ -337,19 +349,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId),
-            makeParamColourBG(&secondaryColour),
-            makeParamFont("Font", cAppearance, &font, "Inter"),
-            makeParamInt("Font size", cAppearance, &fontSize, 14),
-            makeParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0),
-            makeParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0),
-            makeParamBool("Italic", cAppearance, &italic, { "No", "Yes" }, 0),
-            makeParamBool("Underline", cAppearance, &underline, { "No", "Yes" }, 0),
-            makeParamBool("Fill background", cAppearance, &fillBackground, { "No", "Yes" }, 0),
-            makeParamCombo("Justification", cAppearance, &justification, { "Left", "Centered", "Right" }, 1),
-            makeParamReceiveSymbol(&receiveSymbol)
-        };
+        return objectParameters;
     }
 
     std::vector<hash32> getAllMessages() override

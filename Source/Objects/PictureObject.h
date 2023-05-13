@@ -27,6 +27,12 @@ public:
                 }
             });
         }
+        objectParameters.addParamString("File", cGeneral, &path, "");
+        objectParameters.addParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0);
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -103,14 +109,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeParamString("File", cGeneral, &path, ""),
-            makeParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0),
-            makeParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0),
-            makeParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0),
-            makeParamReceiveSymbol(&receiveSymbol),
-            makeParamSendSymbol(&sendSymbol),
-        };
+        return objectParameters;
     };
 
     void paint(Graphics& g) override

@@ -39,6 +39,8 @@ public:
     Value sendSymbol;
     Value receiveSymbol;
 
+    ObjectParameters objectParameters;
+
     AtomHelper(void* ptr, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
@@ -46,6 +48,11 @@ public:
         , pd(parent->cnv->pd)
         , atom(static_cast<t_fake_gatom*>(ptr))
     {
+        objectParameters.addParamCombo("Font size", cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } );
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
+        objectParameters.addParamString("Label", cLabel, &labelText, "");
+        objectParameters.addParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" } );
     }
 
     void update()
@@ -165,21 +172,10 @@ public:
         }
     }
 
-    ObjectParameters getParameters()
+    void addAtomParameters(ObjectBase* object)
     {
-        return {
-            makeParamCombo("Font size", cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } ),
-            makeParamReceiveSymbol(&receiveSymbol),
-            makeParamSendSymbol(&sendSymbol),
-            makeParamString("Label", cLabel, &labelText, ""),
-            makeParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" } )
-        };
-    }
-
-    void addAtomParameters(ObjectParameters* objectParams)
-    {
-        for (auto param : getParameters())
-            objectParams->emplace_back(param);
+        for (auto param : objectParameters.getParameters())
+            object->getParameters().addParam(param);
     }
 
     void valueChanged(Value& v)

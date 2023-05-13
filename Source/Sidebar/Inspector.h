@@ -16,23 +16,14 @@ class Inspector : public Component {
 public:
     Inspector()
     {
-        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
         resetButton.setButtonText(Icons::Reset);
         resetButton.getProperties().set("Style", "SmallIcon");
         resetButton.setTooltip("Reset to default");
         resetButton.setSize(23,23);
 
         addAndMakeVisible(resetButton);
-        resetButton.onClick = [this, lnf = std::ref(lnf)](){
-            for (auto [name, type, category, value, options, defaultVal] : properties) {
-                if (!defaultVal.isVoid()) {
-                    if (type == tColour) {
-                        value->setValue(lnf.get().findColour(defaultVal).toString());
-                    } else {
-                        value->setValue(defaultVal);
-                    }
-                }
-            }
+        resetButton.onClick = [this](){
+            properties.resetAll();
         };
 
         addAndMakeVisible(panel);
@@ -98,7 +89,7 @@ public:
         for (int i = 0; i < 4; i++) {
             Array<PropertyComponent*> panels;
             int idx = 0;
-            for (auto& [name, type, category, value, options, defaultVal] : params) {
+            for (auto& [name, type, category, value, options, defaultVal] : params.getParameters()) {
                 if (static_cast<int>(category) == i) {
                     panels.add(createPanel(type, name, value, options));
                     idx++;

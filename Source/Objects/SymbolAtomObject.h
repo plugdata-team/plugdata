@@ -76,7 +76,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return atomHelper.getParameters();
+        return atomHelper.objectParameters;
     }
 
     void setSymbol(String const& value)

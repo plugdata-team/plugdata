@@ -481,6 +481,12 @@ public:
         graph.setBounds(getLocalBounds());
         addAndMakeVisible(&graph);
 
+        objectParameters.addParamString("Name", cGeneral, &name);
+        objectParameters.addParamInt("Size", cGeneral, &size);
+        objectParameters.addParamCombo("Draw Mode", cGeneral, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2);
+        objectParameters.addParamRange("Y Range", cGeneral, &range, {-1.0f, 1.0f} );
+        objectParameters.addParamBool("Save Contents", cGeneral, &saveContents, { "No", "Yes" }, 0);
+
         startTimer(20);
     }
 
@@ -542,13 +548,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeParamString("Name", cGeneral, &name),
-            makeParamInt("Size", cGeneral, &size),
-            makeParamCombo("Draw Mode", cGeneral, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2),
-            makeParamRange("Y Range", cGeneral, &range, {-1.0f, 1.0f} ),
-            makeParamBool("Save Contents", cGeneral, &saveContents, { "No", "Yes" }, 0)
-        };
+        return objectParameters;
     }
 
     void setPdBounds(Rectangle<int> b) override
