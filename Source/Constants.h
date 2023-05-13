@@ -79,6 +79,7 @@ struct Icons {
     inline static const String Eyedropper = "@";
 
     inline static const String Reset = "'";
+    inline static const String More = ".";
 };
 
 enum PlugDataColour {
