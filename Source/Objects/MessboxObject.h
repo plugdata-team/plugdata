@@ -278,11 +278,6 @@ public:
         return false;
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
-
     void valueChanged(Value& value) override
     {
         auto* messbox = static_cast<t_fake_messbox*>(ptr);

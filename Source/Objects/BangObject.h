@@ -163,11 +163,6 @@ public:
             });
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
-
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(bangInterrupt)) {

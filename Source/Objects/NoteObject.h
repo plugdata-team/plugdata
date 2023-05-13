@@ -347,11 +347,6 @@ public:
         object->updateBounds();
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
-
     std::vector<hash32> getAllMessages() override
     {
         return {

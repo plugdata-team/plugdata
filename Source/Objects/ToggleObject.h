@@ -23,7 +23,7 @@ public:
         };
 
         objectParameters.addParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f);
-        iemHelper.addIemParameters(objectParameters, true, true, -1);
+        iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
 
     bool hideInlets() override
@@ -133,11 +133,6 @@ public:
 
         // Make sure we don't re-toggle with an accidental drag
         alreadyToggled = true;
-    }
-
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
     }
 
     void setToggleStateFromFloat(float newValue)

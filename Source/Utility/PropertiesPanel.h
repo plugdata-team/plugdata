@@ -299,7 +299,7 @@ public:
         Value currentColour;
     };
 
-    struct RangeComponent : public Property {
+    struct RangeComponent : public Property, public Value::Listener {
         Value property;
 
         DraggableNumber minLabel, maxLabel;
@@ -312,6 +312,8 @@ public:
             , minLabel(false)
             , maxLabel(false)
         {
+            property.addListener(this);
+
             min = value.getValue().getArray()->getReference(0);
             max = value.getValue().getArray()->getReference(1);
 
@@ -350,11 +352,26 @@ public:
             };
         }
 
+        ~RangeComponent()
+        {
+            property.removeListener(this);
+        }
+
         void resized() override
         {
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
             maxLabel.setBounds(bounds.removeFromRight(bounds.getWidth() / (2 - hideLabel)));
             minLabel.setBounds(bounds);
+        }
+
+        void valueChanged(Value& v) override
+        {
+            if (v.refersToSameSourceAs(property)) {
+                min = v.getValue().getArray()->getReference(0);
+                max = v.getValue().getArray()->getReference(1);
+                minLabel.setText(String(min), dontSendNotification);
+                maxLabel.setText(String(max), dontSendNotification);
+            }
         }
     };
 

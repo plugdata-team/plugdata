@@ -243,11 +243,6 @@ public:
         return canvas.get();
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    };
-
     void checkGraphState()
     {
         if (!ptr)

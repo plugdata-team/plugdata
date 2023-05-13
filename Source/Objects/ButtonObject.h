@@ -122,11 +122,6 @@ public:
         }
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
-
     void valueChanged(Value& value) override
     {
         auto* button = static_cast<t_fake_button*>(ptr);
