@@ -168,11 +168,6 @@ public:
         setInterceptsMouseClicks(isLocked, isLocked);
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
-
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {

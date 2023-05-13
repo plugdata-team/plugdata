@@ -125,11 +125,6 @@ public:
         return atomHelper.createConstrainer(object);
     }
 
-    ObjectParameters getParameters() override
-    {
-        ObjectParameters objectParameters;
-    }
-
     void updateLabel() override
     {
         atomHelper.updateLabel(label);

@@ -44,11 +44,6 @@ public:
         iemHelper.valueChanged(v);
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
-
     void update() override
     {
         iemHelper.update();

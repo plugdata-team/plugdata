@@ -111,9 +111,5 @@ public:
     {
         iemHelper.valueChanged(v);
     }
-
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
 };
+

@@ -203,11 +203,6 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
-
     void updateAspectRatio()
     {
         float verticalLength = ((object->getWidth() - Object::doubleMargin) * numItems) + Object::doubleMargin;

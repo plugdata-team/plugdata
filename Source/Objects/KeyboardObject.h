@@ -327,11 +327,6 @@ public:
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
-
     void updateAspectRatio()
     {
         int numOctaves = getValue<int>(octaves);

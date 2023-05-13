@@ -79,11 +79,6 @@ public:
         return subpatch;
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    };
-
     void checkGraphState()
     {
         if (!ptr)
