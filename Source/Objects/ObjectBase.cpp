@@ -301,7 +301,7 @@ void ObjectBase::paint(Graphics& g)
 
 ObjectParameters ObjectBase::getParameters()
 {
-    return {};
+    return objectParameters;
 }
 
 void ObjectBase::startEdition()

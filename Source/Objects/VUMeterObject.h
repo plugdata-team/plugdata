@@ -21,7 +21,7 @@ public:
 
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
         objectParameters.addParamSendSymbol(&iemHelper.sendSymbol, "nosndno");
-        iemHelper.addIemParameters(this, false, false, -1);
+        iemHelper.addIemParameters(objectParameters, false, false, -1);
     }
 
     bool hideInlets() override

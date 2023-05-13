@@ -135,7 +135,7 @@ public:
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
         objectParameters.addParamBool("Logarithmic", cGeneral, &isLogarithmic, { "Off", "On" }, 0);
         objectParameters.addParamBool("Steady", cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" }, 1);
-        iemHelper.addIemParameters(this);
+        iemHelper.addIemParameters(objectParameters);
     }
 
     void update() override

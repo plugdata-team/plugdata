@@ -23,7 +23,7 @@ public:
         };
 
         objectParameters.addParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f);
-        iemHelper.addIemParameters(this, true, true, -1);
+        iemHelper.addIemParameters(objectParameters, true, true, -1);
     }
 
     bool hideInlets() override

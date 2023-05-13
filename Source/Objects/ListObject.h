@@ -55,7 +55,7 @@ public:
 
         objectParameters.addParamFloat("Minimum", cGeneral, &min);
         objectParameters.addParamFloat("Maximum", cGeneral, &max);
-        atomHelper.addAtomParameters(this);
+        atomHelper.addAtomParameters(objectParameters);
     }
 
     void update() override

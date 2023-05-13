@@ -19,7 +19,7 @@ public:
         locked = getValue<bool>(object->locked);
 
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
-        iemHelper.addIemParameters(this, false, true, 20, 12, 14);
+        iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
     }
 
     bool hideInlets() override

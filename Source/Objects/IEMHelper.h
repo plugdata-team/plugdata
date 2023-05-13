@@ -83,10 +83,21 @@ public:
         return params;
     }
 
-    void addIemParameters(ObjectBase* object, bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
+    /**
+     * @brief Add IEM parameters to the object parameters
+     * @attention Allows customization for different default settings (PD's default positions are not consistent)
+     *
+     * @param objectParams the object parameter to add items to
+     * @param withAppearance customize the added IEM's to show appearance category
+     * @param withSymbols customize the added IEM's to show symbols category
+     * @param labelPosX customize the default labels x position
+     * @param labelPosY customize the default labels y position
+     * @param labelHeightY customize the default labels text height
+     */
+    void addIemParameters(ObjectParameters& objectParams, bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
     {
         for (auto param : getParameters(withAppearance, withSymbols, labelPosX, labelPosY, labelHeightY).getParameters())
-            object->getParameters().addParam(param);
+            objectParams.addParam(param);
     }
 
     bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)

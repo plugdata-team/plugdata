@@ -22,7 +22,7 @@ public:
         , iemHelper(ptr, object, this)
     {
         objectParameters.addParamInt("Options", cGeneral, &max, 8);
-        iemHelper.addIemParameters(this);
+        iemHelper.addIemParameters(objectParameters);
 
     }
 

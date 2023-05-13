@@ -172,10 +172,10 @@ public:
         }
     }
 
-    void addAtomParameters(ObjectBase* object)
+    void addAtomParameters(ObjectParameters& objectParams)
     {
         for (auto param : objectParameters.getParameters())
-            object->getParameters().addParam(param);
+            objectParams.addParam(param);
     }
 
     void valueChanged(Value& v)

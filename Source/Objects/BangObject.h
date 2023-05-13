@@ -26,7 +26,7 @@ public:
 
         objectParameters.addParamInt("Minimum flash time", cGeneral, &bangInterrupt, 50);
         objectParameters.addParamInt("Maximum flash time", cGeneral, &bangHold, 250);
-        iemHelper.addIemParameters(this, true, true, 17, 7);
+        iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
 
     void update() override
