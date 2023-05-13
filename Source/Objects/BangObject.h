@@ -23,6 +23,10 @@ public:
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
         };
+
+        objectParameters.addParamInt("Minimum flash time", cGeneral, &bangInterrupt, 50);
+        objectParameters.addParamInt("Maximum flash time", cGeneral, &bangHold, 250);
+        iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
 
     void update() override
@@ -161,14 +165,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters allParameters = {
-            makeObjectParam("Minimum flash time", tInt, cGeneral, &bangInterrupt),
-            makeObjectParam("Maximum flash time", tInt, cGeneral, &bangHold)
-        };
-
-        iemHelper.addIemParameters(&allParameters);
-
-        return allParameters;
+        return objectParameters;
     }
 
     void valueChanged(Value& value) override

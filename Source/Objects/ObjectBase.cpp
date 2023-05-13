@@ -108,7 +108,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
             _this->constrainer = _this->createConstrainer();
             _this->onConstrainerCreate();
 
-            for (auto& [name, type, cat, value, list, valueDefault] : _this->getParameters()) {
+            for (auto& [name, type, cat, value, list, valueDefault] : _this->objectParameters.getParameters()) {
                 value->addListener(_this.getComponent());
             }
         }
@@ -301,7 +301,7 @@ void ObjectBase::paint(Graphics& g)
 
 ObjectParameters ObjectBase::getParameters()
 {
-    return {};
+    return objectParameters;
 }
 
 void ObjectBase::startEdition()

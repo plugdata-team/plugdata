@@ -6,6 +6,7 @@
 
 #pragma once
 #include "Constants.h"
+#include "Objects/ObjectParameters.h"
 
 struct Console;
 struct Inspector;

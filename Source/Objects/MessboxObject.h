@@ -53,6 +53,11 @@ public:
 
         bool isLocked = getValue<bool>(object->cnv->locked);
         editor.setReadOnly(!isLocked);
+
+        objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
+        objectParameters.addParamColourBG(&secondaryColour);
+        objectParameters.addParamInt("Font size", cAppearance, &fontSize, 12);
+        objectParameters.addParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0);
     }
 
     void update() override
@@ -275,12 +280,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeObjectParam("Text color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
-            makeObjectParam("Font size", tInt, cAppearance, &fontSize),
-            makeObjectParam("Bold", tBool, cAppearance, &bold, { "No", "Yes" } )
-        };
+        return objectParameters;
     }
 
     void valueChanged(Value& value) override

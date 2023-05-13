@@ -13,6 +13,7 @@
 #include "Pd/MessageListener.h"
 #include "Pd/Patch.h"
 #include "Constants.h"
+#include "Objects/ObjectParameters.h"
 
 namespace pd {
 class Patch;
@@ -226,14 +227,7 @@ private:
     RateReducer canvasRateReducer = RateReducer(90);
 
     // Properties that can be shown in the inspector by right-clicking on canvas
-    ObjectParameters parameters = {
-        makeObjectParam("Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" }),
-        makeObjectParam("Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" }),
-        makeObjectParam("X range", tRange, cGeneral, &xRange),
-        makeObjectParam("Y range", tRange, cGeneral, &yRange),
-        makeObjectParam("Width", tInt, cGeneral, &patchWidth),
-        makeObjectParam("Height", tInt, cGeneral, &patchHeight)
-    };
+    ObjectParameters parameters;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

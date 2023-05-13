@@ -128,7 +128,9 @@ class KnobObject : public ObjectBase {
     Value max = Value(0.0f);
 
     Value initialValue, circular, ticks, angularRange, angularOffset, discrete, outline, showArc, exponential;
-    Value primaryColour, secondaryColour, arcColour, sendSymbol, receiveSymbol;
+    Value arcColour;
+
+    Value primaryColour, secondaryColour, sendSymbol, receiveSymbol;
 
     float value = 0.0f;
 
@@ -159,6 +161,26 @@ public:
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
+        objectParameters.addParamFloat("Initial value", cGeneral, &initialValue, 0.0f);
+        objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
+        objectParameters.addParamInt("Ticks", cGeneral, &ticks, 0);
+        objectParameters.addParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0);
+        objectParameters.addParamInt("Angular range", cGeneral, &angularRange, 270);
+        objectParameters.addParamInt("Angular offset", cGeneral, &angularOffset, 0);
+        objectParameters.addParamFloat("Exp", cGeneral, &exponential, 0.0f);
+        
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
+        
+        objectParameters.addParamColourFG(&primaryColour);
+        objectParameters.addParamColourBG(&secondaryColour);
+        
+        objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
+        objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
     }
 
     void updateDoubleClickValue()
@@ -469,29 +491,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeObjectParam("Minimum", tFloat, cGeneral, &min, {}, 0),
-            makeObjectParam("Maximum", tFloat, cGeneral, &max, {}, 127),
-
-            makeObjectParam("Initial value", tFloat, cGeneral, &initialValue, {}, 0),
-            makeObjectParam("Circular drag", tBool, cGeneral, &circular, { "No", "Yes" }, "No"),
-            makeObjectParam("Ticks", tInt, cGeneral, &ticks, {}, 0),
-            makeObjectParam("Discrete", tBool, cGeneral, &discrete, { "No", "Yes" }, "No"),
-
-            makeObjectParam("Angular range", tInt, cGeneral, &angularRange, {}, 270),
-            makeObjectParam("Angular offset", tInt, cGeneral, &angularOffset, {}, 0),
-
-            makeObjectParam("Exp", tFloat, cGeneral, &exponential, {}, 0),
-
-            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
-            makeObjectParam("Arc color", tColour, cAppearance, &arcColour),
-            makeObjectParam("Fill background", tBool, cAppearance, &outline, { "No", "Yes" }, "Yes"),
-            makeObjectParam("Show arc", tBool, cAppearance, &showArc, { "No", "Yes" }, "Yes"),
-
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol, {}, ""),
-            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol, {}, "")
-        };
+        return objectParameters;
     }
 
     float getValue()

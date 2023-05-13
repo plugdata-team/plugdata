@@ -17,6 +17,17 @@ public:
     ScopeBase(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
+        objectParameters.addParamColourFG(&primaryColour);
+        objectParameters.addParamColour("Grid color", cAppearance, &gridColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamColourBG(&secondaryColour);
+        objectParameters.addParamCombo("Trigger mode", cGeneral, &triggerMode, { "None", "Up", "Down" }, 1);
+        objectParameters.addParamFloat("Trigger value", cGeneral, &triggerValue, 0.0f);
+        objectParameters.addParamInt("Samples per point", cGeneral, &samplesPerPoint, 256);
+        objectParameters.addParamInt("Buffer size", cGeneral, &bufferSize, 128);
+        objectParameters.addParamInt("Delay", cGeneral, &delay, 0);
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
+
         startTimerHz(25);
     }
 
@@ -228,18 +239,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Grid color", tColour, cAppearance, &gridColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
-            makeObjectParam("Trigger mode", tCombo, cGeneral, &triggerMode, { "None", "Up", "Down" } ),
-            makeObjectParam("Trigger value", tFloat, cGeneral, &triggerValue),
-            makeObjectParam("Samples per point", tInt, cGeneral, &samplesPerPoint),
-            makeObjectParam("Buffer size", tInt, cGeneral, &bufferSize),
-            makeObjectParam("Delay", tInt, cGeneral, &delay),
-            makeObjectParam("Signal range", tRange, cGeneral, &signalRange),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol)
-        };
+        return objectParameters;
     }
 
     std::vector<hash32> getAllMessages() override

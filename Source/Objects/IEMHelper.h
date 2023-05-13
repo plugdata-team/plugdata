@@ -62,26 +62,44 @@ public:
         gui->repaint();
     }
 
-    ObjectParameters getParameters()
+    ObjectParameters makeIemParameters(bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
     {
-        return {
-            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol),
-            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol),
-            makeObjectParam("Label", tString, cLabel, &labelText),
-            makeObjectParam("Label color", tColour, cLabel, &labelColour),
-            makeObjectParam("Label X", tInt, cLabel, &labelX),
-            makeObjectParam("Label Y", tInt, cLabel, &labelY),
-            makeObjectParam("Label Height", tInt, cLabel, &labelHeight),
-            makeObjectParam("Initialise", tBool, cGeneral, &initialise, { "No", "Yes" } )
-        };
+        ObjectParameters params;
+
+        if (withAppearance) {
+            params.addParamColourFG(&primaryColour);
+            params.addParamColourBG(&secondaryColour);
+        }
+        if (withSymbols) {
+            params.addParamReceiveSymbol(&receiveSymbol);
+            params.addParamSendSymbol(&sendSymbol);
+        }
+        params.addParamString("Label", cLabel, &labelText, "");
+        params.addParamColourLabel(&labelColour);
+        params.addParamInt("Label X", cLabel, &labelX, labelPosX);
+        params.addParamInt("Label Y", cLabel, &labelY, labelPosY);
+        params.addParamInt("Label Height", cLabel, &labelHeight, labelHeightY);
+        params.addParamBool("Initialise", cGeneral, &initialise, { "No", "Yes" }, 0);
+
+        return params;
     }
 
-    void addIemParameters(ObjectParameters* objectParams)
+    /**
+     * @brief Add IEM parameters to the object parameters
+     * @attention Allows customization for different default settings (PD's default positions are not consistent)
+     *
+     * @param objectParams the object parameter to add items to
+     * @param withAppearance customize the added IEM's to show appearance category
+     * @param withSymbols customize the added IEM's to show symbols category
+     * @param labelPosX customize the default labels x position
+     * @param labelPosY customize the default labels y position
+     * @param labelHeightY customize the default labels text height
+     */
+    void addIemParameters(ObjectParameters& objectParams, bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
     {
-        for (auto param : getParameters())
-            objectParams->emplace_back(param);
+        auto IemParams = makeIemParameters(withAppearance, withSymbols, labelPosX, labelPosY, labelHeightY);
+        for (auto param : IemParams.getParameters())
+            objectParams.addParam(param);
     }
 
     bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
@@ -463,4 +481,6 @@ public:
     Value initialise;
     Value sendSymbol;
     Value receiveSymbol;
+
+    ObjectParameters objectParameters;
 };

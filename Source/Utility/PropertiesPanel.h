@@ -296,11 +296,11 @@ public:
         }
 
     private:
-        Value& currentColour;
+        Value currentColour;
     };
 
     struct RangeComponent : public Property {
-        Value& property;
+        Value property;
 
         DraggableNumber minLabel, maxLabel;
 
@@ -361,7 +361,7 @@ public:
     template<typename T>
     struct EditableComponent : public Property {
         std::unique_ptr<Label> label;
-        Value& property;
+        Value property;
 
         EditableComponent(String propertyName, Value& value)
             : Property(propertyName)
@@ -410,7 +410,7 @@ public:
     struct FilePathComponent : public Property {
         Label label;
         TextButton browseButton = TextButton(Icons::File);
-        Value& property;
+        Value property;
 
         std::unique_ptr<FileChooser> saveChooser;
 

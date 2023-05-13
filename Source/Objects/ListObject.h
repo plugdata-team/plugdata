@@ -52,6 +52,10 @@ public:
 
         listLabel.setText("0 0", dontSendNotification);
         updateFromGui();
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max);
+        atomHelper.addAtomParameters(objectParameters);
     }
 
     void update() override
@@ -123,14 +127,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters allParameters = { 
-            makeObjectParam("Minimum", tFloat, cGeneral, &min),
-            makeObjectParam("Maximum", tFloat, cGeneral, &max)
-        };
-
-        atomHelper.addAtomParameters(&allParameters);
-
-        return allParameters;
+        ObjectParameters objectParameters;
     }
 
     void updateLabel() override

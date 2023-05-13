@@ -47,6 +47,14 @@ public:
 
         startTimer(nextInterval);
         repaint();
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max, 0.0f);
+        objectParameters.addParamFloat("Interval (ms)", cGeneral, &interval, 100.0f);
+        objectParameters.addParamFloat("Ramp time (ms)", cGeneral, &ramp, 10.0f);
+        objectParameters.addParamFloat("Initial value", cGeneral, &init, 0.0f);
+        objectParameters.addParamColourFG(&primaryColour);
+        objectParameters.addParamColourBG(&secondaryColour);
     }
 
     void update() override
@@ -159,16 +167,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeObjectParam("Minimum", tFloat, cGeneral, &min),
-            makeObjectParam("Maximum", tFloat, cGeneral, &max),
-            makeObjectParam("Interval (ms)", tFloat, cGeneral, &interval),
-            makeObjectParam("Ramp time (ms)", tFloat, cGeneral, &ramp),
-            makeObjectParam("Initial value", tFloat, cGeneral, &init),
-            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour)
-
-        };
+        return objectParameters;
     }
 
     void valueChanged(Value& value) override

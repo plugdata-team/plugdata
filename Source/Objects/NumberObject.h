@@ -13,8 +13,8 @@ class NumberObject final : public ObjectBase {
 
     float preFocusValue;
 
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
+    Value min = Value(-std::numeric_limits<float>::infinity());
+    Value max = Value(std::numeric_limits<float>::infinity());
 
     float value = 0.0f;
 
@@ -58,6 +58,10 @@ public:
         input.dragEnd = [this]() {
             stopEdition();
         };
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max, 9.999999933815813e36);
+        iemHelper.addIemParameters(objectParameters);
     }
 
     void update() override
@@ -148,15 +152,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-
-        ObjectParameters allParameters = {
-            makeObjectParam("Minimum", tFloat, cGeneral, &min),
-            makeObjectParam("Maximum", tFloat, cGeneral, &max)
-        };
-
-        iemHelper.addIemParameters(&allParameters);
-
-        return allParameters;
+        return objectParameters;
     }
 
     std::vector<hash32> getAllMessages() override

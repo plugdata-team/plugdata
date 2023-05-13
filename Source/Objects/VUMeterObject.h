@@ -18,6 +18,10 @@ public:
         onConstrainerCreate = [this]() {
             constrainer->setMinimumSize(20, 20 * 2);
         };
+
+        objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
+        objectParameters.addParamSendSymbol(&iemHelper.sendSymbol, "nosndno");
+        iemHelper.addIemParameters(objectParameters, false, false, -1);
     }
 
     bool hideInlets() override
@@ -42,7 +46,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return iemHelper.getParameters();
+        return objectParameters;
     }
 
     void update() override

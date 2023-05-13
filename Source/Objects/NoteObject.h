@@ -75,6 +75,18 @@ public:
 
             object->updateBounds();
         };
+
+        objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
+        objectParameters.addParamColourBG(&secondaryColour);
+        objectParameters.addParamFont("Font", cAppearance, &font, "Inter");
+        objectParameters.addParamInt("Font size", cAppearance, &fontSize, 14);
+        objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Italic", cAppearance, &italic, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Underline", cAppearance, &underline, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Fill background", cAppearance, &fillBackground, { "No", "Yes" }, 0);
+        objectParameters.addParamCombo("Justification", cAppearance, &justification, { "Left", "Centered", "Right" }, 1);
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
     }
 
     void update() override
@@ -337,19 +349,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeObjectParam("Text color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
-            makeObjectParam("Font", tFont, cAppearance, &font),
-            makeObjectParam("Font size", tInt, cAppearance, &fontSize),
-            makeObjectParam("Outline", tBool, cAppearance, &outline, { "No", "Yes" } ),
-            makeObjectParam("Bold", tBool, cAppearance, &bold, { "No", "Yes" } ),
-            makeObjectParam("Italic", tBool, cAppearance, &italic, { "No", "Yes" } ),
-            makeObjectParam("Underline", tBool, cAppearance, &underline, { "No", "Yes" } ),
-            makeObjectParam("Fill background", tBool, cAppearance, &fillBackground, { "No", "Yes" } ),
-            makeObjectParam("Justification", tCombo, cAppearance, &justification, { "Left", "Centered", "Right" } ),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol)
-        };
+        return objectParameters;
     }
 
     std::vector<hash32> getAllMessages() override

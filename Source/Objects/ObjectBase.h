@@ -10,6 +10,7 @@
 #include "Pd/Instance.h"
 #include "Pd/MessageListener.h"
 #include "Constants.h"
+#include "ObjectParameters.h"
 
 class PluginProcessor;
 class Canvas;
@@ -150,6 +151,8 @@ public:
     static bool isBeingEdited();
 
     ComponentBoundsConstrainer* getConstrainer();
+
+    ObjectParameters objectParameters;
 
 protected:
     // Set parameter without triggering valueChanged

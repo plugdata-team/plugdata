@@ -21,6 +21,9 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
+        objectParameters.addParamInt("Options", cGeneral, &max, 8);
+        iemHelper.addIemParameters(objectParameters);
+
     }
 
     void update() override
@@ -202,13 +205,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters allParameters = {
-            makeObjectParam("Options", tInt, cGeneral, &max) 
-        };
-
-        iemHelper.addIemParameters(&allParameters);
-
-        return allParameters;
+        return objectParameters;
     }
 
     void updateAspectRatio()

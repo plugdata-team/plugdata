@@ -22,6 +22,11 @@ public:
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
+        objectParameters.addParamColourFG(&primaryColour);
+        objectParameters.addParamColourBG(&secondaryColour);
+        objectParameters.addParamRange("Range", cGeneral, &range);
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
     }
 
     void update() override
@@ -346,13 +351,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return {
-            makeObjectParam("Foreground color", tColour, cAppearance, &primaryColour),
-            makeObjectParam("Background color", tColour, cAppearance, &secondaryColour),
-            makeObjectParam("Range", tRange, cGeneral, &range),
-            makeObjectParam("Receive symbol", tString, cGeneral, &receiveSymbol),
-            makeObjectParam("Send symbol", tString, cGeneral, &sendSymbol)
-        };
+        return objectParameters;
     }
 
     Colour colourFromHexArray(unsigned char* hex)

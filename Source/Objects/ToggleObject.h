@@ -21,6 +21,9 @@ public:
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
         };
+
+        objectParameters.addParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f);
+        iemHelper.addIemParameters(objectParameters, true, true, -1);
     }
 
     bool hideInlets() override
@@ -72,7 +75,7 @@ public:
         auto untoggledColour = toggledColour.interpolatedWith(iemHelper.getBackgroundColour(), 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
-        auto crossBounds = getLocalBounds().reduced((getWidth() * 0.08f) + 4.5f).toFloat();
+        auto crossBounds = getLocalBounds().toFloat().reduced((getWidth() * 0.08f) + 4.5f);
 
         if (getWidth() < 18) {
             crossBounds = getLocalBounds().toFloat().reduced(3.5f);
@@ -134,13 +137,7 @@ public:
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters allParameters = {
-            makeObjectParam("Non-zero value", tFloat, cGeneral, &nonZero)
-        };
-
-        iemHelper.addIemParameters(&allParameters);
-
-        return allParameters;
+        return objectParameters;
     }
 
     void setToggleStateFromFloat(float newValue)
