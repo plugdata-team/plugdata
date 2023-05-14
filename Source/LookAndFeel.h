@@ -901,15 +901,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         bool inspectorElement = object.getProperties()["Style"] == "Inspector";
 
-        auto cornerSize = inspectorElement ? 0.0f : 3.0f;
         Rectangle<int> boxBounds(0, 0, width, height);
-
-        g.setColour(object.findColour(ComboBox::backgroundColourId));
-        g.fillRoundedRectangle(boxBounds.toFloat(), cornerSize);
-
+        
         if (!inspectorElement) {
+            
+            g.setColour(object.findColour(ComboBox::backgroundColourId));
+            g.fillRoundedRectangle(boxBounds.toFloat(), 3.0f);
+            
             g.setColour(object.findColour(ComboBox::outlineColourId));
-            g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
+            g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), 3.0f, 1.0f);
         }
 
         Rectangle<int> arrowZone(width - 22, 9, 14, height - 18);
@@ -1093,9 +1093,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
         auto colour = component.findColour(PropertyComponent::labelTextColourId)
                           .withMultipliedAlpha(component.isEnabled() ? 1.0f : 0.6f);
 
-        auto r = getPropertyComponentContentPosition(component);
+        auto textW = jmin (300, component.getWidth() / 2);
+        auto r = Rectangle<float>(textW, 0, component.getWidth() - textW, component.getHeight() - 1);
 
-        Fonts::drawFittedText(g, component.getName(), indent, r.getY(), r.getX() - 5, r.getHeight(), colour, 1, 1.0f, (float)jmin(height, 24) * 0.65f, Justification::centredLeft);
+        Fonts::drawFittedText(g, component.getName(), indent, r.getY(), r.getX(), r.getHeight(), colour, 1, 1.0f, (float)jmin(height, 24) * 0.65f, Justification::centredLeft);
     }
 
     void drawPropertyPanelSectionHeader(Graphics& g, String const& name, bool isOpen, int width, int height) override

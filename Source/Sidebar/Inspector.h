@@ -8,7 +8,7 @@
 
 class Inspector : public Component {
 
-    PropertiesPanel panel;
+    PropertyPanel panel;
     String title;
     TextButton resetButton;
     ObjectParameters properties;

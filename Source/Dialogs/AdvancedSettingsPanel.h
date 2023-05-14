@@ -16,6 +16,8 @@ public:
     {
         auto* settingsFile = SettingsFile::getInstance();
 
+        Array<PropertiesPanel::Property*> otherProperties;
+        
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
             macTitlebarButtons.referTo(settingsFile->getPropertyAsValue("macos_buttons"));
@@ -23,30 +25,28 @@ public:
 
             macTitlebarButtons.addListener(this);
 
-            useNativeTitlebar.reset(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
-            useMacTitlebarButtons.reset(new PropertiesPanel::BoolComponent("Use macOS style window buttons", macTitlebarButtons, { "No", "Yes" }));
-            reloadLastOpenedPatch.reset(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
-
-            addAndMakeVisible(*useNativeTitlebar);
-            addAndMakeVisible(*useMacTitlebarButtons);
-            addAndMakeVisible(*reloadLastOpenedPatch);
+            Array<PropertiesPanel::Property*> windowProperties;
+            
+            windowProperties.add(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
+            windowProperties.add(new PropertiesPanel::BoolComponent("Use macOS style window buttons", macTitlebarButtons, { "No", "Yes" }));
+            
+            propertiesPanel.addSection("Window", windowProperties);
+            
+            otherProperties.add(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
         }
-
+        
         scaleValue = settingsFile->getProperty<float>("global_scale");
         scaleValue.addListener(this);
-        globalScale.reset(new PropertiesPanel::EditableComponent<float>("Global scale factor", scaleValue));
-        addAndMakeVisible(*globalScale);
+        
+        otherProperties.add(new PropertiesPanel::EditableComponent<float>("Global scale factor", scaleValue));
+        propertiesPanel.addSection("Other", otherProperties);
+        
+        addAndMakeVisible(propertiesPanel);
     }
 
     void resized() override
     {
-        auto bounds = getLocalBounds();
-        if (ProjectInfo::isStandalone) {
-            useNativeTitlebar->setBounds(bounds.removeFromTop(23));
-            useMacTitlebarButtons->setBounds(bounds.removeFromTop(23));
-            reloadLastOpenedPatch->setBounds(bounds.removeFromTop(23));
-        }
-        globalScale->setBounds(bounds.removeFromTop(23));
+        propertiesPanel.setBounds(getLocalBounds());
     }
 
     void valueChanged(Value& v) override
@@ -71,9 +71,6 @@ public:
     Value macTitlebarButtons;
     Value reloadPatch;
     Value scaleValue;
-
-    std::unique_ptr<PropertiesPanel::BoolComponent> useNativeTitlebar;
-    std::unique_ptr<PropertiesPanel::BoolComponent> useMacTitlebarButtons;
-    std::unique_ptr<PropertiesPanel::BoolComponent> reloadLastOpenedPatch;
-    std::unique_ptr<PropertiesPanel::EditableComponent<float>> globalScale;
+        
+    PropertiesPanel propertiesPanel;
 };

@@ -103,15 +103,60 @@ private:
     String errorMessage;
 };
 
+            
+struct ThemeSelectorProperty : public PropertiesPanel::Property {
+    ThemeSelectorProperty(String const& propertyName, std::function<void()> callback)
+   : Property(propertyName)
+   {
+       comboBox.getProperties().set("Style", "Inspector");
+       comboBox.onChange = [callback](){
+           callback();
+       };
+       
+       comboBox.setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
+       comboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+       comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
+       
+       addAndMakeVisible(comboBox);
+   }
+    
+    String getText()
+    {
+        return comboBox.getText();
+    }
+    
+    void setSelectedItem(int idx)
+    {
+        comboBox.setSelectedItemIndex(idx, dontSendNotification);
+    }
+    
+   void setOptions(StringArray options)
+   {
+       comboBox.clear();
+       comboBox.addItemList(options, 1);
+   }
+   
+   void resized() override
+   {
+       comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
+   }
+   
+   ComboBox comboBox;
+};
+
 class ThemePanel : public Component
     , public Value::Listener
     , public SettingsFileListener {
 
     Value fontValue;
+        
 
     ComboBox themeSelectors[2];
 
     std::map<String, std::map<String, Value>> swatches;
+        
+    ThemeSelectorProperty* primaryThemeSelector = nullptr;
+    ThemeSelectorProperty* secondaryThemeSelector = nullptr;
 
     PropertiesPanel panel;
     Array<PropertyComponent*> allPanels;
@@ -163,7 +208,6 @@ public:
                 newTheme.setProperty("theme", name, nullptr);
                 colourThemes.appendChild(newTheme, nullptr);
 
-                updateThemes();
                 updateSwatches();
             };
 
@@ -203,8 +247,6 @@ public:
                 }
 
                 SettingsFile::getInstance()->getColourThemesTree().appendChild(themeTree, nullptr);
-
-                updateThemes();
                 updateSwatches();
             });
         };
@@ -283,46 +325,9 @@ public:
                     PlugDataLook::selectedThemes.set(1, "dark");
                 }
 
-                updateThemes();
                 updateSwatches();
             });
         };
-
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < allThemes.size(); j++) {
-                themeSelectors[i].addItem(allThemes[j], j + 1);
-            }
-
-            themeSelectors[i].setSelectedItemIndex(allThemes.indexOf(PlugDataLook::selectedThemes[i]), dontSendNotification);
-            addAndMakeVisible(themeSelectors[i]);
-
-            themeSelectors[i].setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
-            themeSelectors[i].setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-            themeSelectors[i].setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
-
-            themeSelectors[i].onChange = [this, i]() mutable {
-                int themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
-
-                String themeId = i == 0 ? "first" : "second";
-
-                SettingsFile::getInstance()->getSelectedThemesTree().setProperty(themeId, themeSelectors[i].getText(), nullptr);
-
-                auto selectedThemeName = themeSelectors[i].getText();
-
-                if (selectedThemeName.isEmpty())
-                    return;
-
-                PlugDataLook::selectedThemes.set(i, selectedThemeName);
-                updateSwatches();
-
-                pd->setTheme(PlugDataLook::selectedThemes[themeIdx]);
-                SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[themeIdx]);
-
-                getTopLevelComponent()->repaint();
-
-                SettingsFile::getInstance()->saveSettings();
-            };
-        }
 
         addAndMakeVisible(panel);
 
@@ -331,6 +336,16 @@ public:
         fontValue.addListener(this);
 
         updateSwatches();
+
+    }
+        
+    void updateThemeNames(String firstTheme, String secondTheme)
+    {
+        auto sections = panel.getSectionNames();
+        for(int i = 2; i < sections.size(); i++)
+        {
+            panel.setExtraHeaderNames(i, {firstTheme, secondTheme});
+        }
     }
 
     void settingsFileReloaded() override
@@ -339,41 +354,85 @@ public:
     };
 
     void updateSwatches()
-    {
+        {
         panel.clear();
         allPanels.clear();
-
-        std::map<String, Array<PropertyComponent*>> panels;
-
+        
+        std::map<String, Array<PropertiesPanel::Property*>> panels;
+        
         // Loop over colours
         for (auto const& [colour, colourNames] : PlugDataColourNames) {
-
+            
             auto& [colourName, colourId, colourCategory] = colourNames;
-
+            
             Array<Value*> swatchesToAdd;
-
+            
             // Loop over themes
             for (int i = 0; i < 2; i++) {
                 auto themeName = PlugDataLook::selectedThemes[i];
                 swatchesToAdd.add(&(swatches[themeName][colourId]));
                 auto* swatch = swatchesToAdd.getLast();
-
+                
                 auto value = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName).getPropertyAsValue(colourId, nullptr);
-
+                
                 swatch->referTo(value);
                 swatch->addListener(this);
             }
-
+            
             // Add a multi colour component to the properties panel
             panels[colourCategory].add(new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ColourComponent>(colourName, swatchesToAdd));
         }
-
+        
         auto* fontPanel = new PropertiesPanel::FontComponent("Default font", fontValue);
+    
+        std::function<void(int, String)> onThemeChange = [this](int themeSlot, String newThemeName)
+        {
+            auto allThemes = PlugDataLook::getAllThemes();
+            int themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
+            
+            String themeId = themeSlot ? "second" : "first";
+            
+            SettingsFile::getInstance()->getSelectedThemesTree().setProperty(themeId, newThemeName, nullptr);
+                        
+            if (newThemeName.isEmpty())
+                return;
+            
+            PlugDataLook::selectedThemes.set(themeSlot, newThemeName);
+            updateSwatches();
+            
+            updateThemeNames(themeSelectors[0].getText(), themeSelectors[1].getText());
 
+            pd->setTheme(PlugDataLook::selectedThemes[themeIdx]);
+            SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[themeIdx]);
+
+            getTopLevelComponent()->repaint();
+
+            SettingsFile::getInstance()->saveSettings();
+        };
+        
+        primaryThemeSelector = new ThemeSelectorProperty("Primary Theme", [this, onThemeChange](){
+            onThemeChange(0, primaryThemeSelector->getText());
+        });
+        
+        secondaryThemeSelector = new ThemeSelectorProperty("Secondary Theme", [this, onThemeChange](){
+            onThemeChange(1, secondaryThemeSelector->getText());
+        });
+        
+        auto allThemes = PlugDataLook::getAllThemes();
+        primaryThemeSelector->setOptions(allThemes);
+        secondaryThemeSelector->setOptions(allThemes);
+        primaryThemeSelector->setSelectedItem(allThemes.indexOf(PlugDataLook::selectedThemes[0]));
+        secondaryThemeSelector->setSelectedItem(allThemes.indexOf(PlugDataLook::selectedThemes[1]));
+        
         allPanels.add(fontPanel);
+        allPanels.add(primaryThemeSelector);
+        allPanels.add(secondaryThemeSelector);
+        
         addAndMakeVisible(*fontPanel);
 
         panel.addSection("Fonts", { fontPanel });
+        
+        panel.addSection("Active Themes", { primaryThemeSelector, secondaryThemeSelector });
 
         Array<Value*> dashedConnectionValues, straightConnectionValues, squareIoletsValues, squareObjectCornersValues, thinConnectionValues;
 
@@ -431,33 +490,13 @@ public:
                 allPanels.add(colourPanel);
             panel.addSection(sectionName, sectionColours);
         }
-    }
-
-    void updateThemes()
-    {
-        for (int i = 0; i < 2; i++) {
-
-            auto selectedText = themeSelectors[i].getText();
-            themeSelectors[i].clear();
-
-            StringArray allThemes = PlugDataLook::getAllThemes();
-            for (int j = 0; j < allThemes.size(); j++) {
-                themeSelectors[i].addItem(allThemes[j], j + 1);
-            }
-
-            int newIdx = allThemes.indexOf(selectedText);
-
-            if (isPositiveAndBelow(newIdx, themeSelectors[i].getNumItems())) {
-                themeSelectors[i].setSelectedItemIndex(newIdx, dontSendNotification);
-            } else {
-                themeSelectors[i].setSelectedItemIndex(i, dontSendNotification);
-            }
-        }
-
+        
         if (!PlugDataLook::selectedThemes.contains(PlugDataLook::currentTheme)) {
             PlugDataLook::currentTheme = PlugDataLook::selectedThemes[0];
             SettingsFile::getInstance()->setProperty("theme", PlugDataLook::currentTheme);
         }
+
+        updateThemeNames(primaryThemeSelector->getText(), secondaryThemeSelector->getText());
     }
 
     void valueChanged(Value& v) override
@@ -497,15 +536,17 @@ public:
             }
         }
 
+        /* TODO: Fix this, maybe with a LookAndFeelChanged on the property component?
         for (int i = 0; i < 2; i++) {
             themeSelectors[i].setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
             themeSelectors[i].setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             themeSelectors[i].setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
-        }
+        }*/
     }
 
     void paint(Graphics& g) override
     {
+        /*
         auto bounds = getLocalBounds().removeFromLeft(getWidth() / 2).withTrimmedLeft(6);
 
         auto themeRow = bounds.removeFromTop(23);
@@ -513,16 +554,12 @@ public:
 
         auto fullThemeRow = getLocalBounds().removeFromTop(23);
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(Line<int>(fullThemeRow.getBottomLeft(), fullThemeRow.getBottomRight()).toFloat(), -1.0f);
+        g.drawLine(Line<int>(fullThemeRow.getBottomLeft(), fullThemeRow.getBottomRight()).toFloat(), -1.0f); */
     }
 
     void resized() override
     {
         auto bounds = getLocalBounds();
-
-        auto themeRow = bounds.removeFromTop(23);
-        themeSelectors[0].setBounds(themeRow.withX(getWidth() * 0.5f).withWidth(getWidth() / 4));
-        themeSelectors[1].setBounds(themeRow.withX(getWidth() * 0.75f).withWidth(getWidth() / 4));
 
         bounds.removeFromBottom(30);
 

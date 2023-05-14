@@ -6,6 +6,8 @@
 
 #pragma once
 
+
+
 class SearchPathComponent : public Component
     , public FileDragAndDropTarget
     , private ListBoxModel {
