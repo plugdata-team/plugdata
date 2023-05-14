@@ -292,7 +292,7 @@ public:
             d->setViewedComponent(dialogContent);
             dialog.reset(d);
             
-        }, Icons::New, "New theme...", true);
+        }, Icons::New, "New theme...");
         
         loadButton = new PropertiesPanel::ActionComponent([this](){
             
