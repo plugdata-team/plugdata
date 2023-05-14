@@ -97,7 +97,7 @@ private:
             p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
             StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, {0, 1});
             
-            g.setColour(Colours::white);
+            g.setColour(findColour(PlugDataColour::panelBackgroundColourId).brighter(0.25f));
             g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
             
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
