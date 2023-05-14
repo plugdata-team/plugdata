@@ -6,6 +6,7 @@
 
 #include "../Utility/PropertiesPanel.h"
 
+
 class Inspector : public Component {
 
     PropertyPanel panel;
@@ -91,7 +92,9 @@ public:
             int idx = 0;
             for (auto& [name, type, category, value, options, defaultVal] : params.getParameters()) {
                 if (static_cast<int>(category) == i) {
-                    panels.add(createPanel(type, name, value, options));
+                    auto newPanel = createPanel(type, name, value, options);
+                    newPanel->setPreferredHeight(26);
+                    panels.add(newPanel);
                     idx++;
                 }
             }
