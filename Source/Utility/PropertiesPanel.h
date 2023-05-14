@@ -89,7 +89,7 @@ private:
             int x = marginWidth / 2;
             int width = getWidth() - marginWidth;
             
-            Fonts::drawStyledText(g, getName(), x + 8, 0, getWidth() - 4, titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, (float)titleHeight * 0.7f);
+            Fonts::drawStyledText(g, getName(), x + 8, 0, width - 4, titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
             
             auto propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
             
@@ -712,6 +712,61 @@ public:
             browseButton.setBounds(labelBounds.removeFromRight(getHeight()));
         }
     };
+    
+    class ActionComponent : public Property {
+
+        bool mouseIsOver = false;
+        bool roundTop, roundBottom;
+        
+    public:
+        
+        ActionComponent(std::function<void()> callback, String iconToShow, String textToShow, bool roundOnTop = false, bool roundOnBottom = false) : Property(textToShow), icon(iconToShow), roundTop(roundOnTop),  roundBottom(roundOnBottom), onClick(callback)
+        {
+            setHideLabel(true);
+        }
+
+        void paint(Graphics& g) override
+        {
+            auto bounds = getLocalBounds();
+            auto textBounds = bounds;
+            auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+
+            auto colour = findColour(PlugDataColour::panelTextColourId);
+            if (mouseIsOver) {
+                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                
+                Path p;
+                p.addRoundedRectangle (bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, true, true);
+                g.fillPath(p);
+
+                colour = findColour(PlugDataColour::panelActiveTextColourId);
+            }
+            
+            Fonts::drawIcon(g, icon, iconBounds, colour, 12);
+            Fonts::drawText(g, getName(), textBounds, colour, 15);
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            mouseIsOver = true;
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            mouseIsOver = false;
+            repaint();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            onClick();
+        }
+        
+        std::function<void()> onClick = []() {};
+        String icon;
+    };
+
     
     
     PropertiesPanel()

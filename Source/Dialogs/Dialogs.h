@@ -148,6 +148,8 @@ struct Dialogs {
     static void showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position);
 
     static void showObjectMenu(PluginEditor* parent, Component* target);
+    
+    static void showDeken(PluginEditor* editor);
 
     static PopupMenu createObjectMenu(PluginEditor* parent);
 };

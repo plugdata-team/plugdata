@@ -29,6 +29,7 @@
 #include "Heavy/HeavyExportDialog.h"
 #include "MainMenu.h"
 #include "Canvas.h"
+#include "Deken.h"
 
 Component* Dialogs::showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback)
 {
@@ -146,6 +147,10 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 settingsTree.setProperty("autoconnect", !ticked, nullptr);
                 break;
             }
+            case MainMenu::MenuItem::FindExternals: {
+                Dialogs::showDeken(editor);
+                break;
+            }
             case MainMenu::MenuItem::Settings: {
                 Dialogs::showSettingsDialog(editor);
                 break;
@@ -249,6 +254,14 @@ void Dialogs::showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Compone
 
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
+}
+
+void Dialogs::showDeken(PluginEditor* editor)
+{
+    auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
+    auto* dialogContent = new Deken();
+    dialog->setViewedComponent(dialogContent);
+    editor->openedDialog.reset(dialog);
 }
 
 StringArray DekenInterface::getExternalPaths()

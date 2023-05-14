@@ -872,8 +872,8 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 {
 
     if (commandID == StandardApplicationCommandIDs::quit) {
-        result.setInfo(TRANS("Quit"),
-            TRANS("Quits the application"),
+        result.setInfo("Quit",
+            "Quits the application",
             "Application", 0);
 
         result.defaultKeypresses.add(KeyPress('q', ModifierKeys::commandModifier, 0));

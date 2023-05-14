@@ -69,6 +69,8 @@ public:
 
         addSeparator();
 
+        addCustomItem(getMenuItemID(MenuItem::FindExternals), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::FindExternals)]), nullptr, "Find externals...");
+        
         addCustomItem(getMenuItemID(MenuItem::Settings), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Settings)]), nullptr, "Settings...");
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
 
@@ -367,6 +369,7 @@ public:
         PluginMode,
         AutoConnect,
         EnablePalettes,
+        FindExternals,
         Settings,
         About
     };
@@ -403,6 +406,7 @@ public:
         new IconMenuItem("", "Auto-connect objects", false, true),
         new IconMenuItem("", "Enable palettes", false, true),
 
+        new IconMenuItem(Icons::Externals, "Find Externals...", false, false),
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),
     };

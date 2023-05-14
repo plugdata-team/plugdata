@@ -2,36 +2,52 @@
 
 // Keymapping object based on JUCE's KeyMappingEditorComponent
 
+
 class KeyMappingComponent : public Component
     , public ChangeListener {
 public:
     KeyMappingComponent(KeyPressMappingSet& mappingSet)
         : mappings(mappingSet)
-        , resetPdButton("Reset to Pd defaults")
-        , resetMaxButton("Reset to Max defaults")
     {
         mappingSet.addChangeListener(this);
-
-        addAndMakeVisible(resetPdButton);
-        resetPdButton.onClick = [this] {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
-                [this](int result) {
-                    resetKeyMappingsToPdCallback(result, this);
-                });
-        };
-
-        addAndMakeVisible(resetMaxButton);
-        resetMaxButton.onClick = [this] {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
-                [this](int result) {
-                    resetKeyMappingsToMaxCallback(result, this);
-                });
-        };
 
         addAndMakeVisible(propertiesPanel);
         propertiesPanel.setTitle("Key Mappings");
         propertiesPanel.setColour(TreeView::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
+        updateMappings();
+    }
+
+    /** Destructor. */
+    ~KeyMappingComponent()
+    {
+        mappings.removeChangeListener(this);
+    }
+        
+    void updateMappings()
+    {
+        auto& viewport = propertiesPanel.getViewport();
+        auto viewY = viewport.getViewPositionY();
+        propertiesPanel.clear();
+    
+        auto resetMaxDefaults = [this] {
+            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
+                [this](int result) {
+                    resetKeyMappingsToMaxCallback(result, this);
+                });
+        };
+        auto resetPdDefaults = [this](){
+            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
+                [this](int result) {
+                    resetKeyMappingsToPdCallback(result, this);
+                });
+        };
+        
+        auto* resetMaxButton = new PropertiesPanel::ActionComponent(resetPdDefaults, Icons::Reset, "Reset to Pd defaults", true, false);
+        auto* resetPdButton = new PropertiesPanel::ActionComponent(resetMaxDefaults, Icons::Reset, "Reset to Max defaults", false, true);
+        
+        propertiesPanel.addSection("Reset", {resetMaxButton, resetPdButton});
+        
         for (auto category : mappings.getCommandManager().getCommandCategories())
         {
             int count = 0;
@@ -43,12 +59,8 @@ public:
             
             propertiesPanel.addSection(category, properties);
         }
-    }
-
-    /** Destructor. */
-    ~KeyMappingComponent()
-    {
-        mappings.removeChangeListener(this);
+        
+        viewport.setViewPosition(0.0f, viewY);
     }
 
     void changeListenerCallback(ChangeBroadcaster* source) override
@@ -57,6 +69,8 @@ public:
 
         auto newTree = mappings.createXml(true)->toString();
         keyMapTree.setProperty("keyxml", newTree, nullptr);
+        
+        updateMappings();
     }
 
     static void resetKeyMappingsToPdCallback(int result, KeyMappingComponent* owner)
@@ -65,6 +79,7 @@ public:
             return;
 
         owner->getMappings().resetToDefaultMappings();
+        owner->getMappings().sendChangeMessage();
     }
 
     static void resetKeyMappingsToMaxCallback(int result, KeyMappingComponent* owner)
@@ -113,29 +128,12 @@ public:
 
     void resized() override
     {
-        int h = getHeight();
-
-        int const buttonHeight = 20;
-        h -= buttonHeight + 8;
-        int x = getWidth() - 8;
-
-        resetPdButton.changeWidthToFitText(buttonHeight);
-        resetPdButton.setTopRightPosition(x, h + 6);
-
-        resetMaxButton.changeWidthToFitText(buttonHeight);
-        resetMaxButton.setTopRightPosition(x - (resetPdButton.getWidth() + 10), h + 6);
-
-        propertiesPanel.setBounds(0, 1, getWidth(), h - 1);
+        propertiesPanel.setBounds(getLocalBounds());
     }
 
 private:
     KeyPressMappingSet& mappings;
     PropertiesPanel propertiesPanel;
-    TextButton resetPdButton;
-    TextButton resetMaxButton;
-
-    class ChangeKeyButton;
-    class KeyMappingProperty;
 
     std::unique_ptr<Dialog> confirmationDialog;
 
