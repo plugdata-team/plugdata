@@ -194,7 +194,7 @@ public:
     void updateThemeNames(String firstTheme, String secondTheme)
     {
         auto sections = panel.getSectionNames();
-        for(int i = 2; i < sections.size(); i++)
+        for(int i = 3; i < sections.size(); i++)
         {
             panel.setExtraHeaderNames(i, {firstTheme, secondTheme});
         }
