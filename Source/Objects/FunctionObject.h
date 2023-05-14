@@ -24,7 +24,7 @@ public:
     {
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
-        objectParameters.addParamRange("Range", cGeneral, &range);
+        objectParameters.addParamRange("Range", cGeneral, &range, { 0.0f, 1.0f} );
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
     }
@@ -347,11 +347,6 @@ public:
             setRange(getRange());
             getPointsFromFunction();
         }
-    }
-
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
     }
 
     Colour colourFromHexArray(unsigned char* hex)

@@ -165,11 +165,6 @@ public:
         input.setFont(getHeight() - 6);
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
-
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {

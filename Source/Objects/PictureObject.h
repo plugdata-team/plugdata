@@ -107,11 +107,6 @@ public:
         }
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    };
-
     void paint(Graphics& g) override
     {
         if (imageFile.existsAsFile()) {

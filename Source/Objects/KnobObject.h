@@ -489,11 +489,6 @@ public:
         return Colour::fromString(colourStr.replace("#", "ff"));
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
-
     float getValue()
     {
         pd->lockAudioThread();

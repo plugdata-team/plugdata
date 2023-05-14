@@ -294,11 +294,6 @@ public:
         slider.setBounds(getLocalBounds());
     }
 
-    ObjectParameters getParameters() override
-    {
-        return objectParameters;
-    }
-
     float getValue()
     {
         auto* x = static_cast<t_slider*>(ptr);
