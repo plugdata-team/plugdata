@@ -37,7 +37,6 @@ public:
         editor.setJustification(Justification::topLeft);
         editor.setBorder(border);
         editor.setBounds(getLocalBounds().withTrimmedRight(5));
-        editor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
         editor.addListener(this);
         editor.addKeyListener(this);
         editor.selectAll();

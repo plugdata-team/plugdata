@@ -45,7 +45,7 @@ methods:
     description: sets font size
   - type: bold
     description: non-0 sets to bold
-  - type: -bgcolor <f, f, f>
+  - type: bgcolor <f, f, f>
     description: sets background color
   - type: fgcolor <f, f, f>
     description: sets text color
