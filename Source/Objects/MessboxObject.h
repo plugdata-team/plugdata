@@ -123,6 +123,8 @@ public:
         return {
             hash("set"),
             hash("append"),
+            hash("fgcolor"),
+            hash("bgcolor"),
             hash("bang"),
         };
     }
@@ -141,6 +143,11 @@ public:
         }
         case hash("bang"): {
             setSymbols(editor.getText());
+            break;
+        }
+        case hash("fgcolor"):
+        case hash("bgcolor"): {
+            update();
             break;
         }
         default:
