@@ -123,12 +123,16 @@ public:
         return {
             hash("set"),
             hash("append"),
+            hash("fgcolor"),
+            hash("bgcolor"),
             hash("bang"),
         };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        auto* messbox = static_cast<t_fake_messbox*>(ptr);
+
         switch (hash(symbol)) {
         case hash("set"): {
             editor.setText("");
@@ -141,6 +145,14 @@ public:
         }
         case hash("bang"): {
             setSymbols(editor.getText());
+            break;
+        }
+        case hash("fgcolor"): {
+            primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
+            break;
+        }
+        case hash("bgcolor"): {
+            secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
             break;
         }
         default:
