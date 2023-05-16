@@ -145,10 +145,7 @@ public:
             setSymbols(editor.getText());
             break;
         }
-        case hash("fgcolor"): {
-            update();
-            break;
-        }
+        case hash("fgcolor"):
         case hash("bgcolor"): {
             update();
             break;

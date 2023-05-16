@@ -362,6 +362,8 @@ public:
             hash("list"),
             hash("min"),
             hash("max"),
+            hash("fgcolor"),
+            hash("bgcolor"),
         };
     }
 
@@ -388,6 +390,11 @@ public:
             Array<var> arr = { function->x_min, function->x_max };
             setParameterExcludingListener(range, var(arr));
             getPointsFromFunction();
+            break;
+        }
+        case hash("fgcolor"):
+        case hash("bgcolor"): {
+            update();
             break;
         }
         default:
