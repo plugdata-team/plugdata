@@ -64,7 +64,6 @@ public:
     {
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
 
-        bold = messbox->x_font_weight == pd->generateSymbol("bold");
         fontSize = messbox->x_font_size;
 
         primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
@@ -126,6 +125,8 @@ public:
             hash("fgcolor"),
             hash("bgcolor"),
             hash("bang"),
+            hash("fontsize"),
+            hash("bold")
         };
     }
 
@@ -145,6 +146,12 @@ public:
             setSymbols(editor.getText());
             break;
         }
+        case hash("bold"): {
+            if(atoms.size() > 0 && atoms[0].isFloat())
+                bold = atoms[0].getFloat();
+            break;
+        }
+        case hash("fontsize"):
         case hash("fgcolor"):
         case hash("bgcolor"): {
             update();
