@@ -474,6 +474,18 @@ public:
         , currentColour(value)
         {
             currentColour.addListener(this);
+
+            addAndMakeVisible(hexValueEditor);
+            hexValueEditor.getProperties().set("NoOutline", true);
+            hexValueEditor.getProperties().set("NoBackground", true);
+            hexValueEditor.setFont(Fonts::getMonospaceFont().withPointHeight(14));
+
+            hexValueEditor.setColour(outlineColourId, Colour());
+            hexValueEditor.onTextChange = [this](){
+                currentColour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+            };
+
+            updateHexValue();
             repaint();
         }
         
@@ -481,22 +493,29 @@ public:
         {
             currentColour.removeListener(this);
         }
-        
+
+        void updateHexValue()
+        {
+            hexValueEditor.setText(String("#") + currentColour.toString().substring(2).toUpperCase());
+        }
+
+        void resized() override
+        {
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            colourSwatchBounds = bounds.withWidth(getHeight()).toFloat().reduced(2);
+            hexValueEditor.setBounds(getBounds().withLeft(colourSwatchBounds.getRight() + 8).withRight(bounds.getRight()).withTop(0).reduced(1));
+        }
+
         void paint(Graphics& g) override
         {
             auto colour = Colour::fromString(currentColour.toString());
-            auto textColour = colour.getPerceivedBrightness() > 0.5 ? Colours::black : Colours::white;
-            
-            auto bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2 - hideLabel));
-            
-            Path p;
-            p.addRoundedRectangle (bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, false, roundTopCorner, false, roundBottomCorner);
-            
-            g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
-            g.fillPath(p);
+            auto textColour = findColour(PlugDataColour::sidebarTextColourId);
 
-            Fonts::drawText(g, String("#") + currentColour.toString().substring(2).toUpperCase(), bounds, textColour, 14.0f, Justification::centred);
-            
+            g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
+            g.fillEllipse(colourSwatchBounds);
+            g.setColour(colour.darker(0.2f));
+            g.drawEllipse(colourSwatchBounds, 0.8f);
+
             // Paint label
             Property::paint(g);
         }
@@ -530,12 +549,16 @@ public:
         
         void valueChanged(Value& v) override
         {
-            if (v.refersToSameSourceAs(currentColour))
+            if (v.refersToSameSourceAs(currentColour)) {
+                updateHexValue();
                 repaint();
+            }
         }
         
     private:
         Value currentColour;
+        TextEditor hexValueEditor;
+        Rectangle<float> colourSwatchBounds;
     };
 
     struct RangeComponent : public Property, public Value::Listener {

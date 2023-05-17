@@ -989,11 +989,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void fillTextEditorBackground(Graphics& g, int width, int height, TextEditor& textEditor) override
     {
-        if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) != nullptr) {
-            g.setColour(textEditor.findColour(TextEditor::backgroundColourId));
-            g.fillRect(0, 0, width, height);
-        } else {
-            g.fillAll(textEditor.findColour(TextEditor::backgroundColourId));
+        if (textEditor.getProperties()["NoBackground"].isVoid()) {
+            if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) != nullptr) {
+                g.setColour(textEditor.findColour(TextEditor::backgroundColourId));
+                g.fillRect(0, 0, width, height);
+            } else {
+                g.fillAll(textEditor.findColour(TextEditor::backgroundColourId));
+            }
         }
     }
 
