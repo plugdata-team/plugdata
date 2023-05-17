@@ -128,9 +128,7 @@ class KnobObject : public ObjectBase {
     Value max = Value(0.0f);
 
     Value initialValue, circular, ticks, angularRange, angularOffset, discrete, outline, showArc, exponential;
-    Value arcColour;
-
-    Value primaryColour, secondaryColour, sendSymbol, receiveSymbol;
+    Value primaryColour, secondaryColour, arcColour, sendSymbol, receiveSymbol;
 
     float value = 0.0f;
 
@@ -287,7 +285,9 @@ public:
             hash("ticks"),
             hash("send"),
             hash("receive"),
-            hash("color")
+            hash("fgcolor"),
+            hash("bgcolor"),
+            hash("arccolor"),
         };
     }
 
@@ -362,12 +362,16 @@ public:
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
             break;
         }
-        case hash("color"): {
-            if (atoms.size() > 0)
-                setColour(secondaryColour, atoms[0]);
-            if (atoms.size() > 1)
-                setColour(primaryColour, atoms[1]);
-            repaint();
+        case hash("fgcolor"): {
+            primaryColour = getForegroundColour().toString();
+            break;
+        }
+        case hash("bgcolor"): {
+            secondaryColour = getBackgroundColour().toString();
+            break;
+        }
+        case hash("arccolor"): {
+            arcColour = getArcColour().toString();
             break;
         }
         }
