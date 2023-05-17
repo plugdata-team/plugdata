@@ -154,6 +154,10 @@ public:
         
         addAndMakeVisible(inputLevelMeter);
         addAndMakeVisible(outputLevelMeter);
+        
+        audioPropertiesPanel.onLayoutChange = [this](){
+            resized();
+        };
     }
     
     ~StandaloneAudioSettings()
@@ -349,34 +353,33 @@ public:
         if (!settingsTree.hasProperty("NativeDialog")) {
             settingsTree.setProperty("NativeDialog", true, nullptr);
         }
-
-        nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
-
-        nativeDialogToggle = std::make_unique<PropertiesPanel::BoolComponent>("Use system dialog", nativeDialogValue, StringArray{ "No", "Yes" });
-
-        addAndMakeVisible(latencyNumberBox);
-        addAndMakeVisible(tailLengthNumberBox);
-        addAndMakeVisible(*nativeDialogToggle);
-
-        dynamic_cast<DraggableNumber*>(latencyNumberBox.label.get())->setMinimum(64);
-
+        
         auto* proc = dynamic_cast<PluginProcessor*>(processor);
-
+        
+        nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
         tailLengthValue.referTo(proc->tailLength);
-
+        
         tailLengthValue.addListener(this);
         latencyValue.addListener(this);
         nativeDialogValue.addListener(this);
 
         latencyValue = proc->getLatencySamples();
+        
+        latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
+        tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
+        nativeDialogToggle = new PropertiesPanel::BoolComponent("Use system dialog", nativeDialogValue, StringArray{ "No", "Yes" });
+        
+        dawSettingsPanel.addSection("Audio", {latencyNumberBox, tailLengthNumberBox});
+        dawSettingsPanel.addSection("Other", {nativeDialogToggle});
+
+        addAndMakeVisible(dawSettingsPanel);
+        
+        dynamic_cast<DraggableNumber*>(latencyNumberBox->label.get())->setMinimum(64);
     }
 
     void resized() override
     {
-        auto bounds = getLocalBounds();
-        latencyNumberBox.setBounds(bounds.removeFromTop(23));
-        tailLengthNumberBox.setBounds(bounds.removeFromTop(23));
-        nativeDialogToggle->setBounds(bounds.removeFromTop(23));
+        dawSettingsPanel.setBounds(getLocalBounds());
     }
 
     void valueChanged(Value& v) override
@@ -391,9 +394,10 @@ public:
     Value latencyValue;
     Value tailLengthValue;
     Value nativeDialogValue;
+        
+    PropertiesPanel dawSettingsPanel;
 
-    PropertiesPanel::EditableComponent<int> latencyNumberBox = PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
-    PropertiesPanel::EditableComponent<float> tailLengthNumberBox = PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
-
-    std::unique_ptr<PropertiesPanel::BoolComponent> nativeDialogToggle;
+    PropertiesPanel::EditableComponent<int>* latencyNumberBox;
+        PropertiesPanel::EditableComponent<float>* tailLengthNumberBox;
+    PropertiesPanel::BoolComponent* nativeDialogToggle;
 };

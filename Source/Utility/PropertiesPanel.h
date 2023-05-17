@@ -10,9 +10,12 @@
 #include "DraggableNumber.h"
 #include "ColourPicker.h"
 
-class PropertiesPanel : public Component {
+class PropertiesPanel : public Component, public ScrollBar::Listener {
     
 public:
+    
+    std::function<void()> onLayoutChange = [](){};
+    
     class Property : public PropertyComponent {
         
     protected:
@@ -777,11 +780,14 @@ public:
         addAndMakeVisible(viewport);
         viewport.setViewedComponent (propertyHolderComponent = new PropertyHolderComponent());
         viewport.setFocusContainerType (FocusContainerType::keyboardFocusContainer);
+        
+        viewport.getVerticalScrollBar().addListener(this);
     }
     
     /** Destructor. */
     ~PropertiesPanel() override
     {
+        viewport.getVerticalScrollBar().removeListener(this);
         clear();
     }
 
@@ -877,6 +883,13 @@ public:
             // need to do this twice because of scrollbars changing the size, etc.
             propertyHolderComponent->updateLayout (newMaxWidth);
         }
+        
+        onLayoutChange();
+    }
+    
+    void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
+    {
+        onLayoutChange();
     }
     
     Viewport viewport;
