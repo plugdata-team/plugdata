@@ -387,11 +387,6 @@ public:
             break;
         }
         }
-
-        // Update the colours of the actual slider
-        if (hash(symbol) == hash("color")) {
-            knob.setFgColour(Colour::fromString(primaryColour.toString()));
-        }
     }
 
     void paint(Graphics& g) override
