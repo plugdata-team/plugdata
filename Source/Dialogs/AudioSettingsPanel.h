@@ -152,6 +152,10 @@ public:
         setup = deviceManager.getAudioDeviceSetup();
         updateDevices();
         
+        // Expand the input/output channels is any channel higher than 8 is selected
+        showAllInputChannels = setup.inputChannels.getHighestBit() > 8;
+        showAllOutputChannels = setup.outputChannels.getHighestBit() > 8;
+        
         addAndMakeVisible(inputLevelMeter);
         addAndMakeVisible(outputLevelMeter);
         
@@ -254,6 +258,16 @@ private:
             int idx = 0;
             for(auto channel : currentDevice->getInputChannelNames())
             {
+                if(!showAllInputChannels && idx > 8)
+                {
+                    inputProperties.add(new PropertiesPanel::ActionComponent([this](){
+                        showAllInputChannels = true;
+                        updateDevices();
+                        
+                    }, Icons::Down, "Show more input channels"));
+                    break;
+                }
+                
                 bool enabled = static_cast<bool>(setup.inputChannels.getBitRangeAsInt(idx, 1));
                 fixShortChannelName(channel, true);
                 inputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool isEnabled){
@@ -263,9 +277,28 @@ private:
                 idx++;
             }
             
+            if(idx > 8 && showAllInputChannels)
+            {
+                inputProperties.add(new PropertiesPanel::ActionComponent([this](){
+                    showAllInputChannels = false;
+                    updateDevices();
+                    
+                }, Icons::Up, "Show fewer input channels"));
+            }
+            
             idx = 0;
             for(auto channel : currentDevice->getOutputChannelNames())
             {
+                if(!showAllOutputChannels && idx > 8)
+                {
+                    outputProperties.add(new PropertiesPanel::ActionComponent([this](){
+                        showAllOutputChannels = true;
+                        updateDevices();
+                        
+                    }, Icons::Down, "Show more output channels"));
+                    break;
+                }
+                
                 bool enabled = static_cast<bool>(setup.outputChannels.getBitRangeAsInt(idx, 1));
                 fixShortChannelName(channel, false);
                 outputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool isEnabled){
@@ -274,7 +307,17 @@ private:
                 }));
                 idx++;
             }
+            
+            if(idx > 8 && showAllOutputChannels)
+            {
+                outputProperties.add(new PropertiesPanel::ActionComponent([this](){
+                    showAllOutputChannels = false;
+                    updateDevices();
+                    
+                }, Icons::Up, "Show fewer output channels"));
+            }
         }
+
         
         audioPropertiesPanel.addSection("Audio Output", outputProperties);
         audioPropertiesPanel.addSection("Audio Input", inputProperties);
@@ -338,6 +381,9 @@ private:
 
     AudioDeviceManager& deviceManager;
     PropertiesPanel audioPropertiesPanel;
+    
+    bool showAllInputChannels = false;
+    bool showAllOutputChannels = false;
 };
 
 
@@ -388,7 +434,7 @@ public:
             processor->setLatencySamples(getValue<int>(latencyValue));
         }
     }
-        
+    
     AudioProcessor* processor;
 
     Value latencyValue;
