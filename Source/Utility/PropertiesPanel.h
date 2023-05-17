@@ -93,7 +93,7 @@ private:
         {
             auto [x, width] = parent.getContentXAndWidth();
             
-            Fonts::drawStyledText(g, getName(), x + 8, 0, width - 4, titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
+            Fonts::drawStyledText(g, getName(), x, 0, width - 4, titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
             
             auto propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
             
@@ -154,7 +154,7 @@ private:
 
         void lookAndFeelChanged() override
         {
-            titleHeight = getLookAndFeel().getPropertyPanelSectionHeaderHeight (getName());
+            titleHeight = getLookAndFeel().getPropertyPanelSectionHeaderHeight(getName()) + 4;
             resized();
             repaint();
         }
@@ -891,7 +891,7 @@ public:
     
     void resized() override
     {
-        viewport.setBounds (getLocalBounds());
+        viewport.setBounds (getLocalBounds().withTrimmedTop(1));
         updatePropHolderLayout();
     }
     

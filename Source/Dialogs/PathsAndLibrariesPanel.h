@@ -163,9 +163,8 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius, 1.0f);
         
-        
         // Draw area behind properties
-        auto propertyBounds = Rectangle<float>(x, 80.0f, width, height);
+        auto propertyBounds = Rectangle<float>(x, 90.0f, width, height);
         
         p = Path();
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
@@ -177,7 +176,7 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
         
-        Fonts::drawStyledText(g, "Search paths", x + 8, 0, width - 4, 32.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
+        Fonts::drawStyledText(g, "Search paths", x, 0, width - 4, 36.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
     }
         
     void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
@@ -240,10 +239,10 @@ public:
 
     void resized() override
     {
-        listBox.setBounds(0, 80, getWidth(), getHeight() - 80);
+        listBox.setBounds(0, 90, getWidth(), getHeight() - 90);
 
         auto [x, width] = getContentXAndWidth();
-        resetButton.setBounds(x, 30, width, 32.0f);
+        resetButton.setBounds(x, 39, width, 32.0f);
 
         updateButtons();
     }
@@ -332,7 +331,7 @@ private:
         downButton.setEnabled(!readOnlyPath);
 
         if (anythingSelected) {
-            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false).translated(0, 3) + listBox.getPosition();
+            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false) + listBox.getPosition();
             auto buttonHeight = selectionBounds.getHeight();
 
             selectionBounds.removeFromRight(38);
@@ -340,15 +339,13 @@ private:
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
 
-            selectionBounds.removeFromRight(5);
-
             downButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             upButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
         }
         
         auto [x, width] = getContentXAndWidth();
         
-        auto addButtonBounds = Rectangle<int>(x, 80.0f + (getNumRows() * 32), width, 32);
+        auto addButtonBounds = Rectangle<int>(x, 90.0f + (getNumRows() * 32), width, 32);
         addButton.setBounds(addButtonBounds);
     }
 
@@ -441,11 +438,11 @@ public:
         addChildComponent(editor);
         editor.addListener(this);
 
-        editor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        editor.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
-        editor.setFont(Font(14));
+        editor.setFont(Font(15));
         
         listBox.getViewport()->setScrollBarsShown(false, false, false, false);
 
@@ -474,7 +471,7 @@ public:
         auto [x, width] = getContentXAndWidth();
         int height = (getNumRows() + 1) * 32;
         
-        auto propertyBounds = Rectangle<float>(x, 30.0f, width, height);
+        auto propertyBounds = Rectangle<float>(x, 40.0f, width, height);
         
         Path p;
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
@@ -486,15 +483,15 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
         
-        Fonts::drawStyledText(g, "Libraries to load", x + 8, 0, width - 4, 32.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
+        Fonts::drawStyledText(g, "Libraries to load", x, 0, width - 4, 36.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
     }
         
-        std::pair<int, int> getContentXAndWidth()
-        {
-            auto desiredContentWidth = 600;
-            auto marginWidth = (getWidth() - desiredContentWidth) / 2;
-            return {marginWidth, desiredContentWidth};
-        }
+    std::pair<int, int> getContentXAndWidth()
+    {
+        auto desiredContentWidth = 600;
+        auto marginWidth = (getWidth() - desiredContentWidth) / 2;
+        return {marginWidth, desiredContentWidth};
+    }
 
     void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
     {
@@ -549,14 +546,16 @@ public:
         updateButtons();
     }
 
+
     void resized() override
     {
-        int const titleHeight = 30;
-        listBox.setBounds(0, 30, getWidth(), getHeight());
+        int const titleHeight = 40;
+        listBox.setBounds(0, titleHeight, getWidth(), getHeight());
 
         if (editor.isVisible()) {
-            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false).translated(0, 3) + listBox.getPosition();
-            editor.setBounds(selectionBounds.withTrimmedRight(80).withTrimmedLeft(6).reduced(1) + listBox.getPosition());
+            auto [x, width] = getContentXAndWidth();
+            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), true) + listBox.getPosition();
+            editor.setBounds(x + 6, selectionBounds.getY() + 2, width - 12, selectionBounds.getHeight() - 2);
         }
 
         updateButtons();
@@ -616,7 +615,7 @@ private:
         changeButton.setVisible(anythingSelected);
 
         if (anythingSelected) {
-            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false).translated(0, 3) + listBox.getPosition();
+            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false) + listBox.getPosition();
             auto buttonHeight = selectionBounds.getHeight();
 
             selectionBounds.removeFromRight(38);
@@ -627,7 +626,7 @@ private:
         
         auto [x, width] = getContentXAndWidth();
         
-        auto addButtonBounds = Rectangle<int>(x, 30 + (getNumRows() * 32), width, 32);
+        auto addButtonBounds = Rectangle<int>(x, 40 + (getNumRows() * 32), width, 32);
         
         addButton.setBounds(addButtonBounds);
     }
@@ -705,7 +704,7 @@ private:
     void updateBounds()
     {
         searchPathsPanel.setSize(getWidth(), 96.0f + (searchPathsPanel.getNumRows() + 1) * 32.0f);
-        libraryLoadPanel.setBounds(libraryLoadPanel.getX(), searchPathsPanel.getBottom() + 8.0f, getWidth(), 32.0f + (libraryLoadPanel.getNumRows() + 1) * 32.0f);
+        libraryLoadPanel.setBounds(libraryLoadPanel.getX(), searchPathsPanel.getBottom() + 4.0f, getWidth(), 52.0f + (libraryLoadPanel.getNumRows() + 1) * 32.0f);
         
         container.setBounds(getLocalBounds().getUnion(searchPathsPanel.getBounds()).getUnion(libraryLoadPanel.getBounds()));
     }
