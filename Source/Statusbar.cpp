@@ -21,82 +21,74 @@
 
 #include "Utility/ArrowPopupMenu.h"
 
+
+VolumeSlider::VolumeSlider()
+    : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
+{
+    setSliderSnapsToMousePosition(false);
+}
+
+void VolumeSlider::resized()
+{
+    setMouseDragSensitivity(getWidth() - (margin * 2));
+}
+
+void VolumeSlider::paint(Graphics& g)
+{
+    auto value = getValue() / 1.2f;
+    auto thumbSize = getHeight() * 0.7f;
+    auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
+    auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
+    g.setColour(findColour(PlugDataColour::levelMeterThumbColourId).darker(0.5f).withAlpha(0.8f));
+    g.fillEllipse(thumb);
+}
+
+
+
 class LevelMeter : public Component
     , public StatusbarSource::Listener {
-    int totalBlocks = 15;
-    int blocks[2] = { 0 };
+    float audioLevel[2];
 
     int numChannels = 2;
+
+    bool clipping[2] = { false, false };
 
 public:
     LevelMeter() {};
 
     void audioLevelChanged(float level[2]) override
     {
-
-        bool needsRepaint = false;
-
-        for (int ch = 0; ch < numChannels; ch++) {
-            auto chLevel = level[ch];
-
-            if (!std::isfinite(chLevel)) {
-                blocks[ch] = 0;
-                return;
-            }
-
-            auto lvl = static_cast<float>(std::exp(std::log(chLevel) / 3.0) * (chLevel > 0.002));
-            auto numBlocks = floor(totalBlocks * lvl);
-
-            if (blocks[ch] != numBlocks) {
-                blocks[ch] = numBlocks;
-                needsRepaint = true;
-            }
+        clipping[0] = clipping[1] = false;
+        for (int i = 0; i < 2; i++) {
+            audioLevel[i] = level[i];
+            if (level[i] >= 1.0f)
+                clipping[i] = true;
         }
-
-        if (needsRepaint && isShowing())
-            repaint();
+        repaint();
     }
 
     void paint(Graphics& g) override
     {
-        auto height = getHeight() / 2.0f;
+        auto height = getHeight() / 4.0f;
+        auto barHeight = height * 0.7f;
+        auto halfBarHeight = barHeight * 0.5f;
         auto width = getWidth() - 8.0f;
         auto x = 4.0f;
 
         auto outerBorderWidth = 2.0f;
         auto spacingFraction = 0.08f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
-
-        auto blockWidth = (width - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
-        auto blockHeight = height - doubleOuterBorderWidth;
-        auto blockRectWidth = (1.0f - 2.0f * spacingFraction) * blockWidth;
-        auto blockRectSpacing = spacingFraction * blockWidth;
-        auto c = findColour(PlugDataColour::levelMeterActiveColourId);
-
-        for (int ch = 0; ch < numChannels; ch++) {
-            auto y = ch * height;
-
-            for (auto i = 0; i < totalBlocks; ++i) {
-                if (i >= blocks[ch])
-                    g.setColour(findColour(PlugDataColour::levelMeterInactiveColourId));
-                else
-                    g.setColour(i < totalBlocks - 1 ? c : Colours::red);
-
-                if (i == 0 || i == totalBlocks - 1) {
-                    bool curveTop = ch == 0;
-                    bool curveLeft = i == 0;
-
-                    auto roundedBlockPath = Path();
-                    roundedBlockPath.addRoundedRectangle(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight, 4.0f, 4.0f, curveTop && curveLeft, curveTop && !curveLeft, !curveTop && curveLeft, !curveTop && !curveLeft);
-                    g.fillPath(roundedBlockPath);
-                } else {
-                    g.fillRect(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight);
-                }
-            }
-        }
+        auto bgHeight = getHeight() - doubleOuterBorderWidth;
+        auto bgWidth = width - doubleOuterBorderWidth;
+        auto meterWidth = width - bgHeight;
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(x + outerBorderWidth, outerBorderWidth, width - doubleOuterBorderWidth, getHeight() - doubleOuterBorderWidth, 4.0f, 1.0f);
+        g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth, bgWidth, bgHeight, bgHeight * 0.5f);
+
+        for (int ch = 0; ch < numChannels; ch++) {
+            g.setColour(clipping[ch] ? Colours::red : findColour(PlugDataColour::levelMeterActiveColourId));
+            g.fillRoundedRectangle(x + (bgHeight * 0.5f), outerBorderWidth + ((ch + 1) * (bgHeight / 3.0f)) - halfBarHeight, jmin(audioLevel[ch] * meterWidth, meterWidth), barHeight, halfBarHeight);
+        }
     }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
@@ -246,13 +238,11 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(protectButton);
 
     addAndMakeVisible(volumeSlider);
-    volumeSlider.setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
-
-    volumeSlider.setValue(0.75);
-    volumeSlider.setRange(0.0f, 1.0f);
-    volumeSlider.getProperties().set("Style", "VolumeSlider");
 
     volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), volumeSlider, nullptr);
+    
+    volumeSlider.setRange(0.0f, 1.2f);
+    volumeSlider.setDoubleClickReturnValue(true, 1.0f);
 
     addAndMakeVisible(levelMeter);
     addAndMakeVisible(midiBlinker);
@@ -368,9 +358,10 @@ void Statusbar::resized()
 
     powerButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
-    int levelMeterPosition = position(100, true);
-    levelMeter->setBounds(levelMeterPosition, 2, 100, getHeight() - 4);
-    volumeSlider.setBounds(levelMeterPosition, 2, 100, getHeight() - 4);
+    // TODO: combine these both into one
+    int levelMeterPosition = position(120, true);
+    levelMeter->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
+    volumeSlider.setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
 
     // Offset to make text look centred
     oversampleSelector.setBounds(position(getHeight(), true) + 3, 1, getHeight() - 2, getHeight() - 2);
