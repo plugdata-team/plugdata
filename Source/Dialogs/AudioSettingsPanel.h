@@ -19,7 +19,7 @@ public:
         if (isShowing()) {
             auto newLevel = (float)levelGetter->getCurrentLevel();
 
-            if (std::abs(level - newLevel) > 0.002f || newLevel == 0.0f && level != 0.0f) {
+            if (std::abs(level - newLevel) > 0.002f || (newLevel == 0.0f && level != 0.0f)) {
                 level = newLevel;
                 repaint();
             }
@@ -45,14 +45,6 @@ public:
     float level = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DeviceManagerLevelMeter)
-};
-
-struct AudioDeviceSetupDetails
-{
-    AudioDeviceManager* manager;
-    int minNumInputChannels, maxNumInputChannels;
-    int minNumOutputChannels, maxNumOutputChannels;
-    bool useStereoPairs;
 };
 
 struct CallbackComboProperty : public PropertiesPanel::Property {
