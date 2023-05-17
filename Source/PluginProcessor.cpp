@@ -432,6 +432,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     startDSP();
 
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
+    limiter.prepare({sampleRate, static_cast<uint32>(samplesPerBlock),  static_cast<uint32>(getTotalNumOutputChannels())});
+    //limiter.setThreshold(float newThreshold)
 }
 
 void PluginProcessor::releaseResources()
@@ -525,16 +527,21 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 
     if (protectedMode) {
+        
+        // Take out inf and NaN values
         auto* const* writePtr = buffer.getArrayOfWritePointers();
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             for (int n = 0; n < buffer.getNumSamples(); n++) {
                 if (!std::isfinite(writePtr[ch][n])) {
                     writePtr[ch][n] = 0.0f;
-                } else {
-                    writePtr[ch][n] = std::clamp(writePtr[ch][n], -1.0f, 1.0f);
                 }
             }
         }
+        
+        auto block = dsp::AudioBlock<float>();
+        block.copyFrom(buffer);
+        
+        limiter.process(dsp::ProcessContextReplacing<float>(block));
     }
 }
 

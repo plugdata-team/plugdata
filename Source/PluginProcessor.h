@@ -188,7 +188,9 @@ private:
 
     int lastSplitIndex = -1;
     int lastSetProgram = 0;
-
+        
+        
+    dsp::Limiter<float> limiter;
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
     static inline const String else_version = "ELSE v1.0-rc8";
