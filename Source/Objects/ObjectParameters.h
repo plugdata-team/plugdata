@@ -85,7 +85,7 @@ public:
 
     void addParamColourBG(Value* pVal)
     {
-        objectParameters.add(makeParam("Foreground color", tColour, cAppearance, pVal, StringArray(), PlugDataColour::guiObjectBackgroundColourId));
+        objectParameters.add(makeParam("Background color", tColour, cAppearance, pVal, StringArray(), PlugDataColour::guiObjectBackgroundColourId));
     }
 
     void addParamColourLabel(Value* pVal)

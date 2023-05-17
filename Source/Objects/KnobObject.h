@@ -128,9 +128,7 @@ class KnobObject : public ObjectBase {
     Value max = Value(0.0f);
 
     Value initialValue, circular, ticks, angularRange, angularOffset, discrete, outline, showArc, exponential;
-    Value arcColour;
-
-    Value primaryColour, secondaryColour, sendSymbol, receiveSymbol;
+    Value primaryColour, secondaryColour, arcColour, sendSymbol, receiveSymbol;
 
     float value = 0.0f;
 
@@ -287,7 +285,11 @@ public:
             hash("ticks"),
             hash("send"),
             hash("receive"),
-            hash("color")
+            hash("fgcolor"),
+            hash("bgcolor"),
+            hash("arccolor"),
+            hash("init"),
+            hash("outline"),
         };
     }
 
@@ -362,19 +364,28 @@ public:
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
             break;
         }
-        case hash("color"): {
-            if (atoms.size() > 0)
-                setColour(secondaryColour, atoms[0]);
-            if (atoms.size() > 1)
-                setColour(primaryColour, atoms[1]);
-            repaint();
+        case hash("fgcolor"): {
+            primaryColour = getForegroundColour().toString();
             break;
         }
+        case hash("bgcolor"): {
+            secondaryColour = getBackgroundColour().toString();
+            break;
         }
-
-        // Update the colours of the actual slider
-        if (hash(symbol) == hash("color")) {
-            knob.setFgColour(Colour::fromString(primaryColour.toString()));
+        case hash("arccolor"): {
+            arcColour = getArcColour().toString();
+            break;
+        }
+        case hash("init"): {
+            auto* knb = static_cast<t_fake_knob*>(ptr);
+            initialValue = knb->x_init;
+            break;
+        }
+        case hash("outline"): {
+            if (atoms.size() > 0 && atoms[0].isFloat())
+                outline = atoms[0].getFloat();
+            break;
+        }
         }
     }
 
