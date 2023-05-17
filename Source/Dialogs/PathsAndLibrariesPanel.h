@@ -332,6 +332,7 @@ private:
 
         if (anythingSelected) {
             auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false) + listBox.getPosition();
+            selectionBounds = selectionBounds.reduced(0, 2);
             auto buttonHeight = selectionBounds.getHeight();
 
             selectionBounds.removeFromRight(38);
@@ -616,6 +617,7 @@ private:
 
         if (anythingSelected) {
             auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false) + listBox.getPosition();
+            selectionBounds = selectionBounds.reduced(0, 2);
             auto buttonHeight = selectionBounds.getHeight();
 
             selectionBounds.removeFromRight(38);

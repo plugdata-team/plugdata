@@ -469,22 +469,70 @@ public:
     };
     
     struct ColourComponent : public Property, public Value::Listener {
+        
+        struct SwatchComponent : public Component
+        {
+
+            SwatchComponent(Value colour)
+            {
+                colourValue.referTo(colour);
+            }
+            
+            void paint(Graphics& g) override
+            {
+                auto colour = Colour::fromString(colourValue.toString());
+                
+                g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
+                g.fillEllipse(getLocalBounds().reduced(1).toFloat());
+                g.setColour(colour.darker(0.2f));
+                g.drawEllipse(getLocalBounds().reduced(1).toFloat(), 0.8f);
+            }
+            
+            void mouseEnter(MouseEvent const& e) override
+            {
+                repaint();
+            }
+            
+            void mouseExit(MouseEvent const& e) override
+            {
+                repaint();
+            }
+            
+            void mouseDown(MouseEvent const& e) override
+            {
+                auto pickerBounds = getLocalBounds() + getScreenPosition();
+                ColourPicker::show(getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
+                    if (!_this)
+                        return;
+                    
+                    _this->colourValue = c.toString();
+                    _this->repaint();
+                });
+            }
+            
+            Value colourValue;
+        };
+        
         ColourComponent(String const& propertyName, Value& value)
         : Property(propertyName)
-        , currentColour(value)
+        , swatchComponent(value)
         {
+            currentColour.referTo(value);
+            setWantsKeyboardFocus(true);
+        
             currentColour.addListener(this);
 
             addAndMakeVisible(hexValueEditor);
             hexValueEditor.getProperties().set("NoOutline", true);
             hexValueEditor.getProperties().set("NoBackground", true);
-            hexValueEditor.setFont(Fonts::getMonospaceFont().withPointHeight(14));
-
+            hexValueEditor.setInputRestrictions(7, "#0123456789ABCDEF");
             hexValueEditor.setColour(outlineColourId, Colour());
+            hexValueEditor.setJustification(Justification::centred);
             hexValueEditor.onTextChange = [this](){
                 currentColour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
             };
 
+            addAndMakeVisible(swatchComponent);
             updateHexValue();
             repaint();
         }
@@ -502,49 +550,10 @@ public:
         void resized() override
         {
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-            colourSwatchBounds = bounds.withWidth(getHeight()).toFloat().reduced(2);
-            hexValueEditor.setBounds(getBounds().withLeft(colourSwatchBounds.getRight() + 8).withRight(bounds.getRight()).withTop(0).reduced(1));
-        }
-
-        void paint(Graphics& g) override
-        {
-            auto colour = Colour::fromString(currentColour.toString());
-            auto textColour = findColour(PlugDataColour::sidebarTextColourId);
-
-            g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
-            g.fillEllipse(colourSwatchBounds);
-            g.setColour(colour.darker(0.2f));
-            g.drawEllipse(colourSwatchBounds, 0.8f);
-
-            // Paint label
-            Property::paint(g);
-        }
-        
-        void mouseEnter(MouseEvent const& e) override
-        {
-            repaint();
-        }
-        
-        void mouseExit(MouseEvent const& e) override
-        {
-            repaint();
-        }
-        
-        void mouseDown(MouseEvent const& e) override
-        {
-            ColourPicker::show(getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c) {
-                if (!_this)
-                    return;
-                
-                _this->currentColour = c.toString();
-                _this->repaint();
-            });
-        }
-        
-        bool hitTest(int x, int y) override
-        {
-            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-            return bounds.contains(x, y);
+            auto colourSwatchBounds = bounds.removeFromLeft(getHeight()).reduced(4).translated(12, 0);
+            
+            swatchComponent.setBounds(colourSwatchBounds);
+            hexValueEditor.setBounds(bounds.translated(0, -2));
         }
         
         void valueChanged(Value& v) override
@@ -556,9 +565,9 @@ public:
         }
         
     private:
+        SwatchComponent swatchComponent;
         Value currentColour;
         TextEditor hexValueEditor;
-        Rectangle<float> colourSwatchBounds;
     };
 
     struct RangeComponent : public Property, public Value::Listener {
@@ -802,7 +811,7 @@ public:
         
         addAndMakeVisible(viewport);
         viewport.setViewedComponent (propertyHolderComponent = new PropertyHolderComponent());
-        viewport.setFocusContainerType (FocusContainerType::keyboardFocusContainer);
+        viewport.setFocusContainerType (FocusContainerType::focusContainer);
         
         viewport.getVerticalScrollBar().addListener(this);
     }
