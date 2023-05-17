@@ -758,7 +758,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
             idealWidth = font.getStringWidth(text) + idealHeight * 2;
 
-            idealHeight += 2;
+            idealHeight += 1;
         }
     }
 
@@ -1068,7 +1068,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         if (!label.isBeingEdited()) {
             auto alpha = label.isEnabled() ? 1.0f : 0.5f;
-            const Font font = Fonts::getCurrentFont().withHeight(label.getFont().getHeight());
+            const Font font = label.getFont();
 
             auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
 

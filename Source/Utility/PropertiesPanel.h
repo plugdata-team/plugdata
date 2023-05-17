@@ -53,10 +53,12 @@ public:
 private:
     struct SectionComponent  : public Component
     {
-        SectionComponent (const String& sectionTitle,
+        SectionComponent (PropertiesPanel& propertiesPanel, const String& sectionTitle,
                           const Array<Property*>& newProperties, int extraPadding)
             : Component (sectionTitle),
-              padding (extraPadding)
+              padding (extraPadding),
+              parent(propertiesPanel)
+            
         {
             lookAndFeelChanged();
 
@@ -83,11 +85,10 @@ private:
             propertyComps.clear();
         }
 
+
         void paint(Graphics& g) override
         {
-            auto marginWidth = getWidth() - 600;
-            int x = marginWidth / 2;
-            int width = getWidth() - marginWidth;
+            auto [x, width] = parent.getContentXAndWidth();
             
             Fonts::drawStyledText(g, getName(), x + 8, 0, width - 4, titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
             
@@ -125,9 +126,7 @@ private:
         void paintOverChildren(Graphics& g) override
         {
             auto y = titleHeight + 8;
-            auto marginWidth = getWidth() - 600;
-            int x = marginWidth / 2;
-            int width = getWidth() - marginWidth;
+            auto [x, width] = parent.getContentXAndWidth();
             
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
             
@@ -141,13 +140,11 @@ private:
         void resized() override
         {
             auto y = titleHeight + 8;
-            auto marginWidth = getWidth() - 600;
-            int x = marginWidth / 2;
-            int newWidth = getWidth() - marginWidth;
-            
+            auto [x, width] = parent.getContentXAndWidth();
+
             for (auto* propertyComponent : propertyComps)
             {
-                propertyComponent->setBounds (x, y, newWidth, propertyComponent->getPreferredHeight());
+                propertyComponent->setBounds (x, y, width, propertyComponent->getPreferredHeight());
                 y = propertyComponent->getBottom() + padding;
             }
         }
@@ -190,6 +187,7 @@ private:
                 mouseDoubleClick (e);
         }
 
+        PropertiesPanel& parent;
         OwnedArray<Property> propertyComps;
         StringArray extraHeaderNames;
         int titleHeight;
@@ -198,7 +196,6 @@ private:
         JUCE_DECLARE_NON_COPYABLE (SectionComponent)
     };
 
-    //==============================================================================
     struct PropertyHolderComponent  : public Component
     {
         PropertyHolderComponent() {}
@@ -252,13 +249,10 @@ private:
 public:
     
     struct ComboComponent : public Property {
-        ComboComponent(String const& propertyName, Value& value, std::vector<String> options)
+        ComboComponent(String const& propertyName, Value& value, StringArray options)
         : Property(propertyName)
         {
-            for (int n = 0; n < options.size(); n++) {
-                comboBox.addItem(options[n], n + 1);
-            }
-            
+            comboBox.addItemList(options, 1);
             comboBox.getProperties().set("Style", "Inspector");
             comboBox.getSelectedIdAsValue().referTo(value);
             
@@ -352,7 +346,7 @@ public:
             }
         }
         
-        MultiPropertyComponent(String const& propertyName, Array<Value*> values, std::vector<String> options)
+        MultiPropertyComponent(String const& propertyName, Array<Value*> values, StringArray options)
         : Property(propertyName)
         , numProperties(values.size())
         {
@@ -394,10 +388,18 @@ public:
     };
     
     struct BoolComponent : public Property, public Value::Listener {
-        BoolComponent(String const& propertyName, Value& value, std::vector<String> options)
+        BoolComponent(String const& propertyName, Value& value, StringArray options)
         : Property(propertyName)
         , textOptions(options)
         , toggleStateValue(value)
+        {
+            toggleStateValue.addListener(this);
+        }
+        
+        // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
+        BoolComponent(String const& propertyName, StringArray options)
+        : Property(propertyName)
+        , textOptions(options)
         {
             toggleStateValue.addListener(this);
         }
@@ -458,8 +460,8 @@ public:
                 repaint();
         }
         
-    private:
-        std::vector<String> textOptions;
+    protected:
+        StringArray textOptions;
         Value toggleStateValue;
     };
     
@@ -736,7 +738,7 @@ public:
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 
                 Path p;
-                p.addRoundedRectangle (bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, roundBottom);
+                p.addRoundedRectangle (bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, true);
                 g.fillPath(p);
 
                 colour = findColour(PlugDataColour::panelActiveTextColourId);
@@ -763,15 +765,18 @@ public:
             onClick();
         }
         
-        std::function<void()> onClick = []() {};
+        std::function<void()> onClick = [](){};
         String icon;
     };
 
     
-    
     PropertiesPanel()
     {
-        init();
+        messageWhenEmpty = "(nothing selected)";
+        
+        addAndMakeVisible(viewport);
+        viewport.setViewedComponent (propertyHolderComponent = new PropertyHolderComponent());
+        viewport.setFocusContainerType (FocusContainerType::keyboardFocusContainer);
     }
     
     /** Destructor. */
@@ -779,18 +784,8 @@ public:
     {
         clear();
     }
-    
-    void init()
-    {
-        messageWhenEmpty = "(nothing selected)";
-        
-        addAndMakeVisible (viewport);
-        viewport.setViewedComponent (propertyHolderComponent = new PropertyHolderComponent());
-        viewport.setFocusContainerType (FocusContainerType::keyboardFocusContainer);
-    }
-    
-    //==============================================================================
-    /** Deletes all property components from the panel. */
+
+    // Deletes all property components from the panel
     void clear() {
         if (!isEmpty())
         {
@@ -798,71 +793,35 @@ public:
             updatePropHolderLayout();
         }
     }
-    
-    // Adds a set of properties to the panel.
-    void addProperties (const Array<Property*>& newProperties,
-                        int extraPaddingBetweenComponents = 0)
-    {
-        if (isEmpty())
-            repaint();
         
-        propertyHolderComponent->insertSection (-1, new SectionComponent ({}, newProperties, extraPaddingBetweenComponents));
-        updatePropHolderLayout();
-        
-    }
-    
-    /** Adds a set of properties to the panel.
-     
-     These properties are added under a section heading with a plus/minus button that
-     allows it to be opened and closed. If indexToInsertAt is < 0 then it will be added
-     at the end of the list, or before the given index if the index is non-zero.
-     
-     The components in the list will be owned by this object and will be automatically
-     deleted later on when no longer needed.
-     
-     To add properties without them being in a section, use addProperties().
-     */
-    void addSection (const String& sectionTitle,
-                     const Array<Property*>& newProperties,
-                     int indexToInsertAt = -1,
-                     int extraPaddingBetweenComponents = 0)
+    // Adds a set of properties to the panel
+    void addSection(const String& sectionTitle, const Array<Property*>& newProperties, int indexToInsertAt = -1, int extraPaddingBetweenComponents = 0)
     {
         jassert (sectionTitle.isNotEmpty());
         
         if (isEmpty())
             repaint();
         
-        propertyHolderComponent->insertSection (indexToInsertAt, new SectionComponent (sectionTitle,
+        propertyHolderComponent->insertSection (indexToInsertAt, new SectionComponent (*this, sectionTitle,
                                                                                        newProperties,
                                                                                        extraPaddingBetweenComponents));
-        
         updatePropHolderLayout();
     }
     
-    /** Calls the refresh() method of all PropertyComponents in the panel */
-    void refreshAll() const
-    {
-        propertyHolderComponent->refreshAll();
-    }
-    
-    /** Returns true if the panel contains no properties. */
+    // Returns true if the panel contains no properties
     bool isEmpty() const
     {
         return propertyHolderComponent->sections.size() == 0;
     }
     
-    /** Returns the height that the panel needs in order to display all of its content
-     without scrolling.
-     */
-    int getTotalContentHeight() const
+    std::pair<int, int> getContentXAndWidth()
     {
-        return propertyHolderComponent->getHeight();
+        auto desiredContentWidth = 600;
+        auto marginWidth = (getWidth() - desiredContentWidth) / 2;
+        return {marginWidth, desiredContentWidth};
     }
     
-    //==============================================================================
-    /** Returns a list of all the names of sections in the panel.
-     These are the sections that have been added with addSection().
-     */
+    // Returns a list of all the names of sections in the panel
     StringArray getSectionNames() const
     {
         StringArray s;
@@ -875,31 +834,10 @@ public:
         
         return s;
     }
-   
-    void removeSection (int sectionIndex)
-    {
-        if (auto* s = propertyHolderComponent->getSectionWithNonEmptyName (sectionIndex))
-        {
-            propertyHolderComponent->sections.removeObject (s);
-            updatePropHolderLayout();
-        }
-    }
-    
-    //==============================================================================
-    /** Sets a message to be displayed when there are no properties in the panel.
-     The default message is "nothing selected".
-     */
-    void setMessageWhenEmpty (const String& newMessage);
-    
-    /** Returns the message that is displayed when there are no properties.
-     */
-    const String& getMessageWhenEmpty() const noexcept;
-    
-    //==============================================================================
-    /** Returns the PropertyPanel's internal Viewport. */
+
+    // Returns the PropertiesPanel's internal Viewport.
     Viewport& getViewport() noexcept        { return viewport; }
     
-    //==============================================================================
     void paint (Graphics& g) override
     {
         if (isEmpty())
@@ -911,6 +849,9 @@ public:
         }
     }
     
+    // Sets extra section header text
+    // All lines passed in here will be divided equally across the non-label area of the property
+    // Useful for naming rows when using a MultiPropertyComponent
     void setExtraHeaderNames(int sectionIndex, StringArray headerNames)
     {        
         if (auto* s = propertyHolderComponent->getSectionWithNonEmptyName (sectionIndex))
@@ -937,7 +878,6 @@ public:
             propertyHolderComponent->updateLayout (newMaxWidth);
         }
     }
-    
     
     Viewport viewport;
     PropertyHolderComponent* propertyHolderComponent;

@@ -6,6 +6,7 @@
 
 #pragma once
 
+// Draws a trigger button in the style of the PropertiesPanel, though it's meant to be used outside of the PropertiesPanel itself
 class ActionButton : public Component {
 
     bool mouseIsOver = false;
@@ -135,12 +136,17 @@ public:
     {
         return paths.size();
     };
+        
+    std::pair<int, int> getContentXAndWidth()
+    {
+        auto desiredContentWidth = 600;
+        auto marginWidth = (getWidth() - desiredContentWidth) / 2;
+        return {marginWidth, desiredContentWidth};
+    }
 
     void paint(Graphics& g) override
     {
-        auto marginWidth = getWidth() - 600;
-        int x = marginWidth / 2;
-        int width = getWidth() - marginWidth;
+        auto [x, width] = getContentXAndWidth();
         int height = (getNumRows() + 1) * 32;
         
         
@@ -176,9 +182,7 @@ public:
         
     void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
     {
-        auto marginWidth = getWidth() - 600;
-        float x = marginWidth / 2.0f;
-        float newWidth = getWidth() - marginWidth;
+        auto [x, newWidth] = getContentXAndWidth();
         
         if (rowIsSelected) {
             
@@ -238,10 +242,8 @@ public:
     {
         listBox.setBounds(0, 80, getWidth(), getHeight() - 80);
 
-        auto marginWidth = getWidth() - 600;
-        float x = marginWidth / 2.0f;
-        float newWidth = getWidth() - marginWidth;
-        resetButton.setBounds(x, 30, newWidth, 32.0f);
+        auto [x, width] = getContentXAndWidth();
+        resetButton.setBounds(x, 30, width, 32.0f);
 
         updateButtons();
     }
@@ -343,10 +345,8 @@ private:
             downButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             upButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
         }
-
-        auto marginWidth = getWidth() - 600;
-        int x = marginWidth / 2;
-        int width = getWidth() - marginWidth;
+        
+        auto [x, width] = getContentXAndWidth();
         
         auto addButtonBounds = Rectangle<int>(x, 80.0f + (getNumRows() * 32), width, 32);
         addButton.setBounds(addButtonBounds);
@@ -471,9 +471,7 @@ public:
         
     void paint(Graphics& g) override
     {
-        auto marginWidth = getWidth() - 600;
-        int x = marginWidth / 2;
-        int width = getWidth() - marginWidth;
+        auto [x, width] = getContentXAndWidth();
         int height = (getNumRows() + 1) * 32;
         
         auto propertyBounds = Rectangle<float>(x, 30.0f, width, height);
@@ -490,12 +488,17 @@ public:
         
         Fonts::drawStyledText(g, "Libraries to load", x + 8, 0, width - 4, 32.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
     }
+        
+        std::pair<int, int> getContentXAndWidth()
+        {
+            auto desiredContentWidth = 600;
+            auto marginWidth = (getWidth() - desiredContentWidth) / 2;
+            return {marginWidth, desiredContentWidth};
+        }
 
     void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
     {
-        auto marginWidth = getWidth() - 600;
-        float x = marginWidth / 2.0f;
-        float newWidth = getWidth() - marginWidth;
+        auto [x, newWidth] = getContentXAndWidth();
         
         if (rowIsSelected) {
             
@@ -552,8 +555,8 @@ public:
         listBox.setBounds(0, 30, getWidth(), getHeight());
 
         if (editor.isVisible()) {
-            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false).translated(0, 3);
-            editor.setBounds(selectionBounds.withTrimmedRight(80).withTrimmedLeft(6).reduced(1));
+            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false).translated(0, 3) + listBox.getPosition();
+            editor.setBounds(selectionBounds.withTrimmedRight(80).withTrimmedLeft(6).reduced(1) + listBox.getPosition());
         }
 
         updateButtons();
@@ -622,9 +625,7 @@ private:
             changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
         }
         
-        auto marginWidth = getWidth() - 600;
-        int x = marginWidth / 2;
-        int width = getWidth() - marginWidth;
+        auto [x, width] = getContentXAndWidth();
         
         auto addButtonBounds = Rectangle<int>(x, 30 + (getNumRows() * 32), width, 32);
         

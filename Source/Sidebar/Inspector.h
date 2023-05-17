@@ -55,7 +55,7 @@ public:
         title = name;
     }
 
-    PropertyComponent* createPanel(int type, String const& name, Value* value, std::vector<String>& options)
+    PropertyComponent* createPanel(int type, String const& name, Value* value, StringArray& options)
     {
         switch (type) {
         case tString:
