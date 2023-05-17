@@ -331,8 +331,8 @@ private:
     DeviceManagerLevelMeter outputLevelMeter;
     
     // Used for positioning the levelmeters
-    PropertiesPanel::Property* outputSelectorProperty = nullptr;
-    PropertiesPanel::Property* inputSelectorProperty = nullptr;
+    SafePointer<PropertiesPanel::Property> outputSelectorProperty;
+    SafePointer<PropertiesPanel::Property> inputSelectorProperty;
     
     AudioDeviceManager::AudioDeviceSetup setup;
 
