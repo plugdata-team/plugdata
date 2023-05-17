@@ -5,6 +5,7 @@
 */
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
@@ -15,6 +16,16 @@ class MidiBlinker;
 class PluginProcessor;
 class OverlayDisplaySettings;
 class SnapSettings;
+
+class VolumeSlider : public Slider {
+public:
+    VolumeSlider();
+    ~VolumeSlider(){};
+    void paint(Graphics& g) override;
+    void resized() override;
+private:
+    int margin = 18;
+};
 
 class StatusbarSource : public Timer {
 
@@ -87,7 +98,7 @@ public:
 
     Label zoomLabel;
 
-    Slider volumeSlider;
+    VolumeSlider volumeSlider;
 
     Value showDirection;
 
