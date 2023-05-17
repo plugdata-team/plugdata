@@ -175,6 +175,9 @@ private:
     {
         OwnedArray<AudioIODeviceType> const& types = deviceManager.getAvailableDeviceTypes();
         
+        auto& viewport = audioPropertiesPanel.getViewport();
+        auto viewY = viewport.getViewPositionY();
+        
         audioPropertiesPanel.clear();
 
         auto* currentType = deviceManager.getCurrentDeviceTypeObject();
@@ -321,6 +324,8 @@ private:
         
         audioPropertiesPanel.addSection("Audio Output", outputProperties);
         audioPropertiesPanel.addSection("Audio Input", inputProperties);
+        
+        viewport.setViewPosition(0, viewY);
     }
     
     // On macOS, output channel names will be "1" instead of "Output 1", so here we fix that

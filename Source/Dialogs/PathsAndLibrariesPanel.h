@@ -63,9 +63,10 @@ public:
 };
 
 class SearchPathPanel : public Component
+    , public TextEditor::Listener
     , public FileDragAndDropTarget
-    , private ListBoxModel {
-
+    , private ListBoxModel
+{
 public:
     std::unique_ptr<Dialog> confirmationDialog;
 
@@ -108,7 +109,16 @@ public:
         addAndMakeVisible(downButton);
         downButton.setConnectedEdges(12);
         downButton.onClick = [this] { moveSelection(1); };
+        
+        addChildComponent(editor);
+        editor.addListener(this);
 
+        editor.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
+        editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+        editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+
+        editor.setFont(Font(15));
+        
         addAndMakeVisible(resetButton);
         resetButton.onClick = [this]() {
             Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the search paths?",
@@ -213,18 +223,15 @@ public:
     {
         if(!changeButton.isEnabled()) return;
         
-        chooser = std::make_unique<FileChooser>("Change folder...", paths[row], "*", SettingsFile::getInstance()->wantsNativeDialog());
-        auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
+        editor.setVisible(true);
+        editor.grabKeyboardFocus();
+        editor.setText(paths[listBox.getSelectedRow()]);
+        editor.selectAll();
 
-        chooser->launchAsync(chooserFlags,
-            [this, row](FileChooser const& fc) {
-                if (fc.getResult() == File {})
-                    return;
+        rowBeingEdited = row;
 
-                paths.remove(row);
-                paths.addIfNotAlreadyThere(fc.getResult().getFullPathName(), row);
-                internalChange();
-            });
+        resized();
+        repaint();
     }
 
     void listBoxItemDoubleClicked(int row, MouseEvent const&) override
@@ -244,6 +251,12 @@ public:
         auto [x, width] = getContentXAndWidth();
         resetButton.setBounds(x, 39, width, 32.0f);
 
+        if (editor.isVisible()) {
+            auto [x, width] = getContentXAndWidth();
+            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), true) + listBox.getPosition();
+            editor.setBounds(x + 6, selectionBounds.getY() + 2, width - 12, selectionBounds.getHeight() - 2);
+        }
+        
         updateButtons();
     }
 
@@ -264,22 +277,7 @@ public:
     }
 
 private:
-    StringArray paths;
-    File defaultBrowseTarget;
-    std::unique_ptr<FileChooser> chooser;
-
-    ListBox listBox;
-
-    TextButton upButton = TextButton(Icons::Up);
-    TextButton downButton = TextButton(Icons::Down);
-
-    ActionButton addButton = ActionButton(Icons::Add, "Add search path");
-    ActionButton resetButton = ActionButton(Icons::Reset, "Reset to default search paths", true);
-    TextButton removeButton = TextButton(Icons::Clear);
-    TextButton changeButton = TextButton(Icons::Edit);
-
-    ValueTree tree;
-
+    
     void externalChange()
     {
         paths.clear();
@@ -327,8 +325,6 @@ private:
 
         removeButton.setEnabled(!readOnlyPath);
         changeButton.setEnabled(!readOnlyPath);
-        upButton.setEnabled(!readOnlyPath);
-        downButton.setEnabled(!readOnlyPath);
 
         if (anythingSelected) {
             auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false) + listBox.getPosition();
@@ -381,7 +377,22 @@ private:
 
     void editSelected()
     {
-        returnKeyPressed(listBox.getSelectedRow());
+        if(!changeButton.isEnabled()) return;
+        
+        auto row = listBox.getSelectedRow();
+        chooser = std::make_unique<FileChooser>("Change folder...", paths[row], "*", SettingsFile::getInstance()->wantsNativeDialog());
+        auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
+
+        chooser->launchAsync(chooserFlags,
+            [this, row](FileChooser const& fc) {
+                if (fc.getResult() == File {})
+                    return;
+
+                paths.remove(row);
+                paths.addIfNotAlreadyThere(fc.getResult().getFullPathName(), row);
+                internalChange();
+            });
+            
         internalChange();
     }
 
@@ -399,6 +410,47 @@ private:
             }
         }
     }
+    
+    void textEditorReturnKeyPressed(TextEditor& ed) override
+    {
+        if (isPositiveAndBelow(rowBeingEdited, paths.size())) {
+            paths.set(rowBeingEdited, editor.getText());
+            editor.setVisible(false);
+            internalChange();
+            rowBeingEdited = -1;
+        }
+    }
+    
+    void textEditorFocusLost(TextEditor& ed) override
+    {
+        if (isPositiveAndBelow(rowBeingEdited, paths.size())) {
+            paths.set(rowBeingEdited, editor.getText());
+            editor.setVisible(false);
+            internalChange();
+            rowBeingEdited = -1;
+        }
+    }
+    
+    TextEditor editor;
+    int rowBeingEdited = -1;
+    
+    StringArray paths;
+    File defaultBrowseTarget;
+    std::unique_ptr<FileChooser> chooser;
+
+    ListBox listBox;
+
+    TextButton upButton = TextButton(Icons::Up);
+    TextButton downButton = TextButton(Icons::Down);
+
+    ActionButton addButton = ActionButton(Icons::Add, "Add search path");
+    ActionButton resetButton = ActionButton(Icons::Reset, "Reset to default search paths", true);
+    TextButton removeButton = TextButton(Icons::Clear);
+    TextButton changeButton = TextButton(Icons::Edit);
+
+    ValueTree tree;
+
+    
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchPathPanel)
 };
@@ -539,6 +591,7 @@ public:
 
     void listBoxItemDoubleClicked(int row, MouseEvent const&) override
     {
+        
         returnKeyPressed(row);
     }
 
@@ -561,21 +614,7 @@ public:
 
         updateButtons();
     }
-
-private:
-    StringArray librariesToLoad;
-
-    ListBox listBox;
-
-    ActionButton addButton = ActionButton(Icons::Add, "Add library to load on startup");
-    TextButton removeButton = TextButton(Icons::Clear);
-    TextButton changeButton = TextButton(Icons::Edit);
-
-    ValueTree tree;
-
-    TextEditor editor;
-    int rowBeingEdited = -1;
-
+        
     void externalChange()
     {
         librariesToLoad.clear();
@@ -672,6 +711,21 @@ private:
             rowBeingEdited = -1;
         }
     }
+
+
+private:
+    StringArray librariesToLoad;
+
+    ListBox listBox;
+
+    ActionButton addButton = ActionButton(Icons::Add, "Add library to load on startup");
+    TextButton removeButton = TextButton(Icons::Clear);
+    TextButton changeButton = TextButton(Icons::Edit);
+
+    ValueTree tree;
+
+    TextEditor editor;
+    int rowBeingEdited = -1;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LibraryLoadPanel)
 };

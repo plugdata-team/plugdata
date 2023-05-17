@@ -131,12 +131,12 @@ public:
     {
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight);
 
-        auto spacing = ((getWidth() - 120) / toolbarButtons.size());
+        auto spacing = ((getWidth() - 80) / toolbarButtons.size());
 
         int toolbarPosition = 40;
 
         for (auto& button : toolbarButtons) {
-            button->setBounds(toolbarPosition, 1, 70, toolbarHeight - 2);
+            button->setBounds(toolbarPosition, 1, 80, toolbarHeight - 2);
             toolbarPosition += spacing;
         }
 
