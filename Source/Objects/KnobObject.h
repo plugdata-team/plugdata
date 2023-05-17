@@ -288,6 +288,8 @@ public:
             hash("fgcolor"),
             hash("bgcolor"),
             hash("arccolor"),
+            hash("init"),
+            hash("outline"),
         };
     }
 
@@ -372,6 +374,16 @@ public:
         }
         case hash("arccolor"): {
             arcColour = getArcColour().toString();
+            break;
+        }
+        case hash("init"): {
+            auto* knb = static_cast<t_fake_knob*>(ptr);
+            initialValue = knb->x_init;
+            break;
+        }
+        case hash("outline"): {
+            if (atoms.size() > 0 && atoms[0].isFloat())
+                outline = atoms[0].getFloat();
             break;
         }
         }
