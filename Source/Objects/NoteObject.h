@@ -363,7 +363,8 @@ public:
             hash("justification"),
             hash("width"),
             hash("outline"),
-            hash("receive")
+            hash("receive"),
+            hash("bg")
         };
     }
 
@@ -426,6 +427,11 @@ public:
         case hash("receive"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case hash("bg"): {
+            if (atoms.size() > 0 && atoms[0].isFloat())
+                fillBackground = atoms[0].getFloat();
             break;
         }
         default:
