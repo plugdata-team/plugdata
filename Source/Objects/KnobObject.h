@@ -601,6 +601,10 @@ public:
     {
         auto* knb = static_cast<t_fake_knob*>(ptr);
 
+        // if we don't check if current value is the same, sending the same value will cause a rounding error
+        if (v == knb->x_pos)
+            return;
+
         knb->x_pos = v;
 
         t_float fval;
