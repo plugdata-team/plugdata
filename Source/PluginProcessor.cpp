@@ -434,6 +434,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
     limiter.prepare({sampleRate, static_cast<uint32>(samplesPerBlock),  static_cast<uint32>(getTotalNumOutputChannels())});
     //limiter.setThreshold(float newThreshold)
+
+    smoothedGain.reset(AudioProcessor::getSampleRate(), 0.01);
 }
 
 void PluginProcessor::releaseResources()
@@ -506,25 +508,9 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
         oversampler->processSamplesDown(targetBlock);
     }
 
-    auto targetGain = getParameters()[0]->getValue();
-    
-    auto bufferData = buffer.getArrayOfReadPointers();
-    auto outputData = buffer.getArrayOfWritePointers();
-
-    // lerp main volume to stop zipper artefact
-    for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
-        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
-        {
-            // Calculate the gradual gain ramp
-            float gainRamp = (targetGain - currentGain) / 2000.0;
-
-            // Apply the current gain level to the audio sample
-            outputData[ch][sample] = bufferData[ch][sample] * currentGain;
-
-            // Update the current gain level
-            currentGain += gainRamp;
-        }
-    }
+    // apply smoothing to the main volume control
+    smoothedGain.setTargetValue(getParameters()[0]->getValue());
+    smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
     statusbarSource->processBlock(buffer, midiBufferCopy, midiMessages, totalNumOutputChannels);
 
