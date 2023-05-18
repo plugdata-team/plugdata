@@ -53,10 +53,10 @@ struct CallbackComboProperty : public PropertiesPanel::Property {
     {
         comboBox.addItemList(options, 1);
         comboBox.getProperties().set("Style", "Inspector");
+        comboBox.setText(currentOption);
         comboBox.onChange = [this, onChange](){
             onChange(comboBox.getText());
         };
-        comboBox.setText(currentOption);
         addAndMakeVisible(comboBox);
     }
     
