@@ -689,6 +689,20 @@ public:
             label->addMouseListener(this, true);
         }
         
+        void setRangeMin(float minimum)
+        {
+            if constexpr (std::is_arithmetic<T>::value) {
+                dynamic_cast<DraggableNumber*>(label.get())->setMinimum(minimum);
+            }
+        }
+        
+        void setRangeMax(float maximum)
+        {
+            if constexpr (std::is_arithmetic<T>::value) {
+                dynamic_cast<DraggableNumber*>(label.get())->setMaximum(maximum);
+            }
+        }
+        
         void resized() override
         {
             label->setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
@@ -852,11 +866,17 @@ public:
         return propertyHolderComponent->sections.size() == 0;
     }
     
+    void setContentWidth(int newContentWidth)
+    {
+        contentWidth = newContentWidth;
+        resized();
+        repaint();
+    }
+    
     std::pair<int, int> getContentXAndWidth()
     {
-        auto desiredContentWidth = 600;
-        auto marginWidth = (getWidth() - desiredContentWidth) / 2;
-        return {marginWidth, desiredContentWidth};
+        auto marginWidth = (getWidth() - contentWidth) / 2;
+        return {marginWidth, contentWidth};
     }
     
     // Returns a list of all the names of sections in the panel
@@ -924,6 +944,7 @@ public:
         onLayoutChange();
     }
     
+    int contentWidth = 600;
     Viewport viewport;
     PropertyHolderComponent* propertyHolderComponent;
     String messageWhenEmpty;

@@ -425,7 +425,7 @@ public:
 
         addAndMakeVisible(dawSettingsPanel);
         
-        dynamic_cast<DraggableNumber*>(latencyNumberBox->label.get())->setMinimum(64);
+        latencyNumberBox->setRangeMin(64);
     }
 
     void resized() override

@@ -262,7 +262,7 @@ void* Patch::createGraphOnParent(int x, int y)
     return pdobject;
 }
 
-void* Patch::createGraph(String const& name, int size, int x, int y)
+void* Patch::createGraph(int x, int y, String const& name, int size,int drawMode, bool saveContents, std::pair<float, float> range)
 {
     if (!ptr)
         return nullptr;
@@ -271,9 +271,10 @@ void* Patch::createGraph(String const& name, int size, int x, int y)
     std::atomic<bool> done = false;
 
     instance->enqueueFunction(
-        [this, name, size, x, y, &pdobject, &done]() mutable {
+        [this, name, size, x, y, drawMode, saveContents, range, &pdobject, &done]() mutable {
             setCurrent();
-            pdobject = libpd_creategraph(getPointer(), name.toRawUTF8(), size, x, y);
+            
+            pdobject = libpd_creategraph(getPointer(), name.toRawUTF8(), size, x, y, drawMode, saveContents, range.first, range.second);
             done = true;
         });
 
@@ -286,7 +287,7 @@ void* Patch::createGraph(String const& name, int size, int x, int y)
     return pdobject;
 }
 
-void* Patch::createObject(String const& name, int x, int y)
+void* Patch::createObject(int x, int y, String const& name)
 {
     if (!ptr)
         return nullptr;
@@ -325,8 +326,8 @@ void* Patch::createObject(String const& name, int x, int y)
         tokens.addTokens(preset, false);
     }
 
-    if (tokens[0] == "graph" && tokens.size() == 3) {
-        return createGraph(tokens[1], tokens[2].getIntValue(), x, y);
+    if (tokens[0] == "garray" && tokens.size() == 7) {
+        return createGraph(x, y, tokens[1], tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue(), {tokens[5].getFloatValue(), tokens[6].getFloatValue()});
     } else if (tokens[0] == "graph") {
         return createGraphOnParent(x, y);
     }

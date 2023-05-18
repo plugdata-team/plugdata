@@ -52,12 +52,12 @@ void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre,
 
     centre->getTopLevelComponent()->toFront(true);
 }
-void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback)
+void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, ArrayDialogCallback callback)
 {
     if (*target)
         return;
 
-    auto* dialog = new Dialog(target, centre, 300, 180, 200, false);
+    auto* dialog = new Dialog(target, centre, 300, 270, 350, false);
     auto* arrayDialog = new ArrayDialog(centre, dialog, callback);
     dialog->setViewedComponent(arrayDialog);
     target->reset(dialog);

@@ -1456,10 +1456,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
         cnv = getCurrentCanvas(true);
 
         Dialogs::showArrayDialog(&openedDialog, this,
-            [this](int result, String const& name, String const& size) {
+            [this](int result, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range) {
                 if (result) {
                     auto* cnv = getCurrentCanvas(true);
-                    auto* object = new Object(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
+                    auto initialiser = StringArray{"garray", name, String(size), String(drawMode), String(static_cast<int>(saveContents)), String(range.first), String(range.second)}.joinIntoString(" ");
+                    auto* object = new Object(cnv, initialiser, cnv->viewport->getViewArea().getCentre());
                     cnv->objects.add(object);
                 }
             });

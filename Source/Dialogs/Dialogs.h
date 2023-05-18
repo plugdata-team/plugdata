@@ -11,6 +11,9 @@
 class PluginEditor;
 class Canvas;
 
+
+using ArrayDialogCallback = std::function<void(int, String, int, int, bool, std::pair<float, float>)>;
+
 class Dialog : public Component {
 
 public:
@@ -130,7 +133,7 @@ struct Dialogs {
     static Component* showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback);
 
     static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String filename, std::function<void(int)> callback, int margin = 0);
-    static void showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback);
+    static void showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, ArrayDialogCallback callback);
 
     static void showSettingsDialog(PluginEditor* editor);
 

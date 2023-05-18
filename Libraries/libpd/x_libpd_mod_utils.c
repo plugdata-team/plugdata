@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "x_libpd_mod_utils.h"
+#include "x_libpd_extra_utils.h"
 
 struct _instanceeditor
 {
@@ -528,21 +529,19 @@ t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y)
     return result;
 }
 
-t_pd* libpd_creategraph(t_canvas* cnv, char const* name, int size, int x, int y)
+t_pd* libpd_creategraph(t_canvas* cnv, char const* name, int size, int x, int y, int drawMode, int saveContent, float minimum, float maximum)
 {
-    int argc = 4;
+    int flags = saveContent + 2 * drawMode;
 
     t_atom argv[4];
-
     SETSYMBOL(argv, gensym(name));
-
     SETFLOAT(argv + 1, size);
-    SETFLOAT(argv + 2, 0);
+    SETFLOAT(argv + 2, flags);
     SETFLOAT(argv + 3, 0);
     
     sys_lock();
     canvas_setcurrent(cnv);
-    pd_typedmess((t_pd*)cnv, gensym("arraydialog"), argc, argv);
+    pd_typedmess((t_pd*)cnv, gensym("arraydialog"), 4, argv);
     canvas_unsetcurrent(cnv);
     sys_unlock();
 
@@ -551,7 +550,12 @@ t_pd* libpd_creategraph(t_canvas* cnv, char const* name, int size, int x, int y)
     t_pd* arr = libpd_newest(cnv);
 
     libpd_moveobj(cnv, pd_checkobject(arr), x, y);
+    
+    t_garray* garray = (t_garray*)(((t_canvas*)arr)->gl_list);
+    libpd_array_set_scale(garray, minimum, maximum);
+    
     canvas_dirty(cnv, 1);
+    
     
     return arr;
 }

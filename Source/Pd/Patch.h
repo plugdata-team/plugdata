@@ -36,10 +36,10 @@ public:
     // Gets the bounds of the patch.
     Rectangle<int> getBounds() const;
 
-    void* createGraph(String const& name, int size, int x, int y);
+    void* createGraph(int x, int y, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range);
     void* createGraphOnParent(int x, int y);
 
-    void* createObject(String const& name, int x, int y);
+    void* createObject(int x, int y, String const& name);
     void removeObject(void* obj);
     void* renameObject(void* obj, String const& name);
 

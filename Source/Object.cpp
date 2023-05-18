@@ -337,7 +337,7 @@ void Object::setType(String const& newType, void* existingObject)
             cnv->synchronise();
         } else {
             auto rect = getObjectBounds();
-            objectPtr = patch->createObject(newType, rect.getX(), rect.getY());
+            objectPtr = patch->createObject(rect.getX(), rect.getY(), newType);
         }
     } else {
         objectPtr = existingObject;

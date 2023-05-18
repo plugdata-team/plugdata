@@ -53,7 +53,7 @@ public:
 
         g.drawFittedText(icon, iconBounds, Justification::centred, 1);
 
-        font = Fonts::getCurrentFont().withHeight(textBounds.getHeight() / 1.25f);
+        font = Fonts::getCurrentFont().withHeight(13.0f);
         g.setFont(font);
 
         // Draw bottom text
@@ -156,8 +156,8 @@ public:
         g.fillRoundedRectangle(toolbarBounds, Corners::windowCornerRadius);
         g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(0.0f, toolbarHeight, getWidth(), toolbarHeight);
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawHorizontalLine(toolbarHeight, 0.0f, getWidth());
     }
 
     void showPanel(int idx)
