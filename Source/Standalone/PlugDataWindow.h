@@ -723,8 +723,14 @@ private:
 #elif JUCE_WINDOWS
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-
-            g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+            if(owner.isUsingNativeTitleBar())
+            {
+                g.drawRect(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+            }
+            else {
+                g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+            }
+            
 #endif
         }
 
