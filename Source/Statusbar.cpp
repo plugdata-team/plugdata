@@ -49,7 +49,7 @@ void VolumeSlider::paint(Graphics& g)
 
 class LevelMeter : public Component
     , public StatusbarSource::Listener {
-    float audioLevel[2];
+    float audioLevel[2] = {0.0f, 0.0f};
 
     int numChannels = 2;
 
