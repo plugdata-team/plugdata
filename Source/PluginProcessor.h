@@ -168,8 +168,7 @@ public:
 private:
     void processInternal();
 
-    float currentGain = 0.0f;
-    float smoothedValue = 0.0f;
+    SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
     int audioAdvancement = 0;
     std::vector<float> audioBufferIn;
