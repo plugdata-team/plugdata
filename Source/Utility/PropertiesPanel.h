@@ -525,7 +525,7 @@ public:
             addAndMakeVisible(hexValueEditor);
             hexValueEditor.getProperties().set("NoOutline", true);
             hexValueEditor.getProperties().set("NoBackground", true);
-            hexValueEditor.setInputRestrictions(7, "#0123456789ABCDEF");
+            hexValueEditor.setInputRestrictions(7, "#0123456789ABCDEFabcdef");
             hexValueEditor.setColour(outlineColourId, Colour());
             hexValueEditor.setJustification(Justification::centred);
             hexValueEditor.onTextChange = [this](){
