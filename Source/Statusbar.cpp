@@ -35,11 +35,13 @@ void VolumeSlider::resized()
 
 void VolumeSlider::paint(Graphics& g)
 {
+    auto backgroundColour = findColour(PlugDataColour::levelMeterThumbColourId);
+    
     auto value = getValue() / 1.2f;
     auto thumbSize = getHeight() * 0.7f;
     auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
     auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
-    g.setColour(findColour(PlugDataColour::levelMeterThumbColourId).darker(0.5f).withAlpha(0.8f));
+    g.setColour(backgroundColour.withAlpha(0.8f));
     g.fillEllipse(thumb);
 }
 
@@ -81,8 +83,8 @@ public:
         auto bgHeight = getHeight() - doubleOuterBorderWidth;
         auto bgWidth = width - doubleOuterBorderWidth;
         auto meterWidth = width - bgHeight;
-
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        
+        g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth, bgWidth, bgHeight, bgHeight * 0.5f);
 
         for (int ch = 0; ch < numChannels; ch++) {
@@ -105,10 +107,10 @@ public:
         auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
 
-        g.setColour(blinkMidiIn ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterInactiveColourId));
+        g.setColour(blinkMidiIn ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(midiInRect, 1.0f);
 
-        g.setColour(blinkMidiOut ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterInactiveColourId));
+        g.setColour(blinkMidiOut ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(midiOutRect, 1.0f);
     }
 

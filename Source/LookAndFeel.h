@@ -56,9 +56,7 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { caretColourId, { "Text editor caret", "caret_colour", "Other" } },
 
     { levelMeterActiveColourId, { "Level meter active", "levelmeter_active", "Level Meter" } },
-    { levelMeterInactiveColourId, { "Level meter inactive", "levelmeter_inactive", "Level Meter" } },
-
-    { levelMeterTrackColourId, { "Level meter track", "levelmeter_track", "Level Meter" } },
+    { levelMeterBackgroundColourId, { "Level meter track", "levelmeter_background", "Level Meter" } },
     { levelMeterThumbColourId, { "Level meter thumb", "levelmeter_thumb", "Level Meter" } },
 
     { sliderThumbColourId, { "Slider thumb", "slider_thumb", "Other" } },
@@ -323,10 +321,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     int getSliderThumbRadius(Slider& s) override
     {
-
-        if (s.getProperties()["Style"] == "VolumeSlider") {
-            return 6;
-        }
         return LookAndFeel_V4::getSliderThumbRadius(s);
     }
 
@@ -518,9 +512,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
     {
-        if (slider.getProperties()["Style"] == "VolumeSlider") {
-            drawVolumeSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
-        } else if (slider.getProperties()["Style"] == "SliderObject") {
+        if (slider.getProperties()["Style"] == "SliderObject") {
             drawGUIObjectSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, slider);
         } else {
             LookAndFeel_V4::drawLinearSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
@@ -954,39 +946,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
-    void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider)
-    {
-        float trackWidth = 4.;
-
-        x += 1;
-        width -= 2;
-
-        Point<float> startPoint(slider.isHorizontal() ? x : x + width * 0.5f, slider.isHorizontal() ? y + height * 0.5f : height + y);
-        Point<float> endPoint(slider.isHorizontal() ? width + x : startPoint.x, slider.isHorizontal() ? startPoint.y : y);
-
-        Path backgroundTrack;
-        backgroundTrack.startNewSubPath(startPoint);
-        backgroundTrack.lineTo(endPoint);
-
-        g.setColour(slider.findColour(PlugDataColour::levelMeterInactiveColourId));
-        g.strokePath(backgroundTrack, { trackWidth, PathStrokeType::mitered });
-        Path valueTrack;
-        Point<float> minPoint, maxPoint;
-        auto kx = slider.isHorizontal() ? sliderPos : (x + width * 0.5f);
-        auto ky = slider.isHorizontal() ? (y + height * 0.5f) : sliderPos;
-        minPoint = startPoint;
-        maxPoint = { kx, ky };
-        auto thumbWidth = getSliderThumbRadius(slider);
-        valueTrack.startNewSubPath(minPoint);
-        valueTrack.lineTo(maxPoint);
-
-        g.setColour(slider.findColour(PlugDataColour::levelMeterTrackColourId));
-        g.strokePath(valueTrack, { trackWidth, PathStrokeType::mitered });
-        g.setColour(slider.findColour(PlugDataColour::levelMeterThumbColourId));
-
-        g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f);
-    }
-
     void fillTextEditorBackground(Graphics& g, int width, int height, TextEditor& textEditor) override
     {
         if (textEditor.getProperties()["NoBackground"].isVoid()) {
@@ -1290,6 +1249,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
+
+
+    
     // clang-format off
     static inline const String defaultThemesXml = "<ColourThemes>\n"
     "    <Theme theme=\"max\" toolbar_background=\"ff333333\" toolbar_text=\"ffe4e4e4\"\n"
@@ -1301,7 +1263,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff72aedf\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffe1ef00\"\n"
     "           dialog_background=\"ff333333\" sidebar_colour=\"ff3e3e3e\" sidebar_text=\"ffe4e4e4\"\n"
     "           sidebar_background_active=\"ff72aedf\" sidebar_active_text=\"ffe4e4e4\"\n"
-    "           levelmeter_active=\"ff72aedf\" levelmeter_inactive=\"ff5d5d5d\" levelmeter_track=\"ff333333\"\n"
+    "           levelmeter_active=\"ff72aedf\" levelmeter_background=\"ff494949\"\n"
     "           levelmeter_thumb=\"ffe4e4e4\" panel_colour=\"ff232323\" panel_text=\"ffe4e4e4\"\n"
     "           panel_background_active=\"ff72aedf\" panel_active_text=\"ffe4e4e4\"\n"
     "           popup_background=\"ff333333\" popup_background_active=\"ff72aedf\"\n"
@@ -1321,7 +1283,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff000000\" connection_colour=\"ff000000\" signal_colour=\"ff000000\"\n"
     "           dialog_background=\"ffffffff\" sidebar_colour=\"ffffffff\" sidebar_text=\"ff000000\"\n"
     "           sidebar_background_active=\"ff000000\" sidebar_active_text=\"ffffffff\"\n"
-    "           levelmeter_active=\"ff000000\" levelmeter_inactive=\"ffffffff\" levelmeter_track=\"ff000000\"\n"
+    "           levelmeter_active=\"ff000000\" levelmeter_background=\"ffa0a0a0\"\n"
     "           levelmeter_thumb=\"ff000000\" panel_colour=\"ffffffff\" panel_text=\"ff000000\"\n"
     "           panel_background_active=\"ff000000\" panel_active_text=\"ffffffff\"\n"
     "           popup_background=\"ffffffff\" popup_background_active=\"ff000000\"\n"
@@ -1339,7 +1301,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ffffffff\" connection_colour=\"ffffffff\" signal_colour=\"ffffffff\"\n"
     "           dialog_background=\"ff000000\" sidebar_colour=\"ff000000\" sidebar_text=\"ffffffff\"\n"
     "           sidebar_background_active=\"ffffffff\" sidebar_active_text=\"ff000000\"\n"
-    "           levelmeter_active=\"ffffffff\" levelmeter_inactive=\"ff000000\" levelmeter_track=\"ffffffff\"\n"
+    "           levelmeter_active=\"ffffffff\" levelmeter_background=\"ff808080\"\n"
     "           levelmeter_thumb=\"ffffffff\" panel_colour=\"ff000000\" panel_text=\"ffffffff\"\n"
     "           panel_background_active=\"ffffffff\" panel_active_text=\"ff000000\"\n"
     "           popup_background=\"ff000000\" popup_background_active=\"ffffffff\"\n"
@@ -1358,7 +1320,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff42a2c8\" connection_colour=\"ffe1e1e1\" signal_colour=\"ffff8500\"\n"
     "           dialog_background=\"ff191919\" sidebar_colour=\"ff191919\" sidebar_text=\"ffe1e1e1\"\n"
     "           sidebar_background_active=\"ff282828\" sidebar_active_text=\"ffe1e1e1\"\n"
-    "           levelmeter_active=\"ff42a2c8\" levelmeter_inactive=\"ff2d2d2d\" levelmeter_track=\"ffe3e3e3\"\n"
+    "           levelmeter_active=\"ff42a2c8\" levelmeter_background=\"ff2e2e2e\"\n"
     "           levelmeter_thumb=\"ffe3e3e3\" panel_colour=\"ff232323\" panel_text=\"ffe1e1e1\"\n"
     "           panel_background_active=\"ff373737\" panel_active_text=\"ffe1e1e1\"\n"
     "           popup_background=\"ff191919\" popup_background_active=\"ff282828\"\n"
@@ -1377,7 +1339,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff007aff\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\"\n"
     "           dialog_background=\"ffe4e4e4\" sidebar_colour=\"ffefefef\" sidebar_text=\"ff4d4d4d\"\n"
     "           sidebar_background_active=\"ffdfdfdf\" sidebar_active_text=\"ff4d4d4d\"\n"
-    "           levelmeter_active=\"ff007aff\" levelmeter_inactive=\"fff6f6f6\" levelmeter_track=\"ff4d4d4d\"\n"
+    "           levelmeter_active=\"ff007aff\" levelmeter_background=\"ffdedede\"\n"
     "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"fffafafa\" panel_text=\"ff4d4d4d\"\n"
     "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff4d4d4d\"\n"
     "           popup_background=\"ffe6e6e6\" popup_background_active=\"ffd5d5d5\"\n"
@@ -1397,7 +1359,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff5da0c4\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8502\"\n"
     "           dialog_background=\"ffd2cdc4\" sidebar_colour=\"ffdedad3\" sidebar_text=\"ff5a5a5a\"\n"
     "           sidebar_background_active=\"ffefefef\" sidebar_active_text=\"ff5a5a5a\"\n"
-    "           levelmeter_active=\"ff5da0c4\" levelmeter_inactive=\"ffd2cdc4\" levelmeter_track=\"ff5a5a5a\"\n"
+    "           levelmeter_active=\"ff5da0c4\" levelmeter_background=\"ffc0bbb2\"\n"
     "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"ffe3dfd9\" panel_text=\"ff5a5a5a\"\n"
     "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
     "           popup_background=\"ffd2cdc4\" popup_background_active=\"ffc0bbb2\"\n"
@@ -1416,7 +1378,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff5bcefa\" connection_colour=\"ffa0a0a0\" signal_colour=\"ffffacab\"\n"
     "           dialog_background=\"ff191919\" sidebar_colour=\"ff232323\" sidebar_text=\"ffffffff\"\n"
     "           sidebar_background_active=\"ff383838\" sidebar_active_text=\"ffffffff\"\n"
-    "           levelmeter_active=\"ff5bcefa\" levelmeter_inactive=\"ff2d2d2d\" levelmeter_track=\"fff5f5f5\"\n"
+    "           levelmeter_active=\"ff5bcefa\" levelmeter_background=\"ff3a3a3a\"\n"
     "           levelmeter_thumb=\"fff5f5f5\" panel_colour=\"ff383838\" panel_text=\"ffffffff\"\n"
     "           panel_background_active=\"ff232323\" panel_active_text=\"ffffffff\"\n"
     "           popup_background=\"ff232323\" popup_background_active=\"ff383838\"\n"

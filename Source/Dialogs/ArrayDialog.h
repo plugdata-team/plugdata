@@ -44,7 +44,7 @@ public:
         };
 
         ok.onClick = [this, parent] {
-            auto nameStr = getValue<String>(name);
+            auto nameStr = name.toString();
             auto sizeInt = getValue<int>(size);
             
             auto drawModeInt = getValue<int>(drawMode) - 1;
