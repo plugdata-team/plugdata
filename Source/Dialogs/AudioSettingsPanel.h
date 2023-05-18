@@ -51,11 +51,16 @@ struct CallbackComboProperty : public PropertiesPanel::Property {
     CallbackComboProperty(String const& propertyName, StringArray options, String currentOption, std::function<void(String)> onChange)
     : Property(propertyName)
     {
+        lastValue = currentOption;
         comboBox.addItemList(options, 1);
         comboBox.getProperties().set("Style", "Inspector");
         comboBox.setText(currentOption);
         comboBox.onChange = [this, onChange](){
-            onChange(comboBox.getText());
+            // Combobox onChange is a bit too sensitive, so if we don't test this we can accidentally get into a feedback loop
+            auto newValue = comboBox.getText();
+            if(newValue != lastValue) {
+                onChange(newValue);
+            }
         };
         addAndMakeVisible(comboBox);
     }
@@ -66,6 +71,7 @@ struct CallbackComboProperty : public PropertiesPanel::Property {
         comboBox.setBounds(bounds);
     }
 
+    String lastValue;
     ComboBox comboBox;
 };
 
