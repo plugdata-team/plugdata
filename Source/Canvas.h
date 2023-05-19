@@ -77,7 +77,7 @@ public:
     void moved() override;
     void resized() override;
 
-    int getOverlays();
+    int getOverlays() const;
     void updateOverlays();
 
     void synchroniseSplitCanvas();
@@ -128,7 +128,6 @@ public:
     bool checkPanDragMode();
     bool setPanDragMode(bool shouldPan);
 
-    void removeSelectedComponent(Component* component);
     void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area) override;
 
     void updateSidebarSelection();

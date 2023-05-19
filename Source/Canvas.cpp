@@ -158,7 +158,7 @@ void Canvas::propertyChanged(String name, var value)
     }
 }
 
-int Canvas::getOverlays()
+int Canvas::getOverlays() const
 {
     int overlayState = 0;
 
@@ -505,7 +505,7 @@ void Canvas::performSynchronise()
             object->toFront(false);
             if (object->gui && object->gui->getLabel())
                 object->gui->getLabel()->toFront(false);
-            if (object->gui)
+            if (object->gui && !patch.objectWasDeleted(object->getPointer()))
                 object->gui->update();
         }
     }
@@ -1297,7 +1297,7 @@ void Canvas::valueChanged(Value& v)
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale)) {
 
-        float newScaleFactor = getValue<float>(v);
+        auto newScaleFactor = getValue<float>(v);
 
         if (newScaleFactor == 0) {
             newScaleFactor = 1.0f;
@@ -1441,11 +1441,6 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool up
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
 {
     return selectedComponents;
-}
-
-void Canvas::removeSelectedComponent(Component* component)
-{
-    selectedComponents.deselect(component);
 }
 
 bool Canvas::checkPanDragMode()

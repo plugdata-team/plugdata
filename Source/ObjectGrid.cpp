@@ -527,8 +527,8 @@ bool ObjectGrid::isAlreadySnapped(bool horizontal, Point<int>& dragOffset)
 
 void ObjectGrid::clearAll()
 {
-    clear(0);
-    clear(1);
+    clear(false);
+    clear(true);
 }
 
 void ObjectGrid::propertyChanged(String name, var value)

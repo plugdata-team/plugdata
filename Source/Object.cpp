@@ -152,7 +152,7 @@ void Object::setSelected(bool shouldBeSelected)
     }
 }
 
-bool Object::isSelected()
+bool Object::isSelected() const
 {
     return selectedFlag;
 }
@@ -163,7 +163,7 @@ void Object::valueChanged(Value& v)
         if (gui && !cnv->isPalette) {
             auto typeName = String::fromUTF8(libpd_get_object_class_name(gui->ptr));
             // Check hvcc compatibility
-            bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
+            bool isSubpatch = gui && gui->getPatch() != nullptr;
             isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
 
             if (!isHvccCompatible) {
@@ -354,7 +354,7 @@ void Object::setType(String const& newType, void* existingObject)
 
     auto typeName = String::fromUTF8(libpd_get_object_class_name(objectPtr));
     // Check hvcc compatibility
-    bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
+    bool isSubpatch = gui && gui->getPatch() != nullptr;
     isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
 
     if (!isHvccCompatible) {
@@ -559,9 +559,9 @@ void Object::updateTooltips()
     // Check pd library for pddp tooltips, those have priority
     auto ioletTooltips = cnv->pd->objectLibrary->parseIoletTooltips(objectInfo.getChildWithName("iolets"), gui->getText(), numInputs, numOutputs);
 
-    // First clear all tooltips so we can see later if it has already been set or not
-    for (int i = 0; i < iolets.size(); i++) {
-        iolets[i]->setTooltip("");
+    // First clear all tooltips, so we can see later if it has already been set or not
+    for (auto iolet : iolets) {
+        iolet->setTooltip("");
     }
 
     // Load tooltips from documentation files, these have priority
@@ -619,7 +619,7 @@ void Object::updateTooltips()
     }
     cnv->pd->unlockAudioThread();
     
-    if (!inletMessages.size() && !outletMessages.size())
+    if (inletMessages.empty() && outletMessages.empty())
         return;
 
     auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b) {
@@ -632,9 +632,7 @@ void Object::updateTooltips()
     int numIn = 0;
     int numOut = 0;
 
-    for (int i = 0; i < iolets.size(); i++) {
-        auto* iolet = iolets[i];
-
+    for (auto iolet : iolets) {
         if (iolet->getTooltip().isNotEmpty())
             continue;
 
@@ -1242,7 +1240,7 @@ void Object::textEditorTextChanged(TextEditor& ed)
     setSize(width, getHeight());
 }
 
-ComponentBoundsConstrainer* Object::getConstrainer()
+ComponentBoundsConstrainer* Object::getConstrainer() const
 {
     if (gui) {
         return gui->getConstrainer();

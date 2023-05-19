@@ -558,7 +558,7 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 
 void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
 {
-    for (auto patch : pd->patches) {
+    for (const auto& patch : pd->patches) {
         patch->deselectAll();
     }
 
@@ -612,7 +612,7 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete)
     auto* tabbar = canvas->getTabbar();
     auto* patch = &canvas->patch;
 
-    auto deleteFunc = [this, tabbar, canvas, patch, quitAfterComplete]() {
+    auto deleteFunc = [this, canvas, quitAfterComplete]() {
         if (!canvas) {
             return;
         }
@@ -1118,6 +1118,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setActive(true);
         break;
     }
+    default: break;
     }
 
     static auto const cmdMod = ModifierKeys::commandModifier;
@@ -1169,7 +1170,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
     default:
         break;
-    };
+    }
 
     if (commandID >= ObjectIDs::NewObject) {
         auto name = objectNames.at(static_cast<ObjectIDs>(commandID));

@@ -400,7 +400,7 @@ void Connection::paint(Graphics& g)
     renderConnectionPath(g,
         cnv,
         toDrawLocalSpace,
-        outlet ? outlet->isSignal : false,
+        outlet != nullptr && outlet->isSignal,
         isMouseOver(),
         showDirection,
         showConnectionOrder,
@@ -492,10 +492,10 @@ StringArray Connection::getMessageFormated()
 
     StringArray formatedMessage;
 
-    if (name == "float" && args.size() >= 1) {
+    if (name == "float" && !args.empty()) {
         formatedMessage.add("float:");
         formatedMessage.add(String(args[0].getFloat()));
-    } else if (name == "symbol" && args.size() >= 1) {
+    } else if (name == "symbol" && !args.empty()) {
         formatedMessage.add("symbol:");
         formatedMessage.add(String(args[0].getSymbol()));
     } else if (name == "list") {
@@ -782,12 +782,12 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     repaint();
 }
 
-Point<float> Connection::getStartPoint()
+Point<float> Connection::getStartPoint() const
 {
     return outlet->getCanvasBounds().toFloat().getCentre();
 }
 
-Point<float> Connection::getEndPoint()
+Point<float> Connection::getEndPoint() const
 {
     return inlet->getCanvasBounds().toFloat().getCentre();
 }
@@ -843,7 +843,7 @@ int Connection::getMultiConnectNumber()
         }
     }
     return -1;
-};
+}
 
 void Connection::updatePath()
 {
@@ -982,15 +982,15 @@ void Connection::findPath()
 
             simplifiedPath.push_back(pend); // double to make it draggable
             simplifiedPath.push_back(pend);
-            simplifiedPath.push_back({ pend.x + xHalfDistance, pend.y });
-            simplifiedPath.push_back({ pend.x + xHalfDistance, pstart.y });
+            simplifiedPath.emplace_back( pend.x + xHalfDistance, pend.y );
+            simplifiedPath.emplace_back( pend.x + xHalfDistance, pstart.y );
             simplifiedPath.push_back(pstart);
             simplifiedPath.push_back(pstart);
         } else {
             int yHalfDistance = (pstart.y - pend.y) / 2;
             simplifiedPath.push_back(pend);
-            simplifiedPath.push_back({ pend.x, pend.y + yHalfDistance });
-            simplifiedPath.push_back({ pstart.x, pend.y + yHalfDistance });
+            simplifiedPath.emplace_back( pend.x, pend.y + yHalfDistance );
+            simplifiedPath.emplace_back( pstart.x, pend.y + yHalfDistance );
             simplifiedPath.push_back(pstart);
         }
     }
@@ -1074,7 +1074,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     return count;
 }
 
-bool Connection::intersectsObject(Object* object)
+bool Connection::intersectsObject(Object* object) const
 {
     auto b = object->getBounds().toFloat();
     return toDraw.intersectsLine({ b.getTopLeft(), b.getTopRight() })

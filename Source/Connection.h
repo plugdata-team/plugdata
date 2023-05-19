@@ -79,8 +79,8 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    Point<float> getStartPoint();
-    Point<float> getEndPoint();
+    Point<float> getStartPoint() const;
+    Point<float> getEndPoint() const;
 
     void reconnect(Iolet* target);
 
@@ -105,7 +105,7 @@ public:
 
     void applyBestPath();
 
-    bool intersectsObject(Object* object);
+    bool intersectsObject(Object* object) const;
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
     void receiveMessage(String const& name, int argc, t_atom* argv) override;

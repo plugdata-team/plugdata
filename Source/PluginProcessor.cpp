@@ -231,7 +231,7 @@ void PluginProcessor::initialiseFilesystem()
     library.deleteRecursively();
     library.createDirectory();
 
-    // We always want to update the symlinks in case an older version of plugdata is was used
+    // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS
     // Get paths that need symlinks
     auto abstractionsPath = versionDataDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
@@ -280,13 +280,13 @@ void PluginProcessor::updateSearchPaths()
         paths.addIfNotAlreadyThere(path);
     }
 
-    for (auto path : paths) {
+    for (const auto& path : paths) {
         if (currentPaths.contains(path.getFullPathName()))
             continue;
         libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
 
-    for (auto path : DekenInterface::getExternalPaths()) {
+    for (const auto& path : DekenInterface::getExternalPaths()) {
         if (currentPaths.contains(path))
             continue;
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
@@ -721,11 +721,11 @@ void PluginProcessor::sendPlayhead()
 
         auto loopPoints = infos->getLoopPoints();
         if (loopPoints.hasValue()) {
-            atoms_playhead.push_back(static_cast<float>(loopPoints->ppqStart));
-            atoms_playhead.push_back(static_cast<float>(loopPoints->ppqEnd));
+            atoms_playhead.emplace_back(static_cast<float>(loopPoints->ppqStart));
+            atoms_playhead.emplace_back(static_cast<float>(loopPoints->ppqEnd));
         } else {
-            atoms_playhead.push_back(0.0f);
-            atoms_playhead.push_back(0.0f);
+            atoms_playhead.emplace_back(0.0f);
+            atoms_playhead.emplace_back(0.0f);
         }
         sendMessage("playhead", "looping", atoms_playhead);
 
@@ -756,7 +756,7 @@ void PluginProcessor::sendPlayhead()
         if (infos->getTimeSignature().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getTimeSignature()->numerator);
-            atoms_playhead.push_back(static_cast<float>(infos->getTimeSignature()->denominator));
+            atoms_playhead.emplace_back(static_cast<float>(infos->getTimeSignature()->denominator));
             sendMessage("playhead", "timesig", atoms_playhead);
         }
 
@@ -774,9 +774,9 @@ void PluginProcessor::sendPlayhead()
         }
 
         if (infos->getTimeInSeconds().hasValue()) {
-            atoms_playhead.push_back(static_cast<float>(*infos->getTimeInSeconds()));
+            atoms_playhead.emplace_back(static_cast<float>(*infos->getTimeInSeconds()));
         } else {
-            atoms_playhead.push_back(0.0f);
+            atoms_playhead.emplace_back(0.0f);
         }
 
         sendMessage("playhead", "position", atoms_playhead);
@@ -883,7 +883,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     auto* editor = new PluginEditor(*this);
     setThis();
 
-    for (auto patch : patches) {
+    for (const auto& patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
         editor->addTab(cnv);
     }
@@ -940,7 +940,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     auto* patchesTree = new XmlElement("Patches");
 
-    for (auto patch : patches) {
+    for (const auto& patch : patches) {
 
         if (palettes.contains(patch.get()))
             continue;
@@ -1174,7 +1174,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
 {
     // First, check if patch is already opened
-    for (auto patch : patches) {
+    for (const auto& patch : patches) {
         if (patch->getCurrentFile() == patchFile) {
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                 MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
@@ -1380,7 +1380,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
         break;
     }
     }
-};
+}
 
 void PluginProcessor::performParameterChange(int type, String name, float value)
 {

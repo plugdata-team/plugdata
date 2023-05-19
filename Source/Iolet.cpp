@@ -38,7 +38,7 @@ Iolet::Iolet(Object* parent, bool inlet)
     bool isPresenting = getValue<bool>(presentationMode);
     setVisible(!isPresenting && !insideGraph);
 
-    // Drawing cirles is more expensive than you might think, especially because there can be a lot of iolets!
+    // Drawing circles is more expensive than you might think, especially because there can be a lot of iolets!
     setBufferedToImage(true);
 
     cnv = findParentComponentOfClass<Canvas>();

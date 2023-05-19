@@ -57,7 +57,7 @@ class LevelMeter : public Component
     bool clipping[2] = { false, false };
 
 public:
-    LevelMeter() {};
+    LevelMeter() = default;
 
     void audioLevelChanged(float level[2], float peak[2]) override
     {
@@ -396,11 +396,8 @@ void Statusbar::audioProcessedChanged(bool audioProcessed)
     powerButton.setColour(TextButton::textColourOnId, colour);
 }
 
-StatusbarSource::StatusbarSource()
+StatusbarSource::StatusbarSource() : numChannels(0)
 {
-    level[0] = 0.0f;
-    level[1] = 0.0f;
-
     startTimerHz(30);
 }
 
