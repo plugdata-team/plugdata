@@ -660,7 +660,7 @@ public:
                 label = std::unique_ptr<DraggableNumber>(draggableNumber);
                 
                 draggableNumber->getTextValue().referTo(property);
-                draggableNumber->setFont(Font(14));
+                draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
                 
                 draggableNumber->valueChanged = [this](float value) {
                     property = value;

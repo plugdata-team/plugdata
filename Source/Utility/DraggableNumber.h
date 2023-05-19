@@ -31,6 +31,7 @@ public:
     {
         setWantsKeyboardFocus(true);
         addListener(this);
+        setFont(Fonts::getTabularNumbersFont().withHeight(14.0f));
     }
 
     void labelTextChanged(Label* labelThatHasChanged) override {};

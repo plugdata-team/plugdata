@@ -42,12 +42,12 @@ public:
         lastName = param->getTitle();
         nameLabel.setText(lastName, dontSendNotification);
 
-        nameLabel.setFont(Font(14.0f));
-        valueLabel.setFont(Font(14.0f));
-        minLabel.setFont(Font(14.0f));
-        maxLabel.setFont(Font(14.0f));
-        minValue.setFont(Font(14.0f));
-        maxValue.setFont(Font(14.0f));
+        nameLabel.setFont(nameLabel.getFont().withHeight(14.0f));
+        valueLabel.setFont(valueLabel.getFont().withHeight(14.0f));
+        minLabel.setFont(minLabel.getFont().withHeight(14.0f));
+        maxLabel.setFont(maxLabel.getFont().withHeight(14.0f));
+        minValue.setFont(minValue.getFont().withHeight(14.0f));
+        maxValue.setFont(maxValue.getFont().withHeight(14.0f));
 
         createButton.onClick = [this]() mutable {
             if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {

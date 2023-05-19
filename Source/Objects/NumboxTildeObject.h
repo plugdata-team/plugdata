@@ -162,7 +162,7 @@ public:
     void resized() override
     {
         input.setBounds(getLocalBounds().withTrimmedLeft(getHeight() - 4));
-        input.setFont(getHeight() - 6);
+        input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
 
     void valueChanged(Value& value) override

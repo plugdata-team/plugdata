@@ -160,7 +160,7 @@ public:
     void resized() override
     {
         input.setBounds(getLocalBounds());
-        input.setFont(getHeight() - 6);
+        input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
 
     void lock(bool isLocked) override
