@@ -62,9 +62,15 @@ cmake .. (the generator can be specified using -G"Unix Makefiles", -G"XCode" or 
 cmake --build .
 ```
 
+## Adding your own externals
+You can use externals inside plugdata by recompiling the externals along with plugdata. You can doing that by making the following modification to plugdata:
+
+-  Add your sources to the "externals" target inside Libraries/CMakeLists.txt. If you want to be lazy, you can also just put the source inside the Libraries/ELSE/Source folder, all .c files in that folder will be compiled automatically.
+-  In Libraries/libpd/x_libpd_multi.c, add the setup function for your external. The best place to call your setup function is inside libpd_init_pdlua. libpd_init_else and libpd_init_cyclone will also work, but it has the side-effect that the externals will also be available under the else/* and cyclone/* prefix.
+
 **Important:**
 - plugdata requires cmake 3.21 or later
-- Please ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the plugdata repository .
+- Ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the plugdata repository .
 - On Linux, Juce framework requires to install dependencies, please refer to [Linux Dependencies.md](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md) and use the full command.
 - The CMake build system has been tested with *Unix Makefiles*, *XCode* and *Visual Studio 16 2019*.
 
@@ -83,9 +89,6 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 - [Inter](https://rsms.me/inter/) font by Rasmus Andersson
 - [Kiwi](https://github.com/Musicoll/Kiwi) by Eliott Paris, Pierre Guillot and Jean Millot
 - [FluidLite](https://github.com/divideconcept/FluidLite) by divideconcept, based on [Fluidsynth](https://github.com/FluidSynth/fluidsynth)
-- [LV2 PlugIn Technology](http://lv2plug.in) by Steve Harris, David Robillard and others
-- [VST PlugIn Technology](https://www.steinberg.net/en/company/technologies/vst3.html) by Steinberg Media Technologies
-- [Audio Unit PlugIn Technology](https://developer.apple.com/documentation/audiounit) by Apple
 
 ## Status
 What works:
