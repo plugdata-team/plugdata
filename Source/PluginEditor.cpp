@@ -799,29 +799,17 @@ void PluginEditor::updateCommandStatus()
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr)
             return;
+        
+        pd->lockAudioThread();
+        canUndo = libpd_can_undo(patchPtr) && !isDragging && !locked;
+        canRedo = libpd_can_redo(patchPtr) && !isDragging && !locked;
+        pd->unlockAudioThread();
 
-        // First on pd's thread, get undo status
-        pd->enqueueFunction(
-            [this, patchPtr, isDragging, deletionCheck = SafePointer(this), locked]() mutable {
-                if (!deletionCheck)
-                    return;
+        undoButton.setEnabled(canUndo);
+        redoButton.setEnabled(canRedo);
 
-                canUndo = libpd_can_undo(patchPtr) && !isDragging && !locked;
-                canRedo = libpd_can_redo(patchPtr) && !isDragging && !locked;
-
-                // Set button enablement on message thread
-                MessageManager::callAsync(
-                    [this, deletionCheck]() mutable {
-                        if (!deletionCheck)
-                            return;
-
-                        undoButton.setEnabled(canUndo);
-                        redoButton.setEnabled(canRedo);
-
-                        // Application commands need to be updated when undo state changes
-                        commandStatusChanged();
-                    });
-            });
+        // Application commands need to be updated when undo state changes
+        commandStatusChanged();
 
         editButton.setEnabled(true);
         runButton.setEnabled(true);

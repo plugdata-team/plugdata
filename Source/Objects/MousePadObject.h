@@ -65,17 +65,18 @@ public:
             lastPosition = relativeEvent.getPosition();
 
             pd->setThis();
+            pd->lockAudioThread();
+            
+            x->x_x = xPos;
+            x->x_y = yPos;
 
-            pd->enqueueFunction([x, xPos, yPos]() {
-                x->x_x = xPos;
-                x->x_y = yPos;
+            t_atom at[3];
+            SETFLOAT(at, xPos);
+            SETFLOAT(at + 1, yPos);
 
-                t_atom at[3];
-                SETFLOAT(at, xPos);
-                SETFLOAT(at + 1, yPos);
-
-                outlet_anything(x->x_obj.ob_outlet, gensym("list"), 2, at);
-            });
+            outlet_anything(x->x_obj.ob_outlet, gensym("list"), 2, at);
+            
+            pd->unlockAudioThread();
         };
 
         mouseListener.globalMouseDrag = [this](MouseEvent const& e) {

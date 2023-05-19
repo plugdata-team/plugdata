@@ -80,8 +80,11 @@ class PaletteView : public Component
             auto result = pd::Patch::translatePatchAsString(clipboardContent, position);
 
             auto* ptr = target->patch.getPointer();
-            target->pd->enqueueFunction([ptr, result]() mutable { libpd_paste(ptr, result.toRawUTF8()); });
-
+            
+            target->pd->lockAudioThread();
+            libpd_paste(ptr, result.toRawUTF8());
+            target->pd->unlockAudioThread();
+            
             target->synchronise();
         }
 

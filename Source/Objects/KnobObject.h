@@ -465,12 +465,12 @@ public:
 
     void setSendSymbol(String const& symbol) const
     {
-        pd->enqueueDirectMessages(ptr, "send", { pd::Atom(symbol) });
+        pd->sendDirectMessage(ptr, "send", { pd::Atom(symbol) });
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
-        pd->enqueueDirectMessages(ptr, "receive", { pd::Atom(symbol) });
+        pd->sendDirectMessage(ptr, "receive", { pd::Atom(symbol) });
     }
 
     Colour getBackgroundColour() const
@@ -567,11 +567,11 @@ public:
             updateRange();
         } else if (value.refersToSameSourceAs(angularRange)) {
             auto range = limitValueRange(angularRange, 0, 360);
-            pd->enqueueDirectMessages(knb, "angle", { pd::Atom(range) });
+            pd->sendDirectMessage(knb, "angle", { pd::Atom(range) });
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(angularOffset)) {
             auto offset = limitValueRange(angularOffset, -180, 180);
-            pd->enqueueDirectMessages(knb, "offset", { pd::Atom(offset) });
+            pd->sendDirectMessage(knb, "offset", { pd::Atom(offset) });
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(showArc)) {
             bool arc = ::getValue<bool>(showArc);

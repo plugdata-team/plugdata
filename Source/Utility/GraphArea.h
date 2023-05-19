@@ -76,15 +76,15 @@ public:
     {
         t_canvas* cnv = canvas->patch.getPointer();
 
-        canvas->pd->enqueueFunction([cnv, _this = SafePointer(this)]() {
-            if (_this && cnv) {
-                cnv->gl_pixwidth = _this->getWidth();
-                cnv->gl_pixheight = _this->getHeight();
+        canvas->pd->lockAudioThread();
+        
+        cnv->gl_pixwidth = getWidth();
+        cnv->gl_pixheight = getHeight();
 
-                cnv->gl_xmargin = _this->getX() - _this->canvas->canvasOrigin.x;
-                cnv->gl_ymargin = _this->getY() - _this->canvas->canvasOrigin.y;
-            }
-        });
+        cnv->gl_xmargin = getX() - canvas->canvasOrigin.x;
+        cnv->gl_ymargin = getY() - canvas->canvasOrigin.y;
+        
+        canvas->pd->unlockAudioThread();
     }
 
     void updateBounds()

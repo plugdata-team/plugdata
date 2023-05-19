@@ -317,14 +317,13 @@ public:
             SETFLOAT(at.data() + i, point);
         }
 
-        pd->enqueueFunction([_this = SafePointer(this), x, at, ac]() mutable {
-            if (!_this || _this->cnv->patch.objectWasDeleted(x))
-                return;
-
-            outlet_list(x->x_obj.ob_outlet, gensym("list"), ac - 2, at.data());
-            if (x->x_send != gensym("") && x->x_send->s_thing)
-                pd_list(x->x_send->s_thing, gensym("list"), ac - 2, at.data());
-        });
+        pd->lockAudioThread();
+        
+        outlet_list(x->x_obj.ob_outlet, gensym("list"), ac - 2, at.data());
+        if (x->x_send != gensym("") && x->x_send->s_thing)
+            pd_list(x->x_send->s_thing, gensym("list"), ac - 2, at.data());
+        
+        pd->unlockAudioThread();
     }
 
     void valueChanged(Value& v) override
@@ -338,10 +337,10 @@ public:
             repaint();
         } else if (v.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "send", { symbol });
+            pd->sendDirectMessage(ptr, "send", { symbol });
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "receive", { symbol });
+            pd->sendDirectMessage(ptr, "receive", { symbol });
 
         } else if (v.refersToSameSourceAs(range)) {
             setRange(getRange());

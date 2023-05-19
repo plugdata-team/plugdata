@@ -321,20 +321,15 @@ public:
         // Don't want to touch vec on the other thread, so we copy the vector into the lambda
         auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
 
-        pd->enqueueFunction(
-            [_this = SafePointer(this), interpStart, changed]() mutable {
-                try {
-                    for (int n = 0; n < changed.size(); n++) {
-                        _this->array.write(interpStart + n, changed[n]);
-                    }
-                } catch (...) {
-                    _this->error = true;
-                }
-            });
-
+        pd->lockAudioThread();
+        for (int n = 0; n < changed.size(); n++) {
+            array.write(interpStart + n, changed[n]);
+        }
+        pd->unlockAudioThread();
+        
         lastIndex = index;
 
-        pd->enqueueDirectMessages(array.ptr, stringArray);
+        pd->sendDirectMessage(array.ptr, stringArray);
         repaint();
     }
 
@@ -593,24 +588,17 @@ public:
 
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
 
-        cnv->pd->enqueueFunction(
-            [this, _this = SafePointer(this), arrName, arrSize, flags]() mutable {
-                if (!_this)
-                    return;
-
-                auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
-                garray_arraydialog(garray, _this->pd->generateSymbol(arrName), arrSize, static_cast<float>(flags), 0.0f);
-
-                MessageManager::callAsync(
-                    [this, _this]() {
-                        if (!_this)
-                            return;
-                        array = getArray();
-                        graph.setArray(array);
-                        updateLabel();
-                    });
-            });
-
+        pd->lockAudioThread();
+        
+        auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
+        garray_arraydialog(garray, pd->generateSymbol(arrName), arrSize, static_cast<float>(flags), 0.0f);
+        
+        pd->unlockAudioThread();
+        
+        array = getArray();
+        graph.setArray(array);
+        updateLabel();
+        
         graph.repaint();
     }
 

@@ -516,7 +516,7 @@ public:
         addAndMakeVisible(graph);
 
         graph.graphChangeCallback = [this](float a1, float a2, float b0, float b1, float b2) {
-            pd->enqueueDirectMessages(ptr, "biquad", { a1, a2, b0, b1, b2 });
+            pd->sendDirectMessage(ptr, "biquad", { a1, a2, b0, b1, b2 });
         };
     }
 
@@ -542,7 +542,7 @@ public:
     {
         libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        pd->enqueueDirectMessages(ptr, "dim", { b.getWidth() - 1, b.getHeight() - 1 });
+        pd->sendDirectMessage(ptr, "dim", { b.getWidth() - 1, b.getHeight() - 1 });
         graph.saveProperties();
     }
 

@@ -66,14 +66,13 @@ public:
     void toggleObject(Point<int> position) override
     {
         if (!alreadyBanged) {
-            pd->enqueueFunction([this]() {
-                if (cnv->patch.objectWasDeleted(ptr))
-                    return;
-
-                startEdition();
-                pd_bang(static_cast<t_pd*>(ptr));
-                stopEdition();
-            });
+            pd->lockAudioThread();
+            
+            startEdition();
+            pd_bang(static_cast<t_pd*>(ptr));
+            stopEdition();
+            
+            pd->unlockAudioThread();
 
             trigger();
             alreadyBanged = true;
@@ -87,14 +86,13 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        pd->enqueueFunction([this]() {
-            if (cnv->patch.objectWasDeleted(ptr))
-                return;
-
-            startEdition();
-            pd_bang(static_cast<t_pd*>(ptr));
-            stopEdition();
-        });
+        pd->lockAudioThread();
+        
+        startEdition();
+        pd_bang(static_cast<t_pd*>(ptr));
+        stopEdition();
+        
+        pd->unlockAudioThread();
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;

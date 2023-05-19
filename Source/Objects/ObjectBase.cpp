@@ -231,7 +231,7 @@ bool ObjectBase::click()
     pd->setThis();
 
     if (libpd_has_click_function(static_cast<t_object*>(ptr))) {
-        pd->enqueueDirectMessages(ptr, "click", {});
+        pd->sendDirectMessage(ptr, "click", {});
         return true;
     }
 
@@ -310,7 +310,7 @@ void ObjectBase::startEdition()
         return;
 
     edited = true;
-    pd->enqueueMessages("gui", "mouse", { 1.f });
+    pd->sendMessage("gui", "mouse", { 1.f });
 }
 
 void ObjectBase::stopEdition()
@@ -319,20 +319,19 @@ void ObjectBase::stopEdition()
         return;
 
     edited = false;
-    pd->enqueueMessages("gui", "mouse", { 0.f });
+    pd->sendMessage("gui", "mouse", { 0.f });
 }
 
 void ObjectBase::sendFloatValue(float newValue)
 {
-    pd->enqueueFunction([newValue, patch = &cnv->patch, ptr = this->ptr]() {
-        if (patch->objectWasDeleted(ptr))
-            return;
-
-        t_atom atom;
-        SETFLOAT(&atom, newValue);
-        pd_typedmess(static_cast<t_pd*>(ptr), patch->instance->generateSymbol("set"), 1, &atom);
-        pd_bang(static_cast<t_pd*>(ptr));
-    });
+    pd->lockAudioThread();
+    
+    t_atom atom;
+    SETFLOAT(&atom, newValue);
+    pd_typedmess(static_cast<t_pd*>(ptr), cnv->patch.instance->generateSymbol("set"), 1, &atom);
+    pd_bang(static_cast<t_pd*>(ptr));
+    
+    pd->unlockAudioThread();
 }
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
@@ -465,7 +464,7 @@ bool ObjectBase::canOpenFromMenu()
 
 void ObjectBase::openFromMenu()
 {
-    pd->enqueueDirectMessages(ptr, "menu-open", {});
+    pd->sendDirectMessage(ptr, "menu-open", {});
 };
 
 bool ObjectBase::hideInGraph()

@@ -270,30 +270,29 @@ void Object::applyBounds()
 
     auto* patch = &cnv->patch;
 
-    cnv->pd->enqueueFunction(
-        [newObjectSizes, patch]() mutable {
-            patch->startUndoSequence("resize");
+    cnv->pd->lockAudioThread();
+    patch->startUndoSequence("resize");
 
-            for (auto& [object, bounds] : newObjectSizes) {
-                if (!object || !object->gui)
-                    return;
+    for (auto& [object, bounds] : newObjectSizes) {
+        if (!object || !object->gui)
+            return;
 
-                auto* obj = static_cast<t_gobj*>(object->getPointer());
-                auto* cnv = object->cnv;
+        auto* obj = static_cast<t_gobj*>(object->getPointer());
+        auto* cnv = object->cnv;
 
-                if (cnv->patch.objectWasDeleted(obj))
-                    return;
+        if (cnv->patch.objectWasDeleted(obj))
+            return;
 
-                // Used for size changes, could also be used for properties
-                libpd_undo_apply(cnv->patch.getPointer(), obj);
+        // Used for size changes, could also be used for properties
+        libpd_undo_apply(cnv->patch.getPointer(), obj);
 
-                object->gui->setPdBounds(bounds);
+        object->gui->setPdBounds(bounds);
 
-                canvas_dirty(cnv->patch.getPointer(), 1);
-            }
+        canvas_dirty(cnv->patch.getPointer(), 1);
+    }
 
-            patch->endUndoSequence("resize");
-        });
+    patch->endUndoSequence("resize");
+    cnv->pd->unlockAudioThread();
 }
 void Object::updateBounds()
 {
@@ -576,81 +575,76 @@ void Object::updateTooltips()
             iolet->setTooltip(tooltip);
         }
     }
+    
 
-    cnv->pd->enqueueFunction([_this = SafePointer(this), this]() mutable {
-        if (!_this)
-            return;
 
-        std::vector<std::pair<int, String>> inletMessages;
-        std::vector<std::pair<int, String>> outletMessages;
+    std::vector<std::pair<int, String>> inletMessages;
+    std::vector<std::pair<int, String>> outletMessages;
 
-        if (auto subpatch = gui->getPatch()) {
+    cnv->pd->lockAudioThread();
+    if (auto subpatch = gui->getPatch()) {
 
-            // Check child objects of subpatch for inlet/outlet messages
-            for (auto* obj : subpatch->getObjects()) {
+        // Check child objects of subpatch for inlet/outlet messages
+        for (auto* obj : subpatch->getObjects()) {
 
-                const String name = libpd_get_object_class_name(obj);
-                if (name == "inlet" || name == "inlet~") {
+            const String name = libpd_get_object_class_name(obj);
+            if (name == "inlet" || name == "inlet~") {
 
-                    int size;
-                    char* str_ptr;
-                    libpd_get_object_text(obj, &str_ptr, &size);
+                int size;
+                char* str_ptr;
+                libpd_get_object_text(obj, &str_ptr, &size);
 
-                    int x, y, w, h;
-                    libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
+                int x, y, w, h;
+                libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
 
-                    // Anything after the first space will be the comment
-                    auto const text = String::fromUTF8(str_ptr, size);
-                    inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
-                    freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
-                }
-                if (name == "outlet" || name == "outlet~") {
-                    int size;
-                    char* str_ptr;
-                    libpd_get_object_text(obj, &str_ptr, &size);
+                // Anything after the first space will be the comment
+                auto const text = String::fromUTF8(str_ptr, size);
+                inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
+                freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
+            }
+            if (name == "outlet" || name == "outlet~") {
+                int size;
+                char* str_ptr;
+                libpd_get_object_text(obj, &str_ptr, &size);
 
-                    int x, y, w, h;
-                    libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
+                int x, y, w, h;
+                libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
 
-                    auto const text = String::fromUTF8(str_ptr, size);
-                    outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
+                auto const text = String::fromUTF8(str_ptr, size);
+                outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
 
-                    freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
-                }
+                freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
             }
         }
+    }
+    cnv->pd->unlockAudioThread();
+    
+    if (!inletMessages.size() && !outletMessages.size())
+        return;
 
-        if (!_this || (!inletMessages.size() && !outletMessages.size()))
-            return;
+    auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b) {
+        return a.first < b.first;
+    };
 
-        MessageManager::callAsync([_this, this, inletMessages, outletMessages]() mutable {
-            if (!_this)
-                return;
+    std::sort(inletMessages.begin(), inletMessages.end(), sortFunc);
+    std::sort(outletMessages.begin(), outletMessages.end(), sortFunc);
 
-            auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b) {
-                return a.first < b.first;
-            };
+    int numIn = 0;
+    int numOut = 0;
 
-            std::sort(inletMessages.begin(), inletMessages.end(), sortFunc);
-            std::sort(outletMessages.begin(), outletMessages.end(), sortFunc);
+    for (int i = 0; i < iolets.size(); i++) {
+        auto* iolet = iolets[i];
 
-            int numIn = 0;
-            int numOut = 0;
+        if (iolet->getTooltip().isNotEmpty())
+            continue;
 
-            for (int i = 0; i < iolets.size(); i++) {
-                auto* iolet = iolets[i];
+        if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numOut >= outletMessages.size()))
+            continue;
 
-                if (iolet->getTooltip().isNotEmpty())
-                    continue;
+        auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
+        iolet->setTooltip(message);
+    }
 
-                if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numOut >= outletMessages.size()))
-                    continue;
-
-                auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
-                iolet->setTooltip(message);
-            }
-        });
-    });
 }
 
 void Object::updateIolets()
@@ -732,15 +726,12 @@ void Object::mouseDown(MouseEvent const& e)
         attachedToMouse = false;
         stopTimer();
         repaint();
+        
+        cnv->pd->lockAudioThread();
 
-        // Tell pd about new position
-        cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), b = getObjectBounds()]() {
-                if (!_this || !_this->gui || _this->cnv->patch.objectWasDeleted(_this->gui->ptr)) {
-                    return;
-                }
-                _this->gui->setPdBounds(b);
-            });
+        gui->setPdBounds(getObjectBounds());
+        
+        cnv->pd->unlockAudioThread();
 
         if (createEditorOnMouseDown) {
             createEditorOnMouseDown = false;
@@ -748,6 +739,8 @@ void Object::mouseDown(MouseEvent const& e)
             // Prevent losing focus because of click event
             MessageManager::callAsync([_this = SafePointer(this)]() { _this->showEditor(); });
         }
+        
+        
 
         return;
     }
@@ -1271,9 +1264,9 @@ void Object::openHelpPatch() const
             return;
         }
 
-        cnv->pd->enqueueFunction([this, file]() mutable {
-            cnv->pd->loadPatch(file);
-        });
+        cnv->pd->lockAudioThread();
+        cnv->pd->loadPatch(file);
+        cnv->pd->unlockAudioThread();
 
         return;
     }

@@ -243,12 +243,9 @@ public:
 
     void setInit(bool init)
     {
-        pd->enqueueFunctionAsync([this, init]() {
-            if (cnv->patch.objectWasDeleted(iemgui))
-                return;
-
-            iemgui->x_isa.x_loadinit = init;
-        });
+        pd->lockAudioThread();
+        iemgui->x_isa.x_loadinit = init;
+        pd->unlockAudioThread();
     }
 
     bool getInit()

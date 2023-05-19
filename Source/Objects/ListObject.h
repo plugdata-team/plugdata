@@ -239,7 +239,7 @@ public:
 
     void setList(std::vector<pd::Atom> const value)
     {
-        cnv->pd->enqueueDirectMessages(ptr, std::move(value));
+        cnv->pd->sendDirectMessage(ptr, std::move(value));
     }
 
     void mouseUp(MouseEvent const& e) override

@@ -113,7 +113,7 @@ public:
         if (type == Key) {
             t_symbol* dummy;
             parseKey(keyCode, dummy);
-            pd->enqueueDirectMessages(ptr, keyCode);
+            pd->sendDirectMessage(ptr, keyCode);
         } else if (type == KeyName) {
 
             String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
@@ -128,7 +128,7 @@ public:
             t_symbol* keysym = pd->generateSymbol(keyString);
             parseKey(keyCode, keysym);
 
-            pd->enqueueDirectMessages(ptr, { 1.0f, keysym });
+            pd->sendDirectMessage(ptr, { 1.0f, keysym });
         }
 
         // Never claim the keypress
@@ -189,7 +189,7 @@ public:
                     if (type == KeyUp) {
                         t_symbol* dummy;
                         parseKey(keyCode, dummy);
-                        pd->enqueueDirectMessages(ptr, keyCode);
+                        pd->sendDirectMessage(ptr, keyCode);
                     } else if (type == KeyName) {
 
                         String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
@@ -203,7 +203,7 @@ public:
 
                         t_symbol* keysym = pd->generateSymbol(keyString);
                         parseKey(keyCode, keysym);
-                        pd->enqueueDirectMessages(ptr, { 0.0f, keysym });
+                        pd->sendDirectMessage(ptr, { 0.0f, keysym });
                     }
 
                     keyPressTimes.remove(n);
@@ -359,7 +359,7 @@ public:
             return;
 
         if (!focusedComponent) {
-            pd->enqueueDirectMessages(ptr, "_focus", { canvasName, 0.0f });
+            pd->sendTypedMessage(ptr, "_focus", { canvasName, 0.0f });
             lastFocus = 0;
             return;
         }
@@ -386,14 +386,14 @@ public:
             name = gensym(buf);
 
             if (lastFocussedName != name) {
-                pd->enqueueDirectMessages(ptr, "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
+                pd->sendTypedMessage(ptr, "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
                 lastFocussedName = name;
             }
             return;
         }
 
         if (shouldHaveFocus != lastFocus) {
-            pd->enqueueDirectMessages(ptr, "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
+            pd->sendTypedMessage(ptr, "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
             lastFocus = shouldHaveFocus;
         }
     }
@@ -743,24 +743,24 @@ public:
 
             auto pos = mouseSource.getScreenPosition();
 
-            pd->enqueueDirectMessages(ptr, "_getscreen", { pos.x, pos.y });
+            pd->sendDirectMessage(ptr, "_getscreen", { pos.x, pos.y });
 
             lastPosition = pos;
         }
         if (mouseSource.isDragging()) {
             if (!isDown) {
-                pd->enqueueDirectMessages(ptr, "_up", { 0.0f });
+                pd->sendDirectMessage(ptr, "_up", { 0.0f });
             }
             isDown = true;
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (mouseSource.getLastMouseDownTime() > lastMouseDownTime) {
             if (!isDown) {
-                pd->enqueueDirectMessages(ptr, "_up", { 0.0f });
+                pd->sendDirectMessage(ptr, "_up", { 0.0f });
             }
             isDown = true;
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (isDown) {
-            pd->enqueueDirectMessages(ptr, "_up", { 1.0f });
+            pd->sendDirectMessage(ptr, "_up", { 1.0f });
             isDown = false;
         }
     }

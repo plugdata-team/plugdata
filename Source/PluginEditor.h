@@ -106,7 +106,7 @@ public:
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
 
-    std::atomic<bool> canUndo = false, canRedo = false;
+    bool canUndo = false, canRedo = false;
 
     std::unique_ptr<Dialog> openedDialog;
 

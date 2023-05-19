@@ -39,14 +39,14 @@ public:
     {
         if (getValue<bool>(latch)) {
             auto* pic = static_cast<t_fake_pic*>(ptr);
-            pd->enqueueFunction([pic]() {
-                outlet_float(pic->x_outlet, 1.0f);
-            });
+            pd->lockAudioThread();
+            outlet_float(pic->x_outlet, 1.0f);
+            pd->unlockAudioThread();
         } else {
             auto* pic = static_cast<t_fake_pic*>(ptr);
-            pd->enqueueFunction([pic]() {
-                outlet_bang(pic->x_outlet);
-            });
+            pd->lockAudioThread();
+            outlet_bang(pic->x_outlet);
+            pd->unlockAudioThread();
         }
     }
 
@@ -54,9 +54,9 @@ public:
     {
         if (getValue<bool>(latch)) {
             auto* pic = static_cast<t_fake_pic*>(ptr);
-            pd->enqueueFunction([pic]() {
-                outlet_float(pic->x_outlet, 0.0f);
-            });
+            pd->lockAudioThread();
+            outlet_float(pic->x_outlet, 0.0f);
+            pd->unlockAudioThread();
         }
     }
 
@@ -138,10 +138,10 @@ public:
             pic->x_size = getValue<int>(reportSize);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "send", { symbol });
+            pd->sendDirectMessage(ptr, "send", { symbol });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "receive", { symbol });
+            pd->sendDirectMessage(ptr, "receive", { symbol });
         }
     }
 

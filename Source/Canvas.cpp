@@ -460,10 +460,13 @@ void Canvas::synchroniseSplitCanvas()
 // Used for loading and for complicated actions like undo/redo
 void Canvas::performSynchronise()
 {
-    pd->waitForStateUpdate();
-
+    pd->lockAudioThread();
+    
     patch.setCurrent();
-
+    pd->sendMessagesFromQueue();
+    
+    pd->unlockAudioThread();
+    
     auto pdObjects = patch.getObjects();
 
     // Remove deleted connections
@@ -1175,35 +1178,36 @@ void Canvas::encapsulateSelection()
     auto copypasta = String("#N canvas 733 172 450 300 0 1;\n") + "$$_COPY_HERE_$$" + newEdgeObjects + newInternalConnections + "#X restore " + String(centre.x) + " " + String(centre.y) + " pd;\n";
 
     // Apply the changed on Pd's thread
-    pd->enqueueFunction([this, copypasta, newExternalConnections, numIn]() mutable {
-        int size;
-        const char* text = libpd_copy(patch.getPointer(), &size);
-        auto copied = String::fromUTF8(text, size);
+    pd->lockAudioThread();
+    
+    int size;
+    const char* text = libpd_copy(patch.getPointer(), &size);
+    auto copied = String::fromUTF8(text, size);
 
-        // Wrap it in an undo sequence, to allow undoing everything in 1 step
-        patch.startUndoSequence("encapsulate");
+    // Wrap it in an undo sequence, to allow undoing everything in 1 step
+    patch.startUndoSequence("encapsulate");
 
-        libpd_removeselection(patch.getPointer());
+    libpd_removeselection(patch.getPointer());
 
-        auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
-        SystemClipboard::copyTextToClipboard(replacement);
+    auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
 
-        libpd_paste(patch.getPointer(), replacement.toRawUTF8());
-        auto* newObject = static_cast<t_object*>(patch.getObjects().back());
+    libpd_paste(patch.getPointer(), replacement.toRawUTF8());
+    auto* newObject = static_cast<t_object*>(patch.getObjects().back());
 
-        for (auto& [idx, iolets] : newExternalConnections) {
-            for (auto* iolet : iolets) {
-                auto* externalObject = static_cast<t_object*>(iolet->object->getPointer());
-                if (iolet->isInlet) {
-                    libpd_createconnection(patch.getPointer(), newObject, idx - numIn, externalObject, iolet->ioletIdx);
-                } else {
-                    libpd_createconnection(patch.getPointer(), externalObject, iolet->ioletIdx, newObject, idx);
-                }
+    for (auto& [idx, iolets] : newExternalConnections) {
+        for (auto* iolet : iolets) {
+            auto* externalObject = static_cast<t_object*>(iolet->object->getPointer());
+            if (iolet->isInlet) {
+                libpd_createconnection(patch.getPointer(), newObject, idx - numIn, externalObject, iolet->ioletIdx);
+            } else {
+                libpd_createconnection(patch.getPointer(), externalObject, iolet->ioletIdx, newObject, idx);
             }
         }
+    }
 
-        patch.endUndoSequence("encapsulate");
-    });
+    patch.endUndoSequence("encapsulate");
+    
+    pd->unlockAudioThread();
 
     synchronise();
     handleUpdateNowIfNeeded();
@@ -1337,9 +1341,9 @@ void Canvas::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(locked)) {
         bool editMode = !getValue<bool>(v);
 
-        pd->enqueueFunction([this, editMode]() {
-            patch.getPointer()->gl_edit = editMode;
-        });
+        pd->lockAudioThread();
+        patch.getPointer()->gl_edit = editMode;
+        pd->unlockAudioThread();
 
         cancelConnectionCreation();
         deselectAll();

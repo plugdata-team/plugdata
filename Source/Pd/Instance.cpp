@@ -379,7 +379,7 @@ void Instance::sendList(char const* receiver, std::vector<Atom> const& list) con
     libpd_list(receiver, static_cast<int>(list.size()), argv);
 }
 
-void Instance::sendMessage(void* object, char const* msg, std::vector<Atom> const& list) const
+void Instance::sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const
 {
     if (!object)
         return;
@@ -400,7 +400,7 @@ void Instance::sendMessage(void* object, char const* msg, std::vector<Atom> cons
 
 void Instance::sendMessage(char const* receiver, char const* msg, std::vector<Atom> const& list) const
 {
-    sendMessage(generateSymbol(receiver)->s_thing, msg, list);
+    sendTypedMessage(generateSymbol(receiver)->s_thing, msg, list);
 }
 
 void Instance::processMessage(Message mess)
@@ -493,7 +493,7 @@ void Instance::processSend(dmessage mess)
             pd_symbol(static_cast<t_pd*>(mess.object), generateSymbol(mess.list[0].getSymbol()));
             unlockAudioThread();
         } else {
-            sendMessage(static_cast<t_pd*>(mess.object), mess.selector.toRawUTF8(), mess.list);
+            sendTypedMessage(static_cast<t_pd*>(mess.object), mess.selector.toRawUTF8(), mess.list);
         }
     } else {
         sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);
@@ -519,74 +519,38 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
         messageListeners[object].erase(it);
 }
 
-void Instance::enqueueFunction(std::function<void(void)> const& fn)
-{
-
-    // When we're performing global sync, we can't guarantee that pointers inside messages will still be valid by the time the get dequeued
-    if (isPerformingGlobalSync)
-        return;
-
-    // This should be the way to do it, but it currently causes some issues
-    // By calling fn directly we fix these issues at the cost of possible thread unsafety
-    m_function_queue.enqueue(fn);
-
-    // Checks if it can be performed immediately
-    messageEnqueued();
-}
-
 void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
 {
     m_function_queue.enqueue(fn);
 }
 
-void Instance::enqueueMessages(String const& dest, String const& msg, std::vector<Atom>&& list)
+void Instance::sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list)
 {
-    enqueueFunction([this, dest, msg, list]() mutable { processSend(dmessage { nullptr, dest, msg, std::move(list) }); });
+    lockAudioThread();
+    processSend(dmessage { object, String(), msg, std::move(list) });
+    unlockAudioThread();
 }
 
-void Instance::enqueueDirectMessages(void* object, String const& msg, std::vector<Atom>&& list)
+void Instance::sendDirectMessage(void* object, std::vector<Atom> const&& list)
 {
-    enqueueFunction([this, object, msg, list]() mutable { processSend(dmessage { object, String(), msg, std::move(list) }); });
+    lockAudioThread();
+    processSend(dmessage { object, String(), "list", std::move(list) });
+    unlockAudioThread();
 }
 
-void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const&& list)
+void Instance::sendDirectMessage(void* object, String const& msg)
 {
-    enqueueFunction([this, object, list]() mutable { processSend(dmessage { object, String(), "list", std::move(list) }); });
+    
+    lockAudioThread();
+    processSend(dmessage { object, String(), "symbol", std::vector<Atom>(1, msg) });
+    unlockAudioThread();
 }
 
-void Instance::enqueueDirectMessages(void* object, String const& msg)
+void Instance::sendDirectMessage(void* object, float const msg)
 {
-    enqueueFunction([this, object, msg]() mutable { processSend(dmessage { object, String(), "symbol", std::vector<Atom>(1, msg) }); });
-}
-
-void Instance::enqueueDirectMessages(void* object, float const msg)
-{
-    enqueueFunction([this, object, msg]() mutable { processSend(dmessage { object, String(), "float", std::vector<Atom>(1, msg) }); });
-}
-
-void Instance::waitForStateUpdate()
-{
-    // No action needed
-    if (m_function_queue.size_approx() == 0) {
-        return;
-    }
-
-    waitingForStateUpdate = true;
-
-    //  Append signal to resume thread at the end of the queue
-    //  This will make sure that any actions we performed are definitely finished now
-    //  If it can aquire a lock, it will dequeue all action immediately
-    enqueueFunction([this]() { updateWait.signal(); });
-
-    // Dequeuing should never take more than a few seconds, it should happen at audio rate
-    // By never blocking infinitely, and attempting to dequeue inbetween tries, we can possibly prevent deadlocks
-    for (int i = 0; i < 20; i++) {
-        messageEnqueued();
-        if (updateWait.wait(200)) {
-            waitingForStateUpdate = false;
-            return;
-        }
-    }
+    lockAudioThread();
+    processSend(dmessage { object, String(), "float", std::vector<Atom>(1, msg) });
+    unlockAudioThread();
 }
 
 void Instance::sendMessagesFromQueue()
@@ -679,23 +643,23 @@ void Instance::createPanel(int type, char const* snd, char const* location)
             [this, obj, defaultFile]() mutable {
                 auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
-                openChooser->launchAsync(folderChooserFlags,
-                    [this, obj](FileChooser const& fileChooser) {
-                        auto const file = fileChooser.getResult();
-                        enqueueFunction(
-                            [this, obj, file]() mutable {
-                                String pathname = file.getFullPathName().toRawUTF8();
-
+                openChooser->launchAsync(folderChooserFlags, [this, obj](FileChooser const& fileChooser) {
+                    auto const file = fileChooser.getResult();
+                    
+                    lockAudioThread();
+                    String pathname = file.getFullPathName().toRawUTF8();
+                    
                     // Convert slashes to backslashes
 #if JUCE_WINDOWS
-                                pathname = pathname.replaceCharacter('\\', '/');
+                    pathname = pathname.replaceCharacter('\\', '/');
 #endif
-
-                                t_atom argv[1];
-                                libpd_set_symbol(argv, pathname.toRawUTF8());
-                                pd_typedmess(obj, generateSymbol("callback"), 1, argv);
-                            });
-                    });
+                    
+                    t_atom argv[1];
+                    libpd_set_symbol(argv, pathname.toRawUTF8());
+                    pd_typedmess(obj, generateSymbol("callback"), 1, argv);
+                    
+                    unlockAudioThread();
+                });
             });
     } else {
         MessageManager::callAsync(
@@ -706,14 +670,17 @@ void Instance::createPanel(int type, char const* snd, char const* location)
                 saveChooser->launchAsync(folderChooserFlags,
                     [this, obj](FileChooser const& fileChooser) {
                         const auto file = fileChooser.getResult();
-                        enqueueFunction(
-                            [this, obj, file]() mutable {
-                                const auto* path = file.getFullPathName().toRawUTF8();
+                    
+                        
+                    
+                        const auto* path = file.getFullPathName().toRawUTF8();
 
-                                t_atom argv[1];
-                                libpd_set_symbol(argv, path);
-                                pd_typedmess(obj, generateSymbol("callback"), 1, argv);
-                            });
+                        t_atom argv[1];
+                        libpd_set_symbol(argv, path);
+                    
+                        lockAudioThread();
+                        pd_typedmess(obj, generateSymbol("callback"), 1, argv);
+                        unlockAudioThread();
                     });
             });
     }

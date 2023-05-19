@@ -258,12 +258,9 @@ public:
 
     void setFontHeight(float newSize)
     {
-        pd->enqueueFunctionAsync([obj = atom, patch = &cnv->patch, newSize]() {
-            if (patch->objectWasDeleted(obj))
-                return;
-
-            obj->a_fontsize = newSize;
-        });
+        pd->lockAudioThread();
+        atom->a_fontsize = newSize;
+        pd->unlockAudioThread();
     }
 
     Rectangle<int> getLabelBounds() const

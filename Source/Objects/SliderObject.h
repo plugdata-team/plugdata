@@ -373,18 +373,13 @@ public:
 
     void setLogScale(bool log)
     {
-        pd->enqueueFunction([_this = SafePointer(this), log]() {
-            if (!_this)
-                return;
-
-            auto* sym = _this->pd->generateSymbol(log ? "log" : "lin");
-            pd_typedmess(static_cast<t_pd*>(_this->ptr), sym, 0, nullptr);
-
-            MessageManager::callAsync([_this]() {
-                if (_this)
-                    _this->update();
-            });
-        });
+        pd->lockAudioThread();
+        
+        auto* sym = pd->generateSymbol(log ? "log" : "lin");
+        pd_typedmess(static_cast<t_pd*>(ptr), sym, 0, nullptr);
+        update();
+        
+        pd->unlockAudioThread();
     }
 
     void setValue(float v)

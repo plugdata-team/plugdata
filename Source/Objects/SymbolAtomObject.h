@@ -81,7 +81,7 @@ public:
 
     void setSymbol(String const& value)
     {
-        cnv->pd->enqueueDirectMessages(ptr, value.toStdString());
+        cnv->pd->sendDirectMessage(ptr, value.toStdString());
     }
 
     String getSymbol()

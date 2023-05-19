@@ -83,18 +83,18 @@ public:
             SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
         }
 
-        pd->enqueueFunction([_this = SafePointer(this), atoms, &textbuf]() mutable {
-            if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
-                return;
-            _this->pd->setThis();
+        pd->lockAudioThread();
+        
+        pd->setThis();
 
-            binbuf_clear(textbuf.b_binbuf);
+        binbuf_clear(textbuf.b_binbuf);
 
-            t_binbuf* z = binbuf_new();
-            binbuf_restore(z, atoms.size(), atoms.data());
-            binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
-            binbuf_free(z);
-        });
+        t_binbuf* z = binbuf_new();
+        binbuf_restore(z, atoms.size(), atoms.data());
+        binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
+        binbuf_free(z);
+        
+        pd->unlockAudioThread();
     }
 
     std::vector<hash32> getAllMessages() override
@@ -225,18 +225,18 @@ public:
             SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
         }
 
-        pd->enqueueFunction([_this = SafePointer(this), atoms, &textbuf]() mutable {
-            if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
-                return;
-            _this->pd->setThis();
+        pd->setThis();
+        
+        pd->lockAudioThread();
+        
+        binbuf_clear(textbuf.b_binbuf);
 
-            binbuf_clear(textbuf.b_binbuf);
-
-            t_binbuf* z = binbuf_new();
-            binbuf_restore(z, atoms.size(), atoms.data());
-            binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
-            binbuf_free(z);
-        });
+        t_binbuf* z = binbuf_new();
+        binbuf_restore(z, atoms.size(), atoms.data());
+        binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
+        binbuf_free(z);
+        
+        pd->unlockAudioThread();
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

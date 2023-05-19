@@ -80,13 +80,9 @@ public:
             outgoingEditor.reset();
 
             object->updateBounds(); // Recalculate bounds
-
-            pd->enqueueFunction([_this = SafePointer(this)]() {
-                if (!_this)
-                    return;
-                _this->setPdBounds(_this->object->getObjectBounds());
-            });
-
+            setPdBounds(object->getObjectBounds());
+            
+            
             setSymbol(objectText);
             repaint();
         }
@@ -147,26 +143,26 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
+        pd->lockAudioThread();
+        
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         if (TextObjectHelper::getWidthInChars(ptr)) {
             TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
         }
+        
+        pd->unlockAudioThread();
     }
 
     void setSymbol(String const& value)
     {
-        cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), ptr = this->ptr, value]() mutable {
-                if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
-                    return;
+        auto* cstr = value.toRawUTF8();
+        auto* commentObj = static_cast<t_text*>(ptr);
+        auto* canvas = cnv->patch.getPointer();
 
-                auto* cstr = value.toRawUTF8();
-                auto* commentObj = static_cast<t_text*>(ptr);
-                auto* canvas = _this->cnv->patch.getPointer();
-
-                libpd_renameobj(canvas, &commentObj->te_g, cstr, value.getNumBytesAsUTF8());
-            });
+        pd->lockAudioThread();
+        libpd_renameobj(canvas, &commentObj->te_g, cstr, value.getNumBytesAsUTF8());
+        pd->unlockAudioThread();
     }
 
     bool hideInGraph() override

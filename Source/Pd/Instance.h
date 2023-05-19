@@ -208,7 +208,7 @@ public:
     void sendSymbol(char const* receiver, char const* symbol) const;
     void sendList(char const* receiver, std::vector<pd::Atom> const& list) const;
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
-    void sendMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
+    void sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
 
     virtual void receivePrint(String const& message) {};
 
@@ -239,15 +239,12 @@ public:
 
     virtual void titleChanged() {};
 
-    void enqueueFunction(std::function<void(void)> const& fn);
     void enqueueFunctionAsync(std::function<void(void)> const& fn);
 
-    void enqueueMessages(String const& dest, String const& msg, std::vector<pd::Atom>&& list);
-
-    void enqueueDirectMessages(void* object, String const& msg, std::vector<Atom>&& list);
-    void enqueueDirectMessages(void* object, std::vector<pd::Atom> const&& list);
-    void enqueueDirectMessages(void* object, String const& msg);
-    void enqueueDirectMessages(void* object, float const msg);
+    void sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list);
+    void sendDirectMessage(void* object, std::vector<pd::Atom> const&& list);
+    void sendDirectMessage(void* object, String const& msg);
+    void sendDirectMessage(void* object, float const msg);
 
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(pd::Patch* p);
@@ -285,8 +282,6 @@ public:
     void setThis() const;
     t_symbol* generateSymbol(String const& symbol) const;
     t_symbol* generateSymbol(char const* symbol) const;
-
-    void waitForStateUpdate();
 
     void lockAudioThread();
     bool tryLockAudioThread();
