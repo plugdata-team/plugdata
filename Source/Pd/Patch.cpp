@@ -253,16 +253,16 @@ void* Patch::createGraphOnParent(int x, int y)
     return pdobject;
 }
 
-void* Patch::createGraph(int x, int y, String const& name, int size,int drawMode, bool saveContents, std::pair<float, float> range)
+void* Patch::createGraph(int x, int y, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range)
 {
     if (!ptr)
         return nullptr;
 
     instance->lockAudioThread();
-                              
+
     setCurrent();
     t_pd* pdobject = libpd_creategraph(getPointer(), name.toRawUTF8(), size, x, y, drawMode, saveContents, range.first, range.second);
-                              
+
     instance->unlockAudioThread();
 
     assert(pdobject);
@@ -310,7 +310,7 @@ void* Patch::createObject(int x, int y, String const& name)
     }
 
     if (tokens[0] == "garray" && tokens.size() == 7) {
-        return createGraph(x, y, tokens[1], tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue(), {tokens[5].getFloatValue(), tokens[6].getFloatValue()});
+        return createGraph(x, y, tokens[1], tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue(), { tokens[5].getFloatValue(), tokens[6].getFloatValue() });
     } else if (tokens[0] == "graph") {
         return createGraphOnParent(x, y);
     }
@@ -358,10 +358,10 @@ void* Patch::createObject(int x, int y, String const& name)
     }
 
     instance->lockAudioThread();
-    
+
     setCurrent();
     t_pd* pdobject = libpd_createobj(getPointer(), typesymbol, argc, argv.data());
-    
+
     instance->unlockAudioThread();
 
     assert(pdobject);
@@ -407,11 +407,11 @@ void* Patch::renameObject(void* obj, String const& name)
     String newName = tokens.joinIntoString(" ");
 
     instance->lockAudioThread();
-    
+
     setCurrent();
     libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
     t_pd* pdobject = libpd_newest(getPointer());
-    
+
     instance->unlockAudioThread();
 
     return pdobject;
@@ -421,14 +421,14 @@ void Patch::copy()
 {
     if (!ptr)
         return;
-    
+
     instance->lockAudioThread();
-    
+
     int size;
-    const char* text = libpd_copy(getPointer(), &size);
+    char const* text = libpd_copy(getPointer(), &size);
     auto copied = String::fromUTF8(text, size);
     MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
-    
+
     instance->unlockAudioThread();
 }
 
@@ -538,12 +538,12 @@ void Patch::selectObject(void* obj)
         return;
 
     instance->lockAudioThread();
-    
+
     auto* checked = &checkObject(obj)->te_g;
     if (!glist_isselected(getPointer(), checked)) {
         glist_select(getPointer(), checked);
     }
-    
+
     instance->unlockAudioThread();
 }
 
@@ -553,10 +553,10 @@ void Patch::deselectAll()
         return;
 
     instance->lockAudioThread();
-    
+
     glist_noselect(getPointer());
     libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-    
+
     instance->unlockAudioThread();
 }
 
@@ -566,10 +566,10 @@ void Patch::removeObject(void* obj)
         return;
 
     instance->lockAudioThread();
-    
+
     setCurrent();
     libpd_removeobj(getPointer(), &checkObject(obj)->te_g);
-    
+
     instance->unlockAudioThread();
 }
 
@@ -577,7 +577,6 @@ bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 {
     if (!ptr)
         return false;
-
 
     instance->lockAudioThread();
     auto hasConnection = libpd_hasconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
@@ -592,9 +591,10 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
         return false;
 
     instance->lockAudioThread();
-    bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);;
+    bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+    ;
     instance->unlockAudioThread();
-    
+
     return canConnect;
 }
 
@@ -605,8 +605,7 @@ void Patch::createConnection(void* src, int nout, void* sink, int nin)
 
     instance->lockAudioThread();
     bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-    if(canConnect)
-    {
+    if (canConnect) {
         setCurrent();
         libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     }
@@ -618,10 +617,10 @@ void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
     if (!src || !sink || !ptr)
         return nullptr;
 
-     void* outconnect = nullptr;
+    void* outconnect = nullptr;
 
     instance->lockAudioThread();
-    
+
     bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
 
     if (canConnect) {
@@ -640,10 +639,10 @@ void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol*
         return;
 
     instance->lockAudioThread();
-    
+
     setCurrent();
     libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
-    
+
     instance->unlockAudioThread();
 }
 
@@ -653,7 +652,7 @@ void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol
         return nullptr;
 
     instance->lockAudioThread();
-    
+
     setCurrent();
     void* outconnect = libpd_setconnectionpath(getPointer(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
 
@@ -666,7 +665,7 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
 {
     if (!ptr)
         return;
-    
+
     instance->lockAudioThread();
 
     setCurrent();
@@ -683,7 +682,7 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
 
     libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
     setCurrent();
-    
+
     instance->unlockAudioThread();
 }
 
@@ -691,12 +690,12 @@ void Patch::finishRemove()
 {
     if (!ptr)
         return;
-    
+
     instance->lockAudioThread();
-    
+
     setCurrent();
     libpd_finishremove(getPointer());
-    
+
     instance->unlockAudioThread();
 }
 
@@ -705,12 +704,11 @@ void Patch::removeSelection()
     if (!ptr)
         return;
 
-    
     instance->lockAudioThread();
-    
+
     setCurrent();
     libpd_removeselection(getPointer());
-    
+
     instance->unlockAudioThread();
 }
 
@@ -720,7 +718,7 @@ void Patch::startUndoSequence(String name)
         return;
 
     instance->lockAudioThread();
-    
+
     canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, instance->generateSymbol(name)->s_name, 0);
 
     instance->unlockAudioThread();
@@ -740,15 +738,15 @@ void Patch::undo()
 {
     if (!ptr)
         return;
-    
+
     instance->lockAudioThread();
-    
+
     setCurrent();
     glist_noselect(getPointer());
     libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
     libpd_undo(getPointer());
-    
+
     instance->unlockAudioThread();
 }
 
@@ -758,13 +756,13 @@ void Patch::redo()
         return;
 
     instance->lockAudioThread();
-    
+
     setCurrent();
     glist_noselect(getPointer());
     libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
     libpd_redo(getPointer());
-    
+
     instance->unlockAudioThread();
 }
 
@@ -779,11 +777,11 @@ String Patch::getTitle() const
         return "";
 
     instance->lockAudioThread();
-    
+
     String name = String::fromUTF8(getPointer()->gl_name->s_name);
-    
+
     instance->unlockAudioThread();
-    
+
     return name.isEmpty() ? "Untitled Patcher" : name;
 }
 
@@ -801,11 +799,11 @@ void Patch::setTitle(String const& title)
     SETSYMBOL(args + 1, pathSym);
 
     instance->lockAudioThread();
-    
+
     pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("rename"), 2, args);
 
     instance->unlockAudioThread();
-    
+
     MessageManager::callAsync([instance = this->instance]() {
         instance->titleChanged();
     });
@@ -835,7 +833,7 @@ String Patch::getCanvasContent()
 {
     if (!ptr)
         return {};
-    
+
     instance->lockAudioThread();
 
     char* buf;
@@ -847,7 +845,7 @@ String Patch::getCanvasContent()
     freebytes(static_cast<void*>(buf), static_cast<size_t>(bufsize) * sizeof(char));
 
     instance->unlockAudioThread();
-    
+
     return content;
 }
 

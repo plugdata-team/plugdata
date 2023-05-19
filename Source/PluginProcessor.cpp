@@ -246,7 +246,7 @@ void PluginProcessor::initialiseFilesystem()
 
     OSUtils::createJunction(library.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
 
-    if(!deken.exists()) {
+    if (!deken.exists()) {
         OSUtils::createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
     }
 
@@ -280,13 +280,13 @@ void PluginProcessor::updateSearchPaths()
         paths.addIfNotAlreadyThere(path);
     }
 
-    for (const auto& path : paths) {
+    for (auto const& path : paths) {
         if (currentPaths.contains(path.getFullPathName()))
             continue;
         libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
 
-    for (const auto& path : DekenInterface::getExternalPaths()) {
+    for (auto const& path : DekenInterface::getExternalPaths()) {
         if (currentPaths.contains(path))
             continue;
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
@@ -435,8 +435,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
     statusbarSource->setSampleRate(AudioProcessor::getSampleRate());
-    limiter.prepare({sampleRate, static_cast<uint32>(samplesPerBlock),  static_cast<uint32>(getTotalNumOutputChannels())});
-    //limiter.setThreshold(float newThreshold)
+    limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(getTotalNumOutputChannels()) });
+    // limiter.setThreshold(float newThreshold)
 
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
 }
@@ -562,7 +562,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 
     if (protectedMode) {
-        
+
         // Take out inf and NaN values
         auto* const* writePtr = buffer.getArrayOfWritePointers();
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
@@ -572,10 +572,10 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
                 }
             }
         }
-        
+
         auto block = dsp::AudioBlock<float>();
         block.copyFrom(buffer);
-        
+
         limiter.process(dsp::ProcessContextReplacing<float>(block));
     }
 }
@@ -883,7 +883,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     auto* editor = new PluginEditor(*this);
     setThis();
 
-    for (const auto& patch : patches) {
+    for (auto const& patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
         editor->addTab(cnv);
     }
@@ -940,7 +940,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     auto* patchesTree = new XmlElement("Patches");
 
-    for (const auto& patch : patches) {
+    for (auto const& patch : patches) {
 
         if (palettes.contains(patch.get()))
             continue;
@@ -1174,7 +1174,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
 {
     // First, check if patch is already opened
-    for (const auto& patch : patches) {
+    for (auto const& patch : patches) {
         if (patch->getCurrentFile() == patchFile) {
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                 MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {

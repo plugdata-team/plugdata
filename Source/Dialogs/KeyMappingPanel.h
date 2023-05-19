@@ -2,7 +2,6 @@
 
 // Keymapping object based on JUCE's KeyMappingEditorComponent
 
-
 class KeyMappingComponent : public Component
     , public ChangeListener {
 public:
@@ -23,41 +22,40 @@ public:
     {
         mappings.removeChangeListener(this);
     }
-        
+
     void updateMappings()
     {
         auto& viewport = propertiesPanel.getViewport();
         auto viewY = viewport.getViewPositionY();
         propertiesPanel.clear();
-    
+
         auto resetMaxDefaults = [this] {
             Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
                 [this](int result) {
                     resetKeyMappingsToMaxCallback(result, this);
                 });
         };
-        auto resetPdDefaults = [this](){
+        auto resetPdDefaults = [this]() {
             Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
                 [this](int result) {
                     resetKeyMappingsToPdCallback(result, this);
                 });
         };
-        
+
         auto* resetMaxButton = new PropertiesPanel::ActionComponent(resetPdDefaults, Icons::Reset, "Reset to Pd defaults", true, false);
         auto* resetPdButton = new PropertiesPanel::ActionComponent(resetMaxDefaults, Icons::Reset, "Reset to Max defaults", false, true);
-        
-        propertiesPanel.addSection("Reset", {resetMaxButton, resetPdButton});
-        
-        for (auto category : mappings.getCommandManager().getCommandCategories())
-        {
+
+        propertiesPanel.addSection("Reset", { resetMaxButton, resetPdButton });
+
+        for (auto category : mappings.getCommandManager().getCommandCategories()) {
             Array<PropertiesPanel::Property*> properties;
-            for (auto command : mappings.getCommandManager().getCommandsInCategory (category)) {
+            for (auto command : mappings.getCommandManager().getCommandsInCategory(category)) {
                 properties.add(new KeyMappingProperty(*this, mappings.getCommandManager().getNameOfCommand(command), command));
             }
-            
+
             propertiesPanel.addSection(category, properties);
         }
-        
+
         viewport.setViewPosition(0.0f, viewY);
     }
 
@@ -67,7 +65,7 @@ public:
 
         auto newTree = mappings.createXml(true)->toString();
         keyMapTree.setProperty("keyxml", newTree, nullptr);
-        
+
         updateMappings();
     }
 
@@ -306,7 +304,8 @@ private:
 
     class KeyMappingProperty : public PropertiesPanel::Property {
     public:
-        KeyMappingProperty(KeyMappingComponent& kec, String name, CommandID command) : PropertiesPanel::Property(name)
+        KeyMappingProperty(KeyMappingComponent& kec, String name, CommandID command)
+            : PropertiesPanel::Property(name)
             , owner(kec)
             , commandID(command)
         {

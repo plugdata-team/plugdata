@@ -525,15 +525,15 @@ public:
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
-        
+
         auto bounds = getLocalBounds().removeFromTop(40).toFloat();
-        
+
         Path p;
         p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
-        
+
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillPath(p);
-        
+
         if (errorMessage.isNotEmpty()) {
             Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
         }
@@ -542,7 +542,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         Fonts::drawStyledText(g, "Find Externals", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
-        
+
         Fonts::drawIcon(g, Icons::Search, 0, 40, 30, findColour(PlugDataColour::panelTextColourId), 12);
 
         if (input.getText().isEmpty()) {

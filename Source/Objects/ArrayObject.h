@@ -325,7 +325,7 @@ public:
             array.write(interpStart + n, changed[n]);
         }
         pd->unlockAudioThread();
-        
+
         lastIndex = index;
 
         pd->sendDirectMessage(array.ptr, stringArray);
@@ -478,7 +478,7 @@ public:
         objectParameters.addParamString("Name", cGeneral, &name);
         objectParameters.addParamInt("Size", cGeneral, &size);
         objectParameters.addParamCombo("Draw mode", cGeneral, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2);
-        objectParameters.addParamRange("Y range", cGeneral, &range, {-1.0f, 1.0f} );
+        objectParameters.addParamRange("Y range", cGeneral, &range, { -1.0f, 1.0f });
         objectParameters.addParamBool("Save contents", cGeneral, &saveContents, { "No", "Yes" }, 0);
 
         startTimer(20);
@@ -557,7 +557,7 @@ public:
     void update() override
     {
         auto scale = array.getScale();
-        range = var(Array<var>{ var(scale[0]), var(scale[1]) });
+        range = var(Array<var> { var(scale[0]), var(scale[1]) });
         size = var(static_cast<int>(graph.array.size()));
         saveContents = array.willSaveContent();
         name = String(array.getUnexpandedName());
@@ -588,16 +588,16 @@ public:
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
 
         pd->lockAudioThread();
-        
+
         auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
         garray_arraydialog(garray, pd->generateSymbol(arrName), arrSize, static_cast<float>(flags), 0.0f);
-        
+
         pd->unlockAudioThread();
-        
+
         array = getArray();
         graph.setArray(array);
         updateLabel();
-        
+
         graph.repaint();
     }
 

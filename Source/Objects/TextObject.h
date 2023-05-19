@@ -24,7 +24,7 @@ struct TextObjectHelper {
             w = std::max(charWidth, minWidth) * fontWidth;
         } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
             w = std::clamp(idealTextWidth, minWidth * fontWidth, fontWidth * 60);
-        } else {                     // If width was set manually, calculate what the width is
+        } else { // If width was set manually, calculate what the width is
             w = std::max(charWidth, minWidth) * fontWidth + offset;
         }
 

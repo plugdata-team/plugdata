@@ -29,12 +29,12 @@ public:
         ColourPicker::show(getTopLevelComponent(), true, Colour(red, green, blue), object->getScreenBounds(), [_this = SafePointer(this), x](Colour c) {
             if (!_this)
                 return;
-            
+
             _this->pd->lockAudioThread();
-            
+
             outlet_symbol(x->x_obj.te_outlet, _this->pd->generateSymbol(String("#") + c.toString().substring(2)));
             snprintf(x->x_color, 1000, "#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue());
-            
+
             _this->pd->unlockAudioThread();
         });
     }

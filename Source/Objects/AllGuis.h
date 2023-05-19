@@ -10,16 +10,16 @@
 // Atoms
 struct t_fake_gatom {
     t_text a_text;
-    int a_flavor;                     /* A_FLOAT, A_SYMBOL, or A_LIST */
-    t_glist* a_glist;                 /* owning glist */
-    t_float a_toggle;                 /* value to toggle to */
-    t_float a_draghi;                 /* high end of drag range */
-    t_float a_draglo;                 /* low end of drag range */
-    t_symbol* a_label;                /* symbol to show as label next to box */
-    t_symbol* a_symfrom;              /* "receive" name -- bind ourselves to this */
-    t_symbol* a_symto;                /* "send" name -- send to this on output */
-    t_binbuf* a_revertbuf;            /* binbuf to revert to if typing canceled */
-    int a_dragindex;                  /* index of atom being dragged */
+    int a_flavor;          /* A_FLOAT, A_SYMBOL, or A_LIST */
+    t_glist* a_glist;      /* owning glist */
+    t_float a_toggle;      /* value to toggle to */
+    t_float a_draghi;      /* high end of drag range */
+    t_float a_draglo;      /* low end of drag range */
+    t_symbol* a_label;     /* symbol to show as label next to box */
+    t_symbol* a_symfrom;   /* "receive" name -- bind ourselves to this */
+    t_symbol* a_symto;     /* "send" name -- send to this on output */
+    t_binbuf* a_revertbuf; /* binbuf to revert to if typing canceled */
+    int a_dragindex;       /* index of atom being dragged */
     int a_fontsize;
     unsigned int a_shift : 1;         /* was shift key down when drag started? */
     unsigned int a_wherelabel : 2;    /* 0-3 for left, right, above, below */
@@ -73,10 +73,10 @@ struct t_out {
 // [clone]
 struct t_fake_clone {
     t_object x_obj;
-    int x_n;          /* number of copies */
-    t_copy* x_vec;    /* the copies */
+    int x_n;       /* number of copies */
+    t_copy* x_vec; /* the copies */
     int x_nin;
-    t_in* x_invec;    /* inlet proxies */
+    t_in* x_invec; /* inlet proxies */
     int x_nout;
     t_out** x_outvec; /* outlet proxies */
     t_symbol* x_s;    /* name of abstraction */
@@ -523,11 +523,11 @@ struct t_fake_fielddesc {
         t_symbol* fd_symbol; /* the field is a constant symbol */
         t_symbol* fd_varsym; /* the field is variable and this is the name */
     } fd_un;
-    float fd_v1;             /* min and max values */
+    float fd_v1; /* min and max values */
     float fd_v2;
-    float fd_screen1;        /* min and max screen values */
+    float fd_screen1; /* min and max screen values */
     float fd_screen2;
-    float fd_quantum;        /* quantization in value */
+    float fd_quantum; /* quantization in value */
 };
 
 // for template drawing

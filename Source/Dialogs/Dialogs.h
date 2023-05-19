@@ -11,7 +11,6 @@
 class PluginEditor;
 class Canvas;
 
-
 using ArrayDialogCallback = std::function<void(int, String, int, int, bool, std::pair<float, float>)>;
 
 class Dialog : public Component {
@@ -151,7 +150,7 @@ struct Dialogs {
     static void showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position);
 
     static void showObjectMenu(PluginEditor* parent, Component* target);
-    
+
     static void showDeken(PluginEditor* editor);
 
     static PopupMenu createObjectMenu(PluginEditor* parent);

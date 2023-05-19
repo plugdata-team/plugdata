@@ -523,7 +523,8 @@ StringArray Connection::getMessageFormated()
 void Connection::mouseEnter(MouseEvent const& e)
 {
     isHovering = true;
-    if(!outlet->isSignal) cnv->editor->connectionMessageDisplay->setConnection(this, e.getScreenPosition());
+    if (!outlet->isSignal)
+        cnv->editor->connectionMessageDisplay->setConnection(this, e.getScreenPosition());
     repaint();
 }
 
@@ -982,15 +983,15 @@ void Connection::findPath()
 
             simplifiedPath.push_back(pend); // double to make it draggable
             simplifiedPath.push_back(pend);
-            simplifiedPath.emplace_back( pend.x + xHalfDistance, pend.y );
-            simplifiedPath.emplace_back( pend.x + xHalfDistance, pstart.y );
+            simplifiedPath.emplace_back(pend.x + xHalfDistance, pend.y);
+            simplifiedPath.emplace_back(pend.x + xHalfDistance, pstart.y);
             simplifiedPath.push_back(pstart);
             simplifiedPath.push_back(pstart);
         } else {
             int yHalfDistance = (pstart.y - pend.y) / 2;
             simplifiedPath.push_back(pend);
-            simplifiedPath.emplace_back( pend.x, pend.y + yHalfDistance );
-            simplifiedPath.emplace_back( pstart.x, pend.y + yHalfDistance );
+            simplifiedPath.emplace_back(pend.x, pend.y + yHalfDistance);
+            simplifiedPath.emplace_back(pstart.x, pend.y + yHalfDistance);
             simplifiedPath.push_back(pstart);
         }
     }

@@ -68,26 +68,25 @@ public:
         : processor(dynamic_cast<PluginProcessor*>(editor->getAudioProcessor()))
     {
         setVisible(false);
-        
-        if(ProjectInfo::isStandalone)
-        {
+
+        if (ProjectInfo::isStandalone) {
             toolbarButtons = {
                 new SettingsToolbarButton(Icons::Audio, "Audio"),
                 new SettingsToolbarButton(Icons::MIDI, "MIDI"),
                 new SettingsToolbarButton(Icons::Pencil, "Themes"),
                 new SettingsToolbarButton(Icons::Search, "Paths"),
                 new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
-                new SettingsToolbarButton(Icons::Wrench, "Advanced") };
-        }
-        else {
+                new SettingsToolbarButton(Icons::Wrench, "Advanced")
+            };
+        } else {
             toolbarButtons = {
                 new SettingsToolbarButton(Icons::Audio, "Audio"),
                 new SettingsToolbarButton(Icons::Pencil, "Themes"),
                 new SettingsToolbarButton(Icons::Search, "Paths"),
                 new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
-                new SettingsToolbarButton(Icons::Wrench, "Advanced") };
+                new SettingsToolbarButton(Icons::Wrench, "Advanced")
+            };
         }
-
 
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 

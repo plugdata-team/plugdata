@@ -190,8 +190,7 @@ private:
 
     int lastSplitIndex = -1;
     int lastSetProgram = 0;
-        
-        
+
     dsp::Limiter<float> limiter;
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 

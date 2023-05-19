@@ -558,7 +558,7 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 
 void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
 {
-    for (const auto& patch : pd->patches) {
+    for (auto const& patch : pd->patches) {
         patch->deselectAll();
     }
 
@@ -799,7 +799,7 @@ void PluginEditor::updateCommandStatus()
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr)
             return;
-        
+
         pd->lockAudioThread();
         canUndo = libpd_can_undo(patchPtr) && !isDragging && !locked;
         canRedo = libpd_can_redo(patchPtr) && !isDragging && !locked;
@@ -1118,7 +1118,8 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setActive(true);
         break;
     }
-    default: break;
+    default:
+        break;
     }
 
     static auto const cmdMod = ModifierKeys::commandModifier;
@@ -1448,7 +1449,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
             [this](int result, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range) {
                 if (result) {
                     auto* cnv = getCurrentCanvas(true);
-                    auto initialiser = StringArray{"garray", name, String(size), String(drawMode), String(static_cast<int>(saveContents)), String(range.first), String(range.second)}.joinIntoString(" ");
+                    auto initialiser = StringArray { "garray", name, String(size), String(drawMode), String(static_cast<int>(saveContents)), String(range.first), String(range.second) }.joinIntoString(" ");
                     auto* object = new Object(cnv, initialiser, cnv->viewport->getViewArea().getCentre());
                     cnv->objects.add(object);
                 }

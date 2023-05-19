@@ -325,12 +325,12 @@ void ObjectBase::stopEdition()
 void ObjectBase::sendFloatValue(float newValue)
 {
     pd->lockAudioThread();
-    
+
     t_atom atom;
     SETFLOAT(&atom, newValue);
     pd_typedmess(static_cast<t_pd*>(ptr), cnv->patch.instance->generateSymbol("set"), 1, &atom);
     pd_bang(static_cast<t_pd*>(ptr));
-    
+
     pd->unlockAudioThread();
 }
 

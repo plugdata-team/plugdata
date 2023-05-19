@@ -146,7 +146,7 @@ public:
             break;
         }
         case hash("bold"): {
-            if(atoms.size() > 0 && atoms[0].isFloat())
+            if (atoms.size() > 0 && atoms[0].isFloat())
                 bold = atoms[0].getFloat();
             break;
         }

@@ -6,7 +6,6 @@
 
 #include "../Utility/PropertiesPanel.h"
 
-
 class Inspector : public Component {
 
     PropertyPanel panel;
@@ -20,10 +19,10 @@ public:
         resetButton.setButtonText(Icons::Reset);
         resetButton.getProperties().set("Style", "SmallIcon");
         resetButton.setTooltip("Reset to default");
-        resetButton.setSize(23,23);
+        resetButton.setSize(23, 23);
 
         addAndMakeVisible(resetButton);
-        resetButton.onClick = [this](){
+        resetButton.onClick = [this]() {
             properties.resetAll();
         };
 

@@ -21,7 +21,6 @@
 
 #include "Utility/ArrowPopupMenu.h"
 
-
 VolumeSlider::VolumeSlider()
     : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
 {
@@ -36,7 +35,7 @@ void VolumeSlider::resized()
 void VolumeSlider::paint(Graphics& g)
 {
     auto backgroundColour = findColour(PlugDataColour::levelMeterThumbColourId);
-    
+
     auto value = getValue();
     auto thumbSize = getHeight() * 0.7f;
     auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
@@ -45,12 +44,10 @@ void VolumeSlider::paint(Graphics& g)
     g.fillEllipse(thumb);
 }
 
-
-
 class LevelMeter : public Component
     , public StatusbarSource::Listener {
-    float audioLevel[2] = {0.0f, 0.0f};
-    float peekLevel[2] = {0.0f, 0.0f};
+    float audioLevel[2] = { 0.0f, 0.0f };
+    float peekLevel[2] = { 0.0f, 0.0f };
 
     int numChannels = 2;
 
@@ -73,8 +70,8 @@ public:
                     clipping[i] = false;
             }
         }
-    if (isShowing() && hasChanged)
-        repaint();
+        if (isShowing() && hasChanged)
+            repaint();
     }
 
     void paint(Graphics& g) override
@@ -93,7 +90,7 @@ public:
         auto meterWidth = width - bgHeight;
         auto barWidth = meterWidth - 2;
         auto leftOffset = x + (bgHeight * 0.5f);
-        
+
         g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth, bgWidth, bgHeight, bgHeight * 0.5f);
 
@@ -259,7 +256,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(volumeSlider);
 
     volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), volumeSlider, nullptr);
-    
+
     volumeSlider.setRange(0.0f, 1.0f);
     volumeSlider.setValue(0.8f);
     volumeSlider.setDoubleClickReturnValue(true, 0.8f);
@@ -396,7 +393,8 @@ void Statusbar::audioProcessedChanged(bool audioProcessed)
     powerButton.setColour(TextButton::textColourOnId, colour);
 }
 
-StatusbarSource::StatusbarSource() : numChannels(0)
+StatusbarSource::StatusbarSource()
+    : numChannels(0)
 {
     startTimerHz(30);
 }
@@ -409,7 +407,7 @@ static bool hasRealEvents(MidiBuffer& buffer)
         });
 }
 
-void StatusbarSource::setSampleRate(const double newSampleRate)
+void StatusbarSource::setSampleRate(double const newSampleRate)
 {
     sampleRate = static_cast<int>(newSampleRate);
 }

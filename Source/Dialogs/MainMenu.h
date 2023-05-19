@@ -70,7 +70,7 @@ public:
         addSeparator();
 
         addCustomItem(getMenuItemID(MenuItem::FindExternals), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::FindExternals)]), nullptr, "Find externals...");
-        
+
         addCustomItem(getMenuItemID(MenuItem::Settings), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Settings)]), nullptr, "Settings...");
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
 

@@ -27,15 +27,14 @@ public:
 
         romOptimisation = new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, { "Optimise for size", "Optimise for speed" });
         ramOptimisation = new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, { "Optimise for size", "Optimise for speed" });
-        
+
         properties.add(romOptimisation);
         properties.add(ramOptimisation);
-        
-        for(auto* property : properties)
-        {
+
+        for (auto* property : properties) {
             property->setPreferredHeight(28);
         }
-        
+
         panel.addSection("Daisy", properties);
 
         exportButton.setVisible(false);

@@ -461,12 +461,12 @@ void Canvas::synchroniseSplitCanvas()
 void Canvas::performSynchronise()
 {
     pd->lockAudioThread();
-    
+
     patch.setCurrent();
     pd->sendMessagesFromQueue();
-    
+
     pd->unlockAudioThread();
-    
+
     auto pdObjects = patch.getObjects();
 
     // Remove deleted connections
@@ -487,9 +487,10 @@ void Canvas::performSynchronise()
 
     for (auto* object : pdObjects) {
         auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object; });
-        
-        if(patch.objectWasDeleted(object)) return;
-        
+
+        if (patch.objectWasDeleted(object))
+            return;
+
         if (it == objects.end()) {
             auto* newBox = objects.add(new Object(object, this));
             newBox->toFront(false);
@@ -1180,9 +1181,9 @@ void Canvas::encapsulateSelection()
 
     // Apply the changed on Pd's thread
     pd->lockAudioThread();
-    
+
     int size;
-    const char* text = libpd_copy(patch.getPointer(), &size);
+    char const* text = libpd_copy(patch.getPointer(), &size);
     auto copied = String::fromUTF8(text, size);
 
     // Wrap it in an undo sequence, to allow undoing everything in 1 step
@@ -1207,7 +1208,7 @@ void Canvas::encapsulateSelection()
     }
 
     patch.endUndoSequence("encapsulate");
-    
+
     pd->unlockAudioThread();
 
     synchronise();

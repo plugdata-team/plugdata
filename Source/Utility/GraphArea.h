@@ -77,13 +77,13 @@ public:
         t_canvas* cnv = canvas->patch.getPointer();
 
         canvas->pd->lockAudioThread();
-        
+
         cnv->gl_pixwidth = getWidth();
         cnv->gl_pixheight = getHeight();
 
         cnv->gl_xmargin = getX() - canvas->canvasOrigin.x;
         cnv->gl_ymargin = getY() - canvas->canvasOrigin.y;
-        
+
         canvas->pd->unlockAudioThread();
     }
 

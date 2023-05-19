@@ -5,44 +5,39 @@
  */
 #include <juce_audio_utils/juce_audio_utils.h>
 
-class MidiSettingsToggle : public PropertiesPanel::BoolComponent
-{
+class MidiSettingsToggle : public PropertiesPanel::BoolComponent {
 public:
     MidiSettingsToggle(bool isMidiInput, PluginProcessor* pluginProcessor, MidiDeviceInfo& midiDeviceInfo, AudioDeviceManager& audioDeviceManager)
-    : PropertiesPanel::BoolComponent(midiDeviceInfo.name, {"Disabled", "Enabled"})
-    , deviceInfo(midiDeviceInfo), deviceManager(audioDeviceManager), isInput(isMidiInput), processor(pluginProcessor)
+        : PropertiesPanel::BoolComponent(midiDeviceInfo.name, { "Disabled", "Enabled" })
+        , deviceInfo(midiDeviceInfo)
+        , deviceManager(audioDeviceManager)
+        , isInput(isMidiInput)
+        , processor(pluginProcessor)
     {
-        if(isInput)
-        {
+        if (isInput) {
             toggleStateValue = deviceManager.isMidiInputDeviceEnabled(deviceInfo.identifier);
-        }
-        else {
+        } else {
             toggleStateValue = getMidiOutputIfEnabled() != nullptr;
         }
     }
-    
+
 private:
-    
     void valueChanged(Value& v) override
     {
         repaint();
-        
-        if(isInput)
-        {
+
+        if (isInput) {
             deviceManager.setMidiInputDeviceEnabled(deviceInfo.identifier, getValue<bool>(toggleStateValue));
-        }
-        else {
-            if(getValue<bool>(toggleStateValue))
-            {
+        } else {
+            if (getValue<bool>(toggleStateValue)) {
                 auto* device = processor->midiOutputs.add(MidiOutput::openDevice(deviceInfo.identifier));
                 device->startBackgroundThread();
-            }
-            else if(auto* midiOut = getMidiOutputIfEnabled()) {
+            } else if (auto* midiOut = getMidiOutputIfEnabled()) {
                 processor->midiOutputs.removeObject(midiOut);
             }
         }
     }
-    
+
     MidiOutput* getMidiOutputIfEnabled()
     {
         for (auto* midiOut : processor->midiOutputs) {
@@ -50,89 +45,90 @@ private:
                 return midiOut;
             }
         }
-        
+
         return nullptr;
     }
-    
+
     bool isInput;
     PluginProcessor* processor;
     MidiDeviceInfo deviceInfo;
     AudioDeviceManager& deviceManager;
 };
 
-class InternalSynthToggle : public PropertiesPanel::BoolComponent
-{
+class InternalSynthToggle : public PropertiesPanel::BoolComponent {
 public:
-    InternalSynthToggle(PluginProcessor* audioProcessor) : PropertiesPanel::BoolComponent("Internal GM Synth", {"Disabled", "Enabled"}), processor(audioProcessor)
+    InternalSynthToggle(PluginProcessor* audioProcessor)
+        : PropertiesPanel::BoolComponent("Internal GM Synth", { "Disabled", "Enabled" })
+        , processor(audioProcessor)
     {
         toggleStateValue = processor->enableInternalSynth.load();
     }
-    
+
     void valueChanged(Value& v) override
     {
         repaint();
-        
+
         processor->enableInternalSynth = getValue<bool>(toggleStateValue);
         processor->settingsFile->setProperty("internal_synth", static_cast<int>(processor->enableInternalSynth));
     }
-    
+
     PluginProcessor* processor;
 };
 
-class StandaloneMIDISettings : public Component, private ChangeListener
-{
+class StandaloneMIDISettings : public Component
+    , private ChangeListener {
 public:
-    StandaloneMIDISettings(PluginProcessor* audioProcessor, AudioDeviceManager& audioDeviceManager) : processor(audioProcessor), deviceManager(audioDeviceManager)
+    StandaloneMIDISettings(PluginProcessor* audioProcessor, AudioDeviceManager& audioDeviceManager)
+        : processor(audioProcessor)
+        , deviceManager(audioDeviceManager)
     {
         addAndMakeVisible(midiProperties);
-        
+
         deviceManager.addChangeListener(this);
         updateDevices();
     }
-    
+
     ~StandaloneMIDISettings()
     {
         deviceManager.removeChangeListener(this);
     }
+
 private:
     void resized() override
     {
         midiProperties.setBounds(getLocalBounds());
     }
-    
+
     void updateDevices()
     {
         midiProperties.clear();
-        
+
         auto midiInputDevices = MidiInput::getAvailableDevices();
         auto midiInputProperties = Array<PropertiesPanel::Property*>();
-        
-        for(auto& deviceInfo : midiInputDevices)
-        {
+
+        for (auto& deviceInfo : midiInputDevices) {
             midiInputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
         }
 
         midiProperties.addSection("MIDI Inputs", midiInputProperties);
-        
+
         auto midiOutputDevices = MidiOutput::getAvailableDevices();
         auto midiOutputProperties = Array<PropertiesPanel::Property*>();
-        
-        for(auto& deviceInfo : midiOutputDevices)
-        {
+
+        for (auto& deviceInfo : midiOutputDevices) {
             midiOutputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo, deviceManager));
         }
-        
+
         midiOutputProperties.add(new InternalSynthToggle(processor));
-        
+
         midiProperties.addSection("MIDI Outputs", midiOutputProperties);
     }
-    
+
     void changeListenerCallback(ChangeBroadcaster*) override
     {
         updateDevices();
     }
 
-    
     PluginProcessor* processor;
     AudioDeviceManager& deviceManager;
     PropertiesPanel midiProperties;

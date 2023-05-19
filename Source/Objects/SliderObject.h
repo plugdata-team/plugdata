@@ -374,11 +374,11 @@ public:
     void setLogScale(bool log)
     {
         pd->lockAudioThread();
-        
+
         auto* sym = pd->generateSymbol(log ? "log" : "lin");
         pd_typedmess(static_cast<t_pd*>(ptr), sym, 0, nullptr);
         update();
-        
+
         pd->unlockAudioThread();
     }
 

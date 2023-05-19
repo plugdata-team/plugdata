@@ -540,7 +540,7 @@ void Instance::sendDirectMessage(void* object, std::vector<Atom> const&& list)
 
 void Instance::sendDirectMessage(void* object, String const& msg)
 {
-    
+
     lockAudioThread();
     processSend(dmessage { object, String(), "symbol", std::vector<Atom>(1, msg) });
     unlockAudioThread();
@@ -645,19 +645,19 @@ void Instance::createPanel(int type, char const* snd, char const* location)
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
                 openChooser->launchAsync(folderChooserFlags, [this, obj](FileChooser const& fileChooser) {
                     auto const file = fileChooser.getResult();
-                    
+
                     lockAudioThread();
                     String pathname = file.getFullPathName().toRawUTF8();
-                    
-                    // Convert slashes to backslashes
+
+                // Convert slashes to backslashes
 #if JUCE_WINDOWS
                     pathname = pathname.replaceCharacter('\\', '/');
 #endif
-                    
+
                     t_atom argv[1];
                     libpd_set_symbol(argv, pathname.toRawUTF8());
                     pd_typedmess(obj, generateSymbol("callback"), 1, argv);
-                    
+
                     unlockAudioThread();
                 });
             });
@@ -670,14 +670,12 @@ void Instance::createPanel(int type, char const* snd, char const* location)
                 saveChooser->launchAsync(folderChooserFlags,
                     [this, obj](FileChooser const& fileChooser) {
                         const auto file = fileChooser.getResult();
-                    
-                        
-                    
+
                         const auto* path = file.getFullPathName().toRawUTF8();
 
                         t_atom argv[1];
                         libpd_set_symbol(argv, path);
-                    
+
                         lockAudioThread();
                         pd_typedmess(obj, generateSymbol("callback"), 1, argv);
                         unlockAudioThread();

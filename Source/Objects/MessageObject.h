@@ -183,9 +183,9 @@ public:
             object->updateBounds(); // Recalculate bounds
 
             cnv->pd->lockAudioThread();
-            
+
             setPdBounds(object->getObjectBounds());
-            
+
             cnv->pd->unlockAudioThread();
 
             setSymbol(objectText);
@@ -263,13 +263,13 @@ public:
     void setSymbol(String const& value)
     {
         cnv->pd->lockAudioThread();
-        
+
         auto* cstr = value.toRawUTF8();
         auto* messobj = static_cast<t_text*>(ptr);
         auto* canvas = cnv->patch.getPointer();
 
         libpd_renameobj(canvas, &messobj->te_g, cstr, value.getNumBytesAsUTF8());
-        
+
         cnv->pd->unlockAudioThread();
     }
 

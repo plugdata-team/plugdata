@@ -25,7 +25,7 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 
 class ObjectParameters {
 public:
-    ObjectParameters(){};
+    ObjectParameters() {};
 
     Array<ObjectParameter> getParameters()
     {
@@ -120,7 +120,7 @@ public:
 
 private:
     Array<ObjectParameter> objectParameters;
-    
+
     ObjectParameter makeParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray pStringList, var pDefault)
     {
         return std::make_tuple(pString, pType, pCat, pVal, pStringList, pDefault);

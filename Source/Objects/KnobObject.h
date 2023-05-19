@@ -61,10 +61,9 @@ public:
 
         auto sliderPosProportional = (getValue() - 0.01f) / (1 - 2 * 0.01f);
 
-        
         auto startAngle = getRotaryParameters().startAngleRadians;
         auto endAngle = getRotaryParameters().endAngleRadians;
-        
+
         float angle = jmap<float>(sliderPosProportional, startAngle, endAngle);
 
         startAngle = std::clamp(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
@@ -81,7 +80,7 @@ public:
         // draw arc
         if (drawArc) {
             auto centre = jmap<double>(getDoubleClickReturnValue(), startAngle, endAngle);
-            
+
             Path arc;
             arc.addPieSegment(arcBounds, centre, angle, arcWidth);
             g.setColour(fgColour);
@@ -168,13 +167,13 @@ public:
         objectParameters.addParamInt("Angular range", cGeneral, &angularRange, 270);
         objectParameters.addParamInt("Angular offset", cGeneral, &angularOffset, 0);
         objectParameters.addParamFloat("Exp", cGeneral, &exponential, 0.0f);
-        
+
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
-        
+
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
-        
+
         objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);

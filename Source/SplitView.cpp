@@ -172,7 +172,7 @@ SplitView::SplitView(PluginEditor* parent)
 
             bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
 
-            tabMenu.addItem(revealTip, canReveal, false, [ cnv]() {
+            tabMenu.addItem(revealTip, canReveal, false, [cnv]() {
                 cnv->patch.getCurrentFile().revealToUser();
             });
 

@@ -67,11 +67,11 @@ public:
     {
         if (!alreadyBanged) {
             pd->lockAudioThread();
-            
+
             startEdition();
             pd_bang(static_cast<t_pd*>(ptr));
             stopEdition();
-            
+
             pd->unlockAudioThread();
 
             trigger();
@@ -87,11 +87,11 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         pd->lockAudioThread();
-        
+
         startEdition();
         pd_bang(static_cast<t_pd*>(ptr));
         stopEdition();
-        
+
         pd->unlockAudioThread();
 
         // Make sure we don't re-click with an accidental drag

@@ -193,7 +193,7 @@ protected:
         setParameterExcludingListener(v, clampedValue);
         return clampedValue;
     }
-        
+
     template<typename T>
     T limitValueRange(Value& v, T min, T max)
     {

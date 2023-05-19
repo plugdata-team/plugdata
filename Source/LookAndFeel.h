@@ -682,49 +682,55 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         drawTabButtonText(button, g, false, false);
     }
-    
-    void drawTabButtonText (TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
+
+    void drawTabButtonText(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
         auto area = button.getLocalBounds().reduced(4, 1).toFloat();
 
-        Font font (getTabButtonFont (button, area.getHeight()));
-        font.setUnderline (button.hasKeyboardFocus (false));
+        Font font(getTabButtonFont(button, area.getHeight()));
+        font.setUnderline(button.hasKeyboardFocus(false));
 
         AffineTransform t;
 
-        switch (button.getTabbedButtonBar().getOrientation())
-        {
-            case TabbedButtonBar::TabsAtLeft:   t = t.rotated (MathConstants<float>::pi * -0.5f).translated (area.getX(), area.getBottom()); break;
-            case TabbedButtonBar::TabsAtRight:  t = t.rotated (MathConstants<float>::pi *  0.5f).translated (area.getRight(), area.getY()); break;
-            case TabbedButtonBar::TabsAtTop:
-            case TabbedButtonBar::TabsAtBottom: t = t.translated (area.getX(), area.getY()); break;
-            default:                            jassertfalse; break;
+        switch (button.getTabbedButtonBar().getOrientation()) {
+        case TabbedButtonBar::TabsAtLeft:
+            t = t.rotated(MathConstants<float>::pi * -0.5f).translated(area.getX(), area.getBottom());
+            break;
+        case TabbedButtonBar::TabsAtRight:
+            t = t.rotated(MathConstants<float>::pi * 0.5f).translated(area.getRight(), area.getY());
+            break;
+        case TabbedButtonBar::TabsAtTop:
+        case TabbedButtonBar::TabsAtBottom:
+            t = t.translated(area.getX(), area.getY());
+            break;
+        default:
+            jassertfalse;
+            break;
         }
 
         Colour col;
 
-        if (button.isFrontTab() && (button.isColourSpecified (TabbedButtonBar::frontTextColourId)
-                                        || isColourSpecified (TabbedButtonBar::frontTextColourId)))
-            col = findColour (TabbedButtonBar::frontTextColourId);
-        else if (button.isColourSpecified (TabbedButtonBar::tabTextColourId)
-                     || isColourSpecified (TabbedButtonBar::tabTextColourId))
-            col = findColour (TabbedButtonBar::tabTextColourId);
+        if (button.isFrontTab() && (button.isColourSpecified(TabbedButtonBar::frontTextColourId) || isColourSpecified(TabbedButtonBar::frontTextColourId)))
+            col = findColour(TabbedButtonBar::frontTextColourId);
+        else if (button.isColourSpecified(TabbedButtonBar::tabTextColourId)
+            || isColourSpecified(TabbedButtonBar::tabTextColourId))
+            col = findColour(TabbedButtonBar::tabTextColourId);
         else
             col = button.getTabBackgroundColour().contrasting();
 
         g.setColour(col);
         g.setFont(font);
         g.addTransform(t);
-        
+
         auto buttonText = button.getButtonText().trim();
-        if(font.getStringWidthFloat(buttonText) > area.getWidth() * 0.4f) {
+        if (font.getStringWidthFloat(buttonText) > area.getWidth() * 0.4f) {
             area = button.getTextArea().toFloat();
         }
 
-        g.drawFittedText (buttonText,
-                          area.getX(), area.getY(), (int) area.getWidth(), (int) area.getHeight(),
-                          Justification::centred,
-                          jmax (1, ((int) area.getHeight()) / 12));
+        g.drawFittedText(buttonText,
+            area.getX(), area.getY(), (int)area.getWidth(), (int)area.getHeight(),
+            Justification::centred,
+            jmax(1, ((int)area.getHeight()) / 12));
     }
 
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override
@@ -894,12 +900,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
         bool inspectorElement = object.getProperties()["Style"] == "Inspector";
 
         Rectangle<int> boxBounds(0, 0, width, height);
-        
+
         if (!inspectorElement) {
-            
+
             g.setColour(object.findColour(ComboBox::backgroundColourId));
             g.fillRoundedRectangle(boxBounds.toFloat(), 3.0f);
-            
+
             g.setColour(object.findColour(ComboBox::outlineColourId));
             g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), 3.0f, 1.0f);
         }
@@ -1054,7 +1060,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         auto colour = component.findColour(PropertyComponent::labelTextColourId)
                           .withMultipliedAlpha(component.isEnabled() ? 1.0f : 0.6f);
 
-        auto textW = jmin (300, component.getWidth() / 2);
+        auto textW = jmin(300, component.getWidth() / 2);
         auto r = Rectangle<float>(textW, 0, component.getWidth() - textW, component.getHeight() - 1);
 
         Fonts::drawFittedText(g, component.getName(), indent, r.getY(), r.getX(), r.getHeight(), colour, 1, 1.0f, (float)jmin(height, 24) * 0.65f, Justification::centredLeft);
@@ -1249,9 +1255,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
-
-
-    
     // clang-format off
     static inline const String defaultThemesXml = "<ColourThemes>\n"
     "    <Theme theme=\"max\" toolbar_background=\"ff333333\" toolbar_text=\"ffe4e4e4\"\n"

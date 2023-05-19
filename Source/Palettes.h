@@ -80,11 +80,11 @@ class PaletteView : public Component
             auto result = pd::Patch::translatePatchAsString(clipboardContent, position);
 
             auto* ptr = target->patch.getPointer();
-            
+
             target->pd->lockAudioThread();
             libpd_paste(ptr, result.toRawUTF8());
             target->pd->unlockAudioThread();
-            
+
             target->synchronise();
         }
 

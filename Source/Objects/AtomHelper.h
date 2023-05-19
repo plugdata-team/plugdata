@@ -48,11 +48,11 @@ public:
         , pd(parent->cnv->pd)
         , atom(static_cast<t_fake_gatom*>(ptr))
     {
-        objectParameters.addParamCombo("Font size", cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } );
+        objectParameters.addParamCombo("Font size", cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" });
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
         objectParameters.addParamString("Label", cLabel, &labelText, "");
-        objectParameters.addParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" } );
+        objectParameters.addParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" });
     }
 
     void update()

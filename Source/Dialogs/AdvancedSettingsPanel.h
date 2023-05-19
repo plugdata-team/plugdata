@@ -17,7 +17,7 @@ public:
         auto* settingsFile = SettingsFile::getInstance();
 
         Array<PropertiesPanel::Property*> otherProperties;
-        
+
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
             macTitlebarButtons.referTo(settingsFile->getPropertyAsValue("macos_buttons"));
@@ -26,21 +26,21 @@ public:
             macTitlebarButtons.addListener(this);
 
             Array<PropertiesPanel::Property*> windowProperties;
-            
+
             windowProperties.add(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
             windowProperties.add(new PropertiesPanel::BoolComponent("Use macOS style window buttons", macTitlebarButtons, { "No", "Yes" }));
-            
+
             propertiesPanel.addSection("Window", windowProperties);
-            
+
             otherProperties.add(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
         }
-        
+
         scaleValue = settingsFile->getProperty<float>("global_scale");
         scaleValue.addListener(this);
-        
+
         otherProperties.add(new PropertiesPanel::EditableComponent<float>("Global scale factor", scaleValue));
         propertiesPanel.addSection("Other", otherProperties);
-        
+
         addAndMakeVisible(propertiesPanel);
     }
 
@@ -71,6 +71,6 @@ public:
     Value macTitlebarButtons;
     Value reloadPatch;
     Value scaleValue;
-        
+
     PropertiesPanel propertiesPanel;
 };

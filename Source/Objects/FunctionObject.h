@@ -24,7 +24,7 @@ public:
     {
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
-        objectParameters.addParamRange("Range", cGeneral, &range, { 0.0f, 1.0f} );
+        objectParameters.addParamRange("Range", cGeneral, &range, { 0.0f, 1.0f });
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
     }
@@ -318,11 +318,11 @@ public:
         }
 
         pd->lockAudioThread();
-        
+
         outlet_list(x->x_obj.ob_outlet, gensym("list"), ac - 2, at.data());
         if (x->x_send != gensym("") && x->x_send->s_thing)
             pd_list(x->x_send->s_thing, gensym("list"), ac - 2, at.data());
-        
+
         pd->unlockAudioThread();
     }
 

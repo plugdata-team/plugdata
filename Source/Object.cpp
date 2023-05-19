@@ -575,8 +575,6 @@ void Object::updateTooltips()
             iolet->setTooltip(tooltip);
         }
     }
-    
-
 
     std::vector<std::pair<int, String>> inletMessages;
     std::vector<std::pair<int, String>> outletMessages;
@@ -618,7 +616,7 @@ void Object::updateTooltips()
         }
     }
     cnv->pd->unlockAudioThread();
-    
+
     if (inletMessages.empty() && outletMessages.empty())
         return;
 
@@ -642,7 +640,6 @@ void Object::updateTooltips()
         auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
         iolet->setTooltip(message);
     }
-
 }
 
 void Object::updateIolets()
@@ -724,11 +721,11 @@ void Object::mouseDown(MouseEvent const& e)
         attachedToMouse = false;
         stopTimer();
         repaint();
-        
+
         cnv->pd->lockAudioThread();
 
         gui->setPdBounds(getObjectBounds());
-        
+
         cnv->pd->unlockAudioThread();
 
         if (createEditorOnMouseDown) {
@@ -737,8 +734,6 @@ void Object::mouseDown(MouseEvent const& e)
             // Prevent losing focus because of click event
             MessageManager::callAsync([_this = SafePointer(this)]() { _this->showEditor(); });
         }
-        
-        
 
         return;
     }

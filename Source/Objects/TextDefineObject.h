@@ -84,7 +84,7 @@ public:
         }
 
         pd->lockAudioThread();
-        
+
         pd->setThis();
 
         binbuf_clear(textbuf.b_binbuf);
@@ -93,7 +93,7 @@ public:
         binbuf_restore(z, atoms.size(), atoms.data());
         binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
         binbuf_free(z);
-        
+
         pd->unlockAudioThread();
     }
 
@@ -226,16 +226,16 @@ public:
         }
 
         pd->setThis();
-        
+
         pd->lockAudioThread();
-        
+
         binbuf_clear(textbuf.b_binbuf);
 
         t_binbuf* z = binbuf_new();
         binbuf_restore(z, atoms.size(), atoms.data());
         binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
         binbuf_free(z);
-        
+
         pd->unlockAudioThread();
     }
 

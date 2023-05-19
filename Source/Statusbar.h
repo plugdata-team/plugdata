@@ -20,9 +20,10 @@ class SnapSettings;
 class VolumeSlider : public Slider {
 public:
     VolumeSlider();
-    ~VolumeSlider(){};
+    ~VolumeSlider() {};
     void paint(Graphics& g) override;
     void resized() override;
+
 private:
     int margin = 18;
 };
@@ -42,7 +43,7 @@ public:
 
     void processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
 
-    void setSampleRate(const double sampleRate);
+    void setSampleRate(double const sampleRate);
 
     void prepareToPlay(int numChannels);
 

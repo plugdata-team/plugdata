@@ -226,13 +226,13 @@ public:
             t_atom at[2];
             SETFLOAT(at, note);
             SETFLOAT(at + 1, velocity);
-            
+
             pd->lockAudioThread();
-            
+
             outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
             if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
                 pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
-            
+
             pd->unlockAudioThread();
         };
 
@@ -240,7 +240,7 @@ public:
             auto* elseKeyboard = static_cast<t_fake_keyboard*>(this->ptr);
 
             pd->lockAudioThread();
-            
+
             int ac = 2;
             t_atom at[2];
             SETFLOAT(at, note);
@@ -249,7 +249,7 @@ public:
             outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
             if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
                 pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
-            
+
             pd->unlockAudioThread();
         };
 

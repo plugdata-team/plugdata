@@ -66,7 +66,7 @@ public:
 
             pd->setThis();
             pd->lockAudioThread();
-            
+
             x->x_x = xPos;
             x->x_y = yPos;
 
@@ -75,7 +75,7 @@ public:
             SETFLOAT(at + 1, yPos);
 
             outlet_anything(x->x_obj.ob_outlet, gensym("list"), 2, at);
-            
+
             pd->unlockAudioThread();
         };
 

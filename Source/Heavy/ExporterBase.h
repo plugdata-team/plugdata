@@ -30,12 +30,12 @@ struct ExporterBase : public Component
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 
-    //OwnedArray<PropertiesPanel::Property> properties;
+    // OwnedArray<PropertiesPanel::Property> properties;
 
     File patchFile;
     File openedPatchFile;
     File realPatchFile;
-        
+
     PropertiesPanel panel;
 
     ExportingProgressView* exportingView;
@@ -53,24 +53,23 @@ struct ExporterBase : public Component
         addAndMakeVisible(exportButton);
 
         Array<PropertiesPanel::Property*> properties;
-        
+
         auto* patchChooser = new PropertiesPanel::ComboComponent("Patch to export", inputPatchValue, { "Currently opened patch", "Other patch (browse)" });
         patchChooser->comboBox.setTextWhenNothingSelected("Choose a patch to export...");
         patchChooser->comboBox.setSelectedId(-1);
         properties.add(patchChooser);
-        
+
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue));
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Copyright (optional)", projectCopyrightValue));
 
-        for(auto* property : properties)
-        {
+        for (auto* property : properties) {
             property->setPreferredHeight(28);
         }
-        
+
         panel.addSection("General", properties);
-        
+
         panel.setContentWidth(400);
-        
+
         addAndMakeVisible(panel);
         inputPatchValue.addListener(this);
         projectNameValue.addListener(this);

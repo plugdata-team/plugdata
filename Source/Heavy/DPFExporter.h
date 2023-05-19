@@ -26,7 +26,7 @@ public:
         properties.add(new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, { "No", "yes" }));
 
         Array<PropertiesPanel::Property*> pluginFormats;
-        
+
         pluginFormats.add(new PropertiesPanel::BoolComponent("LV2", lv2EnableValue, { "No", "Yes" }));
         lv2EnableValue.addListener(this);
         pluginFormats.add(new PropertiesPanel::BoolComponent("VST2", vst2EnableValue, { "No", "Yes" }));
@@ -37,21 +37,18 @@ public:
         clapEnableValue.addListener(this);
         pluginFormats.add(new PropertiesPanel::BoolComponent("JACK", jackEnableValue, { "No", "Yes" }));
 
-        
-        for(auto* property : properties)
-        {
+        for (auto* property : properties) {
             property->setPreferredHeight(28);
         }
-        for(auto* property : pluginFormats)
-        {
+        for (auto* property : pluginFormats) {
             property->setPreferredHeight(28);
         }
-        
+
         midiinEnableValue.addListener(this);
         midioutEnableValue.addListener(this);
 
         jackEnableValue.addListener(this);
-        
+
         panel.addSection("DPF", properties);
         panel.addSection("Plugin formats", pluginFormats);
     }

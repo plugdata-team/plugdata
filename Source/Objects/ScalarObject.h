@@ -45,7 +45,7 @@ public:
         }
     }
 
-    static int rangecolor(int n)   /* 0 to 9 in 5 steps */
+    static int rangecolor(int n) /* 0 to 9 in 5 steps */
     {
         int n2 = (n == 9 ? 8 : n); /* 0 to 8 */
         int ret = (n2 << 5);       /* 0 to 256 in 9 steps */
