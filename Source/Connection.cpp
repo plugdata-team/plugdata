@@ -266,7 +266,7 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
 
 void Connection::renderConnectionPath(Graphics& g,
     Canvas* cnv,
-    Path connectionPath,
+    Path const& connectionPath,
     bool isSignal,
     bool isMouseOver,
     bool showDirection,
@@ -431,7 +431,7 @@ void Connection::paint(Graphics& g)
 #endif
 }
 
-bool Connection::isSegmented()
+bool Connection::isSegmented() const
 {
     return segmented;
 }
@@ -455,7 +455,7 @@ void Connection::setSelected(bool shouldBeSelected)
     }
 }
 
-bool Connection::isSelected()
+bool Connection::isSelected() const
 {
     return selectedFlag;
 }

@@ -16,7 +16,7 @@ class SearchPanel : public Component
     , public ScrollBar::Listener
     , public KeyListener {
 public:
-    SearchPanel(PluginEditor* pluginEditor)
+    explicit SearchPanel(PluginEditor* pluginEditor)
         : editor(pluginEditor)
     {
         listBox.setModel(this);
@@ -110,7 +110,6 @@ public:
         }
         if (keyPress.isKeyCode(KeyPress::upKey) || keyPress.isKeyCode(KeyPress::downKey)) {
             return listBox.keyPressed(keyPress);
-            ;
         }
 
         return false;
@@ -144,7 +143,7 @@ public:
         }
 
         if (auto* viewport = cnv->viewport) {
-            float scale = getValue<float>(cnv->zoomScale);
+            auto scale = getValue<float>(cnv->zoomScale);
             auto pos = target->getBounds().reduced(Object::margin).getCentre() * scale;
 
             pos.x -= viewport->getViewWidth() * 0.5f;
@@ -211,7 +210,7 @@ public:
         }
     }
 
-    std::pair<String, String> formatSearchResultString(String name, String prefix, Rectangle<int> bounds)
+    std::pair<String, String> formatSearchResultString(String const& name, String prefix, Rectangle<int> bounds)
     {
 
         auto positionString = " (" + String(bounds.getX()) + ":" + String(bounds.getY()) + "  " + String(bounds.getWidth()) + "×" + String(bounds.getHeight()) + ")";

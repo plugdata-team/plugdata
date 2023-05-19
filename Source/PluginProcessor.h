@@ -61,13 +61,13 @@ public:
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(void const* data, int sizeInBytes) override;
 
-    void receiveNoteOn(int const channel, int const pitch, int const velocity) override;
-    void receiveControlChange(int const channel, int const controller, int const value) override;
-    void receiveProgramChange(int const channel, int const value) override;
-    void receivePitchBend(int const channel, int const value) override;
-    void receiveAftertouch(int const channel, int const value) override;
-    void receivePolyAftertouch(int const channel, int const pitch, int const value) override;
-    void receiveMidiByte(int const port, int const byte) override;
+    void receiveNoteOn(int channel, int pitch, int const velocity) override;
+    void receiveControlChange(int channel, int controller, int value) override;
+    void receiveProgramChange(int channel, int value) override;
+    void receivePitchBend(int channel, int value) override;
+    void receiveAftertouch(int channel, int value) override;
+    void receivePolyAftertouch(int channel, int pitch, int value) override;
+    void receiveMidiByte(int port, int byte) override;
     void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
 
     void updateDrawables() override;
@@ -101,7 +101,7 @@ public:
     bool isInPluginMode();
 
     void messageEnqueued() override;
-    void performParameterChange(int type, String name, float value) override;
+    void performParameterChange(int type, String const& name, float value) override;
 
     // Jyg added this
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;

@@ -198,12 +198,12 @@ public:
 
         std::vector<t_atom> atoms;
         auto words = StringArray::fromTokens(symbols.trim(), true);
-        for (int j = 0; j < words.size(); j++) {
+        for (auto const& word : words) {
             atoms.emplace_back();
-            if (words[j].containsOnly("0123456789e.-+e") && words[j] != "-") {
-                SETFLOAT(&atoms.back(), words[j].getFloatValue());
+            if (word.containsOnly("0123456789e.-+e") && word != "-") {
+                SETFLOAT(&atoms.back(), word.getFloatValue());
             } else {
-                SETSYMBOL(&atoms.back(), pd->generateSymbol(words[j]));
+                SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
             }
         }
 
@@ -215,7 +215,7 @@ public:
         }
     }
 
-    void getSymbols(std::vector<pd::Atom> atoms)
+    void getSymbols(std::vector<pd::Atom> const& atoms)
     {
         char buf[40];
         size_t length;

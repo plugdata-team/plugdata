@@ -5,7 +5,7 @@
 
 class PluginMode : public Component {
 public:
-    PluginMode(Canvas* cnv)
+    explicit PluginMode(Canvas* cnv)
         : cnv(cnv)
         , editor(cnv->editor)
         , desktopWindow(editor->getPeer())
@@ -102,9 +102,7 @@ public:
         setBounds(0, 0, width, height + titlebarHeight);
     }
 
-    ~PluginMode()
-    {
-    }
+    ~PluginMode() = default;
 
     void closePluginMode()
     {
@@ -132,7 +130,7 @@ public:
         editor->pluginMode.reset(nullptr);
     }
 
-    bool isWindowFullscreen()
+    bool isWindowFullscreen() const
     {
         if (ProjectInfo::isStandalone) {
             return isFullScreenKioskMode;

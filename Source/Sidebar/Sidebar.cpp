@@ -268,8 +268,8 @@ void Sidebar::updateAutomationParameters()
         MessageManager::callAsync([this]() {
             automationPanel->updateParameters();
         });
-    };
-};
+    }
+}
 
 void Sidebar::showSidebar(bool show)
 {
@@ -294,7 +294,7 @@ void Sidebar::pinSidebar(bool pin)
     }
 }
 
-bool Sidebar::isPinned()
+bool Sidebar::isPinned() const
 {
     return pinned;
 }

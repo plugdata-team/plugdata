@@ -16,7 +16,7 @@ class Library : public FileSystemWatcher::Listener {
 public:
     Library();
 
-    ~Library()
+    ~Library() override
     {
         appDirChanged = nullptr;
         objectSearchThread.removeAllJobs(true, -1);
@@ -24,14 +24,14 @@ public:
 
     void updateLibrary();
 
-    StringArray autocomplete(String query) const;
-    void getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(StringArray)> callback);
+    StringArray autocomplete(String const& query) const;
+    void getExtraSuggestions(int currentNumSuggestions, String const& query, std::function<void(StringArray)> const& callback);
 
-    std::array<StringArray, 2> parseIoletTooltips(ValueTree iolets, String name, int numIn, int numOut);
+    static std::array<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
 
     void fsChangeCallback() override;
 
-    File findHelpfile(t_object* obj, File parentPatchFile);
+    File findHelpfile(t_object* obj, File const& parentPatchFile) const;
 
     ValueTree getObjectInfo(String const& name);
 

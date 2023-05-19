@@ -221,12 +221,12 @@ public:
             break;
         }
         case hash("send"): {
-            if (atoms.size() >= 1)
+            if (!atoms.empty())
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
+            if (!atoms.empty())
                 setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
             break;
         }

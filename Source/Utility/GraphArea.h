@@ -24,7 +24,7 @@ public:
         valueChanged(canvas->locked);
     }
 
-    ~GraphArea()
+    ~GraphArea() override
     {
         canvas->locked.removeListener(this);
     }

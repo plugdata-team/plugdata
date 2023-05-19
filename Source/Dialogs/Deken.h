@@ -8,7 +8,6 @@
 
 struct Spinner : public Component
     , public Timer {
-    bool isSpinning = false;
 
     void startSpinning()
     {
@@ -224,7 +223,7 @@ public:
     PackageList getAvailablePackages()
     {
 
-        // plugdata's deken servers, hosted on github
+        // plugdata's deken servers, hosted on GitHub
         // This will pre-parse the deken repo information to a faster and smaller format
         // This saves a lot of work that plugdata would have to do on startup!
 
@@ -789,7 +788,7 @@ private:
                 _this->repaint();
             };
 
-            task->onFinish = [_this = SafePointer(this), task](Result result) {
+            task->onFinish = [_this = SafePointer(this)](Result result) {
                 if (!_this)
                     return;
 

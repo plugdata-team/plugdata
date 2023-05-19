@@ -170,7 +170,7 @@ protected:
 bool PlugDataWindow::hasOpenedDialog()
 {
     auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
-    return editor->openedDialog.get() != nullptr;
+    return editor->openedDialog != nullptr;
 }
 
 void PlugDataWindow::closeAllPatches()

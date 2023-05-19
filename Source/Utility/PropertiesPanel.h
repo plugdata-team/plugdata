@@ -7,6 +7,10 @@
 #pragma once
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_data_structures/juce_data_structures.h>
+
+#include <utility>
+
+#include <utility>
 #include "DraggableNumber.h"
 #include "ColourPicker.h"
 
@@ -24,7 +28,7 @@ public:
         bool roundBottomCorner = false;
 
     public:
-        Property(String const& propertyName)
+        explicit Property(String const& propertyName)
             : PropertyComponent(propertyName, 32)
         {
         }
@@ -115,7 +119,7 @@ private:
 
         void setExtraHeaderNames(StringArray headerNames)
         {
-            extraHeaderNames = headerNames;
+            extraHeaderNames = std::move(headerNames);
             repaint();
         }
 
@@ -182,14 +186,14 @@ private:
         PropertiesPanel& parent;
         OwnedArray<Property> propertyComps;
         StringArray extraHeaderNames;
-        int titleHeight;
+        int titleHeight {};
         int padding;
 
         JUCE_DECLARE_NON_COPYABLE(SectionComponent)
     };
 
     struct PropertyHolderComponent : public Component {
-        PropertyHolderComponent() { }
+        PropertyHolderComponent() = default;
 
         void paint(Graphics&) override { }
 
@@ -237,7 +241,7 @@ private:
 
 public:
     struct ComboComponent : public Property {
-        ComboComponent(String const& propertyName, Value& value, StringArray options)
+        ComboComponent(String const& propertyName, Value& value, StringArray const& options)
             : Property(propertyName)
         {
             comboBox.addItemList(options, 1);
@@ -258,8 +262,8 @@ public:
     // Combobox entry that displays the font name with that font
     struct FontEntry : public PopupMenu::CustomComponent {
         String fontName;
-        FontEntry(String name)
-            : fontName(name)
+        explicit FontEntry(String name)
+            : fontName(std::move(std::move(name)))
         {
         }
 
@@ -302,7 +306,7 @@ public:
             addAndMakeVisible(comboBox);
         }
 
-        void setFont(String fontName)
+        void setFont(String const& fontName)
         {
             fontValue.setValue(fontValue);
             comboBox.setText(fontName);
@@ -377,7 +381,7 @@ public:
         , public Value::Listener {
         BoolComponent(String const& propertyName, Value& value, StringArray options)
             : Property(propertyName)
-            , textOptions(options)
+            , textOptions(std::move(options))
             , toggleStateValue(value)
         {
             toggleStateValue.addListener(this);
@@ -386,7 +390,7 @@ public:
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
         BoolComponent(String const& propertyName, StringArray options)
             : Property(propertyName)
-            , textOptions(options)
+            , textOptions(std::move(options))
         {
             toggleStateValue.addListener(this);
         }
@@ -407,7 +411,7 @@ public:
             bool isDown = getValue<bool>(toggleStateValue);
             bool isHovered = isMouseOver();
 
-            auto bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2 - hideLabel));
+            auto bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
 
             if (isDown || isHovered) {
                 Path p;
@@ -457,7 +461,7 @@ public:
 
         struct SwatchComponent : public Component {
 
-            SwatchComponent(Value colour)
+            explicit SwatchComponent(Value const& colour)
             {
                 colourValue.referTo(colour);
             }
@@ -562,7 +566,7 @@ public:
 
         float min, max;
 
-        RangeComponent(String propertyName, Value& value)
+        RangeComponent(String const& propertyName, Value& value)
             : Property(propertyName)
             , property(value)
             , minLabel(false)
@@ -608,7 +612,7 @@ public:
             };
         }
 
-        ~RangeComponent()
+        ~RangeComponent() override
         {
             property.removeListener(this);
         }
@@ -701,7 +705,7 @@ public:
 
         std::unique_ptr<FileChooser> saveChooser;
 
-        FilePathComponent(String propertyName, Value& value)
+        FilePathComponent(String const& propertyName, Value& value)
             : Property(propertyName)
             , property(value)
         {
@@ -755,12 +759,12 @@ public:
         bool roundTop, roundBottom;
 
     public:
-        ActionComponent(std::function<void()> callback, String iconToShow, String textToShow, bool roundOnTop = false, bool roundOnBottom = false)
+        ActionComponent(std::function<void()> callback, String iconToShow, String const& textToShow, bool roundOnTop = false, bool roundOnBottom = false)
             : Property(textToShow)
-            , icon(iconToShow)
+            , icon(std::move(iconToShow))
             , roundTop(roundOnTop)
             , roundBottom(roundOnBottom)
-            , onClick(callback)
+            , onClick(std::move(callback))
         {
             setHideLabel(true);
         }
@@ -826,7 +830,7 @@ public:
     }
 
     // Deletes all property components from the panel
-    void clear()
+    void clear() const
     {
         if (!isEmpty()) {
             propertyHolderComponent->sections.clear();
@@ -894,10 +898,10 @@ public:
     // Sets extra section header text
     // All lines passed in here will be divided equally across the non-label area of the property
     // Useful for naming rows when using a MultiPropertyComponent
-    void setExtraHeaderNames(int sectionIndex, StringArray headerNames)
+    void setExtraHeaderNames(int sectionIndex, StringArray headerNames) const
     {
         if (auto* s = propertyHolderComponent->getSectionWithNonEmptyName(sectionIndex)) {
-            s->setExtraHeaderNames(headerNames);
+            s->setExtraHeaderNames(std::move(headerNames));
         }
     }
 

@@ -114,7 +114,7 @@ struct ExporterBase : public Component
         };
     }
 
-    ~ExporterBase()
+    ~ExporterBase() override
     {
         if (openedPatchFile.existsAsFile()) {
             openedPatchFile.deleteFile();
@@ -126,11 +126,11 @@ struct ExporterBase : public Component
         removeAllJobs(true, -1);
     }
 
-    void startExport(File outDir)
+    void startExport(File const& outDir)
     {
 
         auto patchPath = patchFile.getFullPathName();
-        auto outPath = outDir.getFullPathName();
+        auto const& outPath = outDir.getFullPathName();
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
 
@@ -211,7 +211,7 @@ struct ExporterBase : public Component
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
     }
 
-    String createMetaJson(DynamicObject::Ptr metaJson)
+    static String createMetaJson(DynamicObject::Ptr metaJson)
     {
         auto metadata = File::createTempFile(".json");
         Toolchain::deleteTempFileLater(metadata);

@@ -22,10 +22,6 @@ public:
         locked = getValue<bool>(object->locked);
     }
 
-    ~CommentObject()
-    {
-    }
-
     void update() override
     {
         objectText = getText().trimEnd();

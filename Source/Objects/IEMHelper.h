@@ -8,7 +8,7 @@
 
 static int srl_is_valid(t_symbol const* s)
 {
-    return (!!s && s != gensym(""));
+    return (s != nullptr && s != gensym(""));
 }
 
 #define IEMGUI_MESSAGES hash("send"), hash("receive"), hash("color"), hash("label"), hash("label_pos"), hash("label_font"), hash("vis_size"), hash("init")
@@ -98,7 +98,7 @@ public:
     void addIemParameters(ObjectParameters& objectParams, bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
     {
         auto IemParams = makeIemParameters(withAppearance, withSymbols, labelPosX, labelPosY, labelHeightY);
-        for (auto param : IemParams.getParameters())
+        for (auto const& param : IemParams.getParameters())
             objectParams.addParam(param);
     }
 
@@ -224,10 +224,7 @@ public:
         } else if (v.refersToSameSourceAs(labelColour)) {
             setLabelColour(Colour::fromString(labelColour.toString()));
             gui->updateLabel();
-        } else if (v.refersToSameSourceAs(labelX)) {
-            setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
-            gui->updateLabel();
-        } else if (v.refersToSameSourceAs(labelY)) {
+        } else if (v.refersToSameSourceAs(labelX) || v.refersToSameSourceAs(labelY)) {
             setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
@@ -316,7 +313,7 @@ public:
         return objectBounds;
     }
 
-    String getSendSymbol()
+    String getSendSymbol() const
     {
         pd->setThis();
 
@@ -330,7 +327,7 @@ public:
         return "";
     }
 
-    String getReceiveSymbol()
+    String getReceiveSymbol() const
     {
         pd->setThis();
 
@@ -344,12 +341,12 @@ public:
         return "";
     }
 
-    bool hasSendSymbol()
+    bool hasSendSymbol() const
     {
         return iemgui->x_fsf.x_snd_able;
     }
 
-    bool hasReceiveSymbol()
+    bool hasReceiveSymbol() const
     {
         return iemgui->x_fsf.x_rcv_able;
     }
@@ -381,19 +378,19 @@ public:
         return Colour(static_cast<uint32>(libpd_iemgui_get_label_color(iemgui)));
     }
 
-    void setBackgroundColour(Colour colour)
+    void setBackgroundColour(Colour colour) const
     {
         String colourStr = colour.toString();
         libpd_iemgui_set_background_color(iemgui, colourStr.toRawUTF8());
     }
 
-    void setForegroundColour(Colour colour)
+    void setForegroundColour(Colour colour) const
     {
         String colourStr = colour.toString();
         libpd_iemgui_set_foreground_color(iemgui, colourStr.toRawUTF8());
     }
 
-    void setLabelColour(Colour colour)
+    void setLabelColour(Colour colour) const
     {
         String colourStr = colour.toString();
         libpd_iemgui_set_label_color(iemgui, colourStr.toRawUTF8());
@@ -413,7 +410,7 @@ public:
     {
         t_symbol const* sym = iemgui->x_lab;
         if (sym) {
-            auto const text = String::fromUTF8(sym->s_name);
+            auto text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
@@ -426,7 +423,7 @@ public:
     {
         t_symbol const* sym = iemgui->x_lab_unexpanded;
         if (sym) {
-            auto const text = String::fromUTF8(sym->s_name);
+            auto text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }

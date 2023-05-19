@@ -1,3 +1,5 @@
+#include <memory>
+
 #pragma once
 
 // Keymapping object based on JUCE's KeyMappingEditorComponent
@@ -5,7 +7,7 @@
 class KeyMappingComponent : public Component
     , public ChangeListener {
 public:
-    KeyMappingComponent(KeyPressMappingSet& mappingSet)
+    explicit KeyMappingComponent(KeyPressMappingSet& mappingSet)
         : mappings(mappingSet)
     {
         mappingSet.addChangeListener(this);
@@ -18,7 +20,7 @@ public:
     }
 
     /** Destructor. */
-    ~KeyMappingComponent()
+    ~KeyMappingComponent() override
     {
         mappings.removeChangeListener(this);
     }
@@ -47,7 +49,7 @@ public:
 
         propertiesPanel.addSection("Reset", { resetMaxButton, resetPdButton });
 
-        for (auto category : mappings.getCommandManager().getCommandCategories()) {
+        for (auto const& category : mappings.getCommandManager().getCommandCategories()) {
             Array<PropertiesPanel::Property*> properties;
             for (auto command : mappings.getCommandManager().getCommandsInCategory(category)) {
                 properties.add(new KeyMappingProperty(*this, mappings.getCommandManager().getNameOfCommand(command), command));
@@ -117,7 +119,7 @@ public:
      method, be sure to let the base class's method handle keys you're not
      interested in.
      */
-    String getDescriptionForKeyPress(KeyPress const& key)
+    static String getDescriptionForKeyPress(KeyPress const& key)
     {
         return key.getTextDescription();
     }
@@ -196,7 +198,7 @@ private:
 
         class KeyEntryWindow : public AlertWindow {
         public:
-            KeyEntryWindow(KeyMappingComponent& kec)
+            explicit KeyEntryWindow(KeyMappingComponent& kec)
                 : AlertWindow("New key-mapping",
                     "Please press a key combination now...",
                     MessageBoxIconType::NoIcon)
@@ -289,7 +291,7 @@ private:
 
         void assignNewKey()
         {
-            currentKeyEntryWindow.reset(new KeyEntryWindow(owner));
+            currentKeyEntryWindow = std::make_unique<KeyEntryWindow>(owner);
             currentKeyEntryWindow->enterModalState(true, ModalCallbackFunction::forComponent(keyChosen, this));
         }
 
@@ -304,7 +306,7 @@ private:
 
     class KeyMappingProperty : public PropertiesPanel::Property {
     public:
-        KeyMappingProperty(KeyMappingComponent& kec, String name, CommandID command)
+        KeyMappingProperty(KeyMappingComponent& kec, String const& name, CommandID command)
             : PropertiesPanel::Property(name)
             , owner(kec)
             , commandID(command)

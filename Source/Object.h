@@ -26,7 +26,7 @@ public:
 
     Object(void* object, Canvas* parent);
 
-    ~Object();
+    ~Object() override;
 
     void valueChanged(Value& v) override;
 

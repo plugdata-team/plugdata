@@ -72,7 +72,7 @@ public:
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
 
-    void propertyChanged(String name, var value) override;
+    void propertyChanged(String const& name, var const& value) override;
 
     void moved() override;
     void resized() override;
@@ -146,7 +146,7 @@ public:
     {
         Array<T*> result;
 
-        for (auto obj : selectedComponents) {
+        for (auto const& obj : selectedComponents) {
             if (auto* objOfType = dynamic_cast<T*>(obj.get())) {
                 result.add(objOfType);
             }

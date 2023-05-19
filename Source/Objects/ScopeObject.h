@@ -54,7 +54,7 @@ public:
 
     Colour colourFromHexArray(unsigned char* hex)
     {
-        return Colour(hex[0], hex[1], hex[2]);
+        return { hex[0], hex[1], hex[2] };
     }
 
     Rectangle<int> getPdBounds() override
@@ -183,6 +183,8 @@ public:
             case 3:
                 x_buffer[n] = jmap<float>(x_buffer[n], min, max, 2.f, waveAreaWidth);
                 y_buffer[n] = jmap<float>(y_buffer[n], min, max, waveAreaHeight, 2.f);
+                break;
+            default:
                 break;
             }
         }

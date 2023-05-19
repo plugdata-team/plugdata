@@ -1,6 +1,8 @@
 #pragma once
 
 #include <juce_data_structures/juce_data_structures.h>
+
+#include <utility>
 #include "../LookAndFeel.h"
 
 enum ParameterType {
@@ -25,14 +27,14 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 
 class ObjectParameters {
 public:
-    ObjectParameters() {};
+    ObjectParameters() = default;
 
     Array<ObjectParameter> getParameters()
     {
         return objectParameters;
     }
 
-    void addParam(ObjectParameter param)
+    void addParam(ObjectParameter const& param)
     {
         objectParameters.add(param);
     }
@@ -53,27 +55,27 @@ public:
 
     // ========= overloads for making different types of parameters =========
 
-    void addParamFloat(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
+    void addParamFloat(String const& pString, ParameterCategory pCat, Value* pVal, var const& pDefault = var())
     {
         objectParameters.add(makeParam(pString, tFloat, pCat, pVal, StringArray(), pDefault));
     }
 
-    void addParamInt(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
+    void addParamInt(String const& pString, ParameterCategory pCat, Value* pVal, var const& pDefault = var())
     {
         objectParameters.add(makeParam(pString, tInt, pCat, pVal, StringArray(), pDefault));
     }
 
-    void addParamBool(String pString, ParameterCategory pCat, Value* pVal, StringArray pList, var pDefault = var())
+    void addParamBool(String const& pString, ParameterCategory pCat, Value* pVal, StringArray const& pList, var const& pDefault = var())
     {
         objectParameters.add(makeParam(pString, tBool, pCat, pVal, pList, pDefault));
     }
 
-    void addParamString(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
+    void addParamString(String const& pString, ParameterCategory pCat, Value* pVal, var const& pDefault = var())
     {
         objectParameters.add(makeParam(pString, tString, pCat, pVal, StringArray(), pDefault));
     }
 
-    void addParamColour(String pString, ParameterCategory pCat, Value* pVal, var pDefault = var())
+    void addParamColour(String const& pString, ParameterCategory pCat, Value* pVal, var const& pDefault = var())
     {
         objectParameters.add(makeParam(pString, tColour, pCat, pVal, StringArray(), pDefault));
     }
@@ -98,22 +100,22 @@ public:
         objectParameters.add(makeParam("Receive Symbol", tString, cGeneral, pVal, StringArray(), ""));
     }
 
-    void addParamSendSymbol(Value* pVal, String pDefault = "")
+    void addParamSendSymbol(Value* pVal, String const& pDefault = "")
     {
         objectParameters.add(makeParam("Send Symbol", tString, cGeneral, pVal, StringArray(), pDefault));
     }
 
-    void addParamCombo(String pString, ParameterCategory pCat, Value* pVal, StringArray pStringList, var pDefault = var())
+    void addParamCombo(String const& pString, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault = var())
     {
         objectParameters.add(makeParam(pString, tCombo, pCat, pVal, pStringList, pDefault));
     }
 
-    void addParamRange(String pString, ParameterCategory pCat, Value* pVal, Array<var> pDefault = Array<var>())
+    void addParamRange(String const& pString, ParameterCategory pCat, Value* pVal, Array<var> const& pDefault = Array<var>())
     {
         objectParameters.add(makeParam(pString, tRange, pCat, pVal, StringArray(), pDefault));
     }
 
-    void addParamFont(String pString, ParameterCategory pCat, Value* pVal, String pDefault = String())
+    void addParamFont(String const& pString, ParameterCategory pCat, Value* pVal, String const& pDefault = String())
     {
         objectParameters.add(makeParam(pString, tFont, pCat, pVal, StringArray(), pDefault));
     }
@@ -121,7 +123,7 @@ public:
 private:
     Array<ObjectParameter> objectParameters;
 
-    ObjectParameter makeParam(String pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray pStringList, var pDefault)
+    static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault)
     {
         return std::make_tuple(pString, pType, pCat, pVal, pStringList, pDefault);
     }

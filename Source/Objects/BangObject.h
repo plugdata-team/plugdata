@@ -189,7 +189,7 @@ public:
             trigger();
             break;
         case hash("flashtime"): {
-            if (atoms.size() > 0)
+            if (!atoms.empty())
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
             if (atoms.size() > 1)
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());

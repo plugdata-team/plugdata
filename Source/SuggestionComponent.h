@@ -28,7 +28,7 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    ~AutoCompleteComponent()
+    ~AutoCompleteComponent() override
     {
         editor->removeComponentListener(this);
     }
@@ -37,7 +37,7 @@ public:
     {
 
         if (!editor)
-            return String();
+            return {};
 
         return editor->getText() + suggestion;
     }
@@ -397,7 +397,7 @@ public:
             return autoCompleteComponent->getSuggestion();
         }
 
-        return String();
+        return {};
     }
 
 private:
@@ -412,7 +412,7 @@ private:
         return getLocalBounds().reduced(windowMargin).contains(x, y);
     }
 
-    bool canBeTransparent()
+    static bool canBeTransparent()
     {
         return ProjectInfo::canUseSemiTransparentWindows();
     }
@@ -667,7 +667,7 @@ private:
             applySuggestionsToButtons(found, currentText);
         }
 
-        library->getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText, sortSuggestions](StringArray s) mutable {
+        library->getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
             filterNonHvccObjectsIfNeeded(s);
 
             // This means the extra suggestions have returned too late to still be relevant

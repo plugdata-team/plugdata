@@ -1,3 +1,5 @@
+#include <utility>
+
 /*
  // Copyright (c) 2021-2022 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -11,8 +13,8 @@ public:
         const String description;
 
         ConsoleSettingsButton(String iconString, String descriptionString, bool toggleButton)
-            : icon(iconString)
-            , description(descriptionString)
+            : icon(std::move(iconString))
+            , description(std::move(descriptionString))
         {
             setClickingTogglesState(toggleButton);
         }
@@ -34,7 +36,7 @@ public:
         }
     };
 
-    ConsoleSettings(std::array<Value, 5>& settingsValues)
+    explicit ConsoleSettings(std::array<Value, 5>& settingsValues)
     {
         auto i = 0;
         for (auto* button : buttons) {
@@ -97,8 +99,8 @@ public:
 
         addAndMakeVisible(viewport);
 
-        for (int i = 0; i < settingsValues.size(); i++) {
-            settingsValues[i].addListener(this);
+        for (auto& settingsValue : settingsValues) {
+            settingsValue.addListener(this);
         }
 
         // Show messages, show errors and autoscroll should be enabled by default
@@ -109,9 +111,7 @@ public:
         resized();
     }
 
-    ~Console() override
-    {
-    }
+    ~Console() override = default;
 
     void valueChanged(Value& v) override
     {
@@ -281,8 +281,8 @@ public:
                 messages.pop_front();
 
                 // Make sure we don't trigger a repaint for all messages when the console is full
-                for (int row = 0; row < static_cast<int>(messages.size()); row++) {
-                    messages[row]->idx--;
+                for (auto const& message : messages) {
+                    message->idx--;
                 }
             }
 

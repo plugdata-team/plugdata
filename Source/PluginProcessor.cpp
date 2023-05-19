@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include <clocale>
+#include <memory>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_basics/juce_audio_basics.h>
@@ -406,7 +407,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor, samplesPerBlock * oversampleFactor);
 
-    oversampler.reset(new dsp::Oversampling<float>(maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false));
+    oversampler = std::make_unique<dsp::Oversampling<float>>(maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false);
 
     oversampler->initProcessing(samplesPerBlock);
 
@@ -1382,7 +1383,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     }
 }
 
-void PluginProcessor::performParameterChange(int type, String name, float value)
+void PluginProcessor::performParameterChange(int type, String const& name, float value)
 {
     // Type == 1 means it sets the change gesture state
     if (type) {

@@ -6,6 +6,12 @@
 
 #pragma once
 
+#include <utility>
+
+#include <utility>
+
+#include <utility>
+
 #include "Utility/GlobalMouseListener.h"
 #include "Constants.h"
 #include "Canvas.h"
@@ -21,15 +27,15 @@ class WelcomePanel : public Component {
         std::function<void(void)> onClick = []() {};
 
         WelcomeButton(String icon, String mainText, String subText)
-            : iconText(icon)
-            , topText(mainText)
-            , bottomText(subText)
+            : iconText(std::move(std::move(std::move(icon))))
+            , topText(std::move(mainText))
+            , bottomText(std::move(subText))
         {
             setInterceptsMouseClicks(true, false);
             setAlwaysOnTop(true);
         }
 
-        void paint(Graphics& g)
+        void paint(Graphics& g) override
         {
             auto colour = findColour(PlugDataColour::panelTextColourId);
             if (isMouseOver()) {
@@ -43,17 +49,17 @@ class WelcomePanel : public Component {
             Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
         }
 
-        void mouseUp(MouseEvent const& e)
+        void mouseUp(MouseEvent const& e) override
         {
             onClick();
         }
 
-        void mouseEnter(MouseEvent const& e)
+        void mouseEnter(MouseEvent const& e) override
         {
             repaint();
         }
 
-        void mouseExit(MouseEvent const& e)
+        void mouseExit(MouseEvent const& e) override
         {
             repaint();
         }
@@ -228,7 +234,7 @@ public:
 
         setVisible(false);
         setTabBarDepth(0);
-        tabs.get()->addMouseListener(this, true);
+        tabs->addMouseListener(this, true);
     }
 
     void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName) override

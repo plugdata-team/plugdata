@@ -54,7 +54,7 @@ public:
         title = name;
     }
 
-    PropertyComponent* createPanel(int type, String const& name, Value* value, StringArray& options)
+    static PropertyComponent* createPanel(int type, String const& name, Value* value, StringArray& options)
     {
         switch (type) {
         case tString:

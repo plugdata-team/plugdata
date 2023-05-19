@@ -4,13 +4,15 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <utility>
+
 #include "Utility/PropertiesPanel.h"
 
 struct ArrayDialog : public Component {
 
 public:
     ArrayDialog(Dialog* parent, ArrayDialogCallback callback)
-        : cb(callback)
+        : cb(std::move(callback))
     {
         name = "array1";
         size = 100;

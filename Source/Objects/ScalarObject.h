@@ -101,7 +101,7 @@ public:
         canvas->pd->setThis();
 
         t_template* t = template_findbyname(scalar->sc_template);
-        scalar_doclick(scalar->sc_vec, t, scalar, 0, canvas->patch.getPointer(), 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
+        scalar_doclick(scalar->sc_vec, t, scalar, nullptr, canvas->patch.getPointer(), 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
 
         // Update all drawables
         for (auto* object : canvas->objects) {
@@ -111,7 +111,7 @@ public:
         }
     }
 
-    void update()
+    void update() override
     {
         if (!scalar || !scalar->sc_template)
             return;
@@ -341,7 +341,7 @@ struct ScalarObject final : public ObjectBase {
         updateDrawables();
     }
 
-    ~ScalarObject()
+    ~ScalarObject() override
     {
         for (auto* drawable : templates) {
             cnv->removeChildComponent(drawable);
@@ -357,6 +357,6 @@ struct ScalarObject final : public ObjectBase {
         }
     }
 
-    Rectangle<int> getPdBounds() override { return Rectangle(0, 0, 0, 0); };
+    Rectangle<int> getPdBounds() override { return { 0, 0, 0, 0 }; };
     void setPdBounds(Rectangle<int> b) override {};
 };

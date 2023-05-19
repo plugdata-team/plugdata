@@ -100,7 +100,7 @@ ValueTree SettingsFile::getLibrariesTree()
     return settingsTree.getChildWithName("Libraries");
 }
 
-ValueTree SettingsFile::getTheme(String name)
+ValueTree SettingsFile::getTheme(String const& name)
 {
     return getColourThemesTree().getChildWithProperty("theme", name);
 }
@@ -122,7 +122,7 @@ void SettingsFile::initialisePathsTree()
         currentPaths.add(child.getProperty("Path").toString());
     }
 
-    for (auto path : pd::Library::defaultPaths) {
+    for (auto const& path : pd::Library::defaultPaths) {
         if (!currentPaths.contains(path.getFullPathName())) {
             auto pathSubTree = ValueTree("Path");
             pathSubTree.setProperty("Path", path.getFullPathName(), nullptr);
@@ -131,7 +131,7 @@ void SettingsFile::initialisePathsTree()
     }
 }
 
-void SettingsFile::addToRecentlyOpened(File path)
+void SettingsFile::addToRecentlyOpened(File const& path)
 {
     auto recentlyOpened = settingsTree.getChildWithName("RecentlyOpened");
 
@@ -366,19 +366,19 @@ void SettingsFile::saveSettings()
     settingsFile.replaceWithText(xml);
 }
 
-void SettingsFile::setProperty(String name, var value)
+void SettingsFile::setProperty(String const& name, var const& value)
 {
     jassert(isInitialised);
     settingsTree.setProperty(name, value, nullptr);
 }
 
-bool SettingsFile::hasProperty(String name)
+bool SettingsFile::hasProperty(String const& name)
 {
     jassert(isInitialised);
     return settingsTree.hasProperty(name);
 }
 
-Value SettingsFile::getPropertyAsValue(String name)
+Value SettingsFile::getPropertyAsValue(String const& name)
 {
     jassert(isInitialised);
     return settingsTree.getPropertyAsValue(name, nullptr);

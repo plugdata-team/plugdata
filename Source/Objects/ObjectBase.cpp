@@ -163,7 +163,7 @@ String ObjectBase::getType() const
             int ac = binbuf_getnatom(ob->te_binbuf);
             t_atom* av = binbuf_getvec(ob->te_binbuf);
             if (ac < 1)
-                return String();
+                return {};
             atom_string(av, namebuf, MAXPDSTRING);
 
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
@@ -172,11 +172,11 @@ String ObjectBase::getType() const
         switch (hash(libpd_get_object_class_name(ptr))) {
         case hash("text"):
             if (static_cast<t_text*>(ptr)->te_type == T_OBJECT)
-                return String("invalid");
+                return "invalid";
             if (static_cast<t_text*>(ptr)->te_type == T_TEXT)
-                return String("comment");
+                return "comment";
             if (static_cast<t_text*>(ptr)->te_type == T_MESSAGE)
-                return String("message");
+                return "message";
             break;
         // Deal with atoms
         case hash("gatom"):
@@ -465,7 +465,7 @@ bool ObjectBase::canOpenFromMenu()
 void ObjectBase::openFromMenu()
 {
     pd->sendDirectMessage(ptr, "menu-open", {});
-};
+}
 
 bool ObjectBase::hideInGraph()
 {
@@ -480,12 +480,12 @@ void ObjectBase::lock(bool isLocked)
 Canvas* ObjectBase::getCanvas()
 {
     return nullptr;
-};
+}
 
 pd::Patch::Ptr ObjectBase::getPatch()
 {
     return nullptr;
-};
+}
 
 bool ObjectBase::canReceiveMouseEvent(int x, int y)
 {
@@ -509,6 +509,8 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
         });
         return;
     }
+    default:
+        break;
     }
 
     auto messages = getAllMessages();
@@ -523,7 +525,7 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
     }
 }
 
-void ObjectBase::setParameterExcludingListener(Value& parameter, var value)
+void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
 {
     parameter.removeListener(this);
     parameter.setValue(value);

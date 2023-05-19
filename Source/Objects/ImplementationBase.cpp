@@ -36,11 +36,9 @@ ImplementationBase::ImplementationBase(void* obj, PluginProcessor* processor)
     update();
 }
 
-ImplementationBase::~ImplementationBase()
-{
-}
+ImplementationBase::~ImplementationBase() = default;
 
-Canvas* ImplementationBase::getMainCanvas(void* patchPtr)
+Canvas* ImplementationBase::getMainCanvas(void* patchPtr) const
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
         for (auto* cnv : editor->canvases) {

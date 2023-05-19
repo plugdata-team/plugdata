@@ -90,9 +90,9 @@ public:
         list.reserve(array.size());
         for (auto const& elem : array) {
             if (elem.getCharPointer().isDigit()) {
-                list.push_back({ elem.getFloatValue() });
+                list.emplace_back(elem.getFloatValue());
             } else {
-                list.push_back({ elem });
+                list.emplace_back(elem);
             }
         }
         if (list != getList()) {
@@ -100,7 +100,7 @@ public:
         }
     }
 
-    ~ListObject()
+    ~ListObject() override
     {
     }
 
@@ -237,7 +237,7 @@ public:
         return atoms;
     }
 
-    void setList(std::vector<pd::Atom> const value)
+    void setList(std::vector<pd::Atom> value)
     {
         cnv->pd->sendDirectMessage(ptr, std::move(value));
     }

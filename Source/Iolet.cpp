@@ -13,7 +13,6 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "LookAndFeel.h"
-#include "Pd/Patch.h"
 
 Iolet::Iolet(Object* parent, bool inlet)
     : object(parent)

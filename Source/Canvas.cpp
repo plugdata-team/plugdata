@@ -137,7 +137,7 @@ Canvas::~Canvas()
     delete suggestor;
 }
 
-void Canvas::propertyChanged(String name, var value)
+void Canvas::propertyChanged(String const& name, var const& value)
 {
     switch (hash(name)) {
     case hash("grid_size"):

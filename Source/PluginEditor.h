@@ -85,7 +85,7 @@ public:
 
     ApplicationCommandTarget* getNextCommandTarget() override;
     void getAllCommands(Array<CommandID>& commands) override;
-    void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
+    void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
 
     bool wantsRoundedCorners();

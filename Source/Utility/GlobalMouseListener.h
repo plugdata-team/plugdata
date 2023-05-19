@@ -4,13 +4,13 @@ class GlobalMouseListener : public MouseListener {
     Component* target;
 
 public:
-    GlobalMouseListener(Component* targetComponent = nullptr)
+    explicit GlobalMouseListener(Component* targetComponent = nullptr)
         : target(targetComponent)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
     }
 
-    ~GlobalMouseListener()
+    ~GlobalMouseListener() override
     {
         Desktop::getInstance().removeGlobalMouseListener(this);
     }

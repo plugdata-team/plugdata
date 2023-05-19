@@ -503,7 +503,7 @@ void Instance::processSend(dmessage mess)
 void Instance::registerMessageListener(void* object, MessageListener* messageListener)
 {
     ScopedLock lock(messageListenerLock);
-    messageListeners[object].push_back(WeakReference(messageListener));
+    messageListeners[object].emplace_back(messageListener);
 }
 
 void Instance::unregisterMessageListener(void* object, MessageListener* messageListener)
@@ -531,7 +531,7 @@ void Instance::sendDirectMessage(void* object, String const& msg, std::vector<At
     unlockAudioThread();
 }
 
-void Instance::sendDirectMessage(void* object, std::vector<Atom> const&& list)
+void Instance::sendDirectMessage(void* object, std::vector<Atom>&& list)
 {
     lockAudioThread();
     processSend(dmessage { object, String(), "list", std::move(list) });
@@ -570,7 +570,7 @@ String Instance::getExtraInfo(File const& toOpen)
         return content.fromFirstOccurrenceOf("_plugdatainfo_", false, false).fromFirstOccurrenceOf("[INFOSTART]", false, false).upToFirstOccurrenceOf("[INFOEND]", false, false);
     }
 
-    return String();
+    return {};
 }
 
 Patch::Ptr Instance::openPatch(File const& toOpen)
@@ -684,7 +684,7 @@ void Instance::createPanel(int type, char const* snd, char const* location)
     }
 }
 
-bool Instance::loadLibrary(String libraryToLoad)
+bool Instance::loadLibrary(String const& libraryToLoad)
 {
     return sys_load_lib(nullptr, libraryToLoad.toRawUTF8());
 }

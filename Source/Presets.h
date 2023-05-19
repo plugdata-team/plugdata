@@ -27,7 +27,7 @@ struct Presets {
 
         return true;
     }
-    static void fixPreset(String preset)
+    static void fixPreset(String const& preset)
     {
         MemoryOutputStream b64_ostream;
         Base64::convertFromBase64(b64_ostream, preset);

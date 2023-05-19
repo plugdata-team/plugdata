@@ -8,16 +8,16 @@ class FadeAnimation;
 class SplitViewResizer;
 class SplitView : public Component {
 public:
-    SplitView(PluginEditor* parent);
-    ~SplitView();
+    explicit SplitView(PluginEditor* parent);
+    ~SplitView() override;
 
     TabComponent* getActiveTabbar();
     TabComponent* getLeftTabbar();
     TabComponent* getRightTabbar();
 
     void setSplitEnabled(bool splitEnabled);
-    bool isSplitEnabled();
-    bool isRightTabbarActive();
+    bool isSplitEnabled() const;
+    bool isRightTabbarActive() const;
 
     void splitCanvasesAfterIndex(int idx, bool direction);
     void splitCanvasView(Canvas* cnv, bool splitviewFocus);
@@ -38,7 +38,7 @@ private:
     float splitViewWidth = 0.5f;
     bool splitView = false;
     int activeTabIndex = 0;
-    bool splitFocusIndex = 0;
+    bool splitFocusIndex = false;
     TabComponent splits[2];
 
     std::unique_ptr<FadeAnimation> fadeAnimation;

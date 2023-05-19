@@ -99,7 +99,7 @@ public:
         public:
             Object* object;
 
-            NumboxTildeBoundsConstrainer(Object* parent)
+            explicit NumboxTildeBoundsConstrainer(Object* parent)
                 : object(parent)
             {
             }
@@ -184,7 +184,7 @@ public:
         }
     }
 
-    void setForegroundColour(String colour)
+    void setForegroundColour(String const& colour)
     {
         // Remove alpha channel and add #
         static_cast<t_fake_numbox*>(ptr)->x_fg = pd->generateSymbol("#" + colour.substring(2));
@@ -197,7 +197,7 @@ public:
         repaint();
     }
 
-    void setBackgroundColour(String colour)
+    void setBackgroundColour(String const& colour)
     {
         static_cast<t_fake_numbox*>(ptr)->x_bg = pd->generateSymbol("#" + colour.substring(2));
         repaint();

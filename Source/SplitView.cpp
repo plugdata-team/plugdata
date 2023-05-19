@@ -206,7 +206,7 @@ void SplitView::setSplitEnabled(bool splitEnabled)
     resized();
 }
 
-bool SplitView::isSplitEnabled()
+bool SplitView::isSplitEnabled() const
 {
     return splitView;
 }
@@ -238,7 +238,7 @@ bool SplitView::hasFocus(Canvas* cnv)
         return false;
 }
 
-bool SplitView::isRightTabbarActive()
+bool SplitView::isRightTabbarActive() const
 {
     return splitFocusIndex;
 }
@@ -253,7 +253,7 @@ void SplitView::closeEmptySplits()
 
         // move all tabs over to the left side
         for (int i = splits[1].getNumTabs() - 1; i >= 0; i--) {
-            splitCanvasView(splits[1].getCanvas(i), 0);
+            splitCanvasView(splits[1].getCanvas(i), false);
         }
 
         setSplitEnabled(false);

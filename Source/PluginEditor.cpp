@@ -1440,7 +1440,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case ObjectIDs::NewArray: {
-        
+
         Dialogs::showArrayDialog(&openedDialog, this,
             [this](int result, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range) {
                 if (result) {

@@ -57,7 +57,7 @@ struct Fonts {
     static Font getVariableFont() { return Font(instance->variableTypeface); }
     static Font getTabularNumbersFont() { return Font(instance->tabularTypeface); }
 
-    static Font setCurrentFont(Font font) { return instance->currentTypeface = font.getTypefacePtr(); }
+    static Font setCurrentFont(Font const& font) { return instance->currentTypeface = font.getTypefacePtr(); }
 
     // For drawing icons with icon font
     static void drawIcon(Graphics& g, String const& icon, Rectangle<int> bounds, Colour colour, int fontHeight = -1, bool centred = true)

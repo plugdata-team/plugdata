@@ -20,7 +20,7 @@ class SnapSettings;
 class VolumeSlider : public Slider {
 public:
     VolumeSlider();
-    ~VolumeSlider() {};
+    ~VolumeSlider() override = default;
     void paint(Graphics& g) override;
     void resized() override;
 
@@ -43,7 +43,7 @@ public:
 
     void processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
 
-    void setSampleRate(double const sampleRate);
+    void setSampleRate(double sampleRate);
 
     void prepareToPlay(int numChannels);
 
@@ -79,13 +79,13 @@ class Statusbar : public Component
 
 public:
     explicit Statusbar(PluginProcessor* processor);
-    ~Statusbar();
+    ~Statusbar() override;
 
     void paint(Graphics& g) override;
 
     void resized() override;
 
-    void propertyChanged(String name, var value) override;
+    void propertyChanged(String const& name, var const& value) override;
 
     void audioProcessedChanged(bool audioProcessed) override;
 

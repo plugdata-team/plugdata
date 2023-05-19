@@ -49,7 +49,7 @@ public:
     void showSidebar(bool show);
 
     void pinSidebar(bool pin);
-    bool isPinned();
+    bool isPinned() const;
 
     void clearConsole();
     void updateConsole();

@@ -54,7 +54,7 @@ public:
     bool isSubpatch();
     bool isAbstraction();
 
-    static String translatePatchAsString(String clipboardContent, Point<int> position);
+    static String translatePatchAsString(String const& clipboardContent, Point<int> position);
 
     t_glist* getRoot();
 
@@ -62,8 +62,8 @@ public:
     void paste(Point<int> position);
     void duplicate();
 
-    void startUndoSequence(String name);
-    void endUndoSequence(String name);
+    void startUndoSequence(String const& name);
+    void endUndoSequence(String const& name);
 
     void undo();
     void redo();
@@ -85,8 +85,8 @@ public:
 
     void setCurrentFile(File newFile);
 
-    bool objectWasDeleted(void* ptr);
-    bool connectionWasDeleted(void* ptr);
+    bool objectWasDeleted(void* ptr) const;
+    bool connectionWasDeleted(void* ptr) const;
 
     bool hasConnection(void* src, int nout, void* sink, int nin);
     bool canConnect(void* src, int nout, void* sink, int nin);
@@ -107,7 +107,7 @@ public:
 
     String getCanvasContent();
 
-    static void reloadPatch(File changedPatch, t_glist* except);
+    static void reloadPatch(File const& changedPatch, t_glist* except);
 
     static t_object* checkObject(void* obj);
 

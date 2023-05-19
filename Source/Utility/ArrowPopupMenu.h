@@ -12,14 +12,14 @@
 class ArrowPopupMenu : public Component
     , public ComponentListener {
 public:
-    ArrowPopupMenu(Component* target)
+    explicit ArrowPopupMenu(Component* target)
         : targetComponent(target)
     {
         setWantsKeyboardFocus(false);
         setInterceptsMouseClicks(false, false);
     }
 
-    ~ArrowPopupMenu()
+    ~ArrowPopupMenu() override
     {
         if (menuComponent) {
             menuComponent->removeComponentListener(this);
@@ -101,7 +101,7 @@ public:
         g.strokePath(arrowOutline, PathStrokeType(1.0f));
     }
 
-    static void showMenuAsync(PopupMenu* menu, PopupMenu::Options const& options, std::function<void(int)> userCallback)
+    static void showMenuAsync(PopupMenu* menu, PopupMenu::Options const& options, std::function<void(int)> const& userCallback)
     {
         auto* target = options.getTargetComponent();
 

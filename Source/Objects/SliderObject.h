@@ -19,7 +19,7 @@ public:
         setVelocityModeParameters(1.0f, 1, 0.0f, false);
     }
 
-    ~ReversibleSlider() { }
+    ~ReversibleSlider() override { }
 
     void setRangeFlipped(bool invert)
     {

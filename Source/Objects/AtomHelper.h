@@ -174,7 +174,7 @@ public:
 
     void addAtomParameters(ObjectParameters& objectParams)
     {
-        for (auto param : objectParameters.getParameters())
+        for (auto const& param : objectParameters.getParameters())
             objectParams.addParam(param);
     }
 
@@ -289,7 +289,7 @@ public:
     {
         t_symbol const* sym = canvas_realizedollar(atom->a_glist, atom->a_label);
         if (sym) {
-            auto const text = String::fromUTF8(sym->s_name);
+            auto text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
@@ -311,7 +311,7 @@ public:
         return "";
     }
 
-    void setLabelText(String newText)
+    void setLabelText(String const& newText)
     {
         atom->a_label = pd->generateSymbol(newText);
     }

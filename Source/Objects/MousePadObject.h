@@ -15,7 +15,7 @@ public:
         : ObjectBase(ptr, object)
         , mouseListener(this)
     {
-        mouseListener.globalMouseDown = [this, object](MouseEvent const& e) {
+        mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             auto relativeEvent = e.getEventRelativeTo(this);
 
             if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !cnv->isShowing() || isPressed)
@@ -86,9 +86,7 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    ~MousePadObject()
-    {
-    }
+    ~MousePadObject() = default;
 
     void paint(Graphics& g) override
     {

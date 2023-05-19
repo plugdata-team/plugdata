@@ -1,3 +1,7 @@
+#include <utility>
+
+#include <utility>
+
 /*
  // Copyright (c) 2021-2023 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -14,8 +18,8 @@ class ActionButton : public Component {
 
 public:
     ActionButton(String iconToShow, String textToShow, bool roundOnTop = false)
-        : icon(iconToShow)
-        , text(textToShow)
+        : icon(std::move(std::move(iconToShow)))
+        , text(std::move(textToShow))
         , roundTop(roundOnTop)
     {
     }
@@ -253,7 +257,6 @@ public:
         resetButton.setBounds(x, 39, width, 32.0f);
 
         if (editor.isVisible()) {
-            auto [x, width] = getContentXAndWidth();
             auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), true) + listBox.getPosition();
             editor.setBounds(x + 6, selectionBounds.getY() + 2, width - 12, selectionBounds.getHeight() - 2);
         }
@@ -298,8 +301,8 @@ private:
         auto pathsTree = SettingsFile::getInstance()->getPathsTree();
         pathsTree.removeAllChildren(nullptr);
 
-        for (int p = 0; p < paths.size(); p++) {
-            auto dir = File(paths[p]);
+        for (auto const& path : paths) {
+            auto dir = File(path);
             if (dir.isDirectory()) {
                 auto newPath = ValueTree("Path");
                 newPath.setProperty("Path", dir.getFullPathName(), nullptr);
@@ -633,9 +636,9 @@ public:
         auto librariesTree = SettingsFile::getInstance()->getLibrariesTree();
         librariesTree.removeAllChildren(nullptr);
 
-        for (int i = 0; i < librariesToLoad.size(); i++) {
+        for (auto const& i : librariesToLoad) {
             auto newLibrary = ValueTree("Library");
-            newLibrary.setProperty("Name", librariesToLoad[i], nullptr);
+            newLibrary.setProperty("Name", i, nullptr);
             librariesTree.appendChild(newLibrary, nullptr);
         }
 

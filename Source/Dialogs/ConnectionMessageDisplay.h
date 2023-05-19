@@ -7,6 +7,8 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+
+#include <utility>
 #include "Constants.h"
 #include "LookAndFeel.h"
 #include "../Connection.h"
@@ -26,8 +28,8 @@ public:
     }
 
     ~ConnectionMessageDisplay()
-    {
-    }
+        override
+        = default;
 
     /** Activate the current connection info display overlay, to hide give it a nullptr
      */
@@ -143,6 +145,8 @@ private:
             stopTimer(MouseHoverExitDelay);
             break;
         }
+        default:
+            break;
         }
     }
 
@@ -179,7 +183,7 @@ private:
         //}
 
         int startPostionX = 8 + 4;
-        for (auto item : messageItemsWithFormat) {
+        for (auto const& item : messageItemsWithFormat) {
             Fonts::drawStyledText(g, item.text, startPostionX, 0, item.width, getHeight(), findColour(PlugDataColour::panelTextColourId), item.fontStyle, 14, Justification::centredLeft);
             startPostionX += item.width + 4;
         }
@@ -192,7 +196,7 @@ private:
 
     struct TextStringWithMetrics {
         TextStringWithMetrics(String text, FontStyle fontStyle, int width)
-            : text(text)
+            : text(std::move(text))
             , fontStyle(fontStyle)
             , width(width) {};
         String text;
@@ -209,7 +213,7 @@ private:
         MouseHoverExitDelay };
     Rectangle<int> constrainedBounds = { 0, 0, 0, 0 };
 
-    Point<float> circlePosition = { 8 + 4, 36 / 2 };
+    Point<float> circlePosition = { 8.0f + 4.0f, 36.0f / 2.0f };
     float circleRadius = 3.0f;
 
     Image cachedImage;

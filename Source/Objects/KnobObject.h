@@ -12,7 +12,7 @@ class Knob : public Slider {
     Colour fgColour;
     Colour arcColour;
 
-    bool drawArc;
+    bool drawArc = true;
 
     int numberOfTicks = 0;
 
@@ -24,7 +24,7 @@ public:
         setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
     }
 
-    ~Knob() { }
+    ~Knob() = default;
 
     void drawTicks(Graphics& g, Rectangle<float> knobBounds, float startAngle, float endAngle, float tickWidth)
     {
@@ -64,7 +64,7 @@ public:
         auto startAngle = getRotaryParameters().startAngleRadians;
         auto endAngle = getRotaryParameters().endAngleRadians;
 
-        float angle = jmap<float>(sliderPosProportional, startAngle, endAngle);
+        auto angle = jmap<float>(sliderPosProportional, startAngle, endAngle);
 
         startAngle = std::clamp(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
 
@@ -250,7 +250,7 @@ public:
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
         pd->unlockAudioThread();
 
-        return Rectangle<int>(x, y, w + 1, h + 1);
+        return { x, y, w + 1, h + 1 };
     }
 
     void setPdBounds(Rectangle<int> const b) override

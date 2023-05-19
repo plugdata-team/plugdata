@@ -12,7 +12,7 @@ struct SettingsFileListener {
 
     ~SettingsFileListener();
 
-    virtual void propertyChanged(String name, var value) {};
+    virtual void propertyChanged(String const& name, var const& value) {};
 
     virtual void settingsFileReloaded() {};
 };
@@ -22,7 +22,7 @@ class SettingsFile : public ValueTree::Listener
     , public Timer
     , public DeletedAtShutdown {
 public:
-    virtual ~SettingsFile();
+    ~SettingsFile() override;
 
     SettingsFile* initialise();
 
@@ -33,10 +33,10 @@ public:
     ValueTree getSelectedThemesTree();
     ValueTree getLibrariesTree();
 
-    ValueTree getTheme(String name);
+    ValueTree getTheme(String const& name);
     ValueTree getCurrentTheme();
 
-    void addToRecentlyOpened(File path);
+    void addToRecentlyOpened(File const& path);
 
     void initialisePathsTree();
     void initialiseThemesTree();
@@ -52,10 +52,10 @@ public:
 
     void saveSettings();
 
-    void setProperty(String name, var value);
+    void setProperty(String const& name, var const& value);
 
     template<typename T>
-    T getProperty(String name)
+    T getProperty(String const& name)
     {
         if (!isInitialised) {
             initialise();
@@ -68,11 +68,11 @@ public:
         }
     }
 
-    bool hasProperty(String name);
+    bool hasProperty(String const& name);
 
     bool wantsNativeDialog();
 
-    Value getPropertyAsValue(String name);
+    Value getPropertyAsValue(String const& name);
 
     ValueTree getValueTree();
 

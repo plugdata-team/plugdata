@@ -20,7 +20,7 @@ class InternalSynth final : public Thread {
 public:
     InternalSynth();
 
-    ~InternalSynth();
+    ~InternalSynth() override;
 
     // Initialise fluidsynth on another thread, because it takes a while
     void run() override;

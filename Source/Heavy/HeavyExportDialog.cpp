@@ -10,7 +10,6 @@
 #include "Dialogs/Dialogs.h"
 #include "HeavyExportDialog.h"
 
-#include "Canvas.h"
 #include "PluginEditor.h"
 #include "Utility/PropertiesPanel.h"
 #include "Utility/OSUtils.h"
@@ -20,8 +19,6 @@
 #    include <sys/types.h>
 #    include <sys/wait.h>
 #endif
-
-#include <z_libpd.h>
 
 #include "Toolchain.h"
 #include "ExportingProgressView.h"
@@ -106,7 +103,7 @@ public:
         return items.size();
     }
 
-    StringArray getExports()
+    StringArray getExports() const
     {
         return items;
     }

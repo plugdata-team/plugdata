@@ -47,7 +47,7 @@ class PaletteView : public Component
             cnv->addMouseListener(this, true);
         }
 
-        ~DraggedComponentGroup()
+        ~DraggedComponentGroup() override
         {
             cnv->removeMouseListener(this);
         }
@@ -526,7 +526,7 @@ public:
 class Palettes : public Component
     , public SettingsFileListener {
 public:
-    Palettes(PluginEditor* editor)
+    explicit Palettes(PluginEditor* editor)
         : view(editor)
         , resizer(this)
     {
@@ -632,7 +632,7 @@ public:
         setVisible(showPalettes);
     }
 
-    ~Palettes()
+    ~Palettes() override
     {
         savePalettes();
     }
@@ -654,7 +654,7 @@ public:
     }
 
 private:
-    void propertyChanged(String name, var value) override
+    void propertyChanged(String const& name, var const& value) override
     {
         if (name == "show_palettes") {
             setVisible(static_cast<bool>(value));
@@ -897,7 +897,7 @@ private:
 
     class ResizerComponent : public Component {
     public:
-        ResizerComponent(Component* toResize)
+        explicit ResizerComponent(Component* toResize)
             : target(toResize)
         {
         }

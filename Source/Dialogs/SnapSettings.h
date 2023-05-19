@@ -1,6 +1,8 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+
+#include <utility>
 #include "Constants.h"
 #include "LookAndFeel.h"
 
@@ -82,8 +84,8 @@ public:
         bool buttonHover = false;
 
     public:
-        SnapSelector(SnapSettings* parent, String icon, String nameOfGroup, SnapBitMask snapBitValue)
-            : groupName(nameOfGroup)
+        SnapSelector(SnapSettings* parent, String const& icon, String nameOfGroup, SnapBitMask snapBitValue)
+            : groupName(std::move(nameOfGroup))
             , snapBit(snapBitValue)
             , parent(parent)
         {
@@ -210,7 +212,7 @@ public:
     void mouseDrag(MouseEvent const& e) override
     {
         for (auto* group : buttonGroups) {
-            if (group->dragToggledInteraction == false && group->getScreenBounds().contains(e.getScreenPosition()) && e.getDistanceFromDragStart() > 2) {
+            if (!group->dragToggledInteraction && group->getScreenBounds().contains(e.getScreenPosition()) && e.getDistanceFromDragStart() > 2) {
                 // group.button.setState(Button::ButtonState::buttonOver);
                 group->dragToggledInteraction = true;
                 group->button.setToggleState(mouseInteraction, dontSendNotification);
@@ -230,7 +232,7 @@ public:
         CallOutBox::launchAsynchronously(std::move(snapSettings), bounds, editor);
     }
 
-    ~SnapSettings()
+    ~SnapSettings() override
     {
         isShowing = false;
     }

@@ -87,7 +87,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     class PlugData_DocumentWindowButton_macOS : public Button
         , public FocusChangeListener {
     public:
-        PlugData_DocumentWindowButton_macOS(int buttonType)
+        explicit PlugData_DocumentWindowButton_macOS(int buttonType)
             : Button("")
             , buttonType(buttonType)
         {
@@ -134,6 +134,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 toggledShape.addTriangle(point_b_a, point_b_b, point_b_c);
                 break;
             }
+            default:
+                break;
             }
             setName(name);
             setButtonText(name);

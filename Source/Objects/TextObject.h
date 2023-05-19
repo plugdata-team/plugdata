@@ -53,7 +53,7 @@ struct TextObjectHelper {
         public:
             Object* object;
 
-            TextObjectBoundsConstrainer(Object* parent)
+            explicit TextObjectBoundsConstrainer(Object* parent)
                 : object(parent)
             {
             }
@@ -126,7 +126,7 @@ struct TextObjectHelper {
         return text;
     }
 
-    static int getIdealWidthForText(String text, int fontHeight)
+    static int getIdealWidthForText(String const& text, int fontHeight)
     {
         auto lines = StringArray::fromLines(text);
         int w = minWidth;
@@ -165,7 +165,7 @@ struct TextObjectHelper {
 
     static TextEditor* createTextEditor(Object* object, int fontHeight)
     {
-        TextEditor* editor = new TextEditor;
+        auto* editor = new TextEditor;
         editor->applyFontToAllText(Font(fontHeight));
 
         object->copyAllExplicitColoursTo(*editor);
@@ -207,9 +207,7 @@ public:
         isLocked = getValue<bool>(cnv->locked);
     }
 
-    virtual ~TextBase()
-    {
-    }
+    ~TextBase() override = default;
 
     void paint(Graphics& g) override
     {

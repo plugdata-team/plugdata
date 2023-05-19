@@ -17,9 +17,9 @@ class HeavyExportDialog : public Component {
     std::unique_ptr<ExporterSettingsPanel> exporterPanel;
 
 public:
-    HeavyExportDialog(Dialog* dialog);
+    explicit HeavyExportDialog(Dialog* dialog);
 
-    ~HeavyExportDialog();
+    ~HeavyExportDialog() override;
 
     void paint(Graphics& g) override;
 

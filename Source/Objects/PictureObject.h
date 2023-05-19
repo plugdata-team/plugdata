@@ -167,7 +167,7 @@ public:
         return bounds;
     }
 
-    void openFile(String location)
+    void openFile(String const& location)
     {
         if (location.isEmpty() || location == "empty")
             return;

@@ -73,7 +73,7 @@ public:
 
      In all instances, the settingsToUse will take precedence over the "preferred" options if not null.
      */
-    StandalonePluginHolder(PropertySet* settingsToUse, bool takeOwnershipOfSettings = true, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr, Array<PluginInOuts> const& channels = Array<PluginInOuts>())
+    explicit StandalonePluginHolder(PropertySet* settingsToUse, bool takeOwnershipOfSettings = true, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr, Array<PluginInOuts> const& channels = Array<PluginInOuts>())
 
         : settings(settingsToUse, takeOwnershipOfSettings)
         , channelConfiguration(channels)
@@ -494,7 +494,7 @@ public:
         setBoundsConstrained(getWindowScreenBounds());
     }
 
-    void propertyChanged(String name, var value) override
+    void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
 
@@ -660,7 +660,7 @@ public:
         if (auto* content = getContentComponent()) {
             content->resized();
             content->repaint();
-            MessageManager::callAsync([this, content] {
+            MessageManager::callAsync([content] {
                 if (content->isShowing())
                     content->grabKeyboardFocus();
             });

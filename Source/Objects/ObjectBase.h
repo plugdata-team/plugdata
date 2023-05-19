@@ -27,7 +27,7 @@ class ObjectLabel : public Label {
     };
 
 public:
-    ObjectLabel(Component* parent)
+    explicit ObjectLabel(Component* parent)
         : object(parent)
     {
         object->addComponentListener(&objListener);
@@ -39,7 +39,7 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    virtual ~ObjectLabel()
+    ~ObjectLabel() override
     {
         object->removeComponentListener(&objListener);
     }
@@ -57,7 +57,7 @@ class ObjectBase : public Component
 public:
     ObjectBase(void* obj, Object* parent);
 
-    virtual ~ObjectBase();
+    ~ObjectBase() override;
 
     void paint(Graphics& g) override;
 
@@ -156,7 +156,7 @@ public:
 
 protected:
     // Set parameter without triggering valueChanged
-    void setParameterExcludingListener(Value& parameter, var value);
+    void setParameterExcludingListener(Value& parameter, var const& value);
 
     // Call when you start/stop editing a gui object
     void startEdition();

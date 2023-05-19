@@ -36,7 +36,7 @@ public:
         }
 
         textEditor.reset(
-            Dialogs::showTextEditorDialog(getText(), "qlist", [this](String lastText, bool hasChanged) {
+            Dialogs::showTextEditorDialog(getText(), "qlist", [this](String const& lastText, bool hasChanged) {
                 if (!hasChanged) {
                     textEditor.reset(nullptr);
                     return;
@@ -65,17 +65,17 @@ public:
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
 
-        for (int i = 0; i < lines.size(); i++) {
-            if (lines[i].isEmpty())
+        for (auto const& line : lines) {
+            if (line.isEmpty())
                 continue;
 
-            auto words = StringArray::fromTokens(lines[i], " ", "\"");
-            for (int j = 0; j < words.size(); j++) {
+            auto words = StringArray::fromTokens(line, " ", "\"");
+            for (auto const& word : words) {
                 atoms.emplace_back();
-                if (words[j].containsOnly("0123456789e.-+") && words[j] != "-") {
-                    SETFLOAT(&atoms.back(), words[j].getFloatValue());
+                if (word.containsOnly("0123456789e.-+") && word != "-") {
+                    SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
-                    SETSYMBOL(&atoms.back(), pd->generateSymbol(words[j]));
+                    SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
                 }
             }
 
@@ -174,7 +174,7 @@ public:
         auto name = String::fromUTF8(static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name);
 
         textEditor.reset(
-            Dialogs::showTextEditorDialog(getText(), name, [this](String lastText, bool hasChanged) {
+            Dialogs::showTextEditorDialog(getText(), name, [this](String const& lastText, bool hasChanged) {
                 if (!hasChanged) {
                     textEditor.reset(nullptr);
                     return;
@@ -207,17 +207,17 @@ public:
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
 
-        for (int i = 0; i < lines.size(); i++) {
-            if (lines[i].isEmpty())
+        for (auto const& line : lines) {
+            if (line.isEmpty())
                 continue;
 
-            auto words = StringArray::fromTokens(lines[i], " ", "\"");
-            for (int j = 0; j < words.size(); j++) {
+            auto words = StringArray::fromTokens(line, " ", "\"");
+            for (auto const& word : words) {
                 atoms.emplace_back();
-                if (words[j].containsOnly("0123456789e.-+") && words[j] != "-") {
-                    SETFLOAT(&atoms.back(), words[j].getFloatValue());
+                if (word.containsOnly("0123456789e.-+") && word != "-") {
+                    SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
-                    SETSYMBOL(&atoms.back(), pd->generateSymbol(words[j]));
+                    SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
                 }
             }
 

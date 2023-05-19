@@ -40,7 +40,7 @@ public:
 
     FilterType filterType = EQ;
 
-    BicoeffGraph(Object* parent)
+    explicit BicoeffGraph(Object* parent)
         : object(parent)
     {
         filterWidth = 0.2f;
@@ -70,7 +70,7 @@ public:
         binbuf_text(ptr->te_binbuf, buftext.toRawUTF8(), buftext.getNumBytesAsUTF8());
     }
 
-    bool canResizefilterAmplitude()
+    bool canResizefilterAmplitude() const
     {
         return filterType == Highshelf || filterType == Lowshelf || filterType == EQ;
     }
@@ -120,7 +120,7 @@ public:
 
         magnitudePath.clear();
 
-        for (float x = 0; x <= getWidth(); x++) {
+        for (int x = 0; x <= getWidth(); x++) {
             auto nn = (static_cast<float>(x) / getWidth()) * 120.0f + 16.766f;
             auto freq = mtof(nn);
             auto result = calcMagnitudePhase((M_PI * 2.0 * freq) / 44100.0f, a1, a2, b0, b1, b2);
@@ -196,10 +196,10 @@ public:
 
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
-        g.drawVerticalLine(filterX1 * getWidth(), 0, getHeight());
-        g.drawVerticalLine(filterX2 * getWidth(), 0, getHeight());
+        g.drawVerticalLine(filterX1 * getWidth(), 0.0f, getHeight());
+        g.drawVerticalLine(filterX2 * getWidth(), 0.0f, getHeight());
 
-        g.drawHorizontalLine(getHeight() / 2.0f, 0, getWidth());
+        g.drawHorizontalLine(getHeight() / 2.0f, 0.0f, getWidth());
 
         // g.setColour(Colours::green);
         // g.strokePath(phasePath, PathStrokeType(1.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::square));

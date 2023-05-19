@@ -1,3 +1,5 @@
+#include <utility>
+
 /*
  // Copyright (c) 2021-2022 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -8,7 +10,7 @@ class NewThemeDialog : public Component {
 
 public:
     NewThemeDialog(Dialog* parent, std::function<void(int, String, String)> callback)
-        : cb(callback)
+        : cb(std::move(callback))
     {
         setSize(400, 200);
 
@@ -104,7 +106,7 @@ private:
 };
 
 struct ThemeSelectorProperty : public PropertiesPanel::Property {
-    ThemeSelectorProperty(String const& propertyName, std::function<void()> callback)
+    ThemeSelectorProperty(String const& propertyName, std::function<void()> const& callback)
         : Property(propertyName)
     {
         comboBox.getProperties().set("Style", "Inspector");
@@ -119,7 +121,7 @@ struct ThemeSelectorProperty : public PropertiesPanel::Property {
         addAndMakeVisible(comboBox);
     }
 
-    String getText()
+    String getText() const
     {
         return comboBox.getText();
     }
@@ -129,7 +131,7 @@ struct ThemeSelectorProperty : public PropertiesPanel::Property {
         comboBox.setSelectedItemIndex(idx, dontSendNotification);
     }
 
-    void setOptions(StringArray options)
+    void setOptions(StringArray const& options)
     {
         comboBox.clear();
         comboBox.addItemList(options, 1);
@@ -187,7 +189,7 @@ public:
         updateSwatches();
     }
 
-    void updateThemeNames(String firstTheme, String secondTheme)
+    void updateThemeNames(String const& firstTheme, String const& secondTheme)
     {
         auto sections = panel.getSectionNames();
         for (int i = 3; i < sections.size(); i++) {
@@ -216,7 +218,7 @@ public:
 
             // Loop over themes
             for (int i = 0; i < 2; i++) {
-                auto themeName = PlugDataLook::selectedThemes[i];
+                auto const& themeName = PlugDataLook::selectedThemes[i];
                 swatchesToAdd.add(&(swatches[themeName][colourId]));
                 auto* swatch = swatchesToAdd.getLast();
 
@@ -232,7 +234,7 @@ public:
 
         auto* fontPanel = new PropertiesPanel::FontComponent("Default font", fontValue);
 
-        std::function<void(int, String)> onThemeChange = [this](int themeSlot, String newThemeName) {
+        std::function<void(int, String)> onThemeChange = [this](int themeSlot, String const& newThemeName) {
             auto allThemes = PlugDataLook::getAllThemes();
             int themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
 
@@ -267,7 +269,7 @@ public:
             Icons::Reset, "Reset all themes to default", true);
 
         newButton = new PropertiesPanel::ActionComponent([this]() {
-            auto callback = [this](int result, String name, String baseTheme) {
+            auto callback = [this](int result, const String& name, const String& baseTheme) {
                 if (!result)
                     return;
 
@@ -331,7 +333,7 @@ public:
                 if (result < 1)
                     return;
 
-                auto themeName = allThemes[result - 1];
+                const auto& themeName = allThemes[result - 1];
 
                 auto themeTree = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName);
 
@@ -346,7 +348,7 @@ public:
 #endif
 
                 saveChooser->launchAsync(folderChooserFlags,
-                    [this, themeXml](FileChooser const& fileChooser) mutable {
+                    [themeXml](FileChooser const& fileChooser) mutable {
                         const auto file = fileChooser.getResult();
                         file.replaceWithText(themeXml);
                     });
@@ -369,7 +371,7 @@ public:
 
                 auto colourThemesTree = SettingsFile::getInstance()->getColourThemesTree();
                 auto selectedThemesTree = SettingsFile::getInstance()->getSelectedThemesTree();
-                auto themeName = allThemes[result - 1];
+                const auto& themeName = allThemes[result - 1];
 
                 auto themeTree = colourThemesTree.getChildWithProperty("theme", themeName);
 

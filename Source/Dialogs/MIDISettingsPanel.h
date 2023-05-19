@@ -57,7 +57,7 @@ private:
 
 class InternalSynthToggle : public PropertiesPanel::BoolComponent {
 public:
-    InternalSynthToggle(PluginProcessor* audioProcessor)
+    explicit InternalSynthToggle(PluginProcessor* audioProcessor)
         : PropertiesPanel::BoolComponent("Internal GM Synth", { "Disabled", "Enabled" })
         , processor(audioProcessor)
     {
@@ -88,7 +88,7 @@ public:
         updateDevices();
     }
 
-    ~StandaloneMIDISettings()
+    ~StandaloneMIDISettings() override
     {
         deviceManager.removeChangeListener(this);
     }

@@ -15,7 +15,7 @@ public:
         pd->registerMessageListener(ptr, this);
     }
 
-    ~SubpatchImpl()
+    ~SubpatchImpl() override
     {
         pd->unregisterMessageListener(ptr, this);
         closeOpenedSubpatchers();
@@ -74,7 +74,7 @@ public:
     {
     }
 
-    ~KeyObject()
+    ~KeyObject() override
     {
         if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
             editor->removeModifierKeyListener(this);
@@ -317,7 +317,7 @@ public:
 class CanvasActiveObject final : public ImplementationBase
     , public FocusChangeListener {
 
-    bool lastFocus = 0;
+    bool lastFocus = false;
 
     t_symbol* lastFocussedName;
     t_symbol* canvasName;
@@ -326,7 +326,7 @@ class CanvasActiveObject final : public ImplementationBase
 public:
     using ImplementationBase::ImplementationBase;
 
-    ~CanvasActiveObject()
+    ~CanvasActiveObject() override
     {
         Desktop::getInstance().removeFocusChangeListener(this);
     }
@@ -360,7 +360,7 @@ public:
 
         if (!focusedComponent) {
             pd->sendTypedMessage(ptr, "_focus", { canvasName, 0.0f });
-            lastFocus = 0;
+            lastFocus = false;
             return;
         }
 
@@ -381,11 +381,11 @@ public:
             char buf[MAXPDSTRING];
             snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)focusedCanvas->patch.getPointer());
             buf[MAXPDSTRING - 1] = 0;
-            
+
             auto* name = pd->generateSymbol(String::fromUTF8(buf));
 
             if (lastFocussedName != name) {
-                pd->sendTypedMessage(ptr, "_focus", {name, static_cast<float>(shouldHaveFocus) });
+                pd->sendTypedMessage(ptr, "_focus", { name, static_cast<float>(shouldHaveFocus) });
                 lastFocussedName = name;
             }
             return;
@@ -416,7 +416,7 @@ public:
         pd->registerMessageListener(ptr, this);
     }
 
-    ~CanvasMouseObject()
+    ~CanvasMouseObject() override
     {
         pd->unregisterMessageListener(ptr, this);
         if (!cnv)
@@ -569,13 +569,13 @@ class CanvasVisibleObject final : public ImplementationBase
     , public ComponentListener
     , public Timer {
 
-    bool lastFocus = 0;
+    bool lastFocus = false;
     Component::SafePointer<Canvas> cnv;
 
 public:
     using ImplementationBase::ImplementationBase;
 
-    ~CanvasVisibleObject()
+    ~CanvasVisibleObject() override
     {
         if (!cnv)
             return;
@@ -663,7 +663,7 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
-        float newScale = getValue<float>(zoomScaleValue);
+        auto newScale = getValue<float>(zoomScaleValue);
         if (lastScale != newScale) {
             auto* zoom = static_cast<t_fake_zoom*>(ptr);
 

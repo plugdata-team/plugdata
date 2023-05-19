@@ -333,7 +333,7 @@ Statusbar::~Statusbar()
     delete levelMeter;
 }
 
-void Statusbar::propertyChanged(String name, var value)
+void Statusbar::propertyChanged(String const& name, var const& value)
 {
 }
 

@@ -5,6 +5,8 @@
  */
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
+#include <utility>
+
 #include "Utility/PropertiesPanel.h"
 
 #include "AboutPanel.h"
@@ -25,8 +27,8 @@ class SettingsToolbarButton : public TextButton {
 
 public:
     SettingsToolbarButton(String iconToUse, String textToShow)
-        : icon(iconToUse)
-        , text(textToShow)
+        : icon(std::move(iconToUse))
+        , text(std::move(textToShow))
     {
     }
 
@@ -64,7 +66,7 @@ public:
 class SettingsDialog : public Component {
 
 public:
-    SettingsDialog(PluginEditor* editor)
+    explicit SettingsDialog(PluginEditor* editor)
         : processor(dynamic_cast<PluginProcessor*>(editor->getAudioProcessor()))
     {
         setVisible(false);

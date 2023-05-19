@@ -27,7 +27,7 @@ public:
         objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
     }
 
-    ~SubpatchObject()
+    ~SubpatchObject() override
     {
         object->hvccMode.removeListener(this);
         closeOpenedSubpatchers();
@@ -127,7 +127,7 @@ public:
         openSubpatch();
     }
 
-    static void checkHvccCompatibility(pd::Patch::Ptr patch, String prefix = "")
+    static void checkHvccCompatibility(pd::Patch::Ptr patch, String const& prefix = "")
     {
         auto* instance = patch->instance;
 

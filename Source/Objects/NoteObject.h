@@ -58,12 +58,12 @@ public:
             std::vector<t_atom> atoms;
 
             auto words = StringArray::fromTokens(noteEditor.getText(), " ", "\"");
-            for (int j = 0; j < words.size(); j++) {
+            for (const auto& word : words) {
                 atoms.emplace_back();
-                if (words[j].containsOnly("0123456789e.-+") && words[j] != "-") {
-                    SETFLOAT(&atoms.back(), words[j].getFloatValue());
+                if (word.containsOnly("0123456789e.-+") && word != "-") {
+                    SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
-                    SETSYMBOL(&atoms.back(), pd->generateSymbol(words[j]));
+                    SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
                 }
             }
 
@@ -338,7 +338,7 @@ public:
             return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
         }
 
-        return Font(typefaceName, fontHeight, style);
+        return { typefaceName, static_cast<float>(fontHeight), style };
     }
 
     void updateFont()

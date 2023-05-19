@@ -10,16 +10,16 @@ struct StringUtils {
 
     inline static constexpr uint64_t num_items = 1ul << (sizeof(char) * 8ul);
 
-    std::array<float, num_items> widths;
+    std::array<float, num_items> widths {};
 
-    StringUtils(Font font)
+    explicit StringUtils(Font const& font)
     {
         for (int i = 0; i < num_items; i++) {
             widths[i] = font.getStringWidth(String(std::string(1, (char)i)));
         }
     }
 
-    float getStringWidth(String text) const
+    float getStringWidth(String const& text) const
     {
         float totalWidth = 0.0f;
 
@@ -34,7 +34,7 @@ struct StringUtils {
         return totalWidth * 0.95f;
     }
 
-    static float getPreciseStringWidth(String text, Font font)
+    static float getPreciseStringWidth(String const& text, Font const& font)
     {
         float maxLineLength = 0;
         for (auto& line : StringArray::fromLines(text)) {

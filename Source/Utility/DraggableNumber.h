@@ -26,7 +26,7 @@ public:
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
 
-    DraggableNumber(bool integerDrag)
+    explicit DraggableNumber(bool integerDrag)
         : onlyIntegers(integerDrag)
     {
         setWantsKeyboardFocus(true);
@@ -115,7 +115,7 @@ public:
         }
     }
 
-    float getValue()
+    float getValue() const
     {
         return lastValue;
     }
@@ -237,9 +237,8 @@ public:
         setValue(newValue);
     }
 
-    float limitValue(float valueToLimit)
+    float limitValue(float valueToLimit) const
     {
-
         if (min == 0.0f && max == 0.0f)
             return valueToLimit;
 
@@ -271,7 +270,7 @@ public:
         }
     }
 
-    String formatNumber(float value, int precision = -1)
+    static String formatNumber(float value, int precision = -1)
     {
         auto text = String(value, precision);
 

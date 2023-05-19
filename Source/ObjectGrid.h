@@ -54,7 +54,7 @@ private:
 
     bool isAlreadySnapped(bool horizontal, Point<int>& dragOffset);
 
-    void propertyChanged(String name, var value) override;
+    void propertyChanged(String const& name, var const& value) override;
 
     int gridType;
     bool gridEnabled;

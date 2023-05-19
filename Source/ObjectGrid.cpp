@@ -531,7 +531,7 @@ void ObjectGrid::clearAll()
     clear(true);
 }
 
-void ObjectGrid::propertyChanged(String name, var value)
+void ObjectGrid::propertyChanged(String const& name, var const& value)
 {
     if (name == "grid_type") {
         gridType = static_cast<int>(value);

@@ -5,12 +5,14 @@
  */
 #include <juce_audio_utils/juce_audio_utils.h>
 
+#include <utility>
+
 class DeviceManagerLevelMeter : public Component
     , public Timer {
 
 public:
-    DeviceManagerLevelMeter(AudioDeviceManager::LevelMeter::Ptr levelMeter)
-        : levelGetter(levelMeter)
+    explicit DeviceManagerLevelMeter(AudioDeviceManager::LevelMeter::Ptr levelMeter)
+        : levelGetter(std::move(levelMeter))
     {
         startTimerHz(20);
     }
@@ -49,7 +51,7 @@ public:
 };
 
 struct CallbackComboProperty : public PropertiesPanel::Property {
-    CallbackComboProperty(String const& propertyName, StringArray options, String currentOption, std::function<void(String)> onChange)
+    CallbackComboProperty(String const& propertyName, StringArray const& options, String const& currentOption, std::function<void(String)> const& onChange)
         : Property(propertyName)
     {
         lastValue = currentOption;
@@ -78,7 +80,7 @@ struct CallbackComboProperty : public PropertiesPanel::Property {
 
 struct CallbackComboPropertyWithTestButton : public CallbackComboProperty {
 
-    CallbackComboPropertyWithTestButton(String const& propertyName, StringArray options, String currentOption, std::function<void(String)> onChange, AudioDeviceManager& deviceManager)
+    CallbackComboPropertyWithTestButton(String const& propertyName, StringArray const& options, String const& currentOption, std::function<void(String)> const& onChange, AudioDeviceManager& deviceManager)
         : CallbackComboProperty(propertyName, options, currentOption, onChange)
     {
         testButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -103,9 +105,9 @@ struct CallbackComboPropertyWithTestButton : public CallbackComboProperty {
 
 class ChannelToggleProperty : public PropertiesPanel::BoolComponent {
 public:
-    ChannelToggleProperty(String channelName, bool isEnabled, std::function<void(bool)> onClick)
+    ChannelToggleProperty(String const& channelName, bool isEnabled, std::function<void(bool)> onClick)
         : PropertiesPanel::BoolComponent(channelName, { "Disabled", "Enabled" })
-        , callback(onClick)
+        , callback(std::move(onClick))
     {
         toggleStateValue = isEnabled;
         setPreferredHeight(28);
@@ -129,7 +131,7 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId).darker(0.015f));
         g.fillPath(backgroundShape);
 
-        auto buttonBounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2 - hideLabel));
+        auto buttonBounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
 
         Path buttonShape;
         buttonShape.addRoundedRectangle(buttonBounds.getX(), buttonBounds.getY(), buttonBounds.getWidth(), buttonBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, false, roundTopCorner, false, roundBottomCorner);
@@ -154,7 +156,7 @@ class StandaloneAudioSettings : public Component
     , private ChangeListener {
 
 public:
-    StandaloneAudioSettings(AudioDeviceManager& audioDeviceManager)
+    explicit StandaloneAudioSettings(AudioDeviceManager& audioDeviceManager)
         : deviceManager(audioDeviceManager)
         , inputLevelMeter(audioDeviceManager.getInputLevelGetter())
         , outputLevelMeter(audioDeviceManager.getOutputLevelGetter())
@@ -177,7 +179,7 @@ public:
         };
     }
 
-    ~StandaloneAudioSettings()
+    ~StandaloneAudioSettings() override
     {
         deviceManager.removeChangeListener(this);
     }
@@ -200,12 +202,12 @@ private:
         if (types.size() > 1) {
             // Get all device type names
             StringArray typeNames;
-            for (int i = 0; i < types.size(); i++) {
-                typeNames.add(types[i]->getTypeName());
+            for (auto type : types) {
+                typeNames.add(type->getTypeName());
             }
 
             // Create property
-            deviceConfigurationProperties.add(new CallbackComboProperty("Device Type", typeNames, deviceManager.getCurrentAudioDeviceType(), [this](String newType) {
+            deviceConfigurationProperties.add(new CallbackComboProperty("Device Type", typeNames, deviceManager.getCurrentAudioDeviceType(), [this](String const& newType) {
                 deviceManager.setCurrentAudioDeviceType(newType, true);
                 updateConfig();
                 updateDevices();
@@ -229,13 +231,13 @@ private:
             }
 
             // Add sample rate property
-            deviceConfigurationProperties.add(new CallbackComboProperty("Sample rate", sampleRateStrings, String(setup.sampleRate), [this](String selected) {
+            deviceConfigurationProperties.add(new CallbackComboProperty("Sample rate", sampleRateStrings, String(setup.sampleRate), [this](String const& selected) {
                 setup.sampleRate = selected.getFloatValue();
                 updateConfig();
             }));
 
             // Add buffer size property
-            deviceConfigurationProperties.add(new CallbackComboProperty("Buffer size", bufferSizeStrings, String(setup.bufferSize), [this](String selected) {
+            deviceConfigurationProperties.add(new CallbackComboProperty("Buffer size", bufferSizeStrings, String(setup.bufferSize), [this](String const& selected) {
                 setup.bufferSize = selected.getIntValue();
                 updateConfig();
             }));
@@ -251,7 +253,7 @@ private:
         const StringArray outputDevices(currentType->getDeviceNames(false));
         outputSelectorProperty = new CallbackComboPropertyWithTestButton(
             "Output Device", outputDevices, setup.outputDeviceName, [this](String selectedDevice) {
-                setup.outputDeviceName = selectedDevice;
+                setup.outputDeviceName = std::move(selectedDevice);
                 updateConfig();
             },
             deviceManager);
@@ -261,7 +263,7 @@ private:
         Array<PropertiesPanel::Property*> inputProperties;
         const StringArray inputDevices(currentType->getDeviceNames(true));
         inputSelectorProperty = new CallbackComboProperty("Input Device", inputDevices, setup.inputDeviceName, [this](String selectedDevice) {
-            setup.inputDeviceName = selectedDevice;
+            setup.inputDeviceName = std::move(selectedDevice);
             updateConfig();
         });
         inputProperties.add(inputSelectorProperty);
@@ -332,7 +334,7 @@ private:
     }
 
     // On macOS, output channel names will be "1" instead of "Output 1", so here we fix that
-    void fixShortChannelName(String& currentDeviceName, bool isInput)
+    static void fixShortChannelName(String& currentDeviceName, bool isInput)
     {
         auto prefix = isInput ? "Input " : "Output ";
 
@@ -352,12 +354,12 @@ private:
         }
     }
 
-    void changeListenerCallback(ChangeBroadcaster* origin)
+    void changeListenerCallback(ChangeBroadcaster* origin) override
     {
         updateDevices();
     }
 
-    void resized()
+    void resized() override
     {
         audioPropertiesPanel.setBounds(getLocalBounds());
 

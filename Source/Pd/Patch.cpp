@@ -17,6 +17,8 @@ extern "C" {
 #include <g_canvas.h>
 #include <m_imp.h>
 
+#include <utility>
+
 #include "g_undo.h"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_multi.h"
@@ -51,7 +53,7 @@ namespace pd {
 Patch::Patch(void* patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
     : ptr(patchPtr)
     , instance(parentInstance)
-    , currentFile(patchFile)
+    , currentFile(std::move(patchFile))
     , closePatchOnDelete(ownsPatch)
 {
     jassert(parentInstance);
@@ -209,7 +211,7 @@ Connections Patch::getConnections() const
 
     // TODO: fix data race
     while ((oc = linetraverser_next(&t))) {
-        connections.push_back({ oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob });
+        connections.emplace_back(oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
     }
 
     instance->unlockAudioThread();
@@ -432,7 +434,7 @@ void Patch::copy()
     instance->unlockAudioThread();
 }
 
-String Patch::translatePatchAsString(String patchAsString, Point<int> position)
+String Patch::translatePatchAsString(String const& patchAsString, Point<int> position)
 {
     int minX = std::numeric_limits<int>::max();
     int minY = std::numeric_limits<int>::max();
@@ -592,7 +594,7 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 
     instance->lockAudioThread();
     bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-    ;
+
     instance->unlockAudioThread();
 
     return canConnect;
@@ -712,25 +714,25 @@ void Patch::removeSelection()
     instance->unlockAudioThread();
 }
 
-void Patch::startUndoSequence(String name)
+void Patch::startUndoSequence(String const& name)
 {
     if (!ptr)
         return;
 
     instance->lockAudioThread();
 
-    canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, instance->generateSymbol(name)->s_name, 0);
+    canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, instance->generateSymbol(name)->s_name, nullptr);
 
     instance->unlockAudioThread();
 }
 
-void Patch::endUndoSequence(String name)
+void Patch::endUndoSequence(String const& name)
 {
     if (!ptr)
         return;
 
     instance->lockAudioThread();
-    canvas_undo_add(getPointer(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, 0);
+    canvas_undo_add(getPointer(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, nullptr);
     instance->unlockAudioThread();
 }
 
@@ -826,7 +828,7 @@ File Patch::getPatchFile() const
 
 void Patch::setCurrentFile(File newFile)
 {
-    currentFile = newFile;
+    currentFile = std::move(newFile);
 }
 
 String Patch::getCanvasContent()
@@ -849,14 +851,14 @@ String Patch::getCanvasContent()
     return content;
 }
 
-void Patch::reloadPatch(File changedPatch, t_glist* except)
+void Patch::reloadPatch(File const& changedPatch, t_glist* except)
 {
     auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().replace("\\", "/").toRawUTF8());
     auto* file = gensym(changedPatch.getFileName().toRawUTF8());
     canvas_reload(file, dir, except);
 }
 
-bool Patch::objectWasDeleted(void* ptr)
+bool Patch::objectWasDeleted(void* ptr) const
 {
     if (!ptr)
         return true;
@@ -870,7 +872,7 @@ bool Patch::objectWasDeleted(void* ptr)
 
     return true;
 }
-bool Patch::connectionWasDeleted(void* ptr)
+bool Patch::connectionWasDeleted(void* ptr) const
 {
     if (!ptr)
         return true;

@@ -299,17 +299,17 @@ public:
         auto scale = x->x_dur[x->x_n_states];
 
         auto at = std::vector<t_atom>(ac);
-        float firstPoint = jmap<float>(points[0].y, 0.0f, 1.0f, x->x_min, x->x_max);
+        auto firstPoint = jmap<float>(points[0].y, 0.0f, 1.0f, x->x_min, x->x_max);
         SETFLOAT(at.data(), firstPoint); // get 1st
 
         x->x_state = 0;
         for (int i = 1; i < ac; i++) { // get the rest
 
-            float dur = jmap<float>(points[x->x_state + 1].x - points[x->x_state].x, 0.0f, 1.0f, 0.0f, scale);
+            auto dur = jmap<float>(points[x->x_state + 1].x - points[x->x_state].x, 0.0f, 1.0f, 0.0f, scale);
 
             SETFLOAT(at.data() + i, dur); // duration
             i++, x->x_state++;
-            float point = jmap<float>(points[x->x_state].y, 0.0f, 1.0f, x->x_min, x->x_max);
+            auto point = jmap<float>(points[x->x_state].y, 0.0f, 1.0f, x->x_min, x->x_max);
             if (point < x->x_min_point)
                 x->x_min_point = point;
             if (point > x->x_max_point)
@@ -348,9 +348,9 @@ public:
         }
     }
 
-    Colour colourFromHexArray(unsigned char* hex)
+    static Colour colourFromHexArray(unsigned char* hex)
     {
-        return Colour(hex[0], hex[1], hex[2]);
+        return { hex[0], hex[1], hex[2] };
     }
 
     std::vector<hash32> getAllMessages() override
@@ -370,12 +370,12 @@ public:
     {
         switch (hash(symbol)) {
         case hash("send"): {
-            if (atoms.size() >= 1)
+            if (!atoms.empty())
                 setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
+            if (!atoms.empty())
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
             break;
         }

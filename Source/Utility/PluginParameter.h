@@ -23,7 +23,7 @@ public:
         value = range.convertFrom0to1(getDefaultValue());
     }
 
-    ~PlugDataParameter() {};
+    ~PlugDataParameter() override = default;
 
     int getNumSteps() const override
     {
@@ -218,12 +218,12 @@ public:
         lastValue = v;
     }
 
-    float getLastValue()
+    float getLastValue() const
     {
         return lastValue;
     }
 
-    float getGestureState()
+    float getGestureState() const
     {
         return gestureState;
     }
