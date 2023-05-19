@@ -119,8 +119,10 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
 
     auto* glist = subpatch->getPointer();
 
-    if (!glist)
+    if (!glist) {
+        delete subpatch;
         return;
+    }
 
     auto abstraction = canvas_isabstraction(glist);
     File path;

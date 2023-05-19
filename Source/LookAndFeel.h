@@ -677,9 +677,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         g.fillRoundedRectangle(button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
 
-        int w = button.getWidth();
-        int h = button.getHeight();
-
         drawTabButtonText(button, g, false, false);
     }
 

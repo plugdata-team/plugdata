@@ -121,13 +121,12 @@ private:
 
         void paintOverChildren(Graphics& g) override
         {
-            auto y = titleHeight + 8;
             auto [x, width] = parent.getContentXAndWidth();
 
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
 
             for (int i = 0; i < propertyComps.size() - 1; i++) {
-                y = propertyComps[i]->getBottom() + padding;
+                auto y = propertyComps[i]->getBottom() + padding;
                 g.drawHorizontalLine(y, x, x + width);
             }
         }

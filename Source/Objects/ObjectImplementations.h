@@ -366,7 +366,6 @@ public:
 
         bool shouldHaveFocus = focusedComponent == cnv;
 
-        auto* name = canvasName;
         Canvas* focusedCanvas = nullptr;
 
         auto* active = static_cast<t_fake_active*>(ptr);
@@ -382,11 +381,11 @@ public:
             char buf[MAXPDSTRING];
             snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)focusedCanvas->patch.getPointer());
             buf[MAXPDSTRING - 1] = 0;
-
-            name = gensym(buf);
+            
+            auto* name = pd->generateSymbol(String::fromUTF8(buf));
 
             if (lastFocussedName != name) {
-                pd->sendTypedMessage(ptr, "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
+                pd->sendTypedMessage(ptr, "_focus", {name, static_cast<float>(shouldHaveFocus) });
                 lastFocussedName = name;
             }
             return;

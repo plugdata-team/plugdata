@@ -414,8 +414,6 @@ void StatusbarSource::setSampleRate(double const newSampleRate)
 
 void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
 {
-    auto const* const* channelData = buffer.getArrayOfReadPointers();
-
     if (channels == 1) {
         level[1] = 0;
     } else if (channels == 0) {

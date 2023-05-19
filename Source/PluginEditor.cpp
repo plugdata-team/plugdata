@@ -373,7 +373,6 @@ void PluginEditor::resized()
     }
 
     int hidePosition = getWidth() - windowControlsOffset;
-    int pinPosition = hidePosition - 60;
 
     hideSidebarButton.setBounds(hidePosition, 0, toolbarHeight, toolbarHeight);
 
@@ -609,7 +608,6 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete)
         return;
     }
 
-    auto* tabbar = canvas->getTabbar();
     auto* patch = &canvas->patch;
 
     auto deleteFunc = [this, canvas, quitAfterComplete]() {
@@ -1442,9 +1440,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case ObjectIDs::NewArray: {
-
-        cnv = getCurrentCanvas(true);
-
+        
         Dialogs::showArrayDialog(&openedDialog, this,
             [this](int result, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range) {
                 if (result) {

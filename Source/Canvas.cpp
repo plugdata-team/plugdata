@@ -444,12 +444,12 @@ void Canvas::synchroniseSplitCanvas()
 {
     auto* leftTabbar = editor->splitView.getLeftTabbar();
     auto* rightTabbar = editor->splitView.getRightTabbar();
-    if (getTabbar() == leftTabbar) {
+    if (getTabbar() == leftTabbar && rightTabbar) {
         if (auto* rightCnv = rightTabbar->getCurrentCanvas()) {
             rightCnv->synchronise();
         }
     }
-    if (getTabbar() == rightTabbar) {
+    if (getTabbar() == rightTabbar && leftTabbar) {
         if (auto* leftCnv = leftTabbar->getCurrentCanvas()) {
             leftCnv->synchronise();
         }
