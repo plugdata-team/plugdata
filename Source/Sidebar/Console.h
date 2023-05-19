@@ -229,7 +229,7 @@ public:
                     textColour = Colours::red;
 
                 // Draw text
-                Fonts::drawFittedText(g, message, getLocalBounds().reduced(14, 2), textColour, numLines, 0.9f, 14);
+                Fonts::drawFittedText(g, message, getLocalBounds().reduced(14, 2), textColour, numLines, 0.9f, 14, Justification::centredLeft, FontStyle::Tabular);
             }
         };
 

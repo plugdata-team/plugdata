@@ -516,7 +516,8 @@ public:
             hexValueEditor.setInputRestrictions(7, "#0123456789ABCDEFabcdef");
             hexValueEditor.setColour(outlineColourId, Colour());
             hexValueEditor.setJustification(Justification::centred);
-            hexValueEditor.onTextChange = [this]() {
+            hexValueEditor.setFont(Fonts::getMonospaceFont().withPointHeight(13));
+            hexValueEditor.onTextChange = [this](){
                 currentColour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
             };
 
