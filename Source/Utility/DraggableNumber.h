@@ -55,7 +55,7 @@ public:
 
     void setEditableOnClick(bool editable)
     {
-        setEditable(true, true);
+        setEditable(editable, editable);
         setInterceptsMouseClicks(true, true);
     }
 

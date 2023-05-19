@@ -10,7 +10,7 @@
 struct ArrayDialog : public Component {
 
 public:
-    ArrayDialog(Component* editor, Dialog* parent, ArrayDialogCallback callback)
+    ArrayDialog(Dialog* parent, ArrayDialogCallback callback)
         : cb(callback)
     {
         name = "array1";

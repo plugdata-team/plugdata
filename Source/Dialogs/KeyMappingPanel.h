@@ -50,8 +50,6 @@ public:
         
         for (auto category : mappings.getCommandManager().getCommandCategories())
         {
-            int count = 0;
-
             Array<PropertiesPanel::Property*> properties;
             for (auto command : mappings.getCommandManager().getCommandsInCategory (category)) {
                 properties.add(new KeyMappingProperty(*this, mappings.getCommandManager().getNameOfCommand(command), command));

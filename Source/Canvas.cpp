@@ -487,7 +487,9 @@ void Canvas::performSynchronise()
 
     for (auto* object : pdObjects) {
         auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object; });
-
+        
+        if(patch.objectWasDeleted(object)) return;
+        
         if (it == objects.end()) {
             auto* newBox = objects.add(new Object(object, this));
             newBox->toFront(false);
@@ -505,7 +507,7 @@ void Canvas::performSynchronise()
             object->toFront(false);
             if (object->gui && object->gui->getLabel())
                 object->gui->getLabel()->toFront(false);
-            if (object->gui && !patch.objectWasDeleted(object->getPointer()))
+            if (object->gui)
                 object->gui->update();
         }
     }
@@ -812,7 +814,6 @@ bool Canvas::keyPressed(KeyPress const& key)
         return false;
 
     int keycode = key.getKeyCode();
-    bool hasSelection = !getSelectionOfType<Object>().isEmpty();
 
     auto moveSelection = [this](int x, int y) {
         auto objects = getSelectionOfType<Object>();
@@ -1463,7 +1464,6 @@ bool Canvas::setPanDragMode(bool shouldPan)
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
     for (auto* object : objects) {
-        auto selB = object->getSelectableBounds() + canvasOrigin;
         if (area.intersects(object->getSelectableBounds())) {
             itemsFound.add(object);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {

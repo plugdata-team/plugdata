@@ -88,7 +88,7 @@ struct ToolchainInstaller : public Component
             setInterceptsMouseClicks(true, false);
         }
 
-        void paint(Graphics& g)
+        void paint(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 

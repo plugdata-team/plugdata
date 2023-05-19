@@ -12,7 +12,7 @@ public:
     MainMenu(PluginEditor* editor)
         : settingsTree(SettingsFile::getInstance()->getValueTree())
         , themeSelector(settingsTree)
-        , zoomSelector(editor, settingsTree, editor->splitView.isRightTabbarActive())
+        , zoomSelector(editor)
     {
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
@@ -106,7 +106,7 @@ public:
         float const maxZoom = 3.0f;
 
     public:
-        ZoomSelector(PluginEditor* editor, ValueTree settingsTree, bool splitZoom)
+        ZoomSelector(PluginEditor* editor)
             : _editor(editor)
         {
             auto cnv = _editor->getCurrentCanvas();
@@ -248,11 +248,11 @@ public:
             auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
 
             if (menuItemIcon.isNotEmpty()) {
-                Fonts::drawIcon(g, menuItemIcon, iconArea.translated(3.5f, 0.0f), colour, std::min(15.0f, maxFontHeight), true);
+                Fonts::drawIcon(g, menuItemIcon, iconArea.translated(3.0f, 0.0f), colour, std::min(15.0f, maxFontHeight), true);
             } else if (hasTickBox) {
 
                 g.setColour(colour);
-                g.drawRoundedRectangle(iconArea.toFloat().translated(3.5f, 0.5f).reduced(1.0f), 4.0f, 1.0f);
+                g.drawRoundedRectangle(iconArea.toFloat().translated(3.0f, 0.5f).reduced(1.0f), 4.0f, 1.0f);
 
                 if (isTicked) {
                     g.setColour(colour);

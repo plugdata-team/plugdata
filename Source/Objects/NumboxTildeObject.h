@@ -123,10 +123,6 @@ public:
 
                 nbx->x_fontsize = object->gui->getHeight() - 4;
 
-                int width = bounds.reduced(Object::margin).getWidth();
-                int numWidth = (2.0f * (-6.0f + width - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
-                width = (nbx->x_fontsize - (nbx->x_fontsize / 2) + 2) * (numWidth + 2) + 2;
-
                 BorderSize<int> border(Object::margin);
                 border.subtractFrom(bounds);
 

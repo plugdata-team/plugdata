@@ -45,7 +45,7 @@ void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre,
         return;
 
     auto* dialog = new Dialog(target, centre, 400, 130, 160, false, margin);
-    auto* saveDialog = new SaveDialog(centre, dialog, filename, callback);
+    auto* saveDialog = new SaveDialog(dialog, filename, callback);
 
     dialog->setViewedComponent(saveDialog);
     target->reset(dialog);
@@ -58,7 +58,7 @@ void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre
         return;
 
     auto* dialog = new Dialog(target, centre, 300, 270, 350, false);
-    auto* arrayDialog = new ArrayDialog(centre, dialog, callback);
+    auto* arrayDialog = new ArrayDialog(dialog, callback);
     dialog->setViewedComponent(arrayDialog);
     target->reset(dialog);
 }
@@ -66,7 +66,7 @@ void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre
 void Dialogs::showSettingsDialog(PluginEditor* editor)
 {
     auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
-    auto* settingsDialog = new SettingsDialog(editor, dialog);
+    auto* settingsDialog = new SettingsDialog(editor);
     dialog->setViewedComponent(settingsDialog);
     editor->openedDialog.reset(dialog);
 }

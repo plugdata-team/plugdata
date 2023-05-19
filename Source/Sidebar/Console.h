@@ -189,8 +189,6 @@ public:
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
                     g.fillRoundedRectangle(getLocalBounds().reduced(6, 1).toFloat(), Corners::defaultCornerRadius);
 
-                    bool connectedOnTop = false;
-                    bool connectedOnBottom = false;
                     for (auto& item : console.selectedItems) {
 
                         if (!item.getComponent())

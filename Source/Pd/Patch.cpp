@@ -243,13 +243,9 @@ void* Patch::createGraphOnParent(int x, int y)
     if (!ptr)
         return nullptr;
 
-    t_pd* pdobject = nullptr;
-    std::atomic<bool> done = false;
-    
     instance->lockAudioThread();
     setCurrent();
-    pdobject = libpd_creategraphonparent(getPointer(), x, y);
-    done = true;
+    t_pd* pdobject = libpd_creategraphonparent(getPointer(), x, y);
     instance->unlockAudioThread();
 
     assert(pdobject);
@@ -262,12 +258,10 @@ void* Patch::createGraph(int x, int y, String const& name, int size,int drawMode
     if (!ptr)
         return nullptr;
 
-    t_pd* pdobject = nullptr;
-
     instance->lockAudioThread();
                               
     setCurrent();
-    pdobject = libpd_creategraph(getPointer(), name.toRawUTF8(), size, x, y, drawMode, saveContents, range.first, range.second);
+    t_pd* pdobject = libpd_creategraph(getPointer(), name.toRawUTF8(), size, x, y, drawMode, saveContents, range.first, range.second);
                               
     instance->unlockAudioThread();
 
@@ -356,7 +350,6 @@ void* Patch::createObject(int x, int y, String const& name)
     SETFLOAT(argv.data() + 1, static_cast<float>(y));
 
     for (int i = 0; i < tokens.size(); i++) {
-        auto& tok = tokens[i];
         if (tokens[i].containsOnly("0123456789e.-+") && tokens[i] != "-") {
             SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
         } else {
@@ -364,13 +357,10 @@ void* Patch::createObject(int x, int y, String const& name)
         }
     }
 
-    t_pd* pdobject = nullptr;
-    std::atomic<bool> done = false;
-
     instance->lockAudioThread();
     
     setCurrent();
-    pdobject = libpd_createobj(getPointer(), typesymbol, argc, argv.data());
+    t_pd* pdobject = libpd_createobj(getPointer(), typesymbol, argc, argv.data());
     
     instance->unlockAudioThread();
 
@@ -602,7 +592,7 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
         return false;
 
     instance->lockAudioThread();
-    bool canConnect = canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);;
+    bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);;
     instance->unlockAudioThread();
     
     return canConnect;
@@ -641,7 +631,7 @@ void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
 
     instance->unlockAudioThread();
 
-    return nullptr;
+    return outconnect;
 }
 
 void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath)

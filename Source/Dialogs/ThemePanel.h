@@ -300,7 +300,7 @@ public:
 
             openChooser = std::make_unique<FileChooser>("Choose theme to open", File::getSpecialLocation(File::userHomeDirectory), "*.plugdatatheme", true);
 
-            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](FileChooser const& fileChooser) {
+            openChooser->launchAsync(folderChooserFlags, [this](FileChooser const& fileChooser) {
                 auto result = fileChooser.getResult();
                 auto themeXml = result.loadFileAsString();
                 auto themeTree = ValueTree::fromXml(themeXml);
@@ -319,6 +319,7 @@ public:
                     themeName = finalThemeName;
                 }
 
+                themeTree.setProperty("theme", themeName, nullptr);
                 SettingsFile::getInstance()->getColourThemesTree().appendChild(themeTree, nullptr);
                 updateSwatches();
             });

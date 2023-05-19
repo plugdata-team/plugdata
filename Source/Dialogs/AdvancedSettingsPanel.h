@@ -11,7 +11,7 @@ class AdvancedSettingsPanel : public Component
     , public Value::Listener {
 
 public:
-    AdvancedSettingsPanel(Component* editor)
+    explicit AdvancedSettingsPanel(Component* editor)
         : editor(editor)
     {
         auto* settingsFile = SettingsFile::getInstance();

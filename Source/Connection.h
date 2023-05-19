@@ -87,8 +87,6 @@ public:
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
     int getClosestLineIdx(Point<float> const& position, PathPlan const& plan);
 
-    String getId() const;
-
     void setPointer(void* ptr);
     void* getPointer();
 

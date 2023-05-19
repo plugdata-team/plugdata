@@ -150,7 +150,7 @@ public:
 class StandaloneAudioSettings : public Component, private ChangeListener {
     
 public:
-    StandaloneAudioSettings(PluginProcessor* processor, AudioDeviceManager& audioDeviceManager) : deviceManager(audioDeviceManager), inputLevelMeter(audioDeviceManager.getInputLevelGetter()), outputLevelMeter(audioDeviceManager.getOutputLevelGetter())
+    StandaloneAudioSettings(AudioDeviceManager& audioDeviceManager) : deviceManager(audioDeviceManager), inputLevelMeter(audioDeviceManager.getInputLevelGetter()), outputLevelMeter(audioDeviceManager.getOutputLevelGetter())
     {
         deviceManager.addChangeListener(this);
         addAndMakeVisible(audioPropertiesPanel);

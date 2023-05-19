@@ -65,7 +65,7 @@ public:
         return { min, max };
     }
 
-    bool getEditMode()
+    bool getEditMode() const
     {
         return libpd_array_get_editmode(ptr);
     }
@@ -177,7 +177,6 @@ public:
 
     void paintGraph(Graphics& g)
     {
-
         auto const h = static_cast<float>(getHeight());
         auto const w = static_cast<float>(getWidth());
         std::vector<float> points = vec;

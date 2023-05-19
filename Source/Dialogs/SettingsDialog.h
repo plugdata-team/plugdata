@@ -64,7 +64,7 @@ public:
 class SettingsDialog : public Component {
 
 public:
-    SettingsDialog(PluginEditor* editor, Dialog* dialog)
+    SettingsDialog(PluginEditor* editor)
         : processor(dynamic_cast<PluginProcessor*>(editor->getAudioProcessor()))
     {
         setVisible(false);
@@ -94,7 +94,7 @@ public:
         auto* processor = dynamic_cast<PluginProcessor*>(editor->getAudioProcessor());
 
         if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
-            panels.add(new StandaloneAudioSettings(processor, *deviceManager));
+            panels.add(new StandaloneAudioSettings(*deviceManager));
             panels.add(new StandaloneMIDISettings(processor, *deviceManager));
         } else {
             panels.add(new DAWAudioSettings(processor));

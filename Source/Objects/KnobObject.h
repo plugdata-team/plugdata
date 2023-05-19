@@ -58,7 +58,6 @@ public:
         auto bounds = getLocalBounds().toFloat().reduced(getWidth() * 0.13f);
 
         auto const lineThickness = std::max(bounds.getWidth() * 0.07f, 1.5f);
-        auto const arcThickness = lineThickness * 3.0f / bounds.getWidth();
 
         auto sliderPosProportional = (getValue() - 0.01f) / (1 - 2 * 0.01f);
 
@@ -295,13 +294,6 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        auto setColour = [this](Value& targetValue, pd::Atom& atom) {
-            if (atom.isSymbol()) {
-                auto colour = "#FF" + atom.getSymbol().fromFirstOccurrenceOf("#", false, false);
-                setParameterExcludingListener(targetValue, colour);
-            }
-        };
-
         switch (hash(symbol)) {
         case hash("float"):
         case hash("set"): {

@@ -1113,7 +1113,6 @@ void Object::hideEditor()
     if (gui) {
         gui->hideEditor();
     } else if (newObjectEditor) {
-        WeakReference<Component> deletionChecker(this);
         std::unique_ptr<TextEditor> outgoingEditor;
         std::swap(outgoingEditor, newObjectEditor);
 

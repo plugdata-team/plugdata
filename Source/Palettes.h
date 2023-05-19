@@ -19,7 +19,7 @@ class PaletteView : public Component
     , public Value::Listener {
     class DraggedComponentGroup : public Component {
     public:
-        DraggedComponentGroup(Canvas* canvas, Object* target, Point<int> mouseDownPosition)
+        DraggedComponentGroup(Canvas* canvas, Object* target)
             : cnv(canvas)
             , draggedObject(target)
         {
@@ -358,7 +358,7 @@ public:
             }
         }
 
-        dragger = std::make_unique<DraggedComponentGroup>(cnv.get(), object, relativeEvent.getMouseDownPosition());
+        dragger = std::make_unique<DraggedComponentGroup>(cnv.get(), object);
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -700,7 +700,6 @@ private:
 
         addButton.toFront(false);
         addButton.setBounds(Rectangle<int>(offset, totalHeight, 26, 26));
-        totalHeight += 25;
 
         view.setBounds(getLocalBounds().withTrimmedLeft(26));
 

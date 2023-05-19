@@ -5,7 +5,7 @@
  */
 
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 
 class BicoeffGraph : public Component {
 
@@ -142,10 +142,9 @@ public:
         repaint();
     }
 
-    float mtof(float note)
+    static float mtof(float note)
     {
         return 440.0f * std::pow(2.0f, (note - 69.0f) / 12.0f);
-        ;
     }
 
     void mouseDown(MouseEvent const& e) override

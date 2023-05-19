@@ -262,7 +262,7 @@ public:
 
                 auto flashExitCode = getExitCode();
 
-                return heavyExitCode && compileExitCode && flashExitCode;
+                return heavyExitCode && flashExitCode;
             } else {
                 auto binLocation = outputFile.getChildFile(name + ".bin");
                 sourceDir.getChildFile("build").getChildFile("Heavy_" + name + ".bin").moveFileTo(binLocation);

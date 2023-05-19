@@ -7,7 +7,7 @@
 class SaveDialog : public Component {
 
 public:
-    SaveDialog(Component* editor, Dialog* parent, String const& filename, std::function<void(int)> callback)
+    SaveDialog(Dialog* parent, String const& filename, std::function<void(int)> callback)
         : savelabel("savelabel", filename.isEmpty() ? "Save Changes?" : "Save Changes to \"" + filename + "\"?")
     {
         cb = callback;

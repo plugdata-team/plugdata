@@ -78,9 +78,8 @@ private:
         int stringWidth;
         int totalStringWidth = (8 * 2) + 4;
         String stringItem;
-        bool firstOrLast = false;
         for (int i = 0; i < textString.size(); i++) {
-            firstOrLast = i == 0 || i == textString.size() - 1 ? true : false;
+            auto firstOrLast = (i == 0 || i == textString.size() - 1);
             stringItem = textString[i];
             stringItem += firstOrLast ? "" : ",";
             // first item uses system font

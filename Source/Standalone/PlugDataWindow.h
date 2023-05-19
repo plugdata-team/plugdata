@@ -452,7 +452,6 @@ public:
         parseSystemArguments(systemArguments);
 
         mainComponent = new MainContentComponent(*this);
-        auto* editor = mainComponent->getEditor();
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
         bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");

@@ -65,7 +65,6 @@ public:
     void hideEditor() override
     {
         if (editor != nullptr) {
-            WeakReference<Component> deletionChecker(this);
             std::unique_ptr<TextEditor> outgoingEditor;
             std::swap(outgoingEditor, editor);
 

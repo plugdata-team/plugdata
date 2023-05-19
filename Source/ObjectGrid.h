@@ -56,8 +56,6 @@ private:
 
     void propertyChanged(String name, var value) override;
 
-    std::tuple<bool, bool, bool> getSnapConfiguration();
-
     int gridType;
     bool gridEnabled;
 };
