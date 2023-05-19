@@ -34,13 +34,15 @@ public:
         virtual void midiReceivedChanged(bool midiReceived) {};
         virtual void midiSentChanged(bool midiSent) {};
         virtual void audioProcessedChanged(bool audioProcessed) {};
-        virtual void audioLevelChanged(float newLevel[2]) {};
+        virtual void audioLevelChanged(float newLevel[2], float newPeak[2]) {};
         virtual void timerCallback() {};
     };
 
     StatusbarSource();
 
     void processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
+
+    void setSampleRate(const double sampleRate);
 
     void prepareToPlay(int numChannels);
 
@@ -54,8 +56,13 @@ private:
     std::atomic<int> lastMidiSentTime = 0;
     std::atomic<int> lastAudioProcessedTime = 0;
     std::atomic<float> level[2] = { 0 };
+    std::atomic<float> peakHold[2] = { 0 };
+
+    int peakHoldDelay[2] = { 0 };
 
     int numChannels;
+
+    double sampleRate = 44100;
 
     bool midiReceivedState = false;
     bool midiSentState = false;

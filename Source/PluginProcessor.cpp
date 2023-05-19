@@ -434,10 +434,11 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     startDSP();
 
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
+    statusbarSource->setSampleRate(AudioProcessor::getSampleRate());
     limiter.prepare({sampleRate, static_cast<uint32>(samplesPerBlock),  static_cast<uint32>(getTotalNumOutputChannels())});
     //limiter.setThreshold(float newThreshold)
 
-    smoothedGain.reset(AudioProcessor::getSampleRate(), 0.01);
+    smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
 }
 
 void PluginProcessor::releaseResources()
@@ -510,8 +511,35 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
         oversampler->processSamplesDown(targetBlock);
     }
 
+    auto targetGain = getParameters()[0]->getValue();
+    float mappedTargetGain = 0.0f;
+
+    //    Slider value 0.8 is default unity
+    //    The top part of the slider 0.8 - 1.0 is mapped to linear gain 1.0 - 2.0
+    //    The lower part of the slider 0.0 - 0.8 is mapped to a power function that approximates a log curve between 0.0 - 1.0
+    //
+    //    +---------+-----------------+-------+--------------+
+    //    | Dynamic |        a        |   b   | Approximation|
+    //    |  range  |                 |       |  |
+    //    +---------+-----------------+-------+--------------+
+    //    |  50 dB  |  3.1623e-3      | 5.757 |      x^3     |
+    //    |  60 dB  |     1e-3        | 6.908 |      x^4     |
+    //    |  70 dB  |  3.1623e-4      | 8.059 |      x^5     |
+    //    |  80 dB  |     1e-4        | 9.210 |      x^6     |
+    //    |  90 dB  |  3.1623e-5      | 10.36 |      x^6     |
+    //    | 100 dB  |     1e-5        | 11.51 |      x^7     |
+    //    +---------+-----------------+-------+--------------+
+    //    Table 1: Values for a and b in the equation a·exp(b·x)
+    //
+    //    https://www.dr-lex.be/info-stuff/volumecontrols.html
+
+    if (targetGain <= 0.8f)
+        mappedTargetGain = pow(jmap(targetGain, 0.0f, 0.8f, 0.0f, 1.0f), 2.5f);
+    else
+        mappedTargetGain = jmap(targetGain, 0.8f, 1.0f, 1.0f, 2.0f);
+
     // apply smoothing to the main volume control
-    smoothedGain.setTargetValue(getParameters()[0]->getValue());
+    smoothedGain.setTargetValue(mappedTargetGain);
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
     statusbarSource->processBlock(buffer, midiBufferCopy, midiMessages, totalNumOutputChannels);

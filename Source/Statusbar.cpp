@@ -37,7 +37,7 @@ void VolumeSlider::paint(Graphics& g)
 {
     auto backgroundColour = findColour(PlugDataColour::levelMeterThumbColourId);
     
-    auto value = getValue() / 1.2f;
+    auto value = getValue();
     auto thumbSize = getHeight() * 0.7f;
     auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
     auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
@@ -50,6 +50,7 @@ void VolumeSlider::paint(Graphics& g)
 class LevelMeter : public Component
     , public StatusbarSource::Listener {
     float audioLevel[2] = {0.0f, 0.0f};
+    float peekLevel[2] = {0.0f, 0.0f};
 
     int numChannels = 2;
 
@@ -58,21 +59,28 @@ class LevelMeter : public Component
 public:
     LevelMeter() {};
 
-    void audioLevelChanged(float level[2]) override
+    void audioLevelChanged(float level[2], float peak[2]) override
     {
-        clipping[0] = clipping[1] = false;
+        bool hasChanged = false;
         for (int i = 0; i < 2; i++) {
-            audioLevel[i] = level[i];
-            if (level[i] >= 1.0f)
-                clipping[i] = true;
+            if (audioLevel[i] != level[i] || peekLevel[i] != peak[i]) {
+                hasChanged = true;
+                audioLevel[i] = level[i];
+                peekLevel[i] = peak[i];
+                if (level[i] >= 1.0f)
+                    clipping[i] = true;
+                else
+                    clipping[i] = false;
+            }
         }
+    if (isShowing() && hasChanged)
         repaint();
     }
 
     void paint(Graphics& g) override
     {
         auto height = getHeight() / 4.0f;
-        auto barHeight = height * 0.7f;
+        auto barHeight = height * 0.6f;
         auto halfBarHeight = barHeight * 0.5f;
         auto width = getWidth() - 8.0f;
         auto x = 4.0f;
@@ -83,13 +91,22 @@ public:
         auto bgHeight = getHeight() - doubleOuterBorderWidth;
         auto bgWidth = width - doubleOuterBorderWidth;
         auto meterWidth = width - bgHeight;
+        auto barWidth = meterWidth - 2;
+        auto leftOffset = x + (bgHeight * 0.5f);
         
         g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth, bgWidth, bgHeight, bgHeight * 0.5f);
 
         for (int ch = 0; ch < numChannels; ch++) {
-            g.setColour(clipping[ch] ? Colours::red : findColour(PlugDataColour::levelMeterActiveColourId));
-            g.fillRoundedRectangle(x + (bgHeight * 0.5f), outerBorderWidth + ((ch + 1) * (bgHeight / 3.0f)) - halfBarHeight, jmin(audioLevel[ch] * meterWidth, meterWidth), barHeight, halfBarHeight);
+            auto barYPos = outerBorderWidth + ((ch + 1) * (bgHeight / 3.0f)) - halfBarHeight;
+            auto barLength = jmin(audioLevel[ch] * barWidth, barWidth);
+            auto peekPos = jmin(peekLevel[ch] * barWidth, barWidth);
+
+            if (peekPos > 1) {
+                g.setColour(clipping[ch] ? Colours::red : findColour(PlugDataColour::levelMeterActiveColourId));
+                g.fillRect(leftOffset, barYPos, barLength, barHeight);
+                g.fillRect(leftOffset + peekPos + 1, barYPos, 1.0f, barHeight);
+            }
         }
     }
 
@@ -243,8 +260,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), volumeSlider, nullptr);
     
-    volumeSlider.setRange(0.0f, 1.2f);
-    volumeSlider.setDoubleClickReturnValue(true, 1.0f);
+    volumeSlider.setRange(0.0f, 1.0f);
+    volumeSlider.setValue(0.8f);
+    volumeSlider.setDoubleClickReturnValue(true, 0.8f);
 
     addAndMakeVisible(levelMeter);
     addAndMakeVisible(midiBlinker);
@@ -383,7 +401,7 @@ StatusbarSource::StatusbarSource()
     level[0] = 0.0f;
     level[1] = 0.0f;
 
-    startTimer(100);
+    startTimerHz(30);
 }
 
 static bool hasRealEvents(MidiBuffer& buffer)
@@ -392,6 +410,11 @@ static bool hasRealEvents(MidiBuffer& buffer)
         [](auto const& event) {
             return !event.getMessage().isSysEx();
         });
+}
+
+void StatusbarSource::setSampleRate(const double newSampleRate)
+{
+    sampleRate = static_cast<int>(newSampleRate);
 }
 
 void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
@@ -405,24 +428,40 @@ void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer&
         level[1] = 0;
     }
 
-    for (int ch = 0; ch < channels; ch++) {
-        // TODO: this logic for > 2 channels makes no sense!!
-        auto localLevel = level[ch & 1].load();
+    int delay = sampleRate * 1.7;
+
+    for (int ch = 0; ch < 2; ch++) {
+        auto localLevel = level[ch].load();
+        auto localPeakHold = peakHold[ch].load();
+        float peak = buffer.getMagnitude(ch, 0, buffer.getNumSamples());
 
         for (int n = 0; n < buffer.getNumSamples(); n++) {
-            float s = std::abs(channelData[ch][n]);
+            float const decayFactor = 0.99996f;
 
-            float const decayFactor = 0.99992f;
+            if (peak > localLevel) {
+                localLevel = peak;
+            }
 
-            if (s > localLevel)
-                localLevel = s;
-            else if (localLevel > 0.001f)
+            if (peak > localPeakHold) {
+                localPeakHold = peak;
+                peakHoldDelay[ch] = delay;
+            }
+
+            if (localLevel > 0.001f) {
                 localLevel *= decayFactor;
-            else
+            } else {
                 localLevel = 0;
+            }
+
+            if (peakHoldDelay[ch] >= 0) {
+                peakHoldDelay[ch]--;
+            } else {
+                localPeakHold *= decayFactor;
+            }
         }
 
-        level[ch & 1] = localLevel;
+        level[ch] = localLevel;
+        peakHold[ch] = localPeakHold;
     }
 
     auto nowInMs = Time::getCurrentTime().getMillisecondCounter();
@@ -467,8 +506,9 @@ void StatusbarSource::timerCallback()
     }
 
     float currentLevel[2] = { level[0].load(), level[1].load() };
+    float currentPeak[2] = { peakHold[0].load(), peakHold[1].load() };
     for (auto* listener : listeners) {
-        listener->audioLevelChanged(currentLevel);
+        listener->audioLevelChanged(currentLevel, currentPeak);
         listener->timerCallback();
     }
 }
