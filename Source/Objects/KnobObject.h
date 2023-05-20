@@ -370,6 +370,7 @@ public:
         case hash("init"): {
             auto* knb = static_cast<t_fake_knob*>(ptr);
             initialValue = knb->x_init;
+            knob.setValue(getValue(), dontSendNotification);
             break;
         }
         case hash("outline"): {
