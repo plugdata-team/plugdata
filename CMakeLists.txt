@@ -128,6 +128,26 @@ else()
   list(APPEND plugdata_sources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.cxx)
 endif()
 
+# Get branch name
+execute_process(
+        COMMAND git rev-parse --abbrev-ref HEAD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+        OUTPUT_VARIABLE GIT_BRANCH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+if(NOT ${GIT_BRANCH} STREQUAL "main")
+# Get current git hash if we're not on the main branch (meaning it's a pre-release version)
+  execute_process(
+          COMMAND git log -1 --format=%h
+          WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+          OUTPUT_VARIABLE GIT_HASH
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+          )
+endif()
+
+message(${GIT_HASH})
+
 set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_DONT_DECLARE_PROJECTINFO=1
     JUCE_ALLOW_STATIC_NULL_VARIABLES=0
@@ -141,6 +161,7 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
     JUCE_USE_COREIMAGE_LOADER=0
     PLUGDATA_VERSION="${PLUGDATA_VERSION}"
+    PLUGDATA_GIT_HASH="${GIT_HASH}"
 )
 
 set(ENABLE_ALL_CANVAS_DEBUGGING 0)

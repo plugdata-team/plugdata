@@ -106,6 +106,10 @@ PluginProcessor::PluginProcessor()
     // parameters.replaceState(ValueTree("plugdata"));
 
     logMessage("plugdata v" + String(ProjectInfo::versionString));
+    auto gitHash = String(PLUGDATA_GIT_HASH);
+    if(gitHash.isNotEmpty()) {
+        logMessage("Nightly build: " + gitHash);
+    }
     logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
     logMessage("Libraries:");
     logMessage(else_version);
