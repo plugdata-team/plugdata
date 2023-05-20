@@ -4,9 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
 class BicoeffGraph : public Component {
 
     float a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
@@ -123,8 +120,8 @@ public:
         for (int x = 0; x <= getWidth(); x++) {
             auto nn = (static_cast<float>(x) / getWidth()) * 120.0f + 16.766f;
             auto freq = mtof(nn);
-            auto result = calcMagnitudePhase((M_PI * 2.0 * freq) / 44100.0f, a1, a2, b0, b1, b2);
-
+            auto result = calcMagnitudePhase((MathConstants<float>::pi * 2.0f * freq) / 44100.0f, a1, a2, b0, b1, b2);
+            
             if (!std::isfinite(result.first)) {
                 continue;
             }
@@ -242,13 +239,13 @@ public:
         logMagnitude = -1.0 * logMagnitude + halfFrameHeight;
 
         // wrap phase
-        if (phase > M_PI) {
-            phase = phase - (M_PI * 2.0);
-        } else if (phase < -M_PI) {
-            phase = phase + (M_PI * 2.0);
+        if (phase > MathConstants<float>::pi) {
+            phase = phase - (MathConstants<float>::pi * 2.0);
+        } else if (phase < -MathConstants<float>::pi) {
+            phase = phase + (MathConstants<float>::pi * 2.0);
         }
         // scale phase values to pixels
-        float scaledPhase = halfFrameHeight * (-phase / M_PI) + halfFrameHeight;
+        float scaledPhase = halfFrameHeight * (-phase / MathConstants<float>::pi) + halfFrameHeight;
 
         return { logMagnitude, scaledPhase };
     }
@@ -261,7 +258,7 @@ public:
         float bwf = mtof(nn2);
         float bw = (bwf / f) - 1.0f;
 
-        float omega = (M_PI * 2.0 * f) / 44100.0f;
+        float omega = (MathConstants<float>::pi * 2.0 * f) / 44100.0f;
         float alpha = std::sin(omega) * std::sinh(std::log(2.0) / 2.0 * bw * omega / std::sin(omega));
 
         return { alpha, omega };
