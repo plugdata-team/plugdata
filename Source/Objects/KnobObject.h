@@ -552,9 +552,28 @@ public:
 
     void updateKnobPosFromMinMax(float oldMin, float oldMax, float newMin, float newMax)
     {
+        auto* knb = static_cast<t_fake_knob*>(ptr);
+
         // map current value to new range
-        auto currentVal = jmap(static_cast<float>(knob.getValue()), 0.0f, 1.0f, oldMin, oldMax);
+        float knobVal = knob.getValue();
+        // if exponential mode, map current position factor into exponential
+        if (knb->x_exp != 0) {
+            if (knb->x_exp > 0.0f)
+                knobVal = pow(knobVal, knb->x_exp);
+            else
+                knobVal = 1 - pow(1 - knobVal, -knb->x_exp);
+        }
+
+        auto currentVal = jmap(knobVal, 0.0f, 1.0f, oldMin, oldMax);
         auto newValNormalised = jmap(currentVal, newMin, newMax, 0.0f, 1.0f);
+
+        // if exponential mode, remove exponential mapping from position
+        if (knb->x_exp != 0) {
+            if (knb->x_exp > 0.0f)
+                newValNormalised = pow(newValNormalised, 1 / knb->x_exp);
+            else
+                newValNormalised = 1 - pow(1 - newValNormalised, -1 / knb->x_exp);
+        }
         knob.setValue(newValNormalised);
     }
 
@@ -681,6 +700,6 @@ public:
         if ((fval < 1.0e-10) && (fval > -1.0e-10))
             fval = 0.0;
 
-        sendOutletValue(fval);
+        sendFloatValue(fval);
     }
 };
