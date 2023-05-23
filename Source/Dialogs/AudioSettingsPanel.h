@@ -227,7 +227,16 @@ private:
 
             StringArray bufferSizeStrings;
             for (auto& size : bufferSizes) {
-                bufferSizeStrings.add(String(size));
+                if ((size & (size - 1)) == 0) {
+                    // buffer size is a power of 2
+                    bufferSizeStrings.add(String(size));
+                }
+            }
+            // if the audio device has no buffer sizes that are powers of 2, list all the sizes (highly unlikely)
+            if (bufferSizeStrings.size() == 0) {
+                for (auto& size : bufferSizes) {
+                    bufferSizeStrings.add(String(size));
+                }
             }
 
             // Add sample rate property
