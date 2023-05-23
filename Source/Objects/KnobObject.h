@@ -59,7 +59,7 @@ public:
 
         auto const lineThickness = std::max(bounds.getWidth() * 0.07f, 1.5f);
 
-        auto sliderPosProportional = (getValue() - 0.01f) / (1 - 2 * 0.01f);
+        auto sliderPosProportional = getValue();
 
         auto startAngle = getRotaryParameters().startAngleRadians;
         auto endAngle = getRotaryParameters().endAngleRadians;
@@ -181,7 +181,7 @@ public:
 
     void updateDoubleClickValue()
     {
-        auto val = jmap<float>(::getValue<int>(initialValue), getMinimum(), getMaximum(), 0.0f, 1.0f);
+        auto val = jmap<float>(::getValue<float>(initialValue), getMinimum(), getMaximum(), 0.0f, 1.0f);
         knob.setDoubleClickReturnValue(true, std::clamp(val, 0.0f, 1.0f));
         knob.repaint();
     }
@@ -301,10 +301,17 @@ public:
         }
         case hash("range"): {
             if (atoms.size() >= 2) {
-                setParameterExcludingListener(min, atoms[0].getFloat());
-                setParameterExcludingListener(max, atoms[1].getFloat());
+                auto newMin = atoms[0].getFloat();
+                auto newMax = atoms[1].getFloat();
+                // we have to use our min/max as by the time we get the "range" message, it has already changed knb->x_min & knb->x_max!
+                auto oldMin = ::getValue<float>(min);
+                auto oldMax = ::getValue<float>(max);
+                setParameterExcludingListener(min, newMin);
+                setParameterExcludingListener(max, newMax);
                 updateRange();
                 updateDoubleClickValue();
+
+                updateKnobPosFromMinMax(oldMin, oldMax, newMin, newMax);
             }
             break;
         }
@@ -533,18 +540,50 @@ public:
         knob.repaint();
     }
 
+    void updateKnobPosFromMin(float oldMin, float oldMax, float newMin)
+    {
+        updateKnobPosFromMinMax(oldMin, oldMax, newMin, oldMax);
+    }
+
+    void updateKnobPosFromMax(float oldMin, float oldMax, float newMax)
+    {
+        updateKnobPosFromMinMax(oldMin, oldMax, oldMin, newMax);
+    }
+
+    void updateKnobPosFromMinMax(float oldMin, float oldMax, float newMin, float newMax)
+    {
+        // map current value to new range
+        auto currentVal = jmap(static_cast<float>(knob.getValue()), 0.0f, 1.0f, oldMin, oldMax);
+        auto newValNormalised = jmap(currentVal, newMin, newMax, 0.0f, 1.0f);
+        knob.setValue(newValNormalised);
+    }
+
     void valueChanged(Value& value) override
     {
         auto* knb = static_cast<t_fake_knob*>(ptr);
 
         if (value.refersToSameSourceAs(min)) {
-            setMinimum(::getValue<float>(min));
+            auto oldMinVal = static_cast<float>(knb->x_min);
+            auto oldMaxVal = static_cast<float>(knb->x_max);
+            auto newMinVal = ::getValue<float>(min);
+
+            // set new min value and update knob
+            setMinimum(newMinVal);
             updateRange();
             updateDoubleClickValue();
+
+            updateKnobPosFromMin(oldMinVal, oldMaxVal, newMinVal);
         } else if (value.refersToSameSourceAs(max)) {
-            setMaximum(::getValue<float>(max));
+            auto oldMinVal = static_cast<float>(knb->x_min);
+            auto oldMaxVal = static_cast<float>(knb->x_max);
+            auto newMaxVal = ::getValue<float>(max);
+
+            // set new min value and update knob
+            setMaximum(newMaxVal);
             updateRange();
             updateDoubleClickValue();
+
+            updateKnobPosFromMax(oldMinVal, oldMaxVal, newMaxVal);
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             knb->x_init = ::getValue<int>(initialValue);
@@ -576,7 +615,7 @@ public:
             knb->x_outline = ::getValue<bool>(outline);
             repaint();
         } else if (value.refersToSameSourceAs(exponential)) {
-            knb->x_exp = ::getValue<bool>(exponential);
+            knb->x_exp = ::getValue<float>(exponential);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
             object->updateIolets();
@@ -600,18 +639,22 @@ public:
         }
     }
 
-    void setValue(float v)
+    void sendOutletValue(float valueToSend)
     {
         auto* knb = static_cast<t_fake_knob*>(ptr);
 
-        // if we don't check if current value is the same, sending the same value will cause a rounding error
-        if (v == knb->x_pos)
-            return;
+        pd->lockAudioThread();
+        outlet_float(knb->x_obj.te_outlet, valueToSend);
+        pd->unlockAudioThread();
+    }
 
-        knb->x_pos = v;
+    void setValue(float pos)
+    {
+        auto* knb = static_cast<t_fake_knob*>(ptr);
+
+        knb->x_pos = pos;
 
         t_float fval;
-        t_float pos = (knb->x_pos - 0.01f) / (1 - 2 * 0.01f);
         if (pos < 0.0)
             pos = 0.0;
         else if (pos > 1.0)
@@ -638,6 +681,6 @@ public:
         if ((fval < 1.0e-10) && (fval > -1.0e-10))
             fval = 0.0;
 
-        sendFloatValue(fval);
+        sendOutletValue(fval);
     }
 };
