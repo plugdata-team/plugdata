@@ -215,6 +215,7 @@ public:
             hash("log"),
             hash("range"),
             hash("steady"),
+            hash("orientation"),
             IEMGUI_MESSAGES
         };
     }
@@ -252,6 +253,15 @@ public:
                 bool steady = atoms[0].getFloat();
                 setParameterExcludingListener(steadyOnClick, steady);
                 slider.setSliderSnapsToMousePosition(!steady);
+            }
+            break;
+        }
+        case hash("orientation"): {
+            if (atoms.size() >= 1) {
+                isVertical = static_cast<bool>(atoms[0].getFloat());
+                slider.setOrientation(isVertical);
+                updateAspectRatio();
+                object->updateBounds();
             }
             break;
         }
@@ -345,6 +355,16 @@ public:
     bool getSteadyOnClick() const
     {
         return static_cast<t_slider*>(ptr)->x_steady;
+    }
+
+    void updateAspectRatio()
+    {
+        float width = object->getWidth();
+        float height = object->getHeight();
+        if (isVertical)
+            object->setSize(width, height);
+        else
+            object->setSize(height, width);
     }
 
     void valueChanged(Value& value) override
