@@ -658,15 +658,6 @@ public:
         }
     }
 
-    void sendOutletValue(float valueToSend)
-    {
-        auto* knb = static_cast<t_fake_knob*>(ptr);
-
-        pd->lockAudioThread();
-        outlet_float(knb->x_obj.te_outlet, valueToSend);
-        pd->unlockAudioThread();
-    }
-
     void setValue(float pos)
     {
         auto* knb = static_cast<t_fake_knob*>(ptr);
