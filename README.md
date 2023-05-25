@@ -50,7 +50,7 @@ Join the Discord here, for sharing patches, reporting issues or requesting featu
 
 - Option 3: Get the binaries from the latest [official release](https://github.com/plugdata-team/plugdata/tags)
 
-If you have a GitHub account, you can also download a recent experimental build from the actions tab.
+You can also download a recent experimental build from our [website](https://plugdata.org/download.html)
 
 ## Build
 
@@ -62,17 +62,18 @@ cmake .. (the generator can be specified using -G"Unix Makefiles", -G"XCode" or 
 cmake --build .
 ```
 
-## Adding your own externals
-Externals can be added inside plugdata by recompiling the externals along with plugdata. This can be achieved by making the following modification to plugdata:
-
--  Add your sources to the "externals" target inside Libraries/CMakeLists.txt. Alternatively the source files can be placed inside the Libraries/ELSE/Source folder, as all .c files in that folder will be compiled automatically.
--  In Libraries/libpd/x_libpd_multi.c, add the setup function for your external. The best place to call your setup function is inside libpd_init_pdlua. libpd_init_else and libpd_init_cyclone will also work, but it has the side-effect that the externals will also be available under the else/* and cyclone/* prefix.
-
 **Important:**
 - plugdata requires cmake 3.21 or later
 - Ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the plugdata repository .
 - On Linux, Juce framework requires to install dependencies, please refer to [Linux Dependencies.md](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md) and use the full command.
 - The CMake build system has been tested with *Unix Makefiles*, *XCode* and *Visual Studio 16 2019*.
+
+## Adding your own externals
+You can use externals inside plugdata's plugin version by recompiling the externals along with plugdata. This can be achieved by making the following modification to plugdata:
+
+-  Add your sources to the "externals" target inside Libraries/CMakeLists.txt. Alternatively the source files can be placed inside the Libraries/ELSE/Source folder, as all .c files in that folder will be compiled automatically.
+-  In Libraries/libpd/x_libpd_multi.c, add the setup function for your external. The best place to call your setup function is inside libpd_init_pdlua. libpd_init_else and libpd_init_cyclone will also work, but it has the side-effect that the externals will also be available under the else/* and cyclone/* prefix.
+
 
 ## Credits
 Supported by [Deskew Technologies](https://gigperformer.com)
