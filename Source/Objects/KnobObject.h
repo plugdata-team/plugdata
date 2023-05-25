@@ -68,17 +68,17 @@ public:
 
         startAngle = std::clamp(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
 
-        // draw range arc
-        g.setColour(arcColour);
-        auto arcBounds = bounds.reduced(lineThickness);
-        auto arcRadius = arcBounds.getWidth() * 0.5;
-        auto arcWidth = (arcRadius - lineThickness) / arcRadius;
-        Path rangeArc;
-        rangeArc.addPieSegment(arcBounds, startAngle, endAngle, arcWidth);
-        g.fillPath(rangeArc);
-
-        // draw arc
         if (drawArc) {
+            // draw range arc
+            g.setColour(arcColour);
+            auto arcBounds = bounds.reduced(lineThickness);
+            auto arcRadius = arcBounds.getWidth() * 0.5;
+            auto arcWidth = (arcRadius - lineThickness) / arcRadius;
+            Path rangeArc;
+            rangeArc.addPieSegment(arcBounds, startAngle, endAngle, arcWidth);
+            g.fillPath(rangeArc);
+
+            // draw arc
             auto centre = jmap<double>(getDoubleClickReturnValue(), startAngle, endAngle);
 
             Path arc;
