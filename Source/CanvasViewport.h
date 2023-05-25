@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include "Utility/GlobalMouseListener.h"
 
 #include "Object.h"
@@ -21,7 +23,7 @@ class CanvasViewport : public Viewport {
 
     class MousePanner : public MouseListener {
     public:
-        MousePanner(CanvasViewport* v)
+        explicit MousePanner(CanvasViewport* v)
             : viewport(v)
         {
         }
@@ -71,7 +73,7 @@ class CanvasViewport : public Viewport {
 
             void start(int interval, std::function<bool()> cb)
             {
-                callback = cb;
+                callback = std::move(cb);
                 startTimer(interval);
             }
 
@@ -83,12 +85,12 @@ class CanvasViewport : public Viewport {
         };
 
         struct FadeAnimator : private ::Timer {
-            FadeAnimator(ViewportScrollBar* target)
+            explicit FadeAnimator(ViewportScrollBar* target)
                 : targetComponent(target)
             {
             }
 
-            void timerCallback()
+            void timerCallback() override
             {
                 auto growth = targetComponent->growAnimation;
                 if (growth < growthTarget) {
@@ -133,10 +135,6 @@ class CanvasViewport : public Viewport {
             scrollBarThickness = viewport->getScrollBarThickness();
         }
 
-        ~ViewportScrollBar()
-        {
-        }
-
         bool hitTest(int x, int y) override
         {
             if (thumbBounds.contains(x, y))
@@ -147,10 +145,6 @@ class CanvasViewport : public Viewport {
         void mouseDrag(MouseEvent const& e) override
         {
             Point<float> delta;
-            float scale = 1.0f;
-            if (auto* viewedComponent = viewport->getViewedComponent()) {
-                scale = std::sqrt(std::abs(viewedComponent->getTransform().getDeterminant()));
-            }
             if (isVertical) {
                 delta = Point<float>(0, e.getDistanceFromDragStartY());
             } else {
@@ -250,7 +244,7 @@ class CanvasViewport : public Viewport {
     };
 
     struct ViewportPositioner : public Component::Positioner {
-        ViewportPositioner(Viewport& comp)
+        explicit ViewportPositioner(Viewport& comp)
             : Component::Positioner(comp)
             , inset(comp.getScrollBarThickness())
         {
@@ -315,7 +309,7 @@ public:
 
         auto& scale = cnv->zoomScale;
 
-        float value = getValue<float>(scale);
+        auto value = getValue<float>(scale);
 
         // Apply and limit zoom
         value = std::clamp(value * scrollFactor, 0.2f, 3.0f);
@@ -391,7 +385,4 @@ private:
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
-
-    bool isScrollingHorizontally = false;
-    bool isScrollingVertically = false;
 };

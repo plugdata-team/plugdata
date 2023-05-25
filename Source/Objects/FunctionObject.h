@@ -22,6 +22,11 @@ public:
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
+        objectParameters.addParamColourFG(&primaryColour);
+        objectParameters.addParamColourBG(&secondaryColour);
+        objectParameters.addParamRange("Range", cGeneral, &range, { 0.0f, 1.0f });
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
     }
 
     void update() override
@@ -294,17 +299,17 @@ public:
         auto scale = x->x_dur[x->x_n_states];
 
         auto at = std::vector<t_atom>(ac);
-        float firstPoint = jmap<float>(points[0].y, 0.0f, 1.0f, x->x_min, x->x_max);
+        auto firstPoint = jmap<float>(points[0].y, 0.0f, 1.0f, x->x_min, x->x_max);
         SETFLOAT(at.data(), firstPoint); // get 1st
 
         x->x_state = 0;
         for (int i = 1; i < ac; i++) { // get the rest
 
-            float dur = jmap<float>(points[x->x_state + 1].x - points[x->x_state].x, 0.0f, 1.0f, 0.0f, scale);
+            auto dur = jmap<float>(points[x->x_state + 1].x - points[x->x_state].x, 0.0f, 1.0f, 0.0f, scale);
 
             SETFLOAT(at.data() + i, dur); // duration
             i++, x->x_state++;
-            float point = jmap<float>(points[x->x_state].y, 0.0f, 1.0f, x->x_min, x->x_max);
+            auto point = jmap<float>(points[x->x_state].y, 0.0f, 1.0f, x->x_min, x->x_max);
             if (point < x->x_min_point)
                 x->x_min_point = point;
             if (point > x->x_max_point)
@@ -312,14 +317,13 @@ public:
             SETFLOAT(at.data() + i, point);
         }
 
-        pd->enqueueFunction([_this = SafePointer(this), x, at, ac]() mutable {
-            if (!_this || _this->cnv->patch.objectWasDeleted(x))
-                return;
+        pd->lockAudioThread();
 
-            outlet_list(x->x_obj.ob_outlet, gensym("list"), ac - 2, at.data());
-            if (x->x_send != gensym("") && x->x_send->s_thing)
-                pd_list(x->x_send->s_thing, gensym("list"), ac - 2, at.data());
-        });
+        outlet_list(x->x_obj.ob_outlet, gensym("list"), ac - 2, at.data());
+        if (x->x_send != gensym("") && x->x_send->s_thing)
+            pd_list(x->x_send->s_thing, gensym("list"), ac - 2, at.data());
+
+        pd->unlockAudioThread();
     }
 
     void valueChanged(Value& v) override
@@ -333,10 +337,10 @@ public:
             repaint();
         } else if (v.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "send", { symbol });
+            pd->sendDirectMessage(ptr, "send", { symbol });
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "receive", { symbol });
+            pd->sendDirectMessage(ptr, "receive", { symbol });
 
         } else if (v.refersToSameSourceAs(range)) {
             setRange(getRange());
@@ -344,20 +348,9 @@ public:
         }
     }
 
-    ObjectParameters getParameters() override
+    static Colour colourFromHexArray(unsigned char* hex)
     {
-        return {
-            { "Foreground", tColour, cAppearance, &primaryColour, {} },
-            { "Background", tColour, cAppearance, &secondaryColour, {} },
-            { "Range", tRange, cGeneral, &range, {} },
-            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
-        };
-    }
-
-    Colour colourFromHexArray(unsigned char* hex)
-    {
-        return Colour(hex[0], hex[1], hex[2]);
+        return { hex[0], hex[1], hex[2] };
     }
 
     std::vector<hash32> getAllMessages() override
@@ -368,6 +361,8 @@ public:
             hash("list"),
             hash("min"),
             hash("max"),
+            hash("fgcolor"),
+            hash("bgcolor"),
         };
     }
 
@@ -375,12 +370,12 @@ public:
     {
         switch (hash(symbol)) {
         case hash("send"): {
-            if (atoms.size() >= 1)
+            if (!atoms.empty())
                 setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
+            if (!atoms.empty())
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
             break;
         }
@@ -394,6 +389,11 @@ public:
             Array<var> arr = { function->x_min, function->x_max };
             setParameterExcludingListener(range, var(arr));
             getPointsFromFunction();
+            break;
+        }
+        case hash("fgcolor"):
+        case hash("bgcolor"): {
+            update();
             break;
         }
         default:

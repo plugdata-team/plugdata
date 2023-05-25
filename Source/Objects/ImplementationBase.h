@@ -29,7 +29,7 @@ public:
     void openSubpatch(pd::Patch* subpatch);
     void closeOpenedSubpatchers();
 
-    Canvas* getMainCanvas(void* patchPtr);
+    Canvas* getMainCanvas(void* patchPtr) const;
 
     PluginProcessor* pd;
     void* ptr;
@@ -39,7 +39,7 @@ public:
 
 class ObjectImplementationManager {
 public:
-    ObjectImplementationManager(pd::Instance* pd);
+    explicit ObjectImplementationManager(pd::Instance* pd);
 
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(void* patch);

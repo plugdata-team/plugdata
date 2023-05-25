@@ -93,7 +93,7 @@ public:
     void drawObject(Graphics& g, Rectangle<int> objectRect)
     {
         int const ioletSize = 8;
-        int const ioletWidth = (ioletSize + 4) * std::max(inlets.size(), outlets.size());
+        int const ioletWidth = (ioletSize + 4) * std::max<int>(inlets.size(), outlets.size());
         int const textWidth = Font(15).getStringWidth(objectName);
         int const width = std::max(ioletWidth, textWidth) + 14;
 
@@ -166,7 +166,7 @@ public:
         }
     }
 
-    void showObject(String name)
+    void showObject(String const& name)
     {
         inlets.clear();
         outlets.clear();
@@ -330,8 +330,6 @@ public:
     String categories;
     String origin;
     String description;
-
-    PluginEditor* editor;
 
     pd::Library& library;
 };

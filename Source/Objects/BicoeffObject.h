@@ -4,9 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#define _USE_MATH_DEFINES
-#include <math.h>
-
 class BicoeffGraph : public Component {
 
     float a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
@@ -40,7 +37,7 @@ public:
 
     FilterType filterType = EQ;
 
-    BicoeffGraph(Object* parent)
+    explicit BicoeffGraph(Object* parent)
         : object(parent)
     {
         filterWidth = 0.2f;
@@ -70,7 +67,7 @@ public:
         binbuf_text(ptr->te_binbuf, buftext.toRawUTF8(), buftext.getNumBytesAsUTF8());
     }
 
-    bool canResizefilterAmplitude()
+    bool canResizefilterAmplitude() const
     {
         return filterType == Highshelf || filterType == Lowshelf || filterType == EQ;
     }
@@ -120,11 +117,11 @@ public:
 
         magnitudePath.clear();
 
-        for (float x = 0; x <= getWidth(); x++) {
+        for (int x = 0; x <= getWidth(); x++) {
             auto nn = (static_cast<float>(x) / getWidth()) * 120.0f + 16.766f;
             auto freq = mtof(nn);
-            auto result = calcMagnitudePhase((M_PI * 2.0 * freq) / 44100.0f, a1, a2, b0, b1, b2);
-
+            auto result = calcMagnitudePhase((MathConstants<float>::pi * 2.0f * freq) / 44100.0f, a1, a2, b0, b1, b2);
+            
             if (!std::isfinite(result.first)) {
                 continue;
             }
@@ -142,10 +139,9 @@ public:
         repaint();
     }
 
-    float mtof(float note)
+    static float mtof(float note)
     {
         return 440.0f * std::pow(2.0f, (note - 69.0f) / 12.0f);
-        ;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -197,10 +193,10 @@ public:
 
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
 
-        g.drawVerticalLine(filterX1 * getWidth(), 0, getHeight());
-        g.drawVerticalLine(filterX2 * getWidth(), 0, getHeight());
+        g.drawVerticalLine(filterX1 * getWidth(), 0.0f, getHeight());
+        g.drawVerticalLine(filterX2 * getWidth(), 0.0f, getHeight());
 
-        g.drawHorizontalLine(getHeight() / 2.0f, 0, getWidth());
+        g.drawHorizontalLine(getHeight() / 2.0f, 0.0f, getWidth());
 
         // g.setColour(Colours::green);
         // g.strokePath(phasePath, PathStrokeType(1.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::square));
@@ -243,13 +239,13 @@ public:
         logMagnitude = -1.0 * logMagnitude + halfFrameHeight;
 
         // wrap phase
-        if (phase > M_PI) {
-            phase = phase - (M_PI * 2.0);
-        } else if (phase < -M_PI) {
-            phase = phase + (M_PI * 2.0);
+        if (phase > MathConstants<float>::pi) {
+            phase = phase - (MathConstants<float>::pi * 2.0);
+        } else if (phase < -MathConstants<float>::pi) {
+            phase = phase + (MathConstants<float>::pi * 2.0);
         }
         // scale phase values to pixels
-        float scaledPhase = halfFrameHeight * (-phase / M_PI) + halfFrameHeight;
+        float scaledPhase = halfFrameHeight * (-phase / MathConstants<float>::pi) + halfFrameHeight;
 
         return { logMagnitude, scaledPhase };
     }
@@ -262,7 +258,7 @@ public:
         float bwf = mtof(nn2);
         float bw = (bwf / f) - 1.0f;
 
-        float omega = (M_PI * 2.0 * f) / 44100.0f;
+        float omega = (MathConstants<float>::pi * 2.0 * f) / 44100.0f;
         float alpha = std::sin(omega) * std::sinh(std::log(2.0) / 2.0 * bw * omega / std::sin(omega));
 
         return { alpha, omega };
@@ -516,7 +512,7 @@ public:
         addAndMakeVisible(graph);
 
         graph.graphChangeCallback = [this](float a1, float a2, float b0, float b1, float b2) {
-            pd->enqueueDirectMessages(ptr, "biquad", { a1, a2, b0, b1, b2 });
+            pd->sendDirectMessage(ptr, "biquad", { a1, a2, b0, b1, b2 });
         };
     }
 
@@ -542,7 +538,7 @@ public:
     {
         libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        pd->enqueueDirectMessages(ptr, "dim", { b.getWidth() - 1, b.getHeight() - 1 });
+        pd->sendDirectMessage(ptr, "dim", { b.getWidth() - 1, b.getHeight() - 1 });
         graph.saveProperties();
     }
 

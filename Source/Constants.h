@@ -77,6 +77,10 @@ struct Icons {
     inline static const String Trash = "~";
     inline static const String Fullscreen = "&";
     inline static const String Eyedropper = "@";
+
+    inline static const String Reset = "'";
+    inline static const String More = ".";
+    inline static const String MIDI = "`";
 };
 
 enum PlugDataColour {
@@ -119,8 +123,7 @@ enum PlugDataColour {
     sidebarActiveTextColourId,
 
     levelMeterActiveColourId,
-    levelMeterInactiveColourId,
-    levelMeterTrackColourId,
+    levelMeterBackgroundColourId,
     levelMeterThumbColourId,
 
     panelBackgroundColourId,
@@ -529,24 +532,6 @@ struct Corners {
     inline static float objectCornerRadius = 2.75f;
 };
 
-enum ParameterType {
-    tString,
-    tInt,
-    tFloat,
-    tColour,
-    tBool,
-    tCombo,
-    tRange,
-    tFont
-};
-
-enum ParameterCategory {
-    cGeneral,
-    cAppearance,
-    cLabel,
-    cExtra
-};
-
 enum Overlay {
     None = 0,
     Origin = 1,
@@ -567,7 +552,3 @@ enum OverlayItem {
     OverlayDirection,
     OverlayOrder
 };
-
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>; // name, type and pointer to value, list of items only for combobox and bool
-
-using ObjectParameters = std::vector<ObjectParameter>;                                                     // List of elements and update function

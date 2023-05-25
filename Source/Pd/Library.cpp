@@ -23,8 +23,6 @@ extern "C" {
 }
 
 #include <utility>
-#include <vector>
-
 #include "Library.h"
 
 struct _canvasenvironment {
@@ -39,15 +37,13 @@ namespace pd {
 
 void Library::updateLibrary()
 {
-    auto* pdinstance = libpd_this_instance();
-
     auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
     auto pathTree = settingsTree.getChildWithName("Paths");
 
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
 
-    t_methodentry* mlist = static_cast<t_methodentry*>(libpd_get_class_methods(o));
+    auto* mlist = static_cast<t_methodentry*>(libpd_get_class_methods(o));
     t_methodentry* m;
 
     allObjects.clear();
@@ -67,7 +63,7 @@ void Library::updateLibrary()
     for (auto path : pathTree) {
         auto filePath = path.getProperty("Path").toString();
 
-        for (auto file : OSUtils::iterateDirectory(File(filePath), false, true)) {
+        for (auto const& file : OSUtils::iterateDirectory(File(filePath), false, true)) {
             if (file.hasFileExtension(".pd")) {
                 auto filename = file.getFileNameWithoutExtension();
                 if (!filename.startsWith("help-") || filename.endsWith("-help")) {
@@ -105,7 +101,7 @@ Library::Library()
     updateLibrary();
 }
 
-StringArray Library::autocomplete(String query) const
+StringArray Library::autocomplete(String const& query) const
 {
     StringArray result;
     result.ensureStorageAllocated(20);
@@ -122,18 +118,18 @@ StringArray Library::autocomplete(String query) const
     return result;
 }
 
-void Library::getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(StringArray)> callback)
+void Library::getExtraSuggestions(int currentNumSuggestions, String const& query, std::function<void(StringArray)> const& callback)
 {
 
     int const maxSuggestions = 20;
     if (currentNumSuggestions > maxSuggestions)
         return;
 
-    objectSearchThread.addJob([this, callback, currentNumSuggestions, query]() mutable {
+    objectSearchThread.addJob([this, callback, query]() mutable {
         StringArray result;
         StringArray matches;
 
-        for (auto object : getAllObjects()) {
+        for (const auto& object : getAllObjects()) {
             auto info = getObjectInfo(object);
 
             auto description = info.getProperty("description").toString();
@@ -175,7 +171,7 @@ ValueTree Library::getObjectInfo(String const& name)
     return documentationTree.getChildWithProperty("name", name);
 }
 
-std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree iolets, String name, int numIn, int numOut)
+std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)
 {
     std::array<StringArray, 2> result;
     Array<std::pair<String, bool>> inlets;
@@ -219,8 +215,8 @@ std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree iolets, String 
                 }
             }
         } else {
-            for (int i = 0; i < descriptions.size(); i++) {
-                result[type].add(descriptions[i].first);
+            for (auto&& description : descriptions) {
+                result[type].add(description.first);
             }
         }
     }
@@ -271,7 +267,7 @@ void Library::fsChangeCallback()
     appDirChanged();
 }
 
-File Library::findHelpfile(t_object* obj, File parentPatchFile)
+File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
 {
     String helpName;
     String helpDir;
@@ -284,7 +280,7 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
         int ac = binbuf_getnatom(ob->te_binbuf);
         t_atom* av = binbuf_getvec(ob->te_binbuf);
         if (ac < 1)
-            return File();
+            return {};
 
         atom_string(av, namebuf, MAXPDSTRING);
         helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
@@ -318,7 +314,7 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
                 return file;
             }
         }
-        return File();
+        return {};
     };
 
     for (auto& path : patchHelpPaths) {
@@ -343,7 +339,7 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
         }
     }
 
-    return File();
+    return {};
 }
 
 } // namespace pd

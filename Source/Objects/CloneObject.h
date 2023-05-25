@@ -42,7 +42,7 @@ public:
         if (!sym || !sym->s_name)
             return "";
 
-        return sym ? String::fromUTF8(sym->s_name) : String();
+        return String::fromUTF8(sym->s_name);
     }
 
     bool canOpenFromMenu() override

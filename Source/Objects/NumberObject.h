@@ -13,8 +13,8 @@ class NumberObject final : public ObjectBase {
 
     float preFocusValue;
 
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
+    Value min = Value(-std::numeric_limits<float>::infinity());
+    Value max = Value(std::numeric_limits<float>::infinity());
 
     float value = 0.0f;
 
@@ -58,6 +58,10 @@ public:
         input.dragEnd = [this]() {
             stopEdition();
         };
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max, 9.999999933815813e36);
+        iemHelper.addIemParameters(objectParameters);
     }
 
     void update() override
@@ -117,7 +121,7 @@ public:
     void resized() override
     {
         input.setBounds(getLocalBounds());
-        input.setFont(getHeight() - 6);
+        input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
 
     void focusGained(FocusChangeType cause) override
@@ -144,17 +148,6 @@ public:
     {
         setInterceptsMouseClicks(isLocked, isLocked);
         repaint();
-    }
-
-    ObjectParameters getParameters() override
-    {
-
-        ObjectParameters allParameters = { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
-
-        auto iemParameters = iemHelper.getParameters();
-        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
-
-        return allParameters;
     }
 
     std::vector<hash32> getAllMessages() override

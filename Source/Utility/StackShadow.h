@@ -63,8 +63,8 @@ class StackShadow {
 public:
     static void applyStackBlurBW(Image& img, unsigned int radius)
     {
-        unsigned int const w = (unsigned int)img.getWidth();
-        unsigned int const h = (unsigned int)img.getHeight();
+        auto const w = (unsigned int)img.getWidth();
+        auto const h = (unsigned int)img.getHeight();
 
         Image::BitmapData data(img, Image::BitmapData::readWrite);
 
@@ -82,7 +82,7 @@ public:
 
         unsigned int wm = w - 1;
         unsigned int hm = h - 1;
-        unsigned int w1 = (unsigned int)data.lineStride;
+        auto w1 = (unsigned int)data.lineStride;
         unsigned int div = (unsigned int)(radius * 2) + 1;
         unsigned int mul_sum = stackblur_mul[radius];
         unsigned char shr_sum = stackblur_shr[radius];
@@ -221,8 +221,8 @@ public:
 
     static void applyStackBlurRGB(Image& img, unsigned int radius)
     {
-        unsigned int const w = (unsigned int)img.getWidth();
-        unsigned int const h = (unsigned int)img.getHeight();
+        auto const w = (unsigned int)img.getWidth();
+        auto const h = (unsigned int)img.getHeight();
 
         Image::BitmapData data(img, Image::BitmapData::readWrite);
 
@@ -241,7 +241,7 @@ public:
 
         unsigned int wm = w - 1;
         unsigned int hm = h - 1;
-        unsigned int w3 = (unsigned int)data.lineStride;
+        auto w3 = (unsigned int)data.lineStride;
         unsigned int div = (unsigned int)(radius * 2) + 1;
         unsigned int mul_sum = stackblur_mul[radius];
         unsigned char shr_sum = stackblur_shr[radius];
@@ -436,8 +436,8 @@ public:
 
     static void applyStackBlurARGB(Image& img, unsigned int radius)
     {
-        unsigned int const w = (unsigned int)img.getWidth();
-        unsigned int const h = (unsigned int)img.getHeight();
+        auto const w = (unsigned int)img.getWidth();
+        auto const h = (unsigned int)img.getHeight();
 
         Image::BitmapData data(img, Image::BitmapData::readWrite);
 
@@ -456,7 +456,7 @@ public:
 
         unsigned int wm = w - 1;
         unsigned int hm = h - 1;
-        unsigned int w4 = (unsigned int)data.lineStride;
+        auto w4 = (unsigned int)data.lineStride;
         unsigned int div = (unsigned int)(radius * 2) + 1;
         unsigned int mul_sum = stackblur_mul[radius];
         unsigned char shr_sum = stackblur_shr[radius];
@@ -719,14 +719,16 @@ public:
     }
 };
 
+#if !JUCE_BSD
 namespace juce {
 bool isWindowOnCurrentVirtualDesktop(void* x);
 }
+#endif
 
 class StackDropShadower : private ComponentListener {
 public:
     /** Creates a DropShadower. */
-    StackDropShadower(DropShadow const& shadowType, int cornerRadius = 0)
+    explicit StackDropShadower(DropShadow const& shadowType, int cornerRadius = 0)
         : shadow(shadowType)
         , shadowCornerRadius(cornerRadius)
     {
@@ -978,7 +980,7 @@ private:
     class VirtualDesktopWatcher final : public ComponentListener
         , private Timer {
     public:
-        VirtualDesktopWatcher(Component& c)
+        explicit VirtualDesktopWatcher(Component& c)
             : component(&c)
         {
             component->addComponentListener(this);
@@ -1020,7 +1022,11 @@ private:
             auto const newHasReasonToHide = [this]() {
                 if (!component.wasObjectDeleted() && isWindows && component->isOnDesktop()) {
                     startTimerHz(5);
+#if JUCE_BSD
+                    return false;
+#else
                     return !isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
+#endif
                 }
 
                 stopTimer();

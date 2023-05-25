@@ -4,84 +4,128 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <utility>
+
+#include "Utility/PropertiesPanel.h"
+
 struct ArrayDialog : public Component {
 
 public:
-    ArrayDialog(Component* editor, Dialog* parent, std::function<void(int, String, String)> callback)
-        : cb(callback)
+    ArrayDialog(Dialog* parent, ArrayDialogCallback callback)
+        : cb(std::move(callback))
     {
-        setSize(400, 200);
+        name = "array1";
+        size = 100;
+        saveContents = false;
+        drawMode = 1;
+        yRange = var(Array<var> { var(-1.0f), var(1.0f) });
 
-        addAndMakeVisible(label);
-        addAndMakeVisible(cancel);
+        addAndMakeVisible(arrayPropertiesPanel);
         addAndMakeVisible(ok);
+        addAndMakeVisible(cancel);
+
+        nameProperty = new PropertiesPanel::EditableComponent<String>("Name", name);
+
+        sizeProperty = new PropertiesPanel::EditableComponent<int>("Size", size);
+        sizeProperty->setRangeMin(1);
+
+        auto* drawModeProperty = new PropertiesPanel::ComboComponent("Draw mode", drawMode, { "Points", "Polygon", "Bezier Curve" });
+        auto* yRangeProperty = new PropertiesPanel::RangeComponent("Y range", yRange);
+        auto* saveContentsProperty = new PropertiesPanel::BoolComponent("Save contents", saveContents, { "No", "Yes" });
+
+        arrayPropertiesPanel.setContentWidth(250);
+        arrayPropertiesPanel.addSection("Array properties", { nameProperty, sizeProperty, drawModeProperty, yRangeProperty, saveContentsProperty });
 
         cancel.onClick = [this, parent] {
             MessageManager::callAsync(
                 [this, parent]() {
-                    cb(0, "", "");
+                    cb(0, "", 0, 0, false, { 0, 0 });
                     parent->closeDialog();
                 });
         };
 
         ok.onClick = [this, parent] {
+            auto nameStr = name.toString();
+            auto sizeInt = getValue<int>(size);
+
+            auto drawModeInt = getValue<int>(drawMode) - 1;
+            auto saveContentsBool = getValue<bool>(saveContents);
+
+            auto rangeArray = yRange.getValue().getArray();
+            auto yRangePair = std::pair<float, float>(static_cast<float>(rangeArray->getReference(0)), static_cast<float>(rangeArray->getReference(1)));
+
+            // Swap this flag
+            if (drawModeInt == 0) {
+                drawModeInt = 1;
+            } else if (drawModeInt == 1) {
+                drawModeInt = 0;
+            }
+
             // Check if input is valid
-            if (nameEditor.isEmpty()) {
-                nameEditor.setColour(TextEditor::outlineColourId, Colours::red);
-                nameEditor.repaint();
+            if (nameStr.isEmpty()) {
+                invalidName = true;
+                repaint();
             }
-            if (sizeEditor.getText().getIntValue() < 0) {
-                sizeEditor.setColour(TextEditor::outlineColourId, Colours::red);
-                sizeEditor.repaint();
+            if (sizeInt < 1) {
+                invalidSize = true;
+                repaint();
             }
-            if (nameEditor.getText().isNotEmpty() && sizeEditor.getText().getIntValue() >= 0) {
+            if (nameStr.isNotEmpty() && sizeInt > 0) {
                 MessageManager::callAsync(
-                    [this, parent]() {
-                        cb(1, nameEditor.getText(), sizeEditor.getText());
+                    [this, parent, nameStr, sizeInt, drawModeInt, saveContentsBool, yRangePair]() {
+                        cb(1, nameStr, sizeInt, drawModeInt, saveContentsBool, yRangePair);
                         parent->closeDialog();
                     });
             }
         };
 
-        sizeEditor.setInputRestrictions(10, "0123456789");
-
         cancel.changeWidthToFitText();
         ok.changeWidthToFitText();
+    }
 
-        addAndMakeVisible(nameLabel);
-        addAndMakeVisible(sizeLabel);
+    void paintOverChildren(Graphics& g) override
+    {
+        if (invalidName) {
+            auto invalidArea = getLocalArea(nullptr, nameProperty->getScreenBounds());
+            g.setColour(Colours::red);
 
-        addAndMakeVisible(nameEditor);
-        addAndMakeVisible(sizeEditor);
+            Path p;
+            p.addRoundedRectangle(invalidArea.getX(), invalidArea.getY(), invalidArea.getWidth(), invalidArea.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
+            g.strokePath(p, PathStrokeType(2.0f));
+        }
 
-        nameEditor.setText("array1");
-        sizeEditor.setText("100");
-
-        setOpaque(false);
+        if (invalidSize) {
+            auto invalidArea = getLocalArea(nullptr, sizeProperty->getScreenBounds());
+            g.setColour(Colours::red);
+            g.drawRoundedRectangle(invalidArea.toFloat(), Corners::windowCornerRadius, 2.0f);
+        }
     }
 
     void resized() override
     {
-        label.setBounds(20, 7, 200, 30);
+        auto bounds = getLocalBounds().withTrimmedBottom(50).withTrimmedTop(10);
+        arrayPropertiesPanel.setBounds(bounds);
+
         cancel.setBounds(30, getHeight() - 40, 80, 25);
         ok.setBounds(getWidth() - 110, getHeight() - 40, 80, 25);
-
-        nameEditor.setBounds(65, 45, getWidth() - 85, 25);
-        sizeEditor.setBounds(65, 85, getWidth() - 85, 25);
-        nameLabel.setBounds(8, 45, 52, 25);
-        sizeLabel.setBounds(8, 85, 52, 25);
     }
 
-    std::function<void(int, String, String)> cb;
+    ArrayDialogCallback cb;
 
 private:
-    Label label = Label("savelabel", "Array Properties");
+    PropertiesPanel::EditableComponent<String>* nameProperty;
+    PropertiesPanel::EditableComponent<int>* sizeProperty;
 
-    Label nameLabel = Label("namelabel", "Name:");
-    Label sizeLabel = Label("sizelabel", "Size:");
+    bool invalidName = false;
+    bool invalidSize = false;
 
-    TextEditor nameEditor;
-    TextEditor sizeEditor;
+    PropertiesPanel arrayPropertiesPanel;
+
+    Value name;
+    Value size;
+    Value drawMode;
+    Value yRange;
+    Value saveContents;
 
     TextButton cancel = TextButton("Cancel");
     TextButton ok = TextButton("OK");

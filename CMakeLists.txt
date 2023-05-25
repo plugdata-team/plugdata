@@ -45,7 +45,7 @@ set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(plugdata VERSION 0.7.1 LANGUAGES C CXX)
+project(plugdata VERSION 0.8.0 LANGUAGES C CXX)
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
@@ -60,7 +60,7 @@ message(STATUS "Packaging resources")
 execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
 
-set(PLUGDATA_VERSION                    "0.7.1")
+set(PLUGDATA_VERSION                    "0.8.0")
 set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
@@ -79,11 +79,12 @@ set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode_*.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterTabular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterVariable.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IBMPlexMono.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/GoNotoCurrent.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
@@ -127,6 +128,24 @@ else()
   list(APPEND plugdata_sources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.cxx)
 endif()
 
+# Get branch name
+execute_process(
+        COMMAND git rev-parse --abbrev-ref HEAD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+        OUTPUT_VARIABLE GIT_BRANCH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+if(NOT ${GIT_BRANCH} STREQUAL "main")
+# Get current git hash if we're not on the main branch (meaning it's a pre-release version)
+  execute_process(
+          COMMAND git log -1 --format=%h
+          WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+          OUTPUT_VARIABLE GIT_HASH
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+          )
+endif()
+
 set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_DONT_DECLARE_PROJECTINFO=1
     JUCE_ALLOW_STATIC_NULL_VARIABLES=0
@@ -140,6 +159,7 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
     JUCE_USE_COREIMAGE_LOADER=0
     PLUGDATA_VERSION="${PLUGDATA_VERSION}"
+    PLUGDATA_GIT_HASH="${GIT_HASH}"
 )
 
 set(ENABLE_ALL_CANVAS_DEBUGGING 0)

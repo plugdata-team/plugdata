@@ -373,7 +373,6 @@ void PluginEditor::resized()
     }
 
     int hidePosition = getWidth() - windowControlsOffset;
-    int pinPosition = hidePosition - 60;
 
     hideSidebarButton.setBounds(hidePosition, 0, toolbarHeight, toolbarHeight);
 
@@ -532,7 +531,7 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", SettingsFile::getInstance()->wantsNativeDialog());
 
     // The warnAboutOverwriting flag causes the save dialog not to show at all on some Linux distros, so we better disable it
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
     auto saveFlags = FileBrowserComponent::saveMode;
 #else
     auto saveFlags = FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting;
@@ -558,7 +557,7 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 
 void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
 {
-    for (auto patch : pd->patches) {
+    for (auto const& patch : pd->patches) {
         patch->deselectAll();
     }
 
@@ -609,10 +608,9 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete)
         return;
     }
 
-    auto* tabbar = canvas->getTabbar();
     auto* patch = &canvas->patch;
 
-    auto deleteFunc = [this, tabbar, canvas, patch, quitAfterComplete]() {
+    auto deleteFunc = [this, canvas, quitAfterComplete]() {
         if (!canvas) {
             return;
         }
@@ -800,28 +798,16 @@ void PluginEditor::updateCommandStatus()
         if (!patchPtr)
             return;
 
-        // First on pd's thread, get undo status
-        pd->enqueueFunction(
-            [this, patchPtr, isDragging, deletionCheck = SafePointer(this), locked]() mutable {
-                if (!deletionCheck)
-                    return;
+        pd->lockAudioThread();
+        canUndo = libpd_can_undo(patchPtr) && !isDragging && !locked;
+        canRedo = libpd_can_redo(patchPtr) && !isDragging && !locked;
+        pd->unlockAudioThread();
 
-                canUndo = libpd_can_undo(patchPtr) && !isDragging && !locked;
-                canRedo = libpd_can_redo(patchPtr) && !isDragging && !locked;
+        undoButton.setEnabled(canUndo);
+        redoButton.setEnabled(canRedo);
 
-                // Set button enablement on message thread
-                MessageManager::callAsync(
-                    [this, deletionCheck]() mutable {
-                        if (!deletionCheck)
-                            return;
-
-                        undoButton.setEnabled(canUndo);
-                        redoButton.setEnabled(canRedo);
-
-                        // Application commands need to be updated when undo state changes
-                        commandStatusChanged();
-                    });
-            });
+        // Application commands need to be updated when undo state changes
+        commandStatusChanged();
 
         editButton.setEnabled(true);
         runButton.setEnabled(true);
@@ -872,8 +858,8 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 {
 
     if (commandID == StandardApplicationCommandIDs::quit) {
-        result.setInfo(TRANS("Quit"),
-            TRANS("Quits the application"),
+        result.setInfo("Quit",
+            "Quits the application",
             "Application", 0);
 
         result.defaultKeypresses.add(KeyPress('q', ModifierKeys::commandModifier, 0));
@@ -1130,6 +1116,8 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setActive(true);
         break;
     }
+    default:
+        break;
     }
 
     static auto const cmdMod = ModifierKeys::commandModifier;
@@ -1181,7 +1169,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
     default:
         break;
-    };
+    }
 
     if (commandID >= ObjectIDs::NewObject) {
         auto name = objectNames.at(static_cast<ObjectIDs>(commandID));
@@ -1453,13 +1441,12 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case ObjectIDs::NewArray: {
 
-        cnv = getCurrentCanvas(true);
-
         Dialogs::showArrayDialog(&openedDialog, this,
-            [this](int result, String const& name, String const& size) {
+            [this](int result, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range) {
                 if (result) {
                     auto* cnv = getCurrentCanvas(true);
-                    auto* object = new Object(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
+                    auto initialiser = StringArray { "garray", name, String(size), String(drawMode), String(static_cast<int>(saveContents)), String(range.first), String(range.second) }.joinIntoString(" ");
+                    auto* object = new Object(cnv, initialiser, cnv->viewport->getViewArea().getCentre());
                     cnv->objects.add(object);
                 }
             });

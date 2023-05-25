@@ -5,17 +5,18 @@
  */
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
+#include <utility>
+
 #include "Utility/PropertiesPanel.h"
 
 #include "AboutPanel.h"
 
 #include "AudioSettingsPanel.h"
+#include "MIDISettingsPanel.h"
 #include "ThemePanel.h"
-#include "SearchPathPanel.h"
+#include "PathsAndLibrariesPanel.h"
 #include "AdvancedSettingsPanel.h"
 #include "KeyMappingPanel.h"
-#include "LibraryLoadPanel.h"
-#include "Deken.h"
 
 // Toolbar button for settings panel, with both icon and text
 // We have too many specific items to have only icons at this point
@@ -26,8 +27,8 @@ class SettingsToolbarButton : public TextButton {
 
 public:
     SettingsToolbarButton(String iconToUse, String textToShow)
-        : icon(iconToUse)
-        , text(textToShow)
+        : icon(std::move(iconToUse))
+        , text(std::move(textToShow))
     {
     }
 
@@ -54,7 +55,7 @@ public:
 
         g.drawFittedText(icon, iconBounds, Justification::centred, 1);
 
-        font = Fonts::getCurrentFont().withHeight(textBounds.getHeight() / 1.25f);
+        font = Fonts::getCurrentFont().withHeight(13.0f);
         g.setFont(font);
 
         // Draw bottom text
@@ -65,34 +66,44 @@ public:
 class SettingsDialog : public Component {
 
 public:
-    SettingsDialog(PluginEditor* editor, Dialog* dialog)
+    explicit SettingsDialog(PluginEditor* editor)
         : processor(dynamic_cast<PluginProcessor*>(editor->getAudioProcessor()))
     {
         setVisible(false);
 
-        toolbarButtons = { new SettingsToolbarButton(Icons::Audio, "Audio"),
-            new SettingsToolbarButton(Icons::Pencil, "Themes"),
-            new SettingsToolbarButton(Icons::Search, "Paths"),
-            new SettingsToolbarButton(Icons::Library, "Libraries"),
-            new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
-            new SettingsToolbarButton(Icons::Externals, "Externals"),
-            new SettingsToolbarButton(Icons::Wrench, "Advanced") };
+        if (ProjectInfo::isStandalone) {
+            toolbarButtons = {
+                new SettingsToolbarButton(Icons::Audio, "Audio"),
+                new SettingsToolbarButton(Icons::MIDI, "MIDI"),
+                new SettingsToolbarButton(Icons::Pencil, "Themes"),
+                new SettingsToolbarButton(Icons::Search, "Paths"),
+                new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
+                new SettingsToolbarButton(Icons::Wrench, "Advanced")
+            };
+        } else {
+            toolbarButtons = {
+                new SettingsToolbarButton(Icons::Audio, "Audio"),
+                new SettingsToolbarButton(Icons::Pencil, "Themes"),
+                new SettingsToolbarButton(Icons::Search, "Paths"),
+                new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
+                new SettingsToolbarButton(Icons::Wrench, "Advanced")
+            };
+        }
 
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
         auto* processor = dynamic_cast<PluginProcessor*>(editor->getAudioProcessor());
 
         if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
-            panels.add(new StandaloneAudioSettings(processor, *deviceManager));
+            panels.add(new StandaloneAudioSettings(*deviceManager));
+            panels.add(new StandaloneMIDISettings(processor, *deviceManager));
         } else {
             panels.add(new DAWAudioSettings(processor));
         }
 
         panels.add(new ThemePanel(processor));
-        panels.add(new SearchPathComponent());
-        panels.add(new LibraryLoadPanel());
+        panels.add(new PathsAndLibrariesPanel());
         panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
-        panels.add(new Deken());
         panels.add(new AdvancedSettingsPanel(editor));
 
         for (int i = 0; i < toolbarButtons.size(); i++) {
@@ -119,14 +130,14 @@ public:
 
     void resized() override
     {
-        auto b = getLocalBounds().withTrimmedTop(toolbarHeight).withTrimmedBottom(6);
+        auto b = getLocalBounds().withTrimmedTop(toolbarHeight);
 
-        auto spacing = ((getWidth() - 120) / toolbarButtons.size());
+        auto spacing = ((getWidth() - 80) / toolbarButtons.size());
 
         int toolbarPosition = 40;
 
         for (auto& button : toolbarButtons) {
-            button->setBounds(toolbarPosition, 1, 70, toolbarHeight - 2);
+            button->setBounds(toolbarPosition, 1, 80, toolbarHeight - 2);
             toolbarPosition += spacing;
         }
 
@@ -146,22 +157,8 @@ public:
         g.fillRoundedRectangle(toolbarBounds, Corners::windowCornerRadius);
         g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
 
-        bool drawStatusbar = ProjectInfo::isStandalone ? currentPanel > 0 : true;
-
-        if (drawStatusbar) {
-            auto statusbarBounds = getLocalBounds().reduced(1).removeFromBottom(32).toFloat();
-            g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-
-            g.fillRect(statusbarBounds.withHeight(20));
-            g.fillRoundedRectangle(statusbarBounds, Corners::windowCornerRadius);
-        }
-
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(0.0f, toolbarHeight, getWidth(), toolbarHeight);
-
-        if (currentPanel > 0) {
-            g.drawLine(0.0f, getHeight() - 33, getWidth(), getHeight() - 33);
-        }
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawHorizontalLine(toolbarHeight, 0.0f, getWidth());
     }
 
     void showPanel(int idx)

@@ -22,9 +22,12 @@ public:
         if (getValue<bool>(object->hvccMode)) {
             checkHvccCompatibility(subpatch.get());
         }
+
+        objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
+        objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
     }
 
-    ~SubpatchObject()
+    ~SubpatchObject() override
     {
         object->hvccMode.removeListener(this);
         closeOpenedSubpatchers();
@@ -76,11 +79,6 @@ public:
         return subpatch;
     }
 
-    ObjectParameters getParameters() override
-    {
-        return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } } };
-    };
-
     void checkGraphState()
     {
         if (!ptr)
@@ -129,7 +127,7 @@ public:
         openSubpatch();
     }
 
-    static void checkHvccCompatibility(pd::Patch::Ptr patch, String prefix = "")
+    static void checkHvccCompatibility(pd::Patch::Ptr patch, String const& prefix = "")
     {
         auto* instance = patch->instance;
 

@@ -5,6 +5,7 @@
 */
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
@@ -16,6 +17,17 @@ class PluginProcessor;
 class OverlayDisplaySettings;
 class SnapSettings;
 
+class VolumeSlider : public Slider {
+public:
+    VolumeSlider();
+    ~VolumeSlider() override = default;
+    void paint(Graphics& g) override;
+    void resized() override;
+
+private:
+    int margin = 18;
+};
+
 class StatusbarSource : public Timer {
 
 public:
@@ -23,13 +35,15 @@ public:
         virtual void midiReceivedChanged(bool midiReceived) {};
         virtual void midiSentChanged(bool midiSent) {};
         virtual void audioProcessedChanged(bool audioProcessed) {};
-        virtual void audioLevelChanged(float newLevel[2]) {};
+        virtual void audioLevelChanged(float newLevel[2], float newPeak[2]) {};
         virtual void timerCallback() {};
     };
 
     StatusbarSource();
 
     void processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
+
+    void setSampleRate(double sampleRate);
 
     void prepareToPlay(int numChannels);
 
@@ -43,8 +57,13 @@ private:
     std::atomic<int> lastMidiSentTime = 0;
     std::atomic<int> lastAudioProcessedTime = 0;
     std::atomic<float> level[2] = { 0 };
+    std::atomic<float> peakHold[2] = { 0 };
+
+    int peakHoldDelay[2] = { 0 };
 
     int numChannels;
+
+    double sampleRate = 44100;
 
     bool midiReceivedState = false;
     bool midiSentState = false;
@@ -60,13 +79,13 @@ class Statusbar : public Component
 
 public:
     explicit Statusbar(PluginProcessor* processor);
-    ~Statusbar();
+    ~Statusbar() override;
 
     void paint(Graphics& g) override;
 
     void resized() override;
 
-    void propertyChanged(String name, var value) override;
+    void propertyChanged(String const& name, var const& value) override;
 
     void audioProcessedChanged(bool audioProcessed) override;
 
@@ -87,7 +106,7 @@ public:
 
     Label zoomLabel;
 
-    Slider volumeSlider;
+    VolumeSlider volumeSlider;
 
     Value showDirection;
 

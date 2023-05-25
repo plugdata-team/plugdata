@@ -1,3 +1,5 @@
+#include <memory>
+
 #pragma once
 
 // Keymapping object based on JUCE's KeyMappingEditorComponent
@@ -5,46 +7,58 @@
 class KeyMappingComponent : public Component
     , public ChangeListener {
 public:
-    KeyMappingComponent(KeyPressMappingSet& mappingSet)
+    explicit KeyMappingComponent(KeyPressMappingSet& mappingSet)
         : mappings(mappingSet)
-        , resetPdButton("Reset to Pd defaults")
-        , resetMaxButton("Reset to Max defaults")
     {
-
         mappingSet.addChangeListener(this);
 
-        treeItem.reset(new TopLevelItem(*this));
+        addAndMakeVisible(propertiesPanel);
+        propertiesPanel.setTitle("Key Mappings");
+        propertiesPanel.setColour(TreeView::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
-        addAndMakeVisible(resetPdButton);
-        resetPdButton.onClick = [this] {
+        updateMappings();
+    }
+
+    /** Destructor. */
+    ~KeyMappingComponent() override
+    {
+        mappings.removeChangeListener(this);
+    }
+
+    void updateMappings()
+    {
+        auto& viewport = propertiesPanel.getViewport();
+        auto viewY = viewport.getViewPositionY();
+        propertiesPanel.clear();
+
+        auto resetMaxDefaults = [this] {
+            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
+                [this](int result) {
+                    resetKeyMappingsToMaxCallback(result, this);
+                });
+        };
+        auto resetPdDefaults = [this]() {
             Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
                 [this](int result) {
                     resetKeyMappingsToPdCallback(result, this);
                 });
         };
 
-        addAndMakeVisible(resetMaxButton);
-        resetMaxButton.onClick = [this] {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
-                [this](int result) {
-                    resetKeyMappingsToMaxCallback(result, this);
-                });
-        };
+        auto* resetMaxButton = new PropertiesPanel::ActionComponent(resetPdDefaults, Icons::Reset, "Reset to Pd defaults", true, false);
+        auto* resetPdButton = new PropertiesPanel::ActionComponent(resetMaxDefaults, Icons::Reset, "Reset to Max defaults", false, true);
 
-        addAndMakeVisible(tree);
-        tree.setTitle("Key Mappings");
-        tree.setColour(TreeView::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
-        tree.setRootItemVisible(false);
-        tree.setDefaultOpenness(true);
-        tree.setRootItem(treeItem.get());
-        tree.setIndentSize(12);
-    }
+        propertiesPanel.addSection("Reset", { resetMaxButton, resetPdButton });
 
-    /** Destructor. */
-    ~KeyMappingComponent()
-    {
-        mappings.removeChangeListener(this);
-        tree.setRootItem(nullptr);
+        for (auto const& category : mappings.getCommandManager().getCommandCategories()) {
+            Array<PropertiesPanel::Property*> properties;
+            for (auto command : mappings.getCommandManager().getCommandsInCategory(category)) {
+                properties.add(new KeyMappingProperty(*this, mappings.getCommandManager().getNameOfCommand(command), command));
+            }
+
+            propertiesPanel.addSection(category, properties);
+        }
+
+        viewport.setViewPosition(0.0f, viewY);
     }
 
     void changeListenerCallback(ChangeBroadcaster* source) override
@@ -53,6 +67,8 @@ public:
 
         auto newTree = mappings.createXml(true)->toString();
         keyMapTree.setProperty("keyxml", newTree, nullptr);
+
+        updateMappings();
     }
 
     static void resetKeyMappingsToPdCallback(int result, KeyMappingComponent* owner)
@@ -61,6 +77,7 @@ public:
             return;
 
         owner->getMappings().resetToDefaultMappings();
+        owner->getMappings().sendChangeMessage();
     }
 
     static void resetKeyMappingsToMaxCallback(int result, KeyMappingComponent* owner)
@@ -102,45 +119,19 @@ public:
      method, be sure to let the base class's method handle keys you're not
      interested in.
      */
-    String getDescriptionForKeyPress(KeyPress const& key)
+    static String getDescriptionForKeyPress(KeyPress const& key)
     {
         return key.getTextDescription();
     }
 
-    void parentHierarchyChanged() override
-    {
-        treeItem->changeListenerCallback(nullptr);
-    }
-
     void resized() override
     {
-        int h = getHeight();
-
-        int const buttonHeight = 20;
-        h -= buttonHeight + 8;
-        int x = getWidth() - 8;
-
-        resetPdButton.changeWidthToFitText(buttonHeight);
-        resetPdButton.setTopRightPosition(x, h + 6);
-
-        resetMaxButton.changeWidthToFitText(buttonHeight);
-        resetMaxButton.setTopRightPosition(x - (resetPdButton.getWidth() + 10), h + 6);
-
-        tree.setBounds(0, 1, getWidth(), h - 1);
+        propertiesPanel.setBounds(getLocalBounds());
     }
 
 private:
     KeyPressMappingSet& mappings;
-    TreeView tree;
-    TextButton resetPdButton;
-    TextButton resetMaxButton;
-
-    class TopLevelItem;
-    class ChangeKeyButton;
-    class MappingItem;
-    class CategoryItem;
-    class ItemComponent;
-    std::unique_ptr<TopLevelItem> treeItem;
+    PropertiesPanel propertiesPanel;
 
     std::unique_ptr<Dialog> confirmationDialog;
 
@@ -207,7 +198,7 @@ private:
 
         class KeyEntryWindow : public AlertWindow {
         public:
-            KeyEntryWindow(KeyMappingComponent& kec)
+            explicit KeyEntryWindow(KeyMappingComponent& kec)
                 : AlertWindow("New key-mapping",
                     "Please press a key combination now...",
                     MessageBoxIconType::NoIcon)
@@ -300,7 +291,7 @@ private:
 
         void assignNewKey()
         {
-            currentKeyEntryWindow.reset(new KeyEntryWindow(owner));
+            currentKeyEntryWindow = std::make_unique<KeyEntryWindow>(owner);
             currentKeyEntryWindow->enterModalState(true, ModalCallbackFunction::forComponent(keyChosen, this));
         }
 
@@ -313,10 +304,11 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChangeKeyButton)
     };
 
-    class ItemComponent : public Component {
+    class KeyMappingProperty : public PropertiesPanel::Property {
     public:
-        ItemComponent(KeyMappingComponent& kec, CommandID command)
-            : owner(kec)
+        KeyMappingProperty(KeyMappingComponent& kec, String const& name, CommandID command)
+            : PropertiesPanel::Property(name)
+            , owner(kec)
             , commandID(command)
         {
             setInterceptsMouseClicks(false, true);
@@ -338,23 +330,16 @@ private:
             addChildComponent(b);
         }
 
-        void paint(Graphics& g) override
-        {
-            Fonts::drawFittedText(g, owner.getCommandManager().getNameOfCommand(commandID),
-                6, 0, jmax(40, getChildComponent(0)->getX() - 5), getHeight(),
-                owner.findColour(KeyMappingEditorComponent::textColourId), (float)getHeight() * 0.6f);
-        }
-
         void resized() override
         {
-            int x = getWidth() / 2.0f;
+            int x = getWidth() - 8;
 
             for (int i = keyChangeButtons.size(); --i >= 0;) {
                 auto* b = keyChangeButtons.getUnchecked(i);
 
-                b->fitToContent(getHeight() - 6);
-                b->setTopLeftPosition(x, 2);
-                x = b->getRight() + 5;
+                b->fitToContent(getHeight() - 12);
+                b->setTopLeftPosition(x - b->getWidth(), 6);
+                x = b->getX() - 12;
             }
         }
 
@@ -370,106 +355,6 @@ private:
 
         enum { maxNumAssignments = 3 };
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ItemComponent)
-    };
-
-    class MappingItem : public TreeViewItem {
-    public:
-        MappingItem(KeyMappingComponent& kec, CommandID command)
-            : owner(kec)
-            , commandID(command)
-        {
-        }
-
-        String getUniqueName() const override { return String((int)commandID) + "_id"; }
-        bool mightContainSubItems() override { return false; }
-        int getItemHeight() const override { return 24; }
-        std::unique_ptr<Component> createItemComponent() override { return std::make_unique<ItemComponent>(owner, commandID); }
-        String getAccessibilityName() override { return owner.getCommandManager().getNameOfCommand(commandID); }
-
-    private:
-        KeyMappingComponent& owner;
-        const CommandID commandID;
-
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MappingItem)
-    };
-
-    class CategoryItem : public TreeViewItem {
-    public:
-        CategoryItem(KeyMappingComponent& kec, String const& name)
-            : owner(kec)
-            , categoryName(name)
-        {
-        }
-
-        String getUniqueName() const override { return categoryName + "_cat"; }
-        bool mightContainSubItems() override { return true; }
-        int getItemHeight() const override { return 24; }
-        String getAccessibilityName() override { return categoryName; }
-
-        void paintItem(Graphics& g, int width, int height) override
-        {
-            Fonts::drawStyledText(g, categoryName, 6, 0, width - 2, height, owner.findColour(KeyMappingEditorComponent::textColourId), Bold, (float)height * 0.6f);
-        }
-
-        void paintOpenCloseButton(Graphics& g, Rectangle<float> const& area, Colour backgroundColour, bool isMouseOver) override
-        {
-            getOwnerView()->getLookAndFeel().drawTreeviewPlusMinusBox(g, area.translated(4, 0), backgroundColour, isOpen(), isMouseOver);
-        }
-
-        void itemOpennessChanged(bool isNowOpen) override
-        {
-            if (isNowOpen) {
-                if (getNumSubItems() == 0)
-                    for (auto command : owner.getCommandManager().getCommandsInCategory(categoryName))
-                        addSubItem(new MappingItem(owner, command));
-            } else {
-                clearSubItems();
-            }
-        }
-
-    private:
-        KeyMappingComponent& owner;
-        String categoryName;
-
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CategoryItem)
-    };
-
-    class TopLevelItem : public TreeViewItem
-        , private ChangeListener {
-    public:
-        TopLevelItem(KeyMappingComponent& kec)
-            : owner(kec)
-        {
-            setLinesDrawnForSubItems(false);
-            owner.getMappings().addChangeListener(this);
-        }
-
-        ~TopLevelItem() override
-        {
-            owner.getMappings().removeChangeListener(this);
-        }
-
-        bool mightContainSubItems() override { return true; }
-        String getUniqueName() const override { return "keys"; }
-
-        void changeListenerCallback(ChangeBroadcaster*) override
-        {
-            const OpennessRestorer opennessRestorer(*this);
-            clearSubItems();
-
-            for (auto category : owner.getCommandManager().getCommandCategories()) {
-                int count = 0;
-
-                for (auto command : owner.getCommandManager().getCommandsInCategory(category))
-                    ++count;
-
-                if (count > 0)
-                    addSubItem(new CategoryItem(owner, category));
-            }
-        }
-
-    private:
-        KeyMappingComponent& owner;
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(KeyMappingProperty)
     };
 };

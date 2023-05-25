@@ -27,20 +27,26 @@ public:
                 }
             });
         }
+        objectParameters.addParamString("File", cGeneral, &path, "");
+        objectParameters.addParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0);
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
     }
 
     void mouseDown(MouseEvent const& e) override
     {
         if (getValue<bool>(latch)) {
             auto* pic = static_cast<t_fake_pic*>(ptr);
-            pd->enqueueFunction([pic]() {
-                outlet_float(pic->x_outlet, 1.0f);
-            });
+            pd->lockAudioThread();
+            outlet_float(pic->x_outlet, 1.0f);
+            pd->unlockAudioThread();
         } else {
             auto* pic = static_cast<t_fake_pic*>(ptr);
-            pd->enqueueFunction([pic]() {
-                outlet_bang(pic->x_outlet);
-            });
+            pd->lockAudioThread();
+            outlet_bang(pic->x_outlet);
+            pd->unlockAudioThread();
         }
     }
 
@@ -48,9 +54,9 @@ public:
     {
         if (getValue<bool>(latch)) {
             auto* pic = static_cast<t_fake_pic*>(ptr);
-            pd->enqueueFunction([pic]() {
-                outlet_float(pic->x_outlet, 0.0f);
-            });
+            pd->lockAudioThread();
+            outlet_float(pic->x_outlet, 0.0f);
+            pd->unlockAudioThread();
         }
     }
 
@@ -101,18 +107,6 @@ public:
         }
     }
 
-    ObjectParameters getParameters() override
-    {
-        return {
-            { "File", tString, cGeneral, &path, {} },
-            { "Latch", tBool, cGeneral, &latch, { "No", "Yes" } },
-            { "Outline", tBool, cAppearance, &outline, { "No", "Yes" } },
-            { "Report Size", tBool, cAppearance, &reportSize, { "No", "Yes" } },
-            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send symbol", tString, cGeneral, &sendSymbol, {} }
-        };
-    };
-
     void paint(Graphics& g) override
     {
         if (imageFile.existsAsFile()) {
@@ -144,10 +138,10 @@ public:
             pic->x_size = getValue<int>(reportSize);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "send", { symbol });
+            pd->sendDirectMessage(ptr, "send", { symbol });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "receive", { symbol });
+            pd->sendDirectMessage(ptr, "receive", { symbol });
         }
     }
 
@@ -173,7 +167,7 @@ public:
         return bounds;
     }
 
-    void openFile(String location)
+    void openFile(String const& location)
     {
         if (location.isEmpty() || location == "empty")
             return;

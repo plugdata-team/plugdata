@@ -1,3 +1,5 @@
+#include <utility>
+
 /*
  // Copyright (c) 2021-2022 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -64,7 +66,7 @@ class Eyedropper : public Timer
 
 public:
     class EyedropperButton : public TextButton {
-        void paint(Graphics& g)
+        void paint(Graphics& g) override
         {
             TextButton::paint(g);
             Fonts::drawIcon(g, Icons::Eyedropper, getLocalBounds().reduced(2), findColour(TextButton::textColourOffId));
@@ -78,7 +80,7 @@ public:
         };
     }
 
-    ~Eyedropper()
+    ~Eyedropper() override
     {
         if (topLevel) {
             topLevel->removeMouseListener(this);
@@ -87,7 +89,7 @@ public:
 
     void showEyedropper(Component* topLevelComponent, std::function<void(Colour)> cb)
     {
-        callback = cb;
+        callback = std::move(cb);
         colourDisplayer.show();
         topLevel = topLevelComponent;
         topLevel->addMouseListener(this, true);
@@ -139,7 +141,7 @@ private:
 
 class ColourPicker : public Component {
     struct ColourComponentSlider : public Slider {
-        ColourComponentSlider(String const& name)
+        explicit ColourComponentSlider(String const& name)
             : Slider(name)
         {
             setTextBoxStyle(TextBoxLeft, false, 35, 20);
@@ -158,7 +160,7 @@ class ColourPicker : public Component {
     };
 
 public:
-    static void show(Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> callback)
+    static void show(Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& callback)
     {
         if (isShowing)
             return;
@@ -180,7 +182,7 @@ public:
     ColourPicker(Component* topLevelComponent, bool noLiveChangeCallback, std::function<void(Colour)> cb)
         : colour(Colours::white)
         , edgeGap(2)
-        , callback(cb)
+        , callback(std::move(cb))
         , onlyCallBackOnClose(noLiveChangeCallback)
         , colourSpace(*this, h, s, v)
         , brightnessSelector(*this, v)
@@ -548,7 +550,7 @@ private:
         struct ColourSpaceMarker : public Component {
             ColourPicker& owner;
 
-            ColourSpaceMarker(ColourPicker& parent)
+            explicit ColourSpaceMarker(ColourPicker& parent)
                 : owner(parent)
             {
                 setInterceptsMouseClicks(false, false);
@@ -653,7 +655,7 @@ private:
         struct BrightnessSelectorMarker : public Component {
             ColourPicker& owner;
 
-            BrightnessSelectorMarker(ColourPicker& parent)
+            explicit BrightnessSelectorMarker(ColourPicker& parent)
                 : owner(parent)
             {
                 setInterceptsMouseClicks(false, false);

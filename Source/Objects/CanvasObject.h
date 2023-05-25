@@ -17,6 +17,9 @@ public:
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = getValue<bool>(object->locked);
+
+        objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
+        iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
     }
 
     bool hideInlets() override
@@ -107,19 +110,5 @@ public:
     void valueChanged(Value& v) override
     {
         iemHelper.valueChanged(v);
-    }
-
-    ObjectParameters getParameters() override
-    {
-        return {
-            { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
-            { "Receive symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
-            { "Send symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
-            { "Label", tString, cLabel, &iemHelper.labelText, {} },
-            { "Label color", tColour, cLabel, &iemHelper.labelColour, {} },
-            { "Label X", tInt, cLabel, &iemHelper.labelX, {} },
-            { "Label Y", tInt, cLabel, &iemHelper.labelY, {} },
-            { "Label Height", tInt, cLabel, &iemHelper.labelHeight, {} },
-        };
     }
 };

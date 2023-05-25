@@ -1,6 +1,10 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+
+#include <utility>
+
+#include <utility>
 #include "Constants.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
@@ -26,20 +30,19 @@ public:
         Overlay group;
 
     public:
-        OverlaySelector(ValueTree settings, Overlay groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
-            : groupName(nameOfGroup)
-            , settingName(nameOfSetting)
-            , toolTip(toolTipString)
+        OverlaySelector(ValueTree const& settings, Overlay groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
+            : groupName(std::move(std::move(nameOfGroup)))
+            , settingName(std::move(nameOfSetting))
+            , toolTip(std::move(toolTipString))
             , overlayState(settings)
             , group(groupType)
         {
-            auto controlVisibility = [this](String mode) {
-                if (settingName == "origin" || settingName == "border") {
+            auto controlVisibility = [this](String const& mode) {
+                if (settingName == "origin" || settingName == "border" || mode == "edit" || mode == "lock" || mode == "alt") {
                     return true;
-                } else if (mode == "edit" || mode == "lock" || mode == "alt")
-                    return true;
-                else
+                } else {
                     return false;
+                }
             };
 
             for (auto* button : buttons) {
@@ -180,7 +183,7 @@ public:
         CallOutBox::launchAsynchronously(std::move(overlayDisplaySettings), bounds, parent);
     }
 
-    ~OverlayDisplaySettings()
+    ~OverlayDisplaySettings() override
     {
         isShowing = false;
     }

@@ -14,18 +14,28 @@ public:
     File customBoardDefinition;
 
     TextButton flashButton = TextButton("Flash");
-    Component* ramOptimisation;
-    Component* romOptimisation;
+    PropertiesPanel::Property* ramOptimisation;
+    PropertiesPanel::Property* romOptimisation;
 
     DaisyExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
-        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Simple", "Custom JSON..." })));
+        Array<PropertiesPanel::Property*> properties;
+        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Simple", "Custom JSON..." }));
 
-        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" })));
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
 
-        addAndMakeVisible(romOptimisation = properties.add(new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, { "Optimise for size", "Optimise for speed" })));
-        addAndMakeVisible(ramOptimisation = properties.add(new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, { "Optimise for size", "Optimise for speed" })));
+        romOptimisation = new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, { "Optimise for size", "Optimise for speed" });
+        ramOptimisation = new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, { "Optimise for size", "Optimise for speed" });
+
+        properties.add(romOptimisation);
+        properties.add(ramOptimisation);
+
+        for (auto* property : properties) {
+            property->setPreferredHeight(28);
+        }
+
+        panel.addSection("Daisy", properties);
 
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
@@ -97,7 +107,7 @@ public:
         }
 
         auto boards = StringArray { "seed", "pod", "petal", "patch", "patch_init", "field", "simple", "custom" };
-        auto board = boards[target];
+        auto const& board = boards[target];
 
         DynamicObject::Ptr metaJson(new DynamicObject());
         var metaDaisy(new DynamicObject());
@@ -129,7 +139,7 @@ public:
         exportingView->logToConsole("Compiling...");
 
         if (shouldQuit)
-            return 1;
+            return true;
 
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
@@ -162,7 +172,7 @@ public:
 
             bool bootloader = setMakefileVariables(sourceDir.getChildFile("Makefile"));
 
-            auto gccPath = bin.getFullPathName();
+            auto const& gccPath = bin.getFullPathName();
 
 #if JUCE_WINDOWS
             auto buildScript = make.getFullPathName().replaceCharacter('\\', '/')
@@ -251,7 +261,7 @@ public:
 
                 auto flashExitCode = getExitCode();
 
-                return heavyExitCode && compileExitCode && flashExitCode;
+                return heavyExitCode && flashExitCode;
             } else {
                 auto binLocation = outputFile.getChildFile(name + ".bin");
                 sourceDir.getChildFile("build").getChildFile("Heavy_" + name + ".bin").moveFileTo(binLocation);
@@ -274,7 +284,7 @@ public:
         }
     }
 
-    bool setMakefileVariables(File makefile)
+    bool setMakefileVariables(File const& makefile) const
     {
 
         int ramType = getValue<int>(ramOptimisationType);

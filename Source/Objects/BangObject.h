@@ -23,6 +23,10 @@ public:
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
         };
+
+        objectParameters.addParamInt("Minimum flash time", cGeneral, &bangInterrupt, 50);
+        objectParameters.addParamInt("Maximum flash time", cGeneral, &bangHold, 250);
+        iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
 
     void update() override
@@ -62,14 +66,13 @@ public:
     void toggleObject(Point<int> position) override
     {
         if (!alreadyBanged) {
-            pd->enqueueFunction([this]() {
-                if (cnv->patch.objectWasDeleted(ptr))
-                    return;
+            pd->lockAudioThread();
 
-                startEdition();
-                pd_bang(static_cast<t_pd*>(ptr));
-                stopEdition();
-            });
+            startEdition();
+            pd_bang(static_cast<t_pd*>(ptr));
+            stopEdition();
+
+            pd->unlockAudioThread();
 
             trigger();
             alreadyBanged = true;
@@ -83,14 +86,13 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        pd->enqueueFunction([this]() {
-            if (cnv->patch.objectWasDeleted(ptr))
-                return;
+        pd->lockAudioThread();
 
-            startEdition();
-            pd_bang(static_cast<t_pd*>(ptr));
-            stopEdition();
-        });
+        startEdition();
+        pd_bang(static_cast<t_pd*>(ptr));
+        stopEdition();
+
+        pd->unlockAudioThread();
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
@@ -159,19 +161,6 @@ public:
             });
     }
 
-    ObjectParameters getParameters() override
-    {
-        ObjectParameters allParameters = {
-            { "Minimum flash time", tInt, cGeneral, &bangInterrupt, {} },
-            { "Maximum flash time", tInt, cGeneral, &bangHold, {} },
-        };
-
-        auto iemParameters = iemHelper.getParameters();
-        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
-
-        return allParameters;
-    }
-
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(bangInterrupt)) {
@@ -200,7 +189,7 @@ public:
             trigger();
             break;
         case hash("flashtime"): {
-            if (atoms.size() > 0)
+            if (!atoms.empty())
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
             if (atoms.size() > 1)
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());

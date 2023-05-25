@@ -6,6 +6,8 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_devices/juce_audio_devices.h>
+
+#include <utility>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
@@ -29,35 +31,36 @@
 #include "Heavy/HeavyExportDialog.h"
 #include "MainMenu.h"
 #include "Canvas.h"
+#include "Deken.h"
 
-Component* Dialogs::showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback)
+Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback)
 {
-    auto* editor = new TextEditorDialog(filename);
+    auto* editor = new TextEditorDialog(std::move(filename));
     editor->editor.setText(text);
     editor->onClose = std::move(callback);
     return editor;
 }
 
-void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String filename, std::function<void(int)> callback, int margin)
+void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin)
 {
     if (*target)
         return;
 
     auto* dialog = new Dialog(target, centre, 400, 130, 160, false, margin);
-    auto* saveDialog = new SaveDialog(centre, dialog, filename, callback);
+    auto* saveDialog = new SaveDialog(dialog, filename, std::move(callback));
 
     dialog->setViewedComponent(saveDialog);
     target->reset(dialog);
 
     centre->getTopLevelComponent()->toFront(true);
 }
-void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback)
+void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, ArrayDialogCallback callback)
 {
     if (*target)
         return;
 
-    auto* dialog = new Dialog(target, centre, 300, 180, 200, false);
-    auto* arrayDialog = new ArrayDialog(centre, dialog, callback);
+    auto* dialog = new Dialog(target, centre, 300, 270, 350, false);
+    auto* arrayDialog = new ArrayDialog(dialog, std::move(callback));
     dialog->setViewedComponent(arrayDialog);
     target->reset(dialog);
 }
@@ -65,7 +68,7 @@ void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre
 void Dialogs::showSettingsDialog(PluginEditor* editor)
 {
     auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
-    auto* settingsDialog = new SettingsDialog(editor, dialog);
+    auto* settingsDialog = new SettingsDialog(editor);
     dialog->setViewedComponent(settingsDialog);
     editor->openedDialog.reset(dialog);
 }
@@ -75,7 +78,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
     auto* popup = new MainMenu(editor);
 
     ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(220).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
-        [editor, popup, centre, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
+        [editor, popup, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
             switch (result) {
             case MainMenu::MenuItem::NewPatch: {
                 editor->newProject();
@@ -121,7 +124,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             case MainMenu::MenuItem::CompiledMode: {
-                bool ticked = settingsTree.hasProperty("hvcc_mode") ? static_cast<bool>(settingsTree.getProperty("hvcc_mode")) : false;
+                bool ticked = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
                 settingsTree.setProperty("hvcc_mode", !ticked, nullptr);
                 break;
             }
@@ -130,7 +133,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             case MainMenu::MenuItem::EnablePalettes: {
-                bool ticked = settingsTree.hasProperty("show_palettes") ? static_cast<bool>(settingsTree.getProperty("show_palettes")) : false;
+                bool ticked = settingsTree.hasProperty("show_palettes") && static_cast<bool>(settingsTree.getProperty("show_palettes"));
                 settingsTree.setProperty("show_palettes", !ticked, nullptr);
                 editor->resized();
                 break;
@@ -142,8 +145,12 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             case MainMenu::MenuItem::AutoConnect: {
-                bool ticked = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;
+                bool ticked = settingsTree.hasProperty("autoconnect") && static_cast<bool>(settingsTree.getProperty("autoconnect"));
                 settingsTree.setProperty("autoconnect", !ticked, nullptr);
+                break;
+            }
+            case MainMenu::MenuItem::FindExternals: {
+                Dialogs::showDeken(editor);
                 break;
             }
             case MainMenu::MenuItem::Settings: {
@@ -168,13 +175,13 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
         });
 }
 
-void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback)
+void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback)
 {
 
     class OkayCancelDialog : public Component {
 
     public:
-        OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> callback)
+        OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback)
             : label("", title)
         {
             setSize(400, 200);
@@ -185,12 +192,12 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
             cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
             okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
 
-            cancel.onClick = [this, dialog, callback] {
+            cancel.onClick = [dialog, callback] {
                 callback(false);
                 dialog->closeDialog();
             };
 
-            okay.onClick = [this, dialog, callback] {
+            okay.onClick = [dialog, callback] {
                 callback(true);
                 dialog->closeDialog();
             };
@@ -240,7 +247,7 @@ void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component
     target->reset(dialog);
 }
 
-void Dialogs::showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String objectName)
+void Dialogs::showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& objectName)
 {
     auto* dialog = new Dialog(target, parent, 750, 450, parent->getBounds().getCentreY() + 200, true);
     auto* dialogContent = new ObjectReferenceDialog(dynamic_cast<PluginEditor*>(parent), false);
@@ -249,6 +256,14 @@ void Dialogs::showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Compone
 
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
+}
+
+void Dialogs::showDeken(PluginEditor* editor)
+{
+    auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
+    auto* dialogContent = new Deken();
+    dialog->setViewedComponent(dialogContent);
+    editor->openedDialog.reset(dialog);
 }
 
 StringArray DekenInterface::getExternalPaths()
@@ -266,7 +281,7 @@ StringArray DekenInterface::getExternalPaths()
     return searchPaths;
 }
 
-bool Dialog::wantsRoundedCorners()
+bool Dialog::wantsRoundedCorners() const
 {
     // Check if the editor wants rounded corners
     if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
@@ -283,9 +298,9 @@ void Dialogs::askToLocatePatch(PluginEditor* editor, String const& backupState, 
     class LocatePatchDialog : public Component {
 
     public:
-        LocatePatchDialog(Dialog* dialog, String const& backup, std::function<void(File)> callback)
+        LocatePatchDialog(Dialog* dialog, String backup, std::function<void(File)> callback)
             : label("", "")
-            , backupState(backup)
+            , backupState(std::move(backup))
         {
             setSize(400, 200);
             addAndMakeVisible(label);
@@ -344,7 +359,7 @@ void Dialogs::askToLocatePatch(PluginEditor* editor, String const& backupState, 
     };
 
     auto* dialog = new Dialog(&editor->openedDialog, editor, 400, 130, 160, false);
-    auto* dialogContent = new LocatePatchDialog(dialog, backupState, callback);
+    auto* dialogContent = new LocatePatchDialog(dialog, backupState, std::move(callback));
 
     dialog->setViewedComponent(dialogContent);
     editor->openedDialog.reset(dialog);
@@ -407,7 +422,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(ToFront, "To Front", object != nullptr);
     popupMenu.addItem(ToBack, "To Back", object != nullptr);
     popupMenu.addSeparator();
-    popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.empty()));
+    popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.getParameters().isEmpty()));
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
         cnv->isShowingMenu = false;
@@ -450,9 +465,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
             // The FORWARD double for loop makes sure that they keep their original order
             cnv->patch.startUndoSequence("ToFront");
-            for (int i = 0; i < objects.size(); i++) {
+            for (auto& object : objects) {
                 for (auto* selectedBox : selectedBoxes) {
-                    if (objects[i] == selectedBox->getPointer()) {
+                    if (object == selectedBox->getPointer()) {
                         selectedBox->toFront(false);
                         if (selectedBox->gui)
                             selectedBox->gui->moveToFront();
@@ -553,7 +568,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
             i.text = displayName;
             i.itemID = (int)commandID;
             i.isEnabled = !locked;
-            i.action = [parent, cnv, commandID]() {
+            i.action = [cnv, commandID]() {
                 if (!cnv)
                     return;
 

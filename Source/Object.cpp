@@ -152,7 +152,7 @@ void Object::setSelected(bool shouldBeSelected)
     }
 }
 
-bool Object::isSelected()
+bool Object::isSelected() const
 {
     return selectedFlag;
 }
@@ -163,7 +163,7 @@ void Object::valueChanged(Value& v)
         if (gui && !cnv->isPalette) {
             auto typeName = String::fromUTF8(libpd_get_object_class_name(gui->ptr));
             // Check hvcc compatibility
-            bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
+            bool isSubpatch = gui && gui->getPatch() != nullptr;
             isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
 
             if (!isHvccCompatible) {
@@ -270,30 +270,29 @@ void Object::applyBounds()
 
     auto* patch = &cnv->patch;
 
-    cnv->pd->enqueueFunction(
-        [newObjectSizes, patch]() mutable {
-            patch->startUndoSequence("resize");
+    cnv->pd->lockAudioThread();
+    patch->startUndoSequence("resize");
 
-            for (auto& [object, bounds] : newObjectSizes) {
-                if (!object || !object->gui)
-                    return;
+    for (auto& [object, bounds] : newObjectSizes) {
+        if (!object || !object->gui)
+            return;
 
-                auto* obj = static_cast<t_gobj*>(object->getPointer());
-                auto* cnv = object->cnv;
+        auto* obj = static_cast<t_gobj*>(object->getPointer());
+        auto* cnv = object->cnv;
 
-                if (cnv->patch.objectWasDeleted(obj))
-                    return;
+        if (cnv->patch.objectWasDeleted(obj))
+            return;
 
-                // Used for size changes, could also be used for properties
-                libpd_undo_apply(cnv->patch.getPointer(), obj);
+        // Used for size changes, could also be used for properties
+        libpd_undo_apply(cnv->patch.getPointer(), obj);
 
-                object->gui->setPdBounds(bounds);
+        object->gui->setPdBounds(bounds);
 
-                canvas_dirty(cnv->patch.getPointer(), 1);
-            }
+        canvas_dirty(cnv->patch.getPointer(), 1);
+    }
 
-            patch->endUndoSequence("resize");
-        });
+    patch->endUndoSequence("resize");
+    cnv->pd->unlockAudioThread();
 }
 void Object::updateBounds()
 {
@@ -337,7 +336,7 @@ void Object::setType(String const& newType, void* existingObject)
             cnv->synchronise();
         } else {
             auto rect = getObjectBounds();
-            objectPtr = patch->createObject(newType, rect.getX(), rect.getY());
+            objectPtr = patch->createObject(rect.getX(), rect.getY(), newType);
         }
     } else {
         objectPtr = existingObject;
@@ -355,7 +354,7 @@ void Object::setType(String const& newType, void* existingObject)
 
     auto typeName = String::fromUTF8(libpd_get_object_class_name(objectPtr));
     // Check hvcc compatibility
-    bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
+    bool isSubpatch = gui && gui->getPatch() != nullptr;
     isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
 
     if (!isHvccCompatible) {
@@ -560,9 +559,9 @@ void Object::updateTooltips()
     // Check pd library for pddp tooltips, those have priority
     auto ioletTooltips = cnv->pd->objectLibrary->parseIoletTooltips(objectInfo.getChildWithName("iolets"), gui->getText(), numInputs, numOutputs);
 
-    // First clear all tooltips so we can see later if it has already been set or not
-    for (int i = 0; i < iolets.size(); i++) {
-        iolets[i]->setTooltip("");
+    // First clear all tooltips, so we can see later if it has already been set or not
+    for (auto iolet : iolets) {
+        iolet->setTooltip("");
     }
 
     // Load tooltips from documentation files, these have priority
@@ -577,80 +576,70 @@ void Object::updateTooltips()
         }
     }
 
-    cnv->pd->enqueueFunction([_this = SafePointer(this), this]() mutable {
-        if (!_this)
-            return;
+    std::vector<std::pair<int, String>> inletMessages;
+    std::vector<std::pair<int, String>> outletMessages;
 
-        std::vector<std::pair<int, String>> inletMessages;
-        std::vector<std::pair<int, String>> outletMessages;
+    cnv->pd->lockAudioThread();
+    if (auto subpatch = gui->getPatch()) {
 
-        if (auto subpatch = gui->getPatch()) {
+        // Check child objects of subpatch for inlet/outlet messages
+        for (auto* obj : subpatch->getObjects()) {
 
-            // Check child objects of subpatch for inlet/outlet messages
-            for (auto* obj : subpatch->getObjects()) {
+            const String name = libpd_get_object_class_name(obj);
+            if (name == "inlet" || name == "inlet~") {
 
-                const String name = libpd_get_object_class_name(obj);
-                if (name == "inlet" || name == "inlet~") {
+                int size;
+                char* str_ptr;
+                libpd_get_object_text(obj, &str_ptr, &size);
 
-                    int size;
-                    char* str_ptr;
-                    libpd_get_object_text(obj, &str_ptr, &size);
+                int x, y, w, h;
+                libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
 
-                    int x, y, w, h;
-                    libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
+                // Anything after the first space will be the comment
+                auto const text = String::fromUTF8(str_ptr, size);
+                inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
+                freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
+            }
+            if (name == "outlet" || name == "outlet~") {
+                int size;
+                char* str_ptr;
+                libpd_get_object_text(obj, &str_ptr, &size);
 
-                    // Anything after the first space will be the comment
-                    auto const text = String::fromUTF8(str_ptr, size);
-                    inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
-                    freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
-                }
-                if (name == "outlet" || name == "outlet~") {
-                    int size;
-                    char* str_ptr;
-                    libpd_get_object_text(obj, &str_ptr, &size);
+                int x, y, w, h;
+                libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
 
-                    int x, y, w, h;
-                    libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
+                auto const text = String::fromUTF8(str_ptr, size);
+                outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
 
-                    auto const text = String::fromUTF8(str_ptr, size);
-                    outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
-
-                    freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
-                }
+                freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
             }
         }
+    }
+    cnv->pd->unlockAudioThread();
 
-        if (!_this || (!inletMessages.size() && !outletMessages.size()))
-            return;
+    if (inletMessages.empty() && outletMessages.empty())
+        return;
 
-        MessageManager::callAsync([_this, this, inletMessages, outletMessages]() mutable {
-            if (!_this)
-                return;
+    auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b) {
+        return a.first < b.first;
+    };
 
-            auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b) {
-                return a.first < b.first;
-            };
+    std::sort(inletMessages.begin(), inletMessages.end(), sortFunc);
+    std::sort(outletMessages.begin(), outletMessages.end(), sortFunc);
 
-            std::sort(inletMessages.begin(), inletMessages.end(), sortFunc);
-            std::sort(outletMessages.begin(), outletMessages.end(), sortFunc);
+    int numIn = 0;
+    int numOut = 0;
 
-            int numIn = 0;
-            int numOut = 0;
+    for (auto iolet : iolets) {
+        if (iolet->getTooltip().isNotEmpty())
+            continue;
 
-            for (int i = 0; i < iolets.size(); i++) {
-                auto* iolet = iolets[i];
+        if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numOut >= outletMessages.size()))
+            continue;
 
-                if (iolet->getTooltip().isNotEmpty())
-                    continue;
-
-                if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numOut >= outletMessages.size()))
-                    continue;
-
-                auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
-                iolet->setTooltip(message);
-            }
-        });
-    });
+        auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
+        iolet->setTooltip(message);
+    }
 }
 
 void Object::updateIolets()
@@ -733,14 +722,11 @@ void Object::mouseDown(MouseEvent const& e)
         stopTimer();
         repaint();
 
-        // Tell pd about new position
-        cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), b = getObjectBounds()]() {
-                if (!_this || !_this->gui || _this->cnv->patch.objectWasDeleted(_this->gui->ptr)) {
-                    return;
-                }
-                _this->gui->setPdBounds(b);
-            });
+        cnv->pd->lockAudioThread();
+
+        gui->setPdBounds(getObjectBounds());
+
+        cnv->pd->unlockAudioThread();
 
         if (createEditorOnMouseDown) {
             createEditorOnMouseDown = false;
@@ -1122,7 +1108,6 @@ void Object::hideEditor()
     if (gui) {
         gui->hideEditor();
     } else if (newObjectEditor) {
-        WeakReference<Component> deletionChecker(this);
         std::unique_ptr<TextEditor> outgoingEditor;
         std::swap(outgoingEditor, newObjectEditor);
 
@@ -1249,7 +1234,7 @@ void Object::textEditorTextChanged(TextEditor& ed)
     setSize(width, getHeight());
 }
 
-ComponentBoundsConstrainer* Object::getConstrainer()
+ComponentBoundsConstrainer* Object::getConstrainer() const
 {
     if (gui) {
         return gui->getConstrainer();
@@ -1271,9 +1256,9 @@ void Object::openHelpPatch() const
             return;
         }
 
-        cnv->pd->enqueueFunction([this, file]() mutable {
-            cnv->pd->loadPatch(file);
-        });
+        cnv->pd->lockAudioThread();
+        cnv->pd->loadPatch(file);
+        cnv->pd->unlockAudioThread();
 
         return;
     }

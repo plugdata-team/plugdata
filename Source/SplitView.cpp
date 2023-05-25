@@ -10,7 +10,7 @@
 
 class FadeAnimation : private Timer {
 public:
-    FadeAnimation(SplitView* splitView)
+    explicit FadeAnimation(SplitView* splitView)
         : splitView(splitView)
     {
     }
@@ -18,7 +18,7 @@ public:
     float fadeIn()
     {
         targetAlpha = 0.3f;
-        if (!isTimerRunning() && !(currentAlpha >= targetAlpha))
+        if (!isTimerRunning() && currentAlpha < targetAlpha)
             startTimerHz(60);
 
         return currentAlpha;
@@ -27,7 +27,7 @@ public:
     float fadeOut()
     {
         targetAlpha = 0.0f;
-        if (!isTimerRunning() && !(currentAlpha <= targetAlpha))
+        if (!isTimerRunning() && currentAlpha > targetAlpha)
             startTimerHz(60);
 
         return currentAlpha;
@@ -172,7 +172,7 @@ SplitView::SplitView(PluginEditor* parent)
 
             bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
 
-            tabMenu.addItem(revealTip, canReveal, false, [this, cnv]() {
+            tabMenu.addItem(revealTip, canReveal, false, [cnv]() {
                 cnv->patch.getCurrentFile().revealToUser();
             });
 
@@ -180,7 +180,7 @@ SplitView::SplitView(PluginEditor* parent)
             if (i == 0 && !splitView)
                 canSplit = getLeftTabbar()->getNumTabs() > 1;
 
-            tabMenu.addItem(i == 0 ? "Split Right" : "Split Left", canSplit, false, [this, cnv, &tabbar, i]() {
+            tabMenu.addItem(i == 0 ? "Split Right" : "Split Left", canSplit, false, [this, cnv, i]() {
                 splitCanvasView(cnv, i == 0);
                 closeEmptySplits();
             });
@@ -195,9 +195,7 @@ SplitView::SplitView(PluginEditor* parent)
     addMouseListener(this, true);
 }
 
-SplitView::~SplitView()
-{
-}
+SplitView::~SplitView() = default;
 
 void SplitView::setSplitEnabled(bool splitEnabled)
 {
@@ -208,7 +206,7 @@ void SplitView::setSplitEnabled(bool splitEnabled)
     resized();
 }
 
-bool SplitView::isSplitEnabled()
+bool SplitView::isSplitEnabled() const
 {
     return splitView;
 }
@@ -240,7 +238,7 @@ bool SplitView::hasFocus(Canvas* cnv)
         return false;
 }
 
-bool SplitView::isRightTabbarActive()
+bool SplitView::isRightTabbarActive() const
 {
     return splitFocusIndex;
 }
@@ -255,7 +253,7 @@ void SplitView::closeEmptySplits()
 
         // move all tabs over to the left side
         for (int i = splits[1].getNumTabs() - 1; i >= 0; i--) {
-            splitCanvasView(splits[1].getCanvas(i), 0);
+            splitCanvasView(splits[1].getCanvas(i), false);
         }
 
         setSplitEnabled(false);

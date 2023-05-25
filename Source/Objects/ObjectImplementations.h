@@ -15,7 +15,7 @@ public:
         pd->registerMessageListener(ptr, this);
     }
 
-    ~SubpatchImpl()
+    ~SubpatchImpl() override
     {
         pd->unregisterMessageListener(ptr, this);
         closeOpenedSubpatchers();
@@ -74,7 +74,7 @@ public:
     {
     }
 
-    ~KeyObject()
+    ~KeyObject() override
     {
         if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
             editor->removeModifierKeyListener(this);
@@ -113,7 +113,7 @@ public:
         if (type == Key) {
             t_symbol* dummy;
             parseKey(keyCode, dummy);
-            pd->enqueueDirectMessages(ptr, keyCode);
+            pd->sendDirectMessage(ptr, keyCode);
         } else if (type == KeyName) {
 
             String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
@@ -128,7 +128,7 @@ public:
             t_symbol* keysym = pd->generateSymbol(keyString);
             parseKey(keyCode, keysym);
 
-            pd->enqueueDirectMessages(ptr, { 1.0f, keysym });
+            pd->sendDirectMessage(ptr, { 1.0f, keysym });
         }
 
         // Never claim the keypress
@@ -189,7 +189,7 @@ public:
                     if (type == KeyUp) {
                         t_symbol* dummy;
                         parseKey(keyCode, dummy);
-                        pd->enqueueDirectMessages(ptr, keyCode);
+                        pd->sendDirectMessage(ptr, keyCode);
                     } else if (type == KeyName) {
 
                         String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
@@ -203,7 +203,7 @@ public:
 
                         t_symbol* keysym = pd->generateSymbol(keyString);
                         parseKey(keyCode, keysym);
-                        pd->enqueueDirectMessages(ptr, { 0.0f, keysym });
+                        pd->sendDirectMessage(ptr, { 0.0f, keysym });
                     }
 
                     keyPressTimes.remove(n);
@@ -317,7 +317,7 @@ public:
 class CanvasActiveObject final : public ImplementationBase
     , public FocusChangeListener {
 
-    bool lastFocus = 0;
+    bool lastFocus = false;
 
     t_symbol* lastFocussedName;
     t_symbol* canvasName;
@@ -326,7 +326,7 @@ class CanvasActiveObject final : public ImplementationBase
 public:
     using ImplementationBase::ImplementationBase;
 
-    ~CanvasActiveObject()
+    ~CanvasActiveObject() override
     {
         Desktop::getInstance().removeFocusChangeListener(this);
     }
@@ -359,14 +359,13 @@ public:
             return;
 
         if (!focusedComponent) {
-            pd->enqueueDirectMessages(ptr, "_focus", { canvasName, 0.0f });
-            lastFocus = 0;
+            pd->sendTypedMessage(ptr, "_focus", { canvasName, 0.0f });
+            lastFocus = false;
             return;
         }
 
         bool shouldHaveFocus = focusedComponent == cnv;
 
-        auto* name = canvasName;
         Canvas* focusedCanvas = nullptr;
 
         auto* active = static_cast<t_fake_active*>(ptr);
@@ -383,17 +382,17 @@ public:
             snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)focusedCanvas->patch.getPointer());
             buf[MAXPDSTRING - 1] = 0;
 
-            name = gensym(buf);
+            auto* name = pd->generateSymbol(String::fromUTF8(buf));
 
             if (lastFocussedName != name) {
-                pd->enqueueDirectMessages(ptr, "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
+                pd->sendTypedMessage(ptr, "_focus", { name, static_cast<float>(shouldHaveFocus) });
                 lastFocussedName = name;
             }
             return;
         }
 
         if (shouldHaveFocus != lastFocus) {
-            pd->enqueueDirectMessages(ptr, "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
+            pd->sendTypedMessage(ptr, "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
             lastFocus = shouldHaveFocus;
         }
     }
@@ -417,7 +416,7 @@ public:
         pd->registerMessageListener(ptr, this);
     }
 
-    ~CanvasMouseObject()
+    ~CanvasMouseObject() override
     {
         pd->unregisterMessageListener(ptr, this);
         if (!cnv)
@@ -570,13 +569,13 @@ class CanvasVisibleObject final : public ImplementationBase
     , public ComponentListener
     , public Timer {
 
-    bool lastFocus = 0;
+    bool lastFocus = false;
     Component::SafePointer<Canvas> cnv;
 
 public:
     using ImplementationBase::ImplementationBase;
 
-    ~CanvasVisibleObject()
+    ~CanvasVisibleObject() override
     {
         if (!cnv)
             return;
@@ -664,7 +663,7 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
-        float newScale = getValue<float>(zoomScaleValue);
+        auto newScale = getValue<float>(zoomScaleValue);
         if (lastScale != newScale) {
             auto* zoom = static_cast<t_fake_zoom*>(ptr);
 
@@ -743,24 +742,24 @@ public:
 
             auto pos = mouseSource.getScreenPosition();
 
-            pd->enqueueDirectMessages(ptr, "_getscreen", { pos.x, pos.y });
+            pd->sendDirectMessage(ptr, "_getscreen", { pos.x, pos.y });
 
             lastPosition = pos;
         }
         if (mouseSource.isDragging()) {
             if (!isDown) {
-                pd->enqueueDirectMessages(ptr, "_up", { 0.0f });
+                pd->sendDirectMessage(ptr, "_up", { 0.0f });
             }
             isDown = true;
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (mouseSource.getLastMouseDownTime() > lastMouseDownTime) {
             if (!isDown) {
-                pd->enqueueDirectMessages(ptr, "_up", { 0.0f });
+                pd->sendDirectMessage(ptr, "_up", { 0.0f });
             }
             isDown = true;
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (isDown) {
-            pd->enqueueDirectMessages(ptr, "_up", { 1.0f });
+            pd->sendDirectMessage(ptr, "_up", { 1.0f });
             isDown = false;
         }
     }

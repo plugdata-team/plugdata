@@ -55,6 +55,10 @@ public:
         input.dragEnd = [this]() {
             stopEdition();
         };
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max);
+        atomHelper.addAtomParameters(objectParameters);
     }
 
     void update() override
@@ -156,22 +160,12 @@ public:
     void resized() override
     {
         input.setBounds(getLocalBounds());
-        input.setFont(getHeight() - 6);
+        input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
 
     void lock(bool isLocked) override
     {
         setInterceptsMouseClicks(isLocked, isLocked);
-    }
-
-    ObjectParameters getParameters() override
-    {
-        ObjectParameters allParameters = { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
-
-        auto atomParameters = atomHelper.getParameters();
-        allParameters.insert(allParameters.end(), atomParameters.begin(), atomParameters.end());
-
-        return allParameters;
     }
 
     void valueChanged(Value& value) override
@@ -227,12 +221,12 @@ public:
             break;
         }
         case hash("send"): {
-            if (atoms.size() >= 1)
+            if (!atoms.empty())
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
+            if (!atoms.empty())
                 setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
             break;
         }

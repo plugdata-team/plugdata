@@ -222,42 +222,44 @@ public:
         keyboard.noteOn = [this](int note, int velocity) {
             auto* elseKeyboard = static_cast<t_fake_keyboard*>(this->ptr);
 
-            cnv->pd->enqueueFunction(
-                [_this = SafePointer(this), elseKeyboard, note, velocity]() mutable {
-                    if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
-                        return;
+            int ac = 2;
+            t_atom at[2];
+            SETFLOAT(at, note);
+            SETFLOAT(at + 1, velocity);
 
-                    int ac = 2;
-                    t_atom at[2];
-                    SETFLOAT(at, note);
-                    SETFLOAT(at + 1, velocity);
+            pd->lockAudioThread();
 
-                    outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
-                    if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
-                        pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
-                });
+            outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
+            if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
+                pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
+
+            pd->unlockAudioThread();
         };
 
         keyboard.noteOff = [this](int note) {
             auto* elseKeyboard = static_cast<t_fake_keyboard*>(this->ptr);
 
-            cnv->pd->enqueueFunction(
-                [_this = SafePointer(this), elseKeyboard, note]() mutable {
-                    if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
-                        return;
+            pd->lockAudioThread();
 
-                    int ac = 2;
-                    t_atom at[2];
-                    SETFLOAT(at, note);
-                    SETFLOAT(at + 1, 0);
+            int ac = 2;
+            t_atom at[2];
+            SETFLOAT(at, note);
+            SETFLOAT(at + 1, 0);
 
-                    outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
-                    if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
-                        pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
-                });
+            outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
+            if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
+                pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
+
+            pd->unlockAudioThread();
         };
 
         addAndMakeVisible(keyboard);
+
+        objectParameters.addParamInt("Start octave", cGeneral, &lowC, 2);
+        objectParameters.addParamInt("Num. octaves", cGeneral, &octaves, 4);
+        objectParameters.addParamBool("Toggle Mode", cGeneral, &toggleMode, { "Off", "On" }, 0);
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
 
         startTimer(150);
     }
@@ -321,17 +323,6 @@ public:
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
     }
 
-    ObjectParameters getParameters() override
-    {
-        return {
-            { "Start octave", tInt, cGeneral, &lowC, {} },
-            { "Num. octaves", tInt, cGeneral, &octaves, {} },
-            { "Toggle Mode", tBool, cGeneral, &toggleMode, { "Off", "On" } },
-            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
-        };
-    }
-
     void updateAspectRatio()
     {
         int numOctaves = getValue<int>(octaves);
@@ -363,13 +354,13 @@ public:
             updateAspectRatio();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "send", { symbol });
+            pd->sendDirectMessage(ptr, "send", { symbol });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            pd->enqueueDirectMessages(ptr, "receive", { symbol });
+            pd->sendDirectMessage(ptr, "receive", { symbol });
         } else if (value.refersToSameSourceAs(toggleMode)) {
             auto toggle = getValue<int>(toggleMode);
-            pd->enqueueDirectMessages(ptr, "toggle", { toggle });
+            pd->sendDirectMessage(ptr, "toggle", { toggle });
             keyboard.setToggleMode(toggle);
         }
     }
@@ -448,11 +439,7 @@ public:
 
     void timerCallback() override
     {
-        pd->enqueueFunction([_this = SafePointer(this)] {
-            if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
-                return;
-            _this->updateValue();
-        });
+        updateValue();
     }
 
     void paintOverChildren(Graphics& g) override

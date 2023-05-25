@@ -85,7 +85,7 @@ public:
 
     ApplicationCommandTarget* getNextCommandTarget() override;
     void getAllCommands(Array<CommandID>& commands) override;
-    void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
+    void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
 
     bool wantsRoundedCorners();
@@ -106,7 +106,7 @@ public:
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
 
-    std::atomic<bool> canUndo = false, canRedo = false;
+    bool canUndo = false, canRedo = false;
 
     std::unique_ptr<Dialog> openedDialog;
 

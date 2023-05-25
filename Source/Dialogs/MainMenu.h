@@ -4,15 +4,17 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <utility>
+
 #include "../PluginEditor.h"
 
 class MainMenu : public PopupMenu {
 
 public:
-    MainMenu(PluginEditor* editor)
+    explicit MainMenu(PluginEditor* editor)
         : settingsTree(SettingsFile::getInstance()->getValueTree())
         , themeSelector(settingsTree)
-        , zoomSelector(editor, settingsTree, editor->splitView.isRightTabbarActive())
+        , zoomSelector(editor)
     {
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
@@ -30,7 +32,7 @@ public:
         if (recentlyOpenedTree.isValid()) {
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
-                recentlyOpened->addItem(path.getFileName(), [this, path, editor]() mutable {
+                recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
                     editor->pd->loadPatch(path);
                     SettingsFile::getInstance()->addToRecentlyOpened(path);
                 });
@@ -69,13 +71,15 @@ public:
 
         addSeparator();
 
+        addCustomItem(getMenuItemID(MenuItem::FindExternals), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::FindExternals)]), nullptr, "Find externals...");
+
         addCustomItem(getMenuItemID(MenuItem::Settings), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Settings)]), nullptr, "Settings...");
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
 
         // Toggles hvcc compatibility mode
-        bool palettesEnabled = settingsTree.hasProperty("show_palettes") ? static_cast<bool>(settingsTree.getProperty("show_palettes")) : false;
-        bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") ? static_cast<bool>(settingsTree.getProperty("hvcc_mode")) : false;
-        bool autoconnectEnabled = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;
+        bool palettesEnabled = settingsTree.hasProperty("show_palettes") && static_cast<bool>(settingsTree.getProperty("show_palettes"));
+        bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
+        bool autoconnectEnabled = settingsTree.hasProperty("autoconnect") && static_cast<bool>(settingsTree.getProperty("autoconnect"));
         bool hasCanvas = editor->getCurrentCanvas() != nullptr;
 
         zoomSelector.setEnabled(hasCanvas);
@@ -104,7 +108,7 @@ public:
         float const maxZoom = 3.0f;
 
     public:
-        ZoomSelector(PluginEditor* editor, ValueTree settingsTree, bool splitZoom)
+        explicit ZoomSelector(PluginEditor* editor)
             : _editor(editor)
         {
             auto cnv = _editor->getCurrentCanvas();
@@ -146,7 +150,7 @@ public:
             if (!cnv)
                 return;
 
-            float scale = getValue<float>(cnv->zoomScale);
+            auto scale = getValue<float>(cnv->zoomScale);
 
             // Apply limits
             switch (zoomEventType) {
@@ -212,8 +216,8 @@ public:
         bool isActive = true;
 
         IconMenuItem(String icon, String text, bool hasChildren, bool tickBox)
-            : menuItemIcon(icon)
-            , menuItemText(text)
+            : menuItemIcon(std::move(icon))
+            , menuItemText(std::move(text))
             , hasSubMenu(hasChildren)
             , hasTickBox(tickBox)
         {
@@ -246,11 +250,11 @@ public:
             auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
 
             if (menuItemIcon.isNotEmpty()) {
-                Fonts::drawIcon(g, menuItemIcon, iconArea.translated(3.5f, 0.0f), colour, std::min(15.0f, maxFontHeight), true);
+                Fonts::drawIcon(g, menuItemIcon, iconArea.translated(3.0f, 0.0f), colour, std::min(15.0f, maxFontHeight), true);
             } else if (hasTickBox) {
 
                 g.setColour(colour);
-                g.drawRoundedRectangle(iconArea.toFloat().translated(3.5f, 0.5f).reduced(1.0f), 4.0f, 1.0f);
+                g.drawRoundedRectangle(iconArea.toFloat().translated(3.0f, 0.5f).reduced(1.0f), 4.0f, 1.0f);
 
                 if (isTicked) {
                     g.setColour(colour);
@@ -292,13 +296,13 @@ public:
         ValueTree settingsTree;
 
     public:
-        ThemeSelector(ValueTree tree)
-            : settingsTree(tree)
+        explicit ThemeSelector(ValueTree tree)
+            : settingsTree(std::move(tree))
         {
             theme.referTo(settingsTree.getPropertyAsValue("theme", nullptr));
         }
 
-        void paint(Graphics& g)
+        void paint(Graphics& g) override
         {
             auto secondBounds = getLocalBounds();
             auto firstBounds = secondBounds.removeFromLeft(getWidth() / 2.0f);
@@ -336,7 +340,7 @@ public:
             g.fillPath(tick, tick.getTransformToScaleToFit(tickBounds.reduced(9, 9).toFloat(), false));
         }
 
-        void mouseUp(MouseEvent const& e)
+        void mouseUp(MouseEvent const& e) override
         {
             auto secondBounds = getLocalBounds();
             auto firstBounds = secondBounds.removeFromLeft(getWidth() / 2.0f);
@@ -367,11 +371,12 @@ public:
         PluginMode,
         AutoConnect,
         EnablePalettes,
+        FindExternals,
         Settings,
         About
     };
 
-    int getMenuItemID(MenuItem item)
+    static int getMenuItemID(MenuItem item)
     {
         if (item == MenuItem::History)
             return 100;
@@ -379,7 +384,7 @@ public:
         return item;
     };
 
-    int getMenuItemIndex(MenuItem item)
+    static int getMenuItemIndex(MenuItem item)
     {
         return item - 1;
     }
@@ -403,6 +408,7 @@ public:
         new IconMenuItem("", "Auto-connect objects", false, true),
         new IconMenuItem("", "Enable palettes", false, true),
 
+        new IconMenuItem(Icons::Externals, "Find Externals...", false, false),
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),
     };

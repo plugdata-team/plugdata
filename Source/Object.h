@@ -26,7 +26,7 @@ public:
 
     Object(void* object, Canvas* parent);
 
-    ~Object();
+    ~Object() override;
 
     void valueChanged(Value& v) override;
 
@@ -51,7 +51,7 @@ public:
     Rectangle<int> getObjectBounds();
     void setObjectBounds(Rectangle<int> bounds);
 
-    ComponentBoundsConstrainer* getConstrainer();
+    ComponentBoundsConstrainer* getConstrainer() const;
 
     void openHelpPatch() const;
     void* getPointer() const;
@@ -111,7 +111,7 @@ public:
 
     static inline int const minimumSize = 12;
 
-    bool isSelected();
+    bool isSelected() const;
 
 private:
     void initialise();

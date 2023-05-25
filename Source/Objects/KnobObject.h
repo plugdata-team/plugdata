@@ -12,7 +12,7 @@ class Knob : public Slider {
     Colour fgColour;
     Colour arcColour;
 
-    bool drawArc;
+    bool drawArc = true;
 
     int numberOfTicks = 0;
 
@@ -24,7 +24,7 @@ public:
         setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
     }
 
-    ~Knob() { }
+    ~Knob() = default;
 
     void drawTicks(Graphics& g, Rectangle<float> knobBounds, float startAngle, float endAngle, float tickWidth)
     {
@@ -58,31 +58,29 @@ public:
         auto bounds = getLocalBounds().toFloat().reduced(getWidth() * 0.13f);
 
         auto const lineThickness = std::max(bounds.getWidth() * 0.07f, 1.5f);
-        auto const arcThickness = lineThickness * 3.0f / bounds.getWidth();
 
-        auto sliderPosProportional = (getValue() - 0.01f) / (1 - 2 * 0.01f);
+        auto sliderPosProportional = getValue();
 
-        
         auto startAngle = getRotaryParameters().startAngleRadians;
         auto endAngle = getRotaryParameters().endAngleRadians;
-        
-        float angle = jmap<float>(sliderPosProportional, startAngle, endAngle);
+
+        auto angle = jmap<float>(sliderPosProportional, startAngle, endAngle);
 
         startAngle = std::clamp(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
 
-        // draw range arc
-        g.setColour(arcColour);
-        auto arcBounds = bounds.reduced(lineThickness);
-        auto arcRadius = arcBounds.getWidth() * 0.5;
-        auto arcWidth = (arcRadius - lineThickness) / arcRadius;
-        Path rangeArc;
-        rangeArc.addPieSegment(arcBounds, startAngle, endAngle, arcWidth);
-        g.fillPath(rangeArc);
-
-        // draw arc
         if (drawArc) {
+            // draw range arc
+            g.setColour(arcColour);
+            auto arcBounds = bounds.reduced(lineThickness);
+            auto arcRadius = arcBounds.getWidth() * 0.5;
+            auto arcWidth = (arcRadius - lineThickness) / arcRadius;
+            Path rangeArc;
+            rangeArc.addPieSegment(arcBounds, startAngle, endAngle, arcWidth);
+            g.fillPath(rangeArc);
+
+            // draw arc
             auto centre = jmap<double>(getDoubleClickReturnValue(), startAngle, endAngle);
-            
+
             Path arc;
             arc.addPieSegment(arcBounds, centre, angle, arcWidth);
             g.setColour(fgColour);
@@ -159,11 +157,31 @@ public:
             constrainer->setFixedAspectRatio(1.0f);
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
+        objectParameters.addParamFloat("Initial value", cGeneral, &initialValue, 0.0f);
+        objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
+        objectParameters.addParamInt("Ticks", cGeneral, &ticks, 0);
+        objectParameters.addParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0);
+        objectParameters.addParamInt("Angular range", cGeneral, &angularRange, 270);
+        objectParameters.addParamInt("Angular offset", cGeneral, &angularOffset, 0);
+        objectParameters.addParamFloat("Exp", cGeneral, &exponential, 0.0f);
+
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
+
+        objectParameters.addParamColourFG(&primaryColour);
+        objectParameters.addParamColourBG(&secondaryColour);
+
+        objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
+        objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
     }
 
     void updateDoubleClickValue()
     {
-        auto val = jmap<float>(::getValue<int>(initialValue), getMinimum(), getMaximum(), 0.0f, 1.0f);
+        auto val = jmap<float>(::getValue<float>(initialValue), getMinimum(), getMaximum(), 0.0f, 1.0f);
         knob.setDoubleClickReturnValue(true, std::clamp(val, 0.0f, 1.0f));
         knob.repaint();
     }
@@ -232,7 +250,7 @@ public:
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
         pd->unlockAudioThread();
 
-        return Rectangle<int>(x, y, w + 1, h + 1);
+        return { x, y, w + 1, h + 1 };
     }
 
     void setPdBounds(Rectangle<int> const b) override
@@ -265,19 +283,16 @@ public:
             hash("ticks"),
             hash("send"),
             hash("receive"),
-            hash("color")
+            hash("fgcolor"),
+            hash("bgcolor"),
+            hash("arccolor"),
+            hash("init"),
+            hash("outline"),
         };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        auto setColour = [this](Value& targetValue, pd::Atom& atom) {
-            if (atom.isSymbol()) {
-                auto colour = "#FF" + atom.getSymbol().fromFirstOccurrenceOf("#", false, false);
-                setParameterExcludingListener(targetValue, colour);
-            }
-        };
-
         switch (hash(symbol)) {
         case hash("float"):
         case hash("set"): {
@@ -286,10 +301,17 @@ public:
         }
         case hash("range"): {
             if (atoms.size() >= 2) {
-                setParameterExcludingListener(min, atoms[0].getFloat());
-                setParameterExcludingListener(max, atoms[1].getFloat());
+                auto newMin = atoms[0].getFloat();
+                auto newMax = atoms[1].getFloat();
+                // we have to use our min/max as by the time we get the "range" message, it has already changed knb->x_min & knb->x_max!
+                auto oldMin = ::getValue<float>(min);
+                auto oldMax = ::getValue<float>(max);
+                setParameterExcludingListener(min, newMin);
+                setParameterExcludingListener(max, newMax);
                 updateRange();
                 updateDoubleClickValue();
+
+                updateKnobPosFromMinMax(oldMin, oldMax, newMin, newMax);
             }
             break;
         }
@@ -340,19 +362,29 @@ public:
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
             break;
         }
-        case hash("color"): {
-            if (atoms.size() > 0)
-                setColour(secondaryColour, atoms[0]);
-            if (atoms.size() > 1)
-                setColour(primaryColour, atoms[1]);
-            repaint();
+        case hash("fgcolor"): {
+            primaryColour = getForegroundColour().toString();
             break;
         }
+        case hash("bgcolor"): {
+            secondaryColour = getBackgroundColour().toString();
+            break;
         }
-
-        // Update the colours of the actual slider
-        if (hash(symbol) == hash("color")) {
-            knob.setFgColour(Colour::fromString(primaryColour.toString()));
+        case hash("arccolor"): {
+            arcColour = getArcColour().toString();
+            break;
+        }
+        case hash("init"): {
+            auto* knb = static_cast<t_fake_knob*>(ptr);
+            initialValue = knb->x_init;
+            knob.setValue(getValue(), dontSendNotification);
+            break;
+        }
+        case hash("outline"): {
+            if (atoms.size() > 0 && atoms[0].isFloat())
+                outline = atoms[0].getFloat();
+            break;
+        }
         }
     }
 
@@ -432,12 +464,12 @@ public:
 
     void setSendSymbol(String const& symbol) const
     {
-        pd->enqueueDirectMessages(ptr, "send", { pd::Atom(symbol) });
+        pd->sendDirectMessage(ptr, "send", { pd::Atom(symbol) });
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
-        pd->enqueueDirectMessages(ptr, "receive", { pd::Atom(symbol) });
+        pd->sendDirectMessage(ptr, "receive", { pd::Atom(symbol) });
     }
 
     Colour getBackgroundColour() const
@@ -465,33 +497,6 @@ public:
         }
 
         return Colour::fromString(colourStr.replace("#", "ff"));
-    }
-
-    ObjectParameters getParameters() override
-    {
-        return {
-            { "Minimum", tFloat, cGeneral, &min, {} },
-            { "Maximum", tFloat, cGeneral, &max, {} },
-
-            { "Initial value", tFloat, cGeneral, &initialValue, {} },
-            { "Circular drag", tBool, cGeneral, &circular, { "No", "Yes" } },
-            { "Ticks", tInt, cGeneral, &ticks, {} },
-            { "Discrete", tBool, cGeneral, &discrete, { "No", "Yes" } },
-
-            { "Angular range", tInt, cGeneral, &angularRange, {} },
-            { "Angular offset", tInt, cGeneral, &angularOffset, {} },
-
-            { "Exp", tFloat, cGeneral, &exponential, {} },
-
-            { "Foreground color", tColour, cAppearance, &primaryColour, {} },
-            { "Background color", tColour, cAppearance, &secondaryColour, {} },
-            { "Arc color", tColour, cAppearance, &arcColour, {} },
-            { "Fill background", tBool, cAppearance, &outline, { "No", "Yes" } },
-            { "Show arc", tBool, cAppearance, &showArc, { "No", "Yes" } },
-
-            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
-        };
     }
 
     float getValue()
@@ -535,18 +540,69 @@ public:
         knob.repaint();
     }
 
+    void updateKnobPosFromMin(float oldMin, float oldMax, float newMin)
+    {
+        updateKnobPosFromMinMax(oldMin, oldMax, newMin, oldMax);
+    }
+
+    void updateKnobPosFromMax(float oldMin, float oldMax, float newMax)
+    {
+        updateKnobPosFromMinMax(oldMin, oldMax, oldMin, newMax);
+    }
+
+    void updateKnobPosFromMinMax(float oldMin, float oldMax, float newMin, float newMax)
+    {
+        auto* knb = static_cast<t_fake_knob*>(ptr);
+
+        // map current value to new range
+        float knobVal = knob.getValue();
+        // if exponential mode, map current position factor into exponential
+        if (knb->x_exp != 0) {
+            if (knb->x_exp > 0.0f)
+                knobVal = pow(knobVal, knb->x_exp);
+            else
+                knobVal = 1 - pow(1 - knobVal, -knb->x_exp);
+        }
+
+        auto currentVal = jmap(knobVal, 0.0f, 1.0f, oldMin, oldMax);
+        auto newValNormalised = jmap(currentVal, newMin, newMax, 0.0f, 1.0f);
+
+        // if exponential mode, remove exponential mapping from position
+        if (knb->x_exp != 0) {
+            if (knb->x_exp > 0.0f)
+                newValNormalised = pow(newValNormalised, 1 / knb->x_exp);
+            else
+                newValNormalised = 1 - pow(1 - newValNormalised, -1 / knb->x_exp);
+        }
+        knob.setValue(newValNormalised);
+    }
+
     void valueChanged(Value& value) override
     {
         auto* knb = static_cast<t_fake_knob*>(ptr);
 
         if (value.refersToSameSourceAs(min)) {
-            setMinimum(::getValue<float>(min));
+            auto oldMinVal = static_cast<float>(knb->x_min);
+            auto oldMaxVal = static_cast<float>(knb->x_max);
+            auto newMinVal = ::getValue<float>(min);
+
+            // set new min value and update knob
+            setMinimum(newMinVal);
             updateRange();
             updateDoubleClickValue();
+
+            updateKnobPosFromMin(oldMinVal, oldMaxVal, newMinVal);
         } else if (value.refersToSameSourceAs(max)) {
-            setMaximum(::getValue<float>(max));
+            auto oldMinVal = static_cast<float>(knb->x_min);
+            auto oldMaxVal = static_cast<float>(knb->x_max);
+            auto newMaxVal = ::getValue<float>(max);
+
+            // set new min value and update knob
+            setMaximum(newMaxVal);
             updateRange();
             updateDoubleClickValue();
+
+            updateKnobPosFromMax(oldMinVal, oldMaxVal, newMaxVal);
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             knb->x_init = ::getValue<int>(initialValue);
@@ -561,11 +617,11 @@ public:
             updateRange();
         } else if (value.refersToSameSourceAs(angularRange)) {
             auto range = limitValueRange(angularRange, 0, 360);
-            pd->enqueueDirectMessages(knb, "angle", { pd::Atom(range) });
+            pd->sendDirectMessage(knb, "angle", { pd::Atom(range) });
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(angularOffset)) {
             auto offset = limitValueRange(angularOffset, -180, 180);
-            pd->enqueueDirectMessages(knb, "offset", { pd::Atom(offset) });
+            pd->sendDirectMessage(knb, "offset", { pd::Atom(offset) });
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(showArc)) {
             bool arc = ::getValue<bool>(showArc);
@@ -578,7 +634,7 @@ public:
             knb->x_outline = ::getValue<bool>(outline);
             repaint();
         } else if (value.refersToSameSourceAs(exponential)) {
-            knb->x_exp = ::getValue<bool>(exponential);
+            knb->x_exp = ::getValue<float>(exponential);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
             object->updateIolets();
@@ -602,14 +658,13 @@ public:
         }
     }
 
-    void setValue(float v)
+    void setValue(float pos)
     {
         auto* knb = static_cast<t_fake_knob*>(ptr);
 
-        knb->x_pos = v;
+        knb->x_pos = pos;
 
         t_float fval;
-        t_float pos = (knb->x_pos - 0.01f) / (1 - 2 * 0.01f);
         if (pos < 0.0)
             pos = 0.0;
         else if (pos > 1.0)

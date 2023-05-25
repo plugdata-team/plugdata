@@ -7,6 +7,8 @@ enum FontStyle {
     Semibold,
     Thin,
     Monospace,
+    Variable,
+    Tabular
 };
 
 struct Fonts {
@@ -37,16 +39,12 @@ struct Fonts {
         currentTypeface = defaultTypeface;
 
         thinTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize);
-
         boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
-
         semiBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize);
-
         iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize);
-
-        monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::IBMPlexMono_ttf, BinaryData::IBMPlexMono_ttfSize);
-
+        monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::RobotoMonoRegular_ttf, BinaryData::RobotoMonoRegular_ttfSize);
         variableTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize);
+        tabularTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize);
 
         instance = this;
     }
@@ -59,8 +57,9 @@ struct Fonts {
     static Font getIconFont() { return Font(instance->iconTypeface); }
     static Font getMonospaceFont() { return Font(instance->monoTypeface); }
     static Font getVariableFont() { return Font(instance->variableTypeface); }
+    static Font getTabularNumbersFont() { return Font(instance->tabularTypeface); }
 
-    static Font setCurrentFont(Font font) { return instance->currentTypeface = font.getTypefacePtr(); }
+    static Font setCurrentFont(Font const& font) { return instance->currentTypeface = font.getTypefacePtr(); }
 
     // For drawing icons with icon font
     static void drawIcon(Graphics& g, String const& icon, Rectangle<int> bounds, Colour colour, int fontHeight = -1, bool centred = true)
@@ -79,8 +78,7 @@ struct Fonts {
         drawIcon(g, icon, { x, y, size, size }, colour, fontHeight, centred);
     }
 
-    // For drawing bold, semibold or thin text
-    static void drawStyledTextSetup(Graphics& g, Colour colour, FontStyle style, int fontHeight = 15)
+    static Font getFontFromStyle(FontStyle style)
     {
         Font font;
         switch (style) {
@@ -99,9 +97,20 @@ struct Fonts {
         case Monospace:
             font = Fonts::getMonospaceFont();
             break;
+        case Variable:
+            font = Fonts::getVariableFont();
+            break;
+        case Tabular:
+            font = Fonts::getTabularNumbersFont();
+            break;
         }
+        return font;
+    }
 
-        g.setFont(font.withHeight(fontHeight));
+    // For drawing bold, semibold or thin text
+    static void drawStyledTextSetup(Graphics& g, Colour colour, FontStyle style, int fontHeight = 15)
+    {
+        g.setFont(getFontFromStyle(style).withHeight(fontHeight));
         g.setColour(colour);
     }
 
@@ -127,6 +136,24 @@ struct Fonts {
     }
 
     // For drawing regular text
+    static void drawTextWithTabularNumbers(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    {
+        g.setFont(Fonts::getTabularNumbersFont().withHeight(fontHeight));
+        g.setColour(colour);
+        g.drawText(textToDraw, bounds, justification);
+    }
+
+    static void drawTextWithTabularNumbers(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    {
+        drawTextWithTabularNumbers(g, textToDraw, bounds.toFloat(), colour, fontHeight, justification);
+    }
+
+    static void drawTextWithTabularNumbers(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    {
+        drawTextWithTabularNumbers(g, textToDraw, Rectangle<float>(x, y, w, h), colour, fontHeight, justification);
+    }
+
+    // For drawing regular text
     static void drawText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
     {
         g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
@@ -147,9 +174,9 @@ struct Fonts {
         drawText(g, textToDraw, Rectangle<int>(x, y, w, h), colour, fontHeight, justification);
     }
 
-    static void drawFittedText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int numLines = 1, float minimumHoriontalScale = 1.0f, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    static void drawFittedText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int numLines = 1, float minimumHoriontalScale = 1.0f, int fontHeight = 15, Justification justification = Justification::centredLeft, FontStyle style = FontStyle::Regular)
     {
-        g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
+        g.setFont(getFontFromStyle(style).withHeight(fontHeight));
         g.setColour(colour);
         g.drawFittedText(textToDraw, bounds, justification, numLines, minimumHoriontalScale);
     }
@@ -174,4 +201,5 @@ private:
     Typeface::Ptr iconTypeface;
     Typeface::Ptr monoTypeface;
     Typeface::Ptr variableTypeface;
+    Typeface::Ptr tabularTypeface;
 };

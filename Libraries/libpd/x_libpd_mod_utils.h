@@ -48,7 +48,7 @@ void libpd_get_search_paths(char** paths, int* numItems);
 t_pd* libpd_newest(t_canvas* cnv);
 
 t_pd* libpd_createobj(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv);
-t_pd* libpd_creategraph(t_canvas* cnv, char const* name, int size, int x, int y);
+t_pd* libpd_creategraph(t_canvas* cnv, char const* name, int size, int x, int y, int drawMode, int saveContent, float minimum, float maximum);
 t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y);
 
 void libpd_finishremove(t_canvas* cnv);

@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 /*
  // Copyright (c) 2022 Timothy Schoen and Wasted-Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -88,7 +90,7 @@ struct ToolchainInstaller : public Component
             setInterceptsMouseClicks(true, false);
         }
 
-        void paint(Graphics& g)
+        void paint(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
@@ -105,17 +107,17 @@ struct ToolchainInstaller : public Component
             Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
         }
 
-        void mouseUp(MouseEvent const& e)
+        void mouseUp(MouseEvent const& e) override
         {
             onClick();
         }
 
-        void mouseEnter(MouseEvent const& e)
+        void mouseEnter(MouseEvent const& e) override
         {
             repaint();
         }
 
-        void mouseExit(MouseEvent const& e)
+        void mouseExit(MouseEvent const& e) override
         {
             repaint();
         }
@@ -126,7 +128,7 @@ struct ToolchainInstaller : public Component
         repaint();
     }
 
-    ToolchainInstaller(PluginEditor* pluginEditor)
+    explicit ToolchainInstaller(PluginEditor* pluginEditor)
         : Thread("Toolchain Install Thread")
         , editor(pluginEditor)
     {
@@ -160,7 +162,7 @@ struct ToolchainInstaller : public Component
         };
     }
 
-    ~ToolchainInstaller()
+    ~ToolchainInstaller() override
     {
         stopThread(-1);
     }
@@ -274,7 +276,7 @@ struct ToolchainInstaller : public Component
         // Make sure downloaded files have executable permission on unix
 #if JUCE_MAC || JUCE_LINUX || JUCE_BSD
 
-        auto tcPath = Toolchain::dir.getFullPathName();
+        auto const& tcPath = Toolchain::dir.getFullPathName();
         auto permissionsScript = String("#!/bin/bash")
             + "\nchmod +x " + tcPath + "/bin/Heavy/Heavy"
             + "\nchmod +x " + tcPath + "/bin/*"
@@ -341,3 +343,5 @@ struct ToolchainInstaller : public Component
 
     PluginEditor* editor;
 };
+
+#pragma clang diagnostic pop

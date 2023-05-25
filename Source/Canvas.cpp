@@ -117,6 +117,13 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
 
     editor->addModifierKeyListener(this);
     Desktop::getInstance().addFocusChangeListener(this);
+
+    parameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" }, 0);
+    parameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" }, 0);
+    parameters.addParamRange("X range", cGeneral, &xRange, { 0.0f, 1.0f });
+    parameters.addParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f });
+    parameters.addParamInt("Width", cGeneral, &patchWidth, 527);
+    parameters.addParamInt("Height", cGeneral, &patchHeight, 327);
 }
 
 Canvas::~Canvas()
@@ -130,7 +137,7 @@ Canvas::~Canvas()
     delete suggestor;
 }
 
-void Canvas::propertyChanged(String name, var value)
+void Canvas::propertyChanged(String const& name, var const& value)
 {
     switch (hash(name)) {
     case hash("grid_size"):
@@ -151,7 +158,7 @@ void Canvas::propertyChanged(String name, var value)
     }
 }
 
-int Canvas::getOverlays()
+int Canvas::getOverlays() const
 {
     int overlayState = 0;
 
@@ -437,12 +444,12 @@ void Canvas::synchroniseSplitCanvas()
 {
     auto* leftTabbar = editor->splitView.getLeftTabbar();
     auto* rightTabbar = editor->splitView.getRightTabbar();
-    if (getTabbar() == leftTabbar) {
+    if (getTabbar() == leftTabbar && rightTabbar) {
         if (auto* rightCnv = rightTabbar->getCurrentCanvas()) {
             rightCnv->synchronise();
         }
     }
-    if (getTabbar() == rightTabbar) {
+    if (getTabbar() == rightTabbar && leftTabbar) {
         if (auto* leftCnv = leftTabbar->getCurrentCanvas()) {
             leftCnv->synchronise();
         }
@@ -453,9 +460,12 @@ void Canvas::synchroniseSplitCanvas()
 // Used for loading and for complicated actions like undo/redo
 void Canvas::performSynchronise()
 {
-    pd->waitForStateUpdate();
+    pd->lockAudioThread();
 
     patch.setCurrent();
+    pd->sendMessagesFromQueue();
+
+    pd->unlockAudioThread();
 
     auto pdObjects = patch.getObjects();
 
@@ -477,6 +487,9 @@ void Canvas::performSynchronise()
 
     for (auto* object : pdObjects) {
         auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object; });
+
+        if (patch.objectWasDeleted(object))
+            return;
 
         if (it == objects.end()) {
             auto* newBox = objects.add(new Object(object, this));
@@ -780,7 +793,7 @@ void Canvas::updateSidebarSelection()
 
         if (commandLocked == var(true)) {
             editor->sidebar->hideParameters();
-        } else if (!params.empty() || editor->sidebar->isPinned()) {
+        } else if (!params.getParameters().isEmpty() || editor->sidebar->isPinned()) {
             editor->sidebar->showParameters(object->gui->getText(), params);
         } else {
             editor->sidebar->hideParameters();
@@ -802,7 +815,6 @@ bool Canvas::keyPressed(KeyPress const& key)
         return false;
 
     int keycode = key.getKeyCode();
-    bool hasSelection = !getSelectionOfType<Object>().isEmpty();
 
     auto moveSelection = [this](int x, int y) {
         auto objects = getSelectionOfType<Object>();
@@ -1168,35 +1180,36 @@ void Canvas::encapsulateSelection()
     auto copypasta = String("#N canvas 733 172 450 300 0 1;\n") + "$$_COPY_HERE_$$" + newEdgeObjects + newInternalConnections + "#X restore " + String(centre.x) + " " + String(centre.y) + " pd;\n";
 
     // Apply the changed on Pd's thread
-    pd->enqueueFunction([this, copypasta, newExternalConnections, numIn]() mutable {
-        int size;
-        const char* text = libpd_copy(patch.getPointer(), &size);
-        auto copied = String::fromUTF8(text, size);
+    pd->lockAudioThread();
 
-        // Wrap it in an undo sequence, to allow undoing everything in 1 step
-        patch.startUndoSequence("encapsulate");
+    int size;
+    char const* text = libpd_copy(patch.getPointer(), &size);
+    auto copied = String::fromUTF8(text, size);
 
-        libpd_removeselection(patch.getPointer());
+    // Wrap it in an undo sequence, to allow undoing everything in 1 step
+    patch.startUndoSequence("encapsulate");
 
-        auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
-        SystemClipboard::copyTextToClipboard(replacement);
+    libpd_removeselection(patch.getPointer());
 
-        libpd_paste(patch.getPointer(), replacement.toRawUTF8());
-        auto* newObject = static_cast<t_object*>(patch.getObjects().back());
+    auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
 
-        for (auto& [idx, iolets] : newExternalConnections) {
-            for (auto* iolet : iolets) {
-                auto* externalObject = static_cast<t_object*>(iolet->object->getPointer());
-                if (iolet->isInlet) {
-                    libpd_createconnection(patch.getPointer(), newObject, idx - numIn, externalObject, iolet->ioletIdx);
-                } else {
-                    libpd_createconnection(patch.getPointer(), externalObject, iolet->ioletIdx, newObject, idx);
-                }
+    libpd_paste(patch.getPointer(), replacement.toRawUTF8());
+    auto* newObject = static_cast<t_object*>(patch.getObjects().back());
+
+    for (auto& [idx, iolets] : newExternalConnections) {
+        for (auto* iolet : iolets) {
+            auto* externalObject = static_cast<t_object*>(iolet->object->getPointer());
+            if (iolet->isInlet) {
+                libpd_createconnection(patch.getPointer(), newObject, idx - numIn, externalObject, iolet->ioletIdx);
+            } else {
+                libpd_createconnection(patch.getPointer(), externalObject, iolet->ioletIdx, newObject, idx);
             }
         }
+    }
 
-        patch.endUndoSequence("encapsulate");
-    });
+    patch.endUndoSequence("encapsulate");
+
+    pd->unlockAudioThread();
 
     synchronise();
     handleUpdateNowIfNeeded();
@@ -1286,7 +1299,7 @@ void Canvas::valueChanged(Value& v)
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale)) {
 
-        float newScaleFactor = getValue<float>(v);
+        auto newScaleFactor = getValue<float>(v);
 
         if (newScaleFactor == 0) {
             newScaleFactor = 1.0f;
@@ -1330,9 +1343,9 @@ void Canvas::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(locked)) {
         bool editMode = !getValue<bool>(v);
 
-        pd->enqueueFunction([this, editMode]() {
-            patch.getPointer()->gl_edit = editMode;
-        });
+        pd->lockAudioThread();
+        patch.getPointer()->gl_edit = editMode;
+        pd->unlockAudioThread();
 
         cancelConnectionCreation();
         deselectAll();
@@ -1432,11 +1445,6 @@ SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
     return selectedComponents;
 }
 
-void Canvas::removeSelectedComponent(Component* component)
-{
-    selectedComponents.deselect(component);
-}
-
 bool Canvas::checkPanDragMode()
 {
     auto panDragEnabled = panningModifierDown();
@@ -1457,7 +1465,6 @@ bool Canvas::setPanDragMode(bool shouldPan)
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
     for (auto* object : objects) {
-        auto selB = object->getSelectableBounds() + canvasOrigin;
         if (area.intersects(object->getSelectableBounds())) {
             itemsFound.add(object);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {

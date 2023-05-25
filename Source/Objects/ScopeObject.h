@@ -17,6 +17,17 @@ public:
     ScopeBase(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
+        objectParameters.addParamColourFG(&primaryColour);
+        objectParameters.addParamColour("Grid color", cAppearance, &gridColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamColourBG(&secondaryColour);
+        objectParameters.addParamCombo("Trigger mode", cGeneral, &triggerMode, { "None", "Up", "Down" }, 1);
+        objectParameters.addParamFloat("Trigger value", cGeneral, &triggerValue, 0.0f);
+        objectParameters.addParamInt("Samples per point", cGeneral, &samplesPerPoint, 256);
+        objectParameters.addParamInt("Buffer size", cGeneral, &bufferSize, 128);
+        objectParameters.addParamInt("Delay", cGeneral, &delay, 0);
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
+
         startTimerHz(25);
     }
 
@@ -43,7 +54,7 @@ public:
 
     Colour colourFromHexArray(unsigned char* hex)
     {
-        return Colour(hex[0], hex[1], hex[2]);
+        return { hex[0], hex[1], hex[2] };
     }
 
     Rectangle<int> getPdBounds() override
@@ -173,6 +184,8 @@ public:
                 x_buffer[n] = jmap<float>(x_buffer[n], min, max, 2.f, waveAreaWidth);
                 y_buffer[n] = jmap<float>(y_buffer[n], min, max, waveAreaHeight, 2.f);
                 break;
+            default:
+                break;
             }
         }
         repaint();
@@ -224,22 +237,6 @@ public:
                 scope->x_rcv_raw = pd->generateSymbol("empty");
             }
         }
-    }
-
-    ObjectParameters getParameters() override
-    {
-        return {
-            { "Foreground", tColour, cAppearance, &primaryColour, {} },
-            { "Grid", tColour, cAppearance, &gridColour, {} },
-            { "Background", tColour, cAppearance, &secondaryColour, {} },
-            { "Trigger mode", tCombo, cGeneral, &triggerMode, { "None", "Up", "Down" } },
-            { "Trigger value", tFloat, cGeneral, &triggerValue, {} },
-            { "Samples per point", tInt, cGeneral, &samplesPerPoint, {} },
-            { "Buffer size", tInt, cGeneral, &bufferSize, {} },
-            { "Delay", tInt, cGeneral, &delay, {} },
-            { "Signal range", tRange, cGeneral, &signalRange, {} },
-            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} }
-        };
     }
 
     std::vector<hash32> getAllMessages() override

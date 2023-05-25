@@ -19,7 +19,7 @@ class PaletteView : public Component
     , public Value::Listener {
     class DraggedComponentGroup : public Component {
     public:
-        DraggedComponentGroup(Canvas* canvas, Object* target, Point<int> mouseDownPosition)
+        DraggedComponentGroup(Canvas* canvas, Object* target)
             : cnv(canvas)
             , draggedObject(target)
         {
@@ -47,7 +47,7 @@ class PaletteView : public Component
             cnv->addMouseListener(this, true);
         }
 
-        ~DraggedComponentGroup()
+        ~DraggedComponentGroup() override
         {
             cnv->removeMouseListener(this);
         }
@@ -80,7 +80,10 @@ class PaletteView : public Component
             auto result = pd::Patch::translatePatchAsString(clipboardContent, position);
 
             auto* ptr = target->patch.getPointer();
-            target->pd->enqueueFunction([ptr, result]() mutable { libpd_paste(ptr, result.toRawUTF8()); });
+
+            target->pd->lockAudioThread();
+            libpd_paste(ptr, result.toRawUTF8());
+            target->pd->unlockAudioThread();
 
             target->synchronise();
         }
@@ -355,7 +358,7 @@ public:
             }
         }
 
-        dragger = std::make_unique<DraggedComponentGroup>(cnv.get(), object, relativeEvent.getMouseDownPosition());
+        dragger = std::make_unique<DraggedComponentGroup>(cnv.get(), object);
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -523,7 +526,7 @@ public:
 class Palettes : public Component
     , public SettingsFileListener {
 public:
-    Palettes(PluginEditor* editor)
+    explicit Palettes(PluginEditor* editor)
         : view(editor)
         , resizer(this)
     {
@@ -629,7 +632,7 @@ public:
         setVisible(showPalettes);
     }
 
-    ~Palettes()
+    ~Palettes() override
     {
         savePalettes();
     }
@@ -651,7 +654,7 @@ public:
     }
 
 private:
-    void propertyChanged(String name, var value) override
+    void propertyChanged(String const& name, var const& value) override
     {
         if (name == "show_palettes") {
             setVisible(static_cast<bool>(value));
@@ -697,7 +700,6 @@ private:
 
         addButton.toFront(false);
         addButton.setBounds(Rectangle<int>(offset, totalHeight, 26, 26));
-        totalHeight += 25;
 
         view.setBounds(getLocalBounds().withTrimmedLeft(26));
 
@@ -895,7 +897,7 @@ private:
 
     class ResizerComponent : public Component {
     public:
-        ResizerComponent(Component* toResize)
+        explicit ResizerComponent(Component* toResize)
             : target(toResize)
         {
         }

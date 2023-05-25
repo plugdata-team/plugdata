@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include <clocale>
+#include <memory>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_basics/juce_audio_basics.h>
@@ -105,6 +106,10 @@ PluginProcessor::PluginProcessor()
     // parameters.replaceState(ValueTree("plugdata"));
 
     logMessage("plugdata v" + String(ProjectInfo::versionString));
+    auto gitHash = String(PLUGDATA_GIT_HASH);
+    if(gitHash.isNotEmpty()) {
+        logMessage("Nightly build: " + gitHash);
+    }
     logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
     logMessage("Libraries:");
     logMessage(else_version);
@@ -231,7 +236,7 @@ void PluginProcessor::initialiseFilesystem()
     library.deleteRecursively();
     library.createDirectory();
 
-    // We always want to update the symlinks in case an older version of plugdata is was used
+    // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS
     // Get paths that need symlinks
     auto abstractionsPath = versionDataDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
@@ -246,7 +251,9 @@ void PluginProcessor::initialiseFilesystem()
 
     OSUtils::createJunction(library.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
 
-    OSUtils::createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
+    if (!deken.exists()) {
+        OSUtils::createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
+    }
 
 #else
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
@@ -278,13 +285,13 @@ void PluginProcessor::updateSearchPaths()
         paths.addIfNotAlreadyThere(path);
     }
 
-    for (auto path : paths) {
+    for (auto const& path : paths) {
         if (currentPaths.contains(path.getFullPathName()))
             continue;
         libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
 
-    for (auto path : DekenInterface::getExternalPaths()) {
+    for (auto const& path : DekenInterface::getExternalPaths()) {
         if (currentPaths.contains(path))
             continue;
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
@@ -404,7 +411,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor, samplesPerBlock * oversampleFactor);
 
-    oversampler.reset(new dsp::Oversampling<float>(maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false));
+    oversampler = std::make_unique<dsp::Oversampling<float>>(maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false);
 
     oversampler->initProcessing(samplesPerBlock);
 
@@ -432,6 +439,11 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     startDSP();
 
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
+    statusbarSource->setSampleRate(AudioProcessor::getSampleRate());
+    limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(getTotalNumOutputChannels()) });
+    // limiter.setThreshold(float newThreshold)
+
+    smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
 }
 
 void PluginProcessor::releaseResources()
@@ -504,7 +516,37 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
         oversampler->processSamplesDown(targetBlock);
     }
 
-    buffer.applyGain(getParameters()[0]->getValue());
+    auto targetGain = getParameters()[0]->getValue();
+    float mappedTargetGain = 0.0f;
+
+    //    Slider value 0.8 is default unity
+    //    The top part of the slider 0.8 - 1.0 is mapped to linear gain 1.0 - 2.0
+    //    The lower part of the slider 0.0 - 0.8 is mapped to a power function that approximates a log curve between 0.0 - 1.0
+    //
+    //    +---------+-----------------+-------+--------------+
+    //    | Dynamic |        a        |   b   | Approximation|
+    //    |  range  |                 |       |  |
+    //    +---------+-----------------+-------+--------------+
+    //    |  50 dB  |  3.1623e-3      | 5.757 |      x^3     |
+    //    |  60 dB  |     1e-3        | 6.908 |      x^4     |
+    //    |  70 dB  |  3.1623e-4      | 8.059 |      x^5     |
+    //    |  80 dB  |     1e-4        | 9.210 |      x^6     |
+    //    |  90 dB  |  3.1623e-5      | 10.36 |      x^6     |
+    //    | 100 dB  |     1e-5        | 11.51 |      x^7     |
+    //    +---------+-----------------+-------+--------------+
+    //    Table 1: Values for a and b in the equation a·exp(b·x)
+    //
+    //    https://www.dr-lex.be/info-stuff/volumecontrols.html
+
+    if (targetGain <= 0.8f)
+        mappedTargetGain = pow(jmap(targetGain, 0.0f, 0.8f, 0.0f, 1.0f), 2.5f);
+    else
+        mappedTargetGain = jmap(targetGain, 0.8f, 1.0f, 1.0f, 2.0f);
+
+    // apply smoothing to the main volume control
+    smoothedGain.setTargetValue(mappedTargetGain);
+    smoothedGain.applyGain(buffer, buffer.getNumSamples());
+
     statusbarSource->processBlock(buffer, midiBufferCopy, midiMessages, totalNumOutputChannels);
 
     if (ProjectInfo::isStandalone) {
@@ -525,16 +567,21 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 
     if (protectedMode) {
+
+        // Take out inf and NaN values
         auto* const* writePtr = buffer.getArrayOfWritePointers();
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             for (int n = 0; n < buffer.getNumSamples(); n++) {
                 if (!std::isfinite(writePtr[ch][n])) {
                     writePtr[ch][n] = 0.0f;
-                } else {
-                    writePtr[ch][n] = std::clamp(writePtr[ch][n], -1.0f, 1.0f);
                 }
             }
         }
+
+        auto block = dsp::AudioBlock<float>();
+        block.copyFrom(buffer);
+
+        limiter.process(dsp::ProcessContextReplacing<float>(block));
     }
 }
 
@@ -679,11 +726,11 @@ void PluginProcessor::sendPlayhead()
 
         auto loopPoints = infos->getLoopPoints();
         if (loopPoints.hasValue()) {
-            atoms_playhead.push_back(static_cast<float>(loopPoints->ppqStart));
-            atoms_playhead.push_back(static_cast<float>(loopPoints->ppqEnd));
+            atoms_playhead.emplace_back(static_cast<float>(loopPoints->ppqStart));
+            atoms_playhead.emplace_back(static_cast<float>(loopPoints->ppqEnd));
         } else {
-            atoms_playhead.push_back(0.0f);
-            atoms_playhead.push_back(0.0f);
+            atoms_playhead.emplace_back(0.0f);
+            atoms_playhead.emplace_back(0.0f);
         }
         sendMessage("playhead", "looping", atoms_playhead);
 
@@ -714,7 +761,7 @@ void PluginProcessor::sendPlayhead()
         if (infos->getTimeSignature().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getTimeSignature()->numerator);
-            atoms_playhead.push_back(static_cast<float>(infos->getTimeSignature()->denominator));
+            atoms_playhead.emplace_back(static_cast<float>(infos->getTimeSignature()->denominator));
             sendMessage("playhead", "timesig", atoms_playhead);
         }
 
@@ -732,9 +779,9 @@ void PluginProcessor::sendPlayhead()
         }
 
         if (infos->getTimeInSeconds().hasValue()) {
-            atoms_playhead.push_back(static_cast<float>(*infos->getTimeInSeconds()));
+            atoms_playhead.emplace_back(static_cast<float>(*infos->getTimeInSeconds()));
         } else {
-            atoms_playhead.push_back(0.0f);
+            atoms_playhead.emplace_back(0.0f);
         }
 
         sendMessage("playhead", "position", atoms_playhead);
@@ -841,7 +888,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     auto* editor = new PluginEditor(*this);
     setThis();
 
-    for (auto patch : patches) {
+    for (auto const& patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
         editor->addTab(cnv);
     }
@@ -898,7 +945,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     auto* patchesTree = new XmlElement("Patches");
 
-    for (auto patch : patches) {
+    for (auto const& patch : patches) {
 
         if (palettes.contains(patch.get()))
             continue;
@@ -1132,7 +1179,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
 {
     // First, check if patch is already opened
-    for (auto patch : patches) {
+    for (auto const& patch : patches) {
         if (patch->getCurrentFile() == patchFile) {
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                 MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
@@ -1338,9 +1385,9 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
         break;
     }
     }
-};
+}
 
-void PluginProcessor::performParameterChange(int type, String name, float value)
+void PluginProcessor::performParameterChange(int type, String const& name, float value)
 {
     // Type == 1 means it sets the change gesture state
     if (type) {

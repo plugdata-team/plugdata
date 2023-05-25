@@ -47,6 +47,14 @@ public:
 
         startTimer(nextInterval);
         repaint();
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max, 0.0f);
+        objectParameters.addParamFloat("Interval (ms)", cGeneral, &interval, 100.0f);
+        objectParameters.addParamFloat("Ramp time (ms)", cGeneral, &ramp, 10.0f);
+        objectParameters.addParamFloat("Initial value", cGeneral, &init, 0.0f);
+        objectParameters.addParamColourFG(&primaryColour);
+        objectParameters.addParamColourBG(&secondaryColour);
     }
 
     void update() override
@@ -91,7 +99,7 @@ public:
         public:
             Object* object;
 
-            NumboxTildeBoundsConstrainer(Object* parent)
+            explicit NumboxTildeBoundsConstrainer(Object* parent)
                 : object(parent)
             {
             }
@@ -114,10 +122,6 @@ public:
                 auto* nbx = static_cast<t_fake_numbox*>(object->getPointer());
 
                 nbx->x_fontsize = object->gui->getHeight() - 4;
-
-                int width = bounds.reduced(Object::margin).getWidth();
-                int numWidth = (2.0f * (-6.0f + width - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
-                width = (nbx->x_fontsize - (nbx->x_fontsize / 2) + 2) * (numWidth + 2) + 2;
 
                 BorderSize<int> border(Object::margin);
                 border.subtractFrom(bounds);
@@ -154,20 +158,7 @@ public:
     void resized() override
     {
         input.setBounds(getLocalBounds().withTrimmedLeft(getHeight() - 4));
-        input.setFont(getHeight() - 6);
-    }
-
-    ObjectParameters getParameters() override
-    {
-        return {
-            { "Minimum", tFloat, cGeneral, &min, {} },
-            { "Maximum", tFloat, cGeneral, &max, {} },
-            { "Interval (ms)", tFloat, cGeneral, &interval, {} },
-            { "Ramp time (ms)", tFloat, cGeneral, &ramp, {} },
-            { "Initial value", tFloat, cGeneral, &init, {} },
-            { "Foreground", tColour, cAppearance, &primaryColour, {} },
-            { "Background", tColour, cAppearance, &secondaryColour, {} },
-        };
+        input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
 
     void valueChanged(Value& value) override
@@ -193,7 +184,7 @@ public:
         }
     }
 
-    void setForegroundColour(String colour)
+    void setForegroundColour(String const& colour)
     {
         // Remove alpha channel and add #
         static_cast<t_fake_numbox*>(ptr)->x_fg = pd->generateSymbol("#" + colour.substring(2));
@@ -206,7 +197,7 @@ public:
         repaint();
     }
 
-    void setBackgroundColour(String colour)
+    void setBackgroundColour(String const& colour)
     {
         static_cast<t_fake_numbox*>(ptr)->x_bg = pd->generateSymbol("#" + colour.substring(2));
         repaint();

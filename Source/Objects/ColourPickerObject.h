@@ -30,14 +30,12 @@ public:
             if (!_this)
                 return;
 
-            _this->pd->enqueueFunction([_this, x, c]() {
-                if (!_this || _this->cnv->patch.objectWasDeleted(x))
-                    return;
+            _this->pd->lockAudioThread();
 
-                outlet_symbol(x->x_obj.te_outlet, _this->pd->generateSymbol(String("#") + c.toString().substring(2)));
+            outlet_symbol(x->x_obj.te_outlet, _this->pd->generateSymbol(String("#") + c.toString().substring(2)));
+            snprintf(x->x_color, 1000, "#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue());
 
-                snprintf(x->x_color, 1000, "#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue());
-            });
+            _this->pd->unlockAudioThread();
         });
     }
 

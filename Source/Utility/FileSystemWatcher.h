@@ -7,7 +7,7 @@ For more information visit www.rabiensoftware.com
 
 #pragma once
 
-#if defined JUCE_MAC || defined JUCE_WINDOWS || defined JUCE_LINUX
+#if defined JUCE_MAC || defined JUCE_WINDOWS || defined JUCE_LINUX || defined JUCE_BSD
 
 /**
 

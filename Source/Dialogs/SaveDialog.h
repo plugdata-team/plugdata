@@ -7,7 +7,7 @@
 class SaveDialog : public Component {
 
 public:
-    SaveDialog(Component* editor, Dialog* parent, String const& filename, std::function<void(int)> callback)
+    SaveDialog(Dialog* parent, String const& filename, std::function<void(int)> callback)
         : savelabel("savelabel", filename.isEmpty() ? "Save Changes?" : "Save Changes to \"" + filename + "\"?")
     {
         cb = callback;
@@ -17,23 +17,23 @@ public:
         addAndMakeVisible(dontsave);
         addAndMakeVisible(save);
 
-        cancel.onClick = [this, parent] {
+        cancel.onClick = [parent] {
             MessageManager::callAsync(
-                [this, parent]() {
+                [parent]() {
                     cb(0);
                     parent->closeDialog();
                 });
         };
-        save.onClick = [this, parent] {
+        save.onClick = [parent] {
             MessageManager::callAsync(
-                [this, parent]() {
+                [parent]() {
                     cb(2);
                     parent->closeDialog();
                 });
         };
-        dontsave.onClick = [this, parent] {
+        dontsave.onClick = [parent] {
             MessageManager::callAsync(
-                [this, parent]() {
+                [parent]() {
                     cb(1);
                     parent->closeDialog();
                 });

@@ -46,7 +46,7 @@ public:
 
     static void renderConnectionPath(Graphics& g,
         Canvas* cnv,
-        Path connectionPath,
+        Path const& connectionPath,
         bool isSignal,
         bool isMouseOver = false,
         bool showDirection = false,
@@ -61,7 +61,7 @@ public:
 
     void paint(Graphics&) override;
 
-    bool isSegmented();
+    bool isSegmented() const;
     void setSegmented(bool segmented);
 
     void updatePath();
@@ -79,15 +79,13 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    Point<float> getStartPoint();
-    Point<float> getEndPoint();
+    Point<float> getStartPoint() const;
+    Point<float> getEndPoint() const;
 
     void reconnect(Iolet* target);
 
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
     int getClosestLineIdx(Point<float> const& position, PathPlan const& plan);
-
-    String getId() const;
 
     void setPointer(void* ptr);
     void* getPointer();
@@ -105,12 +103,12 @@ public:
 
     void applyBestPath();
 
-    bool intersectsObject(Object* object);
+    bool intersectsObject(Object* object) const;
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
     void receiveMessage(String const& name, int argc, t_atom* argv) override;
 
-    bool isSelected();
+    bool isSelected() const;
 
     StringArray getMessageFormated();
 
@@ -178,7 +176,7 @@ public:
         setAlwaysOnTop(true);
     }
 
-    ~ConnectionBeingCreated()
+    ~ConnectionBeingCreated() override
     {
         cnv->removeMouseListener(this);
         iolet->removeMouseListener(this);
@@ -240,7 +238,7 @@ class ConnectionPathUpdater : public Timer {
     void timerCallback() override;
 
 public:
-    ConnectionPathUpdater(Canvas* cnv)
+    explicit ConnectionPathUpdater(Canvas* cnv)
         : canvas(cnv) {};
 
     void pushPathState(Connection* connection, t_symbol* newPathState)

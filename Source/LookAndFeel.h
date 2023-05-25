@@ -56,9 +56,7 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { caretColourId, { "Text editor caret", "caret_colour", "Other" } },
 
     { levelMeterActiveColourId, { "Level meter active", "levelmeter_active", "Level Meter" } },
-    { levelMeterInactiveColourId, { "Level meter inactive", "levelmeter_inactive", "Level Meter" } },
-
-    { levelMeterTrackColourId, { "Level meter track", "levelmeter_track", "Level Meter" } },
+    { levelMeterBackgroundColourId, { "Level meter track", "levelmeter_background", "Level Meter" } },
     { levelMeterThumbColourId, { "Level meter thumb", "levelmeter_thumb", "Level Meter" } },
 
     { sliderThumbColourId, { "Slider thumb", "slider_thumb", "Other" } },
@@ -89,7 +87,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     class PlugData_DocumentWindowButton_macOS : public Button
         , public FocusChangeListener {
     public:
-        PlugData_DocumentWindowButton_macOS(int buttonType)
+        explicit PlugData_DocumentWindowButton_macOS(int buttonType)
             : Button("")
             , buttonType(buttonType)
         {
@@ -136,6 +134,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 toggledShape.addTriangle(point_b_a, point_b_b, point_b_c);
                 break;
             }
+            default:
+                break;
             }
             setName(name);
             setButtonText(name);
@@ -323,10 +323,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     int getSliderThumbRadius(Slider& s) override
     {
-
-        if (s.getProperties()["Style"] == "VolumeSlider") {
-            return 6;
-        }
         return LookAndFeel_V4::getSliderThumbRadius(s);
     }
 
@@ -518,9 +514,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
     {
-        if (slider.getProperties()["Style"] == "VolumeSlider") {
-            drawVolumeSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
-        } else if (slider.getProperties()["Style"] == "SliderObject") {
+        if (slider.getProperties()["Style"] == "SliderObject") {
             drawGUIObjectSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, slider);
         } else {
             LookAndFeel_V4::drawLinearSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
@@ -568,7 +562,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
         // we check if the system is drawing with a dropshadow- hence semi transparent will be true
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
         auto leftOffset = titleBarX;
         if (maximiseButton != nullptr && areButtonsLeft && ProjectInfo::canUseSemiTransparentWindows()) {
             if (maximiseButton->getToggleState())
@@ -685,54 +679,57 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         g.fillRoundedRectangle(button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
 
-        int w = button.getWidth();
-        int h = button.getHeight();
-
         drawTabButtonText(button, g, false, false);
     }
-    
-    void drawTabButtonText (TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
+
+    void drawTabButtonText(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
         auto area = button.getLocalBounds().reduced(4, 1).toFloat();
 
-        Font font (getTabButtonFont (button, area.getHeight()));
-        font.setUnderline (button.hasKeyboardFocus (false));
+        Font font(getTabButtonFont(button, area.getHeight()));
+        font.setUnderline(button.hasKeyboardFocus(false));
 
         AffineTransform t;
 
-        switch (button.getTabbedButtonBar().getOrientation())
-        {
-            case TabbedButtonBar::TabsAtLeft:   t = t.rotated (MathConstants<float>::pi * -0.5f).translated (area.getX(), area.getBottom()); break;
-            case TabbedButtonBar::TabsAtRight:  t = t.rotated (MathConstants<float>::pi *  0.5f).translated (area.getRight(), area.getY()); break;
-            case TabbedButtonBar::TabsAtTop:
-            case TabbedButtonBar::TabsAtBottom: t = t.translated (area.getX(), area.getY()); break;
-            default:                            jassertfalse; break;
+        switch (button.getTabbedButtonBar().getOrientation()) {
+        case TabbedButtonBar::TabsAtLeft:
+            t = t.rotated(MathConstants<float>::pi * -0.5f).translated(area.getX(), area.getBottom());
+            break;
+        case TabbedButtonBar::TabsAtRight:
+            t = t.rotated(MathConstants<float>::pi * 0.5f).translated(area.getRight(), area.getY());
+            break;
+        case TabbedButtonBar::TabsAtTop:
+        case TabbedButtonBar::TabsAtBottom:
+            t = t.translated(area.getX(), area.getY());
+            break;
+        default:
+            jassertfalse;
+            break;
         }
 
         Colour col;
 
-        if (button.isFrontTab() && (button.isColourSpecified (TabbedButtonBar::frontTextColourId)
-                                        || isColourSpecified (TabbedButtonBar::frontTextColourId)))
-            col = findColour (TabbedButtonBar::frontTextColourId);
-        else if (button.isColourSpecified (TabbedButtonBar::tabTextColourId)
-                     || isColourSpecified (TabbedButtonBar::tabTextColourId))
-            col = findColour (TabbedButtonBar::tabTextColourId);
+        if (button.isFrontTab() && (button.isColourSpecified(TabbedButtonBar::frontTextColourId) || isColourSpecified(TabbedButtonBar::frontTextColourId)))
+            col = findColour(TabbedButtonBar::frontTextColourId);
+        else if (button.isColourSpecified(TabbedButtonBar::tabTextColourId)
+            || isColourSpecified(TabbedButtonBar::tabTextColourId))
+            col = findColour(TabbedButtonBar::tabTextColourId);
         else
             col = button.getTabBackgroundColour().contrasting();
 
         g.setColour(col);
         g.setFont(font);
         g.addTransform(t);
-        
+
         auto buttonText = button.getButtonText().trim();
-        if(font.getStringWidthFloat(buttonText) > area.getWidth() * 0.4f) {
+        if (font.getStringWidthFloat(buttonText) > area.getWidth() * 0.4f) {
             area = button.getTextArea().toFloat();
         }
 
-        g.drawFittedText (buttonText,
-                          area.getX(), area.getY(), (int) area.getWidth(), (int) area.getHeight(),
-                          Justification::centred,
-                          jmax (1, ((int) area.getHeight()) / 12));
+        g.drawFittedText(buttonText,
+            area.getX(), area.getY(), (int)area.getWidth(), (int)area.getHeight(),
+            Justification::centred,
+            jmax(1, ((int)area.getHeight()) / 12));
     }
 
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override
@@ -758,7 +755,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
             idealWidth = font.getStringWidth(text) + idealHeight * 2;
 
-            idealHeight += 2;
+            idealHeight += 1;
         }
     }
 
@@ -901,15 +898,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         bool inspectorElement = object.getProperties()["Style"] == "Inspector";
 
-        auto cornerSize = inspectorElement ? 0.0f : 3.0f;
         Rectangle<int> boxBounds(0, 0, width, height);
 
-        g.setColour(object.findColour(ComboBox::backgroundColourId));
-        g.fillRoundedRectangle(boxBounds.toFloat(), cornerSize);
-
         if (!inspectorElement) {
+
+            g.setColour(object.findColour(ComboBox::backgroundColourId));
+            g.fillRoundedRectangle(boxBounds.toFloat(), 3.0f);
+
             g.setColour(object.findColour(ComboBox::outlineColourId));
-            g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
+            g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), 3.0f, 1.0f);
         }
 
         Rectangle<int> arrowZone(width - 22, 9, 14, height - 18);
@@ -954,46 +951,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
-    void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider)
-    {
-        float trackWidth = 4.;
-
-        x += 1;
-        width -= 2;
-
-        Point<float> startPoint(slider.isHorizontal() ? x : x + width * 0.5f, slider.isHorizontal() ? y + height * 0.5f : height + y);
-        Point<float> endPoint(slider.isHorizontal() ? width + x : startPoint.x, slider.isHorizontal() ? startPoint.y : y);
-
-        Path backgroundTrack;
-        backgroundTrack.startNewSubPath(startPoint);
-        backgroundTrack.lineTo(endPoint);
-
-        g.setColour(slider.findColour(PlugDataColour::levelMeterInactiveColourId));
-        g.strokePath(backgroundTrack, { trackWidth, PathStrokeType::mitered });
-        Path valueTrack;
-        Point<float> minPoint, maxPoint;
-        auto kx = slider.isHorizontal() ? sliderPos : (x + width * 0.5f);
-        auto ky = slider.isHorizontal() ? (y + height * 0.5f) : sliderPos;
-        minPoint = startPoint;
-        maxPoint = { kx, ky };
-        auto thumbWidth = getSliderThumbRadius(slider);
-        valueTrack.startNewSubPath(minPoint);
-        valueTrack.lineTo(maxPoint);
-
-        g.setColour(slider.findColour(PlugDataColour::levelMeterTrackColourId));
-        g.strokePath(valueTrack, { trackWidth, PathStrokeType::mitered });
-        g.setColour(slider.findColour(PlugDataColour::levelMeterThumbColourId));
-
-        g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f);
-    }
-
     void fillTextEditorBackground(Graphics& g, int width, int height, TextEditor& textEditor) override
     {
-        if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) != nullptr) {
-            g.setColour(textEditor.findColour(TextEditor::backgroundColourId));
-            g.fillRect(0, 0, width, height);
-        } else {
-            g.fillAll(textEditor.findColour(TextEditor::backgroundColourId));
+        if (textEditor.getProperties()["NoBackground"].isVoid()) {
+            if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) != nullptr) {
+                g.setColour(textEditor.findColour(TextEditor::backgroundColourId));
+                g.fillRect(0, 0, width, height);
+            } else {
+                g.fillAll(textEditor.findColour(TextEditor::backgroundColourId));
+            }
         }
     }
 
@@ -1068,7 +1034,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         if (!label.isBeingEdited()) {
             auto alpha = label.isEnabled() ? 1.0f : 0.5f;
-            const Font font = Fonts::getCurrentFont().withHeight(label.getFont().getHeight());
+            const Font font = label.getFont();
 
             auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
 
@@ -1093,9 +1059,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
         auto colour = component.findColour(PropertyComponent::labelTextColourId)
                           .withMultipliedAlpha(component.isEnabled() ? 1.0f : 0.6f);
 
-        auto r = getPropertyComponentContentPosition(component);
+        auto textW = jmin(300, component.getWidth() / 2);
+        auto r = Rectangle<float>(textW, 0, component.getWidth() - textW, component.getHeight() - 1);
 
-        Fonts::drawFittedText(g, component.getName(), indent, r.getY(), r.getX() - 5, r.getHeight(), colour, 1, 1.0f, (float)jmin(height, 24) * 0.65f, Justification::centredLeft);
+        Fonts::drawFittedText(g, component.getName(), indent, r.getY(), r.getX(), r.getHeight(), colour, 1, 1.0f, (float)jmin(height, 24) * 0.65f, Justification::centredLeft);
     }
 
     void drawPropertyPanelSectionHeader(Graphics& g, String const& name, bool isOpen, int width, int height) override
@@ -1298,7 +1265,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff72aedf\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffe1ef00\"\n"
     "           dialog_background=\"ff333333\" sidebar_colour=\"ff3e3e3e\" sidebar_text=\"ffe4e4e4\"\n"
     "           sidebar_background_active=\"ff72aedf\" sidebar_active_text=\"ffe4e4e4\"\n"
-    "           levelmeter_active=\"ff72aedf\" levelmeter_inactive=\"ff5d5d5d\" levelmeter_track=\"ff333333\"\n"
+    "           levelmeter_active=\"ff72aedf\" levelmeter_background=\"ff494949\"\n"
     "           levelmeter_thumb=\"ffe4e4e4\" panel_colour=\"ff232323\" panel_text=\"ffe4e4e4\"\n"
     "           panel_background_active=\"ff72aedf\" panel_active_text=\"ffe4e4e4\"\n"
     "           popup_background=\"ff333333\" popup_background_active=\"ff72aedf\"\n"
@@ -1318,7 +1285,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff000000\" connection_colour=\"ff000000\" signal_colour=\"ff000000\"\n"
     "           dialog_background=\"ffffffff\" sidebar_colour=\"ffffffff\" sidebar_text=\"ff000000\"\n"
     "           sidebar_background_active=\"ff000000\" sidebar_active_text=\"ffffffff\"\n"
-    "           levelmeter_active=\"ff000000\" levelmeter_inactive=\"ffffffff\" levelmeter_track=\"ff000000\"\n"
+    "           levelmeter_active=\"ff000000\" levelmeter_background=\"ffa0a0a0\"\n"
     "           levelmeter_thumb=\"ff000000\" panel_colour=\"ffffffff\" panel_text=\"ff000000\"\n"
     "           panel_background_active=\"ff000000\" panel_active_text=\"ffffffff\"\n"
     "           popup_background=\"ffffffff\" popup_background_active=\"ff000000\"\n"
@@ -1336,7 +1303,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ffffffff\" connection_colour=\"ffffffff\" signal_colour=\"ffffffff\"\n"
     "           dialog_background=\"ff000000\" sidebar_colour=\"ff000000\" sidebar_text=\"ffffffff\"\n"
     "           sidebar_background_active=\"ffffffff\" sidebar_active_text=\"ff000000\"\n"
-    "           levelmeter_active=\"ffffffff\" levelmeter_inactive=\"ff000000\" levelmeter_track=\"ffffffff\"\n"
+    "           levelmeter_active=\"ffffffff\" levelmeter_background=\"ff808080\"\n"
     "           levelmeter_thumb=\"ffffffff\" panel_colour=\"ff000000\" panel_text=\"ffffffff\"\n"
     "           panel_background_active=\"ffffffff\" panel_active_text=\"ff000000\"\n"
     "           popup_background=\"ff000000\" popup_background_active=\"ffffffff\"\n"
@@ -1355,7 +1322,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff42a2c8\" connection_colour=\"ffe1e1e1\" signal_colour=\"ffff8500\"\n"
     "           dialog_background=\"ff191919\" sidebar_colour=\"ff191919\" sidebar_text=\"ffe1e1e1\"\n"
     "           sidebar_background_active=\"ff282828\" sidebar_active_text=\"ffe1e1e1\"\n"
-    "           levelmeter_active=\"ff42a2c8\" levelmeter_inactive=\"ff2d2d2d\" levelmeter_track=\"ffe3e3e3\"\n"
+    "           levelmeter_active=\"ff42a2c8\" levelmeter_background=\"ff2e2e2e\"\n"
     "           levelmeter_thumb=\"ffe3e3e3\" panel_colour=\"ff232323\" panel_text=\"ffe1e1e1\"\n"
     "           panel_background_active=\"ff373737\" panel_active_text=\"ffe1e1e1\"\n"
     "           popup_background=\"ff191919\" popup_background_active=\"ff282828\"\n"
@@ -1374,7 +1341,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff007aff\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\"\n"
     "           dialog_background=\"ffe4e4e4\" sidebar_colour=\"ffefefef\" sidebar_text=\"ff4d4d4d\"\n"
     "           sidebar_background_active=\"ffdfdfdf\" sidebar_active_text=\"ff4d4d4d\"\n"
-    "           levelmeter_active=\"ff007aff\" levelmeter_inactive=\"fff6f6f6\" levelmeter_track=\"ff4d4d4d\"\n"
+    "           levelmeter_active=\"ff007aff\" levelmeter_background=\"ffdedede\"\n"
     "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"fffafafa\" panel_text=\"ff4d4d4d\"\n"
     "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff4d4d4d\"\n"
     "           popup_background=\"ffe6e6e6\" popup_background_active=\"ffd5d5d5\"\n"
@@ -1394,7 +1361,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff5da0c4\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8502\"\n"
     "           dialog_background=\"ffd2cdc4\" sidebar_colour=\"ffdedad3\" sidebar_text=\"ff5a5a5a\"\n"
     "           sidebar_background_active=\"ffefefef\" sidebar_active_text=\"ff5a5a5a\"\n"
-    "           levelmeter_active=\"ff5da0c4\" levelmeter_inactive=\"ffd2cdc4\" levelmeter_track=\"ff5a5a5a\"\n"
+    "           levelmeter_active=\"ff5da0c4\" levelmeter_background=\"ffc0bbb2\"\n"
     "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"ffe3dfd9\" panel_text=\"ff5a5a5a\"\n"
     "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
     "           popup_background=\"ffd2cdc4\" popup_background_active=\"ffc0bbb2\"\n"
@@ -1413,7 +1380,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           data_colour=\"ff5bcefa\" connection_colour=\"ffa0a0a0\" signal_colour=\"ffffacab\"\n"
     "           dialog_background=\"ff191919\" sidebar_colour=\"ff232323\" sidebar_text=\"ffffffff\"\n"
     "           sidebar_background_active=\"ff383838\" sidebar_active_text=\"ffffffff\"\n"
-    "           levelmeter_active=\"ff5bcefa\" levelmeter_inactive=\"ff2d2d2d\" levelmeter_track=\"fff5f5f5\"\n"
+    "           levelmeter_active=\"ff5bcefa\" levelmeter_background=\"ff3a3a3a\"\n"
     "           levelmeter_thumb=\"fff5f5f5\" panel_colour=\"ff383838\" panel_text=\"ffffffff\"\n"
     "           panel_background_active=\"ff232323\" panel_active_text=\"ffffffff\"\n"
     "           popup_background=\"ff232323\" popup_background_active=\"ff383838\"\n"

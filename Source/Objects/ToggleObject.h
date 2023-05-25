@@ -21,6 +21,9 @@ public:
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
         };
+
+        objectParameters.addParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f);
+        iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
 
     bool hideInlets() override
@@ -72,7 +75,7 @@ public:
         auto untoggledColour = toggledColour.interpolatedWith(iemHelper.getBackgroundColour(), 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
-        auto crossBounds = getLocalBounds().reduced((getWidth() * 0.08f) + 4.5f).toFloat();
+        auto crossBounds = getLocalBounds().toFloat().reduced((getWidth() * 0.08f) + 4.5f);
 
         if (getWidth() < 18) {
             crossBounds = getLocalBounds().toFloat().reduced(3.5f);
@@ -99,19 +102,18 @@ public:
 
     void sendToggleValue(int newValue)
     {
-        pd->enqueueFunction([ptr = this->ptr, pd = this->pd, patch = &cnv->patch, newValue]() {
-            if (patch->objectWasDeleted(ptr))
-                return;
+        pd->lockAudioThread();
 
-            t_atom atom;
-            SETFLOAT(&atom, newValue);
-            pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
+        t_atom atom;
+        SETFLOAT(&atom, newValue);
+        pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
 
-            auto* iem = static_cast<t_iemgui*>(ptr);
-            outlet_float(iem->x_obj.ob_outlet, newValue);
-            if (iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
-                pd_float(iem->x_snd->s_thing, newValue);
-        });
+        auto* iem = static_cast<t_iemgui*>(ptr);
+        outlet_float(iem->x_obj.ob_outlet, newValue);
+        if (iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
+            pd_float(iem->x_snd->s_thing, newValue);
+
+        pd->unlockAudioThread();
     }
 
     void untoggleObject() override
@@ -130,18 +132,6 @@ public:
 
         // Make sure we don't re-toggle with an accidental drag
         alreadyToggled = true;
-    }
-
-    ObjectParameters getParameters() override
-    {
-        ObjectParameters allParameters = {
-            { "Non-zero value", tFloat, cGeneral, &nonZero, {} }
-        };
-
-        auto iemParameters = iemHelper.getParameters();
-        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
-
-        return allParameters;
     }
 
     void setToggleStateFromFloat(float newValue)

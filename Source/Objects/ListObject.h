@@ -52,6 +52,10 @@ public:
 
         listLabel.setText("0 0", dontSendNotification);
         updateFromGui();
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max);
+        atomHelper.addAtomParameters(objectParameters);
     }
 
     void update() override
@@ -86,9 +90,9 @@ public:
         list.reserve(array.size());
         for (auto const& elem : array) {
             if (elem.getCharPointer().isDigit()) {
-                list.push_back({ elem.getFloatValue() });
+                list.emplace_back(elem.getFloatValue());
             } else {
-                list.push_back({ elem });
+                list.emplace_back(elem);
             }
         }
         if (list != getList()) {
@@ -96,13 +100,13 @@ public:
         }
     }
 
-    ~ListObject()
+    ~ListObject() override
     {
     }
 
     void resized() override
     {
-        listLabel.setFont(Font(getHeight() - 6));
+        listLabel.setFont(listLabel.getFont().withHeight(getHeight() - 6));
         listLabel.setBounds(getLocalBounds());
     }
 
@@ -119,16 +123,6 @@ public:
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         return atomHelper.createConstrainer(object);
-    }
-
-    ObjectParameters getParameters() override
-    {
-        ObjectParameters allParameters = { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
-
-        auto atomParameters = atomHelper.getParameters();
-        allParameters.insert(allParameters.end(), atomParameters.begin(), atomParameters.end());
-
-        return allParameters;
     }
 
     void updateLabel() override
@@ -243,9 +237,9 @@ public:
         return atoms;
     }
 
-    void setList(std::vector<pd::Atom> const value)
+    void setList(std::vector<pd::Atom> value)
     {
-        cnv->pd->enqueueDirectMessages(ptr, std::move(value));
+        cnv->pd->sendDirectMessage(ptr, std::move(value));
     }
 
     void mouseUp(MouseEvent const& e) override

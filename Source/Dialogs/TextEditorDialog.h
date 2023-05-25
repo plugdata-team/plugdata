@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include "Constants.h"
 
 #define GUTTER_WIDTH 48.f
@@ -36,8 +38,8 @@ class Memoizer {
 public:
     using FunctionType = std::function<DataType(ArgType)>;
 
-    Memoizer(FunctionType f)
-        : f(f)
+    explicit Memoizer(FunctionType f)
+        : f(std::move(f))
     {
     }
     DataType operator()(ArgType argument) const
@@ -68,7 +70,7 @@ struct Selection {
         both,
     };
 
-    Selection() { }
+    Selection() = default;
     Selection(Point<int> head)
         : head(head)
         , tail(head)
@@ -88,7 +90,7 @@ struct Selection {
     /** Construct a selection whose head is at (0, 0), and whose tail is at the end of
      the given content string, which may span multiple lines.
      */
-    Selection(String const& content);
+    explicit Selection(String const& content);
 
     bool operator==(Selection const& other) const
     {
@@ -256,9 +258,9 @@ private:
     void invalidateAll();
 
     struct Entry {
-        Entry() { }
-        Entry(String const& string)
-            : string(string)
+        Entry() = default;
+        Entry(String string)
+            : string(std::move(string))
         {
         }
         String string;
@@ -328,7 +330,7 @@ public:
             t = get();
             return s;
         }
-        juce_wchar peekNextChar() noexcept { return t; }
+        juce_wchar peekNextChar() const noexcept { return t; }
         void skip() noexcept
         {
             if (!isEOF()) {
@@ -363,7 +365,7 @@ public:
     float getLineSpacing() const { return lineSpacing; }
 
     /** Set the font to be applied to all text. */
-    void setFont(Font fontToUse)
+    void setFont(Font const& fontToUse)
     {
         font = fontToUse;
         lines.font = fontToUse;
@@ -519,14 +521,14 @@ private:
 class Caret : public Component
     , private Timer {
 public:
-    Caret(TextDocument const& document);
+    explicit Caret(TextDocument const& document);
     void setViewTransform(AffineTransform const& transformToUse);
     void updateSelections();
 
     void paint(Graphics& g) override;
 
 private:
-    float squareWave(float wt) const;
+    static float squareWave(float wt);
     void timerCallback() override;
     Array<Rectangle<float>> getCaretRectangles() const;
 
@@ -537,7 +539,7 @@ private:
 
 class GutterComponent : public Component {
 public:
-    GutterComponent(TextDocument const& document);
+    explicit GutterComponent(TextDocument const& document);
     void setViewTransform(AffineTransform const& transformToUse);
     void updateSelections();
 
@@ -553,7 +555,7 @@ private:
 
 class HighlightComponent : public Component {
 public:
-    HighlightComponent(TextDocument const& document);
+    explicit HighlightComponent(TextDocument const& document);
     void setViewTransform(AffineTransform const& transformToUse);
     void updateSelections();
 
@@ -578,7 +580,7 @@ public:
 
     PlugDataTextEditor();
 
-    void setFont(Font font);
+    void setFont(Font const& font);
 
     void setText(String const& text);
     String getText() const;
@@ -660,7 +662,7 @@ void Caret::paint(Graphics& g)
         g.fillRect(r);
 }
 
-float Caret::squareWave(float wt) const
+float Caret::squareWave(float wt)
 {
     float const delta = 0.222f;
     float const A = 1.0;
@@ -1131,7 +1133,7 @@ float TextDocument::getVerticalPosition(int row, Metric metric) const
 
 Point<float> TextDocument::getPosition(Point<int> index, Metric metric) const
 {
-    return Point<float>(getGlyphBounds(index).getX(), getVerticalPosition(index.x, metric));
+    return { getGlyphBounds(index).getX(), getVerticalPosition(index.x, metric) };
 }
 
 Array<Rectangle<float>> TextDocument::getSelectionRegion(Selection selection, Rectangle<float> clip) const
@@ -1421,7 +1423,7 @@ Selection TextDocument::search(Point<int> start, String const& target) const
         start.y = 0;
         start.x += 1;
     }
-    return Selection();
+    return {};
 }
 
 juce_wchar TextDocument::getCharacter(Point<int> index) const
@@ -1522,8 +1524,8 @@ class Transaction::Undoable : public UndoableAction {
 public:
     Undoable(TextDocument& document, Callback callback, Transaction forward)
         : document(document)
-        , callback(callback)
-        , forward(forward)
+        , callback(std::move(callback))
+        , forward(std::move(forward))
     {
     }
 
@@ -1569,7 +1571,7 @@ Transaction Transaction::accountingForSpecialCharacters(TextDocument const& docu
 
 UndoableAction* Transaction::on(TextDocument& document, Callback callback)
 {
-    return new Undoable(document, callback, *this);
+    return new Undoable(document, std::move(callback), *this);
 }
 
 PlugDataTextEditor::PlugDataTextEditor()
@@ -1597,7 +1599,7 @@ void PlugDataTextEditor::paintOverChildren(Graphics& g)
     g.drawHorizontalLine(getHeight() - 1, 0, getWidth());
 }
 
-void PlugDataTextEditor::setFont(Font font)
+void PlugDataTextEditor::setFont(Font const& font)
 {
     document.setFont(font);
     repaint();
@@ -1775,7 +1777,7 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         updateSelections();
         return true;
     };
-    auto expandBack = [this, mods](Target target, Direction direction) {
+    auto expandBack = [this](Target target, Direction direction) {
         document.navigateSelections(target, direction, Selection::Part::head);
         translateToEnsureCaretIsVisible();
         updateSelections();
@@ -2067,9 +2069,9 @@ struct TextEditorDialog : public Component {
 
     String title;
 
-    TextEditorDialog(String name)
+    explicit TextEditorDialog(String name)
         : resizer(this, &constrainer)
-        , title(name)
+        , title(std::move(name))
     {
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(5));
         addAndMakeVisible(closeButton.get());
@@ -2095,7 +2097,7 @@ struct TextEditorDialog : public Component {
         editor.grabKeyboardFocus();
     }
 
-    void resized()
+    void resized() override
     {
         auto b = getLocalBounds().reduced(15);
 
@@ -2104,23 +2106,23 @@ struct TextEditorDialog : public Component {
         editor.setBounds(b.withTrimmedTop(10).withTrimmedBottom(20));
     }
 
-    void mouseDown(MouseEvent const& e)
+    void mouseDown(MouseEvent const& e) override
     {
         windowDragger.startDraggingComponent(this, e);
     }
 
-    void mouseDrag(MouseEvent const& e)
+    void mouseDrag(MouseEvent const& e) override
     {
         windowDragger.dragComponent(this, e, nullptr);
     }
 
-    void paintOverChildren(Graphics& g)
+    void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(15).toFloat(), Corners::windowCornerRadius, 1.0f);
     }
 
-    void paint(Graphics& g)
+    void paint(Graphics& g) override
     {
         auto shadowPath = Path();
         shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);

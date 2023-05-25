@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <utility>
+
 #include "ObjectReferenceDialog.h"
 #include "Canvas.h"
 
@@ -53,7 +55,7 @@ public:
 
     void initialise(StringArray newCategories)
     {
-        categories = newCategories;
+        categories = std::move(newCategories);
         updateContent();
         repaint();
 
@@ -67,7 +69,7 @@ class ObjectsListBox : public ListBox
     , public ListBoxModel {
 
 public:
-    ObjectsListBox(pd::Library& library)
+    explicit ObjectsListBox(pd::Library& library)
     {
         setOutlineThickness(0);
         setRowHeight(45);
@@ -77,7 +79,7 @@ public:
         setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         setColour(ListBox::outlineColourId, Colours::transparentBlack);
 
-        for (auto object : library.getAllObjects()) {
+        for (auto const& object : library.getAllObjects()) {
             auto info = library.getObjectInfo(object);
             if (info.hasProperty("name") && info.hasProperty("description")) {
                 descriptions[info.getProperty("name").toString()] = info.getProperty("description").toString();
@@ -116,7 +118,7 @@ public:
 
     void showObjects(StringArray objectsToShow)
     {
-        objects = objectsToShow;
+        objects = std::move(objectsToShow);
         updateContent();
         repaint();
 
@@ -158,8 +160,8 @@ public:
             reference.showObject(objectName);
         };
 
-        openHelp.onClick = [this, editor]() {
-
+        openHelp.onClick = [editor]() {
+            // TODO: implement this!
         };
 
         openHelp.setVisible(false);
@@ -299,7 +301,7 @@ public:
         }
     }
 
-    void showObject(String name)
+    void showObject(String const& name)
     {
         bool valid = name.isNotEmpty();
         createObject.setVisible(valid);
@@ -397,7 +399,7 @@ class ObjectSearchComponent : public Component
     , public ScrollBar::Listener
     , public KeyListener {
 public:
-    ObjectSearchComponent(pd::Library& library)
+    explicit ObjectSearchComponent(pd::Library& library)
     {
         listBox.setModel(this);
         listBox.setRowHeight(28);
@@ -566,7 +568,7 @@ public:
         searchResult.clear();
     }
 
-    void updateResults(String query)
+    void updateResults(String const& query)
     {
         clearSearchResults();
 

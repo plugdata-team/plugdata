@@ -10,7 +10,6 @@
 #include "Dialogs/Dialogs.h"
 #include "HeavyExportDialog.h"
 
-#include "Canvas.h"
 #include "PluginEditor.h"
 #include "Utility/PropertiesPanel.h"
 #include "Utility/OSUtils.h"
@@ -20,8 +19,6 @@
 #    include <sys/types.h>
 #    include <sys/wait.h>
 #endif
-
-#include <z_libpd.h>
 
 #include "Toolchain.h"
 #include "ExportingProgressView.h"
@@ -60,7 +57,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto listboxBounds = getLocalBounds().removeFromLeft(200);
+        auto listboxBounds = getLocalBounds().removeFromLeft(150);
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRoundedRectangle(listboxBounds.toFloat(), Corners::windowCornerRadius);
@@ -69,7 +66,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto listboxBounds = getLocalBounds().removeFromLeft(200);
+        auto listboxBounds = getLocalBounds().removeFromLeft(150);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(Line<float>(listboxBounds.getTopRight().toFloat(), listboxBounds.getBottomRight().toFloat()));
@@ -94,7 +91,7 @@ public:
     void resized() override
     {
         auto b = getLocalBounds();
-        listBox.setBounds(b.removeFromLeft(200).reduced(4));
+        listBox.setBounds(b.removeFromLeft(150).reduced(4));
 
         for (auto* view : views) {
             view->setBounds(b);
@@ -106,7 +103,7 @@ public:
         return items.size();
     }
 
-    StringArray getExports()
+    StringArray getExports() const
     {
         return items;
     }

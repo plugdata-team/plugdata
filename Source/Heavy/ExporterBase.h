@@ -30,11 +30,13 @@ struct ExporterBase : public Component
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 
-    OwnedArray<PropertiesPanel::Property> properties;
+    // OwnedArray<PropertiesPanel::Property> properties;
 
     File patchFile;
     File openedPatchFile;
     File realPatchFile;
+
+    PropertiesPanel panel;
 
     ExportingProgressView* exportingView;
 
@@ -50,23 +52,28 @@ struct ExporterBase : public Component
     {
         addAndMakeVisible(exportButton);
 
+        Array<PropertiesPanel::Property*> properties;
+
         auto* patchChooser = new PropertiesPanel::ComboComponent("Patch to export", inputPatchValue, { "Currently opened patch", "Other patch (browse)" });
-        properties.add(patchChooser);
         patchChooser->comboBox.setTextWhenNothingSelected("Choose a patch to export...");
         patchChooser->comboBox.setSelectedId(-1);
+        properties.add(patchChooser);
 
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue));
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Copyright (optional)", projectCopyrightValue));
 
+        for (auto* property : properties) {
+            property->setPreferredHeight(28);
+        }
+
+        panel.addSection("General", properties);
+
+        panel.setContentWidth(400);
+
+        addAndMakeVisible(panel);
         inputPatchValue.addListener(this);
         projectNameValue.addListener(this);
         projectCopyrightValue.addListener(this);
-
-        for (auto* panel : properties) {
-
-            panel->setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
-            addAndMakeVisible(panel);
-        }
 
         if (auto* cnv = editor->getCurrentCanvas(false)) {
             openedPatchFile = File::createTempFile(".pd");
@@ -107,7 +114,7 @@ struct ExporterBase : public Component
         };
     }
 
-    ~ExporterBase()
+    ~ExporterBase() override
     {
         if (openedPatchFile.existsAsFile()) {
             openedPatchFile.deleteFile();
@@ -119,11 +126,11 @@ struct ExporterBase : public Component
         removeAllJobs(true, -1);
     }
 
-    void startExport(File outDir)
+    void startExport(File const& outDir)
     {
 
         auto patchPath = patchFile.getFullPathName();
-        auto outPath = outDir.getFullPathName();
+        auto const& outPath = outDir.getFullPathName();
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
 
@@ -200,18 +207,11 @@ struct ExporterBase : public Component
 
     void resized() override
     {
-        auto b = Rectangle<int>(0, 50, getWidth(), getHeight() - 38);
-
+        panel.setBounds(0, 0, getWidth(), getHeight() - 50);
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
-
-        for (auto* panel : properties) {
-            auto panelBounds = b.removeFromTop(23);
-            panel->setBounds(panelBounds);
-            b.removeFromTop(5);
-        }
     }
 
-    String createMetaJson(DynamicObject::Ptr metaJson)
+    static String createMetaJson(DynamicObject::Ptr metaJson)
     {
         auto metadata = File::createTempFile(".json");
         Toolchain::deleteTempFileLater(metadata);

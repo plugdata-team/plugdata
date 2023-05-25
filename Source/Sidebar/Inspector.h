@@ -4,16 +4,28 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "Utility/PropertiesPanel.h"
+#include "../Utility/PropertiesPanel.h"
 
 class Inspector : public Component {
 
-    PropertiesPanel panel;
+    PropertyPanel panel;
     String title;
+    TextButton resetButton;
+    ObjectParameters properties;
 
 public:
     Inspector()
     {
+        resetButton.setButtonText(Icons::Reset);
+        resetButton.getProperties().set("Style", "SmallIcon");
+        resetButton.setTooltip("Reset to default");
+        resetButton.setSize(23, 23);
+
+        addAndMakeVisible(resetButton);
+        resetButton.onClick = [this]() {
+            properties.resetAll();
+        };
+
         addAndMakeVisible(panel);
     }
 
@@ -34,6 +46,7 @@ public:
     void resized() override
     {
         panel.setBounds(getLocalBounds().withTrimmedTop(28));
+        resetButton.setTopLeftPosition(getLocalBounds().withTrimmedRight(23).getRight(), 0);
     }
 
     void setTitle(String const& name)
@@ -41,7 +54,7 @@ public:
         title = name;
     }
 
-    PropertyComponent* createPanel(int type, String const& name, Value* value, std::vector<String>& options)
+    static PropertyComponent* createPanel(int type, String const& name, Value* value, StringArray& options)
     {
         switch (type) {
         case tString:
@@ -67,17 +80,20 @@ public:
 
     void loadParameters(ObjectParameters& params)
     {
+        properties = params;
+
         StringArray names = { "General", "Appearance", "Label", "Extra" };
 
         panel.clear();
 
         for (int i = 0; i < 4; i++) {
             Array<PropertyComponent*> panels;
-
             int idx = 0;
-            for (auto& [name, type, category, value, options] : params) {
+            for (auto& [name, type, category, value, options, defaultVal] : params.getParameters()) {
                 if (static_cast<int>(category) == i) {
-                    panels.add(createPanel(type, name, value, options));
+                    auto newPanel = createPanel(type, name, value, options);
+                    newPanel->setPreferredHeight(26);
+                    panels.add(newPanel);
                     idx++;
                 }
             }

@@ -12,7 +12,7 @@ class AutomationSlider : public Component
     , public Value::Listener {
 
     class ExpandButton : public TextButton {
-        void paint(Graphics& g)
+        void paint(Graphics& g) override
         {
 
             auto isOpen = getToggleState();
@@ -42,12 +42,12 @@ public:
         lastName = param->getTitle();
         nameLabel.setText(lastName, dontSendNotification);
 
-        nameLabel.setFont(Font(14.0f));
-        valueLabel.setFont(Font(14.0f));
-        minLabel.setFont(Font(14.0f));
-        maxLabel.setFont(Font(14.0f));
-        minValue.setFont(Font(14.0f));
-        maxValue.setFont(Font(14.0f));
+        nameLabel.setFont(nameLabel.getFont().withHeight(14.0f));
+        valueLabel.setFont(valueLabel.getFont().withHeight(14.0f));
+        minLabel.setFont(minLabel.getFont().withHeight(14.0f));
+        maxLabel.setFont(maxLabel.getFont().withHeight(14.0f));
+        minValue.setFont(minValue.getFont().withHeight(14.0f));
+        maxValue.setFont(maxValue.getFont().withHeight(14.0f));
 
         createButton.onClick = [this]() mutable {
             if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
@@ -223,11 +223,6 @@ public:
         maxValue.setEditable(true);
     }
 
-    ~AutomationSlider()
-    {
-        // pd->locked.removeListener(this);
-    }
-
     void valueChanged(Value& v) override
     {
         createButton.setEnabled(!getValue<bool>(v));
@@ -358,7 +353,7 @@ class AutomationComponent : public Component {
         {
             if (getLocalBounds().reduced(5, 2).contains(x, y)) {
                 return true;
-            };
+            }
             return false;
         }
 
@@ -483,7 +478,7 @@ public:
         addParameterButton.setBounds(0, y, getWidth(), 28);
     }
 
-    int getNumEnabled()
+    int getNumEnabled() const
     {
         int numEnabled = 0;
 
@@ -494,7 +489,7 @@ public:
         return numEnabled;
     }
 
-    int getTotalHeight()
+    int getTotalHeight() const
     {
         int y = 28;
         for (int p = 0; p < PluginProcessor::numParameters; p++) {

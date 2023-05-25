@@ -26,11 +26,12 @@ public:
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
 
-    DraggableNumber(bool integerDrag)
+    explicit DraggableNumber(bool integerDrag)
         : onlyIntegers(integerDrag)
     {
         setWantsKeyboardFocus(true);
         addListener(this);
+        setFont(Fonts::getTabularNumbersFont().withHeight(14.0f));
     }
 
     void labelTextChanged(Label* labelThatHasChanged) override {};
@@ -54,7 +55,7 @@ public:
 
     void setEditableOnClick(bool editable)
     {
-        setEditable(true, true);
+        setEditable(editable, editable);
         setInterceptsMouseClicks(true, true);
     }
 
@@ -114,7 +115,7 @@ public:
         }
     }
 
-    float getValue()
+    float getValue() const
     {
         return lastValue;
     }
@@ -236,9 +237,8 @@ public:
         setValue(newValue);
     }
 
-    float limitValue(float valueToLimit)
+    float limitValue(float valueToLimit) const
     {
-
         if (min == 0.0f && max == 0.0f)
             return valueToLimit;
 
@@ -270,7 +270,7 @@ public:
         }
     }
 
-    String formatNumber(float value, int precision = -1)
+    static String formatNumber(float value, int precision = -1)
     {
         auto text = String(value, precision);
 

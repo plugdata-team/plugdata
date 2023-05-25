@@ -28,6 +28,11 @@ public:
             if (_this)
                 _this->checkGraphState();
         });
+
+        objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
+        objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
+        objectParameters.addParamRange("X range", cGeneral, &xRange);
+        objectParameters.addParamRange("Y range", cGeneral, &yRange);
     }
 
     void update() override
@@ -237,14 +242,6 @@ public:
     {
         return canvas.get();
     }
-
-    ObjectParameters getParameters() override
-    {
-        return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
-            { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } },
-            { "X range", tRange, cGeneral, &xRange, {} },
-            { "Y range", tRange, cGeneral, &yRange, {} } };
-    };
 
     void checkGraphState()
     {

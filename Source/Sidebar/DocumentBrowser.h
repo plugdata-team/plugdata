@@ -8,6 +8,8 @@
 // 1. Sort by folders first
 // 2. Improve simplicity and efficiency by not using OS file icons (they look bad anyway)
 
+#include <utility>
+
 #include "Utility/OSUtils.h"
 #include "Object.h"
 
@@ -18,8 +20,8 @@ public:
         const String description;
 
         DocumentBrowserSettingsButton(String iconString, String descriptionString)
-            : icon(iconString)
-            , description(descriptionString)
+            : icon(std::move(iconString))
+            , description(std::move(descriptionString))
         {
         }
 
@@ -40,7 +42,7 @@ public:
         }
     };
 
-    DocumentBrowserSettings(std::function<void()> chooseCustomLocation, std::function<void()> resetDefaultLocation)
+    DocumentBrowserSettings(std::function<void()> const& chooseCustomLocation, std::function<void()> const& resetDefaultLocation)
     {
         addAndMakeVisible(customLocationButton);
         addAndMakeVisible(restoreLocationButton);
@@ -78,14 +80,14 @@ class DocumentBrowserViewBase : public TreeView
     , public DirectoryContentsDisplayComponent {
 
 public:
-    DocumentBrowserViewBase(DirectoryContentsList& listToShow)
+    explicit DocumentBrowserViewBase(DirectoryContentsList& listToShow)
         : DirectoryContentsDisplayComponent(listToShow) {};
 };
 
 class DocumentBrowserBase : public Component {
 
 public:
-    DocumentBrowserBase(PluginProcessor* processor)
+    explicit DocumentBrowserBase(PluginProcessor* processor)
         : pd(processor)
         , filter("*", "*", "All files")
         , updateThread("browserThread")
@@ -105,8 +107,8 @@ class DocumentBrowserItem : public TreeViewItem
     , private AsyncUpdater
     , private ChangeListener {
 public:
-    DocumentBrowserItem(DocumentBrowserViewBase& treeComp, DirectoryContentsList* parentContents, int indexInContents, int indexInParent, File const& f)
-        : file(f)
+    DocumentBrowserItem(DocumentBrowserViewBase& treeComp, DirectoryContentsList* parentContents, int indexInContents, int indexInParent, File f)
+        : file(std::move(f))
         , owner(treeComp)
         , parentContentsList(parentContents)
         , indexInContentsList(indexInContents)
@@ -546,7 +548,7 @@ class FileSearchComponent : public Component
     , public ScrollBar::Listener
     , public KeyListener {
 public:
-    FileSearchComponent(DirectoryContentsList& directory)
+    explicit FileSearchComponent(DirectoryContentsList& directory)
         : searchPath(directory)
     {
         listBox.setModel(this);
@@ -737,7 +739,7 @@ public:
             return searchResult[row];
         }
 
-        return File();
+        return {};
     }
 
     void resized() override
@@ -768,7 +770,7 @@ private:
 class DocumentBrowser : public DocumentBrowserBase {
 
 public:
-    DocumentBrowser(PluginProcessor* processor)
+    explicit DocumentBrowser(PluginProcessor* processor)
         : DocumentBrowserBase(processor)
         , fileList(directory, this)
         , searchComponent(directory)
@@ -801,7 +803,7 @@ public:
             fileList.moveSelectedRow(1);
     }
 
-    ~DocumentBrowser()
+    ~DocumentBrowser() override
     {
         updateThread.stopThread(1000);
     }
@@ -843,7 +845,7 @@ public:
                 [this](FileChooser const& fileChooser) {
                     const auto file = fileChooser.getResult();
                     if (file.exists()) {
-                        auto path = file.getFullPathName();
+                        const auto& path = file.getFullPathName();
                         pd->settingsFile->setProperty("browser_path", path);
                         directory.setDirectory(path, true, true);
                     }
@@ -852,7 +854,7 @@ public:
 
         auto resetFolderCallback = [this]() {
             auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
-            auto path = location.getFullPathName();
+            const auto& path = location.getFullPathName();
             pd->settingsFile->setProperty("browser_path", path);
             directory.setDirectory(path, true, true);
         };

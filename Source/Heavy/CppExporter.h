@@ -34,7 +34,7 @@ public:
         args.add(paths);
 
         if (shouldQuit)
-            return 1;
+            return true;
 
         start(args.joinIntoString(" "));
 
@@ -42,7 +42,7 @@ public:
         exportingView->flushConsole();
 
         if (shouldQuit)
-            return 1;
+            return true;
 
         auto outputFile = File(outdir);
         outputFile.getChildFile("ir").deleteRecursively();

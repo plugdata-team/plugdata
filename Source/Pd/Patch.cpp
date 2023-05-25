@@ -17,6 +17,8 @@ extern "C" {
 #include <g_canvas.h>
 #include <m_imp.h>
 
+#include <utility>
+
 #include "g_undo.h"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_multi.h"
@@ -51,7 +53,7 @@ namespace pd {
 Patch::Patch(void* patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
     : ptr(patchPtr)
     , instance(parentInstance)
-    , currentFile(patchFile)
+    , currentFile(std::move(patchFile))
     , closePatchOnDelete(ownsPatch)
 {
     jassert(parentInstance);
@@ -209,7 +211,7 @@ Connections Patch::getConnections() const
 
     // TODO: fix data race
     while ((oc = linetraverser_next(&t))) {
-        connections.push_back({ oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob });
+        connections.emplace_back(oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
     }
 
     instance->unlockAudioThread();
@@ -243,50 +245,34 @@ void* Patch::createGraphOnParent(int x, int y)
     if (!ptr)
         return nullptr;
 
-    t_pd* pdobject = nullptr;
-    std::atomic<bool> done = false;
-
-    instance->enqueueFunction(
-        [this, x, y, &pdobject, &done]() mutable {
-            setCurrent();
-            pdobject = libpd_creategraphonparent(getPointer(), x, y);
-            done = true;
-        });
-
-    while (!done) {
-        instance->waitForStateUpdate();
-    }
+    instance->lockAudioThread();
+    setCurrent();
+    t_pd* pdobject = libpd_creategraphonparent(getPointer(), x, y);
+    instance->unlockAudioThread();
 
     assert(pdobject);
 
     return pdobject;
 }
 
-void* Patch::createGraph(String const& name, int size, int x, int y)
+void* Patch::createGraph(int x, int y, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range)
 {
     if (!ptr)
         return nullptr;
 
-    t_pd* pdobject = nullptr;
-    std::atomic<bool> done = false;
+    instance->lockAudioThread();
 
-    instance->enqueueFunction(
-        [this, name, size, x, y, &pdobject, &done]() mutable {
-            setCurrent();
-            pdobject = libpd_creategraph(getPointer(), name.toRawUTF8(), size, x, y);
-            done = true;
-        });
+    setCurrent();
+    t_pd* pdobject = libpd_creategraph(getPointer(), name.toRawUTF8(), size, x, y, drawMode, saveContents, range.first, range.second);
 
-    while (!done) {
-        instance->waitForStateUpdate();
-    }
+    instance->unlockAudioThread();
 
     assert(pdobject);
 
     return pdobject;
 }
 
-void* Patch::createObject(String const& name, int x, int y)
+void* Patch::createObject(int x, int y, String const& name)
 {
     if (!ptr)
         return nullptr;
@@ -325,8 +311,8 @@ void* Patch::createObject(String const& name, int x, int y)
         tokens.addTokens(preset, false);
     }
 
-    if (tokens[0] == "graph" && tokens.size() == 3) {
-        return createGraph(tokens[1], tokens[2].getIntValue(), x, y);
+    if (tokens[0] == "garray" && tokens.size() == 7) {
+        return createGraph(x, y, tokens[1], tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue(), { tokens[5].getFloatValue(), tokens[6].getFloatValue() });
     } else if (tokens[0] == "graph") {
         return createGraphOnParent(x, y);
     }
@@ -366,7 +352,6 @@ void* Patch::createObject(String const& name, int x, int y)
     SETFLOAT(argv.data() + 1, static_cast<float>(y));
 
     for (int i = 0; i < tokens.size(); i++) {
-        auto& tok = tokens[i];
         if (tokens[i].containsOnly("0123456789e.-+") && tokens[i] != "-") {
             SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
         } else {
@@ -374,20 +359,12 @@ void* Patch::createObject(String const& name, int x, int y)
         }
     }
 
-    t_pd* pdobject = nullptr;
-    std::atomic<bool> done = false;
+    instance->lockAudioThread();
 
-    instance->enqueueFunction(
-        [this, argc, argv, typesymbol, &pdobject, &done]() mutable {
-            setCurrent();
+    setCurrent();
+    t_pd* pdobject = libpd_createobj(getPointer(), typesymbol, argc, argv.data());
 
-            pdobject = libpd_createobj(getPointer(), typesymbol, argc, argv.data());
-            done = true;
-        });
-
-    while (!done) {
-        instance->waitForStateUpdate();
-    }
+    instance->unlockAudioThread();
 
     assert(pdobject);
     return pdobject;
@@ -431,27 +408,13 @@ void* Patch::renameObject(void* obj, String const& name)
     }
     String newName = tokens.joinIntoString(" ");
 
-    std::atomic<bool> done = false;
-    t_pd* pdobject = nullptr;
-    instance->enqueueFunction([this, &pdobject, &done, obj, newName]() mutable {
-        if (objectWasDeleted(obj)) {
+    instance->lockAudioThread();
 
-            pdobject = libpd_newest(getPointer());
-            done = true;
-            return;
-        }
+    setCurrent();
+    libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
+    t_pd* pdobject = libpd_newest(getPointer());
 
-        setCurrent();
-        libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
-
-        // make sure that creating a graph doesn't leave it as the current patch
-        setCurrent();
-        pdobject = libpd_newest(getPointer());
-        done = true;
-    });
-
-    while (!done)
-        instance->waitForStateUpdate();
+    instance->unlockAudioThread();
 
     return pdobject;
 }
@@ -461,16 +424,17 @@ void Patch::copy()
     if (!ptr)
         return;
 
-    instance->enqueueFunction(
-        [this]() {
-            int size;
-            const char* text = libpd_copy(getPointer(), &size);
-            auto copied = String::fromUTF8(text, size);
-            MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
-        });
+    instance->lockAudioThread();
+
+    int size;
+    char const* text = libpd_copy(getPointer(), &size);
+    auto copied = String::fromUTF8(text, size);
+    MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
+
+    instance->unlockAudioThread();
 }
 
-String Patch::translatePatchAsString(String patchAsString, Point<int> position)
+String Patch::translatePatchAsString(String const& patchAsString, Point<int> position)
 {
     int minX = std::numeric_limits<int>::max();
     int minY = std::numeric_limits<int>::max();
@@ -554,7 +518,9 @@ void Patch::paste(Point<int> position)
 
     auto translatedObjects = translatePatchAsString(text, position);
 
-    instance->enqueueFunction([this, translatedObjects]() mutable { libpd_paste(getPointer(), translatedObjects.toRawUTF8()); });
+    instance->lockAudioThread();
+    libpd_paste(getPointer(), translatedObjects.toRawUTF8());
+    instance->unlockAudioThread();
 }
 
 void Patch::duplicate()
@@ -562,11 +528,10 @@ void Patch::duplicate()
     if (!ptr)
         return;
 
-    instance->enqueueFunction(
-        [this]() {
-            setCurrent();
-            libpd_duplicate(getPointer());
-        });
+    instance->lockAudioThread();
+    setCurrent();
+    libpd_duplicate(getPointer());
+    instance->unlockAudioThread();
 }
 
 void Patch::selectObject(void* obj)
@@ -574,13 +539,14 @@ void Patch::selectObject(void* obj)
     if (!ptr)
         return;
 
-    instance->enqueueFunction(
-        [this, obj]() {
-            auto* checked = &checkObject(obj)->te_g;
-            if (!objectWasDeleted(obj) && !glist_isselected(getPointer(), checked)) {
-                glist_select(getPointer(), checked);
-            }
-        });
+    instance->lockAudioThread();
+
+    auto* checked = &checkObject(obj)->te_g;
+    if (!glist_isselected(getPointer(), checked)) {
+        glist_select(getPointer(), checked);
+    }
+
+    instance->unlockAudioThread();
 }
 
 void Patch::deselectAll()
@@ -588,11 +554,12 @@ void Patch::deselectAll()
     if (!ptr)
         return;
 
-    instance->enqueueFunction(
-        [this]() {
-            glist_noselect(getPointer());
-            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-        });
+    instance->lockAudioThread();
+
+    glist_noselect(getPointer());
+    libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+
+    instance->unlockAudioThread();
 }
 
 void Patch::removeObject(void* obj)
@@ -600,14 +567,12 @@ void Patch::removeObject(void* obj)
     if (!obj || !ptr)
         return;
 
-    instance->enqueueFunction(
-        [this, obj]() {
-            if (objectWasDeleted(obj))
-                return;
+    instance->lockAudioThread();
 
-            setCurrent();
-            libpd_removeobj(getPointer(), &checkObject(obj)->te_g);
-        });
+    setCurrent();
+    libpd_removeobj(getPointer(), &checkObject(obj)->te_g);
+
+    instance->unlockAudioThread();
 }
 
 bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
@@ -615,18 +580,9 @@ bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
     if (!ptr)
         return false;
 
-    bool hasConnection = false;
-    std::atomic<bool> hasReturned = false;
-
-    instance->enqueueFunction(
-        [this, &hasConnection, &hasReturned, src, nout, sink, nin]() mutable {
-            hasConnection = libpd_hasconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-            hasReturned = true;
-        });
-
-    while (!hasReturned) {
-        instance->waitForStateUpdate();
-    }
+    instance->lockAudioThread();
+    auto hasConnection = libpd_hasconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+    instance->unlockAudioThread();
 
     return hasConnection;
 }
@@ -636,15 +592,10 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
     if (!ptr)
         return false;
 
-    bool canConnect = false;
+    instance->lockAudioThread();
+    bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
 
-    instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable {
-        if (objectWasDeleted(src) || objectWasDeleted(sink))
-            return;
-        canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-    });
-
-    instance->waitForStateUpdate();
+    instance->unlockAudioThread();
 
     return canConnect;
 }
@@ -654,17 +605,13 @@ void Patch::createConnection(void* src, int nout, void* sink, int nin)
     if (!ptr)
         return;
 
-    instance->enqueueFunction(
-        [this, src, nout, sink, nin]() mutable {
-            if (objectWasDeleted(src) || objectWasDeleted(sink))
-                return;
-
-            bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-
-            setCurrent();
-
-            libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-        });
+    instance->lockAudioThread();
+    bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+    if (canConnect) {
+        setCurrent();
+        libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+    }
+    instance->unlockAudioThread();
 }
 
 void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
@@ -673,30 +620,17 @@ void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
         return nullptr;
 
     void* outconnect = nullptr;
-    std::atomic<bool> hasReturned = false;
 
-    instance->enqueueFunction(
-        [this, &outconnect, &hasReturned, src, nout, sink, nin]() mutable {
-            if (objectWasDeleted(src) || objectWasDeleted(sink))
-                return;
+    instance->lockAudioThread();
 
-            bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+    bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
 
-            if (!canConnect) {
-                hasReturned = true;
-                return;
-            }
-
-            setCurrent();
-
-            outconnect = libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-
-            hasReturned = true;
-        });
-
-    while (!hasReturned) {
-        instance->waitForStateUpdate();
+    if (canConnect) {
+        setCurrent();
+        outconnect = libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     }
+
+    instance->unlockAudioThread();
 
     return outconnect;
 }
@@ -706,14 +640,12 @@ void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol*
     if (!src || !sink || !ptr)
         return;
 
-    instance->enqueueFunction(
-        [this, src, nout, sink, nin, connectionPath]() mutable {
-            if (objectWasDeleted(src) || objectWasDeleted(sink))
-                return;
+    instance->lockAudioThread();
 
-            setCurrent();
-            libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
-        });
+    setCurrent();
+    libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
+
+    instance->unlockAudioThread();
 }
 
 void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
@@ -721,24 +653,12 @@ void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol
     if (!ptr)
         return nullptr;
 
-    void* outconnect = nullptr;
-    std::atomic<bool> hasReturned = false;
+    instance->lockAudioThread();
 
-    instance->enqueueFunction(
-        [this, &hasReturned, &outconnect, src, nout, sink, nin, oldConnectionPath, newConnectionPath]() mutable {
-            if (objectWasDeleted(src) || objectWasDeleted(sink))
-                return;
+    setCurrent();
+    void* outconnect = libpd_setconnectionpath(getPointer(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
 
-            setCurrent();
-
-            outconnect = libpd_setconnectionpath(getPointer(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
-
-            hasReturned = true;
-        });
-
-    while (!hasReturned) {
-        instance->waitForStateUpdate();
-    }
+    instance->unlockAudioThread();
 
     return outconnect;
 }
@@ -748,26 +668,24 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
     if (!ptr)
         return;
 
-    instance->enqueueFunction(
-        [this, objects, dx, dy]() mutable {
-            setCurrent();
+    instance->lockAudioThread();
 
-            glist_noselect(getPointer());
+    setCurrent();
 
-            for (auto* obj : objects) {
-                if (!obj || objectWasDeleted(obj))
-                    continue;
+    glist_noselect(getPointer());
 
-                glist_select(getPointer(), &checkObject(obj)->te_g);
-            }
+    for (auto* obj : objects) {
+        glist_select(getPointer(), &checkObject(obj)->te_g);
+    }
 
-            libpd_moveselection(getPointer(), dx, dy);
+    libpd_moveselection(getPointer(), dx, dy);
 
-            glist_noselect(getPointer());
+    glist_noselect(getPointer());
 
-            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-            setCurrent();
-        });
+    libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+    setCurrent();
+
+    instance->unlockAudioThread();
 }
 
 void Patch::finishRemove()
@@ -775,11 +693,12 @@ void Patch::finishRemove()
     if (!ptr)
         return;
 
-    instance->enqueueFunction(
-        [this]() mutable {
-            setCurrent();
-            libpd_finishremove(getPointer());
-        });
+    instance->lockAudioThread();
+
+    setCurrent();
+    libpd_finishremove(getPointer());
+
+    instance->unlockAudioThread();
 }
 
 void Patch::removeSelection()
@@ -787,32 +706,34 @@ void Patch::removeSelection()
     if (!ptr)
         return;
 
-    instance->enqueueFunction(
-        [this]() mutable {
-            setCurrent();
+    instance->lockAudioThread();
 
-            libpd_removeselection(getPointer());
-        });
+    setCurrent();
+    libpd_removeselection(getPointer());
+
+    instance->unlockAudioThread();
 }
 
-void Patch::startUndoSequence(String name)
+void Patch::startUndoSequence(String const& name)
 {
     if (!ptr)
         return;
 
-    instance->enqueueFunction([this, name]() {
-        canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, instance->generateSymbol(name)->s_name, 0);
-    });
+    instance->lockAudioThread();
+
+    canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, instance->generateSymbol(name)->s_name, nullptr);
+
+    instance->unlockAudioThread();
 }
 
-void Patch::endUndoSequence(String name)
+void Patch::endUndoSequence(String const& name)
 {
     if (!ptr)
         return;
 
-    instance->enqueueFunction([this, name]() {
-        canvas_undo_add(getPointer(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, 0);
-    });
+    instance->lockAudioThread();
+    canvas_undo_add(getPointer(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, nullptr);
+    instance->unlockAudioThread();
 }
 
 void Patch::undo()
@@ -820,16 +741,15 @@ void Patch::undo()
     if (!ptr)
         return;
 
-    instance->enqueueFunction(
-        [this]() {
-            setCurrent();
-            glist_noselect(getPointer());
-            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+    instance->lockAudioThread();
 
-            libpd_undo(getPointer());
+    setCurrent();
+    glist_noselect(getPointer());
+    libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
-            setCurrent();
-        });
+    libpd_undo(getPointer());
+
+    instance->unlockAudioThread();
 }
 
 void Patch::redo()
@@ -837,16 +757,15 @@ void Patch::redo()
     if (!ptr)
         return;
 
-    instance->enqueueFunction(
-        [this]() {
-            setCurrent();
-            glist_noselect(getPointer());
-            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+    instance->lockAudioThread();
 
-            libpd_redo(getPointer());
+    setCurrent();
+    glist_noselect(getPointer());
+    libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
-            setCurrent();
-        });
+    libpd_redo(getPointer());
+
+    instance->unlockAudioThread();
 }
 
 t_object* Patch::checkObject(void* obj)
@@ -859,7 +778,12 @@ String Patch::getTitle() const
     if (!ptr)
         return "";
 
+    instance->lockAudioThread();
+
     String name = String::fromUTF8(getPointer()->gl_name->s_name);
+
+    instance->unlockAudioThread();
+
     return name.isEmpty() ? "Untitled Patcher" : name;
 }
 
@@ -876,7 +800,11 @@ void Patch::setTitle(String const& title)
     SETSYMBOL(args, instance->generateSymbol(title));
     SETSYMBOL(args + 1, pathSym);
 
+    instance->lockAudioThread();
+
     pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("rename"), 2, args);
+
+    instance->unlockAudioThread();
 
     MessageManager::callAsync([instance = this->instance]() {
         instance->titleChanged();
@@ -900,13 +828,15 @@ File Patch::getPatchFile() const
 
 void Patch::setCurrentFile(File newFile)
 {
-    currentFile = newFile;
+    currentFile = std::move(newFile);
 }
 
 String Patch::getCanvasContent()
 {
     if (!ptr)
         return {};
+
+    instance->lockAudioThread();
 
     char* buf;
     int bufsize;
@@ -916,17 +846,19 @@ String Patch::getCanvasContent()
 
     freebytes(static_cast<void*>(buf), static_cast<size_t>(bufsize) * sizeof(char));
 
+    instance->unlockAudioThread();
+
     return content;
 }
 
-void Patch::reloadPatch(File changedPatch, t_glist* except)
+void Patch::reloadPatch(File const& changedPatch, t_glist* except)
 {
     auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().replace("\\", "/").toRawUTF8());
     auto* file = gensym(changedPatch.getFileName().toRawUTF8());
     canvas_reload(file, dir, except);
 }
 
-bool Patch::objectWasDeleted(void* ptr)
+bool Patch::objectWasDeleted(void* ptr) const
 {
     if (!ptr)
         return true;
@@ -940,7 +872,7 @@ bool Patch::objectWasDeleted(void* ptr)
 
     return true;
 }
-bool Patch::connectionWasDeleted(void* ptr)
+bool Patch::connectionWasDeleted(void* ptr) const
 {
     if (!ptr)
         return true;

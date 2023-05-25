@@ -6,6 +6,7 @@
 
 #pragma once
 #include "Constants.h"
+#include "Objects/ObjectParameters.h"
 
 struct Console;
 struct Inspector;
@@ -48,7 +49,7 @@ public:
     void showSidebar(bool show);
 
     void pinSidebar(bool pin);
-    bool isPinned();
+    bool isPinned() const;
 
     void clearConsole();
     void updateConsole();
@@ -68,7 +69,7 @@ private:
     TextButton automationButton = TextButton(Icons::Parameters);
     TextButton searchButton = TextButton(Icons::Search);
 
-    TextButton panelSettingsButton = TextButton(Icons::Settings);
+    TextButton panelSettingsButton = TextButton(Icons::More);
     TextButton panelPinButton = TextButton(Icons::Pin);
 
     Console* console;

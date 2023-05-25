@@ -19,7 +19,7 @@ public:
         setVelocityModeParameters(1.0f, 1, 0.0f, false);
     }
 
-    ~ReversibleSlider() { }
+    ~ReversibleSlider() override { }
 
     void setRangeFlipped(bool invert)
     {
@@ -130,6 +130,12 @@ public:
                 constrainer->setMinimumSize(minLongSide, minShortSide);
             }
         };
+
+        objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
+        objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
+        objectParameters.addParamBool("Logarithmic", cGeneral, &isLogarithmic, { "Off", "On" }, 0);
+        objectParameters.addParamBool("Steady", cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" }, 1);
+        iemHelper.addIemParameters(objectParameters);
     }
 
     void update() override
@@ -209,6 +215,7 @@ public:
             hash("log"),
             hash("range"),
             hash("steady"),
+            hash("orientation"),
             IEMGUI_MESSAGES
         };
     }
@@ -249,6 +256,15 @@ public:
             }
             break;
         }
+        case hash("orientation"): {
+            if (atoms.size() >= 1) {
+                isVertical = static_cast<bool>(atoms[0].getFloat());
+                slider.setOrientation(isVertical);
+                updateAspectRatio();
+                object->updateBounds();
+            }
+            break;
+        }
         default: {
             iemHelper.receiveObjectMessage(symbol, atoms);
             break;
@@ -286,21 +302,6 @@ public:
     void resized() override
     {
         slider.setBounds(getLocalBounds());
-    }
-
-    ObjectParameters getParameters() override
-    {
-        ObjectParameters allParameters = {
-            { "Minimum", tFloat, cGeneral, &min, {} },
-            { "Maximum", tFloat, cGeneral, &max, {} },
-            { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "Off", "On" } },
-            { "Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" } }
-        };
-
-        auto iemParameters = iemHelper.getParameters();
-        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
-
-        return allParameters;
     }
 
     float getValue()
@@ -356,6 +357,16 @@ public:
         return static_cast<t_slider*>(ptr)->x_steady;
     }
 
+    void updateAspectRatio()
+    {
+        float width = object->getWidth();
+        float height = object->getHeight();
+        if (isVertical)
+            object->setSize(width, height);
+        else
+            object->setSize(height, width);
+    }
+
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
@@ -382,18 +393,13 @@ public:
 
     void setLogScale(bool log)
     {
-        pd->enqueueFunction([_this = SafePointer(this), log]() {
-            if (!_this)
-                return;
+        pd->lockAudioThread();
 
-            auto* sym = _this->pd->generateSymbol(log ? "log" : "lin");
-            pd_typedmess(static_cast<t_pd*>(_this->ptr), sym, 0, nullptr);
+        auto* sym = pd->generateSymbol(log ? "log" : "lin");
+        pd_typedmess(static_cast<t_pd*>(ptr), sym, 0, nullptr);
+        update();
 
-            MessageManager::callAsync([_this]() {
-                if (_this)
-                    _this->update();
-            });
-        });
+        pd->unlockAudioThread();
     }
 
     void setValue(float v)

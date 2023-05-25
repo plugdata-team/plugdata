@@ -65,7 +65,7 @@ public:
         return { min, max };
     }
 
-    bool getEditMode()
+    bool getEditMode() const
     {
         return libpd_array_get_editmode(ptr);
     }
@@ -177,7 +177,6 @@ public:
 
     void paintGraph(Graphics& g)
     {
-
         auto const h = static_cast<float>(getHeight());
         auto const w = static_cast<float>(getWidth());
         std::vector<float> points = vec;
@@ -321,20 +320,15 @@ public:
         // Don't want to touch vec on the other thread, so we copy the vector into the lambda
         auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
 
-        pd->enqueueFunction(
-            [_this = SafePointer(this), interpStart, changed]() mutable {
-                try {
-                    for (int n = 0; n < changed.size(); n++) {
-                        _this->array.write(interpStart + n, changed[n]);
-                    }
-                } catch (...) {
-                    _this->error = true;
-                }
-            });
+        pd->lockAudioThread();
+        for (int n = 0; n < changed.size(); n++) {
+            array.write(interpStart + n, changed[n]);
+        }
+        pd->unlockAudioThread();
 
         lastIndex = index;
 
-        pd->enqueueDirectMessages(array.ptr, stringArray);
+        pd->sendDirectMessage(array.ptr, stringArray);
         repaint();
     }
 
@@ -481,6 +475,12 @@ public:
         graph.setBounds(getLocalBounds());
         addAndMakeVisible(&graph);
 
+        objectParameters.addParamString("Name", cGeneral, &name);
+        objectParameters.addParamInt("Size", cGeneral, &size);
+        objectParameters.addParamCombo("Draw mode", cGeneral, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2);
+        objectParameters.addParamRange("Y range", cGeneral, &range, { -1.0f, 1.0f });
+        objectParameters.addParamBool("Save contents", cGeneral, &saveContents, { "No", "Yes" }, 0);
+
         startTimer(20);
     }
 
@@ -540,17 +540,6 @@ public:
         return bounds;
     }
 
-    ObjectParameters getParameters() override
-    {
-        return {
-            { "Name", tString, cGeneral, &name, {} },
-            { "Size", tInt, cGeneral, &size, {} },
-            { "Draw Mode", tCombo, cGeneral, &drawMode, { "Points", "Polygon", "Bezier Curve" } },
-            { "Y Range", tRange, cGeneral, &range, {} },
-            { "Save Contents", tBool, cGeneral, &saveContents, { "No", "Yes" } },
-        };
-    }
-
     void setPdBounds(Rectangle<int> b) override
     {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
@@ -568,8 +557,7 @@ public:
     void update() override
     {
         auto scale = array.getScale();
-        Array<var> arr = { var(scale[0]), var(scale[1]) };
-        range = var(arr);
+        range = var(Array<var> { var(scale[0]), var(scale[1]) });
         size = var(static_cast<int>(graph.array.size()));
         saveContents = array.willSaveContent();
         name = String(array.getUnexpandedName());
@@ -599,23 +587,16 @@ public:
 
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
 
-        cnv->pd->enqueueFunction(
-            [this, _this = SafePointer(this), arrName, arrSize, flags]() mutable {
-                if (!_this)
-                    return;
+        pd->lockAudioThread();
 
-                auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
-                garray_arraydialog(garray, _this->pd->generateSymbol(arrName), arrSize, static_cast<float>(flags), 0.0f);
+        auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
+        garray_arraydialog(garray, pd->generateSymbol(arrName), arrSize, static_cast<float>(flags), 0.0f);
 
-                MessageManager::callAsync(
-                    [this, _this]() {
-                        if (!_this)
-                            return;
-                        array = getArray();
-                        graph.setArray(array);
-                        updateLabel();
-                    });
-            });
+        pd->unlockAudioThread();
+
+        array = getArray();
+        graph.setArray(array);
+        updateLabel();
 
         graph.repaint();
     }

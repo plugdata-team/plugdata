@@ -49,7 +49,7 @@ extern "C" {
 #    define snprintf _snprintf
 #endif
 
-struct t_namelist               /* element in a linked list of stored strings */
+struct t_namelist /* element in a linked list of stored strings */
 {
     struct t_namelist* nl_next; /* next in list */
     char* nl_string;            /* the string */
@@ -170,7 +170,7 @@ protected:
 bool PlugDataWindow::hasOpenedDialog()
 {
     auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
-    return editor->openedDialog.get() != nullptr;
+    return editor->openedDialog != nullptr;
 }
 
 void PlugDataWindow::closeAllPatches()

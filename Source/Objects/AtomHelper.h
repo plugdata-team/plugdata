@@ -39,6 +39,8 @@ public:
     Value sendSymbol;
     Value receiveSymbol;
 
+    ObjectParameters objectParameters;
+
     AtomHelper(void* ptr, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
@@ -46,6 +48,11 @@ public:
         , pd(parent->cnv->pd)
         , atom(static_cast<t_fake_gatom*>(ptr))
     {
+        objectParameters.addParamCombo("Font size", cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" });
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
+        objectParameters.addParamSendSymbol(&sendSymbol);
+        objectParameters.addParamString("Label", cLabel, &labelText, "");
+        objectParameters.addParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" });
     }
 
     void update()
@@ -165,15 +172,10 @@ public:
         }
     }
 
-    ObjectParameters getParameters()
+    void addAtomParameters(ObjectParameters& objectParams)
     {
-        return {
-            { "Font size", tCombo, cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } },
-            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} },
-            { "Send symbol", tString, cGeneral, &sendSymbol, {} },
-            { "Label", tString, cLabel, &labelText, {} },
-            { "Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } }
-        };
+        for (auto const& param : objectParameters.getParameters())
+            objectParams.addParam(param);
     }
 
     void valueChanged(Value& v)
@@ -256,12 +258,9 @@ public:
 
     void setFontHeight(float newSize)
     {
-        pd->enqueueFunctionAsync([obj = atom, patch = &cnv->patch, newSize]() {
-            if (patch->objectWasDeleted(obj))
-                return;
-
-            obj->a_fontsize = newSize;
-        });
+        pd->lockAudioThread();
+        atom->a_fontsize = newSize;
+        pd->unlockAudioThread();
     }
 
     Rectangle<int> getLabelBounds() const
@@ -290,7 +289,7 @@ public:
     {
         t_symbol const* sym = canvas_realizedollar(atom->a_glist, atom->a_label);
         if (sym) {
-            auto const text = String::fromUTF8(sym->s_name);
+            auto text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
@@ -312,7 +311,7 @@ public:
         return "";
     }
 
-    void setLabelText(String newText)
+    void setLabelText(String const& newText)
     {
         atom->a_label = pd->generateSymbol(newText);
     }

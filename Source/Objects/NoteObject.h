@@ -58,12 +58,12 @@ public:
             std::vector<t_atom> atoms;
 
             auto words = StringArray::fromTokens(noteEditor.getText(), " ", "\"");
-            for (int j = 0; j < words.size(); j++) {
+            for (const auto& word : words) {
                 atoms.emplace_back();
-                if (words[j].containsOnly("0123456789e.-+") && words[j] != "-") {
-                    SETFLOAT(&atoms.back(), words[j].getFloatValue());
+                if (word.containsOnly("0123456789e.-+") && word != "-") {
+                    SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
-                    SETSYMBOL(&atoms.back(), pd->generateSymbol(words[j]));
+                    SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
                 }
             }
 
@@ -75,6 +75,18 @@ public:
 
             object->updateBounds();
         };
+
+        objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
+        objectParameters.addParamColourBG(&secondaryColour);
+        objectParameters.addParamFont("Font", cAppearance, &font, "Inter");
+        objectParameters.addParamInt("Font size", cAppearance, &fontSize, 14);
+        objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Italic", cAppearance, &italic, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Underline", cAppearance, &underline, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Fill background", cAppearance, &fillBackground, { "No", "Yes" }, 0);
+        objectParameters.addParamCombo("Justification", cAppearance, &justification, { "Left", "Centered", "Right" }, 1);
+        objectParameters.addParamReceiveSymbol(&receiveSymbol);
     }
 
     void update() override
@@ -326,30 +338,13 @@ public:
             return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
         }
 
-        return Font(typefaceName, fontHeight, style);
+        return { typefaceName, static_cast<float>(fontHeight), style };
     }
 
     void updateFont()
     {
         noteEditor.applyFontToAllText(getFont());
         object->updateBounds();
-    }
-
-    ObjectParameters getParameters() override
-    {
-        return {
-            { "Text color", tColour, cAppearance, &primaryColour, {} },
-            { "Background color", tColour, cAppearance, &secondaryColour, {} },
-            { "Font", tFont, cAppearance, &font, {} },
-            { "Font size", tInt, cAppearance, &fontSize, {} },
-            { "Outline", tBool, cAppearance, &outline, { "No", "Yes" } },
-            { "Bold", tBool, cAppearance, &bold, { "No", "Yes" } },
-            { "Italic", tBool, cAppearance, &italic, { "No", "Yes" } },
-            { "Underline", tBool, cAppearance, &underline, { "No", "Yes" } },
-            { "Fill background", tBool, cAppearance, &fillBackground, { "No", "Yes" } },
-            { "Justification", tCombo, cAppearance, &justification, { "Left", "Centered", "Right" } },
-            { "Receive symbol", tString, cGeneral, &receiveSymbol, { "Left", "Centered", "Right" } },
-        };
     }
 
     std::vector<hash32> getAllMessages() override
@@ -368,7 +363,8 @@ public:
             hash("justification"),
             hash("width"),
             hash("outline"),
-            hash("receive")
+            hash("receive"),
+            hash("bg")
         };
     }
 
@@ -431,6 +427,11 @@ public:
         case hash("receive"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case hash("bg"): {
+            if (atoms.size() > 0 && atoms[0].isFloat())
+                fillBackground = atoms[0].getFloat();
             break;
         }
         default:

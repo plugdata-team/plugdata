@@ -19,6 +19,9 @@ public:
         onConstrainerCreate = [this]() {
             constrainer->setFixedAspectRatio(1);
         };
+
+        objectParameters.addParamColourFG(&primaryColour);
+        objectParameters.addParamColourBG(&secondaryColour);
     }
 
     void update() override
@@ -117,14 +120,6 @@ public:
             g.setColour(Colour::fromString(primaryColour.toString()));
             g.fillRoundedRectangle(bounds.reduced(6), Corners::objectCornerRadius);
         }
-    }
-
-    ObjectParameters getParameters() override
-    {
-        return {
-            { "Foreground", tColour, cAppearance, &primaryColour, {} },
-            { "Background", tColour, cAppearance, &secondaryColour, {} },
-        };
     }
 
     void valueChanged(Value& value) override

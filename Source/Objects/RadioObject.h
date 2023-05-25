@@ -21,6 +21,8 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
+        objectParameters.addParamInt("Options", cGeneral, &max, 8);
+        iemHelper.addIemParameters(objectParameters);
     }
 
     void update() override
@@ -198,16 +200,6 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-    }
-
-    ObjectParameters getParameters() override
-    {
-        ObjectParameters allParameters = { { "Options", tInt, cGeneral, &max, {} } };
-
-        auto iemParameters = iemHelper.getParameters();
-        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
-
-        return allParameters;
     }
 
     void updateAspectRatio()

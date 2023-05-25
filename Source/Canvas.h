@@ -13,6 +13,7 @@
 #include "Pd/MessageListener.h"
 #include "Pd/Patch.h"
 #include "Constants.h"
+#include "Objects/ObjectParameters.h"
 
 namespace pd {
 class Patch;
@@ -71,12 +72,12 @@ public:
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
 
-    void propertyChanged(String name, var value) override;
+    void propertyChanged(String const& name, var const& value) override;
 
     void moved() override;
     void resized() override;
 
-    int getOverlays();
+    int getOverlays() const;
     void updateOverlays();
 
     void synchroniseSplitCanvas();
@@ -127,7 +128,6 @@ public:
     bool checkPanDragMode();
     bool setPanDragMode(bool shouldPan);
 
-    void removeSelectedComponent(Component* component);
     void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area) override;
 
     void updateSidebarSelection();
@@ -146,7 +146,7 @@ public:
     {
         Array<T*> result;
 
-        for (auto obj : selectedComponents) {
+        for (auto const& obj : selectedComponents) {
             if (auto* objOfType = dynamic_cast<T*>(obj.get())) {
                 result.add(objOfType);
             }
@@ -226,14 +226,7 @@ private:
     RateReducer canvasRateReducer = RateReducer(90);
 
     // Properties that can be shown in the inspector by right-clicking on canvas
-    ObjectParameters parameters = {
-        { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
-        { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } },
-        { "X range", tRange, cGeneral, &xRange, {} },
-        { "Y range", tRange, cGeneral, &yRange, {} },
-        { "Width", tInt, cGeneral, &patchWidth, {} },
-        { "Height", tInt, cGeneral, &patchHeight, {} }
-    };
+    ObjectParameters parameters;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

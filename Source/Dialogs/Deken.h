@@ -8,7 +8,6 @@
 
 struct Spinner : public Component
     , public Timer {
-    bool isSpinning = false;
 
     void startSpinning()
     {
@@ -224,7 +223,7 @@ public:
     PackageList getAvailablePackages()
     {
 
-        // plugdata's deken servers, hosted on github
+        // plugdata's deken servers, hosted on GitHub
         // This will pre-parse the deken repo information to a faster and smaller format
         // This saves a lot of work that plugdata would have to do on startup!
 
@@ -451,9 +450,8 @@ public:
         addAndMakeVisible(updateSpinner);
 
         refreshButton.setTooltip("Refresh packages");
-        refreshButton.getProperties().set("Style", "SmallIcon");
+        refreshButton.getProperties().set("Style", "LargeIcon");
         addAndMakeVisible(refreshButton);
-        refreshButton.setConnectedEdges(12);
         refreshButton.onClick = [this]() {
             packageManager->startThread();
             packageManager->sendActionMessage("");
@@ -524,6 +522,17 @@ public:
 
     void paint(Graphics& g) override
     {
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
+
+        auto bounds = getLocalBounds().removeFromTop(40).toFloat();
+
+        Path p;
+        p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillPath(p);
+
         if (errorMessage.isNotEmpty()) {
             Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
         }
@@ -531,14 +540,17 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, findColour(PlugDataColour::panelTextColourId), 12);
+        Fonts::drawStyledText(g, "Find Externals", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
+
+        Fonts::drawIcon(g, Icons::Search, 0, 40, 30, findColour(PlugDataColour::panelTextColourId), 12);
 
         if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search for objects or libraries", 30, 0, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
+            Fonts::drawFittedText(g, "Type to search for objects or libraries", 30, 40, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
         }
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(0, 28, getWidth(), 28);
+        g.drawLine(0, 40, getWidth(), 40);
+        g.drawLine(0, 70, getWidth(), 70);
     }
 
     int getNumRows() override
@@ -654,12 +666,9 @@ public:
 
     void resized() override
     {
-        auto tableBounds = getLocalBounds().withTrimmedBottom(30).withTrimmedTop(1);
+        auto bounds = getLocalBounds().withTrimmedTop(40);
+        auto tableBounds = bounds.withTrimmedTop(1);
         auto inputBounds = tableBounds.removeFromTop(28);
-
-        int const statusbarHeight = 32;
-        int const statusbarY = getHeight() - statusbarHeight;
-        auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
 
         input.setBounds(inputBounds);
 
@@ -669,7 +678,7 @@ public:
         tableBounds.removeFromLeft(Sidebar::dragbarWidth);
         listBox.setBounds(tableBounds);
 
-        refreshButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
+        refreshButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40));
     }
 
     // Show error message in statusbar
@@ -779,7 +788,7 @@ private:
                 _this->repaint();
             };
 
-            task->onFinish = [_this = SafePointer(this), task](Result result) {
+            task->onFinish = [_this = SafePointer(this)](Result result) {
                 if (!_this)
                     return;
 

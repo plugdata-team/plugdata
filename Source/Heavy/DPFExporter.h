@@ -20,26 +20,37 @@ public:
     DPFExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
+        Array<PropertiesPanel::Property*> properties;
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
+        properties.add(new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" }));
+        properties.add(new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, { "No", "yes" }));
 
-        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" })));
+        Array<PropertiesPanel::Property*> pluginFormats;
 
-        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" })));
+        pluginFormats.add(new PropertiesPanel::BoolComponent("LV2", lv2EnableValue, { "No", "Yes" }));
+        lv2EnableValue.addListener(this);
+        pluginFormats.add(new PropertiesPanel::BoolComponent("VST2", vst2EnableValue, { "No", "Yes" }));
+        vst2EnableValue.addListener(this);
+        pluginFormats.add(new PropertiesPanel::BoolComponent("VST3", vst3EnableValue, { "No", "Yes" }));
+        vst3EnableValue.addListener(this);
+        pluginFormats.add(new PropertiesPanel::BoolComponent("CLAP", clapEnableValue, { "No", "Yes" }));
+        clapEnableValue.addListener(this);
+        pluginFormats.add(new PropertiesPanel::BoolComponent("JACK", jackEnableValue, { "No", "Yes" }));
+
+        for (auto* property : properties) {
+            property->setPreferredHeight(28);
+        }
+        for (auto* property : pluginFormats) {
+            property->setPreferredHeight(28);
+        }
 
         midiinEnableValue.addListener(this);
-        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, { "No", "yes" })));
         midioutEnableValue.addListener(this);
 
-        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("LV2", lv2EnableValue, { "No", "Yes" })));
-        lv2EnableValue.addListener(this);
-        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("VST2", vst2EnableValue, { "No", "Yes" })));
-        vst2EnableValue.addListener(this);
-        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("VST3", vst3EnableValue, { "No", "Yes" })));
-        vst3EnableValue.addListener(this);
-        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("CLAP", clapEnableValue, { "No", "Yes" })));
-        clapEnableValue.addListener(this);
-        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("JACK", jackEnableValue, { "No", "Yes" })));
-
         jackEnableValue.addListener(this);
+
+        panel.addSection("DPF", properties);
+        panel.addSection("Plugin formats", pluginFormats);
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
@@ -108,7 +119,7 @@ public:
         args.add(paths);
 
         if (shouldQuit)
-            return 1;
+            return true;
 
         start(args.joinIntoString(" "));
 
@@ -116,7 +127,7 @@ public:
         exportingView->flushConsole();
 
         if (shouldQuit)
-            return 1;
+            return true;
 
         auto outputFile = File(outdir);
         outputFile.getChildFile("ir").deleteRecursively();

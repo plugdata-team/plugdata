@@ -49,7 +49,7 @@ public:
     }
 
     // The const floatructor.
-    inline Atom(float const val)
+    inline Atom(float val)
         : type(FLOAT)
         , value(val)
         , symbol()
@@ -161,41 +161,41 @@ public:
     virtual ~Instance();
 
     void initialisePd(String& pdlua_version);
-    void prepareDSP(int const nins, int const nouts, double const samplerate, int const blockSize);
+    void prepareDSP(int nins, int nouts, double samplerate, int blockSize);
     void startDSP();
     void releaseDSP();
     void performDSP(float const* inputs, float* outputs);
     int getBlockSize() const;
 
-    void sendNoteOn(int const channel, int const pitch, int const velocity) const;
-    void sendControlChange(int const channel, int const controller, int const value) const;
-    void sendProgramChange(int const channel, int const value) const;
-    void sendPitchBend(int const channel, int const value) const;
-    void sendAfterTouch(int const channel, int const value) const;
-    void sendPolyAfterTouch(int const channel, int const pitch, int const value) const;
-    void sendSysEx(int const port, int const byte) const;
-    void sendSysRealTime(int const port, int const byte) const;
-    void sendMidiByte(int const port, int const byte) const;
+    void sendNoteOn(int channel, int const pitch, int velocity) const;
+    void sendControlChange(int channel, int const controller, int value) const;
+    void sendProgramChange(int channel, int value) const;
+    void sendPitchBend(int channel, int value) const;
+    void sendAfterTouch(int channel, int value) const;
+    void sendPolyAfterTouch(int channel, int const pitch, int value) const;
+    void sendSysEx(int port, int byte) const;
+    void sendSysRealTime(int port, int byte) const;
+    void sendMidiByte(int port, int byte) const;
 
-    virtual void receiveNoteOn(int const channel, int const pitch, int const velocity)
+    virtual void receiveNoteOn(int channel, int pitch, int velocity)
     {
     }
-    virtual void receiveControlChange(int const channel, int const controller, int const value)
+    virtual void receiveControlChange(int channel, int controller, int value)
     {
     }
-    virtual void receiveProgramChange(int const channel, int const value)
+    virtual void receiveProgramChange(int channel, int value)
     {
     }
-    virtual void receivePitchBend(int const channel, int const value)
+    virtual void receivePitchBend(int channel, int value)
     {
     }
-    virtual void receiveAftertouch(int const channel, int const value)
+    virtual void receiveAftertouch(int channel, int value)
     {
     }
-    virtual void receivePolyAftertouch(int const channel, int const pitch, int const value)
+    virtual void receivePolyAftertouch(int channel, int pitch, int value)
     {
     }
-    virtual void receiveMidiByte(int const port, int const byte)
+    virtual void receiveMidiByte(int port, int byte)
     {
     }
 
@@ -204,11 +204,11 @@ public:
     virtual void createPanel(int type, char const* snd, char const* location);
 
     void sendBang(char const* receiver) const;
-    void sendFloat(char const* receiver, float const value) const;
+    void sendFloat(char const* receiver, float value) const;
     void sendSymbol(char const* receiver, char const* symbol) const;
     void sendList(char const* receiver, std::vector<pd::Atom> const& list) const;
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
-    void sendMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
+    void sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
 
     virtual void receivePrint(String const& message) {};
 
@@ -239,20 +239,17 @@ public:
 
     virtual void titleChanged() {};
 
-    void enqueueFunction(std::function<void(void)> const& fn);
     void enqueueFunctionAsync(std::function<void(void)> const& fn);
 
-    void enqueueMessages(String const& dest, String const& msg, std::vector<pd::Atom>&& list);
-
-    void enqueueDirectMessages(void* object, String const& msg, std::vector<Atom>&& list);
-    void enqueueDirectMessages(void* object, std::vector<pd::Atom> const&& list);
-    void enqueueDirectMessages(void* object, String const& msg);
-    void enqueueDirectMessages(void* object, float const msg);
+    void sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list);
+    void sendDirectMessage(void* object, std::vector<pd::Atom>&& list);
+    void sendDirectMessage(void* object, String const& msg);
+    void sendDirectMessage(void* object, float msg);
 
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(pd::Patch* p);
 
-    virtual void performParameterChange(int type, String name, float value) {};
+    virtual void performParameterChange(int type, String const& name, float value) {};
 
     // JYG added this
     virtual void fillDataBuffer(std::vector<pd::Atom> const& list) {};
@@ -286,13 +283,11 @@ public:
     t_symbol* generateSymbol(String const& symbol) const;
     t_symbol* generateSymbol(char const* symbol) const;
 
-    void waitForStateUpdate();
-
     void lockAudioThread();
     bool tryLockAudioThread();
     void unlockAudioThread();
 
-    bool loadLibrary(String library);
+    bool loadLibrary(String const& library);
 
     void* m_instance = nullptr;
     void* m_patch = nullptr;

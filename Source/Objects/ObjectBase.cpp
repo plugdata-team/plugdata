@@ -108,7 +108,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
             _this->constrainer = _this->createConstrainer();
             _this->onConstrainerCreate();
 
-            for (auto& [name, type, cat, value, list] : _this->getParameters()) {
+            for (auto& [name, type, cat, value, list, valueDefault] : _this->objectParameters.getParameters()) {
                 value->addListener(_this.getComponent());
             }
         }
@@ -163,7 +163,7 @@ String ObjectBase::getType() const
             int ac = binbuf_getnatom(ob->te_binbuf);
             t_atom* av = binbuf_getvec(ob->te_binbuf);
             if (ac < 1)
-                return String();
+                return {};
             atom_string(av, namebuf, MAXPDSTRING);
 
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
@@ -172,11 +172,11 @@ String ObjectBase::getType() const
         switch (hash(libpd_get_object_class_name(ptr))) {
         case hash("text"):
             if (static_cast<t_text*>(ptr)->te_type == T_OBJECT)
-                return String("invalid");
+                return "invalid";
             if (static_cast<t_text*>(ptr)->te_type == T_TEXT)
-                return String("comment");
+                return "comment";
             if (static_cast<t_text*>(ptr)->te_type == T_MESSAGE)
-                return String("message");
+                return "message";
             break;
         // Deal with atoms
         case hash("gatom"):
@@ -231,7 +231,7 @@ bool ObjectBase::click()
     pd->setThis();
 
     if (libpd_has_click_function(static_cast<t_object*>(ptr))) {
-        pd->enqueueDirectMessages(ptr, "click", {});
+        pd->sendDirectMessage(ptr, "click", {});
         return true;
     }
 
@@ -301,7 +301,7 @@ void ObjectBase::paint(Graphics& g)
 
 ObjectParameters ObjectBase::getParameters()
 {
-    return {};
+    return objectParameters;
 }
 
 void ObjectBase::startEdition()
@@ -310,7 +310,7 @@ void ObjectBase::startEdition()
         return;
 
     edited = true;
-    pd->enqueueMessages("gui", "mouse", { 1.f });
+    pd->sendMessage("gui", "mouse", { 1.f });
 }
 
 void ObjectBase::stopEdition()
@@ -319,20 +319,19 @@ void ObjectBase::stopEdition()
         return;
 
     edited = false;
-    pd->enqueueMessages("gui", "mouse", { 0.f });
+    pd->sendMessage("gui", "mouse", { 0.f });
 }
 
 void ObjectBase::sendFloatValue(float newValue)
 {
-    pd->enqueueFunction([newValue, patch = &cnv->patch, ptr = this->ptr]() {
-        if (patch->objectWasDeleted(ptr))
-            return;
+    pd->lockAudioThread();
 
-        t_atom atom;
-        SETFLOAT(&atom, newValue);
-        pd_typedmess(static_cast<t_pd*>(ptr), patch->instance->generateSymbol("set"), 1, &atom);
-        pd_bang(static_cast<t_pd*>(ptr));
-    });
+    t_atom atom;
+    SETFLOAT(&atom, newValue);
+    pd_typedmess(static_cast<t_pd*>(ptr), cnv->patch.instance->generateSymbol("set"), 1, &atom);
+    pd_bang(static_cast<t_pd*>(ptr));
+
+    pd->unlockAudioThread();
 }
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
@@ -465,8 +464,8 @@ bool ObjectBase::canOpenFromMenu()
 
 void ObjectBase::openFromMenu()
 {
-    pd->enqueueDirectMessages(ptr, "menu-open", {});
-};
+    pd->sendDirectMessage(ptr, "menu-open", {});
+}
 
 bool ObjectBase::hideInGraph()
 {
@@ -481,12 +480,12 @@ void ObjectBase::lock(bool isLocked)
 Canvas* ObjectBase::getCanvas()
 {
     return nullptr;
-};
+}
 
 pd::Patch::Ptr ObjectBase::getPatch()
 {
     return nullptr;
-};
+}
 
 bool ObjectBase::canReceiveMouseEvent(int x, int y)
 {
@@ -510,6 +509,8 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
         });
         return;
     }
+    default:
+        break;
     }
 
     auto messages = getAllMessages();
@@ -524,7 +525,7 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
     }
 }
 
-void ObjectBase::setParameterExcludingListener(Value& parameter, var value)
+void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
 {
     parameter.removeListener(this);
     parameter.setValue(value);

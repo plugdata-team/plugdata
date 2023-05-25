@@ -73,7 +73,7 @@ public:
 
      In all instances, the settingsToUse will take precedence over the "preferred" options if not null.
      */
-    StandalonePluginHolder(PropertySet* settingsToUse, bool takeOwnershipOfSettings = true, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr, Array<PluginInOuts> const& channels = Array<PluginInOuts>())
+    explicit StandalonePluginHolder(PropertySet* settingsToUse, bool takeOwnershipOfSettings = true, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr, Array<PluginInOuts> const& channels = Array<PluginInOuts>())
 
         : settings(settingsToUse, takeOwnershipOfSettings)
         , channelConfiguration(channels)
@@ -452,7 +452,6 @@ public:
         parseSystemArguments(systemArguments);
 
         mainComponent = new MainContentComponent(*this);
-        auto* editor = mainComponent->getEditor();
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
         bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
@@ -495,7 +494,7 @@ public:
         setBoundsConstrained(getWindowScreenBounds());
     }
 
-    void propertyChanged(String name, var value) override
+    void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
 
@@ -603,7 +602,7 @@ public:
 
     void maximiseButtonPressed() override
     {
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
                 bool shouldBeMaximised = !OSUtils::isX11WindowMaximised(peer->getNativeHandle());
@@ -619,7 +618,7 @@ public:
         resized();
     }
 
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
     void paint(Graphics& g) override
     {
         if (drawWindowShadow && !isUsingNativeTitleBar() && !isFullScreen()) {
@@ -649,7 +648,7 @@ public:
 
         Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
 
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
         if (!isFullScreen() && !isUsingNativeTitleBar() && drawWindowShadow) {
             auto margin = mainComponent ? mainComponent->getMargin() : 18;
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
@@ -661,7 +660,7 @@ public:
         if (auto* content = getContentComponent()) {
             content->resized();
             content->repaint();
-            MessageManager::callAsync([this, content] {
+            MessageManager::callAsync([content] {
                 if (content->isShowing())
                     content->grabKeyboardFocus();
             });
@@ -710,7 +709,7 @@ private:
 
         void paintOverChildren(Graphics& g) override
         {
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
             if (!owner.isUsingNativeTitleBar() && !owner.hasOpenedDialog()) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
 
@@ -723,8 +722,12 @@ private:
 #elif JUCE_WINDOWS
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
+            if (owner.isUsingNativeTitleBar()) {
+                g.drawRect(getLocalBounds(), 1.0f);
+            } else {
+                g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+            }
 
-            g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
 #endif
         }
 
@@ -744,7 +747,7 @@ private:
                 return 0;
             }
 
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_BSD
             if (drawWindowShadow) {
                 if (auto* maximiseButton = owner.getMaximiseButton()) {
                     bool maximised = maximiseButton->getToggleState();

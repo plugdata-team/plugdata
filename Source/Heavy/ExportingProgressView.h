@@ -132,7 +132,7 @@ public:
         });
     }
 
-    void logToConsole(String text)
+    void logToConsole(String const& text)
     {
 
         if (text.isNotEmpty()) {
@@ -148,7 +148,7 @@ public:
     }
 
     // Don't call from message thread!
-    void waitForUserInput(String message)
+    void waitForUserInput(String const& message)
     {
         MessageManager::callAsync([this, message]() mutable {
             userInteractionMessage = message;

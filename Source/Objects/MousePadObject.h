@@ -15,7 +15,7 @@ public:
         : ObjectBase(ptr, object)
         , mouseListener(this)
     {
-        mouseListener.globalMouseDown = [this, object](MouseEvent const& e) {
+        mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             auto relativeEvent = e.getEventRelativeTo(this);
 
             if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !cnv->isShowing() || isPressed)
@@ -65,17 +65,18 @@ public:
             lastPosition = relativeEvent.getPosition();
 
             pd->setThis();
+            pd->lockAudioThread();
 
-            pd->enqueueFunction([x, xPos, yPos]() {
-                x->x_x = xPos;
-                x->x_y = yPos;
+            x->x_x = xPos;
+            x->x_y = yPos;
 
-                t_atom at[3];
-                SETFLOAT(at, xPos);
-                SETFLOAT(at + 1, yPos);
+            t_atom at[3];
+            SETFLOAT(at, xPos);
+            SETFLOAT(at + 1, yPos);
 
-                outlet_anything(x->x_obj.ob_outlet, gensym("list"), 2, at);
-            });
+            outlet_anything(x->x_obj.ob_outlet, gensym("list"), 2, at);
+
+            pd->unlockAudioThread();
         };
 
         mouseListener.globalMouseDrag = [this](MouseEvent const& e) {
@@ -85,9 +86,7 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    ~MousePadObject()
-    {
-    }
+    ~MousePadObject() = default;
 
     void paint(Graphics& g) override
     {

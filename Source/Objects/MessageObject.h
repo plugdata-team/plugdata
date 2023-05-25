@@ -167,7 +167,6 @@ public:
     void hideEditor() override
     {
         if (editor != nullptr) {
-            WeakReference<Component> deletionChecker(this);
             std::unique_ptr<TextEditor> outgoingEditor;
             std::swap(outgoingEditor, editor);
 
@@ -183,11 +182,11 @@ public:
 
             object->updateBounds(); // Recalculate bounds
 
-            pd->enqueueFunction([_this = SafePointer(this)]() {
-                if (!_this)
-                    return;
-                _this->setPdBounds(_this->object->getObjectBounds());
-            });
+            cnv->pd->lockAudioThread();
+
+            setPdBounds(object->getObjectBounds());
+
+            cnv->pd->unlockAudioThread();
 
             setSymbol(objectText);
 
@@ -209,7 +208,7 @@ public:
 
     void click()
     {
-        cnv->pd->enqueueDirectMessages(ptr, 0);
+        cnv->pd->sendDirectMessage(ptr, 0);
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -263,17 +262,15 @@ public:
 
     void setSymbol(String const& value)
     {
-        cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), ptr = this->ptr, value]() mutable {
-                if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
-                    return;
+        cnv->pd->lockAudioThread();
 
-                auto* cstr = value.toRawUTF8();
-                auto* messobj = static_cast<t_text*>(ptr);
-                auto* canvas = _this->cnv->patch.getPointer();
+        auto* cstr = value.toRawUTF8();
+        auto* messobj = static_cast<t_text*>(ptr);
+        auto* canvas = cnv->patch.getPointer();
 
-                libpd_renameobj(canvas, &messobj->te_g, cstr, value.getNumBytesAsUTF8());
-            });
+        libpd_renameobj(canvas, &messobj->te_g, cstr, value.getNumBytesAsUTF8());
+
+        cnv->pd->unlockAudioThread();
     }
 
     bool keyPressed(KeyPress const& key, Component* component) override

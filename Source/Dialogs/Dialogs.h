@@ -11,6 +11,8 @@
 class PluginEditor;
 class Canvas;
 
+using ArrayDialogCallback = std::function<void(int, String, int, int, bool, std::pair<float, float>)>;
+
 class Dialog : public Component {
 
 public:
@@ -50,12 +52,12 @@ public:
         resized();
     }
 
-    Component* getViewedComponent()
+    Component* getViewedComponent() const
     {
         return viewedComponent.get();
     }
 
-    bool wantsRoundedCorners();
+    bool wantsRoundedCorners() const;
 
     void paint(Graphics& g) override
     {
@@ -127,10 +129,10 @@ public:
 };
 
 struct Dialogs {
-    static Component* showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback);
+    static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback);
 
-    static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String filename, std::function<void(int)> callback, int margin = 0);
-    static void showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback);
+    static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0);
+    static void showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, ArrayDialogCallback callback);
 
     static void showSettingsDialog(PluginEditor* editor);
 
@@ -138,16 +140,18 @@ struct Dialogs {
 
     static void askToLocatePatch(PluginEditor* editor, String const& backupState, std::function<void(File)> callback);
 
-    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback);
+    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback);
 
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 
     static void showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent);
-    static void showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String objectName);
+    static void showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& objectName);
 
     static void showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position);
 
     static void showObjectMenu(PluginEditor* parent, Component* target);
+
+    static void showDeken(PluginEditor* editor);
 
     static PopupMenu createObjectMenu(PluginEditor* parent);
 };

@@ -37,7 +37,6 @@ public:
         editor.setJustification(Justification::topLeft);
         editor.setBorder(border);
         editor.setBounds(getLocalBounds().withTrimmedRight(5));
-        editor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
         editor.addListener(this);
         editor.addKeyListener(this);
         editor.selectAll();
@@ -53,13 +52,17 @@ public:
 
         bool isLocked = getValue<bool>(object->cnv->locked);
         editor.setReadOnly(!isLocked);
+
+        objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
+        objectParameters.addParamColourBG(&secondaryColour);
+        objectParameters.addParamInt("Font size", cAppearance, &fontSize, 12);
+        objectParameters.addParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0);
     }
 
     void update() override
     {
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
 
-        bold = messbox->x_font_weight == pd->generateSymbol("bold");
         fontSize = messbox->x_font_size;
 
         primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
@@ -118,7 +121,11 @@ public:
         return {
             hash("set"),
             hash("append"),
+            hash("fgcolor"),
+            hash("bgcolor"),
             hash("bang"),
+            hash("fontsize"),
+            hash("bold")
         };
     }
 
@@ -136,6 +143,17 @@ public:
         }
         case hash("bang"): {
             setSymbols(editor.getText());
+            break;
+        }
+        case hash("bold"): {
+            if (atoms.size() > 0 && atoms[0].isFloat())
+                bold = atoms[0].getFloat();
+            break;
+        }
+        case hash("fontsize"):
+        case hash("fgcolor"):
+        case hash("bgcolor"): {
+            update();
             break;
         }
         default:
@@ -180,12 +198,12 @@ public:
 
         std::vector<t_atom> atoms;
         auto words = StringArray::fromTokens(symbols.trim(), true);
-        for (int j = 0; j < words.size(); j++) {
+        for (auto const& word : words) {
             atoms.emplace_back();
-            if (words[j].containsOnly("0123456789e.-+e") && words[j] != "-") {
-                SETFLOAT(&atoms.back(), words[j].getFloatValue());
+            if (word.containsOnly("0123456789e.-+e") && word != "-") {
+                SETFLOAT(&atoms.back(), word.getFloatValue());
             } else {
-                SETSYMBOL(&atoms.back(), pd->generateSymbol(words[j]));
+                SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
             }
         }
 
@@ -197,7 +215,7 @@ public:
         }
     }
 
-    void getSymbols(std::vector<pd::Atom> atoms)
+    void getSymbols(std::vector<pd::Atom> const& atoms)
     {
         char buf[40];
         size_t length;
@@ -271,16 +289,6 @@ public:
             return true;
         }
         return false;
-    }
-
-    ObjectParameters getParameters() override
-    {
-        return {
-            { "Text color", tColour, cAppearance, &primaryColour, {} },
-            { "Background color", tColour, cAppearance, &secondaryColour, {} },
-            { "Font size", tInt, cAppearance, &fontSize, {} },
-            { "Bold", tBool, cAppearance, &bold, { "No", "Yes" } }
-        };
     }
 
     void valueChanged(Value& value) override

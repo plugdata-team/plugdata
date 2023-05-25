@@ -268,8 +268,8 @@ void Sidebar::updateAutomationParameters()
         MessageManager::callAsync([this]() {
             automationPanel->updateParameters();
         });
-    };
-};
+    }
+}
 
 void Sidebar::showSidebar(bool show)
 {
@@ -289,12 +289,12 @@ void Sidebar::pinSidebar(bool pin)
 {
     pinned = pin;
 
-    if (!pinned && lastParameters.empty()) {
+    if (!pinned && lastParameters.getParameters().isEmpty()) {
         hideParameters();
     }
 }
 
-bool Sidebar::isPinned()
+bool Sidebar::isPinned() const
 {
     return pinned;
 }

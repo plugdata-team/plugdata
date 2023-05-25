@@ -76,12 +76,12 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return atomHelper.getParameters();
+        return atomHelper.objectParameters;
     }
 
     void setSymbol(String const& value)
     {
-        cnv->pd->enqueueDirectMessages(ptr, value.toStdString());
+        cnv->pd->sendDirectMessage(ptr, value.toStdString());
     }
 
     String getSymbol()

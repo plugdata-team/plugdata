@@ -36,7 +36,7 @@ public:
         }
 
         textEditor.reset(
-            Dialogs::showTextEditorDialog(getText(), "qlist", [this](String lastText, bool hasChanged) {
+            Dialogs::showTextEditorDialog(getText(), "qlist", [this](String const& lastText, bool hasChanged) {
                 if (!hasChanged) {
                     textEditor.reset(nullptr);
                     return;
@@ -65,17 +65,17 @@ public:
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
 
-        for (int i = 0; i < lines.size(); i++) {
-            if (lines[i].isEmpty())
+        for (auto const& line : lines) {
+            if (line.isEmpty())
                 continue;
 
-            auto words = StringArray::fromTokens(lines[i], " ", "\"");
-            for (int j = 0; j < words.size(); j++) {
+            auto words = StringArray::fromTokens(line, " ", "\"");
+            for (auto const& word : words) {
                 atoms.emplace_back();
-                if (words[j].containsOnly("0123456789e.-+") && words[j] != "-") {
-                    SETFLOAT(&atoms.back(), words[j].getFloatValue());
+                if (word.containsOnly("0123456789e.-+") && word != "-") {
+                    SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
-                    SETSYMBOL(&atoms.back(), pd->generateSymbol(words[j]));
+                    SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
                 }
             }
 
@@ -83,18 +83,18 @@ public:
             SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
         }
 
-        pd->enqueueFunction([_this = SafePointer(this), atoms, &textbuf]() mutable {
-            if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
-                return;
-            _this->pd->setThis();
+        pd->lockAudioThread();
 
-            binbuf_clear(textbuf.b_binbuf);
+        pd->setThis();
 
-            t_binbuf* z = binbuf_new();
-            binbuf_restore(z, atoms.size(), atoms.data());
-            binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
-            binbuf_free(z);
-        });
+        binbuf_clear(textbuf.b_binbuf);
+
+        t_binbuf* z = binbuf_new();
+        binbuf_restore(z, atoms.size(), atoms.data());
+        binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
+        binbuf_free(z);
+
+        pd->unlockAudioThread();
     }
 
     std::vector<hash32> getAllMessages() override
@@ -174,7 +174,7 @@ public:
         auto name = String::fromUTF8(static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name);
 
         textEditor.reset(
-            Dialogs::showTextEditorDialog(getText(), name, [this](String lastText, bool hasChanged) {
+            Dialogs::showTextEditorDialog(getText(), name, [this](String const& lastText, bool hasChanged) {
                 if (!hasChanged) {
                     textEditor.reset(nullptr);
                     return;
@@ -207,17 +207,17 @@ public:
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
 
-        for (int i = 0; i < lines.size(); i++) {
-            if (lines[i].isEmpty())
+        for (auto const& line : lines) {
+            if (line.isEmpty())
                 continue;
 
-            auto words = StringArray::fromTokens(lines[i], " ", "\"");
-            for (int j = 0; j < words.size(); j++) {
+            auto words = StringArray::fromTokens(line, " ", "\"");
+            for (auto const& word : words) {
                 atoms.emplace_back();
-                if (words[j].containsOnly("0123456789e.-+") && words[j] != "-") {
-                    SETFLOAT(&atoms.back(), words[j].getFloatValue());
+                if (word.containsOnly("0123456789e.-+") && word != "-") {
+                    SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
-                    SETSYMBOL(&atoms.back(), pd->generateSymbol(words[j]));
+                    SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
                 }
             }
 
@@ -225,18 +225,18 @@ public:
             SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
         }
 
-        pd->enqueueFunction([_this = SafePointer(this), atoms, &textbuf]() mutable {
-            if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
-                return;
-            _this->pd->setThis();
+        pd->setThis();
 
-            binbuf_clear(textbuf.b_binbuf);
+        pd->lockAudioThread();
 
-            t_binbuf* z = binbuf_new();
-            binbuf_restore(z, atoms.size(), atoms.data());
-            binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
-            binbuf_free(z);
-        });
+        binbuf_clear(textbuf.b_binbuf);
+
+        t_binbuf* z = binbuf_new();
+        binbuf_restore(z, atoms.size(), atoms.data());
+        binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
+        binbuf_free(z);
+
+        pd->unlockAudioThread();
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
