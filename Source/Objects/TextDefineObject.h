@@ -73,8 +73,9 @@ public:
             for (auto const& word : words) {
                 atoms.emplace_back();
                 if (word.containsOnly("0123456789e.-+") &&
-                        word != "-" && word != "+" && word != "." &&
-                        !word.startsWith("e") && !word.endsWith("e")) {
+                        !word.endsWith("-") && !word.containsOnly(".-+e") &&
+                        !word.startsWith("e") && !word.endsWith("e") &&
+                        !word.startsWith("+") && !word.endsWith("+")) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
                     SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
@@ -217,8 +218,9 @@ public:
             for (auto const& word : words) {
                 atoms.emplace_back();
                 if (word.containsOnly("0123456789e.-+") &&
-                        word != "-" && word != "+" && word != "." &&
-                        !word.startsWith("e") && !word.endsWith("e")) {
+                        !word.endsWith("-") && !word.containsOnly(".-+e") &&
+                        !word.startsWith("e") && !word.endsWith("e") &&
+                        !word.startsWith("+") && !word.endsWith("+")) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
                     SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
