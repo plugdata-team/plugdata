@@ -72,7 +72,9 @@ public:
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
-                if (word.containsOnly("0123456789e.-+") && word != "-") {
+                if (word.containsOnly("0123456789e.-+") &&
+                        word != "-" && word != "+" && word != "." &&
+                        !word.startsWith("e") && !word.endsWith("e")) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
                     SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
@@ -214,7 +216,9 @@ public:
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
-                if (word.containsOnly("0123456789e.-+") && word != "-") {
+                if (word.containsOnly("0123456789e.-+") &&
+                        word != "-" && word != "+" && word != "." &&
+                        !word.startsWith("e") && !word.endsWith("e")) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
                     SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
