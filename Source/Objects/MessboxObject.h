@@ -43,10 +43,6 @@ public:
 
         addAndMakeVisible(editor);
 
-        editor.onFocusLost = [this]() {
-            hideEditor();
-        };
-
         resized();
         repaint();
 
@@ -146,7 +142,7 @@ public:
             break;
         }
         case hash("bold"): {
-            if (atoms.size() > 0 && atoms[0].isFloat())
+            if (atoms.size() >= 1 && atoms[0].isFloat())
                 bold = atoms[0].getFloat();
             break;
         }
@@ -200,7 +196,10 @@ public:
         auto words = StringArray::fromTokens(symbols.trim(), true);
         for (auto const& word : words) {
             atoms.emplace_back();
-            if (word.containsOnly("0123456789e.-+e") && word != "-") {
+            if (word.containsOnly("0123456789e.-+") &&
+                    !word.endsWith("-") && !word.containsOnly(".-+e") &&
+                    !word.startsWith("e") && !word.endsWith("e") &&
+                    !word.startsWith("+") && !word.endsWith("+")) {
                 SETFLOAT(&atoms.back(), word.getFloatValue());
             } else {
                 SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
@@ -208,10 +207,7 @@ public:
         }
 
         if (atoms.size()) {
-            auto* sym = atom_getsymbol(&atoms[0]);
-            atoms.erase(atoms.begin());
-
-            outlet_anything(static_cast<t_object*>(ptr)->ob_outlet, sym, atoms.size(), atoms.data());
+            outlet_anything(static_cast<t_object*>(ptr)->ob_outlet, pd->generateSymbol("list"), atoms.size(), atoms.data());
         }
     }
 
