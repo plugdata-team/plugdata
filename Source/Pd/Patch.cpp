@@ -352,10 +352,11 @@ void* Patch::createObject(int x, int y, String const& name)
     SETFLOAT(argv.data() + 1, static_cast<float>(y));
 
     for (int i = 0; i < tokens.size(); i++) {
-        if (tokens[i].containsOnly("0123456789e.-+") &&
-                !tokens[i].endsWith("-")   && !tokens[i].containsOnly(".-+e") &&
-                !tokens[i].startsWith("e") && !tokens[i].endsWith("e") &&
-                !tokens[i].startsWith("+") && !tokens[i].endsWith("+")) {
+        //check if string is a valid number
+        auto charptr = tokens[i].getCharPointer();
+        auto ptr = charptr;
+        auto value = CharacterFunctions::readDoubleValue(ptr);
+        if (ptr - charptr == tokens[i].getNumBytesAsUTF8()) {
             SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
         } else {
             SETSYMBOL(argv.data() + i + 2, instance->generateSymbol(tokens[i]));
