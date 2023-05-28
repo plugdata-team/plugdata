@@ -72,10 +72,11 @@ public:
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
-                if (word.containsOnly("0123456789e.-+") &&
-                        !word.endsWith("-") && !word.containsOnly(".-+e") &&
-                        !word.startsWith("e") && !word.endsWith("e") &&
-                        !word.startsWith("+") && !word.endsWith("+")) {
+                //check if string is a valid number
+                auto charptr = word.getCharPointer();
+                auto ptr = charptr;
+                auto value = CharacterFunctions::readDoubleValue(ptr);
+                if (ptr - charptr == word.getNumBytesAsUTF8()) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
                     SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
@@ -217,10 +218,11 @@ public:
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
-                if (word.containsOnly("0123456789e.-+") &&
-                        !word.endsWith("-") && !word.containsOnly(".-+e") &&
-                        !word.startsWith("e") && !word.endsWith("e") &&
-                        !word.startsWith("+") && !word.endsWith("+")) {
+                //check if string is a valid number
+                auto charptr = word.getCharPointer();
+                auto ptr = charptr;
+                auto value = CharacterFunctions::readDoubleValue(ptr);
+                if (ptr - charptr == word.getNumBytesAsUTF8()) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
                     SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
