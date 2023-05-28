@@ -9,6 +9,8 @@ extern "C" {
 #include "x_libpd_mod_utils.h" //  TODO: we only need t_object
 }
 
+#include <x_libpd_refcounter.h>
+
 namespace pd {
 
 using Connections = std::vector<std::tuple<void*, int, t_object*, int, t_object*>>;
@@ -99,7 +101,7 @@ public:
 
     t_canvas* getPointer() const
     {
-        return static_cast<t_canvas*>(ptr);
+        return ptr.get<t_canvas>();
     }
 
     // Gets the objects of the patch.
@@ -121,7 +123,7 @@ public:
 private:
     File currentFile;
 
-    void* ptr = nullptr;
+    ReferenceCountedPointer ptr;
 
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters

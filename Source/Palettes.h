@@ -339,12 +339,12 @@ public:
     
     void paint (Graphics& g) override
     {
-        
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRect(getLocalBounds().removeFromTop(30));
+        g.fillRect(getLocalBounds().toFloat().removeFromTop(30).withTrimmedTop(0.5f));
         
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawHorizontalLine(30, 0, getWidth());
+        //g.drawHorizontalLine(-1.0f, 0.0f, getWidth());
+        g.drawLine(0, 30.0f, getWidth(), 30.0f);
     }
 
     Component itemHolder;
@@ -378,8 +378,6 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
-
         if (getToggleState()) {
             g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
             g.fillRect(getLocalBounds().removeFromRight(4));
@@ -632,20 +630,21 @@ private:
     void paint(Graphics& g) override
     {
         if (view) {
-            g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
         }
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRect(getLocalBounds().removeFromLeft(26));
+        g.fillRect(getLocalBounds().toFloat().removeFromLeft(26).withTrimmedTop(0.5f));
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawVerticalLine(25, 0, getHeight());
 
         if (view) {
-            g.drawVerticalLine(getWidth() - 1, 0, getHeight());
+            g.drawLine(getWidth(), 0, getWidth(), getHeight());
         }
     }
 
@@ -723,7 +722,6 @@ private:
     void valueTreeChildOrderChanged (ValueTree&, int, int) override
     {
         savePalettes();
-        updatePalettes();
     }
         
     void valueTreeParentChanged (ValueTree&) override
@@ -753,7 +751,7 @@ private:
     std::unique_ptr<PaletteComponent> view = nullptr;
 
     Point<int> mouseDownPos;
-    PaletteSelector* draggedTab = nullptr;
+    SafePointer<PaletteSelector> draggedTab = nullptr;
 
     Viewport paletteViewport;
     Component paletteBar;
