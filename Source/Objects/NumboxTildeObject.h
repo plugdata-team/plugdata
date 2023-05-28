@@ -64,7 +64,7 @@ public:
         min = getMinimum();
         max = getMaximum();
 
-        auto* object = static_cast<t_fake_numbox*>(ptr);
+        auto* object = ptr.get<t_fake_numbox>();
         interval = object->x_rate;
         ramp = object->x_ramp_ms;
         init = object->x_set_val;
@@ -145,9 +145,9 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
-        auto* nbx = static_cast<t_fake_numbox*>(ptr);
+        auto* nbx = ptr.get<t_fake_numbox>();
         nbx->x_width = b.getWidth();
         nbx->x_height = b.getHeight();
         nbx->x_fontsize = b.getHeight() - 4;
@@ -168,14 +168,14 @@ public:
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(::getValue<float>(max));
         } else if (value.refersToSameSourceAs(interval)) {
-            auto* nbx = static_cast<t_fake_numbox*>(ptr);
+            auto* nbx = ptr.get<t_fake_numbox>();
             nbx->x_rate = ::getValue<float>(interval);
 
         } else if (value.refersToSameSourceAs(ramp)) {
-            auto* nbx = static_cast<t_fake_numbox*>(ptr);
+            auto* nbx = ptr.get<t_fake_numbox>();
             nbx->x_ramp_ms = ::getValue<float>(ramp);
         } else if (value.refersToSameSourceAs(init)) {
-            auto* nbx = static_cast<t_fake_numbox*>(ptr);
+            auto* nbx = ptr.get<t_fake_numbox>();
             nbx->x_set_val = ::getValue<float>(init);
         } else if (value.refersToSameSourceAs(primaryColour)) {
             setForegroundColour(primaryColour.toString());
@@ -187,7 +187,7 @@ public:
     void setForegroundColour(String const& colour)
     {
         // Remove alpha channel and add #
-        static_cast<t_fake_numbox*>(ptr)->x_fg = pd->generateSymbol("#" + colour.substring(2));
+        ptr.get<t_fake_numbox>()->x_fg = pd->generateSymbol("#" + colour.substring(2));
 
         auto col = Colour::fromString(colour);
         getLookAndFeel().setColour(Label::textColourId, col);
@@ -199,7 +199,7 @@ public:
 
     void setBackgroundColour(String const& colour)
     {
-        static_cast<t_fake_numbox*>(ptr)->x_bg = pd->generateSymbol("#" + colour.substring(2));
+        ptr.get<t_fake_numbox>()->x_bg = pd->generateSymbol("#" + colour.substring(2));
         repaint();
     }
 
@@ -234,7 +234,7 @@ public:
 
     float getValue()
     {
-        auto* obj = static_cast<t_fake_numbox*>(ptr);
+        auto* obj = ptr.get<t_fake_numbox>();
 
         mode = obj->x_outmode;
 
@@ -245,24 +245,24 @@ public:
 
     float getMinimum()
     {
-        return (static_cast<t_fake_numbox*>(ptr))->x_min;
+        return (ptr.get<t_fake_numbox>())->x_min;
     }
 
     float getMaximum()
     {
-        return (static_cast<t_fake_numbox*>(ptr))->x_max;
+        return (ptr.get<t_fake_numbox>())->x_max;
     }
 
     void setMinimum(float minValue)
     {
-        static_cast<t_fake_numbox*>(ptr)->x_min = minValue;
+        ptr.get<t_fake_numbox>()->x_min = minValue;
 
         input.setMinimum(minValue);
     }
 
     void setMaximum(float maxValue)
     {
-        static_cast<t_fake_numbox*>(ptr)->x_max = maxValue;
+        ptr.get<t_fake_numbox>()->x_max = maxValue;
 
         input.setMaximum(maxValue);
     }

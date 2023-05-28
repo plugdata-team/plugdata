@@ -70,7 +70,7 @@ public:
 
     void quit(bool askToSave);
 
-    Canvas* getCurrentCanvas(bool canBePalette = false);
+    Canvas* getCurrentCanvas();
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 

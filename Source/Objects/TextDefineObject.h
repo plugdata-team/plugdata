@@ -58,7 +58,7 @@ public:
 
     void setText(String text)
     {
-        auto& textbuf = static_cast<t_fake_qlist*>(ptr)->x_textbuf;
+        auto& textbuf = ptr.get<t_fake_qlist>()->x_textbuf;
 
         text = text.removeCharacters("\r");
         auto lines = StringArray::fromTokens(text, ";", "\"");
@@ -122,7 +122,7 @@ public:
 
     String getText() override
     {
-        auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
+        auto& textbuf = ptr.get<t_fake_text_define>()->x_textbuf;
         auto* binbuf = textbuf.b_binbuf;
 
         char* bufp;
@@ -174,7 +174,7 @@ public:
             return;
         }
 
-        auto name = String::fromUTF8(static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name);
+        auto name = String::fromUTF8(ptr.get<t_fake_text_define>()->x_bindsym->s_name);
 
         textEditor.reset(
             Dialogs::showTextEditorDialog(getText(), name, [this](String const& lastText, bool hasChanged) {
@@ -190,7 +190,7 @@ public:
                             textEditor.reset(nullptr);
 
                             // enable notification on second outlet //
-                            const char* target = static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name;
+                            const char* target = ptr.get<t_fake_text_define>()->x_bindsym->s_name;
                             pd->sendMessage(target, "notify", {});
                         }
                         if (result == 1) {
@@ -203,7 +203,7 @@ public:
 
     void setText(String text)
     {
-        auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
+        auto& textbuf = ptr.get<t_fake_text_define>()->x_textbuf;
 
         text = text.removeCharacters("\r");
         auto lines = StringArray::fromTokens(text, ";", "\"");
@@ -259,7 +259,7 @@ public:
 
     String getText() override
     {
-        auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
+        auto& textbuf = ptr.get<t_fake_text_define>()->x_textbuf;
         auto* binbuf = textbuf.b_binbuf;
 
         char* bufp;

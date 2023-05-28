@@ -294,7 +294,7 @@ public:
         if (e.eventTime == lastScrollTime)
             return;
 
-        if (e.mods.isCommandDown() && !(editor->pd->isInPluginMode() || cnv->isPalette)) {
+        if (e.mods.isCommandDown() && !editor->pd->isInPluginMode()) {
             mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
         }
 

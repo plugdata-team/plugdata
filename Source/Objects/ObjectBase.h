@@ -11,6 +11,7 @@
 #include "Pd/MessageListener.h"
 #include "Constants.h"
 #include "ObjectParameters.h"
+#include <x_libpd_refcounter.h>
 
 class PluginProcessor;
 class Canvas;
@@ -203,7 +204,7 @@ protected:
     }
 
 public:
-    void* ptr;
+    pd::ReferenceCountedPointer ptr;
     Object* object;
     Canvas* cnv;
     PluginProcessor* pd;

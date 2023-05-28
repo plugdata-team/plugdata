@@ -61,7 +61,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto values = std::vector<float> { static_cast<t_vu*>(ptr)->x_fp, static_cast<t_vu*>(ptr)->x_fr };
+        auto values = std::vector<float> { ptr.get<t_vu>()->x_fp, ptr.get<t_vu>()->x_fr };
 
         int height = getHeight();
         int width = getWidth();

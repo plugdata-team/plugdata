@@ -33,7 +33,7 @@ public:
             selected = std::min<int>(::getValue<int>(max) - 1, selected);
         }
 
-        isVertical = static_cast<t_radio*>(ptr)->x_orientation;
+        isVertical = ptr.get<t_radio>()->x_orientation;
         numItems = getMaximum();
         max = numItems;
 
@@ -75,7 +75,7 @@ public:
 
         pd->unlockAudioThread();
 
-        auto* radio = static_cast<t_radio*>(ptr);
+        auto* radio = ptr.get<t_radio>();
 
         auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
         auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
@@ -164,7 +164,7 @@ public:
 
     float getValue()
     {
-        return static_cast<t_radio*>(ptr)->x_on;
+        return ptr.get<t_radio>()->x_on;
     }
 
     void paint(Graphics& g) override
@@ -235,7 +235,7 @@ public:
 
     float getMaximum()
     {
-        return static_cast<t_radio*>(ptr)->x_number;
+        return ptr.get<t_radio>()->x_number;
     }
 
     void setMaximum(float maxValue)
@@ -244,7 +244,7 @@ public:
             selected = maxValue - 1;
         }
 
-        static_cast<t_radio*>(ptr)->x_number = maxValue;
+        ptr.get<t_radio>()->x_number = maxValue;
 
         resized();
     }

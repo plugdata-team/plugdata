@@ -227,8 +227,8 @@ public:
 
         pd->lockAudioThread();
 
-        int ac = binbuf_getnatom(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
-        t_atom* av = binbuf_getvec(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
+        int ac = binbuf_getnatom(ptr.get<t_fake_gatom>()->a_text.te_binbuf);
+        t_atom* av = binbuf_getvec(ptr.get<t_fake_gatom>()->a_text.te_binbuf);
 
         auto atoms = pd::Atom::fromAtoms(ac, av);
 

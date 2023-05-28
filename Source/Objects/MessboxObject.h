@@ -61,7 +61,7 @@ public:
 
     void update() override
     {
-        auto* messbox = static_cast<t_fake_messbox*>(ptr);
+        auto* messbox = ptr.get<t_fake_messbox>();
 
         fontSize = messbox->x_font_size;
 
@@ -85,9 +85,9 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        auto* messbox = static_cast<t_fake_messbox*>(ptr);
+        auto* messbox = ptr.get<t_fake_messbox>();
 
-        libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(object->cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
         messbox->x_width = b.getWidth();
         messbox->x_height = b.getHeight();
@@ -211,7 +211,7 @@ public:
             auto* sym = atom_getsymbol(&atoms[0]);
             atoms.erase(atoms.begin());
 
-            outlet_anything(static_cast<t_object*>(ptr)->ob_outlet, sym, atoms.size(), atoms.data());
+            outlet_anything(ptr.get<t_object>()->ob_outlet, sym, atoms.size(), atoms.data());
         }
     }
 
@@ -293,7 +293,7 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* messbox = static_cast<t_fake_messbox*>(ptr);
+        auto* messbox = ptr.get<t_fake_messbox>();
         if (value.refersToSameSourceAs(primaryColour)) {
 
             auto col = Colour::fromString(primaryColour.toString());

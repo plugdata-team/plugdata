@@ -337,7 +337,7 @@ public:
             return;
 
         void* patch;
-        sscanf(static_cast<t_fake_active*>(ptr)->x_cname->s_name, ".x%lx.c", (unsigned long*)&patch);
+        sscanf(ptr.get<t_fake_active>()->x_cname->s_name, ".x%lx.c", (unsigned long*)&patch);
 
         cnv = getMainCanvas(patch);
         if (!cnv)
@@ -368,7 +368,7 @@ public:
 
         Canvas* focusedCanvas = nullptr;
 
-        auto* active = static_cast<t_fake_active*>(ptr);
+        auto* active = ptr.get<t_fake_active>();
 
         if (active->x_name) {
             focusedCanvas = dynamic_cast<Canvas*>(focusedComponent);
@@ -438,7 +438,7 @@ public:
         char* text;
         int size;
 
-        auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
+        auto* mouse = ptr.get<t_fake_canvas_mouse>();
 
         binbuf_gettext(mouse->x_obj.te_binbuf, &text, &size);
 
@@ -468,7 +468,7 @@ public:
     {
         auto relativeEvent = e.getEventRelativeTo(cnv);
 
-        auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
+        auto* mouse = ptr.get<t_fake_canvas_mouse>();
         auto* x = mouse->x_canvas;
 
         pos = cnv->getLocalPoint(e.originalComponent, e.getPosition()) - cnv->canvasOrigin;
@@ -497,7 +497,7 @@ public:
 
         pos -= zeroPosition;
 
-        auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
+        auto* mouse = ptr.get<t_fake_canvas_mouse>();
 
         pd->lockAudioThread();
         outlet_float(mouse->x_outlet_y, (float)pos.y);
@@ -514,7 +514,7 @@ public:
         if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
-        auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
+        auto* mouse = ptr.get<t_fake_canvas_mouse>();
 
         pd->lockAudioThread();
         outlet_float(mouse->x_obj.ob_outlet, 0.0f);
@@ -540,7 +540,7 @@ public:
         pos -= zeroPosition;
 
         if (positionChanged) {
-            auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
+            auto* mouse = ptr.get<t_fake_canvas_mouse>();
 
             pd->lockAudioThread();
             outlet_float(mouse->x_outlet_y, (float)pos.y);
@@ -585,7 +585,7 @@ public:
 
     void update() override
     {
-        cnv = getMainCanvas(static_cast<t_fake_canvas_vis*>(ptr)->x_canvas);
+        cnv = getMainCanvas(ptr.get<t_fake_canvas_vis>()->x_canvas);
 
         if (!cnv)
             return;
@@ -604,7 +604,7 @@ public:
             return;
 
         if (lastFocus != cnv->isShowing()) {
-            auto* vis = static_cast<t_fake_canvas_vis*>(ptr);
+            auto* vis = ptr.get<t_fake_canvas_vis>();
 
             lastFocus = cnv->isShowing();
             pd->lockAudioThread();
@@ -649,7 +649,7 @@ public:
             cnv->locked.removeListener(this);
         }
 
-        cnv = getMainCanvas(static_cast<t_fake_zoom*>(ptr)->x_canvas);
+        cnv = getMainCanvas(ptr.get<t_fake_zoom>()->x_canvas);
         if (!cnv)
             return;
 
@@ -665,7 +665,7 @@ public:
 
         auto newScale = getValue<float>(zoomScaleValue);
         if (lastScale != newScale) {
-            auto* zoom = static_cast<t_fake_zoom*>(ptr);
+            auto* zoom = ptr.get<t_fake_zoom>();
 
             pd->lockAudioThread();
             outlet_float(zoom->x_obj.ob_outlet, newScale);
@@ -694,7 +694,7 @@ public:
             cnv->locked.removeListener(this);
         }
 
-        cnv = getMainCanvas(static_cast<t_fake_edit*>(ptr)->x_canvas);
+        cnv = getMainCanvas(ptr.get<t_fake_edit>()->x_canvas);
         if (!cnv)
             return;
 
@@ -709,7 +709,7 @@ public:
 
         int editMode = getValue<bool>(v) ? 0 : 1;
         if (lastEditMode != editMode) {
-            auto* edit = static_cast<t_fake_edit*>(ptr);
+            auto* edit = ptr.get<t_fake_edit>();
             pd->lockAudioThread();
             outlet_float(edit->x_obj.ob_outlet, edit->x_edit = editMode);
             pd->unlockAudioThread();
@@ -730,7 +730,7 @@ public:
         lastPosition = mouseSource.getScreenPosition();
         lastMouseDownTime = mouseSource.getLastMouseDownTime();
         startTimer(timerInterval);
-        canvas = static_cast<t_fake_mouse*>(ptr)->x_glist;
+        canvas = this->ptr.get<t_fake_mouse>()->x_glist;
     }
 
     void timerCallback() override

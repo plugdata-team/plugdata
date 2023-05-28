@@ -15,7 +15,7 @@ public:
     PictureObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
-        auto* pic = static_cast<t_fake_pic*>(ptr);
+        auto* pic = this->ptr.get<t_fake_pic>();
 
         if (pic && pic->x_filename) {
             auto filePath = String::fromUTF8(pic->x_filename->s_name);
@@ -38,12 +38,12 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         if (getValue<bool>(latch)) {
-            auto* pic = static_cast<t_fake_pic*>(ptr);
+            auto* pic = ptr.get<t_fake_pic>();
             pd->lockAudioThread();
             outlet_float(pic->x_outlet, 1.0f);
             pd->unlockAudioThread();
         } else {
-            auto* pic = static_cast<t_fake_pic*>(ptr);
+            auto* pic = ptr.get<t_fake_pic>();
             pd->lockAudioThread();
             outlet_bang(pic->x_outlet);
             pd->unlockAudioThread();
@@ -53,7 +53,7 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         if (getValue<bool>(latch)) {
-            auto* pic = static_cast<t_fake_pic*>(ptr);
+            auto* pic = ptr.get<t_fake_pic>();
             pd->lockAudioThread();
             outlet_float(pic->x_outlet, 0.0f);
             pd->unlockAudioThread();
@@ -62,7 +62,7 @@ public:
 
     void update() override
     {
-        auto* pic = static_cast<t_fake_pic*>(ptr);
+        auto* pic = ptr.get<t_fake_pic>();
 
         if (pic->x_fullname) {
             path = String::fromUTF8(pic->x_fullname->s_name);
@@ -88,7 +88,7 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        auto* pic = static_cast<t_fake_pic*>(ptr);
+        auto* pic = ptr.get<t_fake_pic>();
 
         switch (hash(symbol)) {
         case hash("latch"): {
@@ -126,7 +126,7 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* pic = static_cast<t_fake_pic*>(ptr);
+        auto* pic = ptr.get<t_fake_pic>();
 
         if (value.refersToSameSourceAs(path)) {
             openFile(path.toString());
@@ -147,9 +147,9 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
-        auto* pic = static_cast<t_fake_pic*>(ptr);
+        auto* pic = ptr.get<t_fake_pic>();
         pic->x_width = b.getWidth();
         pic->x_height = b.getHeight();
     }
@@ -196,7 +196,7 @@ public:
             return File(name);
         };
 
-        auto* pic = static_cast<t_fake_pic*>(ptr);
+        auto* pic = ptr.get<t_fake_pic>();
 
         imageFile = findFile(location);
 

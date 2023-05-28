@@ -26,7 +26,7 @@ public:
 
     void update() override
     {
-        auto* button = static_cast<t_fake_button*>(ptr);
+        auto* button = ptr.get<t_fake_button>();
 
         primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
         secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
@@ -40,7 +40,7 @@ public:
 
         if (!alreadyBanged) {
 
-            auto* button = static_cast<t_fake_button*>(ptr);
+            auto* button = ptr.get<t_fake_button>();
             outlet_float(button->x_obj.ob_outlet, 1);
             update();
             alreadyBanged = true;
@@ -51,7 +51,7 @@ public:
 
         if(alreadyBanged)
         {
-            auto* button = static_cast<t_fake_button*>(ptr);
+            auto* button = ptr.get<t_fake_button>();
             outlet_float(button->x_obj.ob_outlet, 0);
             update();
         }
@@ -73,16 +73,16 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
-        auto* button = static_cast<t_fake_button*>(ptr);
+        auto* button = ptr.get<t_fake_button>();
         button->x_w = b.getWidth() - 1;
         button->x_h = b.getHeight() - 1;
     }
 
     void mouseDown(MouseEvent const& e) override
     {
-        auto* button = static_cast<t_fake_button*>(ptr);
+        auto* button = ptr.get<t_fake_button>();
         outlet_float(button->x_obj.ob_outlet, 1);
         state = true;
 
@@ -96,7 +96,7 @@ public:
     {
         alreadyTriggered = false;
         state = false;
-        auto* button = static_cast<t_fake_button*>(ptr);
+        auto* button = ptr.get<t_fake_button>();
         outlet_float(button->x_obj.ob_outlet, 0);
         repaint();
     }
@@ -124,7 +124,7 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* button = static_cast<t_fake_button*>(ptr);
+        auto* button = ptr.get<t_fake_button>();
         if (value.refersToSameSourceAs(primaryColour)) {
             auto col = Colour::fromString(primaryColour.toString());
             button->x_fgcolor[0] = col.getRed();

@@ -44,7 +44,7 @@ public:
     void updateValue()
     {
         // Change from subpatch to graph
-        if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
+        if (ptr.get<t_canvas>()->gl_isgraph) {
             cnv->setSelected(object, false);
             object->cnv->editor->sidebar->hideParameters();
             object->setType(objectText, ptr);
@@ -89,7 +89,7 @@ public:
         int isGraph = getValue<bool>(isGraphChild);
         int hideText = getValue<bool>(hideNameAndArgs);
 
-        canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
+        canvas_setgraph(ptr.get<t_glist>(), isGraph + 2 * hideText, 0);
         repaint();
 
         MessageManager::callAsync([this, _this = SafePointer(this)]() {
@@ -97,7 +97,7 @@ public:
                 return;
 
             // Change from subpatch to graph
-            if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
+            if (ptr.get<t_canvas>()->gl_isgraph) {
                 cnv->setSelected(object, false);
                 object->cnv->editor->sidebar->hideParameters();
                 object->setType(getText(), ptr);

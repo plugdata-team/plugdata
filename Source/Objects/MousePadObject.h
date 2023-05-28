@@ -22,8 +22,9 @@ public:
                 return;
 
             pd->setThis();
-
-            auto* x = static_cast<t_fake_pad*>(this->ptr);
+            
+            
+            auto* x = this->ptr.get<t_fake_pad>();
             t_atom at[3];
 
             x->x_x = relativeEvent.getPosition().x;
@@ -40,7 +41,7 @@ public:
             if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed || !isLocked() || !cnv->isShowing())
                 return;
 
-            auto* x = static_cast<t_fake_pad*>(this->ptr);
+            auto* x = this->ptr.get<t_fake_pad>();
             t_atom at[1];
             SETFLOAT(at, 0);
             outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
@@ -51,7 +52,7 @@ public:
             if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked() || !cnv->isShowing())
                 return;
 
-            auto* x = static_cast<t_fake_pad*>(this->ptr);
+            auto* x = this->ptr.get<t_fake_pad>();
 
             auto relativeEvent = e.getEventRelativeTo(this);
 
@@ -90,7 +91,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto* x = static_cast<t_fake_pad*>(ptr);
+        auto* x = ptr.get<t_fake_pad>();
         auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
         g.setColour(fillColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
@@ -103,9 +104,9 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
-        auto* pad = static_cast<t_fake_pad*>(ptr);
+        auto* pad = ptr.get<t_fake_pad>();
         pad->x_w = b.getWidth() - 1;
         pad->x_h = b.getHeight() - 1;
     }

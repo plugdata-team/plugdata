@@ -156,7 +156,7 @@ class Instance {
     } midievent;
 
 public:
-    Instance(String const& symbol, CriticalSection const* lock);
+    Instance(String const& symbol);
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 
@@ -308,7 +308,7 @@ public:
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
     bool isPerformingGlobalSync = false;
-    CriticalSection const* audioLock;
+    CriticalSection const audioLock;
 
 private:
     std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;

@@ -140,13 +140,13 @@ public:
 
     void update() override
     {
-        isVertical = static_cast<t_slider*>(ptr)->x_orientation;
+        isVertical = ptr.get<t_slider>()->x_orientation;
 
         auto steady = getSteadyOnClick();
         steadyOnClick = steady;
         slider.setSliderSnapsToMousePosition(!steady);
 
-        slider.setRangeFlipped((static_cast<t_slider*>(ptr)->x_min) > (static_cast<t_slider*>(ptr)->x_max));
+        slider.setRangeFlipped((ptr.get<t_slider>()->x_min) > (ptr.get<t_slider>()->x_max));
 
         min = getMinimum();
         max = getMaximum();
@@ -306,7 +306,7 @@ public:
 
     float getValue()
     {
-        auto* x = static_cast<t_slider*>(ptr);
+        auto* x = ptr.get<t_slider>();
 
         t_float fval;
         int rounded_val = (x->x_gui.x_fsf.x_finemoved) ? x->x_val : (x->x_val / 100) * 100;
@@ -327,34 +327,34 @@ public:
 
     float getMinimum()
     {
-        return static_cast<t_slider*>(ptr)->x_min;
+        return ptr.get<t_slider>()->x_min;
     }
 
     float getMaximum()
     {
-        return static_cast<t_slider*>(ptr)->x_max;
+        return ptr.get<t_slider>()->x_max;
     }
 
     void setMinimum(float value)
     {
-        static_cast<t_slider*>(ptr)->x_min = value;
-        slider.setRangeFlipped(static_cast<t_slider*>(ptr)->x_min > static_cast<t_slider*>(ptr)->x_max);
+        ptr.get<t_slider>()->x_min = value;
+        slider.setRangeFlipped(ptr.get<t_slider>()->x_min > ptr.get<t_slider>()->x_max);
     }
 
     void setMaximum(float value)
     {
-        static_cast<t_slider*>(ptr)->x_max = value;
-        slider.setRangeFlipped(static_cast<t_slider*>(ptr)->x_min > static_cast<t_slider*>(ptr)->x_max);
+        ptr.get<t_slider>()->x_max = value;
+        slider.setRangeFlipped(ptr.get<t_slider>()->x_min > ptr.get<t_slider>()->x_max);
     }
 
     void setSteadyOnClick(bool steady) const
     {
-        static_cast<t_slider*>(ptr)->x_steady = steady;
+        ptr.get<t_slider>()->x_steady = steady;
     }
 
     bool getSteadyOnClick() const
     {
-        return static_cast<t_slider*>(ptr)->x_steady;
+        return ptr.get<t_slider>()->x_steady;
     }
 
     void updateAspectRatio()
@@ -388,7 +388,7 @@ public:
 
     bool isLogScale() const
     {
-        return static_cast<t_slider*>(ptr)->x_lin0_log1;
+        return ptr.get<t_slider>()->x_lin0_log1;
     }
 
     void setLogScale(bool log)
@@ -396,7 +396,7 @@ public:
         pd->lockAudioThread();
 
         auto* sym = pd->generateSymbol(log ? "log" : "lin");
-        pd_typedmess(static_cast<t_pd*>(ptr), sym, 0, nullptr);
+        pd_typedmess(ptr.get<t_pd>(), sym, 0, nullptr);
         update();
 
         pd->unlockAudioThread();

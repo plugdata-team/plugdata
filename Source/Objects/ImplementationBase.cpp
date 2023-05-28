@@ -46,12 +46,6 @@ Canvas* ImplementationBase::getMainCanvas(void* patchPtr) const
                 return cnv;
             }
         }
-
-        if (auto* cnv = editor->palettes->getCurrentCanvas()) {
-            if (cnv->patch.getPointer() == patchPtr) {
-                return cnv;
-            }
-        }
     }
 
     return nullptr;

@@ -108,9 +108,9 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
-        auto* nbx = static_cast<t_my_numbox*>(ptr);
+        auto* nbx = ptr.get<t_my_numbox>();
 
         nbx->x_gui.x_w = b.getWidth() - 1;
         nbx->x_gui.x_h = b.getHeight() - 1;
@@ -242,28 +242,28 @@ public:
 
     float getValue()
     {
-        return (static_cast<t_my_numbox*>(ptr))->x_val;
+        return (ptr.get<t_my_numbox>())->x_val;
     }
 
     float getMinimum()
     {
-        return (static_cast<t_my_numbox*>(ptr))->x_min;
+        return (ptr.get<t_my_numbox>())->x_min;
     }
 
     float getMaximum()
     {
-        return (static_cast<t_my_numbox*>(ptr))->x_max;
+        return (ptr.get<t_my_numbox>())->x_max;
     }
 
     void setMinimum(float value)
     {
         input.setMinimum(value);
-        static_cast<t_my_numbox*>(ptr)->x_min = value;
+        ptr.get<t_my_numbox>()->x_min = value;
     }
 
     void setMaximum(float value)
     {
         input.setMaximum(value);
-        static_cast<t_my_numbox*>(ptr)->x_max = value;
+        ptr.get<t_my_numbox>()->x_max = value;
     }
 };

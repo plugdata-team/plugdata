@@ -18,18 +18,18 @@ public:
 
     void update() override
     {
-        auto* comment = static_cast<t_fake_comment*>(ptr);
+        auto* comment = ptr.get<t_fake_comment>();
         textColour = Colour(comment->x_red, comment->x_green, comment->x_blue);
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
     }
 
     void resized() override
     {
-        auto* comment = static_cast<t_fake_comment*>(ptr);
+        auto* comment = ptr.get<t_fake_comment>();
 
         int width = getBestTextWidth(getText()) * 8;
         int height = comment->x_fontsize + 18;
@@ -44,7 +44,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto* comment = static_cast<t_fake_comment*>(ptr);
+        auto* comment = ptr.get<t_fake_comment>();
 
         auto textArea = border.subtractedFrom(getLocalBounds());
         Fonts::drawFittedText(g, getText(), textArea, textColour, comment->x_fontsize);
@@ -77,7 +77,7 @@ public:
         int width = getBestTextWidth(getText()) * 8;
 
         pd->lockAudioThread();
-        auto* comment = static_cast<t_fake_comment*>(ptr);
+        auto* comment = ptr.get<t_fake_comment>();
         int height = comment->x_fontsize + 18;
         auto bounds = Rectangle<int>(comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height);
         pd->unlockAudioThread();
@@ -87,13 +87,13 @@ public:
 
     String getText() override
     {
-        auto* comment = static_cast<t_fake_comment*>(ptr);
+        auto* comment = ptr.get<t_fake_comment>();
         return String::fromUTF8(comment->x_buf, comment->x_bufsize);
     }
 
     int getBestTextWidth(String const& text)
     {
-        auto* comment = static_cast<t_fake_comment*>(ptr);
+        auto* comment = ptr.get<t_fake_comment>();
 
         return std::max<float>(round(Font(comment->x_fontsize).getStringWidthFloat(text) + 14.0f), 32);
     }

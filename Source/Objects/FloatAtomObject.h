@@ -185,7 +185,7 @@ public:
 
     float getValue()
     {
-        return atom_getfloat(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)));
+        return atom_getfloat(fake_gatom_getatom(ptr.get<t_fake_gatom>()));
     }
 
     std::vector<hash32> getAllMessages() override

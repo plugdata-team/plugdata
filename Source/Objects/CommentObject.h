@@ -139,7 +139,7 @@ public:
     {
         pd->lockAudioThread();
 
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
         if (TextObjectHelper::getWidthInChars(ptr)) {
             TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
@@ -151,7 +151,7 @@ public:
     void setSymbol(String const& value)
     {
         auto* cstr = value.toRawUTF8();
-        auto* commentObj = static_cast<t_text*>(ptr);
+        auto* commentObj = ptr.get<t_text>();
         auto* canvas = cnv->patch.getPointer();
 
         pd->lockAudioThread();

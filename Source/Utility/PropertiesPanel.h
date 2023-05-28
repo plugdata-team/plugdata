@@ -781,7 +781,7 @@ public:
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
                 Path p;
-                p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, true);
+                p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, roundBottom);
                 g.fillPath(p);
 
                 colour = findColour(PlugDataColour::panelActiveTextColourId);

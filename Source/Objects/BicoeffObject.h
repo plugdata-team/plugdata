@@ -536,7 +536,7 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(object->cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
         pd->sendDirectMessage(ptr, "dim", { b.getWidth() - 1, b.getHeight() - 1 });
         graph.saveProperties();

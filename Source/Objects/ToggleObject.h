@@ -53,7 +53,7 @@ public:
 
     void update() override
     {
-        nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
+        nonZero = ptr.get<t_toggle>()->x_nonzero;
         iemHelper.update();
 
         value = getValue();
@@ -106,9 +106,9 @@ public:
 
         t_atom atom;
         SETFLOAT(&atom, newValue);
-        pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
+        pd_typedmess(ptr.get<t_pd>(), pd->generateSymbol("set"), 1, &atom);
 
-        auto* iem = static_cast<t_iemgui*>(ptr);
+        auto* iem = ptr.get<t_iemgui>();
         outlet_float(iem->x_obj.ob_outlet, newValue);
         if (iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
             pd_float(iem->x_snd->s_thing, newValue);
@@ -181,7 +181,7 @@ public:
     {
         if (value.refersToSameSourceAs(nonZero)) {
             float val = nonZero.getValue();
-            static_cast<t_toggle*>(ptr)->x_nonzero = val;
+            ptr.get<t_toggle>()->x_nonzero = val;
         } else {
             iemHelper.valueChanged(value);
         }
@@ -189,6 +189,6 @@ public:
 
     float getValue()
     {
-        return (static_cast<t_toggle*>(ptr))->x_on;
+        return (ptr.get<t_toggle>())->x_on;
     }
 };

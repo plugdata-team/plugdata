@@ -23,7 +23,7 @@ public:
     void showColourPicker()
     {
         unsigned int red, green, blue;
-        auto x = static_cast<t_fake_colors*>(ptr);
+        auto x = ptr.get<t_fake_colors>();
         sscanf(x->x_color, "#%02x%02x%02x", &red, &green, &blue);
 
         ColourPicker::show(getTopLevelComponent(), true, Colour(red, green, blue), object->getScreenBounds(), [_this = SafePointer(this), x](Colour c) {

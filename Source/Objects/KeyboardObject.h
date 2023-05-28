@@ -220,7 +220,7 @@ public:
         keyboard.setScrollButtonsVisible(false);
 
         keyboard.noteOn = [this](int note, int velocity) {
-            auto* elseKeyboard = static_cast<t_fake_keyboard*>(this->ptr);
+            auto* elseKeyboard = this->ptr.get<t_fake_keyboard>();
 
             int ac = 2;
             t_atom at[2];
@@ -237,7 +237,7 @@ public:
         };
 
         keyboard.noteOff = [this](int note) {
-            auto* elseKeyboard = static_cast<t_fake_keyboard*>(this->ptr);
+            auto* elseKeyboard = this->ptr.get<t_fake_keyboard>();
 
             pd->lockAudioThread();
 
@@ -266,7 +266,7 @@ public:
 
     void update() override
     {
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
+        auto* elseKeyboard = ptr.get<t_fake_keyboard>();
         lowC.setValue(elseKeyboard->x_low_c);
         octaves.setValue(elseKeyboard->x_octaves);
         toggleMode.setValue(elseKeyboard->x_toggle_mode);
@@ -292,7 +292,7 @@ public:
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
+        auto* elseKeyboard = ptr.get<t_fake_keyboard>();
         auto bounds = Rectangle<int>(x, y, elseKeyboard->x_space * numWhiteKeys, elseKeyboard->x_height);
 
         pd->unlockAudioThread();
@@ -302,9 +302,9 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
+        auto* elseKeyboard = ptr.get<t_fake_keyboard>();
         elseKeyboard->x_height = b.getHeight();
     }
 
@@ -317,7 +317,7 @@ public:
 
         keyboard.setKeyWidth(keyWidth);
 
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
+        auto* elseKeyboard = ptr.get<t_fake_keyboard>();
         elseKeyboard->x_space = keyWidth;
 
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
@@ -342,7 +342,7 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
+        auto* elseKeyboard = ptr.get<t_fake_keyboard>();
 
         if (value.refersToSameSourceAs(lowC)) {
             lowC = std::clamp<int>(getValue<int>(lowC), -1, 9);
@@ -367,7 +367,7 @@ public:
 
     void updateValue()
     {
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
+        auto* elseKeyboard = ptr.get<t_fake_keyboard>();
 
         for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
             if (elseKeyboard->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {

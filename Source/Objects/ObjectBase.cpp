@@ -157,9 +157,9 @@ String ObjectBase::getType() const
 
     if (ptr) {
         // Check if it's an abstraction or subpatch
-        if (pd_class(static_cast<t_pd*>(ptr)) == canvas_class && canvas_isabstraction((t_canvas*)ptr)) {
+        if (pd_class(ptr.get<t_pd>()) == canvas_class && canvas_isabstraction(ptr.get<t_canvas>())) {
             char namebuf[MAXPDSTRING];
-            t_object* ob = (t_object*)ptr;
+            auto* ob = ptr.get<t_object>();
             int ac = binbuf_getnatom(ob->te_binbuf);
             t_atom* av = binbuf_getvec(ob->te_binbuf);
             if (ac < 1)
@@ -171,20 +171,20 @@ String ObjectBase::getType() const
         // Deal with different text objects
         switch (hash(libpd_get_object_class_name(ptr))) {
         case hash("text"):
-            if (static_cast<t_text*>(ptr)->te_type == T_OBJECT)
+            if (ptr.get<t_text>()->te_type == T_OBJECT)
                 return "invalid";
-            if (static_cast<t_text*>(ptr)->te_type == T_TEXT)
+            if (ptr.get<t_text>()->te_type == T_TEXT)
                 return "comment";
-            if (static_cast<t_text*>(ptr)->te_type == T_MESSAGE)
+            if (ptr.get<t_text>()->te_type == T_MESSAGE)
                 return "message";
             break;
         // Deal with atoms
         case hash("gatom"):
-            if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)
+            if (ptr.get<t_fake_gatom>()->a_flavor == A_FLOAT)
                 return "floatbox";
-            if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL)
+            if (ptr.get<t_fake_gatom>()->a_flavor == A_SYMBOL)
                 return "symbolbox";
-            if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
+            if (ptr.get<t_fake_gatom>()->a_flavor == A_NULL)
                 return "listbox";
             break;
         default:
@@ -204,10 +204,6 @@ String ObjectBase::getType() const
 // Make sure the object can't be triggered if that palette is in drag mode
 bool ObjectBase::hitTest(int x, int y)
 {
-    if (cnv->isPalette && getValue<bool>(cnv->paletteDragMode)) {
-        return false;
-    }
-
     return Component::hitTest(x, y);
 }
 
@@ -230,7 +226,7 @@ bool ObjectBase::click()
 {
     pd->setThis();
 
-    if (libpd_has_click_function(static_cast<t_object*>(ptr))) {
+    if (libpd_has_click_function(ptr.get<t_object>())) {
         pd->sendDirectMessage(ptr, "click", {});
         return true;
     }
@@ -278,13 +274,13 @@ void ObjectBase::openSubpatch()
 void ObjectBase::moveToFront()
 {
     pd->setThis();
-    libpd_tofront(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr));
+    libpd_tofront(cnv->patch.getPointer(), ptr.get<t_gobj>());
 }
 
 void ObjectBase::moveToBack()
 {
     pd->setThis();
-    libpd_toback(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr));
+    libpd_toback(cnv->patch.getPointer(), ptr.get<t_gobj>());
 }
 
 void ObjectBase::paint(Graphics& g)
@@ -328,8 +324,8 @@ void ObjectBase::sendFloatValue(float newValue)
 
     t_atom atom;
     SETFLOAT(&atom, newValue);
-    pd_typedmess(static_cast<t_pd*>(ptr), cnv->patch.instance->generateSymbol("set"), 1, &atom);
-    pd_bang(static_cast<t_pd*>(ptr));
+    pd_typedmess(ptr.get<t_pd>(), cnv->patch.instance->generateSymbol("set"), 1, &atom);
+    pd_bang(ptr.get<t_pd>());
 
     pd->unlockAudioThread();
 }
@@ -459,7 +455,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 
 bool ObjectBase::canOpenFromMenu()
 {
-    return zgetfn(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open")) != nullptr;
+    return zgetfn(ptr.get<t_pd>(), pd->generateSymbol("menu-open")) != nullptr;
 }
 
 void ObjectBase::openFromMenu()

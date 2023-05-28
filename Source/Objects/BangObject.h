@@ -31,7 +31,7 @@ public:
 
     void update() override
     {
-        auto* bng = static_cast<t_bng*>(ptr);
+        auto* bng = ptr.get<t_bng>();
         bangInterrupt = bng->x_flashtime_break;
         bangHold = bng->x_flashtime_hold;
 
@@ -69,7 +69,7 @@ public:
             pd->lockAudioThread();
 
             startEdition();
-            pd_bang(static_cast<t_pd*>(ptr));
+            pd_bang(ptr.get<t_pd>());
             stopEdition();
 
             pd->unlockAudioThread();
@@ -89,7 +89,7 @@ public:
         pd->lockAudioThread();
 
         startEdition();
-        pd_bang(static_cast<t_pd*>(ptr));
+        pd_bang(ptr.get<t_pd>());
         stopEdition();
 
         pd->unlockAudioThread();
@@ -164,10 +164,10 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(bangInterrupt)) {
-            static_cast<t_bng*>(ptr)->x_flashtime_break = bangInterrupt.getValue();
+            ptr.get<t_bng>()->x_flashtime_break = bangInterrupt.getValue();
         }
         if (value.refersToSameSourceAs(bangHold)) {
-            static_cast<t_bng*>(ptr)->x_flashtime_hold = bangHold.getValue();
+            ptr.get<t_bng>()->x_flashtime_hold = bangHold.getValue();
         } else {
             iemHelper.valueChanged(value);
         }

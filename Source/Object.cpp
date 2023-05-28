@@ -115,8 +115,7 @@ void Object::initialise()
     presentationMode.referTo(cnv->presentationMode);
     paletteDragMode.referTo(cnv->paletteDragMode);
 
-    if (!cnv->isPalette)
-        hvccMode.referTo(cnv->editor->hvccMode);
+    hvccMode.referTo(cnv->editor->hvccMode);
 
     presentationMode.addListener(this);
     locked.addListener(this);
@@ -160,7 +159,7 @@ bool Object::isSelected() const
 void Object::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(hvccMode)) {
-        if (gui && !cnv->isPalette) {
+        if (gui) {
             auto typeName = String::fromUTF8(libpd_get_object_class_name(gui->ptr));
             // Check hvcc compatibility
             bool isSubpatch = gui && gui->getPatch() != nullptr;
@@ -969,23 +968,6 @@ void Object::mouseDrag(MouseEvent const& e)
 
                 auto newPosition = object->originalBounds.getPosition() + dragDistance;
 
-                // Limit object movement inside palette
-                if (cnv->isPalette) {
-                    auto bounds = object->getBounds().withPosition(newPosition);
-                    auto viewWidth = cnv->viewport->getWidth() - 12;
-                    if (bounds.getX() < 0) {
-                        bounds = bounds.withX(0);
-                    }
-                    if (bounds.getRight() > viewWidth) {
-                        bounds = bounds.withX(viewWidth - bounds.getWidth());
-                    }
-                    if (bounds.getY() < 0) {
-                        bounds = bounds.withY(0);
-                    }
-
-                    newPosition = bounds.getPosition();
-                }
-
                 object->setBufferedToImage(true);
                 object->setTopLeftPosition(newPosition);
             }
@@ -1136,7 +1118,7 @@ Array<Connection*> Object::getConnections() const
 
 void* Object::getPointer() const
 {
-    return gui ? gui->ptr : nullptr;
+    return gui ? gui->ptr.get<void*>() : nullptr;
 }
 
 void Object::openNewObjectEditor()

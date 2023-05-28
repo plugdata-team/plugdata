@@ -71,7 +71,7 @@ PluginProcessor::PluginProcessor()
     : AudioProcessor(buildBusesProperties())
     ,
 #endif
-    pd::Instance("plugdata", &AudioProcessor::getCallbackLock())
+    pd::Instance("plugdata")
     , internalSynth(std::make_unique<InternalSynth>())
 {
     // Make sure to use dots for decimal numbers, pd requires that
@@ -128,7 +128,7 @@ PluginProcessor::PluginProcessor()
 
     // Initialise threading system for ofelia
     pd::OfeliaMessageManager::create();
-    pd::OfeliaMessageManager::setAudioCallbackLock(audioLock);
+    pd::OfeliaMessageManager::setAudioCallbackLock(&audioLock);
 
     sendMessagesFromQueue();
 
@@ -489,9 +489,6 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
-
-    jassert(audioLock == &AudioProcessor::getCallbackLock());
-
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -924,19 +921,10 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     savePatchTabPositions();
 
-    Array<pd::Patch*> palettes;
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        for (auto* cnv : editor->canvases) {
-            if (cnv->isPalette) {
-                palettes.add(&cnv->patch);
-            }
-        }
-    }
-
     // Store pure-data and parameter state
     MemoryOutputStream ostream(destData, false);
 
-    ostream.writeInt(patches.size() - palettes.size());
+    ostream.writeInt(patches.size());
 
     // Save path and content for patch
     lockAudioThread();
@@ -946,9 +934,6 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     auto* patchesTree = new XmlElement("Patches");
 
     for (auto const& patch : patches) {
-
-        if (palettes.contains(patch.get()))
-            continue;
 
         auto content = patch->getCanvasContent();
         auto patchFile = patch->getCurrentFile().getFullPathName();
@@ -1500,7 +1485,7 @@ void PluginProcessor::updateDrawables()
 {
     // TODO: fix for split view and palettes
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([cnv = editor->getCurrentCanvas(true)]() {
+        MessageManager::callAsync([cnv = editor->getCurrentCanvas()]() {
             if (cnv)
                 cnv->updateDrawables();
         });

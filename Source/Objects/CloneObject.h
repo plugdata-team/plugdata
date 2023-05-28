@@ -17,7 +17,7 @@ public:
     CloneObject(void* obj, Object* object)
         : TextBase(obj, object)
     {
-        auto* gobj = static_cast<t_gobj*>(ptr);
+        auto* gobj = ptr.get<t_gobj>();
         if (clone_get_n(gobj) > 0) {
             subpatch = new pd::Patch(clone_get_instance(gobj, 0), cnv->pd, false);
         } else {
@@ -37,7 +37,7 @@ public:
 
     String getText() override
     {
-        auto* sym = static_cast<t_fake_clone*>(ptr)->x_s;
+        auto* sym = ptr.get<t_fake_clone>()->x_s;
 
         if (!sym || !sym->s_name)
             return "";

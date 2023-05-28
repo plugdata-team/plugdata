@@ -29,15 +29,14 @@ extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
 
-Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, bool palette)
+Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     : editor(parent)
     , pd(parent->pd)
     , refCountedPatch(p)
     , patch(*p)
     , pathUpdater(new ConnectionPathUpdater(this))
-    , isPalette(palette)
     , graphArea(nullptr)
-    , canvasOrigin(palette ? Point<int>(0, 0) : Point<int>(infiniteCanvasSize / 2, infiniteCanvasSize / 2))
+    , canvasOrigin(Point<int>(infiniteCanvasSize / 2, infiniteCanvasSize / 2))
 {
     isGraphChild = glist_isgraph(patch.getPointer());
     hideNameAndArgs = static_cast<bool>(patch.getPointer()->gl_hidetext);
@@ -106,7 +105,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph, b
     performSynchronise();
 
     // Start in unlocked mode if the patch is empty
-    if (objects.isEmpty() && !palette) {
+    if (objects.isEmpty()) {
         locked = false;
         patch.getPointer()->gl_edit = false;
     } else {
@@ -713,7 +712,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
 bool Canvas::autoscroll(MouseEvent const& e)
 {
-    if (!viewport || isPalette)
+    if (!viewport)
         return false;
 
     auto x = viewport->getViewPositionX();
@@ -811,7 +810,7 @@ void Canvas::mouseMove(MouseEvent const& e)
 
 bool Canvas::keyPressed(KeyPress const& key)
 {
-    if (editor->getCurrentCanvas(true) != this || isGraph)
+    if (editor->getCurrentCanvas() != this || isGraph)
         return false;
 
     int keycode = key.getKeyCode();

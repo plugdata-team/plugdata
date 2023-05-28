@@ -75,7 +75,7 @@ struct ExporterBase : public Component
         projectNameValue.addListener(this);
         projectCopyrightValue.addListener(this);
 
-        if (auto* cnv = editor->getCurrentCanvas(false)) {
+        if (auto* cnv = editor->getCurrentCanvas()) {
             openedPatchFile = File::createTempFile(".pd");
             Toolchain::deleteTempFileLater(openedPatchFile);
             openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, false, "\n");

@@ -25,7 +25,7 @@ public:
         // Lock around it, to make sure this gets called synchronously
         // Unfortunately note needs to receive the vis message to make it initialise
         pd->lockAudioThread();
-        (*static_cast<t_pd*>(ptr))->c_wb->w_visfn(static_cast<t_gobj*>(ptr), object->cnv->patch.getPointer(), 1);
+        (*ptr.get<t_pd>())->c_wb->w_visfn(ptr.get<t_gobj>(), object->cnv->patch.getPointer(), 1);
         pd->unlockAudioThread();
 
         addAndMakeVisible(noteEditor);
@@ -53,7 +53,7 @@ public:
         };
 
         noteEditor.onTextChange = [this, object]() {
-            auto* x = static_cast<t_fake_note*>(ptr);
+            auto* x = ptr.get<t_fake_note>();
 
             std::vector<t_atom> atoms;
 
@@ -91,7 +91,7 @@ public:
 
     void update() override
     {
-        auto* note = static_cast<t_fake_note*>(ptr);
+        auto* note = ptr.get<t_fake_note>();
 
         textColour = Colour(note->x_red, note->x_green, note->x_blue);
         noteEditor.setText(getNote());
@@ -207,7 +207,7 @@ public:
     {
         pd->lockAudioThread();
 
-        auto* note = static_cast<t_fake_note*>(ptr);
+        auto* note = ptr.get<t_fake_note>();
         int width = note->x_resized ? note->x_max_pixwidth : StringUtils::getPreciseStringWidth(getNote(), getFont()) + 12;
         auto height = noteEditor.getTextHeight();
 
@@ -260,21 +260,21 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        auto* note = static_cast<t_fake_note*>(ptr);
+        auto* note = ptr.get<t_fake_note>();
         note->x_max_pixwidth = b.getWidth();
         note->x_height = b.getHeight();
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
     }
 
     String getNote()
     {
-        auto* note = static_cast<t_fake_note*>(ptr);
+        auto* note = ptr.get<t_fake_note>();
         return String::fromUTF8(note->x_buf, note->x_bufsize).trim();
     }
 
     void valueChanged(Value& v) override
     {
-        auto* note = static_cast<t_fake_note*>(ptr);
+        auto* note = ptr.get<t_fake_note>();
 
         if (v.refersToSameSourceAs(primaryColour)) {
             auto colour = Colour::fromString(primaryColour.toString());
@@ -370,7 +370,7 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        auto* note = static_cast<t_fake_note*>(ptr);
+        auto* note = ptr.get<t_fake_note>();
 
         switch (hash(symbol)) {
         case hash("font"): {

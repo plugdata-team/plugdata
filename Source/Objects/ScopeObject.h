@@ -33,7 +33,7 @@ public:
 
     void update() override
     {
-        auto* scope = static_cast<S*>(ptr);
+        auto* scope = ptr.get<S>();
         triggerMode = scope->x_trigmode + 1;
         triggerValue = scope->x_triglevel;
         bufferSize = scope->x_bufsize;
@@ -71,10 +71,10 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
-        static_cast<S*>(ptr)->x_width = getWidth() - 1;
-        static_cast<S*>(ptr)->x_height = getHeight() - 1;
+        ptr.get<S>()->x_width = getWidth() - 1;
+        ptr.get<S>()->x_height = getHeight() - 1;
     }
 
     void resized() override
@@ -139,7 +139,7 @@ public:
             if (!pd->tryLockAudioThread())
                 return;
 
-            auto* x = static_cast<S*>(ptr);
+            auto* x = ptr.get<S>();
             bufsize = x->x_bufsize;
             min = x->x_min;
             max = x->x_max;
@@ -193,7 +193,7 @@ public:
 
     void valueChanged(Value& v) override
     {
-        auto* scope = static_cast<S*>(ptr);
+        auto* scope = ptr.get<S>();
         if (v.refersToSameSourceAs(primaryColour)) {
             colourToHexArray(Colour::fromString(primaryColour.toString()), scope->x_fg);
         } else if (v.refersToSameSourceAs(secondaryColour)) {

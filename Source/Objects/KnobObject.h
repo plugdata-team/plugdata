@@ -188,12 +188,12 @@ public:
 
     void setCircular(Slider::SliderStyle style)
     {
-        static_cast<t_fake_knob*>(ptr)->x_circular = style == Slider::SliderStyle::RotaryHorizontalVerticalDrag;
+        ptr.get<t_fake_knob>()->x_circular = style == Slider::SliderStyle::RotaryHorizontalVerticalDrag;
     }
 
     bool isCircular()
     {
-        return static_cast<t_fake_knob*>(ptr)->x_circular;
+        return ptr.get<t_fake_knob>()->x_circular;
     }
 
     void update() override
@@ -202,7 +202,7 @@ public:
         value = currentValue;
         knob.setValue(currentValue, dontSendNotification);
 
-        auto* knb = static_cast<t_fake_knob*>(ptr);
+        auto* knb = ptr.get<t_fake_knob>();
         initialValue = knb->x_init;
         ticks = knb->x_ticks;
         angularRange = knb->x_range;
@@ -255,7 +255,7 @@ public:
 
     void setPdBounds(Rectangle<int> const b) override
     {
-        auto* knb = static_cast<t_fake_knob*>(ptr);
+        auto* knb = ptr.get<t_fake_knob>();
         knb->x_obj.te_xpix = b.getX();
         knb->x_obj.te_ypix = b.getY();
 
@@ -375,7 +375,7 @@ public:
             break;
         }
         case hash("init"): {
-            auto* knb = static_cast<t_fake_knob*>(ptr);
+            auto* knb = ptr.get<t_fake_knob>();
             initialValue = knb->x_init;
             knob.setValue(getValue(), dontSendNotification);
             break;
@@ -432,7 +432,7 @@ public:
     {
         pd->setThis();
 
-        auto* knb = static_cast<t_fake_knob*>(ptr);
+        auto* knb = ptr.get<t_fake_knob>();
 
         if (!knb->x_snd || !knb->x_snd->s_name)
             return "";
@@ -449,7 +449,7 @@ public:
     {
         pd->setThis();
 
-        auto* knb = static_cast<t_fake_knob*>(ptr);
+        auto* knb = ptr.get<t_fake_knob>();
 
         if (!knb->x_rcv || !knb->x_rcv->s_name)
             return "";
@@ -474,19 +474,19 @@ public:
 
     Colour getBackgroundColour() const
     {
-        auto bg = String::fromUTF8(static_cast<t_fake_knob*>(ptr)->x_bg->s_name);
+        auto bg = String::fromUTF8(ptr.get<t_fake_knob>()->x_bg->s_name);
         return convertTclColour(bg);
     }
 
     Colour getForegroundColour() const
     {
-        auto fg = String::fromUTF8(static_cast<t_fake_knob*>(ptr)->x_fg->s_name);
+        auto fg = String::fromUTF8(ptr.get<t_fake_knob>()->x_fg->s_name);
         return convertTclColour(fg);
     }
 
     Colour getArcColour() const
     {
-        auto mg = String::fromUTF8(static_cast<t_fake_knob*>(ptr)->x_mg->s_name);
+        auto mg = String::fromUTF8(ptr.get<t_fake_knob>()->x_mg->s_name);
         return convertTclColour(mg);
     }
 
@@ -502,7 +502,7 @@ public:
     float getValue()
     {
         pd->lockAudioThread();
-        auto* knb = static_cast<t_fake_knob*>(ptr);
+        auto* knb = ptr.get<t_fake_knob>();
         auto pos = knb->x_pos;
         pd->unlockAudioThread();
 
@@ -511,27 +511,27 @@ public:
 
     float getMinimum()
     {
-        return static_cast<t_fake_knob*>(ptr)->x_min;
+        return ptr.get<t_fake_knob>()->x_min;
     }
 
     float getMaximum()
     {
-        return static_cast<t_fake_knob*>(ptr)->x_max;
+        return ptr.get<t_fake_knob>()->x_max;
     }
 
     void setMinimum(float value)
     {
-        static_cast<t_fake_knob*>(ptr)->x_min = value;
+        ptr.get<t_fake_knob>()->x_min = value;
     }
 
     void setMaximum(float value)
     {
-        static_cast<t_fake_knob*>(ptr)->x_max = value;
+        ptr.get<t_fake_knob>()->x_max = value;
     }
 
     void updateRotaryParameters()
     {
-        auto* knb = static_cast<t_fake_knob*>(ptr);
+        auto* knb = ptr.get<t_fake_knob>();
 
         float startRad = degreesToRadians<float>(knb->x_start_angle) + MathConstants<float>::twoPi;
         float endRad = degreesToRadians<float>(knb->x_end_angle) + MathConstants<float>::twoPi;
@@ -552,7 +552,7 @@ public:
 
     void updateKnobPosFromMinMax(float oldMin, float oldMax, float newMin, float newMax)
     {
-        auto* knb = static_cast<t_fake_knob*>(ptr);
+        auto* knb = ptr.get<t_fake_knob>();
 
         // map current value to new range
         float knobVal = knob.getValue();
@@ -579,7 +579,7 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* knb = static_cast<t_fake_knob*>(ptr);
+        auto* knb = ptr.get<t_fake_knob>();
 
         if (value.refersToSameSourceAs(min)) {
             auto oldMinVal = static_cast<float>(knb->x_min);
@@ -660,7 +660,7 @@ public:
 
     void setValue(float pos)
     {
-        auto* knb = static_cast<t_fake_knob*>(ptr);
+        auto* knb = ptr.get<t_fake_knob>();
 
         knb->x_pos = pos;
 

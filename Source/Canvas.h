@@ -50,7 +50,7 @@ class Canvas : public Component
     , public pd::MessageListener
     , public AsyncUpdater {
 public:
-    Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr, bool isPalette = false);
+    Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
 
     ~Canvas() override;
 
@@ -184,7 +184,6 @@ public:
     bool isGraph = false;
     bool hasParentCanvas = false;
     bool isDraggingLasso = false;
-    bool isPalette;
     bool isShowingMenu = false;
 
     Value isGraphChild = Value(var(false));

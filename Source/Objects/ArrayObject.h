@@ -532,7 +532,7 @@ public:
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        auto* glist = static_cast<_glist*>(ptr);
+        auto* glist = ptr.get<_glist>();
         auto bounds = Rectangle<int>(x, y, glist->gl_pixwidth, glist->gl_pixheight);
 
         pd->unlockAudioThread();
@@ -542,9 +542,9 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
-        auto* array = static_cast<_glist*>(ptr);
+        auto* array = ptr.get<_glist>();
         array->gl_pixwidth = b.getWidth();
         array->gl_pixheight = b.getHeight();
     }
@@ -589,7 +589,7 @@ public:
 
         pd->lockAudioThread();
 
-        auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
+        auto* garray = reinterpret_cast<t_garray*>(ptr.get<t_canvas>()->gl_list);
         garray_arraydialog(garray, pd->generateSymbol(arrName), arrSize, static_cast<float>(flags), 0.0f);
 
         pd->unlockAudioThread();
@@ -626,7 +626,7 @@ public:
 
     PdArray getArray() const
     {
-        auto* c = static_cast<t_canvas*>(ptr);
+        auto* c = ptr.get<t_canvas>();
         auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
 
         return { glist, cnv->pd->m_instance };
@@ -722,7 +722,7 @@ public:
             return;
         }
 
-        auto* c = reinterpret_cast<t_canvas*>(static_cast<t_canvas*>(ptr)->gl_list);
+        auto* c = reinterpret_cast<t_canvas*>(ptr.get<t_canvas>()->gl_list);
         auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
         auto array = PdArray(glist, cnv->pd->m_instance);
 

@@ -31,7 +31,7 @@ public:
 
     void update() override
     {
-        auto* function = static_cast<t_fake_function*>(ptr);
+        auto* function = ptr.get<t_fake_function>();
 
         secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
         primaryColour = colourFromHexArray(function->x_fgcolor).toString();
@@ -50,9 +50,9 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
-        auto* function = static_cast<t_fake_function*>(ptr);
+        auto* function = ptr.get<t_fake_function>();
         function->x_width = b.getWidth() - 1;
         function->x_height = b.getHeight() - 1;
     }
@@ -121,7 +121,7 @@ public:
             return;
 
         points.clear();
-        auto* function = static_cast<t_fake_function*>(ptr);
+        auto* function = ptr.get<t_fake_function>();
 
         setRange({ function->x_min, function->x_max });
 
@@ -233,7 +233,7 @@ public:
         arr[0] = newRange.first;
         arr[1] = newRange.second;
 
-        auto* function = static_cast<t_fake_function*>(ptr);
+        auto* function = ptr.get<t_fake_function>();
         function->x_min = newRange.first;
         function->x_max = newRange.second;
     }
@@ -273,7 +273,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        auto* function = static_cast<t_fake_function*>(ptr);
+        auto* function = ptr.get<t_fake_function>();
         points.sort(*this);
 
         auto scale = function->x_dur[function->x_n_states];
@@ -293,7 +293,7 @@ public:
     void triggerOutput()
     {
 
-        auto* x = static_cast<t_fake_function*>(ptr);
+        auto* x = ptr.get<t_fake_function>();
         int ac = points.size() * 2 + 1;
 
         auto scale = x->x_dur[x->x_n_states];
@@ -328,7 +328,7 @@ public:
 
     void valueChanged(Value& v) override
     {
-        auto* function = static_cast<t_fake_function*>(ptr);
+        auto* function = ptr.get<t_fake_function>();
         if (v.refersToSameSourceAs(primaryColour)) {
             colourToHexArray(Colour::fromString(primaryColour.toString()), function->x_fgcolor);
             repaint();
@@ -385,7 +385,7 @@ public:
         }
         case hash("min"):
         case hash("max"): {
-            auto* function = static_cast<t_fake_function*>(ptr);
+            auto* function = ptr.get<t_fake_function>();
             Array<var> arr = { function->x_min, function->x_max };
             setParameterExcludingListener(range, var(arr));
             getPointsFromFunction();

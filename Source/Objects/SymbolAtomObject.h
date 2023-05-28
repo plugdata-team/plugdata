@@ -87,7 +87,7 @@ public:
     String getSymbol()
     {
         cnv->pd->setThis();
-        return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name);
+        return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(ptr.get<t_fake_gatom>()))->s_name);
     }
 
     void mouseUp(MouseEvent const& e) override

@@ -585,16 +585,8 @@ TabComponent* PluginEditor::getActiveTabbar()
     return splitView.getActiveTabbar();
 }
 
-Canvas* PluginEditor::getCurrentCanvas(bool canBePalette)
+Canvas* PluginEditor::getCurrentCanvas()
 {
-    if (canBePalette && palettes && palettes->hasFocus()) {
-        if (auto* cnv = palettes->getCurrentCanvas()) {
-            if (!getValue<bool>(cnv->paletteDragMode)) {
-                return cnv;
-            }
-        }
-    }
-
     return getActiveTabbar()->getCurrentCanvas();
 }
 
@@ -873,7 +865,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     bool locked = true;
     bool canConnect = false;
 
-    if (auto* cnv = getCurrentCanvas(true)) {
+    if (auto* cnv = getCurrentCanvas()) {
         auto selectedObjects = cnv->getSelectionOfType<Object>();
         auto selectedConnections = cnv->getSelectionOfType<Connection>();
 
@@ -1101,7 +1093,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setInfo("Open Reference", "Open reference panel", "View", 0);
         result.addDefaultKeypress(KeyPress::F1Key, ModifierKeys::noModifiers); // f1 to open reference
 
-        if (auto* cnv = getCurrentCanvas(true)) {
+        if (auto* cnv = getCurrentCanvas()) {
             auto selection = cnv->getSelectionOfType<Object>();
             bool enabled = selection.size() == 1 && selection[0]->gui && selection[0]->gui->getType().isNotEmpty();
             result.setActive(enabled);
@@ -1283,49 +1275,49 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::Copy: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         cnv->copySelection();
         return true;
     }
     case CommandIDs::Paste: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         cnv->pasteSelection();
         return true;
     }
     case CommandIDs::Cut: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         cnv->cancelConnectionCreation();
         cnv->copySelection();
         cnv->removeSelection();
         return true;
     }
     case CommandIDs::Delete: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         cnv->cancelConnectionCreation();
         cnv->removeSelection();
         return true;
     }
     case CommandIDs::Duplicate: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         cnv->duplicateSelection();
         return true;
     }
     case CommandIDs::Encapsulate: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         cnv->encapsulateSelection();
         return true;
     }
     case CommandIDs::CreateConnection: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         return cnv->connectSelectedObjects();
     }
     case CommandIDs::RemoveConnections: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         cnv->removeSelectedConnections();
         return true;
     }
     case CommandIDs::SelectAll: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         for (auto* object : cnv->objects) {
             cnv->setSelected(object, true, false);
         }
@@ -1341,7 +1333,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ConnectionPathfind: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         cnv->patch.startUndoSequence("ConnectionPathFind");
 
         statusbar->connectionStyleButton.setToggleState(true, sendNotification);
@@ -1375,12 +1367,12 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ZoomToFitAll: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         cnv->zoomToFitAll();
         return true;
     }
     case CommandIDs::GoToOrigin: {
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
         cnv->jumpToOrigin();
         return true;
     }
@@ -1422,7 +1414,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ShowReference: {
-        if (auto* cnv = getCurrentCanvas(true)) {
+        if (auto* cnv = getCurrentCanvas()) {
             auto selection = cnv->getSelectionOfType<Object>();
             if (selection.size() != 1 || !selection[0]->gui || selection[0]->gui->getType().isEmpty()) {
                 return false;
@@ -1444,7 +1436,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         Dialogs::showArrayDialog(&openedDialog, this,
             [this](int result, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range) {
                 if (result) {
-                    auto* cnv = getCurrentCanvas(true);
+                    auto* cnv = getCurrentCanvas();
                     auto initialiser = StringArray { "garray", name, String(size), String(drawMode), String(static_cast<int>(saveContents)), String(range.first), String(range.second) }.joinIntoString(" ");
                     auto* object = new Object(cnv, initialiser, cnv->viewport->getViewArea().getCentre());
                     cnv->objects.add(object);
@@ -1455,7 +1447,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
     default: {
 
-        cnv = getCurrentCanvas(true);
+        cnv = getCurrentCanvas();
 
         // Get viewport area, compensate for zooming
         auto viewArea = cnv->viewport->getViewArea() / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));

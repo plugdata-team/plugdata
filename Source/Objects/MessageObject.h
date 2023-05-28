@@ -50,7 +50,7 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
         if (TextObjectHelper::getWidthInChars(ptr)) {
             TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
@@ -251,7 +251,7 @@ public:
         char* text;
         int size;
 
-        binbuf_gettext(static_cast<t_text*>(ptr)->te_binbuf, &text, &size);
+        binbuf_gettext(ptr.get<t_text>()->te_binbuf, &text, &size);
         pd->unlockAudioThread();
 
         auto result = String::fromUTF8(text, size);
@@ -265,7 +265,7 @@ public:
         cnv->pd->lockAudioThread();
 
         auto* cstr = value.toRawUTF8();
-        auto* messobj = static_cast<t_text*>(ptr);
+        auto* messobj = ptr.get<t_text>();
         auto* canvas = cnv->patch.getPointer();
 
         libpd_renameobj(canvas, &messobj->te_g, cstr, value.getNumBytesAsUTF8());

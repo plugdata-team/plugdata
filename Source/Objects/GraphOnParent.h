@@ -37,7 +37,7 @@ public:
 
     void update() override
     {
-        auto* glist = static_cast<t_canvas*>(ptr);
+        auto* glist = ptr.get<t_canvas>();
         isGraphChild = static_cast<bool>(glist->gl_isgraph);
         hideNameAndArgs = static_cast<bool>(glist->gl_hidetext);
         xRange = Array<var> { var(glist->gl_x1), var(glist->gl_x2) };
@@ -126,9 +126,9 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
 
-        auto* graph = static_cast<_glist*>(ptr);
+        auto* graph = ptr.get<_glist>();
         graph->gl_pixwidth = b.getWidth() - 1;
         graph->gl_pixheight = b.getHeight() - 1;
     }
@@ -177,7 +177,7 @@ public:
     void updateCanvas()
     {
         if (!canvas) {
-            canvas = std::make_unique<Canvas>(cnv->editor, subpatch, this, cnv->isPalette);
+            canvas = std::make_unique<Canvas>(cnv->editor, subpatch, this);
 
             // Make sure that the graph doesn't become the current canvas
             cnv->patch.setCurrent();
@@ -253,7 +253,7 @@ public:
         int isGraph = getValue<bool>(isGraphChild);
         int hideText = isGraph && getValue<bool>(hideNameAndArgs);
 
-        canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
+        canvas_setgraph(ptr.get<t_glist>(), isGraph + 2 * hideText, 0);
         repaint();
 
         MessageManager::callAsync([this, _this = SafePointer(this)]() {
@@ -261,7 +261,7 @@ public:
                 return;
 
             // Change from graph to subpatch
-            if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
+            if (!ptr.get<t_canvas>()->gl_isgraph) {
                 cnv->setSelected(object, false);
                 object->cnv->editor->sidebar->hideParameters();
                 object->setType(getText(), ptr);
@@ -274,7 +274,7 @@ public:
 
     void valueChanged(Value& v) override
     {
-        auto* glist = static_cast<t_canvas*>(ptr);
+        auto* glist = ptr.get<t_canvas>();
 
         if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
             checkGraphState();

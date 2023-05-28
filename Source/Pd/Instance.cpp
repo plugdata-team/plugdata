@@ -117,9 +117,8 @@ struct pd::Instance::internal {
 
 namespace pd {
 
-Instance::Instance(String const& symbol, CriticalSection const* lock)
+Instance::Instance(String const& symbol)
     : consoleHandler(this)
-    , audioLock(lock)
 {
     libpd_multi_init();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
@@ -148,7 +147,7 @@ void Instance::initialisePd(String& pdlua_version)
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
     set_instance_lock(
-        static_cast<void const*>(audioLock),
+        static_cast<void const*>(&audioLock),
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->enter();
         },
@@ -695,12 +694,12 @@ void Instance::lockAudioThread()
         return;
 
     numLocksHeld++;
-    audioLock->enter();
+    audioLock.enter();
 }
 
 bool Instance::tryLockAudioThread()
 {
-    if (audioLock->tryEnter()) {
+    if (audioLock.tryEnter()) {
         numLocksHeld++;
         return true;
     }
@@ -711,7 +710,7 @@ bool Instance::tryLockAudioThread()
 void Instance::unlockAudioThread()
 {
     numLocksHeld--;
-    audioLock->exit();
+    audioLock.exit();
 }
 
 void Instance::updateObjectImplementations()
