@@ -128,7 +128,7 @@ SplitView::SplitView(PluginEditor* parent)
         };
 
         tabbar.onTabChange = [this, i, &tabbar](int idx) {
-            splitFocusIndex = i;
+            splitFocusIndex = idx >= 0 ? i : 0;
 
             editor->updateCommandStatus();
 
@@ -257,9 +257,7 @@ void SplitView::closeEmptySplits()
         }
 
         setSplitEnabled(false);
-    } else if (!splits[0].getNumTabs()) {
     }
-
     if (splits[0].getCurrentTabIndex() < 0 && splits[0].getNumTabs()) {
         splits[0].setCurrentTabIndex(0);
     }
@@ -271,6 +269,8 @@ void SplitView::closeEmptySplits()
     if (splits[1].getCurrentTabIndex() < 0 && splits[1].getNumTabs()) {
         splits[1].setCurrentTabIndex(0);
     }
+    
+    
 }
 
 void SplitView::paintOverChildren(Graphics& g)
