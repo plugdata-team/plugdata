@@ -60,11 +60,7 @@ public:
             auto words = StringArray::fromTokens(noteEditor.getText(), " ", "\"");
             for (const auto& word : words) {
                 atoms.emplace_back();
-                if (word.containsOnly("0123456789e.-+") && word != "-") {
-                    SETFLOAT(&atoms.back(), word.getFloatValue());
-                } else {
-                    SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
-                }
+                SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
             }
 
             pd->lockAudioThread();
