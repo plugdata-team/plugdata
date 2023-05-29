@@ -86,7 +86,7 @@ jobs:
 
     - name: Build
       shell: bash
-      working-directory: ${{github.workspace}}\build
+      working-directory: ${{github.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Creating Installer
@@ -131,12 +131,12 @@ jobs:
       run: cmake -E make_directory ${{github.workspace}}/build
 
     - name: Configure CMake
-      working-directory: ${{github.workspace}}\build
+      working-directory: ${{github.workspace}}/build
       shell: bash
       run: cmake $GITHUB_WORKSPACE -G "Visual Studio 17 2022" -A Win32 -DENABLE_TESTING=0
 
     - name: Build
-      working-directory: ${{github.workspace}}\build
+      working-directory: ${{github.workspace}}/build
       shell: bash
       run: cmake --build . --config $BUILD_TYPE
 
