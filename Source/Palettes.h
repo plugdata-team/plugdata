@@ -17,7 +17,8 @@
 class DraggedPaletteItem : public Component {
     
 public:
-    std::function<void(Point<int>)> onMouseUp = [](Point<int>){};
+    std::function<void(Point<int>, bool)> onMouseUp = [](Point<int>, bool){};
+    std::function<void(Point<int>)> onMouseDrag = [](Point<int>){};
     
     DraggedPaletteItem(Component* targetItem) : target(targetItem)
     {
@@ -38,7 +39,8 @@ public:
     void mouseUp(const MouseEvent& e) override
     {
         isDragging = false;
-        onMouseUp(e.getScreenPosition());
+        
+        onMouseUp(e.getScreenPosition(), e.getDistanceFromDragStartY() > 10);
     }
     
 private:
@@ -58,6 +60,8 @@ private:
         }
         
         dragger.dragComponent(this, relativeEvent, nullptr);
+        
+        onMouseDrag(e.getScreenPosition());
     }
 
     bool isDragging = false;
@@ -69,14 +73,14 @@ private:
 class PaletteItem : public Component
 {
 public:
-    PaletteItem(PluginEditor* e, ValueTree itemTree) : editor(e)
+    PaletteItem(PluginEditor* e, ValueTree tree, int& dragPosition) : editor(e), paletteDragPosition(dragPosition), itemTree(tree)
     {
         paletteName = itemTree.getProperty("Name");
         palettePatch = itemTree.getProperty("Patch");
         
         nameLabel.setText(paletteName, dontSendNotification);
         nameLabel.setInterceptsMouseClicks(false, false);
-        nameLabel.onTextChange = [this, itemTree]() mutable {
+        nameLabel.onTextChange = [this]() mutable {
             paletteName = nameLabel.getText();
             itemTree.setProperty("Name", paletteName, nullptr);
         };
@@ -196,14 +200,37 @@ public:
         
         dragger = std::make_unique<DraggedPaletteItem>(this);
         
-        dragger->onMouseUp = [this](Point<int> screenPosition){
+        dragger->onMouseDrag = [this](Point<int> screenPosition){
+            auto* parent = getParentComponent();
+            
+            if(parent && parent->getScreenBounds().contains(screenPosition))
+            {
+                paletteDragPosition = parent->getLocalPoint(nullptr, screenPosition).y;
+                parent->repaint();
+            }
+            else {
+                paletteDragPosition = -1;
+                if(parent) parent->repaint();
+            }
+        };
+        
+        dragger->onMouseUp = [_this = SafePointer(this), this](Point<int> screenPosition, bool wasDragged){
+            
+            if(!_this) return;
             
             auto* cnv = editor->getCurrentCanvas();
             
             if(cnv && cnv->viewport && cnv->viewport->getScreenBounds().contains(screenPosition))
             {
                 auto position = cnv->getLocalPoint(nullptr, screenPosition) + Point<int>(Object::margin, Object::margin) - cnv->canvasOrigin;
-                auto result = palettePatch + StringArray{"\n#X restore ", String(position.x), String(position.y), paletteName}.joinIntoString(" ") + ";";
+                
+                String result;
+                if(palettePatch.startsWith("#N canvas")) {
+                    result = pd::Patch::translatePatchAsString(palettePatch, position);
+                }
+                else {
+                    result = "#N canvas 827 239 527 327 12;\n" + palettePatch + StringArray{"\n#X restore ", String(position.x), String(position.y), paletteName}.joinIntoString(" ") + ";";
+                }
                 
                 auto* ptr = cnv->patch.getPointer();
                 
@@ -213,13 +240,44 @@ public:
                 
                 cnv->synchronise();
             }
-            else
+            else if(wasDragged)
             {
-                // TODO: reorder!
+                auto parentTree = itemTree.getParent();
+                
+                if(!parentTree.isValid()) return;
+                
+                int oldPosition = parentTree.indexOf(itemTree);
+                int newPosition = (paletteDragPosition / 40) - 1;
+                
+                MessageManager::callAsync([parentTree, oldPosition, newPosition]() mutable {
+                    parentTree.moveChild(oldPosition, newPosition, nullptr);
+                });
+                
             }
 
+            paletteDragPosition = -1;
+            if(auto* parent = getParentComponent()) parent->repaint();
+            
             dragger.reset(nullptr);
         };
+    }
+    
+    void mouseDown(const MouseEvent& e) override
+    {
+        if(e.mods.isRightButtonDown())
+        {
+            PopupMenu menu;
+            menu.addItem("Delete item", [this](){
+                auto parentTree = itemTree.getParent();
+                
+                if(!parentTree.isValid()) return;
+
+                MessageManager::callAsync([parentTree, itemTree = this->itemTree]() mutable {
+                    parentTree.removeChild(itemTree, nullptr);
+                });
+            });
+            menu.showMenuAsync(PopupMenu::Options());
+        }
     }
     
     void mouseUp(const MouseEvent& e) override
@@ -234,7 +292,7 @@ public:
     {
         std::pair<std::vector<bool>, std::vector<bool>> result;
         auto& [inlets, outlets] = result;
-        int canvasDepth = -1;
+        int canvasDepth = patchAsString.startsWith("#N canvas") ? -1 : 0;
 
         auto isObject = [](StringArray& tokens) {
             return tokens[0] == "#X" && tokens[1] != "connect" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
@@ -279,22 +337,23 @@ public:
         
         return result;
     }
-
+    
+    ValueTree itemTree;
+    int& paletteDragPosition;
     Label nameLabel;
     PluginEditor* editor;
     std::unique_ptr<DraggedPaletteItem> dragger;
     String paletteName, palettePatch;
 };
 
-class PaletteComponent : public Component
+class PaletteComponent : public Component, public ValueTree::Listener
 {
 public:
-    PaletteComponent(PluginEditor* editor, ValueTree tree)
+    PaletteComponent(PluginEditor* e, ValueTree tree) : editor(e), paletteTree(tree)
     {
-        for(auto item : tree)
-        {
-            itemHolder.addAndMakeVisible(items.add(new PaletteItem(editor, item)));
-        }
+        updateItems();
+        
+        paletteTree.addListener(this);
         
         nameLabel.setText(tree.getProperty("Name"), dontSendNotification);
         nameLabel.setEditable(true);
@@ -317,12 +376,25 @@ public:
         
         viewport.setViewedComponent(&itemHolder, false);
         addAndMakeVisible(viewport);
+        
+        deleteButton.onClick = [this, tree]() mutable{
+            auto parentTree = tree.getParent();
+            
+            if(!parentTree.isValid()) return;
+            
+            parentTree.removeChild(tree, nullptr);
+        };
+        
+        deleteButton.getProperties().set("Style", "SmallIcon");
+        addAndMakeVisible(deleteButton);
     }
     
     void resized() override
     {
         viewport.setBounds(getLocalBounds().withTrimmedTop(32));
         nameLabel.setBounds(getLocalBounds().removeFromTop(32));
+        
+        deleteButton.setBounds(getWidth() - 30, 2, 28, 28);
         
         auto itemsBounds = getLocalBounds();
         auto height = 40;
@@ -345,8 +417,81 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         //g.drawHorizontalLine(-1.0f, 0.0f, getWidth());
         g.drawLine(0, 30.0f, getWidth(), 30.0f);
+               
+        if(isPositiveAndBelow(dragTargetPosition, getHeight()))
+        {
+            int y = ((dragTargetPosition / 40) + 1) * 40 - 8;
+            g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
+            g.drawLine(8.0f, y, getWidth() - 16.0f, y, 2.0f);
+        }
+    }
+    
+    void updateItems()
+    {
+        items.clear();
+        
+        for(auto item : paletteTree)
+        {
+            itemHolder.addAndMakeVisible(items.add(new PaletteItem(editor, item, dragTargetPosition)));
+        }
+        
+        resized();
+    }
+    
+    void mouseDown(const MouseEvent& e) override
+    {
+        if(e.mods.isRightButtonDown())
+        {
+            PopupMenu menu;
+            menu.addItem("Paste", [this](){
+                
+                auto clipboardText = SystemClipboard::getTextFromClipboard();
+                ValueTree itemTree("Item");
+                
+                String name;
+                if(clipboardText.startsWith("#N canvas"))
+                {
+                    auto lines = StringArray::fromLines(clipboardText);
+                    for(int i = lines.size() - 1; i >= 0; i--)
+                    {
+                        if(lines[i].startsWith("#X restore"))
+                        {
+                            auto tokens = StringArray::fromTokens(lines[i], true);
+                            name = tokens[4].trimCharactersAtEnd(";");
+                        }
+                    }
+                }
+                
+                itemTree.setProperty("Name", name, nullptr);
+                itemTree.setProperty("Patch", clipboardText, nullptr);
+                paletteTree.appendChild(itemTree, nullptr);
+            });
+            
+            menu.showMenuAsync(PopupMenu::Options());
+        }
     }
 
+    void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override
+    {
+        updateItems();
+    }
+
+    void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override
+    {
+        updateItems();
+    }
+        
+    void valueTreeChildOrderChanged (ValueTree&, int, int) override
+    {
+        updateItems();
+    }
+    
+    int dragTargetPosition = -1;
+    TextButton deleteButton = TextButton(Icons::Trash);
+
+    PluginEditor* editor;
+    ValueTree paletteTree;
+    
     Component itemHolder;
     Viewport viewport;
     Label nameLabel;
@@ -378,9 +523,12 @@ public:
 
     void paint(Graphics& g) override
     {
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
+        
         if (getToggleState()) {
             g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
-            g.fillRect(getLocalBounds().removeFromRight(4));
+            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
         }
 
         g.saveState();
@@ -442,7 +590,7 @@ public:
         addButton.onClick = [this, e]() {
             PopupMenu menu;
             menu.addItem(1, "New palette");
-            menu.addItem(2, "New palette from clipboard");
+            //menu.addItem(2, "New palette from clipboard");
 
             PopupMenu defaultPalettesMenu;
 
@@ -650,7 +798,6 @@ private:
 
     void savePalettes()
     {
-        //view->savePalette();
         palettesFile.replaceWithText(palettesTree.toXmlString());
     }
 
@@ -666,7 +813,7 @@ private:
 
         for (auto palette : palettesTree) {
             auto name = palette.getProperty("Name").toString();
-            auto button = paletteSelectors.add(new PaletteSelector(name));
+            auto* button = paletteSelectors.add(new PaletteSelector(name));
             button->onClick = [this, name, button]() {
                 if (draggedTab == button)
                     return;
@@ -688,7 +835,10 @@ private:
         }
 
         if (isPositiveAndBelow(lastIdx, paletteSelectors.size())) {
-            paletteSelectors[lastIdx]->setToggleState(true, dontSendNotification);
+            if(!paletteSelectors[lastIdx]->getToggleState())
+            {
+                paletteSelectors[lastIdx]->triggerClick();
+            }
         } else if (view) {
             if (!paletteSelectors.size()) {
                 showPalette(ValueTree());
@@ -699,8 +849,7 @@ private:
 
         resized();
     }
-        
-    // When a property in our pkginfo changes, save it immediately
+    
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override
     {
         savePalettes();
@@ -760,9 +909,8 @@ private:
 
     OwnedArray<PaletteSelector> paletteSelectors;
 
-    static inline const String placeholderPatch = "#N canvas 827 239 527 327 12;\n"
-                                                  "#X obj 72 264 outlet~;\n"
-                                                  "#X obj 72 156 inlet;\n";
+    static inline const String placeholderPatch =  "#X obj 72 264 outlet~;\n"
+                                                   "#X obj 72 156 inlet;\n";
 
 
     std::map<String, std::map<String, String>> defaultPalettes = {
