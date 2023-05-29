@@ -16,8 +16,8 @@ extern "C"
 {
 #endif
 
-void increment_pd_refcount(t_pd* ptr);
-int decrement_pd_refcount(t_pd* ptr);
+extern void increment_pd_refcount(t_pd* ptr);
+extern int decrement_pd_refcount(t_pd* ptr);
 
 #ifdef __cplusplus
 }
