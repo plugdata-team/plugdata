@@ -176,6 +176,7 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/x_libpd_multi.c
     ${LIBPD_PATH}/x_libpd_multi.h
     ${LIBPD_PATH}/x_libpd_ofelia.cpp
+    ${LIBPD_PATH}/x_libpd_refcounter.cpp
 )
 
 include_directories(${LIBPD_PATH})
