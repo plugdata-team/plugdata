@@ -68,7 +68,7 @@ jobs:
         files: plugdata-macOS-Universal
 
   windows-64-build:
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v3
       with:
@@ -117,7 +117,7 @@ jobs:
         files: plugdata-Win64
 
   windows-32-build:
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     steps:
     - uses: actions/checkout@v3
