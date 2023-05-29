@@ -80,12 +80,12 @@ jobs:
 
     - name: Configure CMake
       shell: bash
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}\build
       run: cmake $GITHUB_WORKSPACE -G "Visual Studio 16 2019" -A x64 -DENABLE_TESTING=0
 
     - name: Build
       shell: bash
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}\build
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Creating Installer
@@ -130,12 +130,12 @@ jobs:
 
     - name: Configure CMake
       shell: cmd
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}\build
       run: cmake $GITHUB_WORKSPACE -G "Visual Studio 16 2019" -A Win32 -DENABLE_TESTING=0
 
     - name: Build
       shell: cmd
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}\build
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Creating Installer
