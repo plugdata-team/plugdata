@@ -38,7 +38,11 @@ public:
         showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
         showPalettesValue.addListener(this);
         otherProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
-        
+
+        showAllAudioDeviceValues.referTo(settingsFile->getPropertyAsValue("show_all_audio_device_rates"));
+        showAllAudioDeviceValues.addListener(this);
+        otherProperties.add(new PropertiesPanel::BoolComponent("Show all audio device rates", showAllAudioDeviceValues, { "No", "Yes" }));
+
         autoPatchingValue.referTo(settingsFile->getPropertyAsValue("autoconnect"));
         otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
         
@@ -84,6 +88,7 @@ public:
         
     Value showPalettesValue;
     Value autoPatchingValue;
+    Value showAllAudioDeviceValues;
 
     PropertiesPanel propertiesPanel;
 };

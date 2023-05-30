@@ -45,33 +45,49 @@ void VolumeSlider::paint(Graphics& g)
 }
 
 class LevelMeter : public Component
-    , public StatusbarSource::Listener {
+    , public StatusbarSource::Listener 
+    , public MultiTimer {
     float audioLevel[2] = { 0.0f, 0.0f };
-    float peekLevel[2] = { 0.0f, 0.0f };
+    float peakLevel[2] = { 0.0f, 0.0f };
 
     int numChannels = 2;
 
     bool clipping[2] = { false, false };
 
+    bool peakBarsFade[2] = { true, true };
+
+    float fadeFactor = 0.9f;
+
 public:
     LevelMeter() = default;
 
-    void audioLevelChanged(float level[2], float peak[2]) override
+    void audioLevelChanged(Array<float> peak) override
     {
-        bool hasChanged = false;
         for (int i = 0; i < 2; i++) {
-            if (audioLevel[i] != level[i] || peekLevel[i] != peak[i]) {
-                hasChanged = true;
-                audioLevel[i] = level[i];
-                peekLevel[i] = peak[i];
-                if (level[i] >= 1.0f)
+            audioLevel[i] *= fadeFactor;
+            if (peakBarsFade[i])
+                peakLevel[i] *= fadeFactor;
+
+            if (peak[i] > audioLevel[i]) {
+                audioLevel[i] = peak[i];
+                if (peak[i] >= 1.0f)
                     clipping[i] = true;
                 else
                     clipping[i] = false;
             }
+            if (peak[i] > peakLevel[i]) {
+                peakLevel[i] = peak[i];
+                peakBarsFade[i] = false;
+                startTimer(i, 1700);
+            }
         }
-        if (isShowing() && hasChanged)
+        if (isShowing())
             repaint();
+    }
+
+    void timerCallback(int timerID) override
+    {
+        peakBarsFade[timerID] = true;
     }
 
     void paint(Graphics& g) override
@@ -95,9 +111,11 @@ public:
         g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth, bgWidth, bgHeight, bgHeight * 0.5f);
 
         for (int ch = 0; ch < numChannels; ch++) {
+            float audioLevelMaped = pow(audioLevel[ch], 0.5f);
+            float peakLevelMapped = pow(peakLevel[ch], 0.5f);
             auto barYPos = outerBorderWidth + ((ch + 1) * (bgHeight / 3.0f)) - halfBarHeight;
-            auto barLength = jmin(audioLevel[ch] * barWidth, barWidth);
-            auto peekPos = jmin(peekLevel[ch] * barWidth, barWidth);
+            auto barLength = jmin(audioLevelMaped * barWidth, barWidth);
+            auto peekPos = jmin(peakLevelMapped * barWidth, barWidth);
 
             if (peekPos > 1) {
                 g.setColour(clipping[ch] ? Colours::red : findColour(PlugDataColour::levelMeterActiveColourId));
@@ -396,7 +414,7 @@ void Statusbar::audioProcessedChanged(bool audioProcessed)
 StatusbarSource::StatusbarSource()
     : numChannels(0)
 {
-    startTimerHz(30);
+    startTimerHz(60);
 }
 
 static bool hasRealEvents(MidiBuffer& buffer)
@@ -412,49 +430,18 @@ void StatusbarSource::setSampleRate(double const newSampleRate)
     sampleRate = static_cast<int>(newSampleRate);
 }
 
-void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
+void StatusbarSource::setBufferSize(int bufferSize)
+{
+    this->bufferSize = bufferSize;
+}
+
+void StatusbarSource::processBlock(MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
 {
     if (channels == 1) {
         level[1] = 0;
     } else if (channels == 0) {
         level[0] = 0;
         level[1] = 0;
-    }
-
-    int delay = sampleRate * 1.7;
-
-    for (int ch = 0; ch < 2; ch++) {
-        auto localLevel = level[ch].load();
-        auto localPeakHold = peakHold[ch].load();
-        float peak = buffer.getMagnitude(ch, 0, buffer.getNumSamples());
-
-        for (int n = 0; n < buffer.getNumSamples(); n++) {
-            float const decayFactor = 0.99996f;
-
-            if (peak > localLevel) {
-                localLevel = peak;
-            }
-
-            if (peak > localPeakHold) {
-                localPeakHold = peak;
-                peakHoldDelay[ch] = delay;
-            }
-
-            if (localLevel > 0.001f) {
-                localLevel *= decayFactor;
-            } else {
-                localLevel = 0;
-            }
-
-            if (peakHoldDelay[ch] >= 0) {
-                peakHoldDelay[ch]--;
-            } else {
-                localPeakHold *= decayFactor;
-            }
-        }
-
-        level[ch] = localLevel;
-        peakHold[ch] = localPeakHold;
     }
 
     auto nowInMs = Time::getCurrentTime().getMillisecondCounter();
@@ -472,6 +459,7 @@ void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer&
 void StatusbarSource::prepareToPlay(int nChannels)
 {
     numChannels = nChannels;
+    peakBuffer.reset(sampleRate, bufferSize);
 }
 
 void StatusbarSource::timerCallback()
@@ -498,11 +486,10 @@ void StatusbarSource::timerCallback()
             listener->audioProcessedChanged(hasProcessedAudio);
     }
 
-    float currentLevel[2] = { level[0].load(), level[1].load() };
-    float currentPeak[2] = { peakHold[0].load(), peakHold[1].load() };
+    auto peak = peakBuffer.getPeak();
+
     for (auto* listener : listeners) {
-        listener->audioLevelChanged(currentLevel, currentPeak);
-        listener->timerCallback();
+        listener->audioLevelChanged(peak);
     }
 }
 

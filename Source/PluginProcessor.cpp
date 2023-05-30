@@ -18,6 +18,7 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/PluginParameter.h"
 #include "Utility/OSUtils.h"
+#include "Utility/AudioSampleRingBuffer.h"
 
 #include "Presets.h"
 #include "Canvas.h"
@@ -438,8 +439,9 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     startDSP();
 
+    statusbarSource->setSampleRate(sampleRate);
+    statusbarSource->setBufferSize(samplesPerBlock);
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
-    statusbarSource->setSampleRate(AudioProcessor::getSampleRate());
     limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(getTotalNumOutputChannels()) });
     // limiter.setThreshold(float newThreshold)
 
@@ -544,7 +546,8 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     smoothedGain.setTargetValue(mappedTargetGain);
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
-    statusbarSource->processBlock(buffer, midiBufferCopy, midiMessages, totalNumOutputChannels);
+    statusbarSource->processBlock(midiBufferCopy, midiMessages, totalNumOutputChannels);
+    statusbarSource->peakBuffer.write(buffer);
 
     if (ProjectInfo::isStandalone) {
         for (auto* midiOutput : midiOutputs) {
