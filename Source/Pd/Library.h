@@ -11,6 +11,7 @@
 
 namespace pd {
 
+class Instance;
 class Library : public FileSystemWatcher::Listener {
 
 public:
