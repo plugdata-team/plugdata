@@ -28,6 +28,22 @@ struct t_fake_gatom {
     t_symbol* a_expanded_to;          /* a_symto after $0, $1, ...  expansion */
 };
 
+struct t_fake_garray
+{
+    t_gobj x_gobj;
+    t_scalar *x_scalar;     /* scalar "containing" the array */
+    t_glist *x_glist;       /* containing glist */
+    t_symbol *x_name;       /* unexpanded name (possibly with leading '$') */
+    t_symbol *x_realname;   /* expanded name (symbol we're bound to) */
+    unsigned int  x_usedindsp:1;    /* 1 if some DSP routine is using this */
+    unsigned int  x_saveit:1;       /* we should save this with parent */
+    unsigned int  x_savesize:1;     /* save size too */
+    unsigned int  x_listviewing:1;  /* list view window is open */
+    unsigned int  x_hidename:1;     /* don't print name above graph */
+    unsigned int  x_edit:1;         /* we can edit the array */
+};
+
+
 // [else/button]
 struct t_fake_button {
     t_object x_obj;
