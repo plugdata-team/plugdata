@@ -24,6 +24,7 @@ extern "C" {
 
 #include <utility>
 #include "Library.h"
+#include "Instance.h"
 
 struct _canvasenvironment {
     t_symbol* ce_dir;    /* directory patch lives in */
