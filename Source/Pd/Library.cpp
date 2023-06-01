@@ -98,7 +98,11 @@ Library::Library()
     helpPaths = { appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("5.reference"), appDataDir.getChildFile("Library").getChildFile("Documentation"),
         appDataDir.getChildFile("Deken") };
 
-    updateLibrary();
+    // TODO: This is unfortunately necessary to make Windows LV2 turtle dump work
+    // Let's hope its not harmful
+    MessageManager::callAsync([this](){
+        updateLibrary();
+    });
 }
 
 StringArray Library::autocomplete(String const& query) const
