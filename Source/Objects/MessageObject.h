@@ -190,11 +190,7 @@ public:
 
             object->updateBounds(); // Recalculate bounds
 
-            cnv->pd->lockAudioThread();
-
             setPdBounds(object->getObjectBounds());
-
-            cnv->pd->unlockAudioThread();
 
             setSymbol(objectText);
 

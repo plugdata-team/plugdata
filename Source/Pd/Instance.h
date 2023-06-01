@@ -134,7 +134,7 @@ class Instance {
     };
 
     struct dmessage {
-        void* object;
+        WeakReference object;
         String destination;
         String selector;
         std::vector<pd::Atom> list;

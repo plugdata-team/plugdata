@@ -1065,8 +1065,10 @@ void Canvas::removeSelection()
     // Remove connection afterwards and make sure they aren't already deleted
     for (auto* con : connections) {
         if (con->isSelected()) {
-            if (!(objects.contains(con->outobj->getPointer()) || objects.contains(con->inobj->getPointer()))) {
-                patch.removeConnection(con->outobj->getPointer(), con->outIdx, con->inobj->getPointer(), con->inIdx, con->getPathState());
+            auto* outPtr = con->outobj->getPointer();
+            auto* inPtr = con->inobj->getPointer();
+            if (!outPtr || !inPtr || !(objects.contains(outPtr) || objects.contains(inPtr))) {
+                patch.removeConnection(outPtr, con->outIdx, inPtr, con->inIdx, con->getPathState());
             }
         }
     }

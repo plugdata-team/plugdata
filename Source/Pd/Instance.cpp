@@ -469,7 +469,7 @@ void Instance::processSend(dmessage mess)
 {
     setThis();
 
-    if (mess.object) {
+    if (auto obj = mess.object.get<t_pd>()) {
         if (mess.selector == "list") {
             auto* argv = static_cast<t_atom*>(m_atoms);
             for (size_t i = 0; i < mess.list.size(); ++i) {
@@ -480,19 +480,13 @@ void Instance::processSend(dmessage mess)
                 } else
                     SETFLOAT(argv + i, 0.0);
             }
-            lockAudioThread();
-            pd_list(static_cast<t_pd*>(mess.object), generateSymbol("list"), static_cast<int>(mess.list.size()), argv);
-            unlockAudioThread();
+            pd_list(obj.get(), generateSymbol("list"), static_cast<int>(mess.list.size()), argv);
         } else if (mess.selector == "float" && !mess.list.empty() && mess.list[0].isFloat()) {
-            lockAudioThread();
-            pd_float(static_cast<t_pd*>(mess.object), mess.list[0].getFloat());
-            unlockAudioThread();
+            pd_float(obj.get(), mess.list[0].getFloat());
         } else if (mess.selector == "symbol" && !mess.list.empty() && mess.list[0].isSymbol()) {
-            lockAudioThread();
-            pd_symbol(static_cast<t_pd*>(mess.object), generateSymbol(mess.list[0].getSymbol()));
-            unlockAudioThread();
+            pd_symbol(obj.get(), generateSymbol(mess.list[0].getSymbol()));
         } else {
-            sendTypedMessage(static_cast<t_pd*>(mess.object), mess.selector.toRawUTF8(), mess.list);
+            sendTypedMessage(obj.get(), mess.selector.toRawUTF8(), mess.list);
         }
     } else {
         sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);

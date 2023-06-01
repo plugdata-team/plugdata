@@ -158,15 +158,17 @@ public:
                     auto x = oldBounds.getX() - widthDiff;
                     auto y = oldBounds.getY();
 
-                    helper->pd->lockAudioThread();
-                    libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
-                    helper->pd->unlockAudioThread();
+                    if(auto atom = helper->ptr.get<t_gobj>())
+                    {
+                        libpd_moveobj(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                    }
                 }
 
                 // Set new width
-                helper->pd->lockAudioThread();
-                atom->a_text.te_width = newCharWidth;
-                helper->pd->unlockAudioThread();
+                if(auto atom = helper->ptr.get<t_fake_gatom>())
+                {
+                    atom->a_text.te_width = newCharWidth;
+                }
                 
                 auto newHeight = newBounds.getHeight() - Object::doubleMargin;
                 auto heightIdx = std::clamp<int>(std::upper_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;

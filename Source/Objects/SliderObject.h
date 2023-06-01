@@ -428,16 +428,12 @@ public:
 
     void setLogScale(bool log)
     {
-        pd->lockAudioThread();
-
         auto* sym = pd->generateSymbol(log ? "log" : "lin");
         if(auto obj = ptr.get<t_pd>()) {
             pd_typedmess(obj.get(), sym, 0, nullptr);
         }
         
         update();
-
-        pd->unlockAudioThread();
     }
 
     void setValue(float v)
