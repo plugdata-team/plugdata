@@ -9,6 +9,7 @@
 
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
+#include "Utility/AudioSampleRingBuffer.h"
 
 class Canvas;
 class LevelMeter;
@@ -35,15 +36,17 @@ public:
         virtual void midiReceivedChanged(bool midiReceived) {};
         virtual void midiSentChanged(bool midiSent) {};
         virtual void audioProcessedChanged(bool audioProcessed) {};
-        virtual void audioLevelChanged(float newLevel[2], float newPeak[2]) {};
+        virtual void audioLevelChanged(Array<float> peak) {};
         virtual void timerCallback() {};
     };
 
     StatusbarSource();
 
-    void processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
+    void processBlock(MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
 
     void setSampleRate(double sampleRate);
+
+    void setBufferSize(int bufferSize);
 
     void prepareToPlay(int numChannels);
 
@@ -51,6 +54,8 @@ public:
 
     void addListener(Listener* l);
     void removeListener(Listener* l);
+
+    AudioSampleRingBuffer peakBuffer;
 
 private:
     std::atomic<int> lastMidiReceivedTime = 0;
@@ -62,6 +67,7 @@ private:
     int peakHoldDelay[2] = { 0 };
 
     int numChannels;
+    int bufferSize;
 
     double sampleRate = 44100;
 

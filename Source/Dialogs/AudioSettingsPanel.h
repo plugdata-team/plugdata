@@ -153,7 +153,8 @@ public:
 };
 
 class StandaloneAudioSettings : public Component
-    , private ChangeListener {
+    , private ChangeListener 
+    , public Value::Listener {
 
 public:
     explicit StandaloneAudioSettings(AudioDeviceManager& audioDeviceManager)
@@ -171,6 +172,9 @@ public:
         showAllInputChannels = setup.inputChannels.getHighestBit() > 8;
         showAllOutputChannels = setup.outputChannels.getHighestBit() > 8;
 
+        showAllAudioDeviceValues.addListener(this);
+        showAllAudioDeviceValues.referTo(SettingsFile::getInstance()->getPropertyAsValue("show_all_audio_device_rates"));
+
         addAndMakeVisible(inputLevelMeter);
         addAndMakeVisible(outputLevelMeter);
 
@@ -185,6 +189,12 @@ public:
     }
 
 private:
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(showAllAudioDeviceValues))
+            updateDevices();
+    }
+
     void updateDevices()
     {
         OwnedArray<AudioIODeviceType> const& types = deviceManager.getAvailableDeviceTypes();
@@ -222,17 +232,31 @@ private:
 
             StringArray sampleRateStrings;
             for (auto& rate : sampleRates) {
-                sampleRateStrings.add(String(rate));
+                auto rateAsString = String(rate);
+                if (::getValue<bool>(showAllAudioDeviceValues)) {
+                    sampleRateStrings.add(rateAsString);
+                } else if (standardSampleRates.contains(rateAsString)) {
+                    sampleRateStrings.add(rateAsString);
+                }
+            }
+
+            // if the audio device has no sample rates that are standard rates, list all rates (highly unlikely)
+            if (sampleRateStrings.size() == 0) {
+                for (auto& rate : sampleRates) {
+                    sampleRateStrings.add(String(rate));
+                }
             }
 
             StringArray bufferSizeStrings;
             for (auto& size : bufferSizes) {
-                if ((size & (size - 1)) == 0) {
-                    // buffer size is a power of 2
-                    bufferSizeStrings.add(String(size));
+                auto sizeAsString = String(size);
+                if (::getValue<bool>(showAllAudioDeviceValues)) {
+                    bufferSizeStrings.add(sizeAsString);
+                } else if (standardBufferSizes.contains(sizeAsString)) {
+                    bufferSizeStrings.add(sizeAsString);
                 }
             }
-            // if the audio device has no buffer sizes that are powers of 2, list all the sizes (highly unlikely)
+            // if the audio device has no buffer sizes that are powers of 2 (standard sizes), list all the sizes (highly unlikely)
             if (bufferSizeStrings.size() == 0) {
                 for (auto& size : bufferSizes) {
                     bufferSizeStrings.add(String(size));
@@ -399,6 +423,11 @@ private:
 
     bool showAllInputChannels = false;
     bool showAllOutputChannels = false;
+
+    Value showAllAudioDeviceValues;
+
+    StringArray standardBufferSizes = { "16", "32", "64", "128", "256", "512", "1024", "2048" };
+    StringArray standardSampleRates = { "44100", "48000", "88200", "96000", "176400", "192000" };
 };
 
 class DAWAudioSettings : public Component
