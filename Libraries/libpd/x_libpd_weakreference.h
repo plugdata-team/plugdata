@@ -13,6 +13,7 @@
 
 #include <functional>
 #include <vector>
+#include <atomic>
 
 extern "C"
 {
