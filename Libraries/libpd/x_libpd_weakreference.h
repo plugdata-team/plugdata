@@ -5,12 +5,14 @@
  */
 
 #pragma once
-#include <functional>
-#include <unordered_map>
+
 
 #include <m_pd.h>
 
 #ifdef __cplusplus
+
+#include <functional>
+#include <vector>
 
 extern "C"
 {
