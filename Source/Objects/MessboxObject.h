@@ -57,8 +57,7 @@ public:
 
     void update() override
     {
-        if(auto messbox = ptr.get<t_fake_messbox>())
-        {
+        if (auto messbox = ptr.get<t_fake_messbox>()) {
             fontSize = messbox->x_font_size;
 
             primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
@@ -70,11 +69,11 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto messbox = ptr.get<t_fake_messbox>())
-        {
+        if (auto messbox = ptr.get<t_fake_messbox>()) {
             auto* patch = object->cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, messbox.get(), &x, &y, &w, &h);
             return { x, y, w, h };
@@ -85,13 +84,13 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto messbox = ptr.get<t_fake_messbox>())
-        {
+        if (auto messbox = ptr.get<t_fake_messbox>()) {
             auto* patch = object->cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, messbox.cast<t_gobj>(), b.getX(), b.getY());
-            
+
             messbox->x_width = b.getWidth();
             messbox->x_height = b.getHeight();
         }
@@ -204,7 +203,7 @@ public:
         auto words = StringArray::fromTokens(symbols.trim(), true);
         for (auto const& word : words) {
             atoms.emplace_back();
-            //check if string is a valid number
+            // check if string is a valid number
             auto charptr = word.getCharPointer();
             auto ptr = charptr;
             auto value = CharacterFunctions::readDoubleValue(ptr);
@@ -216,7 +215,7 @@ public:
         }
 
         if (atoms.size()) {
-            if(auto messObj = ptr.get<t_object>()) {
+            if (auto messObj = ptr.get<t_object>()) {
                 outlet_anything(messObj->ob_outlet, pd->generateSymbol("list"), atoms.size(), atoms.data());
             }
         }
@@ -305,29 +304,34 @@ public:
             auto col = Colour::fromString(primaryColour.toString());
             editor.applyColourToAllText(col);
 
-            if(auto messbox = ptr.get<t_fake_messbox>()) colourToHexArray(col, messbox->x_fg);
+            if (auto messbox = ptr.get<t_fake_messbox>())
+                colourToHexArray(col, messbox->x_fg);
             repaint();
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
-            if(auto messbox = ptr.get<t_fake_messbox>()) colourToHexArray(col, messbox->x_bg);
+            if (auto messbox = ptr.get<t_fake_messbox>())
+                colourToHexArray(col, messbox->x_bg);
             repaint();
         }
         if (value.refersToSameSourceAs(fontSize)) {
             auto size = getValue<int>(fontSize);
             editor.applyFontToAllText(editor.getFont().withHeight(size));
-            if(auto messbox = ptr.get<t_fake_messbox>()) messbox->x_font_size = size;
+            if (auto messbox = ptr.get<t_fake_messbox>())
+                messbox->x_font_size = size;
         }
         if (value.refersToSameSourceAs(bold)) {
             auto size = getValue<int>(fontSize);
             if (getValue<bool>(bold)) {
                 auto boldFont = Fonts::getBoldFont();
                 editor.applyFontToAllText(boldFont.withHeight(size));
-                if(auto messbox = ptr.get<t_fake_messbox>()) messbox->x_font_weight = pd->generateSymbol("normal");
+                if (auto messbox = ptr.get<t_fake_messbox>())
+                    messbox->x_font_weight = pd->generateSymbol("normal");
             } else {
                 auto defaultFont = Fonts::getCurrentFont();
                 editor.applyFontToAllText(defaultFont.withHeight(size));
-                if(auto messbox = ptr.get<t_fake_messbox>()) messbox->x_font_weight = pd->generateSymbol("bold");
+                if (auto messbox = ptr.get<t_fake_messbox>())
+                    messbox->x_font_weight = pd->generateSymbol("bold");
             }
         }
     }

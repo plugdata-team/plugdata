@@ -49,12 +49,11 @@ public:
 
         gui->getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
 
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             labelX = iemgui->x_ldx;
             labelY = iemgui->x_ldy;
         }
-        
+
         labelHeight = getFontHeight();
         labelText = getExpandedLabelText();
 
@@ -244,27 +243,24 @@ public:
 
     void setInit(bool init)
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_isa.x_loadinit = init;
         }
     }
 
     bool getInit()
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             return iemgui->x_isa.x_loadinit;
         }
-        
+
         return false;
     }
 
     Rectangle<int> getPdBounds()
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
-            return {iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w + 1, iemgui->x_h + 1};
+        if (auto iemgui = ptr.get<t_iemgui>()) {
+            return { iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w + 1, iemgui->x_h + 1 };
         }
 
         return {};
@@ -272,11 +268,10 @@ public:
 
     void setPdBounds(Rectangle<int> const b)
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_obj.te_xpix = b.getX();
             iemgui->x_obj.te_ypix = b.getY();
-            
+
             iemgui->x_w = b.getWidth() - 1;
             iemgui->x_h = b.getHeight() - 1;
         }
@@ -313,16 +308,15 @@ public:
     {
         auto objectBounds = object->getBounds().reduced(Object::margin);
 
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
             if (sym) {
                 int fontHeight = getFontHeight();
                 int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
-                
+
                 int const posx = objectBounds.getX() + iemgui->x_ldx + 4;
                 int const posy = objectBounds.getY() + iemgui->x_ldy;
-                
+
                 return { posx, posy, labelLength, fontHeight };
             }
         }
@@ -333,12 +327,11 @@ public:
     String getSendSymbol() const
     {
         pd->setThis();
-        
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             t_symbol* srlsym[3];
             iemgui_all_sym2dollararg(iemgui.get(), srlsym);
-            
+
             if (srl_is_valid(srlsym[0])) {
                 return String::fromUTF8(iemgui->x_snd_unexpanded->s_name);
             }
@@ -351,11 +344,10 @@ public:
     {
         pd->setThis();
 
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             t_symbol* srlsym[3];
             iemgui_all_sym2dollararg(iemgui.get(), srlsym);
-            
+
             if (srl_is_valid(srlsym[1])) {
                 return String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
             }
@@ -366,28 +358,25 @@ public:
 
     bool hasSendSymbol() const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             return iemgui->x_fsf.x_snd_able;
         }
-        
+
         return false;
     }
 
     bool hasReceiveSymbol() const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             return iemgui->x_fsf.x_rcv_able;
         }
-        
+
         return false;
     }
 
     void setSendSymbol(String const& symbol) const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             auto* sym = symbol.isEmpty() ? pd->generateSymbol("empty") : pd->generateSymbol(symbol);
             iemgui_send(iemgui.get(), iemgui.get(), sym);
         }
@@ -395,8 +384,7 @@ public:
 
     void setReceiveSymbol(String const& symbol) const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             auto* sym = symbol.isEmpty() ? pd->generateSymbol("empty") : pd->generateSymbol(symbol);
             iemgui_receive(iemgui.get(), iemgui.get(), sym);
         }
@@ -404,38 +392,34 @@ public:
 
     Colour getBackgroundColour() const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             return Colour(static_cast<uint32>(libpd_iemgui_get_background_color(iemgui.get())));
         }
-        
+
         return Colour();
     }
 
     Colour getForegroundColour() const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             return Colour(static_cast<uint32>(libpd_iemgui_get_foreground_color(iemgui.get())));
         }
-        
+
         return Colour();
     }
 
     Colour getLabelColour() const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             return Colour(static_cast<uint32>(libpd_iemgui_get_label_color(iemgui.get())));
         }
-        
+
         return Colour();
     }
 
     void setBackgroundColour(Colour colour) const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             String colourStr = colour.toString();
             libpd_iemgui_set_background_color(iemgui.get(), colourStr.toRawUTF8());
         }
@@ -443,8 +427,7 @@ public:
 
     void setForegroundColour(Colour colour) const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             String colourStr = colour.toString();
             libpd_iemgui_set_foreground_color(iemgui.get(), colourStr.toRawUTF8());
         }
@@ -452,8 +435,7 @@ public:
 
     void setLabelColour(Colour colour) const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             String colourStr = colour.toString();
             libpd_iemgui_set_label_color(iemgui.get(), colourStr.toRawUTF8());
         }
@@ -461,26 +443,23 @@ public:
 
     int getFontHeight() const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             return iemgui->x_fontsize;
         }
-        
+
         return 14;
     }
 
     void setFontHeight(float newSize)
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_fontsize = newSize;
         }
     }
 
     String getExpandedLabelText() const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             t_symbol const* sym = iemgui->x_lab;
             if (sym) {
                 auto text = String::fromUTF8(sym->s_name);
@@ -495,8 +474,7 @@ public:
 
     String getLabelText() const
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             t_symbol const* sym = iemgui->x_lab_unexpanded;
             if (sym) {
                 auto text = String::fromUTF8(sym->s_name);
@@ -514,8 +492,7 @@ public:
         if (newText.isEmpty())
             newText = "empty";
 
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_lab_unexpanded = pd->generateSymbol(newText);
             iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
         }
@@ -523,8 +500,7 @@ public:
 
     void setLabelPosition(Point<int> position)
     {
-        if(auto iemgui = ptr.get<t_iemgui>())
-        {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_ldx = position.x;
             iemgui->x_ldy = position.y;
         }

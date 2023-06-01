@@ -42,7 +42,6 @@ void Library::updateLibrary()
     auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
     auto pathTree = settingsTree.getChildWithName("Paths");
 
-    
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
 
@@ -103,11 +102,10 @@ Library::Library(pd::Instance* instance)
 
     // TODO: This is unfortunately necessary to make Windows LV2 turtle dump work
     // Let's hope its not harmful
-    MessageManager::callAsync([this, instance](){
+    MessageManager::callAsync([this, instance]() {
         instance->setThis();
         updateLibrary();
     });
-    
 }
 
 StringArray Library::autocomplete(String const& query) const

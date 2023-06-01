@@ -144,8 +144,7 @@ public:
         steadyOnClick = steady;
         slider.setSliderSnapsToMousePosition(!steady);
 
-        if(auto obj = ptr.get<t_slider>())
-        {
+        if (auto obj = ptr.get<t_slider>()) {
             isVertical = obj->x_orientation;
             slider.setRangeFlipped(obj->x_min > obj->x_max);
         }
@@ -308,8 +307,7 @@ public:
 
     float getValue()
     {
-        if(auto slider = ptr.get<t_slider>())
-        {
+        if (auto slider = ptr.get<t_slider>()) {
             t_float fval;
             int rounded_val = (slider->x_gui.x_fsf.x_finemoved) ? slider->x_val : (slider->x_val / 100) * 100;
 
@@ -332,59 +330,59 @@ public:
 
     float getMinimum()
     {
-        if(auto slider = ptr.get<t_slider>()) {
+        if (auto slider = ptr.get<t_slider>()) {
             return slider->x_min;
         }
-        
+
         return 0.0f;
     }
 
     float getMaximum()
     {
-        if(auto slider = ptr.get<t_slider>()) {
+        if (auto slider = ptr.get<t_slider>()) {
             return slider->x_max;
         }
-        
+
         return 127.0f;
     }
 
     void setMinimum(float value)
     {
         float min, max;
-        if(auto slider = ptr.get<t_slider>()) {
+        if (auto slider = ptr.get<t_slider>()) {
             ptr.get<t_slider>()->x_min = value;
             min = slider->x_min;
             max = slider->x_max;
         }
-        
+
         slider.setRangeFlipped(min > max);
     }
 
     void setMaximum(float value)
     {
         float min, max;
-        if(auto slider = ptr.get<t_slider>()) {
+        if (auto slider = ptr.get<t_slider>()) {
             ptr.get<t_slider>()->x_max = value;
             min = slider->x_min;
             max = slider->x_max;
         }
-        
+
         slider.setRangeFlipped(min > max);
     }
 
     void setSteadyOnClick(bool steady) const
     {
-        if(auto slider = ptr.get<t_slider>()) {
+        if (auto slider = ptr.get<t_slider>()) {
             slider->x_steady = steady;
         }
     }
 
     bool getSteadyOnClick() const
     {
-        if(auto slider = ptr.get<t_slider>()) {
+        if (auto slider = ptr.get<t_slider>()) {
             return slider->x_steady;
         }
-        
+
         return false;
     }
 
@@ -419,20 +417,20 @@ public:
 
     bool isLogScale() const
     {
-        if(auto slider = ptr.get<t_slider>()) {
+        if (auto slider = ptr.get<t_slider>()) {
             return slider->x_lin0_log1;
         }
-        
+
         return false;
     }
 
     void setLogScale(bool log)
     {
         auto* sym = pd->generateSymbol(log ? "log" : "lin");
-        if(auto obj = ptr.get<t_pd>()) {
+        if (auto obj = ptr.get<t_pd>()) {
             pd_typedmess(obj.get(), sym, 0, nullptr);
         }
-        
+
         update();
     }
 

@@ -74,8 +74,9 @@ struct TextObjectHelper {
                 bool isStretchingRight) override
             {
                 auto* patch = object->cnv->patch.getPointer().get();
-                if(!patch) return;
-                
+                if (!patch)
+                    return;
+
                 auto fontWidth = glist_fontwidth(patch);
 
                 // Remove margin
@@ -276,36 +277,35 @@ public:
         } else {
             objText = objectText;
         }
-        
-        if(auto obj = ptr.get<void>())
-        {
+
+        if (auto obj = ptr.get<void>()) {
             auto* cnvPtr = cnv->patch.getPointer().get();
-            if(!cnvPtr) return {};
-            
+            if (!cnvPtr)
+                return {};
+
             auto newNumLines = 0;
             auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.get(), objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
 
             numLines = newNumLines;
             return newBounds;
         }
-        
+
         return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto gobj = ptr.get<t_gobj>())
-        {
+        if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
 
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
             }
         }
-        
     }
 
     void mouseDown(MouseEvent const& e) override

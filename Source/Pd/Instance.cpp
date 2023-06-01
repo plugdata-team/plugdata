@@ -715,8 +715,7 @@ void Instance::updateObjectImplementations()
 
 void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
 {
-    if(auto patch = p->getPointer())
-    {
+    if (auto patch = p->getPointer()) {
         objectImplementations->clearObjectImplementationsForPatch(patch.get());
     }
 }

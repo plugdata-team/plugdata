@@ -107,22 +107,20 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
 void ImplementationBase::openSubpatch(pd::Patch* subpatch)
 {
     if (!subpatch) {
-        if(auto glist = ptr.get<t_glist>()) {
+        if (auto glist = ptr.get<t_glist>()) {
             subpatch = new pd::Patch(glist.get(), pd, false);
         }
     }
-    
+
     File path;
-    if(auto glist = ptr.get<t_glist>()) {
-        if(canvas_isabstraction(glist.get()))
-        {
+    if (auto glist = ptr.get<t_glist>()) {
+        if (canvas_isabstraction(glist.get())) {
             path = File(String::fromUTF8(canvas_getdir(glist.get())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
         }
-    }
-    else {
+    } else {
         return;
     }
-    
+
     pd->patches.add(subpatch);
 
     subpatch->setCurrentFile(path);
@@ -176,8 +174,9 @@ void ImplementationBase::closeOpenedSubpatchers()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
         auto glist = ptr.get<t_glist>();
-        if(!glist) return;
-        
+        if (!glist)
+            return;
+
         for (auto* canvas : editor->canvases) {
             auto canvasPtr = canvas->patch.getPointer();
             if (canvasPtr && canvasPtr.get() == glist.get()) {

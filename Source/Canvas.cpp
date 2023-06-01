@@ -38,11 +38,10 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , graphArea(nullptr)
     , canvasOrigin(Point<int>(infiniteCanvasSize / 2, infiniteCanvasSize / 2))
 {
-    if(auto patchPtr = patch.getPointer())
-    {
+    if (auto patchPtr = patch.getPointer()) {
         isGraphChild = glist_isgraph(patchPtr.get());
     }
-    
+
     hideNameAndArgs = static_cast<bool>(patch.getPointer()->gl_hidetext);
     xRange = Array<var> { var(patch.getPointer()->gl_x1), var(patch.getPointer()->gl_x2) };
     yRange = Array<var> { var(patch.getPointer()->gl_y2), var(patch.getPointer()->gl_y1) };
@@ -470,8 +469,6 @@ void Canvas::performSynchronise()
 
     pd->unlockAudioThread();
 
-    
-
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
         if (patch.connectionWasDeleted(connections[n]->getPointer())) {
@@ -487,7 +484,7 @@ void Canvas::performSynchronise()
             objects.remove(n);
         }
     }
-    
+
     auto pdObjects = patch.getObjects();
 
     for (auto* object : pdObjects) {
@@ -919,9 +916,10 @@ void Canvas::pasteSelection()
     patch.setCurrent();
 
     std::vector<void*> pastedObjects;
-    
+
     auto* patchPtr = patch.getPointer().get();
-    if(!patchPtr) return;
+    if (!patchPtr)
+        return;
 
     pd->lockAudioThread();
     for (auto* object : objects) {
@@ -977,8 +975,9 @@ void Canvas::duplicateSelection()
     performSynchronise();
 
     auto* patchPtr = patch.getPointer().get();
-    if(!patchPtr) return;
-    
+    if (!patchPtr)
+        return;
+
     // Store the duplicated objects for later selection
     Array<Object*> duplicated;
     for (auto* object : objects) {
@@ -1197,10 +1196,11 @@ void Canvas::encapsulateSelection()
 
     // Apply the changed on Pd's thread
     pd->lockAudioThread();
-        
+
     auto* patchPtr = patch.getPointer().get();
-    if(!patchPtr) return;
-    
+    if (!patchPtr)
+        return;
+
     int size;
     char const* text = libpd_copy(patchPtr, &size);
     auto copied = String::fromUTF8(text, size);
@@ -1410,11 +1410,10 @@ void Canvas::valueChanged(Value& v)
         int graphChild = getValue<bool>(isGraphChild);
         int hideText = getValue<bool>(hideNameAndArgs);
 
-        if(auto glist = patch.getPointer())
-        {
+        if (auto glist = patch.getPointer()) {
             canvas_setgraph(glist.get(), isGraph + 2 * hideText, 0);
         }
-        
+
         if (graphChild && !isGraph) {
             graphArea = std::make_unique<GraphArea>(this);
             addAndMakeVisible(*graphArea);
@@ -1427,13 +1426,13 @@ void Canvas::valueChanged(Value& v)
         updateOverlays();
         repaint();
     } else if (v.refersToSameSourceAs(xRange)) {
-        if(auto glist = patch.getPointer()) {
+        if (auto glist = patch.getPointer()) {
             glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
             glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));
         }
         updateDrawables();
     } else if (v.refersToSameSourceAs(yRange)) {
-        if(auto glist = patch.getPointer()) {
+        if (auto glist = patch.getPointer()) {
             glist->gl_y2 = static_cast<float>(yRange.getValue().getArray()->getReference(0));
             glist->gl_y1 = static_cast<float>(yRange.getValue().getArray()->getReference(1));
         }

@@ -44,7 +44,7 @@ public:
     void updateValue()
     {
         // Change from subpatch to graph
-        if(auto canvas = ptr.get<t_canvas>()) {
+        if (auto canvas = ptr.get<t_canvas>()) {
             if (canvas->gl_isgraph) {
                 cnv->setSelected(object, false);
                 object->cnv->editor->sidebar->hideParameters();
@@ -87,8 +87,8 @@ public:
 
         int isGraph = getValue<bool>(isGraphChild);
         int hideText = getValue<bool>(hideNameAndArgs);
-        
-        if(auto glist = ptr.get<t_glist>()) {
+
+        if (auto glist = ptr.get<t_glist>()) {
             canvas_setgraph(glist.get(), isGraph + 2 * hideText, 0);
         }
         repaint();
@@ -98,7 +98,7 @@ public:
                 return;
 
             // Change from subpatch to graph
-            if(auto glist = ptr.get<t_glist>()) {
+            if (auto glist = ptr.get<t_glist>()) {
                 if (glist->gl_isgraph) {
                     cnv->setSelected(object, false);
                     object->cnv->editor->sidebar->hideParameters();

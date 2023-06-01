@@ -1145,10 +1145,11 @@ void ConnectionPathUpdater::timerCallback()
         int outIdx;
         t_object* inObj;
         int inIdx;
-        
+
         auto* patch = connection->cnv->patch.getPointer().get();
-        if(!patch) return;
-        
+        if (!patch)
+            return;
+
         // Get connections from pd
         linetraverser_start(&t, patch);
 

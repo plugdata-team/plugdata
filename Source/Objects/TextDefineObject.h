@@ -58,7 +58,6 @@ public:
 
     void setText(String text)
     {
-       
 
         text = text.removeCharacters("\r");
         auto lines = StringArray::fromTokens(text, ";", "\"");
@@ -72,7 +71,7 @@ public:
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
-                //check if string is a valid number
+                // check if string is a valid number
                 auto charptr = word.getCharPointer();
                 auto ptr = charptr;
                 auto value = CharacterFunctions::readDoubleValue(ptr);
@@ -88,18 +87,17 @@ public:
         }
 
         pd->setThis();
-        
-        if(auto qlist = ptr.get<t_fake_qlist>()) {
+
+        if (auto qlist = ptr.get<t_fake_qlist>()) {
 
             auto& textbuf = qlist->x_textbuf;
-            
+
             binbuf_clear(textbuf.b_binbuf);
-            
+
             t_binbuf* z = binbuf_new();
             binbuf_restore(z, atoms.size(), atoms.data());
             binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
             binbuf_free(z);
-            
         }
     }
 
@@ -125,18 +123,18 @@ public:
 
     String getText() override
     {
-        if(auto textDefine = ptr.get<t_fake_text_define>()) {
+        if (auto textDefine = ptr.get<t_fake_text_define>()) {
             auto& textbuf = textDefine->x_textbuf;
             auto* binbuf = textbuf.b_binbuf;
-            
+
             char* bufp;
             int lenp;
-            
+
             binbuf_gettext(binbuf, &bufp, &lenp);
-            
+
             return String::fromUTF8(bufp, lenp);
         }
-        
+
         return {};
     }
 
@@ -180,12 +178,11 @@ public:
             textEditor->toFront(true);
             return;
         }
-        
+
         String name;
-        if(auto textDefine = ptr.get<t_fake_text_define>()) {
+        if (auto textDefine = ptr.get<t_fake_text_define>()) {
             name = String::fromUTF8(textDefine->x_bindsym->s_name);
-        }
-        else {
+        } else {
             return;
         }
 
@@ -203,7 +200,7 @@ public:
                             textEditor.reset(nullptr);
 
                             // enable notification on second outlet //
-                            if(auto textDefine = ptr.get<t_fake_text_define>()) {
+                            if (auto textDefine = ptr.get<t_fake_text_define>()) {
                                 const char* target = textDefine->x_bindsym->s_name;
                                 pd->sendMessage(target, "notify", {});
                             }
@@ -219,7 +216,6 @@ public:
     void setText(String text)
     {
 
-
         text = text.removeCharacters("\r");
         auto lines = StringArray::fromTokens(text, ";", "\"");
         auto atoms = std::vector<t_atom>();
@@ -232,7 +228,7 @@ public:
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
-                //check if string is a valid number
+                // check if string is a valid number
                 auto charptr = word.getCharPointer();
                 auto ptr = charptr;
                 auto value = CharacterFunctions::readDoubleValue(ptr);
@@ -249,9 +245,9 @@ public:
 
         pd->setThis();
 
-        if(auto textDefine = ptr.get<t_fake_text_define>()) {
+        if (auto textDefine = ptr.get<t_fake_text_define>()) {
             auto& textbuf = textDefine->x_textbuf;
-            
+
             binbuf_clear(textbuf.b_binbuf);
 
             t_binbuf* z = binbuf_new();
@@ -275,8 +271,7 @@ public:
 
     String getText() override
     {
-        if(auto textDefine = ptr.get<t_fake_text_define>())
-        {
+        if (auto textDefine = ptr.get<t_fake_text_define>()) {
             auto& textbuf = textDefine->x_textbuf;
             auto* binbuf = textbuf.b_binbuf;
 
@@ -287,7 +282,7 @@ public:
 
             return String::fromUTF8(bufp, lenp);
         }
-        
+
         return {};
     }
 

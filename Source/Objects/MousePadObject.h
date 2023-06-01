@@ -22,15 +22,14 @@ public:
                 return;
 
             pd->setThis();
-            
+
             t_atom at[3];
             SETFLOAT(at, 1.0f);
-            
-            if(auto pad = this->ptr.get<t_fake_pad>())
-            {
+
+            if (auto pad = this->ptr.get<t_fake_pad>()) {
                 pad->x_x = relativeEvent.getPosition().x;
                 pad->x_y = getHeight() - relativeEvent.getPosition().y;
-                
+
                 outlet_anything(pad->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
             }
 
@@ -40,8 +39,7 @@ public:
             if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed || !isLocked() || !cnv->isShowing())
                 return;
 
-            if(auto pad = this->ptr.get<t_fake_pad>())
-            {
+            if (auto pad = this->ptr.get<t_fake_pad>()) {
                 t_atom at[1];
                 SETFLOAT(at, 0);
                 outlet_anything(pad->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
@@ -53,8 +51,6 @@ public:
         mouseListener.globalMouseMove = [this](MouseEvent const& e) {
             if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked() || !cnv->isShowing())
                 return;
-
-  
 
             auto relativeEvent = e.getEventRelativeTo(this);
 
@@ -69,8 +65,7 @@ public:
 
             pd->setThis();
 
-            if(auto pad = this->ptr.get<t_fake_pad>())
-            {
+            if (auto pad = this->ptr.get<t_fake_pad>()) {
                 pad->x_x = xPos;
                 pad->x_y = yPos;
 
@@ -106,11 +101,11 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto pad = ptr.get<t_fake_pad>())
-        {
+        if (auto pad = ptr.get<t_fake_pad>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, pad.cast<t_gobj>(), b.getX(), b.getY());
             pad->x_w = b.getWidth() - 1;
             pad->x_h = b.getHeight() - 1;
@@ -119,11 +114,11 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto gobj = ptr.get<t_gobj>())
-        {
+        if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
 

@@ -31,12 +31,11 @@ public:
 
     void update() override
     {
-        if(auto bng = ptr.get<t_bng>())
-        {
+        if (auto bng = ptr.get<t_bng>()) {
             bangInterrupt = bng->x_flashtime_break;
             bangHold = bng->x_flashtime_hold;
         }
-        
+
         iemHelper.update();
     }
 
@@ -68,9 +67,10 @@ public:
     void toggleObject(Point<int> position) override
     {
         if (!alreadyBanged) {
-        
+
             startEdition();
-            if(auto bng = ptr.get<t_pd>()) pd_bang(bng.get());
+            if (auto bng = ptr.get<t_pd>())
+                pd_bang(bng.get());
             stopEdition();
 
             trigger();
@@ -86,7 +86,8 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         startEdition();
-        if(auto bng = ptr.get<t_pd>()) pd_bang(bng.get());
+        if (auto bng = ptr.get<t_pd>())
+            pd_bang(bng.get());
         stopEdition();
 
         // Make sure we don't re-click with an accidental drag
@@ -159,10 +160,12 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(bangInterrupt)) {
-            if(auto bng = ptr.get<t_bng>()) bng->x_flashtime_break = bangInterrupt.getValue();
+            if (auto bng = ptr.get<t_bng>())
+                bng->x_flashtime_break = bangInterrupt.getValue();
         }
         if (value.refersToSameSourceAs(bangHold)) {
-            if(auto bng = ptr.get<t_bng>()) bng->x_flashtime_hold = bangHold.getValue();
+            if (auto bng = ptr.get<t_bng>())
+                bng->x_flashtime_hold = bangHold.getValue();
         } else {
             iemHelper.valueChanged(value);
         }

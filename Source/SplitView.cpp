@@ -269,8 +269,6 @@ void SplitView::closeEmptySplits()
     if (splits[1].getCurrentTabIndex() < 0 && splits[1].getNumTabs()) {
         splits[1].setCurrentTabIndex(0);
     }
-    
-    
 }
 
 void SplitView::paintOverChildren(Graphics& g)

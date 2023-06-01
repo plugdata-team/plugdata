@@ -64,8 +64,7 @@ public:
         min = getMinimum();
         max = getMaximum();
 
-        if(auto object = ptr.get<t_fake_numbox>())
-        {
+        if (auto object = ptr.get<t_fake_numbox>()) {
             interval = object->x_rate;
             ramp = object->x_ramp_ms;
             init = object->x_set_val;
@@ -82,14 +81,14 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto gobj = ptr.get<t_gobj>())
-        {
+        if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
-            return {x, y, w, h};
+            return { x, y, w, h };
         }
 
         return {};
@@ -147,16 +146,16 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto nbx = ptr.get<t_fake_numbox>())
-        {
+        if (auto nbx = ptr.get<t_fake_numbox>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             nbx->x_width = b.getWidth();
             nbx->x_height = b.getHeight();
             nbx->x_fontsize = b.getHeight() - 4;
             nbx->x_numwidth = (2.0f * (-6.0f + b.getWidth() - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
-            
+
             libpd_moveobj(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
@@ -174,16 +173,16 @@ public:
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(::getValue<float>(max));
         } else if (value.refersToSameSourceAs(interval)) {
-            if(auto nbx = ptr.get<t_fake_numbox>()) {
+            if (auto nbx = ptr.get<t_fake_numbox>()) {
                 nbx->x_rate = ::getValue<float>(interval);
             }
 
         } else if (value.refersToSameSourceAs(ramp)) {
-            if(auto nbx = ptr.get<t_fake_numbox>()) {
+            if (auto nbx = ptr.get<t_fake_numbox>()) {
                 nbx->x_ramp_ms = ::getValue<float>(ramp);
             }
         } else if (value.refersToSameSourceAs(init)) {
-            if(auto nbx = ptr.get<t_fake_numbox>()) {
+            if (auto nbx = ptr.get<t_fake_numbox>()) {
                 nbx->x_set_val = ::getValue<float>(init);
             }
         } else if (value.refersToSameSourceAs(primaryColour)) {
@@ -243,8 +242,7 @@ public:
 
     float getValue()
     {
-        if(auto nbx = ptr.get<t_fake_numbox>())
-        {
+        if (auto nbx = ptr.get<t_fake_numbox>()) {
             mode = nbx->x_outmode;
 
             nextInterval = nbx->x_rate;
@@ -257,28 +255,25 @@ public:
 
     float getMinimum()
     {
-        if(auto nbx = ptr.get<t_fake_numbox>())
-        {
+        if (auto nbx = ptr.get<t_fake_numbox>()) {
             return nbx->x_min;
         }
-        
+
         return 0.0f;
     }
 
     float getMaximum()
     {
-        if(auto nbx = ptr.get<t_fake_numbox>())
-        {
+        if (auto nbx = ptr.get<t_fake_numbox>()) {
             return nbx->x_max;
         }
-        
+
         return 0.0f;
     }
 
     void setMinimum(float minValue)
     {
-        if(auto nbx = ptr.get<t_fake_numbox>())
-        {
+        if (auto nbx = ptr.get<t_fake_numbox>()) {
             nbx->x_min = minValue;
         }
 
@@ -287,11 +282,10 @@ public:
 
     void setMaximum(float maxValue)
     {
-        if(auto nbx = ptr.get<t_fake_numbox>())
-        {
+        if (auto nbx = ptr.get<t_fake_numbox>()) {
             nbx->x_max = maxValue;
         }
-        
+
         input.setMaximum(maxValue);
     }
 };

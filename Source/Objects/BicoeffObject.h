@@ -121,7 +121,7 @@ public:
             auto nn = (static_cast<float>(x) / getWidth()) * 120.0f + 16.766f;
             auto freq = mtof(nn);
             auto result = calcMagnitudePhase((MathConstants<float>::pi * 2.0f * freq) / 44100.0f, a1, a2, b0, b1, b2);
-            
+
             if (!std::isfinite(result.first)) {
                 continue;
             }
@@ -512,7 +512,8 @@ public:
         addAndMakeVisible(graph);
 
         graph.graphChangeCallback = [this](float a1, float a2, float b0, float b1, float b2) {
-            if(auto obj = ptr.get<void>()) pd->sendDirectMessage(obj.get(), "biquad", { a1, a2, b0, b1, b2 });
+            if (auto obj = ptr.get<void>())
+                pd->sendDirectMessage(obj.get(), "biquad", { a1, a2, b0, b1, b2 });
         };
     }
 
@@ -523,14 +524,14 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto gobj = ptr.get<t_gobj>())
-        {
+        if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = object->cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
-            return {x, y, w + 1, h + 1};
+            return { x, y, w + 1, h + 1 };
         }
 
         return {};
@@ -538,15 +539,15 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto gobj = ptr.get<t_gobj>())
-        {
+        if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = object->cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
             pd->sendDirectMessage(gobj.get(), "dim", { b.getWidth() - 1, b.getHeight() - 1 });
         }
-       
+
         graph.saveProperties();
     }
 

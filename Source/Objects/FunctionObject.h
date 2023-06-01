@@ -31,32 +31,30 @@ public:
 
     void update() override
     {
-        if(auto function = ptr.get<t_fake_function>())
-        {
+        if (auto function = ptr.get<t_fake_function>()) {
             secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
             primaryColour = colourFromHexArray(function->x_fgcolor).toString();
-            
+
             Array<var> arr = { function->x_min, function->x_max };
             range = var(arr);
-            
+
             auto sndSym = String::fromUTF8(function->x_send->s_name);
             auto rcvSym = String::fromUTF8(function->x_receive->s_name);
-            
+
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
-            
+
             getPointsFromFunction(function.get());
         }
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto function = ptr.get<t_fake_function>())
-        {
+        if (auto function = ptr.get<t_fake_function>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
-           
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, function.cast<t_gobj>(), b.getX(), b.getY());
             function->x_width = b.getWidth() - 1;
             function->x_height = b.getHeight() - 1;
@@ -65,11 +63,11 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto gobj = ptr.get<t_gobj>())
-        {
+        if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
             return { x, y, w + 1, h + 1 };
@@ -241,8 +239,7 @@ public:
         arr[0] = newRange.first;
         arr[1] = newRange.second;
 
-        if(auto function = ptr.get<t_fake_function>())
-        {
+        if (auto function = ptr.get<t_fake_function>()) {
             function->x_min = newRange.first;
             function->x_max = newRange.second;
         }
@@ -284,41 +281,40 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         points.sort(*this);
-        
-        if(auto function = ptr.get<t_fake_function>())
-        {
+
+        if (auto function = ptr.get<t_fake_function>()) {
             auto scale = function->x_dur[function->x_n_states];
-            
+
             for (int i = 0; i < points.size(); i++) {
                 function->x_points[i] = jmap(points[i].y, 0.0f, 1.0f, function->x_min, function->x_max);
                 function->x_dur[i] = points[i].x * scale;
             }
-            
+
             function->x_n_states = points.size() - 1;
-                    
+
             getPointsFromFunction(function.get());
         }
-        
+
         dragIdx = -1;
     }
 
     void triggerOutput()
     {
 
-        if(auto function = ptr.get<t_fake_function>()) {
+        if (auto function = ptr.get<t_fake_function>()) {
             int ac = points.size() * 2 + 1;
-            
+
             auto scale = function->x_dur[function->x_n_states];
-            
+
             auto at = std::vector<t_atom>(ac);
             auto firstPoint = jmap<float>(points[0].y, 0.0f, 1.0f, function->x_min, function->x_max);
             SETFLOAT(at.data(), firstPoint); // get 1st
-            
+
             function->x_state = 0;
             for (int i = 1; i < ac; i++) { // get the rest
-                
+
                 auto dur = jmap<float>(points[function->x_state + 1].x - points[function->x_state].x, 0.0f, 1.0f, 0.0f, scale);
-                
+
                 SETFLOAT(at.data() + i, dur); // duration
                 i++, function->x_state++;
                 auto point = jmap<float>(points[function->x_state].y, 0.0f, 1.0f, function->x_min, function->x_max);
@@ -328,17 +324,16 @@ public:
                     function->x_max_point = point;
                 SETFLOAT(at.data() + i, point);
             }
-            
+
             outlet_list(function->x_obj.ob_outlet, gensym("list"), ac - 2, at.data());
             if (function->x_send != gensym("") && function->x_send->s_thing)
                 pd_list(function->x_send->s_thing, gensym("list"), ac - 2, at.data());
-            
         }
     }
 
     void valueChanged(Value& v) override
     {
-        if(auto function = ptr.get<t_fake_function>()) {
+        if (auto function = ptr.get<t_fake_function>()) {
             if (v.refersToSameSourceAs(primaryColour)) {
                 colourToHexArray(Colour::fromString(primaryColour.toString()), function->x_fgcolor);
                 repaint();
@@ -347,11 +342,13 @@ public:
                 repaint();
             } else if (v.refersToSameSourceAs(sendSymbol)) {
                 auto symbol = sendSymbol.toString();
-                if(auto obj = ptr.get<void>()) pd->sendDirectMessage(obj.get(), "send", { symbol });
+                if (auto obj = ptr.get<void>())
+                    pd->sendDirectMessage(obj.get(), "send", { symbol });
             } else if (v.refersToSameSourceAs(receiveSymbol)) {
                 auto symbol = receiveSymbol.toString();
-                if(auto obj = ptr.get<void>()) pd->sendDirectMessage(obj.get(), "receive", { symbol });
-                
+                if (auto obj = ptr.get<void>())
+                    pd->sendDirectMessage(obj.get(), "receive", { symbol });
+
             } else if (v.refersToSameSourceAs(range)) {
                 setRange(getRange());
                 getPointsFromFunction(function.get());
@@ -391,15 +388,14 @@ public:
             break;
         }
         case hash("list"): {
-            if(auto function = ptr.get<t_fake_function>()) {
+            if (auto function = ptr.get<t_fake_function>()) {
                 getPointsFromFunction(function.get());
             }
             break;
         }
         case hash("min"):
         case hash("max"): {
-            if(auto function = ptr.get<t_fake_function>())
-            {
+            if (auto function = ptr.get<t_fake_function>()) {
                 Array<var> arr = { function->x_min, function->x_max };
                 setParameterExcludingListener(range, var(arr));
                 getPointsFromFunction(function.get());

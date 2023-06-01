@@ -113,7 +113,8 @@ public:
         if (type == Key) {
             t_symbol* dummy;
             parseKey(keyCode, dummy);
-            if(auto obj = ptr.get<t_pd>()) pd->sendDirectMessage(obj.get(), keyCode);
+            if (auto obj = ptr.get<t_pd>())
+                pd->sendDirectMessage(obj.get(), keyCode);
         } else if (type == KeyName) {
 
             String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
@@ -128,7 +129,8 @@ public:
             t_symbol* keysym = pd->generateSymbol(keyString);
             parseKey(keyCode, keysym);
 
-            if(auto obj = ptr.get<t_pd>()) pd->sendDirectMessage(obj.get(), { 1.0f, keysym });
+            if (auto obj = ptr.get<t_pd>())
+                pd->sendDirectMessage(obj.get(), { 1.0f, keysym });
         }
 
         // Never claim the keypress
@@ -189,7 +191,8 @@ public:
                     if (type == KeyUp) {
                         t_symbol* dummy;
                         parseKey(keyCode, dummy);
-                        if(auto obj = ptr.get<t_pd>()) pd->sendDirectMessage(obj.get(), keyCode);
+                        if (auto obj = ptr.get<t_pd>())
+                            pd->sendDirectMessage(obj.get(), keyCode);
                     } else if (type == KeyName) {
 
                         String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
@@ -203,7 +206,8 @@ public:
 
                         t_symbol* keysym = pd->generateSymbol(keyString);
                         parseKey(keyCode, keysym);
-                        if(auto obj = ptr.get<t_pd>()) pd->sendDirectMessage(obj.get(), { 0.0f, keysym });
+                        if (auto obj = ptr.get<t_pd>())
+                            pd->sendDirectMessage(obj.get(), { 0.0f, keysym });
                     }
 
                     keyPressTimes.remove(n);
@@ -346,8 +350,7 @@ public:
         lastFocus = cnv->hasKeyboardFocus(true);
         Desktop::getInstance().addFocusChangeListener(this);
 
-        if(auto y = cnv->patch.getPointer())
-        {
+        if (auto y = cnv->patch.getPointer()) {
             char buf[MAXPDSTRING];
             snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)y.get());
             buf[MAXPDSTRING - 1] = 0;
@@ -361,11 +364,10 @@ public:
             return;
 
         if (!focusedComponent) {
-            if(auto obj = ptr.get<void>())
-            {
+            if (auto obj = ptr.get<void>()) {
                 pd->sendTypedMessage(obj.get(), "_focus", { canvasName, 0.0f });
             }
-           
+
             lastFocus = false;
             return;
         }
@@ -374,8 +376,7 @@ public:
 
         Canvas* focusedCanvas = nullptr;
 
-        if(auto active = ptr.get<t_fake_active>())
-        {
+        if (auto active = ptr.get<t_fake_active>()) {
             if (active->x_name) {
                 focusedCanvas = dynamic_cast<Canvas*>(focusedComponent);
                 if (!focusedCanvas) {
@@ -446,8 +447,7 @@ public:
         int size;
 
         t_glist* canvasToFind;
-        if(auto mouse = ptr.get<t_fake_canvas_mouse>())
-        {
+        if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
             binbuf_gettext(mouse->x_obj.te_binbuf, &text, &size);
 
             int depth = 0;
@@ -462,10 +462,9 @@ public:
                 canvasToFind = mouse->x_canvas->gl_owner;
             } else {
                 canvasToFind = mouse->x_canvas;
-               
             }
         }
-        
+
         cnv = getMainCanvas(canvasToFind);
 
         freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
@@ -483,15 +482,13 @@ public:
         pos = cnv->getLocalPoint(e.originalComponent, e.getPosition()) - cnv->canvasOrigin;
         bool positionChanged = lastPosition != pos;
         lastPosition = pos;
-        
-        if(auto mouse = ptr.get<t_fake_canvas_mouse>())
-        {
+
+        if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
             auto* x = mouse->x_canvas;
-            
+
             if (mouse->x_pos) {
                 pos -= Point<int>(x->gl_obj.te_xpix, x->gl_obj.te_ypix);
             }
-
         }
 
         return positionChanged;
@@ -510,8 +507,7 @@ public:
 
         pos -= zeroPosition;
 
-        if(auto mouse = ptr.get<t_fake_canvas_mouse>())
-        {
+        if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
             outlet_float(mouse->x_outlet_y, (float)pos.y);
             outlet_float(mouse->x_outlet_x, (float)pos.x);
             outlet_float(mouse->x_obj.ob_outlet, 1.0);
@@ -526,8 +522,7 @@ public:
         if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
-        if(auto mouse = ptr.get<t_fake_canvas_mouse>())
-        {
+        if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
             outlet_float(mouse->x_obj.ob_outlet, 0.0f);
         }
     }
@@ -551,8 +546,7 @@ public:
         pos -= zeroPosition;
 
         if (positionChanged) {
-            if(auto mouse = ptr.get<t_fake_canvas_mouse>())
-            {
+            if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
                 outlet_float(mouse->x_outlet_y, (float)pos.y);
                 outlet_float(mouse->x_outlet_x, (float)pos.x);
             }
@@ -614,11 +608,10 @@ public:
             return;
 
         if (lastFocus != cnv->isShowing()) {
-            
+
             lastFocus = cnv->isShowing();
-            
-            if(auto vis = ptr.get<t_fake_canvas_vis>())
-            {
+
+            if (auto vis = ptr.get<t_fake_canvas_vis>()) {
                 outlet_float(vis->x_obj.ob_outlet, static_cast<int>(cnv->isShowing()));
             }
         }
@@ -676,8 +669,7 @@ public:
 
         auto newScale = getValue<float>(zoomScaleValue);
         if (lastScale != newScale) {
-            if(auto zoom = ptr.get<t_fake_zoom>())
-            {
+            if (auto zoom = ptr.get<t_fake_zoom>()) {
                 outlet_float(zoom->x_obj.ob_outlet, newScale);
             }
 
@@ -719,8 +711,7 @@ public:
 
         int editMode = getValue<bool>(v) ? 0 : 1;
         if (lastEditMode != editMode) {
-            if(auto edit = ptr.get<t_fake_edit>())
-            {
+            if (auto edit = ptr.get<t_fake_edit>()) {
                 outlet_float(edit->x_obj.ob_outlet, edit->x_edit = editMode);
             }
 
@@ -752,15 +743,15 @@ public:
         if (lastPosition != mouseSource.getScreenPosition()) {
 
             auto pos = mouseSource.getScreenPosition();
-            if(auto obj = ptr.get<void>()) {
+            if (auto obj = ptr.get<void>()) {
                 pd->sendDirectMessage(obj.get(), "_getscreen", { pos.x, pos.y });
             }
-            
+
             lastPosition = pos;
         }
         if (mouseSource.isDragging()) {
             if (!isDown) {
-                if(auto obj = ptr.get<void>()) {
+                if (auto obj = ptr.get<void>()) {
                     pd->sendDirectMessage(obj.get(), "_up", { 0.0f });
                 }
             }
@@ -768,14 +759,14 @@ public:
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (mouseSource.getLastMouseDownTime() > lastMouseDownTime) {
             if (!isDown) {
-                if(auto obj = ptr.get<void>()) {
+                if (auto obj = ptr.get<void>()) {
                     pd->sendDirectMessage(obj.get(), "_up", { 0.0f });
                 }
             }
             isDown = true;
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (isDown) {
-            if(auto obj = ptr.get<void>()) {
+            if (auto obj = ptr.get<void>()) {
                 pd->sendDirectMessage(obj.get(), "_up", { 1.0f });
             }
             isDown = false;

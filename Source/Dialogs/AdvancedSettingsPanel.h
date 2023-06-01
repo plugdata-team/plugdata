@@ -34,7 +34,7 @@ public:
 
             otherProperties.add(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
         }
-        
+
         showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
         showPalettesValue.addListener(this);
         otherProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
@@ -45,11 +45,11 @@ public:
 
         autoPatchingValue.referTo(settingsFile->getPropertyAsValue("autoconnect"));
         otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
-        
+
         scaleValue = settingsFile->getProperty<float>("global_scale");
         scaleValue.addListener(this);
         otherProperties.add(new PropertiesPanel::EditableComponent<float>("Global scale factor", scaleValue));
-        
+
         propertiesPanel.addSection("Other", otherProperties);
 
         addAndMakeVisible(propertiesPanel);
@@ -85,7 +85,7 @@ public:
     Value macTitlebarButtons;
     Value reloadPatch;
     Value scaleValue;
-        
+
     Value showPalettesValue;
     Value autoPatchingValue;
     Value showAllAudioDeviceValues;

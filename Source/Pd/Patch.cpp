@@ -67,9 +67,8 @@ Patch::~Patch()
     if (closePatchOnDelete && instance) {
         instance->setThis();
         instance->clearObjectImplementationsForPatch(this); // Make sure that there are no object implementations running in the background!
-        
-        if(auto patch = ptr.get<void>())
-        {
+
+        if (auto patch = ptr.get<void>()) {
             libpd_closefile(patch.get());
         }
     }
@@ -96,11 +95,10 @@ Rectangle<int> Patch::getBounds() const
 
 bool Patch::isDirty() const
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         return patch->gl_dirty;
     }
-    
+
     return false;
 }
 
@@ -113,11 +111,10 @@ void Patch::savePatch(File const& location)
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
 
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setTitle(filename);
         canvas_dirty(patch.get(), 0);
-        
+
         libpd_savetofile(patch.get(), file, dir);
 
         instance->reloadAbstractions(location, patch.get());
@@ -128,8 +125,7 @@ void Patch::savePatch(File const& location)
 
 t_glist* Patch::getRoot()
 {
-    if(auto patch = ptr.get<t_canvas>())
-    {
+    if (auto patch = ptr.get<t_canvas>()) {
         return canvas_getrootfor(patch.get());
     }
 
@@ -138,21 +134,19 @@ t_glist* Patch::getRoot()
 
 bool Patch::isSubpatch()
 {
-    if(auto patch = ptr.get<t_canvas>())
-    {
+    if (auto patch = ptr.get<t_canvas>()) {
         return getRoot() != patch.get() && !canvas_isabstraction(patch.get());
     }
-    
+
     return false;
 }
 
 bool Patch::isAbstraction()
 {
-    if(auto patch = ptr.get<t_canvas>())
-    {
+    if (auto patch = ptr.get<t_canvas>()) {
         return canvas_isabstraction(patch.get());
     }
-    
+
     return false;
 }
 
@@ -164,19 +158,15 @@ void Patch::savePatch()
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
 
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setTitle(filename);
         canvas_dirty(patch.get(), 0);
-        
+
         libpd_savetofile(patch.get(), file, dir);
         instance->reloadAbstractions(currentFile, patch.get());
-
     }
-   
 
     instance->lockAudioThread();
-
 
     instance->unlockAudioThread();
 }
@@ -185,14 +175,13 @@ void Patch::setCurrent()
 {
     instance->setThis();
 
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         // This is the same as calling canvas_vis and canvas_map,
         // but all the other stuff inside those functions is just for tcl/tk anyway
 
         patch->gl_havewindow = 1;
         patch->gl_mapped = 1;
-        
+
         canvas_create_editor(patch.get()); // can't hurt to make sure of this!
     }
 }
@@ -204,8 +193,7 @@ Connections Patch::getConnections() const
     t_outconnect* oc;
     t_linetraverser t;
 
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         // Get connections from pd
         linetraverser_start(&t, patch.get());
 
@@ -214,7 +202,7 @@ Connections Patch::getConnections() const
             connections.emplace_back(oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
         }
     }
-    
+
     return connections;
 }
 
@@ -223,8 +211,7 @@ std::vector<void*> Patch::getObjects()
     setCurrent();
 
     std::vector<void*> objects;
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
             objects.push_back(static_cast<void*>(y));
         }
@@ -235,19 +222,17 @@ std::vector<void*> Patch::getObjects()
 
 void* Patch::createGraphOnParent(int x, int y)
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         return libpd_creategraphonparent(patch.get(), x, y);
     }
-    
+
     return nullptr;
 }
 
 void* Patch::createGraph(int x, int y, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range)
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         return libpd_creategraph(patch.get(), name.toRawUTF8(), size, x, y, drawMode, saveContents, range.first, range.second);
     }
@@ -333,7 +318,7 @@ void* Patch::createObject(int x, int y, String const& name)
     SETFLOAT(argv.data() + 1, static_cast<float>(y));
 
     for (int i = 0; i < tokens.size(); i++) {
-        //check if string is a valid number
+        // check if string is a valid number
         auto charptr = tokens[i].getCharPointer();
         auto ptr = charptr;
         auto value = CharacterFunctions::readDoubleValue(ptr);
@@ -344,13 +329,11 @@ void* Patch::createObject(int x, int y, String const& name)
         }
     }
 
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         return libpd_createobj(patch.get(), typesymbol, argc, argv.data());
-
     }
-    
+
     return nullptr;
 }
 
@@ -389,26 +372,22 @@ void* Patch::renameObject(void* obj, String const& name)
     }
     String newName = tokens.joinIntoString(" ");
 
-    
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         libpd_renameobj(patch.get(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
         return libpd_newest(patch.get());
     }
-    
+
     return nullptr;
 }
 
 void Patch::copy()
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         int size;
         char const* text = libpd_copy(patch.get(), &size);
         auto copied = String::fromUTF8(text, size);
         MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
-        
     }
 }
 
@@ -493,16 +472,14 @@ void Patch::paste(Point<int> position)
 
     auto translatedObjects = translatePatchAsString(text, position);
 
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         libpd_paste(patch.get(), translatedObjects.toRawUTF8());
     }
 }
 
 void Patch::duplicate()
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         libpd_duplicate(patch.get());
     }
@@ -511,8 +488,7 @@ void Patch::duplicate()
 void Patch::selectObject(void* obj)
 {
 
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         auto* checked = &checkObject(obj)->te_g;
         if (!glist_isselected(patch.get(), checked)) {
             glist_select(patch.get(), checked);
@@ -522,8 +498,7 @@ void Patch::selectObject(void* obj)
 
 void Patch::deselectAll()
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         glist_noselect(patch.get());
         libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
     }
@@ -533,8 +508,7 @@ void Patch::removeObject(void* obj)
 {
     instance->lockAudioThread();
 
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         libpd_removeobj(patch.get(), &checkObject(obj)->te_g);
     }
@@ -542,8 +516,7 @@ void Patch::removeObject(void* obj)
 
 bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         return libpd_hasconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
     }
 
@@ -552,8 +525,7 @@ bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 
 bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         return libpd_canconnect(patch.get(), checkObject(src), nout, checkObject(sink), nin);
     }
 
@@ -562,8 +534,7 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 
 void Patch::createConnection(void* src, int nout, void* sink, int nin)
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         libpd_createconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
     }
@@ -573,8 +544,7 @@ void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
 {
     void* outconnect = nullptr;
 
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         return libpd_createconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
     }
@@ -584,8 +554,7 @@ void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
 
 void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath)
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         libpd_removeconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
     }
@@ -593,8 +562,7 @@ void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol*
 
 void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         return libpd_setconnectionpath(patch.get(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
     }
@@ -604,8 +572,7 @@ void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol
 
 void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
 
         glist_noselect(patch.get());
@@ -625,8 +592,7 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
 
 void Patch::finishRemove()
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         libpd_finishremove(patch.get());
     }
@@ -634,8 +600,7 @@ void Patch::finishRemove()
 
 void Patch::removeSelection()
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         libpd_removeselection(patch.get());
     }
@@ -643,24 +608,21 @@ void Patch::removeSelection()
 
 void Patch::startUndoSequence(String const& name)
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         canvas_undo_add(patch.get(), UNDO_SEQUENCE_START, instance->generateSymbol(name)->s_name, nullptr);
     }
 }
 
 void Patch::endUndoSequence(String const& name)
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         canvas_undo_add(patch.get(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, nullptr);
     }
 }
 
 void Patch::undo()
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         glist_noselect(patch.get());
         libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
@@ -671,8 +633,7 @@ void Patch::undo()
 
 void Patch::redo()
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         glist_noselect(patch.get());
         libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
@@ -687,8 +648,7 @@ t_object* Patch::checkObject(void* obj)
 
 String Patch::getTitle() const
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         String name = String::fromUTF8(patch->gl_name->s_name);
         return name.isEmpty() ? "Untitled Patcher" : name;
     }
@@ -699,13 +659,12 @@ String Patch::getTitle() const
 void Patch::setTitle(String const& title)
 {
     auto* pathSym = instance->generateSymbol(getCurrentFile().getFullPathName());
-    
+
     t_atom args[2];
     SETSYMBOL(args, instance->generateSymbol(title));
     SETSYMBOL(args + 1, pathSym);
-    
-    if(auto patch = ptr.get<t_glist>())
-    {
+
+    if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("rename"), 2, args);
     }
@@ -724,8 +683,7 @@ File Patch::getCurrentFile() const
 // We should probably move over to using this everywhere eventually
 File Patch::getPatchFile() const
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         auto* dir = canvas_getdir(patch.get())->s_name;
         auto* name = patch->gl_name->s_name;
         return File(String::fromUTF8(dir)).getChildFile(String::fromUTF8(name)).getFullPathName();
@@ -743,13 +701,10 @@ String Patch::getCanvasContent()
 {
     char* buf;
     int bufsize;
-    
-    if(auto patch = ptr.get<t_canvas>())
-    {
+
+    if (auto patch = ptr.get<t_canvas>()) {
         libpd_getcontent(patch.get(), &buf, &bufsize);
-    }
-    else
-    {
+    } else {
         return {};
     }
 
@@ -771,8 +726,7 @@ void Patch::reloadPatch(File const& changedPatch, t_glist* except)
 
 bool Patch::objectWasDeleted(void* objectPtr) const
 {
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
             if (y == objectPtr)
                 return false;
@@ -786,8 +740,7 @@ bool Patch::connectionWasDeleted(void* connectionPtr) const
     t_outconnect* oc;
     t_linetraverser t;
 
-    if(auto patch = ptr.get<t_glist>())
-    {
+    if (auto patch = ptr.get<t_glist>()) {
         // Get connections from pd
         linetraverser_start(&t, patch.get());
 
@@ -796,10 +749,10 @@ bool Patch::connectionWasDeleted(void* connectionPtr) const
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
     return true;
 }
 

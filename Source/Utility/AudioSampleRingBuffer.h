@@ -15,8 +15,7 @@
 └───────────────────────┴───────────────────────┴───────────────────────┘
 */
 
-class AudioSampleRingBuffer
-{
+class AudioSampleRingBuffer {
 public:
     AudioSampleRingBuffer()
     {
@@ -35,9 +34,8 @@ public:
     void write(AudioBuffer<float>& samples)
     {
         for (int ch = 0; ch < 2; ch++) {
-            for (int i = 0; i < samples.getNumSamples(); i++)
-            {
-                buffer.setSample(ch,  (writePosition + i) % buffer.getNumSamples(), samples.getSample(ch, i));
+            for (int i = 0; i < samples.getNumSamples(); i++) {
+                buffer.setSample(ch, (writePosition + i) % buffer.getNumSamples(), samples.getSample(ch, i));
             }
         }
         writeTime.store(Time::getMillisecondCounterHiRes());
@@ -64,8 +62,7 @@ public:
             readPos += bufferSize;
 
         for (int ch = 0; ch < 2; ch++) {
-            for (int i = 0; i < peakWindowSize; i++)
-            {
+            for (int i = 0; i < peakWindowSize; i++) {
                 peakBuffer.setSample(ch, i, buffer.getSample(ch, (readPos + i) % bufferSize));
             }
         }

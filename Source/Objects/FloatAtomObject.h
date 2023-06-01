@@ -185,11 +185,10 @@ public:
 
     float getValue()
     {
-        if(auto gatom = ptr.get<t_fake_gatom>())
-        {
+        if (auto gatom = ptr.get<t_fake_gatom>()) {
             return atom_getfloat(fake_gatom_getatom(gatom.get()));
         }
-        
+
         return 0.0f;
     }
 

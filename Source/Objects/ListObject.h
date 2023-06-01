@@ -225,19 +225,19 @@ public:
     {
         cnv->pd->setThis();
 
-        if(auto gatom = ptr.get<t_fake_gatom>())
-        {
+        if (auto gatom = ptr.get<t_fake_gatom>()) {
             int ac = binbuf_getnatom(gatom->a_text.te_binbuf);
             t_atom* av = binbuf_getvec(gatom->a_text.te_binbuf);
             return pd::Atom::fromAtoms(ac, av);
         }
-        
+
         return {};
     }
 
     void setList(std::vector<pd::Atom> value)
     {
-        if(auto gatom = ptr.get<t_fake_gatom>()) cnv->pd->sendDirectMessage(gatom.get(), std::move(value));
+        if (auto gatom = ptr.get<t_fake_gatom>())
+            cnv->pd->sendDirectMessage(gatom.get(), std::move(value));
     }
 
     void mouseUp(MouseEvent const& e) override

@@ -15,19 +15,19 @@ public:
     PictureObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
-        if(auto pic = this->ptr.get<t_fake_pic>()) {
-                if (pic->x_filename) {
-                    auto filePath = String::fromUTF8(pic->x_filename->s_name);
-                    
-                    // Call async prevents a bug when renaming an object to pic
-                    MessageManager::callAsync([_this = SafePointer(this), filePath]() {
-                        if (_this) {
-                            _this->openFile(filePath);
-                        }
-                    });
-                }
+        if (auto pic = this->ptr.get<t_fake_pic>()) {
+            if (pic->x_filename) {
+                auto filePath = String::fromUTF8(pic->x_filename->s_name);
+
+                // Call async prevents a bug when renaming an object to pic
+                MessageManager::callAsync([_this = SafePointer(this), filePath]() {
+                    if (_this) {
+                        _this->openFile(filePath);
+                    }
+                });
+            }
         }
-    
+
         objectParameters.addParamString("File", cGeneral, &path, "");
         objectParameters.addParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
@@ -39,11 +39,11 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         if (getValue<bool>(latch)) {
-            if(auto pic = ptr.get<t_fake_pic>()) {
+            if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 1.0f);
             }
         } else {
-            if(auto pic = ptr.get<t_fake_pic>()) {
+            if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_bang(pic->x_outlet);
             }
         }
@@ -52,7 +52,7 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         if (getValue<bool>(latch)) {
-            if(auto pic = ptr.get<t_fake_pic>()) {
+            if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 0.0f);
             }
         }
@@ -60,12 +60,12 @@ public:
 
     void update() override
     {
-        if(auto pic = ptr.get<t_fake_pic>()) {
-            
+        if (auto pic = ptr.get<t_fake_pic>()) {
+
             if (pic->x_fullname) {
                 path = String::fromUTF8(pic->x_fullname->s_name);
             }
-            
+
             latch = pic->x_latch;
             outline = pic->x_outline;
             reportSize = pic->x_size;
@@ -87,15 +87,16 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        
 
         switch (hash(symbol)) {
         case hash("latch"): {
-            if(auto pic = ptr.get<t_fake_pic>()) latch = pic->x_latch;
+            if (auto pic = ptr.get<t_fake_pic>())
+                latch = pic->x_latch;
             break;
         }
         case hash("outline"): {
-            if(auto pic = ptr.get<t_fake_pic>()) outline = pic->x_outline;
+            if (auto pic = ptr.get<t_fake_pic>())
+                outline = pic->x_outline;
             break;
         }
         case hash("open"): {
@@ -128,29 +129,34 @@ public:
         if (value.refersToSameSourceAs(path)) {
             openFile(path.toString());
         } else if (value.refersToSameSourceAs(latch)) {
-            if(auto pic = ptr.get<t_fake_pic>()) pic->x_latch = getValue<int>(latch);
+            if (auto pic = ptr.get<t_fake_pic>())
+                pic->x_latch = getValue<int>(latch);
         } else if (value.refersToSameSourceAs(outline)) {
-            if(auto pic = ptr.get<t_fake_pic>()) pic->x_outline = getValue<int>(latch);
+            if (auto pic = ptr.get<t_fake_pic>())
+                pic->x_outline = getValue<int>(latch);
         } else if (value.refersToSameSourceAs(reportSize)) {
-            if(auto pic = ptr.get<t_fake_pic>()) pic->x_size = getValue<int>(reportSize);
+            if (auto pic = ptr.get<t_fake_pic>())
+                pic->x_size = getValue<int>(reportSize);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            if(auto pic = ptr.get<t_pd>()) pd->sendDirectMessage(pic.get(), "send", { symbol });
+            if (auto pic = ptr.get<t_pd>())
+                pd->sendDirectMessage(pic.get(), "send", { symbol });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            if(auto pic = ptr.get<t_pd>()) pd->sendDirectMessage(pic.get(), "receive", { symbol });
+            if (auto pic = ptr.get<t_pd>())
+                pd->sendDirectMessage(pic.get(), "receive", { symbol });
         }
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto pic = ptr.get<t_fake_pic>())
-        {
+        if (auto pic = ptr.get<t_fake_pic>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, pic.cast<t_gobj>(), b.getX(), b.getY());
-            
+
             pic->x_width = b.getWidth();
             pic->x_height = b.getHeight();
         }
@@ -158,15 +164,14 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto pic = ptr.get<t_fake_pic>())
-        {
+        if (auto pic = ptr.get<t_fake_pic>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, pic.cast<t_gobj>(), &x, &y, &w, &h);
-            return {x, y, w, h};
-            
+            return { x, y, w, h };
         }
 
         return {};
@@ -178,10 +183,10 @@ public:
             return;
 
         auto findFile = [this](String const& name) {
-            
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return File();
-            
+            if (!patch)
+                return File();
+
             if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
                 return File(name);
             }
@@ -215,13 +220,13 @@ public:
         auto* rawPath = pathString.toRawUTF8();
 
         img = ImageFileFormat::loadFrom(imageFile);
-        
-        if(auto pic = ptr.get<t_fake_pic>()) {
+
+        if (auto pic = ptr.get<t_fake_pic>()) {
             pic->x_filename = pd->generateSymbol(rawFileName);
             pic->x_fullname = pd->generateSymbol(rawPath);
             pic->x_width = img.getWidth();
             pic->x_height = img.getHeight();
-            
+
             if (getValue<bool>(reportSize)) {
                 t_atom coordinates[2];
                 SETFLOAT(coordinates, img.getWidth());

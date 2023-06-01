@@ -53,30 +53,32 @@ public:
             ret = 255;
         return (ret);
     }
-    
+
     static Colour numbertocolor(int n)
     {
-        auto rangecolor = [](int n)    /* 0 to 9 in 5 steps */
+        auto rangecolor = [](int n) /* 0 to 9 in 5 steps */
         {
-            int n2 = (n == 9 ? 8 : n);               /* 0 to 8 */
-            int ret = (n2 << 5);        /* 0 to 256 in 9 steps */
-            if (ret > 255) ret = 255;
+            int n2 = (n == 9 ? 8 : n); /* 0 to 8 */
+            int ret = (n2 << 5);       /* 0 to 256 in 9 steps */
+            if (ret > 255)
+                ret = 255;
             return (ret);
         };
-        
-        if (n < 0)  n = 0;
-           
+
+        if (n < 0)
+            n = 0;
+
         int red = rangecolor(n / 100);
         int green = rangecolor((n / 10) % 10);
         int blue = rangecolor(n % 10);
-        
+
         return Colour(red, green, blue);
     }
 };
 
 class DrawableCurve final : public DrawableTemplate
     , public DrawablePath {
-    
+
     pd::WeakReference scalar;
     t_fake_curve* object;
     int baseX, baseY;
@@ -101,7 +103,7 @@ public:
     void handleMouseDown(MouseEvent const& e)
     {
         auto* s = scalar.getRaw<t_scalar>();
-        
+
         if (!s || !getLocalBounds().contains(e.getPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing() || !s->sc_template)
             return;
 
@@ -110,9 +112,10 @@ public:
         auto dbl = 0;
 
         canvas->pd->setThis();
-        
+
         auto* patch = canvas->patch.getPointer().get();
-        if(!patch) return;
+        if (!patch)
+            return;
 
         t_template* t = template_findbyname(s->sc_template);
         scalar_doclick(s->sc_vec, t, s, nullptr, patch, 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
@@ -128,15 +131,16 @@ public:
     void update() override
     {
         auto* s = scalar.getRaw<t_scalar>();
-        
+
         if (!s || !s->sc_template)
             return;
 
         canvas->pd->setThis();
 
         auto* glist = canvas->patch.getPointer().get();
-        if(!glist) return;
-        
+        if (!glist)
+            return;
+
         auto* templ = template_findbyname(s->sc_template);
 
         auto* x = reinterpret_cast<t_fake_curve*>(object);
@@ -154,7 +158,7 @@ public:
             int closed = flags & CLOSED;
 
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
-            
+
             int pix[200];
             if (n > 100)
                 n = 100;
@@ -258,7 +262,6 @@ public:
 
         canvas->pd->setThis();
 
-
         auto* templ = template_findbyname(s->sc_template);
 
         auto* x = reinterpret_cast<t_fake_drawnumber*>(object);
@@ -267,8 +270,7 @@ public:
         t_atom at;
 
         int xloc = 0, yloc = 0;
-        if(auto glist = canvas->patch.getPointer())
-        {
+        if (auto glist = canvas->patch.getPointer()) {
             xloc = glist_xtopixels(glist.get(), baseX + fielddesc_getcoord((t_fielddesc*)&x->x_xloc, templ, data, 0));
             yloc = glist_ytopixels(glist.get(), baseY + fielddesc_getcoord((t_fielddesc*)&x->x_yloc, templ, data, 0));
         }
@@ -311,8 +313,7 @@ public:
         auto symbolColour = numbertocolor(fielddesc_getfloat(&x->x_color, templ, data, 1));
         setColour(symbolColour);
         setBoundingBox(Parallelogram<float>(Rectangle<float>(xloc, yloc, 200, 100)));
-        if(auto glist = canvas->patch.getPointer())
-        {
+        if (auto glist = canvas->patch.getPointer()) {
             setFontHeight(sys_hostfontsize(glist_getfont(glist.get()), glist_getzoom(glist.get())));
         }
         setText(String::fromUTF8(buf));

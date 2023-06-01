@@ -33,11 +33,11 @@ public:
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
 
-        if(auto message = ptr.get<t_text>())
-        {
+        if (auto message = ptr.get<t_text>()) {
             auto* cnvPtr = cnv->patch.getPointer().get();
-            if(!cnvPtr) return {};
-            
+            if (!cnvPtr)
+                return {};
+
             auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, message.get(), objText, 15, newNumLines);
 
             numLines = newNumLines;
@@ -46,19 +46,19 @@ public:
             newBounds.setWidth(newBounds.getWidth() + 5);
             return newBounds;
         }
-        
+
         return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto gobj = ptr.get<t_gobj>())
-        {
+        if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
-            
+
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
             }
@@ -212,11 +212,9 @@ public:
 
     void click()
     {
-        if(auto message = ptr.get<void>())
-        {
+        if (auto message = ptr.get<void>()) {
             cnv->pd->sendDirectMessage(message.get(), 0);
         }
-       
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -257,12 +255,10 @@ public:
 
         char* text;
         int size;
-        
-        if(auto messObj = ptr.get<t_text>())
-        {
+
+        if (auto messObj = ptr.get<t_text>()) {
             binbuf_gettext(messObj->te_binbuf, &text, &size);
-        }
-        else {
+        } else {
             return {};
         }
 
@@ -275,11 +271,11 @@ public:
     void setSymbol(String const& value)
     {
         auto* cstr = value.toRawUTF8();
-        if(auto messobj = ptr.get<t_text>())
-        {
+        if (auto messobj = ptr.get<t_text>()) {
             auto* canvas = cnv->patch.getPointer().get();
-            if(!canvas) return;
-            
+            if (!canvas)
+                return;
+
             libpd_renameobj(canvas, messobj.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
         }
     }

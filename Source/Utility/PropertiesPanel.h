@@ -517,7 +517,7 @@ public:
             hexValueEditor.setColour(outlineColourId, Colour());
             hexValueEditor.setJustification(Justification::centred);
             hexValueEditor.setFont(Fonts::getMonospaceFont().withPointHeight(13));
-            hexValueEditor.onTextChange = [this](){
+            hexValueEditor.onTextChange = [this]() {
                 currentColour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
             };
 

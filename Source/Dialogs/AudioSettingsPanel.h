@@ -153,7 +153,7 @@ public:
 };
 
 class StandaloneAudioSettings : public Component
-    , private ChangeListener 
+    , private ChangeListener
     , public Value::Listener {
 
 public:

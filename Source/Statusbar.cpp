@@ -45,7 +45,7 @@ void VolumeSlider::paint(Graphics& g)
 }
 
 class LevelMeter : public Component
-    , public StatusbarSource::Listener 
+    , public StatusbarSource::Listener
     , public MultiTimer {
     float audioLevel[2] = { 0.0f, 0.0f };
     float peakLevel[2] = { 0.0f, 0.0f };

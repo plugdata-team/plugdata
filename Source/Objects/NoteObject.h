@@ -22,14 +22,14 @@ public:
     {
         locked = getValue<bool>(object->locked);
 
-        if(auto note = ptr.get<t_pd>())
-        {
+        if (auto note = ptr.get<t_pd>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             (*(note.get()))->c_wb->w_visfn(note.cast<t_gobj>(), patch, 1);
         }
-        
+
         addAndMakeVisible(noteEditor);
 
         noteEditor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
@@ -55,8 +55,6 @@ public:
         };
 
         noteEditor.onTextChange = [this, object]() {
-   
-
             std::vector<t_atom> atoms;
 
             auto words = StringArray::fromTokens(noteEditor.getText(), " ", "\"");
@@ -65,8 +63,7 @@ public:
                 SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
             }
 
-            if(auto note = ptr.get<t_fake_note>())
-            {
+            if (auto note = ptr.get<t_fake_note>()) {
                 binbuf_clear(note->x_binbuf);
                 binbuf_restore(note->x_binbuf, atoms.size(), atoms.data());
                 binbuf_gettext(note->x_binbuf, &note->x_buf, &note->x_bufsize);
@@ -90,15 +87,14 @@ public:
 
     void update() override
     {
-        if(auto note = ptr.get<t_fake_note>())
-        {
+        if (auto note = ptr.get<t_fake_note>()) {
             textColour = Colour(note->x_red, note->x_green, note->x_blue);
             noteEditor.setText(getNote());
 
             primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
             secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
             fontSize = note->x_fontsize;
-            
+
             bold = note->x_bold;
             italic = note->x_italic;
             underline = note->x_underline;
@@ -205,12 +201,11 @@ public:
     Rectangle<int> getPdBounds() override
     {
         auto height = noteEditor.getTextHeight();
-        
-        if(auto note = ptr.get<t_fake_note>())
-        {
+
+        if (auto note = ptr.get<t_fake_note>()) {
             int width = note->x_resized ? note->x_max_pixwidth : StringUtils::getPreciseStringWidth(getNote(), getFont()) + 12;
-            
-            return {note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 4};
+
+            return { note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 4 };
         }
 
         return {};
@@ -259,11 +254,11 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto note = ptr.get<t_fake_note>())
-        {
+        if (auto note = ptr.get<t_fake_note>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             note->x_max_pixwidth = b.getWidth();
             note->x_height = b.getHeight();
             libpd_moveobj(patch, note.cast<t_gobj>(), b.getX(), b.getY());
@@ -272,45 +267,49 @@ public:
 
     String getNote()
     {
-        if(auto note = ptr.get<t_fake_note>())
-        {
+        if (auto note = ptr.get<t_fake_note>()) {
             return String::fromUTF8(note->x_buf, note->x_bufsize).trim();
         }
-        
+
         return {};
-        
     }
 
     void valueChanged(Value& v) override
     {
-        
 
         if (v.refersToSameSourceAs(primaryColour)) {
             auto colour = Colour::fromString(primaryColour.toString());
             noteEditor.applyColourToAllText(colour);
-            if(auto note = ptr.get<t_fake_note>()) colourToHexArray(colour, &note->x_red); // this should be illegal, but it works
+            if (auto note = ptr.get<t_fake_note>())
+                colourToHexArray(colour, &note->x_red); // this should be illegal, but it works
             repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
-            if(auto note = ptr.get<t_fake_note>()) colourToHexArray(Colour::fromString(secondaryColour.toString()), note->x_bg);
+            if (auto note = ptr.get<t_fake_note>())
+                colourToHexArray(Colour::fromString(secondaryColour.toString()), note->x_bg);
             repaint();
         } else if (v.refersToSameSourceAs(fontSize)) {
-            if(auto note = ptr.get<t_fake_note>()) note->x_fontsize = getValue<int>(fontSize);
+            if (auto note = ptr.get<t_fake_note>())
+                note->x_fontsize = getValue<int>(fontSize);
             updateFont();
         } else if (v.refersToSameSourceAs(bold)) {
-            if(auto note = ptr.get<t_fake_note>()) note->x_bold = getValue<int>(bold);
+            if (auto note = ptr.get<t_fake_note>())
+                note->x_bold = getValue<int>(bold);
             updateFont();
         } else if (v.refersToSameSourceAs(italic)) {
-            if(auto note = ptr.get<t_fake_note>()) note->x_italic = getValue<int>(italic);
+            if (auto note = ptr.get<t_fake_note>())
+                note->x_italic = getValue<int>(italic);
             updateFont();
         } else if (v.refersToSameSourceAs(underline)) {
-            if(auto note = ptr.get<t_fake_note>()) note->x_underline = getValue<int>(underline);
+            if (auto note = ptr.get<t_fake_note>())
+                note->x_underline = getValue<int>(underline);
             updateFont();
         } else if (v.refersToSameSourceAs(fillBackground)) {
-            if(auto note = ptr.get<t_fake_note>()) note->x_bg_flag = getValue<int>(fillBackground);
+            if (auto note = ptr.get<t_fake_note>())
+                note->x_bg_flag = getValue<int>(fillBackground);
             repaint();
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto receive = receiveSymbol.toString();
-            if(auto note = ptr.get<t_fake_note>()) {
+            if (auto note = ptr.get<t_fake_note>()) {
                 note->x_rcv_raw = pd->generateSymbol(receive);
                 note->x_rcv_set = receive.isNotEmpty();
             }
@@ -318,7 +317,8 @@ public:
             repaint();
         } else if (v.refersToSameSourceAs(justification)) {
             auto justificationType = getValue<int>(justification);
-            if(auto note = ptr.get<t_fake_note>()) note->x_textjust = justificationType - 1;
+            if (auto note = ptr.get<t_fake_note>())
+                note->x_textjust = justificationType - 1;
             if (justificationType == 1) {
                 noteEditor.setJustification(Justification::topLeft);
             } else if (justificationType == 2) {
@@ -327,11 +327,13 @@ public:
                 noteEditor.setJustification(Justification::topRight);
             }
         } else if (v.refersToSameSourceAs(outline)) {
-            if(auto note = ptr.get<t_fake_note>()) note->x_outline = getValue<int>(outline);
+            if (auto note = ptr.get<t_fake_note>())
+                note->x_outline = getValue<int>(outline);
             repaint();
         } else if (v.refersToSameSourceAs(font)) {
             auto fontName = font.toString();
-            if(auto note = ptr.get<t_fake_note>()) note->x_fontname = gensym(fontName.toRawUTF8());
+            if (auto note = ptr.get<t_fake_note>())
+                note->x_fontname = gensym(fontName.toRawUTF8());
             updateFont();
         }
     }
@@ -384,41 +386,36 @@ public:
     {
         switch (hash(symbol)) {
         case hash("font"): {
-            if(auto note = ptr.get<t_fake_note>())
-            {
+            if (auto note = ptr.get<t_fake_note>()) {
                 font = String::fromUTF8(note->x_fontname->s_name);
             }
-            
+
             updateFont();
             break;
         }
         case hash("italic"): {
-            if(auto note = ptr.get<t_fake_note>())
-            {
+            if (auto note = ptr.get<t_fake_note>()) {
                 italic = note->x_italic;
             }
             updateFont();
             break;
         }
         case hash("size"): {
-            if(auto note = ptr.get<t_fake_note>())
-            {
+            if (auto note = ptr.get<t_fake_note>()) {
                 fontSize = note->x_fontsize;
             }
             updateFont();
             break;
         }
         case hash("underline"): {
-            if(auto note = ptr.get<t_fake_note>())
-            {
+            if (auto note = ptr.get<t_fake_note>()) {
                 underline = note->x_underline;
             }
             updateFont();
             break;
         }
         case hash("bold"): {
-            if(auto note = ptr.get<t_fake_note>())
-            {
+            if (auto note = ptr.get<t_fake_note>()) {
                 bold = note->x_bold;
             }
             updateFont();
@@ -432,22 +429,19 @@ public:
             break;
         }
         case hash("color"): {
-            if(auto note = ptr.get<t_fake_note>())
-            {
+            if (auto note = ptr.get<t_fake_note>()) {
                 primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
             }
             break;
         }
         case hash("bgcolor"): {
-            if(auto note = ptr.get<t_fake_note>())
-            {
+            if (auto note = ptr.get<t_fake_note>()) {
                 secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
             }
             break;
         }
         case hash("justification"): {
-            if(auto note = ptr.get<t_fake_note>())
-            {
+            if (auto note = ptr.get<t_fake_note>()) {
                 justification = note->x_textjust;
             }
             break;
@@ -457,8 +451,7 @@ public:
             break;
         }
         case hash("outline"): {
-            if(auto note = ptr.get<t_fake_note>())
-            {
+            if (auto note = ptr.get<t_fake_note>()) {
                 outline = note->x_outline;
             }
         }

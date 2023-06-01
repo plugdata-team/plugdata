@@ -58,9 +58,8 @@ public:
     void update()
     {
         labelText = getLabelText();
-        
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = static_cast<int>(atom->a_wherelabel + 1);
         }
 
@@ -78,18 +77,17 @@ public:
 
     Rectangle<int> getPdBounds()
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             auto* patchPtr = cnv->patch.getPointer().get();
-            if(!patchPtr) return {};
-            
+            if (!patchPtr)
+                return {};
+
             int x, y, w, h;
             libpd_get_object_bounds(patchPtr, atom.get(), &x, &y, &w, &h);
-            
+
             w = (std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(patchPtr)) + 3;
-            
-            return {x, y, w, getAtomHeight()};
-            
+
+            return { x, y, w, getAtomHeight() };
         }
 
         return {};
@@ -97,13 +95,13 @@ public:
 
     void setPdBounds(Rectangle<int> b)
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             auto* patchPtr = cnv->patch.getPointer().get();
-            if(!patchPtr) return;
-            
+            if (!patchPtr)
+                return;
+
             libpd_moveobj(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
-            
+
             auto fontWidth = glist_fontwidth(patchPtr);
             atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
         }
@@ -144,8 +142,9 @@ public:
                 auto* atom = static_cast<t_fake_gatom*>(object->getPointer());
                 auto* patch = object->cnv->patch.getPointer().get();
 
-                if(!atom || !patch) return;
-                
+                if (!atom || !patch)
+                    return;
+
                 auto fontWidth = glist_fontwidth(patch);
 
                 // Calculate the width in text characters for both
@@ -158,18 +157,16 @@ public:
                     auto x = oldBounds.getX() - widthDiff;
                     auto y = oldBounds.getY();
 
-                    if(auto atom = helper->ptr.get<t_gobj>())
-                    {
+                    if (auto atom = helper->ptr.get<t_gobj>()) {
                         libpd_moveobj(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                     }
                 }
 
                 // Set new width
-                if(auto atom = helper->ptr.get<t_fake_gatom>())
-                {
+                if (auto atom = helper->ptr.get<t_fake_gatom>()) {
                     atom->a_text.te_width = newCharWidth;
                 }
-                
+
                 auto newHeight = newBounds.getHeight() - Object::doubleMargin;
                 auto heightIdx = std::clamp<int>(std::upper_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
 
@@ -221,35 +218,31 @@ public:
 
     float getMinimum()
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             return atom->a_draglo;
         }
-        
+
         return 0.0f;
     }
 
     float getMaximum()
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             return atom->a_draghi;
         }
-        
+
         return 0.0f;
     }
 
     void setMinimum(float value)
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             atom->a_draglo = value;
         }
     }
     void setMaximum(float value)
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             atom->a_draghi = value;
         }
     }
@@ -290,18 +283,16 @@ public:
 
     float getFontHeight() const
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             return atom->a_fontsize;
         }
-        
+
         return 0;
     }
 
     void setFontHeight(float newSize)
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             atom->a_fontsize = newSize;
         }
     }
@@ -312,10 +303,9 @@ public:
         int fontHeight = getAtomHeight() - 6;
 
         int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
-        
+
         int labelPosition;
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = atom->a_wherelabel;
         }
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
@@ -335,10 +325,9 @@ public:
 
     String getExpandedLabelText() const
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             t_symbol* const sym = canvas_realizedollar(atom->a_glist, atom->a_label);
-            
+
             if (sym) {
                 auto text = String::fromUTF8(sym->s_name);
                 if (text.isNotEmpty() && text != "empty") {
@@ -346,14 +335,13 @@ public:
                 }
             }
         }
-        
+
         return "";
     }
 
     String getLabelText() const
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             t_symbol const* sym = atom->a_label;
             if (sym) {
                 auto const text = String::fromUTF8(sym->s_name);
@@ -368,64 +356,57 @@ public:
 
     void setLabelText(String const& newText)
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             atom->a_label = pd->generateSymbol(newText);
         }
     }
 
     void setLabelPosition(int wherelabel)
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             atom->a_wherelabel = wherelabel - 1;
         }
     }
 
     bool hasSendSymbol()
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             return atom->a_symto && atom->a_symto != pd->generateSymbol("empty") && atom->a_symto != pd->generateSymbol("");
         }
-        
+
         return false;
     }
 
     bool hasReceiveSymbol()
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             return atom->a_symfrom && atom->a_symfrom != pd->generateSymbol("empty") && atom->a_symfrom != pd->generateSymbol("");
         }
-        
+
         return false;
     }
 
     String getSendSymbol()
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             return String::fromUTF8(atom->a_symto->s_name);
         }
-        
+
         return {};
     }
 
     String getReceiveSymbol()
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             return String::fromUTF8(atom->a_symfrom->s_name);
         }
-        
+
         return {};
     }
 
     void setSendSymbol(String const& symbol) const
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             atom->a_symto = pd->generateSymbol(symbol);
             atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
         }
@@ -433,8 +414,7 @@ public:
 
     void setReceiveSymbol(String const& symbol) const
     {
-        if(auto atom = ptr.get<t_fake_gatom>())
-        {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
             if (*atom->a_symfrom->s_name)
                 pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
             atom->a_symfrom = pd->generateSymbol(symbol);

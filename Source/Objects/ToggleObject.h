@@ -53,11 +53,10 @@ public:
 
     void update() override
     {
-        if(auto toggle = ptr.get<t_toggle>())
-        {
+        if (auto toggle = ptr.get<t_toggle>()) {
             nonZero = toggle->x_nonzero;
         }
-        
+
         iemHelper.update();
 
         value = getValue();
@@ -106,8 +105,7 @@ public:
 
     void sendToggleValue(int newValue)
     {
-        if(auto iem = ptr.get<t_iemgui>())
-        {
+        if (auto iem = ptr.get<t_iemgui>()) {
             t_atom atom;
             SETFLOAT(&atom, newValue);
             pd_typedmess(iem.cast<t_pd>(), pd->generateSymbol("set"), 1, &atom);
@@ -183,8 +181,7 @@ public:
     {
         if (value.refersToSameSourceAs(nonZero)) {
             float val = nonZero.getValue();
-            if(auto toggle = ptr.get<t_toggle>())
-            {
+            if (auto toggle = ptr.get<t_toggle>()) {
                 toggle->x_nonzero = val;
             }
         } else {
@@ -194,8 +191,9 @@ public:
 
     float getValue()
     {
-        if(auto toggle = ptr.get<t_toggle>()) return toggle->x_on;
-       
+        if (auto toggle = ptr.get<t_toggle>())
+            return toggle->x_on;
+
         return 0.0f;
     }
 };

@@ -81,39 +81,37 @@ public:
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         return libpd_array_get_size(ptr);
     }
-    
+
     Colour getContentColour()
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        
-        //if(auto garray = ptr.get<t_fake_garray>())
-        //{
-            auto* scalar = static_cast<t_fake_garray*>(ptr)->x_scalar;
-            auto* templ = template_findbyname(scalar->sc_template);
-            
-            int colour = template_getfloat(templ, gensym("color"), scalar->sc_vec, 1);
 
-            if(colour <= 0)
-            {
-                return defaultColour;
-            }
-        
-            auto rangecolor = [](int n)    /* 0 to 9 in 5 steps */
-            {
-                int n2 = (n == 9 ? 8 : n);               /* 0 to 8 */
-                int ret = (n2 << 5);        /* 0 to 256 in 9 steps */
-                if (ret > 255) ret = 255;
-                return (ret);
-            };
-        
-            int red = rangecolor(colour / 100);
-            int green = rangecolor((colour / 10) % 10);
-            int blue = rangecolor(colour % 10);
-        
-                
-            return Colour(red, green, blue);
+        // if(auto garray = ptr.get<t_fake_garray>())
+        //{
+        auto* scalar = static_cast<t_fake_garray*>(ptr)->x_scalar;
+        auto* templ = template_findbyname(scalar->sc_template);
+
+        int colour = template_getfloat(templ, gensym("color"), scalar->sc_vec, 1);
+
+        if (colour <= 0) {
+            return defaultColour;
+        }
+
+        auto rangecolor = [](int n) /* 0 to 9 in 5 steps */
+        {
+            int n2 = (n == 9 ? 8 : n); /* 0 to 8 */
+            int ret = (n2 << 5);       /* 0 to 256 in 9 steps */
+            if (ret > 255)
+                ret = 255;
+            return (ret);
+        };
+
+        int red = rangecolor(colour / 100);
+        int green = rangecolor((colour / 10) % 10);
+        int blue = rangecolor(colour % 10);
+
+        return Colour(red, green, blue);
         //}
-        
     }
 
     void setScale(std::array<float, 2> scale)
@@ -212,7 +210,7 @@ public:
     void paintGraph(Graphics& g)
     {
         array.defaultColour = object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
-        
+
         auto const h = static_cast<float>(getHeight());
         auto const w = static_cast<float>(getWidth());
         std::vector<float> points = vec;
@@ -503,14 +501,13 @@ public:
         : ObjectBase(obj, object)
         , arrays(getArrays())
     {
-        
-        for(int i = 0; i < arrays.size(); i++)
-        {
+
+        for (int i = 0; i < arrays.size(); i++) {
             auto* graph = graphs.add(new GraphicalArray(cnv->pd, arrays[i], object));
             graph->setBounds(getLocalBounds());
             addAndMakeVisible(graph);
         }
-        
+
         setInterceptsMouseClicks(false, true);
 
         objectParameters.addParamString("Name", cGeneral, &name);
@@ -525,9 +522,8 @@ public:
     void timerCallback() override
     {
         pd->lockAudioThread();
-        
-        for(auto* graph : graphs)
-        {
+
+        for (auto* graph : graphs) {
             // Check if size has changed
             int currentSize = graph->array.size();
             if (graph->vec.size() != currentSize) {
@@ -570,15 +566,16 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto glist = ptr.get<_glist>()) {
-            
+        if (auto glist = ptr.get<_glist>()) {
+
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, glist.get(), &x, &y, &w, &h);
 
-            return {x, y, glist->gl_pixwidth, glist->gl_pixheight};
+            return { x, y, glist->gl_pixwidth, glist->gl_pixheight };
         }
 
         return {};
@@ -586,13 +583,13 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto glist = ptr.get<t_glist>())
-        {
+        if (auto glist = ptr.get<t_glist>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
-            
+
             glist->gl_pixwidth = b.getWidth();
             glist->gl_pixheight = b.getHeight();
         }
@@ -600,8 +597,7 @@ public:
 
     void resized() override
     {
-        for(auto* graph : graphs)
-        {
+        for (auto* graph : graphs) {
             graph->setBounds(getLocalBounds());
         }
     }
@@ -638,33 +634,27 @@ public:
         auto arrSaveContents = getValue<bool>(saveContents);
 
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
-        
-        
-        
-        if(auto arrayCanvas = ptr.get<t_canvas>())
-        {
+
+        if (auto arrayCanvas = ptr.get<t_canvas>()) {
             bool first = true;
-            for(auto array : arrays)
-            {
+            for (auto array : arrays) {
                 t_symbol* name = first ? pd->generateSymbol(arrName) : pd->generateSymbol(array.getUnexpandedName());
                 first = false;
-                
+
                 auto* garray = reinterpret_cast<t_fake_garray*>(array.ptr);
                 garray_arraydialog(garray, name, arrSize, static_cast<float>(flags), 0.0f);
             }
         }
-        
+
         arrays = getArrays();
-        
-        for(int i = 0; i < arrays.size(); i++)
-        {
+
+        for (int i = 0; i < arrays.size(); i++) {
             graphs[i]->setArray(arrays[i]);
         }
-        
+
         updateLabel();
 
-        for(auto* graph : graphs)
-        {
+        for (auto* graph : graphs) {
             graph->repaint();
         }
     }
@@ -676,8 +666,7 @@ public:
         } else if (value.refersToSameSourceAs(range)) {
             auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
             auto max = static_cast<float>(range.getValue().getArray()->getReference(1));
-            for(auto* graph : graphs)
-            {
+            for (auto* graph : graphs) {
                 graph->array.setScale({ min, max });
                 graph->repaint();
             }
@@ -686,7 +675,7 @@ public:
             ObjectBase::valueChanged(value);
         }
     }
-        
+
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
@@ -704,21 +693,19 @@ public:
 
     std::vector<PdArray> getArrays() const
     {
-        if(auto c = ptr.get<t_canvas>())
-        {
+        if (auto c = ptr.get<t_canvas>()) {
             std::vector<PdArray> arrays;
-            
+
             t_gobj* x = reinterpret_cast<t_gobj*>(c->gl_list);
-            arrays.push_back({x, cnv->pd->m_instance});
-            
-            while((x = x->g_next))
-            {
-                arrays.push_back({x, cnv->pd->m_instance});
+            arrays.push_back({ x, cnv->pd->m_instance });
+
+            while ((x = x->g_next)) {
+                arrays.push_back({ x, cnv->pd->m_instance });
             }
-            
+
             return arrays;
         }
-        
+
         return {};
     }
 
@@ -739,7 +726,6 @@ public:
             dialog.reset(nullptr);
         };
     }
-
 
     std::vector<hash32> getAllMessages() override
     {
@@ -814,15 +800,14 @@ public:
         }
 
         PdArray array;
-        if(auto canvas = ptr.get<t_canvas>()) {
+        if (auto canvas = ptr.get<t_canvas>()) {
             auto* c = reinterpret_cast<t_canvas*>(canvas->gl_list);
             auto* glist = reinterpret_cast<t_fake_garray*>(c->gl_list);
             array = PdArray(glist, cnv->pd->m_instance);
-        }
-        else {
+        } else {
             return;
         }
-        
+
         editor = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         editor->onClose = [this]() {
             editor.reset(nullptr);

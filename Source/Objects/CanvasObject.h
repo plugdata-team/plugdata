@@ -56,20 +56,19 @@ public:
 
     Rectangle<int> getSelectableBounds() override
     {
-        if(auto cnvObj = ptr.get<t_my_canvas>())
-        {
-            return {cnvObj->x_gui.x_obj.te_xpix, cnvObj->x_gui.x_obj.te_ypix, cnvObj->x_gui.x_w, cnvObj->x_gui.x_h};
+        if (auto cnvObj = ptr.get<t_my_canvas>()) {
+            return { cnvObj->x_gui.x_obj.te_xpix, cnvObj->x_gui.x_obj.te_ypix, cnvObj->x_gui.x_w, cnvObj->x_gui.x_h };
         }
-        
+
         return {};
     }
 
     bool canReceiveMouseEvent(int x, int y) override
     {
-        if(auto iemgui = ptr.get<t_iemgui>()) {
+        if (auto iemgui = ptr.get<t_iemgui>()) {
             return !locked && Rectangle<int>(iemgui->x_w, iemgui->x_h).contains(x - Object::margin, y - Object::margin);
         }
-        
+
         return false;
     }
 
@@ -80,8 +79,7 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto cnvObj = ptr.get<t_my_canvas>())
-        {
+        if (auto cnvObj = ptr.get<t_my_canvas>()) {
             cnvObj->x_gui.x_obj.te_xpix = b.getX();
             cnvObj->x_gui.x_obj.te_ypix = b.getY();
             cnvObj->x_vis_w = b.getWidth() - 1;
@@ -91,17 +89,17 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto canvas = ptr.get<t_my_canvas>())
-        {
+        if (auto canvas = ptr.get<t_my_canvas>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, canvas.get(), &x, &y, &w, &h);
 
             return Rectangle<int>(x, y, ptr.get<t_my_canvas>()->x_vis_w + 1, ptr.get<t_my_canvas>()->x_vis_h + 1);
         }
-        
+
         return {};
     }
 
@@ -113,16 +111,14 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
 
         if (!locked) {
-            
+
             Rectangle<float> draggableRect;
-            if(auto iemgui = ptr.get<t_iemgui>())
-            {
+            if (auto iemgui = ptr.get<t_iemgui>()) {
                 draggableRect = Rectangle<float>(ptr.get<t_iemgui>()->x_w, ptr.get<t_iemgui>()->x_h);
-            }
-            else {
+            } else {
                 return;
             }
-            
+
             g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : object->findColour(PlugDataColour::objectOutlineColourId));
             g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
         }

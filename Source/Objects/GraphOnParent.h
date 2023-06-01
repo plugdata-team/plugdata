@@ -37,8 +37,7 @@ public:
 
     void update() override
     {
-        if(auto glist = ptr.get<t_canvas>())
-        {
+        if (auto glist = ptr.get<t_canvas>()) {
             isGraphChild = static_cast<bool>(glist->gl_isgraph);
             hideNameAndArgs = static_cast<bool>(glist->gl_hidetext);
             xRange = Array<var> { var(glist->gl_x1), var(glist->gl_x2) };
@@ -70,11 +69,11 @@ public:
                 // isgraph: 1
 
                 Rectangle<int> bounds;
-                if(auto gobj = ptr.get<t_gobj>())
-                {
+                if (auto gobj = ptr.get<t_gobj>()) {
                     auto* patch = cnv->patch.getPointer().get();
-                    if(!patch) return;
-                    
+                    if (!patch)
+                        return;
+
                     int x = 0, y = 0, w = 0, h = 0;
                     libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
                     bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
@@ -131,12 +130,12 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        
-        if(auto glist = ptr.get<_glist>())
-        {
+
+        if (auto glist = ptr.get<_glist>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
             glist->gl_pixwidth = b.getWidth() - 1;
             glist->gl_pixheight = b.getHeight() - 1;
@@ -145,14 +144,14 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto gobj = ptr.get<t_gobj>())
-        {
+        if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
-            return {x, y, w + 1, h + 1};
+            return { x, y, w + 1, h + 1 };
         }
 
         return {};
@@ -261,12 +260,11 @@ public:
 
         int isGraph = getValue<bool>(isGraphChild);
         int hideText = isGraph && getValue<bool>(hideNameAndArgs);
-        
-        if(auto glist = ptr.get<t_glist>())
-        {
+
+        if (auto glist = ptr.get<t_glist>()) {
             canvas_setgraph(glist.get(), isGraph + 2 * hideText, 0);
         }
-        
+
         repaint();
 
         MessageManager::callAsync([this, _this = SafePointer(this)]() {
@@ -275,10 +273,10 @@ public:
 
             // Change from graph to subpatch
             if (auto glist = ptr.get<t_canvas>()) {
-                if(!glist->gl_isgraph) {
+                if (!glist->gl_isgraph) {
                     cnv->setSelected(object, false);
                     object->cnv->editor->sidebar->hideParameters();
-                    
+
                     object->setType(getText(), glist.get());
                     return; // Make sure we don't run updateCanvas because class might be deleted!
                 }
@@ -290,18 +288,18 @@ public:
 
     void valueChanged(Value& v) override
     {
-        
 
         if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
             checkGraphState();
-        } if (v.refersToSameSourceAs(xRange)) {
-            if(auto glist = ptr.get<t_canvas>()) {
+        }
+        if (v.refersToSameSourceAs(xRange)) {
+            if (auto glist = ptr.get<t_canvas>()) {
                 glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
                 glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));
             }
             updateDrawables();
         } else if (v.refersToSameSourceAs(yRange)) {
-            if(auto glist = ptr.get<t_canvas>()) {
+            if (auto glist = ptr.get<t_canvas>()) {
                 glist->gl_y2 = static_cast<float>(yRange.getValue().getArray()->getReference(0));
                 glist->gl_y1 = static_cast<float>(yRange.getValue().getArray()->getReference(1));
             }

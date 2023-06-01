@@ -220,14 +220,12 @@ public:
         keyboard.setScrollButtonsVisible(false);
 
         keyboard.noteOn = [this](int note, int velocity) {
-            
             int ac = 2;
             t_atom at[2];
             SETFLOAT(at, note);
             SETFLOAT(at + 1, velocity);
-            
-            if(auto obj = this->ptr.get<t_fake_keyboard>())
-            {
+
+            if (auto obj = this->ptr.get<t_fake_keyboard>()) {
                 outlet_list(obj->x_out, gensym("list"), ac, at);
                 if (obj->x_send != gensym("") && obj->x_send->s_thing)
                     pd_list(obj->x_send->s_thing, gensym("list"), ac, at);
@@ -235,8 +233,7 @@ public:
         };
 
         keyboard.noteOff = [this](int note) {
-            if(auto obj = this->ptr.get<t_fake_keyboard>())
-            {
+            if (auto obj = this->ptr.get<t_fake_keyboard>()) {
                 int ac = 2;
                 t_atom at[2];
                 SETFLOAT(at, note);
@@ -245,7 +242,6 @@ public:
                 outlet_list(obj->x_out, gensym("list"), ac, at);
                 if (obj->x_send != gensym("") && obj->x_send->s_thing)
                     pd_list(obj->x_send->s_thing, gensym("list"), ac, at);
-
             }
         };
 
@@ -262,21 +258,20 @@ public:
 
     void update() override
     {
-        if(auto obj = ptr.get<t_fake_keyboard>())
-        {
+        if (auto obj = ptr.get<t_fake_keyboard>()) {
             lowC.setValue(obj->x_low_c);
             octaves.setValue(obj->x_octaves);
             toggleMode.setValue(obj->x_toggle_mode);
-            
+
             auto sndSym = String::fromUTF8(obj->x_send->s_name);
             auto rcvSym = String::fromUTF8(obj->x_receive->s_name);
-            
+
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
-            
+
             MessageManager::callAsync([this] {
                 updateAspectRatio();
-                
+
                 // Call async to make sure pd obj has updated
                 object->updateBounds();
             });
@@ -285,14 +280,14 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto obj = ptr.get<t_fake_keyboard>())
-        {
+        if (auto obj = ptr.get<t_fake_keyboard>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x, y, w, h;
             libpd_get_object_bounds(patch, obj.get(), &x, &y, &w, &h);
-            
+
             return Rectangle<int>(x, y, obj->x_space * numWhiteKeys, obj->x_height);
         }
 
@@ -301,11 +296,11 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto gobj = ptr.get<t_fake_keyboard>())
-        {
+        if (auto gobj = ptr.get<t_fake_keyboard>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, gobj.cast<t_gobj>(), b.getX(), b.getY());
             gobj->x_height = b.getHeight();
         }
@@ -320,11 +315,10 @@ public:
 
         keyboard.setKeyWidth(keyWidth);
 
-        if(auto obj = ptr.get<t_fake_keyboard>())
-        {
+        if (auto obj = ptr.get<t_fake_keyboard>()) {
             obj->x_space = keyWidth;
         }
-        
+
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
     }
 
@@ -349,29 +343,34 @@ public:
     {
         if (value.refersToSameSourceAs(lowC)) {
             lowC = std::clamp<int>(getValue<int>(lowC), -1, 9);
-            if(auto obj = ptr.get<t_fake_keyboard>()) obj->x_low_c = getValue<int>(lowC);
+            if (auto obj = ptr.get<t_fake_keyboard>())
+                obj->x_low_c = getValue<int>(lowC);
             updateAspectRatio();
         } else if (value.refersToSameSourceAs(octaves)) {
             octaves = std::clamp<int>(getValue<int>(octaves), 1, 11);
-            if(auto obj = ptr.get<t_fake_keyboard>()) obj->x_octaves = getValue<int>(octaves);
+            if (auto obj = ptr.get<t_fake_keyboard>())
+                obj->x_octaves = getValue<int>(octaves);
             updateAspectRatio();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            if(auto obj = ptr.get<void>()) pd->sendDirectMessage(obj.get(), "send", { symbol });
+            if (auto obj = ptr.get<void>())
+                pd->sendDirectMessage(obj.get(), "send", { symbol });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            if(auto obj = ptr.get<void>()) pd->sendDirectMessage(obj.get(), "receive", { symbol });
+            if (auto obj = ptr.get<void>())
+                pd->sendDirectMessage(obj.get(), "receive", { symbol });
         } else if (value.refersToSameSourceAs(toggleMode)) {
             auto toggle = getValue<int>(toggleMode);
-            if(auto obj = ptr.get<void>()) pd->sendDirectMessage(obj.get(), "toggle", { toggle });
+            if (auto obj = ptr.get<void>())
+                pd->sendDirectMessage(obj.get(), "toggle", { toggle });
             keyboard.setToggleMode(toggle);
         }
     }
 
     void updateValue()
     {
-        if(auto obj = ptr.get<t_fake_keyboard>()) {
-            
+        if (auto obj = ptr.get<t_fake_keyboard>()) {
+
             for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
                 if (obj->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
                     state.noteOn(2, i, 1.0f);

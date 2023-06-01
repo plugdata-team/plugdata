@@ -126,19 +126,16 @@ ObjectBase::~ObjectBase()
 
 String ObjectBase::getText()
 {
-    
-    
-        
 
     cnv->pd->setThis();
 
     char* text = nullptr;
     int size = 0;
 
-    if(auto obj = ptr.get<t_gobj>())
-    {
-        if (!cnv->patch.checkObject(obj.get())) return "";
-        
+    if (auto obj = ptr.get<t_gobj>()) {
+        if (!cnv->patch.checkObject(obj.get()))
+            return "";
+
         libpd_get_object_text(obj.get(), &text, &size);
     }
 
@@ -230,8 +227,7 @@ bool ObjectBase::click()
 {
     pd->setThis();
 
-    if(auto obj = ptr.get<t_object>())
-    {
+    if (auto obj = ptr.get<t_object>()) {
         if (libpd_has_click_function(obj.get())) {
             pd->sendDirectMessage(obj.get(), "click", {});
             return true;
@@ -281,25 +277,24 @@ void ObjectBase::openSubpatch()
 void ObjectBase::moveToFront()
 {
     pd->setThis();
-    
-    if(auto obj = ptr.get<t_gobj>())
-    {
+
+    if (auto obj = ptr.get<t_gobj>()) {
         auto* patch = cnv->patch.getPointer().get();
-        if(!patch) return;
-        
+        if (!patch)
+            return;
+
         libpd_tofront(patch, obj.get());
     }
-    
 }
 
 void ObjectBase::moveToBack()
 {
     pd->setThis();
-    if(auto obj = ptr.get<t_gobj>())
-    {
+    if (auto obj = ptr.get<t_gobj>()) {
         auto* patch = cnv->patch.getPointer().get();
-        if(!patch) return;
-        
+        if (!patch)
+            return;
+
         libpd_toback(patch, obj.get());
     }
 }
@@ -343,14 +338,11 @@ void ObjectBase::sendFloatValue(float newValue)
 {
     t_atom atom;
     SETFLOAT(&atom, newValue);
-    
-    if(auto obj = ptr.get<t_pd>())
-    {
+
+    if (auto obj = ptr.get<t_pd>()) {
         pd_typedmess(obj.get(), cnv->patch.instance->generateSymbol("set"), 1, &atom);
         pd_bang(obj.get());
     }
-
-
 }
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
@@ -478,18 +470,16 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 
 bool ObjectBase::canOpenFromMenu()
 {
-    if(auto obj = ptr.get<t_pd>())
-    {
+    if (auto obj = ptr.get<t_pd>()) {
         return zgetfn(obj.get(), pd->generateSymbol("menu-open")) != nullptr;
     }
-    
+
     return false;
 }
 
 void ObjectBase::openFromMenu()
 {
-    if(auto obj = ptr.get<t_pd>())
-    {
+    if (auto obj = ptr.get<t_pd>()) {
         pd->sendDirectMessage(obj.get(), "menu-open", {});
     }
 }

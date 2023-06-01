@@ -33,8 +33,7 @@ public:
 
     void update() override
     {
-        if(auto scope = ptr.get<S>())
-        {
+        if (auto scope = ptr.get<S>()) {
             triggerMode = scope->x_trigmode + 1;
             triggerValue = scope->x_triglevel;
             bufferSize = scope->x_bufsize;
@@ -43,7 +42,7 @@ public:
             secondaryColour = colourFromHexArray(scope->x_bg).toString();
             primaryColour = colourFromHexArray(scope->x_fg).toString();
             gridColour = colourFromHexArray(scope->x_gg).toString();
-            
+
             auto rcv = String::fromUTF8(scope->x_rcv_raw->s_name);
             if (rcv == "empty")
                 rcv = "";
@@ -61,32 +60,31 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto scope = ptr.get<S>())
-        {
+        if (auto scope = ptr.get<S>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, scope.get(), &x, &y, &w, &h);
 
             return { x, y, w + 1, h + 1 };
         }
-        
+
         return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto scope = ptr.get<S>())
-        {
+        if (auto scope = ptr.get<S>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, scope.template cast<t_gobj>(), b.getX(), b.getY());
-            
+
             scope->x_width = getWidth() - 1;
             scope->x_height = getWidth() - 1;
-            
         }
     }
 
@@ -148,18 +146,17 @@ public:
         if (object->iolets.size() == 3)
             object->iolets[2]->setVisible(false);
 
-        if(auto scope = ptr.get<S>())
-        {
+        if (auto scope = ptr.get<S>()) {
             bufsize = scope->x_bufsize;
             min = scope->x_min;
             max = scope->x_max;
             mode = scope->x_xymode;
-            
+
             if (x_buffer.size() != bufsize) {
                 x_buffer.resize(bufsize);
                 y_buffer.resize(bufsize);
             }
-            
+
             std::copy(scope->x_xbuflast, scope->x_xbuflast + bufsize, x_buffer.data());
             std::copy(scope->x_ybuflast, scope->x_ybuflast + bufsize, y_buffer.data());
         }
@@ -202,47 +199,53 @@ public:
 
     void valueChanged(Value& v) override
     {
-        
+
         if (v.refersToSameSourceAs(primaryColour)) {
-            if(auto scope = ptr.get<S>()) colourToHexArray(Colour::fromString(primaryColour.toString()), scope->x_fg);
+            if (auto scope = ptr.get<S>())
+                colourToHexArray(Colour::fromString(primaryColour.toString()), scope->x_fg);
         } else if (v.refersToSameSourceAs(secondaryColour)) {
-            if(auto scope = ptr.get<S>()) colourToHexArray(Colour::fromString(secondaryColour.toString()), scope->x_bg);
+            if (auto scope = ptr.get<S>())
+                colourToHexArray(Colour::fromString(secondaryColour.toString()), scope->x_bg);
         } else if (v.refersToSameSourceAs(gridColour)) {
-            if(auto scope = ptr.get<S>()) colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
+            if (auto scope = ptr.get<S>())
+                colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(getValue<int>(bufferSize), 0, SCOPE_MAXBUFSIZE * 4);
 
             pd->setThis();
-    
-            if(auto scope = ptr.get<S>()) {
+
+            if (auto scope = ptr.get<S>()) {
                 scope->x_bufsize = bufferSize.getValue();
                 scope->x_bufphase = 0;
             }
-            
+
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
             pd->setThis();
-            if(auto scope = ptr.get<S>()) {
+            if (auto scope = ptr.get<S>()) {
                 scope->x_period = limitValueMin(v, 0);
             }
         } else if (v.refersToSameSourceAs(signalRange)) {
             auto min = static_cast<float>(signalRange.getValue().getArray()->getReference(0));
             auto max = static_cast<float>(signalRange.getValue().getArray()->getReference(1));
-            if(auto scope = ptr.get<S>()) {
+            if (auto scope = ptr.get<S>()) {
                 scope->x_min = min;
                 scope->x_max = max;
             }
         } else if (v.refersToSameSourceAs(delay)) {
-            if(auto scope = ptr.get<S>()) scope->x_delay = getValue<int>(delay);
+            if (auto scope = ptr.get<S>())
+                scope->x_delay = getValue<int>(delay);
         } else if (v.refersToSameSourceAs(triggerMode)) {
-            if(auto scope = ptr.get<S>()) scope->x_trigmode = getValue<int>(triggerMode) - 1;
+            if (auto scope = ptr.get<S>())
+                scope->x_trigmode = getValue<int>(triggerMode) - 1;
         } else if (v.refersToSameSourceAs(triggerValue)) {
-            if(auto scope = ptr.get<S>()) scope->x_triglevel = getValue<int>(triggerValue);
+            if (auto scope = ptr.get<S>())
+                scope->x_triglevel = getValue<int>(triggerValue);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto* rcv = pd->generateSymbol(receiveSymbol.toString());
             pd->setThis();
-            if(auto scope = ptr.get<S>()) {
+            if (auto scope = ptr.get<S>()) {
                 scope->x_receive = canvas_realizedollar(scope->x_glist, scope->x_rcv_raw = rcv);
-                
+
                 if (scope->x_receive != gensym("")) {
                     pd_bind(&scope->x_obj.ob_pd, scope->x_receive);
                 } else {

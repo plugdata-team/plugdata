@@ -15,52 +15,52 @@
 #include "Pd/Patch.h"
 
 class DraggedPaletteItem : public Component {
-    
+
 public:
-    std::function<void(Point<int>, bool)> onMouseUp = [](Point<int>, bool){};
-    std::function<void(Point<int>)> onMouseDrag = [](Point<int>){};
-    
-    DraggedPaletteItem(Component* targetItem) : target(targetItem)
+    std::function<void(Point<int>, bool)> onMouseUp = [](Point<int>, bool) {};
+    std::function<void(Point<int>)> onMouseDrag = [](Point<int>) {};
+
+    DraggedPaletteItem(Component* targetItem)
+        : target(targetItem)
     {
         target->addMouseListener(this, false);
         imageToDraw = target->createComponentSnapshot(target->getLocalBounds());
-        
+
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
         setBounds(target->getScreenBounds());
         setVisible(true);
         setAlwaysOnTop(true);
     }
-    
+
     ~DraggedPaletteItem() override
     {
         target->removeMouseListener(this);
     }
-    
-    void mouseUp(const MouseEvent& e) override
+
+    void mouseUp(MouseEvent const& e) override
     {
         isDragging = false;
-        
+
         onMouseUp(e.getScreenPosition(), e.getDistanceFromDragStartY() > 10);
     }
-    
+
 private:
-    
     void paint(Graphics& g) override
     {
         g.drawImageAt(imageToDraw, 0, 0);
     }
-    
+
     void mouseDrag(MouseEvent const& e) override
     {
         auto relativeEvent = e.getEventRelativeTo(this);
-        
+
         if (!isDragging) {
             dragger.startDraggingComponent(this, relativeEvent);
             isDragging = true;
         }
-        
+
         dragger.dragComponent(this, relativeEvent, nullptr);
-        
+
         onMouseDrag(e.getScreenPosition());
     }
 
@@ -70,54 +70,56 @@ private:
     ComponentDragger dragger;
 };
 
-class PaletteItem : public Component
-{
+class PaletteItem : public Component {
 public:
-    PaletteItem(PluginEditor* e, ValueTree tree, int& dragPosition) : editor(e), paletteDragPosition(dragPosition), itemTree(tree)
+    PaletteItem(PluginEditor* e, ValueTree tree, int& dragPosition)
+        : editor(e)
+        , paletteDragPosition(dragPosition)
+        , itemTree(tree)
     {
         paletteName = itemTree.getProperty("Name");
         palettePatch = itemTree.getProperty("Patch");
-        
+
         nameLabel.setText(paletteName, dontSendNotification);
         nameLabel.setInterceptsMouseClicks(false, false);
         nameLabel.onTextChange = [this]() mutable {
             paletteName = nameLabel.getText();
             itemTree.setProperty("Name", paletteName, nullptr);
         };
-        
-        nameLabel.onEditorShow = [this](){
-            if(auto* editor = nameLabel.getCurrentTextEditor()) {
+
+        nameLabel.onEditorShow = [this]() {
+            if (auto* editor = nameLabel.getCurrentTextEditor()) {
                 editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
                 editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
                 editor->setJustification(Justification::centred);
             }
         };
-        
+
         nameLabel.setJustificationType(Justification::centred);
-        //nameLabel.addMouseListener(this, false);
-        
+        // nameLabel.addMouseListener(this, false);
+
         addAndMakeVisible(nameLabel);
     }
-    
+
     void paint(Graphics& g) override
     {
         auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
-        
+
         auto ioletRadius = 6.5f;
         auto cornerRadius = 5.0f;
-        
+
         auto [inlets, outlets] = countIolets(palettePatch);
-        
+
         int x = bounds.getX() + 8;
-        
+
         auto lineBounds = bounds.reduced(ioletRadius / 2);
-        
+
         Path p;
         p.startNewSubPath(x, lineBounds.getY());
-        
+
         g.saveState();
         g.reduceClipRegion(lineBounds.getSmallestIntegerContainer());
-        
+
         for (int i = 0; i < inlets.size(); i++) {
             auto inletBounds = Rectangle<float>();
             int const total = inlets.size();
@@ -131,24 +133,24 @@ public:
                 float const ratio = (bounds.getWidth() - ioletRadius - 48) / static_cast<float>(total - 1);
                 inletBounds = Rectangle<float>((bounds.getX() + ratio * i) + 24, yPosition, ioletRadius, ioletRadius);
             }
-        
+
             auto const fromRadians = MathConstants<float>::pi * 1.5f;
             auto const toRadians = MathConstants<float>::pi * 0.5f;
 
             p.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), ioletRadius, ioletRadius, 0.0f, fromRadians, toRadians, false);
-            
+
             g.setColour(inlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
             g.drawEllipse(inletBounds.withSizeKeepingCentre(ioletRadius + 5, ioletRadius + 5), 1.5f);
         }
-        
+
         p.lineTo(lineBounds.getTopRight().translated(-cornerRadius, 0));
-        
+
         p.quadraticTo(lineBounds.getTopRight(), lineBounds.getTopRight().translated(0, cornerRadius));
-        
+
         p.lineTo(lineBounds.getBottomRight().translated(0, -cornerRadius));
-        
+
         p.quadraticTo(lineBounds.getBottomRight(), lineBounds.getBottomRight().translated(-cornerRadius, 0));
-        
+
         for (int i = outlets.size() - 1; i >= 0; i--) {
             auto outletBounds = Rectangle<float>();
             int const total = outlets.size();
@@ -162,114 +164,110 @@ public:
                 float const ratio = (bounds.getWidth() - ioletRadius - 48) / static_cast<float>(total - 1);
                 outletBounds = Rectangle<float>((bounds.getX() + ratio * i) + 24, yPosition, ioletRadius, ioletRadius);
             }
-        
+
             auto const fromRadians = MathConstants<float>::pi * 1.5f;
             auto const toRadians = MathConstants<float>::pi * 0.5f;
 
             p.addCentredArc(outletBounds.getCentreX(), outletBounds.getCentreY(), ioletRadius, ioletRadius, MathConstants<float>::pi, fromRadians, toRadians, false);
-            
+
             g.setColour(outlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
             g.drawEllipse(outletBounds.withSizeKeepingCentre(ioletRadius + 5, ioletRadius + 5), 1.5f);
         }
-        
+
         g.restoreState();
-        
+
         p.lineTo(lineBounds.getBottomLeft().translated(cornerRadius, 0));
-        
+
         p.quadraticTo(lineBounds.getBottomLeft(), lineBounds.getBottomLeft().translated(0, -cornerRadius));
-        
+
         p.lineTo(lineBounds.getTopLeft().translated(0, cornerRadius));
         p.quadraticTo(lineBounds.getTopLeft(), lineBounds.getTopLeft().translated(cornerRadius, 0));
         p.closeSubPath();
-        
+
         g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
         g.fillPath(p);
-        
+
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
         g.strokePath(p, PathStrokeType(1.0f));
     }
-    
+
     void resized() override
     {
         nameLabel.setBounds(getLocalBounds().reduced(16, 4));
     }
-    
+
     void mouseDrag(MouseEvent const& e) override
     {
-        if (dragger) return;
-        
+        if (dragger)
+            return;
+
         dragger = std::make_unique<DraggedPaletteItem>(this);
-        
-        dragger->onMouseDrag = [this](Point<int> screenPosition){
+
+        dragger->onMouseDrag = [this](Point<int> screenPosition) {
             auto* parent = getParentComponent();
-            
-            if(parent && parent->getScreenBounds().contains(screenPosition))
-            {
+
+            if (parent && parent->getScreenBounds().contains(screenPosition)) {
                 paletteDragPosition = parent->getLocalPoint(nullptr, screenPosition).y;
                 parent->repaint();
-            }
-            else {
+            } else {
                 paletteDragPosition = -1;
-                if(parent) parent->repaint();
+                if (parent)
+                    parent->repaint();
             }
         };
-        
-        dragger->onMouseUp = [_this = SafePointer(this), this](Point<int> screenPosition, bool wasDragged){
-            
-            if(!_this) return;
-            
+
+        dragger->onMouseUp = [_this = SafePointer(this), this](Point<int> screenPosition, bool wasDragged) {
+            if (!_this)
+                return;
+
             auto* cnv = editor->getCurrentCanvas();
-            
-            if(cnv && cnv->viewport && cnv->viewport->getScreenBounds().contains(screenPosition))
-            {
+
+            if (cnv && cnv->viewport && cnv->viewport->getScreenBounds().contains(screenPosition)) {
                 auto position = cnv->getLocalPoint(nullptr, screenPosition) + Point<int>(Object::margin, Object::margin) - cnv->canvasOrigin;
-                
+
                 String result;
-                if(palettePatch.startsWith("#N canvas")) {
+                if (palettePatch.startsWith("#N canvas")) {
                     result = pd::Patch::translatePatchAsString(palettePatch, position);
+                } else {
+                    result = "#N canvas 827 239 527 327 12;\n" + palettePatch + StringArray { "\n#X restore ", String(position.x), String(position.y), paletteName }.joinIntoString(" ") + ";";
                 }
-                else {
-                    result = "#N canvas 827 239 527 327 12;\n" + palettePatch + StringArray{"\n#X restore ", String(position.x), String(position.y), paletteName}.joinIntoString(" ") + ";";
-                }
-                
-                if(auto ptr = cnv->patch.getPointer())
-                {
+
+                if (auto ptr = cnv->patch.getPointer()) {
                     libpd_paste(ptr.get(), result.toRawUTF8());
                 }
-                
+
                 cnv->synchronise();
-            }
-            else if(wasDragged)
-            {
+            } else if (wasDragged) {
                 auto parentTree = itemTree.getParent();
-                
-                if(!parentTree.isValid()) return;
-                
+
+                if (!parentTree.isValid())
+                    return;
+
                 int oldPosition = parentTree.indexOf(itemTree);
                 int newPosition = (paletteDragPosition / 40) - 1;
-                
+
                 MessageManager::callAsync([parentTree, oldPosition, newPosition]() mutable {
                     parentTree.moveChild(oldPosition, newPosition, nullptr);
                 });
-                
             }
 
             paletteDragPosition = -1;
-            if(auto* parent = getParentComponent()) parent->repaint();
-            
+            if (auto* parent = getParentComponent())
+                parent->repaint();
+
             dragger.reset(nullptr);
         };
     }
-    
-    void mouseDown(const MouseEvent& e) override
+
+    void mouseDown(MouseEvent const& e) override
     {
-        if(e.mods.isRightButtonDown())
-        {
+        if (e.mods.isRightButtonDown()) {
             PopupMenu menu;
-            menu.addItem("Delete item", [this](){
+            menu.addItem("Delete item", [this]() {
                 auto parentTree = itemTree.getParent();
-                
-                if(!parentTree.isValid()) return;
+
+                if (!parentTree.isValid())
+                    return;
 
                 MessageManager::callAsync([parentTree, itemTree = this->itemTree]() mutable {
                     parentTree.removeChild(itemTree, nullptr);
@@ -278,15 +276,14 @@ public:
             menu.showMenuAsync(PopupMenu::Options());
         }
     }
-    
-    void mouseUp(const MouseEvent& e) override
+
+    void mouseUp(MouseEvent const& e) override
     {
-        if(!e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2)
-        {
+        if (!e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
             nameLabel.showEditor();
         }
     }
-    
+
     std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patchAsString)
     {
         std::pair<std::vector<bool>, std::vector<bool>> result;
@@ -304,12 +301,16 @@ public:
         auto isEndingCanvas = [](StringArray& tokens) {
             return tokens[0] == "#X" && tokens[1] == "restore" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
         };
-        
-        auto countIolet = [&inlets = result.first, &outlets = result.second](String name){
-            if(name == "inlet")   inlets.push_back(false);
-            if(name == "outlet")  outlets.push_back(false);
-            if(name == "inlet~")  inlets.push_back(true);
-            if(name == "outlet~") outlets.push_back(true);
+
+        auto countIolet = [&inlets = result.first, &outlets = result.second](String name) {
+            if (name == "inlet")
+                inlets.push_back(false);
+            if (name == "outlet")
+                outlets.push_back(false);
+            if (name == "inlet~")
+                inlets.push_back(true);
+            if (name == "outlet~")
+                outlets.push_back(true);
         };
 
         for (auto& line : StringArray::fromLines(patchAsString)) {
@@ -333,10 +334,10 @@ public:
                 canvasDepth--;
             }
         }
-        
+
         return result;
     }
-    
+
     ValueTree itemTree;
     int& paletteDragPosition;
     Label nameLabel;
@@ -345,127 +346,122 @@ public:
     String paletteName, palettePatch;
 };
 
-class PaletteComponent : public Component, public ValueTree::Listener
-{
+class PaletteComponent : public Component
+    , public ValueTree::Listener {
 public:
-    PaletteComponent(PluginEditor* e, ValueTree tree) : editor(e), paletteTree(tree)
+    PaletteComponent(PluginEditor* e, ValueTree tree)
+        : editor(e)
+        , paletteTree(tree)
     {
         updateItems();
-        
+
         paletteTree.addListener(this);
-        
+
         nameLabel.setText(tree.getProperty("Name"), dontSendNotification);
         nameLabel.setEditable(true);
         nameLabel.setJustificationType(Justification::centred);
-        
-        nameLabel.onEditorShow = [this](){
-            if(auto* editor = nameLabel.getCurrentTextEditor()) {
+
+        nameLabel.onEditorShow = [this]() {
+            if (auto* editor = nameLabel.getCurrentTextEditor()) {
                 editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
                 editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
                 editor->setJustification(Justification::centred);
             }
         };
-        
+
         nameLabel.onTextChange = [this, tree]() mutable {
             tree.setProperty("Name", nameLabel.getText(), nullptr);
         };
-        
+
         setSize(1, items.size() * 40 + 40);
         addAndMakeVisible(nameLabel);
-        
+
         viewport.setViewedComponent(&itemHolder, false);
         addAndMakeVisible(viewport);
-        
-        deleteButton.onClick = [this, tree]() mutable{
+
+        deleteButton.onClick = [this, tree]() mutable {
             auto parentTree = tree.getParent();
-            
-            if(!parentTree.isValid()) return;
-            
+
+            if (!parentTree.isValid())
+                return;
+
             parentTree.removeChild(tree, nullptr);
         };
-        
+
         deleteButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(deleteButton);
     }
-    
+
     void resized() override
     {
         viewport.setBounds(getLocalBounds().withTrimmedTop(32));
         nameLabel.setBounds(getLocalBounds().removeFromTop(32));
-        
+
         deleteButton.setBounds(getWidth() - 30, 2, 28, 28);
-        
+
         auto itemsBounds = getLocalBounds();
         auto height = 40;
         auto totalHeight = 0;
-        
-        for(auto* item : items)
-        {
+
+        for (auto* item : items) {
             totalHeight += height;
             item->setBounds(itemsBounds.removeFromTop(height));
         }
-        
+
         itemHolder.setBounds(getLocalBounds().withHeight(totalHeight));
     }
-    
-    void paint (Graphics& g) override
+
+    void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRect(getLocalBounds().toFloat().removeFromTop(30).withTrimmedTop(0.5f));
-        
+
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        //g.drawHorizontalLine(-1.0f, 0.0f, getWidth());
+        // g.drawHorizontalLine(-1.0f, 0.0f, getWidth());
         g.drawLine(0, 30.0f, getWidth(), 30.0f);
-               
-        if(isPositiveAndBelow(dragTargetPosition, getHeight()))
-        {
+
+        if (isPositiveAndBelow(dragTargetPosition, getHeight())) {
             int y = ((dragTargetPosition / 40) + 1) * 40 - 8;
             g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
             g.drawLine(8.0f, y, getWidth() - 16.0f, y, 2.0f);
         }
     }
-    
+
     void updateItems()
     {
         items.clear();
-        
-        for(auto item : paletteTree)
-        {
+
+        for (auto item : paletteTree) {
             itemHolder.addAndMakeVisible(items.add(new PaletteItem(editor, item, dragTargetPosition)));
         }
-        
+
         resized();
     }
-    
-    void mouseDown(const MouseEvent& e) override
+
+    void mouseDown(MouseEvent const& e) override
     {
-        if(e.mods.isRightButtonDown())
-        {
+        if (e.mods.isRightButtonDown()) {
             PopupMenu menu;
-            menu.addItem("Paste", [this](){
-                
+            menu.addItem("Paste", [this]() {
                 auto clipboardText = SystemClipboard::getTextFromClipboard();
                 ValueTree itemTree("Item");
-                
+
                 String name;
-                if(clipboardText.startsWith("#N canvas"))
-                {
+                if (clipboardText.startsWith("#N canvas")) {
                     auto lines = StringArray::fromLines(clipboardText);
-                    for(int i = lines.size() - 1; i >= 0; i--)
-                    {
-                        if(lines[i].startsWith("#X restore"))
-                        {
+                    for (int i = lines.size() - 1; i >= 0; i--) {
+                        if (lines[i].startsWith("#X restore")) {
                             auto tokens = StringArray::fromTokens(lines[i], true);
                             name = tokens[4].trimCharactersAtEnd(";");
                         }
                     }
                 }
-                
+
                 itemTree.setProperty("Name", name, nullptr);
                 itemTree.setProperty("Patch", clipboardText, nullptr);
                 paletteTree.appendChild(itemTree, nullptr);
             });
-            
+
             menu.showMenuAsync(PopupMenu::Options());
         }
     }
@@ -479,24 +475,23 @@ public:
     {
         updateItems();
     }
-        
-    void valueTreeChildOrderChanged (ValueTree&, int, int) override
+
+    void valueTreeChildOrderChanged(ValueTree&, int, int) override
     {
         updateItems();
     }
-    
+
     int dragTargetPosition = -1;
     TextButton deleteButton = TextButton(Icons::Trash);
 
     PluginEditor* editor;
     ValueTree paletteTree;
-    
+
     Component itemHolder;
     Viewport viewport;
     Label nameLabel;
     OwnedArray<PaletteItem> items;
 };
-
 
 class PaletteSelector : public TextButton {
 
@@ -524,7 +519,7 @@ public:
     {
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
-        
+
         if (getToggleState()) {
             g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
             g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
@@ -555,9 +550,12 @@ public:
 };
 
 class Palettes : public Component
-    , public SettingsFileListener, public ValueTree::Listener {
+    , public SettingsFileListener
+    , public ValueTree::Listener {
 public:
-    explicit Palettes(PluginEditor* e) : editor(e), resizer(this)
+    explicit Palettes(PluginEditor* e)
+        : editor(e)
+        , resizer(this)
     {
         if (!palettesFile.exists()) {
             palettesFile.create();
@@ -565,31 +563,30 @@ public:
             palettesTree = ValueTree("Palettes");
 
             for (auto [name, palette] : defaultPalettes) {
-                                
+
                 ValueTree categoryTree = ValueTree("Category");
                 categoryTree.setProperty("Name", name, nullptr);
-                
-                for(auto& [paletteName, patch] : palette)
-                {
+
+                for (auto& [paletteName, patch] : palette) {
                     ValueTree paletteTree("Item");
                     paletteTree.setProperty("Name", paletteName, nullptr);
                     paletteTree.setProperty("Patch", patch, nullptr);
                     categoryTree.appendChild(paletteTree, nullptr);
                 }
-            
+
                 palettesTree.appendChild(categoryTree, nullptr);
             }
         } else {
             palettesTree = ValueTree::fromXml(palettesFile.loadFileAsString());
         }
-        
+
         palettesTree.addListener(this);
 
         addButton.getProperties().set("Style", "SmallIcon");
         addButton.onClick = [this, e]() {
             PopupMenu menu;
             menu.addItem(1, "New palette");
-            //menu.addItem(2, "New palette from clipboard");
+            // menu.addItem(2, "New palette from clipboard");
 
             PopupMenu defaultPalettesMenu;
 
@@ -599,18 +596,17 @@ public:
                     if (existingTree.isValid()) {
                         showPalette(existingTree);
                     } else {
-                        
+
                         ValueTree categoryTree = ValueTree("Category");
                         categoryTree.setProperty("Name", name, nullptr);
-                        
-                        for(auto& [paletteName, patch] : palette)
-                        {
+
+                        for (auto& [paletteName, patch] : palette) {
                             ValueTree paletteTree("Item");
                             paletteTree.setProperty("Name", paletteName, nullptr);
                             paletteTree.setProperty("Patch", patch, nullptr);
                             categoryTree.appendChild(paletteTree, nullptr);
                         }
-                    
+
                         palettesTree.appendChild(categoryTree, nullptr);
                         paletteSelectors.getLast()->triggerClick();
                     }
@@ -641,7 +637,7 @@ public:
         paletteBar.addAndMakeVisible(addButton);
 
         setSize(300, 0);
-        
+
         updatePalettes();
 
         showPalettes = SettingsFile::getInstance()->getProperty<bool>("show_palettes");
@@ -706,7 +702,8 @@ private:
         addButton.toFront(false);
         addButton.setBounds(Rectangle<int>(offset, totalHeight, 26, 26));
 
-        if(view) view->setBounds(getLocalBounds().withTrimmedLeft(26));
+        if (view)
+            view->setBounds(getLocalBounds().withTrimmedLeft(26));
 
         resizer.setBounds(getWidth() - 5, 0, 5, getHeight());
 
@@ -749,30 +746,27 @@ private:
             }
         }
     }
-        
+
     void showPalette(ValueTree paletteToShow)
     {
-        if(!paletteToShow.isValid())
-        {
+        if (!paletteToShow.isValid()) {
             for (auto* button : paletteSelectors) {
                 button->setToggleState(false, dontSendNotification);
             }
-            
+
             resizer.setVisible(false);
             view.reset(nullptr);
-        }
-        else {
+        } else {
             view = std::make_unique<PaletteComponent>(editor, paletteToShow);
             addAndMakeVisible(view.get());
             resizer.setVisible(true);
         }
-        
+
         resized();
-        
+
         if (auto* parent = getParentComponent())
             parent->resized();
     }
-
 
     void paint(Graphics& g) override
     {
@@ -828,14 +822,12 @@ private:
 
             button->rightClicked = [this, palette]() {
                 palettesTree.removeChild(palette, nullptr);
-
             };
             paletteBar.addAndMakeVisible(*button);
         }
 
         if (isPositiveAndBelow(lastIdx, paletteSelectors.size())) {
-            if(!paletteSelectors[lastIdx]->getToggleState())
-            {
+            if (!paletteSelectors[lastIdx]->getToggleState()) {
                 paletteSelectors[lastIdx]->triggerClick();
             }
         } else if (view) {
@@ -848,7 +840,7 @@ private:
 
         resized();
     }
-    
+
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override
     {
         savePalettes();
@@ -866,13 +858,13 @@ private:
         savePalettes();
         updatePalettes();
     }
-        
-    void valueTreeChildOrderChanged (ValueTree&, int, int) override
+
+    void valueTreeChildOrderChanged(ValueTree&, int, int) override
     {
         savePalettes();
     }
-        
-    void valueTreeParentChanged (ValueTree&) override
+
+    void valueTreeParentChanged(ValueTree&) override
     {
         savePalettes();
         updatePalettes();
@@ -908,55 +900,44 @@ private:
 
     OwnedArray<PaletteSelector> paletteSelectors;
 
-    static inline const String placeholderPatch =  "#X obj 72 264 outlet~;\n"
-                                                   "#X obj 72 156 inlet;\n";
-
+    static inline const String placeholderPatch = "#X obj 72 264 outlet~;\n"
+                                                  "#X obj 72 156 inlet;\n";
 
     std::map<String, std::map<String, String>> defaultPalettes = {
         { "Oscillators",
-            {
-                {"multi.osc", placeholderPatch },
-                {"sawtooth", placeholderPatch },
-                {"rectangle", placeholderPatch },
-                {"triangle", placeholderPatch },
-                {"sine", placeholderPatch },
-                {"noise", placeholderPatch },
-                {"phase ramp", placeholderPatch }
-            }
-        },
+            { { "multi.osc", placeholderPatch },
+                { "sawtooth", placeholderPatch },
+                { "rectangle", placeholderPatch },
+                { "triangle", placeholderPatch },
+                { "sine", placeholderPatch },
+                { "noise", placeholderPatch },
+                { "phase ramp", placeholderPatch } } },
         { "Filters",
-            {
-                {"lowpass", placeholderPatch },
-                {"svf", placeholderPatch },
-                {"EQ", placeholderPatch }
-            }
-        },
+            { { "lowpass", placeholderPatch },
+                { "svf", placeholderPatch },
+                { "EQ", placeholderPatch } } },
         { "Effects",
             {
-                {"sample delay", placeholderPatch },
-                {"stereo delay", placeholderPatch },
-                {"chorus", placeholderPatch },
-                {"phaser", placeholderPatch },
-                {"flanger", placeholderPatch },
-                {"drive", placeholderPatch },
-                {"bitcrusher", placeholderPatch },
-                {"reverb", placeholderPatch },
-            }
-        },
+                { "sample delay", placeholderPatch },
+                { "stereo delay", placeholderPatch },
+                { "chorus", placeholderPatch },
+                { "phaser", placeholderPatch },
+                { "flanger", placeholderPatch },
+                { "drive", placeholderPatch },
+                { "bitcrusher", placeholderPatch },
+                { "reverb", placeholderPatch },
+            } },
         { "Sequencers",
             {
-                {"bpm metronome", placeholderPatch },
-                {"adsr", placeholderPatch },
-                {"drum sequencer", placeholderPatch },
-            }
-        }
-        
-        
+                { "bpm metronome", placeholderPatch },
+                { "adsr", placeholderPatch },
+                { "drum sequencer", placeholderPatch },
+            } }
+
     };
 
     bool showPalettes = false;
 
-        
     class ResizerComponent : public Component {
     public:
         explicit ResizerComponent(Component* toResize)
@@ -993,7 +974,6 @@ private:
         int dragStartWidth = 0;
         Component* target;
     };
-    
+
     ResizerComponent resizer;
-    
 };

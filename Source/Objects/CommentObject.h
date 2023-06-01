@@ -115,18 +115,18 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto obj = ptr.get<t_text>())
-        {
+        if (auto obj = ptr.get<t_text>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             auto objText = editor ? editor->getText() : objectText;
             auto newNumLines = 0;
 
             auto newBounds = TextObjectHelper::recalculateTextObjectBounds(patch, obj.get(), objText, 14, newNumLines);
 
             numLines = newNumLines;
-            
+
             return newBounds.withTrimmedBottom(4);
         }
 
@@ -140,13 +140,13 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto gobj = ptr.get<t_gobj>())
-        {
+        if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
-            
+
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
             }
@@ -155,11 +155,12 @@ public:
 
     void setSymbol(String const& value)
     {
-        if(auto comment = ptr.get<t_text>()) {
+        if (auto comment = ptr.get<t_text>()) {
             auto* cstr = value.toRawUTF8();
             auto* canvas = cnv->patch.getPointer().get();
-            if(!canvas) return;
-            
+            if (!canvas)
+                return;
+
             libpd_renameobj(canvas, comment.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
         }
     }

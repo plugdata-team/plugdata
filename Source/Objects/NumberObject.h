@@ -95,14 +95,15 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        if(auto gobj = ptr.get<t_gobj>()) {
-            
+        if (auto gobj = ptr.get<t_gobj>()) {
+
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return {};
-            
+            if (!patch)
+                return {};
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
-            return {x, y, w + 1, h + 1};
+            return { x, y, w + 1, h + 1 };
         }
 
         return {};
@@ -110,15 +111,15 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        if(auto nbx = ptr.get<t_my_numbox>())
-        {
+        if (auto nbx = ptr.get<t_my_numbox>()) {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
-            
+            if (!patch)
+                return;
+
             nbx->x_gui.x_w = b.getWidth() - 1;
             nbx->x_gui.x_h = b.getHeight() - 1;
             nbx->x_numwidth = (b.getWidth() / 9) - 1;
-            
+
             libpd_moveobj(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
