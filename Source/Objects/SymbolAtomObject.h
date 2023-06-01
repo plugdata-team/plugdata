@@ -81,13 +81,22 @@ public:
 
     void setSymbol(String const& value)
     {
-        cnv->pd->sendDirectMessage(ptr, value.toStdString());
+        if(auto gatom = ptr.get<t_fake_gatom>())
+        {
+            cnv->pd->sendDirectMessage(gatom.get(), value.toStdString());
+        }
     }
 
     String getSymbol()
     {
         cnv->pd->setThis();
-        return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(ptr.get<t_fake_gatom>()))->s_name);
+        
+        if(auto gatom = ptr.get<t_fake_gatom>())
+        {
+            return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(gatom.get()))->s_name);
+        }
+        
+        return {};
     }
 
     void mouseUp(MouseEvent const& e) override

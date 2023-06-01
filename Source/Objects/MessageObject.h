@@ -30,30 +30,38 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
-
-        auto* cnvPtr = cnv->patch.getPointer();
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
 
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines);
+        if(auto message = ptr.get<t_text>())
+        {
+            auto* cnvPtr = cnv->patch.getPointer().get();
+            if(!cnvPtr) return;
+            
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, message.get(), objText, 15, newNumLines);
 
-        numLines = newNumLines;
+            numLines = newNumLines;
 
-        // Create extra space for drawing the message box flag
-        newBounds.setWidth(newBounds.getWidth() + 5);
-
-        pd->unlockAudioThread();
-
-        return newBounds;
+            // Create extra space for drawing the message box flag
+            newBounds.setWidth(newBounds.getWidth() + 5);
+            return newBounds;
+        }
+        
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
-
-        if (TextObjectHelper::getWidthInChars(ptr)) {
-            TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
+        if(auto gobj = ptr.get<t_gobj>())
+        {
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            
+            if (TextObjectHelper::getWidthInChars(gobj.get())) {
+                TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
+            }
         }
     }
 
@@ -208,7 +216,11 @@ public:
 
     void click()
     {
-        cnv->pd->sendDirectMessage(ptr, 0);
+        if(auto message = ptr.get<void>())
+        {
+            cnv->pd->sendDirectMessage(message.get(), 0);
+        }
+       
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -247,12 +259,16 @@ public:
     {
         cnv->pd->setThis();
 
-        pd->lockAudioThread();
         char* text;
         int size;
-
-        binbuf_gettext(ptr.get<t_text>()->te_binbuf, &text, &size);
-        pd->unlockAudioThread();
+        
+        if(auto messObj = ptr.get<t_text>())
+        {
+            binbuf_gettext(messObj->te_binbuf, &text, &size);
+        }
+        else {
+            return {};
+        }
 
         auto result = String::fromUTF8(text, size);
         freebytes(text, size);
@@ -262,15 +278,14 @@ public:
 
     void setSymbol(String const& value)
     {
-        cnv->pd->lockAudioThread();
-
         auto* cstr = value.toRawUTF8();
-        auto* messobj = ptr.get<t_text>();
-        auto* canvas = cnv->patch.getPointer();
-
-        libpd_renameobj(canvas, &messobj->te_g, cstr, value.getNumBytesAsUTF8());
-
-        cnv->pd->unlockAudioThread();
+        if(auto messobj = ptr.get<t_text>())
+        {
+            auto* canvas = cnv->patch.getPointer().get();
+            if(!canvas) return;
+            
+            libpd_renameobj(canvas, messobj.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
+        }
     }
 
     bool keyPressed(KeyPress const& key, Component* component) override

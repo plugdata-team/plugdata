@@ -512,7 +512,7 @@ public:
         addAndMakeVisible(graph);
 
         graph.graphChangeCallback = [this](float a1, float a2, float b0, float b1, float b2) {
-            pd->sendDirectMessage(ptr, "biquad", { a1, a2, b0, b1, b2 });
+            if(auto obj = ptr.get<void>()) pd->sendDirectMessage(obj.get(), "biquad", { a1, a2, b0, b1, b2 });
         };
     }
 
@@ -523,22 +523,30 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if(auto gobj = ptr.get<t_gobj>())
+        {
+            auto* patch = object->cnv->patch.getPointer().get();
+            if(!patch) return {};
+            
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            return {x, y, w + 1, h + 1};
+        }
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
-
-        pd->unlockAudioThread();
-
-        return bounds;
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(object->cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
-
-        pd->sendDirectMessage(ptr, "dim", { b.getWidth() - 1, b.getHeight() - 1 });
+        if(auto gobj = ptr.get<t_gobj>())
+        {
+            auto* patch = object->cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd->sendDirectMessage(gobj.get(), "dim", { b.getWidth() - 1, b.getHeight() - 1 });
+        }
+       
         graph.saveProperties();
     }
 

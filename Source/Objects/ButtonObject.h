@@ -26,11 +26,13 @@ public:
 
     void update() override
     {
-        auto* button = ptr.get<t_fake_button>();
+        if(auto button = ptr.get<t_fake_button>())
+        {
+            primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
+            secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
 
-        primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
-        secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
-
+        }
+        
         repaint();
     }
 
@@ -60,30 +62,39 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
-
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
-
-        pd->unlockAudioThread();
-
-        return bounds;
+        if(auto gobj = ptr.get<t_gobj>())
+        {
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            
+            return Rectangle<int>(x, y, w + 1, h + 1);
+        }
+        
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
-
-        auto* button = ptr.get<t_fake_button>();
-        button->x_w = b.getWidth() - 1;
-        button->x_h = b.getHeight() - 1;
+        if(auto button = ptr.get<t_fake_button>())
+        {
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            libpd_moveobj(patch, button.cast<t_gobj>() , b.getX(), b.getY());
+            button->x_w = b.getWidth() - 1;
+            button->x_h = b.getHeight() - 1;
+        }
     }
 
     void mouseDown(MouseEvent const& e) override
     {
-        auto* button = ptr.get<t_fake_button>();
-        outlet_float(button->x_obj.ob_outlet, 1);
+        if(auto button = ptr.get<t_fake_button>())
+        {
+            outlet_float(button->x_obj.ob_outlet, 1);
+        }
         state = true;
 
         // Make sure we don't re-click with an accidental drag
@@ -96,8 +107,11 @@ public:
     {
         alreadyTriggered = false;
         state = false;
-        auto* button = ptr.get<t_fake_button>();
-        outlet_float(button->x_obj.ob_outlet, 0);
+        if(auto button = ptr.get<t_fake_button>())
+        {
+            outlet_float(button->x_obj.ob_outlet, 0);
+        }
+        
         repaint();
     }
 
@@ -124,19 +138,23 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* button = ptr.get<t_fake_button>();
+        
         if (value.refersToSameSourceAs(primaryColour)) {
             auto col = Colour::fromString(primaryColour.toString());
-            button->x_fgcolor[0] = col.getRed();
-            button->x_fgcolor[1] = col.getGreen();
-            button->x_fgcolor[2] = col.getBlue();
+            if(auto button = ptr.get<t_fake_button>()) {
+                button->x_fgcolor[0] = col.getRed();
+                button->x_fgcolor[1] = col.getGreen();
+                button->x_fgcolor[2] = col.getBlue();
+            }
             repaint();
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
-            button->x_bgcolor[0] = col.getRed();
-            button->x_bgcolor[1] = col.getGreen();
-            button->x_bgcolor[2] = col.getBlue();
+            if(auto button = ptr.get<t_fake_button>()) {
+                button->x_bgcolor[0] = col.getRed();
+                button->x_bgcolor[1] = col.getGreen();
+                button->x_bgcolor[2] = col.getBlue();
+            }
             repaint();
         }
     }

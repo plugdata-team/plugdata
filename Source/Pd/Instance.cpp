@@ -199,7 +199,7 @@ void Instance::initialisePd(String& pdlua_version)
         auto sym = String::fromUTF8(symbol->s_name);
 
         // Create a new vector to hold the null listeners
-        std::vector<std::vector<WeakReference<pd::MessageListener>>::iterator> nullListeners;
+        std::vector<std::vector<juce::WeakReference<pd::MessageListener>>::iterator> nullListeners;
 
         for (auto it = listeners[target].begin(); it != listeners[target].end(); ++it) {
             auto listener = it->get();
@@ -512,10 +512,11 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
     if (messageListeners.count(object))
         return;
 
-    auto it = std::find(messageListeners[object].begin(), messageListeners[object].end(), messageListener);
+    auto& listeners = messageListeners[object];
+    auto it = std::find(listeners.begin(), listeners.end(), messageListener);
 
-    if (it != messageListeners[object].end())
-        messageListeners[object].erase(it);
+    if (it != listeners.end())
+        listeners.erase(it);
 }
 
 void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
@@ -720,7 +721,10 @@ void Instance::updateObjectImplementations()
 
 void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
 {
-    objectImplementations->clearObjectImplementationsForPatch(p->getPointer());
+    if(auto patch = p->getPointer())
+    {
+        objectImplementations->clearObjectImplementationsForPatch(patch.get());
+    }
 }
 
 } // namespace pd

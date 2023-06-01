@@ -31,10 +31,12 @@ public:
 
     void update() override
     {
-        auto* bng = ptr.get<t_bng>();
-        bangInterrupt = bng->x_flashtime_break;
-        bangHold = bng->x_flashtime_hold;
-
+        if(auto bng = ptr.get<t_bng>())
+        {
+            bangInterrupt = bng->x_flashtime_break;
+            bangHold = bng->x_flashtime_hold;
+        }
+        
         iemHelper.update();
     }
 
@@ -66,13 +68,10 @@ public:
     void toggleObject(Point<int> position) override
     {
         if (!alreadyBanged) {
-            pd->lockAudioThread();
-
+        
             startEdition();
-            pd_bang(ptr.get<t_pd>());
+            if(auto bng = ptr.get<t_pd>()) pd_bang(bng.get());
             stopEdition();
-
-            pd->unlockAudioThread();
 
             trigger();
             alreadyBanged = true;
@@ -86,13 +85,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        pd->lockAudioThread();
-
         startEdition();
-        pd_bang(ptr.get<t_pd>());
+        if(auto bng = ptr.get<t_pd>()) pd_bang(bng.get());
         stopEdition();
-
-        pd->unlockAudioThread();
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
@@ -164,10 +159,10 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(bangInterrupt)) {
-            ptr.get<t_bng>()->x_flashtime_break = bangInterrupt.getValue();
+            if(auto bng = ptr.get<t_bng>()) bng->x_flashtime_break = bangInterrupt.getValue();
         }
         if (value.refersToSameSourceAs(bangHold)) {
-            ptr.get<t_bng>()->x_flashtime_hold = bangHold.getValue();
+            if(auto bng = ptr.get<t_bng>()) bng->x_flashtime_hold = bangHold.getValue();
         } else {
             iemHelper.valueChanged(value);
         }

@@ -64,19 +64,20 @@ Patch::~Patch()
     // Only close the patch if this is a top-level patch
     // Otherwise, this is a subpatcher and it will get cleaned up by Pd
     // when the object is deleted
-    if (closePatchOnDelete && ptr && instance) {
+    if (closePatchOnDelete && instance) {
         instance->setThis();
-        instance->lockAudioThread();
         instance->clearObjectImplementationsForPatch(this); // Make sure that there are no object implementations running in the background!
-        libpd_closefile(ptr);
-        instance->unlockAudioThread();
+        
+        if(auto patch = ptr.get<void>())
+        {
+            libpd_closefile(patch.get());
+        }
     }
 }
 
 Rectangle<int> Patch::getBounds() const
 {
-    if (ptr) {
-        t_canvas* cnv = getPointer();
+    if (auto cnv = ptr.get<t_canvas>()) {
 
         if (cnv->gl_isgraph) {
             cnv->gl_pixwidth = std::max(15, cnv->gl_pixwidth);
@@ -95,18 +96,16 @@ Rectangle<int> Patch::getBounds() const
 
 bool Patch::isDirty() const
 {
-    if (!ptr)
-        return false;
-
-    const ScopedLock audioLock(instance->audioLock);
-
-    return getPointer()->gl_dirty;
+    if(auto patch = ptr.get<t_glist>())
+    {
+        return patch->gl_dirty;
+    }
+    
+    return false;
 }
 
 void Patch::savePatch(File const& location)
 {
-    if (!ptr)
-        return;
 
     String fullPathname = location.getParentDirectory().getFullPathName();
     String filename = location.getFileName();
@@ -114,166 +113,150 @@ void Patch::savePatch(File const& location)
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
 
-    setTitle(filename);
-    canvas_dirty(getPointer(), 0);
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setTitle(filename);
+        canvas_dirty(patch.get(), 0);
+        
+        libpd_savetofile(patch.get(), file, dir);
 
-    instance->lockAudioThread();
-
-    libpd_savetofile(getPointer(), file, dir);
-
-    instance->reloadAbstractions(location, getPointer());
-
-    instance->unlockAudioThread();
+        instance->reloadAbstractions(location, patch.get());
+    }
 
     currentFile = location;
 }
 
 t_glist* Patch::getRoot()
 {
-    if (!ptr)
-        return nullptr;
+    if(auto patch = ptr.get<t_canvas>())
+    {
+        return canvas_getrootfor(patch.get());
+    }
 
-    return canvas_getrootfor(getPointer());
+    return nullptr;
 }
 
 bool Patch::isSubpatch()
 {
-    if (!ptr)
-        return false;
-
-    return getRoot() != ptr && !canvas_isabstraction(getPointer());
+    if(auto patch = ptr.get<t_canvas>())
+    {
+        return getRoot() != patch.get() && !canvas_isabstraction(patch.get());
+    }
+    
+    return false;
 }
 
 bool Patch::isAbstraction()
 {
-    if (!ptr)
-        return false;
-
-    return canvas_isabstraction(getPointer());
+    if(auto patch = ptr.get<t_canvas>())
+    {
+        return canvas_isabstraction(patch.get());
+    }
+    
+    return false;
 }
 
 void Patch::savePatch()
 {
-    if (!ptr)
-        return;
-
     String fullPathname = currentFile.getParentDirectory().getFullPathName();
     String filename = currentFile.getFileName();
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
 
-    setTitle(filename);
-    canvas_dirty(getPointer(), 0);
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setTitle(filename);
+        canvas_dirty(patch.get(), 0);
+        
+        libpd_savetofile(patch.get(), file, dir);
+        instance->reloadAbstractions(currentFile, patch.get());
+
+    }
+   
 
     instance->lockAudioThread();
 
-    libpd_savetofile(getPointer(), file, dir);
-    instance->reloadAbstractions(currentFile, getPointer());
 
     instance->unlockAudioThread();
 }
 
 void Patch::setCurrent()
 {
-    if (!ptr)
-        return;
-
     instance->setThis();
 
-    instance->lockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        // This is the same as calling canvas_vis and canvas_map,
+        // but all the other stuff inside those functions is just for tcl/tk anyway
 
-    // This is the same as calling canvas_vis and canvas_map,
-    // but all the other stuff inside those functions is just for tcl/tk anyway
-    getPointer()->gl_havewindow = 1;
-    getPointer()->gl_mapped = 1;
-
-    canvas_create_editor(getPointer()); // can't hurt to make sure of this!
-
-    instance->unlockAudioThread();
+        patch->gl_havewindow = 1;
+        patch->gl_mapped = 1;
+        
+        canvas_create_editor(patch.get()); // can't hurt to make sure of this!
+    }
 }
 
 Connections Patch::getConnections() const
 {
-    if (!ptr)
-        return {};
-
     Connections connections;
 
     t_outconnect* oc;
     t_linetraverser t;
 
-    instance->lockAudioThread();
-    // Get connections from pd
-    linetraverser_start(&t, getPointer());
+    if(auto patch = ptr.get<t_glist>())
+    {
+        // Get connections from pd
+        linetraverser_start(&t, patch.get());
 
-    // TODO: fix data race
-    while ((oc = linetraverser_next(&t))) {
-        connections.emplace_back(oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
+        // TODO: fix data race
+        while ((oc = linetraverser_next(&t))) {
+            connections.emplace_back(oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob);
+        }
     }
-
-    instance->unlockAudioThread();
-
+    
     return connections;
 }
 
 std::vector<void*> Patch::getObjects()
 {
-    if (!ptr)
-        return {};
-
     setCurrent();
 
-    instance->lockAudioThread();
-
     std::vector<void*> objects;
-    t_canvas const* cnv = getPointer();
-
-    for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-        objects.push_back(static_cast<void*>(y));
+    if(auto patch = ptr.get<t_glist>())
+    {
+        for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
+            objects.push_back(static_cast<void*>(y));
+        }
     }
-
-    instance->unlockAudioThread();
 
     return objects;
 }
 
 void* Patch::createGraphOnParent(int x, int y)
 {
-    if (!ptr)
-        return nullptr;
-
-    instance->lockAudioThread();
-    setCurrent();
-    t_pd* pdobject = libpd_creategraphonparent(getPointer(), x, y);
-    instance->unlockAudioThread();
-
-    assert(pdobject);
-
-    return pdobject;
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        return libpd_creategraphonparent(patch.get(), x, y);
+    }
+    
+    return nullptr;
 }
 
 void* Patch::createGraph(int x, int y, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range)
 {
-    if (!ptr)
-        return nullptr;
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        return libpd_creategraph(patch.get(), name.toRawUTF8(), size, x, y, drawMode, saveContents, range.first, range.second);
+    }
 
-    instance->lockAudioThread();
-
-    setCurrent();
-    t_pd* pdobject = libpd_creategraph(getPointer(), name.toRawUTF8(), size, x, y, drawMode, saveContents, range.first, range.second);
-
-    instance->unlockAudioThread();
-
-    assert(pdobject);
-
-    return pdobject;
+    return nullptr;
 }
 
 void* Patch::createObject(int x, int y, String const& name)
 {
-    if (!ptr)
-        return nullptr;
 
     instance->setThis();
 
@@ -361,22 +344,18 @@ void* Patch::createObject(int x, int y, String const& name)
         }
     }
 
-    instance->lockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        return libpd_createobj(patch.get(), typesymbol, argc, argv.data());
 
-    setCurrent();
-    t_pd* pdobject = libpd_createobj(getPointer(), typesymbol, argc, argv.data());
-
-    instance->unlockAudioThread();
-
-    assert(pdobject);
-    return pdobject;
+    }
+    
+    return nullptr;
 }
 
 void* Patch::renameObject(void* obj, String const& name)
 {
-    if (!obj || !ptr)
-        return nullptr;
-
     StringArray tokens;
     tokens.addTokens(name, false);
 
@@ -410,30 +389,27 @@ void* Patch::renameObject(void* obj, String const& name)
     }
     String newName = tokens.joinIntoString(" ");
 
-    instance->lockAudioThread();
-
-    setCurrent();
-    libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
-    t_pd* pdobject = libpd_newest(getPointer());
-
-    instance->unlockAudioThread();
-
-    return pdobject;
+    
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        libpd_renameobj(patch.get(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
+        return libpd_newest(patch.get());
+    }
+    
+    return nullptr;
 }
 
 void Patch::copy()
 {
-    if (!ptr)
-        return;
-
-    instance->lockAudioThread();
-
-    int size;
-    char const* text = libpd_copy(getPointer(), &size);
-    auto copied = String::fromUTF8(text, size);
-    MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
-
-    instance->unlockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        int size;
+        char const* text = libpd_copy(patch.get(), &size);
+        auto copied = String::fromUTF8(text, size);
+        MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
+        
+    }
 }
 
 String Patch::translatePatchAsString(String const& patchAsString, Point<int> position)
@@ -513,261 +489,195 @@ String Patch::translatePatchAsString(String const& patchAsString, Point<int> pos
 
 void Patch::paste(Point<int> position)
 {
-    if (!ptr)
-        return;
-
     auto text = SystemClipboard::getTextFromClipboard();
 
     auto translatedObjects = translatePatchAsString(text, position);
 
-    instance->lockAudioThread();
-    libpd_paste(getPointer(), translatedObjects.toRawUTF8());
-    instance->unlockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        libpd_paste(patch.get(), translatedObjects.toRawUTF8());
+    }
 }
 
 void Patch::duplicate()
 {
-    if (!ptr)
-        return;
-
-    instance->lockAudioThread();
-    setCurrent();
-    libpd_duplicate(getPointer());
-    instance->unlockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        libpd_duplicate(patch.get());
+    }
 }
 
 void Patch::selectObject(void* obj)
 {
-    if (!ptr)
-        return;
 
-    instance->lockAudioThread();
-
-    auto* checked = &checkObject(obj)->te_g;
-    if (!glist_isselected(getPointer(), checked)) {
-        glist_select(getPointer(), checked);
+    if(auto patch = ptr.get<t_glist>())
+    {
+        auto* checked = &checkObject(obj)->te_g;
+        if (!glist_isselected(patch.get(), checked)) {
+            glist_select(patch.get(), checked);
+        }
     }
-
-    instance->unlockAudioThread();
 }
 
 void Patch::deselectAll()
 {
-    if (!ptr)
-        return;
-
-    instance->lockAudioThread();
-
-    glist_noselect(getPointer());
-    libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-
-    instance->unlockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        glist_noselect(patch.get());
+        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+    }
 }
 
 void Patch::removeObject(void* obj)
 {
-    if (!obj || !ptr)
-        return;
-
     instance->lockAudioThread();
 
-    setCurrent();
-    libpd_removeobj(getPointer(), &checkObject(obj)->te_g);
-
-    instance->unlockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        libpd_removeobj(patch.get(), &checkObject(obj)->te_g);
+    }
 }
 
 bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 {
-    if (!ptr)
-        return false;
+    if(auto patch = ptr.get<t_glist>())
+    {
+        return libpd_hasconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
+    }
 
-    instance->lockAudioThread();
-    auto hasConnection = libpd_hasconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-    instance->unlockAudioThread();
-
-    return hasConnection;
+    return false;
 }
 
 bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 {
-    if (!ptr)
-        return false;
+    if(auto patch = ptr.get<t_glist>())
+    {
+        return libpd_canconnect(patch.get(), checkObject(src), nout, checkObject(sink), nin);
+    }
 
-    instance->lockAudioThread();
-    bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-
-    instance->unlockAudioThread();
-
-    return canConnect;
+    return false;
 }
 
 void Patch::createConnection(void* src, int nout, void* sink, int nin)
 {
-    if (!ptr)
-        return;
-
-    instance->lockAudioThread();
-    bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-    if (canConnect) {
+    if(auto patch = ptr.get<t_glist>())
+    {
         setCurrent();
-        libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+        libpd_createconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
     }
-    instance->unlockAudioThread();
 }
 
 void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
 {
-    if (!src || !sink || !ptr)
-        return nullptr;
-
     void* outconnect = nullptr;
 
-    instance->lockAudioThread();
-
-    bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-
-    if (canConnect) {
+    if(auto patch = ptr.get<t_glist>())
+    {
         setCurrent();
-        outconnect = libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+        return libpd_createconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
     }
 
-    instance->unlockAudioThread();
-
-    return outconnect;
+    return nullptr;
 }
 
 void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath)
 {
-    if (!src || !sink || !ptr)
-        return;
-
-    instance->lockAudioThread();
-
-    setCurrent();
-    libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
-
-    instance->unlockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        libpd_removeconnection(patch.get(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
+    }
 }
 
 void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
 {
-    if (!ptr)
-        return nullptr;
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        return libpd_setconnectionpath(patch.get(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
+    }
 
-    instance->lockAudioThread();
-
-    setCurrent();
-    void* outconnect = libpd_setconnectionpath(getPointer(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
-
-    instance->unlockAudioThread();
-
-    return outconnect;
+    return nullptr;
 }
 
 void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
 {
-    if (!ptr)
-        return;
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
 
-    instance->lockAudioThread();
+        glist_noselect(patch.get());
 
-    setCurrent();
+        for (auto* obj : objects) {
+            glist_select(patch.get(), &checkObject(obj)->te_g);
+        }
 
-    glist_noselect(getPointer());
+        libpd_moveselection(patch.get(), dx, dy);
 
-    for (auto* obj : objects) {
-        glist_select(getPointer(), &checkObject(obj)->te_g);
+        glist_noselect(patch.get());
+
+        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+        setCurrent();
     }
-
-    libpd_moveselection(getPointer(), dx, dy);
-
-    glist_noselect(getPointer());
-
-    libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-    setCurrent();
-
-    instance->unlockAudioThread();
 }
 
 void Patch::finishRemove()
 {
-    if (!ptr)
-        return;
-
-    instance->lockAudioThread();
-
-    setCurrent();
-    libpd_finishremove(getPointer());
-
-    instance->unlockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        libpd_finishremove(patch.get());
+    }
 }
 
 void Patch::removeSelection()
 {
-    if (!ptr)
-        return;
-
-    instance->lockAudioThread();
-
-    setCurrent();
-    libpd_removeselection(getPointer());
-
-    instance->unlockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        libpd_removeselection(patch.get());
+    }
 }
 
 void Patch::startUndoSequence(String const& name)
 {
-    if (!ptr)
-        return;
-
-    instance->lockAudioThread();
-
-    canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, instance->generateSymbol(name)->s_name, nullptr);
-
-    instance->unlockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        canvas_undo_add(patch.get(), UNDO_SEQUENCE_START, instance->generateSymbol(name)->s_name, nullptr);
+    }
 }
 
 void Patch::endUndoSequence(String const& name)
 {
-    if (!ptr)
-        return;
-
-    instance->lockAudioThread();
-    canvas_undo_add(getPointer(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, nullptr);
-    instance->unlockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        canvas_undo_add(patch.get(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, nullptr);
+    }
 }
 
 void Patch::undo()
 {
-    if (!ptr)
-        return;
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        glist_noselect(patch.get());
+        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
-    instance->lockAudioThread();
-
-    setCurrent();
-    glist_noselect(getPointer());
-    libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-
-    libpd_undo(getPointer());
-
-    instance->unlockAudioThread();
+        libpd_undo(patch.get());
+    }
 }
 
 void Patch::redo()
 {
-    if (!ptr)
-        return;
-
-    instance->lockAudioThread();
-
-    setCurrent();
-    glist_noselect(getPointer());
-    libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-
-    libpd_redo(getPointer());
-
-    instance->unlockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        glist_noselect(patch.get());
+        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+        libpd_redo(patch.get());
+    }
 }
 
 t_object* Patch::checkObject(void* obj)
@@ -777,36 +687,28 @@ t_object* Patch::checkObject(void* obj)
 
 String Patch::getTitle() const
 {
-    if (!ptr)
-        return "";
+    if(auto patch = ptr.get<t_glist>())
+    {
+        String name = String::fromUTF8(patch->gl_name->s_name);
+        return name.isEmpty() ? "Untitled Patcher" : name;
+    }
 
-    instance->lockAudioThread();
-
-    String name = String::fromUTF8(getPointer()->gl_name->s_name);
-
-    instance->unlockAudioThread();
-
-    return name.isEmpty() ? "Untitled Patcher" : name;
+    return "Untitled Patcher";
 }
 
 void Patch::setTitle(String const& title)
 {
-    if (!ptr)
-        return;
-
-    setCurrent();
-
     auto* pathSym = instance->generateSymbol(getCurrentFile().getFullPathName());
-
+    
     t_atom args[2];
     SETSYMBOL(args, instance->generateSymbol(title));
     SETSYMBOL(args + 1, pathSym);
-
-    instance->lockAudioThread();
-
-    pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("rename"), 2, args);
-
-    instance->unlockAudioThread();
+    
+    if(auto patch = ptr.get<t_glist>())
+    {
+        setCurrent();
+        pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("rename"), 2, args);
+    }
 
     MessageManager::callAsync([instance = this->instance]() {
         instance->titleChanged();
@@ -822,10 +724,14 @@ File Patch::getCurrentFile() const
 // We should probably move over to using this everywhere eventually
 File Patch::getPatchFile() const
 {
-    auto* dir = canvas_getdir(getPointer())->s_name;
-    auto* name = getPointer()->gl_name->s_name;
+    if(auto patch = ptr.get<t_glist>())
+    {
+        auto* dir = canvas_getdir(patch.get())->s_name;
+        auto* name = patch->gl_name->s_name;
+        return File(String::fromUTF8(dir)).getChildFile(String::fromUTF8(name)).getFullPathName();
+    }
 
-    return File(String::fromUTF8(dir)).getChildFile(String::fromUTF8(name)).getFullPathName();
+    return File();
 }
 
 void Patch::setCurrentFile(File newFile)
@@ -835,14 +741,17 @@ void Patch::setCurrentFile(File newFile)
 
 String Patch::getCanvasContent()
 {
-    if (!ptr)
-        return {};
-
-    instance->lockAudioThread();
-
     char* buf;
     int bufsize;
-    libpd_getcontent(ptr.get<t_canvas>(), &buf, &bufsize);
+    
+    if(auto patch = ptr.get<t_canvas>())
+    {
+        libpd_getcontent(patch.get(), &buf, &bufsize);
+    }
+    else
+    {
+        return {};
+    }
 
     auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
 
@@ -860,42 +769,37 @@ void Patch::reloadPatch(File const& changedPatch, t_glist* except)
     canvas_reload(file, dir, except);
 }
 
-bool Patch::objectWasDeleted(void* ptr) const
+bool Patch::objectWasDeleted(void* objectPtr) const
 {
-    if (!ptr)
-        return true;
-
-    t_canvas const* cnv = getPointer();
-
-    for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-        if (y == ptr)
-            return false;
+    if(auto patch = ptr.get<t_glist>())
+    {
+        for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
+            if (y == objectPtr)
+                return false;
+        }
     }
 
     return true;
 }
-bool Patch::connectionWasDeleted(void* ptr) const
+bool Patch::connectionWasDeleted(void* connectionPtr) const
 {
-    if (!ptr)
-        return true;
-
     t_outconnect* oc;
     t_linetraverser t;
 
-    instance->lockAudioThread();
+    if(auto patch = ptr.get<t_glist>())
+    {
+        // Get connections from pd
+        linetraverser_start(&t, patch.get());
 
-    // Get connections from pd
-    linetraverser_start(&t, getPointer());
-
-    while ((oc = linetraverser_next(&t))) {
-        if (oc == ptr) {
-            instance->unlockAudioThread();
-            return false;
+        while ((oc = linetraverser_next(&t))) {
+            if (oc == connectionPtr) {
+                return false;
+            }
         }
+        
+        return true;
     }
-
-    instance->unlockAudioThread();
-
+    
     return true;
 }
 

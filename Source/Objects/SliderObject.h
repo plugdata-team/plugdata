@@ -140,13 +140,15 @@ public:
 
     void update() override
     {
-        isVertical = ptr.get<t_slider>()->x_orientation;
-
         auto steady = getSteadyOnClick();
         steadyOnClick = steady;
         slider.setSliderSnapsToMousePosition(!steady);
 
-        slider.setRangeFlipped((ptr.get<t_slider>()->x_min) > (ptr.get<t_slider>()->x_max));
+        if(auto obj = ptr.get<t_slider>())
+        {
+            isVertical = obj->x_orientation;
+            slider.setRangeFlipped(obj->x_min > obj->x_max);
+        }
 
         min = getMinimum();
         max = getMaximum();
@@ -306,55 +308,84 @@ public:
 
     float getValue()
     {
-        auto* x = ptr.get<t_slider>();
+        if(auto slider = ptr.get<t_slider>())
+        {
+            t_float fval;
+            int rounded_val = (slider->x_gui.x_fsf.x_finemoved) ? slider->x_val : (slider->x_val / 100) * 100;
 
-        t_float fval;
-        int rounded_val = (x->x_gui.x_fsf.x_finemoved) ? x->x_val : (x->x_val / 100) * 100;
+            /* if rcv==snd, don't round the value to prevent bad dragging when zoomed-in */
+            if (slider->x_gui.x_fsf.x_snd_able && (slider->x_gui.x_snd == slider->x_gui.x_rcv))
+                rounded_val = slider->x_val;
 
-        /* if rcv==snd, don't round the value to prevent bad dragging when zoomed-in */
-        if (x->x_gui.x_fsf.x_snd_able && (x->x_gui.x_snd == x->x_gui.x_rcv))
-            rounded_val = x->x_val;
+            if (slider->x_lin0_log1)
+                fval = slider->x_min * exp(slider->x_k * (double)(rounded_val)*0.01);
+            else
+                fval = (double)(rounded_val)*0.01 * slider->x_k + slider->x_min;
+            if ((fval < 1.0e-10) && (fval > -1.0e-10))
+                fval = 0.0;
 
-        if (x->x_lin0_log1)
-            fval = x->x_min * exp(x->x_k * (double)(rounded_val)*0.01);
-        else
-            fval = (double)(rounded_val)*0.01 * x->x_k + x->x_min;
-        if ((fval < 1.0e-10) && (fval > -1.0e-10))
-            fval = 0.0;
+            return std::isfinite(fval) ? fval : 0.0f;
+        }
 
-        return std::isfinite(fval) ? fval : 0.0f;
+        return 0.0f;
     }
 
     float getMinimum()
     {
-        return ptr.get<t_slider>()->x_min;
+        if(auto slider = ptr.get<t_slider>()) {
+            return slider->x_min;
+        }
+        
+        return 0.0f;
     }
 
     float getMaximum()
     {
-        return ptr.get<t_slider>()->x_max;
+        if(auto slider = ptr.get<t_slider>()) {
+            return slider->x_max;
+        }
+        
+        return 127.0f;
     }
 
     void setMinimum(float value)
     {
-        ptr.get<t_slider>()->x_min = value;
-        slider.setRangeFlipped(ptr.get<t_slider>()->x_min > ptr.get<t_slider>()->x_max);
+        float min, max;
+        if(auto slider = ptr.get<t_slider>()) {
+            ptr.get<t_slider>()->x_min = value;
+            min = slider->x_min;
+            max = slider->x_max;
+        }
+        
+        slider.setRangeFlipped(min > max);
     }
 
     void setMaximum(float value)
     {
-        ptr.get<t_slider>()->x_max = value;
-        slider.setRangeFlipped(ptr.get<t_slider>()->x_min > ptr.get<t_slider>()->x_max);
+        float min, max;
+        if(auto slider = ptr.get<t_slider>()) {
+            ptr.get<t_slider>()->x_max = value;
+            min = slider->x_min;
+            max = slider->x_max;
+        }
+        
+        slider.setRangeFlipped(min > max);
     }
 
     void setSteadyOnClick(bool steady) const
     {
-        ptr.get<t_slider>()->x_steady = steady;
+        if(auto slider = ptr.get<t_slider>()) {
+            slider->x_steady = steady;
+        }
     }
 
     bool getSteadyOnClick() const
     {
-        return ptr.get<t_slider>()->x_steady;
+        if(auto slider = ptr.get<t_slider>()) {
+            return slider->x_steady;
+        }
+        
+        return false;
     }
 
     void updateAspectRatio()
@@ -388,7 +419,11 @@ public:
 
     bool isLogScale() const
     {
-        return ptr.get<t_slider>()->x_lin0_log1;
+        if(auto slider = ptr.get<t_slider>()) {
+            return slider->x_lin0_log1;
+        }
+        
+        return false;
     }
 
     void setLogScale(bool log)
@@ -396,7 +431,10 @@ public:
         pd->lockAudioThread();
 
         auto* sym = pd->generateSymbol(log ? "log" : "lin");
-        pd_typedmess(ptr.get<t_pd>(), sym, 0, nullptr);
+        if(auto obj = ptr.get<t_pd>()) {
+            pd_typedmess(obj.get(), sym, 0, nullptr);
+        }
+        
         update();
 
         pd->unlockAudioThread();

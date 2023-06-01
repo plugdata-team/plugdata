@@ -160,7 +160,10 @@ void Object::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(hvccMode)) {
         if (gui) {
-            auto typeName = String::fromUTF8(libpd_get_object_class_name(gui->ptr));
+            auto ptr = gui->ptr.get<t_pd>();
+            if(!ptr) return;
+            
+            auto typeName = String::fromUTF8(libpd_get_object_class_name(ptr.get()));
             // Check hvcc compatibility
             bool isSubpatch = gui && gui->getPatch() != nullptr;
             isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
@@ -268,6 +271,9 @@ void Object::applyBounds()
         newObjectSizes[obj] = obj->getObjectBounds();
 
     auto* patch = &cnv->patch;
+    
+    auto* patchPtr = cnv->patch.getPointer().get();
+    if(!patchPtr) return;
 
     cnv->pd->lockAudioThread();
     patch->startUndoSequence("resize");
@@ -283,11 +289,11 @@ void Object::applyBounds()
             return;
 
         // Used for size changes, could also be used for properties
-        libpd_undo_apply(cnv->patch.getPointer(), obj);
+        libpd_undo_apply(patchPtr, obj);
 
         object->gui->setPdBounds(bounds);
 
-        canvas_dirty(cnv->patch.getPointer(), 1);
+        canvas_dirty(patchPtr, 1);
     }
 
     patch->endUndoSequence("resize");
@@ -350,8 +356,11 @@ void Object::setType(String const& newType, void* existingObject)
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
     }
-
-    auto typeName = String::fromUTF8(libpd_get_object_class_name(objectPtr));
+    
+    auto ptr = gui->ptr.get<t_pd>();
+    if(!ptr) return;
+    
+    auto typeName = String::fromUTF8(libpd_get_object_class_name(ptr.get()));
     // Check hvcc compatibility
     bool isSubpatch = gui && gui->getPatch() != nullptr;
     isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
@@ -580,7 +589,10 @@ void Object::updateTooltips()
 
     cnv->pd->lockAudioThread();
     if (auto subpatch = gui->getPatch()) {
-
+        auto* subpatchPtr = subpatch->getPointer().get();
+        
+        //if(!subpatchPtr) return;
+        
         // Check child objects of subpatch for inlet/outlet messages
         for (auto* obj : subpatch->getObjects()) {
 
@@ -590,9 +602,9 @@ void Object::updateTooltips()
                 int size;
                 char* str_ptr;
                 libpd_get_object_text(obj, &str_ptr, &size);
-
+                
                 int x, y, w, h;
-                libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
+                libpd_get_object_bounds(subpatchPtr, obj, &x, &y, &w, &h);
 
                 // Anything after the first space will be the comment
                 auto const text = String::fromUTF8(str_ptr, size);
@@ -605,7 +617,7 @@ void Object::updateTooltips()
                 libpd_get_object_text(obj, &str_ptr, &size);
 
                 int x, y, w, h;
-                libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
+                libpd_get_object_bounds(subpatchPtr, obj, &x, &y, &w, &h);
 
                 auto const text = String::fromUTF8(str_ptr, size);
                 outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
@@ -721,11 +733,7 @@ void Object::mouseDown(MouseEvent const& e)
         stopTimer();
         repaint();
 
-        cnv->pd->lockAudioThread();
-
         gui->setPdBounds(getObjectBounds());
-
-        cnv->pd->unlockAudioThread();
 
         if (createEditorOnMouseDown) {
             createEditorOnMouseDown = false;
@@ -1118,7 +1126,7 @@ Array<Connection*> Object::getConnections() const
 
 void* Object::getPointer() const
 {
-    return gui ? gui->ptr.get<void*>() : nullptr;
+    return gui ? gui->ptr.getRaw<void*>() : nullptr;
 }
 
 void Object::openNewObjectEditor()

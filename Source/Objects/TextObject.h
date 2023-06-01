@@ -73,8 +73,10 @@ struct TextObjectHelper {
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto fontWidth = glist_fontwidth(object->cnv->patch.getPointer());
-                auto* patch = object->cnv->patch.getPointer();
+                auto* patch = object->cnv->patch.getPointer().get();
+                if(!patch) return;
+                
+                auto fontWidth = glist_fontwidth(patch);
 
                 // Remove margin
                 auto newBounds = bounds.reduced(Object::margin);
@@ -265,9 +267,6 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
-
-        auto* cnvPtr = cnv->patch.getPointer();
 
         String objText;
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
@@ -277,24 +276,36 @@ public:
         } else {
             objText = objectText;
         }
+        
+        if(auto obj = ptr.get<void>())
+        {
+            auto* cnvPtr = cnv->patch.getPointer().get();
+            if(!cnvPtr) return {};
+            
+            auto newNumLines = 0;
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.get(), objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
 
-        auto newNumLines = 0;
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
-
-        numLines = newNumLines;
-
-        pd->unlockAudioThread();
-
-        return newBounds;
+            numLines = newNumLines;
+            return newBounds;
+        }
+        
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
+        if(auto gobj = ptr.get<t_gobj>())
+        {
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
 
-        if (TextObjectHelper::getWidthInChars(ptr)) {
-            TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
+            if (TextObjectHelper::getWidthInChars(gobj.get())) {
+                TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
+            }
         }
+        
     }
 
     void mouseDown(MouseEvent const& e) override

@@ -49,7 +49,6 @@ public:
 
         addSeparator();
 
-        addCustomItem(getMenuItemID(MenuItem::Close), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Close)]), nullptr, "Close patch");
         addCustomItem(getMenuItemID(MenuItem::CloseAll), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::CloseAll)]), nullptr, "Close all patches");
 
         addSeparator();
@@ -59,15 +58,7 @@ public:
 
         addSeparator();
 
-        addCustomItem(getMenuItemID(MenuItem::EnablePalettes), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]), nullptr, "Enable Palettes");
-
-        addSeparator();
-
         addCustomItem(getMenuItemID(MenuItem::PluginMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::PluginMode)]), nullptr, "Plugin Mode");
-
-        addSeparator();
-
-        addCustomItem(getMenuItemID(MenuItem::AutoConnect), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::AutoConnect)]), nullptr, "Auto-connect objects");
 
         addSeparator();
 
@@ -77,21 +68,16 @@ public:
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
 
         // Toggles hvcc compatibility mode
-        bool palettesEnabled = settingsTree.hasProperty("show_palettes") && static_cast<bool>(settingsTree.getProperty("show_palettes"));
         bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
-        bool autoconnectEnabled = settingsTree.hasProperty("autoconnect") && static_cast<bool>(settingsTree.getProperty("autoconnect"));
         bool hasCanvas = editor->getCurrentCanvas() != nullptr;
 
         zoomSelector.setEnabled(hasCanvas);
         menuItems[getMenuItemIndex(MenuItem::Save)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
-        menuItems[getMenuItemIndex(MenuItem::Close)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::CloseAll)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::PluginMode)]->isActive = hasCanvas;
 
-        menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]->isTicked = palettesEnabled;
         menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
-        menuItems[getMenuItemIndex(MenuItem::AutoConnect)]->isTicked = autoconnectEnabled;
         menuItems[getMenuItemIndex(MenuItem::PluginMode)]->isTicked = false;
     }
 
@@ -364,13 +350,10 @@ public:
         History,
         Save,
         SaveAs,
-        Close,
         CloseAll,
         CompiledMode,
         Compile,
         PluginMode,
-        AutoConnect,
-        EnablePalettes,
         FindExternals,
         Settings,
         About
@@ -397,16 +380,13 @@ public:
         new IconMenuItem(Icons::SavePatch, "Save patch", false, false),
         new IconMenuItem(Icons::SaveAs, "Save patch as...", false, false),
 
-        new IconMenuItem(Icons::ClosePatch, "Close patch", false, false),
+
         new IconMenuItem(Icons::CloseAllPatches, "Close all patches", false, false),
 
         new IconMenuItem("", "Compiled Mode", false, true),
         new IconMenuItem(Icons::DevTools, "Compile...", false, false),
 
         new IconMenuItem("", "Plugin Mode", false, true),
-
-        new IconMenuItem("", "Auto-connect objects", false, true),
-        new IconMenuItem("", "Enable palettes", false, true),
 
         new IconMenuItem(Icons::Externals, "Find Externals...", false, false),
         new IconMenuItem(Icons::Settings, "Settings...", false, false),

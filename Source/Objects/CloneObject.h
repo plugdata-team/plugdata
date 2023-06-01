@@ -17,10 +17,15 @@ public:
     CloneObject(void* obj, Object* object)
         : TextBase(obj, object)
     {
-        auto* gobj = ptr.get<t_gobj>();
-        if (clone_get_n(gobj) > 0) {
-            subpatch = new pd::Patch(clone_get_instance(gobj, 0), cnv->pd, false);
-        } else {
+        if(auto gobj = ptr.get<t_gobj>())
+        {
+            if (clone_get_n(gobj.get()) > 0) {
+                subpatch = new pd::Patch(clone_get_instance(gobj.get(), 0), cnv->pd, false);
+            } else {
+                subpatch = new pd::Patch(nullptr, nullptr, false);
+            }
+        }
+        else {
             subpatch = new pd::Patch(nullptr, nullptr, false);
         }
     }
@@ -37,12 +42,17 @@ public:
 
     String getText() override
     {
-        auto* sym = ptr.get<t_fake_clone>()->x_s;
+        if(auto clone = ptr.get<t_fake_clone>())
+        {
+            auto* sym = clone->x_s;
 
-        if (!sym || !sym->s_name)
-            return "";
+            if (!sym || !sym->s_name)
+                return "";
 
-        return String::fromUTF8(sym->s_name);
+            return String::fromUTF8(sym->s_name);
+        }
+        
+        return {};
     }
 
     bool canOpenFromMenu() override

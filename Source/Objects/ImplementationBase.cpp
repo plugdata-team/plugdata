@@ -42,7 +42,8 @@ Canvas* ImplementationBase::getMainCanvas(void* patchPtr) const
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
         for (auto* cnv : editor->canvases) {
-            if (cnv->patch.getPointer() == patchPtr) {
+            auto glist = cnv->patch.getPointer();
+            if (glist && glist.get() == patchPtr) {
                 return cnv;
             }
         }
@@ -106,23 +107,22 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
 void ImplementationBase::openSubpatch(pd::Patch* subpatch)
 {
     if (!subpatch) {
-        subpatch = new pd::Patch(ptr, pd, false);
+        if(auto glist = ptr.get<t_glist>()) {
+            subpatch = new pd::Patch(glist.get(), pd, false);
+        }
     }
-
-    auto* glist = subpatch->getPointer();
-
-    if (!glist) {
-        delete subpatch;
+    
+    File path;
+    if(auto glist = ptr.get<t_glist>()) {
+        if(canvas_isabstraction(glist.get()))
+        {
+            path = File(String::fromUTF8(canvas_getdir(glist.get())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
+        }
+    }
+    else {
         return;
     }
-
-    auto abstraction = canvas_isabstraction(glist);
-    File path;
-
-    if (abstraction) {
-        path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
-    }
-
+    
     pd->patches.add(subpatch);
 
     subpatch->setCurrentFile(path);
@@ -175,10 +175,12 @@ bool ImplementationBase::objectStillExists(t_glist* patch)
 void ImplementationBase::closeOpenedSubpatchers()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
-
+        auto glist = ptr.get<t_glist>();
+        if(!glist) return;
+        
         for (auto* canvas : editor->canvases) {
-            if (canvas && canvas->patch.getPointer() == ptr) {
-
+            auto canvasPtr = canvas->patch.getPointer();
+            if (canvasPtr && canvasPtr.get() == glist.get()) {
                 canvas->editor->closeTab(canvas);
                 break;
             }

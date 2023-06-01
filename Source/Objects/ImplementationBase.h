@@ -10,7 +10,7 @@
 #include "Pd/Instance.h"
 #include "Pd/MessageListener.h"
 #include "Constants.h"
-#include <x_libpd_refcounter.h>
+#include <x_libpd_weakreference.h>
 
 class PluginProcessor;
 class Canvas;
@@ -33,7 +33,7 @@ public:
     Canvas* getMainCanvas(void* patchPtr) const;
 
     PluginProcessor* pd;
-    pd::ReferenceCountedPointer ptr;
+    pd::WeakReference ptr;
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(ImplementationBase);
 };

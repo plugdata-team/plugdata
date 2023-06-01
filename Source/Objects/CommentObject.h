@@ -115,19 +115,22 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if(auto obj = ptr.get<t_text>())
+        {
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            auto objText = editor ? editor->getText() : objectText;
+            auto newNumLines = 0;
 
-        auto* cnvPtr = cnv->patch.getPointer();
-        auto objText = editor ? editor->getText() : objectText;
-        auto newNumLines = 0;
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(patch, obj.get(), objText, 14, newNumLines);
 
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines);
+            numLines = newNumLines;
+            
+            return newBounds.withTrimmedBottom(4);
+        }
 
-        numLines = newNumLines;
-
-        pd->unlockAudioThread();
-
-        return newBounds.withTrimmedBottom(4);
+        return {};
     }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
@@ -137,26 +140,28 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        pd->lockAudioThread();
-
-        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
-
-        if (TextObjectHelper::getWidthInChars(ptr)) {
-            TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
+        if(auto gobj = ptr.get<t_gobj>())
+        {
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            
+            if (TextObjectHelper::getWidthInChars(gobj.get())) {
+                TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
+            }
         }
-
-        pd->unlockAudioThread();
     }
 
     void setSymbol(String const& value)
     {
-        auto* cstr = value.toRawUTF8();
-        auto* commentObj = ptr.get<t_text>();
-        auto* canvas = cnv->patch.getPointer();
-
-        pd->lockAudioThread();
-        libpd_renameobj(canvas, &commentObj->te_g, cstr, value.getNumBytesAsUTF8());
-        pd->unlockAudioThread();
+        if(auto comment = ptr.get<t_text>()) {
+            auto* cstr = value.toRawUTF8();
+            auto* canvas = cnv->patch.getPointer().get();
+            if(!canvas) return;
+            
+            libpd_renameobj(canvas, comment.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
+        }
     }
 
     bool hideInGraph() override

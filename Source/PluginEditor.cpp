@@ -565,7 +565,7 @@ void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
 
     if (cnv->patch.isSubpatch()) {
         for (auto& parentCanvas : canvases) {
-            if (cnv->patch.getRoot() == parentCanvas->patch.getPointer()) {
+            if (cnv->patch.getRoot() == parentCanvas->patch.getPointer().get()) {
                 cnv = parentCanvas;
             }
         }
@@ -786,13 +786,13 @@ void PluginEditor::updateCommandStatus()
             editButton.setToggleState(true, dontSendNotification);
         }
 
-        auto* patchPtr = cnv->patch.getPointer();
+        auto patchPtr = cnv->patch.getPointer();
         if (!patchPtr)
             return;
 
         pd->lockAudioThread();
-        canUndo = libpd_can_undo(patchPtr) && !isDragging && !locked;
-        canRedo = libpd_can_redo(patchPtr) && !isDragging && !locked;
+        canUndo = libpd_can_undo(patchPtr.get()) && !isDragging && !locked;
+        canRedo = libpd_can_redo(patchPtr.get()) && !isDragging && !locked;
         pd->unlockAudioThread();
 
         undoButton.setEnabled(canUndo);

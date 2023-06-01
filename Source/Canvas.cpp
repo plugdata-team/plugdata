@@ -38,12 +38,16 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , graphArea(nullptr)
     , canvasOrigin(Point<int>(infiniteCanvasSize / 2, infiniteCanvasSize / 2))
 {
-    isGraphChild = glist_isgraph(patch.getPointer());
+    if(auto patchPtr = patch.getPointer())
+    {
+        isGraphChild = glist_isgraph(patchPtr.get());
+    }
+    
     hideNameAndArgs = static_cast<bool>(patch.getPointer()->gl_hidetext);
     xRange = Array<var> { var(patch.getPointer()->gl_x1), var(patch.getPointer()->gl_x2) };
     yRange = Array<var> { var(patch.getPointer()->gl_y2), var(patch.getPointer()->gl_y1) };
 
-    pd->registerMessageListener(patch.getPointer(), this);
+    pd->registerMessageListener(patch.getPointer().get(), this);
 
     isGraphChild.addListener(this);
     hideNameAndArgs.addListener(this);
@@ -129,7 +133,7 @@ Canvas::~Canvas()
 {
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
-    pd->unregisterMessageListener(patch.getPointer(), this);
+    pd->unregisterMessageListener(patch.getPointer().get(), this);
 
     Desktop::getInstance().removeFocusChangeListener(this);
 
@@ -466,7 +470,7 @@ void Canvas::performSynchronise()
 
     pd->unlockAudioThread();
 
-    auto pdObjects = patch.getObjects();
+    
 
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
@@ -483,6 +487,8 @@ void Canvas::performSynchronise()
             objects.remove(n);
         }
     }
+    
+    auto pdObjects = patch.getObjects();
 
     for (auto* object : pdObjects) {
         auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object; });
@@ -913,12 +919,16 @@ void Canvas::pasteSelection()
     patch.setCurrent();
 
     std::vector<void*> pastedObjects;
+    
+    auto* patchPtr = patch.getPointer().get();
+    if(!patchPtr) return;
 
     pd->lockAudioThread();
     for (auto* object : objects) {
-        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer()))) {
+        auto* objectPtr = static_cast<t_gobj*>(object->getPointer());
+        if (objectPtr && glist_isselected(patchPtr, objectPtr)) {
             setSelected(object, true);
-            pastedObjects.emplace_back(object->getPointer());
+            pastedObjects.emplace_back(objectPtr);
         }
     }
     pd->unlockAudioThread();
@@ -966,10 +976,14 @@ void Canvas::duplicateSelection()
     // Load state from pd immediately
     performSynchronise();
 
+    auto* patchPtr = patch.getPointer().get();
+    if(!patchPtr) return;
+    
     // Store the duplicated objects for later selection
     Array<Object*> duplicated;
     for (auto* object : objects) {
-        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer()))) {
+        auto* objectPtr = static_cast<t_gobj*>(object->getPointer());
+        if (glist_isselected(patchPtr, objectPtr)) {
             duplicated.add(object);
         }
     }
@@ -1091,6 +1105,7 @@ void Canvas::removeSelectedConnections()
 
 void Canvas::encapsulateSelection()
 {
+
     auto selectedBoxes = getSelectionOfType<Object>();
 
     // Sort by index in pd patch
@@ -1180,28 +1195,31 @@ void Canvas::encapsulateSelection()
 
     // Apply the changed on Pd's thread
     pd->lockAudioThread();
-
+        
+    auto* patchPtr = patch.getPointer().get();
+    if(!patchPtr) return;
+    
     int size;
-    char const* text = libpd_copy(patch.getPointer(), &size);
+    char const* text = libpd_copy(patchPtr, &size);
     auto copied = String::fromUTF8(text, size);
 
     // Wrap it in an undo sequence, to allow undoing everything in 1 step
     patch.startUndoSequence("encapsulate");
 
-    libpd_removeselection(patch.getPointer());
+    libpd_removeselection(patchPtr);
 
     auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
 
-    libpd_paste(patch.getPointer(), replacement.toRawUTF8());
+    libpd_paste(patchPtr, replacement.toRawUTF8());
     auto* newObject = static_cast<t_object*>(patch.getObjects().back());
 
     for (auto& [idx, iolets] : newExternalConnections) {
         for (auto* iolet : iolets) {
             auto* externalObject = static_cast<t_object*>(iolet->object->getPointer());
             if (iolet->isInlet) {
-                libpd_createconnection(patch.getPointer(), newObject, idx - numIn, externalObject, iolet->ioletIdx);
+                libpd_createconnection(patchPtr, newObject, idx - numIn, externalObject, iolet->ioletIdx);
             } else {
-                libpd_createconnection(patch.getPointer(), externalObject, iolet->ioletIdx, newObject, idx);
+                libpd_createconnection(patchPtr, externalObject, iolet->ioletIdx, newObject, idx);
             }
         }
     }
@@ -1390,8 +1408,11 @@ void Canvas::valueChanged(Value& v)
         int graphChild = getValue<bool>(isGraphChild);
         int hideText = getValue<bool>(hideNameAndArgs);
 
-        canvas_setgraph(patch.getPointer(), isGraph + 2 * hideText, 0);
-
+        if(auto glist = patch.getPointer())
+        {
+            canvas_setgraph(glist.get(), isGraph + 2 * hideText, 0);
+        }
+        
         if (graphChild && !isGraph) {
             graphArea = std::make_unique<GraphArea>(this);
             addAndMakeVisible(*graphArea);
@@ -1404,14 +1425,16 @@ void Canvas::valueChanged(Value& v)
         updateOverlays();
         repaint();
     } else if (v.refersToSameSourceAs(xRange)) {
-        auto* glist = patch.getPointer();
-        glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
-        glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));
+        if(auto glist = patch.getPointer()) {
+            glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
+            glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));
+        }
         updateDrawables();
     } else if (v.refersToSameSourceAs(yRange)) {
-        auto* glist = patch.getPointer();
-        glist->gl_y2 = static_cast<float>(yRange.getValue().getArray()->getReference(0));
-        glist->gl_y1 = static_cast<float>(yRange.getValue().getArray()->getReference(1));
+        if(auto glist = patch.getPointer()) {
+            glist->gl_y2 = static_cast<float>(yRange.getValue().getArray()->getReference(0));
+            glist->gl_y1 = static_cast<float>(yRange.getValue().getArray()->getReference(1));
+        }
         updateDrawables();
     }
 }

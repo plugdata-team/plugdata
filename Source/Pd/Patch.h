@@ -9,7 +9,7 @@ extern "C" {
 #include "x_libpd_mod_utils.h" //  TODO: we only need t_object
 }
 
-#include <x_libpd_refcounter.h>
+#include <x_libpd_weakreference.h>
 
 namespace pd {
 
@@ -99,7 +99,7 @@ public:
 
     Connections getConnections() const;
 
-    t_canvas* getPointer() const
+    WeakReference::Ptr<t_canvas> getPointer() const
     {
         return ptr.get<t_canvas>();
     }
@@ -123,7 +123,7 @@ public:
 private:
     File currentFile;
 
-    ReferenceCountedPointer ptr;
+    WeakReference ptr;
 
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters

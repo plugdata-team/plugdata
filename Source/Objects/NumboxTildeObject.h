@@ -64,33 +64,35 @@ public:
         min = getMinimum();
         max = getMaximum();
 
-        auto* object = ptr.get<t_fake_numbox>();
-        interval = object->x_rate;
-        ramp = object->x_ramp_ms;
-        init = object->x_set_val;
-
-        primaryColour = "ff" + String::fromUTF8(object->x_fg->s_name + 1);
-        secondaryColour = "ff" + String::fromUTF8(object->x_bg->s_name + 1);
+        if(auto object = ptr.get<t_fake_numbox>())
+        {
+            interval = object->x_rate;
+            ramp = object->x_ramp_ms;
+            init = object->x_set_val;
+            primaryColour = "ff" + String::fromUTF8(object->x_fg->s_name + 1);
+            secondaryColour = "ff" + String::fromUTF8(object->x_bg->s_name + 1);
+            mode = object->x_outmode;
+        }
 
         auto fg = Colour::fromString(primaryColour.toString());
         getLookAndFeel().setColour(Label::textColourId, fg);
         getLookAndFeel().setColour(Label::textWhenEditingColourId, fg);
         getLookAndFeel().setColour(TextEditor::textColourId, fg);
-
-        mode = object->x_outmode;
     }
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if(auto gobj = ptr.get<t_gobj>())
+        {
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            return {x, y, w, h};
+        }
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h);
-
-        pd->unlockAudioThread();
-
-        return bounds;
+        return {};
     }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
@@ -145,14 +147,18 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
-
-        auto* nbx = ptr.get<t_fake_numbox>();
-        nbx->x_width = b.getWidth();
-        nbx->x_height = b.getHeight();
-        nbx->x_fontsize = b.getHeight() - 4;
-
-        nbx->x_numwidth = (2.0f * (-6.0f + b.getWidth() - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
+        if(auto nbx = ptr.get<t_fake_numbox>())
+        {
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            nbx->x_width = b.getWidth();
+            nbx->x_height = b.getHeight();
+            nbx->x_fontsize = b.getHeight() - 4;
+            nbx->x_numwidth = (2.0f * (-6.0f + b.getWidth() - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
+            
+            libpd_moveobj(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
+        }
     }
 
     void resized() override
@@ -168,15 +174,18 @@ public:
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(::getValue<float>(max));
         } else if (value.refersToSameSourceAs(interval)) {
-            auto* nbx = ptr.get<t_fake_numbox>();
-            nbx->x_rate = ::getValue<float>(interval);
+            if(auto nbx = ptr.get<t_fake_numbox>()) {
+                nbx->x_rate = ::getValue<float>(interval);
+            }
 
         } else if (value.refersToSameSourceAs(ramp)) {
-            auto* nbx = ptr.get<t_fake_numbox>();
-            nbx->x_ramp_ms = ::getValue<float>(ramp);
+            if(auto nbx = ptr.get<t_fake_numbox>()) {
+                nbx->x_ramp_ms = ::getValue<float>(ramp);
+            }
         } else if (value.refersToSameSourceAs(init)) {
-            auto* nbx = ptr.get<t_fake_numbox>();
-            nbx->x_set_val = ::getValue<float>(init);
+            if(auto nbx = ptr.get<t_fake_numbox>()) {
+                nbx->x_set_val = ::getValue<float>(init);
+            }
         } else if (value.refersToSameSourceAs(primaryColour)) {
             setForegroundColour(primaryColour.toString());
         } else if (value.refersToSameSourceAs(secondaryColour)) {
@@ -234,36 +243,55 @@ public:
 
     float getValue()
     {
-        auto* obj = ptr.get<t_fake_numbox>();
+        if(auto nbx = ptr.get<t_fake_numbox>())
+        {
+            mode = nbx->x_outmode;
 
-        mode = obj->x_outmode;
+            nextInterval = nbx->x_rate;
 
-        nextInterval = obj->x_rate;
+            return mode ? nbx->x_display : nbx->x_in_val;
+        }
 
-        return mode ? obj->x_display : obj->x_in_val;
+        return 0.0f;
     }
 
     float getMinimum()
     {
-        return (ptr.get<t_fake_numbox>())->x_min;
+        if(auto nbx = ptr.get<t_fake_numbox>())
+        {
+            return nbx->x_min;
+        }
+        
+        return 0.0f;
     }
 
     float getMaximum()
     {
-        return (ptr.get<t_fake_numbox>())->x_max;
+        if(auto nbx = ptr.get<t_fake_numbox>())
+        {
+            return nbx->x_max;
+        }
+        
+        return 0.0f;
     }
 
     void setMinimum(float minValue)
     {
-        ptr.get<t_fake_numbox>()->x_min = minValue;
+        if(auto nbx = ptr.get<t_fake_numbox>())
+        {
+            nbx->x_min = minValue;
+        }
 
         input.setMinimum(minValue);
     }
 
     void setMaximum(float maxValue)
     {
-        ptr.get<t_fake_numbox>()->x_max = maxValue;
-
+        if(auto nbx = ptr.get<t_fake_numbox>())
+        {
+            nbx->x_max = maxValue;
+        }
+        
         input.setMaximum(maxValue);
     }
 };

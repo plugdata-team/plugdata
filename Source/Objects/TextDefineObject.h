@@ -58,7 +58,7 @@ public:
 
     void setText(String text)
     {
-        auto& textbuf = ptr.get<t_fake_qlist>()->x_textbuf;
+       
 
         text = text.removeCharacters("\r");
         auto lines = StringArray::fromTokens(text, ";", "\"");
@@ -87,18 +87,20 @@ public:
             SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
         }
 
-        pd->lockAudioThread();
-
         pd->setThis();
+        
+        if(auto qlist = ptr.get<t_fake_qlist>()) {
 
-        binbuf_clear(textbuf.b_binbuf);
-
-        t_binbuf* z = binbuf_new();
-        binbuf_restore(z, atoms.size(), atoms.data());
-        binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
-        binbuf_free(z);
-
-        pd->unlockAudioThread();
+            auto& textbuf = qlist->x_textbuf;
+            
+            binbuf_clear(textbuf.b_binbuf);
+            
+            t_binbuf* z = binbuf_new();
+            binbuf_restore(z, atoms.size(), atoms.data());
+            binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
+            binbuf_free(z);
+            
+        }
     }
 
     std::vector<hash32> getAllMessages() override
@@ -123,15 +125,19 @@ public:
 
     String getText() override
     {
-        auto& textbuf = ptr.get<t_fake_text_define>()->x_textbuf;
-        auto* binbuf = textbuf.b_binbuf;
-
-        char* bufp;
-        int lenp;
-
-        binbuf_gettext(binbuf, &bufp, &lenp);
-
-        return String::fromUTF8(bufp, lenp);
+        if(auto textDefine = ptr.get<t_fake_text_define>()) {
+            auto& textbuf = textDefine->x_textbuf;
+            auto* binbuf = textbuf.b_binbuf;
+            
+            char* bufp;
+            int lenp;
+            
+            binbuf_gettext(binbuf, &bufp, &lenp);
+            
+            return String::fromUTF8(bufp, lenp);
+        }
+        
+        return {};
     }
 
     bool canOpenFromMenu() override
@@ -174,8 +180,14 @@ public:
             textEditor->toFront(true);
             return;
         }
-
-        auto name = String::fromUTF8(ptr.get<t_fake_text_define>()->x_bindsym->s_name);
+        
+        String name;
+        if(auto textDefine = ptr.get<t_fake_text_define>()) {
+            name = String::fromUTF8(textDefine->x_bindsym->s_name);
+        }
+        else {
+            return;
+        }
 
         textEditor.reset(
             Dialogs::showTextEditorDialog(getText(), name, [this](String const& lastText, bool hasChanged) {
@@ -191,8 +203,10 @@ public:
                             textEditor.reset(nullptr);
 
                             // enable notification on second outlet //
-                            const char* target = ptr.get<t_fake_text_define>()->x_bindsym->s_name;
-                            pd->sendMessage(target, "notify", {});
+                            if(auto textDefine = ptr.get<t_fake_text_define>()) {
+                                const char* target = textDefine->x_bindsym->s_name;
+                                pd->sendMessage(target, "notify", {});
+                            }
                         }
                         if (result == 1) {
                             textEditor.reset(nullptr);
@@ -204,7 +218,7 @@ public:
 
     void setText(String text)
     {
-        auto& textbuf = ptr.get<t_fake_text_define>()->x_textbuf;
+
 
         text = text.removeCharacters("\r");
         auto lines = StringArray::fromTokens(text, ";", "\"");
@@ -235,16 +249,16 @@ public:
 
         pd->setThis();
 
-        pd->lockAudioThread();
+        if(auto textDefine = ptr.get<t_fake_text_define>()) {
+            auto& textbuf = textDefine->x_textbuf;
+            
+            binbuf_clear(textbuf.b_binbuf);
 
-        binbuf_clear(textbuf.b_binbuf);
-
-        t_binbuf* z = binbuf_new();
-        binbuf_restore(z, atoms.size(), atoms.data());
-        binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
-        binbuf_free(z);
-
-        pd->unlockAudioThread();
+            t_binbuf* z = binbuf_new();
+            binbuf_restore(z, atoms.size(), atoms.data());
+            binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
+            binbuf_free(z);
+        }
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
@@ -261,15 +275,20 @@ public:
 
     String getText() override
     {
-        auto& textbuf = ptr.get<t_fake_text_define>()->x_textbuf;
-        auto* binbuf = textbuf.b_binbuf;
+        if(auto textDefine = ptr.get<t_fake_text_define>())
+        {
+            auto& textbuf = textDefine->x_textbuf;
+            auto* binbuf = textbuf.b_binbuf;
 
-        char* bufp;
-        int lenp;
+            char* bufp;
+            int lenp;
 
-        binbuf_gettext(binbuf, &bufp, &lenp);
+            binbuf_gettext(binbuf, &bufp, &lenp);
 
-        return String::fromUTF8(bufp, lenp);
+            return String::fromUTF8(bufp, lenp);
+        }
+        
+        return {};
     }
 
     bool canOpenFromMenu() override

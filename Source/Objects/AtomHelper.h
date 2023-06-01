@@ -77,9 +77,9 @@ public:
         pd->lockAudioThread();
 
         int x, y, w, h;
-        libpd_get_object_bounds(cnv->patch.getPointer(), atom, &x, &y, &w, &h);
+        libpd_get_object_bounds(cnv->patch.getPointer().get(), atom, &x, &y, &w, &h);
 
-        w = (std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer())) + 3;
+        w = (std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer().get())) + 3;
 
         auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
 
@@ -90,9 +90,9 @@ public:
 
     void setPdBounds(Rectangle<int> b)
     {
-        libpd_moveobj(cnv->patch.getPointer(), reinterpret_cast<t_gobj*>(atom), b.getX(), b.getY());
+        libpd_moveobj(cnv->patch.getPointer().get(), reinterpret_cast<t_gobj*>(atom), b.getX(), b.getY());
 
-        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        auto fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
         atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
     }
 
@@ -129,8 +129,10 @@ public:
                 auto newBounds = bounds.reduced(Object::margin);
 
                 auto* atom = static_cast<t_fake_gatom*>(object->getPointer());
-                auto* patch = object->cnv->patch.getPointer();
+                auto* patch = object->cnv->patch.getPointer().get();
 
+                if(!patch) return;
+                
                 auto fontWidth = glist_fontwidth(patch);
 
                 // Calculate the width in text characters for both

@@ -99,9 +99,12 @@ public:
         auto dbl = 0;
 
         canvas->pd->setThis();
+        
+        auto* patch = canvas->patch.getPointer().get();
+        if(!patch) return;
 
         t_template* t = template_findbyname(scalar->sc_template);
-        scalar_doclick(scalar->sc_vec, t, scalar, nullptr, canvas->patch.getPointer(), 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
+        scalar_doclick(scalar->sc_vec, t, scalar, nullptr, patch, 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
 
         // Update all drawables
         for (auto* object : canvas->objects) {
@@ -118,7 +121,9 @@ public:
 
         canvas->pd->setThis();
 
-        auto* glist = canvas->patch.getPointer();
+        auto* glist = canvas->patch.getPointer().get();
+        if(!glist) return;
+        
         auto* templ = template_findbyname(scalar->sc_template);
 
         auto* x = reinterpret_cast<t_fake_curve*>(object);
@@ -240,7 +245,7 @@ public:
 
         canvas->pd->setThis();
 
-        auto* glist = canvas->patch.getPointer();
+
         auto* templ = template_findbyname(scalar->sc_template);
 
         auto* x = reinterpret_cast<t_fake_drawnumber*>(object);
@@ -248,8 +253,13 @@ public:
         auto* data = scalar->sc_vec;
         t_atom at;
 
-        int xloc = glist_xtopixels(glist, baseX + fielddesc_getcoord((t_fielddesc*)&x->x_xloc, templ, data, 0));
-        int yloc = glist_ytopixels(glist, baseY + fielddesc_getcoord((t_fielddesc*)&x->x_yloc, templ, data, 0));
+        int xloc = 0, yloc = 0;
+        if(auto glist = canvas->patch.getPointer())
+        {
+            xloc = glist_xtopixels(glist.get(), baseX + fielddesc_getcoord((t_fielddesc*)&x->x_xloc, templ, data, 0));
+            yloc = glist_ytopixels(glist.get(), baseY + fielddesc_getcoord((t_fielddesc*)&x->x_yloc, templ, data, 0));
+        }
+        
         char colorstring[20], buf[DRAWNUMBER_BUFSIZE];
         numbertocolor(fielddesc_getfloat(&x->x_color, templ, data, 1), colorstring);
 
@@ -289,7 +299,10 @@ public:
 
         setColour(Colour::fromString("FF" + String::fromUTF8(colorstring + 1)));
         setBoundingBox(Parallelogram<float>(Rectangle<float>(xloc, yloc, 200, 100)));
-        setFontHeight(sys_hostfontsize(glist_getfont(glist), glist_getzoom(glist)));
+        if(auto glist = canvas->patch.getPointer())
+        {
+            setFontHeight(sys_hostfontsize(glist_getfont(glist.get()), glist_getzoom(glist.get())));
+        }
         setText(String::fromUTF8(buf));
 
         /*

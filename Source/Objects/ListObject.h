@@ -225,21 +225,19 @@ public:
     {
         cnv->pd->setThis();
 
-        pd->lockAudioThread();
-
-        int ac = binbuf_getnatom(ptr.get<t_fake_gatom>()->a_text.te_binbuf);
-        t_atom* av = binbuf_getvec(ptr.get<t_fake_gatom>()->a_text.te_binbuf);
-
-        auto atoms = pd::Atom::fromAtoms(ac, av);
-
-        pd->unlockAudioThread();
-
-        return atoms;
+        if(auto gatom = ptr.get<t_fake_gatom>())
+        {
+            int ac = binbuf_getnatom(gatom->a_text.te_binbuf);
+            t_atom* av = binbuf_getvec(gatom->a_text.te_binbuf);
+            return pd::Atom::fromAtoms(ac, av);
+        }
+        
+        return {};
     }
 
     void setList(std::vector<pd::Atom> value)
     {
-        cnv->pd->sendDirectMessage(ptr, std::move(value));
+        if(auto gatom = ptr.get<t_fake_gatom>()) cnv->pd->sendDirectMessage(gatom.get(), std::move(value));
     }
 
     void mouseUp(MouseEvent const& e) override

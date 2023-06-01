@@ -232,11 +232,10 @@ public:
                     result = "#N canvas 827 239 527 327 12;\n" + palettePatch + StringArray{"\n#X restore ", String(position.x), String(position.y), paletteName}.joinIntoString(" ") + ";";
                 }
                 
-                auto* ptr = cnv->patch.getPointer();
-                
-                cnv->pd->lockAudioThread();
-                libpd_paste(ptr, result.toRawUTF8());
-                cnv->pd->unlockAudioThread();
+                if(auto ptr = cnv->patch.getPointer())
+                {
+                    libpd_paste(ptr.get(), result.toRawUTF8());
+                }
                 
                 cnv->synchronise();
             }

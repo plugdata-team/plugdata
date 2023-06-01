@@ -96,7 +96,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
 {
-    pd->registerMessageListener(ptr, this);
+    pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
 
     setWantsKeyboardFocus(true);
 
@@ -117,7 +117,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 
 ObjectBase::~ObjectBase()
 {
-    pd->unregisterMessageListener(ptr, this);
+    pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
 
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
@@ -126,17 +126,21 @@ ObjectBase::~ObjectBase()
 
 String ObjectBase::getText()
 {
-    if (!cnv->patch.checkObject(ptr))
-        return "";
+    
+    
+        
 
     cnv->pd->setThis();
 
     char* text = nullptr;
     int size = 0;
 
-    cnv->pd->lockAudioThread();
-    libpd_get_object_text(ptr, &text, &size);
-    cnv->pd->unlockAudioThread();
+    if(auto obj = ptr.get<t_gobj>())
+    {
+        if (!cnv->patch.checkObject(obj.get())) return "";
+        
+        libpd_get_object_text(obj.get(), &text, &size);
+    }
 
     if (text && size) {
 
@@ -155,11 +159,11 @@ String ObjectBase::getType() const
 
     pd->setThis();
 
-    if (ptr) {
+    if (auto obj = ptr.get<t_pd>()) {
         // Check if it's an abstraction or subpatch
-        if (pd_class(ptr.get<t_pd>()) == canvas_class && canvas_isabstraction(ptr.get<t_canvas>())) {
+        if (pd_class(obj.get()) == canvas_class && canvas_isabstraction(obj.cast<t_glist>())) {
             char namebuf[MAXPDSTRING];
-            auto* ob = ptr.get<t_object>();
+            auto* ob = obj.cast<t_object>();
             int ac = binbuf_getnatom(ob->te_binbuf);
             t_atom* av = binbuf_getvec(ob->te_binbuf);
             if (ac < 1)
@@ -169,7 +173,7 @@ String ObjectBase::getType() const
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
         // Deal with different text objects
-        switch (hash(libpd_get_object_class_name(ptr))) {
+        switch (hash(libpd_get_object_class_name(obj.get()))) {
         case hash("text"):
             if (ptr.get<t_text>()->te_type == T_OBJECT)
                 return "invalid";
@@ -191,7 +195,7 @@ String ObjectBase::getType() const
             break;
         }
         // Get class name for all other objects
-        if (auto* name = libpd_get_object_class_name(ptr)) {
+        if (auto* name = libpd_get_object_class_name(obj.get())) {
             return String::fromUTF8(name);
         }
     }
@@ -226,9 +230,12 @@ bool ObjectBase::click()
 {
     pd->setThis();
 
-    if (libpd_has_click_function(ptr.get<t_object>())) {
-        pd->sendDirectMessage(ptr, "click", {});
-        return true;
+    if(auto obj = ptr.get<t_object>())
+    {
+        if (libpd_has_click_function(obj.get())) {
+            pd->sendDirectMessage(obj.get(), "click", {});
+            return true;
+        }
     }
 
     return false;
@@ -241,7 +248,7 @@ void ObjectBase::openSubpatch()
     if (!subpatch)
         return;
 
-    auto* glist = subpatch->getPointer();
+    auto* glist = subpatch->getPointer().get();
 
     if (!glist)
         return;
@@ -250,7 +257,7 @@ void ObjectBase::openSubpatch()
     File path;
 
     if (abstraction) {
-        path = File(String::fromUTF8(canvas_getdir(subpatch->getPointer())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
+        path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
     // Check if subpatch is already opened
@@ -274,13 +281,27 @@ void ObjectBase::openSubpatch()
 void ObjectBase::moveToFront()
 {
     pd->setThis();
-    libpd_tofront(cnv->patch.getPointer(), ptr.get<t_gobj>());
+    
+    if(auto obj = ptr.get<t_gobj>())
+    {
+        auto* patch = cnv->patch.getPointer().get();
+        if(!patch) return;
+        
+        libpd_tofront(patch, obj.get());
+    }
+    
 }
 
 void ObjectBase::moveToBack()
 {
     pd->setThis();
-    libpd_toback(cnv->patch.getPointer(), ptr.get<t_gobj>());
+    if(auto obj = ptr.get<t_gobj>())
+    {
+        auto* patch = cnv->patch.getPointer().get();
+        if(!patch) return;
+        
+        libpd_toback(patch, obj.get());
+    }
 }
 
 void ObjectBase::paint(Graphics& g)
@@ -320,14 +341,16 @@ void ObjectBase::stopEdition()
 
 void ObjectBase::sendFloatValue(float newValue)
 {
-    pd->lockAudioThread();
-
     t_atom atom;
     SETFLOAT(&atom, newValue);
-    pd_typedmess(ptr.get<t_pd>(), cnv->patch.instance->generateSymbol("set"), 1, &atom);
-    pd_bang(ptr.get<t_pd>());
+    
+    if(auto obj = ptr.get<t_pd>())
+    {
+        pd_typedmess(obj.get(), cnv->patch.instance->generateSymbol("set"), 1, &atom);
+        pd_bang(obj.get());
+    }
 
-    pd->unlockAudioThread();
+
 }
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
@@ -455,12 +478,20 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 
 bool ObjectBase::canOpenFromMenu()
 {
-    return zgetfn(ptr.get<t_pd>(), pd->generateSymbol("menu-open")) != nullptr;
+    if(auto obj = ptr.get<t_pd>())
+    {
+        return zgetfn(obj.get(), pd->generateSymbol("menu-open")) != nullptr;
+    }
+    
+    return false;
 }
 
 void ObjectBase::openFromMenu()
 {
-    pd->sendDirectMessage(ptr, "menu-open", {});
+    if(auto obj = ptr.get<t_pd>())
+    {
+        pd->sendDirectMessage(obj.get(), "menu-open", {});
+    }
 }
 
 bool ObjectBase::hideInGraph()

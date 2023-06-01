@@ -98,26 +98,6 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                     editor->saveProjectAs();
                 break;
             }
-            case MainMenu::MenuItem::Close: {
-                if (auto* canvas = editor->getCurrentCanvas()) {
-                    MessageManager::callAsync([editor, cnv = Component::SafePointer(canvas)]() mutable {
-                        if (cnv && cnv->patch.isDirty()) {
-                            Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
-                                [cnv, editor](int result) mutable {
-                                    if (!cnv)
-                                        return;
-                                    if (result == 2)
-                                        editor->saveProject([editor, cnv]() mutable { editor->closeTab(cnv); });
-                                    else if (result == 1)
-                                        editor->closeTab(cnv);
-                                });
-                        } else {
-                            editor->closeTab(cnv);
-                        }
-                    });
-                }
-                break;
-            }
             case MainMenu::MenuItem::CloseAll: {
                 if (editor->getCurrentCanvas())
                     editor->closeAllTabs();
@@ -132,21 +112,10 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
                 break;
             }
-            case MainMenu::MenuItem::EnablePalettes: {
-                bool ticked = settingsTree.hasProperty("show_palettes") && static_cast<bool>(settingsTree.getProperty("show_palettes"));
-                settingsTree.setProperty("show_palettes", !ticked, nullptr);
-                editor->resized();
-                break;
-            }
             case MainMenu::MenuItem::PluginMode: {
                 if (auto* cnv = editor->getCurrentCanvas()) {
                     editor->enablePluginMode(cnv);
                 }
-                break;
-            }
-            case MainMenu::MenuItem::AutoConnect: {
-                bool ticked = settingsTree.hasProperty("autoconnect") && static_cast<bool>(settingsTree.getProperty("autoconnect"));
-                settingsTree.setProperty("autoconnect", !ticked, nullptr);
                 break;
             }
             case MainMenu::MenuItem::FindExternals: {

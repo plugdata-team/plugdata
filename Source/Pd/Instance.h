@@ -311,7 +311,7 @@ public:
     CriticalSection const audioLock;
 
 private:
-    std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;
+    std::unordered_map<void*, std::vector<juce::WeakReference<MessageListener>>> messageListeners;
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
 

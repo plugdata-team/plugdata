@@ -527,26 +527,32 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if(auto glist = ptr.get<_glist>()) {
+            
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return {};
+            
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, glist.get(), &x, &y, &w, &h);
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            return {x, y, glist->gl_pixwidth, glist->gl_pixheight};
+        }
 
-        auto* glist = ptr.get<_glist>();
-        auto bounds = Rectangle<int>(x, y, glist->gl_pixwidth, glist->gl_pixheight);
-
-        pd->unlockAudioThread();
-
-        return bounds;
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
-
-        auto* array = ptr.get<_glist>();
-        array->gl_pixwidth = b.getWidth();
-        array->gl_pixheight = b.getHeight();
+        if(auto glist = ptr.get<t_glist>())
+        {
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            libpd_moveobj(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
+            
+            glist->gl_pixwidth = b.getWidth();
+            glist->gl_pixheight = b.getHeight();
+        }
     }
 
     void resized() override
@@ -587,13 +593,12 @@ public:
 
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
 
-        pd->lockAudioThread();
-
-        auto* garray = reinterpret_cast<t_garray*>(ptr.get<t_canvas>()->gl_list);
-        garray_arraydialog(garray, pd->generateSymbol(arrName), arrSize, static_cast<float>(flags), 0.0f);
-
-        pd->unlockAudioThread();
-
+        if(auto arrayCanvas = ptr.get<t_canvas>())
+        {
+            auto* garray = reinterpret_cast<t_garray*>(arrayCanvas->gl_list);
+            garray_arraydialog(garray, pd->generateSymbol(arrName), arrSize, static_cast<float>(flags), 0.0f);
+        }
+        
         array = getArray();
         graph.setArray(array);
         updateLabel();
@@ -626,10 +631,13 @@ public:
 
     PdArray getArray() const
     {
-        auto* c = ptr.get<t_canvas>();
-        auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
-
-        return { glist, cnv->pd->m_instance };
+        if(auto c = ptr.get<t_canvas>())
+        {
+            auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
+            return { glist, cnv->pd->m_instance };
+        }
+        
+        return {nullptr, nullptr};
     }
 
     bool canOpenFromMenu() override
@@ -722,10 +730,16 @@ public:
             return;
         }
 
-        auto* c = reinterpret_cast<t_canvas*>(ptr.get<t_canvas>()->gl_list);
-        auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
-        auto array = PdArray(glist, cnv->pd->m_instance);
-
+        PdArray array;
+        if(auto canvas = ptr.get<t_canvas>()) {
+            auto* c = reinterpret_cast<t_canvas*>(canvas->gl_list);
+            auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
+            array = PdArray(glist, cnv->pd->m_instance);
+        }
+        else {
+            return;
+        }
+        
         editor = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         editor->onClose = [this]() {
             editor.reset(nullptr);

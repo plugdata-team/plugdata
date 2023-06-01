@@ -95,27 +95,32 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if(auto gobj = ptr.get<t_gobj>()) {
+            
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return {};
+            
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            return {x, y, w + 1, h + 1};
+        }
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
-
-        pd->unlockAudioThread();
-
-        return bounds;
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
-
-        auto* nbx = ptr.get<t_my_numbox>();
-
-        nbx->x_gui.x_w = b.getWidth() - 1;
-        nbx->x_gui.x_h = b.getHeight() - 1;
-
-        nbx->x_numwidth = (b.getWidth() / 9) - 1;
+        if(auto nbx = ptr.get<t_my_numbox>())
+        {
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            nbx->x_gui.x_w = b.getWidth() - 1;
+            nbx->x_gui.x_h = b.getHeight() - 1;
+            nbx->x_numwidth = (b.getWidth() / 9) - 1;
+            
+            libpd_moveobj(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
+        }
     }
 
     void resized() override

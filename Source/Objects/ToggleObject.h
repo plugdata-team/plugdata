@@ -53,7 +53,11 @@ public:
 
     void update() override
     {
-        nonZero = ptr.get<t_toggle>()->x_nonzero;
+        if(auto toggle = ptr.get<t_toggle>())
+        {
+            nonZero = toggle->x_nonzero;
+        }
+        
         iemHelper.update();
 
         value = getValue();
@@ -102,18 +106,16 @@ public:
 
     void sendToggleValue(int newValue)
     {
-        pd->lockAudioThread();
+        if(auto iem = ptr.get<t_iemgui>())
+        {
+            t_atom atom;
+            SETFLOAT(&atom, newValue);
+            pd_typedmess(iem.cast<t_pd>(), pd->generateSymbol("set"), 1, &atom);
 
-        t_atom atom;
-        SETFLOAT(&atom, newValue);
-        pd_typedmess(ptr.get<t_pd>(), pd->generateSymbol("set"), 1, &atom);
-
-        auto* iem = ptr.get<t_iemgui>();
-        outlet_float(iem->x_obj.ob_outlet, newValue);
-        if (iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
-            pd_float(iem->x_snd->s_thing, newValue);
-
-        pd->unlockAudioThread();
+            outlet_float(iem->x_obj.ob_outlet, newValue);
+            if (iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
+                pd_float(iem->x_snd->s_thing, newValue);
+        }
     }
 
     void untoggleObject() override
@@ -181,7 +183,10 @@ public:
     {
         if (value.refersToSameSourceAs(nonZero)) {
             float val = nonZero.getValue();
-            ptr.get<t_toggle>()->x_nonzero = val;
+            if(auto toggle = ptr.get<t_toggle>())
+            {
+                toggle->x_nonzero = val;
+            }
         } else {
             iemHelper.valueChanged(value);
         }
@@ -189,6 +194,8 @@ public:
 
     float getValue()
     {
-        return (ptr.get<t_toggle>())->x_on;
+        if(auto toggle = ptr.get<t_toggle>()) return toggle->x_on;
+       
+        return 0.0f;
     }
 };

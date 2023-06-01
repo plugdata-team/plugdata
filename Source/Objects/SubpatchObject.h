@@ -15,7 +15,7 @@ class SubpatchObject final : public TextBase {
 public:
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)
-        , subpatch(new pd::Patch(ptr, cnv->pd, false))
+        , subpatch(new pd::Patch(obj, cnv->pd, false))
     {
         object->hvccMode.addListener(this);
 
@@ -44,10 +44,12 @@ public:
     void updateValue()
     {
         // Change from subpatch to graph
-        if (ptr.get<t_canvas>()->gl_isgraph) {
-            cnv->setSelected(object, false);
-            object->cnv->editor->sidebar->hideParameters();
-            object->setType(objectText, ptr);
+        if(auto canvas = ptr.get<t_canvas>()) {
+            if (canvas->gl_isgraph) {
+                cnv->setSelected(object, false);
+                object->cnv->editor->sidebar->hideParameters();
+                object->setType(objectText, canvas.get());
+            }
         }
     };
 
@@ -81,15 +83,14 @@ public:
 
     void checkGraphState()
     {
-        if (!ptr)
-            return;
-
         pd->setThis();
 
         int isGraph = getValue<bool>(isGraphChild);
         int hideText = getValue<bool>(hideNameAndArgs);
-
-        canvas_setgraph(ptr.get<t_glist>(), isGraph + 2 * hideText, 0);
+        
+        if(auto glist = ptr.get<t_glist>()) {
+            canvas_setgraph(glist.get(), isGraph + 2 * hideText, 0);
+        }
         repaint();
 
         MessageManager::callAsync([this, _this = SafePointer(this)]() {
@@ -97,11 +98,13 @@ public:
                 return;
 
             // Change from subpatch to graph
-            if (ptr.get<t_canvas>()->gl_isgraph) {
-                cnv->setSelected(object, false);
-                object->cnv->editor->sidebar->hideParameters();
-                object->setType(getText(), ptr);
-                return;
+            if(auto glist = ptr.get<t_glist>()) {
+                if (glist->gl_isgraph) {
+                    cnv->setSelected(object, false);
+                    object->cnv->editor->sidebar->hideParameters();
+                    object->setType(getText(), glist.get());
+                    return;
+                }
             }
         });
     }

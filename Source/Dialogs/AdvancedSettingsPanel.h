@@ -34,11 +34,18 @@ public:
 
             otherProperties.add(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
         }
-
+        
+        showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
+        showPalettesValue.addListener(this);
+        otherProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
+        
+        autoPatchingValue.referTo(settingsFile->getPropertyAsValue("autoconnect"));
+        otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
+        
         scaleValue = settingsFile->getProperty<float>("global_scale");
         scaleValue.addListener(this);
-
         otherProperties.add(new PropertiesPanel::EditableComponent<float>("Global scale factor", scaleValue));
+        
         propertiesPanel.addSection("Other", otherProperties);
 
         addAndMakeVisible(propertiesPanel);
@@ -57,6 +64,9 @@ public:
 
             editor->resized();
         }
+        if (v.refersToSameSourceAs(showPalettesValue)) {
+            editor->resized();
+        }
         if (v.refersToSameSourceAs(scaleValue)) {
             auto scale = std::clamp(getValue<float>(scaleValue), 0.5f, 2.5f);
             SettingsFile::getInstance()->setGlobalScale(scale);
@@ -71,6 +81,9 @@ public:
     Value macTitlebarButtons;
     Value reloadPatch;
     Value scaleValue;
+        
+    Value showPalettesValue;
+    Value autoPatchingValue;
 
     PropertiesPanel propertiesPanel;
 };

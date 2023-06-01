@@ -57,36 +57,44 @@ public:
 
     void update() override
     {
-        auto* messbox = ptr.get<t_fake_messbox>();
+        if(auto messbox = ptr.get<t_fake_messbox>())
+        {
+            fontSize = messbox->x_font_size;
 
-        fontSize = messbox->x_font_size;
-
-        primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
-        secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
+            primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
+            secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
+        }
 
         repaint();
     }
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if(auto messbox = ptr.get<t_fake_messbox>())
+        {
+            auto* patch = object->cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, messbox.get(), &x, &y, &w, &h);
+            return { x, y, w, h };
+        }
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        pd->unlockAudioThread();
-
-        return { x, y, w, h };
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        auto* messbox = ptr.get<t_fake_messbox>();
-
-        libpd_moveobj(object->cnv->patch.getPointer(), ptr.get<t_gobj>(), b.getX(), b.getY());
-
-        messbox->x_width = b.getWidth();
-        messbox->x_height = b.getHeight();
+        if(auto messbox = ptr.get<t_fake_messbox>())
+        {
+            auto* patch = object->cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            libpd_moveobj(patch, messbox.cast<t_gobj>(), b.getX(), b.getY());
+            
+            messbox->x_width = b.getWidth();
+            messbox->x_height = b.getHeight();
+        }
     }
 
     void lock(bool locked) override
@@ -208,7 +216,9 @@ public:
         }
 
         if (atoms.size()) {
-            outlet_anything(ptr.get<t_object>()->ob_outlet, pd->generateSymbol("list"), atoms.size(), atoms.data());
+            if(auto messObj = ptr.get<t_object>()) {
+                outlet_anything(messObj->ob_outlet, pd->generateSymbol("list"), atoms.size(), atoms.data());
+            }
         }
     }
 
@@ -290,35 +300,34 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* messbox = ptr.get<t_fake_messbox>();
         if (value.refersToSameSourceAs(primaryColour)) {
 
             auto col = Colour::fromString(primaryColour.toString());
             editor.applyColourToAllText(col);
 
-            colourToHexArray(col, messbox->x_fg);
+            if(auto messbox = ptr.get<t_fake_messbox>()) colourToHexArray(col, messbox->x_fg);
             repaint();
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
-            colourToHexArray(col, messbox->x_bg);
+            if(auto messbox = ptr.get<t_fake_messbox>()) colourToHexArray(col, messbox->x_bg);
             repaint();
         }
         if (value.refersToSameSourceAs(fontSize)) {
             auto size = getValue<int>(fontSize);
             editor.applyFontToAllText(editor.getFont().withHeight(size));
-            messbox->x_font_size = size;
+            if(auto messbox = ptr.get<t_fake_messbox>()) messbox->x_font_size = size;
         }
         if (value.refersToSameSourceAs(bold)) {
             auto size = getValue<int>(fontSize);
             if (getValue<bool>(bold)) {
                 auto boldFont = Fonts::getBoldFont();
                 editor.applyFontToAllText(boldFont.withHeight(size));
-                messbox->x_font_weight = pd->generateSymbol("normal");
+                if(auto messbox = ptr.get<t_fake_messbox>()) messbox->x_font_weight = pd->generateSymbol("normal");
             } else {
                 auto defaultFont = Fonts::getCurrentFont();
                 editor.applyFontToAllText(defaultFont.withHeight(size));
-                messbox->x_font_weight = pd->generateSymbol("bold");
+                if(auto messbox = ptr.get<t_fake_messbox>()) messbox->x_font_weight = pd->generateSymbol("bold");
             }
         }
     }

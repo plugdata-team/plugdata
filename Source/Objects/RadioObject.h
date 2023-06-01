@@ -33,7 +33,11 @@ public:
             selected = std::min<int>(::getValue<int>(max) - 1, selected);
         }
 
-        isVertical = ptr.get<t_radio>()->x_orientation;
+        if(auto radio = ptr.get<t_radio>())
+        {
+            isVertical = radio->x_orientation;
+        }
+        
         numItems = getMaximum();
         max = numItems;
 
@@ -68,19 +72,20 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
-
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        pd->unlockAudioThread();
-
-        auto* radio = ptr.get<t_radio>();
-
-        auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
-        auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
-
-        return { x, y, width, height };
+        if(auto radio = ptr.get<t_radio>())
+        {
+            auto* patch = cnv->patch.getPointer().get();
+            if(!patch) return;
+            
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, radio.get(), &x, &y, &w, &h);
+            auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
+            auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
+            
+            return { x, y, width, height };
+        }
+        
+        return {};
     }
 
     void toggleObject(Point<int> position) override
