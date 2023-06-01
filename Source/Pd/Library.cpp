@@ -40,6 +40,7 @@ void Library::updateLibrary()
     auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
     auto pathTree = settingsTree.getChildWithName("Paths");
 
+    
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
 
@@ -74,7 +75,7 @@ void Library::updateLibrary()
     }
 }
 
-Library::Library()
+Library::Library(pd::Instance* instance)
 {
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
     documentationTree = ValueTree::readFromStream(instream);
@@ -100,7 +101,8 @@ Library::Library()
 
     // TODO: This is unfortunately necessary to make Windows LV2 turtle dump work
     // Let's hope its not harmful
-    MessageManager::callAsync([this](){
+    MessageManager::callAsync([this, instance](){
+        instance->setThis();
         updateLibrary();
     });
     

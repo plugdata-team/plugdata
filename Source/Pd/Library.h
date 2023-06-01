@@ -14,7 +14,7 @@ namespace pd {
 class Library : public FileSystemWatcher::Listener {
 
 public:
-    Library();
+    Library(pd::Instance* instance);
 
     ~Library() override
     {
