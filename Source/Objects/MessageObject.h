@@ -36,7 +36,7 @@ public:
         if(auto message = ptr.get<t_text>())
         {
             auto* cnvPtr = cnv->patch.getPointer().get();
-            if(!cnvPtr) return;
+            if(!cnvPtr) return {};
             
             auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, message.get(), objText, 15, newNumLines);
 

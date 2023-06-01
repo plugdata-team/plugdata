@@ -118,7 +118,7 @@ public:
         if(auto obj = ptr.get<t_text>())
         {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
+            if(!patch) return {};
             
             auto objText = editor ? editor->getText() : objectText;
             auto newNumLines = 0;

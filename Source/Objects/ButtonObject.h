@@ -65,7 +65,7 @@ public:
         if(auto gobj = ptr.get<t_gobj>())
         {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
+            if(!patch) return {};
             
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);

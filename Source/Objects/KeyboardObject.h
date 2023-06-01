@@ -288,7 +288,7 @@ public:
         if(auto obj = ptr.get<t_fake_keyboard>())
         {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
+            if(!patch) return {};
             
             int x, y, w, h;
             libpd_get_object_bounds(patch, obj.get(), &x, &y, &w, &h);

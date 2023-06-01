@@ -81,7 +81,7 @@ public:
         if(auto atom = ptr.get<t_fake_gatom>())
         {
             auto* patchPtr = cnv->patch.getPointer().get();
-            if(!patchPtr) return;
+            if(!patchPtr) return {};
             
             int x, y, w, h;
             libpd_get_object_bounds(patchPtr, atom.get(), &x, &y, &w, &h);

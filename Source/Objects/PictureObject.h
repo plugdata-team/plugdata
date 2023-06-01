@@ -161,7 +161,7 @@ public:
         if(auto pic = ptr.get<t_fake_pic>())
         {
             auto* patch = cnv->patch.getPointer().get();
-            if(!patch) return;
+            if(!patch) return {};
             
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, pic.cast<t_gobj>(), &x, &y, &w, &h);
