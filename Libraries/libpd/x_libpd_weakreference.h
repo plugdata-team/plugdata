@@ -16,7 +16,7 @@ extern "C"
 {
 #endif
 
-typedef bool pd_weak_reference;
+using pd_weak_reference = std::atomic<bool>;
 
 extern void clear_weak_references(t_pd* ptr);
 extern void register_weak_reference(t_pd* ptr, pd_weak_reference* ref);
