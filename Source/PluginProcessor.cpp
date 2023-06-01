@@ -159,7 +159,7 @@ PluginProcessor::PluginProcessor()
 
     updateSearchPaths();
 
-    objectLibrary = std::make_unique<pd::Library>();
+    objectLibrary = std::make_unique<pd::Library>(this);
     objectLibrary->appDirChanged = [this]() {
         // If we changed the settings from within the app, don't reload
         settingsFile->reloadSettings();
