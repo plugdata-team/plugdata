@@ -281,7 +281,7 @@ public:
     std::array<float, 2> getScale() const
     {
         float min = -1, max = 1;
-        libpd_set_instance(static_cast<t_pdinstance*>(instance));
+        pd->setThis();
         libpd_array_get_scale(ptr, &min, &max);
 
         if (min == max)
@@ -370,7 +370,6 @@ public:
     }
 
     void* ptr;
-    void* instance;
 
     std::vector<float> vec;
     std::vector<float> temp;
