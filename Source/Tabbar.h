@@ -365,9 +365,11 @@ public:
                 auto* tabButton = tabs->getTabButton(clickedTabIndex);
                 currentTabBounds = tabButton->getBounds().translated(getTabBarDepth(), 0);
 
-                tabSnapshot = Image(Image::PixelFormat::ARGB, tabButton->getWidth(), tabButton->getHeight(), true);
+                auto scale = Desktop::getInstance().getDisplays().getPrimaryDisplay()->scale;
+                tabSnapshot = Image(Image::PixelFormat::ARGB, tabButton->getWidth() * scale, tabButton->getHeight() * scale, true);
 
                 auto g = Graphics(tabSnapshot);
+                g.addTransform(AffineTransform::scale(scale));
                 getLookAndFeel().drawTabButton(*tabButton, g, false, false);
 
                 tabSnapshotBounds = currentTabBounds;

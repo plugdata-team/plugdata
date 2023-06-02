@@ -293,6 +293,7 @@ void SplitView::paintOverChildren(Graphics& g)
     }
     if (tabbar->tabSnapshot.isValid()) {
         g.setColour(indicatorColour);
+        auto scale = Desktop::getInstance().getDisplays().getPrimaryDisplay()->scale;
         g.drawImage(tabbar->tabSnapshot, tabbar->tabSnapshotBounds.toFloat());
         if (splitviewIndicator) {
             g.setOpacity(fadeAnimation->fadeIn());
