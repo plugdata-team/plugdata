@@ -305,6 +305,15 @@ public:
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
             }
+            
+            if(pd_class(&gobj->g_pd) == vinlet_class)
+            {
+                canvas_resortinlets(patch);
+            }
+            if(pd_class(&gobj->g_pd) == voutlet_class)
+            {
+                canvas_resortoutlets(patch);
+            }
         }
     }
 

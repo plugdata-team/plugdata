@@ -331,8 +331,10 @@ public:
 
     std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patchAsString)
     {
-        std::pair<std::vector<bool>, std::vector<bool>> result;
-        auto& [inlets, outlets] = result;
+        
+        
+        std::array<std::vector<std::pair<bool, Point<int>>>, 2> iolets;
+        auto& [inlets, outlets] = iolets;
         int canvasDepth = patchAsString.startsWith("#N canvas") ? -1 : 0;
 
         auto isObject = [](StringArray& tokens) {
@@ -347,15 +349,17 @@ public:
             return tokens[0] == "#X" && tokens[1] == "restore" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
         };
 
-        auto countIolet = [&inlets = result.first, &outlets = result.second](String name) {
+        auto countIolet = [&inlets = iolets[0], &outlets = iolets[1]](StringArray& tokens) {
+            auto position = Point<int>(tokens[2].getIntValue(), tokens[3].getIntValue());
+            auto name = tokens[4];
             if (name == "inlet")
-                inlets.push_back(false);
+                inlets.push_back({false, position});
             if (name == "outlet")
-                outlets.push_back(false);
+                outlets.push_back({false, position});
             if (name == "inlet~")
-                inlets.push_back(true);
+                inlets.push_back({true, position});
             if (name == "outlet~")
-                outlets.push_back(true);
+                outlets.push_back({true, position});
         };
 
         for (auto& line : StringArray::fromLines(patchAsString)) {
@@ -369,17 +373,40 @@ public:
             }
 
             if (canvasDepth == 0 && isObject(tokens)) {
-                countIolet(tokens[4]);
+                auto position = Point<int>();
+                countIolet(tokens);
             }
 
             if (isEndingCanvas(tokens)) {
-                if (canvasDepth == 1) {
-                    countIolet(tokens[1]);
-                }
                 canvasDepth--;
             }
         }
+        
+        auto ioletSortFunc = [](std::pair<bool, Point<int>>& a, std::pair<bool, Point<int>>& b){
+            auto& [typeA, positionA] = a;
+            auto& [typeB, positionB] = b;
+     
+            if (positionA.x == positionB.x) {
+                return positionA.y < positionB.y;
+            }
 
+            return positionA.x < positionB.x;
+        };
+    
+        std::sort(inlets.begin(), inlets.end(), ioletSortFunc);
+        std::sort(outlets.begin(), outlets.end(), ioletSortFunc);
+        
+        auto result = std::pair<std::vector<bool>, std::vector<bool>>();
+        
+        for(auto& [type, position] : inlets)
+        {
+            result.first.push_back(type);
+        }
+        for(auto& [type, position] : outlets)
+        {
+            result.second.push_back(type);
+        }
+        
         return result;
     }
 
@@ -499,7 +526,8 @@ public:
                     for (int i = lines.size() - 1; i >= 0; i--) {
                         if (lines[i].startsWith("#X restore")) {
                             auto tokens = StringArray::fromTokens(lines[i], true);
-                            name = tokens[4].trimCharactersAtEnd(";");
+                            tokens.removeRange(0, 4);
+                            name = tokens.joinIntoString(" ").trimCharactersAtEnd(";");
                         }
                     }
                 }
