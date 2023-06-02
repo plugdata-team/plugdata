@@ -316,7 +316,6 @@ public:
 
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
-    std::atomic<bool> waitingForStateUpdate = false;
 
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
@@ -337,8 +336,6 @@ private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
     
-    std::atomic<int> numLocksHeld = 0;
-
     WaitableEvent updateWait;
 
 protected:

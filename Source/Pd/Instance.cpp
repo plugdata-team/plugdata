@@ -719,17 +719,12 @@ bool Instance::loadLibrary(String const& libraryToLoad)
 
 void Instance::lockAudioThread()
 {
-    if (waitingForStateUpdate) // In this case, the message thread is waiting for the audio thread, so never lock in that case!
-        return;
-
-    numLocksHeld++;
     audioLock.enter();
 }
 
 bool Instance::tryLockAudioThread()
 {
     if (audioLock.tryEnter()) {
-        numLocksHeld++;
         return true;
     }
 
@@ -738,7 +733,6 @@ bool Instance::tryLockAudioThread()
 
 void Instance::unlockAudioThread()
 {
-    numLocksHeld--;
     audioLock.exit();
 }
 
