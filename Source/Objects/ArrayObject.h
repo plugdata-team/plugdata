@@ -20,15 +20,12 @@ public:
         Curve
     };
 
-    GraphicalArray(PluginProcessor* instance, void* arr, Object* parent)
-        : ptr(arr)
+    GraphicalArray(PluginProcessor* instance, void* ptr, Object* parent)
+        : arr(ptr, instance)
         , edited(false)
         , pd(instance)
         , object(parent)
     {
-        if (!ptr)
-            return;
-
         vec.reserve(8192);
         temp.reserve(8192);
         try {
@@ -47,11 +44,11 @@ public:
 
     void setArray(void* array)
     {
-        // TODO: fix this!
         if (!array)
             return;
-
-        ptr = array;
+        
+        // Initialise new weakreference in place, to prevent calling copy constructor
+        new (&arr) pd::WeakReference(array, pd);
     }
 
     std::vector<float> rescale(std::vector<float> const& v, unsigned const newSize)
@@ -218,15 +215,18 @@ public:
         // Don't want to touch vec on the other thread, so we copy the vector into the lambda
         auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
 
+        lastIndex = index;
+        
         pd->lockAudioThread();
         for (int n = 0; n < changed.size(); n++) {
             write(interpStart + n, changed[n]);
         }
+
+        if(auto ptr = arr.get<t_garray>()) {
+            pd->sendDirectMessage(ptr.get(), stringArray);
+        }
+        
         pd->unlockAudioThread();
-
-        lastIndex = index;
-
-        pd->sendDirectMessage(ptr, stringArray);
         repaint();
     }
 
@@ -239,6 +239,12 @@ public:
 
     void update()
     {
+        // Check if size has changed
+        int currentSize = size();
+        if (vec.size() != currentSize) {
+            vec.resize(currentSize);
+        }
+        
         if (!edited) {
             error = false;
             try {
@@ -255,121 +261,151 @@ public:
 
     bool willSaveContent() const
     {
-        return libpd_array_get_saveit(ptr);
+        if(auto ptr = arr.get<t_garray>()) {
+            return libpd_array_get_saveit(ptr.get());
+        }
+        
+        return false;
     }
 
     // Gets the name of the array
     String getExpandedName() const
     {
-        return String::fromUTF8(libpd_array_get_name(ptr));
+        if(auto ptr = arr.get<t_garray>()) {
+            return String::fromUTF8(libpd_array_get_name(ptr.get()));
+        }
+        
+        return {};
     }
 
     // Gets the text label of the array
     String getUnexpandedName() const
     {
-        pd->setThis();
-        return String::fromUTF8(libpd_array_get_unexpanded_name(ptr));
+        if(auto ptr = arr.get<t_garray>()) {
+            return String::fromUTF8(libpd_array_get_unexpanded_name(ptr.get()));
+        }
+        
+        return {};
     }
 
     DrawType getDrawType() const
     {
-        pd->setThis();
-        return static_cast<DrawType>(libpd_array_get_style(ptr));
+        if(auto ptr = arr.get<t_garray>()) {
+            return static_cast<DrawType>(libpd_array_get_style(ptr.get()));
+        }
+        
+        return DrawType::Points;
     }
 
     // Gets the scale of the array
     std::array<float, 2> getScale() const
     {
         float min = -1, max = 1;
-        pd->setThis();
-        libpd_array_get_scale(ptr, &min, &max);
-
-        if (min == max)
-            max += 1e-6;
-
-        return { min, max };
+        if(auto ptr = arr.get<t_garray>()) {
+            libpd_array_get_scale(ptr.get(), &min, &max);
+            
+            if (min == max)
+                max += 1e-6;
+            
+            return { min, max };
+        }
+        
+        return {-1.0f, 1.0f};
     }
 
     bool getEditMode() const
     {
-        return libpd_array_get_editmode(ptr);
+        if(auto ptr = arr.get<t_garray>()) {
+            return libpd_array_get_editmode(ptr.get());
+        }
+        
+        return true;
     }
 
     void setEditMode(bool editMode)
     {
-        libpd_array_set_editmode(ptr, editMode);
+        if(auto ptr = arr.get<t_garray>()) {
+            libpd_array_set_editmode(ptr.get(), editMode);
+        }
     }
 
     // Gets the scale of the array.
     int size() const
     {
-        pd->setThis();
-        return libpd_array_get_size(ptr);
+        if(auto ptr = arr.get<t_garray>()) {
+            return libpd_array_get_size(ptr.get());
+        }
+        
+        return 0;
     }
 
     Colour getContentColour()
     {
-        pd->setThis();
-
-        // if(auto garray = ptr.get<t_fake_garray>())
-        //{
-        auto* scalar = static_cast<t_fake_garray*>(ptr)->x_scalar;
-        auto* templ = template_findbyname(scalar->sc_template);
-
-        int colour = template_getfloat(templ, gensym("color"), scalar->sc_vec, 1);
-
-        if (colour <= 0) {
-            return object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
-        }
-
-        auto rangecolor = [](int n) /* 0 to 9 in 5 steps */
+        if(auto garray = arr.get<t_fake_garray>())
         {
-            int n2 = (n == 9 ? 8 : n); /* 0 to 8 */
-            int ret = (n2 << 5);       /* 0 to 256 in 9 steps */
-            if (ret > 255)
-                ret = 255;
-            return (ret);
-        };
+            auto* scalar = garray->x_scalar;
+            auto* templ = template_findbyname(scalar->sc_template);
 
-        int red = rangecolor(colour / 100);
-        int green = rangecolor((colour / 10) % 10);
-        int blue = rangecolor(colour % 10);
+            int colour = template_getfloat(templ, gensym("color"), scalar->sc_vec, 1);
 
-        return Colour(red, green, blue);
-        //}
+            if (colour <= 0) {
+                return object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
+            }
+
+            auto rangecolor = [](int n) /* 0 to 9 in 5 steps */
+            {
+                int n2 = (n == 9 ? 8 : n); /* 0 to 8 */
+                int ret = (n2 << 5);       /* 0 to 256 in 9 steps */
+                if (ret > 255)
+                    ret = 255;
+                return (ret);
+            };
+
+            int red = rangecolor(colour / 100);
+            int green = rangecolor((colour / 10) % 10);
+            int blue = rangecolor(colour % 10);
+
+            return Colour(red, green, blue);
+        }
+        
+        return object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
     }
 
     void setScale(std::array<float, 2> scale)
     {
         auto& [min, max] = scale;
-        pd->setThis();
-        libpd_array_set_scale(ptr, min, max);
+        if(auto ptr = arr.get<t_garray>()) {
+            libpd_array_set_scale(ptr.get(), min, max);
+        }
     }
 
     // Gets the values of the array.
     void read(std::vector<float>& output) const
     {
-        pd->setThis();
-        int const size = libpd_array_get_size(ptr);
-        output.resize(static_cast<size_t>(size));
-        libpd_array_read(output.data(), ptr, 0, size);
+        if(auto ptr = arr.get<t_garray>()) {
+            int const size = libpd_array_get_size(ptr.get());
+            output.resize(static_cast<size_t>(size));
+            libpd_array_read(output.data(), ptr.get(), 0, size);
+        }
     }
 
     // Writes the values of the array.
     void write(std::vector<float> const& input)
     {
-        pd->setThis();
-        libpd_array_write(ptr, 0, input.data(), static_cast<int>(input.size()));
+        if(auto ptr = arr.get<t_garray>()) {
+            libpd_array_write(ptr.get(), 0, input.data(), static_cast<int>(input.size()));
+        }
     }
 
     // Writes a value of the array.
     void write(const size_t pos, float const input)
     {
-        pd->setThis();
-        libpd_array_write(ptr, static_cast<int>(pos), &input, 1);
+        if(auto ptr = arr.get<t_garray>()) {
+            libpd_array_write(ptr.get(), static_cast<int>(pos), &input, 1);
+        }
     }
 
-    void* ptr;
+    pd::WeakReference arr;
 
     std::vector<float> vec;
     std::vector<float> temp;
@@ -391,17 +427,22 @@ class ArrayEditorDialog : public Component
 
 public:
     std::function<void()> onClose;
-    GraphicalArray graph;
+    OwnedArray<GraphicalArray> graphs;
     PluginProcessor* pd;
     String title;
 
-    ArrayEditorDialog(PluginProcessor* instance, void* arr, Object* parent)
+    ArrayEditorDialog(PluginProcessor* instance, std::vector<void*> arrays, Object* parent)
         : resizer(this, &constrainer)
-        , graph(instance, arr, parent)
-        , title(graph.getExpandedName())
         , pd(instance)
     {
-
+        for(auto* arr : arrays)
+        {
+            auto* graph = graphs.add(new GraphicalArray(pd, arr, parent));
+            addAndMakeVisible(graph);
+        }
+        
+        title = graphs[0]->getExpandedName();
+        
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
         addAndMakeVisible(closeButton.get());
 
@@ -419,7 +460,6 @@ public:
         // Position in centre of screen
         setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
 
-        addAndMakeVisible(graph);
         addAndMakeVisible(resizer);
 
         startTimer(40);
@@ -429,7 +469,11 @@ public:
     {
         resizer.setBounds(getLocalBounds());
         closeButton->setBounds(getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5));
-        graph.setBounds(getLocalBounds().withTrimmedTop(40));
+        
+        for(auto* graph : graphs)
+        {
+            graph->setBounds(getLocalBounds().withTrimmedTop(40));
+        }
     }
 
     void timerCallback() override
@@ -437,13 +481,11 @@ public:
         if (!pd->tryLockAudioThread())
             return;
 
-        int currentSize = graph.size();
-        if (graph.vec.size() != currentSize) {
-
-            graph.vec.resize(currentSize);
+        for(auto* graph : graphs)
+        {
+            graph->update();
         }
-        graph.update();
-
+        
         pd->unlockAudioThread();
     }
 
@@ -508,17 +550,11 @@ public:
         pd->lockAudioThread();
 
         for (auto* graph : graphs) {
-            // Check if size has changed
-            int currentSize = graph->size();
-            if (graph->vec.size() != currentSize) {
-
-                graph->vec.resize(currentSize);
-                size = currentSize;
-            }
-
             // Update values
             graph->update();
         }
+        
+        size = static_cast<int>(graphs[0]->vec.size());
 
         pd->unlockAudioThread();
     }
@@ -625,8 +661,10 @@ public:
                 t_symbol* name = first ? pd->generateSymbol(arrName) : pd->generateSymbol(graph->getUnexpandedName());
                 first = false;
 
-                auto* garray = reinterpret_cast<t_fake_garray*>(graph->ptr);
-                garray_arraydialog(garray, name, arrSize, static_cast<float>(flags), 0.0f);
+                if(auto garray = graph->arr.get<t_fake_garray>())
+                {
+                    garray_arraydialog(garray.get(), name, arrSize, static_cast<float>(flags), 0.0f);
+                }
             }
         }
 
@@ -705,7 +743,7 @@ public:
             return;
         }
 
-        dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, graphs[0]->ptr, object);
+        dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, graphs[0]->arr.getRaw<void>(), object);
         dialog->onClose = [this]() {
             dialog.reset(nullptr);
         };
@@ -781,19 +819,21 @@ public:
             editor->toFront(true);
             return;
         }
+        
+        if (auto c = ptr.get<t_canvas>()) {
+            std::vector<void*> arrays;
 
-        void* array;
-        if (auto canvas = ptr.get<t_canvas>()) {
-            auto* c = reinterpret_cast<t_canvas*>(canvas->gl_list);
-            array = c->gl_list;
-        } else {
-            return;
+            t_gobj* x = reinterpret_cast<t_gobj*>(c->gl_list);
+            arrays.push_back(x);
+
+            while ((x = x->g_next)) {
+                arrays.push_back(x);
+            }
+            editor = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);
+            editor->onClose = [this]() {
+                editor.reset(nullptr);
+            };
         }
-
-        editor = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
-        editor->onClose = [this]() {
-            editor.reset(nullptr);
-        };
     }
 
     void openFromMenu() override

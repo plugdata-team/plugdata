@@ -120,7 +120,7 @@ public:
             juce::Path dashedRect;
             dashedRect.addRoundedRectangle(lineBounds, 5.0f);
 
-            juce::PathStrokeType dashedStroke(1.0f);
+            juce::PathStrokeType dashedStroke(0.5f);
             dashedStroke.createDashedStroke(dashedRect, dashedRect, dashLength.data(), 2);
             
             g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
