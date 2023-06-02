@@ -21,8 +21,6 @@ public:
             if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !cnv->isShowing() || isPressed)
                 return;
 
-            pd->setThis();
-
             t_atom at[3];
             SETFLOAT(at, 1.0f);
 
@@ -62,8 +60,6 @@ public:
             int yPos = getHeight() - relativeEvent.getPosition().y;
 
             lastPosition = relativeEvent.getPosition();
-
-            pd->setThis();
 
             if (auto pad = this->ptr.get<t_fake_pad>()) {
                 pad->x_x = xPos;

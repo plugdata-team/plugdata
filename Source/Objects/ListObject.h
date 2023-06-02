@@ -223,8 +223,6 @@ public:
 
     std::vector<pd::Atom> getList() const
     {
-        cnv->pd->setThis();
-
         if (auto gatom = ptr.get<t_fake_gatom>()) {
             int ac = binbuf_getnatom(gatom->a_text.te_binbuf);
             t_atom* av = binbuf_getvec(gatom->a_text.te_binbuf);

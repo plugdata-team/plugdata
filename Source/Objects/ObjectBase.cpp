@@ -91,7 +91,7 @@ void ObjectLabel::ObjectListener::componentMovedOrResized(Component& component, 
 }
 
 ObjectBase::ObjectBase(void* obj, Object* parent)
-    : ptr(obj)
+    : ptr(obj, parent->cnv->pd)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
@@ -126,9 +126,6 @@ ObjectBase::~ObjectBase()
 
 String ObjectBase::getText()
 {
-
-    cnv->pd->setThis();
-
     char* text = nullptr;
     int size = 0;
 
@@ -151,11 +148,6 @@ String ObjectBase::getText()
 
 String ObjectBase::getType() const
 {
-    // TODO: callback lock can cause deadlock :(
-    // ScopedLock lock(*pd->getCallbackLock());
-
-    pd->setThis();
-
     if (auto obj = ptr.get<t_pd>()) {
         // Check if it's an abstraction or subpatch
         if (pd_class(obj.get()) == canvas_class && canvas_isabstraction(obj.cast<t_glist>())) {
@@ -196,9 +188,7 @@ String ObjectBase::getType() const
             return String::fromUTF8(name);
         }
     }
-
-    sys_unlock();
-
+    
     return {};
 }
 
@@ -225,8 +215,6 @@ void ObjectBase::closeOpenedSubpatchers()
 
 bool ObjectBase::click()
 {
-    pd->setThis();
-
     if (auto obj = ptr.get<t_object>()) {
         if (libpd_has_click_function(obj.get())) {
             pd->sendDirectMessage(obj.get(), "click", {});
@@ -276,8 +264,6 @@ void ObjectBase::openSubpatch()
 
 void ObjectBase::moveToFront()
 {
-    pd->setThis();
-
     if (auto obj = ptr.get<t_gobj>()) {
         auto* patch = cnv->patch.getPointer().get();
         if (!patch)
@@ -289,7 +275,6 @@ void ObjectBase::moveToFront()
 
 void ObjectBase::moveToBack()
 {
-    pd->setThis();
     if (auto obj = ptr.get<t_gobj>()) {
         auto* patch = cnv->patch.getPointer().get();
         if (!patch)

@@ -444,8 +444,6 @@ public:
 
     String getSendSymbol()
     {
-        pd->setThis();
-
         if (auto knb = ptr.get<t_fake_knob>()) {
 
             if (!knb->x_snd || !knb->x_snd->s_name)
@@ -462,8 +460,6 @@ public:
 
     String getReceiveSymbol()
     {
-        pd->setThis();
-
         if (auto knb = ptr.get<t_fake_knob>()) {
             if (!knb->x_rcv || !knb->x_rcv->s_name)
                 return "";

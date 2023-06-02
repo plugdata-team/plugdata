@@ -212,15 +212,12 @@ public:
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(getValue<int>(bufferSize), 0, SCOPE_MAXBUFSIZE * 4);
 
-            pd->setThis();
-
             if (auto scope = ptr.get<S>()) {
                 scope->x_bufsize = bufferSize.getValue();
                 scope->x_bufphase = 0;
             }
 
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
-            pd->setThis();
             if (auto scope = ptr.get<S>()) {
                 scope->x_period = limitValueMin(v, 0);
             }
@@ -242,7 +239,6 @@ public:
                 scope->x_triglevel = getValue<int>(triggerValue);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto* rcv = pd->generateSymbol(receiveSymbol.toString());
-            pd->setThis();
             if (auto scope = ptr.get<S>()) {
                 scope->x_receive = canvas_realizedollar(scope->x_glist, scope->x_rcv_raw = rcv);
 

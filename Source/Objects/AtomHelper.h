@@ -46,7 +46,7 @@ public:
         , gui(base)
         , cnv(parent->cnv)
         , pd(parent->cnv->pd)
-        , ptr(pointer)
+        , ptr(pointer, parent->cnv->pd)
     {
         objectParameters.addParamCombo("Font size", cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" });
         objectParameters.addParamReceiveSymbol(&receiveSymbol);

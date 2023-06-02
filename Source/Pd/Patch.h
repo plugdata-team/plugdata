@@ -9,7 +9,7 @@ extern "C" {
 #include "x_libpd_mod_utils.h" //  TODO: we only need t_object
 }
 
-#include <x_libpd_weakreference.h>
+#include "WeakReference.h"
 
 namespace pd {
 

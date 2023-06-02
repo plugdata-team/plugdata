@@ -1405,8 +1405,6 @@ void Canvas::valueChanged(Value& v)
         if (!patch.getPointer())
             return;
 
-        pd->setThis();
-
         int graphChild = getValue<bool>(isGraphChild);
         int hideText = getValue<bool>(hideNameAndArgs);
 

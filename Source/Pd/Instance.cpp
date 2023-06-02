@@ -467,8 +467,6 @@ void Instance::processMidiEvent(midievent event)
 
 void Instance::processSend(dmessage mess)
 {
-    setThis();
-
     if (auto obj = mess.object.get<t_pd>()) {
         if (mess.selector == "list") {
             auto* argv = static_cast<t_atom*>(m_atoms);
@@ -513,6 +511,28 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
         listeners.erase(it);
 }
 
+void Instance::registerWeakReference(t_pd* ptr, pd_weak_reference* ref)
+{
+    pdWeakRefLock.lock();
+    pdWeakReferences[ptr].push_back(ref);
+    pdWeakRefLock.unlock();
+}
+
+void Instance::unregisterWeakReference(t_pd* ptr, pd_weak_reference* ref)
+{
+    pdWeakRefLock.lock();
+    
+    auto& refs = pdWeakReferences[ptr];
+    
+    auto it = std::find(refs.begin(), refs.end(), ref);
+
+    if (it != refs.end()) {
+        pdWeakReferences[ptr].erase(it);
+    }
+    
+    pdWeakRefLock.unlock();
+}
+
 void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
 {
     m_function_queue.enqueue(fn);
@@ -521,14 +541,14 @@ void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
 void Instance::sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list)
 {
     lockAudioThread();
-    processSend(dmessage { object, String(), msg, std::move(list) });
+    processSend(dmessage { WeakReference(object, this), String(), msg, std::move(list) });
     unlockAudioThread();
 }
 
 void Instance::sendDirectMessage(void* object, std::vector<Atom>&& list)
 {
     lockAudioThread();
-    processSend(dmessage { object, String(), "list", std::move(list) });
+    processSend(dmessage { WeakReference(object, this), String(), "list", std::move(list) });
     unlockAudioThread();
 }
 
@@ -536,14 +556,14 @@ void Instance::sendDirectMessage(void* object, String const& msg)
 {
 
     lockAudioThread();
-    processSend(dmessage { object, String(), "symbol", std::vector<Atom>(1, msg) });
+    processSend(dmessage { WeakReference(object, this), String(), "symbol", std::vector<Atom>(1, msg) });
     unlockAudioThread();
 }
 
 void Instance::sendDirectMessage(void* object, float const msg)
 {
     lockAudioThread();
-    processSend(dmessage { object, String(), "float", std::vector<Atom>(1, msg) });
+    processSend(dmessage { WeakReference(object, this), String(), "float", std::vector<Atom>(1, msg) });
     unlockAudioThread();
 }
 
@@ -719,5 +739,8 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
         objectImplementations->clearObjectImplementationsForPatch(patch.get());
     }
 }
+
+
+
 
 } // namespace pd

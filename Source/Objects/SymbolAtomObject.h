@@ -88,8 +88,6 @@ public:
 
     String getSymbol()
     {
-        cnv->pd->setThis();
-
         if (auto gatom = ptr.get<t_fake_gatom>()) {
             return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(gatom.get()))->s_name);
         }

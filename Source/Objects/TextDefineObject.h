@@ -86,8 +86,6 @@ public:
             SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
         }
 
-        pd->setThis();
-
         if (auto qlist = ptr.get<t_fake_qlist>()) {
 
             auto& textbuf = qlist->x_textbuf;
@@ -242,8 +240,6 @@ public:
             atoms.emplace_back();
             SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
         }
-
-        pd->setThis();
 
         if (auto textDefine = ptr.get<t_fake_text_define>()) {
             auto& textbuf = textDefine->x_textbuf;

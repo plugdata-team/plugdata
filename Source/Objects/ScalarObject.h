@@ -88,7 +88,7 @@ class DrawableCurve final : public DrawableTemplate
 
 public:
     DrawableCurve(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
-        : scalar(s)
+        : scalar(s, cnv->pd)
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , canvas(cnv)
         , baseX(x)
@@ -111,8 +111,6 @@ public:
         auto alt = e.mods.isAltDown();
         auto dbl = 0;
 
-        canvas->pd->setThis();
-
         auto* patch = canvas->patch.getPointer().get();
         if (!patch)
             return;
@@ -134,8 +132,6 @@ public:
 
         if (!s || !s->sc_template)
             return;
-
-        canvas->pd->setThis();
 
         auto* glist = canvas->patch.getPointer().get();
         if (!glist)
@@ -240,7 +236,7 @@ class DrawableSymbol final : public DrawableTemplate
 
 public:
     DrawableSymbol(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
-        : scalar(s)
+        : scalar(s, cnv->pd)
         , object(reinterpret_cast<t_fake_drawnumber*>(obj))
         , canvas(cnv)
         , baseX(x)
@@ -259,8 +255,6 @@ public:
         auto* s = scalar.getRaw<t_scalar>();
         if (!s || !s->sc_template)
             return;
-
-        canvas->pd->setThis();
 
         auto* templ = template_findbyname(s->sc_template);
 

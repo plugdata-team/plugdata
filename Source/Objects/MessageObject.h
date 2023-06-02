@@ -251,8 +251,6 @@ public:
 
     String getSymbol() const
     {
-        cnv->pd->setThis();
-
         char* text;
         int size;
 

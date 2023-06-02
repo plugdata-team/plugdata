@@ -256,8 +256,6 @@ public:
 
     void checkGraphState()
     {
-        pd->setThis();
-
         int isGraph = getValue<bool>(isGraphChild);
         int hideText = isGraph && getValue<bool>(hideNameAndArgs);
 

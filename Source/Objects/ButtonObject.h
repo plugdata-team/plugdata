@@ -34,7 +34,7 @@ public:
         repaint();
     }
 
-    /*
+    /* TODO: finish this!
     void toggleObject(Point<int> position) override
     {
 

@@ -31,7 +31,7 @@ extern "C" {
 
 ImplementationBase::ImplementationBase(void* obj, PluginProcessor* processor)
     : pd(processor)
-    , ptr(obj)
+    , ptr(obj, processor)
 {
     update();
 }

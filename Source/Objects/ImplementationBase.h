@@ -10,7 +10,6 @@
 #include "Pd/Instance.h"
 #include "Pd/MessageListener.h"
 #include "Constants.h"
-#include <x_libpd_weakreference.h>
 
 class PluginProcessor;
 class Canvas;

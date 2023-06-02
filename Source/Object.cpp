@@ -304,8 +304,6 @@ void Object::applyBounds()
 void Object::updateBounds()
 {
     if (gui) {
-        cnv->pd->setThis();
-
         // Get the bounds of the object in Pd
         auto newBounds = gui->getPdBounds();
 

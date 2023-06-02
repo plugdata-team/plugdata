@@ -51,7 +51,7 @@ extern void canvas_reload(t_symbol* name, t_symbol* dir, t_glist* except);
 namespace pd {
 
 Patch::Patch(void* patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
-    : ptr(patchPtr)
+    : ptr(patchPtr, parentInstance)
     , instance(parentInstance)
     , currentFile(std::move(patchFile))
     , closePatchOnDelete(ownsPatch)
@@ -173,8 +173,6 @@ void Patch::savePatch()
 
 void Patch::setCurrent()
 {
-    instance->setThis();
-
     if (auto patch = ptr.get<t_glist>()) {
         // This is the same as calling canvas_vis and canvas_map,
         // but all the other stuff inside those functions is just for tcl/tk anyway

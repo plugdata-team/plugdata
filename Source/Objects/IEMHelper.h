@@ -25,7 +25,7 @@ public:
         , gui(base)
         , cnv(parent->cnv)
         , pd(parent->cnv->pd)
-        , ptr(iemgui)
+        , ptr(iemgui, parent->cnv->pd)
     {
     }
 
@@ -326,8 +326,6 @@ public:
 
     String getSendSymbol() const
     {
-        pd->setThis();
-
         if (auto iemgui = ptr.get<t_iemgui>()) {
             t_symbol* srlsym[3];
             iemgui_all_sym2dollararg(iemgui.get(), srlsym);
@@ -342,8 +340,6 @@ public:
 
     String getReceiveSymbol() const
     {
-        pd->setThis();
-
         if (auto iemgui = ptr.get<t_iemgui>()) {
             t_symbol* srlsym[3];
             iemgui_all_sym2dollararg(iemgui.get(), srlsym);
