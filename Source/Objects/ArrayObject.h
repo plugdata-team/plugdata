@@ -742,8 +742,8 @@ public:
             dialog->toFront(true);
             return;
         }
-
-        dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, graphs[0]->arr.getRaw<void>(), object);
+        
+        dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, getArrays(), object);
         dialog->onClose = [this]() {
             dialog.reset(nullptr);
         };
