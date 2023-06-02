@@ -269,12 +269,7 @@ public:
             if (cnv && cnv->viewport && cnv->viewport->getScreenBounds().contains(screenPosition)) {
                 auto position = cnv->getLocalPoint(nullptr, screenPosition) + Point<int>(Object::margin, Object::margin) - cnv->canvasOrigin;
 
-                String result;
-                if (palettePatch.startsWith("#N canvas")) {
-                    result = pd::Patch::translatePatchAsString(palettePatch, position);
-                } else {
-                    result = "#N canvas 827 239 527 327 12;\n" + palettePatch + StringArray { "\n#X restore ", String(position.x), String(position.y), paletteName }.joinIntoString(" ") + ";";
-                }
+                String result = pd::Patch::translatePatchAsString(palettePatch, position);
 
                 if (auto ptr = cnv->patch.getPointer()) {
                     libpd_paste(ptr.get(), result.toRawUTF8());
