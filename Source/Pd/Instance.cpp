@@ -513,14 +513,14 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
 
 void Instance::registerWeakReference(t_pd* ptr, pd_weak_reference* ref)
 {
-    pdWeakRefLock.lock();
+    lockAudioThread();
     pdWeakReferences[ptr].push_back(ref);
-    pdWeakRefLock.unlock();
+    unlockAudioThread();
 }
 
 void Instance::unregisterWeakReference(t_pd* ptr, pd_weak_reference* ref)
 {
-    pdWeakRefLock.lock();
+    lockAudioThread();
     
     auto& refs = pdWeakReferences[ptr];
     
@@ -530,18 +530,18 @@ void Instance::unregisterWeakReference(t_pd* ptr, pd_weak_reference* ref)
         pdWeakReferences[ptr].erase(it);
     }
     
-    pdWeakRefLock.unlock();
+    unlockAudioThread();
 }
 
 void Instance::clearWeakReferences(t_pd* ptr)
 {
-    pdWeakRefLock.lock();
+    lockAudioThread();
     for(auto* ref : pdWeakReferences[ptr])
     {
         *ref = false;
     }
     pdWeakReferences.erase(ptr);
-    pdWeakRefLock.unlock();
+    unlockAudioThread();
 }
 
 void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)

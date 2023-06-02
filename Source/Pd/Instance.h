@@ -314,10 +314,9 @@ public:
     bool isPerformingGlobalSync = false;
     CriticalSection const audioLock;
 
-    std::mutex pdWeakRefLock;
-    std::unordered_map<t_pd*, std::vector<pd_weak_reference*>> pdWeakReferences;
-
 private:
+    
+    std::unordered_map<t_pd*, std::vector<pd_weak_reference*>> pdWeakReferences;
     std::unordered_map<void*, std::vector<juce::WeakReference<MessageListener>>> messageListeners;
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;

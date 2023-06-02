@@ -22,7 +22,7 @@ extern "C"
     void clear_weak_references(t_pd* ptr)
     {
         auto* instance = static_cast<pd::Instance*>(get_plugdata_instance());
-        instance->clearWeakReferences(ptr);
+        if(instance) instance->clearWeakReferences(ptr);
     }
 }
 
