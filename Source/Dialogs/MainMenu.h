@@ -378,8 +378,6 @@ public:
         new IconMenuItem("", "Compiled Mode", false, true),
         new IconMenuItem(Icons::DevTools, "Compile...", false, false),
 
-        new IconMenuItem("", "Plugin Mode", false, true),
-
         new IconMenuItem(Icons::Externals, "Find Externals...", false, false),
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),
