@@ -46,23 +46,28 @@ void VolumeSlider::paint(Graphics& g)
 
 class LevelMeter : public Component
     , public StatusbarSource::Listener
-    , public MultiTimer {
+, public MultiTimer {
     float audioLevel[2] = { 0.0f, 0.0f };
     float peakLevel[2] = { 0.0f, 0.0f };
-
+    
     int numChannels = 2;
-
+    
     bool clipping[2] = { false, false };
-
+    
     bool peakBarsFade[2] = { true, true };
-
+    
     float fadeFactor = 0.98f;
-
+    
+    float lastPeak[2] = {0.0f};
+    float lastLevel[2] = {0.0f};
+    float repaintTheshold = 0.01f;
+        
 public:
     LevelMeter() = default;
 
     void audioLevelChanged(Array<float> peak) override
     {
+        bool needsRepaint = false;
         for (int i = 0; i < 2; i++) {
             audioLevel[i] *= fadeFactor;
             if (peakBarsFade[i])
@@ -80,8 +85,20 @@ public:
                 peakBarsFade[i] = false;
                 startTimer(i, 1700);
             }
+            
+            if(std::abs(peakLevel[i] - lastPeak[i]) > repaintTheshold
+            || std::abs(audioLevel[i] - lastLevel[i]) > repaintTheshold
+            || (peakLevel[i] == 0.0f && lastPeak[i] != 0.0f)
+            || (audioLevel[i] == 0.0f && lastLevel[i] != 0.0f))
+            {
+                lastPeak[i] = peakLevel[i];
+                lastLevel[i] = audioLevel[i];
+                
+                needsRepaint = true;
+            }
         }
-        if (isShowing())
+        
+        if (isShowing() && needsRepaint)
             repaint();
     }
 
@@ -412,7 +429,7 @@ void Statusbar::audioProcessedChanged(bool audioProcessed)
 StatusbarSource::StatusbarSource()
     : numChannels(0)
 {
-    startTimerHz(60);
+    startTimerHz(30);
 }
 
 static bool hasRealEvents(MidiBuffer& buffer)
