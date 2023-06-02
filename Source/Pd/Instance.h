@@ -134,6 +134,15 @@ class Instance {
     };
 
     struct dmessage {
+        
+        dmessage(pd::Instance* instance, void* ref, String dest, String sel, std::vector<pd::Atom> atoms) :
+            object(ref, instance),
+            destination(dest),
+            selector(sel),
+            list(atoms)
+        {
+        }
+        
         WeakReference object;
         String destination;
         String selector;

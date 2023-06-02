@@ -552,14 +552,14 @@ void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
 void Instance::sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list)
 {
     lockAudioThread();
-    processSend(dmessage { WeakReference(object, this), String(), msg, std::move(list) });
+    processSend(dmessage(this, object, String(), msg, std::move(list)));
     unlockAudioThread();
 }
 
 void Instance::sendDirectMessage(void* object, std::vector<Atom>&& list)
 {
     lockAudioThread();
-    processSend(dmessage { WeakReference(object, this), String(), "list", std::move(list) });
+    processSend(dmessage(this, object, String(), "list", std::move(list)));
     unlockAudioThread();
 }
 
@@ -567,14 +567,14 @@ void Instance::sendDirectMessage(void* object, String const& msg)
 {
 
     lockAudioThread();
-    processSend(dmessage { WeakReference(object, this), String(), "symbol", std::vector<Atom>(1, msg) });
+    processSend(dmessage(this, object, String(), "symbol", std::vector<Atom>(1, msg)));
     unlockAudioThread();
 }
 
 void Instance::sendDirectMessage(void* object, float const msg)
 {
     lockAudioThread();
-    processSend(dmessage { WeakReference(object, this), String(), "float", std::vector<Atom>(1, msg) });
+    processSend(dmessage(this, object, String(), "float", std::vector<Atom>(1, msg)));
     unlockAudioThread();
 }
 
