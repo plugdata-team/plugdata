@@ -97,13 +97,39 @@ public:
         // nameLabel.addMouseListener(this, false);
 
         addAndMakeVisible(nameLabel);
+        
+        
+        isSubpatch = checkIsSubpatch(palettePatch);
+        if(isSubpatch) {
+            auto iolets = countIolets(palettePatch);
+            inlets = iolets.first;
+            outlets = iolets.second;
+        }
     }
 
     void paint(Graphics& g) override
     {
         auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
+        
+        if(!isSubpatch)
+        {
+            auto lineBounds = bounds.reduced(2.5f);
+            
+            std::vector<float> dashLength = {5.0f, 5.0f};
+            
+            juce::Path dashedRect;
+            dashedRect.addRoundedRectangle(lineBounds, 5.0f);
 
-        auto [inlets, outlets] = countIolets(palettePatch);
+            juce::PathStrokeType dashedStroke(1.0f);
+            dashedStroke.createDashedStroke(dashedRect, dashedRect, dashLength.data(), 2);
+            
+            g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
+            g.fillRoundedRectangle(lineBounds, 5.0f);
+            
+            g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+            g.strokePath(dashedRect, dashedStroke);
+            return;
+        }
 
         auto inletCount = inlets.size();
         auto outletCount = outlets.size();
@@ -301,6 +327,12 @@ public:
             nameLabel.showEditor();
         }
     }
+    
+    bool checkIsSubpatch(String const& patchAsString)
+    {
+        auto lines = StringArray::fromLines(patchAsString.trim());
+        return lines[0].startsWith("#N canvas") && lines[lines.size()-1].startsWith("#X restore");
+    }
 
     std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patchAsString)
     {
@@ -362,6 +394,8 @@ public:
     PluginEditor* editor;
     std::unique_ptr<DraggedPaletteItem> dragger;
     String paletteName, palettePatch;
+    bool isSubpatch;
+    std::vector<bool> inlets, outlets;
 };
 
 class PaletteComponent : public Component
