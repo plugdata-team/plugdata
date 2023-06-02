@@ -16,17 +16,6 @@ extern "C"
 #include "WeakReference.h"
 #include "Instance.h"
 
-extern "C"
-{
-    // Called from pd_free to invalidate all the weak references
-    void clear_weak_references(t_pd* ptr)
-    {
-        auto* instance = static_cast<pd::Instance*>(get_plugdata_instance());
-        if(instance) instance->clearWeakReferences(ptr);
-    }
-}
-
-
 pd::WeakReference::WeakReference(void* p, Instance* instance) : ptr(static_cast<t_pd*>(p)), pd(instance)
 {
     pd->registerWeakReference(ptr, &weakRef);

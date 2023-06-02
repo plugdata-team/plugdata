@@ -153,7 +153,10 @@ void Instance::initialisePd(String& pdlua_version)
         },
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->exit();
-        });
+        },
+        [](void* instance, t_pd* ref) {
+            static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
+         });
 
     m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
