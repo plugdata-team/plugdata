@@ -105,10 +105,18 @@ public:
     {
         auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
 
-        auto ioletRadius = 6.5f;
-        auto cornerRadius = 5.0f;
-
         auto [inlets, outlets] = countIolets(palettePatch);
+
+        auto inletCount = inlets.size();
+        auto outletCount = outlets.size();
+
+        auto inletSize = inletCount > 0 ? ((bounds.getWidth() - (24 * 2)) / inletCount) * 0.5f : 0.0f;
+        auto outletSize = outletCount > 0 ? ((bounds.getWidth() - (24 * 2)) / outletCount) * 0.5f : 0.0f;
+
+        auto ioletRadius = 5.0f;
+        auto inletRadius = jmin(ioletRadius, inletSize);
+        auto outletRadius = jmin(ioletRadius, outletSize);
+        auto cornerRadius = 5.0f;
 
         int x = bounds.getX() + 8;
 
@@ -117,30 +125,34 @@ public:
         Path p;
         p.startNewSubPath(x, lineBounds.getY());
 
-        g.saveState();
-        g.reduceClipRegion(lineBounds.getSmallestIntegerContainer());
+        auto ioletStroke = PathStrokeType(1.0f);
+        std::vector<std::tuple<Path, Colour>> ioletPaths;
 
         for (int i = 0; i < inlets.size(); i++) {
+            Path inletArc;
             auto inletBounds = Rectangle<float>();
             int const total = inlets.size();
             float const yPosition = bounds.getY();
 
             if (total == 1 && i == 0) {
-                int xPosition = getWidth() < 40 ? bounds.getCentreX() - ioletRadius / 2.0f : bounds.getX();
-                inletBounds = Rectangle<float>(xPosition + 24, yPosition, ioletRadius, ioletRadius);
+                int xPosition = getWidth() < 40 ? bounds.getCentreX() - inletRadius / 2.0f : bounds.getX();
+                inletBounds = Rectangle<float>(xPosition + 24, yPosition, inletRadius, ioletRadius);
 
             } else if (total > 1) {
-                float const ratio = (bounds.getWidth() - ioletRadius - 48) / static_cast<float>(total - 1);
-                inletBounds = Rectangle<float>((bounds.getX() + ratio * i) + 24, yPosition, ioletRadius, ioletRadius);
+                float const ratio = (bounds.getWidth() - inletRadius - 48) / static_cast<float>(total - 1);
+                inletBounds = Rectangle<float>((bounds.getX() + ratio * i) + 24, yPosition, inletRadius, ioletRadius);
             }
+
+            inletArc.startNewSubPath(inletBounds.getCentre().translated(-inletRadius, 0.0f));
 
             auto const fromRadians = MathConstants<float>::pi * 1.5f;
             auto const toRadians = MathConstants<float>::pi * 0.5f;
 
-            p.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), ioletRadius, ioletRadius, 0.0f, fromRadians, toRadians, false);
+            p.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
+            inletArc.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
 
-            g.setColour(inlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
-            g.drawEllipse(inletBounds.withSizeKeepingCentre(ioletRadius + 5, ioletRadius + 5), 1.5f);
+            auto inletColour = inlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
+            ioletPaths.push_back(std::tuple<Path, Colour>(inletArc, inletColour));
         }
 
         p.lineTo(lineBounds.getTopRight().translated(-cornerRadius, 0));
@@ -152,29 +164,31 @@ public:
         p.quadraticTo(lineBounds.getBottomRight(), lineBounds.getBottomRight().translated(-cornerRadius, 0));
 
         for (int i = outlets.size() - 1; i >= 0; i--) {
+            Path outletArc;
             auto outletBounds = Rectangle<float>();
             int const total = outlets.size();
-            float const yPosition = bounds.getBottom() - ioletRadius;
+            float const yPosition = bounds.getBottom() - outletRadius;
 
             if (total == 1 && i == 0) {
-                int xPosition = getWidth() < 40 ? bounds.getCentreX() - ioletRadius / 2.0f : bounds.getX();
-                outletBounds = Rectangle<float>(xPosition + 24, yPosition, ioletRadius, ioletRadius);
+                int xPosition = getWidth() < 40 ? bounds.getCentreX() - outletRadius / 2.0f : bounds.getX();
+                outletBounds = Rectangle<float>(xPosition + 24, yPosition, outletRadius, ioletRadius);
 
             } else if (total > 1) {
-                float const ratio = (bounds.getWidth() - ioletRadius - 48) / static_cast<float>(total - 1);
-                outletBounds = Rectangle<float>((bounds.getX() + ratio * i) + 24, yPosition, ioletRadius, ioletRadius);
+                float const ratio = (bounds.getWidth() - outletRadius - 48) / static_cast<float>(total - 1);
+                outletBounds = Rectangle<float>((bounds.getX() + ratio * i) + 24, yPosition, outletRadius, ioletRadius);
             }
 
-            auto const fromRadians = MathConstants<float>::pi * 1.5f;
-            auto const toRadians = MathConstants<float>::pi * 0.5f;
+            outletArc.startNewSubPath(outletBounds.getCentre().translated(outletRadius, 0.0f).getX(), lineBounds.getBottom());
 
-            p.addCentredArc(outletBounds.getCentreX(), outletBounds.getCentreY(), ioletRadius, ioletRadius, MathConstants<float>::pi, fromRadians, toRadians, false);
+            auto const fromRadians = MathConstants<float>::pi * 0.5f;
+            auto const toRadians = MathConstants<float>::pi * 1.5f;
 
-            g.setColour(outlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
-            g.drawEllipse(outletBounds.withSizeKeepingCentre(ioletRadius + 5, ioletRadius + 5), 1.5f);
+            p.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0, fromRadians, toRadians, false);
+            outletArc.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0.0f, fromRadians, toRadians, false);
+            
+            auto outletColour = outlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
+            ioletPaths.push_back(std::tuple<Path, Colour>(outletArc, outletColour));
         }
-
-        g.restoreState();
 
         p.lineTo(lineBounds.getBottomLeft().translated(cornerRadius, 0));
 
@@ -189,6 +203,12 @@ public:
 
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
         g.strokePath(p, PathStrokeType(1.0f));
+
+        // draw all the iolet paths on top of the border
+        for (auto& [path, colour] : ioletPaths) {
+            g.setColour(colour);
+            g.strokePath(path, ioletStroke);
+        }
     }
 
     void resized() override
