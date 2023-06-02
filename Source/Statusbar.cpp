@@ -56,7 +56,7 @@ class LevelMeter : public Component
 
     bool peakBarsFade[2] = { true, true };
 
-    float fadeFactor = 0.9f;
+    float fadeFactor = 0.98f;
 
 public:
     LevelMeter() = default;
@@ -111,16 +111,14 @@ public:
         g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth, bgWidth, bgHeight, bgHeight * 0.5f);
 
         for (int ch = 0; ch < numChannels; ch++) {
-            float audioLevelMaped = pow(audioLevel[ch], 0.5f);
-            float peakLevelMapped = pow(peakLevel[ch], 0.5f);
             auto barYPos = outerBorderWidth + ((ch + 1) * (bgHeight / 3.0f)) - halfBarHeight;
-            auto barLength = jmin(audioLevelMaped * barWidth, barWidth);
-            auto peekPos = jmin(peakLevelMapped * barWidth, barWidth);
+            auto barLength = jmin(audioLevel[ch] * barWidth, barWidth);
+            auto peekPos = jmin(peakLevel[ch] * barWidth, barWidth);
 
             if (peekPos > 1) {
                 g.setColour(clipping[ch] ? Colours::red : findColour(PlugDataColour::levelMeterActiveColourId));
                 g.fillRect(leftOffset, barYPos, barLength, barHeight);
-                g.fillRect(leftOffset + peekPos + 1, barYPos, 1.0f, barHeight);
+                g.fillRect(leftOffset + peekPos, barYPos, 1.0f, barHeight);
             }
         }
     }

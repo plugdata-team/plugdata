@@ -25,7 +25,7 @@ public:
     {
         sampleRate = sourceSampleRate;
         mainBufferSize = sourceBufferSize;
-        peakWindowSize = sampleRate / 120;
+        peakWindowSize = sampleRate / 60;
         bufferSize = jmax(peakWindowSize, mainBufferSize) * 3;
         peakBuffer.setSize(2, peakWindowSize, true, true);
         buffer.setSize(2, bufferSize, false, true);
@@ -56,7 +56,7 @@ public:
 
         auto diff = currentTime - readTime;
 
-        int readPos = readPosition + std::ceil((diff / 1000) * sampleRate) - mainBufferSize;
+        int readPos = readPosition + std::ceil((diff / 1000) * sampleRate) - mainBufferSize - peakWindowSize;
 
         if (readPos < 0)
             readPos += bufferSize;
@@ -69,7 +69,7 @@ public:
 
         Array<float> peak;
         for (int ch = 0; ch < 2; ch++) {
-            peak.add(peakBuffer.getMagnitude(ch, 0, peakWindowSize));
+            peak.add(pow(peakBuffer.getMagnitude(ch, 0, peakWindowSize), 0.5f));
         }
         return peak;
     }
