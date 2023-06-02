@@ -24,8 +24,7 @@ public:
         : target(targetItem)
     {
         target->addMouseListener(this, false);
-        imageToDraw = target->createComponentSnapshot(target->getLocalBounds());
-
+        
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
         setBounds(target->getScreenBounds());
         setVisible(true);
@@ -34,7 +33,7 @@ public:
 
     ~DraggedPaletteItem() override
     {
-        target->removeMouseListener(this);
+        if(target) target->removeMouseListener(this);
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -47,7 +46,7 @@ public:
 private:
     void paint(Graphics& g) override
     {
-        g.drawImageAt(imageToDraw, 0, 0);
+        if(target) target->paintEntireComponent(g, false);
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -65,8 +64,7 @@ private:
     }
 
     bool isDragging = false;
-    Image imageToDraw;
-    Component* target;
+    SafePointer<Component> target;
     ComponentDragger dragger;
 };
 
