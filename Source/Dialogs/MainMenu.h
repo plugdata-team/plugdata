@@ -58,10 +58,6 @@ public:
 
         addSeparator();
 
-        addCustomItem(getMenuItemID(MenuItem::PluginMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::PluginMode)]), nullptr, "Plugin Mode");
-
-        addSeparator();
-
         addCustomItem(getMenuItemID(MenuItem::FindExternals), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::FindExternals)]), nullptr, "Find externals...");
 
         addCustomItem(getMenuItemID(MenuItem::Settings), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Settings)]), nullptr, "Settings...");
@@ -75,10 +71,8 @@ public:
         menuItems[getMenuItemIndex(MenuItem::Save)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::CloseAll)]->isActive = hasCanvas;
-        menuItems[getMenuItemIndex(MenuItem::PluginMode)]->isActive = hasCanvas;
 
         menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
-        menuItems[getMenuItemIndex(MenuItem::PluginMode)]->isTicked = false;
     }
 
     class ZoomSelector : public Component {
@@ -353,7 +347,6 @@ public:
         CloseAll,
         CompiledMode,
         Compile,
-        PluginMode,
         FindExternals,
         Settings,
         About

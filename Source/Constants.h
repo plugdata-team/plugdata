@@ -81,6 +81,7 @@ struct Icons {
     inline static const String Reset = "'";
     inline static const String More = ".";
     inline static const String MIDI = "`";
+    inline static const String PluginMode = "?";
 };
 
 enum PlugDataColour {

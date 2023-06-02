@@ -88,6 +88,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     redoButton.setButtonText(Icons::Redo);
     addObjectMenuButton.setButtonText(Icons::Add);
     hideSidebarButton.setButtonText(Icons::SidePanel);
+    pluginModeButton.setButtonText(Icons::PluginMode);
 
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
@@ -156,7 +157,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(splitView);
     addAndMakeVisible(*sidebar);
 
-    for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &hideSidebarButton }) {
+    for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &hideSidebarButton, &pluginModeButton, }) {
         button->getProperties().set("Style", "LargeIcon");
         // button->setConnectedEdges(Button::Conn);
         addAndMakeVisible(button);
@@ -234,7 +235,19 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     };
 
     addAndMakeVisible(hideSidebarButton);
+    
+    // Enter plugin mode
+    pluginModeButton.setTooltip("Hide Sidebar");
+    pluginModeButton.getProperties().set("Style", "LargeIcon");
+    pluginModeButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
+    pluginModeButton.onClick = [this]() {
+        if (auto* cnv = getCurrentCanvas()) {
+            enablePluginMode(cnv);
+        }
+    };
 
+    addAndMakeVisible(pluginModeButton);
+    
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
     setSize(pd->lastUIWidth, pd->lastUIHeight);
 
@@ -342,18 +355,18 @@ void PluginEditor::resized()
 
     auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
-    auto offset = useLeftButtons && useNonNativeTitlebar ? 70 : 0;
+    auto offset = useLeftButtons && useNonNativeTitlebar ? 90 : 20;
 #if JUCE_MAC
     if (auto standalone = ProjectInfo::isStandalone ? dynamic_cast<DocumentWindow*>(getTopLevelComponent()) : nullptr)
-        offset = standalone->isFullScreen() ? 0 : offset;
+        offset = standalone->isFullScreen() ? 20 : offset;
 #endif
 
     zoomLabel->setBounds(paletteWidth + 5, getHeight() - Statusbar::statusbarHeight - 36, 55, 23);
 
-    mainMenuButton.setBounds(20 + offset, 0, toolbarHeight, toolbarHeight);
-    undoButton.setBounds(80 + offset, 0, toolbarHeight, toolbarHeight);
-    redoButton.setBounds(140 + offset, 0, toolbarHeight, toolbarHeight);
-    addObjectMenuButton.setBounds(200 + offset, 0, toolbarHeight, toolbarHeight);
+    mainMenuButton.setBounds(offset, 0, toolbarHeight, toolbarHeight);
+    undoButton.setBounds(60 + offset, 0, toolbarHeight, toolbarHeight);
+    redoButton.setBounds(120 + offset, 0, toolbarHeight, toolbarHeight);
+    addObjectMenuButton.setBounds(180 + offset, 0, toolbarHeight, toolbarHeight);
 
     auto startX = (getWidth() / 2) - (toolbarHeight * 1.5);
 
@@ -375,6 +388,7 @@ void PluginEditor::resized()
     int hidePosition = getWidth() - windowControlsOffset;
 
     hideSidebarButton.setBounds(hidePosition, 0, toolbarHeight, toolbarHeight);
+    pluginModeButton.setBounds(hidePosition - 60, 0, toolbarHeight, toolbarHeight);
 
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();

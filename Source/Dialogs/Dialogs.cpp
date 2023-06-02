@@ -112,12 +112,6 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
                 break;
             }
-            case MainMenu::MenuItem::PluginMode: {
-                if (auto* cnv = editor->getCurrentCanvas()) {
-                    editor->enablePluginMode(cnv);
-                }
-                break;
-            }
             case MainMenu::MenuItem::FindExternals: {
                 Dialogs::showDeken(editor);
                 break;
