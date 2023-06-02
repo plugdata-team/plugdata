@@ -237,7 +237,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(hideSidebarButton);
     
     // Enter plugin mode
-    pluginModeButton.setTooltip("Hide Sidebar");
+    pluginModeButton.setTooltip("Enter plugin mode");
     pluginModeButton.getProperties().set("Style", "LargeIcon");
     pluginModeButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     pluginModeButton.onClick = [this]() {
