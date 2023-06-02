@@ -5,8 +5,16 @@
  */
 #pragma once
 
-#include <m_pd.h>
+#include "Utility/Config.h"
+#include <juce_gui_basics/juce_gui_basics.h>
+
+extern "C"
+{
+    #include <s_inter.h>
+}
+
 #include "WeakReference.h"
+#include "Instance.h"
 
 extern "C"
 {
@@ -14,44 +22,22 @@ extern "C"
     void clear_weak_references(t_pd* ptr)
     {
         auto* instance = static_cast<pd::Instance*>(get_plugdata_instance());
-        
-        instance->pdWeakRefLock.lock();
-        for(auto* ref : instance->pdWeakReferences[ptr])
-        {
-            *ref = false;
-        }
-        instance->pdWeakReferences.erase(ptr);
-        instance->pdWeakRefLock.unlock();
-    }
-}
-extern "C"
-{
-    // Called from pd_free to invalidate all the weak references
-    void clear_weak_references(t_pd* ptr)
-    {
-        
-        pdWeakRefLock.lock();
-        for(auto* ref : pdWeakReferences[ptr])
-        {
-            *ref = false;
-        }
-        pdWeakReferences.erase(ptr);
-        pdWeakRefLock.unlock();
+        instance->clearWeakReferences(ptr);
     }
 }
 
 
-WeakReference::WeakReference(void* p, Instance* instance) : ptr(static_cast<t_pd*>(p)), pd(instance)
+pd::WeakReference::WeakReference(void* p, Instance* instance) : ptr(static_cast<t_pd*>(p)), pd(instance)
 {
-    pd->registerWeakReference(&weakRef);
+    pd->registerWeakReference(ptr, &weakRef);
 }
 
-WeakReference::~WeakReference()
+pd::WeakReference::~WeakReference()
 {
-    pd->unregisterWeakReference(&weakRef);
+    pd->unregisterWeakReference(ptr, &weakRef);
 }
 
-void WeakReference::setThis() const
+void pd::WeakReference::setThis() const
 {
     pd->setThis();
 }

@@ -533,6 +533,17 @@ void Instance::unregisterWeakReference(t_pd* ptr, pd_weak_reference* ref)
     pdWeakRefLock.unlock();
 }
 
+void Instance::clearWeakReferences(t_pd* ptr)
+{
+    pdWeakRefLock.lock();
+    for(auto* ref : pdWeakReferences[ptr])
+    {
+        *ref = false;
+    }
+    pdWeakReferences.erase(ptr);
+    pdWeakRefLock.unlock();
+}
+
 void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
 {
     m_function_queue.enqueue(fn);

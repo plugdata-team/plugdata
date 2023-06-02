@@ -235,7 +235,8 @@ public:
     
     void registerWeakReference(t_pd* ptr, pd_weak_reference* ref);
     void unregisterWeakReference(t_pd* ptr, pd_weak_reference* ref);
-
+    void clearWeakReferences(t_pd* ptr);
+    
     virtual void receiveDSPState(bool dsp) {};
 
     virtual void updateConsole() {};
@@ -313,6 +314,9 @@ public:
     bool isPerformingGlobalSync = false;
     CriticalSection const audioLock;
 
+    std::mutex pdWeakRefLock;
+    std::unordered_map<t_pd*, std::vector<pd_weak_reference*>> pdWeakReferences;
+
 private:
     std::unordered_map<void*, std::vector<juce::WeakReference<MessageListener>>> messageListeners;
 
@@ -325,9 +329,6 @@ private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
     
-    std::mutex pdWeakRefLock;
-    std::unordered_map<t_pd*, std::vector<pd_weak_reference*>> pdWeakReferences;
-
     std::atomic<int> numLocksHeld = 0;
 
     WaitableEvent updateWait;
