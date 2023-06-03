@@ -232,8 +232,10 @@ void Instance::initialisePd(String& pdlua_version)
         auto extra = library.getChildFile("Extra");
 
         set_class_prefix(gensym("else"));
+        class_set_extern_dir(gensym("9.else"));
         libpd_init_else();
         set_class_prefix(gensym("cyclone"));
+        class_set_extern_dir(gensym("10.cyclone"));
         libpd_init_cyclone();
         set_class_prefix(nullptr);
 
