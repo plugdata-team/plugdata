@@ -185,7 +185,15 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->createPanel(atom_getfloat(arg1), atom_getsymbol(arg3)->s_name, atom_getsymbol(arg2)->s_name);
         }
         if (String::fromUTF8(name) == "openfile") {
-            File(String::fromUTF8(atom_getsymbol(arg1)->s_name)).startAsProcess();
+            
+            auto url = String::fromUTF8(atom_getsymbol(arg1)->s_name);
+            if(URL::isProbablyAWebsiteURL(url))
+            {
+                URL(url).launchInDefaultBrowser();
+            }
+            else {
+                File(String::fromUTF8(atom_getsymbol(arg1)->s_name)).startAsProcess();
+            }
         }
         if (String::fromUTF8(name) == "repaint") {
             static_cast<Instance*>(instance)->updateDrawables();
