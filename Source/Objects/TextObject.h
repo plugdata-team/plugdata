@@ -306,13 +306,12 @@ public:
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
             }
             
-            if(pd_class(&gobj->g_pd) == vinlet_class)
+            
+            auto type = hash(getText().upToFirstOccurrenceOf(" ", false, false));
+            
+            if(type == hash("inlet") || type == hash("outlet") || type == hash("inlet~") || type == hash("outlet~"))
             {
                 canvas_resortinlets(patch);
-            }
-            if(pd_class(&gobj->g_pd) == voutlet_class)
-            {
-                canvas_resortoutlets(patch);
             }
         }
     }
