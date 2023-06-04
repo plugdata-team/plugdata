@@ -590,6 +590,11 @@ public:
         TextButton::mouseDown(e);
     }
 
+    void lookAndFeelChanged() override
+    {
+        setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+    }
+
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
