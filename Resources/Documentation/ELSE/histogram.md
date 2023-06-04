@@ -32,9 +32,11 @@ outlets:
 
 flags:
   - name: -size <float>
-    description: sets table size (default 128)
+    description: sets table size
+    default: 128
   - name: -embed
-    description: embeds histogram data with the patch (default don't)
+    description: embeds histogram data with the patch
+    default: don't
 
 methods:
   - type: clear

@@ -15,7 +15,8 @@ arguments:
 
 flags:
   - name: -midi
-    description: sets frequency input in MIDI pitch (default Hz)
+    description: sets frequency input in MIDI pitch
+    default: Hz
 
 inlets:
   1st:

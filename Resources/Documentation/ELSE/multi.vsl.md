@@ -27,31 +27,44 @@ outlets:
 
 flags: 
  - name: -n <float>
-   description: sets number of sliders size (default: 8), f 72;
- - name: -range <float \, float>
-   description: sets slider's' range (default: 0 \, 127), f 72;
+   description: sets number of sliders size
+   default: 8
+ - name: -range <float, float>
+   description: sets slider's' range
+   default: 0 127
  - name:  -name <symbol>
-   description: sets arrays name (default: internal), f 72;
+   description: sets arrays name
+   default: internal
  - name: -jump <float>
-   description: non-0 sets jump on click mode (default: 0), f 72;
- - name: -dim <float \, float>
-   description: sets x/y dimensions (default: 200 127), f 72;
+   description: non-0 sets jump on click mode
+   default: 0
+ - name: -dim <float, float>
+   description: sets x/y dimensions
+   default: 200 127
  - name: -init <float>
-   description: non-0 sets to init mode (default: 0), f 72;
+   description: non-0 sets to init mode
+   default: 0
  - name: -send <symbol>
-   description: sets send symbol (default: empty), f 72;
+   description: sets send symbol
+   default: empty
  - name: -receive <symbol>
-   description: sets receive symbol (default: empty), f 72;
- - name: -bgcolor <f \, f \, f>
-   description: sets background color in RGB (default: 255 255 255), f 72;
- - name: -fgcolor <f \, f \, f>
-   description: sets foreground color in RGB (default: 220 220 220), f 72;
- - name: -linecolor <f \, f \, f>
-   description: sets line color in RGB (default: 0 0 0), f 72;
+   description: sets receive symbol
+   default: empty
+ - name: -bgcolor <f, f, f>
+   description: sets background color in RGB
+   default: 255 255 255
+ - name: -fgcolor <f, f, f>
+   description: sets foreground color in RGB
+   default: 220 220 220
+ - name: -linecolor <f, f, f>
+   description: sets line color in RGB
+   default: 0 0 0
  - name: -set <list>
-   description: sets slider's values (default: 0 0 0 0 0 0 0 0), f 72;
+   description: sets slider's values
+   default: 0 0 0 0 0 0 0 0
  - name: -mode <float>
-   description: non zro sets to 'list mode' (default 0), f 72;
+   description: non zro sets to 'list mode'
+   default: 0
 
 
 methods:

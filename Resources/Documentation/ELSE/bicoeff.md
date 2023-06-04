@@ -21,9 +21,11 @@ outlets:
 
 flags:
   - name: -dim <f,f>
-    description: width, height (default: 450, 150)
+    description: width, height
+    default: 450, 150
   - name: -type <fsymbol>
-    description: filter type (default: eq)
+    description: filter type
+    default: eq
 
 draft: false
 ---

@@ -22,7 +22,8 @@ outlets:
 
 flags:
 - name: -f
-  description: sets output to float (default fraction)
+  description: sets output to float
+  default: fraction
 
 draft: false
 ---

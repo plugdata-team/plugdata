@@ -39,9 +39,11 @@ outlets:
 
 flags:
   - name: -seed <float>
-    description: sets seed (default: unique internal)
+    description: sets seed
+    default: unique internal
   - name: -p <float>
-    description: sets probability (default 70)
+    description: sets probability
+    default: 70
 
 methods:
   - type: step <float>

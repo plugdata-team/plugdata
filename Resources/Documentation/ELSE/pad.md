@@ -20,7 +20,8 @@ outlets:
 
 flags:
   - name: -dim <f, f>
-    description: set horizontal and vertical dimensions (default 127, 127)
+    description: set horizontal and vertical dimensions
+    default: 127 127
 
 methods:
   - type: dim <f, f>

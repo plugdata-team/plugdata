@@ -34,9 +34,11 @@ outlets:
 
 flags:
   - name: @embed
-    description: <1> save contents with the patch, <0> don't save (default)
+    description: <1> save contents with the patch, <0> don't save
+    default: 0
   - name: @threaded
-    description: <1> threaded processing (default), <0> unthreaded
+    description: <1> threaded processing, <0> unthreaded
+    default: 1
 
 methods:
   - type: assoc <symbol, int>

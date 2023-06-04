@@ -15,7 +15,8 @@ arguments:
 
 flags:
 - name: -mode <f>
-  description: sets mode, 0 (default) and 1 (in reverse to [moses])
+  description: sets mode, 0 and 1 (in reverse to [moses])
+  default: 0
 
 inlets:
   1st:

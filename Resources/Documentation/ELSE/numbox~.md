@@ -24,21 +24,28 @@ outlets:
 
 flags:
   - name: -size <float>
-    description: font size (default: patch's, minimum 8)
+    description: font size (minimum 8)
+    default: patch's
   - name: -init <float>
     description: sets initial generating value
   - name: -width <float>
-    description: sets digit width (default: 6, minimum 1)
+    description: sets digit width (minimum 1)
+    default: 6
   - name: -range <float, float>
-    description: dragging range (default: 0, 0 - unlimited)
+    description: dragging range
+    default: 0, 0 - unlimited
   - name: -bgcolor <f, f, f>
-    description: sets background color in RGB (default 255 255 255)
+    description: sets background color in RGB
+    default: 255 255 255
   - name: -fgcolor <f, f, f>
-    description: sets frontground color in RGB (default 0 0 0)
+    description: sets frontground color in RGB
+    default: 0 0 0
   - name: -ramp <float>
-    description: sets ramp time in ms (default 10, minimum 0)
+    description: sets ramp time in ms (minimum 0)
+    default: 10
   - name: -rate <float>
-    description: sets refresh rate in ms (default 100, minimum 15)
+    description: sets refresh rate in ms (minimum 15)
+    default: 100
 
 methods:
   - type: set <float>

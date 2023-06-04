@@ -26,9 +26,11 @@ outlets:
 
 flags:
   - name: -base <float>
-    description: sets base pitch value in MIDI (default 60)
+    description: sets base pitch value in MIDI
+    default: 60
   - name: -range <float float>
-    description: sets min/max frequency range in Hz (default 20 20000)
+    description: sets min/max frequency range in Hz
+    default: 20 20000
 
 methods:
   - type: base <float>

@@ -24,17 +24,23 @@ flags:
   description: window size in points 
   default: 256
 - name: -hop
-  description: analysis period ("hop size") in points (default 128)
+  description: analysis period ("hop size") in points
+  default: 128
 - name: -nfilters
-  description: number of filters to use (default 11)
+  description: number of filters to use
+  default: 11
 - name: -halftones
-  description: filter bandwidth of filters in halftones (default 6)
+  description: filter bandwidth of filters in halftones
+  default: 6
 - name: -minbandwidth
-  description: minimum bandwidth in bins (default 1.5)
+  description: minimum bandwidth in bins
+  default: 1.5
 - name: -overlap
-  description: overlap factor between filters (default 1)
+  description: overlap factor between filters
+  default: 1
 - name: -firstbin
-  description: center frequency, in bins, of the lowest filter (default 1)
+  description: center frequency, in bins, of the lowest filter
+  default: 1
 
 methods:
   - type: thresh <float, float>

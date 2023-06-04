@@ -24,25 +24,35 @@ outlets:
 
 flags:
   - name: -maxsize <float>
-    description: maximum room size in square meters (default 300)
+    description: maximum room size in square meters
+    default: 300
   - name: -size <float>
-    description: room size in square meters (default 50)
+    description: room size in square meters
+    default: 50
   - name: -decay <float>
-    description: decay time in seconds (default 7)
+    description: decay time in seconds
+    default: 7
   - name: -damp <float>
-    description: high frequency damping (default 0.5)
+    description: high frequency damping
+    default: 0.5
   - name: -spread <float>
-    description: stereo spread (default 0.5)
+    description: stereo spread
+    default: 0.5
   - name: -bw <float>
-    description: input bandwidth (default 0.5)
+    description: input bandwidth
+    default: 0.5
   - name: -dry <float>
-    description: dry level (default 0.5)
+    description: dry level
+    default: 0.5
   - name: -early <float>
-    description: early reflections level (default 0.25)
+    description: early reflections level
+    default: 0.25
   - name: -late <float>
-    description: late reflections level (default 0.25)
+    description: late reflections level
+    default: 0.25
   - name: -wet <float>
-    description: wet level (default 1)
+    description: wet level
+    default: 1
 
 methods:
   - type: size <float>

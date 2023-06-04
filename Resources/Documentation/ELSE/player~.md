@@ -39,11 +39,11 @@ outlets:
 
 flags:
   - name: -speed <float>
-    description: (default 100)
+    description: default 100
   - name: -range <f, f>
-    description: (default 0 1)
+    description: default 0 1
   - name: -fade <float>
-    description: (default 0)
+    description: default 0
   - name: -xfade
     description: xfade mode on
   - name: -loop

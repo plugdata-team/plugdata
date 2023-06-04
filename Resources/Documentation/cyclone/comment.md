@@ -13,7 +13,7 @@ outlets:
 
 flags:
   - name: @fontname <symbol>
-    description: default: 'dejavu sans mono' or 'menlo' for mac
+    description: default 'dejavu sans mono' or 'menlo' for mac
   - name: @fontface <float>
     description: default 0
   - name: @fontsize <float>
@@ -27,7 +27,8 @@ flags:
   - name: @bg <float>
     description: default 0
   - name: @text <anything>
-    description: sets comment (default "comment")
+    description: sets comment
+    default: "comment"
   - name: @underline <float>
     description: default 0
   - name: @bold <float>

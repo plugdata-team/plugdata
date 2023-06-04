@@ -24,7 +24,8 @@ flags:
   - name: -x
     description: avoids including a first argument setting voice number
   - name: -s <float>
-    description: sets starting voice number (default: 0)
+    description: sets starting voice number
+    default: 0
 
 arguments:
   - type: symbol

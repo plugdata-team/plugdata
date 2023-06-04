@@ -24,7 +24,8 @@ outlets:
 
 flags:
   - name: @separator <symbol>
-    description: sets the separator character (default "space")
+    description: sets the separator character
+    default: "space"
 
 draft: false
 ---

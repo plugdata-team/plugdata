@@ -28,9 +28,11 @@ outlets:
     description: converted sample from input
 flags:
   - name: @active <float>
-    description: sets interval based report on <1> / off <0> (default 0)
+    description: sets interval based report on <1> / off <0>
+    default: 0
   - name: @interval <float>
-    description: sets interval in ms (default 0 - stopped)
+    description: sets interval in ms
+    default: 0 - stopped
 
 methods:
   - type: start
