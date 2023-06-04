@@ -46,6 +46,7 @@ public:
 
     Array<float> getPeak()
     {
+        if(sampleRate == 0) return {0.0f, 0.0f};
         auto currentTime = Time::getMillisecondCounterHiRes();
 
         if (useNewPosition) {
