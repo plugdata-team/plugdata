@@ -21,7 +21,7 @@ public:
             if (clone_get_n(gobj.get()) > 0) {
                 subpatch = new pd::Patch(clone_get_instance(gobj.get(), 0), cnv->pd, false);
             } else {
-                subpatch = new pd::Patch(nullptr, nullptr, false);
+                subpatch = nullptr;
             }
         } else {
             subpatch = new pd::Patch(nullptr, nullptr, false);
