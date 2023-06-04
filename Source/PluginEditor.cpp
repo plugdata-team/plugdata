@@ -815,6 +815,8 @@ void PluginEditor::updateCommandStatus()
         // Application commands need to be updated when undo state changes
         commandStatusChanged();
 
+        pluginModeButton.setEnabled(true);
+        
         editButton.setEnabled(true);
         runButton.setEnabled(true);
         presentButton.setEnabled(true);
@@ -825,6 +827,8 @@ void PluginEditor::updateCommandStatus()
         addObjectMenuButton.setEnabled(!locked);
     } else {
 
+        pluginModeButton.setEnabled(false);
+        
         editButton.setEnabled(false);
         runButton.setEnabled(false);
         presentButton.setEnabled(false);
