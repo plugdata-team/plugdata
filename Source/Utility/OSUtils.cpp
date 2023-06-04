@@ -287,18 +287,26 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
     juce::Array<juce::File> result;
 
     if (recursive) {
-        for (auto const& dirEntry : std::filesystem::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
-            auto isDir = dirEntry.is_directory();
-            if ((isDir && !onlyFiles) || !isDir) {
-                result.add(juce::File(dirEntry.path().string()));
+        try {
+            for (auto const& dirEntry : std::filesystem::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
+                auto isDir = dirEntry.is_directory();
+                if ((isDir && !onlyFiles) || !isDir) {
+                    result.add(juce::File(dirEntry.path().string()));
+                }
             }
+        } catch (std::filesystem::filesystem_error e) {
+            std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
         }
     } else {
-        for (auto const& dirEntry : std::filesystem::directory_iterator(directory.getFullPathName().toStdString())) {
-            auto isDir = dirEntry.is_directory();
-            if ((isDir && !onlyFiles) || !isDir) {
-                result.add(juce::File(dirEntry.path().string()));
+        try {
+            for (auto const& dirEntry : std::filesystem::directory_iterator(directory.getFullPathName().toStdString())) {
+                auto isDir = dirEntry.is_directory();
+                if ((isDir && !onlyFiles) || !isDir) {
+                    result.add(juce::File(dirEntry.path().string()));
+                }
             }
+        } catch (std::filesystem::filesystem_error e) {
+            std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
         }
     }
 

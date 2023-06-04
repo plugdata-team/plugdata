@@ -252,7 +252,7 @@ void PluginProcessor::initialiseFilesystem()
 
     OSUtils::createJunction(library.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
 
-    if (!deken.exists()) {
+    if (!library.getChildFile("Deken").exists()) {
         OSUtils::createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
     }
 
