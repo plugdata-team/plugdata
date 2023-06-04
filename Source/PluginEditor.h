@@ -101,6 +101,8 @@ public:
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;
+        
+    std::unique_ptr<ConnectionMessageDisplay> connectionMessageDisplay;
 
     OwnedArray<Canvas, CriticalSection> canvases;
     std::unique_ptr<Sidebar> sidebar;
@@ -125,8 +127,6 @@ public:
     std::unique_ptr<ZoomLabel> zoomLabel;
 
     ComponentBoundsConstrainer* defaultConstrainer;
-
-    std::unique_ptr<ConnectionMessageDisplay> connectionMessageDisplay;
 
 private:
     // Used by standalone to handle dragging the window
