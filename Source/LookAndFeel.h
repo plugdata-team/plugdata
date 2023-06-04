@@ -245,7 +245,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
 
     private:
-        DocumentWindow* owner;
+        DocumentWindow* owner = nullptr;
         Colour bgColour;
         Colour buttonColour;
         Path shape, toggledShape;
