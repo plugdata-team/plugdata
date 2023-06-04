@@ -47,6 +47,11 @@ public:
         if (!array)
             return;
         
+        // TODO: Not great design
+        
+        // Manually call destructor
+        arr.~WeakReference();
+        
         // Initialise new weakreference in place, to prevent calling copy constructor
         new (&arr) pd::WeakReference(array, pd);
     }
