@@ -607,9 +607,8 @@ public:
             if (auto* peer = getPeer()) {
                 bool shouldBeMaximised = isFullScreen();
                 b->setToggleState(!shouldBeMaximised, dontSendNotification);
-                
-                if(!isUsingNativeTitleBar())
-                {
+
+                if (!isUsingNativeTitleBar()) {
                     OSUtils::maximiseX11Window(getPeer()->getNativeHandle(), !shouldBeMaximised);
                 }
                 setFullScreen(!isFullScreen());

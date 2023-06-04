@@ -46,12 +46,12 @@ public:
     {
         if (!array)
             return;
-        
+
         // TODO: Not great design
-        
+
         // Manually call destructor
         arr.~WeakReference();
-        
+
         // Initialise new weakreference in place, to prevent calling copy constructor
         new (&arr) pd::WeakReference(array, pd);
     }
@@ -221,16 +221,16 @@ public:
         auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
 
         lastIndex = index;
-        
+
         pd->lockAudioThread();
         for (int n = 0; n < changed.size(); n++) {
             write(interpStart + n, changed[n]);
         }
 
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             pd->sendDirectMessage(ptr.get(), stringArray);
         }
-        
+
         pd->unlockAudioThread();
         repaint();
     }
@@ -249,7 +249,7 @@ public:
         if (vec.size() != currentSize) {
             vec.resize(currentSize);
         }
-        
+
         if (!edited) {
             error = false;
             try {
@@ -266,39 +266,39 @@ public:
 
     bool willSaveContent() const
     {
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             return libpd_array_get_saveit(ptr.get());
         }
-        
+
         return false;
     }
 
     // Gets the name of the array
     String getExpandedName() const
     {
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             return String::fromUTF8(libpd_array_get_name(ptr.get()));
         }
-        
+
         return {};
     }
 
     // Gets the text label of the array
     String getUnexpandedName() const
     {
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             return String::fromUTF8(libpd_array_get_unexpanded_name(ptr.get()));
         }
-        
+
         return {};
     }
 
     DrawType getDrawType() const
     {
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             return static_cast<DrawType>(libpd_array_get_style(ptr.get()));
         }
-        
+
         return DrawType::Points;
     }
 
@@ -306,30 +306,30 @@ public:
     std::array<float, 2> getScale() const
     {
         float min = -1, max = 1;
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             libpd_array_get_scale(ptr.get(), &min, &max);
-            
+
             if (min == max)
                 max += 1e-6;
-            
+
             return { min, max };
         }
-        
-        return {-1.0f, 1.0f};
+
+        return { -1.0f, 1.0f };
     }
 
     bool getEditMode() const
     {
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             return libpd_array_get_editmode(ptr.get());
         }
-        
+
         return true;
     }
 
     void setEditMode(bool editMode)
     {
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             libpd_array_set_editmode(ptr.get(), editMode);
         }
     }
@@ -337,17 +337,16 @@ public:
     // Gets the scale of the array.
     int size() const
     {
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             return libpd_array_get_size(ptr.get());
         }
-        
+
         return 0;
     }
 
     Colour getContentColour()
     {
-        if(auto garray = arr.get<t_fake_garray>())
-        {
+        if (auto garray = arr.get<t_fake_garray>()) {
             auto* scalar = garray->x_scalar;
             auto* templ = template_findbyname(scalar->sc_template);
 
@@ -372,14 +371,14 @@ public:
 
             return Colour(red, green, blue);
         }
-        
+
         return object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
     }
 
     void setScale(std::array<float, 2> scale)
     {
         auto& [min, max] = scale;
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             libpd_array_set_scale(ptr.get(), min, max);
         }
     }
@@ -387,7 +386,7 @@ public:
     // Gets the values of the array.
     void read(std::vector<float>& output) const
     {
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             int const size = libpd_array_get_size(ptr.get());
             output.resize(static_cast<size_t>(size));
             libpd_array_read(output.data(), ptr.get(), 0, size);
@@ -397,7 +396,7 @@ public:
     // Writes the values of the array.
     void write(std::vector<float> const& input)
     {
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             libpd_array_write(ptr.get(), 0, input.data(), static_cast<int>(input.size()));
         }
     }
@@ -405,7 +404,7 @@ public:
     // Writes a value of the array.
     void write(const size_t pos, float const input)
     {
-        if(auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
             libpd_array_write(ptr.get(), static_cast<int>(pos), &input, 1);
         }
     }
@@ -440,14 +439,13 @@ public:
         : resizer(this, &constrainer)
         , pd(instance)
     {
-        for(auto* arr : arrays)
-        {
+        for (auto* arr : arrays) {
             auto* graph = graphs.add(new GraphicalArray(pd, arr, parent));
             addAndMakeVisible(graph);
         }
-        
+
         title = graphs[0]->getExpandedName();
-        
+
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
         addAndMakeVisible(closeButton.get());
 
@@ -474,9 +472,8 @@ public:
     {
         resizer.setBounds(getLocalBounds());
         closeButton->setBounds(getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5));
-        
-        for(auto* graph : graphs)
-        {
+
+        for (auto* graph : graphs) {
             graph->setBounds(getLocalBounds().withTrimmedTop(40));
         }
     }
@@ -486,11 +483,10 @@ public:
         if (!pd->tryLockAudioThread())
             return;
 
-        for(auto* graph : graphs)
-        {
+        for (auto* graph : graphs) {
             graph->update();
         }
-        
+
         pd->unlockAudioThread();
     }
 
@@ -558,7 +554,7 @@ public:
             // Update values
             graph->update();
         }
-        
+
         size = static_cast<int>(graphs[0]->vec.size());
 
         pd->unlockAudioThread();
@@ -666,8 +662,7 @@ public:
                 t_symbol* name = first ? pd->generateSymbol(arrName) : pd->generateSymbol(graph->getUnexpandedName());
                 first = false;
 
-                if(auto garray = graph->arr.get<t_fake_garray>())
-                {
+                if (auto garray = graph->arr.get<t_fake_garray>()) {
                     garray_arraydialog(garray.get(), name, arrSize, static_cast<float>(flags), 0.0f);
                 }
             }
@@ -747,7 +742,7 @@ public:
             dialog->toFront(true);
             return;
         }
-        
+
         dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, getArrays(), object);
         dialog->onClose = [this]() {
             dialog.reset(nullptr);
@@ -824,7 +819,7 @@ public:
             editor->toFront(true);
             return;
         }
-        
+
         if (auto c = ptr.get<t_canvas>()) {
             std::vector<void*> arrays;
 

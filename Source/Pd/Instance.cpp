@@ -156,7 +156,7 @@ void Instance::initialisePd(String& pdlua_version)
         },
         [](void* instance, t_pd* ref) {
             static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
-         });
+        });
 
     m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
@@ -185,13 +185,11 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->createPanel(atom_getfloat(arg1), atom_getsymbol(arg3)->s_name, atom_getsymbol(arg2)->s_name);
         }
         if (String::fromUTF8(name) == "openfile") {
-            
+
             auto url = String::fromUTF8(atom_getsymbol(arg1)->s_name);
-            if(URL::isProbablyAWebsiteURL(url))
-            {
+            if (URL::isProbablyAWebsiteURL(url)) {
                 URL(url).launchInDefaultBrowser();
-            }
-            else {
+            } else {
                 File(String::fromUTF8(atom_getsymbol(arg1)->s_name)).startAsProcess();
             }
         }
@@ -534,23 +532,22 @@ void Instance::registerWeakReference(t_pd* ptr, pd_weak_reference* ref)
 void Instance::unregisterWeakReference(t_pd* ptr, pd_weak_reference* ref)
 {
     lockAudioThread();
-    
+
     auto& refs = pdWeakReferences[ptr];
-    
+
     auto it = std::find(refs.begin(), refs.end(), ref);
 
     if (it != refs.end()) {
         pdWeakReferences[ptr].erase(it);
     }
-    
+
     unlockAudioThread();
 }
 
 void Instance::clearWeakReferences(t_pd* ptr)
 {
     lockAudioThread();
-    for(auto* ref : pdWeakReferences[ptr])
-    {
+    for (auto* ref : pdWeakReferences[ptr]) {
         *ref = false;
     }
     pdWeakReferences.erase(ptr);
@@ -757,8 +754,5 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
         objectImplementations->clearObjectImplementationsForPatch(patch.get());
     }
 }
-
-
-
 
 } // namespace pd

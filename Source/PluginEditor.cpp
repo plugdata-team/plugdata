@@ -157,9 +157,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(splitView);
     addAndMakeVisible(*sidebar);
 
-    for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &hideSidebarButton, &pluginModeButton, }) {
+    for (auto* button : std::vector<TextButton*> {
+             &mainMenuButton,
+             &undoButton,
+             &redoButton,
+             &addObjectMenuButton,
+             &hideSidebarButton,
+             &pluginModeButton,
+         }) {
         button->getProperties().set("Style", "LargeIcon");
-        // button->setConnectedEdges(Button::Conn);
         addAndMakeVisible(button);
     }
 
@@ -235,7 +241,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     };
 
     addAndMakeVisible(hideSidebarButton);
-    
+
     // Enter plugin mode
     pluginModeButton.setTooltip("Enter plugin mode");
     pluginModeButton.getProperties().set("Style", "LargeIcon");
@@ -247,7 +253,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     };
 
     addAndMakeVisible(pluginModeButton);
-    
+
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
     setSize(pd->lastUIWidth, pd->lastUIHeight);
 
@@ -816,7 +822,7 @@ void PluginEditor::updateCommandStatus()
         commandStatusChanged();
 
         pluginModeButton.setEnabled(true);
-        
+
         editButton.setEnabled(true);
         runButton.setEnabled(true);
         presentButton.setEnabled(true);
@@ -828,7 +834,7 @@ void PluginEditor::updateCommandStatus()
     } else {
 
         pluginModeButton.setEnabled(false);
-        
+
         editButton.setEnabled(false);
         runButton.setEnabled(false);
         presentButton.setEnabled(false);

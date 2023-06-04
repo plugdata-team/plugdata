@@ -101,7 +101,7 @@ public:
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;
-        
+
     std::unique_ptr<ConnectionMessageDisplay> connectionMessageDisplay;
 
     OwnedArray<Canvas, CriticalSection> canvases;

@@ -24,7 +24,7 @@ public:
         : target(targetItem)
     {
         target->addMouseListener(this, false);
-        
+
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
         setBounds(target->getScreenBounds());
         setVisible(true);
@@ -33,7 +33,8 @@ public:
 
     ~DraggedPaletteItem() override
     {
-        if(target) target->removeMouseListener(this);
+        if (target)
+            target->removeMouseListener(this);
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -46,7 +47,8 @@ public:
 private:
     void paint(Graphics& g) override
     {
-        if(target) target->paintEntireComponent(g, false);
+        if (target)
+            target->paintEntireComponent(g, false);
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -97,10 +99,9 @@ public:
         // nameLabel.addMouseListener(this, false);
 
         addAndMakeVisible(nameLabel);
-        
-        
+
         isSubpatch = checkIsSubpatch(palettePatch);
-        if(isSubpatch) {
+        if (isSubpatch) {
             auto iolets = countIolets(palettePatch);
             inlets = iolets.first;
             outlets = iolets.second;
@@ -110,22 +111,21 @@ public:
     void paint(Graphics& g) override
     {
         auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
-        
-        if(!isSubpatch)
-        {
+
+        if (!isSubpatch) {
             auto lineBounds = bounds.reduced(2.5f);
-            
-            std::vector<float> dashLength = {5.0f, 5.0f};
-            
+
+            std::vector<float> dashLength = { 5.0f, 5.0f };
+
             juce::Path dashedRect;
             dashedRect.addRoundedRectangle(lineBounds, 5.0f);
 
             juce::PathStrokeType dashedStroke(0.5f);
             dashedStroke.createDashedStroke(dashedRect, dashedRect, dashLength.data(), 2);
-            
+
             g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
             g.fillRoundedRectangle(lineBounds, 5.0f);
-            
+
             g.setColour(findColour(PlugDataColour::objectOutlineColourId));
             g.strokePath(dashedRect, dashedStroke);
             return;
@@ -209,7 +209,7 @@ public:
 
             p.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0, fromRadians, toRadians, false);
             outletArc.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0.0f, fromRadians, toRadians, false);
-            
+
             auto outletColour = outlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
             ioletPaths.push_back(std::tuple<Path, Colour>(outletArc, outletColour));
         }
@@ -322,17 +322,16 @@ public:
             nameLabel.showEditor();
         }
     }
-    
+
     bool checkIsSubpatch(String const& patchAsString)
     {
         auto lines = StringArray::fromLines(patchAsString.trim());
-        return lines[0].startsWith("#N canvas") && lines[lines.size()-1].startsWith("#X restore");
+        return lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore");
     }
 
     std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patchAsString)
     {
-        
-        
+
         std::array<std::vector<std::pair<bool, Point<int>>>, 2> iolets;
         auto& [inlets, outlets] = iolets;
         int canvasDepth = patchAsString.startsWith("#N canvas") ? -1 : 0;
@@ -353,13 +352,13 @@ public:
             auto position = Point<int>(tokens[2].getIntValue(), tokens[3].getIntValue());
             auto name = tokens[4];
             if (name == "inlet")
-                inlets.push_back({false, position});
+                inlets.push_back({ false, position });
             if (name == "outlet")
-                outlets.push_back({false, position});
+                outlets.push_back({ false, position });
             if (name == "inlet~")
-                inlets.push_back({true, position});
+                inlets.push_back({ true, position });
             if (name == "outlet~")
-                outlets.push_back({true, position});
+                outlets.push_back({ true, position });
         };
 
         for (auto& line : StringArray::fromLines(patchAsString)) {
@@ -381,32 +380,30 @@ public:
                 canvasDepth--;
             }
         }
-        
-        auto ioletSortFunc = [](std::pair<bool, Point<int>>& a, std::pair<bool, Point<int>>& b){
+
+        auto ioletSortFunc = [](std::pair<bool, Point<int>>& a, std::pair<bool, Point<int>>& b) {
             auto& [typeA, positionA] = a;
             auto& [typeB, positionB] = b;
-     
+
             if (positionA.x == positionB.x) {
                 return positionA.y < positionB.y;
             }
 
             return positionA.x < positionB.x;
         };
-    
+
         std::sort(inlets.begin(), inlets.end(), ioletSortFunc);
         std::sort(outlets.begin(), outlets.end(), ioletSortFunc);
-        
+
         auto result = std::pair<std::vector<bool>, std::vector<bool>>();
-        
-        for(auto& [type, position] : inlets)
-        {
+
+        for (auto& [type, position] : inlets) {
             result.first.push_back(type);
         }
-        for(auto& [type, position] : outlets)
-        {
+        for (auto& [type, position] : outlets) {
             result.second.push_back(type);
         }
-        
+
         return result;
     }
 

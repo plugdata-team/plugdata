@@ -245,7 +245,6 @@ public:
 
             PlugDataLook::selectedThemes.set(themeSlot, newThemeName);
 
-
             updateThemeNames(primaryThemeSelector->getText(), secondaryThemeSelector->getText());
 
             pd->setTheme(PlugDataLook::selectedThemes[themeIdx]);
@@ -254,8 +253,8 @@ public:
             getTopLevelComponent()->repaint();
 
             SettingsFile::getInstance()->saveSettings();
-            
-            MessageManager::callAsync([_this = SafePointer(this)](){
+
+            MessageManager::callAsync([_this = SafePointer(this)]() {
                 _this->updateSwatches();
             });
         };

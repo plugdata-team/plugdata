@@ -305,12 +305,10 @@ public:
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
             }
-            
-            
+
             auto type = hash(getText().upToFirstOccurrenceOf(" ", false, false));
-            
-            if(type == hash("inlet") || type == hash("outlet") || type == hash("inlet~") || type == hash("outlet~"))
-            {
+
+            if (type == hash("inlet") || type == hash("outlet") || type == hash("inlet~") || type == hash("outlet~")) {
                 canvas_resortinlets(patch);
             }
         }

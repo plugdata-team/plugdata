@@ -290,7 +290,7 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
             return {};
 
         atom_string(av, namebuf, MAXPDSTRING);
-        helpName = String::fromUTF8(namebuf);//.fromLastOccurrenceOf("/", false, false);
+        helpName = String::fromUTF8(namebuf); //.fromLastOccurrenceOf("/", false, false);
     } else {
         helpDir = class_gethelpdir(pdclass);
         helpName = class_gethelpname(pdclass);
@@ -298,13 +298,12 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
     }
 
     auto patchHelpPaths = Array<File>();
-    
+
     // Add abstraction dir to search paths
     if (pd_class(reinterpret_cast<t_pd*>(obj)) == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         auto* cnv = reinterpret_cast<t_canvas*>(obj);
         patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)));
-        if(helpDir.isNotEmpty())
-        {
+        if (helpDir.isNotEmpty()) {
             patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)).getChildFile(helpDir));
         }
     }
@@ -312,14 +311,12 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
     // Add parent patch dir to search paths
     if (parentPatchFile.existsAsFile()) {
         patchHelpPaths.add(parentPatchFile.getParentDirectory());
-        if(helpDir.isNotEmpty())
-        {
+        if (helpDir.isNotEmpty()) {
             patchHelpPaths.add(parentPatchFile.getParentDirectory().getChildFile(helpDir));
         }
     }
-    
-    for(auto path : helpPaths)
-    {
+
+    for (auto path : helpPaths) {
         patchHelpPaths.add(helpDir.isNotEmpty() ? path.getChildFile(helpDir) : path);
     }
 
@@ -345,8 +342,7 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
             return file;
         }
     }
-    
-    
+
     auto* rawHelpDir = class_gethelpdir(pd_class(&reinterpret_cast<t_gobj*>(obj)->g_pd));
     helpDir = String::fromUTF8(rawHelpDir);
 

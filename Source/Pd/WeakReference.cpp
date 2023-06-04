@@ -8,15 +8,16 @@
 #include "Utility/Config.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
-extern "C"
-{
-    #include <s_inter.h>
+extern "C" {
+#include <s_inter.h>
 }
 
 #include "WeakReference.h"
 #include "Instance.h"
 
-pd::WeakReference::WeakReference(void* p, Instance* instance) : ptr(static_cast<t_pd*>(p)), pd(instance)
+pd::WeakReference::WeakReference(void* p, Instance* instance)
+    : ptr(static_cast<t_pd*>(p))
+    , pd(instance)
 {
     pd->registerWeakReference(ptr, &weakRef);
 }

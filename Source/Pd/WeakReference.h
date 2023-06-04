@@ -13,77 +13,77 @@
 
 using pd_weak_reference = std::atomic<bool>;
 
-
-namespace pd
-{
+namespace pd {
 
 class Instance;
-struct WeakReference
-{
+struct WeakReference {
     WeakReference(void* p, Instance* instance);
     ~WeakReference();
-    
+
     void setThis() const;
-    
+
     template<typename T>
-    struct Ptr
-    {
-        
-        Ptr(T* pointer, const pd_weak_reference& ref) : weakRef(ref), ptr(pointer)
+    struct Ptr {
+
+        Ptr(T* pointer, pd_weak_reference const& ref)
+            : weakRef(ref)
+            , ptr(pointer)
         {
             sys_lock();
         }
-        
+
         ~Ptr()
         {
             sys_unlock();
         }
-        
-        operator bool() const {
+
+        operator bool() const
+        {
             return weakRef;
         }
-        
+
         T* get()
         {
             return weakRef ? ptr : nullptr;
         }
-    
+
         template<typename C>
         C* cast()
         {
             return weakRef ? reinterpret_cast<C*>(ptr) : nullptr;
         }
-    
-        T* operator->() {
+
+        T* operator->()
+        {
             return ptr;
         }
-        
-        const pd_weak_reference& weakRef;
+
+        pd_weak_reference const& weakRef;
         T* ptr;
-        
+
         JUCE_DECLARE_NON_COPYABLE(Ptr);
     };
-    
+
     template<typename T>
     Ptr<T> get() const
     {
         setThis();
         return Ptr<T>(reinterpret_cast<T*>(ptr), weakRef);
     }
-    
+
     template<typename T>
     T* getRaw() const
     {
         setThis();
         return weakRef ? reinterpret_cast<T*>(ptr) : nullptr;
     }
-    
+
     template<typename T>
     T* getRawUnchecked() const
     {
         return reinterpret_cast<T*>(ptr);
     }
-    
+
 private:
     t_pd* ptr;
     Instance* pd;

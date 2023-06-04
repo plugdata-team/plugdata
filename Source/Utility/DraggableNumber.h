@@ -19,7 +19,7 @@ protected:
     bool isMinLimited = false, isMaxLimited = false;
     bool onlyIntegers = false;
     float min = 0.0f, max = 0.0f;
-        
+
     bool resetOnCommandClick = false;
     bool wasReset = false;
     float valueToResetTo = 0.0f;
@@ -111,7 +111,7 @@ public:
     void setValue(float newValue)
     {
         wasReset = false;
-        
+
         newValue = limitValue(newValue);
 
         if (lastValue != newValue) {
@@ -125,12 +125,12 @@ public:
     {
         return lastValue;
     }
-        
+
     void setResetEnabled(bool enableReset)
     {
         resetOnCommandClick = enableReset;
     }
-        
+
     void setResetValue(float resetValue)
     {
         valueToResetTo = resetValue;
@@ -159,25 +159,22 @@ public:
     {
         if (isBeingEdited())
             return;
-        
+
         bool command = e.mods.isCommandDown();
         bool shift = e.mods.isShiftDown();
-    
-        if(command && resetOnCommandClick)
-        {
-            if(wasReset)
-            {
+
+        if (command && resetOnCommandClick) {
+            if (wasReset) {
                 setValue(valueToRevertTo);
-            }
-            else {
+            } else {
                 valueToRevertTo = lastValue;
                 setValue(valueToResetTo);
                 wasReset = true;
             }
         }
-        
+
         dragValue = getText().getFloatValue();
-        
+
         auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
 
         GlyphArrangement glyphs;

@@ -23,7 +23,7 @@ public:
         if (auto comment = ptr.get<t_fake_comment>()) {
             textColour = Colour(comment->x_red, comment->x_green, comment->x_blue);
         }
-        
+
         repaint();
     }
 
@@ -301,8 +301,8 @@ public:
     {
         if (auto comment = ptr.get<t_fake_comment>()) {
             int width = StringUtils::getPreciseStringWidth(getComment(), getFont()) + 12;
-            
-             return { comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, comment->x_fontsize + 18 };
+
+            return { comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, comment->x_fontsize + 18 };
         }
 
         return {};
@@ -382,8 +382,7 @@ public:
             if (auto comment = ptr.get<t_fake_comment>())
                 colourToHexArray(Colour::fromString(secondaryColour.toString()), comment->x_bg);
             repaint();
-        }
-        else if (v.refersToSameSourceAs(bold)) {
+        } else if (v.refersToSameSourceAs(bold)) {
             if (auto comment = ptr.get<t_fake_comment>())
                 comment->x_bold = getValue<int>(bold);
             updateFont();
@@ -427,14 +426,11 @@ public:
         auto isItalic = getValue<bool>(italic);
         auto isUnderlined = getValue<bool>(underline);
         auto fontHeight = getValue<int>(fontSize);
-        
-        if(fontHeight < 1)
-        {
-            if(auto glist = cnv->patch.getPointer())
-            {
+
+        if (fontHeight < 1) {
+            if (auto glist = cnv->patch.getPointer()) {
                 fontHeight = glist_getfont(glist.get()) + 12;
-            }
-            else {
+            } else {
                 fontHeight = 18;
             }
         }
@@ -542,4 +538,3 @@ public:
         }
     }
 };
-

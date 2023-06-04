@@ -188,7 +188,7 @@ String ObjectBase::getType() const
             return String::fromUTF8(name);
         }
     }
-    
+
     return {};
 }
 
