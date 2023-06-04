@@ -62,6 +62,8 @@ public:
         objectParameters.addParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 9.999999933815813e36);
         iemHelper.addIemParameters(objectParameters);
+        
+        input.setResetValue(0.0f);
     }
 
     void update() override
@@ -152,6 +154,7 @@ public:
 
     void lock(bool isLocked) override
     {
+        input.setResetEnabled(isLocked);
         setInterceptsMouseClicks(isLocked, isLocked);
         repaint();
     }

@@ -11,7 +11,6 @@ class DraggableNumber : public Label
 
 protected:
     float dragValue = 0.0f;
-    bool shift = false;
     int decimalDrag = 0;
     int numDecimalsToShow = 0;
 
@@ -20,6 +19,11 @@ protected:
     bool isMinLimited = false, isMaxLimited = false;
     bool onlyIntegers = false;
     float min = 0.0f, max = 0.0f;
+        
+    bool resetOnCommandClick = false;
+    bool wasReset = false;
+    float valueToResetTo = 0.0f;
+    float valueToRevertTo = 0.0f;
 
 public:
     std::function<void(float)> valueChanged = [](float) {};
@@ -106,6 +110,8 @@ public:
 
     void setValue(float newValue)
     {
+        wasReset = false;
+        
         newValue = limitValue(newValue);
 
         if (lastValue != newValue) {
@@ -118,6 +124,16 @@ public:
     float getValue() const
     {
         return lastValue;
+    }
+        
+    void setResetEnabled(bool enableReset)
+    {
+        resetOnCommandClick = enableReset;
+    }
+        
+    void setResetValue(float resetValue)
+    {
+        valueToResetTo = resetValue;
     }
 
     // Make sure mouse cursor gets reset, sometimes this doesn't happen automatically
@@ -143,10 +159,25 @@ public:
     {
         if (isBeingEdited())
             return;
-
-        shift = e.mods.isShiftDown();
+        
+        bool command = e.mods.isCommandDown();
+        bool shift = e.mods.isShiftDown();
+    
+        if(command && resetOnCommandClick)
+        {
+            if(wasReset)
+            {
+                setValue(valueToRevertTo);
+            }
+            else {
+                valueToRevertTo = lastValue;
+                setValue(valueToResetTo);
+                wasReset = true;
+            }
+        }
+        
         dragValue = getText().getFloatValue();
-
+        
         auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
 
         GlyphArrangement glyphs;
@@ -228,10 +259,6 @@ public:
             newValue = static_cast<int64_t>(newValue);
         }
 
-        newValue = limitValue(newValue);
-
-        setText(String(newValue), dontSendNotification);
-
         numDecimalsToShow = decimal;
 
         setValue(newValue);
@@ -298,7 +325,7 @@ struct DraggableListNumber : public DraggableNumber {
         if (isBeingEdited())
             return;
 
-        shift = e.mods.isShiftDown();
+        bool shift = e.mods.isShiftDown();
 
         auto const textArea = getBorderSize().subtractedFrom(getBounds());
 

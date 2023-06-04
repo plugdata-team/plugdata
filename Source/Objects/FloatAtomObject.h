@@ -59,6 +59,8 @@ public:
         objectParameters.addParamFloat("Minimum", cGeneral, &min);
         objectParameters.addParamFloat("Maximum", cGeneral, &max);
         atomHelper.addAtomParameters(objectParameters);
+        
+        input.setResetValue(0.0f);
     }
 
     void update() override
@@ -166,6 +168,7 @@ public:
     void lock(bool isLocked) override
     {
         setInterceptsMouseClicks(isLocked, isLocked);
+        input.setResetEnabled(isLocked);
     }
 
     void valueChanged(Value& value) override
