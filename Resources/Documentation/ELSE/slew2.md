@@ -18,7 +18,8 @@ arguments:
 
 flags:
 - name: -rate <float>
-  description: sets refresh rate in ms (default 5, minimum 1)
+  description: sets refresh rate in ms (minimum 1)
+  default: 5
 
 inlets:
   1st:

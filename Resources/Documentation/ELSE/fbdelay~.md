@@ -36,9 +36,11 @@ outlets:
 
 flags:
   - name: -size <float>
-    description: sets delay size (default 1000 ms or first argument's value if given)
+    description: sets delay size
+    default: 1000 ms or first argument's value if given
   - name: -samps
-    description: sets delay time unit to "samples" (default is ms)
+    description: sets delay time unit to "samples"
+    default: ms
   - name: -gain
     description: sets feedback mode to gain
 

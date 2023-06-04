@@ -30,11 +30,14 @@ arguments:
 
 flags:
   - name: -cv/-midi/-voct
-    description: set to pitch input in CV, MIDI, or v/oct (default Hz)
+    description: set to pitch input in CV, MIDI, or v/oct
+    default: Hz
   - name: -model <float>
-    description: set model number (default 0)
+    description: set model number
+    default: 0
   - name: -trigger
-    description: set to trigger mode (default regular)
+    description: set to trigger mode
+    default: regular
 
 inlets:
   1st:

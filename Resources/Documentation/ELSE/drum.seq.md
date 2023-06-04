@@ -27,13 +27,17 @@ outlets:
 
 flags:
   - name: -tracks <float>
-    description: sets tracks (default 2)
+    description: sets tracks
+    default: 2
   - name: -slots <float>
-    description: sets number of slots (default 8)
+    description: sets number of slots
+    default: 8
   - name: -size <float>
-    description: sets cell size in pixels (default 20)
+    description: sets cell size in pixels
+    default: 20
   - name: -embed
-    description: sets embedding mode (default no embedding)
+    description: sets embedding mode
+    default: no embedding
 
 methods:
   - type: track <list>

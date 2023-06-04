@@ -25,7 +25,8 @@ outlets:
 
 flags:
   - name: -seed <float>
-    description: seed value (default: unique internal)
+    description: seed value
+    default: unique internal
 
 methods:
   - type: seed <float>

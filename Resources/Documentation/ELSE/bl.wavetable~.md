@@ -21,15 +21,20 @@ arguments:
 
 flags:
   - name: -none/-lin/-cos/-lagrange
-    description: set interpolation mode (default spline)
+    description: set interpolation mode
+    default: spline
   - name: -size <float>
-    description: sets table size in points (default whole table)
+    description: sets table size in points
+    default: whole table
   - name: -offset <float>
-    description: sets table offset (default 0)
+    description: sets table offset
+    default: 0
   - name: -midi
-    description: sets frequency input in MIDI pitch (default Hz)
+    description: sets frequency input in MIDI pitch
+    default: Hz
   - name: -soft
-    description: sets to soft sync mode (default hard)
+    description: sets to soft sync mode
+    default: hard
 
 inlets:
   1st:

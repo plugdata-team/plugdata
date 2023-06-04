@@ -15,11 +15,14 @@ arguments:
 
 flags:
 - name: -dc
-  description: DC offset for internal transfer function (default 0)
+  description: DC offset for internal transfer function
+  default: 0
 - name: -norm <f>
-  description: normalization on <1> (default) or off <0>
+  description: normalization on <1> or off <0>
+  default: 1
 - name: -fill <f>
-  description: DC filter on <1> (default) or off <0>
+  description: DC filter on <1> or off <0>
+  default: 1
 
 inlets: 
   1st:

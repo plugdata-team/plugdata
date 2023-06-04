@@ -18,7 +18,8 @@ arguments:
 
 flags:
 - name: -off
-  description: turns it off (default: on)
+  description: turns it off
+  default: on
 
 inlets:
   1st:

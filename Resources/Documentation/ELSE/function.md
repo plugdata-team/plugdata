@@ -25,13 +25,13 @@ outlets:
 
 flags:
   - name: -height <float>
-    description: (default 100)
+    description: default 100
   - name: -width <float>
-    description: (default 200)
+    description: default 200
   - name: -send <symbol>
-    description: (default none)
+    description: default none
   - name: -receive <symbol>
-    description: (default none)
+    description: default none
   - name: -bgcolor <f, f, f>
     description: 
   - name: -fgcolor <f, f, f>
@@ -39,13 +39,13 @@ flags:
   - name: -resize <float>
     description: 
   - name: -min <float>
-    description: (default 0)
+    description: default 0
   - name: -max <float>
-    description: (default 1)
+    description: default 1
   - name: -init
     description: 
   - name: -set <list>
-    description: (default 0 1000 0)
+    description: default 0 1000 0
 
 methods:
   - type: i <float>

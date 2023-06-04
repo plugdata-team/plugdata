@@ -28,7 +28,8 @@ outlets:
 
 flags:
   - name: -samps
-    description: sets time value to samples (default is ms)
+    description: sets time value to samples
+    default: ms
 
 methods:
   - type: clear

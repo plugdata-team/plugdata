@@ -18,7 +18,8 @@ arguments:
 
 flags:
 - name: -lin
-  description: sets to linear mode (default=log)
+  description: sets to linear mode
+  default: log
 
 inlets:
   1st:

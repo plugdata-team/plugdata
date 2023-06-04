@@ -20,7 +20,8 @@ arguments:
 
 flags:
   - name: -ms
-    description: set table size to ms (default points)
+    description: set table size to ms
+    default: points
 
 inlets:
   1st:

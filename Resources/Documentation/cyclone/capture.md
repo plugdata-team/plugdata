@@ -24,7 +24,8 @@ outlets:
 
 flags:
   - name: @precision <float>
-    description: decimal precision for floats (default 4)
+    description: decimal precision for floats
+    default: 4
 
 methods:
   - type: clear

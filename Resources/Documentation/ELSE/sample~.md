@@ -22,7 +22,8 @@ flags:
 - name: -ms
   description: maximum buffer size in ms
 - name: -ch
-  description: number of channels (default - 1)
+  description: number of channels
+  default: 1
 
 inlets:
   1st:

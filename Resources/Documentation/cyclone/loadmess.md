@@ -19,7 +19,8 @@ outlets:
 
 flags:
   - name: @defer <0/1>
-    description: output is deferred (@defer 0 will be sent before @defer 1), default: 0
+    description: output is deferred (@defer 0 will be sent before @defer 1)
+    default: 0
 
 methods:
   - type: set <anything>

@@ -37,9 +37,11 @@ outlets:
 
 flags:
   - name: -offset <float>
-    description: sets offset value (default 0)
+    description: sets offset value
+    default: 0
   - name: -step <float>
-    description: sets counter step value (default 1)
+    description: sets counter step value
+    default: 1
   - name: -b <float>
     description: sets to bang mode
 

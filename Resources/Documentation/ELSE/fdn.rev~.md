@@ -31,9 +31,11 @@ outlets:
 
 flags:
   - name: -time <float>
-    description: t60 reverberation time in seconds (default 4)
+    description: t60 reverberation time in seconds
+    default: 4
   - name: -damping <float>
-    description: high frequency damping in % (default 0)
+    description: high frequency damping in %
+    default: 0
 
 methods:
   - type: time <float>

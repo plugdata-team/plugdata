@@ -25,8 +25,8 @@ flags:
     description:
   - name: -end <f>
     description:
-  - name: -ch <f> (# of channels)
-    description:
+  - name: -ch <f>
+    description: number of channels
 
 
 inlets:

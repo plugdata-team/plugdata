@@ -34,8 +34,8 @@ outlets:
 
 flags:
   - name: -rate <float>
-    description: rate period in ms 
-    default: 5, min 0.1
+    description: rate period in ms (min 0.1) 
+    default: 5
 
 methods:
   - type: rate <float>

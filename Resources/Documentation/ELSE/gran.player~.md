@@ -48,15 +48,20 @@ outlets:
 
 flags:
   - name: -speed <float>
-    description: sets playing speed (default 100)
+    description: sets playing speed
+    default: 100
   - name: -transp <float>
-    description: sets transposition in cents (default 0)
+    description: sets transposition in cents
+    default: 0
   - name: -size <float>
-    description: sets grain size in ms (default 75)
+    description: sets grain size in ms
+    default: 75
   - name: -loop
-    description: turns loop mode on (default off)
+    description: turns loop mode on
+    default: off
   - name: -range <float, float>
-    description: sets sample range (default: 0 1)
+    description: sets sample range
+    default: 0 1
 
 
 methods:

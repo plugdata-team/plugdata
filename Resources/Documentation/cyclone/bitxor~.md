@@ -27,7 +27,8 @@ outlets:
 
 flags:
   - name: @mode <float>
-    description: sets conversion mode (default 0)
+    description: sets conversion mode
+    default: 0
 
 methods:
   - type: bits <list>

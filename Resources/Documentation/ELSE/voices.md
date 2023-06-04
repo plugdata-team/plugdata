@@ -18,10 +18,11 @@ arguments:
 
 flags:
 - name: -rel <f>
-  description: sets release time in ms (default: 0)
+  description: sets release time in ms
+  default: 0
 - name: -retrig
   description: sets to retrigger mode <0, 1 or 2> 
-  (default: 0)
+  default: 0
 - name: -list <float>
   description: sets to list mode
   

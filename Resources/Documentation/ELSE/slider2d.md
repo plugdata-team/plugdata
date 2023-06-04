@@ -12,23 +12,31 @@ arguments:
 
 flags:
 - name: -size <f>
-  description:  sets x/y size (default: 127)
+  description:  sets x/y size
+  default: 127
 - name: -dim <f,f>
-  description: sets x/y dimensions independently (default: 127)
+  description: sets x/y dimensions independently
+  default: 127
 - name: -range
-  description: sets x/y range (default: 0 127)
+  description: sets x/y range
+  default: 0 127
 - name: -xrange/-yrange
   description: sets x/y range independently
 - name: -line <f>
-  description: non-0 sets line visibility (default: 1)
+  description: non-0 sets line visibility
+  default: 1
 - name: -grid <f>
-  description: non-0 sets grid visibility (default: 0)
+  description: non-0 sets grid visibility
+  default: 0
 - name: -bgcolor <f,f,f>
-  description: sets background color (default: 255 255 255)
+  description: sets background color
+  default: 255 255 255
 - name: -fgcolor <f,f,f>
-  description: sets foreground color (default: 0 0 0)
+  description: sets foreground color
+  default: 0 0 0
 - name: -init <f>
-  description: non-0 sets to init mode (default 0)
+  description: non-0 sets to init mode
+  default: 0
 
 
 inlets:

@@ -28,7 +28,8 @@ outlets:
 
 flags:
   - name: -exp <float>
-    description: sets exponential factor (default 1)
+    description: sets exponential factor
+    default: 1
 
 methods:
   - type: start <list>

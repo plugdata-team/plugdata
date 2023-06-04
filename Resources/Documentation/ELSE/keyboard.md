@@ -26,21 +26,29 @@ outlets:
 
 flags:
   - name: -width <float>
-    description: width in pixels (default 17)
+    description: width in pixels
+    default: 17
   - name: -height <float>
-    description: height in pixels (default 80)
+    description: height in pixels
+    default: 80
   - name: -oct <float>
-    description: number of octaves (default 4)
+    description: number of octaves
+    default: 4
   - name: -lowc <float>
-    description: number of lowest C (default 3 - that is "C3")
+    description: number of lowest C
+    default: 3 - that is "C3"
   - name: -tgl
-    description: sets to toggle mode (default non toggle)
+    description: sets to toggle mode
+    default: non toggle
   - name: -norm <float>
-    description: velocity normalization value (default 0)
+    description: velocity normalization value
+    default: 0
   - name: -send <symbol>
-    description: sets send symbol (default 'empty')
+    description: sets send symbol
+    default: 'empty'
   - name: -receive <symbol>
-    description: sets receive symbol (default 'empty')
+    description: sets receive symbol
+    default: 'empty'
 
 methods:
   - type: on <list>

@@ -16,7 +16,7 @@ inlets:
 
 flags:
   - name: -font <symbol>
-    description: default: 'dejavu sans mono' or 'menlo' for mac
+    description: default 'dejavu sans mono' or 'menlo' for mac
   - name: -bold
     description:
   - name: -italic
@@ -34,7 +34,8 @@ flags:
   - name: -outline
     description:
   - name: -note <anything>
-    description: sets note (default "note")
+    description: sets note
+    default: "note"
   - name: -underline
     description:
   - name: -receive <symbol>

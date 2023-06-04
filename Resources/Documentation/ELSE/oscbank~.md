@@ -31,17 +31,22 @@ outlets:
 
 flags:
   - name: -ratio <list>
-    description: sets list of ratios for all oscillators (default all 1)
+    description: sets list of ratios for all oscillators
+    default: all 1
   - name: -amp <list>
-    description: sets list of amplitudes for all oscillators (default all 1)
+    description: sets list of amplitudes for all oscillators
+    default: all 1
   - name: -phase <list>
-    description: sets list of phases for all oscillators (default all 0)
+    description: sets list of phases for all oscillators
+    default: all 0
   - name: -ramp <list>
     description: sets list of ramp times for all oscillators
   - name: -freq <float>
-    description: sets fundamental frequency in Hz (default 0)
+    description: sets fundamental frequency in Hz
+    default: 0
   - name: -rampall <float>
-    description: sets a ramp time for all oscillators (default all 10)
+    description: sets a ramp time for all oscillators
+    default: all 10
 
 methods:
   - type: ratio <list>

@@ -22,19 +22,26 @@ outlets:
 
 flags:
   - name: -size <float>
-    description: buffer size in samples (default 441, minimum 64)
+    description: buffer size in samples (minimum 64)
+    default: 441
   - name: -skip <float>
-    description: buffer skip (default 10)
+    description: buffer skip
+    default: 10
   - name: bgcolor <f, f, f>
-    description: background color in RGB (default 223 223 223)
+    description: background color in RGB
+    default: 223 223 223
   - name: fgcolor <f, f, f>
-    description: foreground color in RGB (default 0 0 0)
+    description: foreground color in RGB
+    default: 0 0 0
   - name: width <float>
-    description: set signal width (default 1)
+    description: set signal width
+    default: 1
   - name: -range <float, float>
-    description: set lower and upper graph range (default -1 1)
+    description: set lower and upper graph range
+    default: -1 1
   - name: -dim <float, float>
-    description: set horizontal/vertical dimensions (default 200 140)
+    description: set horizontal/vertical dimensions
+    default: 200 140
 
 methods:
   - type: size <float>

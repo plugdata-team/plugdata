@@ -35,17 +35,23 @@ outlets:
 
 flags:
   - name: -n <float>
-    description: sets number of presets (default: 64)
+    description: sets number of presets
+    default: 64
   - name: -file <symbol>
-    description: set a file to import from (default: none)
+    description: set a file to import from
+    default: none
   - name: -morphtime <float>
-    description: sets morph time (default: 0)
+    description: sets morph time
+    default: 0
   - name: -morph <f, f>
-    description: sets morph time and grain (default: 0, 20)
+    description: sets morph time and grain
+    default: 0 20
   - name: -interp
-    description: sets to interpolation mode (default: no interpolation)
+    description: sets to interpolation mode
+    default: no interpolation
   - name: -exp <float>
-    description: sets exponential factor for morph/interpolation (default: 1)
+    description: sets exponential factor for morph/interpolation
+    default: 1
 
 methods:
   - type: set <float>

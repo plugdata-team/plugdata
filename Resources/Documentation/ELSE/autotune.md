@@ -15,7 +15,8 @@ arguments:
 
 flags:
 - name: -base <float> 
-  description: base MIDI pitch (default 60)
+  description: base MIDI pitch
+  default: 60
 
 inlets:
   1st:

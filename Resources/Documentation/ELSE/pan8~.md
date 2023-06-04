@@ -52,9 +52,11 @@ outlets:
 
 flags:
   - name: -spread
-    description: sets spread parameter (default 0)
+    description: sets spread parameter
+    default: 0
   - name: -mode
-    description: sets mode <0> or <1> (default 0)
+    description: sets mode <0> or <1>
+    default: 0
 
 draft: false
 ---

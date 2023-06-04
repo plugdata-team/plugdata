@@ -35,9 +35,11 @@ outlets:
 
 flags:
   - name: -tempo <float>
-    description: sets new tempo value (default 120)
+    description: sets new tempo value
+    default: 120
   - name: -i
-    description: sets to output index (default bang)
+    description: sets to output index
+    default: bang
 
 methods:
   - type: tempo <float>

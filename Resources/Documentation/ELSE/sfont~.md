@@ -17,9 +17,11 @@ flags:
 - name: -v
   description: set to verbosity mode
 - name: -ch <float>
-  description: set the number of channels (default 16)
+  description: set the number of channels
+  default: 16
 - name: -g <float>
-  description: set the gain, 0-1 (default 0.4)
+  description: set the gain, 0-1
+  default: 0.4
 
 inlets:
   1st:

@@ -21,9 +21,11 @@ arguments:
 
 flags:
   - name: -mode <float>
-    description: set mode (default: 0)
+    description: set mode
+    default: 0
   - name: -silence <float>
-    description: set silence level (default: -70)
+    description: set silence level
+    default: -70
 
 inlets:
   1st:

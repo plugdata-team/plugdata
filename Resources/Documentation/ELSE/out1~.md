@@ -27,7 +27,8 @@ outlets:
 
 flags:
   - name: -ch <float>
-    description: sets output channel (default 1)
+    description: sets output channel
+    default: 1
 
 methods:
   - type: <on/off>

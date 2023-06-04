@@ -25,13 +25,17 @@ outlets:
     description: signal output if there's a corresponding dac~ output
 flags:
 - name: -ninsig <float>
-  description: sets number of input audio channels (default 2)
+  description: sets number of input audio channels
+  default: 2
 - name: -noutsig <float>
-  description: sets number of output audio channels (default 2)
+  description: sets number of output audio channels
+  default: 2
 - name: -sr <float>
-  description: sets sample rate of subprocess (default pd's current)
+  description: sets sample rate of subprocess
+  default: pd's current
 - name: -fifo <float>
-  description: sets number of blocks for round-trip (default 5)
+  description: sets number of blocks for round-trip
+  default: 5
 - name: -pddir <symbol>
   description: sets Pd's directory (needed if different than default)
 - name: -scheddir <symbol>
