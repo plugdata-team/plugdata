@@ -244,7 +244,7 @@ public:
                 return;
 
             PlugDataLook::selectedThemes.set(themeSlot, newThemeName);
-            updateSwatches();
+
 
             updateThemeNames(primaryThemeSelector->getText(), secondaryThemeSelector->getText());
 
@@ -254,6 +254,10 @@ public:
             getTopLevelComponent()->repaint();
 
             SettingsFile::getInstance()->saveSettings();
+            
+            MessageManager::callAsync([_this = SafePointer(this)](){
+                _this->updateSwatches();
+            });
         };
 
         auto* resetButton = new PropertiesPanel::ActionComponent([this]() {
