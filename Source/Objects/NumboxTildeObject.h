@@ -43,7 +43,12 @@ public:
 
         addMouseListener(this, true);
 
-        input.valueChanged = [this](float value) { sendFloatValue(value); };
+        input.valueChanged = [this](float value) {
+            if (auto obj = ptr.get<t_pd>()) {
+                pd_float(obj.get(), value);
+                pd_bang(obj.get());
+            }
+        };
 
         startTimer(nextInterval);
         repaint();
