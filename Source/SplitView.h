@@ -29,6 +29,14 @@ public:
 
     void paintOverChildren(Graphics& g) override;
 
+    int getTabComponentSplitIndex(TabComponent* tabComponent);
+
+    void setSplitFocusIndex(int index);
+
+    bool isSplitView() { return splitView; };
+
+    OwnedArray<TabComponent> splits;
+
 private:
     void resized() override;
 
@@ -39,7 +47,7 @@ private:
     bool splitView = false;
     int activeTabIndex = 0;
     bool splitFocusIndex = false;
-    TabComponent splits[2];
+
 
     std::unique_ptr<FadeAnimation> fadeAnimation;
     std::unique_ptr<FadeAnimation> fadeAnimationLeft;
