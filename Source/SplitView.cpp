@@ -100,7 +100,12 @@ SplitView::SplitView(PluginEditor* parent)
     , fadeAnimationLeft(new FadeAnimation(this))
     , fadeAnimationRight(new FadeAnimation(this))
 {
+    //TODO: replicate current behaviour first - we will add new splits as we go (in future)
+    splits.add(new TabComponent(editor));
+    splits.add(new TabComponent(editor));
+
     auto* resizer = new SplitViewResizer();
+
     resizer->onMove = [this](int x) {
         splitViewWidth = static_cast<float>(x) / getWidth();
         resized();
@@ -109,93 +114,27 @@ SplitView::SplitView(PluginEditor* parent)
 
     splitViewResizer.reset(resizer);
 
-    int i = 0;
-    for (auto& tabbar : splits) {
-
-        tabbar.newTab = [this, i]() {
-            splitFocusIndex = i;
-            editor->newProject();
-        };
-
-        tabbar.openProject = [this, i]() {
-            splitFocusIndex = i;
-            editor->openProject();
-        };
-
-        tabbar.openProjectFile = [this, i](File patchFile) {
-            splitFocusIndex = i;
-            editor->pd->loadPatch(patchFile);
-        };
-
-        tabbar.onTabChange = [this, i, &tabbar](int idx) {
-            splitFocusIndex = idx >= 0 ? i : 0;
-
-            editor->updateCommandStatus();
-
-            auto* cnv = tabbar.getCurrentCanvas();
-
-            if (!cnv || idx == -1 || editor->pd->isPerformingGlobalSync)
-                return;
-
-            editor->sidebar->tabChanged();
-            cnv->tabChanged();
-
-            if (auto* splitCnv = splits[1 - i].getCurrentCanvas()) {
-                splitCnv->tabChanged();
-            }
-        };
-
-        tabbar.onFocusGrab = [this, &tabbar]() {
-            if (auto* cnv = tabbar.getCurrentCanvas()) {
-                setFocus(cnv);
-            }
-        };
-
-        tabbar.onTabMoved = [this]() {
-            editor->pd->savePatchTabPositions();
-        };
-
-        tabbar.rightClick = [this, &tabbar, i](int tabIndex, String const& tabName) {
-            PopupMenu tabMenu;
-
-#if JUCE_MAC
-            String revealTip = "Reveal in Finder";
-#elif JUCE_WINDOWS
-            String revealTip = "Reveal in Explorer";
-#else
-            String revealTip = "Reveal in file browser";
-#endif
-
-            auto* cnv = tabbar.getCanvas(tabIndex);
-            if (!cnv)
-                return;
-
-            bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
-
-            tabMenu.addItem(revealTip, canReveal, false, [cnv]() {
-                cnv->patch.getCurrentFile().revealToUser();
-            });
-
-            bool canSplit = true;
-            if (i == 0 && !splitView)
-                canSplit = getLeftTabbar()->getNumTabs() > 1;
-
-            tabMenu.addItem(i == 0 ? "Split Right" : "Split Left", canSplit, false, [this, cnv, i]() {
-                splitCanvasView(cnv, i == 0);
-                closeEmptySplits();
-            });
-            // Show the popup menu at the mouse position
-            tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(editor->pd->getActiveEditor()));
-        };
-
-        tabbar.setOutline(0);
+    for (auto* tabbar : splits)
         addAndMakeVisible(tabbar);
-        i++;
-    }
+
     addMouseListener(this, true);
 }
 
 SplitView::~SplitView() = default;
+
+int SplitView::getTabComponentSplitIndex(TabComponent* tabComponent)
+{
+    for (int i = 0; i < splits.size(); i++) {
+        if (splits[i] == tabComponent) {
+            return i;
+        }
+    }
+}
+
+void SplitView::setSplitFocusIndex(int index)
+{
+    splitFocusIndex = index;
+}
 
 void SplitView::setSplitEnabled(bool splitEnabled)
 {
@@ -245,29 +184,29 @@ bool SplitView::isRightTabbarActive() const
 
 void SplitView::closeEmptySplits()
 {
-    if (!splits[1].getNumTabs()) {
+    if (!splits[1]->getNumTabs()) {
         // Disable splitview if all splitview tabs are closed
         setSplitEnabled(false);
     }
-    if (splitView && !splits[0].getNumTabs()) {
+    if (splitView && !splits[0]->getNumTabs()) {
 
         // move all tabs over to the left side
-        for (int i = splits[1].getNumTabs() - 1; i >= 0; i--) {
-            splitCanvasView(splits[1].getCanvas(i), false);
+        for (int i = splits[1]->getNumTabs() - 1; i >= 0; i--) {
+            splitCanvasView(splits[1]->getCanvas(i), false);
         }
 
         setSplitEnabled(false);
     }
-    if (splits[0].getCurrentTabIndex() < 0 && splits[0].getNumTabs()) {
-        splits[0].setCurrentTabIndex(0);
+    if (splits[0]->getCurrentTabIndex() < 0 && splits[0]->getNumTabs()) {
+        splits[0]->setCurrentTabIndex(0);
     }
     // Make sure to show the welcome screen if this was the last tab
-    else if (splits[0].getCurrentTabIndex() < 0) {
-        splits[0].currentTabChanged(-1, "");
+    else if (splits[0]->getCurrentTabIndex() < 0) {
+        splits[0]->currentTabChanged(-1, "");
     }
 
-    if (splits[1].getCurrentTabIndex() < 0 && splits[1].getNumTabs()) {
-        splits[1].setCurrentTabIndex(0);
+    if (splits[1]->getCurrentTabIndex() < 0 && splits[1]->getNumTabs()) {
+        splits[1]->setCurrentTabIndex(0);
     }
 }
 
@@ -357,17 +296,17 @@ void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
 
 TabComponent* SplitView::getActiveTabbar()
 {
-    return &splits[splitFocusIndex];
+    return splits[splitFocusIndex];
 }
 
 TabComponent* SplitView::getLeftTabbar()
 {
-    return &splits[0];
+    return splits[0];
 }
 
 TabComponent* SplitView::getRightTabbar()
 {
-    return &splits[1];
+    return splits[1];
 }
 
 void SplitView::mouseDrag(MouseEvent const& e)
