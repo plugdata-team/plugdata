@@ -1130,11 +1130,6 @@ void* Object::getPointer() const
     return gui ? gui->ptr.getRaw<void>() : nullptr;
 }
 
-void* Object::getUncheckedPointer() const
-{
-    return gui ? gui->ptr.getRawUnchecked<void>() : nullptr;
-}
-
 void Object::openNewObjectEditor()
 {
     if (!newObjectEditor) {

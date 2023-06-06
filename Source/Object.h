@@ -55,7 +55,6 @@ public:
 
     void openHelpPatch() const;
     void* getPointer() const;
-    void* getUncheckedPointer() const;
 
     Array<Connection*> getConnections() const;
 
