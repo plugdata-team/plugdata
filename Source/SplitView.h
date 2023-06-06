@@ -37,13 +37,12 @@ public:
 
     OwnedArray<TabComponent> splits;
 
-private:
+    float splitViewWidth = 0.5f;
     void resized() override;
-
+private:
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
 
-    float splitViewWidth = 0.5f;
     bool splitView = false;
     int activeTabIndex = 0;
     bool splitFocusIndex = false;
