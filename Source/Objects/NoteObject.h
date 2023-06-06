@@ -139,6 +139,7 @@ public:
         locked = isLocked;
         repaint();
 
+        noteEditor.setInterceptsMouseClicks(!isLocked, !isLocked);
         object->updateIolets();
     }
 
