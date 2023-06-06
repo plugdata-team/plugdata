@@ -133,6 +133,8 @@ void Connection::lookAndFeelChanged()
 
 void Connection::pushPathState()
 {
+    if(!inlet || !outlet) return;
+    
     t_symbol* newPathState;
     if (segmented) {
         MemoryOutputStream stream;
@@ -152,7 +154,7 @@ void Connection::pushPathState()
 
 void Connection::popPathState()
 {
-    if (!ptr || !ptr->outconnect_path_data || !ptr->outconnect_path_data->s_name)
+    if (!ptr || !ptr->outconnect_path_data || !ptr->outconnect_path_data->s_name || !inlet || !outlet)
         return;
 
     auto const state = String::fromUTF8(ptr->outconnect_path_data->s_name);
