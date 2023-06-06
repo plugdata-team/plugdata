@@ -300,8 +300,8 @@ void Object::applyBounds()
 
     patch->endUndoSequence("resize");
     
-    MessageManager::callAsync([cnv = this->cnv]{
-        cnv->editor->updateCommandStatus();
+    MessageManager::callAsync([cnv = SafePointer(this->cnv)]{
+        if(cnv) cnv->editor->updateCommandStatus();
     });
 
     cnv->pd->unlockAudioThread();
