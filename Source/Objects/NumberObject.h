@@ -154,7 +154,7 @@ public:
 
     void lock(bool isLocked) override
     {
-        input.setResetEnabled(isLocked);
+        input.setResetEnabled(::getValue<bool>(cnv->locked));
         setInterceptsMouseClicks(isLocked, isLocked);
         repaint();
     }
