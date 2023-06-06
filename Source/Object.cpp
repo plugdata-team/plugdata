@@ -287,7 +287,7 @@ void Object::applyBounds()
         auto* obj = static_cast<t_gobj*>(object->getPointer());
         auto* cnv = object->cnv;
 
-        if (cnv->patch.objectWasDeleted(obj))
+        if (obj && cnv->patch.objectWasDeleted(obj))
             return;
 
         // Used for size changes, could also be used for properties
@@ -1127,7 +1127,12 @@ Array<Connection*> Object::getConnections() const
 
 void* Object::getPointer() const
 {
-    return gui ? gui->ptr.getRaw<void*>() : nullptr;
+    return gui ? gui->ptr.getRaw<void>() : nullptr;
+}
+
+void* Object::getUncheckedPointer() const
+{
+    return gui ? gui->ptr.getRawUnchecked<void>() : nullptr;
 }
 
 void Object::openNewObjectEditor()

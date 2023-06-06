@@ -479,7 +479,7 @@ void Canvas::performSynchronise()
     // Remove deleted objects
     for (int n = objects.size() - 1; n >= 0; n--) {
         auto* object = objects[n];
-        if (object->gui && patch.objectWasDeleted(object->getPointer())) {
+        if (object->gui && patch.objectWasDeleted(object->getUncheckedPointer())) {
             setSelected(object, false, false);
             objects.remove(n);
         }
@@ -823,7 +823,9 @@ bool Canvas::keyPressed(KeyPress const& key)
         std::vector<void*> pdObjects;
 
         for (auto* object : objects) {
-            pdObjects.push_back(object->getPointer());
+            if(auto* ptr = object->getPointer()) {
+                pdObjects.push_back(ptr);
+            }
         }
 
         patch.moveObjects(pdObjects, x, y);
@@ -885,7 +887,9 @@ void Canvas::copySelection()
 {
     // Tell pd to select all objects that are currently selected
     for (auto* object : getSelectionOfType<Object>()) {
-        patch.selectObject(object->getPointer());
+        if(auto* ptr = object->getPointer()) {
+            patch.selectObject(ptr);
+        }
     }
 
     // Tell pd to copy
@@ -947,11 +951,14 @@ void Canvas::duplicateSelection()
     patch.deselectAll();
 
     for (auto* object : selection) {
+        
+        auto* ptr = object->getPointer();
         // Check if object exists in pd and is not attached to mouse
-        if (!object->gui || object->attachedToMouse)
+        if (!ptr || object->attachedToMouse)
             return;
+        
         // Tell pd to select all objects that are currently selected
-        patch.selectObject(object->getPointer());
+        patch.selectObject(ptr);
 
         if (!dragState.wasDragDuplicated && editor->autoconnect.getValue()) {
             // Store connections for auto patching
@@ -982,7 +989,7 @@ void Canvas::duplicateSelection()
     Array<Object*> duplicated;
     for (auto* object : objects) {
         auto* objectPtr = static_cast<t_gobj*>(object->getPointer());
-        if (glist_isselected(patchPtr, objectPtr)) {
+        if (objectPtr && glist_isselected(patchPtr, objectPtr)) {
             duplicated.add(object);
         }
     }
@@ -1052,9 +1059,9 @@ void Canvas::removeSelection()
     // Find selected objects and make them selected in pd
     Array<void*> objects;
     for (auto* object : getSelectionOfType<Object>()) {
-        if (object->getPointer()) {
-            patch.selectObject(object->getPointer());
-            objects.add(object->getPointer());
+        if (auto* ptr = object->getPointer()) {
+            patch.selectObject(ptr);
+            objects.add(ptr);
         }
     }
 
@@ -1185,9 +1192,9 @@ void Canvas::encapsulateSelection()
 
     auto bounds = Rectangle<int>();
     for (auto* object : selectedBoxes) {
-        if (object->getPointer()) {
+        if (auto* ptr = object->getPointer()) {
             bounds = bounds.getUnion(object->getBounds());
-            patch.selectObject(object->getPointer()); // TODO: do this inside enqueue
+            patch.selectObject(ptr);
         }
     }
     auto centre = bounds.getCentre() - canvasOrigin;
@@ -1217,11 +1224,12 @@ void Canvas::encapsulateSelection()
 
     for (auto& [idx, iolets] : newExternalConnections) {
         for (auto* iolet : iolets) {
-            auto* externalObject = static_cast<t_object*>(iolet->object->getPointer());
-            if (iolet->isInlet) {
-                libpd_createconnection(patchPtr, newObject, idx - numIn, externalObject, iolet->ioletIdx);
-            } else {
-                libpd_createconnection(patchPtr, externalObject, iolet->ioletIdx, newObject, idx);
+            if(auto* externalObject = static_cast<t_object*>(iolet->object->getPointer())) {
+                if (iolet->isInlet) {
+                    libpd_createconnection(patchPtr, newObject, idx - numIn, externalObject, iolet->ioletIdx);
+                } else {
+                    libpd_createconnection(patchPtr, externalObject, iolet->ioletIdx, newObject, idx);
+                }
             }
         }
     }
@@ -1261,10 +1269,12 @@ bool Canvas::connectSelectedObjects()
     if (!rightSize)
         return false;
 
-    Object* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1] : selection[0];
-    Object* bottomObject = selection[0] == topObject ? selection[1] : selection[0];
+    void* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1]->getPointer() : selection[0]->getPointer();
+    void* bottomObject = selection[0] == topObject ? selection[1]->getPointer() : selection[0]->getPointer();
 
-    patch.createConnection(topObject->getPointer(), 0, bottomObject->getPointer(), 0);
+    if(topObject && bottomObject) {
+        patch.createConnection(topObject, 0, bottomObject, 0);
+    }
 
     synchronise();
 

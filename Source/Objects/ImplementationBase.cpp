@@ -11,6 +11,9 @@ extern "C" {
 
 #include <m_pd.h>
 #include <x_libpd_extra_utils.h>
+
+t_glist* clone_get_instance(t_gobj*, int);
+int clone_get_n(t_gobj*);
 }
 
 #include "AllGuis.h"
@@ -240,6 +243,13 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
 
         if (pd_class(&y->g_pd) == canvas_class) {
             implementations.addArray(getImplementationsForPatch(y));
+        }
+        if (pd_class(&y->g_pd) == clone_class) {
+            for(int i = 0; i < clone_get_n(y); i++)
+            {
+                auto* clone = clone_get_instance(y, i);
+                implementations.addArray(getImplementationsForPatch(clone));
+            }
         }
         if (ImplementationBase::hasImplementation(name)) {
             implementations.add(y);
