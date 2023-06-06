@@ -299,6 +299,11 @@ void Object::applyBounds()
     }
 
     patch->endUndoSequence("resize");
+    
+    MessageManager::callAsync([cnv = this->cnv]{
+        cnv->editor->updateCommandStatus();
+    });
+
     cnv->pd->unlockAudioThread();
 }
 void Object::updateBounds()
