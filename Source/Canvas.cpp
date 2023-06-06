@@ -495,7 +495,7 @@ void Canvas::performSynchronise()
     auto pdObjects = patch.getObjects();
 
     for (auto* object : pdObjects) {
-        auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getUncheckedPointer() && b->getUncheckedPointer() == object; });
+        auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object; });
 
         if (patch.objectWasDeleted(object))
             continue;
@@ -525,8 +525,8 @@ void Canvas::performSynchronise()
     // Make sure objects have the same order
     std::sort(objects.begin(), objects.end(),
         [&pdObjects](Object* first, Object* second) mutable {
-            size_t idx1 = std::find(pdObjects.begin(), pdObjects.end(), first->getUncheckedPointer()) - pdObjects.begin();
-            size_t idx2 = std::find(pdObjects.begin(), pdObjects.end(), second->getUncheckedPointer()) - pdObjects.begin();
+            size_t idx1 = std::find(pdObjects.begin(), pdObjects.end(), first->getPointer()) - pdObjects.begin();
+            size_t idx2 = std::find(pdObjects.begin(), pdObjects.end(), second->getPointer()) - pdObjects.begin();
 
             return idx1 < idx2;
         });
@@ -540,7 +540,7 @@ void Canvas::performSynchronise()
 
         // Find the objects that this connection is connected to
         for (auto* obj : objects) {
-            if (outobj && outobj == obj->getUncheckedPointer()) {
+            if (outobj && outobj == obj->getPointer()) {
 
                 // Check if we have enough outlets, should never return false
                 if (isPositiveAndBelow(obj->numInputs + outno, obj->iolets.size())) {
@@ -549,7 +549,7 @@ void Canvas::performSynchronise()
                     break;
                 }
             }
-            if (inobj && inobj == obj->getUncheckedPointer()) {
+            if (inobj && inobj == obj->getPointer()) {
 
                 // Check if we have enough inlets, should never return false
                 if (isPositiveAndBelow(inno, obj->iolets.size())) {
