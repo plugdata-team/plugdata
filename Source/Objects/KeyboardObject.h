@@ -10,9 +10,10 @@ class MIDIKeyboard : public MidiKeyboardComponent {
     Object* object;
 
     bool toggleMode = false;
-    std::set<int> heldKeys;
+    int lastKey = -1;
 
 public:
+    std::set<int> heldKeys;
     std::function<void(int, int)> noteOn;
     std::function<void(int)> noteOff;
 
@@ -59,10 +60,12 @@ public:
                 noteOff(midiNoteNumber);
             } else {
                 heldKeys.insert(midiNoteNumber);
+                lastKey = midiNoteNumber;
                 noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
             }
         } else {
             heldKeys.insert(midiNoteNumber);
+            lastKey = midiNoteNumber;
             noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
         }
 
@@ -76,8 +79,10 @@ public:
             for (auto& note : heldKeys) {
                 noteOff(note);
             }
+            if (lastKey != midiNoteNumber)
+                heldKeys.erase(lastKey);
 
-            heldKeys.clear();
+            lastKey = midiNoteNumber;
 
             heldKeys.insert(midiNoteNumber);
             noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
@@ -99,13 +104,13 @@ public:
     }
 
     // Override to fix bug in JUCE
-    void mouseUp(MouseEvent const& e) override
-    {
-        auto keys = heldKeys;
-        for (auto& key : keys) {
-            mouseUpOnKey(key, e);
-        }
-    }
+    //void mouseUp(MouseEvent const& e) override
+    //{
+    //    auto keys = heldKeys;
+    //    for (auto& key : keys) {
+    //        mouseUpOnKey(key, e);
+    //    }
+    //}
 
     void setToggleMode(bool enableToggleMode)
     {
@@ -388,6 +393,8 @@ public:
             hash("float"),
             hash("list"),
             hash("set"),
+            hash("on"),
+            hash("off"),
             hash("lowc"),
             hash("oct"),
             hash("8ves"),
@@ -397,13 +404,52 @@ public:
         };
     }
 
+    void noteOn(int midiNoteNumber, bool isOn)
+    {
+        if (isOn)
+            keyboard.heldKeys.insert(midiNoteNumber);
+        else
+            keyboard.heldKeys.erase(midiNoteNumber);
+
+        keyboard.repaint();
+    }
+
+    void notesOn(std::vector<pd::Atom>& noteList, bool isOn)
+    {
+        for (auto note : noteList) {
+            if (isOn)
+                keyboard.heldKeys.insert(note.getFloat());
+            else
+                keyboard.heldKeys.erase(note.getFloat());
+        }
+        keyboard.repaint();
+    }
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        auto elseKeyboard = ptr.get<t_fake_keyboard>();
+
         switch (hash(symbol)) {
-        case hash("float"):
-        case hash("list"):
+        case hash("float"): {
+            noteOn(atoms[0].getFloat(), elseKeyboard->x_vel_in > 0);
+            break;
+        }
+        case hash("list"): {
+            if (atoms.size() == 2) {
+                noteOn(atoms[0].getFloat(), atoms[1].getFloat() > 0);
+            }
+            break;
+        }
         case hash("set"): {
-            updateValue();
+            // not implemented yet
+            break;
+        }
+        case hash("on"): {
+            notesOn(atoms, true);
+            break;
+        }
+        case hash("off"): {
+            notesOn(atoms, false);
             break;
         }
         case hash("lowc"): {
