@@ -63,21 +63,15 @@ private:
 class SplitViewResizer : public Component {
 public:
     static inline constexpr int width = 6;
-    std::function<void(int)> onMove = [](int) {};
 
-    SplitViewResizer()
+    SplitViewResizer(SplitView* splitView)
+        : splitView(splitView)
     {
         setMouseCursor(MouseCursor::LeftRightResizeCursor);
         setAlwaysOnTop(true);
     }
 
 private:
-    void paint(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(getX() + width / 2, getY(), getX() + width / 2, getBottom());
-    }
-
     void mouseDown(MouseEvent const& e) override
     {
         dragStartWidth = getX();
@@ -87,11 +81,13 @@ private:
     {
         int newX = std::clamp<int>(dragStartWidth + e.getDistanceFromDragStartX(), getParentComponent()->getWidth() * 0.25f, getParentComponent()->getWidth() * 0.75f);
         setTopLeftPosition(newX, 0);
-        onMove(newX + width / 2);
+        splitView->splitViewWidth = (newX + width / 2.0f) / splitView->getWidth();
+        splitView->resized();
     }
 
     int dragStartWidth = 0;
     bool draggingSplitview = false;
+    SplitView* splitView;
 };
 
 SplitView::SplitView(PluginEditor* parent)
@@ -104,12 +100,8 @@ SplitView::SplitView(PluginEditor* parent)
     splits.add(new TabComponent(editor));
     splits.add(new TabComponent(editor));
 
-    auto* resizer = new SplitViewResizer();
+    auto* resizer = new SplitViewResizer(this);
 
-    resizer->onMove = [this](int x) {
-        splitViewWidth = static_cast<float>(x) / getWidth();
-        resized();
-    };
     addChildComponent(resizer);
 
     splitViewResizer.reset(resizer);
