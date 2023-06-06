@@ -31,7 +31,7 @@ public:
     static std::array<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
 
     void fsChangeCallback() override;
-
+    
     File findHelpfile(t_object* obj, File const& parentPatchFile) const;
 
     ValueTree getObjectInfo(String const& name);
@@ -43,16 +43,14 @@ public:
 
     std::function<void()> appDirChanged;
 
-    static inline const File appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-
     static inline Array<File> const defaultPaths = {
-        appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else"),
-        appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("cyclone"),
-        appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("heavylib"),
-        appDataDir.getChildFile("Library").getChildFile("Abstractions"),
-        appDataDir.getChildFile("Library").getChildFile("Deken"),
-        appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("else"),
-        appDataDir.getChildFile("Library").getChildFile("Extra")
+        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else"),
+        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("cyclone"),
+        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("heavylib"),
+        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Abstractions"),
+        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Deken"),
+        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("else"),
+        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra")
     };
 
     static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "heavylib", "pdlua" };
@@ -70,3 +68,5 @@ private:
 };
 
 } // namespace pd
+
+

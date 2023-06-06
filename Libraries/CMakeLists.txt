@@ -12,6 +12,7 @@ if(MSVC)
     include_directories(pthread-win32)
 endif()
 
+
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
@@ -175,7 +176,6 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/x_libpd_mod_utils.h
     ${LIBPD_PATH}/x_libpd_multi.c
     ${LIBPD_PATH}/x_libpd_multi.h
-    ${LIBPD_PATH}/x_libpd_ofelia.cpp
 )
 
 include_directories(${LIBPD_PATH})
@@ -365,11 +365,13 @@ else(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
 endif()
 
+file(GLOB OFELIA_SOURCES ./plugdata-ofelia/Source/Objects/*.cpp ./plugdata-ofelia/Source/Objects/*.h)
+
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
 
 # ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
