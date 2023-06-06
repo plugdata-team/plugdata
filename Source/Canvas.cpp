@@ -479,9 +479,16 @@ void Canvas::performSynchronise()
     // Remove deleted objects
     for (int n = objects.size() - 1; n >= 0; n--) {
         auto* object = objects[n];
-        if (object->gui && patch.objectWasDeleted(object->getUncheckedPointer())) {
+        if (!object->getPointer() || patch.objectWasDeleted(object->getPointer())) {
             setSelected(object, false, false);
             objects.remove(n);
+        }
+    }
+
+    // Check for connections that need to be remade because of invalid iolets
+    for (int n = connections.size() - 1; n >= 0; n--) {
+        if (!connections[n]->inlet || !connections[n]->outlet) {
+            connections.remove(n);
         }
     }
 
@@ -491,7 +498,7 @@ void Canvas::performSynchronise()
         auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object; });
 
         if (patch.objectWasDeleted(object))
-            return;
+            continue;
 
         if (it == objects.end()) {
             auto* newBox = objects.add(new Object(object, this));
