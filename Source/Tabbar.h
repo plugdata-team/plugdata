@@ -7,15 +7,13 @@
 #pragma once
 
 #include <utility>
-
-#include <utility>
-
-#include <utility>
-
 #include "Utility/GlobalMouseListener.h"
 #include "Utility/BouncingViewport.h"
 #include "Constants.h"
 #include "Canvas.h"
+#include "PluginEditor.h"
+#include "Utility/ZoomableDragAndDropContainer.h"
+
 
 class WelcomePanel : public Component {
 
@@ -196,8 +194,7 @@ public:
 };
 
 class PluginEditor;
-class TabComponent : public TabbedComponent
-    , public AsyncUpdater {
+class TabComponent : public TabbedComponent, public AsyncUpdater {
 
     TextButton newButton;
     WelcomePanel welcomePanel;
@@ -205,16 +202,16 @@ class TabComponent : public TabbedComponent
 
 public:
     TabComponent(PluginEditor* editor);
+    ~TabComponent();
+
+    TabBarButton* createTabButton (const String& tabName, int tabIndex) override;
 
     void onTabMoved();
-    void onFocusGrab();
     void onTabChange(int tabIndex);
     void newTab();
     void openProject();
     void openProjectFile(File& patchFile);
     void rightClick(int tabIndex, String const& tabName);
-
-    void setSplitFocusIndex(int idx = -1);
 
     void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName) override;
     void handleAsyncUpdate() override;
@@ -228,21 +225,36 @@ public:
 
     int getIndexOfCanvas(Canvas* cnv);
 
+    void setTabText(int tabIndex, const String& newName);
+
     Canvas* getCanvas(int idx);
 
     Canvas* getCurrentCanvas();
 
     void mouseDown(MouseEvent const& e) override;
-
+    void mouseMove(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
 
-    void mouseUp(MouseEvent const& e) override;
+    //void mouseUp(MouseEvent const& e) override;
+
+    PluginEditor* getEditor();
 
     Image tabSnapshot;
+    ScaledImage tabSnapshotScaled;
+
     Rectangle<int> tabSnapshotBounds;
     Rectangle<int> currentTabBounds;
 
 private:
     int clickedTabIndex;
     int tabWidth;
+
+    Point<int> scalePos;
+
+    //void updateTabGhost();
+
+
+    //ALEX
+    int draggedTabIndex = -1;
+    Component* draggedTabComponent = nullptr;
 };

@@ -7,6 +7,7 @@
 #include "Canvas.h"
 #include "Object.h"
 #include "Utility/PluginParameter.h"
+#include "Utility/DraggableNumber.h"
 
 class AutomationSlider : public Component
     , public Value::Listener {
@@ -49,22 +50,15 @@ public:
         minValue.setFont(minValue.getFont().withHeight(14.0f));
         maxValue.setFont(maxValue.getFont().withHeight(14.0f));
 
-        createButton.onClick = [this]() mutable {
-            if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
-                auto* cnv = editor->getCurrentCanvas();
-                if (cnv) {
-                    cnv->attachNextObjectToMouse = true;
-                    cnv->objects.add(new Object(cnv, "param " + param->getTitle()));
-                }
-            }
-        };
-
         deleteButton.onClick = [this]() mutable {
             onDelete(this);
         };
 
+        nameLabel.addMouseListener(this, false);
+        deleteButton.addMouseListener(this, false);
+
+        nameLabel.setTooltip("Drag to add [param] to canvas");
         deleteButton.setTooltip("Remove parameter");
-        createButton.setTooltip("Create [param] object");
         settingsButton.setTooltip("Expand settings");
 
         settingsButton.onClick = [this, parentComponent]() mutable {
@@ -206,13 +200,11 @@ public:
         addAndMakeVisible(slider);
         addAndMakeVisible(valueLabel);
 
-        createButton.getProperties().set("Style", "SmallIcon");
         settingsButton.getProperties().set("Style", "SmallIcon");
         deleteButton.getProperties().set("Style", "SmallIcon");
 
-        addAndMakeVisible(createButton);
         addAndMakeVisible(settingsButton);
-        addAndMakeVisible(deleteButton);
+        addChildComponent(deleteButton);
 
         addChildComponent(minLabel);
         addChildComponent(minValue);
@@ -223,9 +215,35 @@ public:
         maxValue.setEditable(true);
     }
 
+    bool hitTest(int x, int y) override
+    {
+        auto bounds = getLocalBounds().toFloat().reduced(4.5f, 3.0f);
+        if (bounds.contains(x, y)) {
+            return true;
+        }
+        return false;
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        deleteButton.setVisible(true);
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        deleteButton.setVisible(false);
+    }
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        deleteButton.setVisible(false);
+        auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
+        dragContainer->startDragging(var(param->getTitle()), this, Image(), true);
+    }
+
     void valueChanged(Value& v) override
     {
-        createButton.setEnabled(!getValue<bool>(v));
+        //createButton.setEnabled(!getValue<bool>(v));
     }
 
     int getItemHeight()
@@ -272,7 +290,7 @@ public:
             maxValue.setBounds(thirdRow.removeFromLeft(oneThird));
         }
 
-        auto buttonsBounds = firstRow.removeFromRight(50).withHeight(25);
+        auto buttonsBounds = firstRow.removeFromRight(25).withHeight(25);
 
         nameLabel.setBounds(firstRow);
 
@@ -280,7 +298,6 @@ public:
         slider.setBounds(secondRow.removeFromLeft(getWidth() - 90));
         valueLabel.setBounds(secondRow);
 
-        createButton.setBounds(buttonsBounds.removeFromLeft(25));
         deleteButton.setBounds(buttonsBounds.removeFromLeft(25));
     }
 
@@ -298,7 +315,6 @@ public:
 
     std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*) {};
 
-    TextButton createButton = TextButton(Icons::Add);
     TextButton deleteButton = TextButton(Icons::Clear);
     ExpandButton settingsButton;
 

@@ -2,9 +2,9 @@
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
+#include "PluginEditor.h"
 #include "SplitView.h"
 #include "Canvas.h"
-#include "PluginEditor.h"
 #include "PluginProcessor.h"
 #include "Sidebar/Sidebar.h"
 
@@ -60,150 +60,171 @@ private:
     float targetAlpha = 0.0f;
 };
 
-class SplitViewResizer : public Component {
-public:
-    static inline constexpr int width = 6;
-
-    SplitViewResizer(SplitView* splitView)
-        : splitView(splitView)
-    {
-        setMouseCursor(MouseCursor::LeftRightResizeCursor);
-        setAlwaysOnTop(true);
-    }
-
-private:
-    void mouseDown(MouseEvent const& e) override
-    {
-        dragStartWidth = getX();
-    }
-
-    void mouseDrag(MouseEvent const& e) override
-    {
-        int newX = std::clamp<int>(dragStartWidth + e.getDistanceFromDragStartX(), getParentComponent()->getWidth() * 0.25f, getParentComponent()->getWidth() * 0.75f);
-        setTopLeftPosition(newX, 0);
-        splitView->splitViewWidth = (newX + width / 2.0f) / splitView->getWidth();
-        splitView->resized();
-    }
-
-    int dragStartWidth = 0;
-    bool draggingSplitview = false;
-    SplitView* splitView;
-};
-
 SplitView::SplitView(PluginEditor* parent)
     : editor(parent)
     , fadeAnimation(new FadeAnimation(this))
     , fadeAnimationLeft(new FadeAnimation(this))
     , fadeAnimationRight(new FadeAnimation(this))
 {
-    //TODO: replicate current behaviour first - we will add new splits as we go (in future)
-    splits.add(new TabComponent(editor));
-    splits.add(new TabComponent(editor));
-
-    auto* resizer = new SplitViewResizer(this);
-
-    addChildComponent(resizer);
-
-    splitViewResizer.reset(resizer);
-
-    for (auto* tabbar : splits)
-        addAndMakeVisible(tabbar);
+    rootComponent = new ResizableTabbedComponent(editor);
+    splits.add(rootComponent);
+    addAndMakeVisible(rootComponent);
+    // this will cause the default welcome screen to be selected
+    // which we don't want
+    // either we check if the tabcomponent is welcome mode, or we check if it's nullptr down the line
+    activeTabComponent = rootComponent;
 
     addMouseListener(this, true);
 }
 
 SplitView::~SplitView() = default;
 
+bool SplitView::canSplit()
+{
+    return splits.size() < 3;
+}
+
+void SplitView::removeSplit(TabComponent* toRemove)
+{
+    ResizableTabbedComponent* toBeRemoved;
+    for (auto* split : splits) {
+        if (split->getTabComponent() == toRemove) {
+            toBeRemoved = split;
+            splits.removeObject(split, false);
+            break;
+        }
+    }
+    if (toBeRemoved) {
+        if (toBeRemoved->resizerRight) {
+            toBeRemoved->resizerRight->splits[1]->resizerLeft = toBeRemoved->resizerLeft;
+            // We prioritize the deletion of the Right Resizer, and hence also need to 
+            // update the pointer to the split
+            if (toBeRemoved->resizerLeft) {
+                toBeRemoved->resizerLeft->splits[0]->resizerRight->splits[1] = toBeRemoved->resizerRight->splits[1];
+            }
+            resizers.removeObject(toBeRemoved->resizerRight, true);
+        }
+        else if (toBeRemoved->resizerLeft) {
+            toBeRemoved->resizerLeft->splits[0]->resizerRight = toBeRemoved->resizerRight;
+            resizers.removeObject(toBeRemoved->resizerLeft, true);
+        }
+    }
+    delete toBeRemoved;
+}
+
+void SplitView::addSplit(ResizableTabbedComponent* split)
+{
+    splits.add(split);
+    addAndMakeVisible(split);
+    setFocus(split);
+}
+
+void SplitView::addResizer(SplitViewResizer* resizer)
+{
+    resizers.add(resizer);
+    addAndMakeVisible(resizer);
+    resizer->setBounds(getLocalBounds());
+}
+
 int SplitView::getTabComponentSplitIndex(TabComponent* tabComponent)
 {
     for (int i = 0; i < splits.size(); i++) {
-        if (splits[i] == tabComponent) {
+        if (splits[i]->getTabComponent() == tabComponent) {
             return i;
         }
     }
 }
 
-void SplitView::setSplitFocusIndex(int index)
-{
-    splitFocusIndex = index;
-}
+//void SplitView::setSplitEnabled(bool splitEnabled)
+//{
+//    splitView = splitEnabled;
+//    splitFocusIndex = splitEnabled;
+//
+//    resized();
+//}
 
-void SplitView::setSplitEnabled(bool splitEnabled)
-{
-    splitView = splitEnabled;
-    splitFocusIndex = splitEnabled;
-
-    splitViewResizer->setVisible(splitEnabled);
-    resized();
-}
-
-bool SplitView::isSplitEnabled() const
-{
-    return splitView;
-}
+//bool SplitView::isSplitEnabled() const
+//{
+//    return splitView;
+//}
 
 void SplitView::resized()
 {
     auto b = getLocalBounds();
-    auto splitWidth = splitView ? splitViewWidth * getWidth() : getWidth();
-
-    getRightTabbar()->setBounds(b.removeFromRight(getWidth() - splitWidth));
-    getLeftTabbar()->setBounds(b);
-
-    int splitResizerWidth = SplitViewResizer::width;
-    int halfSplitWidth = splitResizerWidth / 2;
-    splitViewResizer->setBounds(splitWidth - halfSplitWidth, 0, splitResizerWidth, getHeight());
+    for (auto* split : splits) {
+        split->setBoundsWithFactors(b);
+    }
+    for (auto* resizer : resizers) {
+        resizer->setBounds(b);
+    }
 }
 
-void SplitView::setFocus(Canvas* cnv)
+void SplitView::setFocus(ResizableTabbedComponent* selectedTabComponent)
 {
-    splitFocusIndex = cnv->getTabbar() == getRightTabbar();
-    repaint();
+    if (activeTabComponent != selectedTabComponent) {
+        activeTabComponent = selectedTabComponent;
+        repaint();
+    }
 }
 
-bool SplitView::hasFocus(Canvas* cnv)
-{
-    if ((cnv->getTabbar() == getRightTabbar()) == splitFocusIndex)
-        return true;
-    else
-        return false;
-}
+//void SplitView::componentMovedOrResized(juce::Component& component, bool wasMoved, bool wasResized)
+//{
+//    if (auto tabComp = dynamic_cast<ResizableTabbedComponent*>(&component)) {
+//        if (activeTabComponent) {
+//            repaint();
+//        }
+//    }
+//}
 
-bool SplitView::isRightTabbarActive() const
-{
-    return splitFocusIndex;
-}
+//bool SplitView::hasFocus(Canvas* cnv)
+//{
+//    if ((cnv->getTabbar() == getRightTabbar()) == splitFocusIndex)
+//        return true;
+//    else
+//        return false;
+//}
+
+//bool SplitView::isRightTabbarActive() const
+//{
+//    return splitFocusIndex;
+//}
 
 void SplitView::closeEmptySplits()
-{
-    if (!splits[1]->getNumTabs()) {
+{   /*
+    if (!splits[1]->getTabComponent()->getNumTabs()) {
         // Disable splitview if all splitview tabs are closed
         setSplitEnabled(false);
     }
-    if (splitView && !splits[0]->getNumTabs()) {
+    if (splitView && !splits[0]->getTabComponent()->getNumTabs()) {
 
         // move all tabs over to the left side
-        for (int i = splits[1]->getNumTabs() - 1; i >= 0; i--) {
-            splitCanvasView(splits[1]->getCanvas(i), false);
+        for (int i = splits[1]->getTabComponent()->getNumTabs() - 1; i >= 0; i--) {
+            splitCanvasView(splits[1]->getTabComponent()->getCanvas(i), false);
         }
 
         setSplitEnabled(false);
     }
-    if (splits[0]->getCurrentTabIndex() < 0 && splits[0]->getNumTabs()) {
-        splits[0]->setCurrentTabIndex(0);
+    if (splits[0]->getTabComponent()->getCurrentTabIndex() < 0 && splits[0]->getTabComponent()->getNumTabs()) {
+        splits[0]->getTabComponent()->setCurrentTabIndex(0);
     }
     // Make sure to show the welcome screen if this was the last tab
-    else if (splits[0]->getCurrentTabIndex() < 0) {
-        splits[0]->currentTabChanged(-1, "");
+    else if (splits[0]->getTabComponent()->getCurrentTabIndex() < 0) {
+        splits[0]->getTabComponent()->currentTabChanged(-1, "");
     }
 
-    if (splits[1]->getCurrentTabIndex() < 0 && splits[1]->getNumTabs()) {
-        splits[1]->setCurrentTabIndex(0);
+    if (splits[1]->getTabComponent()->getCurrentTabIndex() < 0 && splits[1]->getTabComponent()->getNumTabs()) {
+        splits[1]->getTabComponent()->setCurrentTabIndex(0);
     }
+    */
 }
 
 void SplitView::paintOverChildren(Graphics& g)
 {
+    g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
+    auto screenBounds = activeTabComponent->getScreenBounds();
+    auto b = getLocalArea(nullptr, screenBounds);
+    g.drawRect(b, 2.5f);
+    /*
     auto* tabbar = getActiveTabbar();
     Colour indicatorColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
 
@@ -246,6 +267,7 @@ void SplitView::paintOverChildren(Graphics& g)
             }
         }
     }
+    */
 }
 
 void SplitView::splitCanvasesAfterIndex(int idx, bool direction)
@@ -274,35 +296,29 @@ void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
 
     cnv->recreateViewport();
 
-    if (splitViewFocus) {
-        setSplitEnabled(true);
-    } else {
-        // Check if the right tabbar has any tabs left after performing split
-        setSplitEnabled(getRightTabbar()->getNumTabs());
-    }
-
-    splitFocusIndex = splitViewFocus;
-    editor->addTab(cnv);
-    fadeAnimation->fadeOut();
+    //if (splitViewFocus) {
+    //    setSplitEnabled(true);
+    //} else {
+    //    // Check if the right tabbar has any tabs left after performing split
+    //    setSplitEnabled(getRightTabbar()->getNumTabs());
+    //}
+    //
+    //splitFocusIndex = splitViewFocus;
+    //editor->addTab(cnv);
+    //fadeAnimation->fadeOut();
 }
 
 TabComponent* SplitView::getActiveTabbar()
 {
-    return splits[splitFocusIndex];
-}
+    if (activeTabComponent)
+        return activeTabComponent->getTabComponent();
 
-TabComponent* SplitView::getLeftTabbar()
-{
-    return splits[0];
-}
-
-TabComponent* SplitView::getRightTabbar()
-{
-    return splits[1];
+    return nullptr;
 }
 
 void SplitView::mouseDrag(MouseEvent const& e)
 {
+    /*
     auto* activeTabbar = getActiveTabbar();
 
     // Check if the active tabbar has a valid tab snapshot and if the tab snapshot is below the current tab
@@ -331,10 +347,12 @@ void SplitView::mouseDrag(MouseEvent const& e)
     } else {
         splitviewIndicator = false;
     }
+    */
 }
 
 void SplitView::mouseUp(MouseEvent const& e)
 {
+    /*
     if (splitviewIndicator) {
         auto* tabbar = getActiveTabbar();
         if (tabbar == getLeftTabbar()) {
@@ -345,4 +363,5 @@ void SplitView::mouseUp(MouseEvent const& e)
         splitviewIndicator = false;
         closeEmptySplits();
     }
+    */
 }

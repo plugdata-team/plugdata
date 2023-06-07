@@ -163,7 +163,10 @@ public:
     }
     var getDragSourceDescription() override
     {
-        return String();
+        if (file.existsAsFile() && file.hasFileExtension("pd")) {
+            return var(String(file.getFileName()));
+        }
+        return var();
     }
 
     void itemOpennessChanged(bool isNowOpen) override

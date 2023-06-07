@@ -1,7 +1,10 @@
 #pragma once
 
 #include "PluginEditor.h"
+#include "Canvas.h"
+#include "Tabbar.h"
 #include "Standalone/PlugDataWindow.h"
+
 
 class PluginMode : public Component {
 public:
