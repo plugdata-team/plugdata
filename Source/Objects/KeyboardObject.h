@@ -79,8 +79,9 @@ public:
             for (auto& note : heldKeys) {
                 noteOff(note);
             }
-            if (lastKey != midiNoteNumber)
+            if (lastKey != midiNoteNumber){
                 heldKeys.erase(lastKey);
+            }
 
             lastKey = midiNoteNumber;
 
@@ -93,24 +94,19 @@ public:
         return true;
     }
 
-    void mouseUpOnKey(int midiNoteNumber, MouseEvent const& e) override
+    // When dragging over the keyboard, the cursor may leave the keyboard object.
+    // If the user ends the drag action (mouse up) when not over the keyboard object, 
+    // the keyboard will not register the mouse up, and the key will be stuck on.
+    // This could possibly be a bug in juce.
+    // So we completely replace mouseUpOnKey functionality here, mouseUp() will stop mouseUpOnKey() being called.
+    void mouseUp(MouseEvent const& e) override
     {
         if (!toggleMode) {
-            heldKeys.erase(midiNoteNumber);
-            noteOff(midiNoteNumber);
+            heldKeys.erase(lastKey);
+            noteOff(lastKey);
         }
-
         repaint();
     }
-
-    // Override to fix bug in JUCE
-    //void mouseUp(MouseEvent const& e) override
-    //{
-    //    auto keys = heldKeys;
-    //    for (auto& key : keys) {
-    //        mouseUpOnKey(key, e);
-    //    }
-    //}
 
     void setToggleMode(bool enableToggleMode)
     {
