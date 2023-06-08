@@ -1539,6 +1539,7 @@ bool Canvas::panningModifierDown()
 
 void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
 {
+    auto atoms = pd::Atom::fromAtoms(argc, argv);
     switch (hash(symbol)) {
     case hash("obj"):
     case hash("msg"):
@@ -1564,6 +1565,19 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
     case hash("donecanvasdialog"): {
         // This will trigger an asyncupdater, so it's thread-safe to do this here
         synchronise();
+        break;
+    }
+    case hash("editmode"): {
+        if (atoms.size() >= 1) {
+            int flag = atoms[0].getFloat();
+            if (flag % 2 == 0) {
+                locked = true;
+                presentationMode = false;
+            } else {
+                locked = false;
+                presentationMode = false;
+            }
+        }
         break;
     }
     }
