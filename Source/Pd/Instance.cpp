@@ -16,8 +16,6 @@
 #include "Objects/ImplementationBase.h"
 #include "Utility/SettingsFile.h"
 
-#include "OfeliaMessageManager.h"
-
 extern "C" {
 
 #include <g_undo.h>
@@ -27,6 +25,7 @@ extern "C" {
 #include "x_libpd_mod_utils.h"
 #include "x_libpd_multi.h"
 #include "z_print_util.h"
+#include "Ofelia/ofxOfeliaSetup.h"
 
 int sys_load_lib(t_canvas* canvas, char const* classname);
 void set_class_prefix(t_symbol* dir);
@@ -243,7 +242,12 @@ void Instance::initialisePd(String& pdlua_version)
         set_class_prefix(gensym("cyclone"));
         class_set_extern_dir(gensym("10.cyclone"));
         libpd_init_cyclone();
+        
+        set_class_prefix(gensym("ofelia"));
+        ofelia_setup();
+        
         set_class_prefix(nullptr);
+
 
         // Class prefix doesn't seem to work for pdlua
         char vers[1000];
@@ -756,3 +760,4 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
 }
 
 } // namespace pd
+

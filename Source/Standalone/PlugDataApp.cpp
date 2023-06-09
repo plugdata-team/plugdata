@@ -30,8 +30,6 @@
 
 #include "Dialogs/Dialogs.h"
 
-#include "Pd/OfeliaMessageManager.h"
-
 extern "C" {
 #include <x_libpd_multi.h>
 }
@@ -245,6 +243,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     return retval;
 }
 
+
 juce::JUCEApplicationBase* juce_CreateApplication();
 juce::JUCEApplicationBase* juce_CreateApplication() { return new PlugDataApp(); }
 
@@ -276,13 +275,7 @@ int main(int argc, char* argv[])
     while (!messageManager->hasStopMessageBeenSent()) {
         JUCE_TRY
         {
-            // loop until a quit message is received..
-            messageManager->runDispatchLoopUntil(loopRunTime);
-
-            // Returns how long the openGL render took in ms, so we can adjust how long
-            // juce will run to hit 60fps
-            // If Ofelia is not running, it will return a high number to reduce overhead
-            loopRunTime = pd::OfeliaMessageManager::pollEvents();
+            messageManager->runDispatchLoop();
         }
         JUCE_CATCH_EXCEPTION
     }

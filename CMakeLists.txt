@@ -120,6 +120,8 @@ file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/Pd/*.h
     ${SOURCES_DIRECTORY}/Heavy/*.cpp
     ${SOURCES_DIRECTORY}/Heavy/*.h
+    ${SOURCES_DIRECTORY}/Ofelia/*.cpp
+    ${SOURCES_DIRECTORY}/Ofelia/*.h
 )
 
 if(APPLE)
@@ -188,6 +190,7 @@ set(libs
   juce::juce_audio_utils
   juce::juce_audio_plugin_client
   juce::juce_dsp
+  juce::juce_opengl
 )
 
 if(UNIX AND NOT APPLE)

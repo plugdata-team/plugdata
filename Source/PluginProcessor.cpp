@@ -32,7 +32,7 @@
 #include "Dialogs/Dialogs.h"
 #include "Sidebar/Sidebar.h"
 
-#include "Pd/OfeliaMessageManager.h"
+#include "Ofelia/ofxOfeliaMessageManager.h"
 
 #include "Standalone/InternalSynth.h"
 
@@ -128,8 +128,7 @@ PluginProcessor::PluginProcessor()
     atoms_playhead.resize(1);
 
     // Initialise threading system for ofelia
-    pd::OfeliaMessageManager::create();
-    pd::OfeliaMessageManager::setAudioCallbackLock(&audioLock);
+    ofxOfeliaMessageManager::getOrCreate();
 
     sendMessagesFromQueue();
 
