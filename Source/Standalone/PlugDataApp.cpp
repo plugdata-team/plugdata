@@ -270,15 +270,11 @@ int main(int argc, char* argv[])
 
     messageManager->setCurrentThreadAsMessageThread();
 
-    int loopRunTime = 800;
-
-    while (!messageManager->hasStopMessageBeenSent()) {
-        JUCE_TRY
-        {
-            messageManager->runDispatchLoop();
-        }
-        JUCE_CATCH_EXCEPTION
+    JUCE_TRY
+    {
+        messageManager->runDispatchLoop();
     }
-
+    JUCE_CATCH_EXCEPTION
+    
     return app->shutdownApp();
 }
