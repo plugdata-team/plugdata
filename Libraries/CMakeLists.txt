@@ -398,25 +398,47 @@ set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if(BUILD_OFELIA)
 message(STATUS "Cloning plugdata-ofelia (this can take a while)")
-include(FetchContent)
 
-FetchContent_Declare(
-    plugdata-ofelia
-    GIT_REPOSITORY https://github.com/plugdata-team/plugdata-ofelia.git
-    GIT_TAG main
-    SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/plugdata-ofelia"
-)
+set(plugdata-ofelia_DIR "${CMAKE_CURRENT_LIST_DIR}/plugdata-ofelia" CACHE INTERNAL "")
 
-FetchContent_GetProperties(plugdata-ofelia)
-if(NOT plugdata-ofelia_POPULATED)
-    FetchContent_Populate(plugdata-ofelia)
+if(EXISTS ${plugdata-ofelia_DIR})
+    execute_process(
+        COMMAND git -C ${plugdata-ofelia_DIR} rev-parse HEAD
+        OUTPUT_VARIABLE CURRENT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        OUTPUT_QUIET
+    )
+
+    if(1) # Always keep up to date
+        execute_process(
+            COMMAND git -C ${plugdata-ofelia_DIR} pull
+        )
+    else() # lock to a hash
+        set(DESIRED_HASH "INSERT_DESIRED_HASH_VALUE_HERE")
+
+        if(NOT CURRENT_HASH STREQUAL DESIRED_HASH)
+            message(STATUS "Removing existing plugdata-ofelia folder due to incorrect git hash")
+            file(REMOVE_RECURSE ${plugdata-ofelia_DIR})
+        endif()
+    endif()
+endif()
+
+if(NOT EXISTS ${plugdata-ofelia_DIR})
+    message(STATUS "Cloning plugdata-ofelia repository")
+    execute_process(
+        COMMAND git clone --recurse-submodules --shallow-submodules https://github.com/plugdata-team/plugdata-ofelia.git ${plugdata-ofelia_DIR} OUTPUT_QUIET
+    )
+    
     execute_process(COMMAND ./Libraries/openFrameworks/scripts/osx/download_libs.sh
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET ERROR_QUIET)
 endif()
 
+
 message(STATUS "Building Ofelia (this can take a while)")
 
-add_subdirectory(plugdata-ofelia)
+if(NOT TARGET plugdata-ofelia)
+    add_subdirectory(${plugdata-ofelia_SOURCE_DIR} ${plugdata-ofelia_BINARY_DIR})
+endif()
 
 if(MSVC)
 execute_process(COMMAND ./Resources/build.bat
