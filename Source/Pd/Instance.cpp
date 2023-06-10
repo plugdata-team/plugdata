@@ -245,8 +245,10 @@ void Instance::initialisePd(String& pdlua_version)
         class_set_extern_dir(gensym("10.cyclone"));
         libpd_init_cyclone();
         
+#if BUILD_OFELIA
         set_class_prefix(gensym("ofelia"));
         ofelia_setup();
+#endif
         
         set_class_prefix(nullptr);
 
