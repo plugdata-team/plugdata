@@ -400,15 +400,24 @@ set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 if(BUILD_OFELIA)
 message(STATUS "Cloning plugdata-ofelia (this may take a while)")
 include(FetchContent)
-FetchContent_Declare(plugdata-ofelia
- GIT_REPOSITORY "https://github.com/plugdata-team/plugdata-ofelia.git"
- GIT_TAG "main"   # it's much better to use a specific Git revision or Git tag for reproducibility
- SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia"
+
+set(plugdata-ofelia_DIR ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia CACHE INTERNAL "")
+
+FetchContent_Declare(
+    plugdata-ofelia
+    GIT_REPOSITORY https://github.com/plugdata-team/plugdata-ofelia.git
+    GIT_TAG main
 )
-FetchContent_MakeAvailable(plugdata-ofelia)
-add_subdirectory(plugdata-ofelia)
+
+FetchContent_GetProperties(plugdata-ofelia)
+if(NOT plugdata-ofelia_POPULATED)
+    FetchContent_Populate(plugdata-ofelia)
+endif()
 
 message(STATUS "Building Ofelia (this may take a while)")
+
+add_subdirectory(plugdata-ofelia)
+
 if(MSVC)
 execute_process(COMMAND ./Resources/build.bat
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET)
