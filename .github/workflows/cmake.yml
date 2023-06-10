@@ -29,10 +29,6 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DBUILD_OFELIA=1
 
-    - name: Download Ofelia dependencies
-      working-directory: ${{github.workspace}}/Libraries/plugdata-ofelia
-      run: ./Libraries/openFrameworks/scripts/osx/download_libs.sh
-
     - name: Import Code-Signing Certificates
       uses: figleafteam/import-codesign-certs@v2
       with: 
