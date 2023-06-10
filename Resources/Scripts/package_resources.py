@@ -117,6 +117,10 @@ for src in ["pdlua*-help.pd"]:
 for src in ["pdlua"]:
     copyDir(pdlua_srcdir+src, "./Documentation/13.pdlua/"+src)
 
+# ofelia
+if os.path.isdir("../../Libraries/plugdata-ofelia"):
+    copyDir("../../Libraries/plugdata-ofelia/ofelia", "Extra/ofelia");
+
 # Make sure to get rid of these duplicates so that they don't interfere with
 # our help patches. Note that these are still in ELSE rc6, but won't be in rc7
 # which doesn't include pd-lua any more.

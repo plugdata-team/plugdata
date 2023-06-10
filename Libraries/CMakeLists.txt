@@ -12,17 +12,6 @@ if(MSVC)
     include_directories(pthread-win32)
 endif()
 
-if(BUILD_OFELIA)
-
-include(FetchContent)
-FetchContent_Declare(plugdata-ofelia
-  GIT_REPOSITORY "https://github.com/plugdata-team/plugdata-ofelia.git"
-  GIT_TAG "origin/ipc-test"   # it's much better to use a specific Git revision or Git tag for reproducibility
-  SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/plugdata-ofelia"
-)
-FetchContent_MakeAvailable(plugdata-ofelia)
-add_subdirectory(plugdata-ofelia)
-endif()
 
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -407,6 +396,31 @@ set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+if(BUILD_OFELIA)
+message(STATUS "Cloning plugdata-ofelia (this may take a while)")
+include(FetchContent)
+FetchContent_Declare(plugdata-ofelia
+ GIT_REPOSITORY "https://github.com/plugdata-team/plugdata-ofelia.git"
+ GIT_TAG "main"   # it's much better to use a specific Git revision or Git tag for reproducibility
+ SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia"
+)
+FetchContent_MakeAvailable(plugdata-ofelia)
+add_subdirectory(plugdata-ofelia)
+
+message(STATUS "Building Ofelia (this may take a while)")
+if(MSVC)
+execute_process(COMMAND ./Resources/build.bat
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET)
+else()
+execute_process(COMMAND ./Resources/build.sh
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET)
+endif()
+
+target_link_libraries(externals ofelia)
+target_link_libraries(externals-multi ofelia)
+endif()
+
 
 target_link_libraries(externals fluidlite lua)
 target_link_libraries(externals-multi fluidlite lua)
