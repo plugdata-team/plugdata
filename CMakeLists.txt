@@ -178,7 +178,6 @@ set(libs
   juce::juce_audio_utils
   juce::juce_audio_plugin_client
   juce::juce_dsp
-  juce::juce_opengl
 )
 
 if(UNIX AND NOT APPLE)
