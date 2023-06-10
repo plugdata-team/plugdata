@@ -33,7 +33,7 @@
 #include "Sidebar/Sidebar.h"
 
 #if BUILD_OFELIA
-#include "ofxOfeliaMessageManager.h"
+#include "../Libraries/plugdata-ofelia/Source/Objects/ofxOfeliaMessageManager.h"
 #endif
 
 #include "Standalone/InternalSynth.h"

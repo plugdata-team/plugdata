@@ -26,7 +26,7 @@ extern "C" {
 #include "x_libpd_multi.h"
 #include "z_print_util.h"
 #if BUILD_OFELIA
-    #include "ofxOfeliaSetup.h"
+    #include "../Libraries/plugdata-ofelia/Source/Objects/ofxOfeliaSetup.h"
 #endif
 
 int sys_load_lib(t_canvas* canvas, char const* classname);
