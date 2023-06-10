@@ -410,10 +410,9 @@ FetchContent_Declare(
 FetchContent_GetProperties(plugdata-ofelia)
 if(NOT plugdata-ofelia_POPULATED)
     FetchContent_Populate(plugdata-ofelia)
-endif()
-
-execute_process(COMMAND ./Libraries/openFrameworks/scripts/osx/download_libs.sh
+    execute_process(COMMAND ./Libraries/openFrameworks/scripts/osx/download_libs.sh
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET ERROR_QUIET)
+endif()
 
 message(STATUS "Building Ofelia (this can take a while)")
 

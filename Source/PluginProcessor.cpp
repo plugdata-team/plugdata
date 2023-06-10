@@ -32,7 +32,9 @@
 #include "Dialogs/Dialogs.h"
 #include "Sidebar/Sidebar.h"
 
-#include "Ofelia/ofxOfeliaMessageManager.h"
+#if BUILD_OFELIA
+#include "ofxOfeliaMessageManager.h"
+#endif
 
 #include "Standalone/InternalSynth.h"
 
@@ -127,9 +129,11 @@ PluginProcessor::PluginProcessor()
     atoms_playhead.reserve(3);
     atoms_playhead.resize(1);
 
+#if BUILD_OFELIA
     // Initialise threading system for ofelia
     ofxOfeliaMessageManager::getOrCreate();
-
+#endif
+    
     sendMessagesFromQueue();
 
     auto themeName = settingsFile->getProperty<String>("theme");
