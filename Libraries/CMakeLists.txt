@@ -437,7 +437,7 @@ endif()
 message(STATUS "Building Ofelia (this can take a while)")
 
 if(NOT TARGET plugdata-ofelia)
-    add_subdirectory(${plugdata-ofelia_SOURCE_DIR} ${plugdata-ofelia_BINARY_DIR})
+    add_subdirectory(${plugdata-ofelia_SOURCE_DIR})
 endif()
 
 if(MSVC)
