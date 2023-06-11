@@ -397,7 +397,6 @@ set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if(BUILD_OFELIA)
-message(STATUS "Cloning plugdata-ofelia (this can take a while)")
 
 set(plugdata-ofelia_DIR "${CMAKE_CURRENT_LIST_DIR}/plugdata-ofelia" CACHE INTERNAL "")
 
@@ -424,7 +423,7 @@ if(EXISTS ${plugdata-ofelia_DIR})
 endif()
 
 if(NOT EXISTS ${plugdata-ofelia_DIR})
-    message(STATUS "Cloning plugdata-ofelia repository")
+    message(STATUS "Cloning plugdata-ofelia repository (this can take a while)")
     execute_process(
         COMMAND git clone --recurse-submodules --shallow-submodules https://github.com/plugdata-team/plugdata-ofelia.git ${plugdata-ofelia_DIR} OUTPUT_QUIET
     )
