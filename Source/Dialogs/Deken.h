@@ -339,7 +339,7 @@ public:
 
     PackageList allPackages;
 
-    File filesystem = ProjectInfo::appDataDir.getChildFile("Deken");
+    static inline const File filesystem = ProjectInfo::appDataDir.getChildFile("Deken");
 
     // Package info file
     File pkgInfo = filesystem.getChildFile(".pkg_info");
