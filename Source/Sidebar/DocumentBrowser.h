@@ -775,7 +775,7 @@ public:
         , fileList(directory, this)
         , searchComponent(directory)
     {
-        auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
+        auto location = ProjectInfo::appDataDir.getChildFile("Library");
 
         if (SettingsFile::getInstance()->hasProperty("browser_path")) {
             auto customLocation = File(pd->settingsFile->getProperty<String>("browser_path"));
@@ -853,7 +853,7 @@ public:
         };
 
         auto resetFolderCallback = [this]() {
-            auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
+            auto location = ProjectInfo::appDataDir.getChildFile("Library");
             const auto& path = location.getFullPathName();
             pd->settingsFile->setProperty("browser_path", path);
             directory.setDirectory(path, true, true);

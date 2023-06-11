@@ -132,12 +132,7 @@ public:
 
     std::unique_ptr<pd::Library> objectLibrary;
 
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-
-    static inline const String versionSuffix = "-1";
-    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + versionSuffix);
-
-    File abstractions = versionDataDir.getChildFile("Abstractions");
+    File abstractions = ProjectInfo::versionDataDir.getChildFile("Abstractions");
 
     Value commandLocked = Value(var(false));
 

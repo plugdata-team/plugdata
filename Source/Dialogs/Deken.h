@@ -339,7 +339,7 @@ public:
 
     PackageList allPackages;
 
-    inline static File filesystem = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Deken");
+    File filesystem = ProjectInfo::appDataDir.getChildFile("Deken");
 
     // Package info file
     File pkgInfo = filesystem.getChildFile(".pkg_info");

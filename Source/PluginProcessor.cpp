@@ -204,9 +204,11 @@ PluginProcessor::~PluginProcessor()
 
 void PluginProcessor::initialiseFilesystem()
 {
+    const auto& homeDir = ProjectInfo::appDataDir;
+    const auto& versionDataDir = ProjectInfo::versionDataDir;
     auto library = homeDir.getChildFile("Library");
     auto deken = homeDir.getChildFile("Deken");
-
+    
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !abstractions.exists()) {
 
@@ -955,7 +957,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     // Save path and content for patch
     lockAudioThread();
 
-    auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+    auto presetDir = ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
 
     auto* patchesTree = new XmlElement("Patches");
 
@@ -1055,7 +1057,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         auto state = istream.readString();
         auto path = istream.readString();
 
-        auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+        auto presetDir = ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
         auto location = File(path);
@@ -1107,7 +1109,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto location = p->getStringAttribute("Location");
                 auto pluginMode = p->getBoolAttribute("PluginMode");
 
-                auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+                auto presetDir = ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("Presets");
                 location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
                 openPatch(content, location, pluginMode);

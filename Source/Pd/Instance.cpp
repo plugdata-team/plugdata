@@ -234,8 +234,7 @@ void Instance::initialisePd(String& pdlua_version)
     static bool initialised = false;
     if (!initialised) {
 
-        File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-        auto library = homeDir.getChildFile("Library");
+        auto library = ProjectInfo::appDataDir.getChildFile("Library");
         auto extra = library.getChildFile("Extra");
 
         set_class_prefix(gensym("else"));

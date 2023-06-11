@@ -11,9 +11,9 @@
 
 struct Toolchain {
 #if JUCE_WINDOWS
-    inline static File dir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("usr");
+    File dir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
 #else
-    inline static File dir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
+    File dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 #endif
 
     static void deleteTempFileLater(File script)
@@ -256,7 +256,7 @@ struct ToolchainInstaller : public Component
         MemoryInputStream input(toolchainData, false);
         ZipFile zip(input);
 
-        auto toolchainDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
+        auto toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 
         if (toolchainDir.exists())
             toolchainDir.deleteRecursively();
