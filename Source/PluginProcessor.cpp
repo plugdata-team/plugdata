@@ -132,6 +132,8 @@ PluginProcessor::PluginProcessor()
     atoms_playhead.resize(1);
 
 #if BUILD_OFELIA
+    ofelia.start(ProjectInfo::versionDataDir.getChildFile("ofelia").getChildFile("ofelia").getFullPathName());
+    
     // Initialise threading system for ofelia
     ofxOfeliaMessageManager::getOrCreate();
 #endif
