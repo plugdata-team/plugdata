@@ -434,7 +434,13 @@ if(NOT EXISTS ${plugdata-ofelia_DIR})
     execute_process(COMMAND ./Libraries/openFrameworks/scripts/linux/download_libs.sh
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia)
     elseif(MSVC)
-    execute_process(COMMAND bash ./Libraries/openFrameworks/scripts/vs/download_libs.sh
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(BITS 64)
+    else()
+        set(BITS 32)
+    endif()
+
+    execute_process(COMMAND bash ./Libraries/openFrameworks/scripts/vs/download_libs.sh --BITS ${BITS}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET ERROR_QUIET)
     endif()
 endif()
