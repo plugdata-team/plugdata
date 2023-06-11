@@ -205,6 +205,7 @@ PluginProcessor::~PluginProcessor()
 {
     // Deleting the pd instance in ~PdInstance() will also free all the Pd patches
     patches.clear();
+    ofelia.kill();
 }
 
 void PluginProcessor::initialiseFilesystem()
