@@ -427,9 +427,16 @@ if(NOT EXISTS ${plugdata-ofelia_DIR})
     execute_process(
         COMMAND git clone --recurse-submodules --shallow-submodules https://github.com/plugdata-team/plugdata-ofelia.git ${plugdata-ofelia_DIR} OUTPUT_QUIET
     )
-    
+    if(APPLE)
     execute_process(COMMAND ./Libraries/openFrameworks/scripts/osx/download_libs.sh
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET ERROR_QUIET)
+    elseif(UNIX)
+    execute_process(COMMAND ./Libraries/openFrameworks/scripts/linux/download_libs.sh
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET ERROR_QUIET)
+    elseif(MSVC)
+    execute_process(COMMAND ./Libraries/openFrameworks/scripts/vs/download_libs.sh
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET ERROR_QUIET)
+    endif()
 endif()
 
 if(NOT TARGET ofelia)
