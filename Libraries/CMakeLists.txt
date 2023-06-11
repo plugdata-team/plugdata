@@ -433,23 +433,12 @@ if(NOT EXISTS ${plugdata-ofelia_DIR})
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET ERROR_QUIET)
 endif()
 
-
-message(STATUS "Building Ofelia (this can take a while)")
-
-if(NOT TARGET plugdata-ofelia)
-    add_subdirectory(${plugdata-ofelia_SOURCE_DIR})
+if(NOT TARGET ofelia)
+    add_subdirectory(${plugdata-ofelia_DIR})
 endif()
 
-if(MSVC)
-execute_process(COMMAND ./Resources/build.bat
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET)
-else()
-execute_process(COMMAND ./Resources/build.sh
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET)
-endif()
-
-target_link_libraries(externals ofelia)
-target_link_libraries(externals-multi ofelia)
+target_link_libraries(externals ofelia-external)
+target_link_libraries(externals-multi ofelia-external)
 endif()
 
 

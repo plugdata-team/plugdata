@@ -180,6 +180,10 @@ set(libs
   juce::juce_dsp
 )
 
+if(BUILD_OFELIA)
+  list(APPEND libs ofelia_binary_data)
+endif()
+
 if(UNIX AND NOT APPLE)
     set(PLUGDATA_COMPILE_DEFINITIONS
     ${PLUGDATA_COMPILE_DEFINITIONS}
