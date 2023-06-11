@@ -429,7 +429,7 @@ if(NOT EXISTS ${plugdata-ofelia_DIR})
     )
     if(APPLE)
     execute_process(COMMAND ./Libraries/openFrameworks/scripts/osx/download_libs.sh
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET ERROR_QUIET)
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET)
     elseif(UNIX)
     execute_process(COMMAND ./Libraries/openFrameworks/scripts/linux/download_libs.sh
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia)
@@ -440,7 +440,7 @@ if(NOT EXISTS ${plugdata-ofelia_DIR})
         set(BITS 32)
     endif()
 
-    execute_process(COMMAND bash ./Libraries/openFrameworks/scripts/vs/download_libs.sh --BITS ${BITS}
+    execute_process(COMMAND ${CMAKE_COMMAND} -E env "bash" ./Libraries/openFrameworks/scripts/vs/download_libs.sh --BITS ${BITS}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia)
     endif()
 endif()
