@@ -234,7 +234,7 @@ jobs:
 
         - name: Build
           working-directory: ${{github.workspace}}
-          run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+          run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=0 -DBUILD_OFELIA=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
         - name: Prepare Artefacts
           working-directory: ${{github.workspace}}
