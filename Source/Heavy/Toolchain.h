@@ -11,9 +11,9 @@
 
 struct Toolchain {
 #if JUCE_WINDOWS
-    File dir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
+    static inline const File dir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
 #else
-    File dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
+    static inline const File dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 #endif
 
     static void deleteTempFileLater(File script)
