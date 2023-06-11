@@ -241,7 +241,14 @@ void PluginProcessor::initialiseFilesystem()
     library.deleteRecursively();
     library.createDirectory();
     
+    auto ofeliaDir = versionDataDir.getChildFile("Extra").getChildFile("ofelia");
     auto ofeliaBinaryData = getOfeliaBinaryData();
+    MemoryInputStream ofeliaBinaryDataStream(ofeliaBinaryData.data(), ofeliaBinaryData.size(), false);
+
+    homeDir.createDirectory();
+
+    auto ofeliaZipFile = ZipFile(ofeliaBinaryDataStream);
+    ofeliaZipFile.uncompressTo(ofeliaDir);
 
     // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS
