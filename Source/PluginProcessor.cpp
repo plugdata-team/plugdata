@@ -134,7 +134,9 @@ PluginProcessor::PluginProcessor()
 #if BUILD_OFELIA
     auto ofeliaExecutable = ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("ofelia").getChildFile("ofelia");
     if(ofeliaExecutable.existsAsFile()) {
+#if !JUCE_DEBUG
         ofelia.start(ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("ofelia").getChildFile("ofelia").getFullPathName());
+#endif
     }
     
     // Initialise threading system for ofelia
