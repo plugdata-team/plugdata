@@ -34,10 +34,11 @@
 
 #if BUILD_OFELIA
 #include "../Libraries/plugdata-ofelia/Source/Objects/ofxOfeliaMessageManager.h"
+#include <ofelia_binary_data.h>
 #endif
 
 #include "Standalone/InternalSynth.h"
-#include <ofelia_binary_data.h>
+
 
 extern "C" {
 #include "x_libpd_extra_utils.h"
@@ -241,15 +242,24 @@ void PluginProcessor::initialiseFilesystem()
     library.deleteRecursively();
     library.createDirectory();
     
+#if BUILD_OFELIA
     auto ofeliaDir = versionDataDir.getChildFile("Extra").getChildFile("ofelia");
-    auto ofeliaBinaryData = getOfeliaBinaryData();
-    MemoryInputStream ofeliaBinaryDataStream(ofeliaBinaryData.data(), ofeliaBinaryData.size(), false);
-
-    homeDir.createDirectory();
-
-    auto ofeliaZipFile = ZipFile(ofeliaBinaryDataStream);
-    ofeliaZipFile.uncompressTo(ofeliaDir);
-
+    
+    if(!ofeliaDir.exists() || !ofeliaDir.getChildFile("ofelia").existsAsFile()) {
+        
+        auto ofeliaBinaryData = getOfeliaBinaryData();
+        MemoryInputStream ofeliaBinaryDataStream(ofeliaBinaryData.data(), ofeliaBinaryData.size(), false);
+        
+        homeDir.createDirectory();
+        
+        auto ofeliaZipFile = ZipFile(ofeliaBinaryDataStream);
+        ofeliaZipFile.uncompressTo(ofeliaDir);
+#if JUCE_MAC || JUCE_LINUX || JUCE_BSD
+        ofeliaDir.getChildFile("ofelia").setExecutePermission(true);
+#endif
+    }
+#endif
+    
     // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS
     // Get paths that need symlinks
