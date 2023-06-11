@@ -204,19 +204,19 @@ jobs:
       steps:
         - name: Install Dependencies (dnf)
           if: ${{ matrix.pacman == 'dnf' }}
-          run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip
+          run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip
 
         - name: Install Dependencies (apt)
           if: ${{ matrix.pacman == 'apt' }}
-          run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip
+          run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip
 
         - name: Install Dependencies (zypper)
           if: ${{ matrix.pacman == 'zypper' }}
-          run: zypper refresh && zypper install -y git wget xz tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python python3-pip
+          run: zypper refresh && zypper install -y git wget bzip2 xz tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python python3-pip
 
         - name: Install Dependencies (pacman)
           if: ${{ matrix.pacman == 'pacman' }}
-          run: pacman -Sy && pacman -S --noconfirm cmake wget git alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python python-pip curl ccache && pacman --noconfirm -Syu
+          run: pacman -Sy && pacman -S --noconfirm cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python python-pip curl ccache && pacman --noconfirm -Syu
 
         - uses: actions/checkout@v3
           with:
