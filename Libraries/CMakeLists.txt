@@ -441,7 +441,7 @@ if(NOT EXISTS ${plugdata-ofelia_DIR})
     endif()
 
     execute_process(COMMAND bash ./Libraries/openFrameworks/scripts/vs/download_libs.sh --BITS ${BITS}
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET ERROR_QUIET)
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia)
     endif()
 endif()
 
