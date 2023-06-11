@@ -37,6 +37,7 @@
 #endif
 
 #include "Standalone/InternalSynth.h"
+#include <ofelia_binary_data.h>
 
 extern "C" {
 #include "x_libpd_extra_utils.h"
@@ -239,6 +240,8 @@ void PluginProcessor::initialiseFilesystem()
 
     library.deleteRecursively();
     library.createDirectory();
+    
+    auto ofeliaBinaryData = getOfeliaBinaryData();
 
     // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS
