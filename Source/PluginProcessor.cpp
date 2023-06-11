@@ -132,7 +132,10 @@ PluginProcessor::PluginProcessor()
     atoms_playhead.resize(1);
 
 #if BUILD_OFELIA
-    ofelia.start(ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("ofelia").getChildFile("ofelia").getFullPathName());
+    auto ofeliaExecutable = ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("ofelia").getChildFile("ofelia");
+    if(ofeliaExecutable.existsAsFile()) {
+        ofelia.start(ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("ofelia").getChildFile("ofelia").getFullPathName());
+    }
     
     // Initialise threading system for ofelia
     ofxOfeliaMessageManager::getOrCreate();
