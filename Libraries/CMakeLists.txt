@@ -445,7 +445,7 @@ if(NOT EXISTS ${plugdata-ofelia_DIR})
         set(BASH_BIN "bash")
     endif()
 
-    execute_process(COMMAND ${BASH_BIN} ./Libraries/openFrameworks/scripts/vs/download_libs.sh --BITS ${BITS}
+    execute_process(COMMAND ${BASH_BIN} ./Libraries/openFrameworks/scripts/vs/download_libs.sh --arch ${BITS}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia)
     endif()
 endif()
