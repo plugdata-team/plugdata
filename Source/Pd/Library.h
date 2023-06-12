@@ -70,3 +70,5 @@ private:
 };
 
 } // namespace pd
+
+extern void stopOfelia();

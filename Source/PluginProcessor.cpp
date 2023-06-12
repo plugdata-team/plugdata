@@ -11,6 +11,7 @@
 #include <juce_dsp/juce_dsp.h>
 
 #include "PluginProcessor.h"
+#include "Pd/Library.h"
 
 #include "Utility/Config.h"
 #include "Utility/HashUtils.h"
@@ -32,7 +33,6 @@
 #include "Dialogs/Dialogs.h"
 #include "Sidebar/Sidebar.h"
 
-#include "../Libraries/plugdata-ofelia/Source/Objects/ofxOfeliaMessageManager.h"
 #include "Standalone/InternalSynth.h"
 
 
@@ -126,16 +126,6 @@ PluginProcessor::PluginProcessor()
 
     atoms_playhead.reserve(3);
     atoms_playhead.resize(1);
-
-    auto ofeliaExecutable = ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("ofelia").getChildFile("ofelia");
-    if(ofeliaExecutable.existsAsFile()) {
-#if !JUCE_DEBUG
-        ofelia.start(ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("ofelia").getChildFile("ofelia").getFullPathName());
-#endif
-    }
-    
-    // Initialise threading system for ofelia
-    ofxOfeliaMessageManager::getOrCreate();
     
     sendMessagesFromQueue();
 
@@ -201,7 +191,7 @@ PluginProcessor::~PluginProcessor()
 {
     // Deleting the pd instance in ~PdInstance() will also free all the Pd patches
     patches.clear();
-    ofelia.kill();
+    stopOfelia();
 }
 
 void PluginProcessor::initialiseFilesystem()

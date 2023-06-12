@@ -161,12 +161,6 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     PLUGDATA_GIT_HASH="${GIT_HASH}"
 )
 
-if (BUILD_OFELIA)
-  list(APPEND PLUGDATA_COMPILE_DEFINITIONS
-      BUILD_OFELIA=1
-  )
-endif()
-
 set(LIBPD_MULTI_COMPILE_DEFINITIONS
     PDINSTANCE=1
     PDTHREADS=1
@@ -179,10 +173,6 @@ set(libs
   juce::juce_audio_plugin_client
   juce::juce_dsp
 )
-
-if(BUILD_OFELIA)
-  list(APPEND libs ofelia_binary_data)
-endif()
 
 if(UNIX AND NOT APPLE)
     set(PLUGDATA_COMPILE_DEFINITIONS

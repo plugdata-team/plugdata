@@ -23,6 +23,8 @@ extern "C" {
 #include <x_libpd_mod_utils.h>
 }
 
+#include "../Libraries/plugdata-ofelia/Source/Objects/ofxOfeliaMessageManager.h"
+
 #include <utility>
 #include "Library.h"
 #include "Instance.h"
@@ -383,4 +385,28 @@ extern bool ofxOfeliaExecutableFound()
 {
     
     return pd::Library::findOfeliaExecutable().existsAsFile();
+}
+
+ChildProcess ofeliaProcess;
+
+extern void stopOfelia()
+{
+    ofeliaProcess.kill();
+}
+
+extern void startOfelia()
+{
+    if(ofeliaProcess.isRunning()) return;
+    
+    auto ofeliaExecutable = pd::Library::findOfeliaExecutable();
+    if(ofeliaExecutable.existsAsFile()) {
+        // Initialise threading system for ofelia
+        ofxOfeliaMessageManager::getOrCreate();
+        
+        ofeliaProcess.start(ofeliaExecutable.getFullPathName());
+        
+        
+    }
+    
+
 }
