@@ -31,6 +31,8 @@ public:
     static std::array<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
 
     void fsChangeCallback() override;
+    
+    static File findOfeliaExecutable();
 
     File findHelpfile(t_object* obj, File const& parentPatchFile) const;
 

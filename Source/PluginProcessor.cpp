@@ -32,11 +32,7 @@
 #include "Dialogs/Dialogs.h"
 #include "Sidebar/Sidebar.h"
 
-#if BUILD_OFELIA
 #include "../Libraries/plugdata-ofelia/Source/Objects/ofxOfeliaMessageManager.h"
-#include <ofelia_binary_data.h>
-#endif
-
 #include "Standalone/InternalSynth.h"
 
 
@@ -131,7 +127,6 @@ PluginProcessor::PluginProcessor()
     atoms_playhead.reserve(3);
     atoms_playhead.resize(1);
 
-#if BUILD_OFELIA
     auto ofeliaExecutable = ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("ofelia").getChildFile("ofelia");
     if(ofeliaExecutable.existsAsFile()) {
 #if !JUCE_DEBUG
@@ -141,7 +136,6 @@ PluginProcessor::PluginProcessor()
     
     // Initialise threading system for ofelia
     ofxOfeliaMessageManager::getOrCreate();
-#endif
     
     sendMessagesFromQueue();
 
@@ -251,24 +245,6 @@ void PluginProcessor::initialiseFilesystem()
 
     library.deleteRecursively();
     library.createDirectory();
-    
-#if BUILD_OFELIA
-    auto ofeliaDir = versionDataDir.getChildFile("Extra").getChildFile("ofelia");
-    
-    if(!ofeliaDir.exists() || !ofeliaDir.getChildFile("ofelia").existsAsFile()) {
-        
-        auto ofeliaBinaryData = getOfeliaBinaryData();
-        MemoryInputStream ofeliaBinaryDataStream(ofeliaBinaryData.data(), ofeliaBinaryData.size(), false);
-        
-        homeDir.createDirectory();
-        
-        auto ofeliaZipFile = ZipFile(ofeliaBinaryDataStream);
-        ofeliaZipFile.uncompressTo(ofeliaDir);
-#if JUCE_MAC || JUCE_LINUX || JUCE_BSD
-        ofeliaDir.getChildFile("ofelia").setExecutePermission(true);
-#endif
-    }
-#endif
     
     // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS

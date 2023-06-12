@@ -265,7 +265,13 @@ public:
                 break;
             }
         }
-
+        
+        packages.add(PackageInfo("plugdata-ofelia",
+                                 "Zack Lee/Timothy Schoen",
+                                 "0",
+                                 "",
+                                 "Ofelia graphics environment for plugdata",
+                                 "v4.0.0-test4", {"ofelia"}));
         return packages;
     }
 

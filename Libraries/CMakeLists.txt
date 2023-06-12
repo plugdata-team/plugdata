@@ -396,67 +396,9 @@ set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-if(BUILD_OFELIA)
-
-set(plugdata-ofelia_DIR "${CMAKE_CURRENT_LIST_DIR}/plugdata-ofelia" CACHE INTERNAL "")
-
-if(EXISTS ${plugdata-ofelia_DIR})
-    execute_process(
-        COMMAND git -C ${plugdata-ofelia_DIR} rev-parse HEAD
-        OUTPUT_VARIABLE CURRENT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        OUTPUT_QUIET
-    )
-
-    if(1) # Always keep up to date
-        execute_process(
-            COMMAND git -C ${plugdata-ofelia_DIR} pull
-        )
-    else() # lock to a hash
-        set(DESIRED_HASH "INSERT_DESIRED_HASH_VALUE_HERE")
-
-        if(NOT CURRENT_HASH STREQUAL DESIRED_HASH)
-            message(STATUS "Removing existing plugdata-ofelia folder due to incorrect git hash")
-            file(REMOVE_RECURSE ${plugdata-ofelia_DIR})
-        endif()
-    endif()
-endif()
-
-if(NOT EXISTS ${plugdata-ofelia_DIR})
-    message(STATUS "Cloning plugdata-ofelia repository (this can take a while)")
-    execute_process(
-        COMMAND git clone --recurse-submodules --shallow-submodules https://github.com/plugdata-team/plugdata-ofelia.git ${plugdata-ofelia_DIR} OUTPUT_QUIET
-    )
-    if(APPLE)
-    execute_process(COMMAND ./Libraries/openFrameworks/scripts/osx/download_libs.sh
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia OUTPUT_QUIET)
-    elseif(UNIX)
-    execute_process(COMMAND ./Libraries/openFrameworks/scripts/linux/download_libs.sh
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia)
-    elseif(MSVC)
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(BITS 64)
-    else()
-        set(BITS 32)
-    endif()
-    if(EXISTS "C:/Program Files/Git/bin/bash.exe")
-        set(BASH_BIN "C:/Program Files/Git/bin/bash.exe")
-    else()
-        set(BASH_BIN "bash")
-    endif()
-
-    execute_process(COMMAND ${BASH_BIN} ./Libraries/openFrameworks/scripts/vs/download_libs.sh --arch ${BITS}
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia)
-    endif()
-endif()
-
-if(NOT TARGET ofelia)
-    add_subdirectory(${plugdata-ofelia_DIR})
-endif()
-
-target_link_libraries(externals ofelia-external)
-target_link_libraries(externals-multi ofelia-external)
-endif()
+add_subdirectory(plugdata-ofelia)
+target_link_libraries(externals ofelia)
+target_link_libraries(externals-multi ofelia)
 
 
 target_link_libraries(externals fluidlite lua)

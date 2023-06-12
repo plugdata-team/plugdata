@@ -274,6 +274,24 @@ void Library::fsChangeCallback()
     appDirChanged();
 }
 
+File Library::findOfeliaExecutable()
+{
+    char* p[1024];
+    int numItems;
+    libpd_get_search_paths(p, &numItems);
+    auto paths = StringArray(p, numItems);
+    
+    for (auto& dir : paths) {
+        for (const auto& file : OSUtils::iterateDirectory(dir, true, true)) {
+            if (file.getFileNameWithoutExtension() == "ofelia") {
+                return file;
+            }
+        }
+    }
+    
+    return {};
+}
+
 File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
 {
     String helpName;
@@ -358,3 +376,11 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
 }
 
 } // namespace pd
+
+
+
+extern bool ofxOfeliaExecutableFound()
+{
+    
+    return pd::Library::findOfeliaExecutable().existsAsFile();
+}
