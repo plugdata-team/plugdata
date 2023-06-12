@@ -439,8 +439,13 @@ if(NOT EXISTS ${plugdata-ofelia_DIR})
     else()
         set(BITS 32)
     endif()
+    if(EXISTS "C:/Program Files/Git/bin/bash.exe")
+        set(BASH_BIN "C:/Program Files/Git/bin/bash.exe")
+    else()
+        set(BASH_BIN "bash")
+    endif()
 
-    execute_process(COMMAND ${CMAKE_COMMAND} -E env "bash" ./Libraries/openFrameworks/scripts/vs/download_libs.sh --BITS ${BITS}
+    execute_process(COMMAND ${BASH_BIN} ./Libraries/openFrameworks/scripts/vs/download_libs.sh --BITS ${BITS}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/plugdata-ofelia)
     endif()
 endif()
