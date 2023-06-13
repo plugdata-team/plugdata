@@ -23,8 +23,6 @@ extern "C" {
 #include <x_libpd_mod_utils.h>
 }
 
-#include "../Libraries/plugdata-ofelia/Source/Objects/ofxOfeliaMessageManager.h"
-
 #include <utility>
 #include "Library.h"
 #include "Instance.h"
@@ -276,26 +274,7 @@ void Library::fsChangeCallback()
     appDirChanged();
 }
 
-File Library::findOfeliaExecutable()
-{
-    char* p[1024];
-    int numItems;
-    libpd_get_search_paths(p, &numItems);
-    auto paths = StringArray(p, numItems);
-    
-    
-    for (auto& dir : paths) {
-        //if (! (dir.startsWith ("./") || dir.startsWith ("../"))) continue;
-        
-        for (const auto& file : OSUtils::iterateDirectory(dir, true, true)) {
-            if (file.getFileNameWithoutExtension() == "ofelia") {
-                return file;
-            }
-        }
-    }
-    
-    return {};
-}
+
 
 File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
 {
@@ -381,36 +360,3 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
 }
 
 } // namespace pd
-
-
-
-extern bool ofxOfeliaExecutableFound()
-{
-    
-    return pd::Library::findOfeliaExecutable().existsAsFile();
-}
-
-ChildProcess ofeliaProcess;
-
-extern void stopOfelia()
-{
-    ofeliaProcess.kill();
-}
-
-extern void startOfelia()
-{
-    if(ofeliaProcess.isRunning()) return;
-    
-    auto ofeliaExecutable = pd::Library::findOfeliaExecutable();
-    if(ofeliaExecutable.existsAsFile()) {
-        
-        int uniquePortNumber = Random().nextInt({20000, 50000});
-        
-        ofeliaProcess.start(ofeliaExecutable.getFullPathName() + " " + String(uniquePortNumber));
-        
-        // Initialise threading system for ofelia
-        ofxOfeliaMessageManager::getOrCreate();
-    }
-    
-
-}

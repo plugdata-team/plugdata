@@ -121,6 +121,7 @@ Instance::Instance(String const& symbol)
 {
     libpd_multi_init();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
+    ofelia = std::make_unique<Ofelia>();
 }
 
 Instance::~Instance()

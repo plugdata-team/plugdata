@@ -32,8 +32,6 @@ public:
 
     void fsChangeCallback() override;
     
-    static File findOfeliaExecutable();
-
     File findHelpfile(t_object* obj, File const& parentPatchFile) const;
 
     ValueTree getObjectInfo(String const& name);
@@ -71,4 +69,4 @@ private:
 
 } // namespace pd
 
-extern void stopOfelia();
+

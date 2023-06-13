@@ -15,6 +15,7 @@ extern "C" {
 
 #include "Utility/StringUtils.h"
 #include "Patch.h"
+#include "Ofelia.h"
 
 class ObjectImplementationManager;
 
@@ -334,8 +335,8 @@ private:
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-
-    WaitableEvent updateWait;
+    
+    std::unique_ptr<Ofelia> ofelia;
 
 protected:
     struct internal;
