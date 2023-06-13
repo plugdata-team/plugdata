@@ -75,10 +75,6 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
-    - name: Install wget
-      run: |
-        choco install wget -y
-
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build 
 
@@ -128,10 +124,6 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
-
-    - name: Install wget
-      run: |
-        choco install wget -y
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build

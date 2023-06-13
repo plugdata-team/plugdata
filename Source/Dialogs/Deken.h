@@ -267,7 +267,7 @@ public:
         }
         
         packages.add(PackageInfo("plugdata-ofelia",
-                                 "Zack Lee/Timothy Schoen",
+                                 "cuinjune and timothyschoen",
                                  "0",
                                  "",
                                  "Ofelia graphics environment for plugdata",

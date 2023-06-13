@@ -283,7 +283,10 @@ File Library::findOfeliaExecutable()
     libpd_get_search_paths(p, &numItems);
     auto paths = StringArray(p, numItems);
     
+    
     for (auto& dir : paths) {
+        //if (! (dir.startsWith ("./") || dir.startsWith ("../"))) continue;
+        
         for (const auto& file : OSUtils::iterateDirectory(dir, true, true)) {
             if (file.getFileNameWithoutExtension() == "ofelia") {
                 return file;
@@ -400,12 +403,13 @@ extern void startOfelia()
     
     auto ofeliaExecutable = pd::Library::findOfeliaExecutable();
     if(ofeliaExecutable.existsAsFile()) {
+        
+        int uniquePortNumber = Random().nextInt({20000, 50000});
+        
+        ofeliaProcess.start(ofeliaExecutable.getFullPathName() + " " + String(uniquePortNumber));
+        
         // Initialise threading system for ofelia
         ofxOfeliaMessageManager::getOrCreate();
-        
-        ofeliaProcess.start(ofeliaExecutable.getFullPathName());
-        
-        
     }
     
 
