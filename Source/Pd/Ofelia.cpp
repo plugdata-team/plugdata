@@ -6,7 +6,7 @@
 
 #include "Ofelia.h"
 
-extern bool ofxOfeliaExecutableFound()
+EXTERN bool ofxOfeliaExecutableFound()
 {
    return pd::Ofelia::ofeliaExecutable.existsAsFile();
 }

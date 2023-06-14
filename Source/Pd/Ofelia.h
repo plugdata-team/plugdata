@@ -15,6 +15,7 @@
 
 #include "../Libraries/plugdata-ofelia/Source/Objects/ofxOfeliaMessageManager.h"
 
+
 namespace pd {
 
 class Ofelia : public Thread
@@ -93,5 +94,3 @@ private:
 };
 
 }
-
-extern bool ofxOfeliaExecutableFound();
