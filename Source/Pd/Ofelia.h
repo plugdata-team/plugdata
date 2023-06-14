@@ -82,7 +82,7 @@ private:
             std::promise<void>().get_future().wait();
 #else
             ofeliaProcess.waitForProcessToFinish(-1);
-            ofeliaProcess.kill() // just to be sure
+            ofeliaProcess.kill(); // just to be sure
 #endif
         }
     }
