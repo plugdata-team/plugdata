@@ -39,7 +39,7 @@ public:
     {
         shouldQuit = true;
         ofeliaProcess.kill();
-        waitForThreadToExit(2000);
+        waitForThreadToExit(-1);
     }
     
 private:
