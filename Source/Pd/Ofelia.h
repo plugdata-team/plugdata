@@ -17,15 +17,14 @@
 
 namespace pd {
 
-class Ofelia : public Timer
+class Ofelia : public Thread
 {
 public:
     static inline File ofeliaExecutable = File();
     
-    Ofelia()
+    Ofelia() : Thread("Ofelia Thread")
     {
-        startProcess();
-        startTimer(3000);
+        startThread();
     }
     
     ~Ofelia()
@@ -34,12 +33,18 @@ public:
     }
     
 private:
-    void startProcess()
+    
+    void run() override
     {
-        if(ofeliaProcess.isRunning()) return;
-        
-        auto ofeliaExecutable = findOfeliaExecutable();
-        if(ofeliaExecutable.existsAsFile()) {
+        while(!shouldQuit) {
+            
+            auto ofeliaExecutable = findOfeliaExecutable();
+            
+            if(!ofeliaExecutable.existsAsFile())
+            {
+                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 3000);
+                continue;
+            }
             
             int uniquePortNumber = Random().nextInt({20000, 50000});
             
@@ -47,8 +52,17 @@ private:
             
             // Initialise threading system for ofelia
             ofxOfeliaMessageManager::initialise(uniquePortNumber);
+            
+#if JUCE_DEBUG
+            // When debugging ofelia, it will falsly report that the process has finished
+            // Instead we wait forever
+            std::promise<void>().get_future().wait();
+#else
+            ofeliaProcess.waitForProcessToFinish(-1);
+#endif
         }
     }
+    
     
     File findOfeliaExecutable()
     {
@@ -72,18 +86,9 @@ private:
         
         return ofeliaExecutable = File();
     }
-    
-    void timerCallback() override
-    {
-        findOfeliaExecutable();
-        
-        if(!ofeliaProcess.isRunning() && ofeliaExecutable.existsAsFile())
-        {
-            startProcess();
-        }
 
-    }
 
+    std::atomic<bool> shouldQuit = false;
     ChildProcess ofeliaProcess;
 };
 

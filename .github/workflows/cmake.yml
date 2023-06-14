@@ -236,10 +236,6 @@ jobs:
           working-directory: ${{github.workspace}}
           run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=0 -DBUILD_OFELIA=1 .. -G "Unix Makefiles"
 
-        - name: Install Ofelia dependencies
-          working-directory: ${{github.workspace}}/Libraries/plugdata-ofelia
-          run: ./Resources/scripts/linux-install-libs.sh
-
         - name: Build
           working-directory: ${{github.workspace}}/build
           run: cmake --build . --config $BUILD_TYPE
