@@ -10,10 +10,17 @@
 #include "Utility/Config.h"
 #include "Utility/OSUtils.h"
 
+extern "C" {
 #include <m_pd.h>
+#include <m_imp.h>
 #include <x_libpd_mod_utils.h>
 
+void ofelia_setup();
+
+}
+
 #include "../Libraries/plugdata-ofelia/Source/Objects/ofxOfeliaMessageManager.h"
+
 
 
 namespace pd {
@@ -30,7 +37,9 @@ public:
     
     ~Ofelia()
     {
+        shouldQuit = true;
         ofeliaProcess.kill();
+        waitForThreadToExit(2000);
     }
     
 private:
@@ -47,6 +56,19 @@ private:
                 continue;
             }
             
+            if(!ofeliaInitialised) {
+                sys_lock();
+                pd_globallock();
+                set_class_prefix(gensym("ofelia"));
+                ofelia_setup();
+                
+                set_class_prefix(nullptr);
+                pd_globalunlock();
+                sys_unlock();
+                
+                ofeliaInitialised = true;
+            }
+            
             int uniquePortNumber = Random().nextInt({20000, 50000});
             
             ofeliaProcess.start(ofeliaExecutable.getFullPathName() + " " + String(uniquePortNumber));
@@ -60,6 +82,7 @@ private:
             std::promise<void>().get_future().wait();
 #else
             ofeliaProcess.waitForProcessToFinish(-1);
+            ofeliaProcess.kill() // just to be sure
 #endif
         }
     }
@@ -88,7 +111,7 @@ private:
         return ofeliaExecutable = File();
     }
 
-
+    static inline std::atomic<bool> ofeliaInitialised = false;
     std::atomic<bool> shouldQuit = false;
     ChildProcess ofeliaProcess;
 };
