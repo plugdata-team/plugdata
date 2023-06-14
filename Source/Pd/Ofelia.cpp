@@ -6,7 +6,17 @@
 
 #include "Ofelia.h"
 
-EXTERN bool ofxOfeliaExecutableFound()
+#if defined(_WIN32)
+    #define DLL_EXPORT __declspec(dllexport)
+#elif defined(__GNUC__)
+    #define DLL_EXPORT __attribute__((visibility("default")))
+#else
+    #define DLL_EXPORT
+#endif
+
+
+
+DLL_EXPORT bool ofxOfeliaExecutableFound()
 {
    return pd::Ofelia::ofeliaExecutable.existsAsFile();
 }
