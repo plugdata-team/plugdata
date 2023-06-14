@@ -365,6 +365,8 @@ else(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
 endif()
 
+file(GLOB OFELIA_SOURCES ./plugdata-ofelia/Source/Objects/*.cpp ./plugdata-ofelia/Source/Objects/*.h)
+
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
@@ -395,9 +397,6 @@ set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-add_subdirectory(plugdata-ofelia)
-
 
 target_link_libraries(externals fluidlite lua)
 target_link_libraries(externals-multi fluidlite lua)
