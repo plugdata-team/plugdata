@@ -25,10 +25,8 @@ extern "C" {
 #include "x_libpd_mod_utils.h"
 #include "x_libpd_multi.h"
 #include "z_print_util.h"
-#include "../Libraries/plugdata-ofelia/Source/Objects/ofxOfeliaSetup.h"
 
 int sys_load_lib(t_canvas* canvas, char const* classname);
-void set_class_prefix(t_symbol* dir);
 
 struct pd::Instance::internal {
 
@@ -245,9 +243,6 @@ void Instance::initialisePd(String& pdlua_version)
         set_class_prefix(gensym("cyclone"));
         class_set_extern_dir(gensym("10.cyclone"));
         libpd_init_cyclone();
-        
-        set_class_prefix(gensym("ofelia"));
-        ofelia_setup();
         
         set_class_prefix(nullptr);
 
