@@ -122,7 +122,7 @@ Instance::Instance(String const& symbol)
     libpd_multi_init();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
     
-    MessageManager::callAsync([](){
+    MessageManager::callAsync([this](){
         ofelia = std::make_unique<Ofelia>();
     });
 }
