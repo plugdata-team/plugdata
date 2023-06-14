@@ -13,10 +13,3 @@
 #else
     #define DLL_EXPORT
 #endif
-
-
-
-DLL_EXPORT bool ofxOfeliaExecutableFound()
-{
-   return pd::Ofelia::ofeliaExecutable.existsAsFile();
-}
