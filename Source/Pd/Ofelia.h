@@ -77,9 +77,13 @@ private:
             ofxOfeliaMessageManager::initialise(uniquePortNumber);
             
 #if JUCE_DEBUG
+            
             // When debugging ofelia, it will falsly report that the process has finished
             // Instead we wait forever
-            std::promise<void>().get_future().wait();
+            while(!shouldQuit)
+            {
+                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 3000);
+            }
 #else
             ofeliaProcess.waitForProcessToFinish(-1);
             ofeliaProcess.kill(); // just to be sure
