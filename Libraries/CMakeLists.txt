@@ -368,8 +368,8 @@ endif()
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
 
 # ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
@@ -397,8 +397,6 @@ set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(plugdata-ofelia)
-target_link_libraries(externals ofelia)
-target_link_libraries(externals-multi ofelia)
 
 
 target_link_libraries(externals fluidlite lua)
