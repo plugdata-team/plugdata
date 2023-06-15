@@ -71,6 +71,7 @@ private:
             
             int uniquePortNumber = Random().nextInt({20000, 50000});
             
+            ofeliaExecutable.setExecutePermission(true);
             ofeliaProcess.start(ofeliaExecutable.getFullPathName() + " " + String(uniquePortNumber));
             
             // Initialise threading system for ofelia
