@@ -56,6 +56,8 @@ private:
                 continue;
             }
             
+            ofeliaExecutable.setExecutePermission(true);
+            
             if(!ofeliaInitialised) {
                 sys_lock();
                 pd_globallock();
@@ -69,15 +71,18 @@ private:
                 ofeliaInitialised = true;
             }
             
+            // Initialise threading system for ofelia
+            auto* messageManager = ofxOfeliaMessageManager::initialise(canvas_class);
+            
             int uniquePortNumber = Random().nextInt({20000, 50000});
             
-            ofeliaExecutable.setExecutePermission(true);
             ofeliaProcess.start(ofeliaExecutable.getFullPathName() + " " + String(uniquePortNumber));
             
-            // Initialise threading system for ofelia
-            ofxOfeliaMessageManager::initialise(uniquePortNumber, canvas_class);
-            
+            bool success = messageManager->bind(uniquePortNumber);
 #if JUCE_DEBUG
+            
+            auto err = ofeliaProcess.readAllProcessOutput();
+            std::cerr << err << std::endl;
             
             // When debugging ofelia, it will falsly report that the process has finished
             // Instead we wait forever
