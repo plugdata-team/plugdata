@@ -74,7 +74,7 @@ private:
             ofeliaProcess.start(ofeliaExecutable.getFullPathName() + " " + String(uniquePortNumber));
             
             // Initialise threading system for ofelia
-            ofxOfeliaMessageManager::initialise(uniquePortNumber);
+            ofxOfeliaMessageManager::initialise(uniquePortNumber, canvas_class);
             
 #if JUCE_DEBUG
             
