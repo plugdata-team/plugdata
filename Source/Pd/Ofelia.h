@@ -32,7 +32,11 @@ public:
     
     Ofelia() : Thread("Ofelia Thread")
     {
-        startThread();
+        setup();
+        
+        MessageManager::callAsync([this](){
+            startThread();
+        });
     }
     
     ~Ofelia()
@@ -43,6 +47,25 @@ public:
     }
     
 private:
+    
+    void setup()
+    {
+        auto ofeliaExecutable = findOfeliaExecutable();
+        static std::atomic<bool> ofeliaInitialised = false;
+        if(!ofeliaInitialised && ofeliaExecutable.existsAsFile()) {
+            ofeliaInitialised = true;
+            
+            libpd_set_instance(libpd_get_instance(0));
+            sys_lock();
+            pd_globallock();
+            set_class_prefix(gensym("ofelia"));
+            ofelia_setup();
+            
+            set_class_prefix(nullptr);
+            pd_globalunlock();
+            sys_unlock();
+        }
+    }
     
     void run() override
     {
@@ -58,20 +81,7 @@ private:
             
             ofeliaExecutable.setExecutePermission(true);
             
-            if(!ofeliaInitialised) {
-                
-                libpd_set_instance(libpd_get_instance(0));
-                sys_lock();
-                pd_globallock();
-                set_class_prefix(gensym("ofelia"));
-                ofelia_setup();
-                
-                set_class_prefix(nullptr);
-                pd_globalunlock();
-                sys_unlock();
-                
-                ofeliaInitialised = true;
-            }
+            setup();
             
             // Initialise threading system for ofelia
             auto* messageManager = ofxOfeliaMessageManager::initialise(canvas_class);
@@ -129,8 +139,7 @@ private:
         
         return ofeliaExecutable = File();
     }
-
-    static inline std::atomic<bool> ofeliaInitialised = false;
+    
     std::atomic<bool> shouldQuit = false;
     ChildProcess ofeliaProcess;
 };
