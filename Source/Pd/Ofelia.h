@@ -30,7 +30,7 @@ class Ofelia : public Thread
 public:
     static inline File ofeliaExecutable = File();
     
-    Ofelia() : Thread("Ofelia Thread")
+    Ofelia(t_pdinstance* pdthis) : Thread("Ofelia Thread"), pdinstance(pdthis)
     {
         setup();
         
@@ -70,6 +70,7 @@ private:
     void run() override
     {
         while(!shouldQuit) {
+            
             
             auto ofeliaExecutable = findOfeliaExecutable();
             
@@ -124,6 +125,8 @@ private:
             return ofeliaExecutable;
         }
         
+        libpd_set_instance(pdinstance);
+        
         char* p[1024];
         int numItems;
         libpd_get_search_paths(p, &numItems);
@@ -140,6 +143,7 @@ private:
         return ofeliaExecutable = File();
     }
     
+    t_pdinstance* pdinstance;
     std::atomic<bool> shouldQuit = false;
     ChildProcess ofeliaProcess;
 };

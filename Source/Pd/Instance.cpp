@@ -253,7 +253,7 @@ void Instance::initialisePd(String& pdlua_version)
         initialised = true;
     }
     
-    ofelia = std::make_unique<Ofelia>();
+    ofelia = std::make_unique<Ofelia>(m_instance);
     
     setThis();
 
