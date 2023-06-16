@@ -59,6 +59,8 @@ private:
             ofeliaExecutable.setExecutePermission(true);
             
             if(!ofeliaInitialised) {
+                
+                libpd_set_instance(libpd_get_instance(0));
                 sys_lock();
                 pd_globallock();
                 set_class_prefix(gensym("ofelia"));

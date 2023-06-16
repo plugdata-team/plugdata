@@ -119,10 +119,6 @@ Instance::Instance(String const& symbol)
 {
     libpd_multi_init();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
-    
-    MessageManager::callAsync([this](){
-        ofelia = std::make_unique<Ofelia>();
-    });
 }
 
 Instance::~Instance()
@@ -256,7 +252,9 @@ void Instance::initialisePd(String& pdlua_version)
 
         initialised = true;
     }
-
+    
+    ofelia = std::make_unique<Ofelia>();
+    
     setThis();
 
     // ag: need to do this here to suppress noise from chatty externals

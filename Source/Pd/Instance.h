@@ -336,8 +336,6 @@ private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
     
-    std::unique_ptr<Ofelia> ofelia;
-
 protected:
     struct internal;
 
@@ -448,6 +446,8 @@ protected:
         StringUtils fastStringWidth; // For formatting console messages more quickly
     };
 
+    static inline std::unique_ptr<Ofelia> ofelia;
+    
     ConsoleHandler consoleHandler;
 };
 } // namespace pd
