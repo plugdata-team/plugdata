@@ -79,6 +79,13 @@ private:
             ofeliaProcess.start(ofeliaExecutable.getFullPathName() + " " + String(uniquePortNumber));
             
             bool success = messageManager->bind(uniquePortNumber);
+            
+            if(!success)
+            {
+                ofeliaProcess.kill();
+                continue;
+            }
+            
 #if JUCE_DEBUG
             
             auto err = ofeliaProcess.readAllProcessOutput();
