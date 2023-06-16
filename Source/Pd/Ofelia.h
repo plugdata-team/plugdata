@@ -112,7 +112,7 @@ private:
         
         for (auto& dir : paths) {
             for (const auto& file : OSUtils::iterateDirectory(dir, true, true)) {
-                if (file.getFileNameWithoutExtension() == "ofelia") {
+                if (file.getFileName() == "ofelia" || file.getFileName() == "ofelia.exe") {
                     return ofeliaExecutable = file;
                 }
             }
