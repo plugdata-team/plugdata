@@ -446,7 +446,7 @@ protected:
         StringUtils fastStringWidth; // For formatting console messages more quickly
     };
 
-    static inline std::unique_ptr<Ofelia> ofelia;
+    std::unique_ptr<Ofelia> ofelia;
     
     ConsoleHandler consoleHandler;
 };

@@ -33,10 +33,7 @@ public:
     Ofelia(t_pdinstance* pdthis) : Thread("Ofelia Thread"), pdinstance(pdthis)
     {
         setup();
-        
-        MessageManager::callAsync([this](){
-            startThread();
-        });
+        startThread();
     }
     
     ~Ofelia()
@@ -51,11 +48,10 @@ private:
     void setup()
     {
         auto ofeliaExecutable = findOfeliaExecutable();
-        static std::atomic<bool> ofeliaInitialised = false;
         if(!ofeliaInitialised && ofeliaExecutable.existsAsFile()) {
             ofeliaInitialised = true;
             
-            libpd_set_instance(libpd_get_instance(0));
+            libpd_set_instance(pdinstance);
             sys_lock();
             pd_globallock();
             set_class_prefix(gensym("ofelia"));
@@ -144,6 +140,7 @@ private:
     }
     
     t_pdinstance* pdinstance;
+    std::atomic<bool> ofeliaInitialised = false;
     std::atomic<bool> shouldQuit = false;
     ChildProcess ofeliaProcess;
 };
