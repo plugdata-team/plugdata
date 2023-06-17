@@ -39,7 +39,7 @@ struct WeakReference {
 
         operator bool() const
         {
-            return weakRef;
+            return weakRef && (ptr != nullptr);
         }
 
         T* get()
