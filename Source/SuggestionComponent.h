@@ -30,7 +30,7 @@ public:
 
     ~AutoCompleteComponent() override
     {
-        editor->removeComponentListener(this);
+        if(editor) editor->removeComponentListener(this);
     }
 
     String getSuggestion()
