@@ -412,16 +412,16 @@ void Connection::paint(Graphics& g)
         getNumberOfConnections(),
         getMultiConnectNumber());
 
-#if (ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT)
+/* ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT
     static Random rng;
 
     g.fillAll(Colour((uint8)rng.nextInt(255),
         (uint8)rng.nextInt(255),
         (uint8)rng.nextInt(255),
         (uint8)0x50));
-#endif
+*/
 
-#if (ENABLE_CONNECTION_GRAPHICS_DEBUGGING)
+/* ENABLE_CONNECTION_GRAPHICS_DEBUGGING
     g.setColour(Colours::orange);
     for (auto& point : currentPlan) {
         auto local = getLocalPoint(cnv, point);
@@ -430,7 +430,7 @@ void Connection::paint(Graphics& g)
 
     g.setColour(Colours::red);
     g.drawRect(getLocalBounds(), 1.0f);
-#endif
+*/
 }
 
 bool Connection::isSegmented() const

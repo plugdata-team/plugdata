@@ -34,9 +34,8 @@ public:
     bool isReady();
 
 private:
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-
-    File soundFont = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("GeneralUser_GS.sf3");
+    
+    File soundFont = ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("GeneralUser_GS.sf3");
 
     // Fluidsynth state
     FluidSynth* synth = nullptr;

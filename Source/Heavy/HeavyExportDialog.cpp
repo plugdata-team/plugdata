@@ -146,7 +146,7 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     auto const latestVersion = URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/VERSION").readEntireTextStream().trim().removeCharacters(".").getIntValue();
 
     // Don't do this relative to toolchain variable, that won't work on Windows
-    auto const versionFile = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("VERSION");
+    auto const versionFile = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("VERSION");
     auto const installedVersion = versionFile.loadFileAsString().trim().removeCharacters(".").getIntValue();
 
     if (hasToolchain && latestVersion > installedVersion) {

@@ -712,7 +712,8 @@ CYCLONE_API void cyclone_setup(void)
     t_atom ap[2];
     SETSYMBOL(ap, gensym(encoded));
     SETFLOAT (ap+1, 0.f);
-    pd_typedmess(gensym("pd")->s_thing, gensym("add-to-path"), 2, ap);
+    // NOTE: this was outcommented to fix a plugdata issue
+    //pd_typedmess(gensym("pd")->s_thing, gensym("add-to-path"), 2, ap);
    if(!printed){
        print_cyclone(x);
        printed = 1;

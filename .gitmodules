@@ -25,3 +25,6 @@
 [submodule "Libraries/cpath"]
 	path = Libraries/cpath
 	url = https://github.com/BraedonWooding/cpath
+[submodule "Libraries/plugdata-ofelia"]
+	path = Libraries/plugdata-ofelia
+	url = https://github.com/plugdata-team/plugdata-ofelia

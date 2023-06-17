@@ -15,6 +15,7 @@ extern "C" {
 
 #include "Utility/StringUtils.h"
 #include "Patch.h"
+#include "Ofelia.h"
 
 class ObjectImplementationManager;
 
@@ -334,9 +335,7 @@ private:
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-
-    WaitableEvent updateWait;
-
+    
 protected:
     struct internal;
 
@@ -447,6 +446,8 @@ protected:
         StringUtils fastStringWidth; // For formatting console messages more quickly
     };
 
+    std::unique_ptr<Ofelia> ofelia;
+    
     ConsoleHandler consoleHandler;
 };
 } // namespace pd

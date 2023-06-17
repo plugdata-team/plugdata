@@ -961,7 +961,7 @@ private:
     }
 
     PluginEditor* editor;
-    File palettesFile = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("PaletteBar.xml");
+    File palettesFile = ProjectInfo::appDataDir.getChildFile("PaletteBar.xml");
 
     ValueTree palettesTree;
 

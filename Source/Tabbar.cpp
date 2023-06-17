@@ -43,7 +43,7 @@ TabComponent::TabComponent(PluginEditor* parent)
 void TabComponent::setSplitFocusIndex(int idx)
 {
     auto index = idx;
-    if (index = -1)
+    if (index == -1)
         index = editor->splitView.getTabComponentSplitIndex(this);
 
     editor->splitView.setSplitFocusIndex(index);

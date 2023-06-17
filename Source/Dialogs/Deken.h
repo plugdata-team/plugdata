@@ -265,7 +265,13 @@ public:
                 break;
             }
         }
-
+        
+        packages.add(PackageInfo("plugdata-ofelia",
+                                 "cuinjune and timothyschoen",
+                                 "0",
+                                 "",
+                                 "Ofelia graphics environment for plugdata",
+                                 "v4.0.0-test4", {"ofelia"}));
         return packages;
     }
 
@@ -339,7 +345,7 @@ public:
 
     PackageList allPackages;
 
-    inline static File filesystem = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Deken");
+    static inline const File filesystem = ProjectInfo::appDataDir.getChildFile("Deken");
 
     // Package info file
     File pkgInfo = filesystem.getChildFile(".pkg_info");

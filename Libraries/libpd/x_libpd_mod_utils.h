@@ -104,6 +104,8 @@ int libpd_canconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int
 
 void* libpd_get_class_methods(t_class* o);
 
+void set_class_prefix(t_symbol* dir);
+
 #ifdef __cplusplus
 }
 #endif

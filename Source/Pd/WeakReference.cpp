@@ -3,7 +3,6 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-#pragma once
 
 #include "Utility/Config.h"
 #include <juce_gui_basics/juce_gui_basics.h>

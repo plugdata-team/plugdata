@@ -16,8 +16,6 @@
 #include "Objects/ImplementationBase.h"
 #include "Utility/SettingsFile.h"
 
-#include "OfeliaMessageManager.h"
-
 extern "C" {
 
 #include <g_undo.h>
@@ -29,7 +27,6 @@ extern "C" {
 #include "z_print_util.h"
 
 int sys_load_lib(t_canvas* canvas, char const* classname);
-void set_class_prefix(t_symbol* dir);
 
 struct pd::Instance::internal {
 
@@ -233,8 +230,7 @@ void Instance::initialisePd(String& pdlua_version)
     static bool initialised = false;
     if (!initialised) {
 
-        File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-        auto library = homeDir.getChildFile("Library");
+        auto library = ProjectInfo::appDataDir.getChildFile("Library");
         auto extra = library.getChildFile("Extra");
 
         set_class_prefix(gensym("else"));
@@ -243,7 +239,9 @@ void Instance::initialisePd(String& pdlua_version)
         set_class_prefix(gensym("cyclone"));
         class_set_extern_dir(gensym("10.cyclone"));
         libpd_init_cyclone();
+        
         set_class_prefix(nullptr);
+
 
         // Class prefix doesn't seem to work for pdlua
         char vers[1000];
@@ -254,7 +252,9 @@ void Instance::initialisePd(String& pdlua_version)
 
         initialised = true;
     }
-
+    
+    ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(m_instance));
+    
     setThis();
 
     // ag: need to do this here to suppress noise from chatty externals
@@ -756,3 +756,4 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
 }
 
 } // namespace pd
+

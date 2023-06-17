@@ -11,6 +11,7 @@
 #include <juce_dsp/juce_dsp.h>
 
 #include "PluginProcessor.h"
+#include "Pd/Library.h"
 
 #include "Utility/Config.h"
 #include "Utility/HashUtils.h"
@@ -32,9 +33,8 @@
 #include "Dialogs/Dialogs.h"
 #include "Sidebar/Sidebar.h"
 
-#include "Pd/OfeliaMessageManager.h"
-
 #include "Standalone/InternalSynth.h"
+
 
 extern "C" {
 #include "x_libpd_extra_utils.h"
@@ -126,11 +126,7 @@ PluginProcessor::PluginProcessor()
 
     atoms_playhead.reserve(3);
     atoms_playhead.resize(1);
-
-    // Initialise threading system for ofelia
-    pd::OfeliaMessageManager::create();
-    pd::OfeliaMessageManager::setAudioCallbackLock(&audioLock);
-
+    
     sendMessagesFromQueue();
 
     auto themeName = settingsFile->getProperty<String>("theme");
@@ -199,9 +195,11 @@ PluginProcessor::~PluginProcessor()
 
 void PluginProcessor::initialiseFilesystem()
 {
+    const auto& homeDir = ProjectInfo::appDataDir;
+    const auto& versionDataDir = ProjectInfo::versionDataDir;
     auto library = homeDir.getChildFile("Library");
     auto deken = homeDir.getChildFile("Deken");
-
+    
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !abstractions.exists()) {
 
@@ -236,7 +234,7 @@ void PluginProcessor::initialiseFilesystem()
 
     library.deleteRecursively();
     library.createDirectory();
-
+    
     // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS
     // Get paths that need symlinks
@@ -932,7 +930,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     // Save path and content for patch
     lockAudioThread();
 
-    auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+    auto presetDir = ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
 
     auto* patchesTree = new XmlElement("Patches");
 
@@ -1032,7 +1030,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         auto state = istream.readString();
         auto path = istream.readString();
 
-        auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+        auto presetDir = ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
         auto location = File(path);
@@ -1084,7 +1082,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto location = p->getStringAttribute("Location");
                 auto pluginMode = p->getBoolAttribute("PluginMode");
 
-                auto presetDir = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+                auto presetDir = ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("Presets");
                 location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
                 openPatch(content, location, pluginMode);
