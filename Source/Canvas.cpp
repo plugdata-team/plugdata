@@ -1562,6 +1562,7 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
     case hash("numbox"):
     case hash("connect"):
     case hash("clear"):
+    case hash("cut"):
     case hash("donecanvasdialog"): {
         // This will trigger an asyncupdater, so it's thread-safe to do this here
         synchronise();
