@@ -1563,8 +1563,7 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
     case hash("connect"):
     case hash("clear"):
     case hash("cut"):
-    case hash("disconnect"):
-    case hash("donecanvasdialog"): {
+    case hash("disconnect"): {
         // This will trigger an asyncupdater, so it's thread-safe to do this here
         synchronise();
         break;
@@ -1582,10 +1581,13 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
         }
         break;
     }
-    case hash("coords"): {
+    case hash("coords"):
+    case hash("donecanvasdialog"): {
         if (auto* cnv = editor->getCurrentCanvas()) {
             cnv->synchronise();
+            cnv->synchroniseSplitCanvas();
         }
+        break;
     }
     }
 }
