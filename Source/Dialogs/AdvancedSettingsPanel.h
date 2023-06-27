@@ -34,6 +34,16 @@ public:
 
             otherProperties.add(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
         }
+        else {
+            
+            if (!settingsTree.hasProperty("NativeDialog")) {
+                settingsTree.setProperty("NativeDialog", true, nullptr);
+            }
+            
+            nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
+            
+            otherProperties.add(new PropertiesPanel::BoolComponent("Use system file dialogs", nativeDialogValue, StringArray { "No", "Yes" }));
+        }
 
         showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
         showPalettesValue.addListener(this);
@@ -89,6 +99,7 @@ public:
     Value showPalettesValue;
     Value autoPatchingValue;
     Value showAllAudioDeviceValues;
+    Value nativeDialogValue;
 
     PropertiesPanel propertiesPanel;
 };

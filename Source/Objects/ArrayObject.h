@@ -811,7 +811,11 @@ public:
 
     bool canOpenFromMenu() override
     {
-        return true;
+        if (auto c = ptr.get<t_canvas>()) {
+            return c->gl_list != nullptr;
+        }
+        
+        return false;
     }
 
     void openArrayEditor()
@@ -840,8 +844,6 @@ public:
             else {
                 pd->logWarning("array define: cannot open non-existent array");
             }
-                
-
         }
     }
 

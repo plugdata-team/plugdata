@@ -439,27 +439,17 @@ public:
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
-        if (!settingsTree.hasProperty("NativeDialog")) {
-            settingsTree.setProperty("NativeDialog", true, nullptr);
-        }
-
         auto* proc = dynamic_cast<PluginProcessor*>(processor);
-
-        nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
         tailLengthValue.referTo(proc->tailLength);
 
-        tailLengthValue.addListener(this);
         latencyValue.addListener(this);
-        nativeDialogValue.addListener(this);
 
         latencyValue = proc->getLatencySamples();
 
         latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
         tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
-        nativeDialogToggle = new PropertiesPanel::BoolComponent("Use system dialog", nativeDialogValue, StringArray { "No", "Yes" });
 
         dawSettingsPanel.addSection("Audio", { latencyNumberBox, tailLengthNumberBox });
-        dawSettingsPanel.addSection("Other", { nativeDialogToggle });
 
         addAndMakeVisible(dawSettingsPanel);
 
@@ -482,11 +472,9 @@ public:
 
     Value latencyValue;
     Value tailLengthValue;
-    Value nativeDialogValue;
 
     PropertiesPanel dawSettingsPanel;
 
     PropertiesPanel::EditableComponent<int>* latencyNumberBox;
     PropertiesPanel::EditableComponent<float>* tailLengthNumberBox;
-    PropertiesPanel::BoolComponent* nativeDialogToggle;
 };
