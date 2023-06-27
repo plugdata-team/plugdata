@@ -17,7 +17,7 @@ inlets:
     description: input to compare to arguments
   2nd:
   - type: float/symbol
-    description: if there's one argument, an inlet is created to update it
+    description: update argument
 outlets:
   nth:
   - type: bang
