@@ -32,6 +32,7 @@ struct OSUtils {
 
     static KeyboardLayout getKeyboardLayout();
     
+#if JUCE_MAC
     class ScrollTracker
     {
     public:
@@ -54,7 +55,7 @@ struct OSUtils {
         void* observer;
         static inline ScrollTracker* instance = create();
     };
-
+#endif
 };
 
 
