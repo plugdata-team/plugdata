@@ -32,16 +32,35 @@ void VolumeSlider::resized()
     setMouseDragSensitivity(getWidth() - (margin * 2));
 }
 
+void VolumeSlider::mouseMove(const MouseEvent& e)
+{
+    repaint();
+    Slider::mouseMove(e);
+}
+
+void VolumeSlider::mouseUp(const MouseEvent& e)
+{
+    repaint();
+    Slider::mouseUp(e);
+}
+
+void VolumeSlider::mouseDown(const MouseEvent& e)
+{
+    repaint();
+    Slider::mouseDown(e);
+}
+
 void VolumeSlider::paint(Graphics& g)
 {
     auto backgroundColour = findColour(PlugDataColour::levelMeterThumbColourId);
-
+    
     auto value = getValue();
     auto thumbSize = getHeight() * 0.7f;
     auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
     auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
-    g.setColour(backgroundColour.withAlpha(0.8f));
-    PlugDataLook::fillSmoothedRectangle(g, thumb.withSizeKeepingCentre(thumb.getWidth() - 4, thumb.getHeight()), Corners::largeCornerRadius);
+    thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 6, thumb.getHeight());
+    g.setColour(backgroundColour.withAlpha(thumb.contains(getMouseXYRelative().toFloat()) ? 1.0f : 0.8f));
+    PlugDataLook::fillSmoothedRectangle(g, thumb, Corners::defaultCornerRadius);
 }
 
 class LevelMeter : public Component
@@ -118,13 +137,13 @@ public:
         auto spacingFraction = 0.08f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
         auto bgHeight = getHeight() - doubleOuterBorderWidth;
-        auto bgWidth = width - doubleOuterBorderWidth;
+        auto bgWidth = width - doubleOuterBorderWidth - 4;
         auto meterWidth = width - bgHeight;
         auto barWidth = meterWidth - 2;
         auto leftOffset = x + (bgHeight * 0.5f);
 
         g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
-        g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth, bgWidth, bgHeight, Corners::largeCornerRadius);
+        g.fillRoundedRectangle(x + outerBorderWidth + 2, outerBorderWidth, bgWidth, bgHeight, Corners::defaultCornerRadius);
         
         for (int ch = 0; ch < numChannels; ch++) {
             auto barYPos = outerBorderWidth + ((ch + 1) * (bgHeight / 3.0f)) - halfBarHeight;

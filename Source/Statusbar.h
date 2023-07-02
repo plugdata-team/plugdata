@@ -24,6 +24,10 @@ public:
     ~VolumeSlider() override = default;
     void paint(Graphics& g) override;
     void resized() override;
+    
+    void mouseMove(const MouseEvent& e);
+    void mouseUp(const MouseEvent& e);
+    void mouseDown(const MouseEvent& e);
 
 private:
     int margin = 18;
