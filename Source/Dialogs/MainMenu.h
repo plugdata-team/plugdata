@@ -206,7 +206,7 @@ public:
         void getIdealSize(int& idealWidth, int& idealHeight) override
         {
             idealWidth = 70;
-            idealHeight = 22;
+            idealHeight = 24;
         }
 
         void paint(Graphics& g) override
