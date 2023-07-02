@@ -206,18 +206,18 @@ public:
         void getIdealSize(int& idealWidth, int& idealHeight) override
         {
             idealWidth = 70;
-            idealHeight = 24;
+            idealHeight = 22;
         }
 
         void paint(Graphics& g) override
         {
-            auto r = getLocalBounds().reduced(0, 1);
+            auto r = getLocalBounds();
 
             auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
                 
-                PlugDataLook::fillSmoothedRectangle(g, r.toFloat().reduced(2, 0), Corners::defaultCornerRadius);
+                PlugDataLook::fillSmoothedRectangle(g, r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
                 colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
 

@@ -187,8 +187,8 @@ public:
                 if (isSelected) {
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                    PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().reduced(6, 1).toFloat(), Corners::defaultCornerRadius);
-
+                    PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().reduced(0, 1).toFloat(), Corners::defaultCornerRadius);
+                    
                     for (auto& item : console.selectedItems) {
 
                         if (!item.getComponent())
@@ -196,7 +196,7 @@ public:
                         // Draw connected on top
                         if (item->idx == idx - 1) {
                             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                            g.fillRect(getLocalBounds().reduced(6, 0).toFloat().withTrimmedBottom(5));
+                            g.fillRect(getLocalBounds().toFloat().withTrimmedBottom(5));
 
                             g.setColour(findColour(PlugDataColour::outlineColourId));
                             g.drawLine(10, 0, getWidth() - 10, 0);
@@ -205,7 +205,7 @@ public:
                         // Draw connected on bottom
                         if (item->idx == idx + 1) {
                             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                            g.fillRect(getLocalBounds().reduced(6, 0).toFloat().withTrimmedTop(5));
+                            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(5));
                         }
                     }
                 }
@@ -229,7 +229,7 @@ public:
                     textColour = Colours::red;
 
                 // Draw text
-                Fonts::drawFittedText(g, message, getLocalBounds().reduced(14, 2), textColour, numLines, 0.9f, 14);
+                Fonts::drawFittedText(g, message, getLocalBounds().reduced(8, 2), textColour, numLines, 0.9f, 14);
             }
         };
 
@@ -363,7 +363,7 @@ public:
             auto showMessages = getValue<bool>(settingsValues[2]);
             auto showErrors = getValue<bool>(settingsValues[3]);
 
-            int totalHeight = 2;
+            int totalHeight = 4;
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 if (row >= messages.size())
                     break;
@@ -375,8 +375,9 @@ public:
 
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
                     continue;
-
-                messages[row]->setBounds(0, totalHeight, getWidth(), height);
+                
+                int rightMargin = viewport.canScrollVertically() ? 20 : 11;
+                messages[row]->setBounds(6, totalHeight, getWidth() - rightMargin, height);
 
                 totalHeight += height;
             }

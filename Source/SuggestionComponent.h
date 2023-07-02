@@ -170,12 +170,12 @@ class SuggestionComponent : public Component
             auto buttonArea = getLocalBounds().withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat().reduced(4, 0.5f);
 
             g.setColour(backgroundColour);
-            g.fillRoundedRectangle(buttonArea, Corners::largeCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, buttonArea,  Corners::defaultCornerRadius);
 
             auto colour = getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
 
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
-            auto leftIndent = drawIcon ? 34 : 11;
+            auto leftIndent = drawIcon ? 32 : 11;
             auto rightIndent = 14;
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
@@ -201,7 +201,7 @@ class SuggestionComponent : public Component
                 g.setColour(type ? signalColour : dataColour);
                 auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
-                iconbound.translate(6, 0);
+                iconbound.translate(4, 0);
                 PlugDataLook::fillSmoothedRectangle(g, iconbound.toFloat(), Corners::defaultCornerRadius);
 
                 Fonts::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
@@ -381,7 +381,7 @@ public:
         buttonholder->setBounds(b.getX() + 6, b.getY(), b.getWidth(), std::min(numOptions, 20) * 26 + 8);
 
         for (int i = 0; i < buttons.size(); i++)
-            buttons[i]->setBounds(2, (i * 26) + 4, getWidth() - 4, 24);
+            buttons[i]->setBounds(3, (i * 26) + 7, getWidth() - 6, 24);
 
         int const resizerSize = 12;
 
@@ -425,8 +425,8 @@ private:
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
         } else {
             Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(4.0f), Corners::windowCornerRadius);
-            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 16, { 0, 3 });
+            localPath.addRoundedRectangle(b.toFloat().reduced(6.0f), Corners::defaultCornerRadius);
+            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 12, { 0, 2 });
         }
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));

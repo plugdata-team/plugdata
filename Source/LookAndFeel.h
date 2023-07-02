@@ -771,7 +771,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
             g.setColour(background);
 
-            auto bounds = Rectangle<float>(6, 6, width - 12, height - 12);
+            auto bounds = Rectangle<float>(5, 6, width - 10, height - 12);
             fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -797,7 +797,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         int margin = Desktop::canUseSemiTransparentWindows() ? 7 : 2;
 
         if (isSeparator) {
-            auto r = area.reduced(margin + 5, 0);
+            auto r = area.reduced(margin + 8, 0);
             r.removeFromTop(roundToInt(((float)r.getHeight() * 0.5f) - 0.5f));
 
             g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(0.7f));
