@@ -344,7 +344,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             backgroundColour = backgroundColour.brighter(0.5f);
         auto cornerSize = Corners::defaultCornerRadius;
         g.setColour(backgroundColour);
-        g.fillRoundedRectangle(button.getLocalBounds().toFloat(), cornerSize);
+        fillSmoothedRectangle(g, button.getLocalBounds().toFloat(), cornerSize);
     }
 
     void drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
@@ -381,7 +381,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
             auto bounds = button.getLocalBounds().toFloat().reduced(2.0f, 4.0f);
 
             g.setColour(backgroundColour);
-            g.fillRoundedRectangle(bounds, cornerSize);
+            fillSmoothedRectangle(g, bounds, cornerSize);
+            //g.fillRoundedRectangle(bounds, cornerSize);
         }
     }
 
@@ -677,8 +678,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
         }
 
-        g.fillRoundedRectangle(button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
-
+        fillSmoothedRectangle(g, button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
         drawTabButtonText(button, g, false, false);
     }
 
@@ -738,7 +738,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Font getTabButtonFont(TabBarButton&, float height) override
     {
-        return Fonts::getCurrentFont().withHeight(height * 0.44f);
+        return Fonts::getCurrentFont().withHeight(13.0f);
     }
 
     void getIdealPopupMenuItemSize(String const& text, bool const isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override
@@ -754,8 +754,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
             idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
             idealWidth = font.getStringWidth(text) + idealHeight * 2;
-
-            idealHeight += 1;
         }
     }
 
@@ -769,17 +767,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
         if (Desktop::canUseSemiTransparentWindows()) {
             Path shadowPath;
             shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 2 });
-
-            // Add a bit of alpha to disable the opaque flag
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 1 });
 
             g.setColour(background);
 
-            auto bounds = Rectangle<float>(0, 0, width, height).reduced(7);
-            g.fillRoundedRectangle(bounds, Corners::largeCornerRadius);
+            auto bounds = Rectangle<float>(6, 6, width - 12, height - 12);
+            fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(bounds, Corners::largeCornerRadius, 1.0f);
+            drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::largeCornerRadius);
         } else {
             auto bounds = Rectangle<float>(0, 0, width, height);
 
@@ -798,7 +794,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         String const& shortcutKeyText,
         Drawable const* icon, Colour const* const textColourToUse) override
     {
-        int margin = Desktop::canUseSemiTransparentWindows() ? 9 : 2;
+        int margin = Desktop::canUseSemiTransparentWindows() ? 7 : 2;
 
         if (isSeparator) {
             auto r = area.reduced(margin + 5, 0);
@@ -807,12 +803,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(0.7f));
             g.fillRect(r.removeFromTop(1));
         } else {
-            auto r = area.reduced(margin, 1);
+            auto r = area.reduced(margin, 0);
 
             auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isHighlighted && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-                g.fillRoundedRectangle(r.toFloat().reduced(4, 0), Corners::smallCornerRadius);
+                fillSmoothedRectangle(g, r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
+                //g.fillRoundedRectangle(r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
                 colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
 
@@ -829,14 +826,18 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
             g.setFont(font);
 
-            auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).toFloat();
-
             if (icon != nullptr) {
+                auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).toFloat();
+                
                 icon->drawWithin(g, iconArea, RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize, 1.0f);
                 r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
             } else if (isTicked) {
+                auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).toFloat();
                 auto tick = getTickShape(1.0f);
                 g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.reduced(iconArea.getWidth() / 5, 0).toFloat(), true));
+            }
+            else {
+                r.removeFromLeft(8);
             }
 
             if (hasSubMenu) {
@@ -847,23 +848,18 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
                 Path path;
                 path.startNewSubPath(x, halfH - arrowH * 0.5f);
-                path.lineTo(x + arrowH * 0.6f, halfH);
+                path.lineTo(x + arrowH * 0.5f, halfH);
                 path.lineTo(x, halfH + arrowH * 0.5f);
 
-                g.strokePath(path, PathStrokeType(2.0f));
+                g.strokePath(path, PathStrokeType(1.5f));
             }
 
             r.removeFromRight(3);
             Fonts::drawFittedText(g, text, r, colour);
 
             if (shortcutKeyText.isNotEmpty()) {
-                auto f2 = font;
-                f2.setHeight(f2.getHeight() * 0.75f);
-                f2.setHorizontalScale(0.95f);
-                g.setFont(f2);
-
-                g.setColour(colour);
-                g.drawText(shortcutKeyText, r.translated(-2, 0), Justification::centredRight);
+                auto shortcutColour = findColour(PopupMenu::textColourId).withMultipliedAlpha(0.5f);
+                Fonts::drawFittedText(g, shortcutKeyText, r.translated(-4, 0), shortcutColour, 1, 1.0f, 14.0f, Justification::centredRight);
             }
         }
     }
@@ -876,7 +872,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     int getPopupMenuBorderSize() override
     {
         if (Desktop::canUseSemiTransparentWindows()) {
-            return 10;
+            return 12;
         } else {
             return 2;
         }
@@ -1051,7 +1047,54 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         g.drawRect(label.getLocalBounds());
     }
+    
+    static Path getSquircle(const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
+    {
+        Path path;
+        
+        float x = bounds.getX();
+        float y = bounds.getY();
+        float width = bounds.getWidth();
+        float height = bounds.getHeight();
 
+        float radius = cornerRadius;
+        if (radius > width * 0.5f)
+            radius = width * 0.5f;
+        if (radius > height * 0.5f)
+            radius = height * 0.5f;
+        
+        float controlOffset = radius * 0.45f;
+        
+
+        path.startNewSubPath(x + radius, y);
+        path.lineTo(x + width - radius, y);
+        path.cubicTo(x + width - radius + controlOffset, y, x + width, y + radius - controlOffset, x + width, y + radius);
+        path.lineTo(x + width, y + height - radius);
+        path.cubicTo(x + width, y + height - radius + controlOffset, x + width - radius + controlOffset, y + height, x + width - radius, y + height);
+        path.lineTo(x + radius, y + height);
+        path.cubicTo(x + radius - controlOffset, y + height, x, y + height - radius + controlOffset, x, y + height - radius);
+        path.lineTo(x, y + radius);
+        path.cubicTo(x, y + radius - controlOffset, x + radius - controlOffset, y, x + radius, y);
+
+
+        return path;
+    }
+    
+    static void fillSmoothedRectangle(Graphics& g, const Rectangle<float>& bounds, float cornerRadius)
+    {
+        g.fillPath(getSquircle(bounds, cornerRadius));
+    }
+    
+    static void drawSmoothedRectangle(Graphics& g, PathStrokeType strokeType, const Rectangle<float>& bounds, float cornerRadius)
+    {
+        g.strokePath(getSquircle(bounds, cornerRadius), strokeType);
+    }
+    
+    static void drawSmoothedRectangle(Graphics& g, PathStrokeType strokeType, const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft, const bool curveTopRight, const bool curveBottomLeft, const bool curveBottomRight)
+    {
+        g.strokePath(getSquircle(bounds, cornerRadius, curveTopLeft, curveTopRight, curveBottomLeft, curveBottomRight), strokeType);
+    }
+    
     void drawPropertyComponentLabel(Graphics& g, int width, int height, PropertyComponent& component) override
     {
         auto indent = jmin(10, component.getWidth() / 10);

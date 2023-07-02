@@ -58,7 +58,7 @@ public:
         // Check if we need to draw an arrow up or down
         if (targetArea.getY() <= menuBounds.getY()) {
 
-            auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, 0.5f, 2.5f);
+            auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, 0.5f, 4.5f);
 
             arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getY() - arrowHeight + menuMargin, arrowWidth, arrowHeight);
 

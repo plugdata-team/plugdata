@@ -1,5 +1,5 @@
 #include <utility>
-
+#include "Utility/BouncingViewport.h"
 /*
  // Copyright (c) 2021-2022 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -187,7 +187,7 @@ public:
                 if (isSelected) {
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 1).toFloat(), Corners::defaultCornerRadius);
+                    PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().reduced(6, 1).toFloat(), Corners::defaultCornerRadius);
 
                     for (auto& item : console.selectedItems) {
 
@@ -394,7 +394,7 @@ public:
 private:
     std::array<Value, 5> settingsValues;
     ConsoleComponent* console;
-    Viewport viewport;
+    BouncingViewport viewport;
 
     int pendingUpdates = 0;
 };

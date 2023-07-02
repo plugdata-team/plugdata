@@ -6,6 +6,7 @@
 
 #include <utility>
 
+#include "Utility/BouncingViewport.h"
 #include "ObjectReferenceDialog.h"
 #include "Canvas.h"
 
@@ -13,9 +14,10 @@ class CategoriesListBox : public ListBox
     , public ListBoxModel {
 
     StringArray categories = { "All" };
+    BouncingViewportAttachment bouncer;
 
 public:
-    CategoriesListBox()
+    CategoriesListBox() : bouncer(getViewport())
     {
         setOutlineThickness(0);
         setRowHeight(25);
@@ -68,8 +70,9 @@ public:
 class ObjectsListBox : public ListBox
     , public ListBoxModel {
 
+    BouncingViewportAttachment bouncer;
 public:
-    explicit ObjectsListBox(pd::Library& library)
+    explicit ObjectsListBox(pd::Library& library) : bouncer(getViewport())
     {
         setOutlineThickness(0);
         setRowHeight(45);
@@ -398,8 +401,9 @@ class ObjectSearchComponent : public Component
     , public ListBoxModel
     , public ScrollBar::Listener
     , public KeyListener {
+        
 public:
-    explicit ObjectSearchComponent(pd::Library& library)
+        explicit ObjectSearchComponent(pd::Library& library) : bouncer(listBox.getViewport())
     {
         listBox.setModel(this);
         listBox.setRowHeight(28);
@@ -622,7 +626,8 @@ public:
 
 private:
     ListBox listBox;
-
+    BouncingViewportAttachment bouncer;
+        
     Array<String> searchResult;
     TextEditor input;
     TextButton clearButton = TextButton(Icons::ClearText);

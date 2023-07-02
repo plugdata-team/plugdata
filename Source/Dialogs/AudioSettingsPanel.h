@@ -124,7 +124,7 @@ public:
     {
         bool isDown = getValue<bool>(toggleStateValue);
         bool isHovered = isMouseOver();
-
+        
         Path backgroundShape;
         backgroundShape.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTopCorner, roundTopCorner, roundBottomCorner, roundBottomCorner);
 
@@ -397,7 +397,7 @@ private:
         audioPropertiesPanel.setBounds(getLocalBounds());
 
         auto [x, width] = audioPropertiesPanel.getContentXAndWidth();
-
+        
         if (inputSelectorProperty) {
             auto inputSelectorBounds = getLocalArea(nullptr, inputSelectorProperty->getScreenBounds());
             inputLevelMeter.setBounds((x + width) - 60, inputSelectorBounds.getY() - 16, 60, 6);

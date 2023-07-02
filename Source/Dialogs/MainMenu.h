@@ -216,8 +216,8 @@ public:
             auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-                g.fillRoundedRectangle(r.toFloat().reduced(2, 0), Corners::smallCornerRadius);
-
+                
+                PlugDataLook::fillSmoothedRectangle(g, r.toFloat().reduced(2, 0), Corners::defaultCornerRadius);
                 colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
 
@@ -254,10 +254,10 @@ public:
 
                 Path path;
                 path.startNewSubPath(x, halfH - arrowH * 0.5f);
-                path.lineTo(x + arrowH * 0.6f, halfH);
+                path.lineTo(x + arrowH * 0.5f, halfH);
                 path.lineTo(x, halfH + arrowH * 0.5f);
 
-                g.strokePath(path, PathStrokeType(2.0f));
+                g.strokePath(path, PathStrokeType(1.5f));
             }
 
             r.removeFromRight(3);

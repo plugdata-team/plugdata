@@ -41,7 +41,7 @@ void VolumeSlider::paint(Graphics& g)
     auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
     auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
     g.setColour(backgroundColour.withAlpha(0.8f));
-    g.fillEllipse(thumb);
+    PlugDataLook::fillSmoothedRectangle(g, thumb.withSizeKeepingCentre(thumb.getWidth() - 4, thumb.getHeight()), Corners::largeCornerRadius);
 }
 
 class LevelMeter : public Component
@@ -124,8 +124,8 @@ public:
         auto leftOffset = x + (bgHeight * 0.5f);
 
         g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
-        g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth, bgWidth, bgHeight, bgHeight * 0.5f);
-
+        g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth, bgWidth, bgHeight, Corners::largeCornerRadius);
+        
         for (int ch = 0; ch < numChannels; ch++) {
             auto barYPos = outerBorderWidth + ((ch + 1) * (bgHeight / 3.0f)) - halfBarHeight;
             auto barLength = jmin(audioLevel[ch] * barWidth, barWidth);

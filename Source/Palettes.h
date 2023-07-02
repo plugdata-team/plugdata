@@ -13,6 +13,7 @@
 #include "Sidebar/Sidebar.h"
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
+#include "Utility/BouncingViewport.h"
 
 class DraggedPaletteItem : public Component {
 
@@ -560,7 +561,7 @@ public:
     ValueTree paletteTree;
 
     Component itemHolder;
-    Viewport viewport;
+    BouncingViewport viewport;
     Label nameLabel;
     OwnedArray<PaletteItem> items;
 };

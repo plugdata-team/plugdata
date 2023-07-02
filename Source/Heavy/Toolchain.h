@@ -95,7 +95,7 @@ struct ToolchainInstaller : public Component
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
             if (isMouseOver()) {
-                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, Corners::defaultCornerRadius);
+                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::defaultCornerRadius);
             }
 
             auto colour = findColour(PlugDataColour::panelTextColourId);
@@ -193,10 +193,10 @@ struct ToolchainInstaller : public Component
             auto downloadBar = Rectangle<float>(91.5f, 300.0f - (downloadBarHeight * 0.5), progress, downloadBarHeight);
 
             g.setColour(findColour(PlugDataColour::panelTextColourId));
-            g.fillRoundedRectangle(downloadBarBg, Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, downloadBarBg, Corners::defaultCornerRadius);
 
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle(downloadBar, Corners::smallCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, downloadBar, Corners::defaultCornerRadius);
         }
 
         if (errorMessage.isNotEmpty()) {

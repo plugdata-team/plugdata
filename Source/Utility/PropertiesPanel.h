@@ -13,6 +13,7 @@
 #include <utility>
 #include "DraggableNumber.h"
 #include "ColourPicker.h"
+#include "Utility/BouncingViewport.h"
 
 class PropertiesPanel : public Component
     , public ScrollBar::Listener {
@@ -821,11 +822,13 @@ public:
         viewport.setFocusContainerType(FocusContainerType::focusContainer);
 
         viewport.getVerticalScrollBar().addListener(this);
+        viewport.addMouseListener(this, true);
     }
-
+        
     /** Destructor. */
     ~PropertiesPanel() override
     {
+        viewport.removeMouseListener(this);
         viewport.getVerticalScrollBar().removeListener(this);
         clear();
     }
@@ -930,9 +933,14 @@ public:
     {
         onLayoutChange();
     }
+        
+    void mouseWheelMove (const MouseEvent&, const MouseWheelDetails&) override
+    {
+        onLayoutChange();
+    }
 
     int contentWidth = 600;
-    Viewport viewport;
+    BouncingViewport viewport;
     PropertyHolderComponent* propertyHolderComponent;
     String messageWhenEmpty;
 };

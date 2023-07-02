@@ -8,6 +8,7 @@
 
 #include <string>
 
+
 struct OSUtils {
     enum KeyboardLayout {
         QWERTY,
@@ -30,4 +31,30 @@ struct OSUtils {
     static juce::Array<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles);
 
     static KeyboardLayout getKeyboardLayout();
+    
+    class ScrollTracker
+    {
+    public:
+        ScrollTracker();
+
+        ~ScrollTracker();
+        
+        static ScrollTracker* create()
+        {
+            return new ScrollTracker;
+        }
+        
+        static bool isScrolling()
+        {
+            return instance->scrolling;
+        }
+
+    private:
+        bool scrolling;
+        void* observer;
+        static inline ScrollTracker* instance = create();
+    };
+
 };
+
+

@@ -25,7 +25,7 @@ class AutomationSlider : public Component
             p.lineTo(isOpen ? 1.0f : 0.0f, isOpen ? 0.0f : 1.0f);
 
             g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(mouseOver ? 0.7f : 1.0f));
-            g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(area.translated(3, 0).reduced(area.getWidth() / 4, area.getHeight() / 4), true));
+            g.strokePath(p, PathStrokeType(1.5f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(area.translated(3, 0).reduced(area.getWidth() / 4, area.getHeight() / 4), true));
         }
     };
 
@@ -293,7 +293,7 @@ public:
         valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
 
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.5f));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f, 3.0f), Corners::defaultCornerRadius);
+        PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(4.5f, 3.0f), Corners::defaultCornerRadius);
     }
 
     std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*) {};
@@ -340,7 +340,7 @@ class AutomationComponent : public Component {
             auto colour = findColour(PlugDataColour::sidebarTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
+                PlugDataLook::fillSmoothedRectangle(g, bounds.toFloat(), Corners::defaultCornerRadius);
 
                 colour = findColour(PlugDataColour::sidebarActiveTextColourId);
             }
@@ -538,7 +538,7 @@ public:
 
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, Corners::defaultCornerRadius);
+        PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(0, getHeight() - 30, getWidth(), 30), Corners::defaultCornerRadius);
     }
 
     void resized() override
@@ -561,7 +561,7 @@ public:
         }
     }
 
-    Viewport viewport;
+    BouncingViewport viewport;
     AutomationComponent sliders;
     PluginProcessor* pd;
 
