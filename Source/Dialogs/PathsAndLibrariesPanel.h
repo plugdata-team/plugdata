@@ -774,5 +774,5 @@ private:
     LibraryLoadPanel libraryLoadPanel;
 
     Component container;
-    Viewport viewport;
+    BouncingViewport viewport;
 };

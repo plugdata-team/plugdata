@@ -81,7 +81,9 @@ class DocumentBrowserViewBase : public TreeView
 
 public:
     explicit DocumentBrowserViewBase(DirectoryContentsList& listToShow)
-        : DirectoryContentsDisplayComponent(listToShow) {};
+        : DirectoryContentsDisplayComponent(listToShow), bouncer(getViewport()) {};
+        
+    BouncingViewportAttachment bouncer;
 };
 
 class DocumentBrowserBase : public Component {
@@ -144,7 +146,7 @@ public:
         }
 
         g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
-        g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(arrowArea, true));
+        g.strokePath(p, PathStrokeType(1.5f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(arrowArea, true));
     }
 
     bool mightContainSubItems() override
@@ -421,9 +423,16 @@ public:
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
 
             auto y = getSelectedItem(0)->getItemPosition(true).getY();
+            
+            // Fix for bouncing viewport
+            if(auto* holder = getViewport()->getChildComponent(0))
+            {
+                y += holder->getTransform().getTranslationY();
+            }
+            
             auto selectedRect = Rectangle<float>(3.0f, y + 2.0f, getWidth() - 6.0f, 22.0f);
 
-            g.fillRoundedRectangle(selectedRect, Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, selectedRect, Corners::defaultCornerRadius);
         }
     }
     // Paint file drop outline
@@ -439,6 +448,12 @@ public:
     {
         repaint();
     }
+        
+    void mouseWheelMove (const MouseEvent&, const MouseWheelDetails&) override
+    {
+        repaint();
+    }
+
 
     /** Callback when the user double-clicks on a file in the browser. */
     void fileDoubleClicked(File const& file) override
@@ -549,13 +564,13 @@ class FileSearchComponent : public Component
     , public KeyListener {
 public:
     explicit FileSearchComponent(DirectoryContentsList& directory)
-        : searchPath(directory)
+        : searchPath(directory), bouncer(listBox.getViewport())
     {
         listBox.setModel(this);
         listBox.setRowHeight(32);
         listBox.setOutlineThickness(0);
         listBox.deselectAllRows();
-
+        
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
         input.getProperties().set("NoOutline", true);
@@ -659,7 +674,7 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(5, 2, w - 10, h - 4, Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5, 2, w - 10, h - 4), Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
@@ -760,7 +775,7 @@ public:
 
 private:
     ListBox listBox;
-
+    BouncingViewportAttachment bouncer;
     DirectoryContentsList& searchPath;
     Array<File> searchResult;
     TextEditor input;

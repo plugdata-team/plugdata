@@ -72,3 +72,50 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     
     return QWERTY;
 }
+
+@interface ScrollEventObserver : NSObject
+- (instancetype)initWithScrollingFlag:(bool*)scrollingFlag;
+@end
+
+@implementation ScrollEventObserver {
+    bool* isScrollingFlag;
+}
+
+- (instancetype)initWithScrollingFlag:(bool*)scrollingFlag {
+    self = [super init];
+    if (self) {
+        isScrollingFlag = scrollingFlag;
+    }
+    return self;
+}
+
+
+- (void)scrollEventOccurred:(NSEvent*)event {
+    if (event.phase == NSEventPhaseBegan) {
+        *isScrollingFlag = true;
+    } else if (event.phase == NSEventPhaseEnded || event.phase == NSEventPhaseCancelled) {
+        *isScrollingFlag = false;
+    }
+}
+
+@end
+
+
+OSUtils::ScrollTracker::ScrollTracker()
+{
+    // Create the ScrollEventObserver instance
+    observer = [[ScrollEventObserver alloc] initWithScrollingFlag:&scrolling];
+    
+    NSEventMask scrollEventMask = NSEventMaskScrollWheel;
+            [NSEvent addLocalMonitorForEventsMatchingMask:scrollEventMask handler:^NSEvent* (NSEvent* event) {
+                [observer scrollEventOccurred:event];
+                return event;
+            }];
+}
+
+OSUtils::ScrollTracker::~ScrollTracker()
+{
+    // Remove the observer when no longer needed
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:static_cast<ScrollEventObserver*>(observer)];
+}

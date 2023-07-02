@@ -417,7 +417,7 @@ class Deken : public Component
     , public ActionListener {
 
 public:
-    Deken()
+    Deken() : bouncer(listBox.getViewport())
     {
         setInterceptsMouseClicks(false, true);
 
@@ -697,7 +697,8 @@ public:
 private:
     // List component to list packages
     ListBox listBox;
-
+    BouncingViewportAttachment bouncer;
+        
     // Last error message
     String errorMessage;
 

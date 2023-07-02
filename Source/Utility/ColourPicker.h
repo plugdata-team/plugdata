@@ -614,13 +614,13 @@ private:
             auto colour = Colour::fromHSV(hs.first, hs.second, 1.0f, 1.0f);
 
             auto bounds = getLocalBounds().toFloat().reduced(edge);
-            auto radius = jmin(Corners::smallCornerRadius, bounds.getWidth() / 2.0f);
+            auto radius = jmin(Corners::defaultCornerRadius, bounds.getWidth() / 2.0f);
 
             g.setGradientFill(ColourGradient(colour, 0.0f, 0.0f, Colours::black, bounds.getHeight() / 2, bounds.getHeight() / 2, false));
-            g.fillRoundedRectangle(bounds, radius);
+            PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(bounds, radius, 1.0f);
+            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::defaultCornerRadius);
         }
 
         void resized() override

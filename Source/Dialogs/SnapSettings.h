@@ -113,7 +113,7 @@ public:
         {
             if (dragToggledInteraction) {
                 g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-                g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
+                PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
             }
         }
 

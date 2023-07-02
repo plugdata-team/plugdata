@@ -440,6 +440,7 @@ public:
         , pd(instance)
     {
         for (auto* arr : arrays) {
+            
             auto* graph = graphs.add(new GraphicalArray(pd, arr, parent));
             addAndMakeVisible(graph);
         }
@@ -810,7 +811,11 @@ public:
 
     bool canOpenFromMenu() override
     {
-        return true;
+        if (auto c = ptr.get<t_canvas>()) {
+            return c->gl_list != nullptr;
+        }
+        
+        return false;
     }
 
     void openArrayEditor()
@@ -829,10 +834,16 @@ public:
             while ((x = x->g_next)) {
                 arrays.push_back(x);
             }
-            editor = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);
-            editor->onClose = [this]() {
-                editor.reset(nullptr);
-            };
+            if(arrays.size() && arrays[0] != nullptr)
+            {
+                editor = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);
+                editor->onClose = [this]() {
+                    editor.reset(nullptr);
+                };
+            }
+            else {
+                pd->logWarning("array define: cannot open non-existent array");
+            }
         }
     }
 

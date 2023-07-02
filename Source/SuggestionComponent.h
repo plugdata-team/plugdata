@@ -30,7 +30,7 @@ public:
 
     ~AutoCompleteComponent() override
     {
-        editor->removeComponentListener(this);
+        if(editor) editor->removeComponentListener(this);
     }
 
     String getSuggestion()
@@ -202,7 +202,7 @@ class SuggestionComponent : public Component
                 auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(6, 0);
-                g.fillRoundedRectangle(iconbound.toFloat(), Corners::smallCornerRadius);
+                PlugDataLook::fillSmoothedRectangle(g, iconbound.toFloat(), Corners::defaultCornerRadius);
 
                 Fonts::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
             }
@@ -234,7 +234,7 @@ public:
         resizer.addMouseListener(this, true);
 
         // Set up viewport
-        port = std::make_unique<Viewport>();
+        port = std::make_unique<BouncingViewport>();
         port->setScrollBarsShown(true, false);
         port->setViewedComponent(buttonholder.get(), false);
         port->setInterceptsMouseClicks(true, true);
@@ -430,13 +430,13 @@ private:
         }
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
-        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
+        PlugDataLook::fillSmoothedRectangle(g, port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId).darker(0.1f));
-        g.drawRoundedRectangle(port->getBounds().toFloat().reduced(0.5f), Corners::defaultCornerRadius, 1.0f);
+        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
     }
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
@@ -698,7 +698,7 @@ private:
     int currentidx = 0;
 
     std::unique_ptr<AutoCompleteComponent> autoCompleteComponent;
-    std::unique_ptr<Viewport> port;
+    std::unique_ptr<BouncingViewport> port;
     std::unique_ptr<Component> buttonholder;
     OwnedArray<Suggestion> buttons;
 

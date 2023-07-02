@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "Utility/GlobalMouseListener.h"
+#include "Utility/BouncingViewport.h"
 #include "Constants.h"
 #include "Canvas.h"
 
@@ -40,7 +41,7 @@ class WelcomePanel : public Component {
             auto colour = findColour(PlugDataColour::panelTextColourId);
             if (isMouseOver()) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 6.0f);
+                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
                 colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
 
@@ -77,6 +78,8 @@ class WelcomePanel : public Component {
             listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
             addAndMakeVisible(listBox);
+            
+            bouncer = std::make_unique<BouncingViewportAttachment>(listBox.getViewport());
         }
 
         void update()
@@ -113,7 +116,7 @@ class WelcomePanel : public Component {
         void paint(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(1, 36, getWidth() - 2, getHeight() - 37, Corners::defaultCornerRadius, 1.0f);
+            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), Rectangle<float>(1, 36, getWidth() - 2, getHeight() - 37), Corners::defaultCornerRadius);
 
             Fonts::drawStyledText(g, "Recently Opened", 0, 0, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
         }
@@ -127,7 +130,7 @@ class WelcomePanel : public Component {
         {
             if (rowIsSelected) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
+                PlugDataLook::fillSmoothedRectangle(g, { 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
             }
 
             auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
@@ -135,6 +138,7 @@ class WelcomePanel : public Component {
             Fonts::drawText(g, items[rowNumber].first, 12, 0, width - 9, height, colour, 15);
         }
 
+        std::unique_ptr<BouncingViewportAttachment> bouncer;
         ListBox listBox;
         Array<std::pair<String, File>> items;
     };

@@ -124,7 +124,7 @@ public:
     {
         bool isDown = getValue<bool>(toggleStateValue);
         bool isHovered = isMouseOver();
-
+        
         Path backgroundShape;
         backgroundShape.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTopCorner, roundTopCorner, roundBottomCorner, roundBottomCorner);
 
@@ -397,7 +397,7 @@ private:
         audioPropertiesPanel.setBounds(getLocalBounds());
 
         auto [x, width] = audioPropertiesPanel.getContentXAndWidth();
-
+        
         if (inputSelectorProperty) {
             auto inputSelectorBounds = getLocalArea(nullptr, inputSelectorProperty->getScreenBounds());
             inputLevelMeter.setBounds((x + width) - 60, inputSelectorBounds.getY() - 16, 60, 6);
@@ -439,27 +439,17 @@ public:
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
-        if (!settingsTree.hasProperty("NativeDialog")) {
-            settingsTree.setProperty("NativeDialog", true, nullptr);
-        }
-
         auto* proc = dynamic_cast<PluginProcessor*>(processor);
-
-        nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
         tailLengthValue.referTo(proc->tailLength);
 
-        tailLengthValue.addListener(this);
         latencyValue.addListener(this);
-        nativeDialogValue.addListener(this);
 
         latencyValue = proc->getLatencySamples();
 
         latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
         tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
-        nativeDialogToggle = new PropertiesPanel::BoolComponent("Use system dialog", nativeDialogValue, StringArray { "No", "Yes" });
 
         dawSettingsPanel.addSection("Audio", { latencyNumberBox, tailLengthNumberBox });
-        dawSettingsPanel.addSection("Other", { nativeDialogToggle });
 
         addAndMakeVisible(dawSettingsPanel);
 
@@ -482,11 +472,9 @@ public:
 
     Value latencyValue;
     Value tailLengthValue;
-    Value nativeDialogValue;
 
     PropertiesPanel dawSettingsPanel;
 
     PropertiesPanel::EditableComponent<int>* latencyNumberBox;
     PropertiesPanel::EditableComponent<float>* tailLengthNumberBox;
-    PropertiesPanel::BoolComponent* nativeDialogToggle;
 };
