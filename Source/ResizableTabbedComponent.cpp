@@ -55,10 +55,12 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
             moveTabToNewSplit(dragSourceDetails);
             break;
         case DropZones::Top:
-            splitMode = Split::SplitMode::Vertical;
+            moveTabToNewSplit(dragSourceDetails);
+            //splitMode = Split::SplitMode::Vertical;
             break;
         case DropZones::Bottom:
-            splitMode = Split::SplitMode::Vertical;
+            moveTabToNewSplit(dragSourceDetails);
+            //splitMode = Split::SplitMode::Vertical;
             break;
         case DropZones::TabBar:
             splitMode = Split::SplitMode::None;
@@ -301,13 +303,15 @@ void ResizableTabbedComponent::paintOverChildren(Graphics& g)
             highlight = splitBoundsLeft;
             break;
         case DropZones::Top:
-            highlight = splitBoundsTop;
+            //highlight = splitBoundsTop;
+            highlight = splitBoundsFull;
             break;
         case DropZones::Right:
             highlight = splitBoundsRight;
             break;
         case DropZones::Bottom:
-            highlight = splitBoundsBottom;
+            //highlight = splitBoundsBottom;
+            highlight = splitBoundsFull;
             break;
         case DropZones::Centre:
         case DropZones::TabBar:
@@ -383,6 +387,7 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
         splitBoundsBottom = objectBounds.withTop(vHalf);
         splitBoundsRight = objectBounds.withLeft(hHalf);
         splitBoundsLeft = objectBounds.withRight(hHalf);
+        splitBoundsFull = objectBounds;
 
         Rectangle<float> innerRect;
         auto localBounds = objectBounds.toFloat();

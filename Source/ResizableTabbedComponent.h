@@ -76,7 +76,7 @@ private:
     float leftFactor = 0.0f;
     float rightFactor = 1.0f;
 
-    Rectangle<int> splitBoundsTop, splitBoundsBottom, splitBoundsRight, splitBoundsLeft;
+    Rectangle<int> splitBoundsTop, splitBoundsBottom, splitBoundsRight, splitBoundsLeft, splitBoundsFull;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ResizableTabbedComponent)
 };
