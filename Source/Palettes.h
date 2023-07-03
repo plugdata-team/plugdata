@@ -14,8 +14,7 @@
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
 
-//TIM: bouncing viewport is low priority - as opposed to non-functional palettes!
-//#include "Utility/BouncingViewport.h"
+#include "Utility/BouncingViewport.h"
 
 #include "PluginEditor.h"
 #include "PaletteItem.h"
@@ -70,15 +69,6 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         onClick();
-    }
-};
-
-class PaletteViewport : public Viewport {
-public:
-    PaletteViewport() {};
-
-    void visibleAreaChanged(juce::Rectangle<int> const& newVisibleArea) override
-    {
     }
 };
 
@@ -177,7 +167,7 @@ public:
         setBounds(getLocalBounds().withHeight(jmax(getHeight(), totalHeight + 35)));
         shouldAnimate = false;
 
-        auto viewport = findParentComponentOfClass<PaletteViewport>();
+        auto viewport = findParentComponentOfClass<BouncingViewport>();
         //if (pushViewportToBottom) {
         //    viewport->setViewPositionProportionately(0.0f, 1.0f);
         //    pushViewportToBottom = false;
@@ -218,7 +208,7 @@ public:
             }
         } else {
             // autoscroll the viewport when we are close. to. the. edge.
-            auto viewport = findParentComponentOfClass<PaletteViewport>();
+            auto viewport = findParentComponentOfClass<BouncingViewport>();
             if (viewport->autoScroll(0, viewport->getLocalPoint(nullptr, e.getScreenPosition()).getY(), 0, 5)) {
                 beginDragAutoRepeat(20);
             }
@@ -263,7 +253,7 @@ public:
         if (isItemShowingMenu)
             return;
 
-        auto viewport = findParentComponentOfClass<PaletteViewport>();
+        auto viewport = findParentComponentOfClass<BouncingViewport>();
         viewportPosHackY = viewport->getViewPositionY();
         accumulatedOffsetY = { 0, 0 };
     }
@@ -362,10 +352,8 @@ private:
     PaletteDraggableList* paletteDraggableList;
     PluginEditor* editor;
     ValueTree paletteTree;
-    PaletteViewport viewport;
+    BouncingViewport viewport;
 
-    // TIM, this needs to be done with the new system!
-    //BouncingViewport viewport;
     Label nameLabel;
 };
 
