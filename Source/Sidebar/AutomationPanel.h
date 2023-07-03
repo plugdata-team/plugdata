@@ -175,6 +175,10 @@ public:
             lastName = nameLabel.getText(false);
         };
 
+        nameLabel.onTextChange = [this]() {
+            dragImage = Image();
+        };
+
         nameLabel.onEditorHide = [this]() {
             StringArray allNames;
             for (auto* param : pd->getParameters()) {
@@ -236,9 +240,26 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
+        auto formatedParam = "#X obj 0 0 param " + param->getTitle() + ";";
+
         deleteButton.setVisible(false);
+
+        if (dragImage.isNull()) {
+            auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
+            auto offlineRenderResult = offlineObjectRenderer->patchToTempImage(formatedParam);
+            dragImage = offlineRenderResult.image;
+            dragImageOffset = offlineRenderResult.offset;
+        }
+
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
-        dragContainer->startDragging(var(param->getTitle()), this, Image(), true);
+
+        Array<var> paramObjectWithOffset;
+
+        paramObjectWithOffset.clear();
+        paramObjectWithOffset.add(var(dragImageOffset.getX()));
+        paramObjectWithOffset.add(var(dragImageOffset.getY()));
+        paramObjectWithOffset.add(var(formatedParam));
+        dragContainer->startDragging(paramObjectWithOffset, this, dragImage, true, nullptr, nullptr, true);
     }
 
     void valueChanged(Value& v) override
@@ -330,6 +351,9 @@ public:
     String lastName;
 
     Slider slider;
+
+    Image dragImage;
+    Point<int> dragImageOffset;
 
     int index;
 

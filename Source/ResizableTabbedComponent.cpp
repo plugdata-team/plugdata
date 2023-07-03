@@ -70,7 +70,8 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
             break;
         }
     }
-    else if (auto source = dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get())) {
+    else if (dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get()) ||
+             dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get())) {
         if (!tabComponent)
             return;
 
@@ -94,13 +95,6 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
         // so we wil need to somehow get that using ZoomableDragAndDropContainer?
             //browser->pd->loadPatch(file);
             //SettingsFile::getInstance()->addToRecentlyOpened(file);
-    }
-    else if (auto automationSlider = dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get())) {
-        auto param = dragSourceDetails.description.toString();
-        auto cnv = tabComponent->getCurrentCanvas();
-        auto mousePos = (cnv->getLocalPoint(this, dragSourceDetails.localPosition));
-        cnv->objects.add(new Object(cnv, "param " + param, mousePos));
-        cnv->synchronise();
     }
 }
 
