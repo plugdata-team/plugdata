@@ -891,16 +891,16 @@ AudioProcessorEditor* PluginProcessor::createEditor()
         editor->addTab(cnv);
     }
 
-    editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
+    //editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
 
     editor->resized();
 
-    if (isPositiveAndBelow(lastLeftTab, patches.size())) {
-        editor->splitView.getLeftTabbar()->setCurrentTabIndex(lastLeftTab);
-    }
-    if (isPositiveAndBelow(lastRightTab, patches.size())) {
-        editor->splitView.getRightTabbar()->setCurrentTabIndex(lastRightTab);
-    }
+    //if (isPositiveAndBelow(lastLeftTab, patches.size())) {
+    //    editor->splitView.getLeftTabbar()->setCurrentTabIndex(lastLeftTab);
+    //}
+    //if (isPositiveAndBelow(lastRightTab, patches.size())) {
+    //    editor->splitView.getRightTabbar()->setCurrentTabIndex(lastRightTab);
+    //}
 
     return editor;
 }
@@ -1012,8 +1012,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             if (!editor)
                 return;
 
-            editor->splitView.getLeftTabbar()->clearTabs();
-            editor->splitView.getRightTabbar()->clearTabs();
+            for (auto split : editor->splitView.splits) {
+                split->getTabComponent()->clearTabs();
+            }
             editor->canvases.clear();
         });
     }
@@ -1539,27 +1540,22 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 void PluginProcessor::titleChanged()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        auto* leftTabbar = editor->splitView.getLeftTabbar();
-        auto* rightTabbar = editor->splitView.getRightTabbar();
+        for (auto split : editor->splitView.splits) {
+            auto tabbar = split->getTabComponent();
+            for (int n = 0; n < tabbar->getNumTabs(); n++) {
+                auto* cnv = tabbar->getCanvas(n);
+                if (!cnv)
+                    return;
 
-        for (int n = 0; n < leftTabbar->getNumTabs(); n++) {
-            auto* cnv = leftTabbar->getCanvas(n);
-            if (!cnv)
-                return;
-
-            leftTabbar->setTabName(n, cnv->patch.getTitle() + String(cnv->patch.isDirty() ? "*" : ""));
-        }
-        for (int n = 0; n < rightTabbar->getNumTabs(); n++) {
-            auto* cnv = rightTabbar->getCanvas(n);
-            if (!cnv)
-                return;
-            rightTabbar->setTabName(n, cnv->patch.getTitle() + String(cnv->patch.isDirty() ? "*" : ""));
+                tabbar->setTabText(n, cnv->patch.getTitle() + String(cnv->patch.isDirty() ? "*" : ""));
+            }
         }
     }
 }
 
 void PluginProcessor::savePatchTabPositions()
 {
+    /*
     Array<std::tuple<pd::Patch*, int, int>> sortedPatches;
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
@@ -1595,6 +1591,7 @@ void PluginProcessor::savePatchTabPositions()
         i++;
     }
     patches.getLock().exit();
+    */
 }
 
 // This creates new instances of the plugin..

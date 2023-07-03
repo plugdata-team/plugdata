@@ -67,6 +67,9 @@ public:
     void mouseUp(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
 
+    void focusGained(FocusChangeType type) override;
+    void focusLost(FocusChangeType type) override;
+
     void commandKeyChanged(bool isHeld) override;
     void spaceKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
@@ -101,6 +104,7 @@ public:
     void copySelection();
     void removeSelection();
     void removeSelectedConnections();
+    void dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight);
     void pasteSelection();
     void duplicateSelection();
 

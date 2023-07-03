@@ -11,6 +11,7 @@
 #include "Utility/StackShadow.h"
 #include "Utility/SettingsFile.h"
 #include "Constants.h"
+#include "Utility/Fonts.h"
 
 inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDataColourNames = {
 
@@ -610,6 +611,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
+    // ==================== LookAndFeel TabBarButton ====================
+
     Rectangle<int> getTabButtonExtraComponentBounds(TabBarButton const& button, Rectangle<int>& textArea, Component& comp) override
     {
         Rectangle<int> extraComp;
@@ -681,6 +684,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         fillSmoothedRectangle(g, button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
         drawTabButtonText(button, g, false, false);
     }
+
 
     void drawTabButtonText(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {

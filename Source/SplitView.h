@@ -1,29 +1,36 @@
 #pragma once
 
-#include "Tabbar.h"
+#include "SplitViewResizer.h"
+#include "ResizableTabbedComponent.h"
+
 
 class PluginEditor;
 class Canvas;
 class FadeAnimation;
-class SplitViewResizer;
 class SplitView : public Component {
 public:
     explicit SplitView(PluginEditor* parent);
     ~SplitView() override;
 
     TabComponent* getActiveTabbar();
-    TabComponent* getLeftTabbar();
-    TabComponent* getRightTabbar();
 
-    void setSplitEnabled(bool splitEnabled);
-    bool isSplitEnabled() const;
-    bool isRightTabbarActive() const;
+    //void setSplitEnabled(bool splitEnabled);
+    //bool isSplitEnabled() const;
+    //bool isRightTabbarActive() const;
 
     void splitCanvasesAfterIndex(int idx, bool direction);
     void splitCanvasView(Canvas* cnv, bool splitviewFocus);
 
-    void setFocus(Canvas* cnv);
-    bool hasFocus(Canvas* cnv);
+    void addSplit(ResizableTabbedComponent* toSplit);
+    void addResizer(SplitViewResizer* resizer);
+
+    void removeSplit(TabComponent* toRemove);
+
+    bool canSplit();
+
+    void setFocus(ResizableTabbedComponent* selectedTabComponent);
+    //void componentMovedOrResized(juce::Component& component, bool wasMoved, bool wasResized) override;
+    //bool hasFocus(Canvas* cnv);
 
     void closeEmptySplits();
 
@@ -31,11 +38,12 @@ public:
 
     int getTabComponentSplitIndex(TabComponent* tabComponent);
 
-    void setSplitFocusIndex(int index);
+    //void setSplitFocusIndex(int index);
 
-    bool isSplitView() { return splitView; };
+    //bool isSplitView() { return splitView; };
 
-    OwnedArray<TabComponent> splits;
+    OwnedArray<ResizableTabbedComponent> splits;
+    OwnedArray<SplitViewResizer> resizers;
 
     float splitViewWidth = 0.5f;
     void resized() override;
@@ -47,6 +55,9 @@ private:
     int activeTabIndex = 0;
     bool splitFocusIndex = false;
 
+    Rectangle<int> selectedSplit;
+    ResizableTabbedComponent* activeTabComponent = nullptr;
+    ResizableTabbedComponent* rootComponent;
 
     std::unique_ptr<FadeAnimation> fadeAnimation;
     std::unique_ptr<FadeAnimation> fadeAnimationLeft;
@@ -57,4 +68,6 @@ private:
     PluginEditor* editor;
 
     std::unique_ptr<Component> splitViewResizer;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SplitView)
 };

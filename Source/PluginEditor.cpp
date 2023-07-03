@@ -289,8 +289,14 @@ PluginEditor::~PluginEditor()
 
     theme.removeListener(this);
 
-    pd->lastLeftTab = splitView.getLeftTabbar()->getCurrentTabIndex();
-    pd->lastRightTab = splitView.getRightTabbar()->getCurrentTabIndex();
+    //ALEX this looks important??!
+    //pd->lastLeftTab = splitView.getLeftTabbar()->getCurrentTabIndex();
+    //pd->lastRightTab = splitView.getRightTabbar()->getCurrentTabIndex();
+}
+
+SplitView* PluginEditor::getSplitView()
+{
+    return &splitView;
 }
 
 void PluginEditor::setZoomLabelLevel(float value)
@@ -607,7 +613,10 @@ TabComponent* PluginEditor::getActiveTabbar()
 
 Canvas* PluginEditor::getCurrentCanvas()
 {
-    return getActiveTabbar()->getCurrentCanvas();
+    if (auto activeTabbar = getActiveTabbar()) {
+        return activeTabbar->getCurrentCanvas();
+    }
+    return nullptr;
 }
 
 void PluginEditor::closeAllTabs(bool quitAfterComplete)
@@ -670,11 +679,10 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     pd->patches.removeAllInstancesOf(patch);
 
-    if (auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas()) {
-        leftCnv->tabChanged();
-    }
-    if (auto* rightCnv = splitView.getRightTabbar()->getCurrentCanvas()) {
-        rightCnv->tabChanged();
+    for (auto split : splitView.splits) {
+        auto tabbar = split->getTabComponent();
+        if (auto* cnv = tabbar->getCurrentCanvas())
+            cnv->tabChanged();
     }
 
     pd->updateObjectImplementations();
@@ -699,7 +707,7 @@ void PluginEditor::addTab(Canvas* cnv)
 
     // Add tab next to the currently focused tab
     auto patchTitle = cnv->patch.getTitle();
-    focusedTabbar->addTab(patchTitle, findColour(ResizableWindow::backgroundColourId), cnv->viewport, true, newTabIdx);
+    focusedTabbar->addTab(patchTitle, findColour(ResizableWindow::backgroundColourId), cnv->viewport, false, newTabIdx);
 
     // Open help files and references in Locked Mode
     if (patchTitle.contains("-help") || patchTitle.equalsIgnoreCase("reference"))
@@ -707,49 +715,6 @@ void PluginEditor::addTab(Canvas* cnv)
 
     focusedTabbar->setCurrentTabIndex(newTabIdx);
     focusedTabbar->setTabBackgroundColour(newTabIdx, Colours::transparentBlack);
-
-    auto* tabButton = focusedTabbar->getTabbedButtonBar().getTabButton(newTabIdx);
-    tabButton->setTriggeredOnMouseDown(true);
-
-    auto* closeTabButton = new TextButton(Icons::Clear);
-    closeTabButton->getProperties().set("Style", "Icon");
-    closeTabButton->getProperties().set("FontScale", 0.44f);
-    closeTabButton->setColour(TextButton::buttonColourId, Colour());
-    closeTabButton->setColour(TextButton::buttonOnColourId, Colour());
-    closeTabButton->setColour(ComboBox::outlineColourId, Colour());
-    closeTabButton->setConnectedEdges(12);
-    closeTabButton->setSize(28, 28);
-
-    // Add the close button to the tab button
-    tabButton->setExtraComponent(closeTabButton, TabBarButton::afterText);
-
-    closeTabButton->onClick = [this, focusedTabbar, tabButton]() mutable {
-        // We cant use the index from earlier because it might have changed!
-        const int tabIdx = tabButton->getIndex();
-        auto* cnv = focusedTabbar->getCanvas(tabIdx);
-
-        if (tabIdx == -1)
-            return;
-
-        if (cnv) {
-            MessageManager::callAsync([this, cnv = SafePointer(cnv)]() mutable {
-                // Don't show save dialog, if patch is still open in another view
-                if (cnv && cnv->patch.isDirty()) {
-                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
-                        [this, cnv](int result) mutable {
-                            if (!cnv)
-                                return;
-                            if (result == 2)
-                                saveProject([this, cnv]() mutable { closeTab(cnv); });
-                            else if (result == 1)
-                                closeTab(cnv);
-                        });
-                } else {
-                    closeTab(cnv);
-                }
-            });
-        }
-    };
 
     cnv->setVisible(true);
     cnv->jumpToOrigin();

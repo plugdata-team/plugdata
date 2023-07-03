@@ -13,6 +13,8 @@
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/CheckedTooltip.h"
 #include "Utility/StackShadow.h" // TODO: move to impl
+#include "Utility/ZoomableDragAndDropContainer.h"
+#include "Utility/OfflineObjectRenderer.h"
 #include "SplitView.h"           // TODO: move to impl
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
@@ -34,7 +36,9 @@ class PluginEditor : public AudioProcessorEditor
     , public ApplicationCommandManager
     , public FileDragAndDropTarget
     , public ModifierKeyBroadcaster
-    , public ModifierKeyListener {
+    , public ModifierKeyListener
+    , public ZoomableDragAndDropContainer
+    , public OfflineObjectRenderer {
 public:
     enum ToolbarButtonType {
         Settings = 0,
@@ -71,6 +75,11 @@ public:
     void quit(bool askToSave);
 
     Canvas* getCurrentCanvas();
+
+    // Part of the ZoomableDragAndDropContainer, we give it the splitview
+    // so it can check if the drag image is over the entire splitview
+    // otherwise some objects inside the splitview will trigger a zoom
+    SplitView* getSplitView() override;
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
