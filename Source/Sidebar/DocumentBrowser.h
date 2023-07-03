@@ -424,8 +424,11 @@ public:
         // Paint selected row
         if (getNumSelectedFiles()) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-
-            auto y = getSelectedItem(0)->getItemPosition(true).getY();
+            
+            auto* selectedItem = getSelectedItem(0);
+            if(selectedItem == getRootItem()) return;
+            
+            auto y = selectedItem->getItemPosition(true).getY();
             
             // Fix for bouncing viewport
             if(auto* holder = getViewport()->getChildComponent(0))
