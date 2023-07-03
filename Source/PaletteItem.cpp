@@ -58,6 +58,18 @@ PaletteItem::~PaletteItem()
         removeMouseListener(paletteComp);
 }
 
+bool PaletteItem::hitTest(int x, int y)
+{
+    auto hit = false;
+    auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
+
+    if (bounds.contains(x, y)) {
+        hit = true;
+    }
+
+    return hit;
+}
+
 void PaletteItem::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();

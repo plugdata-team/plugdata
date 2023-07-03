@@ -18,6 +18,8 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
+    bool hitTest(int x, int y) override;
+
     void deleteItem();
 
     bool checkIsSubpatch(String const& patchAsString);
