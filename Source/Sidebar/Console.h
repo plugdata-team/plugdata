@@ -376,7 +376,7 @@ public:
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
                     continue;
                 
-                int rightMargin = viewport.canScrollVertically() ? 20 : 11;
+                int rightMargin = viewport.canScrollVertically() ? 13 : 11;
                 messages[row]->setBounds(6, totalHeight, getWidth() - rightMargin, height);
 
                 totalHeight += height;

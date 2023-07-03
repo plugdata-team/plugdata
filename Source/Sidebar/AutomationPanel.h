@@ -292,8 +292,8 @@ public:
         nameLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
 
-        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.5f));
-        PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(4.5f, 3.0f), Corners::defaultCornerRadius);
+        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.65f));
+        PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(6.0f, 3.0f), Corners::defaultCornerRadius);
     }
 
     std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*) {};
@@ -535,10 +535,6 @@ public:
     {
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(getLocalBounds());
-
-        // Background for statusbar part
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(0, getHeight() - 30, getWidth(), 30), Corners::defaultCornerRadius);
     }
 
     void resized() override

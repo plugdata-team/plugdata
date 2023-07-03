@@ -167,7 +167,7 @@ class SuggestionComponent : public Component
 
             auto backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : PlugDataColour::popupMenuBackgroundColourId);
 
-            auto buttonArea = getLocalBounds().withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat().reduced(4, 0.5f);
+            auto buttonArea = getLocalBounds().withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat().reduced(4, 1);
 
             g.setColour(backgroundColour);
             PlugDataLook::fillSmoothedRectangle(g, buttonArea,  Corners::defaultCornerRadius);
@@ -378,10 +378,10 @@ public:
 
         int yScroll = port->getViewPositionY();
         port->setBounds(b);
-        buttonholder->setBounds(b.getX() + 6, b.getY(), b.getWidth(), std::min(numOptions, 20) * 26 + 8);
+        buttonholder->setBounds(b.getX() + 6, b.getY(), b.getWidth(), std::min(numOptions, 20) * 25 + 8);
 
         for (int i = 0; i < buttons.size(); i++)
-            buttons[i]->setBounds(3, (i * 26) + 7, getWidth() - 6, 24);
+            buttons[i]->setBounds(3, (i * 25) + 7, getWidth() - 6, 24);
 
         int const resizerSize = 12;
 

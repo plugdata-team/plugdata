@@ -567,7 +567,7 @@ public:
         : searchPath(directory), bouncer(listBox.getViewport())
     {
         listBox.setModel(this);
-        listBox.setRowHeight(32);
+        listBox.setRowHeight(26);
         listBox.setOutlineThickness(0);
         listBox.deselectAllRows();
         
@@ -674,7 +674,7 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5, 2, w - 10, h - 4), Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(6, 2, w - 12, h - 4), Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
@@ -768,7 +768,7 @@ public:
 
         clearButton.setBounds(inputBounds.removeFromRight(32));
 
-        listBox.setBounds(tableBounds);
+        listBox.setBounds(tableBounds.withTrimmedTop(1));
     }
 
     std::function<void(File&)> openFile;
@@ -839,7 +839,7 @@ public:
     void resized() override
     {
         searchComponent.setBounds(getLocalBounds());
-        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 30).withY(30).reduced(2, 0));
+        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 32).withY(32).reduced(2, 0));
     }
 
     void paintOverChildren(Graphics& g) override
