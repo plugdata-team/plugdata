@@ -4,7 +4,7 @@
 
 class ImageWithOffset {
 public:
-    ImageWithOffset(Image const& withImage, Point<int> withOffset)
+    ImageWithOffset(Image const& withImage = Image(), Point<int> withOffset = Point<int>())
         : image(withImage)
         , offset(withOffset) {};
     Image image;

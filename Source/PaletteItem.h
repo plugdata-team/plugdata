@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 
+#include "Utility/OfflineObjectRenderer.h"
+
 class PluginEditor;
 class PaletteDraggableList;
 class PaletteItem : public Component {
@@ -28,9 +30,7 @@ public:
 
     Image patchToTempImage(String const& patch);
 
-    Image dragImage;
-    Point<int> dragImageOffset;
-    Array<var> palettePatchWithOffset;
+    ImageWithOffset dragImage;
 
     std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patchAsString);
 

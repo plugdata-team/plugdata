@@ -200,7 +200,7 @@ void PaletteItem::paint(Graphics& g)
 void PaletteItem::lookAndFeelChanged()
 {
     // reset the image to null so the next drag will change the colour
-    dragImage = Image();
+    dragImage.image = Image();
 }
 
 void PaletteItem::mouseEnter(MouseEvent const& e)
@@ -222,25 +222,21 @@ void PaletteItem::resized()
 void PaletteItem::mouseDrag(MouseEvent const& e)
 {
     auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
-    // auto dragImage = createComponentSnapshot(getLocalBounds(), true, 1.0f).convertedToFormat(Image::ARGB);
-    // auto pos = e.mouseDownPosition.toInt() * -1;
 
-    if (dragImage.isNull()) {
+    if (dragImage.image.isNull()) {
         auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-        auto offlineRenderResult = offlineObjectRenderer->patchToTempImage(palettePatch);
-        dragImage = offlineRenderResult.image;
-        dragImageOffset = offlineRenderResult.offset;
+        dragImage = offlineObjectRenderer->patchToTempImage(palettePatch);
     }
 
     if (e.getDistanceFromDragStartX() > 10 && !isRepositioning) {
         paletteComp->isDnD = true;
         deleteButton.setVisible(false);
 
-        palettePatchWithOffset.clear();
-        palettePatchWithOffset.add(var(dragImageOffset.getX()));
-        palettePatchWithOffset.add(var(dragImageOffset.getY()));
+        Array<var> palettePatchWithOffset;
+        palettePatchWithOffset.add(var(dragImage.offset.getX()));
+        palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(palettePatch));
-        dragContainer->startDragging(palettePatchWithOffset, this, dragImage, true, nullptr, nullptr, true);
+        dragContainer->startDragging(palettePatchWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
     }
 }
 

@@ -87,7 +87,6 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
         auto patchData = patchWithSize[2].toString();
 
         cnv->dragAndDropPaste(patchData, mousePos, patchSize.x, patchSize.y);
-        cnv->grabKeyboardFocus();
     }
     else if (auto docBrowserItem = dynamic_cast<DocumentBrowserItem*>(dragSourceDetails.sourceComponent.get())) {
         // ALEX TODO: not implemented

@@ -8,6 +8,7 @@
 #include "Object.h"
 #include "Utility/PluginParameter.h"
 #include "Utility/DraggableNumber.h"
+#include "Utility/OfflineObjectRenderer.h"
 
 class AutomationSlider : public Component
     , public Value::Listener {
@@ -176,7 +177,7 @@ public:
         };
 
         nameLabel.onTextChange = [this]() {
-            dragImage = Image();
+            dragImage.image = Image();
         };
 
         nameLabel.onEditorHide = [this]() {
@@ -219,6 +220,11 @@ public:
         maxValue.setEditable(true);
     }
 
+    void lookAndFeelChanged() override
+    {
+        dragImage.image = Image();
+    }
+
     bool hitTest(int x, int y) override
     {
         auto bounds = getLocalBounds().toFloat().reduced(4.5f, 3.0f);
@@ -244,22 +250,18 @@ public:
 
         deleteButton.setVisible(false);
 
-        if (dragImage.isNull()) {
+        if (dragImage.image.isNull()) {
             auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            auto offlineRenderResult = offlineObjectRenderer->patchToTempImage(formatedParam);
-            dragImage = offlineRenderResult.image;
-            dragImageOffset = offlineRenderResult.offset;
+            dragImage = offlineObjectRenderer->patchToTempImage(formatedParam);
         }
 
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
         Array<var> paramObjectWithOffset;
-
-        paramObjectWithOffset.clear();
-        paramObjectWithOffset.add(var(dragImageOffset.getX()));
-        paramObjectWithOffset.add(var(dragImageOffset.getY()));
+        paramObjectWithOffset.add(var(dragImage.offset.getX()));
+        paramObjectWithOffset.add(var(dragImage.offset.getY()));
         paramObjectWithOffset.add(var(formatedParam));
-        dragContainer->startDragging(paramObjectWithOffset, this, dragImage, true, nullptr, nullptr, true);
+        dragContainer->startDragging(paramObjectWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
     }
 
     void valueChanged(Value& v) override
@@ -352,8 +354,7 @@ public:
 
     Slider slider;
 
-    Image dragImage;
-    Point<int> dragImageOffset;
+    ImageWithOffset dragImage;
 
     int index;
 
