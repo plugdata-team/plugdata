@@ -30,15 +30,15 @@ TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabComponent, String 
             return;
 
         if (cnv) {
-            MessageManager::callAsync([this, cnv = SafePointer(cnv), editor = SafePointer(editor)]() mutable {
+            MessageManager::callAsync([cnv = SafePointer(cnv), editor = SafePointer(editor)]() mutable {
                 // Don't show save dialog, if patch is still open in another view
                 if (cnv && cnv->patch.isDirty()) {
-                    Dialogs::showSaveDialog(&editor->openedDialog, this, cnv->patch.getTitle(),
-                        [this, cnv, editor](int result) mutable {
+                    Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
+                        [cnv, editor](int result) mutable {
                             if (!cnv)
                                 return;
                             if (result == 2)
-                                editor->saveProject([this, cnv, editor]() mutable { editor->closeTab(cnv); });
+                                editor->saveProject([cnv, editor]() mutable { editor->closeTab(cnv); });
                             else if (result == 1)
                                 editor->closeTab(cnv);
                         });
