@@ -123,8 +123,8 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
         }
     } else if (dropZoneCentre) {
         editor->splitView.setFocus(this);
-        sourceTabContent->setCurrentTabIndex(sourceTabIndex == 0 ? 1 : sourceTabIndex - 1);
         sourceTabContent->removeTab(sourceTabIndex);
+        sourceTabContent->setCurrentTabIndex(sourceTabIndex > (sourceTabContent->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex);
         for (auto* split : editor->splitView.splits) {
             split->setBoundsWithFactors(getParentComponent()->getLocalBounds());
         }
@@ -166,9 +166,9 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
         // add the split to the splitview and make it active (both owned arrays of SplitView)
         editor->splitView.addSplit(newSplit);
         editor->splitView.addResizer(resizer);
-    
-        sourceTabContent->setCurrentTabIndex(sourceTabIndex == 0 ? 1 : sourceTabIndex - 1);
+
         sourceTabContent->removeTab(sourceTabIndex);
+        sourceTabContent->setCurrentTabIndex(sourceTabIndex > (sourceTabContent->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex);
     }
 
     // set all current canvas viewports to visible, (if they already are this shouldn't do anything)
