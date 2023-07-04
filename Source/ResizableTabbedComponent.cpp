@@ -155,6 +155,9 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
             }
             resizerLeft = resizer;
         }
+        else {
+            return;
+        }
 
         // update the bounds of the new and existing split using the resizer factors
         newSplit->setBoundsWithFactors(getParentComponent()->getLocalBounds());
@@ -297,18 +300,24 @@ void ResizableTabbedComponent::paintOverChildren(Graphics& g)
             break;
         case DropZones::Top:
             //highlight = splitBoundsTop;
-            highlight = splitBoundsFull;
+            if(editor->splitView.splits.size() > 1) {
+                highlight = splitBoundsFull;
+            }
             break;
         case DropZones::Right:
             highlight = splitBoundsRight;
             break;
         case DropZones::Bottom:
             //highlight = splitBoundsBottom;
-            highlight = splitBoundsFull;
+            if(editor->splitView.splits.size() > 1) {
+                highlight = splitBoundsFull;
+            }
             break;
         case DropZones::Centre:
         case DropZones::TabBar:
-            highlight = getLocalBounds();
+            if(editor->splitView.splits.size() > 1) {
+                highlight = getLocalBounds();
+            }
             break;
         };
 
@@ -357,6 +366,7 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
             if (editor->splitView.canSplit() && sourceNumTabs > 1) {
                 if (activeZone != zone) {
                     activeZone = zone;
+                    editor->splitView.setFocus(this);
                     repaint();
                     //auto zoneName = getZoneName(zone);
                     //std::cout << "dragging over: " << zoneName << std::endl;

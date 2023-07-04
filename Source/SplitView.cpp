@@ -220,10 +220,12 @@ void SplitView::closeEmptySplits()
 
 void SplitView::paintOverChildren(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
-    auto screenBounds = activeTabComponent->getScreenBounds();
-    auto b = getLocalArea(nullptr, screenBounds);
-    g.drawRect(b, 2.5f);
+    if(splits.size() > 1) {
+        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
+        auto screenBounds = activeTabComponent->getScreenBounds();
+        auto b = getLocalArea(nullptr, screenBounds);
+        g.drawRect(b, 2.5f);
+    }
     /*
     auto* tabbar = getActiveTabbar();
     Colour indicatorColour = findColour(PlugDataColour::objectSelectedOutlineColourId);

@@ -122,17 +122,20 @@ Image TabBarButtonComponent::generateTabBarButtonImage()
 
 void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
 {
-    setVisible(false);
-    closeTabButton.setVisible(false);
-    var tabIndex = getIndex();
-    auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
+    if(e.getDistanceFromDragStart() > 10) {
+        setVisible(false);
+        closeTabButton.setVisible(false);
+        var tabIndex = getIndex();
+        auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
-    if (isDirty) {
-        tabImage = generateTabBarButtonImage();
-        isDirty = false;
+        if (isDirty) {
+            tabImage = generateTabBarButtonImage();
+            isDirty = false;
+        }
+    
+        auto offset = e.getPosition() * -1 - Point<int>(boundsOffset,boundsOffset);
+        dragContainer->startDragging(tabIndex, this, tabImage, true, &offset);
     }
-    auto offset = e.getPosition() * -1 - Point<int>(boundsOffset,boundsOffset);
-    dragContainer->startDragging(tabIndex, this, tabImage, true, &offset);
 }
 
 void TabBarButtonComponent::mouseUp(MouseEvent const& e)
