@@ -251,10 +251,6 @@ private:
 
     Point<int> scalePos;
 
-    //void updateTabGhost();
-
-
-    //ALEX
     int draggedTabIndex = -1;
     Component* draggedTabComponent = nullptr;
 };

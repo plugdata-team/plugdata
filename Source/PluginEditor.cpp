@@ -671,11 +671,10 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     sidebar->hideParameters();
 
-    if (tabbar->getCurrentTabIndex() == tabIdx)
-        tabbar->setCurrentTabIndex(tabIdx > 0 ? tabIdx - 1 : tabIdx);
-
     tabbar->removeTab(tabIdx);
     canvases.removeObject(cnv);
+
+    tabbar->setCurrentTabIndex(tabIdx > (tabbar->getNumTabs() - 1) ? tabIdx - 1 : tabIdx);
 
     pd->patches.removeAllInstancesOf(patch);
 

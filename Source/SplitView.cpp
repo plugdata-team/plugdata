@@ -97,6 +97,7 @@ void SplitView::removeSplit(TabComponent* toRemove)
     if (toBeRemoved) {
         if (toBeRemoved->resizerRight) {
             toBeRemoved->resizerRight->splits[1]->resizerLeft = toBeRemoved->resizerLeft;
+            setFocus(toBeRemoved->resizerRight->splits[1]);
             // We prioritize the deletion of the Right Resizer, and hence also need to 
             // update the pointer to the split
             if (toBeRemoved->resizerLeft) {
@@ -106,6 +107,7 @@ void SplitView::removeSplit(TabComponent* toRemove)
         }
         else if (toBeRemoved->resizerLeft) {
             toBeRemoved->resizerLeft->splits[0]->resizerRight = toBeRemoved->resizerRight;
+            setFocus(toBeRemoved->resizerLeft->splits[0]);
             resizers.removeObject(toBeRemoved->resizerLeft, true);
         }
     }
@@ -135,19 +137,6 @@ int SplitView::getTabComponentSplitIndex(TabComponent* tabComponent)
     }
 }
 
-//void SplitView::setSplitEnabled(bool splitEnabled)
-//{
-//    splitView = splitEnabled;
-//    splitFocusIndex = splitEnabled;
-//
-//    resized();
-//}
-
-//bool SplitView::isSplitEnabled() const
-//{
-//    return splitView;
-//}
-
 void SplitView::resized()
 {
     auto b = getLocalBounds();
@@ -167,55 +156,30 @@ void SplitView::setFocus(ResizableTabbedComponent* selectedTabComponent)
     }
 }
 
-//void SplitView::componentMovedOrResized(juce::Component& component, bool wasMoved, bool wasResized)
-//{
-//    if (auto tabComp = dynamic_cast<ResizableTabbedComponent*>(&component)) {
-//        if (activeTabComponent) {
-//            repaint();
-//        }
-//    }
-//}
-
-//bool SplitView::hasFocus(Canvas* cnv)
-//{
-//    if ((cnv->getTabbar() == getRightTabbar()) == splitFocusIndex)
-//        return true;
-//    else
-//        return false;
-//}
-
-//bool SplitView::isRightTabbarActive() const
-//{
-//    return splitFocusIndex;
-//}
-
 void SplitView::closeEmptySplits()
-{   /*
-    if (!splits[1]->getTabComponent()->getNumTabs()) {
-        // Disable splitview if all splitview tabs are closed
-        setSplitEnabled(false);
-    }
-    if (splitView && !splits[0]->getTabComponent()->getNumTabs()) {
+{   
+    // if we have one split, allow welcome screen to show
+    if (splits.size() == 1)
+        return;
 
-        // move all tabs over to the left side
-        for (int i = splits[1]->getTabComponent()->getNumTabs() - 1; i >= 0; i--) {
-            splitCanvasView(splits[1]->getTabComponent()->getCanvas(i), false);
+    auto removedSplit = false;
+
+    // search over all splits, and see if they have tab components with tabs, if not, delete
+    for (auto* split : splits) {
+        if (auto* tabComponent = split->getTabComponent()) {
+            if (tabComponent->getNumTabs() == 0) {
+                removeSplit(tabComponent);
+                removedSplit = true;
+            }
         }
-
-        setSplitEnabled(false);
-    }
-    if (splits[0]->getTabComponent()->getCurrentTabIndex() < 0 && splits[0]->getTabComponent()->getNumTabs()) {
-        splits[0]->getTabComponent()->setCurrentTabIndex(0);
-    }
-    // Make sure to show the welcome screen if this was the last tab
-    else if (splits[0]->getTabComponent()->getCurrentTabIndex() < 0) {
-        splits[0]->getTabComponent()->currentTabChanged(-1, "");
     }
 
-    if (splits[1]->getTabComponent()->getCurrentTabIndex() < 0 && splits[1]->getTabComponent()->getNumTabs()) {
-        splits[1]->getTabComponent()->setCurrentTabIndex(0);
+    // reset the other splits bounds factors
+    if (removedSplit) {
+        for (auto* split : splits) {
+            split->setBoundsWithFactors(getLocalBounds());
+        }
     }
-    */
 }
 
 void SplitView::paintOverChildren(Graphics& g)
@@ -226,50 +190,6 @@ void SplitView::paintOverChildren(Graphics& g)
         auto b = getLocalArea(nullptr, screenBounds);
         g.drawRect(b, 2.5f);
     }
-    /*
-    auto* tabbar = getActiveTabbar();
-    Colour indicatorColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
-
-    if (splitView) {
-        Colour leftTabbarOutline;
-        Colour rightTabbarOutline;
-        if (tabbar == getLeftTabbar()) {
-            leftTabbarOutline = indicatorColour.withAlpha(fadeAnimationLeft->fadeIn());
-            rightTabbarOutline = indicatorColour.withAlpha(fadeAnimationRight->fadeOut());
-        } else {
-            rightTabbarOutline = indicatorColour.withAlpha(fadeAnimationRight->fadeIn());
-            leftTabbarOutline = indicatorColour.withAlpha(fadeAnimationLeft->fadeOut());
-        }
-        g.setColour(leftTabbarOutline);
-        g.drawRect(getLeftTabbar()->getBounds().withTrimmedRight(-1), 2.0f);
-        g.setColour(rightTabbarOutline);
-        g.drawRect(getRightTabbar()->getBounds().withTrimmedLeft(-1).withTrimmedRight(1), 2.0f);
-    }
-    if (tabbar->tabSnapshot.isValid()) {
-        g.setColour(indicatorColour);
-        auto scale = Desktop::getInstance().getDisplays().getPrimaryDisplay()->scale;
-        g.drawImage(tabbar->tabSnapshot, tabbar->tabSnapshotBounds.toFloat());
-        if (splitviewIndicator) {
-            g.setOpacity(fadeAnimation->fadeIn());
-            if (!splitView) {
-                g.fillRect(tabbar->getBounds().withTrimmedLeft(getWidth() / 2).withTrimmedTop(tabbar->currentTabBounds.getHeight()));
-            } else if (tabbar == getLeftTabbar()) {
-                g.fillRect(getRightTabbar()->getBounds().withTrimmedTop(tabbar->currentTabBounds.getHeight()));
-            } else {
-                g.fillRect(getLeftTabbar()->getBounds().withTrimmedTop(tabbar->currentTabBounds.getHeight()));
-            }
-        } else {
-            g.setOpacity(fadeAnimation->fadeOut());
-            if (!splitView) {
-                g.fillRect(tabbar->getBounds().withTrimmedLeft(getWidth() / 2).withTrimmedTop(tabbar->currentTabBounds.getHeight()));
-            } else if (tabbar == getLeftTabbar()) {
-                g.fillRect(getRightTabbar()->getBounds().withTrimmedTop(tabbar->currentTabBounds.getHeight()));
-            } else {
-                g.fillRect(getLeftTabbar()->getBounds().withTrimmedTop(tabbar->currentTabBounds.getHeight()));
-            }
-        }
-    }
-    */
 }
 
 void SplitView::splitCanvasesAfterIndex(int idx, bool direction)
@@ -318,52 +238,3 @@ TabComponent* SplitView::getActiveTabbar()
     return nullptr;
 }
 
-void SplitView::mouseDrag(MouseEvent const& e)
-{
-    /*
-    auto* activeTabbar = getActiveTabbar();
-
-    // Check if the active tabbar has a valid tab snapshot and if the tab snapshot is below the current tab
-    if (activeTabbar->tabSnapshot.isValid() && activeTabbar->tabSnapshotBounds.getY() > activeTabbar->getY() + activeTabbar->currentTabBounds.getHeight()) {
-        if (!splitView) {
-            // Check if the tab snapshot is on the right hand half of the viewport (activeTabbar)
-            if (e.getEventRelativeTo(activeTabbar).getPosition().getX() > activeTabbar->getWidth() * 0.5f) {
-                splitviewIndicator = true;
-
-            } else {
-                splitviewIndicator = false;
-            }
-        } else {
-            auto* leftTabbar = getLeftTabbar();
-            auto* rightTabbar = getRightTabbar();
-            auto leftTabbarContainsPointer = leftTabbar->contains(e.getEventRelativeTo(leftTabbar).getPosition());
-
-            if (activeTabbar == leftTabbar && !leftTabbarContainsPointer) {
-                splitviewIndicator = true;
-            } else if (activeTabbar == rightTabbar && leftTabbarContainsPointer) {
-                splitviewIndicator = true;
-            } else {
-                splitviewIndicator = false;
-            }
-        }
-    } else {
-        splitviewIndicator = false;
-    }
-    */
-}
-
-void SplitView::mouseUp(MouseEvent const& e)
-{
-    /*
-    if (splitviewIndicator) {
-        auto* tabbar = getActiveTabbar();
-        if (tabbar == getLeftTabbar()) {
-            splitCanvasView(tabbar->getCurrentCanvas(), true);
-        } else {
-            splitCanvasView(tabbar->getCurrentCanvas(), false);
-        }
-        splitviewIndicator = false;
-        closeEmptySplits();
-    }
-    */
-}

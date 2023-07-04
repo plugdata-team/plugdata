@@ -14,10 +14,6 @@ public:
 
     TabComponent* getActiveTabbar();
 
-    //void setSplitEnabled(bool splitEnabled);
-    //bool isSplitEnabled() const;
-    //bool isRightTabbarActive() const;
-
     void splitCanvasesAfterIndex(int idx, bool direction);
     void splitCanvasView(Canvas* cnv, bool splitviewFocus);
 
@@ -29,8 +25,6 @@ public:
     bool canSplit();
 
     void setFocus(ResizableTabbedComponent* selectedTabComponent);
-    //void componentMovedOrResized(juce::Component& component, bool wasMoved, bool wasResized) override;
-    //bool hasFocus(Canvas* cnv);
 
     void closeEmptySplits();
 
@@ -38,19 +32,13 @@ public:
 
     int getTabComponentSplitIndex(TabComponent* tabComponent);
 
-    //void setSplitFocusIndex(int index);
-
-    //bool isSplitView() { return splitView; };
-
     OwnedArray<ResizableTabbedComponent> splits;
     OwnedArray<SplitViewResizer> resizers;
 
     float splitViewWidth = 0.5f;
     void resized() override;
-private:
-    void mouseDrag(MouseEvent const& e) override;
-    void mouseUp(MouseEvent const& e) override;
 
+private:
     bool splitView = false;
     int activeTabIndex = 0;
     bool splitFocusIndex = false;
