@@ -161,17 +161,23 @@ void SplitView::closeEmptySplits()
     if (splits.size() == 1)
         return;
 
+    auto removedSplit = false;
+
     // search over all splits, and see if they have tab components with tabs, if not, delete
     for (auto* split : splits) {
         if (auto* tabComponent = split->getTabComponent()) {
-            if (tabComponent->getNumTabs() == 0)
+            if (tabComponent->getNumTabs() == 0) {
                 removeSplit(tabComponent);
+                removedSplit = true;
+            }
         }
     }
 
     // reset the other splits bounds factors
-    for (auto* split : splits) {
-        split->setBoundsWithFactors(getLocalBounds());
+    if (removedSplit) {
+        for (auto* split : splits) {
+            split->setBoundsWithFactors(getLocalBounds());
+        }
     }
 }
 

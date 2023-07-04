@@ -234,7 +234,7 @@ Canvas* TabComponent::getCanvas(int idx)
     if (!viewport)
         return nullptr;
 
-    return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
+    return dynamic_cast<Canvas*>(viewport->getViewedComponent());
 }
 
 Canvas* TabComponent::getCurrentCanvas()
@@ -244,7 +244,7 @@ Canvas* TabComponent::getCurrentCanvas()
     if (!viewport)
         return nullptr;
 
-    return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
+    return dynamic_cast<Canvas*>(viewport->getViewedComponent());
 }
 
 void TabComponent::mouseDown(MouseEvent const& e)
