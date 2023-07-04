@@ -107,6 +107,7 @@ void SplitView::removeSplit(TabComponent* toRemove)
         }
         else if (toBeRemoved->resizerLeft) {
             toBeRemoved->resizerLeft->splits[0]->resizerRight = toBeRemoved->resizerRight;
+            setFocus(toBeRemoved->resizerLeft->splits[0]);
             resizers.removeObject(toBeRemoved->resizerLeft, true);
         }
     }
