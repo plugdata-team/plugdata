@@ -7,8 +7,6 @@ TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabComponent, String 
     : TabBarButton(name, bar)
     , tabComponent(tabComponent)
 {
-    setTriggeredOnMouseDown(true);
-
     setTooltip(name);
 
     closeTabButton.setButtonText(Icons::Clear);

@@ -194,7 +194,7 @@ public:
 };
 
 class PluginEditor;
-class TabComponent : public TabbedComponent, public AsyncUpdater {
+class TabComponent : public Component, public AsyncUpdater {
 
     TextButton newButton;
     WelcomePanel welcomePanel;
@@ -204,15 +204,28 @@ public:
     TabComponent(PluginEditor* editor);
     ~TabComponent();
 
-    TabBarButton* createTabButton (const String& tabName, int tabIndex) override;
+    //TabBarButton* createTabButton (const String& tabName, int tabIndex) override;
 
     void onTabMoved();
     void onTabChange(int tabIndex);
     void newTab();
+    void addTab(const String& tabName, Component* contentComponent, int insertIndex);
+    void moveTab(int oldIndex, int newIndex);
+    void clearTabs();
+    void setTabBarDepth (int newDepth);
+    Component* getTabContentComponent (int tabIndex) const noexcept;
+    Component* getCurrentContentComponent() const noexcept          { return panelComponent.get(); }
+    int getCurrentTabIndex();
+    void setCurrentTabIndex(int idx);
+    int getNumTabs() const noexcept                                 { return tabs->getNumTabs(); }
+    void removeTab(int idx);
+    int getTabBarDepth() const noexcept                             { return tabDepth; };
+    void changeCallback (int newCurrentTabIndex, const String& newTabName);
+
     void openProject();
     void openProjectFile(File& patchFile);
 
-    void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName) override;
+    void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName);
     void handleAsyncUpdate() override;
     void resized() override;
 
@@ -251,8 +264,12 @@ private:
     int draggedTabIndex = -1;
     Component* draggedTabComponent = nullptr;
 
-    //std::unique_ptr<TabbedButtonBar> tabs;
-    //WeakReference<Component> panelComponent;
+    int tabDepth = 30;
+
+    class ButtonBar;
+    Array<WeakReference<Component>> contentComponents;
+    std::unique_ptr<TabbedButtonBar> tabs;
+    WeakReference<Component> panelComponent;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabComponent)
 };

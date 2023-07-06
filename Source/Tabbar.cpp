@@ -8,10 +8,37 @@
 #include "Sidebar/Sidebar.h"
 #include "TabBarButtonComponent.h"
 
-TabComponent::TabComponent(PluginEditor* parent)
-    : TabbedComponent(TabbedButtonBar::TabsAtTop)
-    , editor(parent)
+class TabComponent::ButtonBar : public TabbedButtonBar
 {
+public:
+    ButtonBar (TabComponent& tabComp, TabbedButtonBar::Orientation o)
+        : TabbedButtonBar (o), owner (tabComp)
+    {
+    }
+
+    void currentTabChanged(int newCurrentTabIndex, String const& newTabName)
+    {
+        owner.changeCallback (newCurrentTabIndex, newTabName);
+    }
+
+    TabBarButton* createTabButton(String const& tabName, int tabIndex) override
+    {
+        auto tabBarButton = new TabBarButtonComponent(&owner, tabName, *owner.tabs.get());
+        tabBarButton->addMouseListener(this, true);
+        return tabBarButton;
+    }
+private:
+    TabComponent& owner;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ButtonBar)
+};
+
+TabComponent::TabComponent(PluginEditor* parent)
+    : editor(parent)
+{
+    tabs.reset(new ButtonBar(*this, TabbedButtonBar::Orientation::TabsAtTop));
+    addAndMakeVisible(tabs.get());
+
     addAndMakeVisible(newButton);
     newButton.getProperties().set("Style", "LargeIcon");
     newButton.setButtonText(Icons::Add);
@@ -38,21 +65,37 @@ TabComponent::TabComponent(PluginEditor* parent)
     setVisible(false);
     setTabBarDepth(0);
     tabs->addMouseListener(this, true);
-    setOutline(0);
 }
 
 TabComponent::~TabComponent()
 {
     tabs->removeMouseListener(this);
+    clearTabs();
+    tabs.reset();
 }
 
-// We override this method to create our own tabbarbuttons
-// so that our tabbarbuttons have drag and drop ability
-TabBarButton* TabComponent::createTabButton (const String& tabName, int tabIndex)
+int TabComponent::getCurrentTabIndex()
 {
-    auto tabBarButton = new TabBarButtonComponent (this, tabName, *tabs);
-    tabBarButton->addMouseListener(this, true);
-    return tabBarButton;
+    return tabs->getCurrentTabIndex();
+}
+
+void TabComponent::setCurrentTabIndex(int idx)
+{
+    tabs->setCurrentTabIndex(idx);
+}
+
+void TabComponent::clearTabs()
+{
+    if (panelComponent != nullptr)
+    {
+        panelComponent->setVisible (false);
+        removeChildComponent (panelComponent.get());
+        panelComponent = nullptr;
+    }
+
+    tabs->clearTabs();
+
+    contentComponents.clear();
 }
 
 PluginEditor* TabComponent::getEditor()
@@ -63,6 +106,26 @@ PluginEditor* TabComponent::getEditor()
 void TabComponent::newTab()
 {
     editor->newProject();
+}
+
+void TabComponent::addTab(String const& tabName, Component* contentComponent, int insertIndex)
+{
+    contentComponents.insert (insertIndex, WeakReference<Component> (contentComponent));
+
+    tabs->addTab (tabName, findColour(ResizableWindow::backgroundColourId), insertIndex);
+    resized();
+}
+
+void TabComponent::removeTab(int idx)
+{
+    contentComponents.remove(idx);
+    tabs->removeTab(idx);
+}
+
+void TabComponent::moveTab(int currentIndex, int newIndex)
+{
+    contentComponents.move (currentIndex, newIndex);
+    tabs->moveTab (currentIndex, newIndex, true);
 }
 
 void TabComponent::openProject()
@@ -93,44 +156,86 @@ void TabComponent::onTabChange(int tabIndex)
     }
 }
 
+void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabName)
+{
+    auto* newPanelComp = getTabContentComponent (getCurrentTabIndex());
+
+    if (newPanelComp != panelComponent)
+    {
+        if (panelComponent != nullptr)
+        {
+            panelComponent->setVisible (false);
+            removeChildComponent (panelComponent);
+        }
+
+        panelComponent = newPanelComp;
+
+        if (panelComponent != nullptr)
+        {
+            // do these ops as two stages instead of addAndMakeVisible() so that the
+            // component has always got a parent when it gets the visibilityChanged() callback
+            addChildComponent (panelComponent);
+            panelComponent->sendLookAndFeelChange();
+            panelComponent->setVisible (true);
+            panelComponent->toFront (true);
+        }
+
+        repaint();
+    }
+
+    resized();
+    currentTabChanged (newCurrentTabIndex, newTabName);
+}
+
 void TabComponent::openProjectFile(File& patchFile)
 {
     editor->pd->loadPatch(patchFile);
 }
 
+void TabComponent::setTabBarDepth (int newDepth)
+{
+    if (tabDepth != newDepth)
+    {
+        tabDepth = newDepth;
+        resized();
+    }
+}
+
 void TabComponent::currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName)
 {
-    if (getNumTabs() == 0) {
+    if (tabs->getNumTabs() == 0) {
         setTabBarDepth(0);
-        getTabbedButtonBar().setVisible(false);
+        tabs->setVisible(false);
         welcomePanel.show();
     } else {
-        getTabbedButtonBar().setVisible(true);
+        tabs->setVisible(true);
         //static_cast<TabBarButtonComponent*>(getTabbedButtonBar().getTabButton(newCurrentTabIndex))->tabTextChanged(newCurrentTabName);
         welcomePanel.hide();
         setTabBarDepth(30);
+        // we need to update the dropzones, because no resize will be triggered when there is a tab added from welcome screen
+        if (auto* parentHolder = dynamic_cast<ResizableTabbedComponent*>(getParentComponent()))
+            parentHolder->updateDropZones();
     }
 
-        triggerAsyncUpdate();
+    triggerAsyncUpdate();
 }
 
 void TabComponent::handleAsyncUpdate()
 {
-    onTabChange(getCurrentTabIndex());
+    onTabChange(tabs->getCurrentTabIndex());
 }
 
 void TabComponent::resized()
 {
-    int depth = getTabBarDepth();
     auto content = getLocalBounds();
 
     welcomePanel.setBounds(content);
-    newButton.setBounds(3, 0, depth, depth); // slighly offset to make it centred next to the tabs
+    newButton.setBounds(3, 0, tabDepth, tabDepth); // slighly offset to make it centred next to the tabs
 
-    auto tabBounds = content.removeFromTop(depth).withTrimmedLeft(depth);
+    auto tabBounds = content.removeFromTop(tabDepth).withTrimmedLeft(tabDepth);
     tabs->setBounds(tabBounds);
 
-    for (int c = 0; c < getNumTabs(); c++) {
+    for (int c = 0; c < tabs->getNumTabs(); c++) {
         if (auto* comp = getTabContentComponent(c)) {
             if (auto* positioner = comp->getPositioner()) {
                 positioner->applyNewBounds(content);
@@ -139,6 +244,11 @@ void TabComponent::resized()
             }
         }
     }
+}
+
+Component* TabComponent::getTabContentComponent (int tabIndex) const noexcept
+{
+    return contentComponents[tabIndex].get();
 }
 
 void TabComponent::paint(Graphics& g)
@@ -150,7 +260,7 @@ void TabComponent::paint(Graphics& g)
 void TabComponent::paintOverChildren(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(0, getTabBarDepth(), getWidth(), getTabBarDepth());
+    g.drawLine(0, tabDepth, getWidth(), tabDepth);
 
     g.drawLine(0, 0, getWidth(), 0);
     g.drawLine(0, 0, 0, getBottom());
@@ -161,7 +271,7 @@ int TabComponent::getIndexOfCanvas(Canvas* cnv)
     if (!cnv->viewport || !cnv->editor)
         return -1;
 
-    for (int i = 0; i < getNumTabs(); i++) {
+    for (int i = 0; i < tabs->getNumTabs(); i++) {
         if (getTabContentComponent(i) == cnv->viewport) {
             return i;
         }
@@ -192,14 +302,14 @@ Canvas* TabComponent::getCurrentCanvas()
 
 void TabComponent::mouseDown(MouseEvent const& e)
 {
-    tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
-    clickedTabIndex = getCurrentTabIndex();
-    setCurrentTabIndex(clickedTabIndex);
+    tabWidth = tabs->getWidth() / std::max(1, tabs->getNumTabs());
+    clickedTabIndex = tabs->getCurrentTabIndex();
+    tabs->setCurrentTabIndex(clickedTabIndex);
 }
 
-void TabComponent::setTabText(int tabIndex, const String& newName)
+void TabComponent::setTabText(int tabIndex, String const& newName)
 {
-    dynamic_cast<TabBarButtonComponent*>(getTabbedButtonBar().getTabButton(tabIndex))->setTabText(newName);
+    dynamic_cast<TabBarButtonComponent*>(tabs->getTabButton(tabIndex))->setTabText(newName);
 }
 
 void TabComponent::mouseMove(MouseEvent const& e)
@@ -213,24 +323,24 @@ void TabComponent::mouseDrag(MouseEvent const& e)
     if (dynamic_cast<TextButton*>(e.originalComponent))
         return;
     // Drag tabs to move their index
+    /*
     int const dragPosition = e.getEventRelativeTo(tabs.get()).x;
     int const newTabIndex = (dragPosition < clickedTabIndex * tabWidth) ? clickedTabIndex - 1
         : (dragPosition >= (clickedTabIndex + 1) * tabWidth)            ? clickedTabIndex + 1
                                                                         : clickedTabIndex;
     int const dragDistance = std::abs(e.getDistanceFromDragStartX());
-
-        if (dragDistance > 5) {
-            if ((tabs->contains(e.getEventRelativeTo(tabs.get()).getPosition()) || e.getDistanceFromDragStartY() < 0) && newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
-                moveTab(clickedTabIndex, newTabIndex, true);
-                clickedTabIndex = newTabIndex;
-                onTabMoved();
-                tabs->getTabButton(clickedTabIndex)->setVisible(false);
-            }
-            // Keep ghost tab within view
-            auto newPosition = Point<int>(std::clamp(currentTabBounds.getX() + getX() + e.getDistanceFromDragStartX(), 0, getParentWidth() - tabWidth), std::clamp(currentTabBounds.getY() + e.getDistanceFromDragStartY(), 0, getHeight() - tabs->getHeight()));
-            tabSnapshotBounds.setPosition(newPosition);
-            getParentComponent()->repaint();
+    
+    if (dragDistance > 5) {
+        if ((tabs->contains(e.getEventRelativeTo(tabs.get()).getPosition()) || e.getDistanceFromDragStartY() < 0) && newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
+            moveTab(clickedTabIndex, newTabIndex);
+            clickedTabIndex = newTabIndex;
+            onTabMoved();
+            tabs->getTabButton(clickedTabIndex)->setVisible(false);
         }
+        // Keep ghost tab within view
+        auto newPosition = Point<int>(std::clamp(currentTabBounds.getX() + getX() + e.getDistanceFromDragStartX(), 0, getParentWidth() - tabWidth), std::clamp(currentTabBounds.getY() + e.getDistanceFromDragStartY(), 0, getHeight() - tabs->getHeight()));
+        tabSnapshotBounds.setPosition(newPosition);
+        getParentComponent()->repaint();
     }
-
-
+    */
+}

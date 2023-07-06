@@ -702,18 +702,20 @@ void PluginEditor::addTab(Canvas* cnv)
     // Create a pointer to the TabBar in focus
     auto* focusedTabbar = splitView.getActiveTabbar();
 
+    //ALEXFIX
+
     int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
 
     // Add tab next to the currently focused tab
     auto patchTitle = cnv->patch.getTitle();
-    focusedTabbar->addTab(patchTitle, findColour(ResizableWindow::backgroundColourId), cnv->viewport, false, newTabIdx);
+    focusedTabbar->addTab(patchTitle, cnv->viewport, newTabIdx);
 
     // Open help files and references in Locked Mode
     if (patchTitle.contains("-help") || patchTitle.equalsIgnoreCase("reference"))
         cnv->locked.setValue(true);
 
     focusedTabbar->setCurrentTabIndex(newTabIdx);
-    focusedTabbar->setTabBackgroundColour(newTabIdx, Colours::transparentBlack);
+    //focusedTabbar->setTabBackgroundColour(newTabIdx, Colours::transparentBlack);
 
     cnv->setVisible(true);
     cnv->jumpToOrigin();
