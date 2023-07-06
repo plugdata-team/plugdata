@@ -8,12 +8,41 @@
 #include "Sidebar/Sidebar.h"
 #include "TabBarButtonComponent.h"
 
-class TabComponent::ButtonBar : public TabbedButtonBar
+class TabComponent::ButtonBar : public TabbedButtonBar, public DragAndDropTarget
 {
 public:
     ButtonBar (TabComponent& tabComp, TabbedButtonBar::Orientation o)
         : TabbedButtonBar (o), owner (tabComp)
     {
+        setInterceptsMouseClicks(true, true);
+    }
+
+    bool isInterestedInDragSource(SourceDetails const& dragSourceDetails) override
+    {
+        if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get()))
+            return true;
+        
+        return false;
+    }
+
+    void itemDropped(SourceDetails const& dragSourceDetails) override
+    {
+
+    }
+
+    void itemDragEnter(SourceDetails const& dragSourceDetails) override
+    {
+
+    }
+
+    void itemDragExit(SourceDetails const& dragSourceDetails) override
+    {
+        
+    }
+
+    void itemDragMove(SourceDetails const& dragSourceDetails) override
+    {
+        std::cout << "dragged object pos is: " << dragSourceDetails.localPosition.toString() << std::endl;
     }
 
     void currentTabChanged(int newCurrentTabIndex, String const& newTabName)
@@ -24,7 +53,7 @@ public:
     TabBarButton* createTabButton(String const& tabName, int tabIndex) override
     {
         auto tabBarButton = new TabBarButtonComponent(&owner, tabName, *owner.tabs.get());
-        tabBarButton->addMouseListener(this, true);
+        //tabBarButton->addMouseListener(this, true);
         return tabBarButton;
     }
 private:
