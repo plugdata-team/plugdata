@@ -46,7 +46,6 @@ TabComponent::~TabComponent()
     tabs->removeMouseListener(this);
 }
 
-
 // We override this method to create our own tabbarbuttons
 // so that our tabbarbuttons have drag and drop ability
 TabBarButton* TabComponent::createTabButton (const String& tabName, int tabIndex)
@@ -115,53 +114,6 @@ void TabComponent::currentTabChanged(int newCurrentTabIndex, String const& newCu
         triggerAsyncUpdate();
 }
 
-void TabComponent::rightClick(int tabIndex, String const& tabName)
-{
-    auto splitIndex = editor->splitView.getTabComponentSplitIndex(this);
-
-    PopupMenu tabMenu;
-
-#if JUCE_MAC
-            String revealTip = "Reveal in Finder";
-#elif JUCE_WINDOWS
-            String revealTip = "Reveal in Explorer";
-#else
-            String revealTip = "Reveal in file browser";
-#endif
-
-    auto* cnv = getCanvas(tabIndex);
-    if (!cnv)
-        return;
-
-    bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
-
-    tabMenu.addItem(revealTip, canReveal, false, [cnv]() {
-        cnv->patch.getCurrentFile().revealToUser();
-    });
-
-    //bool canSplit = true;
-    //if (splitIndex == 0 && !editor->splitView.isSplitView())
-    //    canSplit = editor->splitView.getLeftTabbar()->getNumTabs() > 1;
-
-    // ALEX implement logic here!!
-    if (getNumTabs() > 1) {
-        //tabMenu.addItem("Split up", true, false, [this, cnv, splitIndex]() {
-        //    });
-        //tabMenu.addItem("Split down", true, false, [this, cnv, splitIndex]() {
-        //    });
-        tabMenu.addItem("Split left", true, false, [this, cnv, splitIndex]() {
-            //editor->splitView.splitCanvasView(cnv, splitIndex == 0);
-            //editor->splitView.closeEmptySplits();
-            });
-        tabMenu.addItem("Split right", true, false, [this, cnv, splitIndex]() {
-            //editor->splitView.splitCanvasView(cnv, splitIndex == 0);
-            //editor->splitView.closeEmptySplits();
-            });
-    }
-    // Show the popup menu at the mouse position
-    tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(editor->pd->getActiveEditor()));
-}
-
 void TabComponent::handleAsyncUpdate()
 {
     onTabChange(getCurrentTabIndex());
@@ -202,11 +154,6 @@ void TabComponent::paintOverChildren(Graphics& g)
 
     g.drawLine(0, 0, getWidth(), 0);
     g.drawLine(0, 0, 0, getBottom());
-}
-
-void TabComponent::popupMenuClickOnTab(int tabIndex, String const& tabName)
-{
-    rightClick(tabIndex, tabName);
 }
 
 int TabComponent::getIndexOfCanvas(Canvas* cnv)

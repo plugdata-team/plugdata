@@ -18,6 +18,7 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
+    void mouseDown(MouseEvent const& e) override;
 
     void lookAndFeelChanged() override;
 

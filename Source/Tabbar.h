@@ -211,7 +211,6 @@ public:
     void newTab();
     void openProject();
     void openProjectFile(File& patchFile);
-    void rightClick(int tabIndex, String const& tabName);
 
     void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName) override;
     void handleAsyncUpdate() override;
@@ -220,8 +219,6 @@ public:
     void paint(Graphics& g) override;
 
     void paintOverChildren(Graphics& g) override;
-
-    void popupMenuClickOnTab(int tabIndex, String const& tabName) override;
 
     int getIndexOfCanvas(Canvas* cnv);
 
@@ -253,4 +250,9 @@ private:
 
     int draggedTabIndex = -1;
     Component* draggedTabComponent = nullptr;
+
+    //std::unique_ptr<TabbedButtonBar> tabs;
+    //WeakReference<Component> panelComponent;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabComponent)
 };

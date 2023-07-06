@@ -120,6 +120,47 @@ Image TabBarButtonComponent::generateTabBarButtonImage()
     return image;
 }
 
+void TabBarButtonComponent::mouseDown(MouseEvent const& e)
+{
+    if (e.mods.isPopupMenu()) {
+        auto splitIndex = getTabComponent()->getEditor()->splitView.getTabComponentSplitIndex(getTabComponent());
+
+        PopupMenu tabMenu;
+
+#if JUCE_MAC
+        String revealTip = "Reveal in Finder";
+#elif JUCE_WINDOWS
+        String revealTip = "Reveal in Explorer";
+#else
+        String revealTip = "Reveal in file browser";
+#endif
+
+        auto* cnv = getTabComponent()->getCanvas(getIndex());
+        if (!cnv)
+            return;
+
+        bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
+
+        tabMenu.addItem(revealTip, canReveal, false, [cnv]() {
+            cnv->patch.getCurrentFile().revealToUser();
+        });
+
+        if (getTabComponent()->getNumTabs() > 1) {
+            tabMenu.addItem("Split left", true, false, [this, cnv, splitIndex]() {
+                // ALEX implement logic here!!
+            });
+            tabMenu.addItem("Split right", true, false, [this, cnv, splitIndex]() {
+                // ALEX implement logic here!!
+            });
+        }
+        // Show the popup menu at the mouse position
+        tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(getTabComponent()->getEditor()));
+    }
+    else if (e.mods.isLeftButtonDown()) {
+        getTabComponent()->setCurrentTabIndex(getIndex());
+    }
+}
+
 void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
 {
     if(e.getDistanceFromDragStart() > 10) {
