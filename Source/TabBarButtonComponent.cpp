@@ -162,7 +162,7 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
 void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
 {
     if(e.getDistanceFromDragStart() > 10) {
-        setVisible(false);
+        //setVisible(false);
         closeTabButton.setVisible(false);
         var tabIndex = getIndex();
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);

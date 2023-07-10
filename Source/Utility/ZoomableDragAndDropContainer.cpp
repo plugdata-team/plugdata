@@ -28,6 +28,9 @@
 // this is to find if we are over a split, and if so, we zoom the dragged image to the canvas zoom value
 #include "../ResizableTabbedComponent.h"
 
+// if the drag is over a tab bar, then we don't show the drag image
+#include "../Tabbar.h"
+
 // if we are inside the splitview, don't reset the scale of the dragged image, regardless of what we are over
 #include "../SplitView.h"
 
@@ -127,9 +130,9 @@ public:
 
             currentScreenPos = e.getScreenPosition();
             updateLocation(true, currentScreenPos);
+            Component* target;
+            auto* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
             if (isZoomable) {
-                Component* target;
-                auto* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
                 auto* split = dynamic_cast<ResizableTabbedComponent*>(target);
                 if (newTarget) {
                     if (split && split->getTabComponent() && split->getTabComponent()->getCurrentCanvas()) {
@@ -146,6 +149,12 @@ public:
                     if (splitView->getScreenBounds().contains(currentScreenPos.toInt()))
                         return;
                 }
+            }
+            if (dynamic_cast<ButtonBar*>(target)) {
+                //zoomImageComponent.setAlpha(0.0f);
+                //zoomImageComponent.repaint();
+                updateScale(0.0f);
+                return;
             }
             updateScale(1.0f);
         }

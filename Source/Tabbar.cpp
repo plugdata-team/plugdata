@@ -8,59 +8,72 @@
 #include "Sidebar/Sidebar.h"
 #include "TabBarButtonComponent.h"
 
-class TabComponent::ButtonBar : public TabbedButtonBar, public DragAndDropTarget
+ButtonBar::ButtonBar(TabComponent& tabComp, TabbedButtonBar::Orientation o)
+    : TabbedButtonBar(o)
+    , owner(tabComp)
 {
-public:
-    ButtonBar (TabComponent& tabComp, TabbedButtonBar::Orientation o)
-        : TabbedButtonBar (o), owner (tabComp)
-    {
-        setInterceptsMouseClicks(true, true);
+    setInterceptsMouseClicks(true, true);
+}
+
+bool ButtonBar::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
+{
+    if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get()))
+        return true;
+
+    return false;
+}
+
+void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
+{
+    if (inOtherSplit)
+        removeTab(ghostTabIdx, true);
+}
+
+void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
+{
+    if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        // if this tabbar is DnD on itself, we don't need to add a new tab
+        // we move the existing tab
+        if (tab->getTabComponent() == &owner) {
+            inOtherSplit = false;
+            ghostTabIdx = tab->getIndex();
+        } else {
+            auto targetTabPos = getWidth() / getNumTabs();
+            auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
+            inOtherSplit = true;
+            addTab(tab->getButtonText(), Colours::transparentBlack, tabPos);
+            ghostTabIdx = tabPos;
+        }
     }
+}
 
-    bool isInterestedInDragSource(SourceDetails const& dragSourceDetails) override
-    {
-        if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get()))
-            return true;
-        
-        return false;
+void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
+{
+    if (inOtherSplit) {
+        inOtherSplit = false;
+        removeTab(ghostTabIdx, true);
     }
+}
 
-    void itemDropped(SourceDetails const& dragSourceDetails) override
-    {
+void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
+{
+    auto targetTabPos = getWidth() / getNumTabs();
+    auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
+    moveTab(ghostTabIdx, tabPos, true);
+    ghostTabIdx = tabPos;
+}
 
-    }
+void ButtonBar::currentTabChanged(int newCurrentTabIndex, String const& newTabName)
+{
+    owner.changeCallback(newCurrentTabIndex, newTabName);
+}
 
-    void itemDragEnter(SourceDetails const& dragSourceDetails) override
-    {
-
-    }
-
-    void itemDragExit(SourceDetails const& dragSourceDetails) override
-    {
-        
-    }
-
-    void itemDragMove(SourceDetails const& dragSourceDetails) override
-    {
-        std::cout << "dragged object pos is: " << dragSourceDetails.localPosition.toString() << std::endl;
-    }
-
-    void currentTabChanged(int newCurrentTabIndex, String const& newTabName)
-    {
-        owner.changeCallback (newCurrentTabIndex, newTabName);
-    }
-
-    TabBarButton* createTabButton(String const& tabName, int tabIndex) override
-    {
-        auto tabBarButton = new TabBarButtonComponent(&owner, tabName, *owner.tabs.get());
-        //tabBarButton->addMouseListener(this, true);
-        return tabBarButton;
-    }
-private:
-    TabComponent& owner;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ButtonBar)
-};
+TabBarButton* ButtonBar::createTabButton(String const& tabName, int tabIndex)
+{
+    auto tabBarButton = new TabBarButtonComponent(&owner, tabName, *owner.tabs.get());
+    // tabBarButton->addMouseListener(this, true);
+    return tabBarButton;
+}
 
 TabComponent::TabComponent(PluginEditor* parent)
     : editor(parent)

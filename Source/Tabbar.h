@@ -194,6 +194,31 @@ public:
 };
 
 class PluginEditor;
+
+class ButtonBar : public TabbedButtonBar, public DragAndDropTarget
+{
+public:
+    ButtonBar (TabComponent& tabComp, TabbedButtonBar::Orientation o);
+
+    bool isInterestedInDragSource(SourceDetails const& dragSourceDetails) override;
+    void itemDropped(SourceDetails const& dragSourceDetails) override;
+    void itemDragEnter(SourceDetails const& dragSourceDetails) override;
+    void itemDragExit(SourceDetails const& dragSourceDetails) override;
+    void itemDragMove(SourceDetails const& dragSourceDetails) override;
+
+    void currentTabChanged(int newCurrentTabIndex, String const& newTabName);
+
+    TabBarButton* createTabButton(String const& tabName, int tabIndex) override;
+private:
+    TabComponent& owner;
+
+    int ghostTabIdx = -1;
+    bool inOtherSplit = false;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ButtonBar)
+};
+
+
 class TabComponent : public Component, public AsyncUpdater {
 
     TextButton newButton;
@@ -266,7 +291,8 @@ private:
 
     int tabDepth = 30;
 
-    class ButtonBar;
+    friend ButtonBar;
+
     Array<WeakReference<Component>> contentComponents;
     std::unique_ptr<TabbedButtonBar> tabs;
     WeakReference<Component> panelComponent;
