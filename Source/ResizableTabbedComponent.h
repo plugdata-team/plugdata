@@ -40,12 +40,13 @@ public:
 
     enum DropZones { Left = 1, Top = 2, Right = 4, Bottom = 8, Centre = 16, TabBar = 32, None = 64};
 
+    void updateDropZones();
+
 private:
     Split::SplitMode splitMode = Split::SplitMode::None;
 
     float dragFactor = 0.5f;
 
-    void updateDropZones();
     int findZoneFromSource(SourceDetails const& dragSourceDetails);
 
     void moveTabToNewSplit(SourceDetails const& source);

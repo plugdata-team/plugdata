@@ -2,13 +2,14 @@
 #include "Tabbar.h"
 #include "Dialogs/Dialogs.h"
 #include "Utility/StackShadow.h"
+#include "Utility/Fonts.h"
+
+//#define ENABLE_TABBAR_DEBUGGING 1
 
 TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabComponent, String const& name, TabbedButtonBar& bar)
     : TabBarButton(name, bar)
     , tabComponent(tabComponent)
 {
-    setTriggeredOnMouseDown(true);
-
     setTooltip(name);
 
     closeTabButton.setButtonText(Icons::Clear);
@@ -30,20 +31,20 @@ TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabComponent, String 
             return;
 
         if (cnv) {
-            MessageManager::callAsync([this, cnv = SafePointer(cnv), editor = SafePointer(editor)]() mutable {
+            MessageManager::callAsync([_cnv = SafePointer(cnv), _editor = SafePointer(editor)]() mutable {
                 // Don't show save dialog, if patch is still open in another view
-                if (cnv && cnv->patch.isDirty()) {
-                    Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
-                        [this, cnv, editor](int result) mutable {
-                            if (!cnv)
+                if (_cnv && _cnv->patch.isDirty()) {
+                    Dialogs::showSaveDialog(&_editor->openedDialog, _editor, _cnv->patch.getTitle(),
+                        [_cnv, _editor](int result) mutable {
+                            if (!_cnv)
                                 return;
                             if (result == 2)
-                                editor->saveProject([this, cnv, editor]() mutable { editor->closeTab(cnv); });
+                                _editor->saveProject([_cnv, _editor]() mutable { _editor->closeTab(_cnv); });
                             else if (result == 1)
-                                editor->closeTab(cnv);
+                                _editor->closeTab(_cnv);
                         });
                 } else {
-                    editor->closeTab(cnv);
+                    _editor->closeTab(_cnv);
                 }
             });
         }
@@ -98,19 +99,25 @@ void TabBarButtonComponent::resized()
 
 Image TabBarButtonComponent::generateTabBarButtonImage()
 {
-    auto snapshot = createComponentSnapshot(getLocalBounds());
+    // we calculate the best size for the tab DnD image
+    auto text = getButtonText();
+    Font font(Fonts::getDefaultFont());
+    auto length = font.getStringWidth(getButtonText()) + 32;
 
     // we need to expand the bounds, but reset the position to top left
     // then we offset the mouse drag by the same amount
     // this is to allow area for the shadow to render correctly
-    auto bounds = getLocalBounds().expanded(boundsOffset).withPosition(0,0);
+    auto textBounds = Rectangle<int>(0, 0, length, 28);
+    auto bounds = textBounds.expanded(boundsOffset).withPosition(0,0);
     auto image = Image(Image::PixelFormat::ARGB, bounds.getWidth(), bounds.getHeight(), true);
     auto g = Graphics(image);
     Path path;
     path.addRoundedRectangle(bounds.reduced(14), 5.0f);
     StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.3f), 6, { 0, 2 });
     g.setOpacity(1.0f);
-    g.drawImage(snapshot, bounds.toFloat(), RectanglePlacement::doNotResize | RectanglePlacement::centred);
+    drawTabButton(g, textBounds.withPosition(10,10));
+    drawTabButtonText(g, textBounds.withPosition(3, 5));
+    //g.drawImage(snapshot, bounds.toFloat(), RectanglePlacement::doNotResize | RectanglePlacement::centred);
 
 #if ENABLE_TABBAR_DEBUGGING == 1
     g.setColour(Colours::red);
@@ -120,21 +127,62 @@ Image TabBarButtonComponent::generateTabBarButtonImage()
     return image;
 }
 
+void TabBarButtonComponent::mouseDown(MouseEvent const& e)
+{
+    if (e.mods.isPopupMenu()) {
+        auto splitIndex = getTabComponent()->getEditor()->splitView.getTabComponentSplitIndex(getTabComponent());
+
+        PopupMenu tabMenu;
+
+#if JUCE_MAC
+        String revealTip = "Reveal in Finder";
+#elif JUCE_WINDOWS
+        String revealTip = "Reveal in Explorer";
+#else
+        String revealTip = "Reveal in file browser";
+#endif
+
+        auto* cnv = getTabComponent()->getCanvas(getIndex());
+        if (!cnv)
+            return;
+
+        bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
+
+        tabMenu.addItem(revealTip, canReveal, false, [cnv]() {
+            cnv->patch.getCurrentFile().revealToUser();
+        });
+
+        if (getTabComponent()->getNumTabs() > 1) {
+            tabMenu.addItem("Split left", true, false, [this, cnv, splitIndex]() {
+                // ALEX implement logic here!!
+            });
+            tabMenu.addItem("Split right", true, false, [this, cnv, splitIndex]() {
+                // ALEX implement logic here!!
+            });
+        }
+        // Show the popup menu at the mouse position
+        tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(getTabComponent()->getEditor()));
+    }
+    else if (e.mods.isLeftButtonDown()) {
+        getTabComponent()->setCurrentTabIndex(getIndex());
+    }
+}
+
 void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
 {
     if(e.getDistanceFromDragStart() > 10) {
-        setVisible(false);
+        //setVisible(false);
         closeTabButton.setVisible(false);
         var tabIndex = getIndex();
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
-        if (isDirty) {
+        //if (isDirty) {
             tabImage = generateTabBarButtonImage();
-            isDirty = false;
-        }
+        //    isDirty = false;
+        //}
     
-        auto offset = e.getPosition() * -1 - Point<int>(boundsOffset,boundsOffset);
-        dragContainer->startDragging(tabIndex, this, tabImage, true, &offset);
+        //auto offset = e.getPosition() * -1 - Point<int>(boundsOffset,boundsOffset);
+        dragContainer->startDragging(tabIndex, this, tabImage, true, nullptr);
     }
 }
 
@@ -143,7 +191,7 @@ void TabBarButtonComponent::mouseUp(MouseEvent const& e)
     setVisible(true);
 }
 
-void TabBarButtonComponent::drawTabButton(Graphics& g)
+void TabBarButtonComponent::drawTabButton(Graphics& g, Rectangle<int> customBounds)
 {
     bool isActive = getToggleState();
 
@@ -155,12 +203,21 @@ void TabBarButtonComponent::drawTabButton(Graphics& g)
         g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
     }
 
-    g.fillRoundedRectangle(getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
+    auto bounds = getLocalBounds();
+
+    if (!customBounds.isEmpty())
+        bounds = customBounds;
+
+    g.fillRoundedRectangle(bounds.reduced(4).toFloat(), Corners::defaultCornerRadius);
 }
 
-void TabBarButtonComponent::drawTabButtonText(Graphics& g)
+void TabBarButtonComponent::drawTabButtonText(Graphics& g, Rectangle<int> customBounds)
 {
-    auto area = getLocalBounds().reduced(4, 2).toFloat();
+    auto bounds = getLocalBounds();
+    if (!customBounds.isEmpty())
+        bounds = customBounds;
+
+    auto area = bounds.reduced(4, 2).toFloat();
 
     TabBarButton unusedButton("unused", getTabbedButtonBar());
 

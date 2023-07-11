@@ -112,7 +112,7 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
     int const newTabIdx = shouldDelete || dropZoneCentre ? newTabComponent->getNumTabs() : 0;
     auto tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
     auto tabTitle = tabCanvas->patch.getTitle();
-    newTabComponent->addTab(tabTitle, Colours::transparentBlack, sourceTabContent->getCanvas(sourceTabIndex)->viewport, false, newTabIdx);
+    newTabComponent->addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport, newTabIdx);
     newTabComponent->setCurrentTabIndex(newTabIdx);
 
     if (shouldDelete) {

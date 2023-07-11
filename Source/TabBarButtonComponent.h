@@ -18,6 +18,7 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
+    void mouseDown(MouseEvent const& e) override;
 
     void lookAndFeelChanged() override;
 
@@ -25,8 +26,8 @@ public:
 
     void tabTextChanged(const String& newCurrentTabName);
 
-    void drawTabButton(Graphics& g);
-    void drawTabButtonText(Graphics& g);
+    void drawTabButton(Graphics& g, Rectangle<int> customBounds = Rectangle<int>());
+    void drawTabButtonText(Graphics& g, Rectangle<int> customBounds = Rectangle<int>());
     Image generateTabBarButtonImage();
 
     void paint(Graphics& g) override;
