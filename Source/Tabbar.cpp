@@ -25,9 +25,43 @@ bool ButtonBar::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
 
 void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
 {
+    // this has a whole lot of code replication from ResizableTabbedComponent.cpp, good candidate for refactoring!
     if (inOtherSplit) {
+        auto sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
+        int sourceTabIndex = sourceTabButton->getIndex();
+        auto sourceTabContent = sourceTabButton->getTabComponent();
+        int sourceNumTabs = sourceTabContent->getNumTabs();
+
         inOtherSplit = false;
+        // we remove the ghost tab, which is NOT a proper tab, (it only a tab, and doesn't have a viewport)
         removeTab(ghostTabIdx, true);
+        auto tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
+        auto tabTitle = tabCanvas->patch.getTitle();
+        // we then re-add the ghost tab, but this time we add it from the owner (tabComponent) 
+        // which allows us to inject the viewport
+        owner.addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport, ghostTabIdx);
+        owner.setCurrentTabIndex(ghostTabIdx);
+
+        sourceTabContent->removeTab(sourceTabIndex);
+        auto sourceCurrentIndex = sourceTabIndex > (sourceTabContent->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex;
+        sourceTabContent->setCurrentTabIndex(sourceCurrentIndex);
+
+        if (sourceNumTabs < 2) {
+            owner.editor->splitView.removeSplit(sourceTabContent);
+            for (auto* split : owner.editor->splitView.splits) {
+                split->setBoundsWithFactors(owner.editor->splitView.getLocalBounds());
+            }
+        }
+        // set all current canvas viewports to visible, (if they already are this shouldn't do anything)
+        for (auto* split : owner.editor->splitView.splits) {
+            if (auto tabComponent = split->getTabComponent()) {
+                if (auto* cnv = tabComponent->getCanvas(tabComponent->getCurrentTabIndex())) {
+                    cnv->viewport->setVisible(true);
+                    split->resized();
+                    split->getTabComponent()->resized();
+                }
+            }
+        }
     }
 }
 
