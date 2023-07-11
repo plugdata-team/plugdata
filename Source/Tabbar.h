@@ -194,7 +194,32 @@ public:
 };
 
 class PluginEditor;
-class TabComponent : public TabbedComponent, public AsyncUpdater {
+
+class ButtonBar : public TabbedButtonBar, public DragAndDropTarget
+{
+public:
+    ButtonBar (TabComponent& tabComp, TabbedButtonBar::Orientation o);
+
+    bool isInterestedInDragSource(SourceDetails const& dragSourceDetails) override;
+    void itemDropped(SourceDetails const& dragSourceDetails) override;
+    void itemDragEnter(SourceDetails const& dragSourceDetails) override;
+    void itemDragExit(SourceDetails const& dragSourceDetails) override;
+    void itemDragMove(SourceDetails const& dragSourceDetails) override;
+
+    void currentTabChanged(int newCurrentTabIndex, String const& newTabName);
+
+    TabBarButton* createTabButton(String const& tabName, int tabIndex) override;
+private:
+    TabComponent& owner;
+
+    int ghostTabIdx = -1;
+    bool inOtherSplit = false;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ButtonBar)
+};
+
+
+class TabComponent : public Component, public AsyncUpdater {
 
     TextButton newButton;
     WelcomePanel welcomePanel;
@@ -204,24 +229,32 @@ public:
     TabComponent(PluginEditor* editor);
     ~TabComponent();
 
-    TabBarButton* createTabButton (const String& tabName, int tabIndex) override;
-
     void onTabMoved();
     void onTabChange(int tabIndex);
     void newTab();
+    void addTab(const String& tabName, Component* contentComponent, int insertIndex);
+    void moveTab(int oldIndex, int newIndex);
+    void clearTabs();
+    void setTabBarDepth (int newDepth);
+    Component* getTabContentComponent (int tabIndex) const noexcept;
+    Component* getCurrentContentComponent() const noexcept          { return panelComponent.get(); }
+    int getCurrentTabIndex();
+    void setCurrentTabIndex(int idx);
+    int getNumTabs() const noexcept                                 { return tabs->getNumTabs(); }
+    void removeTab(int idx);
+    int getTabBarDepth() const noexcept                             { return tabDepth; };
+    void changeCallback (int newCurrentTabIndex, const String& newTabName);
+
     void openProject();
     void openProjectFile(File& patchFile);
-    void rightClick(int tabIndex, String const& tabName);
 
-    void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName) override;
+    void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName);
     void handleAsyncUpdate() override;
     void resized() override;
 
     void paint(Graphics& g) override;
 
     void paintOverChildren(Graphics& g) override;
-
-    void popupMenuClickOnTab(int tabIndex, String const& tabName) override;
 
     int getIndexOfCanvas(Canvas* cnv);
 
@@ -230,12 +263,6 @@ public:
     Canvas* getCanvas(int idx);
 
     Canvas* getCurrentCanvas();
-
-    void mouseDown(MouseEvent const& e) override;
-    void mouseMove(MouseEvent const& e) override;
-    void mouseDrag(MouseEvent const& e) override;
-
-    //void mouseUp(MouseEvent const& e) override;
 
     PluginEditor* getEditor();
 
@@ -253,4 +280,14 @@ private:
 
     int draggedTabIndex = -1;
     Component* draggedTabComponent = nullptr;
+
+    int tabDepth = 30;
+
+    friend ButtonBar;
+
+    Array<WeakReference<Component>> contentComponents;
+    std::unique_ptr<TabbedButtonBar> tabs;
+    WeakReference<Component> panelComponent;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabComponent)
 };
