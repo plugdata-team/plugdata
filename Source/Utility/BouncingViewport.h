@@ -14,6 +14,9 @@ public:
     {
         viewport->addMouseListener(this, true);
     }
+    
+    virtual ~BouncingViewportAttachment() = default;
+    
 private:
     static int rescaleMouseWheelDistance (float distance) noexcept
     {

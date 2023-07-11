@@ -1051,6 +1051,83 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         g.drawRect(label.getLocalBounds());
     }
+    /*
+     
+     static Path getSquircle(const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
+     {
+         Path path;
+         
+         float x = bounds.getX();
+         float y = bounds.getY();
+         float width = bounds.getWidth();
+         float height = bounds.getHeight();
+
+         float radius = cornerRadius;
+         if (radius > width * 0.5f)
+             radius = width * 0.5f;
+         if (radius > height * 0.5f)
+             radius = height * 0.5f;
+         
+         float controlOffset = radius * 0.45f;
+         
+         path.startNewSubPath(x + radius, y);
+         
+         if (curveTopLeft)
+         {
+             path.cubicTo(x + radius - controlOffset, y, x, y + radius - controlOffset, x, y + radius);
+         }
+         else
+         {
+             path.lineTo(x, y + radius);
+         }
+         
+         path.lineTo(x + width - radius, y);
+         
+         if (curveTopRight)
+         {
+             path.cubicTo(x + width - radius + controlOffset, y, x + width, y + radius - controlOffset, x + width, y + radius);
+         }
+         else
+         {
+             path.lineTo(x + width, y + radius);
+         }
+         
+         path.lineTo(x + width, y + height - radius);
+         
+         if (curveBottomRight)
+         {
+             path.cubicTo(x + width, y + height - radius + controlOffset, x + width - radius + controlOffset, y + height, x + width - radius, y + height);
+         }
+         else
+         {
+             path.lineTo(x + width - radius, y + height);
+         }
+         
+         path.lineTo(x + radius, y + height);
+         
+         if (curveBottomLeft)
+         {
+             path.cubicTo(x + radius - controlOffset, y + height, x, y + height - radius + controlOffset, x, y + height - radius);
+         }
+         else
+         {
+             path.lineTo(x, y + height - radius);
+         }
+         
+         path.lineTo(x, y + radius);
+         
+         if (curveTopLeft)
+         {
+             path.cubicTo(x, y + radius - controlOffset, x + radius - controlOffset, y, x + radius, y);
+         }
+         else
+         {
+             path.lineTo(x + radius, y);
+         }
+
+         return path;
+     }
+     */
     
     static Path getSquircle(const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
     {

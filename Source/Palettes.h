@@ -335,7 +335,7 @@ public:
         g.drawLine(0, 30.0f, getWidth(), 30.0f);
     }
 
-    void resized()
+    void resized() override
     {
         paletteDraggableList->setBounds(getLocalBounds().withTrimmedTop(32));
         viewport.setBounds(getLocalBounds().withTrimmedTop(32));
@@ -524,6 +524,8 @@ public:
 
         showPalettes = SettingsFile::getInstance()->getProperty<bool>("show_palettes");
         setVisible(showPalettes);
+        
+        showPalette(ValueTree());
     }
 
     ~Palettes() override
@@ -778,9 +780,11 @@ private:
             resized();
         };
         paletteBar.addAndMakeVisible(button);
-        paletteSelectors.getLast()->triggerClick();
-        if (!construct)
+        
+        if (!construct) {
+            paletteSelectors.getLast()->triggerClick();
             resized();
+        }
     }
 
     PluginEditor* editor;

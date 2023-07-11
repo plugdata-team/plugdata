@@ -436,7 +436,7 @@ public:
                 y += holder->getTransform().getTranslationY();
             }
             
-            auto selectedRect = Rectangle<float>(3.0f, y + 2.0f, getWidth() - 6.0f, 22.0f);
+            auto selectedRect = Rectangle<float>(3.5f, y + 2.0f, getWidth() - 6.0f, 22.0f);
 
             PlugDataLook::fillSmoothedRectangle(g, selectedRect, Corners::defaultCornerRadius);
         }
@@ -680,13 +680,13 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(6, 2, w - 12, h - 4), Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5.5, 1, w - 11, h - 4), Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
         const String item = searchResult[rowNumber].getFileName();
 
-        Fonts::drawText(g, item, h + 4, 0, w - 4, h, colour);
+        Fonts::drawText(g, item, h + 4, 0, w - 4, h, colour, 14);
         Fonts::drawIcon(g, Icons::File, 12, 0, h, colour, 12, false);
     }
 

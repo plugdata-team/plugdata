@@ -69,6 +69,7 @@ class WelcomePanel : public Component {
     public:
         RecentlyOpenedListBox()
         {
+            listBox.setRowHeight(26);
             listBox.setModel(this);
             listBox.setClickingTogglesRowSelection(true);
             update();
@@ -114,7 +115,7 @@ class WelcomePanel : public Component {
         void paint(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), Rectangle<float>(1, 36, getWidth() - 2, getHeight() - 37), Corners::defaultCornerRadius);
+            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), Rectangle<float>(1, 32, getWidth() - 2, getHeight() - 32), Corners::defaultCornerRadius);
 
             Fonts::drawStyledText(g, "Recently Opened", 0, 0, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
         }
@@ -126,6 +127,7 @@ class WelcomePanel : public Component {
 
         void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
         {
+            /*
             if (rowIsSelected) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 PlugDataLook::fillSmoothedRectangle(g, { 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
@@ -133,7 +135,17 @@ class WelcomePanel : public Component {
 
             auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
 
-            Fonts::drawText(g, items[rowNumber].first, 12, 0, width - 9, height, colour, 15);
+            Fonts::drawText(g, items[rowNumber].first, 12, 0, width - 9, height, colour, 15); */
+            
+            if (rowIsSelected) {
+                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5.5, 1.5, width - 9, height - 4), Corners::defaultCornerRadius);
+            }
+
+            auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+
+            Fonts::drawText(g, items[rowNumber].first, height + 4, 0, width - 4, height, colour, 14);
+            Fonts::drawIcon(g, Icons::File, 12, 0, height, colour, 12, false);
         }
 
         std::unique_ptr<BouncingViewportAttachment> bouncer;
@@ -158,7 +170,7 @@ public:
         openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -10));
 
         if (getHeight() > 400) {
-            recentlyOpened.setBounds(getLocalBounds().withSizeKeepingCentre(275, 160).translated(0, 110));
+            recentlyOpened.setBounds(getLocalBounds().withSizeKeepingCentre(275, 170).translated(0, 110));
             recentlyOpened.setVisible(true);
         } else {
             recentlyOpened.setVisible(false);
