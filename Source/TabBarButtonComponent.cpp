@@ -2,6 +2,9 @@
 #include "Tabbar.h"
 #include "Dialogs/Dialogs.h"
 #include "Utility/StackShadow.h"
+#include "Utility/Fonts.h"
+
+//#define ENABLE_TABBAR_DEBUGGING 1
 
 TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabComponent, String const& name, TabbedButtonBar& bar)
     : TabBarButton(name, bar)
@@ -96,19 +99,25 @@ void TabBarButtonComponent::resized()
 
 Image TabBarButtonComponent::generateTabBarButtonImage()
 {
-    auto snapshot = createComponentSnapshot(getLocalBounds());
+    // we calculate the best size for the tab DnD image
+    auto text = getButtonText();
+    Font font(Fonts::getDefaultFont());
+    auto length = font.getStringWidth(getButtonText()) + 32;
 
     // we need to expand the bounds, but reset the position to top left
     // then we offset the mouse drag by the same amount
     // this is to allow area for the shadow to render correctly
-    auto bounds = getLocalBounds().expanded(boundsOffset).withPosition(0,0);
+    auto textBounds = Rectangle<int>(0, 0, length, 28);
+    auto bounds = textBounds.expanded(boundsOffset).withPosition(0,0);
     auto image = Image(Image::PixelFormat::ARGB, bounds.getWidth(), bounds.getHeight(), true);
     auto g = Graphics(image);
     Path path;
     path.addRoundedRectangle(bounds.reduced(14), 5.0f);
     StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.3f), 6, { 0, 2 });
     g.setOpacity(1.0f);
-    g.drawImage(snapshot, bounds.toFloat(), RectanglePlacement::doNotResize | RectanglePlacement::centred);
+    drawTabButton(g, textBounds.withPosition(10,10));
+    drawTabButtonText(g, textBounds.withPosition(3, 5));
+    //g.drawImage(snapshot, bounds.toFloat(), RectanglePlacement::doNotResize | RectanglePlacement::centred);
 
 #if ENABLE_TABBAR_DEBUGGING == 1
     g.setColour(Colours::red);
@@ -167,13 +176,13 @@ void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
         var tabIndex = getIndex();
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
-        if (isDirty) {
+        //if (isDirty) {
             tabImage = generateTabBarButtonImage();
-            isDirty = false;
-        }
+        //    isDirty = false;
+        //}
     
-        auto offset = e.getPosition() * -1 - Point<int>(boundsOffset,boundsOffset);
-        dragContainer->startDragging(tabIndex, this, tabImage, true, &offset);
+        //auto offset = e.getPosition() * -1 - Point<int>(boundsOffset,boundsOffset);
+        dragContainer->startDragging(tabIndex, this, tabImage, true, nullptr);
     }
 }
 
@@ -182,7 +191,7 @@ void TabBarButtonComponent::mouseUp(MouseEvent const& e)
     setVisible(true);
 }
 
-void TabBarButtonComponent::drawTabButton(Graphics& g)
+void TabBarButtonComponent::drawTabButton(Graphics& g, Rectangle<int> customBounds)
 {
     bool isActive = getToggleState();
 
@@ -194,12 +203,21 @@ void TabBarButtonComponent::drawTabButton(Graphics& g)
         g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
     }
 
-    g.fillRoundedRectangle(getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
+    auto bounds = getLocalBounds();
+
+    if (!customBounds.isEmpty())
+        bounds = customBounds;
+
+    g.fillRoundedRectangle(bounds.reduced(4).toFloat(), Corners::defaultCornerRadius);
 }
 
-void TabBarButtonComponent::drawTabButtonText(Graphics& g)
+void TabBarButtonComponent::drawTabButtonText(Graphics& g, Rectangle<int> customBounds)
 {
-    auto area = getLocalBounds().reduced(4, 2).toFloat();
+    auto bounds = getLocalBounds();
+    if (!customBounds.isEmpty())
+        bounds = customBounds;
+
+    auto area = bounds.reduced(4, 2).toFloat();
 
     TabBarButton unusedButton("unused", getTabbedButtonBar());
 

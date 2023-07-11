@@ -25,8 +25,10 @@ bool ButtonBar::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
 
 void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
 {
-    if (inOtherSplit)
+    if (inOtherSplit) {
+        inOtherSplit = false;
         removeTab(ghostTabIdx, true);
+    }
 }
 
 void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
@@ -59,7 +61,8 @@ void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
 {
     auto targetTabPos = getWidth() / getNumTabs();
     auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
-    moveTab(ghostTabIdx, tabPos, true);
+    owner.moveTab(ghostTabIdx, tabPos);
+    auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
     ghostTabIdx = tabPos;
 }
 
@@ -71,7 +74,6 @@ void ButtonBar::currentTabChanged(int newCurrentTabIndex, String const& newTabNa
 TabBarButton* ButtonBar::createTabButton(String const& tabName, int tabIndex)
 {
     auto tabBarButton = new TabBarButtonComponent(&owner, tabName, *owner.tabs.get());
-    // tabBarButton->addMouseListener(this, true);
     return tabBarButton;
 }
 
@@ -342,47 +344,9 @@ Canvas* TabComponent::getCurrentCanvas()
     return dynamic_cast<Canvas*>(viewport->getViewedComponent());
 }
 
-void TabComponent::mouseDown(MouseEvent const& e)
-{
-    tabWidth = tabs->getWidth() / std::max(1, tabs->getNumTabs());
-    clickedTabIndex = tabs->getCurrentTabIndex();
-    tabs->setCurrentTabIndex(clickedTabIndex);
-}
-
 void TabComponent::setTabText(int tabIndex, String const& newName)
 {
     dynamic_cast<TabBarButtonComponent*>(tabs->getTabButton(tabIndex))->setTabText(newName);
 }
 
-void TabComponent::mouseMove(MouseEvent const& e)
-{
-    //tabs->getTabButton(getCurrentTabIndex())->repaint();
-}
 
-void TabComponent::mouseDrag(MouseEvent const& e)
-{
-    // Don't respond to clicks on close button
-    if (dynamic_cast<TextButton*>(e.originalComponent))
-        return;
-    // Drag tabs to move their index
-    /*
-    int const dragPosition = e.getEventRelativeTo(tabs.get()).x;
-    int const newTabIndex = (dragPosition < clickedTabIndex * tabWidth) ? clickedTabIndex - 1
-        : (dragPosition >= (clickedTabIndex + 1) * tabWidth)            ? clickedTabIndex + 1
-                                                                        : clickedTabIndex;
-    int const dragDistance = std::abs(e.getDistanceFromDragStartX());
-    
-    if (dragDistance > 5) {
-        if ((tabs->contains(e.getEventRelativeTo(tabs.get()).getPosition()) || e.getDistanceFromDragStartY() < 0) && newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
-            moveTab(clickedTabIndex, newTabIndex);
-            clickedTabIndex = newTabIndex;
-            onTabMoved();
-            tabs->getTabButton(clickedTabIndex)->setVisible(false);
-        }
-        // Keep ghost tab within view
-        auto newPosition = Point<int>(std::clamp(currentTabBounds.getX() + getX() + e.getDistanceFromDragStartX(), 0, getParentWidth() - tabWidth), std::clamp(currentTabBounds.getY() + e.getDistanceFromDragStartY(), 0, getHeight() - tabs->getHeight()));
-        tabSnapshotBounds.setPosition(newPosition);
-        getParentComponent()->repaint();
-    }
-    */
-}

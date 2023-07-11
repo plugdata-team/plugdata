@@ -26,8 +26,8 @@ public:
 
     void tabTextChanged(const String& newCurrentTabName);
 
-    void drawTabButton(Graphics& g);
-    void drawTabButtonText(Graphics& g);
+    void drawTabButton(Graphics& g, Rectangle<int> customBounds = Rectangle<int>());
+    void drawTabButtonText(Graphics& g, Rectangle<int> customBounds = Rectangle<int>());
     Image generateTabBarButtonImage();
 
     void paint(Graphics& g) override;

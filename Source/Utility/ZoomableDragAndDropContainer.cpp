@@ -62,6 +62,8 @@ public:
 
         updateSize();
 
+        updateScale(0.0f);
+
         if (mouseDragSource == nullptr)
             mouseDragSource = sourceComponent;
 
@@ -125,7 +127,7 @@ public:
     void mouseDrag(MouseEvent const& e) override
     {
         if (e.originalComponent != this && isOriginalInputSource(e.source)) {
-            if (isZoomable && rateReducer.tooFast())
+            if (rateReducer.tooFast())
                 return;
 
             currentScreenPos = e.getScreenPosition();

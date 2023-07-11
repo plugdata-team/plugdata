@@ -229,8 +229,6 @@ public:
     TabComponent(PluginEditor* editor);
     ~TabComponent();
 
-    //TabBarButton* createTabButton (const String& tabName, int tabIndex) override;
-
     void onTabMoved();
     void onTabChange(int tabIndex);
     void newTab();
@@ -265,12 +263,6 @@ public:
     Canvas* getCanvas(int idx);
 
     Canvas* getCurrentCanvas();
-
-    void mouseDown(MouseEvent const& e) override;
-    void mouseMove(MouseEvent const& e) override;
-    void mouseDrag(MouseEvent const& e) override;
-
-    //void mouseUp(MouseEvent const& e) override;
 
     PluginEditor* getEditor();
 
