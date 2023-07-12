@@ -140,6 +140,9 @@ bool SplitViewResizer::setResizerPosition(float newPosition, bool checkLeft)
 
 void SplitViewResizer::mouseDrag(MouseEvent const& e)
 {
+    if (rateReducer.tooFast())
+        return;
+
     auto posX = e.position.x;
 
     if (splitMode == Split::SplitMode::Horizontal) {

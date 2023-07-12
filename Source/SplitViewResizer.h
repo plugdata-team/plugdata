@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "Tabbar.h"
 #include "Utility/SplitModeEnum.h"
+#include "Utility/RateReducer.h"
 
 class ResizableTabbedComponent;
 class SplitViewResizer : public Component {
@@ -44,6 +45,8 @@ private:
     float dragPositionX = 0;
     int dragPositionY = 0;
     bool draggingSplitview = false;
+
+    RateReducer rateReducer = RateReducer(60);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SplitViewResizer)
 };
