@@ -776,7 +776,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(background);
 
             auto bounds = Rectangle<float>(5, 6, width - 10, height - 12);
-            fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
+            fillSmoothedRectangle(g, bounds, Corners::largeCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
             drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::largeCornerRadius);
@@ -789,6 +789,19 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawRect(bounds, 1.0f);
         }
+    }
+    
+    Path getTickShape (float height) override
+    {
+        Path path;
+        path.startNewSubPath(0.4f * height, 0.6f * height);
+        path.lineTo(0.475f * height, 0.7f * height);
+        path.lineTo(0.65f * height, 0.475f * height);
+
+        Path strokedPath;
+        PathStrokeType(height / 15.0f, PathStrokeType::curved, PathStrokeType::rounded).createStrokedPath(strokedPath, path, AffineTransform(), 5.0f);
+        
+        return strokedPath;
     }
 
     void drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
@@ -917,6 +930,16 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.setColour(object.findColour(ComboBox::arrowColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
 
         g.strokePath(path, PathStrokeType(2.0f));
+    }
+    
+    PopupMenu::Options getOptionsForComboBoxPopupMenu (ComboBox& box, Label& label) override
+    {
+        return PopupMenu::Options().withTargetComponent (&box)
+                                   .withItemThatMustBeVisible (box.getSelectedId())
+                                   .withInitiallySelectedItem (box.getSelectedId())
+                                   .withMinimumWidth (box.getWidth())
+                                   .withMaximumNumColumns (1)
+                                   .withStandardItemHeight (22);
     }
 
     void drawResizableFrame(Graphics& g, int w, int h, BorderSize<int> const& border) override

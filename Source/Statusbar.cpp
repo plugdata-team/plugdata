@@ -58,8 +58,8 @@ void VolumeSlider::paint(Graphics& g)
     auto thumbSize = getHeight() * 0.7f;
     auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
     auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
-    thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 6, thumb.getHeight());
-    g.setColour(backgroundColour.withAlpha(thumb.contains(getMouseXYRelative().toFloat()) ? 1.0f : 0.8f));
+    thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 8, thumb.getHeight());
+    g.setColour(backgroundColour.darker(thumb.contains(getMouseXYRelative().toFloat()) ? 0.3f : 0.0f).withAlpha(0.8f));
     PlugDataLook::fillSmoothedRectangle(g, thumb, Corners::defaultCornerRadius);
 }
 
@@ -130,8 +130,8 @@ public:
         auto height = getHeight() / 4.0f;
         auto barHeight = height * 0.6f;
         auto halfBarHeight = barHeight * 0.5f;
-        auto width = getWidth() - 8.0f;
-        auto x = 4.0f;
+        auto width = getWidth() - 12.0f;
+        auto x = 6.0f;
 
         auto outerBorderWidth = 2.0f;
         auto spacingFraction = 0.08f;
