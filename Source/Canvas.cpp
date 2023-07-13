@@ -237,8 +237,7 @@ void Canvas::recreateViewport()
 
 void Canvas::jumpToOrigin()
 {
-    setTopLeftPosition(-canvasOrigin + Point<int>(1, 1));
-    viewport->resized();
+    viewport->setViewPosition(canvasOrigin.transformedBy(getTransform()) + Point<int>(1, 1));
 }
 
 void Canvas::zoomToFitAll()
@@ -267,17 +266,18 @@ void Canvas::zoomToFitAll()
         auto scaleWidth = viewWidth / roiWidth;
         auto scaleHeight = viewHeight / roiHeight;
         scale = jmin(scaleWidth, scaleHeight);
+
         auto transform = getTransform();
         transform = transform.scaled(scale);
         setTransform(transform);
+
         scale = std::sqrt(std::abs(transform.getDeterminant()));
         zoomScale.setValue(scale);
     }
-    // TODO we should set the fit all area to the centre of the view area - but this isn't working for some reason
-    //  for now we will set the top left of the region of interest
-    auto centre = viewport->getViewArea().withZeroOrigin().getCentre() / scale;
-    setTopLeftPosition(centre - regionOfInterest.getCentre());
-    viewport->resized();
+
+    auto viewportCentre = viewport->getViewArea().withZeroOrigin().getCentre();
+    auto newViewPos = regionOfInterest.transformed(getTransform()).getCentre() - viewportCentre;
+    viewport->setViewPosition(newViewPos);
 }
 
 void Canvas::lookAndFeelChanged()
