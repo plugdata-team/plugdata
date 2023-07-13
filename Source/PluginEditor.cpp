@@ -705,7 +705,7 @@ void PluginEditor::addTab(Canvas* cnv, int splitIdx)
         int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
 
         // Add tab next to the currently focused tab
-        focusedTabbar->addTab(patchTitle, cnv->viewport, newTabIdx);
+        focusedTabbar->addTab(patchTitle, cnv->viewport.get(), newTabIdx);
         focusedTabbar->setCurrentTabIndex(newTabIdx);
     }
     else {
@@ -717,7 +717,7 @@ void PluginEditor::addTab(Canvas* cnv, int splitIdx)
         }
         else {
             auto* tabComponent = splitView.splits[splitIdx]->getTabComponent();
-            tabComponent->addTab(patchTitle, cnv->viewport, tabComponent->getNumTabs() + 1);
+            tabComponent->addTab(patchTitle, cnv->viewport.get(), tabComponent->getNumTabs() + 1);
         }
     }
 

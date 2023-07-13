@@ -57,8 +57,6 @@ public:
     PluginEditor* editor;
     PluginProcessor* pd;
 
-    void recreateViewport();
-
     void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
 
@@ -159,7 +157,7 @@ public:
         return result;
     }
 
-    Viewport* viewport = nullptr;
+    std::unique_ptr<Viewport> viewport = nullptr;
 
     bool connectingWithDrag = false;
     bool connectionCancelled = false;

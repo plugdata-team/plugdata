@@ -175,14 +175,14 @@ public:
             scale = static_cast<float>(static_cast<int>(round(scale * 10.))) / 10.;
 
             // Get the current viewport position in canvas coordinates
-            auto oldViewportPosition = cnv->getLocalPoint(cnv->viewport, cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
+            auto oldViewportPosition = cnv->getLocalPoint(cnv->viewport.get(), cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
 
             // Apply transform and make sure viewport bounds get updated
             cnv->setTransform(AffineTransform::scale(scale));
             cnv->viewport->resized();
 
             // After zooming, get the new viewport position in canvas coordinates
-            auto newViewportPosition = cnv->getLocalPoint(cnv->viewport, cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
+            auto newViewportPosition = cnv->getLocalPoint(cnv->viewport.get(), cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
 
             // Calculate offset to keep the center point of the viewport the same as before this zoom action
             auto offset = newViewportPosition - oldViewportPosition;

@@ -142,7 +142,7 @@ public:
             }
         }
 
-        if (auto* viewport = cnv->viewport) {
+        if (auto* viewport = cnv->viewport.get()) {
             auto scale = getValue<float>(cnv->zoomScale);
             auto pos = target->getBounds().reduced(Object::margin).getCentre() * scale;
 

@@ -69,7 +69,26 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         isGraph = false;
     }
 
-    recreateViewport();
+    if(!isGraph) {
+        auto* canvasViewport = new CanvasViewport(editor, this);
+        
+        canvasViewport->setViewedComponent(this, false);
+        
+        canvasViewport->onScroll = [this]() {
+            if (suggestor) {
+                suggestor->updateBounds();
+            }
+            if (graphArea) {
+                graphArea->updateBounds();
+            }
+        };
+        
+        canvasViewport->setScrollBarsShown(true, true, true, true);
+        
+        viewport.reset(canvasViewport); // Owned by the tabbar, but doesn't exist for graph!
+        jumpToOrigin();
+    }
+    
 
     suggestor = new SuggestionComponent;
 
@@ -210,30 +229,6 @@ void Canvas::updateOverlays()
     repaint();
 }
 
-void Canvas::recreateViewport()
-{
-    if (isGraph)
-        return;
-
-    auto* canvasViewport = new CanvasViewport(editor, this);
-
-    canvasViewport->setViewedComponent(this, false);
-
-    canvasViewport->onScroll = [this]() {
-        if (suggestor) {
-            suggestor->updateBounds();
-        }
-        if (graphArea) {
-            graphArea->updateBounds();
-        }
-    };
-
-    canvasViewport->setScrollBarsShown(true, true, true, true);
-
-    viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
-
-    jumpToOrigin();
-}
 
 void Canvas::jumpToOrigin()
 {
@@ -707,7 +702,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
         return;
     }
 
-    auto viewportEvent = e.getEventRelativeTo(viewport);
+    auto viewportEvent = e.getEventRelativeTo(viewport.get());
     if (viewport && !ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
         beginDragAutoRepeat(25);
     }
@@ -1540,7 +1535,7 @@ bool Canvas::checkPanDragMode()
 
 bool Canvas::setPanDragMode(bool shouldPan)
 {
-    if (auto* v = dynamic_cast<CanvasViewport*>(viewport)) {
+    if (auto* v = dynamic_cast<CanvasViewport*>(viewport.get())) {
         v->enableMousePanning(shouldPan);
         return true;
     }

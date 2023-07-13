@@ -39,7 +39,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         auto tabTitle = tabCanvas->patch.getTitle();
         // we then re-add the ghost tab, but this time we add it from the owner (tabComponent) 
         // which allows us to inject the viewport
-        owner.addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport, ghostTabIdx);
+        owner.addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport.get(), ghostTabIdx);
         owner.setCurrentTabIndex(ghostTabIdx);
 
         sourceTabContent->removeTab(sourceTabIndex);
@@ -350,7 +350,7 @@ int TabComponent::getIndexOfCanvas(Canvas* cnv)
         return -1;
 
     for (int i = 0; i < tabs->getNumTabs(); i++) {
-        if (getTabContentComponent(i) == cnv->viewport) {
+        if (getTabContentComponent(i) == cnv->viewport.get()) {
             return i;
         }
     }

@@ -140,7 +140,7 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
     editor->splitView.addResizer(resizer);
     
     auto tabTitle = canvas->patch.getTitle();
-    newSplit->getTabComponent()->addTab(tabTitle, canvas->viewport, 0);
+    newSplit->getTabComponent()->addTab(tabTitle, canvas->viewport.get(), 0);
     canvas->viewport->setVisible(true);
     
     newSplit->resized();
@@ -157,17 +157,11 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
     bool shouldDelete = (sourceNumTabs - 1) == 0 ? true : false;
     bool dropZoneCentre = (activeZone == DropZones::Centre) ? true : false;
 
-    if (shouldDelete) {
-        editor->splitView.setFocus(this);
-        editor->splitView.removeSplit(sourceTabContent);
-        for (auto* split : editor->splitView.splits) {
-            split->setBoundsWithFactors(getParentComponent()->getLocalBounds());
-        }
-    } else if (dropZoneCentre) {
+    if (dropZoneCentre) {
         auto* tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
         auto tabTitle = tabCanvas->patch.getTitle();
         auto newTabIdx = tabComponent->getNumTabs();
-        tabComponent->addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport, newTabIdx);
+        tabComponent->addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport.get(), newTabIdx);
         tabComponent->setCurrentTabIndex(newTabIdx);
         
         editor->splitView.setFocus(this);
@@ -179,6 +173,14 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
     }
     else {
         createNewSplit(static_cast<DropZones>(activeZone), sourceTabContent->getCanvas(sourceTabIndex));
+    }
+    
+    if (shouldDelete) {
+        editor->splitView.setFocus(this);
+        editor->splitView.removeSplit(sourceTabContent);
+        for (auto* split : editor->splitView.splits) {
+            split->setBoundsWithFactors(getParentComponent()->getLocalBounds());
+        }
     }
 
     // set all current canvas viewports to visible, (if they already are this shouldn't do anything)
