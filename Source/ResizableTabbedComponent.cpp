@@ -98,14 +98,15 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
 
 void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canvas)
 {
-    if(auto* oldTabbar = canvas->getTabbar())
-    {
-        oldTabbar->removeTab(canvas->getTabIndex());
+    if (auto* sourceTabBar = canvas->getTabbar()) {
+        auto sourceTabIndex = canvas->getTabIndex();
+        sourceTabBar->removeTab(sourceTabIndex);
+        sourceTabBar->setCurrentTabIndex(sourceTabIndex > (sourceTabBar->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex);
     }
-    
+
     auto* newSplit = new ResizableTabbedComponent(editor);
     SplitViewResizer* resizer;
-    
+
     // depending on if the dropzone is left or right we have to use the opposite resizer
     if (activeZone == DropZones::Right) {
         // connect resizers (if they exist) to the new split and / or replace the existing resizer of existing split
