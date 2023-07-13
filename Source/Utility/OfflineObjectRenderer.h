@@ -24,5 +24,5 @@ public:
 
 private:
     class OfflineObjectRendererComponent;
-    Component::SafePointer<OfflineObjectRendererComponent> offlineObjectRendererComponent;
+    std::unique_ptr<OfflineObjectRendererComponent> offlineObjectRendererComponent;
 };

@@ -100,7 +100,7 @@ private:
 
 OfflineObjectRenderer::OfflineObjectRenderer()
 {
-    offlineObjectRendererComponent = new OfflineObjectRendererComponent();
+    offlineObjectRendererComponent = std::make_unique<OfflineObjectRendererComponent>();
 }
 
 OfflineObjectRenderer::~OfflineObjectRenderer() = default;
