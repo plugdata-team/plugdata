@@ -29,10 +29,31 @@ public:
 
     ~OfflineObjectRendererComponent() override { }
 
+    /**
+     * Remove all connections from the PD patch, so that it can't activate loadbangs etc
+    */
+    String stripConnections(String const& patch)
+    {
+        StringArray lines;
+        lines.addTokens(patch, "\n", StringRef());
+        for (int i = lines.size() - 1; i >= 0; --i) {
+            if (lines[i].startsWith("#X connect"))
+                lines.remove(i);
+        }
+
+        String strippedPatch;
+
+        for (const auto& line : lines) {
+            strippedPatch += line + "\n";
+        }
+
+        return strippedPatch;
+    }
+
     bool checkIfPatchIsValid(String const& patch)
     {
         bool isValid = false;
-        libpd_paste(offlineCnv, patch.toRawUTF8());
+        libpd_paste(offlineCnv, stripConnections(patch).toRawUTF8());
 
         // if we can create more than 1 valid object, assume the patch is valid
         auto object = offlineCnv->gl_list;
@@ -52,7 +73,7 @@ public:
         totalSize.setBounds(0, 0, 0, 0);
         int obj_x, obj_y, obj_w, obj_h;
         auto rect = Rectangle<int>();
-        libpd_paste(offlineCnv, patch.toRawUTF8());
+        libpd_paste(offlineCnv, stripConnections(patch).toRawUTF8());
 
         // traverse the linked list of objects, asking PD the object size each time
         auto object = offlineCnv->gl_list;
