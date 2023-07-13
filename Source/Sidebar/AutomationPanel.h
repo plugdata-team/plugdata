@@ -74,17 +74,17 @@ public:
         };
 
         minValue.dragEnd = [this]() {
-            auto minimum = minValue.getValue();
-            auto maximum = param->getNormalisableRange().end;
+            double minimum = minValue.getValue();
+            double maximum = param->getNormalisableRange().end;
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
             valueLabel.setValue(std::clamp(valueLabel.getValue(), minimum, maximum));
 
-            maxValue.setMinimum(minimum + 0.000001f);
+            maxValue.setMinimum(minimum + 0.000001);
 
             // make sure min is always smaller than max
-            minimum = std::min(minimum, maximum - 0.000001f);
+            minimum = std::min(minimum, maximum - 0.000001);
 
             slider.setRange(minimum, maximum, 0.000001f);
             param->setRange(minimum, maximum);
@@ -92,8 +92,8 @@ public:
         };
 
         maxValue.dragEnd = [this]() {
-            auto minimum = param->getNormalisableRange().start;
-            auto maximum = maxValue.getValue();
+            double minimum = param->getNormalisableRange().start;
+            double maximum = maxValue.getValue();
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
@@ -102,9 +102,9 @@ public:
             minValue.setMaximum(maximum);
 
             // make sure max is always bigger than min
-            maximum = std::max(maximum, minimum + 0.000001f);
+            maximum = std::max(maximum, minimum + 0.000001);
 
-            slider.setRange(minimum, maximum, 0.000001f);
+            slider.setRange(minimum, maximum, 0.000001);
             param->setRange(minimum, maximum);
 
             param->notifyDAW();
