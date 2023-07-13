@@ -258,7 +258,8 @@ public:
             
             auto numberText = formatNumber(getText().getDoubleValue(), decimalDrag);
             auto extraNumberText = String();
-            for (int i = 0; i < hoveredDecimal - decimalDrag; ++i)
+            auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
+            for (int i = 0; i < std::min(hoveredDecimal - decimalDrag, 7 - numDecimals); ++i)
                 extraNumberText += "0";
             
             auto numberTextLength = getFont().getStringWidthFloat(numberText);
@@ -311,8 +312,8 @@ public:
 
         if (decimal > 0) {
             int const sign = (newValue > 0) ? 1 : -1;
-            unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
-            newValue = (((double)ui_temp) / std::pow(10, decimal) * sign);
+            unsigned long long ui_temp = (newValue * std::pow(10, decimal)) * sign;
+            newValue = (((long double)ui_temp) / std::pow(10, decimal) * sign);
         } else {
             newValue = static_cast<int64_t>(newValue);
         }

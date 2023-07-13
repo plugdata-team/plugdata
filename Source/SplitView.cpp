@@ -81,7 +81,7 @@ SplitView::~SplitView() = default;
 
 bool SplitView::canSplit()
 {
-    return splits.size() < 3;
+    return splits.size() < 2;
 }
 
 void SplitView::removeSplit(TabComponent* toRemove)
@@ -119,6 +119,11 @@ void SplitView::addSplit(ResizableTabbedComponent* split)
     splits.add(split);
     addAndMakeVisible(split);
     setFocus(split);
+}
+
+void SplitView::createNewSplit(Canvas* canvas)
+{
+    activeTabComponent->createNewSplit(ResizableTabbedComponent::Left, canvas);
 }
 
 void SplitView::addResizer(SplitViewResizer* resizer)
@@ -165,7 +170,9 @@ void SplitView::closeEmptySplits()
     auto removedSplit = false;
 
     // search over all splits, and see if they have tab components with tabs, if not, delete
-    for (auto* split : splits) {
+    for(int i = splits.size() - 1; i >= 0; i--)
+    {
+        auto* split = splits[i];
         if (auto* tabComponent = split->getTabComponent()) {
             if (tabComponent->getNumTabs() == 0) {
                 removeSplit(tabComponent);
@@ -190,44 +197,6 @@ void SplitView::paintOverChildren(Graphics& g)
         auto b = getLocalArea(nullptr, screenBounds);
         g.drawRect(b, 2.5f);
     }
-}
-
-void SplitView::splitCanvasesAfterIndex(int idx, bool direction)
-{
-    Array<Canvas*> splitCanvases;
-
-    // Two loops to make sure we don't edit the order during the first loop
-    for (int i = idx; i < editor->canvases.size() && i >= 0; i++) {
-        splitCanvases.add(editor->canvases[i]);
-    }
-    for (auto* cnv : splitCanvases) {
-        splitCanvasView(cnv, direction);
-    }
-}
-void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
-{
-    auto* editor = cnv->editor;
-
-    auto* currentTabbar = cnv->getTabbar();
-    auto const tabIdx = cnv->getTabIndex();
-
-    if (currentTabbar->getCurrentTabIndex() == tabIdx)
-        currentTabbar->setCurrentTabIndex(tabIdx > 0 ? tabIdx - 1 : tabIdx);
-
-    currentTabbar->removeTab(tabIdx);
-
-    cnv->recreateViewport();
-
-    //if (splitViewFocus) {
-    //    setSplitEnabled(true);
-    //} else {
-    //    // Check if the right tabbar has any tabs left after performing split
-    //    setSplitEnabled(getRightTabbar()->getNumTabs());
-    //}
-    //
-    //splitFocusIndex = splitViewFocus;
-    //editor->addTab(cnv);
-    //fadeAnimation->fadeOut();
 }
 
 TabComponent* SplitView::getActiveTabbar()

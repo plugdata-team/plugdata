@@ -108,8 +108,8 @@ public:
     void parseDataBuffer(XmlElement const& xml) override;
     XmlElement* m_temp_xml;
 
-    pd::Patch::Ptr loadPatch(String patch);
-    pd::Patch::Ptr loadPatch(File const& patch);
+    pd::Patch::Ptr loadPatch(String patch, int splitIdx = -1);
+    pd::Patch::Ptr loadPatch(File const& patch, int splitIdx = -1);
 
     void titleChanged() override;
 

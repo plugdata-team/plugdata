@@ -68,7 +68,7 @@ public:
     void saveProject(std::function<void()> const& nestedCallback = []() {});
     void saveProjectAs(std::function<void()> const& nestedCallback = []() {});
 
-    void addTab(Canvas* cnv);
+    void addTab(Canvas* cnv, int splitIdx = -1);
     void closeTab(Canvas* cnv);
     void closeAllTabs(bool quitAfterComplete = false);
 

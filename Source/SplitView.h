@@ -14,9 +14,7 @@ public:
 
     TabComponent* getActiveTabbar();
 
-    void splitCanvasesAfterIndex(int idx, bool direction);
-    void splitCanvasView(Canvas* cnv, bool splitviewFocus);
-
+    void createNewSplit(Canvas* cnv);
     void addSplit(ResizableTabbedComponent* toSplit);
     void addResizer(SplitViewResizer* resizer);
 

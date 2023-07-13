@@ -12,11 +12,11 @@ ResizableTabbedComponent::ResizableTabbedComponent(PluginEditor* editor, TabComp
     : editor(editor)
 {
     if (mainTabComponent != nullptr)
-        tabComponent = mainTabComponent;
+        tabComponent.reset(mainTabComponent);
     else
-        tabComponent = new TabComponent(editor);
+        tabComponent = std::make_unique<TabComponent>(editor);
 
-    addAndMakeVisible(tabComponent);
+    addAndMakeVisible(*tabComponent);
 
     setInterceptsMouseClicks(true, true);
     addMouseListener(this, true);
@@ -25,7 +25,6 @@ ResizableTabbedComponent::ResizableTabbedComponent(PluginEditor* editor, TabComp
 ResizableTabbedComponent::~ResizableTabbedComponent()
 {
     removeMouseListener(this);
-    delete tabComponent;
 }
 
 bool ResizableTabbedComponent::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
@@ -97,23 +96,61 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
     }
 }
 
+void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canvas)
+{
+    if(auto* oldTabbar = canvas->getTabbar())
+    {
+        oldTabbar->removeTab(canvas->getTabIndex());
+    }
+    
+    auto* newSplit = new ResizableTabbedComponent(editor);
+    SplitViewResizer* resizer;
+    
+    // depending on if the dropzone is left or right we have to use the opposite resizer
+    if (activeZone == DropZones::Right) {
+        // connect resizers (if they exist) to the new split and / or replace the existing resizer of existing split
+        resizer = new SplitViewResizer(this, newSplit, Split::SplitMode::Horizontal, 1);
+        newSplit->resizerLeft = resizer;
+        newSplit->resizerRight = resizerRight;
+
+        // if we have a right resizer, that means we are inserting a split between two existing splits
+        // so update the split that the right resizer has with the new split
+        if (resizerRight) {
+            resizerRight->splits[0] = newSplit;
+        }
+        resizerRight = resizer;
+    } else if (activeZone == DropZones::Left) {
+        resizer = new SplitViewResizer(this, newSplit, Split::SplitMode::Horizontal, 0);
+        newSplit->resizerRight = resizer;
+        newSplit->resizerLeft = resizerLeft;
+
+        if (resizerLeft) {
+            resizerLeft->splits[1] = newSplit;
+        }
+        resizerLeft = resizer;
+    }
+    
+    // update the bounds of the new and existing split using the resizer factors
+    newSplit->setBoundsWithFactors(getParentComponent()->getLocalBounds());
+    setBoundsWithFactors(getParentComponent()->getLocalBounds());
+
+    // add the split to the splitview and make it active (both owned arrays of SplitView)
+    editor->splitView.addSplit(newSplit);
+    editor->splitView.addResizer(resizer);
+    
+    auto tabTitle = canvas->patch.getTitle();
+    newSplit->getTabComponent()->addTab(tabTitle, canvas->viewport, 0);
+}
+
 void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSourceDetails)
 {
     // get the dragging tab
-    auto sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
+    auto* sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
     int sourceTabIndex = sourceTabButton->getIndex();
     auto sourceTabContent = sourceTabButton->getTabComponent();
     int sourceNumTabs = sourceTabContent->getNumTabs();
     bool shouldDelete = (sourceNumTabs - 1) == 0 ? true : false;
     bool dropZoneCentre = (activeZone == DropZones::Centre) ? true : false;
-
-    // make a new tab with the source content, or if we are concatenating a tab, use this tabComponent
-    auto newTabComponent = shouldDelete || dropZoneCentre ? tabComponent : new TabComponent(editor);
-    int const newTabIdx = shouldDelete || dropZoneCentre ? newTabComponent->getNumTabs() : 0;
-    auto tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
-    auto tabTitle = tabCanvas->patch.getTitle();
-    newTabComponent->addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport, newTabIdx);
-    newTabComponent->setCurrentTabIndex(newTabIdx);
 
     if (shouldDelete) {
         editor->splitView.setFocus(this);
@@ -122,53 +159,21 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
             split->setBoundsWithFactors(getParentComponent()->getLocalBounds());
         }
     } else if (dropZoneCentre) {
+        auto* tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
+        auto tabTitle = tabCanvas->patch.getTitle();
+        auto newTabIdx = tabComponent->getNumTabs();
+        tabComponent->addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport, newTabIdx);
+        tabComponent->setCurrentTabIndex(newTabIdx);
+        
         editor->splitView.setFocus(this);
         sourceTabContent->removeTab(sourceTabIndex);
         sourceTabContent->setCurrentTabIndex(sourceTabIndex > (sourceTabContent->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex);
         for (auto* split : editor->splitView.splits) {
             split->setBoundsWithFactors(getParentComponent()->getLocalBounds());
         }
-    } else {
-        auto newSplit = new ResizableTabbedComponent(editor, newTabComponent);
-        SplitViewResizer* resizer;
-
-        // depending on if the dropzone is left or right we have to use the opposite resizer
-        if (activeZone == DropZones::Right) {
-            // connect resizers (if they exist) to the new split and / or replace the existing resizer of existing split
-            resizer = new SplitViewResizer(this, newSplit, Split::SplitMode::Horizontal, 1);
-            newSplit->resizerLeft = resizer;
-            newSplit->resizerRight = resizerRight;
-
-            // if we have a right resizer, that means we are inserting a split between two existing splits
-            // so update the split that the right resizer has with the new split
-            if (resizerRight) {
-                resizerRight->splits[0] = newSplit;
-            }
-            resizerRight = resizer;
-        } else if (activeZone == DropZones::Left) {
-            resizer = new SplitViewResizer(this, newSplit, Split::SplitMode::Horizontal, 0);
-            newSplit->resizerRight = resizer;
-            newSplit->resizerLeft = resizerLeft;
-
-            if (resizerLeft) {
-                resizerLeft->splits[1] = newSplit;
-            }
-            resizerLeft = resizer;
-        }
-        else {
-            return;
-        }
-
-        // update the bounds of the new and existing split using the resizer factors
-        newSplit->setBoundsWithFactors(getParentComponent()->getLocalBounds());
-        setBoundsWithFactors(getParentComponent()->getLocalBounds());
-
-        // add the split to the splitview and make it active (both owned arrays of SplitView)
-        editor->splitView.addSplit(newSplit);
-        editor->splitView.addResizer(resizer);
-
-        sourceTabContent->removeTab(sourceTabIndex);
-        sourceTabContent->setCurrentTabIndex(sourceTabIndex > (sourceTabContent->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex);
+    }
+    else {
+        createNewSplit(static_cast<DropZones>(activeZone), sourceTabContent->getCanvas(sourceTabIndex));
     }
 
     // set all current canvas viewports to visible, (if they already are this shouldn't do anything)
@@ -181,7 +186,8 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
             }
         }
     }
-    //editor->pd->savePatchTabPositions();
+    
+    editor->pd->savePatchTabPositions();
 }
 
 String ResizableTabbedComponent::getZoneName(int zone)
@@ -214,8 +220,9 @@ String ResizableTabbedComponent::getZoneName(int zone)
 int ResizableTabbedComponent::findZoneFromSource(SourceDetails const& dragSourceDetails)
 {
     for (auto const& [zone, dropZone] : dropZones){
-        if (dropZone.contains(dragSourceDetails.localPosition.toFloat()))
+        if (dropZone.contains(dragSourceDetails.localPosition.toFloat())) {
             return zone;
+        }
     }
     return -1;
 }
@@ -371,7 +378,7 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
                     //auto zoneName = getZoneName(zone);
                     //std::cout << "dragging over: " << zoneName << std::endl;
                 }
-            } else if (sourceTabButton->getTabComponent() != tabComponent)
+            } else if (sourceTabButton->getTabComponent() != tabComponent.get())
                 activeZone = DropZones::Centre;
         }
     }
@@ -451,5 +458,5 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
 
     TabComponent* ResizableTabbedComponent::getTabComponent()
     {
-        return tabComponent;
+        return tabComponent.get();
     }

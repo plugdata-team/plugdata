@@ -41,6 +41,7 @@ public:
     enum DropZones { Left = 1, Top = 2, Right = 4, Bottom = 8, Centre = 16, TabBar = 32, None = 64};
 
     void updateDropZones();
+    void createNewSplit(DropZones activeZone, Canvas* canvas);
 
 private:
     Split::SplitMode splitMode = Split::SplitMode::None;
@@ -58,7 +59,7 @@ private:
     int activeZone = -1;
     bool isDragAndDropOver = false;
 
-    TabComponent* tabComponent;
+    std::unique_ptr<TabComponent> tabComponent;
 
     PluginEditor* editor;
 
