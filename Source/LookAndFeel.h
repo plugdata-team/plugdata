@@ -744,6 +744,23 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         return Fonts::getCurrentFont().withHeight(13.0f);
     }
+    
+    void drawScrollbar (Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,
+                                        bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, [[maybe_unused]] bool isMouseDown) override
+    {
+        Rectangle<int> thumbBounds;
+
+        if (isScrollbarVertical)
+            thumbBounds = { x, thumbStartPosition, width, thumbSize };
+        else
+            thumbBounds = { thumbStartPosition, y, thumbSize, height };
+
+        auto c = scrollbar.findColour (ScrollBar::ColourIds::thumbColourId);
+        g.setColour (isMouseOver ? c.brighter (0.25f) : c);
+        
+        auto thumbRadius = isScrollbarVertical ? (thumbBounds.getWidth() - 2.0f) / 2.0f : (thumbBounds.getHeight() - 2.0f) / 2.0f;
+        g.fillRoundedRectangle (thumbBounds.reduced (1).toFloat(), thumbRadius);
+    }
 
     void getIdealPopupMenuItemSize(String const& text, bool const isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override
     {
