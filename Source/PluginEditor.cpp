@@ -713,9 +713,15 @@ void PluginEditor::addTab(Canvas* cnv, int splitIdx)
         focusedTabbar->setCurrentTabIndex(newTabIdx);
     }
     else {
-        while(splitIdx > splitView.splits.size() - 1)
-        {
-            splitView.createNewSplit(cnv);
+        if(splitIdx > splitView.splits.size() - 1) {
+            while(splitIdx > splitView.splits.size() - 1)
+            {
+                splitView.createNewSplit(cnv);
+            }
+        }
+        else {
+            auto* tabComponent = splitView.splits[splitIdx]->getTabComponent();
+            tabComponent->addTab(patchTitle, cnv->viewport, tabComponent->getNumTabs() + 1);
         }
     }
 

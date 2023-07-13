@@ -140,6 +140,10 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
     
     auto tabTitle = canvas->patch.getTitle();
     newSplit->getTabComponent()->addTab(tabTitle, canvas->viewport, 0);
+    canvas->viewport->setVisible(true);
+    
+    newSplit->resized();
+    newSplit->getTabComponent()->resized();
 }
 
 void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSourceDetails)

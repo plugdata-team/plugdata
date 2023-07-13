@@ -1045,7 +1045,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
         if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
-            auto patch = loadPatch(location);
+            auto patch = loadPatch(location, splitIndex);
             if (patch) {
                 patch->setTitle(location.getFileName());
                 patch->openInPluginMode = pluginMode;
@@ -1055,7 +1055,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto parentPath = location.getParentDirectory().getFullPathName();
                 libpd_add_to_search_path(parentPath.toRawUTF8());
             }
-            auto patch = loadPatch(content);
+            auto patch = loadPatch(content, splitIndex);
             if (patch && ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists())) {
                 patch->setTitle("Untitled Patcher");
                 patch->openInPluginMode = pluginMode;

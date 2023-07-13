@@ -123,7 +123,7 @@ void SplitView::addSplit(ResizableTabbedComponent* split)
 
 void SplitView::createNewSplit(Canvas* canvas)
 {
-    activeTabComponent->createNewSplit(ResizableTabbedComponent::Left, canvas);
+    activeTabComponent->createNewSplit(ResizableTabbedComponent::Right, canvas);
 }
 
 void SplitView::addResizer(SplitViewResizer* resizer)

@@ -218,7 +218,7 @@ public:
     void itemDragExit(SourceDetails const& dragSourceDetails) override;
     void itemDragMove(SourceDetails const& dragSourceDetails) override;
 
-    void currentTabChanged(int newCurrentTabIndex, String const& newTabName);
+    void currentTabChanged(int newCurrentTabIndex, String const& newTabName) override;
 
     TabBarButton* createTabButton(String const& tabName, int tabIndex) override;
 private:
