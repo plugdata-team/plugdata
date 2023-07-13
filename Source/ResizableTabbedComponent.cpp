@@ -171,7 +171,7 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
             split->setBoundsWithFactors(getParentComponent()->getLocalBounds());
         }
     }
-    else {
+    else if(activeZone == DropZones::Left || activeZone == DropZones::Right) {
         createNewSplit(static_cast<DropZones>(activeZone), sourceTabContent->getCanvas(sourceTabIndex));
     }
     
