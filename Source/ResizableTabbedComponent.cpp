@@ -183,7 +183,12 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
     // set all current canvas viewports to visible, (if they already are this shouldn't do anything)
     for (auto* split : editor->splitView.splits) {
         if (auto tabComponent = split->getTabComponent()) {
-            if (auto cnv = tabComponent->getCanvas(tabComponent->getCurrentTabIndex())) {
+            auto tabIndex = tabComponent->getCurrentTabIndex();
+            if(tabIndex < 0 && tabComponent->getNumTabs() > 0)
+            {
+                tabComponent->setCurrentTabIndex(0);
+            }
+            if (auto cnv = tabComponent->getCanvas(tabIndex)) {
                 cnv->viewport->setVisible(true);
                 split->resized();
                 split->getTabComponent()->resized();

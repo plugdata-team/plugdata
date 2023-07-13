@@ -288,10 +288,6 @@ PluginEditor::~PluginEditor()
     setConstrainer(nullptr);
 
     theme.removeListener(this);
-
-    //ALEX this looks important??!
-    //pd->lastLeftTab = splitView.getLeftTabbar()->getCurrentTabIndex();
-    //pd->lastRightTab = splitView.getRightTabbar()->getCurrentTabIndex();
 }
 
 SplitView* PluginEditor::getSplitView()
