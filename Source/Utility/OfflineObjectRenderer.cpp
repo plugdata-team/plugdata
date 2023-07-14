@@ -1,5 +1,6 @@
 #include "OfflineObjectRenderer.h"
 #include "Constants.h"
+#include "PluginEditor.h"
 #include "Utility/HashUtils.h"
 
 #include "x_libpd_extra_utils.h"
@@ -142,7 +143,7 @@ OfflineObjectRenderer::~OfflineObjectRenderer() = default;
 
 OfflineObjectRenderer* OfflineObjectRenderer::findParentOfflineObjectRendererFor(Component* childComponent)
 {
-    return childComponent != nullptr ? childComponent->findParentComponentOfClass<OfflineObjectRenderer>() : nullptr;
+    return childComponent != nullptr ? &childComponent->findParentComponentOfClass<PluginEditor>()->offlineRenderer : nullptr;
 }
 
 ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch)

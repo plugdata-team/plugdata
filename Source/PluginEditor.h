@@ -38,7 +38,7 @@ class PluginEditor : public AudioProcessorEditor
     , public ModifierKeyBroadcaster
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
-    , public OfflineObjectRenderer {
+{
 public:
     enum ToolbarButtonType {
         Settings = 0,
@@ -136,8 +136,10 @@ public:
     std::unique_ptr<ZoomLabel> zoomLabel;
 
     ComponentBoundsConstrainer* defaultConstrainer;
+    OfflineObjectRenderer offlineRenderer;
 
 private:
+
     // Used by standalone to handle dragging the window
     ComponentDragger windowDragger;
 
