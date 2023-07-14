@@ -12,6 +12,8 @@ ButtonBar::ButtonBar(TabComponent& tabComp, TabbedButtonBar::Orientation o)
     : TabbedButtonBar(o)
     , owner(tabComp)
 {
+    addChildComponent(ghostTab);
+    ghostTab.setAlwaysOnTop(true);
     setInterceptsMouseClicks(true, true);
 }
 
@@ -25,6 +27,7 @@ bool ButtonBar::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
 
 void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
 {
+    ghostTab.setVisible(false);
     // this has a whole lot of code replication from ResizableTabbedComponent.cpp, good candidate for refactoring!
     if (inOtherSplit) {
         auto sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
@@ -71,33 +74,62 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
         // if this tabbar is DnD on itself, we don't need to add a new tab
         // we move the existing tab
         if (tab->getTabComponent() == &owner) {
+            tab->setVisible(false);
             inOtherSplit = false;
             ghostTabIdx = tab->getIndex();
+            ghostTab.setBounds(tab->getBounds().reduced(8,4));
         } else {
             auto targetTabPos = getWidth() / getNumTabs();
             auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
             inOtherSplit = true;
             addTab(tab->getButtonText(), Colours::transparentBlack, tabPos);
+            auto fakeTab = getTabButton(tabPos);
+            fakeTab->setVisible(false);
             ghostTabIdx = tabPos;
+            ghostTab.setBounds(fakeTab->getBounds().reduced(8,4));
         }
+        ghostTab.setButtonText(tab->getButtonText());
+        ghostTab.setVisible(true);
     }
 }
 
 void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
 {
-    if (inOtherSplit) {
-        inOtherSplit = false;
-        removeTab(ghostTabIdx, true);
+    if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        ghostTab.setVisible(false);
+        tab->setVisible(false);
+        if (inOtherSplit) {
+            inOtherSplit = false;
+            removeTab(ghostTabIdx, true);
+        }
     }
 }
 
 void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
 {
-    auto targetTabPos = getWidth() / getNumTabs();
-    auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
-    owner.moveTab(ghostTabIdx, tabPos);
-    auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
-    ghostTabIdx = tabPos;
+    if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        auto targetTabPos = getWidth() / getNumTabs();
+        auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
+
+        auto ghostTabCentreOffset = ghostTab.getWidth() / 2;
+        auto leftPos = dragSourceDetails.localPosition.getX() - ghostTabCentreOffset;
+        auto rightPos = dragSourceDetails.localPosition.getX() + ghostTabCentreOffset;
+        auto tabCentre = tab->getBounds().getCentreY();
+        if (leftPos > 0 && rightPos < getWidth()) {
+            ghostTab.setCentrePosition(dragSourceDetails.localPosition.getX(), tabCentre);
+        } else if (leftPos < 0) {
+            ghostTab.setCentrePosition(0 + ghostTabCentreOffset, tabCentre);
+        } else {
+            ghostTab.setCentrePosition(getWidth() - ghostTabCentreOffset, tabCentre);
+        }
+        if (tabPos != ghostTabIdx) {
+            owner.moveTab(ghostTabIdx, tabPos);
+            ghostTabIdx = tabPos;
+        }
+        tab->setVisible(false);
+        getTabButton(tabPos)->setVisible(false);
+    }
+
 }
 
 void ButtonBar::currentTabChanged(int newCurrentTabIndex, String const& newTabName)

@@ -224,6 +224,7 @@ public:
 private:
     TabComponent& owner;
 
+    TextButton ghostTab;
     int ghostTabIdx = -1;
     bool inOtherSplit = false;
 
