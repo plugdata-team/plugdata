@@ -98,6 +98,7 @@ public:
         console->setVisible(true);
 
         addAndMakeVisible(viewport);
+        
 
         for (auto& settingsValue : settingsValues) {
             settingsValue.addListener(this);
@@ -385,11 +386,21 @@ public:
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
     };
-
-    void showCalloutBox(Rectangle<int> bounds, PluginEditor* editor)
+        
+    std::unique_ptr<Component> getExtraSettingsComponent()
     {
-        auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
-        CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, editor);
+        auto* settingsCalloutButton = new TextButton(Icons::More);
+        settingsCalloutButton->setTooltip("Show console settings");
+        settingsCalloutButton->setConnectedEdges(12);
+        settingsCalloutButton->getProperties().set("Style", "SmallIcon");
+        settingsCalloutButton->onClick = [this, settingsCalloutButton](){
+            auto* editor = findParentComponentOfClass<PluginEditor>();
+            auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
+            auto bounds = editor->getLocalArea(this, settingsCalloutButton->getBounds());
+            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, editor);
+        };
+        
+        return std::unique_ptr<TextButton>(settingsCalloutButton);
     }
 
 private:

@@ -19,6 +19,13 @@ class PropertiesPanel : public Component
     , public ScrollBar::Listener {
 
 public:
+        
+    enum TitleAlignment
+    {
+        AlignWithSection,
+        AlignWithPropertyName,
+    };
+        
     std::function<void()> onLayoutChange = []() {};
 
     class Property : public PropertyComponent {
@@ -88,27 +95,36 @@ private:
         {
             propertyComps.clear();
         }
-
+        
         void paint(Graphics& g) override
         {
             auto [x, width] = parent.getContentXAndWidth();
+            
+            auto titleX = x;
+            if(parent.titleAlignment == AlignWithPropertyName)
+            {
+                titleX += 8;
+            }
+            
+            Fonts::drawStyledText(g, getName(), titleX, 0, width - 4, parent.titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
 
-            Fonts::drawStyledText(g, getName(), x, 0, width - 4, titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
-
-            auto propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
-
-            Path p;
-            p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
-
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId).brighter(0.25f));
+            auto propertyBounds = Rectangle<float>(x, parent.titleHeight + 8.0f, width, getHeight() - (parent.titleHeight + 16.0f));
+            
+            // Don't draw the shadow if the background colour has opacity
+            if(parent.panelColour.getAlpha() == 255) {
+                Path p;
+                p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
+                StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+            }
+            
+            g.setColour(parent.panelColour);
             g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
 
             if (!propertyComps.isEmpty() && !extraHeaderNames.isEmpty()) {
-                auto propertyBounds = Rectangle<int>(x + width / 2, 0, width / 2, titleHeight);
+                auto propertyBounds = Rectangle<int>(x + width / 2, 0, width / 2, parent.titleHeight);
                 auto extraHeaderWidth = propertyBounds.getWidth() / static_cast<float>(extraHeaderNames.size());
 
                 for (auto& extraHeader : extraHeaderNames) {
@@ -128,7 +144,7 @@ private:
         {
             auto [x, width] = parent.getContentXAndWidth();
 
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
+            g.setColour(parent.separatorColour);
 
             for (int i = 0; i < propertyComps.size() - 1; i++) {
                 auto y = propertyComps[i]->getBottom() + padding;
@@ -138,7 +154,7 @@ private:
 
         void resized() override
         {
-            auto y = titleHeight + 8;
+            auto y = parent.titleHeight + 8;
             auto [x, width] = parent.getContentXAndWidth();
 
             for (auto* propertyComponent : propertyComps) {
@@ -149,14 +165,13 @@ private:
 
         void lookAndFeelChanged() override
         {
-            titleHeight = getLookAndFeel().getPropertyPanelSectionHeaderHeight(getName()) + 4;
             resized();
             repaint();
         }
 
         int getPreferredHeight() const
         {
-            auto y = titleHeight;
+            auto y = parent.titleHeight;
 
             auto numComponents = propertyComps.size();
 
@@ -178,8 +193,8 @@ private:
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (e.getMouseDownX() < titleHeight
-                && e.x < titleHeight
+            if (e.getMouseDownX() < parent.titleHeight
+                && e.x < parent.titleHeight
                 && e.getNumberOfClicks() != 2)
                 mouseDoubleClick(e);
         }
@@ -187,7 +202,6 @@ private:
         PropertiesPanel& parent;
         OwnedArray<Property> propertyComps;
         StringArray extraHeaderNames;
-        int titleHeight {};
         int padding;
 
         JUCE_DECLARE_NON_COPYABLE(SectionComponent)
@@ -823,6 +837,9 @@ public:
 
         viewport.getVerticalScrollBar().addListener(this);
         viewport.addMouseListener(this, true);
+        
+        panelColour = findColour(PlugDataColour::panelBackgroundColourId).brighter(0.25f);
+        separatorColour = findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f);
     }
         
     /** Destructor. */
@@ -898,6 +915,26 @@ public:
                 Justification::centred, true);
         }
     }
+        
+    void setTitleAlignment(TitleAlignment newTitleAlignment)
+    {
+        titleAlignment = newTitleAlignment;
+    }
+        
+    void setPanelColour(Colour newPanelColour)
+    {
+        panelColour = newPanelColour;
+    }
+        
+    void setSeparatorColour(Colour newSeparatorColour)
+    {
+        separatorColour = newSeparatorColour;
+    }
+        
+    void setTitleHeight(int newTitleHeight)
+    {
+        titleHeight = newTitleHeight;
+    }
 
     // Sets extra section header text
     // All lines passed in here will be divided equally across the non-label area of the property
@@ -939,6 +976,11 @@ public:
         onLayoutChange();
     }
 
+        
+    TitleAlignment titleAlignment = AlignWithSection;
+    Colour panelColour;
+    Colour separatorColour;
+    int titleHeight = 26;
     int contentWidth = 600;
     BouncingViewport viewport;
     PropertyHolderComponent* propertyHolderComponent;

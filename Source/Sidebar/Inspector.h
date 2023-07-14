@@ -6,9 +6,14 @@
 
 #include "../Utility/PropertiesPanel.h"
 
+class InspectorPanel : public PropertiesPanel
+{
+
+};
+
 class Inspector : public Component {
 
-    PropertyPanel panel;
+    InspectorPanel panel;
     String title;
     TextButton resetButton;
     ObjectParameters properties;
@@ -16,45 +21,42 @@ class Inspector : public Component {
 public:
     Inspector()
     {
-        resetButton.setButtonText(Icons::Reset);
-        resetButton.getProperties().set("Style", "SmallIcon");
-        resetButton.setTooltip("Reset to default");
-        resetButton.setSize(23, 23);
-
-        addAndMakeVisible(resetButton);
-        resetButton.onClick = [this]() {
-            properties.resetAll();
-        };
-
+        panel.setTitleHeight(20);
+        panel.setTitleAlignment(PropertiesPanel::AlignWithPropertyName);
         addAndMakeVisible(panel);
+        lookAndFeelChanged();
+    }
+    
+    void lookAndFeelChanged() override
+    {
+        panel.setSeparatorColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        panel.setPanelColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.6f));
     }
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRect(getLocalBounds().withTrimmedBottom(30));
-
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().removeFromBottom(30).toFloat(), Corners::windowCornerRadius);
-
-        Fonts::drawText(g, title, getLocalBounds().removeFromTop(23), findColour(PlugDataColour::sidebarTextColourId), 15, Justification::centred);
-
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0, 23, getWidth(), 23);
+        g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
     }
 
     void resized() override
     {
-        panel.setBounds(getLocalBounds().withTrimmedTop(28));
+        panel.setBounds(getLocalBounds());
         resetButton.setTopLeftPosition(getLocalBounds().withTrimmedRight(23).getRight(), 0);
+        
+        panel.setContentWidth(getWidth() - 16);
     }
 
     void setTitle(String const& name)
     {
         title = name;
     }
+    
+    String getTitle()
+    {
+        return title;
+    }
 
-    static PropertyComponent* createPanel(int type, String const& name, Value* value, StringArray& options)
+    static PropertiesPanel::Property* createPanel(int type, String const& name, Value* value, StringArray& options)
     {
         switch (type) {
         case tString:
@@ -87,7 +89,7 @@ public:
         panel.clear();
 
         for (int i = 0; i < 4; i++) {
-            Array<PropertyComponent*> panels;
+            Array<PropertiesPanel::Property*> panels;
             int idx = 0;
             for (auto& [name, type, category, value, options, defaultVal] : params.getParameters()) {
                 if (static_cast<int>(category) == i) {
@@ -101,5 +103,18 @@ public:
                 panel.addSection(names[i], panels);
             }
         }
+    }
+    
+    std::unique_ptr<Component> getExtraSettingsComponent()
+    {
+        auto* resetButton = new TextButton(Icons::Reset);
+        resetButton->getProperties().set("Style", "SmallIcon");
+        resetButton->setTooltip("Reset to default");
+        resetButton->setSize(23, 23);
+        resetButton->onClick = [this]() {
+            properties.resetAll();
+        };
+        
+        return std::unique_ptr<TextButton>(resetButton);
     }
 };

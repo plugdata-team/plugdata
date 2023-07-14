@@ -58,9 +58,9 @@ void VolumeSlider::paint(Graphics& g)
     auto thumbSize = getHeight() * 0.7f;
     auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
     auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
-    thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 8, thumb.getHeight());
+    thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 12, thumb.getHeight());
     g.setColour(backgroundColour.darker(thumb.contains(getMouseXYRelative().toFloat()) ? 0.3f : 0.0f).withAlpha(0.8f));
-    PlugDataLook::fillSmoothedRectangle(g, thumb, Corners::defaultCornerRadius);
+    PlugDataLook::fillSmoothedRectangle(g, thumb, Corners::defaultCornerRadius * 0.5f);
 }
 
 class LevelMeter : public Component
@@ -137,13 +137,13 @@ public:
         auto spacingFraction = 0.08f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
         auto bgHeight = getHeight() - doubleOuterBorderWidth;
-        auto bgWidth = width - doubleOuterBorderWidth - 4;
+        auto bgWidth = width - doubleOuterBorderWidth;
         auto meterWidth = width - bgHeight;
         auto barWidth = meterWidth - 2;
         auto leftOffset = x + (bgHeight * 0.5f);
 
         g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
-        g.fillRoundedRectangle(x + outerBorderWidth + 2, outerBorderWidth, bgWidth, bgHeight, Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(x + outerBorderWidth + 4, outerBorderWidth, bgWidth - 8, bgHeight, Corners::defaultCornerRadius);
         
         for (int ch = 0; ch < numChannels; ch++) {
             auto barYPos = outerBorderWidth + ((ch + 1) * (bgHeight / 3.0f)) - halfBarHeight;

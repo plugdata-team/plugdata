@@ -805,6 +805,7 @@ public:
             }
         }
 
+        
         directory.setDirectory(location, true, true);
 
         updateThread.startThread();
@@ -828,6 +829,7 @@ public:
     {
         updateThread.stopThread(1000);
     }
+    
 
     bool isSearching() override
     {
@@ -857,13 +859,20 @@ public:
         g.drawLine(0, 29, getWidth(), 29);
     }
 
-    void showCalloutBox(Rectangle<int> bounds, PluginEditor* editor)
+    std::unique_ptr<Component> getExtraSettingsComponent()
     {
-        auto openFolderCallback = [this]() {
-            openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", SettingsFile::getInstance()->wantsNativeDialog());
-
-            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
-                [this](FileChooser const& fileChooser) {
+        auto* settingsCalloutButton = new TextButton(Icons::More);
+        settingsCalloutButton->setTooltip("Show browser settings");
+        settingsCalloutButton->setConnectedEdges(12);
+        settingsCalloutButton->getProperties().set("Style", "SmallIcon");
+        settingsCalloutButton->onClick = [this, settingsCalloutButton](){
+            auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+            auto bounds = editor->getLocalArea(this, settingsCalloutButton->getBounds());
+            auto openFolderCallback = [this]() {
+                openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", SettingsFile::getInstance()->wantsNativeDialog());
+                
+                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+                                         [this](FileChooser const& fileChooser) {
                     const auto file = fileChooser.getResult();
                     if (file.exists()) {
                         const auto& path = file.getFullPathName();
@@ -871,27 +880,32 @@ public:
                         directory.setDirectory(path, true, true);
                     }
                 });
-        };
+            };
+            
+            auto resetFolderCallback = [this]() {
+                        auto location = ProjectInfo::appDataDir.getChildFile("Library");
+                        const auto& path = location.getFullPathName();
+                        pd->settingsFile->setProperty("browser_path", path);
+                        directory.setDirectory(path, true, true);
+                    };
 
-        auto resetFolderCallback = [this]() {
-            auto location = ProjectInfo::appDataDir.getChildFile("Library");
-            const auto& path = location.getFullPathName();
-            pd->settingsFile->setProperty("browser_path", path);
-            directory.setDirectory(path, true, true);
+            auto docsSettings = std::make_unique<DocumentBrowserSettings>(openFolderCallback, resetFolderCallback);
+            CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, editor);
         };
-
-        auto docsSettings = std::make_unique<DocumentBrowserSettings>(openFolderCallback, resetFolderCallback);
-        CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, editor);
+            
+        return std::unique_ptr<TextButton>(settingsCalloutButton);
     }
-
+    
 private:
     TextButton revealButton = TextButton(Icons::OpenedFolder);
     TextButton loadFolderButton = TextButton(Icons::Folder);
     TextButton resetFolderButton = TextButton(Icons::Restore);
 
     std::unique_ptr<FileChooser> openChooser;
-
+    TextButton settingsCalloutButton = TextButton();
+    
 public:
+    
     DocumentBrowserView fileList;
     FileSearchComponent searchComponent;
 };
