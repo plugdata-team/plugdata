@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 
+#include "Pd/Instance.h"
 #include "Utility/OfflineObjectRenderer.h"
 
 class PluginEditor;

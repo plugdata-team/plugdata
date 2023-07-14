@@ -643,17 +643,25 @@ t_symbol* Instance::generateSymbol(String const& symbol) const
 
 void Instance::logMessage(String const& message)
 {
+    if(consoleMute) return;
     consoleHandler.logMessage(message);
 }
 
 void Instance::logError(String const& error)
 {
+    if(consoleMute) return;
     consoleHandler.logError(error);
 }
 
 void Instance::logWarning(String const& warning)
 {
+    if(consoleMute) return;
     consoleHandler.logWarning(warning);
+}
+
+void Instance::muteConsole(bool shouldMute)
+{
+    consoleMute = shouldMute;
 }
 
 std::deque<std::tuple<String, int, int>>& Instance::getConsoleMessages()

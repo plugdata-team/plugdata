@@ -6,12 +6,13 @@
 #include "x_libpd_mod_utils.h"
 
 #include "Pd/Patch.h"
-#include "Pd/Instance.h"
 
 class OfflineObjectRenderer::OfflineObjectRendererComponent : public Component {
 public:
-    OfflineObjectRendererComponent()
+    OfflineObjectRendererComponent(pd::Instance* instance) : pd(instance)
     {
+        pd->setThis();
+        
         auto patchFile = File::createTempFile(".pd");
         patchFile.replaceWithText(pd::Instance::defaultPatch);
         String dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
@@ -21,17 +22,11 @@ public:
         auto const* file = filename.toRawUTF8();
 
         offlineCnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
-
-        // as long as we don't call `canvas_create_editor(offlineCnv)`,
-        // it will not be added to the audio graph
-        // however we can ask the canvas how large added objects are, how many iolets etc
     }
 
     ~OfflineObjectRendererComponent() override { }
 
-    /**
-     * Remove all connections from the PD patch, so that it can't activate loadbangs etc
-    */
+    // Remove all connections from the PD patch, so that it can't activate loadbangs etc
     String stripConnections(String const& patch)
     {
         StringArray lines;
@@ -52,6 +47,11 @@ public:
 
     bool checkIfPatchIsValid(String const& patch)
     {
+        pd->setThis();
+        
+        sys_lock();
+        pd->muteConsole(true);
+        
         bool isValid = false;
         libpd_paste(offlineCnv, stripConnections(patch).toRawUTF8());
 
@@ -64,11 +64,20 @@ public:
             libpd_removeobj(offlineCnv, object);
             object = nextObject;
         }
+        
+        pd->muteConsole(false);
+        sys_unlock();
+        
         return isValid;
     }
 
     ImageWithOffset patchToTempImage(String const& patch)
     {
+        pd->setThis();
+        
+        sys_lock();
+        pd->muteConsole(true);
+        
         objectRects.clear();
         totalSize.setBounds(0, 0, 0, 0);
         int obj_x, obj_y, obj_w, obj_h;
@@ -96,7 +105,10 @@ public:
             // move to the next object in the linked list
             object = nextObject;
         }
-
+        
+        pd->muteConsole(false);
+        sys_unlock();
+        
         // apply the top left offset to all rects
         for (auto& rect : objectRects) {
             rect.translate(-totalSize.getX(), -totalSize.getY());
@@ -110,6 +122,7 @@ public:
         }
         // ALEX TODO we shouldn't apply alpha here! Do it in the zoomableDragAndDropContainer
         image.multiplyAllAlphas(0.3f);
+        
         return ImageWithOffset(image, size);
     }
 
@@ -117,11 +130,12 @@ private:
     Array<Rectangle<int>> objectRects;
     Rectangle<int> totalSize;
     _glist* offlineCnv = nullptr;
+    pd::Instance* pd;
 };
 
-OfflineObjectRenderer::OfflineObjectRenderer()
+OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* pd)
 {
-    offlineObjectRendererComponent = std::make_unique<OfflineObjectRendererComponent>();
+    offlineObjectRendererComponent = std::make_unique<OfflineObjectRendererComponent>(pd);
 }
 
 OfflineObjectRenderer::~OfflineObjectRenderer() = default;

@@ -272,6 +272,7 @@ public:
     void logMessage(String const& message);
     void logError(String const& message);
     void logWarning(String const& message);
+    void muteConsole(bool shouldMute);
 
     std::deque<std::tuple<String, int, int>>& getConsoleMessages();
     std::deque<std::tuple<String, int, int>>& getConsoleHistory();
@@ -335,6 +336,7 @@ private:
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
+    std::atomic<bool> consoleMute;
     
 protected:
     struct internal;

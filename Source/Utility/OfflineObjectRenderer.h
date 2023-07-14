@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "Pd/Instance.h"
 
 class ImageWithOffset {
 public:
@@ -13,7 +14,7 @@ public:
 
 class OfflineObjectRenderer {
 public:
-    OfflineObjectRenderer();
+    OfflineObjectRenderer(pd::Instance* pd);
     virtual ~OfflineObjectRenderer();
 
     static OfflineObjectRenderer* findParentOfflineObjectRendererFor(Component* childComponent);
