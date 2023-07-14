@@ -986,7 +986,7 @@ void Object::mouseDrag(MouseEvent const& e)
                 object->setTopLeftPosition(newPosition);
             }
 
-            if (cnv->autoscroll(e.getEventRelativeTo(cnv->viewport))) {
+            if (cnv->autoscroll(e.getEventRelativeTo(cnv->viewport.get()))) {
                 beginDragAutoRepeat(25);
             }
         }

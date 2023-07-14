@@ -7,6 +7,8 @@
 #include "Canvas.h"
 #include "Object.h"
 #include "Utility/PluginParameter.h"
+#include "Utility/DraggableNumber.h"
+#include "Utility/OfflineObjectRenderer.h"
 
 class AutomationSlider : public Component
     , public Value::Listener {
@@ -49,22 +51,15 @@ public:
         minValue.setFont(minValue.getFont().withHeight(14.0f));
         maxValue.setFont(maxValue.getFont().withHeight(14.0f));
 
-        createButton.onClick = [this]() mutable {
-            if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
-                auto* cnv = editor->getCurrentCanvas();
-                if (cnv) {
-                    cnv->attachNextObjectToMouse = true;
-                    cnv->objects.add(new Object(cnv, "param " + param->getTitle()));
-                }
-            }
-        };
-
         deleteButton.onClick = [this]() mutable {
             onDelete(this);
         };
 
+        nameLabel.addMouseListener(this, false);
+        deleteButton.addMouseListener(this, false);
+
+        nameLabel.setTooltip("Drag to add [param] to canvas");
         deleteButton.setTooltip("Remove parameter");
-        createButton.setTooltip("Create [param] object");
         settingsButton.setTooltip("Expand settings");
 
         settingsButton.onClick = [this, parentComponent]() mutable {
@@ -79,17 +74,17 @@ public:
         };
 
         minValue.dragEnd = [this]() {
-            auto minimum = minValue.getValue();
-            auto maximum = param->getNormalisableRange().end;
+            double minimum = minValue.getValue();
+            double maximum = param->getNormalisableRange().end;
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
             valueLabel.setValue(std::clamp(valueLabel.getValue(), minimum, maximum));
 
-            maxValue.setMinimum(minimum + 0.000001f);
+            maxValue.setMinimum(minimum + 0.000001);
 
             // make sure min is always smaller than max
-            minimum = std::min(minimum, maximum - 0.000001f);
+            minimum = std::min(minimum, maximum - 0.000001);
 
             slider.setRange(minimum, maximum, 0.000001f);
             param->setRange(minimum, maximum);
@@ -97,8 +92,8 @@ public:
         };
 
         maxValue.dragEnd = [this]() {
-            auto minimum = param->getNormalisableRange().start;
-            auto maximum = maxValue.getValue();
+            double minimum = param->getNormalisableRange().start;
+            double maximum = maxValue.getValue();
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
@@ -107,9 +102,9 @@ public:
             minValue.setMaximum(maximum);
 
             // make sure max is always bigger than min
-            maximum = std::max(maximum, minimum + 0.000001f);
+            maximum = std::max(maximum, minimum + 0.000001);
 
-            slider.setRange(minimum, maximum, 0.000001f);
+            slider.setRange(minimum, maximum, 0.000001);
             param->setRange(minimum, maximum);
 
             param->notifyDAW();
@@ -181,6 +176,10 @@ public:
             lastName = nameLabel.getText(false);
         };
 
+        nameLabel.onTextChange = [this]() {
+            dragImage.image = Image();
+        };
+
         nameLabel.onEditorHide = [this]() {
             StringArray allNames;
             for (auto* param : pd->getParameters()) {
@@ -206,13 +205,11 @@ public:
         addAndMakeVisible(slider);
         addAndMakeVisible(valueLabel);
 
-        createButton.getProperties().set("Style", "SmallIcon");
         settingsButton.getProperties().set("Style", "SmallIcon");
         deleteButton.getProperties().set("Style", "SmallIcon");
 
-        addAndMakeVisible(createButton);
         addAndMakeVisible(settingsButton);
-        addAndMakeVisible(deleteButton);
+        addChildComponent(deleteButton);
 
         addChildComponent(minLabel);
         addChildComponent(minValue);
@@ -223,9 +220,53 @@ public:
         maxValue.setEditable(true);
     }
 
+    void lookAndFeelChanged() override
+    {
+        dragImage.image = Image();
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        auto bounds = getLocalBounds().toFloat().reduced(4.5f, 3.0f);
+        if (bounds.contains(x, y)) {
+            return true;
+        }
+        return false;
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        deleteButton.setVisible(true);
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        deleteButton.setVisible(false);
+    }
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        auto formatedParam = "#X obj 0 0 param " + param->getTitle() + ";";
+
+        deleteButton.setVisible(false);
+
+        if (dragImage.image.isNull()) {
+            auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
+            dragImage = offlineObjectRenderer->patchToTempImage(formatedParam);
+        }
+
+        auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
+
+        Array<var> paramObjectWithOffset;
+        paramObjectWithOffset.add(var(dragImage.offset.getX()));
+        paramObjectWithOffset.add(var(dragImage.offset.getY()));
+        paramObjectWithOffset.add(var(formatedParam));
+        dragContainer->startDragging(paramObjectWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
+    }
+
     void valueChanged(Value& v) override
     {
-        createButton.setEnabled(!getValue<bool>(v));
+        //createButton.setEnabled(!getValue<bool>(v));
     }
 
     int getItemHeight()
@@ -272,7 +313,7 @@ public:
             maxValue.setBounds(thirdRow.removeFromLeft(oneThird));
         }
 
-        auto buttonsBounds = firstRow.removeFromRight(50).withHeight(25);
+        auto buttonsBounds = firstRow.removeFromRight(25).withHeight(25);
 
         nameLabel.setBounds(firstRow);
 
@@ -280,7 +321,6 @@ public:
         slider.setBounds(secondRow.removeFromLeft(getWidth() - 90));
         valueLabel.setBounds(secondRow);
 
-        createButton.setBounds(buttonsBounds.removeFromLeft(25));
         deleteButton.setBounds(buttonsBounds.removeFromLeft(25));
     }
 
@@ -298,7 +338,6 @@ public:
 
     std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*) {};
 
-    TextButton createButton = TextButton(Icons::Add);
     TextButton deleteButton = TextButton(Icons::Clear);
     ExpandButton settingsButton;
 
@@ -314,6 +353,8 @@ public:
     String lastName;
 
     Slider slider;
+
+    ImageWithOffset dragImage;
 
     int index;
 

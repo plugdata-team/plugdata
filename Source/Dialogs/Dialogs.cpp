@@ -77,7 +77,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 {
     auto* popup = new MainMenu(editor);
 
-    ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(220).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
+    ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(210).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
         [editor, popup, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
             switch (result) {
             case MainMenu::MenuItem::NewPatch: {

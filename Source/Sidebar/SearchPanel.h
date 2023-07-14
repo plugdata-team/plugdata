@@ -142,7 +142,7 @@ public:
             }
         }
 
-        if (auto* viewport = cnv->viewport) {
+        if (auto* viewport = cnv->viewport.get()) {
             auto scale = getValue<float>(cnv->zoomScale);
             auto pos = target->getBounds().reduced(Object::margin).getCentre() * scale;
 
@@ -239,7 +239,7 @@ public:
 
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(4, 2, w - 8, h - 4), Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5.5, 2, w - 9.5, h - 4), Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);

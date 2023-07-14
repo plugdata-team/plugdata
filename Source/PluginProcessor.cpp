@@ -888,19 +888,10 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 
     for (auto const& patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
-        editor->addTab(cnv);
+        editor->addTab(cnv, patch->splitViewIndex);
     }
-
-    editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
 
     editor->resized();
-
-    if (isPositiveAndBelow(lastLeftTab, patches.size())) {
-        editor->splitView.getLeftTabbar()->setCurrentTabIndex(lastLeftTab);
-    }
-    if (isPositiveAndBelow(lastRightTab, patches.size())) {
-        editor->splitView.getRightTabbar()->setCurrentTabIndex(lastRightTab);
-    }
 
     return editor;
 }
@@ -948,7 +939,10 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         patchTree->setAttribute("Content", content);
         patchTree->setAttribute("Location", patchFile);
         patchTree->setAttribute("PluginMode", patch->openInPluginMode);
-
+        patchTree->setAttribute("SplitIndex", patch->splitViewIndex);
+        
+        
+        
         patchesTree->addChildElement(patchTree);
     }
     unlockAudioThread();
@@ -959,7 +953,6 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     auto xml = XmlElement("plugdata_save");
     xml.setAttribute("Version", PLUGDATA_VERSION);
-    xml.setAttribute("SplitIndex", lastSplitIndex);
 
     // In the future, we're gonna load everything from xml, to make it easier to add new properties
     // By putting this here, we can prepare for making this change without breaking existing DAW saves
@@ -1012,8 +1005,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             if (!editor)
                 return;
 
-            editor->splitView.getLeftTabbar()->clearTabs();
-            editor->splitView.getRightTabbar()->clearTabs();
+            for (auto split : editor->splitView.splits) {
+                split->getTabComponent()->clearTabs();
+            }
             editor->canvases.clear();
         });
     }
@@ -1049,9 +1043,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
 
-    auto openPatch = [this](String const& content, File const& location, bool pluginMode = false) {
+    auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
         if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
-            auto patch = loadPatch(location);
+            auto patch = loadPatch(location, splitIndex);
             if (patch) {
                 patch->setTitle(location.getFileName());
                 patch->openInPluginMode = pluginMode;
@@ -1061,14 +1055,16 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto parentPath = location.getParentDirectory().getFullPathName();
                 libpd_add_to_search_path(parentPath.toRawUTF8());
             }
-            auto patch = loadPatch(content);
+            auto patch = loadPatch(content, splitIndex);
             if (patch && ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists())) {
                 patch->setTitle("Untitled Patcher");
                 patch->openInPluginMode = pluginMode;
+                patch->splitViewIndex = splitIndex;
             } else if (patch && location.existsAsFile()) {
                 patch->setCurrentFile(location);
                 patch->setTitle(location.getFileName());
                 patch->openInPluginMode = pluginMode;
+                patch->splitViewIndex = splitIndex;
             }
         }
     };
@@ -1081,11 +1077,17 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto content = p->getStringAttribute("Content");
                 auto location = p->getStringAttribute("Location");
                 auto pluginMode = p->getBoolAttribute("PluginMode");
+                
+                int splitIndex = 0;
+                if(p->hasAttribute("SplitIndex"))
+                {
+                    splitIndex = p->getIntAttribute("SplitIndex");
+                }
 
                 auto presetDir = ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("Presets");
                 location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
-                openPatch(content, location, pluginMode);
+                openPatch(content, location, pluginMode, splitIndex);
             }
         }
         // Otherwise, load from legacy format
@@ -1128,18 +1130,6 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 });
             }
         }
-        if (xmlState->hasAttribute("SplitIndex")) {
-            lastSplitIndex = xmlState->getIntAttribute("SplitIndex", -1);
-
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                MessageManager::callAsync([editor = Component::SafePointer(editor), this]() {
-                    if (!editor)
-                        return;
-
-                    editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
-                });
-            }
-        }
 
         // JYG added this
         parseDataBuffer(*xmlState);
@@ -1162,7 +1152,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     }
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
+pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
 {
     // First, check if patch is already opened
     for (auto const& patch : patches) {
@@ -1205,7 +1195,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
     auto* patch = patches.getLast().get();
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([this, patch, _editor = Component::SafePointer(editor)]() mutable {
+        MessageManager::callAsync([this, patch, splitIdx, _editor = Component::SafePointer(editor)]() mutable {
             if (!_editor)
                 return;
 
@@ -1217,7 +1207,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
 
             unlockAudioThread();
 
-            _editor->addTab(cnv);
+            _editor->addTab(cnv, splitIdx);
         });
     }
 
@@ -1226,7 +1216,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile)
     return patch;
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(String patchText)
+pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, int splitIdx)
 {
     if (patchText.isEmpty())
         patchText = pd::Instance::defaultPatch;
@@ -1234,7 +1224,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText)
     auto patchFile = File::createTempFile(".pd");
     patchFile.replaceWithText(patchText);
 
-    auto patch = loadPatch(patchFile);
+    auto patch = loadPatch(patchFile, splitIdx);
 
     // Set to unknown file when loading temp patch
     patch->setCurrentFile(File());
@@ -1539,54 +1529,43 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 void PluginProcessor::titleChanged()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        auto* leftTabbar = editor->splitView.getLeftTabbar();
-        auto* rightTabbar = editor->splitView.getRightTabbar();
+        for (auto split : editor->splitView.splits) {
+            auto tabbar = split->getTabComponent();
+            for (int n = 0; n < tabbar->getNumTabs(); n++) {
+                auto* cnv = tabbar->getCanvas(n);
+                if (!cnv)
+                    return;
 
-        for (int n = 0; n < leftTabbar->getNumTabs(); n++) {
-            auto* cnv = leftTabbar->getCanvas(n);
-            if (!cnv)
-                return;
-
-            leftTabbar->setTabName(n, cnv->patch.getTitle() + String(cnv->patch.isDirty() ? "*" : ""));
-        }
-        for (int n = 0; n < rightTabbar->getNumTabs(); n++) {
-            auto* cnv = rightTabbar->getCanvas(n);
-            if (!cnv)
-                return;
-            rightTabbar->setTabName(n, cnv->patch.getTitle() + String(cnv->patch.isDirty() ? "*" : ""));
+                tabbar->setTabText(n, cnv->patch.getTitle() + String(cnv->patch.isDirty() ? "*" : ""));
+            }
         }
     }
 }
 
 void PluginProcessor::savePatchTabPositions()
 {
-    Array<std::tuple<pd::Patch*, int, int>> sortedPatches;
-
+    Array<std::tuple<pd::Patch*, int>> sortedPatches;
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        auto* leftTabbar = editor->splitView.getLeftTabbar();
-
-        for (auto* cnv : editor->canvases) {
-            sortedPatches.add({ &cnv->patch, cnv->getTabbar() != leftTabbar, cnv->getTabIndex() });
+        for(auto* cnv : editor->canvases)
+        {
+            cnv->patch.splitViewIndex = editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
+            sortedPatches.add({ &cnv->patch, cnv->getTabIndex() });
         }
-
-        lastSplitIndex = leftTabbar->getNumTabs();
-    } else {
-        return;
     }
-
+    
     std::sort(sortedPatches.begin(), sortedPatches.end(), [](auto const& a, auto const& b) {
-        auto& [patchA, splitA, idxA] = a;
-        auto& [patchB, splitB, idxB] = b;
-
-        if (splitA == splitB)
+        auto& [patchA, idxA] = a;
+        auto& [patchB, idxB] = b;
+        
+        if (patchA->splitViewIndex == patchB->splitViewIndex)
             return idxA < idxB;
 
-        return splitA < splitB;
+        return patchA->splitViewIndex < patchB->splitViewIndex;
     });
-
+    
     patches.getLock().enter();
     int i = 0;
-    for (auto& [patch, splitIdx, tabIdx] : sortedPatches) {
+    for (auto& [patch, tabIdx] : sortedPatches) {
 
         if (i >= patches.size())
             break;

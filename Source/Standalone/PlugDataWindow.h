@@ -596,6 +596,8 @@ public:
 
         // Close all patches, allowing them to save first
         closeAllPatches();
+        
+        JUCEApplicationBase::quit();
     }
 
     void closeAllPatches(); // implemented in PlugDataApp.cpp

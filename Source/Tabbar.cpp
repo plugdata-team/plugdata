@@ -6,11 +6,117 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 #include "Sidebar/Sidebar.h"
+#include "TabBarButtonComponent.h"
+
+ButtonBar::ButtonBar(TabComponent& tabComp, TabbedButtonBar::Orientation o)
+    : TabbedButtonBar(o)
+    , owner(tabComp)
+{
+    setInterceptsMouseClicks(true, true);
+}
+
+bool ButtonBar::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
+{
+    if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get()))
+        return true;
+
+    return false;
+}
+
+void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
+{
+    // this has a whole lot of code replication from ResizableTabbedComponent.cpp, good candidate for refactoring!
+    if (inOtherSplit) {
+        auto sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
+        int sourceTabIndex = sourceTabButton->getIndex();
+        auto sourceTabContent = sourceTabButton->getTabComponent();
+        int sourceNumTabs = sourceTabContent->getNumTabs();
+
+        inOtherSplit = false;
+        // we remove the ghost tab, which is NOT a proper tab, (it only a tab, and doesn't have a viewport)
+        removeTab(ghostTabIdx, true);
+        auto tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
+        auto tabTitle = tabCanvas->patch.getTitle();
+        // we then re-add the ghost tab, but this time we add it from the owner (tabComponent) 
+        // which allows us to inject the viewport
+        owner.addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport.get(), ghostTabIdx);
+        owner.setCurrentTabIndex(ghostTabIdx);
+
+        sourceTabContent->removeTab(sourceTabIndex);
+        auto sourceCurrentIndex = sourceTabIndex > (sourceTabContent->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex;
+        sourceTabContent->setCurrentTabIndex(sourceCurrentIndex);
+
+        if (sourceNumTabs < 2) {
+            owner.editor->splitView.removeSplit(sourceTabContent);
+            for (auto* split : owner.editor->splitView.splits) {
+                split->setBoundsWithFactors(owner.editor->splitView.getLocalBounds());
+            }
+        }
+        // set all current canvas viewports to visible, (if they already are this shouldn't do anything)
+        for (auto* split : owner.editor->splitView.splits) {
+            if (auto tabComponent = split->getTabComponent()) {
+                if (auto* cnv = tabComponent->getCanvas(tabComponent->getCurrentTabIndex())) {
+                    cnv->viewport->setVisible(true);
+                    split->resized();
+                    split->getTabComponent()->resized();
+                }
+            }
+        }
+    }
+}
+
+void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
+{
+    if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        // if this tabbar is DnD on itself, we don't need to add a new tab
+        // we move the existing tab
+        if (tab->getTabComponent() == &owner) {
+            inOtherSplit = false;
+            ghostTabIdx = tab->getIndex();
+        } else {
+            auto targetTabPos = getWidth() / getNumTabs();
+            auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
+            inOtherSplit = true;
+            addTab(tab->getButtonText(), Colours::transparentBlack, tabPos);
+            ghostTabIdx = tabPos;
+        }
+    }
+}
+
+void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
+{
+    if (inOtherSplit) {
+        inOtherSplit = false;
+        removeTab(ghostTabIdx, true);
+    }
+}
+
+void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
+{
+    auto targetTabPos = getWidth() / getNumTabs();
+    auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
+    owner.moveTab(ghostTabIdx, tabPos);
+    auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
+    ghostTabIdx = tabPos;
+}
+
+void ButtonBar::currentTabChanged(int newCurrentTabIndex, String const& newTabName)
+{
+    owner.changeCallback(newCurrentTabIndex, newTabName);
+}
+
+TabBarButton* ButtonBar::createTabButton(String const& tabName, int tabIndex)
+{
+    auto tabBarButton = new TabBarButtonComponent(&owner, tabName, *owner.tabs.get());
+    return tabBarButton;
+}
 
 TabComponent::TabComponent(PluginEditor* parent)
-    : TabbedComponent(TabbedButtonBar::TabsAtTop)
-    , editor(parent)
+    : editor(parent)
 {
+    tabs.reset(new ButtonBar(*this, TabbedButtonBar::Orientation::TabsAtTop));
+    addAndMakeVisible(tabs.get());
+
     addAndMakeVisible(newButton);
     newButton.getProperties().set("Style", "LargeIcon");
     newButton.setButtonText(Icons::Add);
@@ -37,27 +143,71 @@ TabComponent::TabComponent(PluginEditor* parent)
     setVisible(false);
     setTabBarDepth(0);
     tabs->addMouseListener(this, true);
-    setOutline(0);
 }
 
-void TabComponent::setSplitFocusIndex(int idx)
+TabComponent::~TabComponent()
 {
-    auto index = idx;
-    if (index == -1)
-        index = editor->splitView.getTabComponentSplitIndex(this);
+    tabs->removeMouseListener(this);
+    clearTabs();
+    tabs.reset();
+}
 
-    editor->splitView.setSplitFocusIndex(index);
+int TabComponent::getCurrentTabIndex()
+{
+    return tabs->getCurrentTabIndex();
+}
+
+void TabComponent::setCurrentTabIndex(int idx)
+{
+    tabs->setCurrentTabIndex(idx);
+}
+
+void TabComponent::clearTabs()
+{
+    if (panelComponent != nullptr)
+    {
+        panelComponent->setVisible (false);
+        removeChildComponent (panelComponent.get());
+        panelComponent = nullptr;
+    }
+
+    tabs->clearTabs();
+
+    contentComponents.clear();
+}
+
+PluginEditor* TabComponent::getEditor()
+{
+    return editor;
 }
 
 void TabComponent::newTab()
 {
-    setSplitFocusIndex();
     editor->newProject();
+}
+
+void TabComponent::addTab(String const& tabName, Component* contentComponent, int insertIndex)
+{
+    contentComponents.insert (insertIndex, WeakReference<Component> (contentComponent));
+
+    tabs->addTab (tabName, findColour(ResizableWindow::backgroundColourId), insertIndex);
+    resized();
+}
+
+void TabComponent::removeTab(int idx)
+{
+    contentComponents.remove(idx);
+    tabs->removeTab(idx);
+}
+
+void TabComponent::moveTab(int currentIndex, int newIndex)
+{
+    contentComponents.move (currentIndex, newIndex);
+    tabs->moveTab (currentIndex, newIndex, true);
 }
 
 void TabComponent::openProject()
 {
-    setSplitFocusIndex();
     editor->openProject();
 }
 
@@ -66,18 +216,8 @@ void TabComponent::onTabMoved()
     editor->pd->savePatchTabPositions();
 }
 
-void TabComponent::onFocusGrab()
-{
-    if (auto* cnv = getCurrentCanvas()) {
-        editor->splitView.setFocus(cnv);
-    }
-}
-
 void TabComponent::onTabChange(int tabIndex)
 {
-    auto splitIndex = editor->splitView.getTabComponentSplitIndex(this);
-
-    setSplitFocusIndex(tabIndex >= 0 ? splitIndex : 0);
     editor->updateCommandStatus();
 
     auto* cnv = getCurrentCanvas();
@@ -86,87 +226,94 @@ void TabComponent::onTabChange(int tabIndex)
         return;
 
     editor->sidebar->tabChanged();
-    cnv->tabChanged();
 
-    if (auto* splitCnv = editor->splitView.splits[1 - splitIndex]->getCurrentCanvas()) {
-        splitCnv->tabChanged();
+    for (auto* split : editor->splitView.splits) {
+        auto tabBar = split->getTabComponent();
+        if (split->getTabComponent()->getCurrentCanvas())
+            split->getTabComponent()->getCurrentCanvas()->tabChanged();
     }
+}
+
+void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabName)
+{
+    auto* newPanelComp = getTabContentComponent (getCurrentTabIndex());
+
+    if (newPanelComp != panelComponent)
+    {
+        if (panelComponent != nullptr)
+        {
+            panelComponent->setVisible (false);
+            removeChildComponent (panelComponent);
+        }
+
+        panelComponent = newPanelComp;
+
+        if (panelComponent != nullptr)
+        {
+            // do these ops as two stages instead of addAndMakeVisible() so that the
+            // component has always got a parent when it gets the visibilityChanged() callback
+            addChildComponent (panelComponent);
+            panelComponent->sendLookAndFeelChange();
+            panelComponent->setVisible (true);
+            panelComponent->toFront (true);
+        }
+
+        repaint();
+    }
+
+    resized();
+    currentTabChanged (newCurrentTabIndex, newTabName);
 }
 
 void TabComponent::openProjectFile(File& patchFile)
 {
-    setSplitFocusIndex();
     editor->pd->loadPatch(patchFile);
+}
+
+void TabComponent::setTabBarDepth (int newDepth)
+{
+    if (tabDepth != newDepth)
+    {
+        tabDepth = newDepth;
+        resized();
+    }
 }
 
 void TabComponent::currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName)
 {
-    if (getNumTabs() == 0) {
+    if (tabs->getNumTabs() == 0) {
         setTabBarDepth(0);
-        getTabbedButtonBar().setVisible(false);
+        tabs->setVisible(false);
         welcomePanel.show();
     } else {
-        getTabbedButtonBar().setVisible(true);
+        tabs->setVisible(true);
+        //static_cast<TabBarButtonComponent*>(getTabbedButtonBar().getTabButton(newCurrentTabIndex))->tabTextChanged(newCurrentTabName);
         welcomePanel.hide();
         setTabBarDepth(30);
+        // we need to update the dropzones, because no resize will be triggered when there is a tab added from welcome screen
+        if (auto* parentHolder = dynamic_cast<ResizableTabbedComponent*>(getParentComponent()))
+            parentHolder->updateDropZones();
     }
 
-        triggerAsyncUpdate();
-}
-
-void TabComponent::rightClick(int tabIndex, String const& tabName)
-{
-    auto splitIndex = editor->splitView.getTabComponentSplitIndex(this);
-
-    PopupMenu tabMenu;
-
-#if JUCE_MAC
-            String revealTip = "Reveal in Finder";
-#elif JUCE_WINDOWS
-            String revealTip = "Reveal in Explorer";
-#else
-            String revealTip = "Reveal in file browser";
-#endif
-
-    auto* cnv = getCanvas(tabIndex);
-    if (!cnv)
-        return;
-
-    bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
-
-    tabMenu.addItem(revealTip, canReveal, false, [cnv]() {
-        cnv->patch.getCurrentFile().revealToUser();
-    });
-
-    bool canSplit = true;
-    if (splitIndex == 0 && !editor->splitView.isSplitView())
-        canSplit = editor->splitView.getLeftTabbar()->getNumTabs() > 1;
-
-    tabMenu.addItem(splitIndex == 0 ? "Split Right" : "Split Left", canSplit, false, [this, cnv, splitIndex]() {
-        editor->splitView.splitCanvasView(cnv, splitIndex == 0);
-        editor->splitView.closeEmptySplits();
-        });
-        // Show the popup menu at the mouse position
-        tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(editor->pd->getActiveEditor()));
+    triggerAsyncUpdate();
 }
 
 void TabComponent::handleAsyncUpdate()
 {
-    onTabChange(getCurrentTabIndex());
+    onTabChange(tabs->getCurrentTabIndex());
 }
 
 void TabComponent::resized()
 {
-    int depth = getTabBarDepth();
     auto content = getLocalBounds();
 
     welcomePanel.setBounds(content);
-    newButton.setBounds(3, 0, depth, depth); // slighly offset to make it centred next to the tabs
+    newButton.setBounds(3, 0, tabDepth, tabDepth); // slighly offset to make it centred next to the tabs
 
-    auto tabBounds = content.removeFromTop(depth).withTrimmedLeft(depth);
+    auto tabBounds = content.removeFromTop(tabDepth).withTrimmedLeft(tabDepth);
     tabs->setBounds(tabBounds);
 
-    for (int c = 0; c < getNumTabs(); c++) {
+    for (int c = 0; c < tabs->getNumTabs(); c++) {
         if (auto* comp = getTabContentComponent(c)) {
             if (auto* positioner = comp->getPositioner()) {
                 positioner->applyNewBounds(content);
@@ -177,24 +324,24 @@ void TabComponent::resized()
     }
 }
 
+Component* TabComponent::getTabContentComponent (int tabIndex) const noexcept
+{
+    return contentComponents[tabIndex].get();
+}
+
 void TabComponent::paint(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
-    g.fillRect(getLocalBounds().removeFromTop(30));
+    g.fillAll(findColour(PlugDataColour::tabBackgroundColourId));
+    //g.fillRect(getLocalBounds().removeFromTop(30));
 }
 
 void TabComponent::paintOverChildren(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(0, getTabBarDepth(), getWidth(), getTabBarDepth());
+    g.drawLine(0, tabDepth, getWidth(), tabDepth);
 
     g.drawLine(0, 0, getWidth(), 0);
     g.drawLine(0, 0, 0, getBottom());
-}
-
-void TabComponent::popupMenuClickOnTab(int tabIndex, String const& tabName)
-{
-    rightClick(tabIndex, tabName);
 }
 
 int TabComponent::getIndexOfCanvas(Canvas* cnv)
@@ -202,8 +349,8 @@ int TabComponent::getIndexOfCanvas(Canvas* cnv)
     if (!cnv->viewport || !cnv->editor)
         return -1;
 
-    for (int i = 0; i < getNumTabs(); i++) {
-        if (getTabContentComponent(i) == cnv->viewport) {
+    for (int i = 0; i < tabs->getNumTabs(); i++) {
+        if (getTabContentComponent(i) == cnv->viewport.get()) {
             return i;
         }
     }
@@ -218,7 +365,7 @@ Canvas* TabComponent::getCanvas(int idx)
     if (!viewport)
         return nullptr;
 
-    return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
+    return dynamic_cast<Canvas*>(viewport->getViewedComponent());
 }
 
 Canvas* TabComponent::getCurrentCanvas()
@@ -228,62 +375,12 @@ Canvas* TabComponent::getCurrentCanvas()
     if (!viewport)
         return nullptr;
 
-    return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
+    return dynamic_cast<Canvas*>(viewport->getViewedComponent());
 }
 
-void TabComponent::mouseDown(MouseEvent const& e)
+void TabComponent::setTabText(int tabIndex, String const& newName)
 {
-    tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
-    clickedTabIndex = getCurrentTabIndex();
-    onFocusGrab();
+    dynamic_cast<TabBarButtonComponent*>(tabs->getTabButton(tabIndex))->setTabText(newName);
 }
 
-void TabComponent::mouseDrag(MouseEvent const& e)
-{
-    // Don't respond to clicks on close button
-    if (dynamic_cast<TextButton*>(e.originalComponent))
-        return;
-    // Drag tabs to move their index
-    int const dragPosition = e.getEventRelativeTo(tabs.get()).x;
-    int const newTabIndex = (dragPosition < clickedTabIndex * tabWidth) ? clickedTabIndex - 1
-        : (dragPosition >= (clickedTabIndex + 1) * tabWidth)            ? clickedTabIndex + 1
-                                                                        : clickedTabIndex;
-    int const dragDistance = std::abs(e.getDistanceFromDragStartX());
 
-        if (dragDistance > 5) {
-            if ((tabs->contains(e.getEventRelativeTo(tabs.get()).getPosition()) || e.getDistanceFromDragStartY() < 0) && newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
-                moveTab(clickedTabIndex, newTabIndex, true);
-                clickedTabIndex = newTabIndex;
-                onTabMoved();
-                tabs->getTabButton(clickedTabIndex)->setVisible(false);
-            }
-
-            if (tabSnapshot.isNull() && (getParentWidth() != getWidth() || getNumTabs() > 1)) {
-                // Create ghost tab & hide dragged tab
-                auto* tabButton = tabs->getTabButton(clickedTabIndex);
-                currentTabBounds = tabButton->getBounds().translated(getTabBarDepth(), 0);
-
-                auto scale = Desktop::getInstance().getDisplays().getPrimaryDisplay()->scale;
-                tabSnapshot = Image(Image::PixelFormat::ARGB, tabButton->getWidth() * scale, tabButton->getHeight() * scale, true);
-
-                auto g = Graphics(tabSnapshot);
-                g.addTransform(AffineTransform::scale(scale));
-                getLookAndFeel().drawTabButton(*tabButton, g, false, false);
-
-                tabSnapshotBounds = currentTabBounds;
-                tabs->getTabButton(clickedTabIndex)->setVisible(false);
-            }
-            // Keep ghost tab within view
-            auto newPosition = Point<int>(std::clamp(currentTabBounds.getX() + getX() + e.getDistanceFromDragStartX(), 0, getParentWidth() - tabWidth), std::clamp(currentTabBounds.getY() + e.getDistanceFromDragStartY(), 0, getHeight() - tabs->getHeight()));
-            tabSnapshotBounds.setPosition(newPosition);
-            getParentComponent()->repaint();
-        }
-    }
-
-void TabComponent::mouseUp(MouseEvent const& e)
-{
-    tabSnapshot = Image();
-    if (clickedTabIndex >= 0)
-        tabs->getTabButton(clickedTabIndex)->setVisible(true);
-    getParentComponent()->repaint(tabSnapshotBounds);
-}

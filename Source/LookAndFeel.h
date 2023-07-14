@@ -11,6 +11,7 @@
 #include "Utility/StackShadow.h"
 #include "Utility/SettingsFile.h"
 #include "Constants.h"
+#include "Utility/Fonts.h"
 
 inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDataColourNames = {
 
@@ -610,6 +611,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
+    // ==================== LookAndFeel TabBarButton ====================
+
     Rectangle<int> getTabButtonExtraComponentBounds(TabBarButton const& button, Rectangle<int>& textArea, Component& comp) override
     {
         Rectangle<int> extraComp;
@@ -682,6 +685,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         drawTabButtonText(button, g, false, false);
     }
 
+
     void drawTabButtonText(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
         auto area = button.getLocalBounds().reduced(4, 1).toFloat();
@@ -740,6 +744,23 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         return Fonts::getCurrentFont().withHeight(13.0f);
     }
+    
+    void drawScrollbar (Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,
+                                        bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, [[maybe_unused]] bool isMouseDown) override
+    {
+        Rectangle<int> thumbBounds;
+
+        if (isScrollbarVertical)
+            thumbBounds = { x, thumbStartPosition, width, thumbSize };
+        else
+            thumbBounds = { thumbStartPosition, y, thumbSize, height };
+
+        auto c = scrollbar.findColour (ScrollBar::ColourIds::thumbColourId);
+        g.setColour (isMouseOver ? c.brighter (0.25f) : c);
+        
+        auto thumbRadius = isScrollbarVertical ? (thumbBounds.getWidth() - 2.0f) / 2.0f : (thumbBounds.getHeight() - 2.0f) / 2.0f;
+        g.fillRoundedRectangle (thumbBounds.reduced (1).toFloat(), thumbRadius);
+    }
 
     void getIdealPopupMenuItemSize(String const& text, bool const isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override
     {
@@ -772,7 +793,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(background);
 
             auto bounds = Rectangle<float>(5, 6, width - 10, height - 12);
-            fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
+            fillSmoothedRectangle(g, bounds, Corners::largeCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
             drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::largeCornerRadius);
@@ -785,6 +806,19 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawRect(bounds, 1.0f);
         }
+    }
+    
+    Path getTickShape (float height) override
+    {
+        Path path;
+        path.startNewSubPath(0.4f * height, 0.6f * height);
+        path.lineTo(0.475f * height, 0.7f * height);
+        path.lineTo(0.65f * height, 0.475f * height);
+
+        Path strokedPath;
+        PathStrokeType(height / 15.0f, PathStrokeType::curved, PathStrokeType::rounded).createStrokedPath(strokedPath, path, AffineTransform(), 5.0f);
+        
+        return strokedPath;
     }
 
     void drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
@@ -913,6 +947,16 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.setColour(object.findColour(ComboBox::arrowColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
 
         g.strokePath(path, PathStrokeType(2.0f));
+    }
+    
+    PopupMenu::Options getOptionsForComboBoxPopupMenu (ComboBox& box, Label& label) override
+    {
+        return PopupMenu::Options().withTargetComponent (&box)
+                                   .withItemThatMustBeVisible (box.getSelectedId())
+                                   .withInitiallySelectedItem (box.getSelectedId())
+                                   .withMinimumWidth (box.getWidth())
+                                   .withMaximumNumColumns (1)
+                                   .withStandardItemHeight (22);
     }
 
     void drawResizableFrame(Graphics& g, int w, int h, BorderSize<int> const& border) override
@@ -1047,6 +1091,83 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         g.drawRect(label.getLocalBounds());
     }
+    /*
+     
+     static Path getSquircle(const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
+     {
+         Path path;
+         
+         float x = bounds.getX();
+         float y = bounds.getY();
+         float width = bounds.getWidth();
+         float height = bounds.getHeight();
+
+         float radius = cornerRadius;
+         if (radius > width * 0.5f)
+             radius = width * 0.5f;
+         if (radius > height * 0.5f)
+             radius = height * 0.5f;
+         
+         float controlOffset = radius * 0.45f;
+         
+         path.startNewSubPath(x + radius, y);
+         
+         if (curveTopLeft)
+         {
+             path.cubicTo(x + radius - controlOffset, y, x, y + radius - controlOffset, x, y + radius);
+         }
+         else
+         {
+             path.lineTo(x, y + radius);
+         }
+         
+         path.lineTo(x + width - radius, y);
+         
+         if (curveTopRight)
+         {
+             path.cubicTo(x + width - radius + controlOffset, y, x + width, y + radius - controlOffset, x + width, y + radius);
+         }
+         else
+         {
+             path.lineTo(x + width, y + radius);
+         }
+         
+         path.lineTo(x + width, y + height - radius);
+         
+         if (curveBottomRight)
+         {
+             path.cubicTo(x + width, y + height - radius + controlOffset, x + width - radius + controlOffset, y + height, x + width - radius, y + height);
+         }
+         else
+         {
+             path.lineTo(x + width - radius, y + height);
+         }
+         
+         path.lineTo(x + radius, y + height);
+         
+         if (curveBottomLeft)
+         {
+             path.cubicTo(x + radius - controlOffset, y + height, x, y + height - radius + controlOffset, x, y + height - radius);
+         }
+         else
+         {
+             path.lineTo(x, y + height - radius);
+         }
+         
+         path.lineTo(x, y + radius);
+         
+         if (curveTopLeft)
+         {
+             path.cubicTo(x, y + radius - controlOffset, x + radius - controlOffset, y, x + radius, y);
+         }
+         else
+         {
+             path.lineTo(x + radius, y);
+         }
+
+         return path;
+     }
+     */
     
     static Path getSquircle(const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
     {

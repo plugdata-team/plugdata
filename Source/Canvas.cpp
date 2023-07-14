@@ -69,7 +69,26 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         isGraph = false;
     }
 
-    recreateViewport();
+    if(!isGraph) {
+        auto* canvasViewport = new CanvasViewport(editor, this);
+        
+        canvasViewport->setViewedComponent(this, false);
+        
+        canvasViewport->onScroll = [this]() {
+            if (suggestor) {
+                suggestor->updateBounds();
+            }
+            if (graphArea) {
+                graphArea->updateBounds();
+            }
+        };
+        
+        canvasViewport->setScrollBarsShown(true, true, true, true);
+        
+        viewport.reset(canvasViewport); // Owned by the tabbar, but doesn't exist for graph!
+        jumpToOrigin();
+    }
+    
 
     suggestor = new SuggestionComponent;
 
@@ -210,35 +229,10 @@ void Canvas::updateOverlays()
     repaint();
 }
 
-void Canvas::recreateViewport()
-{
-    if (isGraph)
-        return;
-
-    auto* canvasViewport = new CanvasViewport(editor, this);
-
-    canvasViewport->setViewedComponent(this, false);
-
-    canvasViewport->onScroll = [this]() {
-        if (suggestor) {
-            suggestor->updateBounds();
-        }
-        if (graphArea) {
-            graphArea->updateBounds();
-        }
-    };
-
-    canvasViewport->setScrollBarsShown(true, true, true, true);
-
-    viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
-
-    jumpToOrigin();
-}
 
 void Canvas::jumpToOrigin()
 {
-    setTopLeftPosition(-canvasOrigin + Point<int>(1, 1));
-    viewport->resized();
+    viewport->setViewPosition(canvasOrigin.transformedBy(getTransform()) + Point<int>(1, 1));
 }
 
 void Canvas::zoomToFitAll()
@@ -267,17 +261,18 @@ void Canvas::zoomToFitAll()
         auto scaleWidth = viewWidth / roiWidth;
         auto scaleHeight = viewHeight / roiHeight;
         scale = jmin(scaleWidth, scaleHeight);
+
         auto transform = getTransform();
         transform = transform.scaled(scale);
         setTransform(transform);
+
         scale = std::sqrt(std::abs(transform.getDeterminant()));
         zoomScale.setValue(scale);
     }
-    // TODO we should set the fit all area to the centre of the view area - but this isn't working for some reason
-    //  for now we will set the top left of the region of interest
-    auto centre = viewport->getViewArea().withZeroOrigin().getCentre() / scale;
-    setTopLeftPosition(centre - regionOfInterest.getCentre());
-    viewport->resized();
+
+    auto viewportCentre = viewport->getViewArea().withZeroOrigin().getCentre();
+    auto newViewPos = regionOfInterest.transformed(getTransform()).getCentre() - viewportCentre;
+    viewport->setViewPosition(newViewPos);
 }
 
 void Canvas::lookAndFeelChanged()
@@ -383,15 +378,10 @@ void Canvas::paint(Graphics& g)
 
 TabComponent* Canvas::getTabbar()
 {
-    auto* leftTabbar = editor->splitView.getLeftTabbar();
-    auto* rightTabbar = editor->splitView.getRightTabbar();
-
-    if (leftTabbar->getIndexOfCanvas(this) >= 0) {
-        return leftTabbar;
-    }
-
-    if (rightTabbar->getIndexOfCanvas(this) >= 0) {
-        return rightTabbar;
+    for (auto split : editor->splitView.splits) {
+        auto tabbar = split->getTabComponent();
+        if (tabbar->getIndexOfCanvas(this) >= 0)
+            return tabbar;
     }
 
     return nullptr;
@@ -399,12 +389,13 @@ TabComponent* Canvas::getTabbar()
 
 void Canvas::globalFocusChanged(Component* focusedComponent)
 {
-    if (!focusedComponent || !editor->splitView.isSplitEnabled() || editor->splitView.hasFocus(this))
-        return;
-
-    if (focusedComponent == this || focusedComponent->findParentComponentOfClass<Canvas>() == this) {
-        editor->splitView.setFocus(this);
-    }
+    // ALEX do we need any of this?
+    //if (!focusedComponent || !editor->splitView.isSplitEnabled() || editor->splitView.hasFocus(this))
+    //    return;
+    //
+    //if (focusedComponent == this || focusedComponent->findParentComponentOfClass<Canvas>() == this) {
+    //    editor->splitView.setFocus(this);
+    //}
 }
 
 void Canvas::tabChanged()
@@ -426,10 +417,7 @@ void Canvas::tabChanged()
 
 int Canvas::getTabIndex()
 {
-    auto leftIdx = editor->splitView.getLeftTabbar()->getIndexOfCanvas(this);
-    auto rightIdx = editor->splitView.getRightTabbar()->getIndexOfCanvas(this);
-
-    return leftIdx >= 0 ? leftIdx : rightIdx;
+    return getTabbar()->getIndexOfCanvas(this);
 }
 
 void Canvas::handleAsyncUpdate()
@@ -443,18 +431,11 @@ void Canvas::synchronise()
 }
 
 void Canvas::synchroniseSplitCanvas()
-{
-    auto* leftTabbar = editor->splitView.getLeftTabbar();
-    auto* rightTabbar = editor->splitView.getRightTabbar();
-    if (getTabbar() == leftTabbar && rightTabbar) {
-        if (auto* rightCnv = rightTabbar->getCurrentCanvas()) {
-            rightCnv->synchronise();
-        }
-    }
-    if (getTabbar() == rightTabbar && leftTabbar) {
-        if (auto* leftCnv = leftTabbar->getCurrentCanvas()) {
-            leftCnv->synchronise();
-        }
+{   
+    for (auto split : editor->splitView.splits) {
+        auto tabbar = split->getTabComponent();
+        if (auto* activeTabCanvas = tabbar->getCurrentCanvas())
+            activeTabCanvas->synchronise();
     }
 }
 
@@ -618,6 +599,16 @@ void Canvas::altKeyChanged(bool isHeld)
     SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", isHeld, nullptr);
 }
 
+void Canvas::focusGained(FocusChangeType type)
+{
+    //std::cout << "focus on canvas: " << this << std::endl;
+}
+
+void Canvas::focusLost(FocusChangeType type)
+{
+    //std::cout << "focus lost on canvas: " << this << std::endl;
+}
+
 void Canvas::mouseDown(MouseEvent const& e)
 {
     PopupMenu::dismissAllActiveMenus();
@@ -711,7 +702,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
         return;
     }
 
-    auto viewportEvent = e.getEventRelativeTo(viewport);
+    auto viewportEvent = e.getEventRelativeTo(viewport.get());
     if (viewport && !ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
         beginDragAutoRepeat(25);
     }
@@ -904,6 +895,57 @@ void Canvas::copySelection()
     patch.deselectAll();
 }
 
+void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight)
+{
+    locked = false;
+    presentationMode = false;
+
+    // force the valueChanged to run, and wait for them to return
+    locked.getValueSource().sendChangeMessage(true);
+    presentationMode.getValueSource().sendChangeMessage(true);
+
+    MessageManager::callAsync([_this = SafePointer(this)]() {
+        if (_this)
+            _this->grabKeyboardFocus();
+    });
+
+    patch.startUndoSequence("DragAndDropPaste"); // TODO: we can add the name of the event that it's dragging from?
+
+    auto patchSize = Point<int>(patchWidth, patchHeight);
+    String translatedObjects = pd::Patch::translatePatchAsString(patchString, mousePos - (patchSize / 2.0f));
+
+    if (auto patchPtr = patch.getPointer()) {
+        libpd_paste(patchPtr.get(), translatedObjects.toRawUTF8());
+    }
+
+    deselectAll();
+
+    // Load state from pd
+    performSynchronise();
+
+    patch.setCurrent();
+
+    std::vector<void*> pastedObjects;
+
+    auto* patchPtr = patch.getPointer().get();
+    if (!patchPtr)
+        return;
+
+    pd->lockAudioThread();
+    for (auto* object : objects) {
+        auto* objectPtr = static_cast<t_gobj*>(object->getPointer());
+        if (objectPtr && glist_isselected(patchPtr, objectPtr)) {
+            setSelected(object, true);
+            pastedObjects.emplace_back(objectPtr);
+        }
+    }
+    pd->unlockAudioThread();
+
+    patch.deselectAll();
+    pastedObjects.clear();
+    patch.endUndoSequence("DragAndDropPaste");
+}
+
 void Canvas::pasteSelection()
 {
     patch.startUndoSequence("Paste");
@@ -917,7 +959,7 @@ void Canvas::pasteSelection()
     pastedPosition = lastMousePosition;
 
     // Tell pd to paste with offset applied to the clipboard string
-    patch.paste(Point<int>(pastedPosition.x + pastedPadding.x + 1540, pastedPosition.y + pastedPadding.y + 1540));
+    patch.paste(Point<int>(pastedPosition.x + pastedPadding.x, pastedPosition.y + pastedPadding.y));
 
     deselectAll();
 
@@ -1493,7 +1535,7 @@ bool Canvas::checkPanDragMode()
 
 bool Canvas::setPanDragMode(bool shouldPan)
 {
-    if (auto* v = dynamic_cast<CanvasViewport*>(viewport)) {
+    if (auto* v = dynamic_cast<CanvasViewport*>(viewport.get())) {
         v->enableMousePanning(shouldPan);
         return true;
     }

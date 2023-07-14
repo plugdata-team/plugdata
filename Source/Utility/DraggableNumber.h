@@ -10,23 +10,26 @@ class DraggableNumber : public Label
     , public Label::Listener {
 
 protected:
-    float dragValue = 0.0f;
+    double dragValue = 0.0;
     int decimalDrag = 0;
-    int numDecimalsToShow = 0;
+    int hoveredDecimal = -1;
+    Rectangle<float> hoveredDecimalPosition;
 
-    float lastValue = 0.0f;
+    double lastValue = 0.0;
 
     bool isMinLimited = false, isMaxLimited = false;
     bool onlyIntegers = false;
-    float min = 0.0f, max = 0.0f;
+    double min = 0.0, max = 0.0;
 
     bool resetOnCommandClick = false;
     bool wasReset = false;
-    float valueToResetTo = 0.0f;
-    float valueToRevertTo = 0.0f;
+    double valueToResetTo = 0.0;
+    double valueToRevertTo = 0.0;
+        
+    GlyphArrangement currentGlyphs;
 
 public:
-    std::function<void(float)> valueChanged = [](float) {};
+    std::function<void(double)> valueChanged = [](double) {};
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
 
@@ -47,13 +50,8 @@ public:
 
     void editorHidden(Label* l, TextEditor& editor) override
     {
-        auto newValue = editor.getText().getFloatValue();
-
-        newValue = limitValue(newValue);
-
-        lastValue = newValue;
-        setText(formatNumber(newValue), dontSendNotification);
-
+        auto newValue = editor.getText().getDoubleValue();
+        setValue(newValue, dontSendNotification);
         dragEnd();
     }
 
@@ -63,13 +61,13 @@ public:
         setInterceptsMouseClicks(true, true);
     }
 
-    void setMaximum(float maximum)
+    void setMaximum(double maximum)
     {
         isMaxLimited = true;
         max = maximum;
     }
 
-    void setMinimum(float minimum)
+    void setMinimum(double minimum)
     {
         isMinLimited = true;
         min = minimum;
@@ -97,18 +95,18 @@ public:
         }
 
         if (!isEditableOnSingleClick() && !getCurrentTextEditor() && key.isKeyCode(KeyPress::upKey)) {
-            setValue(getText().getFloatValue() + 1.0f);
+            setValue(getText().getDoubleValue() + 1.0);
             return true;
         }
         if (!isEditableOnSingleClick() && !getCurrentTextEditor() && key.isKeyCode(KeyPress::downKey)) {
-            setValue(getText().getFloatValue() - 1.0f);
+            setValue(getText().getDoubleValue() - 1.0);
             return true;
         }
 
         return false;
     }
 
-    void setValue(float newValue)
+    void setValue(double newValue, NotificationType notification = sendNotification)
     {
         wasReset = false;
 
@@ -116,12 +114,13 @@ public:
 
         if (lastValue != newValue) {
             lastValue = newValue;
-            setText(String(newValue), sendNotification);
+            
+            setText(String(newValue, 8), notification);
             valueChanged(newValue);
         }
     }
 
-    float getValue() const
+    double getValue() const
     {
         return lastValue;
     }
@@ -131,7 +130,7 @@ public:
         resetOnCommandClick = enableReset;
     }
 
-    void setResetValue(float resetValue)
+    void setResetValue(double resetValue)
     {
         valueToResetTo = resetValue;
     }
@@ -153,6 +152,9 @@ public:
 
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
+        
+        hoveredDecimal = -1;
+        repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -173,7 +175,7 @@ public:
             }
         }
 
-        dragValue = getText().getFloatValue();
+        dragValue = getText().getDoubleValue();
 
         auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
 
@@ -182,51 +184,127 @@ public:
 
         if (onlyIntegers) {
             decimalDrag = 0;
-            numDecimalsToShow = 0;
             return;
         }
-
-        float decimalX = getWidth();
+        
+        decimalDrag = getDecimalAtPosition(e.getMouseDownX());
+        
+        dragStart();
+    }
+    
+    int getDecimalAtPosition(int x, Rectangle<float>* position = nullptr)
+    {
+        auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
+                
+        if(onlyIntegers)
+        {
+           GlyphArrangement glyphs;
+           glyphs.addFittedText(getFont(), getText().upToFirstOccurrenceOf(".", false, false), textArea.getX(), 0., 500, getHeight(), 1, 1.0f);
+           auto glyphsBounds = glyphs.getBoundingBox(0, glyphs.getNumGlyphs(), false);
+           if(x < glyphsBounds.getRight())
+           {
+               if(position) *position = glyphsBounds;
+               return 0;
+           }
+           else
+           {
+               if(position) *position = Rectangle<float>();
+               return -1;
+           }
+        }
+        
+        GlyphArrangement glyphs;
+        auto formattedNumber = formatNumber(getText().getDoubleValue());
+        auto fullNumber = formattedNumber + String("000000");
+        glyphs.addFittedText(getFont(), fullNumber, textArea.getX(), 0., 500, getHeight(), 1, 1.0f);
+        int draggedDecimal = -1;
+        
+        int decimalPointPosition = 0;
+        bool afterDecimalPoint = false;
         for (int i = 0; i < glyphs.getNumGlyphs(); ++i) {
             auto const& glyph = glyphs.getGlyph(i);
-            if (glyph.getCharacter() == '.') {
-                decimalX = glyph.getRight();
+            
+            bool isDecimalPoint = glyph.getCharacter() == '.';
+            if(isDecimalPoint)
+            {
+                decimalPointPosition = i;
+                afterDecimalPoint = true;
             }
-        }
-
-        bool const isDraggingDecimal = e.x > decimalX;
-
-        decimalDrag = isDraggingDecimal ? 6 : 0;
-
-        if (isDraggingDecimal) {
-            GlyphArrangement decimalsGlyph;
-            static const String decimalStr("000000");
-
-            decimalsGlyph.addFittedText(getFont(), decimalStr, decimalX, 0, getWidth(), getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
-
-            for (int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i) {
-                auto const& glyph = decimalsGlyph.getGlyph(i);
-                if (e.x <= glyph.getRight()) {
-                    decimalDrag = i + 1;
-                    break;
+            
+            if (x <= glyph.getRight()) {
+                draggedDecimal = isDecimalPoint ? 0 : i - decimalPointPosition;
+                
+                auto glyphBounds = glyph.getBounds();
+                if(!afterDecimalPoint)
+                {
+                    continue;
                 }
+                if(isDecimalPoint) {
+                    glyphBounds = Rectangle<float>();
+                    for(int j = 0; j < i; j++)
+                    {
+                        glyphBounds = glyphBounds.getUnion(glyphs.getGlyph(j).getBounds());
+                    }
+                }
+                if(position) *position = glyphBounds;
+                
+                break;
             }
         }
-
-        numDecimalsToShow = decimalDrag;
-
-        dragStart();
+        
+        return draggedDecimal;
     }
 
     void paint(Graphics& g) override
     {
+        if(hoveredDecimal >= 0)
+        {
+            
+            // TODO: make this colour Id configurable?
+            g.setColour(findColour(ComboBox::outlineColourId).withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
+            PlugDataLook::fillSmoothedRectangle(g, hoveredDecimalPosition, 2.5f);
+            
+        }
+        
         if (!isBeingEdited()) {
+            
+            
+            auto textArea = getBorderSize().subtractedFrom(getLocalBounds()).toFloat();
+            //g.drawText(formatNumber(getText().getDoubleValue(), decimalDrag), textArea, Justification::centredLeft);
+            
+            auto numberText = formatNumber(getText().getDoubleValue(), decimalDrag);
+            auto extraNumberText = String();
+            auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
+            for (int i = 0; i < std::min(hoveredDecimal - decimalDrag, 7 - numDecimals); ++i)
+                extraNumberText += "0";
+            
+            auto numberTextLength = getFont().getStringWidthFloat(numberText);
+            
             g.setFont(getFont());
             g.setColour(findColour(Label::textColourId));
-
-            auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
-            g.drawText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::centredLeft);
+            g.drawText(numberText, textArea, Justification::centredLeft);
+            
+            if(!onlyIntegers) {
+                g.setColour(findColour(Label::textColourId).withAlpha(0.4f));
+                g.drawText(extraNumberText, textArea.withTrimmedLeft(numberTextLength), Justification::centredLeft);
+            }
         }
+    }
+    
+    void updateHoverPosition(int x)
+    {
+        int oldHoverPosition = hoveredDecimal;
+        hoveredDecimal = getDecimalAtPosition(x, &hoveredDecimalPosition);
+        
+        if(oldHoverPosition != hoveredDecimal)
+        {
+            repaint();
+        }
+    }
+
+    void mouseMove(MouseEvent const& e) override
+    {
+        updateHoverPosition(e.x);
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -234,6 +312,8 @@ public:
         if (isBeingEdited())
             return;
 
+        updateHoverPosition(e.getMouseDownX());
+        
         // Hide cursor and set unbounded mouse movement
         setMouseCursor(MouseCursor::NoCursor);
         updateMouseCursor();
@@ -242,28 +322,26 @@ public:
         mouseSource.enableUnboundedMouseMovement(true, true);
 
         int const decimal = decimalDrag + e.mods.isShiftDown();
-        float const increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
-        float const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
+        double const increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
+        double const deltaY = (e.y - e.mouseDownPosition.y) * 0.7;
 
         // truncate value and set
-        float newValue = dragValue + (increment * -deltaY);
+        double newValue = dragValue + (increment * -deltaY);
 
         if (decimal > 0) {
             int const sign = (newValue > 0) ? 1 : -1;
-            unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
-            newValue = (((float)ui_temp) / std::pow(10, decimal) * sign);
+            unsigned long long ui_temp = (newValue * std::pow(10, decimal)) * sign;
+            newValue = (((long double)ui_temp) / std::pow(10, decimal) * sign);
         } else {
             newValue = static_cast<int64_t>(newValue);
         }
 
-        numDecimalsToShow = decimal;
-
         setValue(newValue);
     }
 
-    float limitValue(float valueToLimit) const
+    double limitValue(double valueToLimit) const
     {
-        if (min == 0.0f && max == 0.0f)
+        if (min == 0.0 && max == 0.0)
             return valueToLimit;
 
         if (isMinLimited)
@@ -279,6 +357,8 @@ public:
         if (isBeingEdited())
             return;
 
+        repaint();
+        
         // Show cursor again
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
@@ -294,9 +374,9 @@ public:
         }
     }
 
-    static String formatNumber(float value, int precision = -1)
+    static String formatNumber(double value, int precision = -1)
     {
-        auto text = String(value, precision);
+        auto text = String(value, precision == -1 ? 8 : precision);
 
         if (!text.containsChar('.'))
             text << '.';
@@ -321,55 +401,26 @@ struct DraggableListNumber : public DraggableNumber {
     {
         if (isBeingEdited())
             return;
+        
+        repaint();
 
-        bool shift = e.mods.isShiftDown();
-
-        auto const textArea = getBorderSize().subtractedFrom(getBounds());
-
-        GlyphArrangement glyphs;
-        glyphs.addFittedText(getFont(), getText(), textArea.getX(), 0., textArea.getWidth(), textArea.getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
-
-        auto text = getText();
-        targetFound = false;
-        // Loop to find start of item
-        for (int i = 0; i < glyphs.getNumGlyphs(); i++) {
-            auto const& startGlyph = glyphs.getGlyph(i);
-
-            // Don't start at whitespace
-            if (startGlyph.isWhitespace())
-                continue;
-
-            // Loop from start to find end of item
-            for (int j = i; j < glyphs.getNumGlyphs(); j++) {
-                auto const& endGlyph = glyphs.getGlyph(j);
-
-                // End of item when we find whitespace or end of message
-                if (endGlyph.isWhitespace() || j == glyphs.getNumGlyphs() - 1) {
-                    if (j == glyphs.getNumGlyphs() - 1)
-                        j++;
-                    auto number = text.substring(i, j);
-
-                    // Check if item is a number and if mouse clicked on it
-                    if (number.containsOnly("0123456789.-") && e.x >= startGlyph.getLeft() && e.x <= endGlyph.getRight()) {
-                        numberStartIdx = i;
-                        numberEndIdx = j;
-                        dragValue = number.getFloatValue();
-                        targetFound = true;
-                    }
-
-                    // Move start to end of current item
-                    i = j;
-                    break;
-                }
-            }
-            if (targetFound)
-                break;
+        auto [numberStart, numberEnd, numberValue] = getListItemAtPosition(e.x);
+     
+        numberStartIdx = numberStart;
+        numberEndIdx = numberEnd;
+        dragValue = numberValue;
+        
+        targetFound = numberStart != -1;
+        if(targetFound)
+        {
+            dragStart();
         }
-
-        if (!targetFound)
-            return;
-
-        dragStart();
+    }
+    
+    
+    void mouseMove(MouseEvent const& e) override
+    {
+        updateListHoverPosition(e.x);
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -377,6 +428,8 @@ struct DraggableListNumber : public DraggableNumber {
         if (isBeingEdited() || !targetFound)
             return;
 
+        updateListHoverPosition(e.x);
+        
         // Hide cursor and set unbounded mouse movement
         setMouseCursor(MouseCursor::NoCursor);
         updateMouseCursor();
@@ -384,10 +437,10 @@ struct DraggableListNumber : public DraggableNumber {
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
-        float const increment = 1.;
-        float const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
+        double const increment = 1.;
+        double const deltaY = (e.y - e.mouseDownPosition.y) * 0.7;
 
-        float newValue = dragValue + std::floor(increment * -deltaY);
+        double newValue = dragValue + std::floor(increment * -deltaY);
 
         newValue = limitValue(newValue);
 
@@ -411,7 +464,7 @@ struct DraggableListNumber : public DraggableNumber {
     {
         if (isBeingEdited() || !targetFound)
             return;
-
+        
         // Show cursor again
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
@@ -425,6 +478,14 @@ struct DraggableListNumber : public DraggableNumber {
 
     void paint(Graphics& g) override
     {
+        if(hoveredDecimal >= 0)
+        {
+            // TODO: make this colour Id configurable?
+            g.setColour(findColour(ComboBox::outlineColourId).withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
+            PlugDataLook::fillSmoothedRectangle(g, hoveredDecimalPosition, 2.5f);
+            
+        }
+        
         if (!isBeingEdited()) {
             g.setColour(findColour(Label::textColourId));
             g.setFont(getFont());
@@ -439,5 +500,63 @@ struct DraggableListNumber : public DraggableNumber {
         setText(editor.getText().trimEnd(), dontSendNotification);
 
         dragEnd();
+    }
+    
+    void updateListHoverPosition(int x)
+    {
+        int oldHoverPosition = hoveredDecimal;
+        
+        Rectangle<float> position;
+        auto [numberStart, numberEnd, numberValue] = getListItemAtPosition(x, &hoveredDecimalPosition);
+
+        hoveredDecimal = numberStart;
+        
+        if(oldHoverPosition != hoveredDecimal)
+        {
+            repaint();
+        }
+    }
+    
+    std::tuple<int, int, double> getListItemAtPosition(int x, Rectangle<float>* position = nullptr)
+    {
+        auto const textArea = getBorderSize().subtractedFrom(getBounds());
+
+        GlyphArrangement glyphs;
+        glyphs.addFittedText(getFont(), getText(), textArea.getX(), 0., textArea.getWidth(), textArea.getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
+
+        auto text = getText();
+        // Loop to find start of item
+        for (int i = 0; i < glyphs.getNumGlyphs(); i++) {
+            auto const& startGlyph = glyphs.getGlyph(i);
+
+            // Don't start at whitespace
+            if (startGlyph.isWhitespace())
+                continue;
+
+            // Loop from start to find end of item
+            for (int j = i; j < glyphs.getNumGlyphs(); j++) {
+                auto const& endGlyph = glyphs.getGlyph(j);
+
+                // End of item when we find whitespace or end of message
+                if (endGlyph.isWhitespace() || j == glyphs.getNumGlyphs() - 1) {
+                    if (j == glyphs.getNumGlyphs() - 1)
+                        j++;
+                    auto number = text.substring(i, j);
+
+                    // Check if item is a number and if mouse clicked on it
+                    if (number.containsOnly("0123456789.-") && x >= startGlyph.getLeft() && x <= endGlyph.getRight()) {
+                        
+                        if(position) *position = glyphs.getBoundingBox(i, j - i, false).translated(0, 2);
+                        return {i, j, number.getDoubleValue()};
+                    }
+
+                    // Move start to end of current item
+                    i = j;
+                    break;
+                }
+            }
+        }
+        
+        return {-1, -1, 0.0f};
     }
 };

@@ -47,6 +47,32 @@ public:
         addCustomItem(getMenuItemID(MenuItem::Save), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Save)]), nullptr, "Save patch");
         addCustomItem(getMenuItemID(MenuItem::SaveAs), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::SaveAs)]), nullptr, "Save patch as");
 
+        auto plugdataState = new PopupMenu();
+        plugdataState->addItem("Import state", [editor]() mutable {
+            
+            static auto openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
+
+            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
+                MemoryBlock block;
+                f.getResult().loadFileAsData(block);
+                editor->processor.setStateInformation(block.getData(), block.getSize());
+            });
+        });
+        plugdataState->addItem("Export state", [editor]() mutable {
+            static auto saveChooser = std::make_unique<FileChooser>("Choose save location", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
+
+            saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
+                auto file = f.getResult();
+                if (file.getParentDirectory().exists()) {
+                    MemoryBlock destData;
+                    editor->processor.getStateInformation(destData);
+                    file.replaceWithData(destData.getData(), destData.getSize());
+                }
+            });
+        });
+        
+        addCustomItem(getMenuItemID(MenuItem::State), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::State)]), std::unique_ptr<PopupMenu const>(plugdataState), "State");
+        
         addSeparator();
 
         addCustomItem(getMenuItemID(MenuItem::CloseAll), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::CloseAll)]), nullptr, "Close all patches");
@@ -149,14 +175,14 @@ public:
             scale = static_cast<float>(static_cast<int>(round(scale * 10.))) / 10.;
 
             // Get the current viewport position in canvas coordinates
-            auto oldViewportPosition = cnv->getLocalPoint(cnv->viewport, cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
+            auto oldViewportPosition = cnv->getLocalPoint(cnv->viewport.get(), cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
 
             // Apply transform and make sure viewport bounds get updated
             cnv->setTransform(AffineTransform::scale(scale));
             cnv->viewport->resized();
 
             // After zooming, get the new viewport position in canvas coordinates
-            auto newViewportPosition = cnv->getLocalPoint(cnv->viewport, cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
+            auto newViewportPosition = cnv->getLocalPoint(cnv->viewport.get(), cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
 
             // Calculate offset to keep the center point of the viewport the same as before this zoom action
             auto offset = newViewportPosition - oldViewportPosition;
@@ -344,6 +370,7 @@ public:
         History,
         Save,
         SaveAs,
+        State,
         CloseAll,
         CompiledMode,
         Compile,
@@ -373,6 +400,7 @@ public:
         new IconMenuItem(Icons::SavePatch, "Save patch", false, false),
         new IconMenuItem(Icons::SaveAs, "Save patch as...", false, false),
 
+        new IconMenuItem("", "State", true, false),
         new IconMenuItem(Icons::CloseAllPatches, "Close all patches", false, false),
 
         new IconMenuItem("", "Compiled Mode", false, true),

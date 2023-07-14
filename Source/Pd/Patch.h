@@ -119,6 +119,7 @@ public:
     Instance* instance = nullptr;
     bool closePatchOnDelete;
     bool openInPluginMode = false;
+    int splitViewIndex = 0;
 
 private:
     File currentFile;

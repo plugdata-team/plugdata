@@ -113,7 +113,7 @@ public:
         if (isPositiveAndBelow(row, items.size())) {
             if (rowIsSelected) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5, 3, width - 10, height - 6), Corners::defaultCornerRadius);
+                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(3, 3, width - 6, height - 6), Corners::defaultCornerRadius);
             }
 
             auto const textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);

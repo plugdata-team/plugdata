@@ -164,12 +164,9 @@ public:
 
     void tabChanged() override
     {
-        auto* leftTabbar = cnv->editor->splitView.getLeftTabbar();
-        auto* rightTabbar = cnv->editor->splitView.getRightTabbar();
+        auto* tabbar = cnv->getTabbar();
 
-        auto* otherTabbar = cnv->getTabbar() == leftTabbar ? rightTabbar : leftTabbar;
-
-        if (auto* otherCnv = otherTabbar->getCurrentCanvas()) {
+        if (auto* otherCnv = tabbar->getCurrentCanvas()) {
             isOpenedInSplitView = otherCnv->patch == *getPatch();
         } else {
             isOpenedInSplitView = false;

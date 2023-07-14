@@ -288,9 +288,11 @@ PluginEditor::~PluginEditor()
     setConstrainer(nullptr);
 
     theme.removeListener(this);
+}
 
-    pd->lastLeftTab = splitView.getLeftTabbar()->getCurrentTabIndex();
-    pd->lastRightTab = splitView.getRightTabbar()->getCurrentTabIndex();
+SplitView* PluginEditor::getSplitView()
+{
+    return &splitView;
 }
 
 void PluginEditor::setZoomLabelLevel(float value)
@@ -607,7 +609,10 @@ TabComponent* PluginEditor::getActiveTabbar()
 
 Canvas* PluginEditor::getCurrentCanvas()
 {
-    return getActiveTabbar()->getCurrentCanvas();
+    if (auto activeTabbar = getActiveTabbar()) {
+        return activeTabbar->getCurrentCanvas();
+    }
+    return nullptr;
 }
 
 void PluginEditor::closeAllTabs(bool quitAfterComplete)
@@ -662,19 +667,17 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     sidebar->hideParameters();
 
-    if (tabbar->getCurrentTabIndex() == tabIdx)
-        tabbar->setCurrentTabIndex(tabIdx > 0 ? tabIdx - 1 : tabIdx);
-
     tabbar->removeTab(tabIdx);
     canvases.removeObject(cnv);
 
+    tabbar->setCurrentTabIndex(tabIdx > (tabbar->getNumTabs() - 1) ? tabIdx - 1 : tabIdx);
+
     pd->patches.removeAllInstancesOf(patch);
 
-    if (auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas()) {
-        leftCnv->tabChanged();
-    }
-    if (auto* rightCnv = splitView.getRightTabbar()->getCurrentCanvas()) {
-        rightCnv->tabChanged();
+    for (auto split : splitView.splits) {
+        auto tabbar = split->getTabComponent();
+        if (auto* cnv = tabbar->getCurrentCanvas())
+            cnv->tabChanged();
     }
 
     pd->updateObjectImplementations();
@@ -690,66 +693,37 @@ void PluginEditor::closeTab(Canvas* cnv)
     });
 }
 
-void PluginEditor::addTab(Canvas* cnv)
+void PluginEditor::addTab(Canvas* cnv, int splitIdx)
 {
-    // Create a pointer to the TabBar in focus
-    auto* focusedTabbar = splitView.getActiveTabbar();
-
-    int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
-
-    // Add tab next to the currently focused tab
     auto patchTitle = cnv->patch.getTitle();
-    focusedTabbar->addTab(patchTitle, findColour(ResizableWindow::backgroundColourId), cnv->viewport, true, newTabIdx);
+    
+    // Create a pointer to the TabBar in focus
+    TabComponent* focusedTabbar;
+    if(splitIdx < 0)
+    {
+        auto* focusedTabbar = splitView.getActiveTabbar();
+        int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
+
+        // Add tab next to the currently focused tab
+        focusedTabbar->addTab(patchTitle, cnv->viewport.get(), newTabIdx);
+        focusedTabbar->setCurrentTabIndex(newTabIdx);
+    }
+    else {
+        if(splitIdx > splitView.splits.size() - 1) {
+            while(splitIdx > splitView.splits.size() - 1)
+            {
+                splitView.createNewSplit(cnv);
+            }
+        }
+        else {
+            auto* tabComponent = splitView.splits[splitIdx]->getTabComponent();
+            tabComponent->addTab(patchTitle, cnv->viewport.get(), tabComponent->getNumTabs() + 1);
+        }
+    }
 
     // Open help files and references in Locked Mode
     if (patchTitle.contains("-help") || patchTitle.equalsIgnoreCase("reference"))
         cnv->locked.setValue(true);
-
-    focusedTabbar->setCurrentTabIndex(newTabIdx);
-    focusedTabbar->setTabBackgroundColour(newTabIdx, Colours::transparentBlack);
-
-    auto* tabButton = focusedTabbar->getTabbedButtonBar().getTabButton(newTabIdx);
-    tabButton->setTriggeredOnMouseDown(true);
-
-    auto* closeTabButton = new TextButton(Icons::Clear);
-    closeTabButton->getProperties().set("Style", "Icon");
-    closeTabButton->getProperties().set("FontScale", 0.44f);
-    closeTabButton->setColour(TextButton::buttonColourId, Colour());
-    closeTabButton->setColour(TextButton::buttonOnColourId, Colour());
-    closeTabButton->setColour(ComboBox::outlineColourId, Colour());
-    closeTabButton->setConnectedEdges(12);
-    closeTabButton->setSize(28, 28);
-
-    // Add the close button to the tab button
-    tabButton->setExtraComponent(closeTabButton, TabBarButton::afterText);
-
-    closeTabButton->onClick = [this, focusedTabbar, tabButton]() mutable {
-        // We cant use the index from earlier because it might have changed!
-        const int tabIdx = tabButton->getIndex();
-        auto* cnv = focusedTabbar->getCanvas(tabIdx);
-
-        if (tabIdx == -1)
-            return;
-
-        if (cnv) {
-            MessageManager::callAsync([this, cnv = SafePointer(cnv)]() mutable {
-                // Don't show save dialog, if patch is still open in another view
-                if (cnv && cnv->patch.isDirty()) {
-                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
-                        [this, cnv](int result) mutable {
-                            if (!cnv)
-                                return;
-                            if (result == 2)
-                                saveProject([this, cnv]() mutable { closeTab(cnv); });
-                            else if (result == 1)
-                                closeTab(cnv);
-                        });
-                } else {
-                    closeTab(cnv);
-                }
-            });
-        }
-    };
 
     cnv->setVisible(true);
     cnv->jumpToOrigin();
