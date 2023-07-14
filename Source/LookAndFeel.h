@@ -908,7 +908,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         if (Desktop::canUseSemiTransparentWindows()) {
             return 12;
         } else {
-            return 2;
+            return 6;
         }
     };
 

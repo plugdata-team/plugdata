@@ -46,21 +46,16 @@ public:
     {
         auto targetArea = getLocalArea(targetComponent, targetComponent->getLocalBounds());
 
-        auto margin = getLookAndFeel().getPopupMenuBorderSize();
-
         auto arrowHeight = 12;
         auto arrowWidth = 22;
 
         Path arrow;
         Rectangle<float> arrowBounds;
         Rectangle<float> extensionBounds;
-
+        int verticalMargin = Desktop::canUseSemiTransparentWindows() ? 6 : 1;
         // Check if we need to draw an arrow up or down
         if (targetArea.getY() <= menuBounds.getY()) {
-
-            auto menuMargin = margin - jmap<float>(margin, 2.0f, 10.0f, 0.5f, 4.5f);
-
-            arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getY() - arrowHeight + menuMargin, arrowWidth, arrowHeight);
+            arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getY() - arrowHeight + verticalMargin, arrowWidth, arrowHeight);
 
             extensionBounds = arrowBounds;
             extensionBounds = extensionBounds.removeFromBottom(1).withTrimmedBottom(-2).reduced(1, 0);
@@ -69,10 +64,7 @@ public:
             arrow.lineTo(arrowBounds.getCentreX(), arrowBounds.getY());
             arrow.lineTo(arrowBounds.getBottomRight());
         } else {
-
-            auto menuMargin = margin - jmap<float>(margin, 2.0f, 12.0f, -8.0f, 5.78f);
-
-            arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getBottom() - arrowHeight + menuMargin, arrowWidth, arrowHeight);
+            arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f), menuBounds.getBottom() - verticalMargin, arrowWidth, arrowHeight);
 
             extensionBounds = arrowBounds;
             extensionBounds = extensionBounds.removeFromTop(1).withTrimmedTop(-2).reduced(1, 0);
@@ -86,12 +78,14 @@ public:
         arrow.closeSubPath();
 
         // Reduce clip region before drawing shadow to ensure there's no shadow at the bottom
-        g.saveState();
-        g.reduceClipRegion(arrowBounds.toNearestInt());
-
-        StackShadow::renderDropShadow(g, arrowOutline, Colour(0, 0, 0).withAlpha(0.3f), 7, { 0, targetArea.getY() <= menuBounds.getY() ? 2 : -2 });
-
-        g.restoreState();
+        if(ProjectInfo::canUseSemiTransparentWindows()) {
+            g.saveState();
+            g.reduceClipRegion(arrowBounds.toNearestInt());
+            
+            StackShadow::renderDropShadow(g, arrowOutline, Colour(0, 0, 0).withAlpha(0.3f), 7, { 0, targetArea.getY() <= menuBounds.getY() ? 2 : -2 });
+            
+            g.restoreState();
+        }
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRect(extensionBounds);
