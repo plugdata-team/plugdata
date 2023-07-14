@@ -23,6 +23,7 @@ public:
     {
         panel.setTitleHeight(20);
         panel.setTitleAlignment(PropertiesPanel::AlignWithPropertyName);
+        panel.setDrawShadowAndOutline(false);
         addAndMakeVisible(panel);
         lookAndFeelChanged();
     }

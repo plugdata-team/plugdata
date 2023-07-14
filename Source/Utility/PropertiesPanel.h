@@ -107,11 +107,11 @@ private:
             }
             
             Fonts::drawStyledText(g, getName(), titleX, 0, width - 4, parent.titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
-
+            
             auto propertyBounds = Rectangle<float>(x, parent.titleHeight + 8.0f, width, getHeight() - (parent.titleHeight + 16.0f));
             
             // Don't draw the shadow if the background colour has opacity
-            if(parent.panelColour.getAlpha() == 255) {
+            if(parent.drawShadowAndOutline) {
                 Path p;
                 p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
                 StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
@@ -120,8 +120,11 @@ private:
             g.setColour(parent.panelColour);
             g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-            g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
+            // Don't draw the outline if the background colour has opacity
+            if(parent.drawShadowAndOutline) {
+                g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+                g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
+            }
 
             if (!propertyComps.isEmpty() && !extraHeaderNames.isEmpty()) {
                 auto propertyBounds = Rectangle<int>(x + width / 2, 0, width / 2, parent.titleHeight);
@@ -931,6 +934,11 @@ public:
         separatorColour = newSeparatorColour;
     }
         
+    void setDrawShadowAndOutline(bool shouldDrawShadowAndOutline)
+    {
+        drawShadowAndOutline = shouldDrawShadowAndOutline;
+    }
+        
     void setTitleHeight(int newTitleHeight)
     {
         titleHeight = newTitleHeight;
@@ -976,10 +984,11 @@ public:
         onLayoutChange();
     }
 
-        
+    
     TitleAlignment titleAlignment = AlignWithSection;
     Colour panelColour;
     Colour separatorColour;
+    bool drawShadowAndOutline = true;
     int titleHeight = 26;
     int contentWidth = 600;
     BouncingViewport viewport;
