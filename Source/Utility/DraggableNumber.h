@@ -195,12 +195,28 @@ public:
     int getDecimalAtPosition(int x, Rectangle<float>* position = nullptr)
     {
         auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
+                
+        if(onlyIntegers)
+        {
+           GlyphArrangement glyphs;
+           glyphs.addFittedText(getFont(), getText().upToFirstOccurrenceOf(".", false, false), textArea.getX(), 0., 500, getHeight(), 1, 1.0f);
+           auto glyphsBounds = glyphs.getBoundingBox(0, glyphs.getNumGlyphs(), false);
+           if(x < glyphsBounds.getRight())
+           {
+               if(position) *position = glyphsBounds;
+               return 0;
+           }
+           else
+           {
+               if(position) *position = Rectangle<float>();
+               return -1;
+           }
+        }
         
         GlyphArrangement glyphs;
         auto formattedNumber = formatNumber(getText().getDoubleValue());
         auto fullNumber = formattedNumber + String("000000");
         glyphs.addFittedText(getFont(), fullNumber, textArea.getX(), 0., 500, getHeight(), 1, 1.0f);
-
         int draggedDecimal = -1;
         
         int decimalPointPosition = 0;
@@ -268,8 +284,10 @@ public:
             g.setColour(findColour(Label::textColourId));
             g.drawText(numberText, textArea, Justification::centredLeft);
             
-            g.setColour(findColour(Label::textColourId).withAlpha(0.4f));
-            g.drawText(extraNumberText, textArea.withTrimmedLeft(numberTextLength), Justification::centredLeft);
+            if(!onlyIntegers) {
+                g.setColour(findColour(Label::textColourId).withAlpha(0.4f));
+                g.drawText(extraNumberText, textArea.withTrimmedLeft(numberTextLength), Justification::centredLeft);
+            }
         }
     }
     
@@ -386,54 +404,23 @@ struct DraggableListNumber : public DraggableNumber {
         
         repaint();
 
-        bool shift = e.mods.isShiftDown();
-
-        auto const textArea = getBorderSize().subtractedFrom(getBounds());
-
-        GlyphArrangement glyphs;
-        glyphs.addFittedText(getFont(), getText(), textArea.getX(), 0., textArea.getWidth(), textArea.getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
-
-        auto text = getText();
-        targetFound = false;
-        // Loop to find start of item
-        for (int i = 0; i < glyphs.getNumGlyphs(); i++) {
-            auto const& startGlyph = glyphs.getGlyph(i);
-
-            // Don't start at whitespace
-            if (startGlyph.isWhitespace())
-                continue;
-
-            // Loop from start to find end of item
-            for (int j = i; j < glyphs.getNumGlyphs(); j++) {
-                auto const& endGlyph = glyphs.getGlyph(j);
-
-                // End of item when we find whitespace or end of message
-                if (endGlyph.isWhitespace() || j == glyphs.getNumGlyphs() - 1) {
-                    if (j == glyphs.getNumGlyphs() - 1)
-                        j++;
-                    auto number = text.substring(i, j);
-
-                    // Check if item is a number and if mouse clicked on it
-                    if (number.containsOnly("0123456789.-") && e.x >= startGlyph.getLeft() && e.x <= endGlyph.getRight()) {
-                        numberStartIdx = i;
-                        numberEndIdx = j;
-                        dragValue = number.getDoubleValue();
-                        targetFound = true;
-                    }
-
-                    // Move start to end of current item
-                    i = j;
-                    break;
-                }
-            }
-            if (targetFound)
-                break;
+        auto [numberStart, numberEnd, numberValue] = getListItemAtPosition(e.x);
+     
+        numberStartIdx = numberStart;
+        numberEndIdx = numberEnd;
+        dragValue = numberValue;
+        
+        targetFound = numberStart != -1;
+        if(targetFound)
+        {
+            dragStart();
         }
-
-        if (!targetFound)
-            return;
-
-        dragStart();
+    }
+    
+    
+    void mouseMove(MouseEvent const& e) override
+    {
+        updateListHoverPosition(e.x);
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -441,6 +428,8 @@ struct DraggableListNumber : public DraggableNumber {
         if (isBeingEdited() || !targetFound)
             return;
 
+        updateListHoverPosition(e.x);
+        
         // Hide cursor and set unbounded mouse movement
         setMouseCursor(MouseCursor::NoCursor);
         updateMouseCursor();
@@ -489,6 +478,14 @@ struct DraggableListNumber : public DraggableNumber {
 
     void paint(Graphics& g) override
     {
+        if(hoveredDecimal >= 0)
+        {
+            // TODO: make this colour Id configurable?
+            g.setColour(findColour(ComboBox::outlineColourId).withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
+            PlugDataLook::fillSmoothedRectangle(g, hoveredDecimalPosition, 2.5f);
+            
+        }
+        
         if (!isBeingEdited()) {
             g.setColour(findColour(Label::textColourId));
             g.setFont(getFont());
@@ -503,5 +500,63 @@ struct DraggableListNumber : public DraggableNumber {
         setText(editor.getText().trimEnd(), dontSendNotification);
 
         dragEnd();
+    }
+    
+    void updateListHoverPosition(int x)
+    {
+        int oldHoverPosition = hoveredDecimal;
+        
+        Rectangle<float> position;
+        auto [numberStart, numberEnd, numberValue] = getListItemAtPosition(x, &hoveredDecimalPosition);
+
+        hoveredDecimal = numberStart;
+        
+        if(oldHoverPosition != hoveredDecimal)
+        {
+            repaint();
+        }
+    }
+    
+    std::tuple<int, int, double> getListItemAtPosition(int x, Rectangle<float>* position = nullptr)
+    {
+        auto const textArea = getBorderSize().subtractedFrom(getBounds());
+
+        GlyphArrangement glyphs;
+        glyphs.addFittedText(getFont(), getText(), textArea.getX(), 0., textArea.getWidth(), textArea.getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
+
+        auto text = getText();
+        // Loop to find start of item
+        for (int i = 0; i < glyphs.getNumGlyphs(); i++) {
+            auto const& startGlyph = glyphs.getGlyph(i);
+
+            // Don't start at whitespace
+            if (startGlyph.isWhitespace())
+                continue;
+
+            // Loop from start to find end of item
+            for (int j = i; j < glyphs.getNumGlyphs(); j++) {
+                auto const& endGlyph = glyphs.getGlyph(j);
+
+                // End of item when we find whitespace or end of message
+                if (endGlyph.isWhitespace() || j == glyphs.getNumGlyphs() - 1) {
+                    if (j == glyphs.getNumGlyphs() - 1)
+                        j++;
+                    auto number = text.substring(i, j);
+
+                    // Check if item is a number and if mouse clicked on it
+                    if (number.containsOnly("0123456789.-") && x >= startGlyph.getLeft() && x <= endGlyph.getRight()) {
+                        
+                        if(position) *position = glyphs.getBoundingBox(i, j - i, false).translated(0, 2);
+                        return {i, j, number.getDoubleValue()};
+                    }
+
+                    // Move start to end of current item
+                    i = j;
+                    break;
+                }
+            }
+        }
+        
+        return {-1, -1, 0.0f};
     }
 };
