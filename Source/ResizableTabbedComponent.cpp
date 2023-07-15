@@ -8,6 +8,8 @@
 #include "Tabbar.h"
 #include "TabBarButtonComponent.h"
 
+#define ENABLE_SPLITS_DROPZONE_DEBUGGING 0
+
 ResizableTabbedComponent::ResizableTabbedComponent(PluginEditor* editor, TabComponent* mainTabComponent)
     : editor(editor)
 {
@@ -382,26 +384,24 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
 
             auto zone = findZoneFromSource(dragSourceDetails);
 
+            editor->splitView.setFocus(this);
+
             if (editor->splitView.canSplit() && sourceNumTabs > 1) {
                 if (activeZone != zone) {
                     activeZone = zone;
-                    editor->splitView.setFocus(this);
                     repaint();
-                    //auto zoneName = getZoneName(zone);
-                    //std::cout << "dragging over: " << zoneName << std::endl;
+                    //std::cout << "dragging over: " << getZoneName(zone) << std::endl;
                 }
-            } else if (sourceTabButton->getTabComponent() != tabComponent.get())
-                activeZone = DropZones::Centre;
+            } else if (sourceTabButton->getTabComponent() != tabComponent.get()) {
+                activeZone = zone == DropZones::TabBar ? DropZones::None : DropZones::Centre;
+                repaint();
+            }
         }
     }
 
     void ResizableTabbedComponent::updateDropZones()
     {
         auto objectBounds = getLocalBounds();
-        if (oldObjectBounds == objectBounds)
-            return;
-        
-        oldObjectBounds = objectBounds;
 
         auto vHalf = objectBounds.getHeight() * 0.5f;
         auto hHalf = objectBounds.getWidth() * 0.5f;

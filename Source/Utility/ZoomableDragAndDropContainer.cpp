@@ -31,6 +31,9 @@
 // if the drag is over a tab bar, then we don't show the drag image
 #include "../Tabbar.h"
 
+// to reset the active split to what it was originally
+#include "../TabBarButtonComponent.h"
+
 // if we are inside the splitview, don't reset the scale of the dragged image, regardless of what we are over
 #include "../SplitView.h"
 
@@ -644,7 +647,14 @@ bool ZoomableDragAndDropContainer::shouldDropTextWhenDraggedExternally(DragAndDr
 }
 
 void ZoomableDragAndDropContainer::dragOperationStarted(DragAndDropTarget::SourceDetails const&) { }
-void ZoomableDragAndDropContainer::dragOperationEnded(DragAndDropTarget::SourceDetails const&) { }
+
+void ZoomableDragAndDropContainer::dragOperationEnded(DragAndDropTarget::SourceDetails const& sourceComponent)
+{
+    // dragOperationEnded only runs when the DnD is unsuccessful
+    if (auto* tab = dynamic_cast<TabBarButtonComponent*>(sourceComponent.sourceComponent.get())) {
+        tab->setFocusForTabSplit();
+    }
+}
 
 MouseInputSource const* ZoomableDragAndDropContainer::getMouseInputSourceForDrag(Component* sourceComponent,
     MouseInputSource const* inputSourceCausingDrag)
