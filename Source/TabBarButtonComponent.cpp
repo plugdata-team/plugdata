@@ -52,6 +52,15 @@ TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabComponent, String 
     addChildComponent(closeTabButton);
 }
 
+void TabBarButtonComponent::setFocusForTabSplit()
+{
+    for (auto* split : getTabComponent()->getEditor()->splitView.splits) {
+        if (split->getTabComponent() == getTabComponent()) {
+            getTabComponent()->getEditor()->splitView.setFocus(split);
+        }
+    }
+}
+
 void TabBarButtonComponent::setTabText(String const& text)
 {
     setTooltip(text);

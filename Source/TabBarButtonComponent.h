@@ -26,6 +26,8 @@ public:
 
     void tabTextChanged(const String& newCurrentTabName);
 
+    void setFocusForTabSplit();
+
     void drawTabButton(Graphics& g, Rectangle<int> customBounds = Rectangle<int>());
     void drawTabButtonText(Graphics& g, Rectangle<int> customBounds = Rectangle<int>());
     Image generateTabBarButtonImage();

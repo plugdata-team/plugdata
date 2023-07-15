@@ -384,15 +384,18 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
 
             auto zone = findZoneFromSource(dragSourceDetails);
 
+            editor->splitView.setFocus(this);
+
             if (editor->splitView.canSplit() && sourceNumTabs > 1) {
                 if (activeZone != zone) {
                     activeZone = zone;
-                    editor->splitView.setFocus(this);
                     repaint();
                     //std::cout << "dragging over: " << getZoneName(zone) << std::endl;
                 }
-            } else if (sourceTabButton->getTabComponent() != tabComponent.get())
+            } else if (sourceTabButton->getTabComponent() != tabComponent.get()) {
                 activeZone = zone == DropZones::TabBar ? DropZones::None : DropZones::Centre;
+                repaint();
+            }
         }
     }
 
