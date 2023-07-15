@@ -322,7 +322,7 @@ void TabComponent::currentTabChanged(int newCurrentTabIndex, String const& newCu
         //static_cast<TabBarButtonComponent*>(getTabbedButtonBar().getTabButton(newCurrentTabIndex))->tabTextChanged(newCurrentTabName);
         welcomePanel.hide();
         setTabBarDepth(30);
-        // we need to update the dropzones, because no resize will be triggered when there is a tab added from welcome screen
+        // we need to update the dropzones, because no resize will be automatically triggered when there is a tab added from welcome screen
         if (auto* parentHolder = dynamic_cast<ResizableTabbedComponent*>(getParentComponent()))
             parentHolder->updateDropZones();
     }
