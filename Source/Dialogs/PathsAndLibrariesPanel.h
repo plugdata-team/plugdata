@@ -171,7 +171,7 @@ public:
         p.addRoundedRectangle(resetButtonBounds.reduced(3.0f), Corners::largeCornerRadius);
         StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId).brighter(0.25f));
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
@@ -184,7 +184,7 @@ public:
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
         StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId).brighter(0.25f));
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
@@ -532,7 +532,7 @@ public:
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
         StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId).brighter(0.25f));
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));

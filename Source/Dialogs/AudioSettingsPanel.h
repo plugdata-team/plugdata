@@ -128,7 +128,7 @@ public:
         Path backgroundShape;
         backgroundShape.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTopCorner, roundTopCorner, roundBottomCorner, roundBottomCorner);
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId).darker(0.015f));
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId).darker(0.015f));
         g.fillPath(backgroundShape);
 
         auto buttonBounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
@@ -174,13 +174,6 @@ public:
 
         showAllAudioDeviceValues.addListener(this);
         showAllAudioDeviceValues.referTo(SettingsFile::getInstance()->getPropertyAsValue("show_all_audio_device_rates"));
-
-        addAndMakeVisible(inputLevelMeter);
-        addAndMakeVisible(outputLevelMeter);
-
-        audioPropertiesPanel.onLayoutChange = [this]() {
-            resized();
-        };
     }
 
     ~StandaloneAudioSettings() override
@@ -362,7 +355,19 @@ private:
 
         audioPropertiesPanel.addSection("Audio Output", outputProperties);
         audioPropertiesPanel.addSection("Audio Input", inputProperties);
+        
+        auto* outputSection = audioPropertiesPanel.getSectionByName("Audio Output");
+        auto* inputSection = audioPropertiesPanel.getSectionByName("Audio Input");
 
+        if(outputLevelMeter.getParentComponent())
+        {
+            outputLevelMeter.getParentComponent()->removeChildComponent(&outputLevelMeter);
+            inputLevelMeter.getParentComponent()->removeChildComponent(&inputLevelMeter);
+        }
+        
+        outputSection->addAndMakeVisible(outputLevelMeter);
+        inputSection->addAndMakeVisible(inputLevelMeter);
+        
         viewport.setViewPosition(0, viewY);
     }
 
@@ -399,13 +404,11 @@ private:
         auto [x, width] = audioPropertiesPanel.getContentXAndWidth();
         
         if (inputSelectorProperty) {
-            auto inputSelectorBounds = getLocalArea(nullptr, inputSelectorProperty->getScreenBounds());
-            inputLevelMeter.setBounds((x + width) - 60, inputSelectorBounds.getY() - 16, 60, 6);
+            inputLevelMeter.setBounds((x + width) - 60, 12, 60, 6);
         }
 
         if (outputSelectorProperty) {
-            auto outputSelectorBounds = getLocalArea(nullptr, outputSelectorProperty->getScreenBounds());
-            outputLevelMeter.setBounds((x + width) - 60, outputSelectorBounds.getY() - 16, 60, 6);
+            outputLevelMeter.setBounds((x + width) - 60, 12, 60, 6);
         }
     }
 

@@ -21,47 +21,169 @@
 
 #include "Utility/ArrowPopupMenu.h"
 
-VolumeSlider::VolumeSlider()
-    : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
-{
-    setSliderSnapsToMousePosition(false);
-}
+class OversampleSelector : public TextButton {
+        
+    class OversampleSettingsPopup : public Component
+    {
+    public:
+        
+        std::function<void(int)> onChange = [](int){};
+        std::function<void()> onClose = [](){};
+        
+        OversampleSettingsPopup(int currentSelection)
+        {
+            title.setText("Oversampling factor", dontSendNotification);
+            title.setFont(Fonts::getBoldFont().withHeight(14.0f));
+            addAndMakeVisible(title);
+            
+            one.setConnectedEdges(ConnectedOnRight);
+            two.setConnectedEdges(ConnectedOnLeft | ConnectedOnRight);
+            four.setConnectedEdges(ConnectedOnLeft | ConnectedOnRight);
+            eight.setConnectedEdges(ConnectedOnLeft);
 
-void VolumeSlider::resized()
-{
-    setMouseDragSensitivity(getWidth() - (margin * 2));
-}
-
-void VolumeSlider::mouseMove(const MouseEvent& e)
-{
-    repaint();
-    Slider::mouseMove(e);
-}
-
-void VolumeSlider::mouseUp(const MouseEvent& e)
-{
-    repaint();
-    Slider::mouseUp(e);
-}
-
-void VolumeSlider::mouseDown(const MouseEvent& e)
-{
-    repaint();
-    Slider::mouseDown(e);
-}
-
-void VolumeSlider::paint(Graphics& g)
-{
-    auto backgroundColour = findColour(PlugDataColour::levelMeterThumbColourId);
+            auto buttons = Array<TextButton*>{&one, &two, &four, &eight};
+            
+            int i = 0;
+            for(auto* button : buttons)
+            {
+                button->setRadioGroupId(14762);
+                button->setClickingTogglesState(true);
+                button->onClick = [this, i](){
+                    onChange(i);
+                };
+                
+                button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+                button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
+                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+                
+                addAndMakeVisible(button);
+                i++;
+            }
+            
+            buttons[currentSelection]->setToggleState(true, dontSendNotification);
+            
+            setSize(180, 50);
+        }
+        
+        ~OversampleSettingsPopup()
+        {
+            onClose();
+        }
+        
+    private:
+        void resized() override
+        {
+            auto b = getLocalBounds().reduced(4, 4);
+            auto titleBounds = b.removeFromTop(22);
+            
+            title.setBounds(titleBounds.translated(0, -2));
+            
+            auto buttonWidth = b.getWidth() / 4;
+            
+            one.setBounds(b.removeFromLeft(buttonWidth));
+            two.setBounds(b.removeFromLeft(buttonWidth).translated(-1, 0));
+            four.setBounds(b.removeFromLeft(buttonWidth).translated(-2, 0));
+            eight.setBounds(b.removeFromLeft(buttonWidth).translated(-3, 0));
+        }
+        
+        Label title;
+        TextButton one = TextButton("1x");
+        TextButton two = TextButton("2x");
+        TextButton four = TextButton("4x");
+        TextButton eight = TextButton("8x");
+    };
     
-    auto value = getValue();
-    auto thumbSize = getHeight() * 0.7f;
-    auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
-    auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
-    thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 12, thumb.getHeight());
-    g.setColour(backgroundColour.darker(thumb.contains(getMouseXYRelative().toFloat()) ? 0.3f : 0.0f).withAlpha(0.8f));
-    PlugDataLook::fillSmoothedRectangle(g, thumb, Corners::defaultCornerRadius * 0.5f);
-}
+public:
+    OversampleSelector(PluginProcessor* pd)
+    {
+        onClick = [this, pd](){
+
+            auto selection = log2(getButtonText().upToLastOccurrenceOf("x", false, false).getIntValue());
+            auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+            auto oversampleSettings = std::make_unique<OversampleSettingsPopup>(selection);
+            auto bounds = editor->getLocalArea(this, getLocalBounds());
+            
+            oversampleSettings->onChange = [this, pd](int result)
+            {
+                setButtonText(String(1 << result) + "x");
+                pd->setOversampling(result);
+            };
+            oversampleSettings->onClose = [this](){
+                repaint();
+            };
+            
+            CallOutBox::launchAsynchronously(std::move(oversampleSettings), bounds, editor);
+        };
+    }
+    
+private:
+    void paint(Graphics& g) override
+    {
+        auto buttonText = getButtonText();
+        if(buttonText == "1x")
+        {
+            g.setColour(isMouseOverOrDragging() ? findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f) : findColour(PlugDataColour::toolbarTextColourId));
+        }
+        else
+        {
+            g.setColour(isMouseOverOrDragging() ? findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f) : findColour(PlugDataColour::toolbarActiveColourId));
+        }
+
+        g.setFont(14.0f);
+        g.drawText(buttonText, getLocalBounds(), Justification::centred);
+    }
+};
+
+class VolumeSlider : public Slider {
+public:
+    VolumeSlider()
+        : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
+    {
+        setSliderSnapsToMousePosition(false);
+    }
+
+    void resized() override
+    {
+        setMouseDragSensitivity(getWidth() - (margin * 2));
+    }
+
+    void mouseMove(const MouseEvent& e) override
+    {
+        repaint();
+        Slider::mouseMove(e);
+    }
+
+    void mouseUp(const MouseEvent& e) override
+    {
+        repaint();
+        Slider::mouseUp(e);
+    }
+
+    void mouseDown(const MouseEvent& e) override
+    {
+        repaint();
+        Slider::mouseDown(e);
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto backgroundColour = findColour(PlugDataColour::levelMeterThumbColourId);
+        
+        auto value = getValue();
+        auto thumbSize = getHeight() * 0.7f;
+        auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
+        auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
+        thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 12, thumb.getHeight());
+        g.setColour(backgroundColour.darker(thumb.contains(getMouseXYRelative().toFloat()) ? 0.3f : 0.0f).withAlpha(0.8f));
+        PlugDataLook::fillSmoothedRectangle(g, thumb, Corners::defaultCornerRadius * 0.5f);
+    }
+
+private:
+    int margin = 18;
+};
+
+
 
 class LevelMeter : public Component
     , public StatusbarSource::Listener
@@ -198,38 +320,23 @@ public:
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
-    levelMeter = new LevelMeter();
-    midiBlinker = new MidiBlinker();
-
-    pd->statusbarSource->addListener(levelMeter);
-    pd->statusbarSource->addListener(midiBlinker);
+    levelMeter = std::make_unique<LevelMeter>();
+    midiBlinker = std::make_unique<MidiBlinker>();
+    volumeSlider = std::make_unique<VolumeSlider>();
+    oversampleSelector = std::make_unique<OversampleSelector>(processor);
+    
+    pd->statusbarSource->addListener(levelMeter.get());
+    pd->statusbarSource->addListener(midiBlinker.get());
     pd->statusbarSource->addListener(this);
 
     setWantsKeyboardFocus(true);
 
-    oversampleSelector.setTooltip("Set oversampling");
-    oversampleSelector.getProperties().set("FontScale", 0.5f);
-    oversampleSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+    oversampleSelector->setTooltip("Set oversampling");
+    oversampleSelector->getProperties().set("FontScale", 0.5f);
+    oversampleSelector->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
-    oversampleSelector.setButtonText(String(1 << pd->oversampling) + "x");
-
-    oversampleSelector.onClick = [this]() {
-        PopupMenu menu;
-        menu.addItem(1, "1x");
-        menu.addItem(2, "2x");
-        menu.addItem(3, "4x");
-        menu.addItem(4, "8x");
-
-        auto* editor = pd->getActiveEditor();
-        ArrowPopupMenu::showMenuAsync(&menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&oversampleSelector).withParentComponent(editor),
-            [this](int result) {
-                if (result != 0) {
-                    oversampleSelector.setButtonText(String(1 << (result - 1)) + "x");
-                    pd->setOversampling(result - 1);
-                }
-            });
-    };
-    addAndMakeVisible(oversampleSelector);
+    oversampleSelector->setButtonText(String(1 << pd->oversampling) + "x");
+    addAndMakeVisible(*oversampleSelector);
 
     powerButton.setButtonText(Icons::Power);
     connectionStyleButton.setButtonText(Icons::ConnectionStyle);
@@ -304,18 +411,17 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
     addAndMakeVisible(protectButton);
 
-    addAndMakeVisible(volumeSlider);
+    volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), *volumeSlider, nullptr);
 
-    volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), volumeSlider, nullptr);
+    volumeSlider->setRange(0.0f, 1.0f);
+    volumeSlider->setValue(0.8f);
+    volumeSlider->setDoubleClickReturnValue(true, 0.8f);
+    addAndMakeVisible(*volumeSlider);
+    
+    addAndMakeVisible(*levelMeter);
+    addAndMakeVisible(*midiBlinker);
 
-    volumeSlider.setRange(0.0f, 1.0f);
-    volumeSlider.setValue(0.8f);
-    volumeSlider.setDoubleClickReturnValue(true, 0.8f);
-
-    addAndMakeVisible(levelMeter);
-    addAndMakeVisible(midiBlinker);
-
-    levelMeter->toBehind(&volumeSlider);
+    levelMeter->toBehind(volumeSlider.get());
 
     overlayButton.setButtonText(Icons::Eye);
     overlaySettingsButton.setButtonText(Icons::ThinDown);
@@ -376,12 +482,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
 Statusbar::~Statusbar()
 {
-    pd->statusbarSource->removeListener(levelMeter);
-    pd->statusbarSource->removeListener(midiBlinker);
+    pd->statusbarSource->removeListener(levelMeter.get());
+    pd->statusbarSource->removeListener(midiBlinker.get());
     pd->statusbarSource->removeListener(this);
-
-    delete midiBlinker;
-    delete levelMeter;
 }
 
 void Statusbar::propertyChanged(String const& name, var const& value)
@@ -429,10 +532,10 @@ void Statusbar::resized()
     // TODO: combine these both into one
     int levelMeterPosition = position(120, true);
     levelMeter->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
-    volumeSlider.setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
+    volumeSlider->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
 
     // Offset to make text look centred
-    oversampleSelector.setBounds(position(getHeight(), true) + 3, 1, getHeight() - 2, getHeight() - 2);
+    oversampleSelector->setBounds(position(getHeight(), true) + 3, 1, getHeight() - 2, getHeight() - 2);
 
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }

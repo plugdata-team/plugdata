@@ -395,8 +395,9 @@ public:
         settingsCalloutButton->getProperties().set("Style", "SmallIcon");
         settingsCalloutButton->onClick = [this, settingsCalloutButton](){
             auto* editor = findParentComponentOfClass<PluginEditor>();
+            auto* sidebar = findParentComponentOfClass<Sidebar>();
             auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
-            auto bounds = editor->getLocalArea(this, settingsCalloutButton->getBounds());
+            auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
             CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, editor);
         };
         

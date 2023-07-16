@@ -17,21 +17,8 @@ class MidiBlinker;
 class PluginProcessor;
 class OverlayDisplaySettings;
 class SnapSettings;
-
-class VolumeSlider : public Slider {
-public:
-    VolumeSlider();
-    ~VolumeSlider() override = default;
-    void paint(Graphics& g) override;
-    void resized() override;
-    
-    void mouseMove(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
-    void mouseDown(const MouseEvent& e) override;
-
-private:
-    int margin = 18;
-};
+class VolumeSlider;
+class OversampleSelector;
 
 class StatusbarSource : public Timer {
 
@@ -81,6 +68,7 @@ private:
     std::vector<Listener*> listeners;
 };
 
+class VolumeSlider;
 class Statusbar : public Component
     , public SettingsFileListener
     , public StatusbarSource::Listener
@@ -101,9 +89,10 @@ public:
 
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
 
-    LevelMeter* levelMeter;
-    MidiBlinker* midiBlinker;
-
+    std::unique_ptr<LevelMeter> levelMeter;
+    std::unique_ptr<MidiBlinker> midiBlinker;
+    std::unique_ptr<VolumeSlider> volumeSlider;
+        
     TextButton powerButton, connectionStyleButton, connectionPathfind, centreButton, fitAllButton, protectButton;
 
     TextButton overlayButton, overlaySettingsButton;
@@ -111,12 +100,9 @@ public:
 
     TextButton snapEnableButton, snapSettingsButton;
     std::unique_ptr<SnapSettings> snapSettings;
-
-    TextButton oversampleSelector;
+    std::unique_ptr<OversampleSelector> oversampleSelector;
 
     Label zoomLabel;
-
-    VolumeSlider volumeSlider;
 
     Value showDirection;
 

@@ -34,7 +34,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(2);
+        auto b = getLocalBounds().reduced(2.0f, 4.0f);
 
         if (isMouseOver() || getToggleState()) {
             auto background = findColour(PlugDataColour::toolbarHoverColourId);
@@ -42,20 +42,22 @@ public:
                 background = background.darker(0.05f);
 
             g.setColour(background);
-            PlugDataLook::fillSmoothedRectangle(g, b.toFloat().reduced(4.0f, 2.0f), Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
         }
+
 
         g.setColour(findColour(PlugDataColour::toolbarTextColourId));
 
-        auto iconBounds = b.removeFromTop(b.getHeight() * 0.65f).withTrimmedTop(5);
-        auto textBounds = b.withTrimmedBottom(3);
+        auto iconBounds = b;
+        iconBounds = iconBounds.removeFromLeft(24).withTrimmedLeft(8);
+        auto textBounds = b.withTrimmedLeft(14);
 
-        auto font = Fonts::getIconFont().withHeight(iconBounds.getHeight() / 1.9f);
+        auto font = Fonts::getIconFont().withHeight(13.5f);
         g.setFont(font);
 
         g.drawFittedText(icon, iconBounds, Justification::centred, 1);
-
-        font = Fonts::getCurrentFont().withHeight(13.0f);
+        
+        font = Fonts::getBoldFont().withHeight(13.5f);
         g.setFont(font);
 
         // Draw bottom text
@@ -132,12 +134,11 @@ public:
     {
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight);
 
-        auto spacing = ((getWidth() - 80) / toolbarButtons.size());
-
-        int toolbarPosition = 40;
+        int toolbarPosition = 32;
+        auto spacing = ((getWidth() - (toolbarPosition * 2)) / toolbarButtons.size());
 
         for (auto& button : toolbarButtons) {
-            button->setBounds(toolbarPosition, 1, 80, toolbarHeight - 2);
+            button->setBounds(toolbarPosition, 1, spacing, toolbarHeight - 2);
             toolbarPosition += spacing;
         }
 
@@ -172,7 +173,7 @@ public:
     AudioProcessor* processor;
     ComponentBoundsConstrainer constrainer;
 
-    static constexpr int toolbarHeight = 55;
+    static constexpr int toolbarHeight = 42;
 
     static inline std::atomic<int> lastPanel = 0;
     int currentPanel;

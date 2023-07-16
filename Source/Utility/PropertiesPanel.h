@@ -841,7 +841,7 @@ public:
         viewport.getVerticalScrollBar().addListener(this);
         viewport.addMouseListener(this, true);
         
-        panelColour = findColour(PlugDataColour::panelBackgroundColourId).brighter(0.25f);
+        panelColour = findColour(PlugDataColour::panelForegroundColourId);
         separatorColour = findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f);
     }
         
@@ -887,6 +887,19 @@ public:
         repaint();
     }
 
+    Component* getSectionByName(const String& name) const noexcept
+    {
+        if(propertyHolderComponent)
+        {
+            for (auto* section : propertyHolderComponent->sections) {
+                if (section->getName() == name)
+                    return section;
+            }
+        }
+
+        return nullptr;
+    }
+        
     std::pair<int, int> getContentXAndWidth()
     {
         auto marginWidth = (getWidth() - contentWidth) / 2;

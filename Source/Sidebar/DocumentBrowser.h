@@ -867,7 +867,8 @@ public:
         settingsCalloutButton->getProperties().set("Style", "SmallIcon");
         settingsCalloutButton->onClick = [this, settingsCalloutButton](){
             auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-            auto bounds = editor->getLocalArea(this, settingsCalloutButton->getBounds());
+            auto* sidebar = getParentComponent();
+            auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
             auto openFolderCallback = [this]() {
                 openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", SettingsFile::getInstance()->wantsNativeDialog());
                 

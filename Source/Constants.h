@@ -128,6 +128,7 @@ enum PlugDataColour {
     levelMeterThumbColourId,
 
     panelBackgroundColourId,
+    panelForegroundColourId,
     panelTextColourId,
     panelActiveBackgroundColourId,
     panelActiveTextColourId,
