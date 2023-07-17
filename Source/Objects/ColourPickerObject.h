@@ -27,7 +27,7 @@ public:
             sscanf(colors->x_color, "#%02x%02x%02x", &red, &green, &blue);
         }
 
-        ColourPicker::show(getTopLevelComponent(), true, Colour(red, green, blue), object->getScreenBounds(), [_this = SafePointer(this)](Colour c) {
+        ColourPicker::getInstance().show(getTopLevelComponent(), true, Colour(red, green, blue), object->getScreenBounds(), [_this = SafePointer(this)](Colour c) {
             if (!_this)
                 return;
 
