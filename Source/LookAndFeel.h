@@ -1395,7 +1395,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
     }
 
     // clang-format off
-    static inline const String defaultThemesXml = "<Theme theme=\"max\" toolbar_background=\"ff333333\" toolbar_text=\"ffe4e4e4\"\n"
+    static inline const String defaultThemesXml = "<ColourThemes> "
+    "   <Theme theme=\"max\" toolbar_background=\"ff333333\" toolbar_text=\"ffe4e4e4\"\n"
     "           toolbar_active=\"ff72aedf\" toolbar_hover=\"ff72aedf\" tabbar_background=\"ff333333\"\n"
     "           tab_text=\"ffe4e4e4\" selected_tab_background=\"ff494949\" selected_tab_text=\"ff72aedf\"\n"
     "           canvas_background=\"ffe5e5e5\" canvas_text=\"ffeeeeee\" canvas_dots=\"ff7f7f7f\"\n"
