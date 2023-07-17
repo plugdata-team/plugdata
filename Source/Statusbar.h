@@ -49,6 +49,7 @@ public:
     AudioSampleRingBuffer peakBuffer;
 
 private:
+    
     std::atomic<int> lastMidiReceivedTime = 0;
     std::atomic<int> lastMidiSentTime = 0;
     std::atomic<int> lastAudioProcessedTime = 0;
@@ -111,5 +112,10 @@ public:
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
 
+    int firstSeparatorPosition;
+    int secondSeparatorPosition;
+    int thirdSeparatorPosition;
+    int fourthSeparatorPosition;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

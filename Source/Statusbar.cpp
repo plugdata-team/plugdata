@@ -289,10 +289,10 @@ class MidiBlinker : public Component
 public:
     void paint(Graphics& g) override
     {
-        Fonts::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), findColour(ComboBox::textColourId), 11, Justification::centredRight);
+        Fonts::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28).withTrimmedTop(1), findColour(ComboBox::textColourId), 11, Justification::centredRight);
 
-        auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
-        auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
+        auto midiInRect = Rectangle<float>(38.0f, 9.5f, 15.0f, 3.0f);
+        auto midiOutRect = Rectangle<float>(38.0f, 18.5f, 15.0f, 3.0f);
 
         g.setColour(blinkMidiIn ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(midiInRect, 1.0f);
@@ -495,49 +495,60 @@ void Statusbar::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawLine(0.0f, 0.5f, static_cast<float>(getWidth()), 0.5f);
+    
+    g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
+    g.drawLine(secondSeparatorPosition, 6.0f,secondSeparatorPosition, getHeight() - 6.0f);
+    g.drawLine(thirdSeparatorPosition, 6.0f, thirdSeparatorPosition, getHeight() - 6.0f);
+    g.drawLine(fourthSeparatorPosition, 6.0f,fourthSeparatorPosition, getHeight() - 6.0f);
 }
 
 void Statusbar::resized()
 {
-    int pos = 0;
+    int pos = 1;
     auto position = [this, &pos](int width, bool inverse = false) -> int {
         int result = 8 + pos;
         pos += width + 3;
         return inverse ? getWidth() - pos : result;
     };
+    
+    auto spacing = getHeight() + 4;
 
-    connectionStyleButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    connectionPathfind.setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    connectionStyleButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    connectionPathfind.setBounds(position(spacing), 0, getHeight(), getHeight());
 
-    position(5); // Seperator
+    firstSeparatorPosition = position(7) + 3.5f; // First seperator
 
-    centreButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    fitAllButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    position(7); // Seperator
+    centreButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    fitAllButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    
+    secondSeparatorPosition = position(7) + 3.5f; // Second seperator
 
-    overlayButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1, 0).withTrimmedRight(8));
+    overlayButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(getHeight() - 3, 0).withTrimmedRight(8));
+    position(10);
 
-    position(getHeight() - 8);
-
-    snapEnableButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1, 0).withTrimmedRight(8));
-
-    pos = 5; // reset position for elements on the right
+    snapEnableButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(getHeight() - 3, 0).withTrimmedRight(8));
+    
+    pos = 1; // reset position for elements on the right
 
     protectButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     powerButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     // TODO: combine these both into one
-    int levelMeterPosition = position(120, true);
+    int levelMeterPosition = position(110, true);
     levelMeter->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
     volumeSlider->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
 
+    thirdSeparatorPosition = position(5, true) + 5.0f; // Third seperator
+    
     // Offset to make text look centred
-    oversampleSelector->setBounds(position(getHeight(), true) + 3, 1, getHeight() - 2, getHeight() - 2);
+    oversampleSelector->setBounds(position(spacing - 8, true), 1, getHeight() - 2, getHeight() - 2);
 
-    midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
+    fourthSeparatorPosition = position(5, true) + 2.5f; // Fourth seperator
+    
+    midiBlinker->setBounds(position(55, true) - 8, 0, 55, getHeight());
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)
