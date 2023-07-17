@@ -72,7 +72,7 @@ private:
             
             if(!ofeliaExecutable.existsAsFile())
             {
-                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 3000);
+                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 1000);
                 continue;
             }
             
