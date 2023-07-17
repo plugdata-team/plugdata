@@ -160,14 +160,12 @@ class ColourPicker : public Component {
     };
 
 public:
-    static void show(Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& callback)
+    void show(Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& colourCallback)
     {
-        if (isShowing)
-            return;
+        callback = colourCallback;
+        onlyCallBackOnClose = onlySendCallbackOnClose;
 
-        isShowing = true;
-
-        std::unique_ptr<ColourPicker> colourSelector = std::make_unique<ColourPicker>(topLevelComponent, onlySendCallbackOnClose, callback);
+        _topLevelComponent = topLevelComponent;
 
         Component* parent = nullptr;
         if (!ProjectInfo::canUseSemiTransparentWindows()) {
@@ -175,15 +173,19 @@ public:
             bounds = topLevelComponent->getLocalArea(nullptr, bounds);
         }
 
-        colourSelector->setCurrentColour(currentColour);
-        CallOutBox::launchAsynchronously(std::move(colourSelector), bounds, parent);
+        setCurrentColour(currentColour);
+
+        // we need to put the selector into a holder, as launchAsynchronously will delete the component when its done
+        auto selectorHolder = std::make_unique<Component>();
+        selectorHolder->addAndMakeVisible(this);
+        selectorHolder->setBounds(getLocalBounds());
+
+        CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, parent);
     }
 
-    ColourPicker(Component* topLevelComponent, bool noLiveChangeCallback, std::function<void(Colour)> cb)
+    ColourPicker()
         : colour(Colours::white)
         , edgeGap(2)
-        , callback(std::move(cb))
-        , onlyCallBackOnClose(noLiveChangeCallback)
         , colourSpace(*this, h, s, v)
         , brightnessSelector(*this, v)
     {
@@ -239,8 +241,10 @@ public:
             setMode(true);
         };
 
-        showEyedropper.onClick = [this, topLevelComponent]() {
-            eyedropper.showEyedropper(topLevelComponent, [this](Colour pickedColour) {
+        _topLevelComponent = getTopLevelComponent();
+
+        showEyedropper.onClick = [this]() mutable {
+            eyedropper.showEyedropper(_topLevelComponent, [this](Colour pickedColour) {
                 setCurrentColour(pickedColour);
             });
         };
@@ -255,13 +259,13 @@ public:
         setMode(false);
     }
 
-    ~ColourPicker() override
+    static ColourPicker& getInstance()
     {
-        if (onlyCallBackOnClose)
-            callback(getCurrentColour());
-
-        isShowing = false;
+        static ColourPicker instance;
+        return instance;
     }
+
+    ~ColourPicker() override { }
 
     void setMode(bool hex)
     {
@@ -698,9 +702,9 @@ private:
 
     Eyedropper eyedropper;
 
-    bool onlyCallBackOnClose;
+    Component* _topLevelComponent;
 
-    static inline bool isShowing = false;
+    bool onlyCallBackOnClose;
 
     std::function<void(Colour)> callback = [](Colour) {};
 
