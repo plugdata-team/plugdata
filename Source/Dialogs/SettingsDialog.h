@@ -83,7 +83,7 @@ public:
 
         if (ProjectInfo::isStandalone) {
             toolbarButtons = {
-                new SettingsToolbarButton(Icons::Audio, "World"),
+                new SettingsToolbarButton(Icons::Audio, "Audio"),
                 new SettingsToolbarButton(Icons::MIDI, "MIDI"),
                 new SettingsToolbarButton(Icons::Pencil, "Themes"),
                 new SettingsToolbarButton(Icons::Search, "Paths"),
