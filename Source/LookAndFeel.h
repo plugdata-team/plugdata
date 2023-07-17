@@ -673,7 +673,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
     {
         auto& buttonBar = button.getTabbedButtonBar();
-        return (buttonBar.getWidth() / buttonBar.getNumTabs()) + 1;
+        return std::max((buttonBar.getWidth() / buttonBar.getNumTabs()) + 1, 150);
     }
 
     int getTabButtonOverlap(int tabDepth) override

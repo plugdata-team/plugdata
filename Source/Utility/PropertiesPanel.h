@@ -106,7 +106,7 @@ private:
                 titleX += 8;
             }
             
-            Fonts::drawStyledText(g, getName(), titleX, 0, width - 4, parent.titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
+            Fonts::drawStyledText(g, getName(), titleX, 0, width - 4, parent.titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 14.5f);
             
             auto propertyBounds = Rectangle<float>(x, parent.titleHeight + 8.0f, width, getHeight() - (parent.titleHeight + 16.0f));
             

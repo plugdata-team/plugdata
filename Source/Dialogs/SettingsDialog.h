@@ -31,6 +31,15 @@ public:
         , text(std::move(textToShow))
     {
     }
+    
+    
+    int getBestWidth()
+    {
+        auto boldFont = Fonts::getBoldFont().withHeight(13.5f);
+        auto stringsWidth = boldFont.getStringWidth(text) + 52;
+        
+        return std::max(stringsWidth, 94);
+    }
 
     void paint(Graphics& g) override
     {
@@ -49,8 +58,8 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarTextColourId));
 
         auto iconBounds = b;
-        iconBounds = iconBounds.removeFromLeft(24).withTrimmedLeft(8);
-        auto textBounds = b.withTrimmedLeft(14);
+        iconBounds = iconBounds.removeFromLeft(24).withTrimmedLeft(10);
+        auto textBounds = b.withTrimmedLeft(12);
 
         auto font = Fonts::getIconFont().withHeight(13.5f);
         g.setFont(font);
@@ -75,7 +84,7 @@ public:
 
         if (ProjectInfo::isStandalone) {
             toolbarButtons = {
-                new SettingsToolbarButton(Icons::Audio, "Audio"),
+                new SettingsToolbarButton(Icons::Audio, "World"),
                 new SettingsToolbarButton(Icons::MIDI, "MIDI"),
                 new SettingsToolbarButton(Icons::Pencil, "Themes"),
                 new SettingsToolbarButton(Icons::Search, "Paths"),
@@ -135,9 +144,9 @@ public:
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight);
 
         int toolbarPosition = 32;
-        auto spacing = ((getWidth() - (toolbarPosition * 2)) / toolbarButtons.size());
-
+        
         for (auto& button : toolbarButtons) {
+            auto spacing = button->getBestWidth();
             button->setBounds(toolbarPosition, 1, spacing, toolbarHeight - 2);
             toolbarPosition += spacing;
         }
@@ -180,5 +189,5 @@ public:
     OwnedArray<Component> panels;
     AudioDeviceManager* deviceManager = nullptr;
 
-    OwnedArray<TextButton> toolbarButtons;
+    OwnedArray<SettingsToolbarButton> toolbarButtons;
 };
