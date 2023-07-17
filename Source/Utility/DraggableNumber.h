@@ -43,7 +43,7 @@ public:
 
     void labelTextChanged(Label* labelThatHasChanged) override {};
 
-    void editorShown(Label* l, TextEditor&) override
+    void editorShown(Label* l, TextEditor& editor) override
     {
         dragStart();
     }
@@ -259,16 +259,12 @@ public:
     {
         if(hoveredDecimal >= 0)
         {
-            
             // TODO: make this colour Id configurable?
             g.setColour(findColour(ComboBox::outlineColourId).withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
             PlugDataLook::fillSmoothedRectangle(g, hoveredDecimalPosition, 2.5f);
-            
         }
         
         if (!isBeingEdited()) {
-            
-            
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds()).toFloat();
             //g.drawText(formatNumber(getText().getDoubleValue(), decimalDrag), textArea, Justification::centredLeft);
             
@@ -483,7 +479,6 @@ struct DraggableListNumber : public DraggableNumber {
             // TODO: make this colour Id configurable?
             g.setColour(findColour(ComboBox::outlineColourId).withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
             PlugDataLook::fillSmoothedRectangle(g, hoveredDecimalPosition, 2.5f);
-            
         }
         
         if (!isBeingEdited()) {

@@ -1010,10 +1010,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
             if (textEditor.isEnabled()) {
                 if (textEditor.hasKeyboardFocus(true) && !textEditor.isReadOnly()) {
                     g.setColour(textEditor.findColour(TextEditor::focusedOutlineColourId));
-                    g.drawRect(0, 0, width, height, 1);
+                    g.drawRoundedRectangle(2, 3, width - 4, height - 6, Corners::defaultCornerRadius, 2.0f);
                 } else {
                     g.setColour(textEditor.findColour(TextEditor::outlineColourId));
-                    g.drawRect(0, 0, width, height);
+                    g.drawRoundedRectangle(2, 3, width - 4, height - 6, Corners::defaultCornerRadius, 2.0f);
                 }
             }
         }
@@ -1301,6 +1301,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setColour(DirectoryContentsDisplayComponent::highlightColourId,
             colours.at(PlugDataColour::panelActiveBackgroundColourId));
         setColour(CaretComponent::caretColourId,
+            colours.at(PlugDataColour::caretColourId));
+        setColour(TextEditor::focusedOutlineColourId,
             colours.at(PlugDataColour::caretColourId));
 
         setColour(TextButton::buttonColourId,

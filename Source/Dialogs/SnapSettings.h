@@ -26,11 +26,11 @@ public:
         void paint(Graphics& g) override
         {
             auto b = getLocalBounds().reduced(5, 0);
-            int x = b.getX();
-            int spacing = b.getWidth() / 6;
+            int x = b.getX() - 1;
+            int spacing = (b.getWidth() / 6) + 1;
 
             for (int i = 5; i <= 30; i += 5) {
-                auto textBounds = Rectangle<int>(x, b.getY(), spacing, b.getHeight());
+                auto textBounds = Rectangle<int>(x, b.getY() + 4, spacing, b.getHeight());
                 Fonts::drawStyledText(g, String(i), textBounds, findColour(PlugDataColour::toolbarTextColourId), Monospace, 10, Justification::centredTop);
                 x += spacing;
             }
@@ -40,7 +40,7 @@ public:
         {
             auto bounds = getLocalBounds();
             bounds.reduce(1, 0);
-            slider->setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() + 5);
+            slider->setBounds(bounds.getX(), bounds.getY() + 5, bounds.getWidth(), bounds.getHeight());
         }
 
     private:
@@ -61,13 +61,9 @@ public:
 
     class SnapSelector : public Component
         , public Value::Listener
-        , public Button::Listener
         , public SettableTooltipClient {
     private:
-        Label textLabel;
-
-        Value snapValue;
-
+            
         String property = "grid_type";
 
         SnapBitMask snapBit;
@@ -75,8 +71,8 @@ public:
         SnapSettings* parent;
 
     public:
-        TextButton button;
-
+        Value snapValue;
+        String icon;
         String groupName;
 
         bool dragToggledInteraction = false;
@@ -84,24 +80,12 @@ public:
         bool buttonHover = false;
 
     public:
-        SnapSelector(SnapSettings* parent, String const& icon, String nameOfGroup, SnapBitMask snapBitValue)
+        SnapSelector(SnapSettings* parent, String const& iconText, String nameOfGroup, SnapBitMask snapBitValue)
             : groupName(std::move(nameOfGroup))
             , snapBit(snapBitValue)
             , parent(parent)
+            , icon(iconText)
         {
-            button.getProperties().set("Style", "SmallIcon");
-            addAndMakeVisible(button);
-            button.setClickingTogglesState(true);
-            button.setInterceptsMouseClicks(false, false);
-            button.addListener(this);
-
-            button.setButtonText(icon);
-
-            textLabel.setText(groupName, dontSendNotification);
-            textLabel.setInterceptsMouseClicks(false, false);
-            textLabel.setFont(Font(14));
-            addAndMakeVisible(textLabel);
-
             snapValue = SettingsFile::getInstance()->getProperty<int>(property);
             snapValue.addListener(this);
             valueChanged(snapValue);
@@ -115,12 +99,43 @@ public:
                 g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
                 PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
             }
+            
+            auto iconColour = getToggleState() ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
+            auto textColour = findColour(PlugDataColour::toolbarTextColourId);
+            
+            if(isMouseOver())
+            {
+                iconColour = iconColour.contrasting(0.3f);
+                textColour = textColour.contrasting(0.3f);
+            }
+            
+            Fonts::drawIcon(g, icon, Rectangle<int>(0, 0, 30, getHeight()), iconColour, 14);
+            Fonts::drawText(g, groupName, Rectangle<int>(30, 0, getWidth(), getHeight()), textColour, 14);
+        }
+            
+        bool getToggleState()
+        {
+            return getValue<int>(snapValue) & snapBit;
+        }
+            
+        void setToggleState(bool state)
+        {
+            auto currentBitValue = getValue<int>(snapValue);
+            
+            if (state) {
+                snapValue = currentBitValue | snapBit;
+            } else {
+                snapValue = currentBitValue &~ snapBit;
+            }
+            
+            SettingsFile::getInstance()->setProperty(property, snapValue);
+            
+            repaint();
         }
 
         void mouseEnter(MouseEvent const& e) override
         {
             if (!dragToggledInteraction) {
-                button.setState(Button::ButtonState::buttonOver);
                 buttonHover = true;
                 repaint();
             }
@@ -128,49 +143,22 @@ public:
 
         void mouseExit(MouseEvent const& e) override
         {
-            button.setState(Button::ButtonState::buttonNormal);
             buttonHover = false;
             repaint();
         }
 
         void mouseDown(MouseEvent const& e) override
         {
-            // allow mouse click on item label to also toggle state
-            button.setToggleState(!button.getToggleState(), dontSendNotification);
-            buttonClicked(&button);
-            parent->mouseInteraction = button.getToggleState() ? MouseInteraction::ToggledButtonOn : MouseInteraction::ToggledButtonOff;
-        }
-
-        void buttonClicked(Button* button) override
-        {
-            // button->setState(Button::ButtonState::buttonOver);
-            int currentBitValue = SettingsFile::getInstance()->getProperty<int>(property);
-
-            if (button->getToggleState()) {
-                snapValue = currentBitValue | snapBit;
-            } else {
-                button->setState(Button::ButtonState::buttonNormal);
-                snapValue = currentBitValue & ~snapBit;
-            }
-
-            SettingsFile::getInstance()->setProperty(property, snapValue);
-            repaint();
+            auto newState = !getToggleState();
+            setToggleState(newState);
+            parent->mouseInteraction = newState ? MouseInteraction::ToggledButtonOn : MouseInteraction::ToggledButtonOff;
         }
 
         void valueChanged(Value& value) override
         {
             if (value.refersToSameSourceAs(snapValue)) {
-                auto state = getValue<int>(snapValue);
-                button.setToggleState(state & snapBit, dontSendNotification);
+                repaint();
             }
-        }
-
-        void resized() override
-        {
-            auto bounds = Rectangle<int>(0, 0, 30, 30);
-            button.setBounds(bounds);
-            bounds.translate(25, 0);
-            textLabel.setBounds(bounds.withWidth(150));
         }
     };
 
@@ -193,10 +181,10 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds();
-        buttonGroups[SnapItem::Edges]->setBounds(bounds.removeFromTop(30));
-        buttonGroups[SnapItem::Centers]->setBounds(bounds.removeFromTop(30));
-        buttonGroups[SnapItem::Grid]->setBounds(bounds.removeFromTop(30));
-        gridSlider->setBounds(bounds.removeFromTop(30));
+        buttonGroups[SnapItem::Edges]->setBounds(bounds.removeFromTop(26));
+        buttonGroups[SnapItem::Centers]->setBounds(bounds.removeFromTop(26));
+        buttonGroups[SnapItem::Grid]->setBounds(bounds.removeFromTop(26));
+        gridSlider->setBounds(bounds.removeFromTop(34));
         setSize(110, bounds.getY());
     }
 
@@ -213,10 +201,8 @@ public:
     {
         for (auto* group : buttonGroups) {
             if (!group->dragToggledInteraction && group->getScreenBounds().contains(e.getScreenPosition()) && e.getDistanceFromDragStart() > 2) {
-                // group.button.setState(Button::ButtonState::buttonOver);
                 group->dragToggledInteraction = true;
-                group->button.setToggleState(mouseInteraction, dontSendNotification);
-                group->buttonClicked(&group->button);
+                group->setToggleState(mouseInteraction);
             }
         }
     }

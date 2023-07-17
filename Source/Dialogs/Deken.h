@@ -766,8 +766,6 @@ private:
 
     Spinner updateSpinner;
         
-        
-
     // Component representing a search result
     // It holds package info about the package it represents
     // and can
@@ -804,6 +802,9 @@ private:
             uninstallButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
             addToPathButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
 
+            installButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
+            uninstallButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
+            addToPathButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
             
             installButton.setTooltip("Install package");
             uninstallButton.setTooltip("Uninstall package");

@@ -22,17 +22,17 @@ public:
         void paint(Graphics& g) override
         {
             auto colour = findColour(PlugDataColour::toolbarTextColourId);
-
-            Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14);
-
             if (isMouseOver()) {
-                colour = colour.brighter(0.4f);
+                colour = colour.contrasting(0.3f);
             }
+            
+            Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14);
+            
             if (getToggleState()) {
                 colour = findColour(PlugDataColour::toolbarActiveColourId);
             }
 
-            Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(6), colour, 14, false);
+            Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(8), colour, 14, false);
         }
     };
 
@@ -57,7 +57,7 @@ public:
             }
         }
 
-        setSize(150, 150);
+        setSize(150, 135);
     }
 
     void resized() override

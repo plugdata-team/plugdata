@@ -534,7 +534,7 @@ public:
             hexValueEditor.setInputRestrictions(7, "#0123456789ABCDEFabcdef");
             hexValueEditor.setColour(outlineColourId, Colour());
             hexValueEditor.setJustification(Justification::centred);
-            hexValueEditor.setFont(Fonts::getMonospaceFont().withPointHeight(13));
+            
             hexValueEditor.onTextChange = [this]() {
                 currentColour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
             };
@@ -560,7 +560,8 @@ public:
             auto colourSwatchBounds = bounds.removeFromLeft(getHeight()).reduced(4).translated(12, 0);
 
             swatchComponent.setBounds(colourSwatchBounds);
-            hexValueEditor.setBounds(bounds.translated(0, -2));
+            hexValueEditor.setBounds(bounds.translated(0, -3));
+            hexValueEditor.setFont(Fonts::getCurrentFont().withPointHeight(13));
         }
 
         void valueChanged(Value& v) override
