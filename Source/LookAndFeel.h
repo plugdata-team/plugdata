@@ -751,6 +751,17 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override
     {
     }
+    
+    Button* createTabBarExtrasButton() override
+    {
+        auto* button = new TextButton();
+    
+        button->getProperties().set("Style", "Icon");
+        button->getProperties().set("FontScale", 0.7f);
+        button->setButtonText(Icons::ThinDown);
+
+        return button;
+    }
 
     Font getTabButtonFont(TabBarButton&, float height) override
     {

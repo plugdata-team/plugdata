@@ -294,23 +294,6 @@ public:
             auto showMessages = getValue<bool>(settingsValues[2]);
             auto showErrors = getValue<bool>(settingsValues[3]);
 
-            int totalHeight = 0;
-            for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
-                auto [message, type, length] = pd->getConsoleMessages()[row];
-                auto numLines = StringUtils::getNumLines(getWidth(), length);
-                auto height = numLines * 13 + 12;
-
-                if (messages[row]->idx != row) {
-                    messages[row]->idx = row;
-                    messages[row]->repaint();
-                }
-
-                if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
-                    continue;
-
-                totalHeight += std::max(0, height);
-            }
-
             setSize(getWidth(), std::max<int>(getTotalHeight(), viewport.getHeight()));
             resized();
 
@@ -350,7 +333,7 @@ public:
                 totalHeight += std::max(0, height);
             }
 
-            return totalHeight;
+            return totalHeight + 8;
         }
 
         void mouseDown(MouseEvent const& e) override

@@ -379,9 +379,9 @@ void PluginEditor::resized()
 
     auto startX = (getWidth() / 2) - (toolbarHeight * 1.5);
 
-    editButton.setBounds(startX, 0, toolbarHeight, toolbarHeight);
-    runButton.setBounds(startX + toolbarHeight - 1, 0, toolbarHeight, toolbarHeight);
-    presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 0, toolbarHeight, toolbarHeight);
+    editButton.setBounds(startX, 1, toolbarHeight, toolbarHeight - 2);
+    runButton.setBounds(startX + toolbarHeight - 1, 1, toolbarHeight, toolbarHeight - 2);
+    presentButton.setBounds(startX + (2 * toolbarHeight) - 2, 1, toolbarHeight, toolbarHeight - 2);
 
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 150.0f : 60.0f;
 
