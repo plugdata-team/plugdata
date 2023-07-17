@@ -54,7 +54,6 @@ public:
             PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
         }
 
-
         g.setColour(findColour(PlugDataColour::toolbarTextColourId));
 
         auto iconBounds = b;
