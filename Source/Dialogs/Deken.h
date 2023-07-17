@@ -878,6 +878,50 @@ private:
             repaint();
         }
 
+        String getRelativeTimeDescription(const juce::String& timestampString)
+        {
+            juce::StringArray dateAndTime = juce::StringArray::fromTokens(timestampString, true);
+            juce::StringArray dateComponents = juce::StringArray::fromTokens(dateAndTime[0], "-", "");
+
+            int year = dateComponents[0].getIntValue();
+            int month = dateComponents[1].getIntValue();
+            int day = dateComponents[2].getIntValue();
+
+            juce::StringArray timeComponents = juce::StringArray::fromTokens(dateAndTime[1], ":", "");
+            int hour = timeComponents[0].getIntValue();
+            int minute = timeComponents[1].getIntValue();
+            int second = timeComponents[2].getIntValue();
+
+            juce::Time timestamp(year, month, day, hour, minute, second, 0);
+            juce::Time currentTime = juce::Time::getCurrentTime();
+            juce::RelativeTime relativeTime = currentTime - timestamp;
+
+            
+            int years = relativeTime.inDays() / 365;
+            int months = relativeTime.inDays() / 30;
+            int weeks = relativeTime.inWeeks();
+            int days = relativeTime.inDays();
+
+            if (years == 1)
+                return juce::String(years) + " year ago";
+            else if (years > 0)
+                return juce::String(years) + " years ago";
+            else if (months == 1)
+                return juce::String(months) + " month ago";
+            else if (months > 0)
+                return juce::String(months) + " months ago";
+            else if (weeks == 1)
+                return juce::String(weeks) + " week ago";
+            else if (weeks > 0)
+                return juce::String(weeks) + " weeks ago";
+            else if (days == 1)
+                return juce::String(days) + " day ago";
+            else if (days > 0)
+                return juce::String(days) + " days ago";
+            else
+                return "today";
+        }
+
         void paint(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -897,7 +941,8 @@ private:
             Fonts::drawStyledText(g, packageInfo.name, 64, 8, 200, 25, findColour(ComboBox::textColourId), Semibold, 15);
             Fonts::drawIcon(g, Icons::Externals, Rectangle<int>(16, 14, 38, 38), findColour(ComboBox::textColourId));
             
-            Fonts::drawFittedText(g, "Uploaded by " + packageInfo.author, getWidth() - 300, 8, 282, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 13.5f, Justification::centredRight);
+    
+            Fonts::drawFittedText(g, "Uploaded " + getRelativeTimeDescription(packageInfo.timestamp) + " by " + packageInfo.author, getWidth() - 418, 8, 400, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 13.5f, Justification::centredRight);
             
             // draw progressbar
             if (deken.packageManager->getDownloadForPackage(packageInfo)) {
@@ -916,7 +961,7 @@ private:
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             } else {
-                Fonts::drawFittedText(g, packageInfo.version, 64, 31, 200, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 15);
+                Fonts::drawFittedText(g, packageInfo.version, 64, 31, 400, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 15);
                 //Fonts::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
             }
         }
