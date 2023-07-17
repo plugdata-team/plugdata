@@ -73,7 +73,7 @@ struct Icons {
     inline static const String SnapEdges = "#";
     inline static const String SnapCorners = "\"";
     inline static const String SnapCenters = "$";
-    inline static const String DragCopyMode = "^";
+    inline static const String ExportState = "^";
     inline static const String Trash = "~";
     inline static const String Fullscreen = "&";
     inline static const String Eyedropper = "@";

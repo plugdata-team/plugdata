@@ -664,7 +664,6 @@ public:
     {
         auto bounds = getLocalBounds().withTrimmedTop(40);
         auto inputBounds = bounds.removeFromTop(28);
-        auto tableBounds = bounds.withTrimmedTop(8);
 
         input.setBounds(inputBounds);
 
@@ -672,7 +671,7 @@ public:
         updateSpinner.setBounds(inputBounds.removeFromRight(30));
 
         listBox.setBounds(getLocalBounds().withHeight(listBox.getHeight()));
-        listBox.getViewport()->setBounds(tableBounds.withTrimmedTop(2));
+        listBox.getViewport()->setBounds(bounds);
 
         refreshButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40));
     }
@@ -694,7 +693,7 @@ private:
             
             viewport.setScrollBarsShown(true, false, false, false);
             
-            listBox.setRowHeight(64);
+            listBox.setRowHeight(66);
             listBox.setOutlineThickness(0);
             listBox.deselectAllRows();
             listBox.getViewport()->setScrollBarsShown(true, false, false, false);
@@ -717,8 +716,8 @@ private:
             
             auto* model = listBox.getModel();
             auto height = model ? model->getNumRows() * listBox.getRowHeight() : viewport.getParentComponent()->getHeight();
-            listBox.setBounds(getLocalBounds().reduced(8).withHeight(height));
-            setSize(getWidth(), height + 24);
+            listBox.setBounds(getLocalBounds().reduced(10, 18).withHeight(height));
+            setSize(getWidth(), height + 26);
         }
         
         void setModel(ListBoxModel* model)
@@ -732,9 +731,9 @@ private:
             if(!model || !model->getNumRows()) return;
             
             auto bounds = getLocalBounds();
-            auto margin = 18;
+            auto margin = 20;
             
-            auto shadowY = 10;
+            auto shadowY = 20;
             auto shadowX = bounds.getX() + margin;
             auto shadowWidth = bounds.getWidth() - (margin * 2);
             auto shadowHeight = (model->getNumRows() * listBox.getRowHeight()) - 5;
@@ -894,12 +893,11 @@ private:
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.strokePath(p, PathStrokeType(1.0f));
             
-            //PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), getLocalBounds().toFloat().reduced(8.0f, 6.0f), Corners::largeCornerRadius);
-            
+
             Fonts::drawStyledText(g, packageInfo.name, 64, 8, 200, 25, findColour(ComboBox::textColourId), Semibold, 15);
-            Fonts::drawIcon(g, Icons::Externals, Rectangle<int>(16, 16, 38, 38), findColour(ComboBox::textColourId));
+            Fonts::drawIcon(g, Icons::Externals, Rectangle<int>(16, 14, 38, 38), findColour(ComboBox::textColourId));
             
-            Fonts::drawFittedText(g, "Uploaded by " + packageInfo.author, getWidth() - 300, 8, 280, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 13.5f, Justification::centredRight);
+            Fonts::drawFittedText(g, "Uploaded by " + packageInfo.author, getWidth() - 300, 8, 282, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 13.5f, Justification::centredRight);
             
             // draw progressbar
             if (deken.packageManager->getDownloadForPackage(packageInfo)) {
@@ -918,16 +916,16 @@ private:
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             } else {
-                Fonts::drawFittedText(g, packageInfo.version, 64, 30, 200, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 15);
+                Fonts::drawFittedText(g, packageInfo.version, 64, 31, 200, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 15);
                 //Fonts::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
             }
         }
 
         void resized() override
         {
-            installButton.setBounds(getWidth() - 96, 36, 80, 22);
-            uninstallButton.setBounds(getWidth() - 96, 36, 80, 22);
-            addToPathButton.setBounds(getWidth() - 192, 36, 80, 22);
+            installButton.setBounds(getWidth() - 98, 35, 80, 22);
+            uninstallButton.setBounds(getWidth() - 98, 35, 80, 22);
+            addToPathButton.setBounds(getWidth() - 192, 35, 80, 22);
         }
     };
 };
