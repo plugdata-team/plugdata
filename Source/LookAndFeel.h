@@ -360,24 +360,35 @@ struct PlugDataLook : public LookAndFeel_V4 {
         auto flatOnBottom = button.isConnectedOnBottom();
 
         if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
-            auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId);
-
+            
+            auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting((shouldDrawButtonAsHighlighted && !button.getToggleState()) ? 0.0f : 0.05f);
+            
             auto bounds = button.getLocalBounds().toFloat();
             bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
+            
+            // Always draw active state fully rounded, but make sure it looks like the background on the connected side is still there
+            if(active)
+            {
+                g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId).contrasting(0.05f));
+                if(flatOnLeft) g.fillRect(bounds.withTrimmedRight(cornerSize + 1));
+                if(flatOnRight) g.fillRect(bounds.withTrimmedLeft(cornerSize + 1));
+                if(flatOnTop) g.fillRect(bounds.withTrimmedBottom(cornerSize + 1));
+                if(flatOnBottom) g.fillRect(bounds.withTrimmedTop(cornerSize + 1));
 
-            backgroundColour = backgroundColour.contrasting(0.05f);
+                flatOnLeft = false;
+                flatOnRight = false;
+                flatOnTop = false;
+                flatOnBottom = false;
+            }
 
-            Path path;
-            path.addRoundedRectangle(bounds.getX(), bounds.getY(),
-                bounds.getWidth(), bounds.getHeight(),
-                cornerSize, cornerSize,
-                !(flatOnLeft || flatOnTop),
-                !(flatOnRight || flatOnTop),
-                !(flatOnLeft || flatOnBottom),
-                !(flatOnRight || flatOnBottom));
+            backgroundColour = backgroundColour;
 
             g.setColour(backgroundColour);
-            g.fillPath(path);
+            fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius,
+                                  !(flatOnLeft || flatOnTop),
+                                  !(flatOnRight || flatOnTop),
+                                  !(flatOnLeft || flatOnBottom),
+                                  !(flatOnRight || flatOnBottom));
         } else {
             auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
             auto bounds = button.getLocalBounds().toFloat().reduced(2.0f, 4.0f);
@@ -1092,83 +1103,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         g.drawRect(label.getLocalBounds());
     }
-    /*
-     
-     static Path getSquircle(const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
-     {
-         Path path;
-         
-         float x = bounds.getX();
-         float y = bounds.getY();
-         float width = bounds.getWidth();
-         float height = bounds.getHeight();
-
-         float radius = cornerRadius;
-         if (radius > width * 0.5f)
-             radius = width * 0.5f;
-         if (radius > height * 0.5f)
-             radius = height * 0.5f;
-         
-         float controlOffset = radius * 0.45f;
-         
-         path.startNewSubPath(x + radius, y);
-         
-         if (curveTopLeft)
-         {
-             path.cubicTo(x + radius - controlOffset, y, x, y + radius - controlOffset, x, y + radius);
-         }
-         else
-         {
-             path.lineTo(x, y + radius);
-         }
-         
-         path.lineTo(x + width - radius, y);
-         
-         if (curveTopRight)
-         {
-             path.cubicTo(x + width - radius + controlOffset, y, x + width, y + radius - controlOffset, x + width, y + radius);
-         }
-         else
-         {
-             path.lineTo(x + width, y + radius);
-         }
-         
-         path.lineTo(x + width, y + height - radius);
-         
-         if (curveBottomRight)
-         {
-             path.cubicTo(x + width, y + height - radius + controlOffset, x + width - radius + controlOffset, y + height, x + width - radius, y + height);
-         }
-         else
-         {
-             path.lineTo(x + width - radius, y + height);
-         }
-         
-         path.lineTo(x + radius, y + height);
-         
-         if (curveBottomLeft)
-         {
-             path.cubicTo(x + radius - controlOffset, y + height, x, y + height - radius + controlOffset, x, y + height - radius);
-         }
-         else
-         {
-             path.lineTo(x, y + height - radius);
-         }
-         
-         path.lineTo(x, y + radius);
-         
-         if (curveTopLeft)
-         {
-             path.cubicTo(x, y + radius - controlOffset, x + radius - controlOffset, y, x + radius, y);
-         }
-         else
-         {
-             path.lineTo(x + radius, y);
-         }
-
-         return path;
-     }
-     */
     
     static Path getSquircle(const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
     {
@@ -1187,32 +1121,60 @@ struct PlugDataLook : public LookAndFeel_V4 {
         
         float controlOffset = radius * 0.45f;
         
-
         path.startNewSubPath(x + radius, y);
-        path.lineTo(x + width - radius, y);
-        path.cubicTo(x + width - radius + controlOffset, y, x + width, y + radius - controlOffset, x + width, y + radius);
-        path.lineTo(x + width, y + height - radius);
-        path.cubicTo(x + width, y + height - radius + controlOffset, x + width - radius + controlOffset, y + height, x + width - radius, y + height);
-        path.lineTo(x + radius, y + height);
-        path.cubicTo(x + radius - controlOffset, y + height, x, y + height - radius + controlOffset, x, y + height - radius);
-        path.lineTo(x, y + radius);
-        path.cubicTo(x, y + radius - controlOffset, x + radius - controlOffset, y, x + radius, y);
+        
+        if (curveTopRight)
+        {
+            path.lineTo(x + width - radius, y);
+            path.cubicTo(x + width - radius + controlOffset, y, x + width, y + radius - controlOffset, x + width, y + radius);
+        }
+        else
+        {
+            path.lineTo(x + width, y);
+        }
 
+        if (curveBottomRight)
+        {
+            path.lineTo(x + width, y + height - radius);
+            path.cubicTo(x + width, y + height - radius + controlOffset, x + width - radius + controlOffset, y + height, x + width - radius, y + height);
+        }
+        else
+        {
+            path.lineTo(x + width, y + height);
+        }
+
+        if (curveBottomLeft)
+        {
+            path.lineTo(x + radius, y + height);
+            path.cubicTo(x + radius - controlOffset, y + height, x, y + height - radius + controlOffset, x, y + height - radius);
+        }
+        else
+        {
+            path.lineTo(x, y + height);
+        }
+
+        if (curveTopLeft)
+        {
+            path.lineTo(x, y + radius);
+            path.cubicTo(x, y + radius - controlOffset, x + radius - controlOffset, y, x + radius, y);
+        }
+        else
+        {
+            path.lineTo(x, y);
+        }
+
+        path.closeSubPath();
 
         return path;
     }
     
-    static void fillSmoothedRectangle(Graphics& g, const Rectangle<float>& bounds, float cornerRadius)
-    {
-        g.fillPath(getSquircle(bounds, cornerRadius));
-    }
     
-    static void drawSmoothedRectangle(Graphics& g, PathStrokeType strokeType, const Rectangle<float>& bounds, float cornerRadius)
+    static void fillSmoothedRectangle(Graphics& g, const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
     {
-        g.strokePath(getSquircle(bounds, cornerRadius), strokeType);
+        g.fillPath(getSquircle(bounds, cornerRadius, curveTopLeft, curveTopRight, curveBottomLeft, curveBottomRight));
     }
-    
-    static void drawSmoothedRectangle(Graphics& g, PathStrokeType strokeType, const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft, const bool curveTopRight, const bool curveBottomLeft, const bool curveBottomRight)
+        
+    static void drawSmoothedRectangle(Graphics& g, PathStrokeType strokeType, const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
     {
         g.strokePath(getSquircle(bounds, cornerRadius, curveTopLeft, curveTopRight, curveBottomLeft, curveBottomRight), strokeType);
     }
