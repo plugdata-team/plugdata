@@ -79,7 +79,10 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
             ghostTabIdx = tab->getIndex();
             ghostTab.setBounds(tab->getBounds().reduced(8,4));
         } else {
-            auto targetTabPos = getWidth() / getNumTabs();
+            // we calculate where the tab will go when its added,
+            // so we need to add 1 to the number of existing tabs
+            // to take the added tab into account
+            auto targetTabPos = getWidth() / (getNumTabs() + 1);
             auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
             inOtherSplit = true;
             addTab(tab->getButtonText(), Colours::transparentBlack, tabPos);
