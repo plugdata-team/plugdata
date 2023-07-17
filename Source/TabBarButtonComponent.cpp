@@ -228,9 +228,7 @@ void TabBarButtonComponent::drawTabButtonText(Graphics& g, Rectangle<int> custom
 
     auto area = bounds.reduced(4, 2).toFloat();
 
-    TabBarButton unusedButton("unused", getTabbedButtonBar());
-
-    Font font(getLookAndFeel().getTabButtonFont(unusedButton, area.getHeight()));
+    Font font(getLookAndFeel().getTabButtonFont(*this, area.getHeight()));
     font.setUnderline(hasKeyboardFocus(false));
 
     AffineTransform t;
@@ -266,7 +264,7 @@ void TabBarButtonComponent::drawTabButtonText(Graphics& g, Rectangle<int> custom
     }
 
     g.drawFittedText(buttonText,
-        area.getX(), area.getY(), (int)area.getWidth(), (int)area.getHeight(),
+        area.getX(), area.getY() - 2, (int)area.getWidth(), (int)area.getHeight(),
         Justification::centred,
         jmax(1, ((int)area.getHeight()) / 12));
 }
