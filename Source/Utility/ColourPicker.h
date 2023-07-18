@@ -140,6 +140,23 @@ private:
 };
 
 class ColourPicker : public Component {
+    class SelectorHolder : public Component {
+    public:
+        SelectorHolder(ColourPicker* parent)
+            : colourPicker(parent)
+        {
+            addAndMakeVisible(parent);
+            setBounds(parent->getLocalBounds());
+        }
+
+        ~SelectorHolder()
+        {
+            colourPicker->runCallback();
+        }
+    private:
+        ColourPicker* colourPicker;
+    };
+
     struct ColourComponentSlider : public Slider {
         explicit ColourComponentSlider(String const& name)
             : Slider(name)
@@ -176,9 +193,7 @@ public:
         setCurrentColour(currentColour);
 
         // we need to put the selector into a holder, as launchAsynchronously will delete the component when its done
-        auto selectorHolder = std::make_unique<Component>();
-        selectorHolder->addAndMakeVisible(this);
-        selectorHolder->setBounds(getLocalBounds());
+        auto selectorHolder = std::make_unique<SelectorHolder>(this);
 
         CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, parent);
     }
@@ -195,20 +210,8 @@ public:
         addAndMakeVisible(sliders[1]);
         addAndMakeVisible(sliders[2]);
 
-        for (auto* slider : sliders) {
-            slider->onValueChange = [this] { changeColour(); };
-            slider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
-            slider->setColour(Slider::textBoxBackgroundColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
-            slider->setColour(Slider::textBoxTextColourId, findColour(PlugDataColour::popupMenuTextColourId));
-        }
-
         addAndMakeVisible(colourSpace);
         addAndMakeVisible(brightnessSelector);
-
-        showRgb.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
-        showHex.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
-        showRgb.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        showHex.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
         showRgb.setRadioGroupId(8888);
         showHex.setRadioGroupId(8888);
@@ -220,7 +223,6 @@ public:
         addAndMakeVisible(showHex);
         addAndMakeVisible(showEyedropper);
 
-        hexEditor.setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
         hexEditor.setJustificationType(Justification::centred);
         hexEditor.setEditable(true);
         hexEditor.onEditorShow = [this]() {
@@ -257,6 +259,8 @@ public:
         update(dontSendNotification);
 
         setMode(false);
+
+        lookAndFeelChanged();
     }
 
     static ColourPicker& getInstance()
@@ -266,6 +270,29 @@ public:
     }
 
     ~ColourPicker() override { }
+
+    void lookAndFeelChanged() override
+    {
+        for (auto* slider : sliders) {
+            slider->onValueChange = [this] { changeColour(); };
+            slider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
+            slider->setColour(Slider::textBoxBackgroundColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
+            slider->setColour(Slider::textBoxTextColourId, findColour(PlugDataColour::popupMenuTextColourId));
+        }
+
+        showRgb.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
+        showHex.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
+        showRgb.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+        showHex.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+
+        hexEditor.setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
+    }
+
+    void runCallback()
+    {
+        if (onlyCallBackOnClose)
+            callback(getCurrentColour());
+    }
 
     void setMode(bool hex)
     {
