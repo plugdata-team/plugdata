@@ -8,12 +8,34 @@
 #include "Sidebar/Sidebar.h"
 #include "TabBarButtonComponent.h"
 
+class ButtonBar::GhostTab : public Component {
+public:
+    GhostTab() {}
+
+    void setTabButtonToGhost(TabBarButton* tabButton)
+    {
+        tab = tabButton;
+        setBounds(tab->getBounds());
+        repaint();
+    }
+
+    void paint(Graphics& g) override
+    {
+        LookAndFeel::getDefaultLookAndFeel().drawTabButton(*tab, g, true, true);
+    }
+
+private:
+    TabBarButton* tab;
+};
+
 ButtonBar::ButtonBar(TabComponent& tabComp, TabbedButtonBar::Orientation o)
     : TabbedButtonBar(o)
     , owner(tabComp)
 {
-    addChildComponent(ghostTab);
-    ghostTab.setAlwaysOnTop(true);
+    ghostTab = std::make_unique<GhostTab>();
+    addChildComponent(ghostTab.get());
+    ghostTab->setAlwaysOnTop(true);
+
     setInterceptsMouseClicks(true, true);
 }
 
@@ -27,7 +49,7 @@ bool ButtonBar::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
 
 void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
 {
-    ghostTab.setVisible(false);
+    ghostTab->setVisible(false);
     // this has a whole lot of code replication from ResizableTabbedComponent.cpp, good candidate for refactoring!
     if (inOtherSplit) {
         auto sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
@@ -77,7 +99,7 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
             tab->setVisible(false);
             inOtherSplit = false;
             ghostTabIdx = tab->getIndex();
-            ghostTab.setBounds(tab->getBounds().reduced(8,4));
+            ghostTab->setTabButtonToGhost(tab);
         } else {
             // we calculate where the tab will go when its added,
             // so we need to add 1 to the number of existing tabs
@@ -86,20 +108,19 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
             auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
             inOtherSplit = true;
             addTab(tab->getButtonText(), Colours::transparentBlack, tabPos);
-            auto fakeTab = getTabButton(tabPos);
+            auto* fakeTab = getTabButton(tabPos);
             fakeTab->setVisible(false);
+            ghostTab->setTabButtonToGhost(fakeTab);
             ghostTabIdx = tabPos;
-            ghostTab.setBounds(fakeTab->getBounds().reduced(8,4));
         }
-        ghostTab.setButtonText(tab->getButtonText());
-        ghostTab.setVisible(true);
+        ghostTab->setVisible(true);
     }
 }
 
 void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
-        ghostTab.setVisible(false);
+        ghostTab->setVisible(false);
         tab->setVisible(false);
         if (inOtherSplit) {
             inOtherSplit = false;
@@ -111,19 +132,21 @@ void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
 void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        auto ghostTabCentreOffset = ghostTab->getWidth() / 2;
         auto targetTabPos = getWidth() / getNumTabs();
-        auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
 
-        auto ghostTabCentreOffset = ghostTab.getWidth() / 2;
+        // FIXME: for some reason the ghost tab can flicker, this isn't helping, but should?
+        auto tabPos = jlimit(0 + ghostTabCentreOffset, getWidth() - ghostTabCentreOffset, ghostTab->getBounds().getCentreX()) / targetTabPos;
+
         auto leftPos = dragSourceDetails.localPosition.getX() - ghostTabCentreOffset;
         auto rightPos = dragSourceDetails.localPosition.getX() + ghostTabCentreOffset;
         auto tabCentre = tab->getBounds().getCentreY();
         if (leftPos > 0 && rightPos < getWidth()) {
-            ghostTab.setCentrePosition(dragSourceDetails.localPosition.getX(), tabCentre);
+            ghostTab->setCentrePosition(dragSourceDetails.localPosition.getX(), tabCentre);
         } else if (leftPos < 0) {
-            ghostTab.setCentrePosition(0 + ghostTabCentreOffset, tabCentre);
+            ghostTab->setCentrePosition(0 + ghostTabCentreOffset, tabCentre);
         } else {
-            ghostTab.setCentrePosition(getWidth() - ghostTabCentreOffset, tabCentre);
+            ghostTab->setCentrePosition(getWidth() - ghostTabCentreOffset, tabCentre);
         }
         if (tabPos != ghostTabIdx) {
             owner.moveTab(ghostTabIdx, tabPos);
