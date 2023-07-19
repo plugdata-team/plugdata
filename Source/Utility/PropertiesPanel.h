@@ -117,7 +117,7 @@ private:
                 StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
             }
             
-            g.setColour(parent.panelColour);
+            g.setColour(findColour(PlugDataColour::panelForegroundColourId));
             g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
             // Don't draw the outline if the background colour has opacity
