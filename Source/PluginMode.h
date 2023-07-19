@@ -42,7 +42,7 @@ public:
 
         editorButton = std::make_unique<TextButton>(Icons::Edit);
         editorButton->getProperties().set("Style", "LargeIcon");
-        editorButton->setTooltip("Show Editor..");
+        editorButton->setTooltip("Show editor");
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         editorButton->onClick = [this]() {
             closePluginMode();
@@ -70,7 +70,7 @@ public:
         if (ProjectInfo::isStandalone) {
             fullscreenButton = std::make_unique<TextButton>(Icons::Fullscreen);
             fullscreenButton->getProperties().set("Style", "LargeIcon");
-            fullscreenButton->setTooltip("Kiosk Mode..");
+            fullscreenButton->setTooltip("Enter fullscreen kiosk mode");
             fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
             fullscreenButton->onClick = [this]() {
                 setKioskMode(true);
