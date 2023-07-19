@@ -200,6 +200,7 @@ void TabBarButtonComponent::mouseUp(MouseEvent const& e)
     setVisible(true);
 }
 
+// FIXME: we are only using this to draw the DnD tab image
 void TabBarButtonComponent::drawTabButton(Graphics& g, Rectangle<int> customBounds)
 {
     bool isActive = getToggleState();
@@ -220,6 +221,7 @@ void TabBarButtonComponent::drawTabButton(Graphics& g, Rectangle<int> customBoun
     g.fillRoundedRectangle(bounds.reduced(4).toFloat(), Corners::defaultCornerRadius);
 }
 
+// FIXME: we are only using this to draw the DnD tab image
 void TabBarButtonComponent::drawTabButtonText(Graphics& g, Rectangle<int> customBounds)
 {
     auto bounds = getLocalBounds();
@@ -271,6 +273,5 @@ void TabBarButtonComponent::drawTabButtonText(Graphics& g, Rectangle<int> custom
 
 void TabBarButtonComponent::paint(Graphics& g)
 {
-    drawTabButton(g);
-    drawTabButtonText(g);
+    LookAndFeel::getDefaultLookAndFeel().drawTabButton(*this, g, isMouseOver(true), isMouseButtonDown(false));
 }

@@ -224,7 +224,8 @@ public:
 private:
     TabComponent& owner;
 
-    TextButton ghostTab;
+    class GhostTab;
+    std::unique_ptr<GhostTab> ghostTab;
     int ghostTabIdx = -1;
     bool inOtherSplit = false;
 
