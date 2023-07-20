@@ -19,6 +19,14 @@ public:
         repaint();
     }
 
+    int getIndex()
+    {
+        if (tab)
+            return tab->getIndex();
+
+        return -1;
+    }
+
     void paint(Graphics& g) override
     {
         LookAndFeel::getDefaultLookAndFeel().drawTabButton(*tab, g, true, true);
@@ -36,6 +44,8 @@ ButtonBar::ButtonBar(TabComponent& tabComp, TabbedButtonBar::Orientation o)
     addChildComponent(ghostTab.get());
     ghostTab->setAlwaysOnTop(true);
 
+    ghostTabAnimator.addChangeListener(this);
+
     setInterceptsMouseClicks(true, true);
 }
 
@@ -47,11 +57,27 @@ bool ButtonBar::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
     return false;
 }
 
+void ButtonBar::changeListenerCallback(ChangeBroadcaster* source)
+{
+    if (&ghostTabAnimator == source) {
+        if (!ghostTabAnimator.isAnimating()) {
+            ghostTab->setVisible(false);
+            getTabButton(ghostTabIdx)->setVisible(true);
+        }
+    }
+}
+
 void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
 {
-    ghostTab->setVisible(false);
+    auto animateTabToPosition = [this](){
+        getTabButton(ghostTabIdx)->setVisible(false);
+        ghostTabAnimator.animateComponent(ghostTab.get(), ghostTab->getBounds().withPosition(Point<int>(ghostTab->getIndex() * (getWidth() / getNumTabs()), 0)), 1.0f, 200, false, 3.0f, 0.0f);
+    };
+
     // this has a whole lot of code replication from ResizableTabbedComponent.cpp, good candidate for refactoring!
-    if (inOtherSplit) {
+    if (!inOtherSplit) {
+        animateTabToPosition();
+    } else {
         auto sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
         int sourceTabIndex = sourceTabButton->getIndex();
         auto sourceTabContent = sourceTabButton->getTabComponent();
@@ -72,10 +98,16 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         sourceTabContent->setCurrentTabIndex(sourceCurrentIndex);
 
         if (sourceNumTabs < 2) {
+            // we don't animate the ghostTab moving into position, as the geometry of the splits is changing
+            ghostTab->setVisible(false);
+            ghostTabAnimator.cancelAllAnimations(true);
+
             owner.editor->splitView.removeSplit(sourceTabContent);
             for (auto* split : owner.editor->splitView.splits) {
                 split->setBoundsWithFactors(owner.editor->splitView.getLocalBounds());
             }
+        } else {
+            animateTabToPosition();
         }
         // set all current canvas viewports to visible, (if they already are this shouldn't do anything)
         for (auto* split : owner.editor->splitView.splits) {
@@ -93,6 +125,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
 void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        ghostTabAnimator.cancelAllAnimations(false);
         // if this tabbar is DnD on itself, we don't need to add a new tab
         // we move the existing tab
         if (tab->getTabComponent() == &owner) {
@@ -134,14 +167,12 @@ void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         auto ghostTabCentreOffset = ghostTab->getWidth() / 2;
         auto targetTabPos = getWidth() / getNumTabs();
-
-        // FIXME: for some reason the ghost tab can flicker, this isn't helping, but should?
-        auto tabPos = jlimit(0 + ghostTabCentreOffset, getWidth() - ghostTabCentreOffset, ghostTab->getBounds().getCentreX()) / targetTabPos;
+        auto tabPos = ghostTab->getBounds().getCentreX() / targetTabPos;
 
         auto leftPos = dragSourceDetails.localPosition.getX() - ghostTabCentreOffset;
         auto rightPos = dragSourceDetails.localPosition.getX() + ghostTabCentreOffset;
         auto tabCentre = tab->getBounds().getCentreY();
-        if (leftPos > 0 && rightPos < getWidth()) {
+        if (leftPos >= 0 && rightPos <= getWidth()) {
             ghostTab->setCentrePosition(dragSourceDetails.localPosition.getX(), tabCentre);
         } else if (leftPos < 0) {
             ghostTab->setCentrePosition(0 + ghostTabCentreOffset, tabCentre);

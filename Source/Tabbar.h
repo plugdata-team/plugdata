@@ -207,7 +207,7 @@ public:
 
 class PluginEditor;
 
-class ButtonBar : public TabbedButtonBar, public DragAndDropTarget
+class ButtonBar : public TabbedButtonBar, public DragAndDropTarget, public ChangeListener
 {
 public:
     ButtonBar (TabComponent& tabComp, TabbedButtonBar::Orientation o);
@@ -220,6 +220,8 @@ public:
 
     void currentTabChanged(int newCurrentTabIndex, String const& newTabName) override;
 
+    void changeListenerCallback(ChangeBroadcaster* source) override;
+
     TabBarButton* createTabButton(String const& tabName, int tabIndex) override;
 private:
     TabComponent& owner;
@@ -228,6 +230,8 @@ private:
     std::unique_ptr<GhostTab> ghostTab;
     int ghostTabIdx = -1;
     bool inOtherSplit = false;
+
+    ComponentAnimator ghostTabAnimator;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ButtonBar)
 };
