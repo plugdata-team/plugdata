@@ -134,14 +134,12 @@ void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         auto ghostTabCentreOffset = ghostTab->getWidth() / 2;
         auto targetTabPos = getWidth() / getNumTabs();
-
-        // FIXME: for some reason the ghost tab can flicker, this isn't helping, but should?
-        auto tabPos = jlimit(0 + ghostTabCentreOffset, getWidth() - ghostTabCentreOffset, ghostTab->getBounds().getCentreX()) / targetTabPos;
+        auto tabPos = ghostTab->getBounds().getCentreX() / targetTabPos;
 
         auto leftPos = dragSourceDetails.localPosition.getX() - ghostTabCentreOffset;
         auto rightPos = dragSourceDetails.localPosition.getX() + ghostTabCentreOffset;
         auto tabCentre = tab->getBounds().getCentreY();
-        if (leftPos > 0 && rightPos < getWidth()) {
+        if (leftPos >= 0 && rightPos <= getWidth()) {
             ghostTab->setCentrePosition(dragSourceDetails.localPosition.getX(), tabCentre);
         } else if (leftPos < 0) {
             ghostTab->setCentrePosition(0 + ghostTabCentreOffset, tabCentre);
