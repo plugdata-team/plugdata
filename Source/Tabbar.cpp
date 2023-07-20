@@ -59,8 +59,8 @@ bool ButtonBar::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
 
 void ButtonBar::changeListenerCallback(ChangeBroadcaster* source)
 {
-    if (auto* ghostTabAnimator = dynamic_cast<ComponentAnimator*>(source)) {
-        if (!ghostTabAnimator->isAnimating()) {
+    if (&ghostTabAnimator == source) {
+        if (!ghostTabAnimator.isAnimating()) {
             ghostTab->setVisible(false);
             getTabButton(ghostTabIdx)->setVisible(true);
         }
