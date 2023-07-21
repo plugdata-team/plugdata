@@ -21,17 +21,13 @@ class Patch;
 
 class Object;
 
+
 class ObjectLabel : public Label {
-    struct ObjectListener : public juce::ComponentListener {
-        void componentMovedOrResized(Component& component, bool moved, bool resized) override;
-    };
 
 public:
     explicit ObjectLabel(Component* parent)
         : object(parent)
     {
-        object->addComponentListener(&objListener);
-
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
         setMinimumHorizontalScale(1.f);
@@ -39,13 +35,8 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    ~ObjectLabel() override
-    {
-        object->removeComponentListener(&objListener);
-    }
 
 private:
-    ObjectListener objListener;
     Component* object;
 };
 
@@ -53,6 +44,17 @@ class ObjectBase : public Component
     , public pd::MessageListener
     , public Value::Listener
     , public SettableTooltipClient {
+        
+    struct ObjectSizeListener : public juce::ComponentListener, public Value::Listener {
+        
+        ObjectSizeListener(Object* obj);
+        
+        void componentMovedOrResized(Component& component, bool moved, bool resized) override;
+        
+        void valueChanged(Value& v) override;
+        
+        Object* object;
+    };
 
 public:
     ObjectBase(void* obj, Object* parent);
@@ -133,7 +135,11 @@ public:
 
     // Override this to return parameters that will be shown in the inspector
     virtual ObjectParameters getParameters();
+    virtual bool showParametersWhenSelected();
+        
 
+    void objectMovedOrResized();
+        
     virtual void updateLabel() {};
 
     // Implement this if you want to allow toggling an object by dragging over it in run mode
@@ -218,6 +224,9 @@ protected:
     static inline std::atomic<bool> edited = false;
     std::unique_ptr<ComponentBoundsConstrainer> constrainer;
 
+    ObjectSizeListener objectSizeListener;
+    Value positionParameter;
+        
     friend class IEMHelper;
     friend class AtomHelper;
 };

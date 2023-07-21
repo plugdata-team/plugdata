@@ -90,7 +90,7 @@ public:
     {
         properties = params;
 
-        StringArray names = { "General", "Appearance", "Label", "Extra" };
+        StringArray names = { "Dimensions", "General", "Appearance", "Label", "Extra" };
 
         panel.clear();
 

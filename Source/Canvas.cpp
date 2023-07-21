@@ -785,7 +785,8 @@ void Canvas::updateSidebarSelection()
     if (lassoSelection.size() == 1) {
         auto* object = lassoSelection.getFirst();
         auto params = object->gui ? object->gui->getParameters() : ObjectParameters();
-
+        auto showOnSelect = object->gui ? object->gui->showParametersWhenSelected() : false;
+        
         if (!object->gui) {
             editor->sidebar->hideParameters();
             return;
@@ -793,7 +794,7 @@ void Canvas::updateSidebarSelection()
 
         if (commandLocked == var(true)) {
             editor->sidebar->hideParameters();
-        } else if (!params.getParameters().isEmpty() || editor->sidebar->isPinned()) {
+        } else if ((showOnSelect && !params.getParameters().isEmpty()) || editor->sidebar->isPinned()) {
             editor->sidebar->showParameters(object->gui->getText(), params);
         } else {
             editor->sidebar->hideParameters();

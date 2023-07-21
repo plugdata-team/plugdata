@@ -17,10 +17,11 @@ enum ParameterType {
 };
 
 enum ParameterCategory {
+    cDimensions,
     cGeneral,
     cAppearance,
     cLabel,
-    cExtra
+    cExtra,
 };
 
 using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, StringArray, var>;
@@ -119,6 +120,12 @@ public:
     {
         objectParameters.add(makeParam(pString, tFont, pCat, pVal, StringArray(), pDefault));
     }
+    
+    void addParamPosition(Value* positionValue)
+    {        
+        objectParameters.add(makeParam("Position", tRange, cDimensions, positionValue, StringArray(), var()));
+    }
+    
 
 private:
     Array<ObjectParameter> objectParameters;

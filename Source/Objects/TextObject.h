@@ -321,6 +321,11 @@ public:
         }
     }
 
+    bool showParametersWhenSelected() override
+    {
+        return false;
+    }
+    
     void hideEditor() override
     {
         if (editor != nullptr) {

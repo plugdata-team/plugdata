@@ -84,10 +84,30 @@ public:
     void setPdBounds(Rectangle<int> newBounds) override {};
 };
 
-void ObjectLabel::ObjectListener::componentMovedOrResized(Component& component, bool moved, bool resized)
+ObjectBase::ObjectSizeListener::ObjectSizeListener(Object* obj) : object(obj)
 {
+}
 
-    dynamic_cast<Object&>(component).gui->updateLabel();
+
+
+void ObjectBase::ObjectSizeListener::componentMovedOrResized(Component& component, bool moved, bool resized)
+{
+    dynamic_cast<Object&>(component).gui->objectMovedOrResized();
+}
+
+void ObjectBase::ObjectSizeListener::valueChanged(Value &v)
+{
+    if (auto obj = object->gui->ptr.get<t_gobj>()) {
+        auto* patch = object->cnv->patch.getPointer().get();
+        if (!patch)
+            return;
+        
+        auto x = static_cast<float>(v.getValue().getArray()->getReference(0));
+        auto y = static_cast<float>(v.getValue().getArray()->getReference(1));
+        
+        libpd_moveobj(patch, obj.get(), x, y);
+        object->updateBounds();
+    }
 }
 
 ObjectBase::ObjectBase(void* obj, Object* parent)
@@ -95,12 +115,20 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
+    , objectSizeListener(parent)
 {
     pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
-
+    object->addComponentListener(&objectSizeListener);
+    
     setWantsKeyboardFocus(true);
 
     setLookAndFeel(new PlugDataLook());
+    
+    auto objectBounds = object->getObjectBounds();
+    positionParameter = Array<var>{var(objectBounds.getX()), var(objectBounds.getY())};
+
+    objectParameters.addParamPosition(&positionParameter);
+    positionParameter.addListener(&objectSizeListener);
 
     MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this) {
@@ -118,10 +146,19 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 ObjectBase::~ObjectBase()
 {
     pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
-
+    object->removeComponentListener(&objectSizeListener);
+    
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
     delete lnf;
+}
+
+void ObjectBase::objectMovedOrResized()
+{
+    auto objectBounds = object->getObjectBounds();
+    positionParameter = Array<var>{var(objectBounds.getX()), var(objectBounds.getY())};
+
+    updateLabel();
 }
 
 String ObjectBase::getText()
@@ -300,6 +337,11 @@ void ObjectBase::paint(Graphics& g)
 ObjectParameters ObjectBase::getParameters()
 {
     return objectParameters;
+}
+
+bool ObjectBase::showParametersWhenSelected()
+{
+    return true;
 }
 
 void ObjectBase::startEdition()
