@@ -366,23 +366,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
             auto bounds = button.getLocalBounds().toFloat();
             bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
             
-            // Always draw active state fully rounded, but make sure it looks like the background on the connected side is still there
-            if(active)
-            {
-                g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId).contrasting(0.05f));
-                if(flatOnLeft) g.fillRect(bounds.withTrimmedRight(cornerSize + 1));
-                if(flatOnRight) g.fillRect(bounds.withTrimmedLeft(cornerSize + 1));
-                if(flatOnTop) g.fillRect(bounds.withTrimmedBottom(cornerSize + 1));
-                if(flatOnBottom) g.fillRect(bounds.withTrimmedTop(cornerSize + 1));
-
-                flatOnLeft = false;
-                flatOnRight = false;
-                flatOnTop = false;
-                flatOnBottom = false;
-            }
-
-            backgroundColour = backgroundColour;
-
             g.setColour(backgroundColour);
             fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius,
                                   !(flatOnLeft || flatOnTop),
