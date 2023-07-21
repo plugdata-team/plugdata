@@ -64,7 +64,7 @@ public:
         , public SettableTooltipClient {
     private:
             
-        String property = "grid_type";
+        const String property = "grid_type";
 
         SnapBitMask snapBit;
 
@@ -86,7 +86,7 @@ public:
             , parent(parent)
             , icon(iconText)
         {
-            snapValue = SettingsFile::getInstance()->getProperty<int>(property);
+            snapValue.referTo(SettingsFile::getInstance()->getPropertyAsValue(property));
             snapValue.addListener(this);
             valueChanged(snapValue);
 
