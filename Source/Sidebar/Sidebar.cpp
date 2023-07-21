@@ -262,6 +262,11 @@ void Sidebar::showSidebar(bool show)
     } else {
         int newWidth = lastWidth;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
+        
+        if(inspector->isVisible())
+        {
+            inspector->showParameters();
+        }
     }
 }
 

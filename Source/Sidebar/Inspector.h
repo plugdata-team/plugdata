@@ -80,6 +80,11 @@ public:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
         }
     }
+    
+    void showParameters()
+    {
+        loadParameters(properties);
+    }
 
     void loadParameters(ObjectParameters& params)
     {
