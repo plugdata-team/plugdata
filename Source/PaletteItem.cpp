@@ -79,9 +79,20 @@ bool PaletteItem::hitTest(int x, int y)
     return hit;
 }
 
+void PaletteItem::setIsItemDragged(bool isActive)
+{
+    if (isItemDragged != isActive) {
+        isItemDragged = isActive;
+        repaint();
+    }
+}
+
+
 void PaletteItem::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
+
+    auto outlineColour = isItemDragged ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId;
 
     if (!isSubpatch) {
         auto lineBounds = bounds.reduced(2.5f);
@@ -97,7 +108,7 @@ void PaletteItem::paint(Graphics& g)
         g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
         g.fillRoundedRectangle(lineBounds, 5.0f);
 
-        g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+        g.setColour(findColour(outlineColour));
         g.strokePath(dashedRect, dashedStroke);
         return;
     }
@@ -196,7 +207,7 @@ void PaletteItem::paint(Graphics& g)
     g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
     g.fillPath(p);
 
-    g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+    g.setColour(findColour(outlineColour));
     g.strokePath(p, PathStrokeType(1.0f));
 
     // draw all the iolet paths on top of the border
@@ -252,6 +263,7 @@ void PaletteItem::mouseDrag(MouseEvent const& e)
         palettePatchWithOffset.add(var(dragImage.offset.getX()));
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(palettePatch));
+        setIsItemDragged(true);
         dragContainer->startDragging(palettePatchWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
     }
 }
@@ -282,6 +294,7 @@ void PaletteItem::mouseUp(MouseEvent const& e)
     } else if (e.mouseWasDraggedSinceMouseDown()) {
         paletteComp->isDnD = false;
         getParentComponent()->resized();
+        setIsItemDragged(false);
     }
     if (paletteComp->isItemShowingMenu) {
         paletteComp->addMouseListener(this, false);
