@@ -275,22 +275,6 @@ void PaletteItem::deleteItem()
     });
 }
 
-void PaletteItem::mouseDown(MouseEvent const& e)
-{
-    if (paletteComp->isPaletteShowingMenu)
-        return;
-
-    if (e.mods.isRightButtonDown()) {
-        paletteComp->removeMouseListener(this);
-        paletteComp->isItemShowingMenu = true;
-        PopupMenu menu;
-        menu.addItem("Delete item", [this]() {
-            deleteItem();
-        });
-        menu.showMenuAsync(PopupMenu::Options());
-    }
-}
-
 void PaletteItem::mouseUp(MouseEvent const& e)
 {
     if (!e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
