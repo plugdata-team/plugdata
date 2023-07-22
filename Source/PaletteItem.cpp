@@ -9,7 +9,7 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
     , paletteComp(parent)
     , itemTree(tree)
 {
-    addMouseListener(paletteComp, false);
+    addMouseListener(paletteComp, true);
 
     paletteName = itemTree.getProperty("Name");
     palettePatch = itemTree.getProperty("Patch");
@@ -34,7 +34,16 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     addAndMakeVisible(nameLabel);
 
+    reorderButton = std::make_unique<ReorderButton>();
+    reorderButton->setButtonText(Icons::Reorder);
+    reorderButton->setSize(25, 25);
+    reorderButton->getProperties().set("Style", "SmallIcon");
+    reorderButton->addMouseListener(this, false);
+
+    addChildComponent(reorderButton.get());
+
     deleteButton.setButtonText(Icons::Clear);
+    deleteButton.setTooltip("Delete item");
     deleteButton.setSize(25, 25);
     deleteButton.getProperties().set("Style", "SmallIcon");
     deleteButton.onClick = [this]() {
@@ -205,18 +214,22 @@ void PaletteItem::lookAndFeelChanged()
 
 void PaletteItem::mouseEnter(MouseEvent const& e)
 {
+    reorderButton->setVisible(true);
     deleteButton.setVisible(true);
 }
 
 void PaletteItem::mouseExit(MouseEvent const& e)
 {
+    reorderButton->setVisible(false);
     deleteButton.setVisible(false);
 }
 
 void PaletteItem::resized()
 {
     nameLabel.setBounds(getLocalBounds().reduced(16, 4));
-    deleteButton.setCentrePosition(getLocalBounds().getRight() - 30, getLocalBounds().getCentre().getY());
+    auto componentCentre = getLocalBounds().getCentre().getY();
+    reorderButton->setCentrePosition(30, componentCentre);
+    deleteButton.setCentrePosition(getLocalBounds().getRight() - 30, componentCentre);
 }
 
 void PaletteItem::mouseDrag(MouseEvent const& e)
@@ -228,8 +241,11 @@ void PaletteItem::mouseDrag(MouseEvent const& e)
         dragImage = offlineObjectRenderer->patchToTempImage(palettePatch);
     }
 
-    if (e.getDistanceFromDragStartX() > 10 && !isRepositioning) {
+    if (auto* overReorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
+        return;
+    } else {
         paletteComp->isDnD = true;
+        reorderButton->setVisible(false);
         deleteButton.setVisible(false);
 
         Array<var> palettePatchWithOffset;

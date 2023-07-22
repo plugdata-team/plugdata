@@ -7,6 +7,7 @@
 
 class PluginEditor;
 class PaletteDraggableList;
+class ReorderButton;
 class PaletteItem : public Component {
 public:
     PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree);
@@ -36,8 +37,12 @@ public:
     std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patchAsString);
 
     ValueTree itemTree;
+
     Label nameLabel;
     TextButton deleteButton;
+
+    std::unique_ptr<ReorderButton> reorderButton;
+
     PluginEditor* editor;
     PaletteDraggableList* paletteComp;
     String paletteName, palettePatch;
