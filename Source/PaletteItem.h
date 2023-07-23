@@ -7,6 +7,7 @@
 
 class PluginEditor;
 class PaletteDraggableList;
+class ReorderButton;
 class PaletteItem : public Component {
 public:
     PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree);
@@ -16,7 +17,6 @@ public:
     void resized() override;
 
     void mouseDrag(MouseEvent const& e) override;
-    void mouseDown(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
@@ -36,12 +36,20 @@ public:
     std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patchAsString);
 
     ValueTree itemTree;
+
     Label nameLabel;
     TextButton deleteButton;
+
+    std::unique_ptr<ReorderButton> reorderButton;
+
     PluginEditor* editor;
     PaletteDraggableList* paletteComp;
     String paletteName, palettePatch;
     bool isSubpatch;
     std::vector<bool> inlets, outlets;
     bool isRepositioning = false;
+
+private:
+    void setIsItemDragged(bool isActive);
+    bool isItemDragged = false;
 };

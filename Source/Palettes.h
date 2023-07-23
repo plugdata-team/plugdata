@@ -20,6 +20,16 @@
 #include "PaletteItem.h"
 #include "Utility/OfflineObjectRenderer.h"
 
+class ReorderButton : public TextButton {
+public:
+    ReorderButton()
+        : TextButton() {}
+
+    MouseCursor getMouseCursor() override
+    {
+        return MouseCursor::DraggingHandCursor;
+    }
+};
 
 class AddItemButton : public Component {
 
@@ -193,17 +203,18 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (std::abs(e.getDistanceFromDragStartY()) < 10 && !isDragging || isDnD)
+        if (std::abs(e.getDistanceFromDragStart()) < 5 && !isDragging || isDnD)
             return;
 
         isDragging = true;
 
         if (!draggedItem) {
-            if (auto* paletteItem = dynamic_cast<PaletteItem*>(e.originalComponent)) {
-                draggedItem = paletteItem;
+            if (auto* reorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
+                draggedItem = static_cast<PaletteItem*>(reorderButton->getParentComponent());
                 draggedItem->toFront(false);
                 mouseDownPos = draggedItem->getPosition();
                 draggedItem->isRepositioning = true;
+                draggedItem->reorderButton->setVisible(false);
                 draggedItem->deleteButton.setVisible(false);
             }
         } else {
