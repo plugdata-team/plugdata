@@ -3,6 +3,7 @@
 #include "Constants.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
+#include "Utility/StackShadow.h"
 
 PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree)
     : editor(e)
@@ -92,6 +93,12 @@ void PaletteItem::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
 
+    if (isItemDragged) {
+        Path dropShadowPath;
+        dropShadowPath.addRoundedRectangle(bounds.reduced(4.0f), 5.0f);
+        auto dropShadowColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
+        StackShadow::renderDropShadow(g, dropShadowPath, dropShadowColour.withAlpha(0.5f), 6);
+    }
     auto outlineColour = isItemDragged ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId;
 
     if (!isSubpatch) {
