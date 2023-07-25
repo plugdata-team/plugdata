@@ -339,8 +339,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(*oversampleSelector);
 
     powerButton.setButtonText(Icons::Power);
-    connectionStyleButton.setButtonText(Icons::ConnectionStyle);
-    connectionPathfind.setButtonText(Icons::Wand);
     protectButton.setButtonText(Icons::Protection);
     centreButton.setButtonText(Icons::Centre);
     fitAllButton.setButtonText(Icons::FitAll);
@@ -375,30 +373,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
 
     addAndMakeVisible(fitAllButton);
-
-    connectionStyleButton.setTooltip("Enable segmented connections");
-    connectionStyleButton.setClickingTogglesState(true);
-    connectionStyleButton.getProperties().set("Style", "SmallIcon");
-    connectionStyleButton.onClick = [this]() {
-        bool segmented = connectionStyleButton.getToggleState();
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-
-        auto* cnv = editor->getCurrentCanvas();
-
-        // cnv->patch.startUndoSequence("ChangeSegmentedPaths");
-
-        for (auto& connection : cnv->getSelectionOfType<Connection>()) {
-            connection->setSegmented(segmented);
-        }
-
-        // cnv->patch.endUndoSequence("ChangeSegmentedPaths");
-    };
-    addAndMakeVisible(connectionStyleButton);
-
-    connectionPathfind.setTooltip("Find best connection path");
-    connectionPathfind.getProperties().set("Style", "SmallIcon");
-    connectionPathfind.onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
-    addAndMakeVisible(connectionPathfind);
 
     protectButton.setTooltip("Clip output signal and filter non-finite values");
     protectButton.getProperties().set("Style", "SmallIcon");
@@ -496,10 +470,9 @@ void Statusbar::paint(Graphics& g)
     g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawLine(0.0f, 0.5f, static_cast<float>(getWidth()), 0.5f);
     
-    g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
-    g.drawLine(secondSeparatorPosition, 6.0f,secondSeparatorPosition, getHeight() - 6.0f);
-    g.drawLine(thirdSeparatorPosition, 6.0f, thirdSeparatorPosition, getHeight() - 6.0f);
-    g.drawLine(fourthSeparatorPosition, 6.0f,fourthSeparatorPosition, getHeight() - 6.0f);
+    g.drawLine(firstSeparatorPosition, 6.0f,firstSeparatorPosition, getHeight() - 6.0f);
+    g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
+    g.drawLine(thirdSeparatorPosition, 6.0f,thirdSeparatorPosition, getHeight() - 6.0f);
 }
 
 void Statusbar::resized()
@@ -513,16 +486,11 @@ void Statusbar::resized()
     
     auto spacing = getHeight() + 4;
 
-    connectionStyleButton.setBounds(position(spacing), 0, getHeight(), getHeight());
-    connectionPathfind.setBounds(position(spacing), 0, getHeight(), getHeight());
-
-    firstSeparatorPosition = position(7) + 3.5f; // First seperator
-
     centreButton.setBounds(position(spacing), 0, getHeight(), getHeight());
     fitAllButton.setBounds(position(spacing), 0, getHeight(), getHeight());
     
-    secondSeparatorPosition = position(7) + 3.5f; // Second seperator
-
+    firstSeparatorPosition = position(7) + 3.5f; // Second seperator
+    
     overlayButton.setBounds(position(spacing), 0, getHeight(), getHeight());
     overlaySettingsButton.setBounds(overlayButton.getBounds().translated(getHeight() - 3, 0).withTrimmedRight(8));
     position(10);
@@ -541,12 +509,12 @@ void Statusbar::resized()
     levelMeter->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
     volumeSlider->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
 
-    thirdSeparatorPosition = position(5, true) + 5.0f; // Third seperator
-    
+    secondSeparatorPosition = position(5, true) + 5.0f; // Third seperator
+
     // Offset to make text look centred
     oversampleSelector->setBounds(position(spacing - 8, true), 1, getHeight() - 2, getHeight() - 2);
 
-    fourthSeparatorPosition = position(5, true) + 2.5f; // Fourth seperator
+    thirdSeparatorPosition = position(5, true) + 2.5f; // Fourth seperator
     
     midiBlinker->setBounds(position(55, true) - 8, 0, 55, getHeight());
 }

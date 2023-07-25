@@ -755,23 +755,8 @@ void PluginEditor::updateCommandStatus()
     pd->titleChanged();
 
     if (auto* cnv = getCurrentCanvas()) {
-        // Update connection style button
-        bool allSegmented = true;
-        bool allNotSegmented = true;
-        bool hasSelection = false;
-
         bool locked = getValue<bool>(cnv->locked);
-
         bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
-        for (auto& connection : cnv->getSelectionOfType<Connection>()) {
-            allSegmented = allSegmented && connection->isSegmented();
-            allNotSegmented = allNotSegmented && !connection->isSegmented();
-            hasSelection = true;
-        }
-
-        statusbar->connectionStyleButton.setEnabled(!isDragging && hasSelection);
-        statusbar->connectionPathfind.setEnabled(!isDragging && hasSelection);
-        statusbar->connectionStyleButton.setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
 
         if (getValue<bool>(cnv->presentationMode)) {
             presentButton.setToggleState(true, dontSendNotification);
@@ -814,8 +799,6 @@ void PluginEditor::updateCommandStatus()
         runButton.setEnabled(false);
         presentButton.setEnabled(false);
 
-        statusbar->connectionStyleButton.setEnabled(false);
-        statusbar->connectionPathfind.setEnabled(false);
         statusbar->centreButton.setEnabled(false);
         statusbar->fitAllButton.setEnabled(false);
 
@@ -858,18 +841,21 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     }
 
     bool hasObjectSelection = false;
+    bool hasConnectionSelection = false;
     bool hasSelection = false;
     bool isDragging = false;
     bool hasCanvas = false;
     bool locked = true;
     bool canConnect = false;
-
+    
     if (auto* cnv = getCurrentCanvas()) {
         auto selectedObjects = cnv->getSelectionOfType<Object>();
         auto selectedConnections = cnv->getSelectionOfType<Connection>();
 
         hasObjectSelection = !selectedObjects.isEmpty();
-        hasSelection = hasObjectSelection || !selectedConnections.isEmpty();
+        hasConnectionSelection = !selectedConnections.isEmpty();
+        
+        hasSelection = hasObjectSelection || hasConnectionSelection;
         isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         hasCanvas = true;
 
@@ -929,12 +915,12 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::ConnectionPathfind: {
         result.setInfo("Tidy connection", "Find best path for connection", "Edit", 0);
         result.addDefaultKeypress(89, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive((hasCanvas) && !isDragging);
+        result.setActive(hasCanvas && !isDragging && hasConnectionSelection);
         break;
     }
     case CommandIDs::ConnectionStyle: {
         result.setInfo("Connection style", "Set connection style", "Edit", 0);
-        result.setActive(hasCanvas && !isDragging && statusbar->connectionStyleButton.isEnabled());
+        result.setActive(hasCanvas && !isDragging && hasConnectionSelection);
         break;
     }
     case CommandIDs::ZoomIn: {
@@ -970,7 +956,6 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::Copy: {
         result.setInfo("Copy", "Copy", "Edit", 0);
         result.addDefaultKeypress(67, ModifierKeys::commandModifier);
-        std::cout << (hasCanvas && !locked && hasObjectSelection && !isDragging) << std::endl;
         result.setActive(hasCanvas && !locked && hasObjectSelection && !isDragging);
         break;
     }
@@ -1332,15 +1317,25 @@ bool PluginEditor::perform(InvocationInfo const& info)
         cnv->presentationMode = false;
         return true;
     }
+    case CommandIDs::ConnectionStyle: {
+        
+        bool noneSegmented = true;
+        for (auto* con : cnv->getSelectionOfType<Connection>()) {
+            if(con->isSegmented()) noneSegmented = false;
+        }
+        
+        for (auto* con : cnv->getSelectionOfType<Connection>()) {
+            con->setSegmented(noneSegmented);
+        }
+        
+        return true;
+    }
     case CommandIDs::ConnectionPathfind: {
         cnv = getCurrentCanvas();
         cnv->patch.startUndoSequence("ConnectionPathFind");
 
-        statusbar->connectionStyleButton.setToggleState(true, sendNotification);
-        for (auto* con : cnv->connections) {
-            if (con->isSelected()) {
-                con->applyBestPath();
-            }
+        for (auto* con : cnv->getSelectionOfType<Connection>()) {
+            con->applyBestPath();
         }
 
         cnv->patch.endUndoSequence("ConnectionPathFind");

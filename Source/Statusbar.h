@@ -94,7 +94,7 @@ public:
     std::unique_ptr<MidiBlinker> midiBlinker;
     std::unique_ptr<VolumeSlider> volumeSlider;
         
-    TextButton powerButton, connectionStyleButton, connectionPathfind, centreButton, fitAllButton, protectButton;
+    TextButton powerButton, centreButton, fitAllButton, protectButton;
 
     TextButton overlayButton, overlaySettingsButton;
     std::unique_ptr<OverlayDisplaySettings> overlayDisplaySettings;
@@ -115,7 +115,6 @@ public:
     int firstSeparatorPosition;
     int secondSeparatorPosition;
     int thirdSeparatorPosition;
-    int fourthSeparatorPosition;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

@@ -780,7 +780,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 font.setHeight((float)standardMenuItemHeight / 1.3f);
 
             idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
-            idealWidth = font.getStringWidth(text) + idealHeight * 2;
+            idealWidth = font.getStringWidth(text) + idealHeight;
         }
     }
 

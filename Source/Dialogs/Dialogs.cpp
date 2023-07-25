@@ -31,6 +31,7 @@
 #include "Heavy/HeavyExportDialog.h"
 #include "MainMenu.h"
 #include "Canvas.h"
+#include "Connection.h"
 #include "Deken.h"
 
 Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback)
@@ -389,11 +390,20 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     };
     
     cnv->cancelConnectionCreation();
-    cnv->isShowingMenu = true;
 
     // Info about selection status
     auto selectedBoxes = cnv->getSelectionOfType<Object>();
 
+    // If we directly right-clicked on an object, make sure it has been added to selection
+    if(auto* obj = dynamic_cast<Object*>(originalComponent))
+    {
+        selectedBoxes.addIfNotAlreadyThere(obj);
+    }
+    else if(auto* obj = originalComponent->findParentComponentOfClass<Object>())
+    {
+        selectedBoxes.addIfNotAlreadyThere(obj);
+    }
+    
     bool hasSelection = !selectedBoxes.isEmpty();
     bool multiple = selectedBoxes.size() > 1;
 
@@ -444,6 +454,27 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addCommandItem(editor, CommandIDs::Duplicate);
     popupMenu.addCommandItem(editor, CommandIDs::Delete); */
     
+    bool selectedConnection = false, noneSegmented = true;
+    for (auto& connection : cnv->getSelectionOfType<Connection>()) {
+        noneSegmented = noneSegmented && !connection->isSegmented();
+        selectedConnection = true;
+    }
+    
+    popupMenu.addItem("Curved Connection", selectedConnection, selectedConnection && !noneSegmented, [editor, cnv, noneSegmented](){
+        bool segmented = noneSegmented;
+        auto* cnv = editor->getCurrentCanvas();
+
+        // cnv->patch.startUndoSequence("ChangeSegmentedPaths");
+
+        for (auto& connection : cnv->getSelectionOfType<Connection>()) {
+            connection->setSegmented(segmented);
+        }
+
+        // cnv->patch.endUndoSequence("ChangeSegmentedPaths");
+    });
+    popupMenu.addCommandItem(editor, CommandIDs::ConnectionPathfind);
+    
+    popupMenu.addSeparator();
     popupMenu.addCommandItem(editor, CommandIDs::Encapsulate);
     popupMenu.addSeparator();
 
@@ -453,7 +484,6 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.getParameters().isEmpty()));
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
-        cnv->isShowingMenu = false;
         cnv->grabKeyboardFocus();
 
         // Make sure that iolets don't hang in hovered state
@@ -534,8 +564,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             break;
         }
     };
-
-    popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
+    
+    auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? nullptr : editor;
+ 
+    popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(parent).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
 }
 
 void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)

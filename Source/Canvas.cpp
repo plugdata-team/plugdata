@@ -652,10 +652,6 @@ void Canvas::mouseDown(MouseEvent const& e)
     }
     // Right click
     else if (!editor->pluginMode) {
-        if (!(e.mods.isShiftDown() && e.mods.isPopupMenu())) {
-            deselectAll();
-        }
-
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
 }

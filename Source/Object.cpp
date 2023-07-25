@@ -749,7 +749,14 @@ void Object::mouseDown(MouseEvent const& e)
         return;
     }
 
-    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) {
+    // Only show right-click menu in locked mode if the object can be opened
+    if (e.mods.isPopupMenu() && (!getValue<bool>(locked) || (gui && gui->canOpenFromMenu()))) {
+        PopupMenu::dismissAllActiveMenus();
+        Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
+        return;
+    }
+    
+    if (cnv->isGraph || getValue<bool>(presentationMode) || getValue<bool>(locked) || getValue<bool>(commandLocked)) {
         wasLockedOnMouseDown = true;
         return;
     }
@@ -765,11 +772,6 @@ void Object::mouseDown(MouseEvent const& e)
 
     cnv->setSelected(this, true);
 
-    if (e.mods.isPopupMenu()) {
-        PopupMenu::dismissAllActiveMenus();
-        Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
-        return;
-    }
 
     ds.componentBeingDragged = this;
 

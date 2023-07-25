@@ -895,6 +895,7 @@ void Connection::updatePath()
 
 void Connection::applyBestPath()
 {
+    segmented = true;
     findPath();
     updatePath();
     resizeToFit();

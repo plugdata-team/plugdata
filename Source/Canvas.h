@@ -186,7 +186,6 @@ public:
     bool isGraph = false;
     bool hasParentCanvas = false;
     bool isDraggingLasso = false;
-    bool isShowingMenu = false;
 
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
