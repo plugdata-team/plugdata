@@ -330,6 +330,64 @@ void Dialogs::askToLocatePatch(PluginEditor* editor, String const& backupState, 
 
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
 {
+    
+    struct QuickActionsBar : public PopupMenu::CustomComponent
+    {
+        QuickActionsBar(ApplicationCommandManager* commandManager)
+        {
+            auto commandIds = Array<CommandID>{CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete};
+            
+            for(auto* button : Array<TextButton*>{&cut, &copy, &paste, &duplicate, &remove}) {
+                addAndMakeVisible(button);
+                button->getProperties().set("Style", "LargeIcon");
+                auto id = commandIds.removeAndReturn(0);
+                
+                button->onClick = [commandManager, id](){
+                    commandManager->invokeDirectly(id, false);
+                };
+                
+                if (auto* registeredInfo = commandManager->getCommandForID (id))
+                {
+                    ApplicationCommandInfo info (*registeredInfo);
+                    commandManager->getTargetForCommand (id, info);
+                    bool canPerformCommand = (info.flags & ApplicationCommandInfo::isDisabled) == 0;
+                    button->setEnabled(canPerformCommand);
+                }
+                else {
+                    button->setEnabled(false);
+                }
+            }
+    
+            cut.setTooltip("Cut");
+            copy.setTooltip("Copy");
+            paste.setTooltip("Paste");
+            duplicate.setTooltip("Duplicate");
+            remove.setTooltip("Delete");
+        }
+        
+        void getIdealSize (int& idealWidth, int& idealHeight) override
+        {
+            idealWidth = 140;
+            idealHeight = 32;
+        }
+        
+        void resized() override
+        {
+            auto buttonSize = 32;
+            auto bounds = getLocalBounds();
+            
+            for(auto* button : Array<TextButton*>{&cut, &copy, &paste, &duplicate, &remove}) {
+                button->setBounds(bounds.removeFromLeft(buttonSize));
+            }
+        }
+        
+        TextButton cut = TextButton(Icons::Cut);
+        TextButton copy = TextButton(Icons::Copy);
+        TextButton paste = TextButton(Icons::Paste);
+        TextButton duplicate = TextButton(Icons::Duplicate);
+        TextButton remove = TextButton(Icons::Trash);
+    };
+    
     cnv->cancelConnectionCreation();
     cnv->isShowingMenu = true;
 
@@ -348,11 +406,13 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         }
     }
 
+    auto* editor = cnv->editor;
     auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
     bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
 
     enum MenuOptions {
-        Open = 1,
+        Extra = 1,
+        Open,
         Help,
         Reference,
         ToFront,
@@ -362,6 +422,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     // Create popup menu
     PopupMenu popupMenu;
 
+    popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(editor), nullptr, "Quick Actions");
+    popupMenu.addSeparator();
+    
     popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
 
     popupMenu.addSeparator();
@@ -369,17 +432,19 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(Reference, "Reference", object != nullptr);
     popupMenu.addSeparator();
 
-    auto* editor = cnv->editor;
+
     std::function<void(int)> createObjectCallback;
     popupMenu.addSubMenu("Add", createObjectMenu(editor));
 
     popupMenu.addSeparator();
+    /*
     popupMenu.addCommandItem(editor, CommandIDs::Cut);
     popupMenu.addCommandItem(editor, CommandIDs::Copy);
     popupMenu.addCommandItem(editor, CommandIDs::Paste);
     popupMenu.addCommandItem(editor, CommandIDs::Duplicate);
+    popupMenu.addCommandItem(editor, CommandIDs::Delete); */
+    
     popupMenu.addCommandItem(editor, CommandIDs::Encapsulate);
-    popupMenu.addCommandItem(editor, CommandIDs::Delete);
     popupMenu.addSeparator();
 
     popupMenu.addItem(ToFront, "To Front", object != nullptr);

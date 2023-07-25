@@ -970,6 +970,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::Copy: {
         result.setInfo("Copy", "Copy", "Edit", 0);
         result.addDefaultKeypress(67, ModifierKeys::commandModifier);
+        std::cout << (hasCanvas && !locked && hasObjectSelection && !isDragging) << std::endl;
         result.setActive(hasCanvas && !locked && hasObjectSelection && !isDragging);
         break;
     }
