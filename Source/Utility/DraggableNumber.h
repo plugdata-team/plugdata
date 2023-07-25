@@ -199,7 +199,7 @@ public:
         if(onlyIntegers)
         {
            GlyphArrangement glyphs;
-           glyphs.addFittedText(getFont(), getText().upToFirstOccurrenceOf(".", false, false), textArea.getX(), 0., 500, getHeight(), 1, 1.0f);
+           glyphs.addFittedText(getFont(), getText().upToFirstOccurrenceOf(".", false, false), textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
            auto glyphsBounds = glyphs.getBoundingBox(0, glyphs.getNumGlyphs(), false);
            if(x < glyphsBounds.getRight())
            {
@@ -216,7 +216,7 @@ public:
         GlyphArrangement glyphs;
         auto formattedNumber = formatNumber(getText().getDoubleValue());
         auto fullNumber = formattedNumber + String("000000");
-        glyphs.addFittedText(getFont(), fullNumber, textArea.getX(), 0., 500, getHeight(), 1, 1.0f);
+        glyphs.addFittedText(getFont(), fullNumber, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
         int draggedDecimal = -1;
         
         int decimalPointPosition = 0;
