@@ -3,13 +3,14 @@
 #include "Constants.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
+#include "Utility/StackShadow.h"
 
 PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree)
     : editor(e)
     , paletteComp(parent)
     , itemTree(tree)
 {
-    addMouseListener(paletteComp, false);
+    addMouseListener(paletteComp, true);
 
     paletteName = itemTree.getProperty("Name");
     palettePatch = itemTree.getProperty("Patch");
@@ -34,7 +35,16 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     addAndMakeVisible(nameLabel);
 
+    reorderButton = std::make_unique<ReorderButton>();
+    reorderButton->setButtonText(Icons::Reorder);
+    reorderButton->setSize(25, 25);
+    reorderButton->getProperties().set("Style", "SmallIcon");
+    reorderButton->addMouseListener(this, false);
+
+    addChildComponent(reorderButton.get());
+
     deleteButton.setButtonText(Icons::Clear);
+    deleteButton.setTooltip("Delete item");
     deleteButton.setSize(25, 25);
     deleteButton.getProperties().set("Style", "SmallIcon");
     deleteButton.onClick = [this]() {
@@ -70,9 +80,26 @@ bool PaletteItem::hitTest(int x, int y)
     return hit;
 }
 
+void PaletteItem::setIsItemDragged(bool isActive)
+{
+    if (isItemDragged != isActive) {
+        isItemDragged = isActive;
+        repaint();
+    }
+}
+
+
 void PaletteItem::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
+
+    if (isItemDragged) {
+        Path dropShadowPath;
+        dropShadowPath.addRoundedRectangle(bounds.reduced(4.0f), 5.0f);
+        auto dropShadowColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
+        StackShadow::renderDropShadow(g, dropShadowPath, dropShadowColour.withAlpha(0.5f), 6);
+    }
+    auto outlineColour = isItemDragged ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId;
 
     if (!isSubpatch) {
         auto lineBounds = bounds.reduced(2.5f);
@@ -88,7 +115,7 @@ void PaletteItem::paint(Graphics& g)
         g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
         g.fillRoundedRectangle(lineBounds, 5.0f);
 
-        g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+        g.setColour(findColour(outlineColour));
         g.strokePath(dashedRect, dashedStroke);
         return;
     }
@@ -187,7 +214,7 @@ void PaletteItem::paint(Graphics& g)
     g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
     g.fillPath(p);
 
-    g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+    g.setColour(findColour(outlineColour));
     g.strokePath(p, PathStrokeType(1.0f));
 
     // draw all the iolet paths on top of the border
@@ -205,18 +232,22 @@ void PaletteItem::lookAndFeelChanged()
 
 void PaletteItem::mouseEnter(MouseEvent const& e)
 {
+    reorderButton->setVisible(true);
     deleteButton.setVisible(true);
 }
 
 void PaletteItem::mouseExit(MouseEvent const& e)
 {
+    reorderButton->setVisible(false);
     deleteButton.setVisible(false);
 }
 
 void PaletteItem::resized()
 {
     nameLabel.setBounds(getLocalBounds().reduced(16, 4));
-    deleteButton.setCentrePosition(getLocalBounds().getRight() - 30, getLocalBounds().getCentre().getY());
+    auto componentCentre = getLocalBounds().getCentre().getY();
+    reorderButton->setCentrePosition(30, componentCentre);
+    deleteButton.setCentrePosition(getLocalBounds().getRight() - 30, componentCentre);
 }
 
 void PaletteItem::mouseDrag(MouseEvent const& e)
@@ -228,14 +259,18 @@ void PaletteItem::mouseDrag(MouseEvent const& e)
         dragImage = offlineObjectRenderer->patchToTempImage(palettePatch);
     }
 
-    if (e.getDistanceFromDragStartX() > 10 && !isRepositioning) {
+    if (auto* overReorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
+        return;
+    } else {
         paletteComp->isDnD = true;
+        reorderButton->setVisible(false);
         deleteButton.setVisible(false);
 
         Array<var> palettePatchWithOffset;
         palettePatchWithOffset.add(var(dragImage.offset.getX()));
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(palettePatch));
+        setIsItemDragged(true);
         dragContainer->startDragging(palettePatchWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
     }
 }
@@ -259,22 +294,6 @@ void PaletteItem::deleteItem()
     });
 }
 
-void PaletteItem::mouseDown(MouseEvent const& e)
-{
-    if (paletteComp->isPaletteShowingMenu)
-        return;
-
-    if (e.mods.isRightButtonDown()) {
-        paletteComp->removeMouseListener(this);
-        paletteComp->isItemShowingMenu = true;
-        PopupMenu menu;
-        menu.addItem("Delete item", [this]() {
-            deleteItem();
-        });
-        menu.showMenuAsync(PopupMenu::Options());
-    }
-}
-
 void PaletteItem::mouseUp(MouseEvent const& e)
 {
     if (!e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
@@ -282,6 +301,7 @@ void PaletteItem::mouseUp(MouseEvent const& e)
     } else if (e.mouseWasDraggedSinceMouseDown()) {
         paletteComp->isDnD = false;
         getParentComponent()->resized();
+        setIsItemDragged(false);
     }
     if (paletteComp->isItemShowingMenu) {
         paletteComp->addMouseListener(this, false);
