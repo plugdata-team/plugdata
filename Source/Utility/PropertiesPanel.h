@@ -585,11 +585,11 @@ public:
 
         float min, max;
 
-        RangeComponent(String const& propertyName, Value& value)
+        RangeComponent(String const& propertyName, Value& value, bool integerMode)
             : Property(propertyName)
             , property(value)
-            , minLabel(false)
-            , maxLabel(false)
+            , minLabel(integerMode)
+            , maxLabel(integerMode)
         {
             property.addListener(this);
 

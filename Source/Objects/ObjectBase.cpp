@@ -156,8 +156,9 @@ ObjectBase::~ObjectBase()
 void ObjectBase::objectMovedOrResized()
 {
     auto objectBounds = object->getObjectBounds();
-    positionParameter = Array<var>{var(objectBounds.getX()), var(objectBounds.getY())};
-
+    
+    setParameterExcludingListener(positionParameter, Array<var>{var(objectBounds.getX()), var(objectBounds.getY())}, &objectSizeListener);
+    
     updateLabel();
 }
 
@@ -570,11 +571,18 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
     }
 }
 
-void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
+void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* listener)
 {
-    parameter.removeListener(this);
+    if(!listener) listener = this;
+    
+    parameter.removeListener(listener);
+    
     parameter.setValue(value);
-    parameter.addListener(this);
+    
+    // Make sure all async callbacks happen while the listener is removed
+    parameter.getValueSource().sendChangeMessage(true);
+    
+    parameter.addListener(listener);
 }
 
 ObjectLabel* ObjectBase::getLabel()

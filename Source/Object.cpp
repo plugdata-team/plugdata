@@ -738,9 +738,7 @@ void Object::mouseDown(MouseEvent const& e)
         attachedToMouse = false;
         stopTimer();
         repaint();
-
-        gui->setPdBounds(getObjectBounds());
-
+        
         if (createEditorOnMouseDown) {
             createEditorOnMouseDown = false;
 

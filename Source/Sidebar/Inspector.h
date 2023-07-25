@@ -72,8 +72,10 @@ public:
             return new PropertiesPanel::BoolComponent(name, *value, options);
         case tCombo:
             return new PropertiesPanel::ComboComponent(name, *value, options);
-        case tRange:
-            return new PropertiesPanel::RangeComponent(name, *value);
+        case tRangeFloat:
+            return new PropertiesPanel::RangeComponent(name, *value, false);
+        case tRangeInt:
+            return new PropertiesPanel::RangeComponent(name, *value, true);
         case tFont:
             return new PropertiesPanel::FontComponent(name, *value);
         default:

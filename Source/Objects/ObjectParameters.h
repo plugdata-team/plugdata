@@ -12,7 +12,8 @@ enum ParameterType {
     tColour,
     tBool,
     tCombo,
-    tRange,
+    tRangeFloat,
+    tRangeInt,
     tFont
 };
 
@@ -113,7 +114,7 @@ public:
 
     void addParamRange(String const& pString, ParameterCategory pCat, Value* pVal, Array<var> const& pDefault = Array<var>())
     {
-        objectParameters.add(makeParam(pString, tRange, pCat, pVal, StringArray(), pDefault));
+        objectParameters.add(makeParam(pString, tRangeFloat, pCat, pVal, StringArray(), pDefault));
     }
 
     void addParamFont(String const& pString, ParameterCategory pCat, Value* pVal, String const& pDefault = String())
@@ -123,7 +124,7 @@ public:
     
     void addParamPosition(Value* positionValue)
     {        
-        objectParameters.add(makeParam("Position", tRange, cDimensions, positionValue, StringArray(), var()));
+        objectParameters.add(makeParam("Position", tRangeInt, cDimensions, positionValue, StringArray(), var()));
     }
     
 
