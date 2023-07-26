@@ -48,7 +48,7 @@ public:
         addCustomItem(getMenuItemID(MenuItem::SaveAs), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::SaveAs)]), nullptr, "Save patch as");
 
         auto plugdataState = new PopupMenu();
-        plugdataState->addItem("Import state", [editor]() mutable {
+        plugdataState->addItem("Import workspace", [editor]() mutable {
             
             static auto openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
@@ -58,7 +58,7 @@ public:
                 editor->processor.setStateInformation(block.getData(), block.getSize());
             });
         });
-        plugdataState->addItem("Export state", [editor]() mutable {
+        plugdataState->addItem("Export workspace", [editor]() mutable {
             static auto saveChooser = std::make_unique<FileChooser>("Choose save location", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
             saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
@@ -71,7 +71,7 @@ public:
             });
         });
         
-        addCustomItem(getMenuItemID(MenuItem::State), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::State)]), std::unique_ptr<PopupMenu const>(plugdataState), "State");
+        addCustomItem(getMenuItemID(MenuItem::State), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::State)]), std::unique_ptr<PopupMenu const>(plugdataState), "Workspace");
         
         addSeparator();
 
@@ -400,7 +400,7 @@ public:
         new IconMenuItem(Icons::SavePatch, "Save patch", false, false),
         new IconMenuItem(Icons::SaveAs, "Save patch as...", false, false),
 
-        new IconMenuItem(Icons::ExportState, "State", true, false),
+        new IconMenuItem(Icons::ExportState, "Workspace", true, false),
         new IconMenuItem(Icons::CloseAllPatches, "Close all patches", false, false),
 
         new IconMenuItem("", "Compiled Mode", false, true),
