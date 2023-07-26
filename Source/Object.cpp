@@ -743,6 +743,7 @@ void Object::mouseDown(MouseEvent const& e)
     // Only show right-click menu in locked mode if the object can be opened
     if (e.mods.isPopupMenu() && (!getValue<bool>(locked) || (gui && gui->canOpenFromMenu()))) {
         PopupMenu::dismissAllActiveMenus();
+        cnv->setSelected(this, true);
         Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
         return;
     }

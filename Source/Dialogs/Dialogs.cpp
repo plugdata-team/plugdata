@@ -397,13 +397,13 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         
         void getIdealSize (int& idealWidth, int& idealHeight) override
         {
-            idealWidth = 140;
-            idealHeight = 28;
+            idealWidth = 130;
+            idealHeight = 26;
         }
         
         void resized() override
         {
-            auto buttonHeight = 30;
+            auto buttonHeight = 26;
             auto buttonWidth = getWidth() / 5;
             auto bounds = getLocalBounds();
             
