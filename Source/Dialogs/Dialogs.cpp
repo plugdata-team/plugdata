@@ -333,6 +333,34 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 {
     struct QuickActionsBar : public PopupMenu::CustomComponent
     {
+        struct QuickActionButton : public TextButton
+        {
+            QuickActionButton(String buttonText) : TextButton(buttonText) {}
+            
+            void paint(Graphics& g) override
+            {
+                auto textColour = findColour(PlugDataColour::sidebarTextColourId);
+                
+                if(!isEnabled())
+                {
+                    textColour = textColour.withAlpha(0.35f);
+                }
+                else if(isOver() || isDown())
+                {
+                    auto bounds = getLocalBounds().toFloat();
+                    bounds = bounds.withSizeKeepingCentre(bounds.getHeight(), bounds.getHeight());
+                    
+                    g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+                    PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
+
+                    textColour = findColour(PlugDataColour::sidebarActiveTextColourId);
+                }
+                
+                Fonts::drawIcon(g, getButtonText(), std::max(0, getWidth() - getHeight()) / 2, 0, getHeight(), textColour, 13);
+
+            }
+        };
+        
         CheckedTooltip tooltipWindow;
         
         QuickActionsBar(ApplicationCommandManager* commandManager) : tooltipWindow(this)
@@ -370,7 +398,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         void getIdealSize (int& idealWidth, int& idealHeight) override
         {
             idealWidth = 140;
-            idealHeight = 30;
+            idealHeight = 28;
         }
         
         void resized() override
@@ -384,11 +412,11 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             }
         }
         
-        TextButton cut = TextButton(Icons::Cut);
-        TextButton copy = TextButton(Icons::Copy);
-        TextButton paste = TextButton(Icons::Paste);
-        TextButton duplicate = TextButton(Icons::Duplicate);
-        TextButton remove = TextButton(Icons::Trash);
+        QuickActionButton cut = QuickActionButton(Icons::Cut);
+        QuickActionButton copy = QuickActionButton(Icons::Copy);
+        QuickActionButton paste = QuickActionButton(Icons::Paste);
+        QuickActionButton duplicate = QuickActionButton(Icons::Duplicate);
+        QuickActionButton remove = QuickActionButton(Icons::Trash);
     };
     
     cnv->cancelConnectionCreation();
