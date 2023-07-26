@@ -158,8 +158,6 @@ private:
 #if JUCE_MAC
     Rectangle<int> unmaximisedSize;
 #endif
-    
-    int numUntitled = 1;
 
     bool isMaximised = false;
     bool isDraggingFile = false;

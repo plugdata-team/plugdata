@@ -113,6 +113,7 @@ void Patch::savePatch(File const& location)
 
     if (auto patch = ptr.get<t_glist>()) {
         setTitle(filename);
+        untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
 
         libpd_savetofile(patch.get(), file, dir);
@@ -160,6 +161,7 @@ void Patch::savePatch()
 
     if (auto patch = ptr.get<t_glist>()) {
         setTitle(filename);
+        untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
 
         libpd_savetofile(patch.get(), file, dir);

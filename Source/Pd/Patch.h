@@ -121,6 +121,8 @@ public:
     bool openInPluginMode = false;
     int splitViewIndex = 0;
 
+    int untitledPatchNum = 0;
+
 private:
     File currentFile;
 
