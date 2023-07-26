@@ -528,7 +528,7 @@ void PluginEditor::fileDragExit(StringArray const&)
 void PluginEditor::newProject()
 {
     auto patch = pd->loadPatch(pd::Instance::defaultPatch);
-    patch->setTitle("Untitled Patcher");
+    patch->setTitle("Untitled-" + String(numUntitled++));
 }
 
 void PluginEditor::openProject()
