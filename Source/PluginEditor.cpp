@@ -78,7 +78,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , offlineRenderer(&p)
     , tooltipWindow(this, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
-            return !getValue<bool>(cnv->locked) || getValue<bool>(cnv->paletteDragMode);
+            return !getValue<bool>(cnv->locked);
         }
 
         return true;

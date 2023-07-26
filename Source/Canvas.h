@@ -177,7 +177,6 @@ public:
     Value commandLocked;
     Value presentationMode;
     Value showDirection;
-    Value paletteDragMode;
     Value altMode;
 
     bool showOrigin = false;

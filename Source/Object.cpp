@@ -113,7 +113,6 @@ void Object::initialise()
     locked.referTo(cnv->locked);
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
-    paletteDragMode.referTo(cnv->paletteDragMode);
 
     hvccMode.referTo(cnv->editor->hvccMode);
 
@@ -121,7 +120,6 @@ void Object::initialise()
     locked.addListener(this);
     commandLocked.addListener(this);
     hvccMode.addListener(this);
-    paletteDragMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
 
@@ -178,12 +176,6 @@ void Object::valueChanged(Value& v)
 
         return;
     }
-    if (v.refersToSameSourceAs(cnv->paletteDragMode)) {
-        auto dragMode = getValue<bool>(cnv->paletteDragMode);
-        if (gui)
-            gui->setInterceptsMouseClicks(!dragMode, !dragMode);
-    }
-
     if (v.refersToSameSourceAs(cnv->presentationMode)) {
         // else it was a lock/unlock/presentation mode action
         // Hide certain objects in GOP

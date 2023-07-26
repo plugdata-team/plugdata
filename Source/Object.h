@@ -84,7 +84,6 @@ public:
     Value commandLocked;
     Value presentationMode;
     Value hvccMode = Value(var(false));
-    Value paletteDragMode = Value(var(false));
 
     Canvas* cnv;
 
