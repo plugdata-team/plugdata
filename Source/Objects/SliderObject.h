@@ -308,7 +308,7 @@ public:
         slider.setBounds(getLocalBounds());
     }
     
-    void objectSizeChanged() override
+    void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
         

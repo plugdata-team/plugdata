@@ -13,7 +13,8 @@ class FloatAtomObject final : public ObjectBase {
 
     Value min = Value(0.0f);
     Value max = Value(0.0f);
-
+    Value sizeProperty;
+    
     float value = 0.0f;
 
 public:
@@ -56,6 +57,7 @@ public:
             stopEdition();
         };
 
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         objectParameters.addParamFloat("Minimum", cGeneral, &min);
         objectParameters.addParamFloat("Maximum", cGeneral, &max);
         atomHelper.addAtomParameters(objectParameters);
@@ -69,6 +71,8 @@ public:
 
         min = atomHelper.getMinimum();
         max = atomHelper.getMaximum();
+        
+        sizeProperty = atomHelper.getWidthInChars();
 
         input.setMinimum(::getValue<float>(min));
         input.setMaximum(::getValue<float>(max));
@@ -76,6 +80,12 @@ public:
         input.setText(input.formatNumber(value), dontSendNotification);
 
         atomHelper.update();
+    }
+    
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+        setParameterExcludingListener(sizeProperty, atomHelper.getWidthInChars());
     }
 
     void focusGained(FocusChangeType cause) override
@@ -173,7 +183,16 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(min)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            
+            setParameterExcludingListener(sizeProperty, width);
+            
+            atomHelper.setWidthInChars(width);
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(min)) {
             auto v = ::getValue<float>(min);
             input.setMinimum(v);
             atomHelper.setMinimum(v);

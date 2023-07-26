@@ -159,7 +159,7 @@ void ObjectBase::objectMovedOrResized(bool resized)
     
     setParameterExcludingListener(positionParameter, Array<var>{var(objectBounds.getX()), var(objectBounds.getY())}, &objectSizeListener);
     
-    if(resized) objectSizeChanged();
+    if(resized) updateSizeProperty();
     
     updateLabel();
 }

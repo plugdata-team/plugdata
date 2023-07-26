@@ -10,6 +10,7 @@ class SymbolAtomObject final : public ObjectBase
     bool isDown = false;
     bool isLocked = false;
 
+    Value sizeProperty;
     AtomHelper atomHelper;
 
     String lastMessage;
@@ -40,11 +41,21 @@ public:
         };
 
         input.setMinimumHorizontalScale(0.9f);
+        
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
+        atomHelper.addAtomParameters(objectParameters);
     }
 
     void update() override
     {
+        sizeProperty = atomHelper.getWidthInChars();
         atomHelper.update();
+    }
+        
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+        setParameterExcludingListener(sizeProperty, atomHelper.getWidthInChars());
     }
 
     void lock(bool locked) override
@@ -72,11 +83,6 @@ public:
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         return atomHelper.createConstrainer(object);
-    }
-
-    ObjectParameters getParameters() override
-    {
-        return atomHelper.objectParameters;
     }
 
     void setSymbol(String const& value)
@@ -160,7 +166,18 @@ public:
 
     void valueChanged(Value& v) override
     {
-        atomHelper.valueChanged(v);
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            
+            setParameterExcludingListener(sizeProperty, width);
+            
+            atomHelper.setWidthInChars(width);
+            object->updateBounds();
+        }
+        else {
+            atomHelper.valueChanged(v);
+        }
     }
 
     bool keyPressed(KeyPress const& key, Component* originalComponent) override

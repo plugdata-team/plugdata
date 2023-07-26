@@ -34,7 +34,7 @@ public:
         startTimerHz(25);
     }
 
-        void objectSizeChanged() override
+        void updateSizeProperty() override
         {
             setPdBounds(object->getObjectBounds());
             
@@ -97,7 +97,7 @@ public:
             libpd_moveobj(patch, scope.template cast<t_gobj>(), b.getX(), b.getY());
 
             scope->x_width = getWidth() - 1;
-            scope->x_height = getWidth() - 1;
+            scope->x_height = getHeight() - 1;
         }
     }
 

@@ -10,6 +10,7 @@ class CommentObject final : public ObjectBase
 
     bool locked;
 
+    Value sizeProperty;
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     String objectText;
@@ -19,12 +20,17 @@ public:
     CommentObject(void* obj, Object* object)
         : ObjectBase(obj, object)
     {
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         locked = getValue<bool>(object->locked);
     }
 
     void update() override
     {
         objectText = getText().trimEnd();
+        
+        if (auto obj = ptr.get<t_text>()) {
+            sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
+        }
     }
 
     void paint(Graphics& g) override
@@ -152,7 +158,33 @@ public:
             }
         }
     }
+    
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto text = ptr.get<t_text>()) {
+            setParameterExcludingListener(sizeProperty, TextObjectHelper::getWidthInChars(text.get()));
+        }
+    }
 
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            
+            setParameterExcludingListener(sizeProperty, width);
+            
+            if (auto text = ptr.get<t_text>())
+            {
+                TextObjectHelper::setWidthInChars(text.get(), width);
+            }
+            
+            object->updateBounds();
+        }
+    }
+        
     void setSymbol(String const& value)
     {
         if (auto comment = ptr.get<t_text>()) {

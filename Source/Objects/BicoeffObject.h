@@ -525,26 +525,63 @@ public:
         graph.setBounds(getLocalBounds());
     }
     
-    /* TODO: implement size property
     void update() override
     {
+        if (auto gobj = ptr.get<t_gobj>()) {
+            
+            auto* patch = object->cnv->patch.getPointer().get();
+            if (!patch) return;
+            
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            
+            sizeProperty = Array<var>{var(w), var(h)};
+        }
     }
     
-    void objectSizeChanged() override
+    void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
         
-        if (auto iem = ptr.get<t_fake_bico>()) {
-            setParameterExcludingListener(sizeProperty, Array<var>{var(iem->x_w), var(iem->x_h)});
+        
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = object->cnv->patch.getPointer().get();
+            if (!patch) return;
+            
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(w), var(h)});
         }
-    } */
+    }
+    
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+            
+            if (auto gobj = ptr.get<t_gobj>())
+            {
+                auto* patch = object->cnv->patch.getPointer().get();
+                if (!patch) return;
+                
+                pd->sendDirectMessage(gobj.get(), "dim", { width, height });
+            }
+            
+            object->updateBounds();
+        }
+    }
 
     Rectangle<int> getPdBounds() override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = object->cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
+            if (!patch) return {};
 
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);

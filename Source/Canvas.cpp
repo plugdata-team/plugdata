@@ -143,8 +143,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" }, 0);
     parameters.addParamRange("X range", cGeneral, &xRange, { 0.0f, 1.0f });
     parameters.addParamRange("Y range", cGeneral, &yRange, { 1.0f, 0.0f });
-    parameters.addParamInt("Width", cGeneral, &patchWidth, 527);
-    parameters.addParamInt("Height", cGeneral, &patchHeight, 327);
+    parameters.addParamInt("Width", cDimensions, &patchWidth, 527);
+    parameters.addParamInt("Height", cDimensions, &patchHeight, 327);
 }
 
 Canvas::~Canvas()

@@ -207,6 +207,7 @@ class KeyboardObject final : public ObjectBase
     Value sendSymbol;
     Value receiveSymbol;
     Value toggleMode;
+    Value sizeProperty;
 
     MidiKeyboardState state;
     MIDIKeyboard keyboard;
@@ -248,6 +249,7 @@ public:
 
         addAndMakeVisible(keyboard);
 
+        objectParameters.addParamInt("Height", cDimensions, &sizeProperty);
         objectParameters.addParamInt("Start octave", cGeneral, &lowC, 2);
         objectParameters.addParamInt("Num. octaves", cGeneral, &octaves, 4);
         objectParameters.addParamBool("Toggle Mode", cGeneral, &toggleMode, { "Off", "On" }, 0);
@@ -263,7 +265,8 @@ public:
             lowC.setValue(obj->x_low_c);
             octaves.setValue(obj->x_octaves);
             toggleMode.setValue(obj->x_toggle_mode);
-
+            sizeProperty.setValue(obj->x_height);
+            
             auto sndSym = String::fromUTF8(obj->x_send->s_name);
             auto rcvSym = String::fromUTF8(obj->x_receive->s_name);
 
@@ -279,6 +282,13 @@ public:
         }
     }
 
+    void updateSizeProperty() override
+    {
+        if (auto keyboard = ptr.get<t_fake_keyboard>()) {
+            setParameterExcludingListener(sizeProperty, object->getObjectBounds().getHeight());
+        }
+    }
+    
     Rectangle<int> getPdBounds() override
     {
         if (auto obj = ptr.get<t_fake_keyboard>()) {
@@ -342,7 +352,17 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(lowC)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto height = std::max(getValue<int>(sizeProperty), constrainer->getMinimumHeight());
+            setParameterExcludingListener(sizeProperty, height);
+            if (auto keyboard = ptr.get<t_fake_keyboard>())
+            {
+                keyboard->x_height = height;
+            }
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(lowC)) {
             lowC = std::clamp<int>(getValue<int>(lowC), -1, 9);
             if (auto obj = ptr.get<t_fake_keyboard>())
                 obj->x_low_c = getValue<int>(lowC);

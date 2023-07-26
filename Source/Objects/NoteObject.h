@@ -11,7 +11,7 @@ class NoteObject final : public ObjectBase {
 
     TextEditor noteEditor;
 
-    Value primaryColour, secondaryColour, font, fontSize, bold, italic, underline, fillBackground, justification, outline, receiveSymbol;
+    Value primaryColour, secondaryColour, font, fontSize, bold, italic, underline, fillBackground, justification, outline, receiveSymbol, width;
 
     bool locked;
     bool wasSelectedOnMouseDown = false;
@@ -72,6 +72,7 @@ public:
             object->updateBounds();
         };
 
+        objectParameters.addParamInt("Width", cDimensions, &width);
         objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamFont("Font", cAppearance, &font, "Inter");
@@ -101,6 +102,7 @@ public:
             fillBackground = note->x_bg_flag;
             justification = note->x_textjust + 1;
             outline = note->x_outline;
+            width = note->x_max_pixwidth;
 
             if (note->x_fontname && String::fromUTF8(note->x_fontname->s_name).isNotEmpty()) {
                 font = String::fromUTF8(note->x_fontname->s_name);
@@ -119,6 +121,15 @@ public:
 
         getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
+    }
+    
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto note = ptr.get<t_fake_note>()) {
+            setParameterExcludingListener(width, var(note->x_max_pixwidth));
+        }
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -277,8 +288,21 @@ public:
 
     void valueChanged(Value& v) override
     {
-
-        if (v.refersToSameSourceAs(primaryColour)) {
+        if (v.refersToSameSourceAs(width)) {
+            auto* constrainer = getConstrainer();
+            auto newWidth = std::max(getValue<int>(width), constrainer->getMinimumWidth());
+            
+            setParameterExcludingListener(width, var(newWidth));
+            
+            if (auto note = ptr.get<t_fake_note>())
+            {
+                note->x_max_pixwidth = newWidth;
+                note->x_resized = 1;
+            }
+            
+            object->updateBounds();
+        }
+        else if (v.refersToSameSourceAs(primaryColour)) {
             auto colour = Colour::fromString(primaryColour.toString());
             noteEditor.applyColourToAllText(colour);
             if (auto note = ptr.get<t_fake_note>())

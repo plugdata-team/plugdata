@@ -196,6 +196,7 @@ protected:
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
 
+    Value sizeProperty;
     String objectText;
     int numLines = 1;
     bool isValid = true;
@@ -208,9 +209,19 @@ public:
     {
         objectText = getText();
         isLocked = getValue<bool>(cnv->locked);
+        
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
     }
 
     ~TextBase() override = default;
+        
+        
+    void update() override
+    {
+        if (auto obj = ptr.get<t_text>()) {
+            sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
+        }
+    }
 
     void paint(Graphics& g) override
     {
@@ -396,7 +407,33 @@ public:
             repaint();
         }
     }
+        
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto text = ptr.get<t_text>()) {
+            setParameterExcludingListener(sizeProperty, TextObjectHelper::getWidthInChars(text.get()));
+        }
+    }
 
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            
+            setParameterExcludingListener(sizeProperty, width);
+            
+            if (auto text = ptr.get<t_text>())
+            {
+                TextObjectHelper::setWidthInChars(text.get(), width);
+            }
+            
+            object->updateBounds();
+        }
+    }
+        
     void resized() override
     {
         if (editor) {

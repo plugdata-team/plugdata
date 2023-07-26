@@ -139,7 +139,7 @@ public:
     
     
     void objectMovedOrResized(bool resized);
-    virtual void objectSizeChanged() {};
+    virtual void updateSizeProperty() {};
         
     virtual void updateLabel() {};
 

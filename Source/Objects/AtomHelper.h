@@ -48,7 +48,7 @@ public:
         , pd(parent->cnv->pd)
         , ptr(pointer, parent->cnv->pd)
     {
-        objectParameters.addParamCombo("Font size", cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" });
+        objectParameters.addParamCombo("Font height", cDimensions, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" });
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
         objectParameters.addParamString("Label", cLabel, &labelText, "");
@@ -73,6 +73,22 @@ public:
 
         gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
         gui->getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
+    }
+    
+    int getWidthInChars()
+    {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
+            return atom->a_text.te_width;
+        }
+        
+        return 0;
+    }
+    
+    void setWidthInChars(int charWidth)
+    {
+        if (auto atom = ptr.get<t_fake_gatom>()) {
+            atom->a_text.te_width = charWidth;
+        }
     }
 
     Rectangle<int> getPdBounds()

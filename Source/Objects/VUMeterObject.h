@@ -26,7 +26,7 @@ public:
         iemHelper.addIemParameters(objectParameters, false, false, -1);
     }
     
-    void objectSizeChanged() override
+    void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
         

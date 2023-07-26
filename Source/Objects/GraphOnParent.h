@@ -12,6 +12,7 @@ class GraphOnParent final : public ObjectBase {
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
     Value xRange, yRange;
+    Value sizeProperty;
 
     pd::Patch::Ptr subpatch;
     std::unique_ptr<Canvas> canvas;
@@ -29,6 +30,7 @@ public:
                 _this->checkGraphState();
         });
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
         objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
         objectParameters.addParamRange("X range", cGeneral, &xRange);
@@ -42,6 +44,7 @@ public:
             hideNameAndArgs = static_cast<bool>(glist->gl_hidetext);
             xRange = Array<var> { var(glist->gl_x1), var(glist->gl_x2) };
             yRange = Array<var> { var(glist->gl_y2), var(glist->gl_y1) };
+            sizeProperty = Array<var>{var(glist->gl_pixwidth), var(glist->gl_pixheight)};
         }
 
         updateCanvas();
@@ -155,6 +158,15 @@ public:
         }
 
         return {};
+    }
+    
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto glist = ptr.get<t_glist>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(glist->gl_pixwidth), var(glist->gl_pixheight)});
+        }
     }
 
     ~GraphOnParent() override
@@ -284,10 +296,26 @@ public:
     void valueChanged(Value& v) override
     {
 
-        if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+            
+            if (auto glist = ptr.get<t_glist>())
+            {
+                glist->gl_pixwidth = width;
+                glist->gl_pixheight = height;
+            }
+            
+            object->updateBounds();
+        }
+        else if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
             checkGraphState();
         }
-        if (v.refersToSameSourceAs(xRange)) {
+        else if (v.refersToSameSourceAs(xRange)) {
             if (auto glist = ptr.get<t_canvas>()) {
                 glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
                 glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));

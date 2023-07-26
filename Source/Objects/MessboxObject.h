@@ -99,7 +99,7 @@ public:
         }
     }
 
-    void objectSizeChanged() override
+    void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
         

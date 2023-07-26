@@ -538,6 +538,7 @@ public:
 
         setInterceptsMouseClicks(false, true);
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamString("Name", cGeneral, &name);
         objectParameters.addParamInt("Size", cGeneral, &size);
         objectParameters.addParamCombo("Draw mode", cGeneral, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2);
@@ -632,8 +633,20 @@ public:
         saveContents = graphs[0]->willSaveContent();
         name = String(graphs[0]->getUnexpandedName());
         drawMode = static_cast<int>(graphs[0]->getDrawType()) + 1;
-
+        if (auto glist = ptr.get<t_glist>()) {
+            sizeProperty = Array<var>{var(glist->gl_pixwidth), var(glist->gl_pixheight)};
+        }
+        
         labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
+    }
+        
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto glist = ptr.get<t_glist>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(glist->gl_pixwidth), var(glist->gl_pixheight)});
+        }
     }
 
     void updateSettings()
@@ -684,7 +697,23 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+            
+            if (auto glist = ptr.get<t_glist>())
+            {
+                glist->gl_pixwidth = width;
+                glist->gl_pixheight = height;
+            }
+            
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
             updateSettings();
         } else if (value.refersToSameSourceAs(range)) {
             auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
@@ -781,7 +810,8 @@ public:
 
 private:
     Value name, size, drawMode, saveContents, range;
-
+    Value sizeProperty;
+        
     OwnedArray<GraphicalArray> graphs;
     std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
 

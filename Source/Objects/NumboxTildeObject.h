@@ -21,6 +21,7 @@ class NumboxTildeObject final : public ObjectBase
 
     Value primaryColour;
     Value secondaryColour;
+    Value sizeProperty;
 
 public:
     NumboxTildeObject(void* obj, Object* parent)
@@ -53,6 +54,7 @@ public:
         startTimer(nextInterval);
         repaint();
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 0.0f);
         objectParameters.addParamFloat("Interval (ms)", cGeneral, &interval, 100.0f);
@@ -76,6 +78,7 @@ public:
             primaryColour = "ff" + String::fromUTF8(object->x_fg->s_name + 1);
             secondaryColour = "ff" + String::fromUTF8(object->x_bg->s_name + 1);
             mode = object->x_outmode;
+            sizeProperty = Array<var>{var(object->x_width), var(object->x_height)};
         }
 
         auto fg = Colour::fromString(primaryColour.toString());
@@ -98,6 +101,16 @@ public:
 
         return {};
     }
+        
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto nbx = ptr.get<t_fake_numbox>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(nbx->x_width), var(nbx->x_height)});
+        }
+    }
+
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
@@ -173,7 +186,23 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(min)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+            
+            if (auto nbx = ptr.get<t_fake_numbox>())
+            {
+                nbx->x_width = width;
+                nbx->x_height = height;
+            }
+
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(min)) {
             setMinimum(::getValue<float>(min));
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(::getValue<float>(max));
