@@ -162,9 +162,13 @@ public:
             });
     }
     
-    void resized() override
+    void objectSizeChanged() override
     {
-        setParameterExcludingListener(sizeProperty, object->getObjectBounds().getWidth());
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto iem = ptr.get<t_iemgui>()) {
+            setParameterExcludingListener(sizeProperty, var(iem->x_w));
+        }
     }
 
     void valueChanged(Value& value) override
@@ -174,7 +178,11 @@ public:
             auto* constrainer = getConstrainer();
             auto size = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
             setParameterExcludingListener(sizeProperty, size);
-            setPdBounds(object->getObjectBounds().withSize(size, size));
+            if (auto bng = ptr.get<t_bng>())
+            {
+                bng->x_gui.x_w = size;
+                bng->x_gui.x_h = size;
+            }
             object->updateBounds();
         }
         else if (value.refersToSameSourceAs(bangInterrupt)) {

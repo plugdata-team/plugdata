@@ -92,7 +92,7 @@ ObjectBase::ObjectSizeListener::ObjectSizeListener(Object* obj) : object(obj)
 
 void ObjectBase::ObjectSizeListener::componentMovedOrResized(Component& component, bool moved, bool resized)
 {
-    dynamic_cast<Object&>(component).gui->objectMovedOrResized();
+    dynamic_cast<Object&>(component).gui->objectMovedOrResized(resized);
 }
 
 void ObjectBase::ObjectSizeListener::valueChanged(Value &v)
@@ -153,11 +153,13 @@ ObjectBase::~ObjectBase()
     delete lnf;
 }
 
-void ObjectBase::objectMovedOrResized()
+void ObjectBase::objectMovedOrResized(bool resized)
 {
     auto objectBounds = object->getObjectBounds();
     
     setParameterExcludingListener(positionParameter, Array<var>{var(objectBounds.getX()), var(objectBounds.getY())}, &objectSizeListener);
+    
+    if(resized) objectSizeChanged();
     
     updateLabel();
 }

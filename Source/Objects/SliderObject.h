@@ -305,10 +305,16 @@ public:
 
     void resized() override
     {
-        auto objectBounds = object->getObjectBounds();
-        setParameterExcludingListener(sizeProperty, Array<var>{var(objectBounds.getWidth()), var(objectBounds.getHeight())});
-        
         slider.setBounds(getLocalBounds());
+    }
+    
+    void objectSizeChanged() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto iem = ptr.get<t_iemgui>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(iem->x_w), var(iem->x_h)});
+        }
     }
 
     float getValue()
@@ -412,7 +418,12 @@ public:
             
             setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
             
-            setPdBounds(object->getObjectBounds().withSize(width, height));
+            if (auto obj = ptr.get<t_slider>())
+            {
+                obj->x_gui.x_w = width;
+                obj->x_gui.x_h = height;
+            }
+
             object->updateBounds();
         }
         else if (value.refersToSameSourceAs(min)) {

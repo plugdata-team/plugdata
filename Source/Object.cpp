@@ -287,9 +287,8 @@ void Object::applyBounds()
         auto* obj = static_cast<t_gobj*>(object->getPointer());
         auto* cnv = object->cnv;
 
-        if (obj && cnv->patch.objectWasDeleted(obj))
-            return;
-
+        if (!obj) return;
+        
         // Used for size changes, could also be used for properties
         libpd_undo_apply(patchPtr, obj);
 
@@ -902,15 +901,17 @@ void Object::mouseDrag(MouseEvent const& e)
                 continue;
 
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
-
+            
+            
             if (auto* constrainer = obj->getConstrainer()) {
+                
                 constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(),
                     resizeZone.isDraggingLeftEdge(),
                     resizeZone.isDraggingBottomEdge(),
                     resizeZone.isDraggingRightEdge());
             }
         }
-
+        
         ds.wasResized = true;
     } else if (!cnv->isGraph) {
         // Ensure tiny movements don't start a drag.

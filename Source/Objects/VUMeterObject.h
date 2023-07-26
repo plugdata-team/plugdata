@@ -25,12 +25,16 @@ public:
         objectParameters.addParamSendSymbol(&iemHelper.sendSymbol, "nosndno");
         iemHelper.addIemParameters(objectParameters, false, false, -1);
     }
-
-    void resized() override
+    
+    void objectSizeChanged() override
     {
-        auto objectBounds = object->getObjectBounds();
-        setParameterExcludingListener(sizeProperty, Array<var>{var(objectBounds.getWidth()), var(objectBounds.getHeight())});
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto iem = ptr.get<t_iemgui>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(iem->x_w), var(iem->x_h)});
+        }
     }
+
     
     bool hideInlets() override
     {
@@ -57,7 +61,12 @@ public:
             
             setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
             
-            setPdBounds(object->getObjectBounds().withSize(width, height));
+            if (auto vu = ptr.get<t_vu>())
+            {
+                vu->x_gui.x_w = width;
+                vu->x_gui.x_h = height;
+            }
+            
             object->updateBounds();
         }
         else {

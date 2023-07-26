@@ -24,10 +24,13 @@ public:
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
     }
     
-    void resized() override
+    void objectSizeChanged() override
     {
-        auto objectBounds = object->getObjectBounds();
-        setParameterExcludingListener(sizeProperty, Array<var>{var(objectBounds.getWidth()), var(objectBounds.getHeight())});
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto canvasObj = ptr.get<t_my_canvas>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(canvasObj->x_vis_w), var(canvasObj->x_vis_h)});
+        }
     }
 
     bool hideInlets() override
@@ -146,7 +149,12 @@ public:
             
             setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
             
-            setPdBounds(object->getObjectBounds().withSize(width, height));
+            if (auto cnvObj = ptr.get<t_my_canvas>())
+            {
+                cnvObj->x_vis_w = width;
+                cnvObj->x_vis_h = height;
+            }
+            
             object->updateBounds();
         }
         else {

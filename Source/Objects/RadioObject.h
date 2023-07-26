@@ -37,7 +37,7 @@ public:
 
         if (auto radio = ptr.get<t_radio>()) {
             isVertical = radio->x_orientation;
-            sizeProperty = isVertical ? radio->x_gui.x_w - 1: radio->x_gui.x_h - 1;
+            sizeProperty = isVertical ? radio->x_gui.x_w : radio->x_gui.x_h;
         }
 
         numItems = getMaximum();
@@ -232,9 +232,20 @@ public:
             auto* constrainer = getConstrainer();
             auto size = std::max(::getValue<int>(sizeProperty), isVertical ? constrainer->getMinimumWidth() : constrainer->getMinimumHeight());
             setParameterExcludingListener(sizeProperty, size);
-            auto newBounds = isVertical ? object->getObjectBounds().withWidth(size) : object->getObjectBounds().withHeight(size);
             
-            setPdBounds(newBounds);
+            if (auto radio = ptr.get<t_radio>())
+            {
+                if(isVertical)
+                {
+                    radio->x_gui.x_w = size;
+                    radio->x_gui.x_h = size * numItems;
+                }
+                else {
+                    radio->x_gui.x_h = size;
+                    radio->x_gui.x_w = size * numItems;
+                }
+            }
+            
             object->updateBounds();
         }
         else if (value.refersToSameSourceAs(max)) {
@@ -265,8 +276,12 @@ public:
         resized();
     }
     
-    void resized() override
+    void objectSizeChanged() override
     {
-        setParameterExcludingListener(sizeProperty, isVertical ? object->getObjectBounds().getWidth() : object->getObjectBounds().getHeight());
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto radio = ptr.get<t_radio>()) {
+            setParameterExcludingListener(sizeProperty, isVertical ? var(radio->x_gui.x_w) : var(radio->x_gui.x_h));
+        }
     }
 };

@@ -132,12 +132,18 @@ public:
             libpd_moveobj(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
+    
+    void objectSizeChanged() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto iem = ptr.get<t_iemgui>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(iem->x_w), var(iem->x_h)});
+        }
+    }
 
     void resized() override
     {
-        auto objectBounds = object->getObjectBounds();
-        setParameterExcludingListener(sizeProperty, Array<var>{var(objectBounds.getWidth()), var(objectBounds.getHeight())});
-        
         input.setBounds(getLocalBounds());
         input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
@@ -217,7 +223,11 @@ public:
             
             setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
             
-            setPdBounds(object->getObjectBounds().withSize(width, height));
+            if (auto nbx = ptr.get<t_my_numbox>())
+            {
+                nbx->x_gui.x_w = width;
+                nbx->x_gui.x_h = height;
+            }
             object->updateBounds();
         }
         else if (value.refersToSameSourceAs(min)) {
