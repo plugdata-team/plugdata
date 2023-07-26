@@ -15,12 +15,14 @@ class RadioObject final : public ObjectBase {
     IEMHelper iemHelper;
 
     Value max = Value(0.0f);
-
+    Value sizeProperty;
+    
 public:
     RadioObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
+        objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamInt("Options", cGeneral, &max, 8);
         iemHelper.addIemParameters(objectParameters);
     }
@@ -35,6 +37,7 @@ public:
 
         if (auto radio = ptr.get<t_radio>()) {
             isVertical = radio->x_orientation;
+            sizeProperty = isVertical ? radio->x_gui.x_w - 1: radio->x_gui.x_h - 1;
         }
 
         numItems = getMaximum();
@@ -225,7 +228,16 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(max)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto size = std::max(::getValue<int>(sizeProperty), isVertical ? constrainer->getMinimumWidth() : constrainer->getMinimumHeight());
+            setParameterExcludingListener(sizeProperty, size);
+            auto newBounds = isVertical ? object->getObjectBounds().withWidth(size) : object->getObjectBounds().withHeight(size);
+            
+            setPdBounds(newBounds);
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(max)) {
             if (::getValue<int>(max) != numItems) {
                 limitValueMin(value, 1);
                 numItems = ::getValue<int>(max);
@@ -251,5 +263,10 @@ public:
         ptr.get<t_radio>()->x_number = maxValue;
 
         resized();
+    }
+    
+    void resized() override
+    {
+        setParameterExcludingListener(sizeProperty, isVertical ? object->getObjectBounds().getWidth() : object->getObjectBounds().getHeight());
     }
 };

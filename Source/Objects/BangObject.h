@@ -9,7 +9,8 @@ class BangObject final : public ObjectBase {
 
     Value bangInterrupt = Value(100.0f);
     Value bangHold = Value(40.0f);
-
+    Value sizeProperty;
+    
     bool bangState = false;
     bool alreadyBanged = false;
 
@@ -24,14 +25,18 @@ public:
             constrainer->setFixedAspectRatio(1);
         };
 
+        objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamInt("Minimum flash time", cGeneral, &bangInterrupt, 50);
         objectParameters.addParamInt("Maximum flash time", cGeneral, &bangHold, 250);
+        
+        
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
 
     void update() override
     {
         if (auto bng = ptr.get<t_bng>()) {
+            sizeProperty = bng->x_gui.x_w;
             bangInterrupt = bng->x_flashtime_break;
             bangHold = bng->x_flashtime_hold;
         }
@@ -156,14 +161,27 @@ public:
                 }
             });
     }
+    
+    void resized() override
+    {
+        setParameterExcludingListener(sizeProperty, object->getObjectBounds().getWidth());
+    }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(bangInterrupt)) {
+        
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto size = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            setParameterExcludingListener(sizeProperty, size);
+            setPdBounds(object->getObjectBounds().withSize(size, size));
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(bangInterrupt)) {
             if (auto bng = ptr.get<t_bng>())
                 bng->x_flashtime_break = bangInterrupt.getValue();
         }
-        if (value.refersToSameSourceAs(bangHold)) {
+        else if (value.refersToSameSourceAs(bangHold)) {
             if (auto bng = ptr.get<t_bng>())
                 bng->x_flashtime_hold = bangHold.getValue();
         } else {

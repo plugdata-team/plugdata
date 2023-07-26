@@ -96,6 +96,7 @@ class SliderObject : public ObjectBase {
     Value min = Value(0.0f);
     Value max = Value(0.0f);
     Value steadyOnClick = Value(false);
+    Value sizeProperty;
 
     float value = 0.0f;
 
@@ -131,6 +132,7 @@ public:
             }
         };
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
         objectParameters.addParamBool("Logarithmic", cGeneral, &isLogarithmic, { "Off", "On" }, 0);
@@ -147,6 +149,7 @@ public:
         if (auto obj = ptr.get<t_slider>()) {
             isVertical = obj->x_orientation;
             slider.setRangeFlipped(obj->x_min > obj->x_max);
+            sizeProperty = Array<var>{var(obj->x_gui.x_w), var(obj->x_gui.x_h)};
         }
 
         min = getMinimum();
@@ -302,6 +305,9 @@ public:
 
     void resized() override
     {
+        auto objectBounds = object->getObjectBounds();
+        setParameterExcludingListener(sizeProperty, Array<var>{var(objectBounds.getWidth()), var(objectBounds.getHeight())});
+        
         slider.setBounds(getLocalBounds());
     }
 
@@ -398,7 +404,18 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(min)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+            
+            setPdBounds(object->getObjectBounds().withSize(width, height));
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(min)) {
             setMinimum(::getValue<float>(min));
             updateRange();
         } else if (value.refersToSameSourceAs(max)) {

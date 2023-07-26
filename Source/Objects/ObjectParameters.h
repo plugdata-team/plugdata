@@ -127,6 +127,12 @@ public:
         objectParameters.add(makeParam("Position", tRangeInt, cDimensions, positionValue, StringArray(), var()));
     }
     
+    void addParamSize(Value* sizeValue, bool singleDimension = false)
+    {
+        objectParameters.add(makeParam("Size", singleDimension ? tInt : tRangeInt, cDimensions, sizeValue, StringArray(), var()));
+    }
+    
+    
 
 private:
     Array<ObjectParameter> objectParameters;

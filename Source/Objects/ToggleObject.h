@@ -8,6 +8,7 @@ class ToggleObject final : public ObjectBase {
     bool toggleState = false;
     bool alreadyToggled = false;
     Value nonZero;
+    Value sizeProperty;
 
     float value = 0.0f;
 
@@ -23,6 +24,8 @@ public:
         };
 
         objectParameters.addParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f);
+        objectParameters.addParamSize(&sizeProperty, true);
+        
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
 
@@ -54,6 +57,7 @@ public:
     void update() override
     {
         if (auto toggle = ptr.get<t_toggle>()) {
+            sizeProperty = toggle->x_gui.x_w;
             nonZero = toggle->x_nonzero;
         }
 
@@ -176,10 +180,22 @@ public:
         }
         }
     }
+    
+    void resized() override
+    {
+        setParameterExcludingListener(sizeProperty, object->getObjectBounds().getWidth());
+    }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(nonZero)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            setParameterExcludingListener(sizeProperty, size);
+            setPdBounds(object->getObjectBounds().withSize(size, size));
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(nonZero)) {
             float val = nonZero.getValue();
             if (auto toggle = ptr.get<t_toggle>()) {
                 toggle->x_nonzero = val;

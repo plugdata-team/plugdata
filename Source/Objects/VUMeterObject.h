@@ -7,7 +7,8 @@
 class VUMeterObject final : public ObjectBase {
 
     IEMHelper iemHelper;
-
+    Value sizeProperty;
+    
 public:
     VUMeterObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -19,11 +20,18 @@ public:
             constrainer->setMinimumSize(20, 20 * 2);
         };
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
         objectParameters.addParamSendSymbol(&iemHelper.sendSymbol, "nosndno");
         iemHelper.addIemParameters(objectParameters, false, false, -1);
     }
 
+    void resized() override
+    {
+        auto objectBounds = object->getObjectBounds();
+        setParameterExcludingListener(sizeProperty, Array<var>{var(objectBounds.getWidth()), var(objectBounds.getHeight())});
+    }
+    
     bool hideInlets() override
     {
         return iemHelper.hasReceiveSymbol();
@@ -41,11 +49,28 @@ public:
 
     void valueChanged(Value& v) override
     {
-        iemHelper.valueChanged(v);
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+            
+            setPdBounds(object->getObjectBounds().withSize(width, height));
+            object->updateBounds();
+        }
+        else {
+            iemHelper.valueChanged(v);
+        }
     }
 
     void update() override
     {
+        if (auto vu = ptr.get<t_vu>()) {
+            sizeProperty = Array<var>{var(vu->x_gui.x_w), var(vu->x_gui.x_h)};
+        }
+        
         iemHelper.update();
     }
 

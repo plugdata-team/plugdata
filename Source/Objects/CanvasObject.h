@@ -7,7 +7,8 @@
 class CanvasObject final : public ObjectBase {
 
     bool locked;
-
+    Value sizeProperty;
+    
     IEMHelper iemHelper;
 
 public:
@@ -18,8 +19,15 @@ public:
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = getValue<bool>(object->locked);
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
+    }
+    
+    void resized() override
+    {
+        auto objectBounds = object->getObjectBounds();
+        setParameterExcludingListener(sizeProperty, Array<var>{var(objectBounds.getWidth()), var(objectBounds.getHeight())});
     }
 
     bool hideInlets() override
@@ -51,6 +59,10 @@ public:
 
     void update() override
     {
+        if (auto cnvObj = ptr.get<t_my_canvas>()) {
+            sizeProperty = Array<var>{var(cnvObj->x_vis_w), var(cnvObj->x_vis_h)};
+        }
+        
         iemHelper.update();
     }
 
@@ -126,6 +138,19 @@ public:
 
     void valueChanged(Value& v) override
     {
-        iemHelper.valueChanged(v);
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+            
+            setPdBounds(object->getObjectBounds().withSize(width, height));
+            object->updateBounds();
+        }
+        else {
+            iemHelper.valueChanged(v);
+        }
     }
 };

@@ -8,6 +8,8 @@
 
 class NumberObject final : public ObjectBase {
 
+    Value sizeProperty;
+    
     DraggableNumber input;
     IEMHelper iemHelper;
 
@@ -59,6 +61,7 @@ public:
             stopEdition();
         };
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 9.999999933815813e36);
         iemHelper.addIemParameters(objectParameters);
@@ -76,6 +79,10 @@ public:
 
         input.setMinimum(::getValue<float>(min));
         input.setMaximum(::getValue<float>(max));
+        
+        if (auto nbx = ptr.get<t_my_numbox>()) {
+            sizeProperty = Array<var>{var(nbx->x_gui.x_w), var(nbx->x_gui.x_h)};
+        }
 
         iemHelper.update();
     }
@@ -128,6 +135,9 @@ public:
 
     void resized() override
     {
+        auto objectBounds = object->getObjectBounds();
+        setParameterExcludingListener(sizeProperty, Array<var>{var(objectBounds.getWidth()), var(objectBounds.getHeight())});
+        
         input.setBounds(getLocalBounds());
         input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
@@ -198,7 +208,19 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(min)) {
+        
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+            
+            setPdBounds(object->getObjectBounds().withSize(width, height));
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(min)) {
             setMinimum(::getValue<float>(min));
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(::getValue<float>(max));
