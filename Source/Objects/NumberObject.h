@@ -17,7 +17,9 @@ class NumberObject final : public ObjectBase {
 
     Value min = Value(-std::numeric_limits<float>::infinity());
     Value max = Value(std::numeric_limits<float>::infinity());
-
+    Value logHeight;
+    Value logMode;
+    
     float value = 0.0f;
 
 public:
@@ -27,10 +29,13 @@ public:
         , input(false)
 
     {
+        input.setDragMode(DraggableNumber::Logarithmic);
+        
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
 
+            editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 11, 3, 0 });
 
             if (editor != nullptr) {
@@ -62,8 +67,12 @@ public:
         };
 
         objectParameters.addParamSize(&sizeProperty);
+        
         objectParameters.addParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 9.999999933815813e36);
+        objectParameters.addParamBool("Logarithmic mode", cGeneral, &logMode, {"Off", "On"}, var(false));
+        objectParameters.addParamInt("Logarithmic height", cGeneral, &logHeight, var(256));
+        
         iemHelper.addIemParameters(objectParameters);
 
         input.setResetValue(0.0f);
@@ -82,6 +91,8 @@ public:
         
         if (auto nbx = ptr.get<t_my_numbox>()) {
             sizeProperty = Array<var>{var(nbx->x_gui.x_w), var(nbx->x_gui.x_h)};
+            logMode = nbx->x_lin0_log1;
+            logHeight = nbx->x_log_height;
         }
 
         iemHelper.update();
@@ -182,6 +193,9 @@ public:
             hash("set"),
             hash("list"),
             hash("range"),
+            hash("log"),
+            hash("lin"),
+            hash("log_height"),
             IEMGUI_MESSAGES
         };
     }
@@ -204,6 +218,21 @@ public:
                 max = getMaximum();
             }
             break;
+        }
+        case hash("log"): {
+            setParameterExcludingListener(logMode, true);
+            input.setDragMode(DraggableNumber::Logarithmic);
+            break;
+        }
+        case hash("lin"): {
+            setParameterExcludingListener(logMode, false);
+            input.setDragMode(DraggableNumber::Regular);
+            break;
+        }
+        case hash("log_height"): {
+            auto height = static_cast<int>(atoms[0].getFloat());
+            setParameterExcludingListener(logHeight, height);
+            input.setLogarithmicHeight(height);
         }
         default: {
             iemHelper.receiveObjectMessage(symbol, atoms);
@@ -232,9 +261,28 @@ public:
         }
         else if (value.refersToSameSourceAs(min)) {
             setMinimum(::getValue<float>(min));
-        } else if (value.refersToSameSourceAs(max)) {
+        }
+        else if (value.refersToSameSourceAs(max)) {
             setMaximum(::getValue<float>(max));
-        } else {
+        }
+        else if (value.refersToSameSourceAs(logHeight)) {
+            auto height = ::getValue<int>(logHeight);
+            if (auto nbx = ptr.get<t_my_numbox>())
+            {
+                nbx->x_log_height = height;
+            }
+            
+            input.setLogarithmicHeight(height);
+        }
+        else if (value.refersToSameSourceAs(logMode)) {
+            auto logarithmicDrag = ::getValue<bool>(logMode);
+            if (auto nbx = ptr.get<t_my_numbox>())
+            {
+                nbx->x_lin0_log1 = logarithmicDrag;
+            }
+            input.setDragMode(logarithmicDrag ? DraggableNumber::Logarithmic : DraggableNumber::Regular);
+        }
+        else {
             iemHelper.valueChanged(value);
         }
     }
