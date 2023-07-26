@@ -331,10 +331,11 @@ void Dialogs::askToLocatePatch(PluginEditor* editor, String const& backupState, 
 
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
 {
-    
     struct QuickActionsBar : public PopupMenu::CustomComponent
     {
-        QuickActionsBar(ApplicationCommandManager* commandManager)
+        CheckedTooltip tooltipWindow;
+        
+        QuickActionsBar(ApplicationCommandManager* commandManager) : tooltipWindow(this)
         {
             auto commandIds = Array<CommandID>{CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete};
             
