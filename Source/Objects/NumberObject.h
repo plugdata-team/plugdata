@@ -28,9 +28,7 @@ public:
         , iemHelper(ptr, object, this)
         , input(false)
 
-    {
-        input.setDragMode(DraggableNumber::Logarithmic);
-        
+    {        
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
