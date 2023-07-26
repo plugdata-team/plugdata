@@ -133,11 +133,23 @@ public:
             auto* patch = cnv->patch.getPointer().get();
             if (!patch)
                 return;
-
+            
+           
             nbx->x_gui.x_w = b.getWidth() - 1;
             nbx->x_gui.x_h = b.getHeight() - 1;
-            nbx->x_numwidth = (b.getWidth() / 9) - 1;
-
+            
+            auto fontsize = nbx->x_gui.x_fontsize * 31;
+            auto nw = (((nbx->x_gui.x_w - 4.0- (nbx->x_gui.x_h / 2.0)) * 36.0) / fontsize) + 0.5;
+            
+            nbx->x_numwidth = nw;
+            
+            auto w = fontsize * nbx->x_numwidth;
+            w /= 36;
+            w = (w + (nbx->x_gui.x_h/2)/1 + 4) * 1;
+            
+            std::cout << "pre: " << nbx->x_gui.x_w  << std::endl;
+            std::cout << "post: " << w << std::endl;
+            
             libpd_moveobj(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
@@ -255,6 +267,7 @@ public:
                 nbx->x_gui.x_w = width;
                 nbx->x_gui.x_h = height;
             }
+            
             object->updateBounds();
         }
         else if (value.refersToSameSourceAs(min)) {
