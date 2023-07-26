@@ -9,6 +9,7 @@ class MousePadObject final : public ObjectBase {
     bool isPressed = false;
 
     Point<int> lastPosition;
+    Value sizeProperty;
 
 public:
     MousePadObject(void* ptr, Object* object)
@@ -78,6 +79,8 @@ public:
         };
 
         setInterceptsMouseClicks(false, false);
+        
+        objectParameters.addParamSize(&sizeProperty);
     }
 
     ~MousePadObject() = default;
@@ -123,7 +126,43 @@ public:
 
         return {};
     }
+    
+    void update() override
+    {
+        if (auto pad = ptr.get<t_fake_pad>()) {
+            sizeProperty = Array<var>{var(pad->x_w), var(pad->x_h)};
+        }
+    }
 
+    void objectSizeChanged() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto pad = ptr.get<t_fake_pad>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(pad->x_w), var(pad->x_h)});
+        }
+    }
+    
+    void valueChanged(Value& value) override
+    {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+            
+            if (auto pad = ptr.get<t_fake_pad>())
+            {
+                pad->x_w = width;
+                pad->x_h = height;
+            }
+            
+            object->updateBounds();
+        }
+    }
+    
     // Check if top-level canvas is locked to determine if we should respond to mouse events
     bool isLocked()
     {

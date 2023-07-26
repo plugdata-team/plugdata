@@ -17,7 +17,8 @@ class MessboxObject final : public ObjectBase
     Value secondaryColour;
     Value fontSize;
     Value bold;
-
+    Value sizeProperty;
+        
 public:
     MessboxObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -49,6 +50,7 @@ public:
         bool isLocked = getValue<bool>(object->cnv->locked);
         editor.setReadOnly(!isLocked);
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamInt("Font size", cAppearance, &fontSize, 12);
@@ -62,6 +64,7 @@ public:
 
             primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
             secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
+            sizeProperty = Array<var>{var(messbox->x_width), var(messbox->x_height)};
         }
 
         repaint();
@@ -96,6 +99,15 @@ public:
         }
     }
 
+    void objectSizeChanged() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto messbox = ptr.get<t_fake_messbox>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(messbox->x_width), var(messbox->x_height)});
+        }
+    }
+    
     void lock(bool locked) override
     {
         setInterceptsMouseClicks(locked, locked);
@@ -299,7 +311,23 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(primaryColour)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+            
+            if (auto messbox = ptr.get<t_fake_messbox>())
+            {
+                messbox->x_width = width;
+                messbox->x_height = height;
+            }
+
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(primaryColour)) {
 
             auto col = Colour::fromString(primaryColour.toString());
             editor.applyColourToAllText(col);

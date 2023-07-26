@@ -579,10 +579,13 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
     
     parameter.removeListener(listener);
     
+    auto oldValue = parameter.getValue();
     parameter.setValue(value);
     
-    // Make sure all async callbacks happen while the listener is removed
-    parameter.getValueSource().sendChangeMessage(true);
+    if(!oldValue.equalsWithSameType (value)) {
+        // Make sure all async callbacks happen while the listener is removed
+        parameter.getValueSource().sendChangeMessage(true);
+    }
     
     parameter.addListener(listener);
 }

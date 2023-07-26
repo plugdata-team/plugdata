@@ -11,6 +11,7 @@ class ButtonObject : public ObjectBase {
 
     Value primaryColour;
     Value secondaryColour;
+    Value sizeProperty;
 
 public:
     ButtonObject(void* obj, Object* parent)
@@ -20,6 +21,7 @@ public:
             constrainer->setFixedAspectRatio(1);
         };
 
+        objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
     }
@@ -29,6 +31,7 @@ public:
         if (auto button = ptr.get<t_fake_button>()) {
             primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
             secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
+            sizeProperty = button->x_w;
         }
 
         repaint();
@@ -86,6 +89,15 @@ public:
             button->x_h = b.getHeight() - 1;
         }
     }
+    
+    void objectSizeChanged() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto button = ptr.get<t_fake_button>()) {
+            setParameterExcludingListener(sizeProperty, var(button->x_w));
+        }
+    }
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -135,7 +147,18 @@ public:
     void valueChanged(Value& value) override
     {
 
-        if (value.refersToSameSourceAs(primaryColour)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto size = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            setParameterExcludingListener(sizeProperty, size);
+            if (auto button = ptr.get<t_fake_button>())
+            {
+                button->x_w = size;
+                button->x_h = size;
+            }
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(primaryColour)) {
             auto col = Colour::fromString(primaryColour.toString());
             if (auto button = ptr.get<t_fake_button>()) {
                 button->x_fgcolor[0] = col.getRed();
@@ -144,7 +167,7 @@ public:
             }
             repaint();
         }
-        if (value.refersToSameSourceAs(secondaryColour)) {
+        else if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
             if (auto button = ptr.get<t_fake_button>()) {
                 button->x_bgcolor[0] = col.getRed();

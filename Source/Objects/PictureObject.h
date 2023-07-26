@@ -8,6 +8,8 @@
 class PictureObject final : public ObjectBase {
 
     Value path, latch, outline, reportSize, sendSymbol, receiveSymbol;
+    Value sizeProperty;
+    
     File imageFile;
     Image img;
 
@@ -28,6 +30,7 @@ public:
             }
         }
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamString("File", cGeneral, &path, "");
         objectParameters.addParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
@@ -71,6 +74,8 @@ public:
             reportSize = pic->x_size;
             sendSymbol = pic->x_snd_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_snd_raw->s_name);
             receiveSymbol = pic->x_rcv_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_rcv_raw->s_name);
+            
+            sizeProperty = Array<var>{var(pic->x_width), var(pic->x_height)};
         }
 
         repaint();
@@ -126,7 +131,23 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(path)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            
+            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+            
+            if (auto pic = ptr.get<t_fake_pic>())
+            {
+                pic->x_width = width;
+                pic->x_height = height;
+            }
+
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(path)) {
             openFile(path.toString());
         } else if (value.refersToSameSourceAs(latch)) {
             if (auto pic = ptr.get<t_fake_pic>())
@@ -175,6 +196,15 @@ public:
         }
 
         return {};
+    }
+    
+    void objectSizeChanged() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto pic = ptr.get<t_fake_pic>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(pic->x_width), var(pic->x_height)});
+        }
     }
 
     void openFile(String const& location)

@@ -503,7 +503,8 @@ public:
 class BicoeffObject : public ObjectBase {
 
     BicoeffGraph graph;
-
+    Value sizeProperty;
+    
 public:
     BicoeffObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -515,12 +516,28 @@ public:
             if (auto obj = ptr.get<void>())
                 pd->sendDirectMessage(obj.get(), "biquad", { a1, a2, b0, b1, b2 });
         };
+        
+        objectParameters.addParamSize(&sizeProperty);
     }
 
     void resized() override
     {
         graph.setBounds(getLocalBounds());
     }
+    
+    /* TODO: implement size property
+    void update() override
+    {
+    }
+    
+    void objectSizeChanged() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto iem = ptr.get<t_fake_bico>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(iem->x_w), var(iem->x_h)});
+        }
+    } */
 
     Rectangle<int> getPdBounds() override
     {

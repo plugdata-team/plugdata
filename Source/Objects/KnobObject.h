@@ -11,7 +11,7 @@ class Knob : public Slider {
 
     Colour fgColour;
     Colour arcColour;
-
+    
     bool drawArc = true;
 
     int numberOfTicks = 0;
@@ -127,6 +127,8 @@ class KnobObject : public ObjectBase {
 
     Value initialValue, circular, ticks, angularRange, angularOffset, discrete, outline, showArc, exponential;
     Value primaryColour, secondaryColour, arcColour, sendSymbol, receiveSymbol;
+    
+    Value sizeProperty;
 
     float value = 0.0f;
 
@@ -158,6 +160,7 @@ public:
             constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
         };
 
+        objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
         objectParameters.addParamFloat("Initial value", cGeneral, &initialValue, 0.0f);
@@ -221,6 +224,7 @@ public:
             secondaryColour = getBackgroundColour().toString();
             arcColour = getArcColour().toString();
             outline = knb->x_outline;
+            sizeProperty = knb->x_size;
         }
 
         min = getMinimum();
@@ -248,6 +252,15 @@ public:
     bool hideOutlets() override
     {
         return hasSendSymbol();
+    }
+    
+    void objectSizeChanged() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto knob = ptr.get<t_fake_knob>()) {
+            setParameterExcludingListener(sizeProperty, var(knob->x_size));
+        }
     }
 
     Rectangle<int> getPdBounds() override
@@ -631,7 +644,18 @@ public:
     void valueChanged(Value& value) override
     {
 
-        if (value.refersToSameSourceAs(min)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            setParameterExcludingListener(sizeProperty, size);
+            if (auto knob = ptr.get<t_fake_knob>())
+            {
+                knob->x_size = size;
+            }
+            
+            object->updateBounds();
+        }
+        else if (value.refersToSameSourceAs(min)) {
             float oldMinVal, oldMaxVal, newMinVal;
             if (auto knb = ptr.get<t_fake_knob>()) {
                 oldMinVal = static_cast<float>(knb->x_min);

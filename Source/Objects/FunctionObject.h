@@ -15,13 +15,15 @@ class FunctionObject final : public ObjectBase {
     Value secondaryColour;
     Value sendSymbol;
     Value receiveSymbol;
-
+    Value sizeProperty;
+    
     Array<Point<float>> points;
 
 public:
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamRange("Range", cGeneral, &range, { 0.0f, 1.0f });
@@ -34,6 +36,7 @@ public:
         if (auto function = ptr.get<t_fake_function>()) {
             secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
             primaryColour = colourFromHexArray(function->x_fgcolor).toString();
+            sizeProperty = Array<var>{var(function->x_width), var(function->x_height)};
 
             Array<var> arr = { function->x_min, function->x_max };
             range = var(arr);
@@ -74,6 +77,15 @@ public:
         }
 
         return {};
+    }
+    
+    void objectSizeChanged() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto function = ptr.get<t_fake_function>()) {
+            setParameterExcludingListener(sizeProperty, Array<var>{var(function->x_width), var(function->x_height)});
+        }
     }
 
     Array<Point<float>> getRealPoints()
@@ -334,7 +346,20 @@ public:
     void valueChanged(Value& v) override
     {
         if (auto function = ptr.get<t_fake_function>()) {
-            if (v.refersToSameSourceAs(primaryColour)) {
+            if (v.refersToSameSourceAs(sizeProperty)) {
+                auto& arr = *sizeProperty.getValue().getArray();
+                auto* constrainer = getConstrainer();
+                auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+                auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+                
+                setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
+                
+                function->x_width = width;
+                function->x_height = height;
+                
+                object->updateBounds();
+            }
+            else if (v.refersToSameSourceAs(primaryColour)) {
                 colourToHexArray(Colour::fromString(primaryColour.toString()), function->x_fgcolor);
                 repaint();
             } else if (v.refersToSameSourceAs(secondaryColour)) {
