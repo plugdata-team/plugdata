@@ -369,16 +369,17 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         void getIdealSize (int& idealWidth, int& idealHeight) override
         {
             idealWidth = 140;
-            idealHeight = 32;
+            idealHeight = 30;
         }
         
         void resized() override
         {
-            auto buttonSize = 32;
+            auto buttonHeight = 30;
+            auto buttonWidth = getWidth() / 5;
             auto bounds = getLocalBounds();
             
             for(auto* button : Array<TextButton*>{&cut, &copy, &paste, &duplicate, &remove}) {
-                button->setBounds(bounds.removeFromLeft(buttonSize));
+                button->setBounds(bounds.removeFromLeft(buttonWidth).withHeight(buttonHeight));
             }
         }
         

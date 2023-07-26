@@ -563,6 +563,8 @@ void Canvas::performSynchronise()
     if (!isGraph) {
         setTransform(AffineTransform().scaled(getValue<float>(zoomScale)));
     }
+    
+    if(graphArea) graphArea->updateBounds();
 
     editor->updateCommandStatus();
     repaint();
