@@ -527,8 +527,24 @@ void PluginEditor::fileDragExit(StringArray const&)
 
 void PluginEditor::newProject()
 {
+    // find the lowest `Untitled-N` number, for the new patch title
+    int lowestNumber= 1;
+    Array<int> patchNumbers;
+    for (auto patch : pd->patches) {
+        patchNumbers.add(patch->untitledPatchNum);
+    }
+    // all patches with an untitledPatchNum of 0 are saved patches (at least once)
+    patchNumbers.removeAllInstancesOf(0);
+    patchNumbers.sort();
+
+    for (auto number : patchNumbers) {
+        if (number <= lowestNumber)
+            lowestNumber = number + 1;
+    }
+
     auto patch = pd->loadPatch(pd::Instance::defaultPatch);
-    patch->setTitle("Untitled-" + String(numUntitled++));
+    patch->untitledPatchNum = lowestNumber;
+    patch->setTitle("Untitled-" + String(lowestNumber));
 }
 
 void PluginEditor::openProject()
