@@ -90,9 +90,96 @@ struct Icons {
     inline static const String Paste = "1";
     inline static const String Duplicate = "2";
     inline static const String Cut = "3";
-    
+
     inline static const String Heart = "4";
     inline static const String Download = "5";
+
+    // ================== OBJECT ICONS ==================
+    // default
+    inline static const String GlyphEmpty = CharPointer_UTF8("Â");
+    inline static const String GlyphMessage = CharPointer_UTF8("Ä");
+    inline static const String GlyphFloatBox = CharPointer_UTF8("Ã");
+    inline static const String GlyphSymbolBox = CharPointer_UTF8("Å");
+    inline static const String GlyphListBox = CharPointer_UTF8("Æ");
+    inline static const String GlyphComment = CharPointer_UTF8("Ç");
+
+    // ui
+    inline static const String GlyphBang = CharPointer_UTF8("¡");
+    inline static const String GlyphToggle = CharPointer_UTF8("¢");
+    inline static const String GlyphButton = CharPointer_UTF8("£");
+    inline static const String GlyphKnob = CharPointer_UTF8("¤");
+    inline static const String GlyphNumber = CharPointer_UTF8("¥");
+    inline static const String GlyphHSlider = CharPointer_UTF8("¨");
+    inline static const String GlyphVSlider = CharPointer_UTF8("©");
+    inline static const String GlyphHRadio = CharPointer_UTF8("¦");
+    inline static const String GlyphVRadio = CharPointer_UTF8("§");
+    inline static const String GlyphCanvas = CharPointer_UTF8("ª");
+    inline static const String GlyphKeyboard = CharPointer_UTF8("«");
+    inline static const String GlyphVUMeter = CharPointer_UTF8("¬");
+    inline static const String GlyphArray = CharPointer_UTF8("®");
+    inline static const String GlyphGOP = CharPointer_UTF8("¯");
+    inline static const String GlyphOscilloscope = CharPointer_UTF8("°");
+    inline static const String GlyphFunction = CharPointer_UTF8("±");
+    inline static const String GlyphMessbox = CharPointer_UTF8("µ"); // alternates: ² ´
+    inline static const String GlyphBicoeff = CharPointer_UTF8("³");
+
+    // general
+    inline static const String GlyphMetro = CharPointer_UTF8("ä");
+    inline static const String GlyphCounter = CharPointer_UTF8("æ");
+    inline static const String GlyphSelect = CharPointer_UTF8("ç");
+    inline static const String GlyphRoute = CharPointer_UTF8("è");
+    inline static const String GlyphExpr = CharPointer_UTF8("å");
+    inline static const String GlyphLoadbang = CharPointer_UTF8("é");
+    inline static const String GlyphPack = CharPointer_UTF8("ê");
+    inline static const String GlyphUnpack = CharPointer_UTF8("ë");
+    inline static const String GlyphPrint = CharPointer_UTF8("ì");
+    inline static const String GlyphNetsend = CharPointer_UTF8("î");
+    inline static const String GlyphNetreceive = CharPointer_UTF8("í");
+    inline static const String GlyphTimer = CharPointer_UTF8("ï");
+    inline static const String GlyphDelay = CharPointer_UTF8("ð");
+
+    // MIDI
+    inline static const String GlyphMidiIn = CharPointer_UTF8("ć");
+    inline static const String GlyphMidiOut = CharPointer_UTF8("Ĉ");
+    inline static const String GlyphNoteIn = CharPointer_UTF8("ĉ");
+    inline static const String GlyphNoteOut = CharPointer_UTF8("Ċ");
+    inline static const String GlyphCtlIn = CharPointer_UTF8("ċ");
+    inline static const String GlyphCtlOut = CharPointer_UTF8("Č");
+    inline static const String GlyphPgmIn = CharPointer_UTF8("č");
+    inline static const String GlyphPgmOut = CharPointer_UTF8("Ď");
+    inline static const String GlyphSysexIn = CharPointer_UTF8("ď");
+    inline static const String GlyphSysexOut = CharPointer_UTF8("Đ");
+    inline static const String GlyphMtof = CharPointer_UTF8("đ");
+    inline static const String GlyphFtom = CharPointer_UTF8("Ē");
+
+    // IO~
+    inline static const String GlyphAdc = CharPointer_UTF8("Ī");
+    inline static const String GlyphDac = CharPointer_UTF8("ī");
+    inline static const String GlyphOut = CharPointer_UTF8("Ĭ");
+    inline static const String GlyphBlocksize = CharPointer_UTF8("ĭ");
+    inline static const String GlyphSamplerate = CharPointer_UTF8("Į");
+    inline static const String GlyphSetDsp = CharPointer_UTF8("į");
+
+    // OSC~
+    inline static const String GlyphOsc = CharPointer_UTF8("ō");
+    inline static const String GlyphPhasor = CharPointer_UTF8("Ŏ");
+    inline static const String GlyphSaw = CharPointer_UTF8("ŏ");
+    inline static const String GlyphSaw2 = CharPointer_UTF8("Ő");
+    inline static const String GlyphSquare = CharPointer_UTF8("ő");
+    inline static const String GlyphTriangle = CharPointer_UTF8("Œ");
+    inline static const String GlyphImp = CharPointer_UTF8("œ");
+    inline static const String GlyphImp2 = CharPointer_UTF8("Ŕ");
+    inline static const String GlyphWavetable = CharPointer_UTF8("ŕ");
+    inline static const String GlyphPlaits = CharPointer_UTF8("Ŗ");
+
+    inline static const String GlyphOscBL = CharPointer_UTF8("ŗ");
+    inline static const String GlyphSawBL = CharPointer_UTF8("Ř");
+    inline static const String GlyphSawBL2 = CharPointer_UTF8("ř");
+    inline static const String GlyphSquareBL = CharPointer_UTF8("Ś");
+    inline static const String GlyphTriBL = CharPointer_UTF8("ś");
+    inline static const String GlyphImpBL = CharPointer_UTF8("Ŝ");
+    inline static const String GlyphImpBL2 = CharPointer_UTF8("ŝ");
+    inline static const String GlyphWavetableBL = CharPointer_UTF8("Ş");
 };
 
 enum PlugDataColour {

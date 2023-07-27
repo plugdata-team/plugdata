@@ -3,6 +3,7 @@
 #include "SplitViewResizer.h"
 #include "PluginProcessor.h"
 #include "PaletteItem.h"
+#include "Palettes.h"
 #include "Sidebar/DocumentBrowser.h"
 #include "Sidebar/AutomationPanel.h"
 #include "Tabbar.h"
@@ -33,9 +34,10 @@ bool ResizableTabbedComponent::isInterestedInDragSource(SourceDetails const& dra
 {
     auto windowTab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
     auto paletteItem = dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get());
+    auto objectItem = dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get());
     auto docBrowserItem = dynamic_cast<DocumentBrowserViewBase*>(dragSourceDetails.sourceComponent.get());
     auto automationSlider = dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get());
-    if (windowTab || paletteItem || docBrowserItem || automationSlider)
+    if (windowTab || paletteItem || docBrowserItem || automationSlider || objectItem)
         return true;
     return false;
 }
@@ -72,7 +74,8 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
         }
     }
     else if (dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get()) ||
-             dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get())) {
+             dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get()) ||
+             dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get())) {
         if (!tabComponent)
             return;
 
@@ -373,7 +376,8 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
         // if we are dragging from a palette or automation item, highlight the dragged over split
         auto palette = dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get());
         auto automationSlider = dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get());
-        if (palette || automationSlider) {
+        auto objectItem = dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get());
+        if (palette || automationSlider || objectItem) {
             isDragAndDropOver = false;
             editor->splitView.setFocus(this);
         }
