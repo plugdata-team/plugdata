@@ -65,9 +65,6 @@ public:
         atoms.reserve(lines.size());
 
         for (auto const& line : lines) {
-            if (line.isEmpty())
-                continue;
-
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
@@ -220,9 +217,6 @@ public:
         atoms.reserve(lines.size());
 
         for (auto const& line : lines) {
-            if (line.isEmpty())
-                continue;
-
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
