@@ -33,6 +33,7 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Deken.h"
+#include "PatchStorage.h"
 
 Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback)
 {
@@ -115,6 +116,10 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             }
             case MainMenu::MenuItem::FindExternals: {
                 Dialogs::showDeken(editor);
+                break;
+            }
+            case MainMenu::MenuItem::Discover: {
+                Dialogs::showPatchStorage(editor);
                 break;
             }
             case MainMenu::MenuItem::Settings: {
@@ -229,6 +234,15 @@ void Dialogs::showDeken(PluginEditor* editor)
     dialog->setViewedComponent(dialogContent);
     editor->openedDialog.reset(dialog);
 }
+
+void Dialogs::showPatchStorage(PluginEditor* editor)
+{
+    auto* dialog = new Dialog(&editor->openedDialog, editor, 800, 550, editor->getBounds().getCentreY() + 290, true);
+    auto* dialogContent = new PatchStorage();
+    dialog->setViewedComponent(dialogContent);
+    editor->openedDialog.reset(dialog);
+}
+
 
 StringArray DekenInterface::getExternalPaths()
 {

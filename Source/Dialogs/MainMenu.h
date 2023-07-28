@@ -85,6 +85,8 @@ public:
         addSeparator();
 
         addCustomItem(getMenuItemID(MenuItem::FindExternals), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::FindExternals)]), nullptr, "Find externals...");
+        
+        addCustomItem(getMenuItemID(MenuItem::Discover), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Discover)]), nullptr, "Discover...");
 
         addCustomItem(getMenuItemID(MenuItem::Settings), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Settings)]), nullptr, "Settings...");
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
@@ -375,6 +377,7 @@ public:
         CompiledMode,
         Compile,
         FindExternals,
+        Discover,
         Settings,
         About
     };
@@ -407,6 +410,7 @@ public:
         new IconMenuItem(Icons::DevTools, "Compile...", false, false),
 
         new IconMenuItem(Icons::Externals, "Find Externals...", false, false),
+        new IconMenuItem("", "Discover...", false, false),
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),
     };

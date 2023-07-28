@@ -24,14 +24,13 @@ public:
 
         backButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         backButton.setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
-
+        backButton.getProperties().set("Style", "LargeIcon");
+        
         addAndMakeVisible(rightSideInfo);
         rightSideInfo.setReadOnly(true);
         rightSideInfo.setMultiLine(true);
         rightSideInfo.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         rightSideInfo.setFont(Font(15));
-
-        backButton.getProperties().set("Style", "LargeIcon");
     }
 
     void resized() override

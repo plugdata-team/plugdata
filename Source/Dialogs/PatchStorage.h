@@ -401,22 +401,12 @@ class PatchContainer  : public Component
     const int displayWidth = 260;
     const int displayHeight = 360;
     
-    TextEditor input;
     OwnedArray<PatchDisplay> patchDisplays;
     
 public:
     
     PatchContainer()
     {
-        input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
-        input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
-        input.setJustification(Justification::centredLeft);
-        input.setBorder({ 1, 23, 3, 1 });
-        input.getProperties().set("NoOutline", true);
-        input.onTextChange = [this]() {
-            filterPatches(input.getText());
-        };
-        addAndMakeVisible(input);
     }
     
     void filterPatches(String query)
@@ -450,25 +440,9 @@ public:
         setSize(getWidth(), (patches.size() / (getWidth() / displayWidth)) * displayHeight);
     }
     
-    void paintOverChildren(Graphics& g) override
-    {
-        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, findColour(PlugDataColour::panelTextColourId), 12);
-
-        if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search for patches", 30, 0, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
-        }
-
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(0, 30, getWidth(), 30);
-    }
-    
     void resized() override
     {
-        auto bounds = getLocalBounds();
-        auto inputBounds = bounds.removeFromTop(28);
-        input.setBounds(inputBounds);
-        
-        bounds = bounds.reduced(6);
+        auto bounds = getLocalBounds().reduced(6);
         
         auto currentRow = bounds.removeFromTop(displayHeight);
         
@@ -498,7 +472,14 @@ struct PatchStorage : public Component
     PatchContainer patchContainer;
     BouncingViewport contentViewport;
     PatchFullDisplay patchFullDisplay;
+    
     TextButton backButton = TextButton(Icons::Back);
+    TextButton refreshButton = TextButton(Icons::Refresh);
+    
+    TextButton clearButton = TextButton(Icons::ClearText);
+    TextEditor input;
+    
+    Spinner spinner;
     
 public:
     PatchStorage()
@@ -508,6 +489,8 @@ public:
         addAndMakeVisible(contentViewport);
         
         contentViewport.setScrollBarsShown(true, false, true, false);
+        
+        spinner.startSpinning();
         Thread::launch([this](){
             fetchPatches();
         });
@@ -518,6 +501,7 @@ public:
         {
             patchFullDisplay.showPatch(patch);
             backButton.setVisible(true);
+            refreshButton.setVisible(false);
         };
         
         addChildComponent(backButton);
@@ -525,21 +509,65 @@ public:
         backButton.onClick = [this]() {
             patchFullDisplay.setVisible(false);
             backButton.setVisible(false);
+            refreshButton.setVisible(true);
         };
 
         backButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         backButton.setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
         backButton.getProperties().set("Style", "LargeIcon");
 
+        
+        refreshButton.setTooltip("Refresh packages");
+        refreshButton.getProperties().set("Style", "LargeIcon");
+        refreshButton.setEnabled(false);
+        addAndMakeVisible(refreshButton);
+        refreshButton.onClick = [this]() {
+            refreshButton.setEnabled(false);
+            spinner.startSpinning();
+            Thread::launch([this](){
+                fetchPatches();
+            });
+        };
+        
+        input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
+        input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
+        input.setJustification(Justification::centredLeft);
+        input.setBorder({ 1, 23, 3, 1 });
+        input.getProperties().set("NoOutline", true);
+        input.onTextChange = [this]() {
+            patchContainer.filterPatches(input.getText());
+        };
+        addAndMakeVisible(input);
+        
+        clearButton.getProperties().set("Style", "SmallIcon");
+        clearButton.setAlwaysOnTop(true);
+        clearButton.onClick = [this]() {
+            input.clear();
+            grabKeyboardFocus(); // steal focus from text editor
+            input.repaint();
+            patchContainer.filterPatches("");
+        };
+        addAndMakeVisible(clearButton);
+        addChildComponent(spinner);
+
     }
     
-
     void paintOverChildren(Graphics& g) override
     {
         Fonts::drawStyledText(g, "Discover", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
 
+
+        Fonts::drawIcon(g, Icons::Search, 0, 40, 30, findColour(PlugDataColour::panelTextColourId), 12);
+
+        if (input.getText().isEmpty()) {
+            Fonts::drawFittedText(g, "Type to search for patches", 30, 40, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
+        }
+
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, 40, getWidth(), 40);
+        
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawLine(0, 70, getWidth(), 70);
     }
     
     void paint(Graphics& g) override
@@ -560,10 +588,19 @@ public:
     {
         auto b = getLocalBounds().withTrimmedTop(40);
                 
+        auto inputBounds = b.removeFromTop(28);
+        input.setBounds(inputBounds);
+        clearButton.setBounds(inputBounds.removeFromRight(32));
+        
         contentViewport.setBounds(b);
         patchFullDisplay.setBounds(b);
         patchContainer.setSize(getWidth(), patchContainer.getHeight());
+        
         backButton.setBounds(2, 0, 40, 40);
+        refreshButton.setBounds(2, 0, 40, 40);
+        
+        spinner.setSize(50, 50);
+        spinner.setCentrePosition(b.getWidth() / 2, b.getHeight() / 2);
     }
     
     void fetchPatches()
@@ -614,6 +651,8 @@ public:
 
         MessageManager::callAsync([this, patches](){
             patchContainer.showPatches(patches);
+            refreshButton.setEnabled(true);
+            spinner.stopSpinning();
         });
     }
 };

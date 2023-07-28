@@ -924,8 +924,6 @@ private:
 
         void paint(Graphics& g) override
         {
-            g.setColour(findColour(PlugDataColour::outlineColourId));
-            
             auto b = getLocalBounds().toFloat().reduced(8.0f, 0.0f).withTrimmedBottom(-1.0f);
             
             Path p;

@@ -152,6 +152,7 @@ struct Dialogs {
     static void showObjectMenu(PluginEditor* parent, Component* target);
 
     static void showDeken(PluginEditor* editor);
+    static void showPatchStorage(PluginEditor* editor);
 
     static PopupMenu createObjectMenu(PluginEditor* parent);
 };
