@@ -9,6 +9,7 @@ public:
         spinner.setSize(50, 50);
         spinner.setCentrePosition(getWidth() / 2, getHeight() / 2);
         addAndMakeVisible(spinner);
+        setInterceptsMouseClicks(false, false);
     }
 
     ~OnlineImage() override
@@ -20,21 +21,30 @@ public:
 
     void setImageURL(const URL& url)
     {
+        downloadedImage = Image();
+        
         // Lock the thread to safely update the image URL
         const ScopedLock sl(lock);
         imageURL = url;
         imageDownloadPool.addJob(this, false);
         spinner.startSpinning();
+        repaint();
     }
 
     void paint(Graphics& g) override
     {
-        if (!downloadedImage.isValid()) return;
-        
-        g.saveState();
         // Create a rounded rectangle to use as a mask
         Path roundedRectanglePath;
         roundedRectanglePath.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, roundBottom);
+        
+        if (!downloadedImage.isValid())
+        {
+            g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+            g.fillPath(roundedRectanglePath);
+            return;
+        }
+        
+        g.saveState();
 
         // Set the path as the clip region for the Graphics context
         g.reduceClipRegion(roundedRectanglePath);
@@ -233,7 +243,7 @@ public:
     void paint(Graphics& g) override
     {
         auto b = getLocalBounds().reduced(12);
-        auto topArea = b.removeFromTop(300).withTrimmedLeft(500);;
+        auto topArea = b.removeFromTop(300).withTrimmedLeft(500);
        
         g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
         
@@ -242,7 +252,7 @@ public:
         p.addRoundedRectangle(image.getBounds().reduced(1.0f), Corners::largeCornerRadius);
         StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
         
-        topArea.removeFromBottom(80); // space for download button
+        topArea.removeFromBottom(90); // space for download button
         topArea = topArea.reduced(16);
         drawSectionBackground(g, topArea);
         
@@ -318,9 +328,9 @@ public:
         
         image.setBounds(imageArea.reduced(16));
         
-        auto buttonArea = topArea.removeFromBottom(80).withTrimmedBottom(16).reduced(16, 0);
+        auto buttonArea = topArea.removeFromBottom(90).withTrimmedBottom(16).reduced(16, 0);
         downloadButton.setBounds(buttonArea.removeFromTop(30));
-        buttonArea.removeFromTop(4);
+        buttonArea.removeFromTop(14);
         viewButton.setBounds(buttonArea);
     }
     
