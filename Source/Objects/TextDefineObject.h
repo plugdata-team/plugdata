@@ -64,7 +64,9 @@ public:
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
 
+        int count = 0;
         for (auto const& line : lines) {
+            count++;
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
@@ -79,8 +81,10 @@ public:
                 }
             }
 
-            atoms.emplace_back();
-            SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
+            if (count != lines.size()) {
+                atoms.emplace_back();
+                SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
+            }
         }
 
         if (auto qlist = ptr.get<t_fake_qlist>()) {
@@ -216,7 +220,9 @@ public:
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
 
+        int count = 0;
         for (auto const& line : lines) {
+            count++;
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
@@ -231,8 +237,10 @@ public:
                 }
             }
 
-            atoms.emplace_back();
-            SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
+            if (count != lines.size()) {
+                atoms.emplace_back();
+                SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
+            }
         }
 
         if (auto textDefine = ptr.get<t_fake_text_define>()) {
