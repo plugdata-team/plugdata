@@ -90,6 +90,9 @@ struct Icons {
     inline static const String Paste = "1";
     inline static const String Duplicate = "2";
     inline static const String Cut = "3";
+    
+    inline static const String Heart = "4";
+    inline static const String Download = "5";
 };
 
 enum PlugDataColour {

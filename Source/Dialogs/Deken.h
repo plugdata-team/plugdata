@@ -878,50 +878,6 @@ private:
             repaint();
         }
 
-        String getRelativeTimeDescription(const juce::String& timestampString)
-        {
-            juce::StringArray dateAndTime = juce::StringArray::fromTokens(timestampString, true);
-            juce::StringArray dateComponents = juce::StringArray::fromTokens(dateAndTime[0], "-", "");
-
-            int year = dateComponents[0].getIntValue();
-            int month = dateComponents[1].getIntValue();
-            int day = dateComponents[2].getIntValue();
-
-            juce::StringArray timeComponents = juce::StringArray::fromTokens(dateAndTime[1], ":", "");
-            int hour = timeComponents[0].getIntValue();
-            int minute = timeComponents[1].getIntValue();
-            int second = timeComponents[2].getIntValue();
-
-            juce::Time timestamp(year, month, day, hour, minute, second, 0);
-            juce::Time currentTime = juce::Time::getCurrentTime();
-            juce::RelativeTime relativeTime = currentTime - timestamp;
-
-            
-            int years = relativeTime.inDays() / 365;
-            int months = relativeTime.inDays() / 30;
-            int weeks = relativeTime.inWeeks();
-            int days = relativeTime.inDays();
-
-            if (years == 1)
-                return juce::String(years) + " year ago";
-            else if (years > 0)
-                return juce::String(years) + " years ago";
-            else if (months == 1)
-                return juce::String(months) + " month ago";
-            else if (months > 0)
-                return juce::String(months) + " months ago";
-            else if (weeks == 1)
-                return juce::String(weeks) + " week ago";
-            else if (weeks > 0)
-                return juce::String(weeks) + " weeks ago";
-            else if (days == 1)
-                return juce::String(days) + " day ago";
-            else if (days > 0)
-                return juce::String(days) + " days ago";
-            else
-                return "today";
-        }
-
         void paint(Graphics& g) override
         {
             auto b = getLocalBounds().toFloat().reduced(8.0f, 0.0f).withTrimmedBottom(-1.0f);

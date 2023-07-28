@@ -15,6 +15,7 @@ public:
     {
         // Stop the thread
         signalJobShouldExit();
+        imageDownloadPool.removeJob(this, true, -1);
     }
 
     void setImageURL(const URL& url)
@@ -146,8 +147,8 @@ public:
                 cleanedText += currentChar;
             }
         }
-
-        return cleanedText;
+        
+        return cleanedText.removeCharacters("\r");
     }
 };
 
@@ -190,12 +191,12 @@ public:
         
         var patchObject = JSON::parse(memstream);
         
-        description =  PatchInfo::removeMarkupTags(patchObject["content"].toString());
+        description = PatchInfo::removeMarkupTags(patchObject["content"].toString());
         fileURL = patchObject["files"][0]["url"].toString();
         fileName = patchObject["files"][0]["filename"].toString();
         onlineURL = patchObject["url"].toString();
         updatedAt = patchObject["updated_at"].toString();
-        license = patchObject["updated_at"]["slug"].toString();
+        license = patchObject["license"]["slug"].toString();
         
         if(fileName.endsWith(".pd"))
         {
@@ -222,13 +223,24 @@ public:
         g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
     }
     
+    void paintOverChildren(Graphics& g) override
+    {
+        // Drag image outline
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawRoundedRectangle(image.getBounds().toFloat(), Corners::largeCornerRadius, 1.0f);
+    }
+    
     void paint(Graphics& g) override
     {
         auto b = getLocalBounds().reduced(12);
         auto topArea = b.removeFromTop(300).withTrimmedLeft(500);;
        
         g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
-
+        
+        // Drag image shadow
+        Path p;
+        p.addRoundedRectangle(image.getBounds().reduced(1.0f), Corners::largeCornerRadius);
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
         
         topArea.removeFromBottom(80); // space for download button
         topArea = topArea.reduced(16);
@@ -241,23 +253,51 @@ public:
             "Category: " + category,
             "Revision: " + revision,
             "License: " + license,
-            //"Last Modified: " + updatedAt,
+            "Last Modified: " + getRelativeTimeDescription(updatedAt),
         };
 
-        auto extraInfoArea = topArea.reduced(8);
+        auto extraInfoArea = topArea.reduced(12);
         g.setColour(textColour);
         g.setFont(Font(14.5));
         for(auto& line : extraInfo)
         {
             if(!line.fromFirstOccurrenceOf(":", false, false).containsNonWhitespaceChars()) continue;
             
-            g.drawText(line, extraInfoArea.removeFromTop(23), Justification::left);
+            g.drawText(line, extraInfoArea.removeFromTop(25), Justification::left);
         }
+        
+        auto iconArea = extraInfoArea.removeFromBottom(32).reduced(2);
+        auto iconSectionWidth = iconArea.getWidth() / 2.75f;
+        
+        auto likesArea = iconArea.removeFromLeft(iconSectionWidth);
+        
+        Fonts::drawIcon(g, Icons::Heart, likesArea.removeFromLeft(32),
+                        findColour(PlugDataColour::panelTextColourId), 15);
+        
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setFont(Font(14));
+        g.drawText(String(likes), likesArea, Justification::left);
+        
+        auto downloadsArea = iconArea.removeFromLeft(iconSectionWidth);
+        
+        Fonts::drawIcon(g, Icons::Download, downloadsArea.removeFromLeft(32), findColour(PlugDataColour::panelTextColourId), 15);
+        
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setFont(Font(14));
+        g.drawText(String(downloads), downloadsArea, Justification::left);
+        
+        auto viewsArea = iconArea.removeFromLeft(iconSectionWidth);
+        
+        Fonts::drawIcon(g, Icons::Eye, viewsArea.removeFromLeft(32), findColour(PlugDataColour::panelTextColourId), 15);
+        
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setFont(Font(14));
+        g.drawText(String(views), viewsArea, Justification::left);
         
         auto contentArea = b.reduced(16, 8);
         drawSectionBackground(g, contentArea);
     
-        contentArea = contentArea.reduced(8);
+        contentArea = contentArea.reduced(12);
         
         Fonts::drawStyledText(g, title, contentArea.removeFromTop(22), textColour, Bold, 15, Justification::left);
         
@@ -305,6 +345,12 @@ public:
     }
 private:
     
+    void paintOverChildren(Graphics& g) override
+    {
+        auto b = getLocalBounds().reduced(6);
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
+    }
     
     void paint(Graphics& g) override
     {
@@ -357,7 +403,6 @@ private:
         
         auto textBounds = b.reduced(10);
         
-        
         Fonts::drawStyledText(g, info.title, textBounds.removeFromTop(22), textColour, Bold, 15, Justification::left);
         
         auto layout = TextLayout();
@@ -367,6 +412,35 @@ private:
         layout.createLayout(description, 240, 150);
         
         layout.draw(g, textBounds.withTrimmedBottom(32).toFloat());
+        
+        auto iconArea = b.removeFromBottom(32).reduced(6);
+        auto iconSectionWidth = iconArea.getWidth() / 2.75f;
+        
+        auto likesArea = iconArea.removeFromLeft(iconSectionWidth);
+        
+        Fonts::drawIcon(g, Icons::Heart, likesArea.removeFromLeft(32),
+                        findColour(PlugDataColour::panelTextColourId), 15);
+        
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setFont(Font(14));
+        g.drawText(String(info.like_count), likesArea, Justification::left);
+        
+        auto downloadsArea = iconArea.removeFromLeft(iconSectionWidth);
+        
+        Fonts::drawIcon(g, Icons::Download, downloadsArea.removeFromLeft(32), findColour(PlugDataColour::panelTextColourId), 15);
+        
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setFont(Font(14));
+        g.drawText(String(info.download_count), downloadsArea, Justification::left);
+        
+        auto viewsArea = iconArea.removeFromLeft(iconSectionWidth);
+        
+        Fonts::drawIcon(g, Icons::Eye, viewsArea.removeFromLeft(32), findColour(PlugDataColour::panelTextColourId), 15);
+        
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setFont(Font(14));
+        g.drawText(String(info.view_count), viewsArea, Justification::left);
+        
     }
     
     void resized() override
@@ -438,6 +512,7 @@ public:
         }
         
         setSize(getWidth(), (patches.size() / (getWidth() / displayWidth)) * displayHeight);
+        resized(); // Even if size if the same, we still want to call resize
     }
     
     void resized() override
@@ -502,6 +577,8 @@ public:
             patchFullDisplay.showPatch(patch);
             backButton.setVisible(true);
             refreshButton.setVisible(false);
+            input.setVisible(false);
+            clearButton.setVisible(false);
         };
         
         addChildComponent(backButton);
@@ -510,6 +587,8 @@ public:
             patchFullDisplay.setVisible(false);
             backButton.setVisible(false);
             refreshButton.setVisible(true);
+            input.setVisible(true);
+            clearButton.setVisible(true);
         };
 
         backButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
@@ -556,18 +635,18 @@ public:
     {
         Fonts::drawStyledText(g, "Discover", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
 
-
-        Fonts::drawIcon(g, Icons::Search, 0, 40, 30, findColour(PlugDataColour::panelTextColourId), 12);
-
-        if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search for patches", 30, 40, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
+        if(input.isVisible()) {
+            Fonts::drawIcon(g, Icons::Search, 0, 40, 30, findColour(PlugDataColour::panelTextColourId), 12);
+            
+            if (input.getText().isEmpty()) {
+                Fonts::drawFittedText(g, "Type to search for patches", 30, 40, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
+            }
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawLine(0, 70, getWidth(), 70);
         }
-
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(0, 40, getWidth(), 40);
         
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(0, 70, getWidth(), 70);
+        g.drawLine(0, 40, getWidth(), 40);
     }
     
     void paint(Graphics& g) override
@@ -588,12 +667,14 @@ public:
     {
         auto b = getLocalBounds().withTrimmedTop(40);
                 
+        patchFullDisplay.setBounds(b);
+        
         auto inputBounds = b.removeFromTop(28);
         input.setBounds(inputBounds);
         clearButton.setBounds(inputBounds.removeFromRight(32));
         
         contentViewport.setBounds(b);
-        patchFullDisplay.setBounds(b);
+
         patchContainer.setSize(getWidth(), patchContainer.getHeight());
         
         backButton.setBounds(2, 0, 40, 40);
