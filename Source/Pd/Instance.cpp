@@ -117,6 +117,20 @@ namespace pd {
 Instance::Instance(String const& symbol)
     : consoleHandler(this)
 {
+    set_global_lock(
+      [](){
+          instanceLock.enterRead();
+      },
+      [](){
+          instanceLock.exitRead();
+      },
+      [](){
+          instanceLock.enterWrite();
+      },
+      [](){
+          instanceLock.exitWrite();
+      });
+    
     libpd_multi_init();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
 }
@@ -143,17 +157,18 @@ void Instance::initialisePd(String& pdlua_version)
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
-    set_instance_lock(
+    set_lock(
         static_cast<void const*>(&audioLock),
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->enter();
         },
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->exit();
-        },
-        [](void* instance, t_pd* ref) {
-            static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
         });
+    
+     set_free_callback([](void* instance, t_pd* ref) {
+         static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
+     });
 
     m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
