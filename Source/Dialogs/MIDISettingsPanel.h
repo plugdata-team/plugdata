@@ -113,7 +113,7 @@ private:
             // The internal plugdata ports should be viewed from our perspective instead of that of an external application
             if(deviceInfo.name == "from plugdata")
             {
-                midiOutputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo, deviceManager));
+                midiOutputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
                 continue;
             }
             
@@ -124,7 +124,7 @@ private:
         for (auto& deviceInfo : midiOutputDevices) {
             if(deviceInfo.name == "to plugdata")
             {
-                midiInputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
+                midiInputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo, deviceManager));
                 continue;
             }
             
