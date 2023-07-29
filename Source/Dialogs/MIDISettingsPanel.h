@@ -106,21 +106,34 @@ private:
         auto midiInputDevices = MidiInput::getAvailableDevices();
         auto midiInputProperties = Array<PropertiesPanel::Property*>();
 
-        for (auto& deviceInfo : midiInputDevices) {
-            midiInputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
-        }
-
-        midiProperties.addSection("MIDI Inputs", midiInputProperties);
-
         auto midiOutputDevices = MidiOutput::getAvailableDevices();
         auto midiOutputProperties = Array<PropertiesPanel::Property*>();
+        
+        for (auto& deviceInfo : midiInputDevices) {
+            // The internal plugdata ports should be viewed from our perspective instead of that of an external application
+            if(deviceInfo.name == "from plugdata")
+            {
+                midiOutputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo, deviceManager));
+                continue;
+            }
+            
+            midiInputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
+            
+        }
 
         for (auto& deviceInfo : midiOutputDevices) {
+            if(deviceInfo.name == "to plugdata")
+            {
+                midiInputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
+                continue;
+            }
+            
             midiOutputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo, deviceManager));
         }
 
         midiOutputProperties.add(new InternalSynthToggle(processor));
 
+        midiProperties.addSection("MIDI Inputs", midiInputProperties);
         midiProperties.addSection("MIDI Outputs", midiOutputProperties);
     }
 

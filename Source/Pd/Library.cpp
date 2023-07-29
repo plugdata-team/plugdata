@@ -39,11 +39,11 @@ namespace pd {
 
 void Library::updateLibrary()
 {
-    sys_lock();
-    
     auto settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile("Settings.xml").loadFileAsString());
     auto pathTree = settingsTree.getChildWithName("Paths");
 
+    sys_lock();
+    
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
 
