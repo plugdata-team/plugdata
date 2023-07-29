@@ -253,7 +253,11 @@ void Instance::initialisePd(String& pdlua_version)
         initialised = true;
     }
     
-    ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(m_instance));
+    // Hack to make sure ofelia doesn't get initialised during plugin validation, as this can cause problems
+    MessageManager::callAsync([this](){
+        ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(m_instance));
+    });
+    
     
     setThis();
 
