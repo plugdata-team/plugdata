@@ -39,6 +39,8 @@ namespace pd {
 
 void Library::updateLibrary()
 {
+    sys_lock();
+    
     auto settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile("Settings.xml").loadFileAsString());
     auto pathTree = settingsTree.getChildWithName("Paths");
 
@@ -74,6 +76,8 @@ void Library::updateLibrary()
             }
         }
     }
+    
+    sys_unlock();
 }
 
 Library::Library(pd::Instance* instance)
