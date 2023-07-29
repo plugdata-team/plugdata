@@ -48,8 +48,20 @@ public:
 
         // Set the path as the clip region for the Graphics context
         g.reduceClipRegion(roundedRectanglePath);
+        
+        float scaleX = static_cast<float>(getWidth()) / downloadedImage.getWidth();
+        float scaleY = static_cast<float>(getHeight()) / downloadedImage.getHeight();
+        float scale = jmax(scaleX, scaleY);
 
-        g.drawImageWithin(downloadedImage, 0, 0, getWidth(), getHeight(), RectanglePlacement::fillDestination);
+        // Calculate the translation values to keep the image centered
+        float translateX = (getWidth() - downloadedImage.getWidth() * scale) * 0.5f;
+        float translateY = (getHeight() - downloadedImage.getHeight() * scale) * 0.5f;
+
+        // Apply the transformation to the Graphics context
+        g.addTransform(AffineTransform::translation(translateX, translateY).scaled(scale));
+
+        // Apply the transformation to the Graphics context
+        g.drawImage(downloadedImage, 0, 0, downloadedImage.getWidth(), downloadedImage.getHeight(), 0, 0, downloadedImage.getWidth(), downloadedImage.getHeight());
 
         g.restoreState();
     }
