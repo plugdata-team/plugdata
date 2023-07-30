@@ -69,6 +69,7 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "BicoeffObject.h"
 #include "NoteObject.h"
 #include "ColourPickerObject.h"
+#include "MidiObjects.h"
 
 // Class for non-patchable objects
 class NonPatchable : public ObjectBase {
@@ -492,6 +493,21 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new NoteObject(ptr, parent);
         case hash("knob"):
             return new KnobObject(ptr, parent);
+                
+        case hash("noteout"):
+        //case hash("ctlout"): disabled for now because it takes an extra argument
+        case hash("pgmout"):
+        case hash("bendout"):
+        {
+            return new MidiObject(ptr, parent, false);
+        }
+        case hash("notein"):
+        //case hash("ctlin"):
+        case hash("pgmin"):
+        case hash("bendin"):
+        {
+            return new MidiObject(ptr, parent, true);
+        }
         default:
             break;
         }

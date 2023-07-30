@@ -26,12 +26,15 @@
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 #include <juce_audio_utils/juce_audio_utils.h>
+#include <juce_audio_devices/juce_audio_devices.h>
 
 #include "Constants.h"
 #include "Utility/StackShadow.h"
 #include "Utility/OSUtils.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
+#include "Utility/MidiHelperFunctions.h"
+
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -49,6 +52,39 @@ static bool drawWindowShadow = true;
 
 namespace pd {
 class Patch;
+};
+
+class PlugDataProcessorPlayer : public AudioProcessorPlayer, public ChangeListener
+{
+    std::mutex midiDeviceMutex;
+    Array<MidiDeviceInfo> currentMIDIInputs;
+    
+public:
+    PlugDataProcessorPlayer(AudioDeviceManager& deviceManager) : AudioProcessorPlayer(false)
+    {
+        deviceManager.addChangeListener(this);
+        
+        midiDeviceMutex.lock();
+        currentMIDIInputs = MidiInput::getAvailableDevices();
+        midiDeviceMutex.unlock();
+    }
+    
+    void changeListenerCallback(ChangeBroadcaster* origin) override
+    {
+        midiDeviceMutex.lock();
+        currentMIDIInputs = MidiInput::getAvailableDevices();
+        midiDeviceMutex.unlock();
+    }
+
+    void handleIncomingMidiMessage(MidiInput* input, const MidiMessage& message) override
+    {
+        // Offset MIDI messages with channel number
+        midiDeviceMutex.lock();
+        auto deviceIndex = currentMIDIInputs.indexOf(input->getDeviceInfo());
+        midiDeviceMutex.unlock();
+        
+        getMidiMessageCollector().addMessageToQueue(MidiHelperFunctions::convertToSysExFormat(message, deviceIndex));
+    }
 };
 
 class StandalonePluginHolder : private AudioIODeviceCallback
@@ -77,6 +113,7 @@ public:
 
         : settings(settingsToUse, takeOwnershipOfSettings)
         , channelConfiguration(channels)
+        , player(deviceManager)
     {
         shouldMuteInput.addListener(this);
         shouldMuteInput = !isInterAppAudioConnected();
@@ -253,7 +290,7 @@ public:
     OptionalScopedPointer<PropertySet> settings;
     std::unique_ptr<AudioProcessor> processor;
     AudioDeviceManager deviceManager;
-    AudioProcessorPlayer player;
+    PlugDataProcessorPlayer player;
     Array<PluginInOuts> channelConfiguration;
 
     // avoid feedback loop by default
