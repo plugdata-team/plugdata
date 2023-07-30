@@ -8,6 +8,7 @@ class MessageObject final : public ObjectBase
     , public KeyListener
     , public TextEditor::Listener {
 
+    Value sizeProperty;
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
 
@@ -21,11 +22,16 @@ public:
     MessageObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
     }
 
     void update() override
     {
         objectText = getSymbol();
+        
+        if (auto obj = ptr.get<t_text>()) {
+            sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
+        }
     }
 
     Rectangle<int> getPdBounds() override
@@ -65,6 +71,15 @@ public:
         }
     }
 
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+        
+        if (auto text = ptr.get<t_text>()) {
+            setParameterExcludingListener(sizeProperty, TextObjectHelper::getWidthInChars(text.get()));
+        }
+    }
+        
     void lock(bool locked) override
     {
         isLocked = locked;
@@ -264,6 +279,23 @@ public:
         freebytes(text, size);
 
         return result.trimEnd();
+    }
+        
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            
+            setParameterExcludingListener(sizeProperty, width);
+            
+            if (auto text = ptr.get<t_text>())
+            {
+                TextObjectHelper::setWidthInChars(text.get(), width);
+            }
+            
+            object->updateBounds();
+        }
     }
 
     void setSymbol(String const& value)
