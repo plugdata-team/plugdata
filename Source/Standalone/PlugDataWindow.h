@@ -431,6 +431,7 @@ private:
 
 #if !JUCE_WINDOWS
         if (auto* newIn = MidiInput::createNewDevice("to plugdata", &player).release()) {
+            newIn->start();
             customMidiInputs.add(newIn);
         }
 #endif
