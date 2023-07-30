@@ -9,6 +9,7 @@
 class MidiObject final : public TextBase {
 public:
     
+    const int allChannelsAndDevices = 99999;
     bool midiInput;
     MidiObject(void* ptr, Object* object, bool isInput)
     : TextBase(ptr, object), midiInput(isInput)
@@ -34,7 +35,13 @@ public:
     }
     void setChannel(int channel)
     {
-        object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(channel));
+        if(channel == allChannelsAndDevices)
+        {
+            object->setType(getText().upToFirstOccurrenceOf(" ", false, false));
+        }
+        else {
+            object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(channel));
+        }
     }
     
     
@@ -42,11 +49,8 @@ public:
     {
         if (getValue<bool>(object->locked) && e.mods.isPopupMenu()) {
             
-            // TODO: add "all channels" option?
-            
             PopupMenu popupMenu;
             
-           
             auto text = StringArray::fromTokens(getText(), false);
             auto currentPort = text.size() > 1 ? text[1].getIntValue() : 0;
             
@@ -54,8 +58,9 @@ public:
             {
                 if(midiInput)
                 {
-                    int port = 0;
+                    //popupMenu.addItem(allChannelsAndDevices, "Receive from all devices");
                     
+                    int port = 0;
                     for(auto input : MidiInput::getAvailableDevices()) {
                         PopupMenu subMenu;
                         for(int ch = 1; ch < 16; ch++)
@@ -69,6 +74,8 @@ public:
                     }
                 }
                 else {
+                    //popupMenu.addItem(allChannelsAndDevices, "Receive from all devices");
+                    
                     int port = 0;
                     for(auto output : MidiOutput::getAvailableDevices()) {
                         PopupMenu subMenu;
@@ -84,6 +91,8 @@ public:
                 }
             }
             else {
+                //popupMenu.addItem(allChannelsAndDevices, "Receive from all channels");
+                
                 for(int ch = 1; ch < 16; ch++)
                 {
                     popupMenu.addItem(ch, "Channel " + String(ch), true, ch == currentPort);
@@ -92,7 +101,7 @@ public:
             
             popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(80).withMaximumNumColumns(1).withParentComponent(cnv).withTargetComponent(this), ModalCallbackFunction::create([this](int channel){
                 if(channel == 0) return;
-                
+  
                 setChannel(channel);
             }));
             

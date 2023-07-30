@@ -549,18 +549,14 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     statusbarSource->peakBuffer.write(buffer);
 
     if (ProjectInfo::isStandalone) {
-        int idx = 0;
-        for (auto* midiOutput : midiOutputs) {
-            for(auto bufferIterator : midiMessages)
-            {
-                int device;
-                auto message = MidiHelperFunctions::convertFromSysExFormat(bufferIterator.getMessage(), device);
-                if(device == idx)
-                {
-                    midiOutput->sendMessageNow(message);
-                }
+        for(auto bufferIterator : midiMessages)
+        {
+            int device;
+            auto message = MidiHelperFunctions::convertFromSysExFormat(bufferIterator.getMessage(), device);
+            
+            if(isPositiveAndBelow(device, midiOutputs.size())) {
+                midiOutputs[device]->sendMessageNow(message);
             }
-            idx++;
         }
 
         // If the internalSynth is enabled and loaded, let it process the midi
