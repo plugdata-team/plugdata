@@ -529,6 +529,29 @@ public:
         case hash("GlyphWavetableBL"):
             glyph = Icons::GlyphWavetableBL;
             break;
+        // effects
+        case hash("GlyphCrusher"):
+            glyph = Icons::GlyphCrusher;
+            break;
+        case hash("GlyphDelayEffect"):
+            glyph = Icons::GlyphDelayEffect;
+            break;
+        case hash("GlyphDrive"):
+            glyph = Icons::GlyphDrive;
+            break;
+        case hash("GlyphFlanger"):
+            glyph = Icons::GlyphFlanger;
+            break;
+        case hash("GlyphReverb"):
+            glyph = Icons::GlyphReverb;
+            break;
+        case hash("GlyphFreeze"):
+            glyph = Icons::GlyphFreeze;
+            break;
+        case hash("GlyphRingmod"):
+            glyph = Icons::GlyphRingmod;
+            break;
+
         default:
             glyph = String();
         }
@@ -599,6 +622,11 @@ public:
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(patchWithTheme));
         dragContainer->startDragging(palettePatchWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
+    }
+
+    void lookAndFeelChanged() override
+    {
+        dragImage.image = Image();
     }
 
     String substituteThemeColours(String patch)
@@ -1405,7 +1433,7 @@ private:
                 { "GlyphOsc", "#X obj 0 0 osc~ 440", "Osc" },
                 { "GlyphPhasor", "#X obj 0 0 phasor~", "Phasor" },
                 { "GlyphSaw", "#X obj 0 0 saw~ 440", "Saw" },
-                { "GlyphSaw2", "#X obj 0 0 saw2~ 440~", "Saw 2" },
+                { "GlyphSaw2", "#X obj 0 0 saw2~ 440", "Saw 2" },
                 { "GlyphSquare", "#X obj 0 0 square~", "Square" },
                 { "GlyphTriangle", "#X obj 0 0 tri~ 440", "Triangle" },
                 { "GlyphImp", "#X obj 0 0 imp~ 100", "Impulse" },
@@ -1415,13 +1443,23 @@ private:
 
                 // band limited
                 { "GlyphOscBL", "#X obj 0 0 bl.osc~ 440", "Osc band limited" },
-                { "GlyphSawBL", "#X obj 0 0 bl.saw~ 440~", "Saw band limited" },
+                { "GlyphSawBL", "#X obj 0 0 bl.saw~ 440", "Saw band limited" },
                 { "GlyphSawBL2", "#X obj 0 0 bl.saw2~", "Saw band limited 2" },
                 { "GlyphSquareBL", "#X obj 0 0 bl.tri~ 440", "Square band limited" },
                 { "GlyphTriBL", "#X obj 0 0 bl.tri~ 100", "Triangle band limited" },
                 { "GlyphImpBL", "#X obj 0 0 bl.imp~ 100", "Impulse band limited" },
                 { "GlyphImpBL2", "#X obj 0 0 bl.imp2~", "Impulse band limited 2" },
                 { "GlyphWavetableBL", "#X obj 0 0 bl.wavetable~", "Wavetable band limited" },
+                }},
+        { "Effects~",
+            {
+                { "GlyphCrusher", "#X obj 0 0 crusher~ 0.1 0.1", "Crusher" },
+                { "GlyphDelayEffect", "#X obj 0 0 delay~ 22050 14700", "Delay" },
+                { "GlyphDrive", "#X obj 0 0 drive~", "Drive" },
+                { "GlyphFlanger", "#X obj 0 0 flanger~ 0.1 20 -0.6", "Flanger" },
+                { "GlyphReverb", "#X obj 0 0 free.rev~ 0.7 0.6 0.5 0.7", "Reverb" },
+                { "GlyphFreeze", "#X obj 0 0 freeze~", "Freeze" },
+                { "GlyphRingmod", "#X obj 0 0 rm~ 150", "Ringmod" },
                 }},
         { "Math",
             {

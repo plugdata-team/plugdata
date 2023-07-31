@@ -180,6 +180,15 @@ struct Icons {
     inline static const String GlyphImpBL = CharPointer_UTF8("Ŝ");
     inline static const String GlyphImpBL2 = CharPointer_UTF8("ŝ");
     inline static const String GlyphWavetableBL = CharPointer_UTF8("Ş");
+
+    // effects~
+    inline static const String GlyphCrusher = CharPointer_UTF8("ƙ");
+    inline static const String GlyphDelayEffect = CharPointer_UTF8("ƚ");
+    inline static const String GlyphDrive = CharPointer_UTF8("ƛ");
+    inline static const String GlyphFlanger = CharPointer_UTF8("Ɯ");
+    inline static const String GlyphReverb = CharPointer_UTF8("Ɲ");
+    inline static const String GlyphFreeze = CharPointer_UTF8("ƞ");
+    inline static const String GlyphRingmod = CharPointer_UTF8("Ƣ");
 };
 
 enum PlugDataColour {
