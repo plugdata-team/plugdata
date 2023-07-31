@@ -33,7 +33,7 @@
 #include "Utility/OSUtils.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
-#include "Utility/MidiHelperFunctions.h"
+#include "Utility/MidiDeviceManager.h"
 
 
 // For each OS, we have a different approach to rendering the window shadow
@@ -54,37 +54,21 @@ namespace pd {
 class Patch;
 };
 
-class PlugDataProcessorPlayer : public AudioProcessorPlayer, public ChangeListener
+class PlugDataProcessorPlayer : public AudioProcessorPlayer
 {
-    std::mutex midiDeviceMutex;
-    Array<MidiDeviceInfo> currentMIDIInputs;
-    
 public:
-    PlugDataProcessorPlayer(AudioDeviceManager& deviceManager) : AudioProcessorPlayer(false)
-    {
-        deviceManager.addChangeListener(this);
-        
-        midiDeviceMutex.lock();
-        currentMIDIInputs = MidiInput::getAvailableDevices();
-        midiDeviceMutex.unlock();
-    }
     
-    void changeListenerCallback(ChangeBroadcaster* origin) override
+    PlugDataProcessorPlayer() : midiDeviceManager(this)
     {
-        midiDeviceMutex.lock();
-        currentMIDIInputs = MidiInput::getAvailableDevices();
-        midiDeviceMutex.unlock();
     }
 
     void handleIncomingMidiMessage(MidiInput* input, const MidiMessage& message) override
     {
-        // Offset MIDI messages with channel number
-        midiDeviceMutex.lock();
-        auto deviceIndex = currentMIDIInputs.indexOf(input->getDeviceInfo());
-        midiDeviceMutex.unlock();
-        
-        getMidiMessageCollector().addMessageToQueue(MidiHelperFunctions::convertToSysExFormat(message, deviceIndex));
+        auto deviceIndex =  midiDeviceManager.getMidiDeviceIndex(true, input->getIdentifier());
+        getMidiMessageCollector().addMessageToQueue(MidiDeviceManager::convertToSysExFormat(message, deviceIndex));
     }
+    
+    MidiDeviceManager midiDeviceManager;
 };
 
 class StandalonePluginHolder : private AudioIODeviceCallback
@@ -113,7 +97,6 @@ public:
 
         : settings(settingsToUse, takeOwnershipOfSettings)
         , channelConfiguration(channels)
-        , player(deviceManager)
     {
         shouldMuteInput.addListener(this);
         shouldMuteInput = !isInterAppAudioConnected();
@@ -429,12 +412,6 @@ private:
         deviceManager.addAudioCallback(&maxSizeEnforcer);
         deviceManager.addMidiInputDeviceCallback({}, &player);
 
-#if !JUCE_WINDOWS
-        if (auto* newIn = MidiInput::createNewDevice("to plugdata", &player).release()) {
-            newIn->start();
-            customMidiInputs.add(newIn);
-        }
-#endif
         reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
     }
 

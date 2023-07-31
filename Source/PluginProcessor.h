@@ -155,8 +155,7 @@ public:
     int lastLeftTab = -1;
     int lastRightTab = -1;
 
-    // Only used by standalone!
-    OwnedArray<MidiOutput> midiOutputs;
+
     std::unique_ptr<InternalSynth> internalSynth;
     std::atomic<bool> enableInternalSynth = false;
 

@@ -20,7 +20,7 @@
 #include "Utility/PluginParameter.h"
 #include "Utility/OSUtils.h"
 #include "Utility/AudioSampleRingBuffer.h"
-#include "Utility/MidiHelperFunctions.h"
+#include "Utility/MidiDeviceManager.h"
 
 #include "Presets.h"
 #include "Canvas.h"
@@ -178,14 +178,6 @@ PluginProcessor::PluginProcessor()
     };
 
     setLatencySamples(pd::Instance::getBlockSize());
-
-#if !JUCE_WINDOWS
-    if (ProjectInfo::isStandalone) {
-        if (auto* newOut = MidiOutput::createNewDevice("from plugdata").release()) {
-            midiOutputs.add(newOut)->startBackgroundThread();
-        }
-    }
-#endif
 }
 
 PluginProcessor::~PluginProcessor()
@@ -552,11 +544,10 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
         for(auto bufferIterator : midiMessages)
         {
             int device;
-            auto message = MidiHelperFunctions::convertFromSysExFormat(bufferIterator.getMessage(), device);
+            auto message = MidiDeviceManager::convertFromSysExFormat(bufferIterator.getMessage(), device);
             
-            if(isPositiveAndBelow(device, midiOutputs.size())) {
-                midiOutputs[device]->sendMessageNow(message);
-            }
+            auto* midiOutput = ProjectInfo::getMidiDeviceManager()->getMidiOutputByIndex(device);
+            midiOutput->sendMessageNow(message);
         }
 
         // If the internalSynth is enabled and loaded, let it process the midi
@@ -828,7 +819,7 @@ void PluginProcessor::sendMidiBuffer()
         for (auto const& event : midiBufferIn) {
             
             int device;
-            auto message = MidiHelperFunctions::convertFromSysExFormat(event.getMessage(), device);
+            auto message = MidiDeviceManager::convertFromSysExFormat(event.getMessage(), device);
             
             auto channel = message.getChannel() + (device << 4);
             
@@ -1290,9 +1281,9 @@ void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int cons
     auto deviceChannel = channel - (device * 16);
 
     if (velocity == 0) {
-        midiBufferOut.addEvent(MidiHelperFunctions::convertToSysExFormat(MidiMessage::noteOff(deviceChannel, pitch, uint8(0)), device), audioAdvancement);
+        midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::noteOff(deviceChannel, pitch, uint8(0)), device), audioAdvancement);
     } else {
-        midiBufferOut.addEvent(MidiHelperFunctions::convertToSysExFormat(MidiMessage::noteOn(deviceChannel, pitch, static_cast<uint8>(velocity)), device), audioAdvancement);
+        midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::noteOn(deviceChannel, pitch, static_cast<uint8>(velocity)), device), audioAdvancement);
     }
 }
 
@@ -1301,7 +1292,7 @@ void PluginProcessor::receiveControlChange(int const channel, int const controll
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
     
-    midiBufferOut.addEvent(MidiHelperFunctions::convertToSysExFormat(MidiMessage::controllerEvent(deviceChannel, controller, value), device), audioAdvancement);
+    midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::controllerEvent(deviceChannel, controller, value), device), audioAdvancement);
 }
 
 void PluginProcessor::receiveProgramChange(int const channel, int const value)
@@ -1309,7 +1300,7 @@ void PluginProcessor::receiveProgramChange(int const channel, int const value)
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
     
-    midiBufferOut.addEvent(MidiHelperFunctions::convertToSysExFormat(MidiMessage::programChange(deviceChannel, value), device), audioAdvancement);
+    midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::programChange(deviceChannel, value), device), audioAdvancement);
 }
 
 void PluginProcessor::receivePitchBend(int const channel, int const value)
@@ -1317,7 +1308,7 @@ void PluginProcessor::receivePitchBend(int const channel, int const value)
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
     
-    midiBufferOut.addEvent(MidiHelperFunctions::convertToSysExFormat(MidiMessage::pitchWheel(deviceChannel, value + 8192), device), audioAdvancement);
+    midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::pitchWheel(deviceChannel, value + 8192), device), audioAdvancement);
 }
 
 void PluginProcessor::receiveAftertouch(int const channel, int const value)
@@ -1325,7 +1316,7 @@ void PluginProcessor::receiveAftertouch(int const channel, int const value)
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
     
-    midiBufferOut.addEvent(MidiHelperFunctions::convertToSysExFormat(MidiMessage::channelPressureChange(deviceChannel, value), device), audioAdvancement);
+    midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::channelPressureChange(deviceChannel, value), device), audioAdvancement);
 }
 
 void PluginProcessor::receivePolyAftertouch(int const channel, int const pitch, int const value)
@@ -1333,14 +1324,14 @@ void PluginProcessor::receivePolyAftertouch(int const channel, int const pitch, 
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
     
-    midiBufferOut.addEvent(MidiHelperFunctions::convertToSysExFormat(MidiMessage::aftertouchChange(deviceChannel, pitch, value), device), audioAdvancement);
+    midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::aftertouchChange(deviceChannel, pitch, value), device), audioAdvancement);
 }
 
 void PluginProcessor::receiveMidiByte(int const port, int const byte)
 {
     if (midiByteIsSysex) {
         if (byte == 0xf7) {
-            midiBufferOut.addEvent(MidiHelperFunctions::convertToSysExFormat(MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), port), audioAdvancement);
+            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), port), audioAdvancement);
             midiByteIndex = 0;
             midiByteIsSysex = false;
         } else {
@@ -1354,7 +1345,7 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     } else {
         midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
         if (midiByteIndex >= 3) {
-            midiBufferOut.addEvent(MidiHelperFunctions::convertToSysExFormat(MidiMessage(midiByteBuffer, 3), port), audioAdvancement);
+            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(midiByteBuffer, 3), port), audioAdvancement);
             midiByteIndex = 0;
         }
     }

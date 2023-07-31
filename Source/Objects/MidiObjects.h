@@ -4,35 +4,19 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Utility/ColourPicker.h"
+#include "Utility/MidiDeviceManager.h"
 
 class MidiObject final : public TextBase {
 public:
     
     const int allChannelsAndDevices = 99999;
     bool midiInput;
+    
     MidiObject(void* ptr, Object* object, bool isInput)
     : TextBase(ptr, object), midiInput(isInput)
     {
     }
     
-    bool isDeviceEnabled(const MidiDeviceInfo& info)
-    {
-        if(ProjectInfo::isStandalone) {
-            if (midiInput) {
-                return ProjectInfo::getDeviceManager()->isMidiInputDeviceEnabled(info.identifier);
-            } else {
-                for (auto* midiOut : pd->midiOutputs) {
-                    if (midiOut->getIdentifier() == info.identifier) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }
-        
-        return true;
-    }
     void setChannel(int channel)
     {
         if(channel == allChannelsAndDevices)
@@ -47,7 +31,7 @@ public:
     
     void mouseUp(MouseEvent const& e) override
     {
-        if (getValue<bool>(object->locked) && e.mods.isPopupMenu()) {
+        if (getValue<bool>(object->locked) && (e.mods.isPopupMenu() || e.getNumberOfClicks() >= 2)) {
             
             PopupMenu popupMenu;
             
@@ -56,12 +40,12 @@ public:
             
             if(ProjectInfo::isStandalone)
             {
+                auto* midiDeviceManager =  ProjectInfo::getMidiDeviceManager();
+                
                 if(midiInput)
                 {
-                    //popupMenu.addItem(allChannelsAndDevices, "Receive from all devices");
-                    
                     int port = 0;
-                    for(auto input : MidiInput::getAvailableDevices()) {
+                    for(auto input : midiDeviceManager->getInputDevices()) {
                         PopupMenu subMenu;
                         for(int ch = 1; ch < 16; ch++)
                         {
@@ -69,7 +53,7 @@ public:
                             subMenu.addItem(portNumber, "Channel " + String(ch), true, portNumber  == currentPort);
                         }
                         
-                        popupMenu.addSubMenu(input.name, subMenu, isDeviceEnabled(input));
+                        popupMenu.addSubMenu(input.name, subMenu, midiDeviceManager->isMidiDeviceEnabled(midiInput, input.identifier));
                         port++;
                     }
                 }
@@ -77,15 +61,15 @@ public:
                     //popupMenu.addItem(allChannelsAndDevices, "Receive from all devices");
                     
                     int port = 0;
-                    for(auto output : MidiOutput::getAvailableDevices()) {
+                    for(auto output : midiDeviceManager->getOutputDevices()) {
                         PopupMenu subMenu;
                         for(int ch = 1; ch < 16; ch++)
                         {
                             int portNumber = ch + (port << 4);
                             subMenu.addItem(portNumber, "Channel " + String(ch), true, portNumber  == currentPort);
                         }
-                        
-                        popupMenu.addSubMenu(output.name, subMenu, isDeviceEnabled(output));
+  
+                        popupMenu.addSubMenu(output.name, subMenu, midiDeviceManager->isMidiDeviceEnabled(midiInput, output.identifier));
                         port++;
                     }
                 }
