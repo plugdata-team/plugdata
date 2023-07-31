@@ -64,8 +64,10 @@ public:
 
     void handleIncomingMidiMessage(MidiInput* input, const MidiMessage& message) override
     {
-        auto deviceIndex =  midiDeviceManager.getMidiDeviceIndex(true, input->getIdentifier());
-        getMidiMessageCollector().addMessageToQueue(MidiDeviceManager::convertToSysExFormat(message, deviceIndex));
+        auto deviceIndex =  midiDeviceManager.getMidiInputDeviceIndex(input->getIdentifier());
+        if(deviceIndex >= 0) {
+            getMidiMessageCollector().addMessageToQueue(MidiDeviceManager::convertToSysExFormat(message, deviceIndex));
+        }
     }
     
     MidiDeviceManager midiDeviceManager;

@@ -5,12 +5,14 @@
  */
 
 #pragma once
+#include "Standalone/InternalSynth.h"
 
-// Helper function to encode regular MIDI events into a sysex event
-// The reason we do this, is that we want to append extra information to the MIDI event when it comes in from pd or the device, but JUCE won't allow this
-// We still want to be able to use handy JUCE stuff for MIDI timing, so we treat every MIDI event as sysex
 struct MidiDeviceManager : public ChangeListener
 {
+    
+    // Helper functions to encode/decode regular MIDI events into a sysex event
+    // The reason we do this, is that we want to append extra information to the MIDI event when it comes in from pd or the device, but JUCE won't allow this
+    // We still want to be able to use handy JUCE stuff for MIDI timing, so we treat every MIDI event as sysex
     static std::vector<uint16_t> encodeSysExData(const std::vector<uint8_t>& data) {
         std::vector<uint16_t> encoded_data;
         for (auto& value : data) {
@@ -79,13 +81,10 @@ struct MidiDeviceManager : public ChangeListener
 #if !JUCE_WINDOWS
     if (ProjectInfo::isStandalone) {
         if (auto* newOut = MidiOutput::createNewDevice("from plugdata").release()) {
-            midiOutputs.add(newOut)->startBackgroundThread();
-            fromPlugdata = newOut;
+            fromPlugdata.reset(newOut);
         }
         if (auto* newIn = MidiInput::createNewDevice("to plugdata", inputCallback).release()) {
-            //newIn->start();
-            midiInputs.add(newIn);
-            toPlugdata = newIn;
+            toPlugdata.reset(newIn);
         }
     }
 #endif
@@ -97,28 +96,6 @@ struct MidiDeviceManager : public ChangeListener
         updateMidiDevices();
     }
     
-    void setMidiDeviceEnabled(bool isInput, const String& identifier, bool shouldBeEnabled)
-    {
-        if(isInput)
-        {
-            ProjectInfo::getDeviceManager()->setMidiInputDeviceEnabled(identifier, shouldBeEnabled);
-        }
-        else {
-            if(shouldBeEnabled)
-            {
-                auto* device = midiOutputs.add(MidiOutput::openDevice(identifier));
-                if(device) device->startBackgroundThread();
-            }
-            else {
-                for (auto* midiOut : midiOutputs) {
-                    if (midiOut->getIdentifier() == identifier) {
-                        midiOutputs.removeObject(midiOut);
-                    }
-                }
-            }
-        }
-    }
-
     void changeListenerCallback(ChangeBroadcaster* origin) override
     {
         updateMidiDevices();
@@ -161,6 +138,14 @@ struct MidiDeviceManager : public ChangeListener
     
     bool isMidiDeviceEnabled(bool isInput, const String& identifier)
     {
+        if(identifier == fromPlugdata->getIdentifier())
+        {
+            return internalOutputEnabled;
+        }
+        if(identifier == toPlugdata->getIdentifier())
+        {
+            return internalInputEnabled;
+        }
         if(isInput)
         {
             return ProjectInfo::getDeviceManager()->isMidiInputDeviceEnabled(identifier);
@@ -174,10 +159,52 @@ struct MidiDeviceManager : public ChangeListener
         }
     }
     
-    MidiOutput* getMidiOutputByIndex(int index)
+    void setMidiDeviceEnabled(bool isInput, const String& identifier, bool shouldBeEnabled)
+    {
+        if(identifier == fromPlugdata->getIdentifier())
+        {
+            internalOutputEnabled = shouldBeEnabled;
+        }
+        else if(identifier == toPlugdata->getIdentifier())
+        {
+            internalInputEnabled = shouldBeEnabled;
+            if(internalInputEnabled)
+            {
+                toPlugdata->start();
+            }
+            else {
+                toPlugdata->stop();
+            }
+        }
+        else if(isInput && shouldBeEnabled != isMidiDeviceEnabled(false, identifier))
+        {
+            ProjectInfo::getDeviceManager()->setMidiInputDeviceEnabled(identifier, shouldBeEnabled);
+        }
+        else {
+            if(shouldBeEnabled != isMidiDeviceEnabled(false, identifier))
+            {
+                auto* device = midiOutputs.add(MidiOutput::openDevice(identifier));
+                if(device) device->startBackgroundThread();
+            }
+            else {
+                for (auto* midiOut : midiOutputs) {
+                    if (midiOut->getIdentifier() == identifier) {
+                        midiOutputs.removeObject(midiOut);
+                    }
+                }
+            }
+        }
+    }
+    
+    MidiOutput* getMidiOutputByIndexIfEnabled(int index)
     {
         auto idToFind = lastMidiOutputs[index].identifier;
         // The order of midiOutputs is not necessarily the same as that of lastMidiOutputs, that's why we need to check
+        
+        if(idToFind == fromPlugdata->getIdentifier())
+        {
+            return internalOutputEnabled ? fromPlugdata.get() : nullptr;
+        }
         for(auto* midiOutput : midiOutputs)
         {
             if(idToFind == midiOutput->getIdentifier())
@@ -189,27 +216,30 @@ struct MidiDeviceManager : public ChangeListener
         return nullptr;
     }
     
-    int getMidiDeviceIndex(bool isInput, const String identifier)
+    int getMidiInputDeviceIndex(const String& identifier)
     {
         midiDeviceMutex.lock();
-        auto allDevices = isInput ? lastMidiInputs : lastMidiOutputs;
+        auto devices = lastMidiInputs;
         midiDeviceMutex.unlock();
         
-        for(int i = 0; i < allDevices.size(); i++)
+        for(int i = 0; i < devices.size(); i++)
         {
-            if(allDevices[i].identifier == identifier)
+            if(devices[i].identifier == identifier)
             {
                 return i;
             }
         }
+        
+        return -1;
     }
     
-    MidiInput* toPlugdata;
-    MidiOutput* fromPlugdata;
+    bool internalOutputEnabled = false;
+    bool internalInputEnabled = false;
+    
+    std::unique_ptr<MidiInput> toPlugdata;
+    std::unique_ptr<MidiOutput> fromPlugdata;
     
     // These arrays hold the actual midi ports
-    // For MIDI input, it only holds plugdata's own ports, for output it holds all ports
-    OwnedArray<MidiInput> midiInputs;
     OwnedArray<MidiOutput> midiOutputs;
     
     std::mutex midiDeviceMutex;

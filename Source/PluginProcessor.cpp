@@ -34,7 +34,6 @@
 #include "Dialogs/Dialogs.h"
 #include "Sidebar/Sidebar.h"
 
-#include "Standalone/InternalSynth.h"
 
 
 extern "C" {
@@ -124,6 +123,7 @@ PluginProcessor::PluginProcessor()
     midiBufferOut.ensureSize(2048);
     midiBufferTemp.ensureSize(2048);
     midiBufferCopy.ensureSize(2048);
+    midiBufferInternalSynth.ensureSize(2048);
 
     atoms_playhead.reserve(3);
     atoms_playhead.resize(1);
@@ -540,24 +540,34 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     statusbarSource->processBlock(midiBufferCopy, midiMessages, totalNumOutputChannels);
     statusbarSource->peakBuffer.write(buffer);
 
+
     if (ProjectInfo::isStandalone) {
         for(auto bufferIterator : midiMessages)
         {
+            auto* midiDeviceManager = ProjectInfo::getMidiDeviceManager();
+            
             int device;
             auto message = MidiDeviceManager::convertFromSysExFormat(bufferIterator.getMessage(), device);
             
-            auto* midiOutput = ProjectInfo::getMidiDeviceManager()->getMidiOutputByIndex(device);
-            midiOutput->sendMessageNow(message);
+            if(device > midiDeviceManager->getOutputDevices().size() - 1)
+            {
+                midiBufferInternalSynth.addEvent(message, 0);
+            }
+            else if(auto* midiOutput = midiDeviceManager->getMidiOutputByIndexIfEnabled(device))
+            {
+                midiOutput->sendMessageNow(message);
+            }
         }
 
         // If the internalSynth is enabled and loaded, let it process the midi
         if (enableInternalSynth && internalSynth->isReady()) {
-            internalSynth->process(buffer, midiMessages);
+            internalSynth->process(buffer, midiBufferInternalSynth);
         } else if (!enableInternalSynth && internalSynth->isReady()) {
             internalSynth->unprepare();
         } else if (enableInternalSynth && !internalSynth->isReady()) {
             internalSynth->prepare(getSampleRate(), AudioProcessor::getBlockSize(), std::max(totalNumInputChannels, totalNumOutputChannels));
         }
+        midiBufferInternalSynth.clear();
     }
 
     if (protectedMode) {

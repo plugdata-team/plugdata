@@ -172,6 +172,7 @@ private:
     MidiBuffer midiBufferOut;
     MidiBuffer midiBufferTemp;
     MidiBuffer midiBufferCopy;
+    MidiBuffer midiBufferInternalSynth;
 
     bool midiByteIsSysex = false;
     uint8 midiByteBuffer[512] = { 0 };
