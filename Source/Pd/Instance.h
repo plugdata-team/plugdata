@@ -322,8 +322,7 @@ public:
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
     bool isPerformingGlobalSync = false;
-    const CriticalSection audioLock;
-    static inline const ReadWriteLock instanceLock = ReadWriteLock();
+    CriticalSection const audioLock;
 
 private:
     std::unordered_map<t_pd*, std::vector<pd_weak_reference*>> pdWeakReferences;
