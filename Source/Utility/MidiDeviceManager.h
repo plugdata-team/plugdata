@@ -109,7 +109,7 @@ struct MidiDeviceManager : public ChangeListener
         
         for(int i = 0; i < lastMidiInputs.size(); i++)
         {
-            if(lastMidiInputs[i].name == "from plugdata")
+            if(toPlugdata && lastMidiInputs[i].name == "from plugdata")
             {
                 lastMidiInputs.set(i, toPlugdata->getDeviceInfo());
             }
@@ -117,7 +117,7 @@ struct MidiDeviceManager : public ChangeListener
         
         for(int i = 0; i < lastMidiOutputs.size(); i++)
         {
-            if(lastMidiOutputs[i].name == "to plugdata")
+            if(fromPlugdata && lastMidiOutputs[i].name == "to plugdata")
             {
                 lastMidiOutputs.set(i, fromPlugdata->getDeviceInfo());
             }
@@ -138,11 +138,11 @@ struct MidiDeviceManager : public ChangeListener
     
     bool isMidiDeviceEnabled(bool isInput, const String& identifier)
     {
-        if(identifier == fromPlugdata->getIdentifier())
+        if(fromPlugdata && identifier == fromPlugdata->getIdentifier())
         {
             return internalOutputEnabled;
         }
-        if(identifier == toPlugdata->getIdentifier())
+        if(toPlugdata && identifier == toPlugdata->getIdentifier())
         {
             return internalInputEnabled;
         }
@@ -161,11 +161,11 @@ struct MidiDeviceManager : public ChangeListener
     
     void setMidiDeviceEnabled(bool isInput, const String& identifier, bool shouldBeEnabled)
     {
-        if(identifier == fromPlugdata->getIdentifier())
+        if(fromPlugdata && identifier == fromPlugdata->getIdentifier())
         {
             internalOutputEnabled = shouldBeEnabled;
         }
-        else if(identifier == toPlugdata->getIdentifier())
+        else if(toPlugdata && identifier == toPlugdata->getIdentifier())
         {
             internalInputEnabled = shouldBeEnabled;
             if(internalInputEnabled)

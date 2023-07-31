@@ -17,7 +17,6 @@ int clone_get_n(t_gobj*);
 }
 
 #include "AllGuis.h"
-#include "Utility/HashUtils.h"
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
 #include "PluginProcessor.h"

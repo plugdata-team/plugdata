@@ -213,8 +213,8 @@ public:
         addAndMakeVisible(colourSpace);
         addAndMakeVisible(brightnessSelector);
 
-        showRgb.setRadioGroupId(8888);
-        showHex.setRadioGroupId(8888);
+        showRgb.setRadioGroupId(hash("colour_picker"));
+        showHex.setRadioGroupId(hash("colour_picker"));
 
         showRgb.setClickingTogglesState(true);
         showHex.setClickingTogglesState(true);

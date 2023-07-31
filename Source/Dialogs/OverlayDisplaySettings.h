@@ -4,7 +4,6 @@
 
 #include <utility>
 
-#include <utility>
 #include "Constants.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"

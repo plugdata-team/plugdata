@@ -199,6 +199,19 @@ void SplitView::paintOverChildren(Graphics& g)
     }
 }
 
+ResizableTabbedComponent* SplitView::getSplitAtScreenPosition(Point<int> position)
+{
+    for(auto* split : splits)
+    {
+        if(split->getScreenBounds().contains(position))
+        {
+            return split;
+        }
+    }
+    
+    return nullptr;
+}
+
 TabComponent* SplitView::getActiveTabbar()
 {
     if (activeTabComponent)

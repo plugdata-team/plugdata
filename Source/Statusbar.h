@@ -15,8 +15,6 @@ class Canvas;
 class LevelMeter;
 class MidiBlinker;
 class PluginProcessor;
-class OverlayDisplaySettings;
-class SnapSettings;
 class VolumeSlider;
 class OversampleSelector;
 
@@ -97,10 +95,8 @@ public:
     TextButton powerButton, centreButton, fitAllButton, protectButton;
 
     TextButton overlayButton, overlaySettingsButton;
-    std::unique_ptr<OverlayDisplaySettings> overlayDisplaySettings;
 
     TextButton snapEnableButton, snapSettingsButton;
-    std::unique_ptr<SnapSettings> snapSettings;
     std::unique_ptr<OversampleSelector> oversampleSelector;
 
     Label zoomLabel;

@@ -137,6 +137,7 @@ public:
             updateLocation(true, currentScreenPos);
             Component* target;
             auto* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
+            
             if (isZoomable) {
                 auto* split = dynamic_cast<ResizableTabbedComponent*>(target);
                 if (newTarget) {
@@ -362,7 +363,7 @@ private:
     }
 
     DragAndDropTarget* findTarget (Point<int> screenPos, Point<int>& relativePos,
-                                   Component*& resultComponent) const
+                                   Component*& resultComponent)
     {
         auto* hit = getParentComponent();
 
@@ -388,6 +389,15 @@ private:
             }
 
             hit = hit->getParentComponent();
+        }
+        
+        auto* nextTarget = owner.findNextDragAndDropTarget(screenPos);
+        
+        if(auto* component = dynamic_cast<Component*>(nextTarget))
+        {
+            relativePos = component->getLocalPoint (nullptr, screenPos);
+            resultComponent = component; // oof
+            return nextTarget;
         }
 
         resultComponent = nullptr;
@@ -686,6 +696,12 @@ MouseInputSource const* ZoomableDragAndDropContainer::getMouseInputSourceForDrag
     jassert (inputSourceCausingDrag != nullptr && inputSourceCausingDrag->isDragging());
 
     return inputSourceCausingDrag;
+}
+
+
+DragAndDropTarget* ZoomableDragAndDropContainer::findNextDragAndDropTarget(Point<int> screenPos)
+{
+    return nullptr;
 }
 
 bool ZoomableDragAndDropContainer::isAlreadyDragging (Component* component) const noexcept

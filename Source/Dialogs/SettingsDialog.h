@@ -118,7 +118,7 @@ public:
 
         for (int i = 0; i < toolbarButtons.size(); i++) {
             toolbarButtons[i]->setClickingTogglesState(true);
-            toolbarButtons[i]->setRadioGroupId(0111);
+            toolbarButtons[i]->setRadioGroupId(hash("settings_toolbar_button"));
             toolbarButtons[i]->setConnectedEdges(12);
             toolbarButtons[i]->getProperties().set("Style", "LargeIcon");
             addAndMakeVisible(toolbarButtons[i]);

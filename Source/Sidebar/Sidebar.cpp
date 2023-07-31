@@ -89,10 +89,10 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     };
     addAndMakeVisible(panelPinButton);
 
-    browserButton.setRadioGroupId(1100);
-    automationButton.setRadioGroupId(1100);
-    consoleButton.setRadioGroupId(1100);
-    searchButton.setRadioGroupId(1100);
+    browserButton.setRadioGroupId(hash("sidebar_button"));
+    automationButton.setRadioGroupId(hash("sidebar_button"));
+    consoleButton.setRadioGroupId(hash("sidebar_button"));
+    searchButton.setRadioGroupId(hash("sidebar_button"));
 
     consoleButton.setToggleState(true, dontSendNotification);
 

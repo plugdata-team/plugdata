@@ -139,7 +139,7 @@ class SuggestionComponent : public Component
             setWantsKeyboardFocus(false);
             setConnectedEdges(12);
             setClickingTogglesState(true);
-            setRadioGroupId(1001);
+            setRadioGroupId(hash("suggestion_component"));
             setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
         }
 
@@ -226,7 +226,6 @@ public:
             buttonholder->addAndMakeVisible(buttons[i]);
 
             but->setClickingTogglesState(true);
-            but->setRadioGroupId(110);
             but->setColour(TextButton::buttonColourId, findColour(PlugDataColour::dialogBackgroundColourId));
         }
 

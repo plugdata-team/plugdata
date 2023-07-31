@@ -1,7 +1,6 @@
 #include "OfflineObjectRenderer.h"
 #include "Constants.h"
 #include "PluginEditor.h"
-#include "Utility/HashUtils.h"
 
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_mod_utils.h"

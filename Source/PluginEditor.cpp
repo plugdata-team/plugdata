@@ -212,7 +212,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
         button->getProperties().set("Style", "LargeIcon");
         button->setClickingTogglesState(true);
-        button->setRadioGroupId(2200);
+        button->setRadioGroupId(hash("edit_run_present"));
         addAndMakeVisible(button);
     }
     editButton.setToggleState(true, sendNotification);
@@ -345,6 +345,12 @@ void PluginEditor::paintOverChildren(Graphics& g)
         g.setColour(findColour(PlugDataColour::scrollbarThumbColourId));
         g.drawRect(getLocalBounds().reduced(1), 2.0f);
     }
+}
+
+
+DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
+{
+    return splitView.getSplitAtScreenPosition(screenPos);
 }
 
 void PluginEditor::resized()

@@ -259,6 +259,8 @@ protected:
     /** Subclasses can override this to be told when a drag finishes. */
     virtual void dragOperationEnded (const DragAndDropTarget::SourceDetails&);
 
+    virtual DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos);
+    
 private:
     //==============================================================================
     class DragImageComponent;

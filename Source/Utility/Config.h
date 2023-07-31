@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_data_structures/juce_data_structures.h>
+#include "Utility/HashUtils.h"
 
 namespace juce {
 class AudioDeviceManager;

@@ -46,7 +46,7 @@ class OversampleSelector : public TextButton {
             int i = 0;
             for(auto* button : buttons)
             {
-                button->setRadioGroupId(14762);
+                button->setRadioGroupId(hash("oversampling_selector"));
                 button->setClickingTogglesState(true);
                 button->onClick = [this, i](){
                     onChange(i);
@@ -400,10 +400,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
     overlayButton.setButtonText(Icons::Eye);
     overlaySettingsButton.setButtonText(Icons::ThinDown);
 
-    overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
     overlaySettingsButton.onClick = [this]() {
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        overlayDisplaySettings->show(editor, editor->getLocalArea(this, overlaySettingsButton.getBounds()));
+        OverlayDisplaySettings::show(editor, editor->getLocalArea(this, overlaySettingsButton.getBounds()));
     };
 
     snapEnableButton.setButtonText(Icons::Magnet);
@@ -411,11 +410,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 
-    snapSettings = std::make_unique<SnapSettings>();
-
     snapSettingsButton.onClick = [this]() {
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        snapSettings->show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
+        SnapSettings::show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
     };
 
     // overlay button

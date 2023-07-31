@@ -14,7 +14,6 @@
 #include "Pd/Library.h"
 
 #include "Utility/Config.h"
-#include "Utility/HashUtils.h"
 #include "Utility/Fonts.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/PluginParameter.h"

@@ -92,6 +92,8 @@ public:
     void fileDragEnter(StringArray const&, int, int) override;
     void fileDragExit(StringArray const&) override;
 
+    DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos) override;
+        
     ApplicationCommandTarget* getNextCommandTarget() override;
     void getAllCommands(Array<CommandID>& commands) override;
     void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;

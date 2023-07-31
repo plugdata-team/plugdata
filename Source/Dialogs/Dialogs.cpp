@@ -30,6 +30,7 @@
 #include "ObjectReferenceDialog.h"
 #include "Heavy/HeavyExportDialog.h"
 #include "MainMenu.h"
+#include "AddObjectMenu.h"
 #include "Canvas.h"
 #include "Connection.h"
 #include "Deken.h"
@@ -75,6 +76,7 @@ void Dialogs::showSettingsDialog(PluginEditor* editor)
     editor->openedDialog.reset(dialog);
 }
 
+                                  
 void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 {
     auto* popup = new MainMenu(editor);
@@ -614,19 +616,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(parent).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
 }
 
-void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
+void Dialogs::showObjectMenu(PluginEditor* editor, Component* target)
 {
-    std::function<void(int)> attachToMouseCallback = [parent](int result) {
-        if (result > 0) {
-            if (auto* cnv = parent->getCurrentCanvas()) {
-                cnv->attachNextObjectToMouse = true;
-            }
-        }
-    };
-
-    auto menu = createObjectMenu(parent);
-
-    ArrowPopupMenu::showMenuAsync(&menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent), attachToMouseCallback);
+    AddObjectMenu::show(editor, editor->getLocalArea(target, target->getLocalBounds()));
 }
 
 PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
