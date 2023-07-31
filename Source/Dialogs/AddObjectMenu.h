@@ -5,6 +5,7 @@
  */
 
 #pragma once
+#include "Dialogs.h"
 
 class ObjectItem : public Component, public SettableTooltipClient {
 public:
@@ -421,8 +422,7 @@ public:
 
     int getContentHeight()
     {
-        
-        int maxColumns = getWidth() / itemSize;
+        int maxColumns = std::max(6, getWidth() / itemSize);
         return (objectButtons.size() / maxColumns) * itemSize + (objectButtons.size() % maxColumns != 0) * itemSize;
     }
 
@@ -624,6 +624,7 @@ public:
         }
         
         categories.getFirst()->setConnectedEdges(Button::ConnectedOnRight);
+        categories.getFirst()->setToggleState(true, dontSendNotification);
         categories.getLast()->setConnectedEdges(Button::ConnectedOnLeft);
         resized();
     }
@@ -650,14 +651,17 @@ private:
     BouncingViewport viewport;
 };
 
-class ObjectBrowserButton : public Component {
-    const String icon = Icons::Object;
-    const String text = "Open object browser";
+class AddObjectMenuButton : public Component {
+    const String icon;
+    const String text;
+
 
 public:
+    bool toggleState = false;
+    bool clickingTogglesState = false;
     std::function<void(void)> onClick = []() {};
 
-    ObjectBrowserButton()
+    AddObjectMenuButton(String iconStr, String textStr = String()) : icon(iconStr), text(textStr)
     {
         setInterceptsMouseClicks(true, false);
         setAlwaysOnTop(true);
@@ -668,27 +672,41 @@ public:
         auto b = getLocalBounds();
         
         auto colour = findColour(PlugDataColour::popupMenuTextColourId);
+        
         if (isMouseOver()) {
             g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
             PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::defaultCornerRadius);
             colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
         }
+        
+        if(toggleState)
+        {
+            colour = findColour(PlugDataColour::toolbarActiveColourId);
+        }
 
         auto iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);
-        Fonts::drawIcon(g, icon, iconArea.translated(3.0f, 0.0f), colour, 15.0f, true);
         
         if(text.isNotEmpty()) {
+            Fonts::drawIcon(g, icon, iconArea.translated(3.0f, 0.0f), colour, 14.0f, true);
             b.removeFromLeft(4);
             b.removeFromRight(3);
             
-            Fonts::drawFittedText(g, text, b, colour, 15.0f);
+            Fonts::drawFittedText(g, text, b, colour, 14.0f);
         }
-        
+        else {
+            Fonts::drawIcon(g, icon, iconArea, colour, 14.0f, true);
+        }
     }
 
     void mouseUp(MouseEvent const& e) override
     {
+        if(clickingTogglesState)
+        {
+            toggleState = !toggleState;
+        }
+        
         onClick();
+        repaint();
     }
 
     void mouseEnter(MouseEvent const& e) override
@@ -708,22 +726,35 @@ class AddObjectMenu : public Component {
 public:
     AddObjectMenu(PluginEditor* e)
     : editor(e),
-    objectList(e, [this](bool shouldFade){ fade(shouldFade); }),
-    categoriesList(e, [this](bool shouldFade){ fade(shouldFade); })
+    objectList(e, [this](bool shouldFade){ dismiss(shouldFade); }),
+    categoriesList(e, [this](bool shouldFade){ dismiss(shouldFade); }),
+    objectBrowserButton(Icons::Object, "Show Object Browser"),
+    pinButton(Icons::Pin)
     {
         categoriesList.setVisible(true);
         
         addAndMakeVisible(categoriesList);
         addAndMakeVisible(objectList);
         addAndMakeVisible(objectBrowserButton);
+        addAndMakeVisible(pinButton);
         
         setSize(450, 375);
         
+
         objectList.showCategory("Default");
         objectBrowserButton.onClick = [this](){
             if(currentCalloutBox) currentCalloutBox->dismiss();
             Dialogs::showObjectBrowserDialog(&editor->openedDialog, editor);
         };
+        
+        
+        pinButton.toggleState = SettingsFile::getInstance()->getProperty<bool>("add_object_menu_pinned");
+        pinButton.clickingTogglesState = true;
+        
+        pinButton.onClick = [this](){
+            SettingsFile::getInstance()->setProperty("add_object_menu_pinned", pinButton.toggleState);
+        };
+        pinButton.repaint();
     }
 
     void paint(Graphics& g) override
@@ -737,16 +768,30 @@ public:
     {
         auto bounds = getLocalBounds();
         
-        objectBrowserButton.setBounds(bounds.removeFromTop(24));
-        bounds.removeFromTop(4);
+        auto buttonsBounds = bounds.removeFromTop(24);
+        pinButton.setBounds(buttonsBounds.removeFromRight(24));
+        objectBrowserButton.setBounds(buttonsBounds);
+        bounds.removeFromTop(6);
         objectList.setBounds(bounds.removeFromTop(150));
         categoriesList.setBounds(bounds);
     }
     
-    void fade(bool shouldBeFaded)
+    void dismiss(bool shouldHide)
     {
         if(currentCalloutBox) {
-            animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), shouldBeFaded ? 0.25f : 1.0f, 300, false, 0.0f, 0.0f);
+            // If the panel is pinned, only fade it out
+            if(pinButton.toggleState)
+            {
+                animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), shouldHide ? 0.25f : 1.0f, 300, false, 0.0f, 0.0f);
+            }
+            // Otherwise, hide the panel on drag start: calling dismiss or setVisible will lead the the drag event getting lost, so we just set alpha instead
+            else if(shouldHide) {
+                currentCalloutBox->setAlpha(0.0f);
+            }
+            // and destroy the panel on mouse-up
+            else {
+                currentCalloutBox->dismiss();
+            }
         }
     }
     
@@ -758,7 +803,8 @@ public:
 
 private:
     
-    ObjectBrowserButton objectBrowserButton;
+    AddObjectMenuButton objectBrowserButton;
+    AddObjectMenuButton pinButton;
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
     PluginEditor* editor;
     ObjectList objectList;
