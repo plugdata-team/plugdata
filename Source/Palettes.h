@@ -529,6 +529,29 @@ public:
         case hash("GlyphWavetableBL"):
             glyph = Icons::GlyphWavetableBL;
             break;
+        // effects
+        case hash("GlyphCrusher"):
+            glyph = Icons::GlyphCrusher;
+            break;
+        case hash("GlyphDelayEffect"):
+            glyph = Icons::GlyphDelayEffect;
+            break;
+        case hash("GlyphDrive"):
+            glyph = Icons::GlyphDrive;
+            break;
+        case hash("GlyphFlanger"):
+            glyph = Icons::GlyphFlanger;
+            break;
+        case hash("GlyphReverb"):
+            glyph = Icons::GlyphReverb;
+            break;
+        case hash("GlyphFreeze"):
+            glyph = Icons::GlyphFreeze;
+            break;
+        case hash("GlyphRingmod"):
+            glyph = Icons::GlyphRingmod;
+            break;
+
         default:
             glyph = String();
         }
@@ -599,6 +622,11 @@ public:
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(patchWithTheme));
         dragContainer->startDragging(palettePatchWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
+    }
+
+    void lookAndFeelChanged() override
+    {
+        dragImage.image = Image();
     }
 
     String substituteThemeColours(String patch)
@@ -1422,6 +1450,16 @@ private:
                 { "GlyphImpBL", "#X obj 0 0 bl.imp~ 100", "Impulse band limited" },
                 { "GlyphImpBL2", "#X obj 0 0 bl.imp2~", "Impulse band limited 2" },
                 { "GlyphWavetableBL", "#X obj 0 0 bl.wavetable~", "Wavetable band limited" },
+                }},
+        { "Effects~",
+            {
+                { "GlyphCrusher", "#X obj 0 0 crusher~ 0.1 0.1", "Crusher" },
+                { "GlyphDelayEffect", "#X obj 0 0 delay~ 22050 14700", "Delay" },
+                { "GlyphDrive", "#X obj 0 0 drive~", "Drive" },
+                { "GlyphFlanger", "#X obj 0 0 flanger~ 0.1 20 -0.6", "Flanger" },
+                { "GlyphReverb", "#X obj 0 0 free.rev~ 0.7 0.6 0.5 0.7", "Reverb" },
+                { "GlyphFreeze", "#X obj 0 0 freeze~", "Freeze" },
+                { "GlyphRingmod", "#X obj 0 0 rm~ 150", "Ringmod" },
                 }},
         { "Math",
             {
