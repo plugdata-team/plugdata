@@ -24,7 +24,6 @@ class Sidebar;
 class Statusbar;
 class ZoomLabel;
 class Dialog;
-class WelcomeButton;
 class Canvas;
 class TabComponent;
 class PluginProcessor;

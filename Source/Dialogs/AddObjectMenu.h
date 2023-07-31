@@ -8,12 +8,12 @@
 
 class ObjectItem : public Component, public SettableTooltipClient {
 public:
-    ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, std::function<void(bool)> fadeCalloutBox)
+    ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, std::function<void(bool)> dismissCalloutBox)
         :
         iconText(icon)
         , titleText(text)
         , objectPatch(patch)
-        , fadeMenu(fadeCalloutBox)
+        , dismissMenu(dismissCalloutBox)
         , editor(e)
     {
         setTooltip(tooltip);
@@ -327,7 +327,7 @@ public:
             dragImage = offlineObjectRenderer->patchToTempImage(patchWithTheme);
         }
 
-        fadeMenu(true);
+        dismissMenu(true);
         
         Array<var> palettePatchWithOffset;
         palettePatchWithOffset.add(var(dragImage.offset.getX()));
@@ -338,7 +338,7 @@ public:
     
     void mouseUp(MouseEvent const& e) override
     {
-        fadeMenu(false);
+        dismissMenu(false);
     }
 
     void lookAndFeelChanged() override
@@ -388,14 +388,14 @@ private:
     String glyph;
     ImageWithOffset dragImage;
     bool isHovering = false;
-    std::function<void(bool)> fadeMenu;
+    std::function<void(bool)> dismissMenu;
     PluginEditor* editor;
 };
 
 class ObjectList : public Component {
 public:
-    ObjectList(PluginEditor* e, std::function<void(bool)> fadeCalloutBox)
-        : editor(e), fadeMenu(fadeCalloutBox)
+    ObjectList(PluginEditor* e, std::function<void(bool)> dismissCalloutBox)
+        : editor(e), dismissMenu(dismissCalloutBox)
     {
     }
     
@@ -418,7 +418,7 @@ public:
             }
         }
     }
-    
+
     int getContentHeight()
     {
         
@@ -435,7 +435,7 @@ public:
             if(categoryName != categoryToView) continue;
             
             for (auto& [icon, patch, tooltip, name] : objectCategory) {
-                auto* button = objectButtons.add(new ObjectItem(editor, name, icon, tooltip, patch, fadeMenu));
+                auto* button = objectButtons.add(new ObjectItem(editor, name, icon, tooltip, patch, dismissMenu));
                 addAndMakeVisible(button);
             }
         }
@@ -586,7 +586,7 @@ public:
     
 private:
     PluginEditor* editor;
-    std::function<void(bool)> fadeMenu;
+    std::function<void(bool)> dismissMenu;
     const int itemSize = 68;
 };
 
@@ -594,7 +594,7 @@ private:
 class ObjectCategoryView : public Component {
     
 public:
-    ObjectCategoryView(PluginEditor* e, std::function<void(bool)> fadeCalloutBox) : list(e, fadeCalloutBox)
+    ObjectCategoryView(PluginEditor* e, std::function<void(bool)> dismissCalloutBox) : list(e, dismissCalloutBox)
     {
         viewport.setViewedComponent(&list, false);
         viewport.setScrollBarsShown(true, false, false, false);
@@ -602,7 +602,6 @@ public:
         
         list.setVisible(true);
         list.showCategory("UI");
-        resized();
         
         for(const auto& [categoryName , category] : ObjectList::objectList)
         {
@@ -626,6 +625,7 @@ public:
         
         categories.getFirst()->setConnectedEdges(Button::ConnectedOnRight);
         categories.getLast()->setConnectedEdges(Button::ConnectedOnLeft);
+        resized();
     }
     
     void resized() override
@@ -633,10 +633,11 @@ public:
         auto bounds = getLocalBounds();
         auto buttonBounds = bounds.removeFromTop(48).reduced(8, 14);
         
-        auto buttonWidth = buttonBounds.getWidth() / categories.size();
+        auto buttonWidth = buttonBounds.getWidth() / std::max(1, categories.size());
+        int transX = 0;
         for(auto* category : categories)
         {
-            category->setBounds(buttonBounds.removeFromLeft(buttonWidth).translated(-1, 0));
+            category->setBounds(buttonBounds.removeFromLeft(buttonWidth).translated(transX--, 0));
         }
         
         viewport.setBounds(bounds);
@@ -649,7 +650,61 @@ private:
     BouncingViewport viewport;
 };
 
+class ObjectBrowserButton : public Component {
+    const String icon = Icons::Object;
+    const String text = "Open object browser";
+
+public:
+    std::function<void(void)> onClick = []() {};
+
+    ObjectBrowserButton()
+    {
+        setInterceptsMouseClicks(true, false);
+        setAlwaysOnTop(true);
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto b = getLocalBounds();
+        
+        auto colour = findColour(PlugDataColour::popupMenuTextColourId);
+        if (isMouseOver()) {
+            g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::defaultCornerRadius);
+            colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
+        }
+
+        auto iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);
+        Fonts::drawIcon(g, icon, iconArea.translated(3.0f, 0.0f), colour, 15.0f, true);
+        
+        if(text.isNotEmpty()) {
+            b.removeFromLeft(4);
+            b.removeFromRight(3);
+            
+            Fonts::drawFittedText(g, text, b, colour, 15.0f);
+        }
+        
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        onClick();
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        repaint();
+    }
+};
+
 class AddObjectMenu : public Component {
+    
+    
 public:
     AddObjectMenu(PluginEditor* e)
     : editor(e),
@@ -660,26 +715,32 @@ public:
         
         addAndMakeVisible(categoriesList);
         addAndMakeVisible(objectList);
+        addAndMakeVisible(objectBrowserButton);
         
         setSize(450, 375);
         
         objectList.showCategory("Default");
+        objectBrowserButton.onClick = [this](){
+            if(currentCalloutBox) currentCalloutBox->dismiss();
+            Dialogs::showObjectBrowserDialog(&editor->openedDialog, editor);
+        };
     }
 
-    void resized() override
-    {
-        
-        auto bounds = getLocalBounds();
-        
-        bounds.removeFromTop(20); // Space for title
-        
-        objectList.setBounds(bounds.removeFromTop(150));
-        categoriesList.setBounds(bounds); // TODO: adjust height to content
-    }
-    
     void paint(Graphics& g) override
     {
-        Fonts::drawStyledText(g, "Default", getLocalBounds().removeFromTop(20).reduced(12, 6), findColour(PlugDataColour::popupMenuTextColourId), FontStyle::Bold, 14, Justification::left);
+        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).brighter(0.6f));
+        PlugDataLook::fillSmoothedRectangle(g, objectList.getBounds().toFloat(), Corners::largeCornerRadius);
+        PlugDataLook::fillSmoothedRectangle(g, categoriesList.getBounds().withTrimmedTop(48).toFloat(), Corners::largeCornerRadius);
+    }
+    
+    void resized() override
+    {
+        auto bounds = getLocalBounds();
+        
+        objectBrowserButton.setBounds(bounds.removeFromTop(24));
+        bounds.removeFromTop(4);
+        objectList.setBounds(bounds.removeFromTop(150));
+        categoriesList.setBounds(bounds);
     }
     
     void fade(bool shouldBeFaded)
@@ -697,6 +758,7 @@ public:
 
 private:
     
+    ObjectBrowserButton objectBrowserButton;
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
     PluginEditor* editor;
     ObjectList objectList;

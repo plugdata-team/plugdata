@@ -2,7 +2,6 @@
 #include "PluginEditor.h"
 #include "SplitViewResizer.h"
 #include "PluginProcessor.h"
-#include "Dialogs/AddObjectMenu.h"
 #include "PaletteItem.h"
 #include "Palettes.h"
 #include "Sidebar/DocumentBrowser.h"

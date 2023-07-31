@@ -26,7 +26,7 @@ class WelcomePanel : public Component {
         std::function<void(void)> onClick = []() {};
 
         WelcomeButton(String icon, String mainText, String subText)
-            : iconText(std::move(std::move(std::move(icon))))
+            : iconText(std::move(icon))
             , topText(std::move(mainText))
             , bottomText(std::move(subText))
         {

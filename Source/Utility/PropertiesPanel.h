@@ -10,7 +10,6 @@
 
 #include <utility>
 
-#include <utility>
 #include "DraggableNumber.h"
 #include "ColourPicker.h"
 #include "Utility/BouncingViewport.h"
@@ -281,7 +280,7 @@ public:
     struct FontEntry : public PopupMenu::CustomComponent {
         String fontName;
         explicit FontEntry(String name)
-            : fontName(std::move(std::move(name)))
+            : fontName(std::move(name))
         {
         }
 

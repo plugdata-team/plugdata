@@ -1,7 +1,5 @@
 #include <utility>
 
-#include <utility>
-
 /*
  // Copyright (c) 2021-2023 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -18,7 +16,7 @@ class ActionButton : public Component {
 
 public:
     ActionButton(String iconToShow, String textToShow, bool roundOnTop = false)
-        : icon(std::move(std::move(iconToShow)))
+        : icon(std::move(iconToShow))
         , text(std::move(textToShow))
         , roundTop(roundOnTop)
     {

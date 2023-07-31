@@ -30,7 +30,7 @@ public:
 
     public:
         OverlaySelector(ValueTree const& settings, Overlay groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
-            : groupName(std::move(std::move(nameOfGroup)))
+            : groupName(std::move(nameOfGroup))
             , settingName(std::move(nameOfSetting))
             , toolTip(std::move(toolTipString))
             , overlayState(settings)
