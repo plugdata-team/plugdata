@@ -1433,7 +1433,7 @@ private:
                 { "GlyphOsc", "#X obj 0 0 osc~ 440", "Osc" },
                 { "GlyphPhasor", "#X obj 0 0 phasor~", "Phasor" },
                 { "GlyphSaw", "#X obj 0 0 saw~ 440", "Saw" },
-                { "GlyphSaw2", "#X obj 0 0 saw2~ 440~", "Saw 2" },
+                { "GlyphSaw2", "#X obj 0 0 saw2~ 440", "Saw 2" },
                 { "GlyphSquare", "#X obj 0 0 square~", "Square" },
                 { "GlyphTriangle", "#X obj 0 0 tri~ 440", "Triangle" },
                 { "GlyphImp", "#X obj 0 0 imp~ 100", "Impulse" },
@@ -1443,7 +1443,7 @@ private:
 
                 // band limited
                 { "GlyphOscBL", "#X obj 0 0 bl.osc~ 440", "Osc band limited" },
-                { "GlyphSawBL", "#X obj 0 0 bl.saw~ 440~", "Saw band limited" },
+                { "GlyphSawBL", "#X obj 0 0 bl.saw~ 440", "Saw band limited" },
                 { "GlyphSawBL2", "#X obj 0 0 bl.saw2~", "Saw band limited 2" },
                 { "GlyphSquareBL", "#X obj 0 0 bl.tri~ 440", "Square band limited" },
                 { "GlyphTriBL", "#X obj 0 0 bl.tri~ 100", "Triangle band limited" },
