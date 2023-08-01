@@ -5,6 +5,7 @@
  */
 
 #pragma once
+#include <juce_audio_utils/juce_audio_utils.h>
 #include "Standalone/InternalSynth.h"
 
 struct MidiDeviceManager : public ChangeListener
@@ -157,6 +158,8 @@ struct MidiDeviceManager : public ChangeListener
                 }
             }
         }
+        
+        return false;
     }
     
     void setMidiDeviceEnabled(bool isInput, const String& identifier, bool shouldBeEnabled)
