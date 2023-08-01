@@ -394,10 +394,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.setColour(Colours::black);
         g.drawImageAt(cachedImage, 0, 0);
 
-        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.setColour(box.findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillPath(path);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(box.findColour(PlugDataColour::outlineColourId));
         g.strokePath(path, PathStrokeType(1.0f));
     }
 
@@ -1389,7 +1389,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           connection_colour=\"ffb3b3b3\" signal_colour=\"ffe1ef00\" dialog_background=\"ff333333\"\n"
     "           sidebar_colour=\"ff3e3e3e\" sidebar_text=\"ffe4e4e4\" sidebar_background_active=\"ff72aedf\"\n"
     "           sidebar_active_text=\"ffe4e4e4\" levelmeter_active=\"ff72aedf\" levelmeter_background=\"ff494949\"\n"
-    "           levelmeter_thumb=\"ffe4e4e4\" panel_background=\"ffe4e4e4\" panel_foreground=\"ff3f3f3f\"\n"
+    "           levelmeter_thumb=\"ffe4e4e4\" panel_background=\"ff4f4f4f\" panel_foreground=\"ff3f3f3f\"\n"
     "           panel_text=\"ffe4e4e4\" panel_background_active=\"ff72aedf\" panel_active_text=\"ffe4e4e4\"\n"
     "           popup_background=\"ff333333\" popup_background_active=\"ff72aedf\"\n"
     "           popup_text=\"ffe4e4e4\" popup_active_text=\"ffe4e4e4\" slider_thumb=\"ff72aedf\"\n"
