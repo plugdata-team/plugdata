@@ -214,6 +214,7 @@ public:
     {
         return {
             hash("float"),
+            hash("list"),
             hash("set"),
             hash("lin"),
             hash("log"),
@@ -228,6 +229,7 @@ public:
     {
         switch (hash(symbol)) {
         case hash("float"):
+        case hash("list"):
         case hash("set"): {
             value = atoms[0].getFloat();
             slider.setValue(value, dontSendNotification);

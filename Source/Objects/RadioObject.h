@@ -113,6 +113,7 @@ public:
     {
         return {
             hash("float"),
+            hash("list"),
             hash("set"),
             hash("orientation"),
             hash("number"),
@@ -124,6 +125,7 @@ public:
     {
         switch (hash(symbol)) {
         case hash("float"):
+        case hash("list"):
         case hash("set"): {
             selected = std::clamp<float>(atoms[0].getFloat(), 0.0f, numItems - 1);
             repaint();
