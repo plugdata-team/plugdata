@@ -95,6 +95,11 @@ struct Icons {
     inline static const String Download = "5";
 
     // ================== OBJECT ICONS ==================
+
+    // generic
+    inline static const String GlyphGenericSignal = CharPointer_UTF8("À");
+    inline static const String GlyphGeneric = CharPointer_UTF8("Á");
+
     // default
     inline static const String GlyphEmpty = CharPointer_UTF8("Â");
     inline static const String GlyphMessage = CharPointer_UTF8("Ä");
