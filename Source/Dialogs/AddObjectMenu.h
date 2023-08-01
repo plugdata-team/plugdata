@@ -773,7 +773,7 @@ public:
         
         g.setColour(backgroundColour.withBrightness(backgroundBrightness + 0.03f));
         PlugDataLook::fillSmoothedRectangle(g, objectList.getBounds().reduced(4, 0).toFloat(), Corners::largeCornerRadius);
-        PlugDataLook::fillSmoothedRectangle(g, categoriesList.getBounds().withTrimmedTop(48).reduced(4, 0).toFloat(), Corners::largeCornerRadius);
+        PlugDataLook::fillSmoothedRectangle(g, categoriesList.getBounds().withTrimmedTop(48).reduced(4, 0).withTrimmedBottom(4).toFloat(), Corners::largeCornerRadius);
     }
     
     void resized() override
