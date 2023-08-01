@@ -101,7 +101,7 @@ struct MidiDeviceManager : public ChangeListener
     {
         updateMidiDevices();
     }
-    
+
     void updateMidiDevices()
     {
         midiDeviceMutex.lock();
@@ -127,14 +127,57 @@ struct MidiDeviceManager : public ChangeListener
         midiDeviceMutex.unlock();
     }
     
-    Array<MidiDeviceInfo> getInputDevices()
+    Array<MidiDeviceInfo> getInputDevicesUnsorted()
     {
         return lastMidiInputs;
     }
     
-    Array<MidiDeviceInfo> getOutputDevices()
+    Array<MidiDeviceInfo> getOutputDevicesUnsorted()
     {
         return lastMidiOutputs;
+    }
+
+    // helper class to sort devices by their enabled status
+    class compareDevs {
+      MidiDeviceManager *self;
+      bool isInput;
+    public:
+      compareDevs(MidiDeviceManager *x, bool in) : self(x), isInput(in) {}
+      int compareElements (const MidiDeviceInfo& dev1, const MidiDeviceInfo& dev2)
+      {
+        auto id1 = dev1.identifier;
+        auto id2 = dev2.identifier;
+        bool enabled1 = self->isMidiDeviceEnabled(isInput, id1);
+        bool enabled2 = self->isMidiDeviceEnabled(isInput, id2);
+        if (enabled1 > enabled2)
+          return -1;
+        else if (enabled1 < enabled2)
+          return 1;
+        else
+          return 0;
+      }
+    };
+    
+    Array<MidiDeviceInfo> getInputDevices()
+    {
+        midiDeviceMutex.lock();
+        auto devices = lastMidiInputs;
+        midiDeviceMutex.unlock();
+        if (ProjectInfo::getDeviceManager()) {
+          compareDevs cmp(this, true);
+          devices.sort(cmp, true);
+        }
+        return devices;
+    }
+    
+    Array<MidiDeviceInfo> getOutputDevices()
+    {
+        midiDeviceMutex.lock();
+        auto devices = lastMidiOutputs;
+        midiDeviceMutex.unlock();
+        compareDevs cmp(this, false);
+        devices.sort(cmp, true);
+        return devices;
     }
     
     bool isMidiDeviceEnabled(bool isInput, const String& identifier)
@@ -203,7 +246,7 @@ struct MidiDeviceManager : public ChangeListener
     
     MidiOutput* getMidiOutputByIndexIfEnabled(int index)
     {
-        auto idToFind = lastMidiOutputs[index].identifier;
+        auto idToFind = getOutputDevices()[index].identifier;
         // The order of midiOutputs is not necessarily the same as that of lastMidiOutputs, that's why we need to check
         
         if(idToFind == fromPlugdata->getIdentifier())
@@ -223,9 +266,7 @@ struct MidiDeviceManager : public ChangeListener
     
     int getMidiInputDeviceIndex(const String& identifier)
     {
-        midiDeviceMutex.lock();
-        auto devices = lastMidiInputs;
-        midiDeviceMutex.unlock();
+        auto devices = getInputDevices();
         
         for(int i = 0; i < devices.size(); i++)
         {
@@ -237,7 +278,8 @@ struct MidiDeviceManager : public ChangeListener
         
         return -1;
     }
-    
+
+private:
     bool internalOutputEnabled = false;
     bool internalInputEnabled = false;
     
