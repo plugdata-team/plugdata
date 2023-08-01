@@ -299,6 +299,7 @@ public:
     {
         return {
             hash("float"),
+            hash("list"),
             hash("set"),
             hash("range"),
             hash("circular"),
@@ -321,6 +322,7 @@ public:
     {
         switch (hash(symbol)) {
         case hash("float"):
+        case hash("list"):
         case hash("set"): {
             knob.setValue(getValue(), dontSendNotification);
             break;
