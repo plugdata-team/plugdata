@@ -112,7 +112,7 @@ private:
         { "global_scale", var(1.0f) },
         { "show_palettes", var(true) },
         { "show_all_audio_device_rates", var(false) },
-        { "add_object_menu_pinned", var(true) },
+        { "add_object_menu_pinned", var(false) },
         { "macos_buttons",
 #if JUCE_MAC
             var(true)
