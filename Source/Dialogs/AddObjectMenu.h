@@ -284,8 +284,8 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto standardColour = findColour(PlugDataColour::textObjectBackgroundColourId);
-        auto highlight = findColour(PlugDataColour::panelActiveBackgroundColourId);
+        auto standardColour = findColour(PlugDataColour::textObjectBackgroundColourId).withAlpha(0.65f);
+        auto highlight = findColour(PlugDataColour::popupMenuActiveBackgroundColourId);
         
         auto iconBounds = getLocalBounds().reduced(14).translated(0, -7);
         auto textBounds = getLocalBounds().removeFromBottom(14);
@@ -293,13 +293,13 @@ public:
         g.setColour(isHovering ? highlight : standardColour);
         PlugDataLook::fillSmoothedRectangle(g, iconBounds.toFloat(), Corners::defaultCornerRadius);
 
-        Fonts::drawText(g, titleText, textBounds, findColour(PlugDataColour::panelTextColourId), 13.0f, Justification::centred);
+        Fonts::drawText(g, titleText, textBounds, findColour(PlugDataColour::popupMenuTextColourId), 13.0f, Justification::centred);
         
         if (glyph.isEmpty()){
-            Fonts::drawStyledText(g, iconText, iconBounds.reduced(2), findColour(PlugDataColour::panelTextColourId), FontStyle::Regular, 18, Justification::centred);
+            Fonts::drawStyledText(g, iconText, iconBounds.reduced(2), findColour(PlugDataColour::popupMenuTextColourId), FontStyle::Regular, 18, Justification::centred);
         }
         else {
-            Fonts::drawIcon(g, glyph, iconBounds.reduced(2), findColour(PlugDataColour::panelTextColourId), 30);
+            Fonts::drawIcon(g, glyph, iconBounds.reduced(2), findColour(PlugDataColour::popupMenuTextColourId), 30);
         }
     }
 
@@ -608,11 +608,11 @@ public:
             };
             button->setClickingTogglesState(true);
             button->setRadioGroupId(hash("add_menu_category"));
-            button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::panelTextColourId));
-            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelActiveTextColourId));
+            button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
                               
-            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
-            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
+            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
             addAndMakeVisible(button);
         }
         
@@ -625,13 +625,13 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds();
-        auto buttonBounds = bounds.removeFromTop(48).reduced(8, 14);
+        auto buttonBounds = bounds.removeFromTop(48).reduced(6, 14);
         
         auto buttonWidth = buttonBounds.getWidth() / std::max(1, categories.size());
         int transX = 0;
         for(auto* category : categories)
         {
-            category->setBounds(buttonBounds.removeFromLeft(buttonWidth).translated(transX--, 0));
+            category->setBounds(buttonBounds.removeFromLeft(buttonWidth).expanded(1, 0));
         }
         
         list.setBounds(bounds);
@@ -662,12 +662,12 @@ public:
     {
         auto b = getLocalBounds().reduced(4, 2);
         
-        auto colour = findColour(PlugDataColour::panelTextColourId);
+        auto colour = findColour(PlugDataColour::popupMenuTextColourId);
         
         if (isMouseOver()) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
             PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
-            colour = findColour(PlugDataColour::panelActiveTextColourId);
+            colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
         }
         
         if(toggleState)
@@ -749,9 +749,14 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
-        
-        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+        /*
+         This will draw a rounded rect background below the icons, I'm not entirely decided on this yet:
+         On one hand, it adds hierarchy to the menu, which is nice. But at the same time, it also makes it busier
+        */
+        /*
+        auto backgroundColour = findColour(PlugDataColour::popupMenuBackgroundColourId);
+        auto foregroundBrightness = backgroundColour.getBrightness() + 0.03f;
+        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).withBrightness(foregroundBrightness));
         
         auto objectListRectBounds = objectList.getBounds().reduced(4, 0).toFloat();
         auto categoriesListRectBounds = categoriesList.getBounds().withTrimmedTop(48).reduced(4, 0).withTrimmedBottom(4).toFloat();
@@ -761,7 +766,7 @@ public:
         
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), objectListRectBounds, Corners::largeCornerRadius);
-        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), categoriesListRectBounds, Corners::largeCornerRadius);
+        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), categoriesListRectBounds, Corners::largeCornerRadius); */
     }
     
     void resized() override
@@ -799,7 +804,7 @@ public:
     {
         auto addObjectMenu = std::make_unique<AddObjectMenu>(editor);
         currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(addObjectMenu), bounds, editor);
-        currentCalloutBox->setColour(PlugDataColour::popupMenuBackgroundColourId, currentCalloutBox->findColour(PlugDataColour::panelBackgroundColourId));
+        currentCalloutBox->setColour(PlugDataColour::popupMenuBackgroundColourId, currentCalloutBox->findColour(PlugDataColour::popupMenuBackgroundColourId));
     }
 
 private:
