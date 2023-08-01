@@ -754,6 +754,7 @@ public:
         pinButton.clickingTogglesState = true;
         
         pinButton.onClick = [this](){
+            editor->setAddObjectMenuPined(pinButton.toggleState);
             SettingsFile::getInstance()->setProperty("add_object_menu_pinned", pinButton.toggleState);
         };
         pinButton.repaint();
@@ -786,9 +787,8 @@ public:
     {
         if(currentCalloutBox) {
             // If the panel is pinned, only fade it out
-            if(pinButton.toggleState)
-            {
-                animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), shouldHide ? 0.25f : 1.0f, 300, false, 0.0f, 0.0f);
+            if(pinButton.toggleState) {
+                animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), shouldHide ? 0.0f : 1.0f, 300, false, 0.0f, 0.0f);
             }
             // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead the the drag event getting lost, so we just set alpha instead
             // Ditto for calling animator.fadeOut because that will also call setVisible(false)
