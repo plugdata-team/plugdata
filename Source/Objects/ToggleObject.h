@@ -150,6 +150,7 @@ public:
         return {
             hash("bang"),
             hash("float"),
+            hash("list"),
             hash("nonzero"),
             IEMGUI_MESSAGES
         };
@@ -164,6 +165,7 @@ public:
             break;
         }
         case hash("float"):
+        case hash("list"):
         case hash("set"): {
             value = atoms[0].getFloat();
             setToggleStateFromFloat(value);
