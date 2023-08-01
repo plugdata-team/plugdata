@@ -285,13 +285,13 @@ public:
     void paint(Graphics& g) override
     {
         auto standardColour = findColour(PlugDataColour::textObjectBackgroundColourId);
-        auto highlight = findColour(PlugDataColour::toolbarHoverColourId);
+        auto highlight = findColour(PlugDataColour::popupMenuActiveBackgroundColourId);
         
-        auto iconBounds = getLocalBounds().reduced(16).translated(0, -7);
+        auto iconBounds = getLocalBounds().reduced(14).translated(0, -7);
         auto textBounds = getLocalBounds().removeFromBottom(14);
         
         g.setColour(isHovering ? highlight : standardColour);
-        g.fillRoundedRectangle(iconBounds.toFloat(), Corners::defaultCornerRadius);
+        PlugDataLook::fillSmoothedRectangle(g, iconBounds.toFloat(), Corners::defaultCornerRadius);
 
         Fonts::drawText(g, titleText, textBounds, findColour(PlugDataColour::popupMenuTextColourId), 13.0f, Justification::centred);
         
@@ -305,7 +305,7 @@ public:
 
     bool hitTest(int x, int y) override
     {
-        return getLocalBounds().reduced(4).contains(x, y);
+        return getLocalBounds().reduced(16).translated(0, -7).contains(x, y);
     }
 
     void mouseEnter(MouseEvent const& e) override
@@ -428,7 +428,7 @@ public:
 
     int getContentHeight()
     {
-        int maxColumns = std::max(6, getWidth() / itemSize);
+        int maxColumns = std::max(8, getWidth() / itemSize);
         return (objectButtons.size() / maxColumns) * itemSize + (objectButtons.size() % maxColumns != 0) * itemSize;
     }
 
@@ -544,8 +544,8 @@ public:
                 { "GlyphSawBL2", "#X obj 0 0 bl.saw2~", "Saw band limited 2", "Bl. Saw 2" },
                 { "GlyphSquareBL", "#X obj 0 0 bl.tri~ 440", "Square band limited", "Bl. Square" },
                 { "GlyphTriBL", "#X obj 0 0 bl.tri~ 100", "Triangle band limited", "Bl. Triangle" },
-                { "GlyphImpBL", "#X obj 0 0 bl.imp~ 100", "Impulse band limited", "Bl. Impulse" },
-                { "GlyphImpBL2", "#X obj 0 0 bl.imp2~", "Impulse band limited 2", "Bl. Impulse 2" },
+                { "GlyphImpBL", "#X obj 0 0 bl.imp~ 100", "Impulse band limited", "Bl. Imp" },
+                { "GlyphImpBL2", "#X obj 0 0 bl.imp2~", "Impulse band limited 2", "Bl. Imp 2" },
                 { "GlyphWavetableBL", "#X obj 0 0 bl.wavetable~", "Wavetable band limited", "Bl. Wavetab." },
             }},
         { "FX~",
@@ -596,7 +596,7 @@ public:
 private:
     PluginEditor* editor;
     std::function<void(bool)> dismissMenu;
-    const int itemSize = 68;
+    const int itemSize = 64;
 };
 
 
@@ -747,9 +747,8 @@ public:
         addAndMakeVisible(objectBrowserButton);
         addAndMakeVisible(pinButton);
         
-        setSize(450, 375);
+        setSize(515, 300);
         
-
         objectList.showCategory("Default");
         objectBrowserButton.onClick = [this](){
             if(currentCalloutBox) currentCalloutBox->dismiss();
@@ -768,9 +767,13 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).brighter(0.6f));
-        PlugDataLook::fillSmoothedRectangle(g, objectList.getBounds().toFloat(), Corners::largeCornerRadius);
-        PlugDataLook::fillSmoothedRectangle(g, categoriesList.getBounds().withTrimmedTop(48).toFloat(), Corners::largeCornerRadius);
+        auto backgroundColour = findColour(PlugDataColour::popupMenuBackgroundColourId);
+        auto backgroundBrightness = backgroundColour.getBrightness();
+        //if(backgroundBrightness > )
+        
+        g.setColour(backgroundColour.withBrightness(backgroundBrightness + 0.03f));
+        PlugDataLook::fillSmoothedRectangle(g, objectList.getBounds().reduced(4, 0).toFloat(), Corners::largeCornerRadius);
+        PlugDataLook::fillSmoothedRectangle(g, categoriesList.getBounds().withTrimmedTop(48).reduced(4, 0).toFloat(), Corners::largeCornerRadius);
     }
     
     void resized() override
@@ -781,7 +784,7 @@ public:
         pinButton.setBounds(buttonsBounds.removeFromRight(24));
         objectBrowserButton.setBounds(buttonsBounds);
         bounds.removeFromTop(6);
-        objectList.setBounds(bounds.removeFromTop(150));
+        objectList.setBounds(bounds.removeFromTop(75));
         categoriesList.setBounds(bounds);
     }
     
