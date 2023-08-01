@@ -23,6 +23,12 @@ public:
 
         switch(hash(iconText)){
         // default objects
+        case hash("GlyphGeneric"):
+            glyph = Icons::GlyphGeneric;
+            break;
+        case hash("GlyphGenericSignal"):
+            glyph = Icons::GlyphGenericSignal;
+            break;
         case hash("GlyphEmpty"):
             glyph = Icons::GlyphEmpty;
             break;
@@ -435,7 +441,10 @@ public:
             if(categoryName != categoryToView) continue;
             
             for (auto& [icon, patch, tooltip, name] : objectCategory) {
-                auto* button = objectButtons.add(new ObjectItem(editor, name, icon, tooltip, patch, dismissMenu));
+                auto objectPatch = patch;
+                if (objectPatch.isEmpty())
+                    objectPatch = "#X obj 0 0 " + name;
+                auto* button = objectButtons.add(new ObjectItem(editor, name, icon, tooltip, objectPatch, dismissMenu));
                 addAndMakeVisible(button);
             }
         }
@@ -551,35 +560,35 @@ public:
             }},
         { "Math",
             {
-                { "+", "", "Add", "+" },
-                { "-", "", "Subtract", "-" },
-                { "*", "", "Multiply", "*" },
-                { "/", "", "Divide", "/" },
-                { "%", "", "Remainder", "%" },
-                { "!-", "", "Reversed inlet subtraction", "!-" },
-                { "!/", "", "Reversed inlet division", "!/" },
-                { ">", "", "Greater than", ">" },
-                { "<", "", "Less than", "<" },
-                { ">=", "", "Greater or equal", ">=" },
-                { "<=", "", "Less or equal", "<=" },
-                { "==", "", "Equality", "==" },
-                { "!=", "", "Not equal", "!=" },
+                { "GlyphGeneric", "",  "Add", "+" },
+                { "GlyphGeneric", "",  "Subtract", "-" },
+                { "GlyphGeneric", "",  "Multiply", "*" },
+                { "GlyphGeneric", "",  "Divide", "/" },
+                { "GlyphGeneric", "",  "Remainder", "%" },
+                { "GlyphGeneric", "", "Reversed inlet subtraction", "!-" },
+                { "GlyphGeneric", "", "Reversed inlet division", "!/" },
+                { "GlyphGeneric", "",  "Greater than", ">" },
+                { "GlyphGeneric", "",  "Less than", "<" },
+                { "GlyphGeneric", "", "Greater or equal", ">=" },
+                { "GlyphGeneric", "", "Less or equal", "<=" },
+                { "GlyphGeneric", "", "Equality", "==" },
+                { "GlyphGeneric", "", "Not equal", "!=" },
             }},
         { "Math~",
             {
-                { "+~", "", "(signal) Add", "+~" },
-                { "-~", "", "(signal) Subtract", "-~" },
-                { "*~", "", "(signal) Multiply", "*~" },
-                { "/~", "", "(signal) Divide", "/~" },
-                { "%~", "", "(signal) Remainder", "%~" },
-                { "!-~", "", "(signal) Reversed inlet subtraction", "!-~" },
-                { "!/~", "", "(signal) Reversed inlet division", "!/~" },
-                { ">~", "", "(signal) Greater than", ">~" },
-                { "<~", "", "(signal) Less than", "<~" },
-                { ">=~", "", "(signal) Greater or equal", ">=~" },
-                { "<=~", "", "(signal) Less or equal", "<=~" },
-                { "==~", "", "(signal) Equality", "==~" },
-                { "!=~", "", "(signal) Not equal", "!=~" },
+                { "GlyphGenericSignal", "",  "(signal) Add", "+~" },
+                { "GlyphGenericSignal", "",  "(signal) Subtract", "-~" },
+                { "GlyphGenericSignal", "",  "(signal) Multiply", "*~" },
+                { "GlyphGenericSignal", "",  "(signal) Divide", "/~" },
+                { "GlyphGenericSignal", "",  "(signal) Remainder", "%~" },
+                { "GlyphGenericSignal", "", "(signal) Reversed inlet subtraction", "!-~" },
+                { "GlyphGenericSignal", "", "(signal) Reversed inlet division", "!/~" },
+                { "GlyphGenericSignal", "",  "(signal) Greater than", ">~" },
+                { "GlyphGenericSignal", "",  "(signal) Less than", "<~" },
+                { "GlyphGenericSignal", "", "(signal) Greater or equal", ">=~" },
+                { "GlyphGenericSignal", "", "(signal) Less or equal", "<=~" },
+                { "GlyphGenericSignal", "", "(signal) Equality", "==~" },
+                { "GlyphGenericSignal", "", "(signal) Not equal", "!=~" },
             }},
 
     };
