@@ -285,7 +285,7 @@ public:
     void paint(Graphics& g) override
     {
         auto standardColour = findColour(PlugDataColour::textObjectBackgroundColourId);
-        auto highlight = findColour(PlugDataColour::popupMenuActiveBackgroundColourId);
+        auto highlight = findColour(PlugDataColour::panelActiveBackgroundColourId);
         
         auto iconBounds = getLocalBounds().reduced(14).translated(0, -7);
         auto textBounds = getLocalBounds().removeFromBottom(14);
@@ -293,13 +293,13 @@ public:
         g.setColour(isHovering ? highlight : standardColour);
         PlugDataLook::fillSmoothedRectangle(g, iconBounds.toFloat(), Corners::defaultCornerRadius);
 
-        Fonts::drawText(g, titleText, textBounds, findColour(PlugDataColour::popupMenuTextColourId), 13.0f, Justification::centred);
+        Fonts::drawText(g, titleText, textBounds, findColour(PlugDataColour::panelTextColourId), 13.0f, Justification::centred);
         
         if (glyph.isEmpty()){
-            Fonts::drawStyledText(g, iconText, iconBounds.reduced(2), findColour(PlugDataColour::popupMenuTextColourId), FontStyle::Regular, 18, Justification::centred);
+            Fonts::drawStyledText(g, iconText, iconBounds.reduced(2), findColour(PlugDataColour::panelTextColourId), FontStyle::Regular, 18, Justification::centred);
         }
         else {
-            Fonts::drawIcon(g, glyph, iconBounds.reduced(2), findColour(PlugDataColour::popupMenuTextColourId), 30);
+            Fonts::drawIcon(g, glyph, iconBounds.reduced(2), findColour(PlugDataColour::panelTextColourId), 30);
         }
     }
 
@@ -424,12 +424,6 @@ public:
                 offset += itemSize;
             }
         }
-    }
-
-    int getContentHeight()
-    {
-        int maxColumns = std::max(8, getWidth() / itemSize);
-        return (objectButtons.size() / maxColumns) * itemSize + (objectButtons.size() % maxColumns != 0) * itemSize;
     }
 
     void showCategory(const String& categoryToView)
@@ -599,11 +593,7 @@ class ObjectCategoryView : public Component {
 public:
     ObjectCategoryView(PluginEditor* e, std::function<void(bool)> dismissCalloutBox) : list(e, dismissCalloutBox)
     {
-        viewport.setViewedComponent(&list, false);
-        viewport.setScrollBarsShown(true, false, false, false);
-        addAndMakeVisible(viewport);
-        
-        list.setVisible(true);
+        addAndMakeVisible(list);
         list.showCategory("UI");
         
         for(const auto& [categoryName , category] : ObjectList::objectList)
@@ -618,11 +608,11 @@ public:
             };
             button->setClickingTogglesState(true);
             button->setRadioGroupId(hash("add_menu_category"));
-            button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+            button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::panelTextColourId));
+            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelActiveTextColourId));
                               
-            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
+            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
+            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
             addAndMakeVisible(button);
         }
         
@@ -644,14 +634,12 @@ public:
             category->setBounds(buttonBounds.removeFromLeft(buttonWidth).translated(transX--, 0));
         }
         
-        viewport.setBounds(bounds);
-        list.setBounds(bounds.withHeight(list.getContentHeight()));
+        list.setBounds(bounds);
     }
     
 private:
     ObjectList list;
     OwnedArray<TextButton> categories;
-    BouncingViewport viewport;
 };
 
 class AddObjectMenuButton : public Component {
@@ -674,12 +662,12 @@ public:
     {
         auto b = getLocalBounds().reduced(4, 2);
         
-        auto colour = findColour(PlugDataColour::popupMenuTextColourId);
+        auto colour = findColour(PlugDataColour::panelTextColourId);
         
         if (isMouseOver()) {
-            g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
             PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
-            colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
+            colour = findColour(PlugDataColour::panelActiveTextColourId);
         }
         
         if(toggleState)
@@ -761,13 +749,19 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto backgroundColour = findColour(PlugDataColour::popupMenuBackgroundColourId);
-        auto backgroundBrightness = backgroundColour.getBrightness();
-        //if(backgroundBrightness > )
+        g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
         
-        g.setColour(backgroundColour.withBrightness(backgroundBrightness + 0.03f));
-        PlugDataLook::fillSmoothedRectangle(g, objectList.getBounds().reduced(4, 0).toFloat(), Corners::largeCornerRadius);
-        PlugDataLook::fillSmoothedRectangle(g, categoriesList.getBounds().withTrimmedTop(48).reduced(4, 0).withTrimmedBottom(4).toFloat(), Corners::largeCornerRadius);
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+        
+        auto objectListRectBounds = objectList.getBounds().reduced(4, 0).toFloat();
+        auto categoriesListRectBounds = categoriesList.getBounds().withTrimmedTop(48).reduced(4, 0).withTrimmedBottom(4).toFloat();
+        
+        PlugDataLook::fillSmoothedRectangle(g, objectListRectBounds, Corners::largeCornerRadius);
+        PlugDataLook::fillSmoothedRectangle(g, categoriesListRectBounds, Corners::largeCornerRadius);
+        
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), objectListRectBounds, Corners::largeCornerRadius);
+        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), categoriesListRectBounds, Corners::largeCornerRadius);
     }
     
     void resized() override
@@ -805,6 +799,7 @@ public:
     {
         auto addObjectMenu = std::make_unique<AddObjectMenu>(editor);
         currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(addObjectMenu), bounds, editor);
+        currentCalloutBox->setColour(PlugDataColour::popupMenuBackgroundColourId, currentCalloutBox->findColour(PlugDataColour::panelBackgroundColourId));
     }
 
 private:
