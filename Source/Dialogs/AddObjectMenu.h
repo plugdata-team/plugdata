@@ -678,13 +678,13 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds();
+        auto b = getLocalBounds().reduced(4, 2);
         
         auto colour = findColour(PlugDataColour::popupMenuTextColourId);
         
         if (isMouseOver()) {
             g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
             colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
         }
         
@@ -780,8 +780,8 @@ public:
     {
         auto bounds = getLocalBounds();
         
-        auto buttonsBounds = bounds.removeFromTop(24);
-        pinButton.setBounds(buttonsBounds.removeFromRight(24));
+        auto buttonsBounds = bounds.removeFromTop(26);
+        pinButton.setBounds(buttonsBounds.removeFromRight(28));
         objectBrowserButton.setBounds(buttonsBounds);
         bounds.removeFromTop(6);
         objectList.setBounds(bounds.removeFromTop(75));
