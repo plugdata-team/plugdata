@@ -108,8 +108,6 @@ public:
 
     void setZoomLabelLevel(float value);
 
-    void setAddObjectMenuPined(bool isPinned);
-
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;

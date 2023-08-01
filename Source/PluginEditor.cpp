@@ -188,7 +188,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(redoButton);
 
     // New object button
-    setAddObjectMenuPined(SettingsFile::getInstance()->getProperty<bool>("add_object_menu_pinned"));
+    addObjectMenuButton.setButtonText(Icons::Add);
+    addObjectMenuButton.setTooltip("Create object");
     addObjectMenuButton.onClick = [this]() { Dialogs::showObjectMenu(this, &addObjectMenuButton); };
     addAndMakeVisible(addObjectMenuButton);
 
@@ -290,16 +291,6 @@ PluginEditor::~PluginEditor()
     theme.removeListener(this);
 }
 
-void PluginEditor::setAddObjectMenuPined(bool isPinned)
-{
-    if (isPinned) {
-        addObjectMenuButton.setTooltip("Create object, menu pinned");
-        addObjectMenuButton.setButtonText(Icons::AddCircled);
-    } else {
-        addObjectMenuButton.setTooltip("Create object");
-        addObjectMenuButton.setButtonText(Icons::Add);
-    }
-}
 
 SplitView* PluginEditor::getSplitView()
 {
