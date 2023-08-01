@@ -450,31 +450,31 @@ public:
             {
                 { "GlyphEmpty", "#X obj 0 0", "(ctrl+1) Empty object", "Empty" },
                 { "GlyphMessage", "#X msg 0 0", "(ctrl+2) Message", "Message" },
-                { "GlyphFloatBox", "#X floatatom 0 0", "(ctrl+3) Float box", "Float Box" },
-                { "GlyphSymbolBox", "#X symbolatom 0 0", "Symbol box", "Symbol Box" },
-                { "GlyphListBox", "#X listbox 0 0", "(ctrl+4) List box", "List Box" },
+                { "GlyphFloatBox", "#X floatatom 0 0", "(ctrl+3) Float box", "Float" },
+                { "GlyphSymbolBox", "#X symbolatom 0 0", "Symbol box", "Symbol" },
+                { "GlyphListBox", "#X listbox 0 0", "(ctrl+4) List box", "List" },
                 { "GlyphComment", "#X text 0 0 comment", "(ctrl+5) Comment", "Comment" },
                 { "GlyphArray", "#N canvas 0 0 450 250 (subpatch) 0;\n#X array array1 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(ctrl+shift+A) Array", "Array" },
                 { "GlyphGOP", "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 226 1 graph;", "(ctrl+shift+G) Graph on parent", "Graph" },
             }},
         { "UI",
             {
-                { "GlyphNumber", "#X obj 0 0 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 @bgColour @fgColour @textColour 0 256", "(ctrl+shift+N) Number box", "Number Box" },
+                { "GlyphNumber", "#X obj 0 0 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 @bgColour @fgColour @textColour 0 256", "(ctrl+shift+N) Number box", "Number" },
                 { "GlyphBang", "#X obj 0 0 bng 25 250 50 0 empty empty empty 17 7 0 10 @bgColour @fgColour @labelColour", "(ctrl+shift+B) Bang", "Bang" },
                 { "GlyphToggle", "#X obj 0 0 tgl 25 0 empty empty empty 17 7 0 10 @bgColour @fgColour @labelColour 0 1", "(ctrl+shift+T) Toggle", "Toggle" },
                 { "GlyphButton", "#X obj 0 0 button 25 25 @iemBgColour @iemFgColour 0", "Button", "Button" },
                 { "GlyphKnob", "#X obj 0 0 knob 50 0 127 0 0 empty empty @bgColour @arcColour @fgColour 1 0 0 0 1 270 0 0;", "Knob", "Knob" },
                 { "GlyphVSlider", "#X obj 0 0 vsl 17 128 0 127 0 0 empty empty empty 0 -9 0 10 @bgColour @fgColour @labelColour 0 1", "(ctrl+shift+V) Vertical slider", "V. Slider" },
                 { "GlyphHSlider", "#X obj 0 0 hsl 128 17 0 127 0 0 empty empty empty -2 -8 0 10 @bgColour @fgColour @labelColour 0 1", "(ctrl+shift+J) Horizontal slider", "H. Slider" },
-                { "GlyphVRadio", "#X obj 0 0 vradio 20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @labelColour 0", "(ctrl+shift+D) Vertical radio box", "V. Radio Box" },
-                { "GlyphHRadio", "#X obj 0 0 hradio 20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @labelColour 0", "(ctrl+shift+I) Horizontal radio box", "H. Radio Box" },
+                { "GlyphVRadio", "#X obj 0 0 vradio 20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @labelColour 0", "(ctrl+shift+D) Vertical radio box", "V. Radio" },
+                { "GlyphHRadio", "#X obj 0 0 hradio 20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @labelColour 0", "(ctrl+shift+I) Horizontal radio box", "H. Radio" },
                 { "GlyphCanvas", "#X obj 0 0 cnv 15 100 60 empty empty empty 20 12 0 14 @canvasColour @labelColour 0", "(ctrl+shift+C) Canvas", "Canvas" },
                 { "GlyphKeyboard", "#X obj 0 0 keyboard 16 80 4 2 0 0 empty empty", "Piano keyboard", "Keyboard" },
                 { "GlyphVUMeter", "#X obj 0 0 vu 20 120 empty empty -1 -8 0 10 #191919 @labelColour 1 0", "(ctrl+shift+U) VU meter", "VU Meter" },
                 { "GlyphOscilloscope", "#X obj 0 0 oscope~ 130 130 256 3 128 -1 1 0 0 0 0 @iemFgColour @iemBgColour @iemGridColour 0 empty", "Oscilloscope", "Oscilloscope" },
                 { "GlyphFunction", "#X obj 0 0 function 200 100 empty empty 0 1 @iemBgColour @iemFgColour 0 0 0 0 0 1000 0", "Function", "Function" },
-                { "GlyphMessbox", "#X obj -0 0 messbox 180 60 @iemBgColour @iemFgColour 0 12", "Message box", "Message Box" },
-                { "GlyphBicoeff", "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff Generator" },
+                { "GlyphMessbox", "#X obj -0 0 messbox 180 60 @iemBgColour @iemFgColour 0 12", "ELSE Message box", "Messbox" },
+                { "GlyphBicoeff", "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff" },
             }},
         { "General",
             {
@@ -498,14 +498,14 @@ public:
                 { "GlyphMidiOut", "#X obj 0 0 midiout", "MIDI out", "MIDI out" },
                 { "GlyphNoteIn", "#X obj 0 0 notein", "Note in", "Note in" },
                 { "GlyphNoteOut", "#X obj 0 0 noteout", "Note out", "Note out" },
-                { "GlyphCtlIn", "#X obj 0 0 ctlin", "Control in", "Control in" },
-                { "GlyphCtlOut", "#X obj 0 0 ctlout", "Control out", "Control out" },
-                { "GlyphPgmIn", "#X obj 0 0 pgmin", "Program in", "Program in" },
-                { "GlyphPgmOut", "#X obj 0 0 pgmout", "Program out", "Program out" },
+                { "GlyphCtlIn", "#X obj 0 0 ctlin", "Control in", "Ctl in" },
+                { "GlyphCtlOut", "#X obj 0 0 ctlout", "Control out", "Ctl out" },
+                { "GlyphPgmIn", "#X obj 0 0 pgmin", "Program in", "Pgm in" },
+                { "GlyphPgmOut", "#X obj 0 0 pgmout", "Program out", "Pgm out" },
                 { "GlyphSysexIn", "#X obj 0 0 sysexin", "Sysex in", "Sysex in" },
                 { "GlyphSysexOut", "#X obj 0 0 sysexout", "Sysex out", "Sysex out" },
-                { "GlyphMtof", "#X obj 0 0 mtof", "MIDI to frequency", "MIDI to Frequency" },
-                { "GlyphFtom", "#X obj 0 0 ftom", "Frequency to MIDI", "Frequency to MIDI" },
+                { "GlyphMtof", "#X obj 0 0 mtof", "MIDI to frequency", "MIDI to Freq." },
+                { "GlyphFtom", "#X obj 0 0 ftom", "Frequency to MIDI", "Freq. to MIDI" },
             }},
         { "IO~",
             {
@@ -530,14 +530,14 @@ public:
                 { "GlyphPlaits", "#X obj 0 0 plaits~ -model 0 440 0.25 0.5 0.1", "Plaits", "Plaits" },
 
                 // band limited
-                { "GlyphOscBL", "#X obj 0 0 bl.osc~ 440", "Osc band limited", "Osc Band Limited" },
-                { "GlyphSawBL", "#X obj 0 0 bl.saw~ 440", "Saw band limited", "Saw Band Limited" },
-                { "GlyphSawBL2", "#X obj 0 0 bl.saw2~", "Saw band limited 2", "Saw Band Limited 2" },
-                { "GlyphSquareBL", "#X obj 0 0 bl.tri~ 440", "Square band limited", "Square Band Limited" },
-                { "GlyphTriBL", "#X obj 0 0 bl.tri~ 100", "Triangle band limited", "Triangle Band Limited" },
-                { "GlyphImpBL", "#X obj 0 0 bl.imp~ 100", "Impulse band limited", "Impulse Band Limited" },
-                { "GlyphImpBL2", "#X obj 0 0 bl.imp2~", "Impulse band limited 2", "Impulse Band Limited 2" },
-                { "GlyphWavetableBL", "#X obj 0 0 bl.wavetable~", "Wavetable band limited", "Wavetable Band Limited" },
+                { "GlyphOscBL", "#X obj 0 0 bl.osc~ 440", "Osc band limited", "Bl. Osc" },
+                { "GlyphSawBL", "#X obj 0 0 bl.saw~ 440", "Saw band limited", "Bl. Saw" },
+                { "GlyphSawBL2", "#X obj 0 0 bl.saw2~", "Saw band limited 2", "Bl. Saw 2" },
+                { "GlyphSquareBL", "#X obj 0 0 bl.tri~ 440", "Square band limited", "Bl. Square" },
+                { "GlyphTriBL", "#X obj 0 0 bl.tri~ 100", "Triangle band limited", "Bl. Triangle" },
+                { "GlyphImpBL", "#X obj 0 0 bl.imp~ 100", "Impulse band limited", "Bl. Impulse" },
+                { "GlyphImpBL2", "#X obj 0 0 bl.imp2~", "Impulse band limited 2", "Bl. Impulse 2" },
+                { "GlyphWavetableBL", "#X obj 0 0 bl.wavetable~", "Wavetable band limited", "Bl. Wavetab." },
             }},
         { "FX~",
             {
@@ -784,9 +784,10 @@ public:
             {
                 animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), shouldHide ? 0.25f : 1.0f, 300, false, 0.0f, 0.0f);
             }
-            // Otherwise, hide the panel on drag start: calling dismiss or setVisible will lead the the drag event getting lost, so we just set alpha instead
+            // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead the the drag event getting lost, so we just set alpha instead
+            // Ditto for calling animator.fadeOut because that will also call setVisible(false)
             else if(shouldHide) {
-                currentCalloutBox->setAlpha(0.0f);
+                animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), 0.0f, 300, false, 0.0f, 0.0f);
             }
             // and destroy the panel on mouse-up
             else {
