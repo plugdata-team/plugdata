@@ -530,12 +530,12 @@ public:
                 { "GlyphPhasor", "#X obj 0 0 phasor~", "Phasor", "Phasor" },
                 { "GlyphOsc", "#X obj 0 0 osc~ 440", "Osc", "Osc" },
                 { "GlyphOscBL", "#X obj 0 0 bl.osc~ 440", "Osc band limited", "Bl. Osc" },
-                { "GlyphSaw", "#X obj 0 0 saw~ 440", "Saw", "Saw" },
-                { "GlyphSawBL", "#X obj 0 0 bl.saw~ 440", "Saw band limited", "Bl. Saw" },
-                { "GlyphSquare", "#X obj 0 0 square~", "Square", "Square" },
-                { "GlyphSquareBL", "#X obj 0 0 bl.tri~ 440", "Square band limited", "Bl. Square" },
                 { "GlyphTriangle", "#X obj 0 0 tri~ 440", "Triangle", "Triangle" },
                 { "GlyphTriBL", "#X obj 0 0 bl.tri~ 100", "Triangle band limited", "Bl. Tri" },
+                { "GlyphSquare", "#X obj 0 0 square~", "Square", "Square" },
+                { "GlyphSquareBL", "#X obj 0 0 bl.tri~ 440", "Square band limited", "Bl. Square" },
+                { "GlyphSaw", "#X obj 0 0 saw~ 440", "Saw", "Saw" },
+                { "GlyphSawBL", "#X obj 0 0 bl.saw~ 440", "Saw band limited", "Bl. Saw" },
                 { "GlyphImp", "#X obj 0 0 imp~ 100", "Impulse", "Impulse" },
                 { "GlyphImpBL", "#X obj 0 0 bl.imp~ 100", "Impulse band limited", "Bl. Imp" },
                 { "GlyphWavetable", "#X obj 0 0 wavetable~", "Wavetable", "Wavetab" },
@@ -754,6 +754,7 @@ public:
         pinButton.clickingTogglesState = true;
         
         pinButton.onClick = [this](){
+            editor->setAddObjectMenuPined(pinButton.toggleState);
             SettingsFile::getInstance()->setProperty("add_object_menu_pinned", pinButton.toggleState);
         };
         pinButton.repaint();
@@ -786,9 +787,8 @@ public:
     {
         if(currentCalloutBox) {
             // If the panel is pinned, only fade it out
-            if(pinButton.toggleState)
-            {
-                animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), shouldHide ? 0.25f : 1.0f, 300, false, 0.0f, 0.0f);
+            if(pinButton.toggleState) {
+                animator.animateComponent(currentCalloutBox, currentCalloutBox->getBounds(), shouldHide ? 0.0f : 1.0f, 300, false, 0.0f, 0.0f);
             }
             // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead the the drag event getting lost, so we just set alpha instead
             // Ditto for calling animator.fadeOut because that will also call setVisible(false)
