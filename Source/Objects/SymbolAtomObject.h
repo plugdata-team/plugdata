@@ -196,6 +196,7 @@ public:
         return {
             hash("set"),
             hash("symbol"),
+            hash("list"),
             hash("send"),
             hash("receive")
         };
@@ -206,6 +207,7 @@ public:
         switch (hash(symbol)) {
 
         case hash("set"):
+        case hash("list"):
         case hash("symbol"): {
             input.setText(atoms[0].getSymbol(), dontSendNotification);
             break;
