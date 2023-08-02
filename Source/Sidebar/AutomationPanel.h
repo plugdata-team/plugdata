@@ -41,9 +41,6 @@ public:
     {
         param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[index + 1]);
 
-        lastName = param->getTitle();
-        nameLabel.setText(lastName, dontSendNotification);
-
         nameLabel.setFont(nameLabel.getFont().withHeight(14.0f));
         valueLabel.setFont(valueLabel.getFont().withHeight(14.0f));
         minLabel.setFont(minLabel.getFont().withHeight(14.0f));
@@ -114,23 +111,7 @@ public:
         slider.setScrollWheelEnabled(false);
         slider.setTextBoxStyle(Slider::NoTextBox, false, 45, 13);
 
-        auto range = param->getNormalisableRange().getRange();
-
-        auto minimum = range.getStart();
-        auto maximum = range.getEnd();
-
-        valueLabel.setMinimum(minimum);
-        valueLabel.setMaximum(maximum);
-
-        minValue.setValue(minimum);
-        maxValue.setValue(maximum);
-
-        maxValue.setMinimum(minimum + 0.000001f);
-        minValue.setMaximum(maximum);
-
         if (ProjectInfo::isStandalone) {
-            slider.setValue(param->getUnscaledValue());
-            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
             valueLabel.setText(String(param->getUnscaledValue(), 2), dontSendNotification);
             slider.onValueChange = [this]() mutable {
                 float value = slider.getValue();
@@ -142,7 +123,6 @@ public:
                 float value = slider.getValue();
                 valueLabel.setText(String(value, 2), dontSendNotification);
             };
-            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
 
             attachment = std::make_unique<SliderParameterAttachment>(*param, slider, nullptr);
             valueLabel.setText(String(param->getValue(), 2), dontSendNotification);
@@ -220,6 +200,36 @@ public:
 
         minValue.setEditable(true);
         maxValue.setEditable(true);
+        
+        update();
+    }
+        
+    void update()
+    {
+        lastName = param->getTitle();
+        nameLabel.setText(lastName, dontSendNotification);
+        
+        auto range = param->getNormalisableRange().getRange();
+
+        auto minimum = range.getStart();
+        auto maximum = range.getEnd();
+
+        valueLabel.setMinimum(minimum);
+        valueLabel.setMaximum(maximum);
+
+        minValue.setValue(minimum);
+        maxValue.setValue(maximum);
+
+        maxValue.setMinimum(minimum + 0.000001f);
+        minValue.setMaximum(maximum);
+        
+        if (ProjectInfo::isStandalone) {
+            slider.setValue(param->getUnscaledValue());
+            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
+            valueLabel.setText(String(param->getUnscaledValue(), 2), dontSendNotification);
+        } else {
+            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
+        }
     }
 
     void lookAndFeelChanged() override
@@ -568,17 +578,13 @@ public:
             };
         }
         
-        updateParameterIndices();
-        checkMaxNumParameters();
-        parentComponent->resized();
-        resized();
-    }
-    
-    void updateParameterIndices()
-    {
         std::sort(rows.begin(), rows.end(), [](auto* a, auto* b){
             return a->param->getIndex() < b->param->getIndex();
         });
+        
+        checkMaxNumParameters();
+        parentComponent->resized();
+        resized();
     }
 
     void checkMaxNumParameters()
@@ -592,18 +598,20 @@ public:
 
         int y = 2;
         int width = getWidth();
-        for (int p = 0; p < getNumEnabled(); p++) {
-            int height = rows[p]->getItemHeight();
-            if(rows[p] != draggedItem) {
-                auto bounds = Rectangle<int>(0, y, width, height);
-                if (shouldAnimate) {
-                    animator.animateComponent(rows[p], bounds, 1.0f, 200, false, 3.0f, 0.0f);
-                } else {
-                    animator.cancelAnimation(rows[p], false);
-                    rows[p]->setBounds(bounds);
+        for (int p = 0; p < PluginProcessor::numParameters; p++) {
+            if(rows[p]->isEnabled()) {
+                int height = rows[p]->getItemHeight();
+                if(rows[p] != draggedItem) {
+                    auto bounds = Rectangle<int>(0, y, width, height);
+                    if (shouldAnimate) {
+                        animator.animateComponent(rows[p], bounds, 1.0f, 200, false, 3.0f, 0.0f);
+                    } else {
+                        animator.cancelAnimation(rows[p], false);
+                        rows[p]->setBounds(bounds);
+                    }
                 }
+                y += height;
             }
-            y += height;
         }
 
         shouldAnimate = false;
@@ -687,16 +695,18 @@ public:
     void updateParameters()
     {
         if (ProjectInfo::isStandalone) {
+            
+            sliders.updateSliders();
+            
             for (int p = 0; p < PluginProcessor::numParameters; p++) {
                 auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
-
                 sliders.rows[p]->slider.setValue(param->getUnscaledValue());
             }
+            
         } else {
             sliders.updateSliders();
         }
         
-        sliders.updateParameterIndices();
     }
     BouncingViewport viewport;
     AutomationComponent sliders;
