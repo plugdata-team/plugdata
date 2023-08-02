@@ -47,7 +47,6 @@ public:
     String paletteName, palettePatch;
     bool isSubpatch;
     std::vector<bool> inlets, outlets;
-    bool isRepositioning = false;
 
 private:
     void setIsItemDragged(bool isActive);

@@ -36,9 +36,6 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
     addAndMakeVisible(nameLabel);
 
     reorderButton = std::make_unique<ReorderButton>();
-    reorderButton->setButtonText(Icons::Reorder);
-    reorderButton->setSize(25, 25);
-    reorderButton->getProperties().set("Style", "SmallIcon");
     reorderButton->addMouseListener(this, false);
 
     addChildComponent(reorderButton.get());

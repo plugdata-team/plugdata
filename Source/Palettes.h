@@ -20,17 +20,7 @@
 #include "PaletteItem.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
-
-class ReorderButton : public TextButton {
-public:
-    ReorderButton()
-        : TextButton() {}
-
-    MouseCursor getMouseCursor() override
-    {
-        return MouseCursor::DraggingHandCursor;
-    }
-};
+#include "Utility/ReorderButton.h"
 
 class AddItemButton : public Component {
 
@@ -214,7 +204,6 @@ public:
                 draggedItem = static_cast<PaletteItem*>(reorderButton->getParentComponent());
                 draggedItem->toFront(false);
                 mouseDownPos = draggedItem->getPosition();
-                draggedItem->isRepositioning = true;
                 draggedItem->reorderButton->setVisible(false);
                 draggedItem->deleteButton.setVisible(false);
             }
@@ -252,7 +241,6 @@ public:
 
         if (draggedItem) {
             isDragging = false;
-            draggedItem->isRepositioning = false;
             draggedItem->deleteButton.setVisible(true);
             draggedItem = nullptr;
             shouldAnimate = true;
