@@ -118,7 +118,7 @@ public:
         , subContentsList(nullptr, false)
     {
         DirectoryContentsList::FileInfo fileInfo;
-
+        
         if (parentContents != nullptr && parentContents->getFileInfo(indexInContents, fileInfo)) {
             fileSize = File::descriptionOfSizeInBytes(fileInfo.fileSize);
             isDirectory = fileInfo.isDirectory;
@@ -456,8 +456,10 @@ public:
         repaint();
     }
         
-    void mouseWheelMove (const MouseEvent&, const MouseWheelDetails&) override
+        
+    void mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& d) override
     {
+        bouncer.mouseWheelMove(e, d);
         repaint();
     }
 
@@ -554,6 +556,7 @@ public:
         isDraggingFile = false;
         repaint();
     }
+
 
 private:
     DocumentBrowserBase* browser;

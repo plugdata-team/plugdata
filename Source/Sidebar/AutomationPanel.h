@@ -9,6 +9,7 @@
 #include "Utility/PluginParameter.h"
 #include "Utility/DraggableNumber.h"
 #include "Utility/OfflineObjectRenderer.h"
+#include "Utility/ReorderButton.h"
 
 class AutomationSlider : public Component
     , public Value::Listener {
@@ -32,7 +33,6 @@ class AutomationSlider : public Component
     };
 
     PluginProcessor* pd;
-    PlugDataParameter* param;
 
 public:
     AutomationSlider(int idx, Component* parentComponent, PluginProcessor* processor)
@@ -57,20 +57,21 @@ public:
 
         nameLabel.addMouseListener(this, false);
         deleteButton.addMouseListener(this, false);
+        reorderButton.addMouseListener(this, false);
 
         nameLabel.setTooltip("Drag to add [param] to canvas");
         deleteButton.setTooltip("Remove parameter");
         settingsButton.setTooltip("Expand settings");
 
         settingsButton.onClick = [this, parentComponent]() mutable {
-            parentComponent->resized();
-
             bool toggleState = settingsButton.getToggleState();
 
             minLabel.setVisible(toggleState);
             minValue.setVisible(toggleState);
             maxLabel.setVisible(toggleState);
             maxValue.setVisible(toggleState);
+            
+            getParentComponent()->resized();
         };
 
         minValue.dragEnd = [this]() {
@@ -201,14 +202,15 @@ public:
             }
         };
 
-        addAndMakeVisible(nameLabel);
-        addAndMakeVisible(slider);
-        addAndMakeVisible(valueLabel);
-
         settingsButton.getProperties().set("Style", "SmallIcon");
         deleteButton.getProperties().set("Style", "SmallIcon");
 
+        addAndMakeVisible(nameLabel);
+        addAndMakeVisible(slider);
+        addAndMakeVisible(valueLabel);
+        
         addAndMakeVisible(settingsButton);
+        addChildComponent(reorderButton);
         addChildComponent(deleteButton);
 
         addChildComponent(minLabel);
@@ -236,16 +238,21 @@ public:
 
     void mouseEnter(MouseEvent const& e) override
     {
+        // Make sure this isn't coming from the listened object
         deleteButton.setVisible(true);
+        reorderButton.setVisible(true);
     }
 
     void mouseExit(MouseEvent const& e) override
     {
         deleteButton.setVisible(false);
+        reorderButton.setVisible(false);
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
+        if(e.originalComponent == &reorderButton) return;
+        
         auto formatedParam = "#X obj 0 0 param " + param->getTitle() + ";";
 
         deleteButton.setVisible(false);
@@ -313,7 +320,7 @@ public:
             maxValue.setBounds(thirdRow.removeFromLeft(oneThird));
         }
 
-        auto buttonsBounds = firstRow.removeFromRight(25).withHeight(25);
+        auto buttonsBounds = firstRow.removeFromRight(50).withHeight(25);
 
         nameLabel.setBounds(firstRow);
 
@@ -321,7 +328,9 @@ public:
         slider.setBounds(secondRow.removeFromLeft(getWidth() - 90));
         valueLabel.setBounds(secondRow);
 
+        reorderButton.setBounds(buttonsBounds.removeFromLeft(25));
         deleteButton.setBounds(buttonsBounds.removeFromLeft(25));
+
     }
 
     void paint(Graphics& g) override
@@ -355,9 +364,12 @@ public:
     Slider slider;
 
     ImageWithOffset dragImage;
+    ReorderButton reorderButton;
 
     int index;
 
+    PlugDataParameter* param;
+        
     std::unique_ptr<SliderParameterAttachment> attachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationSlider)
@@ -444,15 +456,75 @@ public:
             checkMaxNumParameters();
         };
     }
+    
+    void mouseDown(MouseEvent const& e) override
+    {
+        accumulatedOffsetY = { 0, 0 };
+    }
 
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if (std::abs(e.getDistanceFromDragStart()) < 5 && !isDragging/* || isDnD*/)
+            return;
+
+        isDragging = true;
+
+        if (!draggedItem) {
+            if (auto* reorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
+                draggedItem = static_cast<AutomationSlider*>(reorderButton->getParentComponent());
+                draggedItem->toFront(false);
+                mouseDownPos = draggedItem->getPosition();
+                draggedItem->deleteButton.setVisible(false);
+            }
+        } else {
+            // autoscroll the viewport when we are close. to. the. edge.
+            auto viewport = findParentComponentOfClass<BouncingViewport>();
+            if (viewport->autoScroll(0, viewport->getLocalPoint(nullptr, e.getScreenPosition()).getY(), 0, 5)) {
+                beginDragAutoRepeat(20);
+            }
+
+            auto dragPos = mouseDownPos.translated(0, e.getDistanceFromDragStartY());
+            auto autoScrollOffset = Point<int>(0, viewportPosY - viewport->getViewPositionY());
+            accumulatedOffsetY += autoScrollOffset;
+            draggedItem->setTopLeftPosition(dragPos - accumulatedOffsetY);
+            viewportPosY -= autoScrollOffset.getY();
+
+            int idx = rows.indexOf(draggedItem);
+            if (idx > 0 && draggedItem->getBounds().getCentreY() < rows[idx - 1]->getBounds().getCentreY() && rows[idx - 1]->isEnabled()) {
+                rows.swap(idx, idx - 1);
+                shouldAnimate = true;
+                resized();
+            } else if (idx < rows.size() - 1 && draggedItem->getBounds().getCentreY() > rows[idx + 1]->getBounds().getCentreY() && rows[idx + 1]->isEnabled()) {
+                rows.swap(idx, idx + 1);
+                shouldAnimate = true;
+                resized();
+            }
+        }
+    }
+    
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (draggedItem) {
+            for (int p = 0; p < PluginProcessor::numParameters; p++) {
+                rows[p]->param->setIndex(p);
+            }
+            isDragging = false;
+            draggedItem = nullptr;
+            shouldAnimate = true;
+            resized();
+        }
+    }
+    
     void updateSliders()
     {
-
         rows.clear();
 
         for (int p = 0; p < PluginProcessor::numParameters; p++) {
             auto* slider = rows.add(new AutomationSlider(p, parentComponent, pd));
             addAndMakeVisible(slider);
+            
+            // TODO: is this safe? Do we need to clear it?
+            slider->reorderButton.addMouseListener(this, false);
 
             slider->onDelete = [this](AutomationSlider* toDelete) {
                 std::vector<std::tuple<bool, String, float, float, float>> parameterValues;
@@ -495,10 +567,18 @@ public:
                 updateSliders();
             };
         }
-
+        
+        updateParameterIndices();
         checkMaxNumParameters();
         parentComponent->resized();
         resized();
+    }
+    
+    void updateParameterIndices()
+    {
+        std::sort(rows.begin(), rows.end(), [](auto* a, auto* b){
+            return a->param->getIndex() < b->param->getIndex();
+        });
     }
 
     void checkMaxNumParameters()
@@ -508,14 +588,25 @@ public:
 
     void resized() override
     {
+        auto& animator = Desktop::getInstance().getAnimator();
+
         int y = 2;
         int width = getWidth();
         for (int p = 0; p < getNumEnabled(); p++) {
             int height = rows[p]->getItemHeight();
-            rows[p]->setBounds(0, y, width, height);
+            if(rows[p] != draggedItem) {
+                auto bounds = Rectangle<int>(0, y, width, height);
+                if (shouldAnimate) {
+                    animator.animateComponent(rows[p], bounds, 1.0f, 200, false, 3.0f, 0.0f);
+                } else {
+                    animator.cancelAnimation(rows[p], false);
+                    rows[p]->setBounds(bounds);
+                }
+            }
             y += height;
         }
 
+        shouldAnimate = false;
         addParameterButton.setBounds(0, y, getWidth(), 28);
     }
 
@@ -540,6 +631,14 @@ public:
         return y;
     }
 
+    bool isDragging = false;
+    SafePointer<AutomationSlider> draggedItem;
+    Point<int> mouseDownPos;
+    Point<int> accumulatedOffsetY = {0, 0};
+    int viewportPosY;
+    
+    bool shouldAnimate = false;
+    
     PluginProcessor* pd;
     Component* parentComponent;
     OwnedArray<AutomationSlider> rows;
@@ -580,9 +679,9 @@ public:
 
     void resized() override
     {
-        viewport.setBounds(getLocalBounds().withTrimmedBottom(30));
+        viewport.setBounds(getLocalBounds());
 
-        sliders.setSize(getWidth(), sliders.getTotalHeight());
+        sliders.setSize(getWidth(), std::max(sliders.getTotalHeight(), viewport.getMaximumVisibleHeight()));
     }
 
     void updateParameters()
@@ -596,8 +695,9 @@ public:
         } else {
             sliders.updateSliders();
         }
+        
+        sliders.updateParameterIndices();
     }
-
     BouncingViewport viewport;
     AutomationComponent sliders;
     PluginProcessor* pd;

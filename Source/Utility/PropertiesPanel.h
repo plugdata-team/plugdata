@@ -15,8 +15,7 @@
 #include "Utility/BouncingViewport.h"
 
 class PropertiesPanel : public Component
-    , public ScrollBar::Listener {
-
+{
 public:
         
     enum TitleAlignment
@@ -25,8 +24,6 @@ public:
         AlignWithPropertyName,
     };
         
-    std::function<void()> onLayoutChange = []() {};
-
     class Property : public PropertyComponent {
 
     protected:
@@ -214,7 +211,7 @@ private:
 
         void paint(Graphics&) override { }
 
-        void updateLayout(int width)
+        void updateLayout(int width, int viewHeight)
         {
             auto y = 4;
 
@@ -223,7 +220,7 @@ private:
                 y = section->getBottom();
             }
 
-            setSize(width, y);
+            setSize(width, std::max(viewHeight, y));
             repaint();
         }
 
@@ -837,7 +834,6 @@ public:
         viewport.setViewedComponent(propertyHolderComponent = new PropertyHolderComponent());
         viewport.setFocusContainerType(FocusContainerType::focusContainer);
 
-        viewport.getVerticalScrollBar().addListener(this);
         viewport.addMouseListener(this, true);
         
         panelColour = findColour(PlugDataColour::panelForegroundColourId);
@@ -848,7 +844,6 @@ public:
     ~PropertiesPanel() override
     {
         viewport.removeMouseListener(this);
-        viewport.getVerticalScrollBar().removeListener(this);
         clear();
     }
 
@@ -975,27 +970,15 @@ public:
     void updatePropHolderLayout() const
     {
         auto maxWidth = viewport.getMaximumVisibleWidth();
-        propertyHolderComponent->updateLayout(maxWidth);
+        auto maxHeight = viewport.getMaximumVisibleHeight();
+        propertyHolderComponent->updateLayout(maxWidth, maxHeight);
 
         auto newMaxWidth = viewport.getMaximumVisibleWidth();
         if (maxWidth != newMaxWidth) {
-            // need to do this twice because of scrollbars changing the size, etc.
-            propertyHolderComponent->updateLayout(newMaxWidth);
+            // need to do this twice because of vertical scrollbar changing the size, etc.
+            propertyHolderComponent->updateLayout(newMaxWidth, maxHeight);
         }
-
-        onLayoutChange();
     }
-
-    void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
-    {
-        onLayoutChange();
-    }
-        
-    void mouseWheelMove (const MouseEvent&, const MouseWheelDetails&) override
-    {
-        onLayoutChange();
-    }
-
     
     TitleAlignment titleAlignment = AlignWithSection;
     Colour panelColour;

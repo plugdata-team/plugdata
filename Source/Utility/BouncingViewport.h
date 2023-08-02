@@ -17,20 +17,16 @@ public:
     
     virtual ~BouncingViewportAttachment() = default;
     
-private:
-    static int rescaleMouseWheelDistance (float distance) noexcept
-    {
-        if (distance == 0.0f)
-            return 0;
+public:
 
-        distance *= 224.0f;
-
-        return roundToInt (distance < 0 ? jmin (distance, -1.0f)
-                                        : jmax (distance,  1.0f));
-    }
-    
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
+        // Protect against receiving the same even twice
+        if (e.eventTime == lastScrollTime)
+            return;
+        
+        lastScrollTime = e.eventTime;
+        
         auto deltaY = rescaleMouseWheelDistance (wheel.deltaY);
         
         wasSmooth = wheel.isSmooth;
@@ -66,6 +62,19 @@ private:
         update();
 
     }
+    
+private:
+    static int rescaleMouseWheelDistance (float distance) noexcept
+    {
+        if (distance == 0.0f)
+            return 0;
+
+        distance *= 224.0f;
+
+        return roundToInt (distance < 0 ? jmin (distance, -1.0f)
+                                        : jmax (distance,  1.0f));
+    }
+    
     
     void update()
     {
@@ -103,6 +112,7 @@ private:
     Viewport* viewport;
     bool wasSmooth = false;
     Point<float> offset = {0, 0};
+    Time lastScrollTime;
 };
 
 class BouncingViewport : public Viewport {
