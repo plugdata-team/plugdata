@@ -402,7 +402,7 @@ public:
         
         if(toggleState)
         {
-            colour = findColour(PlugDataColour::popupMenuActiveBackgroundColourId);
+            colour = findColour(PlugDataColour::toolbarActiveColourId);
         }
 
         auto iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);
