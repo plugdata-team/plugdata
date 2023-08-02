@@ -506,7 +506,6 @@ public:
                 { "GlyphPgmIn", "#X obj 0 0 pgmin", "Program in", "Pgm in" },
                 { "GlyphPgmOut", "#X obj 0 0 pgmout", "Program out", "Pgm out" },
                 { "GlyphSysexIn", "#X obj 0 0 sysexin", "Sysex in", "Sysex in" },
-                { "GlyphSysexOut", "#X obj 0 0 sysexout", "Sysex out", "Sysex out" },
                 { "GlyphMtof", "#X obj 0 0 mtof", "MIDI to frequency", "mtof" },
                 { "GlyphFtom", "#X obj 0 0 ftom", "Frequency to MIDI", "ftom" },
             }},
