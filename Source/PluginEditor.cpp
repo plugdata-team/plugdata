@@ -844,7 +844,7 @@ void PluginEditor::getAllCommands(Array<CommandID>& commands)
     }
 
     // Add all object IDs
-    for (int n = NewObject; n < NumEssentialObjects; n++) {
+    for (int n = NewObject; n < NumObjects; n++) {
         commands.add(n);
     }
 
@@ -1177,9 +1177,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         if (name.isEmpty())
             name = "object";
 
-        bool essential = commandID > NumEssentialObjects;
-
-        result.setInfo("New " + name, "Create new " + name, essential ? "Objects" : "Extra", 0);
+        result.setInfo("New " + name, "Create new " + name, "Objects" , 0);
         result.setActive(hasCanvas && !isDragging && !locked);
 
         if (defaultShortcuts.count(static_cast<ObjectIDs>(commandID))) {
