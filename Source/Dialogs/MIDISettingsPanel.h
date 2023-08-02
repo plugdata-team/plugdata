@@ -81,10 +81,10 @@ private:
         
         
 
-        auto midiInputDevices = ProjectInfo::getMidiDeviceManager()->getInputDevicesUnsorted();
+        auto midiInputDevices = ProjectInfo::getMidiDeviceManager()->getInputDevicesUnfiltered();
         auto midiInputProperties = Array<PropertiesPanel::Property*>();
 
-        auto midiOutputDevices = ProjectInfo::getMidiDeviceManager()->getOutputDevicesUnsorted();
+        auto midiOutputDevices = ProjectInfo::getMidiDeviceManager()->getOutputDevicesUnfiltered();
         auto midiOutputProperties = Array<PropertiesPanel::Property*>();
         
         for (auto& deviceInfo : midiInputDevices) {
