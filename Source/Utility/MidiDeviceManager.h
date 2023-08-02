@@ -179,12 +179,14 @@ struct MidiDeviceManager : public ChangeListener
                 toPlugdata->stop();
             }
         }
-        else if(isInput && shouldBeEnabled != isMidiDeviceEnabled(false, identifier))
+        else if(isInput)
         {
-            ProjectInfo::getDeviceManager()->setMidiInputDeviceEnabled(identifier, shouldBeEnabled);
+            if (shouldBeEnabled != isMidiDeviceEnabled(true, identifier)) {
+                ProjectInfo::getDeviceManager()->setMidiInputDeviceEnabled(identifier, shouldBeEnabled);
+            }
         }
-        else {
-            if(shouldBeEnabled != isMidiDeviceEnabled(false, identifier))
+        else if(shouldBeEnabled != isMidiDeviceEnabled(false, identifier)) {
+            if(shouldBeEnabled)
             {
                 auto* device = midiOutputs.add(MidiOutput::openDevice(identifier));
                 if(device) device->startBackgroundThread();
