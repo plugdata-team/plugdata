@@ -93,13 +93,32 @@ struct MidiDeviceManager : public ChangeListener
         {
             deviceManager->addChangeListener(this);
         }
-        
+
+        sortedMidiInputs = sortedMidiOutputs = 0;
         updateMidiDevices();
     }
-    
+
+    ~MidiDeviceManager()
+    {
+        clearSortedMidiInputs();
+        clearSortedMidiOutputs();
+    }
+
     void changeListenerCallback(ChangeBroadcaster* origin) override
     {
         updateMidiDevices();
+    }
+
+    void clearSortedMidiInputs()
+    {
+        if (sortedMidiInputs) delete sortedMidiInputs;
+        sortedMidiInputs = 0;
+    }
+
+    void clearSortedMidiOutputs()
+    {
+        if (sortedMidiOutputs) delete sortedMidiOutputs;
+        sortedMidiOutputs = 0;
     }
 
     void updateMidiDevices()
@@ -125,6 +144,8 @@ struct MidiDeviceManager : public ChangeListener
         }
         
         midiDeviceMutex.unlock();
+        clearSortedMidiInputs();
+        clearSortedMidiOutputs();
     }
     
     Array<MidiDeviceInfo> getInputDevicesUnsorted()
@@ -160,24 +181,36 @@ struct MidiDeviceManager : public ChangeListener
     
     Array<MidiDeviceInfo> getInputDevices()
     {
-        midiDeviceMutex.lock();
-        auto devices = lastMidiInputs;
-        midiDeviceMutex.unlock();
-        if (ProjectInfo::getDeviceManager()) {
-          compareDevs cmp(this, true);
-          devices.sort(cmp, true);
+        if (!ProjectInfo::getDeviceManager()) {
+            // just in case we get called during startup when the device
+            // manager hasn't been created yet
+            return lastMidiInputs;
         }
-        return devices;
+        if (!sortedMidiInputs) {
+            // we cache the sorted device list so that we don't have to
+            // recompute it each time
+            midiDeviceMutex.lock();
+            sortedMidiInputs = new Array<MidiDeviceInfo>(lastMidiInputs);
+            midiDeviceMutex.unlock();
+            compareDevs cmp(this, true);
+            sortedMidiInputs->sort(cmp, true);
+        }
+        return *sortedMidiInputs;
     }
     
     Array<MidiDeviceInfo> getOutputDevices()
     {
-        midiDeviceMutex.lock();
-        auto devices = lastMidiOutputs;
-        midiDeviceMutex.unlock();
-        compareDevs cmp(this, false);
-        devices.sort(cmp, true);
-        return devices;
+        if (!ProjectInfo::getDeviceManager()) {
+            return lastMidiOutputs;
+        }
+        if (!sortedMidiOutputs) {
+            midiDeviceMutex.lock();
+            sortedMidiOutputs = new Array<MidiDeviceInfo>(lastMidiOutputs);
+            midiDeviceMutex.unlock();
+            compareDevs cmp(this, false);
+            sortedMidiOutputs->sort(cmp, true);
+        }
+        return *sortedMidiOutputs;
     }
     
     bool isMidiDeviceEnabled(bool isInput, const String& identifier)
@@ -209,26 +242,33 @@ struct MidiDeviceManager : public ChangeListener
     {
         if(fromPlugdata && identifier == fromPlugdata->getIdentifier())
         {
+            if(shouldBeEnabled != internalOutputEnabled)
+                clearSortedMidiOutputs();
             internalOutputEnabled = shouldBeEnabled;
         }
         else if(toPlugdata && identifier == toPlugdata->getIdentifier())
         {
-            internalInputEnabled = shouldBeEnabled;
-            if(internalInputEnabled)
-            {
-                toPlugdata->start();
-            }
-            else {
-                toPlugdata->stop();
+            if(shouldBeEnabled != internalInputEnabled) {
+                clearSortedMidiInputs();
+                internalInputEnabled = shouldBeEnabled;
+                if(internalInputEnabled)
+                {
+                    toPlugdata->start();
+                }
+                else {
+                    toPlugdata->stop();
+                }
             }
         }
         else if(isInput)
         {
             if (shouldBeEnabled != isMidiDeviceEnabled(true, identifier)) {
                 ProjectInfo::getDeviceManager()->setMidiInputDeviceEnabled(identifier, shouldBeEnabled);
+                clearSortedMidiInputs();
             }
         }
         else if(shouldBeEnabled != isMidiDeviceEnabled(false, identifier)) {
+            clearSortedMidiOutputs();
             if(shouldBeEnabled)
             {
                 auto* device = midiOutputs.add(MidiOutput::openDevice(identifier));
@@ -295,4 +335,7 @@ private:
     // This can't be accessed from the audio thread so we need to store it when it changes
     Array<MidiDeviceInfo> lastMidiInputs;
     Array<MidiDeviceInfo> lastMidiOutputs;
+
+    Array<MidiDeviceInfo> *sortedMidiInputs;
+    Array<MidiDeviceInfo> *sortedMidiOutputs;
 };
