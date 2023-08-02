@@ -12,13 +12,14 @@ class PlugDataParameter : public RangedAudioParameter {
 public:
     PluginProcessor& processor;
 
-    PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled)
+    PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled, int idx)
         : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, defaultName)
         , range(0.0f, 1.0f, 0.000001f)
         , defaultValue(def)
         , processor(*p)
         , enabled(enabled)
         , name(defaultName)
+        , index(idx)
     {
         value = range.convertFrom0to1(getDefaultValue());
     }
@@ -135,6 +136,11 @@ public:
         return false;
     }
 
+    std::atomic<float>* getValuePointer()
+    {
+        return &value;
+    }
+    
     static void saveStateInformation(XmlElement& xml, Array<AudioProcessorParameter*> const& parameters)
     {
         auto* volumeXml = new XmlElement("PARAM");
@@ -156,14 +162,10 @@ public:
             paramXml->setAttribute(String("enabled"), static_cast<int>(param->enabled));
 
             paramXml->setAttribute(String("value"), static_cast<double>(param->getValue()));
-
+            paramXml->setAttribute(String("index"), param->index);
+            
             xml.addChildElement(paramXml);
         }
-    }
-
-    std::atomic<float>* getValuePointer()
-    {
-        return &value;
     }
 
     static void loadStateInformation(XmlElement const& xml, Array<AudioProcessorParameter*> const& parameters)
@@ -190,6 +192,7 @@ public:
             String name = "param" + String(i);
             float min = 0.0f, max = 1.0f;
             bool enabled = true;
+            int index = i;
 
             // Check for these values, they may not be there in legacy versions
             if (xmlParam->hasAttribute("name")) {
@@ -204,11 +207,15 @@ public:
             if (xmlParam->hasAttribute("enabled")) {
                 enabled = xmlParam->getIntAttribute("enabled");
             }
+            if (xmlParam->hasAttribute("index")) {
+                index = xmlParam->getIntAttribute("index");
+            }
 
             param->setEnabled(enabled);
             param->setRange(min, max);
             param->setName(name);
             param->setValueNotifyingHost(navalue);
+            param->setIndex(index);
             param->notifyDAW();
         }
     }
@@ -227,6 +234,16 @@ public:
     {
         return gestureState;
     }
+    
+    void setIndex(int idx)
+    {
+        index = idx;
+    }
+    
+    int getIndex()
+    {
+        return index;
+    }
 
     void setGestureState(float v)
     {
@@ -244,6 +261,7 @@ private:
     float gestureState = 0.0f;
     float const defaultValue;
 
+    std::atomic<int> index;
     std::atomic<float> value;
     NormalisableRange<float> range;
     String name;

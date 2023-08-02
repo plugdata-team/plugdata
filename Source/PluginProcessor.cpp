@@ -89,7 +89,7 @@ PluginProcessor::PluginProcessor()
 
     statusbarSource = std::make_unique<StatusbarSource>();
 
-    auto* volumeParameter = new PlugDataParameter(this, "volume", 1.0f, true);
+    auto* volumeParameter = new PlugDataParameter(this, "volume", 1.0f, true, 0);
     addParameter(volumeParameter);
     volume = volumeParameter->getValuePointer();
 
@@ -98,7 +98,7 @@ PluginProcessor::PluginProcessor()
 
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
-        auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false);
+        auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false, n + 1);
         addParameter(parameter);
     }
 
