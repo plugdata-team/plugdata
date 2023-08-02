@@ -492,17 +492,31 @@ private:
     PatchInfo info;
 };
 
-class PatchContainer  : public Component
+class PatchContainer  : public Component, public AsyncUpdater
 {
     const int displayWidth = 260;
     const int displayHeight = 360;
     
     OwnedArray<PatchDisplay> patchDisplays;
+    std::mutex patchesMutex;
+    Array<PatchInfo> patches;
     
 public:
+
+    std::function<void(const PatchInfo&)> patchClicked;
     
-    PatchContainer()
+    void handleAsyncUpdate() override
     {
+        patchDisplays.clear();
+        
+        for(auto& patch : patches)
+        {
+            auto* display = patchDisplays.add(new PatchDisplay(patch, patchClicked));
+            addAndMakeVisible(display);
+        }
+        
+        setSize(getWidth(), (patches.size() / (getWidth() / displayWidth)) * displayHeight);
+        resized(); // Even if size if the same, we still want to call resize
     }
     
     void filterPatches(String query)
@@ -521,20 +535,12 @@ public:
         resized();
     }
     
-    std::function<void(const PatchInfo&)> patchClicked;
-    
-    void showPatches(const Array<PatchInfo>& patches)
+    void showPatches(const Array<PatchInfo>& patchesToShow)
     {
-        patchDisplays.clear();
-        
-        for(auto& patch : patches)
-        {
-            auto* display = patchDisplays.add(new PatchDisplay(patch, patchClicked));
-            addAndMakeVisible(display);
-        }
-        
-        setSize(getWidth(), (patches.size() / (getWidth() / displayWidth)) * displayHeight);
-        resized(); // Even if size if the same, we still want to call resize
+        patchesMutex.lock();
+        patches = patchesToShow;
+        patchesMutex.unlock();
+        triggerAsyncUpdate();
     }
     
     void resized() override
@@ -564,7 +570,7 @@ public:
 
 };
 
-struct PatchStorage : public Component
+struct PatchStorage : public Component, public AsyncUpdater, public Thread
 {
     PatchContainer patchContainer;
     BouncingViewport contentViewport;
@@ -579,7 +585,7 @@ struct PatchStorage : public Component
     Spinner spinner;
     
 public:
-    PatchStorage()
+    PatchStorage() : Thread("PatchStorage API Thread")
     {
         contentViewport.setViewedComponent(&patchContainer, false);
         patchContainer.setVisible(true);
@@ -588,10 +594,8 @@ public:
         contentViewport.setScrollBarsShown(true, false, true, false);
         
         spinner.startSpinning();
-        Thread::launch([this](){
-            fetchPatches();
-        });
-        
+        startThread();
+
         addChildComponent(patchFullDisplay);
         
         patchContainer.patchClicked = [this](const PatchInfo& patch)
@@ -651,6 +655,16 @@ public:
         addAndMakeVisible(clearButton);
         addChildComponent(spinner);
 
+    }
+    
+    ~PatchStorage()
+    {
+        waitForThreadToExit(-1);
+    }
+    
+    void run() override
+    {
+        fetchPatches();
     }
     
     void paintOverChildren(Graphics& g) override
@@ -714,7 +728,7 @@ public:
         Array<PatchInfo> patches;
         std::unique_ptr<WebInputStream> webstream;
         
-        while(!failed)
+        while(!failed && !threadShouldExit())
         {
             webstream = std::make_unique<WebInputStream>(URL("https://patchstorage.com/api/beta/patches?page=" + String(page++) + "&per_page=100&platforms=90,8440"), false);
             webstream->connect(nullptr);
@@ -751,11 +765,16 @@ public:
 
             return first.download_count > second.download_count;
         });
+        
+        if(threadShouldExit()) return;
 
-        MessageManager::callAsync([this, patches](){
-            patchContainer.showPatches(patches);
-            refreshButton.setEnabled(true);
-            spinner.stopSpinning();
-        });
+        patchContainer.showPatches(patches);
+        triggerAsyncUpdate();
+    }
+    
+    void handleAsyncUpdate() override
+    {
+        refreshButton.setEnabled(true);
+        spinner.stopSpinning();
     }
 };

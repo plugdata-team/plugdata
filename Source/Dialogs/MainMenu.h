@@ -410,7 +410,7 @@ public:
         new IconMenuItem(Icons::DevTools, "Compile...", false, false),
 
         new IconMenuItem(Icons::Externals, "Find Externals...", false, false),
-        new IconMenuItem("", "Discover...", false, false),
+        new IconMenuItem(Icons::Compass, "Discover...", false, false),
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),
     };

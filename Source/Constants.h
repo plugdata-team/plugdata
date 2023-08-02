@@ -82,7 +82,8 @@ struct Icons {
     inline static const String More = ".";
     inline static const String MIDI = "`";
     inline static const String PluginMode = "=";
-
+    inline static const String Compass = "+";
+    
     inline static const String Reorder = "(";
     inline static const String Object = ")";
     

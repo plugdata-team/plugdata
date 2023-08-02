@@ -164,16 +164,16 @@ public:
     
     void updateSizeProperty() override
     {
+        /*
         setPdBounds(object->getObjectBounds());
         
         if (auto iem = ptr.get<t_iemgui>()) {
             setParameterExcludingListener(sizeProperty, var(iem->x_w));
-        }
+        } */
     }
 
     void valueChanged(Value& value) override
     {
-        
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
             auto size = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());

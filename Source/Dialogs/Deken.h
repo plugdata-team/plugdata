@@ -162,9 +162,7 @@ public:
         void finish(Result result)
         {
             MessageManager::callAsync(
-                [this, result]() mutable {
-                    // Make sure lambda still exists after deletion
-                    auto finishCopy = onFinish;
+                [this, result, finishCopy = onFinish]() mutable {
                     waitForThreadToExit(-1);
 
                     // Self-destruct
