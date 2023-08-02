@@ -284,14 +284,16 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto standardColour = findColour(PlugDataColour::textObjectBackgroundColourId).withAlpha(0.65f);
         auto highlight = findColour(PlugDataColour::popupMenuActiveBackgroundColourId);
         
         auto iconBounds = getLocalBounds().reduced(14).translated(0, -7);
         auto textBounds = getLocalBounds().removeFromBottom(14);
         
-        g.setColour(isHovering ? highlight : standardColour);
-        PlugDataLook::fillSmoothedRectangle(g, iconBounds.toFloat(), Corners::defaultCornerRadius);
+        if(isHovering)
+        {
+            g.setColour(highlight);
+            PlugDataLook::fillSmoothedRectangle(g, iconBounds.toFloat(), Corners::defaultCornerRadius);
+        }
 
         Fonts::drawText(g, titleText, textBounds, findColour(PlugDataColour::popupMenuTextColourId), 13.0f, Justification::centred);
         
@@ -672,7 +674,7 @@ public:
         
         if(toggleState)
         {
-            colour = findColour(PlugDataColour::toolbarActiveColourId);
+            colour = findColour(PlugDataColour::popupMenuActiveBackgroundColourId);
         }
 
         auto iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);
