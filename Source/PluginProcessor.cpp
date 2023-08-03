@@ -177,12 +177,6 @@ PluginProcessor::PluginProcessor()
     };
 
     setLatencySamples(pd::Instance::getBlockSize());
-    
-    // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
-    if (ProjectInfo::isStandalone) {
-        auto* midiDeviceManager = ProjectInfo::getMidiDeviceManager();
-        midiDeviceManager->loadMidiOutputSettings();
-    }
 }
 
 PluginProcessor::~PluginProcessor()
