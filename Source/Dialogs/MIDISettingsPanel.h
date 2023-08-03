@@ -61,6 +61,7 @@ public:
         addAndMakeVisible(midiProperties);
 
         deviceManager.addChangeListener(this);
+        ProjectInfo::getMidiDeviceManager()->updateMidiDevices();
         updateDevices();
     }
 
@@ -81,10 +82,10 @@ private:
         
         
 
-        auto midiInputDevices = ProjectInfo::getMidiDeviceManager()->getInputDevices();
+        auto midiInputDevices = ProjectInfo::getMidiDeviceManager()->getInputDevicesUnfiltered();
         auto midiInputProperties = Array<PropertiesPanel::Property*>();
 
-        auto midiOutputDevices = ProjectInfo::getMidiDeviceManager()->getOutputDevices();
+        auto midiOutputDevices = ProjectInfo::getMidiDeviceManager()->getOutputDevicesUnfiltered();
         auto midiOutputProperties = Array<PropertiesPanel::Property*>();
         
         for (auto& deviceInfo : midiInputDevices) {

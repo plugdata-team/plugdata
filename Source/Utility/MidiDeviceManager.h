@@ -93,15 +93,36 @@ struct MidiDeviceManager : public ChangeListener
         {
             deviceManager->addChangeListener(this);
         }
-        
+
+        filteredMidiInputs = filteredMidiOutputs = 0;
         updateMidiDevices();
     }
-    
+
+    ~MidiDeviceManager()
+    {
+        clearInputFilter();
+        clearOutputFilter();
+    }
+
+private:
     void changeListenerCallback(ChangeBroadcaster* origin) override
     {
         updateMidiDevices();
     }
-    
+
+    void clearInputFilter()
+    {
+        if (filteredMidiInputs) delete filteredMidiInputs;
+        filteredMidiInputs = 0;
+    }
+
+    void clearOutputFilter()
+    {
+        if (filteredMidiOutputs) delete filteredMidiOutputs;
+        filteredMidiOutputs = 0;
+    }
+
+public:
     void updateMidiDevices()
     {
         midiDeviceMutex.lock();
@@ -125,16 +146,95 @@ struct MidiDeviceManager : public ChangeListener
         }
         
         midiDeviceMutex.unlock();
+        clearInputFilter();
+        clearOutputFilter();
     }
     
-    Array<MidiDeviceInfo> getInputDevices()
+    Array<MidiDeviceInfo> getInputDevicesUnfiltered()
     {
         return lastMidiInputs;
     }
     
-    Array<MidiDeviceInfo> getOutputDevices()
+    Array<MidiDeviceInfo> getOutputDevicesUnfiltered()
     {
         return lastMidiOutputs;
+    }
+
+private:
+    // Helper class to reorder MIDI inputs and outputs. Currently this just
+    // sorts the ports by their enabled status, so that the enabled ports come
+    // first. In the future, we might also apply secondary criteria, e.g., to
+    // implement freely assigned port numbers resembling what vanilla Pd has.
+    class compareDevs {
+      MidiDeviceManager *self;
+      bool isInput;
+    public:
+      compareDevs(MidiDeviceManager *x, bool in) : self(x), isInput(in) {}
+      int compareElements (const MidiDeviceInfo& dev1, const MidiDeviceInfo& dev2)
+      {
+        auto id1 = dev1.identifier;
+        auto id2 = dev2.identifier;
+        bool enabled1 = self->isMidiDeviceEnabled(isInput, id1);
+        bool enabled2 = self->isMidiDeviceEnabled(isInput, id2);
+        if (enabled1 > enabled2)
+          return -1;
+        else if (enabled1 < enabled2)
+          return 1;
+        else
+          return 0;
+      }
+    };
+
+public:
+    // Sorted and filtered arrays of MIDI input and output ports based on the
+    // enabled MIDI ports selected by the user. We keep these separate from
+    // the raw port arrays in lastMidiInputs and lastMidiOutputs, so that the
+    // MIDI setup can present the user with a consistent view of all currently
+    // available devices, while the following reordered and filtered lists of
+    // enabled ports are used in the app for popup menus and to map port
+    // numbers used by the Pd engine.
+    Array<MidiDeviceInfo> getInputDevices()
+    {
+        if (!ProjectInfo::getDeviceManager()) {
+            // just in case we get called during startup when the device
+            // manager hasn't been created yet
+            return lastMidiInputs;
+        }
+        if (!filteredMidiInputs) {
+            // we cache the filtered device list so that we don't have to
+            // recompute it each time
+            midiDeviceMutex.lock();
+            filteredMidiInputs = new Array<MidiDeviceInfo>(lastMidiInputs);
+            midiDeviceMutex.unlock();
+            compareDevs cmp(this, true);
+            // make sure to do a stable sort here, so that enabled ports stay
+            // in the same relative order as in the MIDI setup
+            filteredMidiInputs->sort(cmp, true);
+            int i, n = filteredMidiInputs->size();
+            // this assumes that all disabled ports come last
+            for (i = 0; i < n && isMidiDeviceEnabled(true, (*filteredMidiInputs)[i].identifier); i++) ;
+            // remove all disabled ports from the end of the array
+            filteredMidiInputs->removeLast(n-i);
+        }
+        return *filteredMidiInputs;
+    }
+    
+    Array<MidiDeviceInfo> getOutputDevices()
+    {
+        if (!ProjectInfo::getDeviceManager()) {
+            return lastMidiOutputs;
+        }
+        if (!filteredMidiOutputs) {
+            midiDeviceMutex.lock();
+            filteredMidiOutputs = new Array<MidiDeviceInfo>(lastMidiOutputs);
+            midiDeviceMutex.unlock();
+            compareDevs cmp(this, false);
+            filteredMidiOutputs->sort(cmp, true);
+            int i, n = filteredMidiOutputs->size();
+            for (i = 0; i < n && isMidiDeviceEnabled(false, (*filteredMidiOutputs)[i].identifier); i++) ;
+            filteredMidiOutputs->removeLast(n-i);
+        }
+        return *filteredMidiOutputs;
     }
     
     bool isMidiDeviceEnabled(bool isInput, const String& identifier)
@@ -166,26 +266,33 @@ struct MidiDeviceManager : public ChangeListener
     {
         if(fromPlugdata && identifier == fromPlugdata->getIdentifier())
         {
+            if(shouldBeEnabled != internalOutputEnabled)
+                clearOutputFilter();
             internalOutputEnabled = shouldBeEnabled;
         }
         else if(toPlugdata && identifier == toPlugdata->getIdentifier())
         {
-            internalInputEnabled = shouldBeEnabled;
-            if(internalInputEnabled)
-            {
-                toPlugdata->start();
-            }
-            else {
-                toPlugdata->stop();
+            if(shouldBeEnabled != internalInputEnabled) {
+                clearInputFilter();
+                internalInputEnabled = shouldBeEnabled;
+                if(internalInputEnabled)
+                {
+                    toPlugdata->start();
+                }
+                else {
+                    toPlugdata->stop();
+                }
             }
         }
         else if(isInput)
         {
             if (shouldBeEnabled != isMidiDeviceEnabled(true, identifier)) {
                 ProjectInfo::getDeviceManager()->setMidiInputDeviceEnabled(identifier, shouldBeEnabled);
+                clearInputFilter();
             }
         }
         else if(shouldBeEnabled != isMidiDeviceEnabled(false, identifier)) {
+            clearOutputFilter();
             if(shouldBeEnabled)
             {
                 auto* device = midiOutputs.add(MidiOutput::openDevice(identifier));
@@ -203,7 +310,7 @@ struct MidiDeviceManager : public ChangeListener
     
     MidiOutput* getMidiOutputByIndexIfEnabled(int index)
     {
-        auto idToFind = lastMidiOutputs[index].identifier;
+        auto idToFind = getOutputDevices()[index].identifier;
         // The order of midiOutputs is not necessarily the same as that of lastMidiOutputs, that's why we need to check
         
         if(idToFind == fromPlugdata->getIdentifier())
@@ -223,9 +330,7 @@ struct MidiDeviceManager : public ChangeListener
     
     int getMidiInputDeviceIndex(const String& identifier)
     {
-        midiDeviceMutex.lock();
-        auto devices = lastMidiInputs;
-        midiDeviceMutex.unlock();
+        auto devices = getInputDevices();
         
         for(int i = 0; i < devices.size(); i++)
         {
@@ -237,7 +342,8 @@ struct MidiDeviceManager : public ChangeListener
         
         return -1;
     }
-    
+
+private:
     bool internalOutputEnabled = false;
     bool internalInputEnabled = false;
     
@@ -253,4 +359,7 @@ struct MidiDeviceManager : public ChangeListener
     // This can't be accessed from the audio thread so we need to store it when it changes
     Array<MidiDeviceInfo> lastMidiInputs;
     Array<MidiDeviceInfo> lastMidiOutputs;
+
+    Array<MidiDeviceInfo> *filteredMidiInputs;
+    Array<MidiDeviceInfo> *filteredMidiOutputs;
 };
