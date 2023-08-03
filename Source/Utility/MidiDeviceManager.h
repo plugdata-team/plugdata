@@ -335,6 +335,7 @@ public:
                 for (auto* midiOut : midiOutputs) {
                     if (midiOut->getIdentifier() == identifier) {
                         midiOutputs.removeObject(midiOut);
+                        break;
                     }
                 }
             }
