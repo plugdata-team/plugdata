@@ -49,6 +49,8 @@ build_flavor()
   rm -r $TMPDIR
 }
 
+if [ -n "$AC_USERNAME" ]; then
+
 # Sign app with hardened runtime and audio entitlement
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Installer/Entitlements.plist ./Plugins/Standalone/*.app
 
@@ -59,6 +61,8 @@ build_flavor()
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/LV2/plugdata-fx.lv2/libplugdata-fx.so
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/CLAP/plugdata.clap/Contents/MacOS/plugdata
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/CLAP/plugdata-fx.clap/Contents/MacOS/plugdata-fx
+
+fi
 
 # # try to build VST3 package
 if [[ -d $VST3 ]]; then
@@ -147,6 +151,13 @@ productbuild --resources ./ --distribution ${TARGET_DIR}/distribution.xml --pack
 
 rm ${TARGET_DIR}/distribution.xml
 rm -r $PKG_DIR
+
+if [ -z "$AC_USERNAME" ]; then
+    echo "No user name, skipping sign/notarize"
+    # pretend that we signed the package and bail out
+    mv ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
+    exit 0
+fi
 
 # Sign installer
 productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg

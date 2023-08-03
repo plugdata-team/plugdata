@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ -z "$FTP_USERNAME" ]; then
+    echo "No user name, skipping ftp upload"
+    exit 0
+fi
+
 git config --global --add safe.directory /__w/plugdata/plugdata
 
 FILE=$1
