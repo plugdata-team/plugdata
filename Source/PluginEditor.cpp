@@ -279,6 +279,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>();
     addChildComponent(connectionMessageDisplay.get());
+    
+    // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
+    if (ProjectInfo::isStandalone) {
+        auto* midiDeviceManager = ProjectInfo::getMidiDeviceManager();
+        midiDeviceManager->loadMidiOutputSettings();
+    }
 }
 
 PluginEditor::~PluginEditor()

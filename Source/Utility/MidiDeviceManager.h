@@ -8,7 +8,7 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "Standalone/InternalSynth.h"
 
-struct MidiDeviceManager : public ChangeListener
+struct MidiDeviceManager : public ChangeListener, public AsyncUpdater
 {
     
     // Helper functions to encode/decode regular MIDI events into a sysex event
@@ -105,16 +105,17 @@ struct MidiDeviceManager : public ChangeListener
     
     void loadMidiOutputSettings()
     {
-        auto midiOutputsTree = SettingsFile::getInstance()->getValueTree().getChildWithName("EnabledMidiOutputPorts");
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        auto midiOutputsTree = settingsTree.getChildWithName("EnabledMidiOutputPorts");
         
-        for (auto midiOutput : midiOutputsTree)
+        for (int i = 0; i < midiOutputsTree.getNumChildren(); i++)
         {
-            // This will try to enable the same MIDI devices that were enabled last time.
-            setMidiDeviceEnabled(false, midiOutput.getProperty("Identifier").toString(), true);
+            // This will try to enable the same MIDI devices that were enabled last time. It the device doesn't exist, it will do nothing
+            setMidiDeviceEnabled(false, midiOutputsTree.getChild(i).getProperty("Identifier").toString(), true);
         }
     }
     
-    void saveMidiOutputSettings()
+    void handleAsyncUpdate() override
     {
         auto midiOutputsTree = SettingsFile::getInstance()->getValueTree().getChildWithName("EnabledMidiOutputPorts");
         
@@ -128,6 +129,11 @@ struct MidiDeviceManager : public ChangeListener
             
             midiOutputsTree.appendChild(midiOutputPort, nullptr);
         }
+    }
+    
+    void saveMidiOutputSettings()
+    {
+        triggerAsyncUpdate();
     }
 
 private:
