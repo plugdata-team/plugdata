@@ -129,6 +129,7 @@ private:
         "SelectedThemes",
         "RecentlyOpened",
         "Libraries",
+        "EnabledMidiOutputPorts",
     };
 
 public:

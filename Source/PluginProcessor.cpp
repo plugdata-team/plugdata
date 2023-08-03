@@ -78,7 +78,7 @@ PluginProcessor::PluginProcessor()
     std::setlocale(LC_ALL, "C");
 
     {
-        const MessageManagerLock mmLock;
+        const MessageManagerLock mmLock; // Do we need this? Isn't this already on the messageManager?
 
         LookAndFeel::setDefaultLookAndFeel(&lnf.get());
 
@@ -177,6 +177,12 @@ PluginProcessor::PluginProcessor()
     };
 
     setLatencySamples(pd::Instance::getBlockSize());
+    
+    // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
+    if (ProjectInfo::isStandalone) {
+        auto* midiDeviceManager = ProjectInfo::getMidiDeviceManager();
+        midiDeviceManager->loadMidiOutputSettings();
+    }
 }
 
 PluginProcessor::~PluginProcessor()

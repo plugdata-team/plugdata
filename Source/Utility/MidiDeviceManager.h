@@ -80,14 +80,12 @@ struct MidiDeviceManager : public ChangeListener
     MidiDeviceManager(MidiInputCallback* inputCallback)
     {
 #if !JUCE_WINDOWS
-    if (ProjectInfo::isStandalone) {
         if (auto* newOut = MidiOutput::createNewDevice("from plugdata").release()) {
             fromPlugdata.reset(newOut);
         }
         if (auto* newIn = MidiInput::createNewDevice("to plugdata", inputCallback).release()) {
             toPlugdata.reset(newIn);
         }
-    }
 #endif
         if(auto* deviceManager = ProjectInfo::getDeviceManager())
         {
@@ -100,8 +98,36 @@ struct MidiDeviceManager : public ChangeListener
 
     ~MidiDeviceManager()
     {
+        saveMidiOutputSettings();
         clearInputFilter();
         clearOutputFilter();
+    }
+    
+    void loadMidiOutputSettings()
+    {
+        auto midiOutputsTree = SettingsFile::getInstance()->getValueTree().getChildWithName("EnabledMidiOutputPorts");
+        
+        for (auto midiOutput : midiOutputsTree)
+        {
+            // This will try to enable the same MIDI devices that were enabled last time.
+            setMidiDeviceEnabled(false, midiOutput.getProperty("Identifier").toString(), true);
+        }
+    }
+    
+    void saveMidiOutputSettings()
+    {
+        auto midiOutputsTree = SettingsFile::getInstance()->getValueTree().getChildWithName("EnabledMidiOutputPorts");
+        
+        midiOutputsTree.removeAllChildren(nullptr);
+        
+        for (auto& output : getOutputDevices())
+        {
+            ValueTree midiOutputPort("MidiPort");
+            midiOutputPort.setProperty("Name", output.name, nullptr);
+            midiOutputPort.setProperty("Identifier", output.identifier, nullptr);
+            
+            midiOutputsTree.appendChild(midiOutputPort, nullptr);
+        }
     }
 
 private:
@@ -269,6 +295,7 @@ public:
             if(shouldBeEnabled != internalOutputEnabled)
                 clearOutputFilter();
             internalOutputEnabled = shouldBeEnabled;
+            saveMidiOutputSettings();
         }
         else if(toPlugdata && identifier == toPlugdata->getIdentifier())
         {
@@ -305,6 +332,8 @@ public:
                     }
                 }
             }
+            
+            saveMidiOutputSettings();
         }
     }
     
