@@ -61,6 +61,7 @@ public:
         addAndMakeVisible(midiProperties);
 
         deviceManager.addChangeListener(this);
+        ProjectInfo::getMidiDeviceManager()->updateMidiDevices();
         updateDevices();
     }
 
