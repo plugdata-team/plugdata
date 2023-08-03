@@ -110,8 +110,19 @@ struct MidiDeviceManager : public ChangeListener, public AsyncUpdater
         
         for (int i = 0; i < midiOutputsTree.getNumChildren(); i++)
         {
-            // This will try to enable the same MIDI devices that were enabled last time. It the device doesn't exist, it will do nothing
-            setMidiDeviceEnabled(false, midiOutputsTree.getChild(i).getProperty("Identifier").toString(), true);
+            // This will try to enable the same MIDI devices that were enabled
+            // last time. It the device doesn't exist, it will do nothing.
+            // Note: We're checking the device names against the current
+            // device table here, since the identifiers may change between
+            // invocations.
+            auto name = midiOutputsTree.getChild(i).getProperty("Name").toString();
+            for (auto& output : lastMidiOutputs)
+            {
+              if (output.name == name) {
+                setMidiDeviceEnabled(false, output.identifier, true);
+                break;
+              }
+            }
         }
     }
     
