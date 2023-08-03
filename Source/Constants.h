@@ -134,7 +134,7 @@ struct Icons {
     inline static const String GlyphCounter = CharPointer_UTF8("æ");
     inline static const String GlyphSelect = CharPointer_UTF8("ç");
     inline static const String GlyphRoute = CharPointer_UTF8("è");
-    inline static const String GlyphExpr = CharPointer_UTF8("å");
+    inline static const String GlyphExpr = CharPointer_UTF8("õ"); // alternate: å
     inline static const String GlyphLoadbang = CharPointer_UTF8("é");
     inline static const String GlyphPack = CharPointer_UTF8("ê");
     inline static const String GlyphUnpack = CharPointer_UTF8("ë");
@@ -143,6 +143,12 @@ struct Icons {
     inline static const String GlyphNetreceive = CharPointer_UTF8("í");
     inline static const String GlyphTimer = CharPointer_UTF8("ï");
     inline static const String GlyphDelay = CharPointer_UTF8("ð");
+    inline static const String GlyphTrigger = CharPointer_UTF8("ñ");
+    inline static const String GlyphMoses = CharPointer_UTF8("ò");
+    inline static const String GlyphSpigot = CharPointer_UTF8("ó");
+    inline static const String GlyphBondo = CharPointer_UTF8("ô");
+
+
 
     // MIDI
     inline static const String GlyphMidiIn = CharPointer_UTF8("ć");
