@@ -256,6 +256,7 @@ public:
                     { Icons::GlyphSysexIn, "#X obj 0 0 sysexin", "Sysex in", "Sysex in", OtherObject },
                     { Icons::GlyphMtof, "#X obj 0 0 mtof", "MIDI to frequency", "mtof", OtherObject },
                     { Icons::GlyphFtom, "#X obj 0 0 ftom", "Frequency to MIDI", "ftom", OtherObject },
+                    { Icons::GlyphGeneric, "#X obj 0 0 autotune", "Pitch quantizer", "Autotune", OtherObject },
                 } },
             { "IO",
                 {
@@ -298,6 +299,10 @@ public:
                     { Icons::GlyphReverb, "#X obj 0 0 free.rev~ 0.7 0.6 0.5 0.7", "Reverb", "Reverb", OtherObject },
                     { Icons::GlyphFreeze, "#X obj 0 0 freeze~", "Freeze", "Freeze", OtherObject },
                     { Icons::GlyphRingmod, "#X obj 0 0 rm~ 150", "Ringmod", "Ringmod", OtherObject },
+                    { Icons::GlyphGeneric, "#X obj 0 0 svfilter~ 1729 0.42", "State variable filter", "SVFilter", OtherObject },
+                    { Icons::GlyphGeneric, "#X obj 0 0 clip~ -0.5 0.5", "Clip", "Clip", OtherObject },
+                    { Icons::GlyphGeneric, "#X obj 0 0 fold~ -0.5 0.5", "Fold", "Fold", OtherObject },
+                    { Icons::GlyphGeneric, "#X obj 0 0 wrap2~ -0.5 0.5", "Wrap", "Wrap", OtherObject },
                 }},
             { "Math",
                 {
@@ -314,6 +319,8 @@ public:
                     { Icons::GlyphGeneric, "", "Less or equal", "<=", OtherObject },
                     { Icons::GlyphGeneric, "", "Equality", "==", OtherObject },
                     { Icons::GlyphGeneric, "", "Not equal", "!=", OtherObject },
+                    { Icons::GlyphGeneric, "", "Minimum", "min", OtherObject },
+                    { Icons::GlyphGeneric, "", "Maximum", "max", OtherObject },
                 } },
             { "Math~",
                 {
@@ -330,6 +337,8 @@ public:
                     { Icons::GlyphGenericSignal, "", "(signal) Less or equal", "<=~", OtherObject },
                     { Icons::GlyphGenericSignal, "", "(signal) Equality", "==~", OtherObject },
                     { Icons::GlyphGenericSignal, "", "(signal) Not equal", "!=~", OtherObject },
+                    { Icons::GlyphGenericSignal, "", "(signal) Minimum", "min~", OtherObject },
+                    { Icons::GlyphGenericSignal, "", "(signal) Maximum", "max~", OtherObject },
                 } },
     };
 
