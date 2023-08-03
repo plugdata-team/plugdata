@@ -41,7 +41,7 @@ protected:
 
 public:
 
-    std::function<void(double)> valueChanged = [](double) {};
+    std::function<void(double)> onValueChange = [](double) {};
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
 
@@ -133,7 +133,7 @@ public:
             lastValue = newValue;
             
             setText(String(newValue, 8), notification);
-            valueChanged(newValue);
+            onValueChange(newValue);
         }
     }
 
@@ -508,7 +508,7 @@ struct DraggableListNumber : public DraggableNumber {
         }
 
         setText(newText, dontSendNotification);
-        valueChanged(0);
+        onValueChange(0);
     }
 
     void mouseUp(MouseEvent const& e) override

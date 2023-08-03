@@ -4,11 +4,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Make sure missing return types will fail compilation with Clang
-if (CMAKE_C_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
-endif()
-
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFONT "" ON)
@@ -56,6 +51,11 @@ add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+# Make sure missing return types will fail compilation with Clang
+if (CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
+endif()
 
 message(STATUS "Preparing documentation")
 execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)

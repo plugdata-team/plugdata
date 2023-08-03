@@ -128,7 +128,7 @@ public:
             valueLabel.setText(String(param->getValue(), 2), dontSendNotification);
         }
 
-        valueLabel.valueChanged = [this](float newValue) mutable {
+        valueLabel.onValueChange = [this](float newValue) mutable {
             auto minimum = param->getNormalisableRange().start;
             auto maximum = param->getNormalisableRange().end;
 

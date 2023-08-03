@@ -616,12 +616,12 @@ public:
                 property = var(arr);
             };
 
-            minLabel.valueChanged = setMinimum;
+            minLabel.onValueChange = setMinimum;
             minLabel.onTextChange = [this, setMinimum]() {
                 setMinimum(minLabel.getText().getFloatValue());
             };
 
-            maxLabel.valueChanged = setMaximum;
+            maxLabel.onValueChange = setMaximum;
             maxLabel.onTextChange = [this, setMaximum]() {
                 setMaximum(maxLabel.getText().getFloatValue());
             };
@@ -663,10 +663,14 @@ public:
                 auto* draggableNumber = new DraggableNumber(std::is_integral<T>::value);
                 label = std::unique_ptr<DraggableNumber>(draggableNumber);
 
+                
+                // By setting the text before attaching the value, we can prevent an unnesssary/harmful call to ValueChanged
+                draggableNumber->setText(String(getValue<T>(property)), dontSendNotification);
+                
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
 
-                draggableNumber->valueChanged = [this](float value) {
+                draggableNumber->onValueChange = [this](float value) {
                     property = value;
                 };
 
