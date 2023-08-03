@@ -11,7 +11,18 @@ class NoteObject final : public ObjectBase {
 
     TextEditor noteEditor;
 
-    Value primaryColour, secondaryColour, font, fontSize, bold, italic, underline, fillBackground, justification, outline, receiveSymbol, width;
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value font = SynchronousValue();
+    Value fontSize = SynchronousValue();
+    Value bold = SynchronousValue();
+    Value italic = SynchronousValue();
+    Value underline = SynchronousValue();
+    Value fillBackground = SynchronousValue();
+    Value justification = SynchronousValue();
+    Value outline = SynchronousValue();
+    Value receiveSymbol = SynchronousValue();
+    Value width = SynchronousValue();
 
     bool locked;
     bool wasSelectedOnMouseDown = false;

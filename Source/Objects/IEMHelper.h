@@ -518,18 +518,18 @@ public:
 
     pd::WeakReference ptr;
 
-    Value primaryColour;
-    Value secondaryColour;
-    Value labelColour;
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value labelColour = SynchronousValue();
 
-    Value labelX = Value(0.0f);
-    Value labelY = Value(0.0f);
-    Value labelHeight = Value(18.0f);
-    Value labelText;
+    Value labelX = SynchronousValue(0.0f);
+    Value labelY = SynchronousValue(0.0f);
+    Value labelHeight = SynchronousValue(18.0f);
+    Value labelText = SynchronousValue();
 
-    Value initialise;
-    Value sendSymbol;
-    Value receiveSymbol;
+    Value initialise = SynchronousValue();
+    Value sendSymbol = SynchronousValue();
+    Value receiveSymbol = SynchronousValue();
 
     ObjectParameters objectParameters;
 };

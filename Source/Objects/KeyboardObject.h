@@ -200,14 +200,14 @@ public:
 class KeyboardObject final : public ObjectBase
     , public Timer {
 
-    Value lowC;
-    Value octaves;
+    Value lowC = SynchronousValue();
+    Value octaves = SynchronousValue();
     int numWhiteKeys = 0;
 
-    Value sendSymbol;
-    Value receiveSymbol;
-    Value toggleMode;
-    Value sizeProperty;
+    Value sendSymbol = SynchronousValue();
+    Value receiveSymbol = SynchronousValue();
+    Value toggleMode = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
 
     MidiKeyboardState state;
     MIDIKeyboard keyboard;

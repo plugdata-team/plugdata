@@ -9,9 +9,9 @@ class ListObject final : public ObjectBase {
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
 
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
-    Value sizeProperty;
+    Value min = SynchronousValue(0.0f);
+    Value max = SynchronousValue(0.0f);
+    Value sizeProperty = SynchronousValue();
 
 public:
     ListObject(void* obj, Object* parent)
@@ -43,7 +43,7 @@ public:
             startEdition();
         };
 
-        listLabel.valueChanged = [this](float) { updateFromGui(); };
+        listLabel.onValueChange = [this](float) { updateFromGui(); };
 
         listLabel.dragEnd = [this]() {
             stopEdition();

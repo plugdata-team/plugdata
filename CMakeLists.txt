@@ -4,6 +4,11 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Make sure missing return types will fail compilation with Clang
+if (CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
+endif()
+
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFONT "" ON)
@@ -303,7 +308,7 @@ juce_add_plugin(plugdata_midi
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdMd
     FORMATS                     AU
-    PRODUCT_NAME                "plugdata-midi"
+    PRODUCT_NAME                "plugdata-miWdi"
     AU_MAIN_TYPE                kAudioUnitType_MIDIProcessor)
 endif()
 

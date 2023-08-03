@@ -7,7 +7,7 @@
 class VUMeterObject final : public ObjectBase {
 
     IEMHelper iemHelper;
-    Value sizeProperty;
+    Value sizeProperty = SynchronousValue();
     
 public:
     VUMeterObject(void* ptr, Object* object)

@@ -11,8 +11,19 @@ class ScopeBase : public ObjectBase
     std::vector<float> x_buffer;
     std::vector<float> y_buffer;
 
-    Value gridColour, triggerMode, triggerValue, samplesPerPoint, bufferSize, delay, signalRange, primaryColour, secondaryColour, sendSymbol, receiveSymbol;
-    Value sizeProperty;
+    
+    Value gridColour = SynchronousValue();
+    Value triggerMode = SynchronousValue();
+    Value triggerValue = SynchronousValue();
+    Value samplesPerPoint = SynchronousValue();
+    Value bufferSize = SynchronousValue();
+    Value delay = SynchronousValue();
+    Value signalRange = SynchronousValue();
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value sendSymbol = SynchronousValue();
+    Value receiveSymbol = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
 
 public:
     ScopeBase(void* ptr, Object* object)

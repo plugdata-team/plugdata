@@ -96,7 +96,7 @@ void ObjectBase::ObjectSizeListener::componentMovedOrResized(Component& componen
     dynamic_cast<Object&>(component).gui->objectMovedOrResized(resized);
 }
 
-void ObjectBase::ObjectSizeListener::valueChanged(Value &v)
+void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
 {
     if (auto obj = object->gui->ptr.get<t_gobj>()) {
         auto* patch = object->cnv->patch.getPointer().get();
@@ -599,7 +599,18 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
 {
     if(!listener) listener = this;
     
+    
+    struct DummyListener : public Value::Listener
+    {
+        void valueChanged(Value& v) override {};
+    };
+    
+    // Annoyingly, juce::SynchronousValue will not cancel an async update if no listeners are attached at all
+    // We add a dummy listener to work around this behaviour
+    DummyListener dummy;
+    
     parameter.removeListener(listener);
+    parameter.addListener(&dummy);
     
     auto oldValue = parameter.getValue();
     parameter.setValue(value);
@@ -609,6 +620,7 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
         parameter.getValueSource().sendChangeMessage(true);
     }
     
+    parameter.removeListener(&dummy);
     parameter.addListener(listener);
 }
 

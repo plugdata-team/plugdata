@@ -7,7 +7,7 @@
 class CanvasObject final : public ObjectBase {
 
     bool locked;
-    Value sizeProperty;
+    Value sizeProperty = SynchronousValue();
     
     IEMHelper iemHelper;
 

@@ -9,10 +9,11 @@ class GraphOnParent final : public ObjectBase {
     bool isLocked = false;
     bool isOpenedInSplitView = false;
 
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
-    Value xRange, yRange;
-    Value sizeProperty;
+    Value isGraphChild = SynchronousValue(var(false));
+    Value hideNameAndArgs = SynchronousValue(var(false));
+    Value xRange = SynchronousValue();
+    Value yRange = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
 
     pd::Patch::Ptr subpatch;
     std::unique_ptr<Canvas> canvas;

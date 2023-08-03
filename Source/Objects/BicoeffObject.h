@@ -503,7 +503,7 @@ public:
 class BicoeffObject : public ObjectBase {
 
     BicoeffGraph graph;
-    Value sizeProperty;
+    Value sizeProperty = SynchronousValue();
     
 public:
     BicoeffObject(void* obj, Object* parent)

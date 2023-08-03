@@ -7,8 +7,8 @@
 class ToggleObject final : public ObjectBase {
     bool toggleState = false;
     bool alreadyToggled = false;
-    Value nonZero;
-    Value sizeProperty;
+    Value nonZero = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
 
     float value = 0.0f;
 

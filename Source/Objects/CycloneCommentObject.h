@@ -124,7 +124,16 @@ class CycloneCommentObject final : public ObjectBase {
 
     TextEditor commentEditor;
 
-    Value primaryColour, secondaryColour, font, fontSize, bold, italic, underline, fillBackground, justification, receiveSymbol;
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value font = SynchronousValue();
+    Value fontSize = SynchronousValue();
+    Value bold = SynchronousValue();
+    Value italic = SynchronousValue();
+    Value underline = SynchronousValue();
+    Value fillBackground = SynchronousValue();
+    Value justification = SynchronousValue();
+    Value receiveSymbol = SynchronousValue();
 
     bool locked;
     bool wasSelectedOnMouseDown = false;

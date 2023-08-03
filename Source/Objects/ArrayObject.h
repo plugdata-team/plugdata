@@ -809,13 +809,17 @@ public:
     }
 
 private:
-    Value name, size, drawMode, saveContents, range;
-    Value sizeProperty;
+    Value name = SynchronousValue();
+    Value size = SynchronousValue();
+    Value drawMode = SynchronousValue();
+    Value saveContents = SynchronousValue();
+    Value range = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
         
     OwnedArray<GraphicalArray> graphs;
     std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
 
-    Value labelColour;
+    Value labelColour = SynchronousValue();
     bool editable = true;
 };
 

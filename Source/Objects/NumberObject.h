@@ -8,17 +8,17 @@
 
 class NumberObject final : public ObjectBase {
 
-    Value sizeProperty;
+    Value sizeProperty = SynchronousValue();
     
     DraggableNumber input;
     IEMHelper iemHelper;
 
     float preFocusValue;
 
-    Value min = Value(-std::numeric_limits<float>::infinity());
-    Value max = Value(std::numeric_limits<float>::infinity());
-    Value logHeight;
-    Value logMode;
+    Value min = SynchronousValue(-std::numeric_limits<float>::infinity());
+    Value max = SynchronousValue(std::numeric_limits<float>::infinity());
+    Value logHeight = SynchronousValue();
+    Value logMode = SynchronousValue();
     
     float value = 0.0f;
 
@@ -56,7 +56,7 @@ public:
             startEdition();
         };
 
-        input.valueChanged = [this](float newValue) {
+        input.onValueChange = [this](float newValue) {
             sendFloatValue(newValue);
         };
 

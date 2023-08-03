@@ -122,13 +122,25 @@ class KnobObject : public ObjectBase {
 
     Knob knob;
 
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
+    Value min = SynchronousValue(0.0f);
+    Value max = SynchronousValue(0.0f);
 
-    Value initialValue, circular, ticks, angularRange, angularOffset, discrete, outline, showArc, exponential;
-    Value primaryColour, secondaryColour, arcColour, sendSymbol, receiveSymbol;
+    Value initialValue = SynchronousValue();
+    Value circular = SynchronousValue();
+    Value ticks = SynchronousValue();
+    Value angularRange = SynchronousValue();
+    Value angularOffset = SynchronousValue();
+    Value discrete = SynchronousValue();
+    Value outline = SynchronousValue();
+    Value showArc = SynchronousValue();
+    Value exponential = SynchronousValue();
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value arcColour = SynchronousValue();
+    Value sendSymbol = SynchronousValue();
+    Value receiveSymbol = SynchronousValue();
     
-    Value sizeProperty;
+    Value sizeProperty = SynchronousValue();
 
     float value = 0.0f;
 

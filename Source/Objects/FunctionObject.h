@@ -10,12 +10,12 @@ class FunctionObject final : public ObjectBase {
     int dragIdx = -1;
     bool newPointAdded = false;
 
-    Value range;
-    Value primaryColour;
-    Value secondaryColour;
-    Value sendSymbol;
-    Value receiveSymbol;
-    Value sizeProperty;
+    Value range = SynchronousValue();
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value sendSymbol = SynchronousValue();
+    Value receiveSymbol = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
     
     Array<Point<float>> points;
 

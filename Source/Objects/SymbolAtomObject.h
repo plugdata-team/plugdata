@@ -10,7 +10,7 @@ class SymbolAtomObject final : public ObjectBase
     bool isDown = false;
     bool isLocked = false;
 
-    Value sizeProperty;
+    Value sizeProperty = SynchronousValue();
     AtomHelper atomHelper;
 
     String lastMessage;

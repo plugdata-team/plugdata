@@ -7,8 +7,8 @@
 class SubpatchObject final : public TextBase {
 
     pd::Patch::Ptr subpatch;
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
+    Value isGraphChild = SynchronousValue(var(false));
+    Value hideNameAndArgs = SynchronousValue(var(false));
 
     bool locked = false;
 

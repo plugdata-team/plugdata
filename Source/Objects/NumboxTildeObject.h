@@ -14,14 +14,16 @@ class NumboxTildeObject final : public ObjectBase
     int nextInterval = 100;
     std::atomic<int> mode = 0;
 
-    Value interval, ramp, init;
+    Value interval = SynchronousValue();
+    Value ramp = SynchronousValue();
+    Value init = SynchronousValue();
 
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
+    Value min = SynchronousValue(0.0f);
+    Value max = SynchronousValue(0.0f);
 
-    Value primaryColour;
-    Value secondaryColour;
-    Value sizeProperty;
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
 
 public:
     NumboxTildeObject(void* obj, Object* parent)
@@ -44,7 +46,7 @@ public:
 
         addMouseListener(this, true);
 
-        input.valueChanged = [this](float value) {
+        input.onValueChange = [this](float value) {
             if (auto obj = ptr.get<t_pd>()) {
                 pd_float(obj.get(), value);
                 pd_bang(obj.get());

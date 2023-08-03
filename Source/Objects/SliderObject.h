@@ -87,16 +87,16 @@ public:
 
 class SliderObject : public ObjectBase {
     bool isVertical;
-    Value isLogarithmic = Value(var(false));
+    Value isLogarithmic = SynchronousValue(var(false));
 
     ReversibleSlider slider;
 
     IEMHelper iemHelper;
 
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
-    Value steadyOnClick = Value(false);
-    Value sizeProperty;
+    Value min = SynchronousValue(0.0f);
+    Value max = SynchronousValue(0.0f);
+    Value steadyOnClick = SynchronousValue(false);
+    Value sizeProperty = SynchronousValue();
 
     float value = 0.0f;
 

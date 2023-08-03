@@ -7,8 +7,13 @@
 // ELSE pic
 class PictureObject final : public ObjectBase {
 
-    Value path, latch, outline, reportSize, sendSymbol, receiveSymbol;
-    Value sizeProperty;
+    Value path = SynchronousValue();
+    Value latch = SynchronousValue();
+    Value outline = SynchronousValue();
+    Value reportSize = SynchronousValue();
+    Value sendSymbol = SynchronousValue();
+    Value receiveSymbol = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
     
     File imageFile;
     Image img;

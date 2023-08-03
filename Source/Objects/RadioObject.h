@@ -14,8 +14,8 @@ class RadioObject final : public ObjectBase {
 
     IEMHelper iemHelper;
 
-    Value max = Value(0.0f);
-    Value sizeProperty;
+    Value max = SynchronousValue(0.0f);
+    Value sizeProperty = SynchronousValue();
     
 public:
     RadioObject(void* ptr, Object* object)

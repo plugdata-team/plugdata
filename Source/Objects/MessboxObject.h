@@ -13,11 +13,11 @@ class MessboxObject final : public ObjectBase
 
     int numLines = 1;
 
-    Value primaryColour;
-    Value secondaryColour;
-    Value fontSize;
-    Value bold;
-    Value sizeProperty;
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value fontSize = SynchronousValue();
+    Value bold = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
         
 public:
     MessboxObject(void* obj, Object* parent)

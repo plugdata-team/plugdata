@@ -10,6 +10,7 @@
 #include "Pd/MessageListener.h"
 #include "Constants.h"
 #include "ObjectParameters.h"
+#include "Utility/SynchronousValue.h"
 
 class PluginProcessor;
 class Canvas;
@@ -225,7 +226,7 @@ protected:
     std::unique_ptr<ComponentBoundsConstrainer> constrainer;
 
     ObjectSizeListener objectSizeListener;
-    Value positionParameter;
+    Value positionParameter = SynchronousValue();
         
     friend class IEMHelper;
     friend class AtomHelper;

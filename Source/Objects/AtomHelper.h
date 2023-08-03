@@ -32,12 +32,12 @@ class AtomHelper {
     inline static int minWidth = 3;
 
 public:
-    Value labelColour;
-    Value labelPosition = Value(0.0f);
-    Value fontSize = Value(5.0f);
-    Value labelText;
-    Value sendSymbol;
-    Value receiveSymbol;
+    Value labelColour = SynchronousValue();
+    Value labelPosition = SynchronousValue(0.0f);
+    Value fontSize = SynchronousValue(5.0f);
+    Value labelText = SynchronousValue();
+    Value sendSymbol = SynchronousValue();
+    Value receiveSymbol = SynchronousValue();
 
     ObjectParameters objectParameters;
 

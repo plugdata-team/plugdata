@@ -10,7 +10,7 @@ class CommentObject final : public ObjectBase
 
     bool locked;
 
-    Value sizeProperty;
+    Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     String objectText;

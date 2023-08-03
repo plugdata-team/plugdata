@@ -7,9 +7,9 @@
 class BangObject final : public ObjectBase {
     uint32_t lastBang = 0;
 
-    Value bangInterrupt = Value(100.0f);
-    Value bangHold = Value(40.0f);
-    Value sizeProperty;
+    Value bangInterrupt = SynchronousValue(100.0f);
+    Value bangHold = SynchronousValue(40.0f);
+    Value sizeProperty = SynchronousValue();
     
     bool bangState = false;
     bool alreadyBanged = false;
@@ -164,12 +164,11 @@ public:
     
     void updateSizeProperty() override
     {
-        /*
         setPdBounds(object->getObjectBounds());
         
         if (auto iem = ptr.get<t_iemgui>()) {
             setParameterExcludingListener(sizeProperty, var(iem->x_w));
-        } */
+        }
     }
 
     void valueChanged(Value& value) override

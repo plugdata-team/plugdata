@@ -637,7 +637,7 @@ class CanvasZoomObject final : public ImplementationBase
     , public Value::Listener {
 
     float lastScale;
-    Value zoomScaleValue;
+    Value zoomScaleValue = SynchronousValue();
 
     Component::SafePointer<Canvas> cnv;
 

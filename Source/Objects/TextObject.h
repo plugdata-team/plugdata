@@ -196,7 +196,7 @@ protected:
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
 
-    Value sizeProperty;
+    Value sizeProperty = SynchronousValue();
     String objectText;
     int numLines = 1;
     bool isValid = true;

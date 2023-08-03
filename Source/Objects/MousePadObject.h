@@ -9,7 +9,7 @@ class MousePadObject final : public ObjectBase {
     bool isPressed = false;
 
     Point<int> lastPosition;
-    Value sizeProperty;
+    Value sizeProperty = SynchronousValue();
 
 public:
     MousePadObject(void* ptr, Object* object)

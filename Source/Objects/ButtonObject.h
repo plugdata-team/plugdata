@@ -9,9 +9,9 @@ class ButtonObject : public ObjectBase {
     bool state = false;
     bool alreadyTriggered = false;
 
-    Value primaryColour;
-    Value secondaryColour;
-    Value sizeProperty;
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
 
 public:
     ButtonObject(void* obj, Object* parent)

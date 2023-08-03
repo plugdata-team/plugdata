@@ -11,9 +11,9 @@ class FloatAtomObject final : public ObjectBase {
     AtomHelper atomHelper;
     DraggableNumber input;
 
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
-    Value sizeProperty;
+    Value min = SynchronousValue(0.0f);
+    Value max = SynchronousValue(0.0f);
+    Value sizeProperty = SynchronousValue();
     
     float value = 0.0f;
 
@@ -49,7 +49,7 @@ public:
             startEdition();
         };
 
-        input.valueChanged = [this](float newValue) {
+        input.onValueChange = [this](float newValue) {
             sendFloatValue(newValue);
         };
 
