@@ -62,43 +62,25 @@ struct t_fake_button {
     unsigned char x_fgcolor[3];
 };
 
-// for [clone]
-struct t_copy {
-    t_glist* c_gl;
-    int c_on; /* DSP running */
-};
-
-// for [clone]
-struct t_in {
-    t_class* i_pd;
-    struct _clone* i_owner;
-    int i_signal;
-    int i_n;
-};
-
-// for [clone]
-struct t_out {
-    t_class* o_pd;
-    t_outlet* o_outlet;
-    int o_signal;
-    int o_n;
-};
 
 // [clone]
 struct t_fake_clone {
     t_object x_obj;
-    int x_n;       /* number of copies */
-    t_copy* x_vec; /* the copies */
+    t_canvas *x_canvas; /* owning canvas */
+    int x_n;            /* number of copies */
+    void *x_vec;      /* the copies */
     int x_nin;
-    t_in* x_invec; /* inlet proxies */
+    void *x_invec;      /* inlet proxies */
     int x_nout;
-    t_out** x_outvec; /* outlet proxies */
-    t_symbol* x_s;    /* name of abstraction */
-    int x_argc;       /* creation arguments for abstractions */
-    t_atom* x_argv;
-    int x_phase;
-    int x_startvoice;    /* number of first voice, 0 by default */
-    int x_suppressvoice; /* suppress voice number as $1 arg */
+    void *x_outvec;    /* outlets */
+    t_symbol *x_s;      /* name of abstraction */
+    int x_argc;         /* creation arguments for abstractions */
+    t_atom *x_argv;
+    int x_phase;        /* phase for round-robin input message forwarding */
+    int x_startvoice;   /* number of first voice, 0 by default */
+    unsigned int x_suppressvoice:1; /* suppress voice number as $1 arg */
+    unsigned int x_distributein:1;  /* distribute input signals across clones */
+    unsigned int x_packout:1;       /* pack output signals */
 };
 
 // [else/colors]
