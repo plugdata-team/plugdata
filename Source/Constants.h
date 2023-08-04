@@ -199,6 +199,7 @@ struct Icons {
     inline static const String GlyphReverb = CharPointer_UTF8("Ɲ");
     inline static const String GlyphFreeze = CharPointer_UTF8("ƞ");
     inline static const String GlyphRingmod = CharPointer_UTF8("Ƣ");
+    inline static const String GlyphSVFilter = CharPointer_UTF8("Ʀ");
     inline static const String GlyphClip = CharPointer_UTF8("ƣ");
     inline static const String GlyphFold = CharPointer_UTF8("Ƥ");
     inline static const String GlyphWrap = CharPointer_UTF8("ƥ");
