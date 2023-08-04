@@ -225,6 +225,14 @@ file(GLOB plugdata_standalone_sources
     ${SOURCES_DIRECTORY}/Standalone/InternalSynth.h)
 source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
 
+if(MSVC)
+  # Disable LV2 on Windows for now, it was broken by JUCE v7.0.6
+  set(PLUGIN_FORMATS AU VST3 CLAP)
+else()
+  set(PLUGIN_FORMATS AU VST3 LV2 CLAP)
+endif()
+
+
 juce_add_gui_app(plugdata_standalone
     PRODUCT_NAME                "plugdata"
     VERSION                     ${PLUGDATA_VERSION}
@@ -256,7 +264,7 @@ juce_add_plugin(plugdata
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdIn
-    FORMATS                     AU VST3 LV2 CLAP
+    FORMATS                     ${PLUGIN_FORMATS}
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata"
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
@@ -280,7 +288,7 @@ juce_add_plugin(plugdata_fx
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdFx
-    FORMATS                     AU VST3 LV2 CLAP
+    FORMATS                     ${PLUGIN_FORMATS}
     LV2URI                      https://github.com/timothyschoen/plugdata-fx
     PRODUCT_NAME                "plugdata-fx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
