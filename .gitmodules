@@ -28,3 +28,8 @@
 [submodule "Libraries/plugdata-ofelia"]
 	path = Libraries/plugdata-ofelia
 	url = https://github.com/plugdata-team/plugdata-ofelia
+[submodule "Libraries/pd-else"]
+	path = Libraries/pd-else
+	url = https://github.com/porres/pd-else.git
+[submodule "pd-else"]
+	url = https://github.com/timothyschoen/pd-else

@@ -185,28 +185,31 @@ list(APPEND SOURCE_FILES ${LIBPD_SOURCES})
 # ELSE SOURCES
 # ------------------------------------------------------------------------------#
 file(GLOB ELSE_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/Source/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/Aliases/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/signal/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/extra_source/Aliases/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Aliases/*.c
 )
 
 file(GLOB_RECURSE PLAITS_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/plaits~.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/signal/plaits~/plaits~.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/signal/plaits~/*.cc
 )
 
 list(APPEND ELSE_SOURCES ${PLAITS_SOURCES})
 
 file(GLOB_RECURSE AUBIO_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*/*.c
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/aubio/src/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/aubio/src/*/*.c
 )
 
-include_directories(ELSE/Source/)
-include_directories(ELSE/Aliases/)
-include_directories(ELSE/shared)
-include_directories(ELSE/shared/aubio/src)
-include_directories(ELSE/plaits~)
+include_directories(pd-else/Code_source/Compiled/control/)
+include_directories(pd-else/Code_source/Compiled/signal/)
+include_directories(pd-else/Code_source/shared/)
+include_directories(pd-else/Code_source/shared/aubio/src)
+include_directories(pd-else/Code_source/Compiled/signal/plaits~)
 
 source_group(ELSE FILES ${ELSE_SOURCES})
 
@@ -287,8 +290,8 @@ if(ENABLE_SFONT)
 
     list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
 
-    set(SFONT_DIR ELSE/sfont~)
-    set(FLUIDLIGHT_DIR ${SFONT_DIR}/FluidLite)
+    set(SFONT_DIR pd-else/Code_source/Compiled/signal/sfont~)
+    set(FLUIDLIGHT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
 
     list(APPEND SFONT_SOURCES
         ${FLUIDLIGHT_DIR}/src/fluid_init.c
