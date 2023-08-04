@@ -189,7 +189,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     // New object button
     addObjectMenuButton.setButtonText(Icons::Add);
-    addObjectMenuButton.setTooltip("Create object");
+    addObjectMenuButton.setTooltip("Add object");
     addObjectMenuButton.onClick = [this]() { Dialogs::showObjectMenu(this, &addObjectMenuButton); };
     addAndMakeVisible(addObjectMenuButton);
 
@@ -819,7 +819,7 @@ void PluginEditor::updateCommandStatus()
         statusbar->centreButton.setEnabled(true);
         statusbar->fitAllButton.setEnabled(true);
 
-        addObjectMenuButton.setEnabled(!locked);
+        addObjectMenuButton.setEnabled(true);
     } else {
 
         pluginModeButton.setEnabled(false);
