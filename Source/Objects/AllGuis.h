@@ -535,12 +535,12 @@ struct t_fake_fielddesc {
 struct t_fake_curve {
     t_object x_obj;
     int x_flags;    /* CLOSED, BEZ, NOMOUSERUN, NOMOUSEEDIT */
-    t_fielddesc x_fillcolor;
-    t_fielddesc x_outlinecolor;
-    t_fielddesc x_width;
-    t_fielddesc x_vis;
+    t_fake_fielddesc x_fillcolor;
+    t_fake_fielddesc x_outlinecolor;
+    t_fake_fielddesc x_width;
+    t_fake_fielddesc x_vis;
     int x_npoints;
-    t_fielddesc *x_vec;
+    t_fake_fielddesc *x_vec;
     t_canvas *x_canvas;
 };
 
