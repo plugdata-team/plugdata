@@ -15,7 +15,7 @@
 // http://www.antigrain.com/__code/include/agg_blur.h.html
 
 #if JUCE_WINDOWS
-#    include <juce_gui_basics/native/juce_win32_ScopedThreadDPIAwarenessSetter.h>
+#    include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
 #endif
 
 #include <juce_audio_processors/juce_audio_processors.h>
