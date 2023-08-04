@@ -10,6 +10,7 @@
 #include "Utility/DraggableNumber.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/ReorderButton.h"
+#include "Utility/PropertiesPanel.h"
 
 class AutomationSlider : public Component
     , public Value::Listener {
@@ -38,20 +39,22 @@ public:
     AutomationSlider(int idx, Component* parentComponent, PluginProcessor* processor)
         : index(idx)
         , pd(processor)
+        , rangeProperty("Range", range, false)
+        , modeProperty("Mode", mode, {"Float", "Integer", "Logarithmic", "Exponential"})
     {
         param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[index + 1]);
 
-        nameLabel.setFont(nameLabel.getFont().withHeight(14.0f));
-        valueLabel.setFont(valueLabel.getFont().withHeight(14.0f));
-        minLabel.setFont(minLabel.getFont().withHeight(14.0f));
-        maxLabel.setFont(maxLabel.getFont().withHeight(14.0f));
-        minValue.setFont(minValue.getFont().withHeight(14.0f));
-        maxValue.setFont(maxValue.getFont().withHeight(14.0f));
-
+        addChildComponent(rangeProperty);
+        addChildComponent(modeProperty);
+        
+        range.addListener(this);
+        mode.addListener(this);
+        
         deleteButton.onClick = [this]() mutable {
             onDelete(this);
         };
 
+        nameLabel.setFont(Font(14));
         nameLabel.addMouseListener(this, false);
         deleteButton.addMouseListener(this, false);
         reorderButton.addMouseListener(this, false);
@@ -63,49 +66,49 @@ public:
         settingsButton.onClick = [this, parentComponent]() mutable {
             bool toggleState = settingsButton.getToggleState();
 
-            minLabel.setVisible(toggleState);
-            minValue.setVisible(toggleState);
-            maxLabel.setVisible(toggleState);
-            maxValue.setVisible(toggleState);
+            rangeProperty.setVisible(toggleState);
+            modeProperty.setVisible(toggleState);
             
             getParentComponent()->resized();
         };
 
-        minValue.dragEnd = [this]() {
-            double minimum = minValue.getValue();
+        auto& minimumComponent = rangeProperty.getMinimumComponent();
+        auto& maximumComponent = rangeProperty.getMaximumComponent();
+        
+        minimumComponent.dragEnd = [this, &maximumComponent]() {
+            double minimum = static_cast<int>((*range.getValue().getArray())[0]);
             double maximum = param->getNormalisableRange().end;
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
             valueLabel.setValue(std::clamp(valueLabel.getValue(), minimum, maximum));
 
-            maxValue.setMinimum(minimum + 0.000001);
+            maximumComponent.setMinimum(minimum + 0.000001);
 
             // make sure min is always smaller than max
             minimum = std::min(minimum, maximum - 0.000001);
 
-            slider.setRange(minimum, maximum, 0.000001f);
             param->setRange(minimum, maximum);
             param->notifyDAW();
+            update();
         };
 
-        maxValue.dragEnd = [this]() {
+        maximumComponent.dragEnd = [this, &minimumComponent]() {
             double minimum = param->getNormalisableRange().start;
-            double maximum = maxValue.getValue();
+            double maximum = static_cast<int>((*range.getValue().getArray())[1]);
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
             valueLabel.setValue(std::clamp(valueLabel.getValue(), minimum, maximum));
 
-            minValue.setMaximum(maximum);
+            minimumComponent.setMaximum(maximum);
 
             // make sure max is always bigger than min
             maximum = std::max(maximum, minimum + 0.000001);
 
-            slider.setRange(minimum, maximum, 0.000001);
             param->setRange(minimum, maximum);
-
             param->notifyDAW();
+            update();
         };
 
         slider.setScrollWheelEnabled(false);
@@ -193,14 +196,6 @@ public:
         addChildComponent(reorderButton);
         addChildComponent(deleteButton);
 
-        addChildComponent(minLabel);
-        addChildComponent(minValue);
-        addChildComponent(maxLabel);
-        addChildComponent(maxValue);
-
-        minValue.setEditable(true);
-        maxValue.setEditable(true);
-        
         update();
     }
         
@@ -209,26 +204,51 @@ public:
         lastName = param->getTitle();
         nameLabel.setText(lastName, dontSendNotification);
         
-        auto range = param->getNormalisableRange().getRange();
+        auto normalisableRange = param->getNormalisableRange();
 
-        auto minimum = range.getStart();
-        auto maximum = range.getEnd();
-
-        valueLabel.setMinimum(minimum);
-        valueLabel.setMaximum(maximum);
-
-        minValue.setValue(minimum);
-        maxValue.setValue(maximum);
-
-        maxValue.setMinimum(minimum + 0.000001f);
-        minValue.setMaximum(maximum);
+        auto& min = normalisableRange.start;
+        auto& max = normalisableRange.end;
+        
+        range = Array<var>{min, max};
+        
+        if(normalisableRange.skew == 4.0f)
+        {
+            mode = PlugDataParameter::Logarithmic;
+        }
+        else if(normalisableRange.skew == 0.25f)
+        {
+            mode = PlugDataParameter::Exponential;
+        }
+        else {
+            mode = normalisableRange.interval == 1.0f ? PlugDataParameter::Integer : PlugDataParameter::Float;
+        }
+        
+        if(mode == PlugDataParameter::Integer)
+        {
+            valueLabel.setDragMode(DraggableNumber::Integer);
+            rangeProperty.getMinimumComponent().setDragMode(DraggableNumber::Integer);
+            rangeProperty.getMaximumComponent().setDragMode(DraggableNumber::Integer);
+        }
+        else {
+            valueLabel.setDragMode(DraggableNumber::Regular);
+            rangeProperty.getMinimumComponent().setDragMode(DraggableNumber::Regular);
+            rangeProperty.getMaximumComponent().setDragMode(DraggableNumber::Regular);
+        }
+        
+        valueLabel.setMinimum(min);
+        valueLabel.setMaximum(max);
+    
+        rangeProperty.getMaximumComponent().setMinimum(min + 0.000001f);
+        rangeProperty.getMinimumComponent().setMaximum(max);
+        
+        auto doubleRange = NormalisableRange<double>(normalisableRange.start, normalisableRange.end, normalisableRange.interval, normalisableRange.skew);
         
         if (ProjectInfo::isStandalone) {
             slider.setValue(param->getUnscaledValue());
-            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
+            slider.setNormalisableRange(doubleRange);
             valueLabel.setText(String(param->getUnscaledValue(), 2), dontSendNotification);
         } else {
-            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
+            slider.setNormalisableRange(doubleRange);
         }
     }
 
@@ -261,7 +281,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if(e.originalComponent == &reorderButton) return;
+        if(e.originalComponent == &reorderButton || e.getDistanceFromDragStart() < 5) return;
         
         auto formatedParam = "#X obj 0 0 param " + param->getTitle() + ";";
 
@@ -283,13 +303,24 @@ public:
 
     void valueChanged(Value& v) override
     {
-        //createButton.setEnabled(!getValue<bool>(v));
+        if(v.refersToSameSourceAs(range))
+        {
+            auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
+            auto max = static_cast<float>(range.getValue().getArray()->getReference(1));
+            param->setRange(min, max);
+            update();
+        }
+        else if(v.refersToSameSourceAs(mode))
+        {
+            param->setMode(static_cast<PlugDataParameter::Mode>(getValue<int>(mode)));
+            update();
+        }
     }
 
     int getItemHeight()
     {
         if (param->isEnabled()) {
-            return settingsButton.getToggleState() ? 70.0f : 50.0f;
+            return settingsButton.getToggleState() ? 110.0f : 56.0f;
         } else {
             return 0.0f;
         }
@@ -312,27 +343,20 @@ public:
 
         auto bounds = getLocalBounds().reduced(6, 2);
 
-        int rowHeight = 22;
+        int rowHeight = 26;
 
         auto firstRow = bounds.removeFromTop(rowHeight);
         auto secondRow = bounds.removeFromTop(rowHeight);
 
         if (settingsVisible) {
-            auto thirdRow = bounds;
 
-            auto oneThird = thirdRow.getWidth() / 3.0f;
-            auto oneSixth = thirdRow.getWidth() * (1.0f / 6.0f);
-
-            minLabel.setBounds(thirdRow.removeFromLeft(oneSixth));
-            minValue.setBounds(thirdRow.removeFromLeft(oneThird));
-
-            maxLabel.setBounds(thirdRow.removeFromLeft(oneSixth));
-            maxValue.setBounds(thirdRow.removeFromLeft(oneThird));
+            rangeProperty.setBounds(bounds.removeFromTop(rowHeight));
+            modeProperty.setBounds(bounds.removeFromTop(rowHeight));
         }
 
         auto buttonsBounds = firstRow.removeFromRight(50).withHeight(25);
 
-        nameLabel.setBounds(firstRow);
+        nameLabel.setBounds(firstRow.withTrimmedLeft(4));
 
         settingsButton.setBounds(secondRow.removeFromLeft(25));
         slider.setBounds(secondRow.removeFromLeft(getWidth() - 90));
@@ -360,11 +384,12 @@ public:
     TextButton deleteButton = TextButton(Icons::Clear);
     ExpandButton settingsButton;
 
-    Label minLabel = Label("", "Min:");
-    Label maxLabel = Label("", "Max:");
-
-    DraggableNumber minValue = DraggableNumber(false);
-    DraggableNumber maxValue = DraggableNumber(false);
+    Value range = Value(var(Array<var>{var(0.0f), var(127.0f)}));
+    Value mode = Value(var(PlugDataParameter::Float));
+        
+    PropertiesPanel::RangeComponent rangeProperty;
+    PropertiesPanel::ComboComponent modeProperty;
+        
     DraggableNumber valueLabel = DraggableNumber(false);
 
     Label nameLabel;

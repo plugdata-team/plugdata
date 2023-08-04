@@ -578,7 +578,7 @@ public:
         Value property;
 
         DraggableNumber minLabel, maxLabel;
-
+            
         float min, max;
 
         RangeComponent(String const& propertyName, Value& value, bool integerMode)
@@ -596,12 +596,12 @@ public:
             minLabel.setEditableOnClick(true);
             minLabel.addMouseListener(this, true);
             minLabel.setText(String(min), dontSendNotification);
-
+            
             addAndMakeVisible(maxLabel);
             maxLabel.setEditableOnClick(true);
             maxLabel.addMouseListener(this, true);
             maxLabel.setText(String(max), dontSendNotification);
-
+            
             auto setMinimum = [this](float value) {
                 min = value;
                 Array<var> arr = { min, max };
@@ -630,6 +630,22 @@ public:
         ~RangeComponent() override
         {
             property.removeListener(this);
+        }
+            
+        DraggableNumber& getMinimumComponent()
+        {
+            return minLabel;
+        }
+            
+        DraggableNumber& getMaximumComponent()
+        {
+            return maxLabel;
+        }
+            
+        void setIntegerMode(bool integerMode)
+        {
+            minLabel.setDragMode(integerMode ? DraggableNumber::Integer : DraggableNumber::Regular);
+            maxLabel.setDragMode(integerMode ? DraggableNumber::Integer : DraggableNumber::Regular);
         }
 
         void resized() override
@@ -666,7 +682,6 @@ public:
                 
                 // By setting the text before attaching the value, we can prevent an unnesssary/harmful call to ValueChanged
                 draggableNumber->setText(String(getValue<T>(property)), dontSendNotification);
-                
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
 
