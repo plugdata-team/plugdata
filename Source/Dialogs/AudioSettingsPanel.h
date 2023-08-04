@@ -312,7 +312,6 @@ private:
                 inputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool isEnabled) {
                     setup.useDefaultInputChannels = false;
                     setup.inputChannels.setBit(idx, isEnabled);
-                    updateConfig();
                 }));
                 idx++;
             }
@@ -341,7 +340,6 @@ private:
                 outputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool isEnabled) {
                     setup.useDefaultOutputChannels = false;
                     setup.outputChannels.setBit(idx, isEnabled);
-                    updateConfig();
                 }));
                 idx++;
             }
