@@ -148,8 +148,6 @@ struct Icons {
     inline static const String GlyphSpigot = CharPointer_UTF8("ó");
     inline static const String GlyphBondo = CharPointer_UTF8("ô");
 
-
-
     // MIDI
     inline static const String GlyphMidiIn = CharPointer_UTF8("ć");
     inline static const String GlyphMidiOut = CharPointer_UTF8("Ĉ");
@@ -201,6 +199,10 @@ struct Icons {
     inline static const String GlyphReverb = CharPointer_UTF8("Ɲ");
     inline static const String GlyphFreeze = CharPointer_UTF8("ƞ");
     inline static const String GlyphRingmod = CharPointer_UTF8("Ƣ");
+    inline static const String GlyphSVFilter = CharPointer_UTF8("Ʀ");
+    inline static const String GlyphClip = CharPointer_UTF8("ƣ");
+    inline static const String GlyphFold = CharPointer_UTF8("Ƥ");
+    inline static const String GlyphWrap = CharPointer_UTF8("ƥ");
 };
 
 enum PlugDataColour {
