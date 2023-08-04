@@ -189,7 +189,6 @@ file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/signal/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/extra_source/Aliases/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Aliases/*.c
 )
 
 file(GLOB_RECURSE PLAITS_SOURCES
@@ -205,6 +204,7 @@ file(GLOB_RECURSE AUBIO_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/aubio/src/*/*.c
 )
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(pd-else/Code_source/Compiled/control/)
 include_directories(pd-else/Code_source/Compiled/signal/)
 include_directories(pd-else/Code_source/shared/)
@@ -276,10 +276,10 @@ if(WIN32)
     endif()
 
     if(MSVC)
-        list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_STRUCT_TIMESPEC=1 _CRT_SECURE_NO_WARNINGS=1 HAVE_ALLOCA=0)
+        list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_STRUCT_TIMESPEC=1 _CRT_SECURE_NO_WARNINGS=1 HAVE_ALLOCA=0 DONT_USE_ALLOCA=1)
     endif()
 elseif(UNIX)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1)
+    list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
 endif()
 
 # ------------------------------------------------------------------------------#
@@ -291,59 +291,59 @@ if(ENABLE_SFONT)
     list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
 
     set(SFONT_DIR pd-else/Code_source/Compiled/signal/sfont~)
-    set(FLUIDLIGHT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
+    set(FLUIDLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
 
     list(APPEND SFONT_SOURCES
-        ${FLUIDLIGHT_DIR}/src/fluid_init.c
-        ${FLUIDLIGHT_DIR}/src/fluid_chan.c
-        ${FLUIDLIGHT_DIR}/src/fluid_chorus.c
-        ${FLUIDLIGHT_DIR}/src/fluid_conv.c
-        ${FLUIDLIGHT_DIR}/src/fluid_defsfont.c
-        ${FLUIDLIGHT_DIR}/src/fluid_dsp_float.c
-        ${FLUIDLIGHT_DIR}/src/fluid_gen.c
-        ${FLUIDLIGHT_DIR}/src/fluid_hash.c
-        ${FLUIDLIGHT_DIR}/src/fluid_list.c
-        ${FLUIDLIGHT_DIR}/src/fluid_mod.c
-        ${FLUIDLIGHT_DIR}/src/fluid_ramsfont.c
-        ${FLUIDLIGHT_DIR}/src/fluid_rev.c
-        ${FLUIDLIGHT_DIR}/src/fluid_settings.c
-        ${FLUIDLIGHT_DIR}/src/fluid_synth.c
-        ${FLUIDLIGHT_DIR}/src/fluid_sys.c
-        ${FLUIDLIGHT_DIR}/src/fluid_tuning.c
-        ${FLUIDLIGHT_DIR}/src/fluid_voice.c
+        ${FLUIDLITE_DIR}/src/fluid_init.c
+        ${FLUIDLITE_DIR}/src/fluid_chan.c
+        ${FLUIDLITE_DIR}/src/fluid_chorus.c
+        ${FLUIDLITE_DIR}/src/fluid_conv.c
+        ${FLUIDLITE_DIR}/src/fluid_defsfont.c
+        ${FLUIDLITE_DIR}/src/fluid_dsp_float.c
+        ${FLUIDLITE_DIR}/src/fluid_gen.c
+        ${FLUIDLITE_DIR}/src/fluid_hash.c
+        ${FLUIDLITE_DIR}/src/fluid_list.c
+        ${FLUIDLITE_DIR}/src/fluid_mod.c
+        ${FLUIDLITE_DIR}/src/fluid_ramsfont.c
+        ${FLUIDLITE_DIR}/src/fluid_rev.c
+        ${FLUIDLITE_DIR}/src/fluid_settings.c
+        ${FLUIDLITE_DIR}/src/fluid_synth.c
+        ${FLUIDLITE_DIR}/src/fluid_sys.c
+        ${FLUIDLITE_DIR}/src/fluid_tuning.c
+        ${FLUIDLITE_DIR}/src/fluid_voice.c
 
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/vorbisenc.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/info.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/analysis.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/bitrate.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/block.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/codebook.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/envelope.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/floor0.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/floor1.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/lookup.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/lpc.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/lsp.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/mapping0.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/mdct.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/psy.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/registry.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/res0.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/sharedbook.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/smallft.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/vorbisfile.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/window.c
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/synthesis.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisenc.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/info.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/analysis.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/bitrate.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/block.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/codebook.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/envelope.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/floor0.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/floor1.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lookup.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lpc.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lsp.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/mapping0.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/mdct.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/psy.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/registry.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/res0.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/sharedbook.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/smallft.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisfile.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/window.c
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/synthesis.c
 
-        ${FLUIDLIGHT_DIR}/libogg-1.3.2/src/bitwise.c
-        ${FLUIDLIGHT_DIR}/libogg-1.3.2/src/framing.c
+        ${FLUIDLITE_DIR}/libogg-1.3.2/src/bitwise.c
+        ${FLUIDLITE_DIR}/libogg-1.3.2/src/framing.c
     )
 
     list(APPEND SFONT_INCLUDES
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/include
-        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib
-        ${FLUIDLIGHT_DIR}/libogg-1.3.2/include
-        ${FLUIDLIGHT_DIR}/include
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/include
+        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib
+        ${FLUIDLITE_DIR}/libogg-1.3.2/include
+        ${FLUIDLITE_DIR}/include
     )
 
     add_library(fluidlite STATIC ${SFONT_SOURCES})
@@ -404,8 +404,8 @@ set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(externals fluidlite lua)
 target_link_libraries(externals-multi fluidlite lua)
 
-target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR})
-target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR})
+target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
+target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 # ------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
 # ------------------------------------------------------------------------------#

@@ -558,9 +558,7 @@ void fbsine_tilde_setup();
 void fbsine2_tilde_setup();
 void setup_fdn0x2erev_tilde();
 void ffdelay_tilde_setup();
-void f2s_tilde_setup();
 void float2bits_setup();
-void float2sig_tilde_setup();
 void floor_setup();
 void floor_tilde_setup();
 void fold_setup();
@@ -660,7 +658,6 @@ void setup_rand0x2ehist();
 void setup_rand0x2ef_tilde();
 void setup_rand0x2ei();
 void setup_rand0x2ei_tilde();
-//void setup_rand0x2eseq();
 void setup_rand0x2eu();
 #if ENABLE_SFONT
 void sfont_tilde_setup();
@@ -746,7 +743,20 @@ void xselect_tilde_setup();
 void xselect2_tilde_setup();
 void zerocross_tilde_setup();
 
+//sum~], [sigs~], [out.mc~], [osc.mc~], [imp.mc~], [rampnoise.mc~], [stepnoise.mc~], [select~], [xselect.mc~], [merge~], [phaseseq~], [oscnoise~] and [sfz~
+                                                                                                                                                    
+void nchs_tilde_setup();
+void get_tilde_setup();
+void pick_tilde_setup();
+void sigs_tilde_setup();
+void select_tilde_setup();
+void setup_xselect0x2emc_tilde();
+void merge_tilde_setup();
+void unmerge_tilde_setup();
+void phaseseq_tilde_setup();
+//void sfz_tilde_setup();
 void knob_setup();
+                                                                                                                                                     
 
 void pdlua_setup(const char *datadir, char *vers, int vers_len);
 
@@ -846,11 +856,9 @@ void libpd_init_else(void)
     fbdelay_tilde_setup();
     fbsine_tilde_setup();
     fbsine2_tilde_setup();
-    f2s_tilde_setup();
     setup_fdn0x2erev_tilde();
     ffdelay_tilde_setup();
     float2bits_setup();
-    float2sig_tilde_setup();
     floor_setup();
     floor_tilde_setup();
     fold_setup();
@@ -1035,6 +1043,15 @@ void libpd_init_else(void)
     xselect_tilde_setup();
     xselect2_tilde_setup();
     zerocross_tilde_setup();
+    nchs_tilde_setup();
+    get_tilde_setup();
+    pick_tilde_setup();
+    sigs_tilde_setup();
+    select_tilde_setup();
+    setup_xselect0x2emc_tilde();
+    merge_tilde_setup();
+    unmerge_tilde_setup();
+    phaseseq_tilde_setup();
 }
 
 void libpd_init_cyclone(void)
