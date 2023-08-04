@@ -300,9 +300,9 @@ public:
                     { Icons::GlyphFreeze, "#X obj 0 0 freeze~", "Freeze", "Freeze", OtherObject },
                     { Icons::GlyphRingmod, "#X obj 0 0 rm~ 150", "Ringmod", "Ringmod", OtherObject },
                     { Icons::GlyphGeneric, "#X obj 0 0 svfilter~ 1729 0.42", "State variable filter", "SVFilter", OtherObject },
-                    { Icons::GlyphGeneric, "#X obj 0 0 clip~ -0.5 0.5", "Clip", "Clip", OtherObject },
-                    { Icons::GlyphGeneric, "#X obj 0 0 fold~ -0.5 0.5", "Fold", "Fold", OtherObject },
-                    { Icons::GlyphGeneric, "#X obj 0 0 wrap2~ -0.5 0.5", "Wrap", "Wrap", OtherObject },
+                    { Icons::GlyphClip, "#X obj 0 0 clip~ -0.5 0.5", "Clip", "Clip", OtherObject },
+                    { Icons::GlyphFold, "#X obj 0 0 fold~ -0.5 0.5", "Fold", "Fold", OtherObject },
+                    { Icons::GlyphWrap, "#X obj 0 0 wrap2~ -0.5 0.5", "Wrap", "Wrap", OtherObject },
                 }},
             { "Math",
                 {
