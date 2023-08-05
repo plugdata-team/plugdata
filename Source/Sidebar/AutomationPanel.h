@@ -590,23 +590,10 @@ public:
                     i++;
                 }
                 newParamName += String(i);
-
-                parameterValues.erase(parameterValues.begin() + toDeleteIdx);
-                parameterValues.emplace_back(false, newParamName, 0.0f, 0.0f, 1.0f);
-
-                for (int i = 0; i < rows.size(); i++) {
-                    auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[i + 1]);
-
-                    auto& [enabled, name, value, min, max] = parameterValues[i];
-
-                    param->setEnabled(enabled);
-                    param->setName(name);
-                    param->setRange(min, max);
-                    param->setUnscaledValueNotifyingHost(value);
-                }
-
-                dynamic_cast<PlugDataParameter*>(pd->getParameters()[0])->notifyDAW();
-
+                
+                toDelete->setEnabled(false);
+                toDelete->param->setName(newParamName);
+                
                 updateSliders();
             };
         }
