@@ -74,6 +74,7 @@ globCopy("../../Libraries/pure-data/extra/**/*-help.pd", "./Abstractions")
 
 globCopy("../../Libraries/pd-else/Code_source/Abstractions/abs_objects/control/*.pd", "./Abstractions/else")
 globCopy("../../Libraries/pd-else/Code_source/Abstractions/abs_objects/signal/*.pd", "./Abstractions/else")
+globCopy("../../Libraries/pd-else/Code_source/Abstractions/extra_abs/*.pd", "./Abstractions/else")
 copyFile("../Patches/playhead.pd", "./Abstractions")
 copyFile("../Patches/param.pd", "./Abstractions")
 #copyFile("../Patches/beat.pd", "./Abstractions")
