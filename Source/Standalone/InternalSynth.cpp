@@ -7,8 +7,8 @@
 #include "InternalSynth.h"
 
 #if PLUGDATA_STANDALONE
-#    include "FluidLite/include/fluidlite.h"
-#    include "FluidLite/src/fluid_sfont.h"
+#    include <FluidLite/include/fluidlite.h>
+#    include <FluidLite/src/fluid_sfont.h>
 #    include <StandaloneBinaryData.h>
 #endif
 
