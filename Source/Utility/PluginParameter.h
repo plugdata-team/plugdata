@@ -111,7 +111,7 @@ public:
     {
         if(!enabled && shouldBeEnabled)
         {
-            range = NormalisableRange<float>(0.0f, 127.0f, 0.000001f);
+            range = NormalisableRange<float>(0.0f, 1.0f, 0.000001f);
             mode = Float;
         }
         
