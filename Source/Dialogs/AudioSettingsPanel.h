@@ -242,6 +242,14 @@ private:
                 }
             }
 
+            // also make sure that setup.sampleRate is set to a supported rate
+            if (!sampleRates.contains(setup.sampleRate)) {
+                for (auto& rate : sampleRates) {
+                  setup.sampleRate = rate;
+                  break;
+                }
+            }
+
             StringArray bufferSizeStrings;
             for (auto& size : bufferSizes) {
                 auto sizeAsString = String(size);
