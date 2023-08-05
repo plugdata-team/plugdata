@@ -504,8 +504,8 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     if (oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
     }
-
-    auto targetGain = getParameters()[0]->getValue();
+    
+    auto targetGain = volume->load();
     float mappedTargetGain = 0.0f;
 
     //    Slider value 0.8 is default unity
