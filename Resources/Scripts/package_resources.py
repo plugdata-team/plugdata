@@ -72,22 +72,22 @@ copyDir("../../Libraries/pure-data/doc", "./Documentation")
 globCopy("../../Libraries/pure-data/extra/*.pd", "./Abstractions")
 globCopy("../../Libraries/pure-data/extra/**/*-help.pd", "./Abstractions")
 
-globCopy("../../Libraries/ELSE/Abstractions/*.pd", "./Abstractions/else")
+globCopy("../../Libraries/pd-else/Code_source/Abstractions/control/*.pd", "./Abstractions/else")
+globCopy("../../Libraries/pd-else/Code_source/Abstractions/signal/*.pd", "./Abstractions/else")
 copyFile("../Patches/playhead.pd", "./Abstractions")
 copyFile("../Patches/param.pd", "./Abstractions")
 #copyFile("../Patches/beat.pd", "./Abstractions")
 
 globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
-copyDir("../../Libraries/ELSE/Help-files/", "./Documentation/9.else")
+copyDir("../../Libraries/pd-else/Documentation/Help-files/", "./Documentation/9.else")
 
-copyFile("../../Libraries/ELSE/sfont~/sfont~-help.pd", "./Documentation/9.else")
 #copyFile("../Patches/beat-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/param-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/playhead-help.pd", "./Documentation/5.reference")
 
 globCopy("../../Libraries/cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions/cyclone")
 copyDir("../../Libraries/cyclone/documentation/help_files", "./Documentation/10.cyclone")
-copyDir("../../Libraries/ELSE/Live-Electronics-Tutorial/", "./Documentation/12.live-electronics-tutorial")
+copyDir("../../Libraries/pd-else/Documentation/Live-Electronics-Tutorial/", "./Documentation/12.live-electronics-tutorial")
 
 makeDir("Documentation/11.heavylib")
 copyDir("../../Libraries/heavylib", "./Abstractions/heavylib")
@@ -97,9 +97,8 @@ removeFile("./Documentation/Makefile.am")
 
 makeDir("Extra")
 makeDir("Extra/GS")
-
-copyDir("../../Libraries/ELSE/Extra", "Extra/else");
-copyDir("../../Libraries/ELSE/sfont~/sf", "Extra/else/sf");
+copyDir("../../Libraries/pd-else/Documentation/extra_files", "Extra/else");
+copyDir("../../Libraries/pd-else/Code_source/Compiled/signal/sfont~/sf", "Extra/else/sf");
 copyDir("../Patches/Presets", "./Extra/Presets")
 globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else");
 
@@ -116,12 +115,6 @@ for src in ["pdlua*-help.pd"]:
     globCopy(pdlua_srcdir+src, "./Documentation/13.pdlua")
 for src in ["pdlua"]:
     copyDir(pdlua_srcdir+src, "./Documentation/13.pdlua/"+src)
-
-# Make sure to get rid of these duplicates so that they don't interfere with
-# our help patches. Note that these are still in ELSE rc6, but won't be in rc7
-# which doesn't include pd-lua any more.
-for doc in glob.glob("./Documentation/9.else/pdlua*-help.pd"):
-    removeFile(doc)
 
 changeWorkingDir("./..")
 
