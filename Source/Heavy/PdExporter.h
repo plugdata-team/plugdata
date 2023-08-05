@@ -83,7 +83,6 @@ public:
             Toolchain::startShellScript(path + cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4", this);
 
 #else // Linux or BSD
-            auto bash = String("#!/bin/bash\n");
             auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
 
             auto buildScript = prepareEnvironmentScript
