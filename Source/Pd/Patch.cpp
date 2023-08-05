@@ -176,6 +176,7 @@ void Patch::savePatch()
 void Patch::setCurrent()
 {
     if (auto patch = ptr.get<t_glist>()) {
+        instance->setThis();
         // This is the same as calling canvas_vis and canvas_map,
         // but all the other stuff inside those functions is just for tcl/tk anyway
 
@@ -402,6 +403,12 @@ String Patch::translatePatchAsString(String const& patchAsString, Point<int> pos
         return tokens[0] == "#X" && tokens[1] != "connect" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
 
+    // blank message objects have a comma after their position: "#X msg 0 0, f 9;"
+    // this normally isn't an issue, but because they are blank, the comma is next to the number token and doesn't get parsed correctly
+    auto isMsg = [](StringArray& tokens) {
+        return tokens[0] == "#X" && tokens[1] == "msg";
+    };
+
     auto isStartingCanvas = [](StringArray& tokens) {
         return tokens[0] == "#N" && tokens[1] == "canvas" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789") && tokens[4].containsOnly("-0123456789") && tokens[5].containsOnly("-0123456789");
     };
@@ -420,9 +427,14 @@ String Patch::translatePatchAsString(String const& patchAsString, Point<int> pos
             canvasDepth++;
         }
 
-        if (canvasDepth == 0 && isObject(tokens)) {
-            minX = std::min(minX, tokens[2].getIntValue());
-            minY = std::min(minY, tokens[3].getIntValue());
+        if (canvasDepth == 0) { 
+            if (isObject(tokens)){
+                minX = std::min(minX, tokens[2].getIntValue());
+                minY = std::min(minY, tokens[3].getIntValue());
+            } else if (isMsg(tokens)) {
+                minX = std::min(minX, tokens[2].getIntValue());
+                minY = std::min(minY, tokens[3].removeCharacters(",").getIntValue());
+            }
         }
 
         if (isEndingCanvas(tokens)) {
@@ -443,11 +455,16 @@ String Patch::translatePatchAsString(String const& patchAsString, Point<int> pos
             canvasDepth++;
         }
 
-        if (canvasDepth == 0 && isObject(tokens)) {
-            tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
-            tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
-
-            line = tokens.joinIntoString(" ");
+        if (canvasDepth == 0) { 
+            if (isObject(tokens)){
+                tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
+                tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
+                line = tokens.joinIntoString(" ");
+            } else if (isMsg(tokens)) {
+                tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
+                tokens.set(3, String(tokens[3].removeCharacters(",").getIntValue() - minY + position.y) + ",");
+                line = tokens.joinIntoString(" ");
+            }
         }
 
         if (isEndingCanvas(tokens)) {

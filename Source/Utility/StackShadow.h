@@ -15,11 +15,11 @@
 // http://www.antigrain.com/__code/include/agg_blur.h.html
 
 #if JUCE_WINDOWS
-#    include <juce_gui_basics/native/juce_win32_ScopedThreadDPIAwarenessSetter.h>
+#    include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
 #endif
 
 #include <juce_audio_processors/juce_audio_processors.h>
-
+#include <juce_gui_basics/detail/juce_WindowingHelpers.h>
 class StackShadow {
 
     static inline unsigned short const stackblur_mul[255] = {
@@ -719,12 +719,6 @@ public:
     }
 };
 
-#if !JUCE_BSD
-namespace juce {
-bool isWindowOnCurrentVirtualDesktop(void* x);
-}
-#endif
-
 class StackDropShadower : private ComponentListener {
 public:
     /** Creates a DropShadower. */
@@ -1025,7 +1019,7 @@ private:
 #if JUCE_BSD
                     return false;
 #else
-                    return !isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
+                    return !detail::WindowingHelpers::isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
 #endif
                 }
 

@@ -21,19 +21,20 @@ public:
     {
     }
 
-    void reset(double sourceSampleRate, int sourceBufferSize)
+    void reset(double sourceSampleRate, int sourceBufferSize, int numChannels)
     {
         sampleRate = sourceSampleRate;
         mainBufferSize = sourceBufferSize;
         peakWindowSize = sampleRate / 60;
         bufferSize = jmax(peakWindowSize, mainBufferSize) * 3;
-        peakBuffer.setSize(2, peakWindowSize, true, true);
-        buffer.setSize(2, bufferSize, false, true);
+        peakBuffer.setSize(numChannels, peakWindowSize, true, true);
+        buffer.setSize(numChannels, bufferSize, false, true);
     }
 
     void write(AudioBuffer<float>& samples)
     {
-        for (int ch = 0; ch < 2; ch++) {
+        
+        for (int ch = 0; ch < peakBuffer.getNumChannels(); ch++) {
             for (int i = 0; i < samples.getNumSamples(); i++) {
                 buffer.setSample(ch, (writePosition + i) % buffer.getNumSamples(), samples.getSample(ch, i));
             }
@@ -63,14 +64,14 @@ public:
         if (readPos < 0)
             readPos += bufferSize;
 
-        for (int ch = 0; ch < 2; ch++) {
+        for (int ch = 0; ch < std::min(2, peakBuffer.getNumChannels()); ch++) {
             for (int i = 0; i < peakWindowSize; i++) {
                 peakBuffer.setSample(ch, i, buffer.getSample(ch, (readPos + i) % bufferSize));
             }
         }
 
         Array<float> peak;
-        for (int ch = 0; ch < 2; ch++) {
+        for (int ch = 0; ch < peakBuffer.getNumChannels(); ch++) {
             peak.add(pow(peakBuffer.getMagnitude(ch, 0, peakWindowSize), 0.5f));
         }
         return peak;

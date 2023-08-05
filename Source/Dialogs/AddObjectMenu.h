@@ -7,6 +7,8 @@
 #pragma once
 #include "Dialogs.h"
 
+#define DEBUG_PRINT_OBJECT_LIST 0
+
 class ObjectItem : public Component, public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
@@ -148,6 +150,9 @@ public:
     ObjectList(PluginEditor* e, std::function<void(bool)> dismissCalloutBox)
         : editor(e), dismissMenu(dismissCalloutBox)
     {
+#if DEBUG_PRINT_OBJECT_LIST == 1
+        printAllObjects();
+#endif
     }
     
     void resized() override
@@ -189,6 +194,27 @@ public:
         
         resized();
     }
+
+    void printAllObjects()
+    {
+        static bool hasRun = false;
+        if (hasRun)
+            return;
+
+        hasRun = true;
+
+        std::cout << "==== object icon list in CSV format ====" << std::endl;
+
+        String cat;
+        for (auto& [categoryName, objectCategory] : objectList) {
+            cat = categoryName;
+            for (auto& [icon, patch, tooltip, name, objectID] : objectCategory) {
+                std::cout << cat << ", " << name << ", " << icon << std::endl;
+            }
+        }
+
+        std::cout << "==== end of list ====" << std::endl;
+    }
     
     OwnedArray<ObjectItem> objectButtons;
     
@@ -198,9 +224,9 @@ public:
             {
                 { Icons::GlyphEmpty, "#X obj 0 0", "(@keypress) Empty object", "Empty", NewObject},
                 { Icons::GlyphMessage, "#X msg 0 0", "(@keypress) Message", "Message" , NewMessage},
-                { Icons::GlyphFloatBox, "#X floatatom 0 0", "(@keypress) Float box", "Float" , NewFloatAtom},
-                { Icons::GlyphSymbolBox, "#X symbolatom 0 0", "Symbol box", "Symbol" , NewSymbolAtom},
-                { Icons::GlyphListBox, "#X listbox 0 0", "(@keypress) List box", "List" , NewListAtom},
+                { Icons::GlyphFloatBox, "#X floatatom 0 0 5 0 0 0 - - - 0", "(@keypress) Float box", "Float" , NewFloatAtom},
+                { Icons::GlyphSymbolBox, "#X symbolatom 0 0 10 0 0 0 - - - 0", "Symbol box", "Symbol" , NewSymbolAtom},
+                { Icons::GlyphListBox, "#X listbox 0 0 20 0 0 0 - - - 0", "(@keypress) List box", "List" , NewListAtom},
                 { Icons::GlyphComment, "#X text 0 0 comment", "(@keypress) Comment", "Comment" , NewComment},
                 { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array array1 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array" , NewArray},
                 { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 226 1 graph;", "(@keypress) Graph on parent", "Graph" , NewGraphOnParent},

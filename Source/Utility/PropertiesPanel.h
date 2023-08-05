@@ -390,9 +390,9 @@ public:
             }
         }
     };
-
-    struct BoolComponent : public Property
-        , public Value::Listener {
+    
+    struct BoolComponent : public Property, public Value::Listener
+    {
         BoolComponent(String const& propertyName, Value& value, StringArray options)
             : Property(propertyName)
             , textOptions(std::move(options))
@@ -408,7 +408,17 @@ public:
         {
             toggleStateValue.addListener(this);
         }
-
+        
+        // Allow creation without an attached juce::Value, but with an initial value
+        // We need this constructor sometimes to prevent feedback caused by the initial value being set after the listener is attached
+        BoolComponent(String const& propertyName, bool initialValue, StringArray options)
+            : Property(propertyName)
+            , textOptions(std::move(options))
+        {
+            toggleStateValue = initialValue;
+            toggleStateValue.addListener(this);
+        }
+        
         ~BoolComponent()
         {
             toggleStateValue.removeListener(this);
@@ -455,20 +465,21 @@ public:
 
         void mouseUp(MouseEvent const& e) override
         {
-            toggleStateValue = !getValue<bool>(toggleStateValue);
+            toggleStateValue.setValue(!getValue<bool>(toggleStateValue));
             repaint();
         }
-
+        
         void valueChanged(Value& v) override
         {
             if (v.refersToSameSourceAs(toggleStateValue))
                 repaint();
         }
-
+        
     protected:
         StringArray textOptions;
         Value toggleStateValue;
     };
+
 
     struct ColourComponent : public Property
         , public Value::Listener {
@@ -578,7 +589,7 @@ public:
         Value property;
 
         DraggableNumber minLabel, maxLabel;
-
+            
         float min, max;
 
         RangeComponent(String const& propertyName, Value& value, bool integerMode)
@@ -596,12 +607,12 @@ public:
             minLabel.setEditableOnClick(true);
             minLabel.addMouseListener(this, true);
             minLabel.setText(String(min), dontSendNotification);
-
+            
             addAndMakeVisible(maxLabel);
             maxLabel.setEditableOnClick(true);
             maxLabel.addMouseListener(this, true);
             maxLabel.setText(String(max), dontSendNotification);
-
+            
             auto setMinimum = [this](float value) {
                 min = value;
                 Array<var> arr = { min, max };
@@ -630,6 +641,22 @@ public:
         ~RangeComponent() override
         {
             property.removeListener(this);
+        }
+            
+        DraggableNumber& getMinimumComponent()
+        {
+            return minLabel;
+        }
+            
+        DraggableNumber& getMaximumComponent()
+        {
+            return maxLabel;
+        }
+            
+        void setIntegerMode(bool integerMode)
+        {
+            minLabel.setDragMode(integerMode ? DraggableNumber::Integer : DraggableNumber::Regular);
+            maxLabel.setDragMode(integerMode ? DraggableNumber::Integer : DraggableNumber::Regular);
         }
 
         void resized() override
@@ -666,7 +693,6 @@ public:
                 
                 // By setting the text before attaching the value, we can prevent an unnesssary/harmful call to ValueChanged
                 draggableNumber->setText(String(getValue<T>(property)), dontSendNotification);
-                
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
 

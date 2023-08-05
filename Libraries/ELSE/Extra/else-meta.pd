@@ -1,8 +1,0 @@
-#N canvas 576 131 365 226 10;
-#X text 37 28 LIBRARY NAME ELSE (EL Locus Solus' Externals) library for Pd, f 47;
-#X text 37 139 LICENSE: WTFPL or as otherwise noted, f 47;
-#X text 37 172 WEBSITE: https://github.com/porres/pd-else, f 47;
-#X text 37 59 DESCRIPTION: multi purpose / swiss army knife / general signal modules and building blocks for audio and general patching, f 47;
-#X text 37 156 AUTHOR: Alexandre Torres Porres 2017-2023, f 47;
-#X text 37 105 VERSION: 1.0-0_release_candidate_8, f 47;
-#X text 37 122 RELEASE DATE: Released Mat 10th 2023, f 47;

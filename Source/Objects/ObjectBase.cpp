@@ -599,28 +599,11 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
 {
     if(!listener) listener = this;
     
-    
-    struct DummyListener : public Value::Listener
-    {
-        void valueChanged(Value& v) override {};
-    };
-    
-    // Annoyingly, juce::SynchronousValue will not cancel an async update if no listeners are attached at all
-    // We add a dummy listener to work around this behaviour
-    DummyListener dummy;
-    
     parameter.removeListener(listener);
-    parameter.addListener(&dummy);
     
     auto oldValue = parameter.getValue();
     parameter.setValue(value);
     
-    if(!oldValue.equalsWithSameType (value)) {
-        // Make sure all async callbacks happen while the listener is removed
-        parameter.getValueSource().sendChangeMessage(true);
-    }
-    
-    parameter.removeListener(&dummy);
     parameter.addListener(listener);
 }
 

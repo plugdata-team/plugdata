@@ -103,14 +103,15 @@ struct CallbackComboPropertyWithTestButton : public CallbackComboProperty {
     TextButton testButton = TextButton("Test");
 };
 
-class ChannelToggleProperty : public PropertiesPanel::BoolComponent {
+class ChannelToggleProperty : public PropertiesPanel::BoolComponent
+{
 public:
     ChannelToggleProperty(String const& channelName, bool isEnabled, std::function<void(bool)> onClick)
-        : PropertiesPanel::BoolComponent(channelName, { "Disabled", "Enabled" })
+        : PropertiesPanel::BoolComponent(channelName, isEnabled, { "Disabled", "Enabled" })
         , callback(std::move(onClick))
     {
-        toggleStateValue = isEnabled;
         setPreferredHeight(28);
+        repaint();
     }
 
     void valueChanged(Value& v) override
@@ -237,6 +238,14 @@ private:
             if (sampleRateStrings.size() == 0) {
                 for (auto& rate : sampleRates) {
                     sampleRateStrings.add(String(rate));
+                }
+            }
+
+            // also make sure that setup.sampleRate is set to a supported rate
+            if (!sampleRates.contains(setup.sampleRate)) {
+                for (auto& rate : sampleRates) {
+                  setup.sampleRate = rate;
+                  break;
                 }
             }
 

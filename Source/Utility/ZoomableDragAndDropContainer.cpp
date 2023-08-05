@@ -500,13 +500,20 @@ ZoomableDragAndDropContainer::~ZoomableDragAndDropContainer() = default;
 void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
     Component* sourceComponent,
     ScaledImage const& dragImage,
-    bool const allowDraggingToExternalWindows,
+    bool allowDraggingToExternalWindows,
     Point<int> const* imageOffsetFromMouse,
     MouseInputSource const* inputSourceCausingDrag,
     bool canZoom)
 {
     if (isAlreadyDragging (sourceComponent))
         return;
+
+    if(!ProjectInfo::canUseSemiTransparentWindows())
+    {
+        // If window transparency isn't supported, we should add it to the source component instead of to desktop
+        // This can be accomplished by disabling cross-window dragging
+        allowDraggingToExternalWindows = false;
+    }
 
     auto* draggingSource = getMouseInputSourceForDrag (sourceComponent, inputSourceCausingDrag);
 

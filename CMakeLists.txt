@@ -200,7 +200,7 @@ list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
 add_library(plugdata_core STATIC ${plugdata_sources} ${plugdata_global_sources})
 target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS})
-target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source)
+target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 target_link_libraries(plugdata_core PUBLIC ${libs})
 target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 
@@ -224,6 +224,14 @@ file(GLOB plugdata_standalone_sources
     ${SOURCES_DIRECTORY}/Standalone/PlugDataWindow.h
     ${SOURCES_DIRECTORY}/Standalone/InternalSynth.h)
 source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
+
+if(MSVC)
+  # Disable LV2 on Windows for now, it was broken by JUCE v7.0.6
+  set(PLUGIN_FORMATS AU VST3 CLAP)
+else()
+  set(PLUGIN_FORMATS AU VST3 LV2 CLAP)
+endif()
+
 
 juce_add_gui_app(plugdata_standalone
     PRODUCT_NAME                "plugdata"
@@ -256,7 +264,7 @@ juce_add_plugin(plugdata
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdIn
-    FORMATS                     AU VST3 LV2 CLAP
+    FORMATS                     ${PLUGIN_FORMATS}
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata"
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
@@ -280,7 +288,7 @@ juce_add_plugin(plugdata_fx
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdFx
-    FORMATS                     AU VST3 LV2 CLAP
+    FORMATS                     ${PLUGIN_FORMATS}
     LV2URI                      https://github.com/timothyschoen/plugdata-fx
     PRODUCT_NAME                "plugdata-fx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
