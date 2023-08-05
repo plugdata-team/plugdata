@@ -416,6 +416,7 @@ public:
             hash("max"),
             hash("fgcolor"),
             hash("bgcolor"),
+            hash("init"),
         };
     }
 
@@ -447,6 +448,7 @@ public:
             }
             break;
         }
+        case hash("init"):
         case hash("fgcolor"):
         case hash("bgcolor"): {
             update();
