@@ -10,6 +10,7 @@ class FunctionObject final : public ObjectBase {
     int dragIdx = -1;
     bool newPointAdded = false;
 
+    Value initialise = SynchronousValue();
     Value range = SynchronousValue();
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
@@ -29,6 +30,7 @@ public:
         objectParameters.addParamRange("Range", cGeneral, &range, { 0.0f, 1.0f });
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
+        objectParameters.addParamBool("Initialise", cGeneral, &initialise, { "No", "Yes" }, 0);
     }
 
     void update() override
@@ -37,6 +39,7 @@ public:
             secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
             primaryColour = colourFromHexArray(function->x_fgcolor).toString();
             sizeProperty = Array<var>{var(function->x_width), var(function->x_height)};
+            initialise = function->x_init;
 
             Array<var> arr = { function->x_min, function->x_max };
             range = var(arr);
@@ -257,6 +260,21 @@ public:
         }
     }
 
+    bool getInit()
+    {
+        bool init = false;
+        if (auto function = ptr.get<t_fake_function>()) {
+            init = initialise.getValue();
+        }
+        return init;
+    }
+    void setInit(bool init)
+    {
+        if (auto function = ptr.get<t_fake_function>()) {
+            function->x_init = static_cast<int>(init);
+        }
+    }
+
     void mouseDrag(MouseEvent const& e) override
     {
         bool changed = false;
@@ -377,6 +395,8 @@ public:
             } else if (v.refersToSameSourceAs(range)) {
                 setRange(getRange());
                 getPointsFromFunction(function.get());
+            } else if (v.refersToSameSourceAs(initialise)) {
+                setInit(getInit());
             }
         }
     }
