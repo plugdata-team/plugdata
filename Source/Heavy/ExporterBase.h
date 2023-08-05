@@ -99,10 +99,7 @@ struct ExporterBase : public Component
             saveChooser->launchAsync(FileBrowserComponent::canSelectDirectories,
                 [this](const FileChooser& fileChooser) {
                     const auto folder = fileChooser.getResult();
-
-                    if (folder.getParentDirectory().exists()) {
-                        startExport(folder);
-                    }
+                    startExport(folder);
                 });
         };
     }
