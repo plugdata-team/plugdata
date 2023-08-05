@@ -7,6 +7,8 @@
 #pragma once
 #include "Dialogs.h"
 
+#define DEBUG_PRINT_OBJECT_LIST 0
+
 class ObjectItem : public Component, public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
@@ -148,6 +150,9 @@ public:
     ObjectList(PluginEditor* e, std::function<void(bool)> dismissCalloutBox)
         : editor(e), dismissMenu(dismissCalloutBox)
     {
+#if DEBUG_PRINT_OBJECT_LIST == 1
+        printAllObjects();
+#endif
     }
     
     void resized() override
@@ -188,6 +193,27 @@ public:
         }
         
         resized();
+    }
+
+    void printAllObjects()
+    {
+        static bool hasRun = false;
+        if (hasRun)
+            return;
+
+        hasRun = true;
+
+        std::cout << "==== object icon list in CSV format ====" << std::endl;
+
+        String cat;
+        for (auto& [categoryName, objectCategory] : objectList) {
+            cat = categoryName;
+            for (auto& [icon, patch, tooltip, name, objectID] : objectCategory) {
+                std::cout << cat << ", " << name << ", " << icon << std::endl;
+            }
+        }
+
+        std::cout << "==== end of list ====" << std::endl;
     }
     
     OwnedArray<ObjectItem> objectButtons;
