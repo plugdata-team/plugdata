@@ -96,10 +96,14 @@ struct ExporterBase : public Component
         exportButton.onClick = [this]() {
             saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", true);
 
-            if (saveChooser->browseForDirectory()) {
-                const auto folder {saveChooser->getResult()};
-                startExport(folder);
-            }
+            saveChooser->launchAsync(FileBrowserComponent::canSelectDirectories,
+                [this](const FileChooser& fileChooser) {
+                    const auto folder = fileChooser.getResult();
+
+                    if (folder.getParentDirectory().exists()) {
+                        startExport(folder);
+                    }
+                });
         };
     }
 
