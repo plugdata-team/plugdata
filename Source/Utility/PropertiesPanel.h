@@ -391,20 +391,37 @@ public:
         }
     };
     
-    struct BoolBaseComponent : public Property
+    struct BoolComponent : public Property, public Value::Listener
     {
-        BoolBaseComponent(String const& propertyName, Value& value, StringArray options)
+        BoolComponent(String const& propertyName, Value& value, StringArray options)
             : Property(propertyName)
             , textOptions(std::move(options))
             , toggleStateValue(value)
         {
+            toggleStateValue.addListener(this);
         }
 
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
-        BoolBaseComponent(String const& propertyName, StringArray options)
+        BoolComponent(String const& propertyName, StringArray options)
             : Property(propertyName)
             , textOptions(std::move(options))
         {
+            toggleStateValue.addListener(this);
+        }
+        
+        // Allow creation without an attached juce::Value, but with an initial value
+        // We need this constructor sometimes to prevent feedback caused by the initial value being set after the listener is attached
+        BoolComponent(String const& propertyName, bool initialValue, StringArray options)
+            : Property(propertyName)
+            , textOptions(std::move(options))
+        {
+            toggleStateValue = initialValue;
+            toggleStateValue.addListener(this);
+        }
+        
+        ~BoolComponent()
+        {
+            toggleStateValue.removeListener(this);
         }
 
         bool hitTest(int x, int y) override
@@ -448,8 +465,14 @@ public:
 
         void mouseUp(MouseEvent const& e) override
         {
-            toggleStateValue = !getValue<bool>(toggleStateValue);
+            toggleStateValue.setValue(!getValue<bool>(toggleStateValue));
             repaint();
+        }
+        
+        void valueChanged(Value& v) override
+        {
+            if (v.refersToSameSourceAs(toggleStateValue))
+                repaint();
         }
         
     protected:
@@ -457,34 +480,6 @@ public:
         Value toggleStateValue;
     };
 
-    struct BoolComponent : public BoolBaseComponent
-        , public Value::Listener {
-            
-        BoolComponent(String const& propertyName, Value& value, StringArray options)
-            : BoolBaseComponent(propertyName, value, options)
-        {
-            toggleStateValue.addListener(this);
-        }
-
-        // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
-        BoolComponent(String const& propertyName, StringArray options)
-            : BoolBaseComponent(propertyName, options)
-        {
-            toggleStateValue.addListener(this);
-        }
-
-        ~BoolComponent()
-        {
-            toggleStateValue.removeListener(this);
-        }
-
-
-        void valueChanged(Value& v) override
-        {
-            if (v.refersToSameSourceAs(toggleStateValue))
-                repaint();
-        }
-    };
 
     struct ColourComponent : public Property
         , public Value::Listener {

@@ -581,7 +581,7 @@ void StatusbarSource::processBlock(MidiBuffer& midiIn, MidiBuffer& midiOut, int 
 void StatusbarSource::prepareToPlay(int nChannels)
 {
     numChannels = nChannels;
-    peakBuffer.reset(sampleRate, bufferSize);
+    peakBuffer.reset(sampleRate, bufferSize, nChannels);
 }
 
 void StatusbarSource::timerCallback()
