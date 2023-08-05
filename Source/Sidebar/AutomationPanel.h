@@ -362,10 +362,13 @@ public:
         auto buttonsBounds = firstRow.removeFromRight(50).withHeight(25);
 
         nameLabel.setBounds(firstRow.withTrimmedLeft(4));
+        
+        if(settingsButton.isVisible()) {
+            settingsButton.setBounds(secondRow.removeFromLeft(25));
+        }
 
-        settingsButton.setBounds(secondRow.removeFromLeft(25));
-        slider.setBounds(secondRow.removeFromLeft(getWidth() - 90));
-        valueLabel.setBounds(secondRow);
+        slider.setBounds(secondRow.withTrimmedRight(55));
+        valueLabel.setBounds(secondRow.removeFromRight(55));
 
         reorderButton.setBounds(buttonsBounds.removeFromLeft(25));
         deleteButton.setBounds(buttonsBounds.removeFromLeft(25));
