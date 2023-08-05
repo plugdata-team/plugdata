@@ -176,6 +176,7 @@ void Patch::savePatch()
 void Patch::setCurrent()
 {
     if (auto patch = ptr.get<t_glist>()) {
+        instance->setThis();
         // This is the same as calling canvas_vis and canvas_map,
         // but all the other stuff inside those functions is just for tcl/tk anyway
 
