@@ -163,10 +163,14 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
 
         if (getTabComponent()->getNumTabs() > 1) {
             tabMenu.addItem("Split left", true, false, [this, cnv, splitIndex]() {
-                // ALEX implement logic here!!
+                auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
+                auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
+                currentSplit->moveToSplit(0, cnv);
             });
             tabMenu.addItem("Split right", true, false, [this, cnv, splitIndex]() {
-                // ALEX implement logic here!!
+                auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
+                auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
+                currentSplit->moveToSplit(1, cnv);
             });
         }
         // Show the popup menu at the mouse position

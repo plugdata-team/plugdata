@@ -102,6 +102,28 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
     }
 }
 
+void ResizableTabbedComponent::moveToSplit(int splitIdx, Canvas* canvas)
+{
+    if(splitIdx >= editor->splitView.splits.size())
+    {
+        createNewSplit(DropZones::Right, canvas);
+    }
+    else {
+        if (auto* sourceTabBar = canvas->getTabbar()) {
+            auto sourceTabIndex = canvas->getTabIndex();
+            sourceTabBar->removeTab(sourceTabIndex);
+            sourceTabBar->setCurrentTabIndex(sourceTabIndex > (sourceTabBar->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex);
+        }
+        
+        auto* targetSplit = editor->splitView.splits[splitIdx];
+        auto tabTitle = canvas->patch.getTitle();
+        targetSplit->getTabComponent()->addTab(tabTitle, canvas->viewport.get(), 0);
+        canvas->viewport->setVisible(true);
+        
+        targetSplit->resized();
+        targetSplit->getTabComponent()->resized();
+    }
+}
 void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canvas)
 {
     if (auto* sourceTabBar = canvas->getTabbar()) {

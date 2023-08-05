@@ -41,6 +41,8 @@ public:
     enum DropZones { Left = 1, Top = 2, Right = 4, Bottom = 8, Centre = 16, TabBar = 32, None = 64};
 
     void updateDropZones();
+    
+    void moveToSplit(int splitIdx, Canvas* canvas);
     void createNewSplit(DropZones activeZone, Canvas* canvas);
 
 private:
