@@ -65,15 +65,13 @@ makeDir("../plugdata_version")
 changeWorkingDir("../plugdata_version")
 
 makeDir("Abstractions")
-makeDir("Abstractions/else")
 makeDir("Abstractions/cyclone")
 
 copyDir("../../Libraries/pure-data/doc", "./Documentation")
 globCopy("../../Libraries/pure-data/extra/*.pd", "./Abstractions")
 globCopy("../../Libraries/pure-data/extra/**/*-help.pd", "./Abstractions")
 
-globCopy("../../Libraries/pd-else/Code_source/Abstractions/control/*.pd", "./Abstractions/else")
-globCopy("../../Libraries/pd-else/Code_source/Abstractions/signal/*.pd", "./Abstractions/else")
+copyDir("../../Libraries/pd-else/Code_source/Abstractions/libpd", "./Abstractions/else")
 copyFile("../Patches/playhead.pd", "./Abstractions")
 copyFile("../Patches/param.pd", "./Abstractions")
 #copyFile("../Patches/beat.pd", "./Abstractions")
