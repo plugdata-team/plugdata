@@ -21,9 +21,9 @@ public:
     
     PluginProcessor& processor;
 
-    PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled, int idx)
+    PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled, int idx, float minimum, float maximum)
         : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, defaultName)
-        , range(0.0f, 127.0f, 0.000001f)
+        , range(minimum, maximum, 0.000001f)
         , defaultValue(def)
         , processor(*p)
         , enabled(enabled)
@@ -81,6 +81,13 @@ public:
         notifyDAW();
     }
 
+    // Reports whether the current DAW/format can deal with dynamic
+    static bool canDynamicallyAdjustParameters()
+    {
+        // We can add more DAWs or formats here if needed
+        return PluginHostType::getPluginLoadedAs() != AudioProcessor::wrapperType_LV2;
+    }
+    
     void setName(String const& newName)
     {
         name = newName;
@@ -88,7 +95,7 @@ public:
 
     String getName(int maximumStringLength) const override
     {
-        if (!isEnabled()) {
+        if (!isEnabled() && canDynamicallyAdjustParameters()) {
             return ("(DISABLED) " + name).substring(0, maximumStringLength - 1);
         }
 

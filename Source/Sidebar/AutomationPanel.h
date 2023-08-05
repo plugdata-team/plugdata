@@ -152,7 +152,8 @@ public:
 
         settingsButton.setClickingTogglesState(true);
 
-        nameLabel.setEditable(true, true);
+        bool editable = PlugDataParameter::canDynamicallyAdjustParameters();
+        nameLabel.setEditable(editable, editable);
         nameLabel.onEditorShow = [this]() {
             if (auto* editor = nameLabel.getCurrentTextEditor()) {
                 editor->setInputRestrictions(32, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-");
@@ -192,13 +193,17 @@ public:
         addAndMakeVisible(slider);
         addAndMakeVisible(valueLabel);
         
-        addAndMakeVisible(settingsButton);
+        if(PlugDataParameter::canDynamicallyAdjustParameters())
+        {
+            addAndMakeVisible(settingsButton);
+        }
+        
         addChildComponent(reorderButton);
         addChildComponent(deleteButton);
 
         update();
     }
-        
+    
     void update()
     {
         lastName = param->getTitle();
