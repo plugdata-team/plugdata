@@ -742,9 +742,7 @@ void xmod2_tilde_setup();
 void xselect_tilde_setup();
 void xselect2_tilde_setup();
 void zerocross_tilde_setup();
-
-//sum~], [sigs~], [out.mc~], [osc.mc~], [imp.mc~], [rampnoise.mc~], [stepnoise.mc~], [select~], [xselect.mc~], [merge~], [phaseseq~], [oscnoise~] and [sfz~
-                                                                                                                                                    
+                                                                                                                       
 void nchs_tilde_setup();
 void get_tilde_setup();
 void pick_tilde_setup();
@@ -754,6 +752,15 @@ void setup_xselect0x2emc_tilde();
 void merge_tilde_setup();
 void unmerge_tilde_setup();
 void phaseseq_tilde_setup();
+void pol2car_tilde_setup();
+void car2pol_tilde_setup();
+void lin2db_tilde_setup();
+void sum_tilde_setup();
+void slice_tilde_setup();
+void order_setup();
+void repeat_tilde_setup();
+
+
 //void sfz_tilde_setup();
 void knob_setup();
                                                                                                                                                      
@@ -963,7 +970,6 @@ void libpd_init_else(void)
 #endif
     setup_rand0x2ei();
     setup_rand0x2ei_tilde();
-    //setup_rand0x2eseq();
     numbox_tilde_setup();
     route2_setup();
     randpulse_tilde_setup();
@@ -1052,6 +1058,13 @@ void libpd_init_else(void)
     merge_tilde_setup();
     unmerge_tilde_setup();
     phaseseq_tilde_setup();
+    pol2car_tilde_setup();
+    car2pol_tilde_setup();
+    lin2db_tilde_setup();
+    sum_tilde_setup();
+    slice_tilde_setup();
+    order_setup();
+    repeat_tilde_setup();
 }
 
 void libpd_init_cyclone(void)
