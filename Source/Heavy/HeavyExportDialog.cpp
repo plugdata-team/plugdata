@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2022 Timothy Schoen and Wasted-Audio
+ // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -26,11 +26,13 @@
 #include "CppExporter.h"
 #include "DPFExporter.h"
 #include "DaisyExporter.h"
+#include "PdExporter.h"
 
 class ExporterSettingsPanel : public Component
     , private ListBoxModel {
 public:
     ListBox listBox;
+    int listBoxWdith = 160;
 
     TextButton addButton = TextButton(Icons::Add);
 
@@ -38,13 +40,19 @@ public:
 
     std::function<void(int)> onChange;
 
-    StringArray items = { "C++", "Daisy", "DPF" };
+    StringArray items = {
+        "C++ Code",
+        "Electro-Smith Daisy",
+        "DPF Audio Plugin",
+        "Pd External"
+    };
 
     ExporterSettingsPanel(PluginEditor* editor, ExportingProgressView* exportingView)
     {
         addChildComponent(views.add(new CppExporter(editor, exportingView)));
         addChildComponent(views.add(new DaisyExporter(editor, exportingView)));
         addChildComponent(views.add(new DPFExporter(editor, exportingView)));
+        addChildComponent(views.add(new PdExporter(editor, exportingView)));
 
         addAndMakeVisible(listBox);
 
@@ -57,7 +65,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto listboxBounds = getLocalBounds().removeFromLeft(150);
+        auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWdith);
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRoundedRectangle(listboxBounds.toFloat(), Corners::windowCornerRadius);
@@ -66,7 +74,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto listboxBounds = getLocalBounds().removeFromLeft(150);
+        auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWdith);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(Line<float>(listboxBounds.getTopRight().toFloat(), listboxBounds.getBottomRight().toFloat()));
@@ -91,7 +99,7 @@ public:
     void resized() override
     {
         auto b = getLocalBounds();
-        listBox.setBounds(b.removeFromLeft(150).reduced(4));
+        listBox.setBounds(b.removeFromLeft(listBoxWdith).reduced(4));
 
         for (auto* view : views) {
             view->setBounds(b);

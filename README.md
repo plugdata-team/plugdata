@@ -84,7 +84,7 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 - [pd-lua](https://github.com/agraef/pd-lua) by Claude Heiland-Allen, Albert Graef, and others
 - [Pure Data](https://puredata.info) by Miller Puckette and others
 - [libpd](https://github.com/libpd/libpd) by the Peter Brinkmann, Dan Wilcox and others
-- [Heavy/hvcc](https://github.com/Wasted-Audio/hvcc) originally by Enzien Audio, maintained and modernised by Wasted-Audio
+- [Heavy/hvcc](https://github.com/Wasted-Audio/hvcc) originally by Enzien Audio, maintained and modernised by Wasted Audio
 - [Juce](https://github.com/WeAreROLI/JUCE) by ROLI Ltd.
 - [MoodyCamel](https://github.com/cameron314/concurrentqueue) by Cameron Desrochers
 - [Inter](https://rsms.me/inter/) font by Rasmus Andersson
