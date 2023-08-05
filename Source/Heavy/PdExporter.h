@@ -100,16 +100,6 @@ public:
 
             workingDir.setAsCurrentWorkingDirectory();
 
-            // Copy output
-#if JUCE_WINDOWS
-            outputFile.getChildFile("bin").getChildFile(name + "-vst.dll").moveFileTo(outputFile.getChildFile(name + "-vst.dll"));
-#elif JUCE_LINUX
-
-            outputFile.getChildFile("bin").getChildFile(name + "-vst.so").moveFileTo(outputFile.getChildFile(name + "-vst.so"));
-#elif JUCE_MAC
-            outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + ".vst"));
-#endif
-
             bool compilationExitCode = getExitCode();
 
             return compilationExitCode;
