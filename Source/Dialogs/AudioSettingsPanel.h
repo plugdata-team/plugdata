@@ -103,13 +103,14 @@ struct CallbackComboPropertyWithTestButton : public CallbackComboProperty {
     TextButton testButton = TextButton("Test");
 };
 
-class ChannelToggleProperty : public PropertiesPanel::BoolComponent {
+class ChannelToggleProperty : public PropertiesPanel::BoolBaseComponent, public Value::Listener {
 public:
     ChannelToggleProperty(String const& channelName, bool isEnabled, std::function<void(bool)> onClick)
-        : PropertiesPanel::BoolComponent(channelName, { "Disabled", "Enabled" })
+        : PropertiesPanel::BoolBaseComponent(channelName, { "Disabled", "Enabled" })
         , callback(std::move(onClick))
     {
         toggleStateValue = isEnabled;
+        toggleStateValue.addListener(this);
         setPreferredHeight(28);
     }
 
@@ -149,6 +150,7 @@ public:
         Property::paint(g);
     }
 
+    Value toggleStateValue;
     std::function<void(bool)> callback;
 };
 
@@ -312,6 +314,7 @@ private:
                 inputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool isEnabled) {
                     setup.useDefaultInputChannels = false;
                     setup.inputChannels.setBit(idx, isEnabled);
+                    updateConfig();
                 }));
                 idx++;
             }
@@ -340,6 +343,7 @@ private:
                 outputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool isEnabled) {
                     setup.useDefaultOutputChannels = false;
                     setup.outputChannels.setBit(idx, isEnabled);
+                    updateConfig();
                 }));
                 idx++;
             }

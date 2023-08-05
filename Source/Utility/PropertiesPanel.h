@@ -390,28 +390,21 @@ public:
             }
         }
     };
-
-    struct BoolComponent : public Property
-        , public Value::Listener {
-        BoolComponent(String const& propertyName, Value& value, StringArray options)
+    
+    struct BoolBaseComponent : public Property
+    {
+        BoolBaseComponent(String const& propertyName, Value& value, StringArray options)
             : Property(propertyName)
             , textOptions(std::move(options))
             , toggleStateValue(value)
         {
-            toggleStateValue.addListener(this);
         }
 
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
-        BoolComponent(String const& propertyName, StringArray options)
+        BoolBaseComponent(String const& propertyName, StringArray options)
             : Property(propertyName)
             , textOptions(std::move(options))
         {
-            toggleStateValue.addListener(this);
-        }
-
-        ~BoolComponent()
-        {
-            toggleStateValue.removeListener(this);
         }
 
         bool hitTest(int x, int y) override
@@ -458,16 +451,39 @@ public:
             toggleStateValue = !getValue<bool>(toggleStateValue);
             repaint();
         }
+        
+    protected:
+        StringArray textOptions;
+        Value toggleStateValue;
+    };
+
+    struct BoolComponent : public BoolBaseComponent
+        , public Value::Listener {
+            
+        BoolComponent(String const& propertyName, Value& value, StringArray options)
+            : BoolBaseComponent(propertyName, value, options)
+        {
+            toggleStateValue.addListener(this);
+        }
+
+        // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
+        BoolComponent(String const& propertyName, StringArray options)
+            : BoolBaseComponent(propertyName, options)
+        {
+            toggleStateValue.addListener(this);
+        }
+
+        ~BoolComponent()
+        {
+            toggleStateValue.removeListener(this);
+        }
+
 
         void valueChanged(Value& v) override
         {
             if (v.refersToSameSourceAs(toggleStateValue))
                 repaint();
         }
-
-    protected:
-        StringArray textOptions;
-        Value toggleStateValue;
     };
 
     struct ColourComponent : public Property
