@@ -400,7 +400,7 @@ String Patch::translatePatchAsString(String const& patchAsString, Point<int> pos
     int canvasDepth = 0;
 
     auto isObject = [](StringArray& tokens) {
-        return tokens[0] == "#X" && tokens[1] != "connect" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
+        return tokens[0] == "#X" && tokens[1] != "connect" && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
 
     // blank message objects have a comma after their position: "#X msg 0 0, f 9;"
@@ -480,6 +480,8 @@ String Patch::translatePatchAsString(String const& patchAsString, Point<int> pos
 
         line += ";";
     }
+    
+    std::cout << toPaste.joinIntoString("\n") << std::endl;
     return toPaste.joinIntoString("\n");
 }
 

@@ -20,6 +20,8 @@ struct TextObjectHelper {
         int offset = applyOffset ? idealTextWidth % fontWidth : 0;
         int charWidth = getWidthInChars(obj);
 
+        std::cout << "w: " << charWidth << std::endl;
+        
         if (currentText.isEmpty()) { // If text is empty, set to minimum width
             w = std::max(charWidth, minWidth) * fontWidth;
         } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
