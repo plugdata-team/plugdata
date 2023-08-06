@@ -319,8 +319,12 @@ public:
 
             auto type = hash(getText().upToFirstOccurrenceOf(" ", false, false));
 
-            if (type == hash("inlet") || type == hash("outlet") || type == hash("inlet~") || type == hash("outlet~")) {
+            if (type == hash("inlet")|| type == hash("inlet~")) {
                 canvas_resortinlets(patch);
+            }
+            else if(type == hash("outlet") || type == hash("outlet~"))
+            {
+                canvas_resortoutlets(patch);
             }
         }
     }

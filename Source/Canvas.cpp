@@ -556,6 +556,17 @@ void Canvas::performSynchronise()
             connections.add(new Connection(this, inlet, outlet, ptr));
         } else {
             auto& c = *(*it);
+            
+            // This is necessary to make resorting a subpatchers iolets work
+            // And it can't hurt to check if the connection is valid anyway
+            if(c.inlet != inlet || c.outlet != outlet)
+            {
+                int idx = connections.indexOf(*it);
+                connections.removeObject(*it);
+                connections.insert(idx, new Connection(this, inlet, outlet, ptr));
+                
+            }
+            
             c.popPathState();
         }
     }
