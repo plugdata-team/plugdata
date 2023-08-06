@@ -253,7 +253,7 @@ public:
                 } },
             { "General",
                 {
-                    { Icons::GlyphMetro, "#X obj 0 0 metro 500", "Metro", "Metro", OtherObject },
+                    { Icons::GlyphMetro, "#X obj 0 0 metro 1 120 permin", "Metro", "Metro", OtherObject },
                     { Icons::GlyphCounter, "#X obj 0 0 count 5", "Count", "Count", OtherObject },
                     { Icons::GlyphTrigger, "#X obj 0 0 trigger", "Trigger", "Trigger", OtherObject },
                     { Icons::GlyphMoses, "#X obj 0 0 moses", "Moses", "Moses", OtherObject },
