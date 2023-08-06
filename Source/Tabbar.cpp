@@ -309,8 +309,22 @@ void TabComponent::onTabChange(int tabIndex)
 {
     editor->updateCommandStatus();
 
+    // Show welcome panel if there are no tabs open
+    if (tabs->getNumTabs() == 0) {
+        setTabBarDepth(0);
+        tabs->setVisible(false);
+        welcomePanel.show();
+    } else {
+        tabs->setVisible(true);
+        //static_cast<TabBarButtonComponent*>(getTabbedButtonBar().getTabButton(newCurrentTabIndex))->tabTextChanged(newCurrentTabName);
+        welcomePanel.hide();
+        setTabBarDepth(30);
+        // we need to update the dropzones, because no resize will be automatically triggered when there is a tab added from welcome screen
+        if (auto* parentHolder = dynamic_cast<ResizableTabbedComponent*>(getParentComponent()))
+            parentHolder->updateDropZones();
+    }
+    
     auto* cnv = getCurrentCanvas();
-
     if (!cnv || tabIndex == -1 || editor->pd->isPerformingGlobalSync)
         return;
 
@@ -370,20 +384,6 @@ void TabComponent::setTabBarDepth (int newDepth)
 
 void TabComponent::currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName)
 {
-    if (tabs->getNumTabs() == 0) {
-        setTabBarDepth(0);
-        tabs->setVisible(false);
-        welcomePanel.show();
-    } else {
-        tabs->setVisible(true);
-        //static_cast<TabBarButtonComponent*>(getTabbedButtonBar().getTabButton(newCurrentTabIndex))->tabTextChanged(newCurrentTabName);
-        welcomePanel.hide();
-        setTabBarDepth(30);
-        // we need to update the dropzones, because no resize will be automatically triggered when there is a tab added from welcome screen
-        if (auto* parentHolder = dynamic_cast<ResizableTabbedComponent*>(getParentComponent()))
-            parentHolder->updateDropZones();
-    }
-
     triggerAsyncUpdate();
 }
 
