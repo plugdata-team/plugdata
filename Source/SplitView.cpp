@@ -141,7 +141,9 @@ int SplitView::getTabComponentSplitIndex(TabComponent* tabComponent)
         }
     }
     
-    return -1;
+    // This should never happen, but if we ever get here, pretend we're in the first split
+    jassertfalse;
+    return 0;
 }
 
 void SplitView::resized()
