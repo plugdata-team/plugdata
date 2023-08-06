@@ -140,6 +140,8 @@ int SplitView::getTabComponentSplitIndex(TabComponent* tabComponent)
             return i;
         }
     }
+    
+    return -1;
 }
 
 void SplitView::resized()
