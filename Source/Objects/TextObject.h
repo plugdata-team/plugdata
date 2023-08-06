@@ -19,8 +19,6 @@ struct TextObjectHelper {
         // For regular text object, we want to adjust the width so ideal text with aligns with fontWidth
         int offset = applyOffset ? idealTextWidth % fontWidth : 0;
         int charWidth = getWidthInChars(obj);
-
-        std::cout << "w: " << charWidth << std::endl;
         
         if (currentText.isEmpty()) { // If text is empty, set to minimum width
             w = std::max(charWidth, minWidth) * fontWidth;

@@ -1228,7 +1228,7 @@ void Canvas::encapsulateSelection()
     for (auto* iolet : usedEdges) {
         auto type = String(iolet->isInlet ? "inlet" : "outlet") + String(iolet->isSignal ? "~" : "");
         auto* targetEdge = targetEdges[iolet][0];
-        auto pos = targetEdge->object->getPosition();
+        auto pos = targetEdge->object->getObjectBounds().getPosition();
         newEdgeObjects += "#X obj " + String(pos.x) + " " + String(pos.y) + " " + type + ";\n";
 
         int objIdx = selectedBoxes.indexOf(iolet->object);

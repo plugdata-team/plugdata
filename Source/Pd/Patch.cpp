@@ -480,8 +480,7 @@ String Patch::translatePatchAsString(String const& patchAsString, Point<int> pos
 
         line += ";";
     }
-    
-    std::cout << toPaste.joinIntoString("\n") << std::endl;
+
     return toPaste.joinIntoString("\n");
 }
 
