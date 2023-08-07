@@ -14,6 +14,9 @@
     <a href="https://github.com/plugdata-team/plugdata/releases/latest"><img src="https://img.shields.io/github/release/plugdata-team/plugdata.svg?include_prereleases" alt="Release"></a>
     <a href="https://github.com/plugdata-team/plugdata/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--v3-blue.svg" alt="License"></a>
   </p>
+  <p align="center">
+    <a href="https://discord.gg/eT2RxdF9Nq"><img src="https://img.shields.io/discord/993531159956955256?label=discord&logo=discord" alt="Discord"></a>
+  </p>
 </p>
 
 <p align="middle">
