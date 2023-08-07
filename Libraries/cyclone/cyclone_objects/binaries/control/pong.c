@@ -11,7 +11,7 @@
 #define HAVE_ALLOCA 1
 #endif
 
-#if _MSC_VER
+#if _MSC_VER && HAVE_ALLOCA
 #include <malloc.h>
 #endif
 
