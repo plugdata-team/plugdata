@@ -626,7 +626,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (draggedItem && std::abs(e.getDistanceFromDragStart()) < 5)
+        if (!draggedItem || std::abs(e.getDistanceFromDragStart()) < 5)
             return;
 
         // autoscroll the viewport when we are close. to. the. edge.
