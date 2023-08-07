@@ -570,7 +570,7 @@ public:
                 auto* patch = object->cnv->patch.getPointer().get();
                 if (!patch) return;
                 
-                pd->sendDirectMessage(gobj.get(), "dim", { width, height });
+                pd->sendDirectMessage(gobj.get(), "dim", { (float)width, (float)height });
             }
             
             object->updateBounds();
@@ -599,7 +599,7 @@ public:
                 return;
 
             libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
-            pd->sendDirectMessage(gobj.get(), "dim", { b.getWidth() - 1, b.getHeight() - 1 });
+            pd->sendDirectMessage(gobj.get(), "dim", { (float)b.getWidth() - 1, (float)b.getHeight() - 1 });
         }
 
         graph.saveProperties();

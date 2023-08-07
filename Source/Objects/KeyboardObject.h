@@ -383,7 +383,7 @@ public:
         } else if (value.refersToSameSourceAs(toggleMode)) {
             auto toggle = getValue<int>(toggleMode);
             if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "toggle", { toggle });
+                pd->sendDirectMessage(obj.get(), "toggle", { (float)toggle });
             keyboard.setToggleMode(toggle);
         }
     }
