@@ -480,10 +480,10 @@ public:
             automationItem = item;
         }
 
-        //setBounds(automationItem->getBounds().expanded(8, 4));
         toFront(false);
         automationItem->addComponentListener(this);
-        startAnimation = true;
+        setBounds(automationItem->getBounds().expanded(8, 4));
+        animator.fadeIn(this, 300);
     }
 
     void deActivate()
@@ -495,10 +495,6 @@ public:
     {
         if (&component == automationItem) {
             setBounds(component.getBounds().expanded(8, 4));
-            if (startAnimation) {
-                animator.fadeIn(this, 300);
-                startAnimation = false;
-            }
         }
     }
 
@@ -511,9 +507,10 @@ public:
     }
 
 private:
-    SafePointer<AutomationSlider> automationItem;
+    SafePointer<AutomationSlider> automationItem = nullptr;
     AlphaAnimator animator;
-    bool startAnimation = false;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DraggedItemDropShadow)
 };
 
 class AutomationComponent : public Component {
@@ -602,24 +599,35 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         accumulatedOffsetY = { 0, 0 };
+
+        if (auto* reorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
+            draggedItem = static_cast<AutomationSlider*>(reorderButton->getParentComponent());
+            draggedItemDropShadow.activate(draggedItem);
+            draggedItem->toFront(false);
+            mouseDownPos = draggedItem->getPosition();
+            draggedItem->deleteButton.setVisible(false);
+            draggedItem->reorderButton.setVisible(false);
+        }
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (draggedItem) {
+            for (int p = 0; p < PluginProcessor::numParameters; p++) {
+                rows[p]->param->setIndex(p);
+            }
+            isDragging = false;
+            draggedItem = nullptr;
+            shouldAnimate = true;
+            draggedItemDropShadow.deActivate();
+            resized();
+        }
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (std::abs(e.getDistanceFromDragStart()) < 5 && !isDragging/* || isDnD*/)
+        if (draggedItem && std::abs(e.getDistanceFromDragStart()) < 5)
             return;
-
-        isDragging = true;
-
-        if (!draggedItem) {
-            if (auto* reorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
-                draggedItem = static_cast<AutomationSlider*>(reorderButton->getParentComponent());
-                draggedItemDropShadow.activate(draggedItem);
-                draggedItem->toFront(false);
-                mouseDownPos = draggedItem->getPosition();
-                draggedItem->deleteButton.setVisible(false);
-            }
-        }
 
         // autoscroll the viewport when we are close. to. the. edge.
         auto viewport = findParentComponentOfClass<BouncingViewport>();
@@ -644,21 +652,7 @@ public:
             resized();
         }
     }
-    
-    void mouseUp(MouseEvent const& e) override
-    {
-        if (draggedItem) {
-            for (int p = 0; p < PluginProcessor::numParameters; p++) {
-                rows[p]->param->setIndex(p);
-            }
-            isDragging = false;
-            draggedItem = nullptr;
-            shouldAnimate = true;
-            draggedItemDropShadow.deActivate();
-            resized();
-        }
-    }
-    
+
     void updateSliders()
     {
         rows.clear();
