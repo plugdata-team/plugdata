@@ -523,7 +523,7 @@ private:
                     if (check(b, a))
                         return false;
 
-                    return a.compareNatural(b);
+                    return a.compareNatural(b) <= 0;
                 });
             return suggestions;
         };
