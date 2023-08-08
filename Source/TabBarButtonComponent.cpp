@@ -112,8 +112,9 @@ void TabBarButtonComponent::resized()
     isDirty = true;
 }
 
-Image TabBarButtonComponent::generateTabBarButtonImage()
+ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
 {
+    auto scale = 2.0f;
     // we calculate the best size for the tab DnD image
     auto text = getButtonText();
     Font font(Fonts::getDefaultFont());
@@ -123,12 +124,13 @@ Image TabBarButtonComponent::generateTabBarButtonImage()
     // then we offset the mouse drag by the same amount
     // this is to allow area for the shadow to render correctly
     auto textBounds = Rectangle<int>(0, 0, length, 28);
-    auto bounds = textBounds.expanded(boundsOffset).withPosition(0,0);
-    auto image = Image(Image::PixelFormat::ARGB, bounds.getWidth(), bounds.getHeight(), true);
+    auto bounds = textBounds.expanded(boundsOffset).withZeroOrigin();
+    auto image = Image(Image::PixelFormat::ARGB, bounds.getWidth() * scale, bounds.getHeight() * scale, true);
     auto g = Graphics(image);
+    g.addTransform(AffineTransform::scale(scale));
     Path path;
     path.addRoundedRectangle(bounds.reduced(14), 5.0f);
-    StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.3f), 6, { 0, 2 });
+    StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.3f), 6, { 0, 2 }, scale);
     g.setOpacity(1.0f);
     drawTabButton(g, textBounds.withPosition(10,10));
     drawTabButtonText(g, textBounds.withPosition(3, 5));
@@ -139,7 +141,7 @@ Image TabBarButtonComponent::generateTabBarButtonImage()
     g.drawRect(bounds.toFloat(), 1.0f);
 #endif
 
-    return image;
+    return ScaledImage(image, scale);
 }
 
 void TabBarButtonComponent::mouseDown(MouseEvent const& e)

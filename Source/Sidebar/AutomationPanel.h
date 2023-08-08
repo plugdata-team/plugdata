@@ -288,9 +288,10 @@ public:
 
         deleteButton.setVisible(false);
 
+        auto scale = 2.0f;
         if (dragImage.image.isNull()) {
             auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            dragImage = offlineObjectRenderer->patchToTempImage(formatedParam);
+            dragImage = offlineObjectRenderer->patchToTempImage(formatedParam, scale);
         }
 
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
@@ -298,7 +299,7 @@ public:
         paramObjectWithOffset.add(var(dragImage.offset.getX()));
         paramObjectWithOffset.add(var(dragImage.offset.getY()));
         paramObjectWithOffset.add(var(formatedParam));
-        dragContainer->startDragging(paramObjectWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
+        dragContainer->startDragging(paramObjectWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
     }
 
     void valueChanged(Value& v) override

@@ -76,9 +76,10 @@ public:
         
         auto patchWithTheme = substituteThemeColours(objectPatch);
 
+        auto scale = 2.0f;
         if (dragImage.image.isNull()) {
             auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            dragImage = offlineObjectRenderer->patchToTempImage(patchWithTheme);
+            dragImage = offlineObjectRenderer->patchToTempImage(patchWithTheme, scale);
         }
 
         dismissMenu(true);
@@ -87,7 +88,7 @@ public:
         palettePatchWithOffset.add(var(dragImage.offset.getX()));
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(patchWithTheme));
-        dragContainer->startDragging(palettePatchWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
+        dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
     }
     
     void mouseUp(MouseEvent const& e) override

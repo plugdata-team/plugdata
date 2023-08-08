@@ -687,7 +687,7 @@ public:
             applyStackBlurBW(img, (unsigned int)radius);
     }
 
-    static void renderDropShadow(Graphics& g, Path const& path, Colour color, int const radius = 1, Point<int> const offset = { 0, 0 }, int spread = 0)
+    static void renderDropShadow(Graphics& g, Path const& path, Colour color, int const radius = 1, Point<int> const offset = { 0, 0 }, int spread = 0, float scale = 1.0f)
     {
         if (radius < 1)
             return;
@@ -707,9 +707,10 @@ public:
             spreadPath.scaleToFit(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), true);
         }
 
-        Image renderedPath(Image::SingleChannel, area.getWidth(), area.getHeight(), true);
+        Image renderedPath(Image::SingleChannel, area.getWidth() * scale, area.getHeight() * scale, true);
 
         Graphics g2(renderedPath);
+        g2.addTransform(AffineTransform::scale(scale));
         g2.setColour(Colours::white);
         g2.fillPath((spread != 0) ? spreadPath : path, AffineTransform::translation((float)(offset.x - area.getX()), (float)(offset.y - area.getY())));
         applyStackBlur(renderedPath, radius);
