@@ -719,12 +719,42 @@ struct PlugDataLook : public LookAndFeel_V4 {
     
     Button* createTabBarExtrasButton() override
     {
-        auto* button = new TextButton();
-    
-        button->getProperties().set("Style", "LargeIcon");
-        button->setButtonText(Icons::ThinDown);
+        
+        class TabBarExtrasButton : public TextButton
+        {
+        public:
+            TabBarExtrasButton()
+            {
+                setButtonText(Icons::ThinDown);
+            }
+            
+            void paint(Graphics& g) override
+            {
+                if(isMouseOverOrDragging())
+                {
+                    g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
+                    fillSmoothedRectangle(g, getLocalBounds().reduced(1, 0).toFloat(), Corners::defaultCornerRadius);
+                }
+                
+                g.setFont(Fonts::getIconFont().withHeight(15));
+                g.setColour(findColour(PlugDataColour::tabTextColourId));
+                
+                g.drawText(getButtonText(), getLocalBounds().reduced(1, 0), Justification::centred);
 
-        return button;
+                return;
+            }
+
+            /*
+            void mouseDown(const MouseEvent& e) override
+            {
+                if(auto* parent = findParentComponentOfClass<TabbedButtonBar>())
+                {
+                    
+                }
+            } */
+        };
+        
+        return new TabBarExtrasButton();
     }
 
     Font getTabButtonFont(TabBarButton&, float height) override
