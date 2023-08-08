@@ -33,6 +33,8 @@ public:
     Image generateTabBarButtonImage();
 
     void paint(Graphics& g) override;
+    
+    void closeTab();
 
 private:
     TabComponent* tabComponent;

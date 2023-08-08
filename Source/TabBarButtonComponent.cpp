@@ -6,9 +6,9 @@
 
 //#define ENABLE_TABBAR_DEBUGGING 1
 
-TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabComponent, String const& name, TabbedButtonBar& bar)
+TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabbar, String const& name, TabbedButtonBar& bar)
     : TabBarButton(name, bar)
-    , tabComponent(tabComponent)
+    , tabComponent(tabbar)
 {
     setTooltip(name);
 
@@ -21,35 +21,41 @@ TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabComponent, String 
     closeTabButton.setConnectedEdges(12);
     closeTabButton.setSize(28, 28);
     closeTabButton.addMouseListener(this, false);
-    closeTabButton.onClick = [this, tabComponent]() mutable {
-        // We cant use the index from earlier because it might have changed!
-        const int tabIdx = getIndex();
-        auto* cnv = tabComponent->getCanvas(tabIdx);
-        auto* editor = tabComponent->getEditor();
-
-        if (tabIdx == -1)
-            return;
-
-        if (cnv) {
-            MessageManager::callAsync([_cnv = SafePointer(cnv), _editor = SafePointer(editor)]() mutable {
-                // Don't show save dialog, if patch is still open in another view
-                if (_cnv && _cnv->patch.isDirty()) {
-                    Dialogs::showSaveDialog(&_editor->openedDialog, _editor, _cnv->patch.getTitle(),
-                        [_cnv, _editor](int result) mutable {
-                            if (!_cnv)
-                                return;
-                            if (result == 2)
-                                _editor->saveProject([_cnv, _editor]() mutable { _editor->closeTab(_cnv); });
-                            else if (result == 1)
-                                _editor->closeTab(_cnv);
-                        });
-                } else {
-                    _editor->closeTab(_cnv);
-                }
-            });
-        }
+    closeTabButton.onClick = [this]() mutable {
+        closeTab();
     };
+    
     addChildComponent(closeTabButton);
+}
+
+void TabBarButtonComponent::closeTab()
+{
+    // We cant use the index from earlier because it might have changed!
+    const int tabIdx = getIndex();
+    auto* cnv = tabComponent->getCanvas(tabIdx);
+    auto* editor = tabComponent->getEditor();
+
+    if (tabIdx == -1)
+        return;
+
+    if (cnv) {
+        MessageManager::callAsync([_cnv = SafePointer(cnv), _editor = SafePointer(editor)]() mutable {
+            // Don't show save dialog, if patch is still open in another view
+            if (_cnv && _cnv->patch.isDirty()) {
+                Dialogs::showSaveDialog(&_editor->openedDialog, _editor, _cnv->patch.getTitle(),
+                    [_cnv, _editor](int result) mutable {
+                        if (!_cnv)
+                            return;
+                        if (result == 2)
+                            _editor->saveProject([_cnv, _editor]() mutable { _editor->closeTab(_cnv); });
+                        else if (result == 1)
+                            _editor->closeTab(_cnv);
+                    });
+            } else {
+                _editor->closeTab(_cnv);
+            }
+        });
+    }
 }
 
 void TabBarButtonComponent::setFocusForTabSplit()

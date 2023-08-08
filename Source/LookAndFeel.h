@@ -12,6 +12,7 @@
 #include "Utility/SettingsFile.h"
 #include "Constants.h"
 #include "Utility/Fonts.h"
+#include "TabBarButtonComponent.h"
 
 inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDataColourNames = {
 
@@ -705,12 +706,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.setFont(font);
 
         g.drawText(button.getButtonText().trim(), area.reduced(4, 0), Justification::centred, false);
-        
-        /*
-        g.drawFittedText(buttonText,
-            area.getX() + 3, area.getY(), (int)area.getWidth() - 6, (int)area.getHeight(),
-            Justification::centred,
-            jmax(1, ((int)area.getHeight()) / 12)); */
     }
 
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override
@@ -726,6 +721,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             TabBarExtrasButton()
             {
                 setButtonText(Icons::ThinDown);
+                setTriggeredOnMouseDown(true);
             }
             
             void paint(Graphics& g) override
@@ -744,14 +740,114 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 return;
             }
 
-            /*
+
             void mouseDown(const MouseEvent& e) override
             {
+                class HiddenTabMenuItem : public PopupMenu::CustomComponent {
+
+                    String tabTitle;
+
+                public:
+
+                    int index;
+                    TabbedButtonBar& tabbar;
+                    
+                    HiddenTabMenuItem(String text, int idx, TabbedButtonBar& buttonBar) : tabTitle(text), index(idx), tabbar(buttonBar)
+                    {
+                        closeTabButton.setButtonText(Icons::Clear);
+                        closeTabButton.getProperties().set("Style", "Icon");
+                        closeTabButton.getProperties().set("FontScale", 0.44f);
+                        closeTabButton.setColour(TextButton::buttonColourId, Colour());
+                        closeTabButton.setColour(TextButton::buttonOnColourId, Colour());
+                        closeTabButton.setColour(ComboBox::outlineColourId, Colour());
+                        closeTabButton.setConnectedEdges(12);
+                        closeTabButton.setSize(26, 26);
+                        closeTabButton.addMouseListener(this, false);
+                        closeTabButton.onClick = [this]() mutable {
+                            dynamic_cast<TabBarButtonComponent*>(tabbar.getTabButton(index))->closeTab();
+                        };
+                        
+                        addChildComponent(closeTabButton);
+                    }
+                    
+                    void resized() override
+                    {
+                        closeTabButton.setTopLeftPosition(getWidth() - 26, -2);
+                    }
+
+                    void getIdealSize(int& idealWidth, int& idealHeight) override
+                    {
+                        idealWidth = 150;
+                        idealHeight = 24;
+                    }
+                    
+                    void mouseDown(const MouseEvent& e) override
+                    {
+                        if(e.originalComponent == &closeTabButton) return;
+                        
+                        tabbar.setCurrentTabIndex(index);
+                        triggerMenuItem();
+                    }
+                    
+                    void mouseEnter(const MouseEvent& e) override
+                    {
+                        closeTabButton.setVisible(true);
+                    }
+                    
+                    void mouseExit(const MouseEvent& e) override
+                    {
+                        closeTabButton.setVisible(false);
+                    }
+
+                    void paint(Graphics& g) override
+                    {
+                        bool isActive = tabbar.getCurrentTabIndex() == index;
+
+                        if (isActive) {
+                            g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+                        } else if (isItemHighlighted()) {
+                            g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId).interpolatedWith(findColour(PlugDataColour::popupMenuBackgroundColourId), 0.4f));
+                        } else {
+                            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+                        }
+
+                        fillSmoothedRectangle(g,getLocalBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
+                        
+                        auto area = getLocalBounds().reduced(4, 1).toFloat();
+
+                        Font font = Font(14);
+
+                        g.setColour(findColour(TabbedButtonBar::tabTextColourId));
+                        g.setFont(font);
+                        g.drawText(tabTitle.trim(), area.reduced(4, 0), Justification::centred, false);
+                    }
+                    
+                    TextButton closeTabButton;
+                };
+                
                 if(auto* parent = findParentComponentOfClass<TabbedButtonBar>())
                 {
-                    
+                    PopupMenu m;
+
+                    auto tabNames = parent->getTabNames();
+                    for (int i = 0; i < parent->getNumTabs(); ++i)
+                    {
+                        auto* tab = parent->getTabButton(i);
+                        
+                        if (!tab->isVisible()) {
+                            m.addCustomItem(i + 1, std::make_unique<HiddenTabMenuItem>(tabNames[i], i, *parent), nullptr, tabNames[i]);
+                        }
+                           /*
+                            m.addItem (PopupMenu::Item (tabNames[i])
+                                         .setTicked (i == parent->getCurrentTabIndex())
+                                         .setAction ([this, i, parent] { parent->setCurrentTabIndex (i); })); */
+                    }
+
+                    m.showMenuAsync (PopupMenu::Options()
+                                        .withDeletionCheck (*this)
+                                        .withTargetComponent (this));
                 }
-            } */
+            }
         };
         
         return new TabBarExtrasButton();
