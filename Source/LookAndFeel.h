@@ -726,7 +726,19 @@ struct PlugDataLook : public LookAndFeel_V4 {
             
             void paint(Graphics& g) override
             {
-                if(isMouseOverOrDragging())
+                bool hiddenTabSelected = false;
+                if(auto* tabbar = findParentComponentOfClass<TabbedButtonBar>())
+                {
+                    
+                    auto currentTabIndex = tabbar->getCurrentTabIndex();
+                    if(currentTabIndex >= 0)
+                    {
+                        auto* currentTab = tabbar->getTabButton(currentTabIndex);
+                        hiddenTabSelected = !currentTab->isVisible();
+                    }
+                }
+                
+                if(isMouseOverOrDragging() || hiddenTabSelected)
                 {
                     g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
                     fillSmoothedRectangle(g, getLocalBounds().reduced(1, 0).toFloat(), Corners::defaultCornerRadius);
