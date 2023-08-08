@@ -677,7 +677,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
 
         fillSmoothedRectangle(g, button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
-        drawTabButtonText(button, g, false, false);
+        drawTabButtonText(button, g, isMouseOver, isMouseDown);
     }
 
 
@@ -687,24 +687,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         Font font(getTabButtonFont(button, area.getHeight()));
         font.setUnderline(button.hasKeyboardFocus(false));
-
-        AffineTransform t;
-
-        switch (button.getTabbedButtonBar().getOrientation()) {
-        case TabbedButtonBar::TabsAtLeft:
-            t = t.rotated(MathConstants<float>::pi * -0.5f).translated(area.getX(), area.getBottom());
-            break;
-        case TabbedButtonBar::TabsAtRight:
-            t = t.rotated(MathConstants<float>::pi * 0.5f).translated(area.getRight(), area.getY());
-            break;
-        case TabbedButtonBar::TabsAtTop:
-        case TabbedButtonBar::TabsAtBottom:
-            t = t.translated(area.getX(), area.getY());
-            break;
-        default:
-            jassertfalse;
-            break;
-        }
 
         Colour col;
 
@@ -716,19 +698,19 @@ struct PlugDataLook : public LookAndFeel_V4 {
         else
             col = button.getTabBackgroundColour().contrasting();
 
-        g.setColour(col);
+        // Use a gradient to make it fade out when it gets near to the close button
+        auto fadeX = isMouseOver ? area.getRight() - 25 : area.getRight() - 8;
+        g.setGradientFill(ColourGradient(col, fadeX - 18, area.getY(), Colours::transparentBlack, fadeX, area.getY(), false));
+        
         g.setFont(font);
-        g.addTransform(t);
 
-        auto buttonText = button.getButtonText().trim();
-        if (font.getStringWidthFloat(buttonText) > area.getWidth() * 0.4f) {
-            area = button.getTextArea().toFloat();
-        }
-
+        g.drawText(button.getButtonText().trim(), area.reduced(4, 0), Justification::centred, false);
+        
+        /*
         g.drawFittedText(buttonText,
-            area.getX(), area.getY(), (int)area.getWidth(), (int)area.getHeight(),
+            area.getX() + 3, area.getY(), (int)area.getWidth() - 6, (int)area.getHeight(),
             Justification::centred,
-            jmax(1, ((int)area.getHeight()) / 12));
+            jmax(1, ((int)area.getHeight()) / 12)); */
     }
 
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override
@@ -739,8 +721,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         auto* button = new TextButton();
     
-        button->getProperties().set("Style", "Icon");
-        button->getProperties().set("FontScale", 0.7f);
+        button->getProperties().set("Style", "LargeIcon");
         button->setButtonText(Icons::ThinDown);
 
         return button;
