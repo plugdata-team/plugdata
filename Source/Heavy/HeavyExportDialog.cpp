@@ -32,7 +32,7 @@ class ExporterSettingsPanel : public Component
     , private ListBoxModel {
 public:
     ListBox listBox;
-    int listBoxWdith = 160;
+    int listBoxWidth = 160;
 
     TextButton addButton = TextButton(Icons::Add);
 
@@ -65,7 +65,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWdith);
+        auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRoundedRectangle(listboxBounds.toFloat(), Corners::windowCornerRadius);
@@ -74,7 +74,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWdith);
+        auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(Line<float>(listboxBounds.getTopRight().toFloat(), listboxBounds.getBottomRight().toFloat()));
@@ -99,7 +99,7 @@ public:
     void resized() override
     {
         auto b = getLocalBounds();
-        listBox.setBounds(b.removeFromLeft(listBoxWdith).reduced(4));
+        listBox.setBounds(b.removeFromLeft(listBoxWidth).reduced(4));
 
         for (auto* view : views) {
             view->setBounds(b);

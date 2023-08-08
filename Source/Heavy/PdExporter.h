@@ -7,16 +7,16 @@
 class PdExporter : public ExporterBase {
 public:
 
-    Value pathEnableValue = Value(var(1));
     Value exportTypeValue = Value(var(2));
+    // Value pathEnableValue = Value(var(1));
 
     PdExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
-        properties.add(new PropertiesPanel::BoolComponent("Add external to Path", pathEnableValue, { "No", "Yes"}));
-        pathEnableValue.addListener(this);
+        // properties.add(new PropertiesPanel::BoolComponent("Add external to Path", pathEnableValue, { "No", "Yes"}));
+        // pathEnableValue.addListener(this);
 
         panel.addSection("Pd", properties);
     }
