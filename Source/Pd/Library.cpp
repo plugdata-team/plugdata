@@ -63,7 +63,11 @@ void Library::updateLibrary()
     for (auto path : pathTree) {
         auto filePath = path.getProperty("Path").toString();
 
-        for (auto const& file : OSUtils::iterateDirectory(File(filePath), false, true)) {
+        auto file = File(filePath);
+        if (!file.exists() || !file.isDirectory())
+            continue;
+
+        for (auto const& file : OSUtils::iterateDirectory(file, false, true)) {
             if (file.hasFileExtension(".pd")) {
                 auto filename = file.getFileNameWithoutExtension();
                 if (!filename.startsWith("help-") || filename.endsWith("-help")) {
