@@ -34,8 +34,15 @@ public:
         cnv->zoomScale.setValue(1.0f);
         cnv->zoomScale.getValueSource().sendChangeMessage(true);
 
-        nativeTitleBarHeight = ProjectInfo::isStandalone ? desktopWindow->getFrameSize().getTop() : 0;
-
+        if(ProjectInfo::isStandalone) {
+            auto frameSize = desktopWindow->getFrameSizeIfPresent();
+            nativeTitleBarHeight = frameSize ? frameSize->getTop() : 0;
+        }
+        else {
+            nativeTitleBarHeight = 0;
+        }
+        
+        
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);

@@ -271,7 +271,7 @@ void Canvas::zoomToFitAll()
     }
 
     auto viewportCentre = viewport->getViewArea().withZeroOrigin().getCentre();
-    auto newViewPos = regionOfInterest.transformed(getTransform()).getCentre() - viewportCentre;
+    auto newViewPos = regionOfInterest.transformedBy(getTransform()).getCentre() - viewportCentre;
     viewport->setViewPosition(newViewPos);
 }
 
