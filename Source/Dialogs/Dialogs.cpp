@@ -532,7 +532,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     addCommandItem(popupMenu, CommandIDs::ConnectionPathfind);
     
     popupMenu.addSeparator();
-    popupMenu.addCommandItem(editor, CommandIDs::Encapsulate);
+    addCommandItem(popupMenu, CommandIDs::Encapsulate);
     popupMenu.addSeparator();
 
     popupMenu.addItem(ToFront, "To Front", object != nullptr);
