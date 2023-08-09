@@ -476,7 +476,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     bool hasSelection = !selectedBoxes.isEmpty();
     bool multiple = selectedBoxes.size() > 1;
 
-    Object* object = hasSelection ? selectedBoxes.getFirst() : nullptr;
+    Object* object = Component::SafePointer<Object>(hasSelection ? selectedBoxes.getFirst() : nullptr);
 
     // Find top-level object, so we never trigger it on an object inside a graph
     if (object && object->findParentComponentOfClass<Object>()) {
@@ -495,6 +495,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         Help,
         Reference,
         ToFront,
+        Forward,
+        Backward,
         ToBack,
         Properties
     };
@@ -534,9 +536,14 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addSeparator();
     addCommandItem(popupMenu, CommandIDs::Encapsulate);
     popupMenu.addSeparator();
-
-    popupMenu.addItem(ToFront, "To Front", object != nullptr);
-    popupMenu.addItem(ToBack, "To Back", object != nullptr);
+    
+    PopupMenu orderMenu;
+    orderMenu.addItem(ToFront, "To Front", object != nullptr);
+    orderMenu.addItem(Forward, "Move forward", object != nullptr);
+    orderMenu.addItem(Backward, "Move backward", object != nullptr);
+    orderMenu.addItem(ToBack, "To Back", object != nullptr);
+    popupMenu.addSubMenu("Order", orderMenu);
+    
     popupMenu.addSeparator();
     popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.getParameters().isEmpty()));
     // showObjectReferenceDialog
@@ -575,7 +582,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         case Open: // Open subpatch
             object->gui->openFromMenu();
             break;
-        case ToFront: { // To Front
+        case ToFront: {
             auto objects = cnv->patch.getObjects();
 
             // The FORWARD double for loop makes sure that they keep their original order
@@ -590,6 +597,42 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 }
             }
             cnv->patch.startUndoSequence("ToBack");
+            cnv->synchronise();
+            break;
+        }
+        case Forward: {
+            auto objects = cnv->patch.getObjects();
+
+            // The FORWARD double for loop makes sure that they keep their original order
+            cnv->patch.startUndoSequence("MoveForward");
+            for (auto& object : objects) {
+                for (auto* selectedBox : selectedBoxes) {
+                    if (object == selectedBox->getPointer()) {
+                        selectedBox->toFront(false);
+                        if (selectedBox->gui)
+                            selectedBox->gui->moveForward();
+                    }
+                }
+            }
+            cnv->patch.startUndoSequence("MoveForward");
+            cnv->synchronise();
+            break;
+        }
+        case Backward: {
+            auto objects = cnv->patch.getObjects();
+
+            cnv->patch.startUndoSequence("MoveBackward");
+            // The REVERSE double for loop makes sure that they keep their original order
+            for (int i = objects.size() - 1; i >= 0; i--) {
+                for (auto* selectedBox : selectedBoxes) {
+                    if (objects[i] == selectedBox->getPointer()) {
+                        selectedBox->toBack();
+                        if (selectedBox->gui)
+                            selectedBox->gui->moveBackward();
+                    }
+                }
+            }
+            cnv->patch.endUndoSequence("MoveBackward");
             cnv->synchronise();
             break;
         }

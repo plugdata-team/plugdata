@@ -367,6 +367,76 @@ void libpd_redo(t_canvas* cnv)
     sys_unlock();
 }
 
+static void libpd_arrange_single_step(t_canvas* cnv, t_gobj* obj, int forward) {
+    t_gobj* y_begin = cnv->gl_list;
+    t_gobj* y_end = y_begin;
+    
+    while (y_end->g_next) {
+        y_end = y_end->g_next;
+    }
+    
+    canvas_undo_add(cnv, UNDO_ARRANGE, "arrange",
+        canvas_undo_set_arrange(cnv, obj, forward));
+    
+    int current_idx = glist_getindex(cnv, obj);
+        
+    // Find the previous object
+    t_gobj* prev_obj = NULL;
+    int indx = 0;
+    for (prev_obj = y_begin; prev_obj; prev_obj = prev_obj->g_next, indx++) {
+        if (indx == current_idx - 1) {
+            break;
+        }
+    }
+    
+    // If there is an object after ours
+    t_gobj* next_obj = obj->g_next ? obj->g_next : NULL;
+    
+    if (forward) {
+        // Already at the end
+        if (obj == y_end) return;
+        
+        // Swap positions with the next object
+        if (next_obj) {
+            obj->g_next = next_obj->g_next;
+            next_obj->g_next = obj;
+            if (prev_obj) {
+                prev_obj->g_next = next_obj;
+            } else {
+                cnv->gl_list = next_obj;
+            }
+        }
+    } else {
+        // Already at the beginning
+        if (!prev_obj) return;
+        
+        t_gobj* prev_prev = NULL;
+        int prev_indx = 0;
+        for (prev_prev = y_begin; prev_prev; prev_prev = prev_prev->g_next, prev_indx++) {
+            if (prev_indx == current_idx - 2) {
+                break;
+            }
+        }
+
+        if (prev_prev) {
+            prev_prev->g_next = obj;
+        } else {
+            cnv->gl_list = obj;
+        }
+
+        obj->g_next = prev_obj;
+        
+        if (next_obj) {
+            prev_obj->g_next = next_obj;
+        } else {
+            prev_obj->g_next = NULL;
+        }
+    }
+    
+    glist_noselect(cnv);
+    canvas_dirty(cnv, 1);
+}
+
 static void libpd_arrange(t_canvas* cnv, t_gobj* obj, int to_front)
 {
     t_gobj* y_begin = cnv->gl_list;
@@ -440,6 +510,16 @@ static void libpd_arrange(t_canvas* cnv, t_gobj* obj, int to_front)
 void libpd_tofront(t_canvas* cnv, t_gobj* obj)
 {
     libpd_arrange(cnv, obj, 1);
+}
+
+void libpd_move_forward(t_canvas* cnv, t_gobj* obj)
+{
+    libpd_arrange_single_step(cnv, obj, 1);
+}
+
+void libpd_move_backward(t_canvas* cnv, t_gobj* obj)
+{
+    libpd_arrange_single_step(cnv, obj, 0);
 }
 
 void libpd_toback(t_canvas* cnv, t_gobj* obj)

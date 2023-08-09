@@ -111,6 +111,8 @@ public:
     String getType() const;
     
     void moveToFront();
+    void moveForward();
+    void moveBackward();
     void moveToBack();
     
     virtual Canvas* getCanvas();

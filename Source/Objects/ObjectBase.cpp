@@ -315,6 +315,28 @@ void ObjectBase::moveToFront()
     }
 }
 
+void ObjectBase::moveForward()
+{
+    if (auto obj = ptr.get<t_gobj>()) {
+        auto* patch = cnv->patch.getPointer().get();
+        if (!patch)
+            return;
+
+        libpd_move_forward(patch, obj.get());
+    }
+}
+
+void ObjectBase::moveBackward()
+{
+    if (auto obj = ptr.get<t_gobj>()) {
+        auto* patch = cnv->patch.getPointer().get();
+        if (!patch)
+            return;
+
+        libpd_move_backward(patch, obj.get());
+    }
+}
+
 void ObjectBase::moveToBack()
 {
     if (auto obj = ptr.get<t_gobj>()) {
