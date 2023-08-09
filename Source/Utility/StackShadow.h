@@ -19,7 +19,7 @@
 #endif
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include <juce_gui_basics/detail/juce_WindowingHelpers.h>
+
 class StackShadow {
 
     static inline unsigned short const stackblur_mul[255] = {
@@ -720,6 +720,12 @@ public:
     }
 };
 
+#if !JUCE_BSD
+namespace juce {
+bool isWindowOnCurrentVirtualDesktop(void* x);
+}
+#endif
+
 class StackDropShadower : private ComponentListener {
 public:
     /** Creates a DropShadower. */
@@ -1020,7 +1026,7 @@ private:
 #if JUCE_BSD
                     return false;
 #else
-                    return !detail::WindowingHelpers::isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
+                    return !isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
 #endif
                 }
 
