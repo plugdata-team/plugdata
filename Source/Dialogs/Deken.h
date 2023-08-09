@@ -712,7 +712,7 @@ private:
         {
             listBox.updateContent();
             
-            auto* model = listBox.getListBoxModel();
+            auto* model = listBox.getModel();
             auto height = model ? model->getNumRows() * listBox.getRowHeight() : viewport.getParentComponent()->getHeight();
             listBox.setBounds(getLocalBounds().reduced(10, 18).withHeight(height));
             setSize(getWidth(), height + 26);
@@ -725,7 +725,7 @@ private:
                 
         void paint (Graphics& g) override
         {
-            auto* model = listBox.getListBoxModel();
+            auto* model = listBox.getModel();
             if(!model || !model->getNumRows()) return;
             
             auto bounds = getLocalBounds();
