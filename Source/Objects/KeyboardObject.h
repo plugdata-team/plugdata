@@ -115,9 +115,6 @@ public:
 
     void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
     {
-        // TODO: this should be a theme preference, or setting for keyboard
-        // yeah but we can set a less ugly default colour for now!
-
         isDown = heldKeys.count(midiNoteNumber);
 
         auto c = Colour(225, 225, 225);
@@ -174,7 +171,6 @@ public:
                 p.clear();
             }
 
-            // TODO: C octave number text colour should be a theme prefernece or setting
             g.setColour(Colour(90, 90, 90));
             g.fillPath(outline, outline.getTransformToScaleToFit(rectangle, true));
         }
@@ -182,7 +178,6 @@ public:
 
     void drawBlackNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour noteFillColour) override
     {
-        // TODO: this should be a theme preference, or setting for keyboard
         auto c = Colour(90, 90, 90);
 
         isDown = heldKeys.count(midiNoteNumber);

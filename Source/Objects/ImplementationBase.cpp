@@ -29,8 +29,6 @@ int clone_get_n(t_gobj*);
 #include "ImplementationBase.h"
 #include "ObjectImplementations.h"
 
-// TODO: create function to check if ptr was deleted, by passing the parent patch in the contructor?
-
 ImplementationBase::ImplementationBase(void* obj, PluginProcessor* processor)
     : pd(processor)
     , ptr(obj, processor)

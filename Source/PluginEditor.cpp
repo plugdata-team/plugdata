@@ -13,8 +13,6 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-#include "Presets.h" // TODO: temporary, remove later
-
 #include "Pd/Patch.h"
 
 #include "LookAndFeel.h"

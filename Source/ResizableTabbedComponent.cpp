@@ -86,7 +86,7 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
 
         auto mousePos = (cnv->getLocalPoint(this, dragSourceDetails.localPosition) - cnv->canvasOrigin);
 
-        // extract the array<var> from the var ALEX TODO: must be a MUCH better way to do this!
+        // Extract the array<var> from the var
         auto patchWithSize = *dragSourceDetails.description.getArray();
         auto patchSize = Point<int>(patchWithSize[0], patchWithSize[1]);
         auto patchData = patchWithSize[2].toString();

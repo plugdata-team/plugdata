@@ -190,8 +190,9 @@ public:
             auto offset = newViewportPosition - oldViewportPosition;
 
             // Set the new canvas position
-            // TODO: there is an accumulated error when zooming in/out
+            // Alex: there is an accumulated error when zooming in/out
             //       possibly we should save the canvas position as an additional Point<float> ?
+            // Tim: pretty sure there isn't? You can tell more clearly by using a macbook trackpad, zooming appears to be accurate
             cnv->setTopLeftPosition((cnv->getPosition().toFloat() + offset).roundToInt());
 
             cnv->zoomScale = scale;

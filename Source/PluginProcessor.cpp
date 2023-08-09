@@ -432,8 +432,10 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     statusbarSource->setSampleRate(sampleRate);
     statusbarSource->setBufferSize(samplesPerBlock);
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
-    limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(getTotalNumOutputChannels()) });
-    // limiter.setThreshold(float newThreshold)
+    
+    if(getTotalNumOutputChannels() > 0 && sampleRate > 0) {
+        limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(getTotalNumOutputChannels()) });
+    }
 
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
 }
@@ -1502,7 +1504,7 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 
 void PluginProcessor::updateDrawables()
 {
-    // TODO: fix for split view and palettes
+    // TODO: fix for split view
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         MessageManager::callAsync([cnv = editor->getCurrentCanvas()]() {
             if (cnv)

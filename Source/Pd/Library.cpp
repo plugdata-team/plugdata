@@ -108,7 +108,7 @@ Library::Library(pd::Instance* instance)
     helpPaths = { ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("5.reference"), ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Documentation"),
         ProjectInfo::appDataDir.getChildFile("Deken") };
 
-    // TODO: This is unfortunately necessary to make Windows LV2 turtle dump work
+    // This is unfortunately necessary to make Windows LV2 turtle dump work
     // Let's hope its not harmful
     MessageManager::callAsync([this, instance]() {
         instance->setThis();

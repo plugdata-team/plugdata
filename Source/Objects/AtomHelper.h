@@ -267,7 +267,6 @@ public:
     {
         int idx = std::clamp<int>(fontSize.getValue(), 1, 7);
 
-        // TODO: fix data race
         setFontHeight(atomSizes[idx - 1]);
 
         int fontHeight = getAtomHeight() - 6;

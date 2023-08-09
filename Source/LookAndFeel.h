@@ -519,6 +519,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
+    /*
     // TODO: do we use this??
     void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, Image const* icon, bool drawTitleTextOnLeft) override
     {
@@ -529,7 +530,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.fillAll();
 
         Fonts::drawText(g, window.getName(), 0, 0, w, h, getCurrentColourScheme().getUIColour(ColourScheme::defaultText), h * 0.65f);
-    }
+    } */
 
     Button* createDocumentWindowButton(int buttonType) override
     {
@@ -1203,7 +1204,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
             auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
 
-            // TODO: check if this is correct, can we get the correct numlines and scale?
             g.setFont(font);
             g.setColour(label.findColour(Label::textColourId));
 

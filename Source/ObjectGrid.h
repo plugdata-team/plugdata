@@ -20,8 +20,6 @@ public:
     Point<int> performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds);
     Point<int> performFixedResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds, Rectangle<int> nonClippedBounds);
 
-    // TODO: Can we save gridSize in patch instead of Settings File??
-    //  TS: No we can't!
     int gridSize;
 
     static constexpr int range = 7;
