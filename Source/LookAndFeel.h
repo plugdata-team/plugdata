@@ -519,19 +519,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
-    /*
-    // TODO: do we use this??
-    void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, Image const* icon, bool drawTitleTextOnLeft) override
-    {
-        if (w * h == 0)
-            return;
-
-        g.setColour(findColour(ComboBox::backgroundColourId));
-        g.fillAll();
-
-        Fonts::drawText(g, window.getName(), 0, 0, w, h, getCurrentColourScheme().getUIColour(ColourScheme::defaultText), h * 0.65f);
-    } */
-
     Button* createDocumentWindowButton(int buttonType) override
     {
         // For dialogs
