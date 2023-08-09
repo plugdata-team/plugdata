@@ -564,10 +564,10 @@ void Canvas::performSynchronise()
                 int idx = connections.indexOf(*it);
                 connections.removeObject(*it);
                 connections.insert(idx, new Connection(this, inlet, outlet, ptr));
-                
             }
-            
-            c.popPathState();
+            else {
+                c.popPathState();
+            }
         }
     }
 
