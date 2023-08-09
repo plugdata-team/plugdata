@@ -389,7 +389,13 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 auto id = commandIds.removeAndReturn(0);
                 
                 button->onClick = [commandManager, id](){
-                    commandManager->invokeDirectly(id, false);
+                    if(auto* editor = dynamic_cast<PluginEditor*>(commandManager)) {
+                        editor->grabKeyboardFocus();
+                    }
+                    
+                    ApplicationCommandTarget::InvocationInfo info (id);
+                    info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
+                    commandManager->invoke (info, true);
                 };
                 
                 if (auto* registeredInfo = commandManager->getCommandForID (id))
@@ -433,6 +439,23 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         QuickActionButton paste = QuickActionButton(Icons::Paste);
         QuickActionButton duplicate = QuickActionButton(Icons::Duplicate);
         QuickActionButton remove = QuickActionButton(Icons::Trash);
+    };
+
+    // We have a custom function for this, instead of the default JUCE way, because the default JUCE way is broken on Linux
+    // It will not find a target to apply the command to once the popupmenu grabs focus...
+    auto addCommandItem = [commandManager = cnv->editor](PopupMenu& menu, const CommandID commandID, String displayName = ""){
+        if (auto* registeredInfo = commandManager->getCommandForID (commandID))
+        {
+            ApplicationCommandInfo info (*registeredInfo);
+            
+            PopupMenu::Item i;
+            i.text = displayName.isNotEmpty() ? std::move (displayName) : info.shortName;
+            i.itemID = (int) commandID;
+            i.commandManager = commandManager;
+            i.isEnabled =(info.flags & ApplicationCommandInfo::isDisabled) == 0;
+            i.isTicked = (info.flags & ApplicationCommandInfo::isTicked) != 0;
+            menu.addItem (std::move (i));
+        }
     };
     
     cnv->cancelConnectionCreation();
@@ -506,10 +529,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
         // cnv->patch.endUndoSequence("ChangeSegmentedPaths");
     });
-    popupMenu.addCommandItem(editor, CommandIDs::ConnectionPathfind);
+    addCommandItem(popupMenu, CommandIDs::ConnectionPathfind);
     
     popupMenu.addSeparator();
-    popupMenu.addCommandItem(editor, CommandIDs::Encapsulate);
+    popupMenu.addCommandItem(editor, CommandIDs::ConnectionPathfind);
     popupMenu.addSeparator();
 
     popupMenu.addItem(ToFront, "To Front", object != nullptr);
