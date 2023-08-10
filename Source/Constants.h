@@ -161,6 +161,11 @@ struct Icons {
     inline static const String GlyphSysexOut = CharPointer_UTF8("Đ");
     inline static const String GlyphMtof = CharPointer_UTF8("đ");
     inline static const String GlyphFtom = CharPointer_UTF8("Ē");
+    inline static const String GlyphAutotune = CharPointer_UTF8("ē");
+
+    // Multi~
+    inline static const String GlyphMultiSnake = CharPointer_UTF8("Ŀ");
+    inline static const String GlyphMultiGet = CharPointer_UTF8("ŀ");
 
     // IO~
     inline static const String GlyphAdc = CharPointer_UTF8("Ī");
