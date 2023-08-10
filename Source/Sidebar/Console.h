@@ -205,7 +205,6 @@ public:
                     if(object->getPointer() == target)
                     {
                         Object::consoleTarget = object;
-                        object->isConsoleTarget = true;
                         object->repaint();
                     }
                     else if(Object::consoleTarget == object) {
@@ -214,14 +213,16 @@ public:
                     }
                 }
 
-                if (auto* viewport = cnv->viewport.get()) {
-                    auto scale = getValue<float>(cnv->zoomScale);
-                    auto pos = targetObject->getBounds().getCentre() * scale;
-
-                    pos.x -= viewport->getViewWidth() * 0.5f;
-                    pos.y -= viewport->getViewHeight() * 0.5f;
-
-                    viewport->setViewPosition(pos);
+                if(Object::consoleTarget) {
+                    if (auto* viewport = cnv->viewport.get()) {
+                        auto scale = getValue<float>(cnv->zoomScale);
+                        auto pos = Object::consoleTarget->getBounds().getCentre() * scale;
+                        
+                        pos.x -= viewport->getViewWidth() * 0.5f;
+                        pos.y -= viewport->getViewHeight() * 0.5f;
+                        
+                        viewport->setViewPosition(pos);
+                    }
                 }
             }
 
