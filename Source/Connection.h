@@ -55,7 +55,8 @@ public:
         Point<int> mousePos = { 0, 0 },
         bool isHovering = false,
         int connections = 0,
-        int connectionNum = 0);
+        int connectionNum = 0,
+        int numSignalChannels = 0);
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
@@ -116,6 +117,7 @@ private:
     void resizeToFit();
 
     int getMultiConnectNumber();
+    int getNumSignalChannels();
     int getNumberOfConnections();
 
     void valueChanged(Value& v) override;
@@ -145,6 +147,7 @@ private:
     float mouseDownPosition = 0;
     bool isHovering = false;
 
+    // TODO: replace with pd::WeakReference!
     t_fake_outconnect* ptr;
 
     std::vector<pd::Atom> lastValue;
