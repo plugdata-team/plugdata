@@ -120,10 +120,11 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 Dialogs::showDeken(editor);
                 break;
             }
+                    /*
             case MainMenu::MenuItem::Discover: {
                 Dialogs::showPatchStorage(editor);
                 break;
-            }
+            } */
             case MainMenu::MenuItem::Settings: {
                 Dialogs::showSettingsDialog(editor);
                 break;
