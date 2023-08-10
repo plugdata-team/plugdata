@@ -633,6 +633,7 @@ void Canvas::mouseDown(MouseEvent const& e)
 
     // Left-click
     if (!e.mods.isRightButtonDown()) {
+        
         if (source == this /*|| source == graphArea */) {
 
             cancelConnectionCreation();

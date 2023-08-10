@@ -147,6 +147,13 @@ void Object::setSelected(bool shouldBeSelected)
         selectedFlag = shouldBeSelected;
         repaint();
     }
+    
+    if(!shouldBeSelected && Object::consoleTarget == this)
+    {
+        Object::consoleTarget = nullptr;
+        repaint();
+    }
+    
 }
 
 bool Object::isSelected() const
@@ -420,6 +427,19 @@ Array<Rectangle<float>> Object::getCorners() const
 
 void Object::paintOverChildren(Graphics& g)
 {
+    if (consoleTarget == this) {
+        g.saveState();
+
+        // Don't draw line over iolets!
+        for (auto& iolet : iolets) {
+            g.excludeClipRegion(iolet->getBounds().reduced(2));
+        }
+
+        g.setColour(Colours::darkorange);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
+
+        g.restoreState();
+    }
     if (isSearchTarget) {
         g.saveState();
 

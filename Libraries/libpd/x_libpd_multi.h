@@ -47,7 +47,7 @@ void* libpd_multi_midi_new(void* ptr,
     t_libpd_multi_polyaftertouchhook hook_polyaftertouch,
     t_libpd_multi_midibytehook hook_midibyte);
 
-typedef void (*t_libpd_multi_printhook)(void* ptr, char const* recv);
+typedef void (*t_libpd_multi_printhook)(void* ptr, void* obj, char const* recv);
 
 void* libpd_multi_print_new(void* ptr, t_libpd_multi_printhook hook_print);
 
