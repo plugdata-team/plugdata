@@ -223,7 +223,7 @@ public:
     static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> objectList = {
         { "Default",
             {
-                { Icons::GlyphEmpty, "#X obj 0 0", "(@keypress) Empty object", "Empty", NewObject},
+                { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject},
                 { Icons::GlyphMessage, "#X msg 0 0", "(@keypress) Message", "Message" , NewMessage},
                 { Icons::GlyphFloatBox, "#X floatatom 0 0 5 0 0 0 - - - 0", "(@keypress) Float box", "Float" , NewFloatAtom},
                 { Icons::GlyphSymbolBox, "#X symbolatom 0 0 10 0 0 0 - - - 0", "Symbol box", "Symbol" , NewSymbolAtom},

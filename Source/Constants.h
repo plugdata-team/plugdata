@@ -102,7 +102,7 @@ struct Icons {
     inline static const String GlyphGeneric = CharPointer_UTF8("Á");
 
     // default
-    inline static const String GlyphEmpty = CharPointer_UTF8("Â");
+    inline static const String GlyphEmptyObject = CharPointer_UTF8("Â");
     inline static const String GlyphMessage = CharPointer_UTF8("Ä");
     inline static const String GlyphFloatBox = CharPointer_UTF8("Ã");
     inline static const String GlyphSymbolBox = CharPointer_UTF8("Å");
