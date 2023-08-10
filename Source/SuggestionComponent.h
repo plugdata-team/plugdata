@@ -488,43 +488,57 @@ private:
         resized();
 
         auto& library = currentBox->cnv->pd->objectLibrary;
+        
+        
+        class ObjectSorter
+        {
+        public:
+            ObjectSorter(String searchQuery) : query(searchQuery)
+            {
+            }
+            
+            int compareElements (const String& a, const String& b)
+            {
+                auto check = [this](const String& a, const String& b) -> bool {
+                    // Check if suggestion exacly matches query
+                    if (a == query) {
+                        return -1;
+                    }
+                    
+                    // Check if suggestion is equal to query with "~" appended
+                    if (a == (query + "~") && b != query && b != (query + "~")) {
+                        return -1;
+                    }
+                    
+                    // Check if suggestion is equal to query with "." appended
+                    if (a.startsWith(query + ".") && b != query && b != (query + "~") && !b.startsWith(query + ".")) {
+                        return 1;
+                    }
+                    
+                    if (a.length() < b.length()) {
+                        return 1;
+                    }
+                    
+                    return -1;
+                };
+                
+                if (check(a, b))
+                    return true;
+                if (check(b, a))
+                    return false;
+                
+                return a.compareNatural(b) >= 0;
+            }
+            const String query;
+        };
 
         auto sortSuggestions = [](String query, StringArray suggestions) -> StringArray {
             if (query.length() == 0)
                 return suggestions;
-
-            std::sort(suggestions.begin(), suggestions.end(),
-                [&query](const String& a, const String& b) -> bool {
-                    auto check = [&query](const String& a, const String& b) -> bool {
-                        // Check if suggestion exacly matches query
-                        if (a == query) {
-                            return true;
-                        }
-
-                        // Check if suggestion is equal to query with "~" appended
-                        if (a == (query + "~") && b != query && b != (query + "~")) {
-                            return true;
-                        }
-
-                        // Check if suggestion is equal to query with "." appended
-                        if (a.startsWith(query + ".") && b != query && b != (query + "~") && !b.startsWith(query + ".")) {
-                            return true;
-                        }
-
-                        if (a.length() < b.length()) {
-                            return true;
-                        }
-
-                        return false;
-                    };
-
-                    if (check(a, b))
-                        return true;
-                    if (check(b, a))
-                        return false;
-
-                    return a.compareNatural(b) >= 0;
-                });
+            
+            auto sorter = ObjectSorter(query);
+            suggestions.strings.sort(sorter);
+            
             return suggestions;
         };
 
