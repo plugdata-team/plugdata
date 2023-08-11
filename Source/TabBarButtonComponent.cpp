@@ -98,18 +98,15 @@ void TabBarButtonComponent::mouseExit(MouseEvent const& e)
 
 void TabBarButtonComponent::tabTextChanged(String const& newCurrentTabName)
 {
-    isDirty = true; 
 }
 
 void TabBarButtonComponent::lookAndFeelChanged()
 {
-    isDirty = true;
 }
 
 void TabBarButtonComponent::resized()
 {
     closeTabButton.setCentrePosition(getBounds().getCentre().withX(getBounds().getWidth() - 15).translated(0, -1));
-    isDirty = true;
 }
 
 ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
@@ -208,18 +205,13 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
 
 void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
 {
-    if(e.getDistanceFromDragStart() > 10) {
-        //setVisible(false);
+    if(e.getDistanceFromDragStart() > 10 && !isDragging) {
+        isDragging = true;
         closeTabButton.setVisible(false);
         var tabIndex = getIndex();
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
-        //if (isDirty) {
-            tabImage = generateTabBarButtonImage();
-        //    isDirty = false;
-        //}
-    
-        //auto offset = e.getPosition() * -1 - Point<int>(boundsOffset,boundsOffset);
+        tabImage = generateTabBarButtonImage();
         dragContainer->startDragging(tabIndex, this, tabImage, true, nullptr);
     }
 }
@@ -227,6 +219,7 @@ void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
 void TabBarButtonComponent::mouseUp(MouseEvent const& e)
 {
     setVisible(true);
+    isDragging = false;
 }
 
 // FIXME: we are only using this to draw the DnD tab image
