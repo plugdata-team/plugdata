@@ -283,6 +283,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         auto* midiDeviceManager = ProjectInfo::getMidiDeviceManager();
         midiDeviceManager->loadMidiOutputSettings();
     }
+    
+    MessageManager::callAsync([this](){
+        if(auto* window = getTopLevelComponent())
+        {
+            window->toFront(false);
+        }
+        grabKeyboardFocus();
+    });
 }
 
 PluginEditor::~PluginEditor()
@@ -643,7 +651,7 @@ Canvas* PluginEditor::getCurrentCanvas()
     return nullptr;
 }
 
-void PluginEditor::closeAllTabs(bool quitAfterComplete)
+void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude)
 {
     auto* canvas = canvases.getLast();
     if (!canvas) {
@@ -655,13 +663,12 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete)
 
     auto* patch = &canvas->patch;
 
-    auto deleteFunc = [this, canvas, quitAfterComplete]() {
-        if (!canvas) {
-            return;
+    auto deleteFunc = [this, canvas, quitAfterComplete, patchToExclude]() {
+        if (canvas && !(patchToExclude && canvas == patchToExclude)) {
+            closeTab(canvas);
         }
-
-        closeTab(canvas);
-        closeAllTabs(quitAfterComplete);
+        
+        closeAllTabs(quitAfterComplete, patchToExclude);
     };
 
     if (canvas) {

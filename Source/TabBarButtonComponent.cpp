@@ -168,6 +168,8 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         tabMenu.addItem(revealTip, canReveal, false, [cnv]() {
             cnv->patch.getCurrentFile().revealToUser();
         });
+        
+        tabMenu.addSeparator();
 
         if (getTabComponent()->getNumTabs() > 1) {
             tabMenu.addItem("Split left", true, false, [this, cnv, splitIndex]() {
@@ -181,6 +183,21 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
                 currentSplit->moveToSplit(1, cnv);
             });
         }
+        
+        tabMenu.addSeparator();
+        
+        tabMenu.addItem("Close patch", true, false, [this, cnv, splitIndex]() {
+            cnv->editor->closeTab(cnv);
+        });
+        
+        tabMenu.addItem("Close all other patches", true, false, [this, cnv, splitIndex]() {
+            cnv->editor->closeAllTabs(false, cnv);
+        });
+        
+        tabMenu.addItem("Close all patches", true, false, [this, cnv, splitIndex]() {
+            cnv->editor->closeAllTabs(false);
+        });
+        
         // Show the popup menu at the mouse position
         tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(getTabComponent()->getEditor()));
     }

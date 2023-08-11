@@ -75,10 +75,6 @@ public:
         
         addSeparator();
 
-        addCustomItem(getMenuItemID(MenuItem::CloseAll), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::CloseAll)]), nullptr, "Close all patches");
-
-        addSeparator();
-
         addCustomItem(getMenuItemID(MenuItem::CompiledMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::CompiledMode)]), nullptr, "Compiled mode");
         addCustomItem(getMenuItemID(MenuItem::Compile), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Compile)]), nullptr, "Compile...");
 
@@ -98,7 +94,6 @@ public:
         zoomSelector.setEnabled(hasCanvas);
         menuItems[getMenuItemIndex(MenuItem::Save)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
-        menuItems[getMenuItemIndex(MenuItem::CloseAll)]->isActive = hasCanvas;
 
         menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
     }
@@ -374,7 +369,6 @@ public:
         Save,
         SaveAs,
         State,
-        CloseAll,
         CompiledMode,
         Compile,
         FindExternals,
@@ -405,7 +399,6 @@ public:
         new IconMenuItem(Icons::SaveAs, "Save patch as...", false, false),
 
         new IconMenuItem(Icons::ExportState, "Workspace", true, false),
-        new IconMenuItem(Icons::CloseAllPatches, "Close all patches", false, false),
 
         new IconMenuItem("", "Compiled Mode", false, true),
         new IconMenuItem(Icons::DevTools, "Compile...", false, false),

@@ -69,7 +69,7 @@ public:
 
     void addTab(Canvas* cnv, int splitIdx = -1);
     void closeTab(Canvas* cnv);
-    void closeAllTabs(bool quitAfterComplete = false);
+    void closeAllTabs(bool quitAfterComplete = false, Canvas* patchToExclude = nullptr);
 
     void quit(bool askToSave);
 

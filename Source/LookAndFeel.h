@@ -650,7 +650,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     int getTabButtonOverlap(int tabDepth) override
     {
-        return 0;
+        return 5;
     }
 
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
@@ -712,6 +712,31 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 setTriggeredOnMouseDown(true);
             }
             
+            void moved() override
+            {
+                static bool insideMove = false;
+                if(insideMove) return;
+                
+                if(auto* parent = getParentComponent())
+                {
+                    insideMove = true;
+                    auto position = parent->getLocalBounds().getTopRight() - Point<int>(28, 0);
+                    setTopLeftPosition(position);
+                    insideMove = false;
+                }
+            }
+            
+            void resized() override
+            {
+                // Try to force the size to 28x28, while also not allowing any recursion
+                // JUCE gives us very little control over the position/size otherwise...
+                static bool insideResize = false;
+                if(insideResize) return;
+                insideResize = true;
+                setSize(28, 28);
+                insideResize = false;
+            }
+            
             void paint(Graphics& g) override
             {
                 bool hiddenTabSelected = false;
@@ -729,13 +754,16 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 if(isMouseOverOrDragging() || hiddenTabSelected)
                 {
                     g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-                    fillSmoothedRectangle(g, getLocalBounds().reduced(1, 0).toFloat(), Corners::defaultCornerRadius);
+                    fillSmoothedRectangle(g, getLocalBounds().reduced(3).toFloat(), Corners::defaultCornerRadius);
+                }
+                else {
+                    g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
                 }
                 
                 g.setFont(Fonts::getIconFont().withHeight(15));
                 g.setColour(findColour(PlugDataColour::tabTextColourId));
                 
-                g.drawText(getButtonText(), getLocalBounds().reduced(1, 0), Justification::centred);
+                g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
 
                 return;
             }
