@@ -10,7 +10,7 @@
 
 class ButtonBar::GhostTab : public Component {
 public:
-    GhostTab() {}
+    GhostTab(PlugDataLook& lnfRef) : lnf(lnfRef) {}
 
     void setTabButtonToGhost(TabBarButton* tabButton)
     {
@@ -29,22 +29,19 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto dragged = tab->getProperties()["dragged"];
-        
-        if(dragged.isVoid() || !static_cast<bool>(dragged)) {
-            LookAndFeel::getDefaultLookAndFeel().drawTabButton(*tab, g, true, true);
-        }
+        lnf.drawTabButton(*tab, g, true, true, true);
     }
 
 private:
     TabBarButton* tab;
+    PlugDataLook& lnf;
 };
 
 ButtonBar::ButtonBar(TabComponent& tabComp, TabbedButtonBar::Orientation o)
     : TabbedButtonBar(o)
     , owner(tabComp)
 {
-    ghostTab = std::make_unique<GhostTab>();
+    ghostTab = std::make_unique<GhostTab>(dynamic_cast<PlugDataLook&>(LookAndFeel::getDefaultLookAndFeel()));
     addChildComponent(ghostTab.get());
     ghostTab->setAlwaysOnTop(true);
 
