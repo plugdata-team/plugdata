@@ -41,5 +41,5 @@ private:
     TextButton closeTabButton;
     const int boundsOffset = 10;
     ScaledImage tabImage;
-    bool isDirty = true;
+    bool isDragging = false;
 };

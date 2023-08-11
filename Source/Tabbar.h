@@ -223,6 +223,8 @@ public:
     void changeListenerCallback(ChangeBroadcaster* source) override;
 
     TabBarButton* createTabButton(String const& tabName, int tabIndex) override;
+
+    int getNumVisibleTabs();
 private:
     TabComponent& owner;
 
@@ -259,6 +261,7 @@ public:
     int getCurrentTabIndex();
     void setCurrentTabIndex(int idx);
     int getNumTabs() const noexcept                                 { return tabs->getNumTabs(); }
+    int getNumVisibleTabs();
     void removeTab(int idx);
     int getTabBarDepth() const noexcept                             { return tabDepth; };
     void changeCallback (int newCurrentTabIndex, const String& newTabName);
