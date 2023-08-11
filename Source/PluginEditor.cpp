@@ -660,6 +660,10 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude)
         }
         return;
     }
+    if(patchToExclude && canvases.size() == 1)
+    {
+        return;
+    }
 
     auto* patch = &canvas->patch;
 

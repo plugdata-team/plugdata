@@ -304,10 +304,13 @@ public:
         update(dontSendNotification);
         repaint();
 
+        auto* topLevel = getTopLevelComponent();
+        topLevel = topLevel ? topLevel : this;
+        
         if (hex) {
-            setSize(200, 256);
+            topLevel->setSize(200, 256);
         } else {
-            setSize(200, 300);
+             topLevel->setSize(200, 300);
         }
     }
 
