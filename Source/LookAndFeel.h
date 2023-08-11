@@ -1601,7 +1601,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           selected_object_outline_colour=\"ff007aff\" gui_internal_outline_colour=\"ffa8a8a8\"\n"
     "           toolbar_outline_colour=\"ffdbdbdb\" outline_colour=\"ffc8c8c8\" data_colour=\"ff007aff\"\n"
     "           connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\" dialog_background=\"ffe4e4e4\"\n"
-    "           sidebar_colour=\"ffefefef\" sidebar_text=\"ff373737\" sidebar_background_active=\"ffdfdfdf\"\n"
+    "           sidebar_colour=\"ffefefef\" sidebar_text=\"ff373737\" sidebar_background_active=\"ffe4e4e4\"\n"
     "           sidebar_active_text=\"ff373737\" levelmeter_active=\"ff007aff\" levelmeter_background=\"ffdedede\"\n"
     "           levelmeter_thumb=\"ff7a7a7a\" panel_background=\"fff7f7f7\" panel_foreground=\"fffdfdfd\"\n"
     "           panel_text=\"ff373737\" panel_background_active=\"ffebebeb\" panel_active_text=\"ff373737\"\n"

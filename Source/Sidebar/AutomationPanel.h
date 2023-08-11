@@ -662,7 +662,6 @@ public:
             auto* slider = rows.add(new AutomationSlider(p, parentComponent, pd));
             addAndMakeVisible(slider);
             
-            // TODO: is this safe? Do we need to clear it?
             slider->reorderButton.addMouseListener(this, false);
 
             slider->onDelete = [this](AutomationSlider* toDelete) {
