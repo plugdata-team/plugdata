@@ -544,7 +544,7 @@ void Connection::mouseDown(MouseEvent const& e)
     cnv->editor->connectionMessageDisplay->setConnection(nullptr);
 
     // Deselect all other connection if shift or command is not down
-    if (!e.mods.isCommandDown() && !e.mods.isShiftDown()) {
+    if (!e.mods.isCommandDown() && !e.mods.isShiftDown() && !e.mods.isPopupMenu()) {
         cnv->deselectAll();
     }
 
