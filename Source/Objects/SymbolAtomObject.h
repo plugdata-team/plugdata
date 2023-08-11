@@ -129,7 +129,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(object->findColour(PlugDataColour::outlineColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
         triangle = triangle.createPathWithRoundedCorners(4.0f);
