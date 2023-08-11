@@ -217,7 +217,8 @@ void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
 
 void TabBarButtonComponent::mouseUp(MouseEvent const& e)
 {
-    setVisible(true);
+    // we need to set visibility in the LNF due to using Juce overflow extra menu which uses visibility internally
+    getProperties().set("dragged", var(false));
     isDragging = false;
 }
 
