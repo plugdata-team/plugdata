@@ -177,14 +177,17 @@ public:
 
     void tabChanged() override
     {
-        auto* tabbar = cnv->getTabbar();
-
-        if (auto* otherCnv = tabbar->getCurrentCanvas()) {
-            isOpenedInSplitView = otherCnv->patch == *getPatch();
-        } else {
-            isOpenedInSplitView = false;
+        isOpenedInSplitView = false;
+        for (auto* split : cnv->editor->splitView.splits) {
+            if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
+            {
+                if(cnv->patch == *getPatch())
+                {
+                    isOpenedInSplitView = true;
+                }
+            }
         }
-
+        
         updateCanvas();
         repaint();
     }
