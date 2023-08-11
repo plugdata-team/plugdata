@@ -508,7 +508,20 @@ void Object::paint(Graphics& g)
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
 
         g.saveState();
-        g.excludeClipRegion(getLocalBounds().reduced(margin + 1));
+        // Make a rounded rectangle hole path:
+        // We do this by creating a large rectangle path with inverted winding
+        // and adding the inner rounded rectangle path
+        // this creates one path that has a hole in the middle
+        Path outerArea;
+        outerArea.addRectangle(getLocalBounds());
+        outerArea.setUsingNonZeroWinding(false);
+        Path innerArea;
+        auto innerRect = getLocalBounds().reduced(margin + 1);
+        innerArea.addRoundedRectangle(innerRect,Corners::objectCornerRadius);
+        outerArea.addPath(innerArea);
+
+        // use the path with a hole in it to exclude the inner rounded rect from painting
+        g.reduceClipRegion(outerArea);
 
         for (auto& rect : getCorners()) {
             g.fillRoundedRectangle(rect, Corners::objectCornerRadius);
