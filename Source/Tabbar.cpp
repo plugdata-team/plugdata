@@ -29,7 +29,11 @@ public:
 
     void paint(Graphics& g) override
     {
-        LookAndFeel::getDefaultLookAndFeel().drawTabButton(*tab, g, true, true);
+        auto dragged = tab->getProperties()["dragged"];
+        
+        if(dragged.isVoid() || !static_cast<bool>(dragged)) {
+            LookAndFeel::getDefaultLookAndFeel().drawTabButton(*tab, g, true, true);
+        }
     }
 
 private:
@@ -62,7 +66,9 @@ void ButtonBar::changeListenerCallback(ChangeBroadcaster* source)
     if (&ghostTabAnimator == source) {
         if (!ghostTabAnimator.isAnimating()) {
             ghostTab->setVisible(false);
-            getTabButton(ghostTabIdx)->setAlpha(1.0f);
+            auto* tabButton = getTabButton(ghostTabIdx);
+            tabButton->getProperties().set("dragged", var(false));
+            tabButton->repaint();
         }
     }
 }
@@ -70,7 +76,10 @@ void ButtonBar::changeListenerCallback(ChangeBroadcaster* source)
 void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
 {
     auto animateTabToPosition = [this](){
-        getTabButton(ghostTabIdx)->setAlpha(0.0f);
+        auto* tabButton = getTabButton(ghostTabIdx);
+        tabButton->getProperties().set("dragged", var(true));
+        tabButton->repaint();
+        
         ghostTabAnimator.animateComponent(ghostTab.get(), ghostTab->getBounds().withPosition(Point<int>(ghostTab->getIndex() * (getWidth() / getNumVisibleTabs()), 0)), 1.0f, 200, false, 3.0f, 0.0f);
     };
 
@@ -129,7 +138,8 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
         // if this tabbar is DnD on itself, we don't need to add a new tab
         // we move the existing tab
         if (tab->getTabComponent() == &owner) {
-            tab->setAlpha(0.0f);
+            tab->getProperties().set("dragged", var(true));
+            tab->repaint();
             inOtherSplit = false;
             ghostTabIdx = tab->getIndex();
             ghostTab->setTabButtonToGhost(tab);
@@ -145,7 +155,8 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
             inOtherSplit = true;
             addTab(tab->getButtonText(), Colours::transparentBlack, tabPos);
             auto* fakeTab = getTabButton(tabPos);
-            fakeTab->setAlpha(0.0f);
+            tab->getProperties().set("dragged", var(true));
+            tab->repaint();
             ghostTab->setTabButtonToGhost(fakeTab);
             ghostTabIdx = tabPos;
         }
@@ -157,7 +168,8 @@ void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         ghostTab->setVisible(false);
-        tab->setAlpha(0.0f);
+        tab->getProperties().set("dragged", var(true));
+        tab->repaint();
         if (inOtherSplit) {
             inOtherSplit = false;
             removeTab(ghostTabIdx, true);
@@ -196,8 +208,10 @@ void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
             owner.moveTab(ghostTabIdx, tabPos);
             ghostTabIdx = tabPos;
         }
-        tab->setAlpha(0.0f);
-        getTabButton(tabPos)->setAlpha(0.0f);
+        tab->getProperties().set("dragged", var(true));
+        tab->repaint();
+        getTabButton(tabPos)->getProperties().set("dragged", var(true));
+        getTabButton(tabPos)->repaint();
     }
 
 }

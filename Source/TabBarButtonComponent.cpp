@@ -167,20 +167,19 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         });
         
         tabMenu.addSeparator();
-
-        if (getTabComponent()->getNumTabs() > 1) {
-            tabMenu.addItem("Split left", true, false, [this, cnv, splitIndex]() {
-                auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
-                auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
-                currentSplit->moveToSplit(0, cnv);
-            });
-            tabMenu.addItem("Split right", true, false, [this, cnv, splitIndex]() {
-                auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
-                auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
-                currentSplit->moveToSplit(1, cnv);
-            });
-        }
         
+        auto canSplitTab = cnv->editor->getSplitView()->splits.size() > 1 || getTabComponent()->getNumTabs() > 1;
+        tabMenu.addItem("Split left", canSplitTab, false, [this, cnv, splitIndex]() {
+            auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
+            auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
+            currentSplit->moveToSplit(0, cnv);
+        });
+        tabMenu.addItem("Split right", canSplitTab, false, [this, cnv, splitIndex]() {
+            auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
+            auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
+            currentSplit->moveToSplit(1, cnv);
+        });
+    
         tabMenu.addSeparator();
         
         tabMenu.addItem("Close patch", true, false, [this, cnv, splitIndex]() {

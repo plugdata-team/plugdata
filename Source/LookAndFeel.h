@@ -655,8 +655,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
+        auto dragged = button.getProperties()["dragged"];
+        if(!dragged.isVoid() && static_cast<bool>(dragged)) return;
+        
         bool isActive = button.getToggleState();
-
+        
         if (isActive) {
             g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
         } else if (isMouseOver) {
