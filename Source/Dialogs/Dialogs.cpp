@@ -448,12 +448,13 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         if (auto* registeredInfo = commandManager->getCommandForID (commandID))
         {
             ApplicationCommandInfo info (*registeredInfo);
+            commandManager->getCommandInfo(commandID, info);
             
             PopupMenu::Item i;
             i.text = displayName.isNotEmpty() ? std::move (displayName) : info.shortName;
             i.itemID = (int) commandID;
             i.commandManager = commandManager;
-            i.isEnabled =(info.flags & ApplicationCommandInfo::isDisabled) == 0;
+            i.isEnabled = (info.flags & ApplicationCommandInfo::isDisabled) == 0;
             i.isTicked = (info.flags & ApplicationCommandInfo::isTicked) != 0;
             menu.addItem (std::move (i));
         }
