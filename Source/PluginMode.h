@@ -133,7 +133,11 @@ public:
             editor->setConstrainer(editor->defaultConstrainer);
             editor->setBoundsConstrained(bounds);
             editor->getParentComponent()->resized();
-            editor->getActiveTabbar()->resized();
+            if(auto* tabbar = editor->getActiveTabbar())
+            {
+                tabbar->resized();
+            }
+            
         });
 
         // Destroy this view

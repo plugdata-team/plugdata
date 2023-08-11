@@ -732,12 +732,13 @@ void PluginEditor::addTab(Canvas* cnv, int splitIdx)
     TabComponent* focusedTabbar;
     if(splitIdx < 0)
     {
-        auto* focusedTabbar = splitView.getActiveTabbar();
-        int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
-
-        // Add tab next to the currently focused tab
-        focusedTabbar->addTab(patchTitle, cnv->viewport.get(), newTabIdx);
-        focusedTabbar->setCurrentTabIndex(newTabIdx);
+        if(auto* focusedTabbar = splitView.getActiveTabbar()) {
+            int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
+            
+            // Add tab next to the currently focused tab
+            focusedTabbar->addTab(patchTitle, cnv->viewport.get(), newTabIdx);
+            focusedTabbar->setCurrentTabIndex(newTabIdx);
+        }
     }
     else {
         if(splitIdx > splitView.splits.size() - 1) {
@@ -1263,8 +1264,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::CloseTab: {
-
-        if (splitView.getActiveTabbar()->getNumTabs() == 0)
+        auto* activeTabbar = splitView.getActiveTabbar();
+        if (activeTabbar && activeTabbar->getNumTabs() == 0)
             return true;
 
         if (cnv) {
