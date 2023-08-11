@@ -13,8 +13,6 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-#include "Presets.h" // TODO: temporary, remove later
-
 #include "Pd/Patch.h"
 
 #include "LookAndFeel.h"
@@ -690,7 +688,7 @@ void PluginEditor::closeTab(Canvas* cnv)
     if (!cnv || !cnv->getTabbar())
         return;
 
-    auto* tabbar = cnv->getTabbar();
+    auto tabbar = SafePointer<TabComponent>(cnv->getTabbar());
     auto const tabIdx = cnv->getTabIndex();
 
     auto patch = cnv->refCountedPatch;
@@ -700,7 +698,10 @@ void PluginEditor::closeTab(Canvas* cnv)
     tabbar->removeTab(tabIdx);
     canvases.removeObject(cnv);
 
-    tabbar->setCurrentTabIndex(tabIdx > (tabbar->getNumTabs() - 1) ? tabIdx - 1 : tabIdx);
+    // It's possible that the tabbar has been deleted if this was the last tab
+    if(tabbar) {
+        tabbar->setCurrentTabIndex(tabIdx > (tabbar->getNumTabs() - 1) ? tabIdx - 1 : tabIdx);
+    }
 
     pd->patches.removeAllInstancesOf(patch);
 

@@ -76,9 +76,10 @@ public:
         
         auto patchWithTheme = substituteThemeColours(objectPatch);
 
+        auto scale = 2.0f;
         if (dragImage.image.isNull()) {
             auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            dragImage = offlineObjectRenderer->patchToTempImage(patchWithTheme);
+            dragImage = offlineObjectRenderer->patchToTempImage(patchWithTheme, scale);
         }
 
         dismissMenu(true);
@@ -87,7 +88,7 @@ public:
         palettePatchWithOffset.add(var(dragImage.offset.getX()));
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(patchWithTheme));
-        dragContainer->startDragging(palettePatchWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
+        dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
     }
     
     void mouseUp(MouseEvent const& e) override
@@ -222,7 +223,7 @@ public:
     static inline const std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> objectList = {
         { "Default",
             {
-                { Icons::GlyphEmpty, "#X obj 0 0", "(@keypress) Empty object", "Empty", NewObject},
+                { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject},
                 { Icons::GlyphMessage, "#X msg 0 0", "(@keypress) Message", "Message" , NewMessage},
                 { Icons::GlyphFloatBox, "#X floatatom 0 0 5 0 0 0 - - - 0", "(@keypress) Float box", "Float" , NewFloatAtom},
                 { Icons::GlyphSymbolBox, "#X symbolatom 0 0 10 0 0 0 - - - 0", "Symbol box", "Symbol" , NewSymbolAtom},
@@ -234,7 +235,6 @@ public:
         },
             { "UI",
                 {
-                    { Icons::GlyphNumber, "#X obj 0 0 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 @bgColour @fgColour @textColour 0 256", "(@keypress) Number box", "Number" , NewNumbox},
                     { Icons::GlyphBang, "#X obj 0 0 bng 25 250 50 0 empty empty empty 17 7 0 10 @bgColour @fgColour @labelColour", "(@keypress) Bang", "Bang" , NewBang},
                     { Icons::GlyphToggle, "#X obj 0 0 tgl 25 0 empty empty empty 17 7 0 10 @bgColour @fgColour @labelColour 0 1", "(@keypress) Toggle", "Toggle" , NewToggle},
                     { Icons::GlyphButton, "#X obj 0 0 button 25 25 @iemBgColour @iemFgColour 0", "Button", "Button" , OtherObject},
@@ -243,17 +243,18 @@ public:
                     { Icons::GlyphHSlider, "#X obj 0 0 hsl 128 17 0 127 0 0 empty empty empty -2 -8 0 10 @bgColour @fgColour @labelColour 0 1", "(@keypress) Horizontal slider", "H. Slider" , NewHorizontalSlider},
                     { Icons::GlyphVRadio, "#X obj 0 0 vradio 20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @labelColour 0", "(@keypress) Vertical radio box", "V. Radio" , NewVerticalRadio},
                     { Icons::GlyphHRadio, "#X obj 0 0 hradio 20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @labelColour 0", "(@keypress) Horizontal radio box", "H. Radio" , NewHorizontalRadio},
+                    { Icons::GlyphNumber, "#X obj 0 0 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 @bgColour @fgColour @textColour 0 256", "(@keypress) Number box", "Number" , NewNumbox},
                     { Icons::GlyphCanvas, "#X obj 0 0 cnv 15 100 60 empty empty empty 20 12 0 14 @canvasColour @labelColour 0", "(@keypress) Canvas", "Canvas" , NewCanvas},
-                    { Icons::GlyphKeyboard, "#X obj 0 0 keyboard 16 80 4 2 0 0 empty empty", "Piano keyboard", "Keyboard" , OtherObject},
-                    { Icons::GlyphVUMeter, "#X obj 0 0 vu 20 120 empty empty -1 -8 0 10 #191919 @labelColour 1 0", "(@keypress) VU meter", "VU Meter" , NewVUMeterObject},
-                    { Icons::GlyphOscilloscope, "#X obj 0 0 oscope~ 130 130 256 3 128 -1 1 0 0 0 0 @iemFgColour @iemBgColour @iemGridColour 0 empty", "Oscilloscope", "Scope" , OtherObject},
                     { Icons::GlyphFunction, "#X obj 0 0 function 200 100 empty empty 0 1 @iemBgColour @iemFgColour 0 0 0 0 0 1000 0", "Function", "Function" , OtherObject},
+                    { Icons::GlyphOscilloscope, "#X obj 0 0 oscope~ 130 130 256 3 128 -1 1 0 0 0 0 @iemFgColour @iemBgColour @iemGridColour 0 empty", "Oscilloscope", "Scope" , OtherObject},
+                    { Icons::GlyphKeyboard, "#X obj 0 0 keyboard 16 80 4 2 0 0 empty empty", "Piano keyboard", "Keyboard" , OtherObject},
                     { Icons::GlyphMessbox, "#X obj -0 0 messbox 180 60 @iemBgColour @iemFgColour 0 12", "ELSE Message box", "Messbox" , OtherObject},
                     { Icons::GlyphBicoeff, "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff" , OtherObject},
+                    { Icons::GlyphVUMeter, "#X obj 0 0 vu 20 120 empty empty -1 -8 0 10 #191919 @labelColour 1 0", "(@keypress) VU meter", "VU Meter" , NewVUMeterObject},
                 } },
             { "General",
                 {
-                    { Icons::GlyphMetro, "#X obj 0 0 metro 500", "Metro", "Metro", OtherObject },
+                    { Icons::GlyphMetro, "#X obj 0 0 metro 1 120 permin", "Metro", "Metro", OtherObject },
                     { Icons::GlyphCounter, "#X obj 0 0 count 5", "Count", "Count", OtherObject },
                     { Icons::GlyphTrigger, "#X obj 0 0 trigger", "Trigger", "Trigger", OtherObject },
                     { Icons::GlyphMoses, "#X obj 0 0 moses", "Moses", "Moses", OtherObject },
@@ -282,7 +283,7 @@ public:
                     { Icons::GlyphSysexIn, "#X obj 0 0 sysexin", "Sysex in", "Sysex in", OtherObject },
                     { Icons::GlyphMtof, "#X obj 0 0 mtof", "MIDI to frequency", "mtof", OtherObject },
                     { Icons::GlyphFtom, "#X obj 0 0 ftom", "Frequency to MIDI", "ftom", OtherObject },
-                    { Icons::GlyphGeneric, "#X obj 0 0 autotune", "Pitch quantizer", "Autotune", OtherObject },
+                    { Icons::GlyphAutotune, "#X obj 0 0 autotune", "Pitch quantizer", "Autotune", OtherObject },
                 } },
             { "IO",
                 {
@@ -296,8 +297,8 @@ public:
                     { Icons::GlyphNetsend, "#X obj 0 0 netsend", "Netsend", "Netsend", OtherObject },
                     { Icons::GlyphGeneric, "#X obj 0 0 s", "Send", "Send", OtherObject },
                     { Icons::GlyphGeneric, "#X obj 0 0 r", "Receive", "Receive", OtherObject },
-                    { Icons::GlyphGeneric, "#X obj 0 0 s~", "Send~", "Send~", OtherObject },
-                    { Icons::GlyphGeneric, "#X obj 0 0 r~", "Receive~", "Receive~", OtherObject },
+                    { Icons::GlyphGenericSignal, "#X obj 0 0 s~", "Send~", "Send~", OtherObject },
+                    { Icons::GlyphGenericSignal, "#X obj 0 0 r~", "Receive~", "Receive~", OtherObject },
                 } },
             { "Osc~",
                 {
@@ -322,6 +323,10 @@ public:
                     { Icons::GlyphDelayEffect, "#X obj 0 0 delay~ 22050 14700", "Delay", "Delay", OtherObject },
                     { Icons::GlyphDrive, "#X obj 0 0 drive~", "Drive", "Drive", OtherObject },
                     { Icons::GlyphFlanger, "#X obj 0 0 flanger~ 0.1 20 -0.6", "Flanger", "Flanger", OtherObject },
+                    { Icons::GlyphGenericSignal, "#X obj 0 0 comb.rev~ 500 1 0.99 0.99", "Comb reverberator", "Comb. Rev", OtherObject },
+                    { Icons::GlyphGenericSignal, "#X obj 0 0 duck~", "Sidechain compressor", "Duck", OtherObject },
+                    { Icons::GlyphGenericSignal, "#X obj 0 0 balance~", "Balance", "Balance", OtherObject },
+                    { Icons::GlyphGenericSignal, "#X obj 0 0 pan2~", "Pan", "Pan", OtherObject },
                     { Icons::GlyphReverb, "#X obj 0 0 free.rev~ 0.7 0.6 0.5 0.7", "Reverb", "Reverb", OtherObject },
                     { Icons::GlyphFreeze, "#X obj 0 0 freeze~", "Freeze", "Freeze", OtherObject },
                     { Icons::GlyphRingmod, "#X obj 0 0 rm~ 150", "Ringmod", "Ringmod", OtherObject },
@@ -329,6 +334,15 @@ public:
                     { Icons::GlyphClip, "#X obj 0 0 clip~ -0.5 0.5", "Clip", "Clip", OtherObject },
                     { Icons::GlyphFold, "#X obj 0 0 fold~ -0.5 0.5", "Fold", "Fold", OtherObject },
                     { Icons::GlyphWrap, "#X obj 0 0 wrap2~ -0.5 0.5", "Wrap", "Wrap", OtherObject },
+                }},
+            { "Multi~",
+                {
+                    { Icons::GlyphMultiSnake, "#X obj 0 0 snake~ 2", "Multichannel snake", "Snake", OtherObject },
+                    { Icons::GlyphMultiGet, "#X obj 0 0 get~", "Multichannel get", "Get", OtherObject },
+                    { Icons::GlyphGeneric, "#X obj 0 0 pick~", "Multichannel pick", "Pick", OtherObject },
+                    { Icons::GlyphGeneric, "#X obj 0 0 sigs~", "Multichannel value signal", "Sigs", OtherObject },
+                    { Icons::GlyphGeneric, "#X obj 0 0 merge~", "Multichannel merge", "Merge", OtherObject },
+                    { Icons::GlyphGeneric, "#X obj 0 0 unmerge~", "Multichannel unmerge", "Unmerge", OtherObject },
                 }},
             { "Math",
                 {

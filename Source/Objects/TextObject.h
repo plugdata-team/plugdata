@@ -19,7 +19,7 @@ struct TextObjectHelper {
         // For regular text object, we want to adjust the width so ideal text with aligns with fontWidth
         int offset = applyOffset ? idealTextWidth % fontWidth : 0;
         int charWidth = getWidthInChars(obj);
-
+        
         if (currentText.isEmpty()) { // If text is empty, set to minimum width
             w = std::max(charWidth, minWidth) * fontWidth;
         } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
@@ -319,8 +319,12 @@ public:
 
             auto type = hash(getText().upToFirstOccurrenceOf(" ", false, false));
 
-            if (type == hash("inlet") || type == hash("outlet") || type == hash("inlet~") || type == hash("outlet~")) {
+            if (type == hash("inlet")|| type == hash("inlet~")) {
                 canvas_resortinlets(patch);
+            }
+            else if(type == hash("outlet") || type == hash("outlet~"))
+            {
+                canvas_resortoutlets(patch);
             }
         }
     }

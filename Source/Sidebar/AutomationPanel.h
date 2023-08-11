@@ -264,11 +264,7 @@ public:
 
     bool hitTest(int x, int y) override
     {
-        auto bounds = getLocalBounds().toFloat().reduced(4.5f, 3.0f);
-        if (bounds.contains(x, y)) {
-            return true;
-        }
-        return false;
+        return getLocalBounds().toFloat().reduced(4.5f, 3.0f).contains(x, y);
     }
 
     void mouseEnter(MouseEvent const& e) override
@@ -292,18 +288,18 @@ public:
 
         deleteButton.setVisible(false);
 
+        auto scale = 2.0f;
         if (dragImage.image.isNull()) {
             auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            dragImage = offlineObjectRenderer->patchToTempImage(formatedParam);
+            dragImage = offlineObjectRenderer->patchToTempImage(formatedParam, scale);
         }
 
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
-
         Array<var> paramObjectWithOffset;
         paramObjectWithOffset.add(var(dragImage.offset.getX()));
         paramObjectWithOffset.add(var(dragImage.offset.getY()));
         paramObjectWithOffset.add(var(formatedParam));
-        dragContainer->startDragging(paramObjectWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
+        dragContainer->startDragging(paramObjectWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
     }
 
     void valueChanged(Value& v) override
@@ -383,7 +379,7 @@ public:
         nameLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
 
-        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.65f));
+        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
         PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(6.0f, 3.0f), Corners::defaultCornerRadius);
     }
 
@@ -416,6 +412,106 @@ public:
     std::unique_ptr<SliderParameterAttachment> attachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationSlider)
+};
+
+class AlphaAnimator : public Timer {
+public:
+    AlphaAnimator() { }
+
+    void fadeIn(Component* component, double duration)
+    {
+        animate(component, duration, 0.0f, 1.0f);
+    }
+
+    void fadeOut(Component* component, double duration)
+    {
+        animate(component, duration, 1.0f, 0.0f);
+    }
+
+private:
+    void animate(Component* component, double duration, float startAlpha, float endAlpha)
+    {
+        componentToAnimate = component;
+        animationDuration = duration;
+        animationSteps = static_cast<int>(duration / timerInterval);
+        currentStep = 0;
+        startAlphaValue = startAlpha;
+        endAlphaValue = endAlpha;
+
+        startTimer(timerInterval); // Start the timer
+    }
+
+    void timerCallback() override
+    {
+        ++currentStep;
+
+        if (currentStep >= animationSteps) {
+            componentToAnimate->setAlpha(endAlphaValue);
+            stopTimer();
+        } else {
+            float alpha = startAlphaValue + (endAlphaValue - startAlphaValue) * static_cast<float>(currentStep) / static_cast<float>(animationSteps);
+            componentToAnimate->setAlpha(alpha);
+        }
+    }
+
+    Component* componentToAnimate = nullptr;
+    double animationDuration = 0.0;
+    int animationSteps = 0;
+    int currentStep = 0;
+    float startAlphaValue = 0.0f;
+    float endAlphaValue = 0.0f;
+
+    int const timerInterval = 16; // 60 FPS timer interval
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AlphaAnimator)
+};
+
+class DraggedItemDropShadow : public Component, public ComponentListener {
+public:
+    DraggedItemDropShadow()
+    {
+        setAlpha(0.0f);
+    }
+
+    void activate(AutomationSlider* item)
+    {
+        if (automationItem != item) {
+            if (automationItem)
+                automationItem->removeComponentListener(this);
+            automationItem = item;
+        }
+
+        toFront(false);
+        automationItem->addComponentListener(this);
+        setBounds(automationItem->getBounds().expanded(8, 4));
+        animator.fadeIn(this, 300);
+    }
+
+    void deActivate()
+    {
+        animator.fadeOut(this, 300);
+    }
+
+    void componentMovedOrResized(juce::Component& component, bool wasMoved, bool wasResized) override
+    {
+        if (&component == automationItem) {
+            setBounds(component.getBounds().expanded(8, 4));
+        }
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto rect = getLocalBounds().reduced(14, 7);
+        Path shadowPath;
+        shadowPath.addRoundedRectangle(rect, Corners::defaultCornerRadius);
+        StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.3f), 6);
+    }
+
+private:
+    SafePointer<AutomationSlider> automationItem = nullptr;
+    AlphaAnimator animator;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DraggedItemDropShadow)
 };
 
 class AutomationComponent : public Component {
@@ -479,6 +575,7 @@ public:
         updateSliders();
 
         addAndMakeVisible(addParameterButton);
+        addAndMakeVisible(draggedItemDropShadow);
 
         addParameterButton.onClick = [this, parent]() {
             for (auto* row : rows) {
@@ -503,48 +600,17 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         accumulatedOffsetY = { 0, 0 };
-    }
 
-    void mouseDrag(MouseEvent const& e) override
-    {
-        if (std::abs(e.getDistanceFromDragStart()) < 5 && !isDragging/* || isDnD*/)
-            return;
-
-        isDragging = true;
-
-        if (!draggedItem) {
-            if (auto* reorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
-                draggedItem = static_cast<AutomationSlider*>(reorderButton->getParentComponent());
-                draggedItem->toFront(false);
-                mouseDownPos = draggedItem->getPosition();
-                draggedItem->deleteButton.setVisible(false);
-            }
-        } else {
-            // autoscroll the viewport when we are close. to. the. edge.
-            auto viewport = findParentComponentOfClass<BouncingViewport>();
-            if (viewport->autoScroll(0, viewport->getLocalPoint(nullptr, e.getScreenPosition()).getY(), 0, 5)) {
-                beginDragAutoRepeat(20);
-            }
-
-            auto dragPos = mouseDownPos.translated(0, e.getDistanceFromDragStartY());
-            auto autoScrollOffset = Point<int>(0, viewportPosY - viewport->getViewPositionY());
-            accumulatedOffsetY += autoScrollOffset;
-            draggedItem->setTopLeftPosition(dragPos - accumulatedOffsetY);
-            viewportPosY -= autoScrollOffset.getY();
-
-            int idx = rows.indexOf(draggedItem);
-            if (idx > 0 && draggedItem->getBounds().getCentreY() < rows[idx - 1]->getBounds().getCentreY() && rows[idx - 1]->isEnabled()) {
-                rows.swap(idx, idx - 1);
-                shouldAnimate = true;
-                resized();
-            } else if (idx < rows.size() - 1 && draggedItem->getBounds().getCentreY() > rows[idx + 1]->getBounds().getCentreY() && rows[idx + 1]->isEnabled()) {
-                rows.swap(idx, idx + 1);
-                shouldAnimate = true;
-                resized();
-            }
+        if (auto* reorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
+            draggedItem = static_cast<AutomationSlider*>(reorderButton->getParentComponent());
+            draggedItemDropShadow.activate(draggedItem);
+            draggedItem->toFront(false);
+            mouseDownPos = draggedItem->getPosition();
+            draggedItem->deleteButton.setVisible(false);
+            draggedItem->reorderButton.setVisible(false);
         }
     }
-    
+
     void mouseUp(MouseEvent const& e) override
     {
         if (draggedItem) {
@@ -554,10 +620,40 @@ public:
             isDragging = false;
             draggedItem = nullptr;
             shouldAnimate = true;
+            draggedItemDropShadow.deActivate();
             resized();
         }
     }
-    
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if (!draggedItem || std::abs(e.getDistanceFromDragStart()) < 5)
+            return;
+
+        // autoscroll the viewport when we are close. to. the. edge.
+        auto viewport = findParentComponentOfClass<BouncingViewport>();
+        if (viewport->autoScroll(0, viewport->getLocalPoint(nullptr, e.getScreenPosition()).getY(), 0, 5)) {
+            beginDragAutoRepeat(20);
+        }
+
+        auto dragPos = mouseDownPos.translated(0, e.getDistanceFromDragStartY());
+        auto autoScrollOffset = Point<int>(0, viewportPosY - viewport->getViewPositionY());
+        accumulatedOffsetY += autoScrollOffset;
+        draggedItem->setTopLeftPosition(dragPos - accumulatedOffsetY);
+        viewportPosY -= autoScrollOffset.getY();
+
+        int idx = rows.indexOf(draggedItem);
+        if (idx > 0 && draggedItem->getBounds().getCentreY() < rows[idx - 1]->getBounds().getCentreY() && rows[idx - 1]->isEnabled()) {
+            rows.swap(idx, idx - 1);
+            shouldAnimate = true;
+            resized();
+        } else if (idx < rows.size() - 1 && draggedItem->getBounds().getCentreY() > rows[idx + 1]->getBounds().getCentreY() && rows[idx + 1]->isEnabled()) {
+            rows.swap(idx, idx + 1);
+            shouldAnimate = true;
+            resized();
+        }
+    }
+
     void updateSliders()
     {
         rows.clear();
@@ -661,9 +757,10 @@ public:
 
     bool isDragging = false;
     SafePointer<AutomationSlider> draggedItem;
+    DraggedItemDropShadow draggedItemDropShadow;
     Point<int> mouseDownPos;
     Point<int> accumulatedOffsetY = {0, 0};
-    int viewportPosY;
+    int viewportPosY = 0;
     
     bool shouldAnimate = false;
     

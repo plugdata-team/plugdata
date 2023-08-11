@@ -90,6 +90,8 @@ int libpd_can_redo(t_canvas* cnv);
 int libpd_has_click_function(t_object const* x);
 
 void libpd_tofront(t_canvas* cnv, t_gobj* obj);
+void libpd_move_forward(t_canvas* cnv, t_gobj* obj);
+void libpd_move_backward(t_canvas* cnv, t_gobj* obj);
 void libpd_toback(t_canvas* cnv, t_gobj* obj);
 
 void libpd_undo_apply(t_canvas* cnv, t_gobj* obj);

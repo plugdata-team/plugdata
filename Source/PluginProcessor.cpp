@@ -191,6 +191,7 @@ void PluginProcessor::initialiseFilesystem()
     const auto& versionDataDir = ProjectInfo::versionDataDir;
     auto library = homeDir.getChildFile("Library");
     auto deken = homeDir.getChildFile("Deken");
+    auto patches = homeDir.getChildFile("Patches");
     
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !abstractions.exists()) {
@@ -220,8 +221,14 @@ void PluginProcessor::initialiseFilesystem()
 
         // Create filesystem for this specific version
         homeDir.getChildFile("plugdata_version").moveFileTo(versionDataDir);
-
+    }
+    if(!deken.exists())
+    {
         deken.createDirectory();
+    }
+    if(!patches.exists())
+    {
+        patches.createDirectory();
     }
 
     library.deleteRecursively();
@@ -234,6 +241,7 @@ void PluginProcessor::initialiseFilesystem()
     auto documentationPath = versionDataDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
     auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
     auto dekenPath = deken.getFullPathName();
+    auto patchesPath = patches.getFullPathName();
 
     // Create NTFS directory junctions
     OSUtils::createJunction(library.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
@@ -245,12 +253,16 @@ void PluginProcessor::initialiseFilesystem()
     if (!library.getChildFile("Deken").exists()) {
         OSUtils::createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
     }
+    if (!library.getChildFile("Patches").exists()) {
+        OSUtils::createJunction(library.getChildFile("Patches").getFullPathName().replaceCharacters("/", "\\").toStdString(), patchesPath.toStdString());
+    }
 
 #else
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
     versionDataDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
     versionDataDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
     deken.createSymbolicLink(library.getChildFile("Deken"), true);
+    patches.createSymbolicLink(library.getChildFile("Patches"), true);
 #endif
 }
 
@@ -432,8 +444,10 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     statusbarSource->setSampleRate(sampleRate);
     statusbarSource->setBufferSize(samplesPerBlock);
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
-    limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(getTotalNumOutputChannels()) });
-    // limiter.setThreshold(float newThreshold)
+    
+    if(getTotalNumOutputChannels() > 0 && sampleRate > 0) {
+        limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(getTotalNumOutputChannels()) });
+    }
 
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
 }
@@ -1502,7 +1516,7 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 
 void PluginProcessor::updateDrawables()
 {
-    // TODO: fix for split view and palettes
+    // TODO: fix for split view
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         MessageManager::callAsync([cnv = editor->getCurrentCanvas()]() {
             if (cnv)

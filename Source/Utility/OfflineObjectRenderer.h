@@ -19,7 +19,7 @@ public:
 
     static OfflineObjectRenderer* findParentOfflineObjectRendererFor(Component* childComponent);
 
-    ImageWithOffset patchToTempImage(String const& patch);
+    ImageWithOffset patchToTempImage(String const& patch, float scale);
 
     bool checkIfPatchIsValid(String const& patch);
 

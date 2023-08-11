@@ -7,6 +7,10 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#if _MSC_VER && HAVE_ALLOCA
+#include <malloc.h>
+#endif
+
 #ifndef HAVE_ALLOCA     /* can work without alloca() but we never need it */
 #define HAVE_ALLOCA 1
 #endif

@@ -1,10 +1,13 @@
-#include <utility>
-#include "Utility/BouncingViewport.h"
 /*
  // Copyright (c) 2021-2022 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+
+#pragma once
+#include <utility>
+#include "Utility/BouncingViewport.h"
+#include "Object.h"
 
 class ConsoleSettings : public Component {
 public:
@@ -149,6 +152,11 @@ public:
 
     void deselect()
     {
+        if(auto* target = Object::consoleTarget)
+        {
+            Object::consoleTarget = nullptr;
+            target->repaint();
+        }
         console->selectedItems.clear();
         repaint();
     }
@@ -177,6 +185,45 @@ public:
 
                 console.selectedItems.addIfNotAlreadyThere(SafePointer(this));
                 console.repaint();
+                
+                auto& [object, message, type, length] = console.pd->getConsoleMessages()[idx];
+                if(object)
+                {
+                    highlightSearchTarget(object);
+                }
+            }
+            
+            void highlightSearchTarget(void* target)
+            {
+                auto* editor = findParentComponentOfClass<PluginEditor>();
+                auto* cnv = editor->getCurrentCanvas();
+                if (!cnv)
+                    return;
+
+                for (auto* object : cnv->objects) {
+                    
+                    if(object->getPointer() == target)
+                    {
+                        Object::consoleTarget = object;
+                        object->repaint();
+                    }
+                    else if(Object::consoleTarget == object) {
+                        Object::consoleTarget = nullptr;
+                        object->repaint();
+                    }
+                }
+
+                if(Object::consoleTarget) {
+                    if (auto* viewport = cnv->viewport.get()) {
+                        auto scale = getValue<float>(cnv->zoomScale);
+                        auto pos = Object::consoleTarget->getBounds().getCentre() * scale;
+                        
+                        pos.x -= viewport->getViewWidth() * 0.5f;
+                        pos.y -= viewport->getViewHeight() * 0.5f;
+                        
+                        viewport->setViewPosition(pos);
+                    }
+                }
             }
 
             void paint(Graphics& g)
@@ -212,7 +259,7 @@ public:
                 }
 
                 // Get console message
-                auto& [message, type, length] = console.pd->getConsoleMessages()[idx];
+                auto& [object, message, type, length] = console.pd->getConsoleMessages()[idx];
 
                 // Check if message type should be visible
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors)) {
@@ -265,7 +312,7 @@ public:
                 for (auto& item : selectedItems) {
                     if (!item.getComponent())
                         continue;
-                    textToCopy += std::get<0>(pd->getConsoleMessages()[item->idx]) + "\n";
+                    textToCopy += std::get<1>(pd->getConsoleMessages()[item->idx]) + "\n";
                 }
 
                 textToCopy.trimEnd();
@@ -323,7 +370,7 @@ public:
             auto showErrors = getValue<bool>(settingsValues[3]);
             auto totalHeight = 0;
 
-            for (auto& [message, type, length] : pd->getConsoleMessages()) {
+            for (auto& [object, message, type, length] : pd->getConsoleMessages()) {
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
                 auto height = numLines * 13 + 12;
 
@@ -338,6 +385,11 @@ public:
 
         void mouseDown(MouseEvent const& e) override
         {
+            if(auto* target = Object::consoleTarget)
+            {
+                Object::consoleTarget = nullptr;
+                target->repaint();
+            }
             selectedItems.clear();
             repaint();
         }
@@ -352,7 +404,7 @@ public:
                 if (row >= messages.size())
                     break;
 
-                auto& [message, type, length] = pd->getConsoleMessages()[row];
+                auto& [object, message, type, length] = pd->getConsoleMessages()[row];
 
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
                 auto height = numLines * 13 + 12;

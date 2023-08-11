@@ -862,12 +862,16 @@ public:
         if (auto c = ptr.get<t_canvas>()) {
             std::vector<void*> arrays;
 
-            t_gobj* x = reinterpret_cast<t_gobj*>(c->gl_list);
-            arrays.push_back(x);
-
-            while ((x = x->g_next)) {
-                arrays.push_back(x);
+            t_glist *x = c.get();
+            t_gobj *gl = (x->gl_list ? pd_checkglist(&x->gl_list->g_pd)->gl_list : 0);
+            
+            if(gl) {
+                arrays.push_back(gl);
+                while ((gl = gl->g_next)) {
+                    arrays.push_back(x);
+                }
             }
+            
             if(arrays.size() && arrays[0] != nullptr)
             {
                 editor = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);

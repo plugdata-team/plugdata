@@ -71,7 +71,7 @@ public:
         return isValid;
     }
 
-    ImageWithOffset patchToTempImage(String const& patch)
+    ImageWithOffset patchToTempImage(String const& patch, float scale)
     {
         pd->setThis();
         
@@ -114,8 +114,9 @@ public:
             rect.translate(-totalSize.getX(), -totalSize.getY());
         }
         auto size = Point<int>(totalSize.getWidth(), totalSize.getHeight());
-        Image image(Image::ARGB, totalSize.getWidth(), totalSize.getHeight(), true);
+        Image image(Image::ARGB, totalSize.getWidth() * scale, totalSize.getHeight() * scale, true);
         Graphics g(image);
+        g.addTransform(AffineTransform::scale(scale));
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
         for (auto& rect : objectRects) {
             g.fillRoundedRectangle(rect.toFloat(), 5.0f);
@@ -145,9 +146,9 @@ OfflineObjectRenderer* OfflineObjectRenderer::findParentOfflineObjectRendererFor
     return childComponent != nullptr ? &childComponent->findParentComponentOfClass<PluginEditor>()->offlineRenderer : nullptr;
 }
 
-ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch)
+ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float scale)
 {
-    return offlineObjectRendererComponent->patchToTempImage(patch);
+    return offlineObjectRendererComponent->patchToTempImage(patch, scale);
 }
 
 bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)

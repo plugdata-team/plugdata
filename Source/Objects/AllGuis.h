@@ -671,5 +671,6 @@ struct t_fake_text_define {
 struct t_fake_outconnect {
     void* oc_next;
     t_pd* oc_to;
-    t_symbol* outconnect_path_data;
+    t_symbol* oc_path_data;
+    int oc_nchs;
 };

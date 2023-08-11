@@ -15,11 +15,13 @@
 // http://www.antigrain.com/__code/include/agg_blur.h.html
 
 #if JUCE_WINDOWS
-#    include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
+// Enable for JUCE >=7.0.6
+//#    include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
+#    include <juce_gui_basics/native/juce_win32_ScopedThreadDPIAwarenessSetter.h>
 #endif
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include <juce_gui_basics/detail/juce_WindowingHelpers.h>
+
 class StackShadow {
 
     static inline unsigned short const stackblur_mul[255] = {
@@ -687,7 +689,7 @@ public:
             applyStackBlurBW(img, (unsigned int)radius);
     }
 
-    static void renderDropShadow(Graphics& g, Path const& path, Colour color, int const radius = 1, Point<int> const offset = { 0, 0 }, int spread = 0)
+    static void renderDropShadow(Graphics& g, Path const& path, Colour color, int const radius = 1, Point<int> const offset = { 0, 0 }, int spread = 0, float scale = 1.0f)
     {
         if (radius < 1)
             return;
@@ -707,9 +709,10 @@ public:
             spreadPath.scaleToFit(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), true);
         }
 
-        Image renderedPath(Image::SingleChannel, area.getWidth(), area.getHeight(), true);
+        Image renderedPath(Image::SingleChannel, area.getWidth() * scale, area.getHeight() * scale, true);
 
         Graphics g2(renderedPath);
+        g2.addTransform(AffineTransform::scale(scale));
         g2.setColour(Colours::white);
         g2.fillPath((spread != 0) ? spreadPath : path, AffineTransform::translation((float)(offset.x - area.getX()), (float)(offset.y - area.getY())));
         applyStackBlur(renderedPath, radius);
@@ -718,6 +721,12 @@ public:
         g.drawImageAt(renderedPath, area.getX(), area.getY(), true);
     }
 };
+
+#if !JUCE_BSD
+namespace juce {
+bool isWindowOnCurrentVirtualDesktop(void* x);
+}
+#endif
 
 class StackDropShadower : private ComponentListener {
 public:
@@ -1019,7 +1028,7 @@ private:
 #if JUCE_BSD
                     return false;
 #else
-                    return !detail::WindowingHelpers::isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
+                    return !isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
 #endif
                 }
 

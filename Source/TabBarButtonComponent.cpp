@@ -6,9 +6,9 @@
 
 //#define ENABLE_TABBAR_DEBUGGING 1
 
-TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabComponent, String const& name, TabbedButtonBar& bar)
+TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabbar, String const& name, TabbedButtonBar& bar)
     : TabBarButton(name, bar)
-    , tabComponent(tabComponent)
+    , tabComponent(tabbar)
 {
     setTooltip(name);
 
@@ -21,35 +21,41 @@ TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabComponent, String 
     closeTabButton.setConnectedEdges(12);
     closeTabButton.setSize(28, 28);
     closeTabButton.addMouseListener(this, false);
-    closeTabButton.onClick = [this, tabComponent]() mutable {
-        // We cant use the index from earlier because it might have changed!
-        const int tabIdx = getIndex();
-        auto* cnv = tabComponent->getCanvas(tabIdx);
-        auto* editor = tabComponent->getEditor();
-
-        if (tabIdx == -1)
-            return;
-
-        if (cnv) {
-            MessageManager::callAsync([_cnv = SafePointer(cnv), _editor = SafePointer(editor)]() mutable {
-                // Don't show save dialog, if patch is still open in another view
-                if (_cnv && _cnv->patch.isDirty()) {
-                    Dialogs::showSaveDialog(&_editor->openedDialog, _editor, _cnv->patch.getTitle(),
-                        [_cnv, _editor](int result) mutable {
-                            if (!_cnv)
-                                return;
-                            if (result == 2)
-                                _editor->saveProject([_cnv, _editor]() mutable { _editor->closeTab(_cnv); });
-                            else if (result == 1)
-                                _editor->closeTab(_cnv);
-                        });
-                } else {
-                    _editor->closeTab(_cnv);
-                }
-            });
-        }
+    closeTabButton.onClick = [this]() mutable {
+        closeTab();
     };
+    
     addChildComponent(closeTabButton);
+}
+
+void TabBarButtonComponent::closeTab()
+{
+    // We cant use the index from earlier because it might have changed!
+    const int tabIdx = getIndex();
+    auto* cnv = tabComponent->getCanvas(tabIdx);
+    auto* editor = tabComponent->getEditor();
+
+    if (tabIdx == -1)
+        return;
+
+    if (cnv) {
+        MessageManager::callAsync([_cnv = SafePointer(cnv), _editor = SafePointer(editor)]() mutable {
+            // Don't show save dialog, if patch is still open in another view
+            if (_cnv && _cnv->patch.isDirty()) {
+                Dialogs::showSaveDialog(&_editor->openedDialog, _editor, _cnv->patch.getTitle(),
+                    [_cnv, _editor](int result) mutable {
+                        if (!_cnv)
+                            return;
+                        if (result == 2)
+                            _editor->saveProject([_cnv, _editor]() mutable { _editor->closeTab(_cnv); });
+                        else if (result == 1)
+                            _editor->closeTab(_cnv);
+                    });
+            } else {
+                _editor->closeTab(_cnv);
+            }
+        });
+    }
 }
 
 void TabBarButtonComponent::setFocusForTabSplit()
@@ -106,8 +112,9 @@ void TabBarButtonComponent::resized()
     isDirty = true;
 }
 
-Image TabBarButtonComponent::generateTabBarButtonImage()
+ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
 {
+    auto scale = 2.0f;
     // we calculate the best size for the tab DnD image
     auto text = getButtonText();
     Font font(Fonts::getDefaultFont());
@@ -117,12 +124,13 @@ Image TabBarButtonComponent::generateTabBarButtonImage()
     // then we offset the mouse drag by the same amount
     // this is to allow area for the shadow to render correctly
     auto textBounds = Rectangle<int>(0, 0, length, 28);
-    auto bounds = textBounds.expanded(boundsOffset).withPosition(0,0);
-    auto image = Image(Image::PixelFormat::ARGB, bounds.getWidth(), bounds.getHeight(), true);
+    auto bounds = textBounds.expanded(boundsOffset).withZeroOrigin();
+    auto image = Image(Image::PixelFormat::ARGB, bounds.getWidth() * scale, bounds.getHeight() * scale, true);
     auto g = Graphics(image);
+    g.addTransform(AffineTransform::scale(scale));
     Path path;
     path.addRoundedRectangle(bounds.reduced(14), 5.0f);
-    StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.3f), 6, { 0, 2 });
+    StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.3f), 6, { 0, 2 }, scale);
     g.setOpacity(1.0f);
     drawTabButton(g, textBounds.withPosition(10,10));
     drawTabButtonText(g, textBounds.withPosition(3, 5));
@@ -133,7 +141,7 @@ Image TabBarButtonComponent::generateTabBarButtonImage()
     g.drawRect(bounds.toFloat(), 1.0f);
 #endif
 
-    return image;
+    return ScaledImage(image, scale);
 }
 
 void TabBarButtonComponent::mouseDown(MouseEvent const& e)
@@ -163,10 +171,14 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
 
         if (getTabComponent()->getNumTabs() > 1) {
             tabMenu.addItem("Split left", true, false, [this, cnv, splitIndex]() {
-                // ALEX implement logic here!!
+                auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
+                auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
+                currentSplit->moveToSplit(0, cnv);
             });
             tabMenu.addItem("Split right", true, false, [this, cnv, splitIndex]() {
-                // ALEX implement logic here!!
+                auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
+                auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
+                currentSplit->moveToSplit(1, cnv);
             });
         }
         // Show the popup menu at the mouse position

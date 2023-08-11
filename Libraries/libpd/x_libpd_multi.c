@@ -221,11 +221,11 @@ typedef struct _libpd_multi_print {
     t_libpd_multi_printhook x_hook;
 } t_libpd_multi_print;
 
-static void libpd_multi_print(char const* message)
+static void libpd_multi_print(void* object, char const* message)
 {
     t_libpd_multi_print* x = (t_libpd_multi_print*)gensym("#libpd_multi_print")->s_thing;
     if (x && x->x_hook) {
-        x->x_hook(x->x_ptr, message);
+        x->x_hook(x->x_ptr, object, message);
     }
 }
 

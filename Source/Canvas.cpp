@@ -271,7 +271,7 @@ void Canvas::zoomToFitAll()
     }
 
     auto viewportCentre = viewport->getViewArea().withZeroOrigin().getCentre();
-    auto newViewPos = regionOfInterest.transformed(getTransform()).getCentre() - viewportCentre;
+    auto newViewPos = regionOfInterest.transformedBy(getTransform()).getCentre() - viewportCentre;
     viewport->setViewPosition(newViewPos);
 }
 
@@ -556,7 +556,18 @@ void Canvas::performSynchronise()
             connections.add(new Connection(this, inlet, outlet, ptr));
         } else {
             auto& c = *(*it);
-            c.popPathState();
+            
+            // This is necessary to make resorting a subpatchers iolets work
+            // And it can't hurt to check if the connection is valid anyway
+            if(c.inlet != inlet || c.outlet != outlet)
+            {
+                int idx = connections.indexOf(*it);
+                connections.removeObject(*it);
+                connections.insert(idx, new Connection(this, inlet, outlet, ptr));
+            }
+            else {
+                c.popPathState();
+            }
         }
     }
 
@@ -622,6 +633,7 @@ void Canvas::mouseDown(MouseEvent const& e)
 
     // Left-click
     if (!e.mods.isRightButtonDown()) {
+        
         if (source == this /*|| source == graphArea */) {
 
             cancelConnectionCreation();
@@ -1217,7 +1229,7 @@ void Canvas::encapsulateSelection()
     for (auto* iolet : usedEdges) {
         auto type = String(iolet->isInlet ? "inlet" : "outlet") + String(iolet->isSignal ? "~" : "");
         auto* targetEdge = targetEdges[iolet][0];
-        auto pos = targetEdge->object->getPosition();
+        auto pos = targetEdge->object->getObjectBounds().getPosition();
         newEdgeObjects += "#X obj " + String(pos.x) + " " + String(pos.y) + " " + type + ";\n";
 
         int objIdx = selectedBoxes.indexOf(iolet->object);

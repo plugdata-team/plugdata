@@ -251,9 +251,10 @@ void PaletteItem::mouseDrag(MouseEvent const& e)
 {
     auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
+    auto scale = 2.0f;
     if (dragImage.image.isNull()) {
         auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-        dragImage = offlineObjectRenderer->patchToTempImage(palettePatch);
+        dragImage = offlineObjectRenderer->patchToTempImage(palettePatch, scale);
     }
 
     if (auto* overReorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
@@ -268,7 +269,7 @@ void PaletteItem::mouseDrag(MouseEvent const& e)
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(palettePatch));
         setIsItemDragged(true);
-        dragContainer->startDragging(palettePatchWithOffset, this, dragImage.image, true, nullptr, nullptr, true);
+        dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
     }
 }
 

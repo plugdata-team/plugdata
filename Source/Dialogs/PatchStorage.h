@@ -179,6 +179,8 @@ class PatchFullDisplay  : public Component
     String author, title, platform, category, revision, license;
     int views, likes, downloads;
     String description, fileURL, fileName, onlineURL, updatedAt;
+    
+    const File patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
 
 public:
     PatchFullDisplay() : image(true, true)
@@ -186,6 +188,17 @@ public:
         addAndMakeVisible(viewButton);
         addAndMakeVisible(downloadButton);
         addAndMakeVisible(image);
+        
+        downloadButton.onClick = [this](){
+            if(fileName.endsWith(".pd"))
+            {
+                URL(fileURL + fileName).downloadToFile(patchesDir.getChildFile(fileName), URL::DownloadTaskOptions());
+            }
+            else {
+                
+            }
+        };
+        
         
         viewButton.onClick = [this](){
             URL(onlineURL).launchInDefaultBrowser();

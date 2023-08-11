@@ -86,7 +86,7 @@ public:
 
         addCustomItem(getMenuItemID(MenuItem::FindExternals), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::FindExternals)]), nullptr, "Find externals...");
         
-        addCustomItem(getMenuItemID(MenuItem::Discover), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Discover)]), nullptr, "Discover...");
+        //addCustomItem(getMenuItemID(MenuItem::Discover), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Discover)]), nullptr, "Discover...");
 
         addCustomItem(getMenuItemID(MenuItem::Settings), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Settings)]), nullptr, "Settings...");
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
@@ -190,8 +190,9 @@ public:
             auto offset = newViewportPosition - oldViewportPosition;
 
             // Set the new canvas position
-            // TODO: there is an accumulated error when zooming in/out
+            // Alex: there is an accumulated error when zooming in/out
             //       possibly we should save the canvas position as an additional Point<float> ?
+            // Tim: pretty sure there isn't? You can tell more clearly by using a macbook trackpad, zooming appears to be accurate
             cnv->setTopLeftPosition((cnv->getPosition().toFloat() + offset).roundToInt());
 
             cnv->zoomScale = scale;
@@ -377,7 +378,7 @@ public:
         CompiledMode,
         Compile,
         FindExternals,
-        Discover,
+        //Discover,
         Settings,
         About
     };
@@ -410,7 +411,7 @@ public:
         new IconMenuItem(Icons::DevTools, "Compile...", false, false),
 
         new IconMenuItem(Icons::Externals, "Find Externals...", false, false),
-        new IconMenuItem(Icons::Compass, "Discover...", false, false),
+        //new IconMenuItem(Icons::Compass, "Discover...", false, false),
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),
     };

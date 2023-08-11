@@ -274,8 +274,8 @@ public:
     void logWarning(String const& message);
     void muteConsole(bool shouldMute);
 
-    std::deque<std::tuple<String, int, int>>& getConsoleMessages();
-    std::deque<std::tuple<String, int, int>>& getConsoleHistory();
+    std::deque<std::tuple<void*, String, int, int>>& getConsoleMessages();
+    std::deque<std::tuple<void*, String, int, int>>& getConsoleHistory();
 
     virtual void messageEnqueued() {};
 
@@ -352,12 +352,12 @@ protected:
 
         void timerCallback() override
         {
-            auto item = std::pair<String, bool>();
+            auto item = std::tuple<void*, String, bool>();
             bool receivedMessage = false;
 
             while (pendingMessages.try_dequeue(item)) {
-                auto& [message, type] = item;
-                consoleMessages.emplace_back(message, type, fastStringWidth.getStringWidth(message) + 8);
+                auto& [object, message, type] = item;
+                consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8);
 
                 if (consoleMessages.size() > 800)
                     consoleMessages.pop_front();
@@ -373,37 +373,37 @@ protected:
             stopTimer();
         }
 
-        void logMessage(String const& message)
+        void logMessage(void* object, String const& message)
         {
-            pendingMessages.enqueue({ message, false });
+            pendingMessages.enqueue({ object, message, false });
             startTimer(10);
         }
 
-        void logWarning(String const& warning)
+        void logWarning(void* object, String const& warning)
         {
-            pendingMessages.enqueue({ warning, 1 });
+            pendingMessages.enqueue({ object, warning, 1 });
             startTimer(10);
         }
 
-        void logError(String const& error)
+        void logError(void* object, String const& error)
         {
-            pendingMessages.enqueue({ error, 2 });
+            pendingMessages.enqueue({ object, error, 2 });
             startTimer(10);
         }
 
-        void processPrint(char const* message)
+        void processPrint(void* object, char const* message)
         {
             std::function<void(const String)> forwardMessage =
-                [this](String const& message) {
+                [this, object](String const& message) {
                     if (message.startsWith("error")) {
-                        logError(message.substring(7));
+                        logError(object, message.substring(7));
                     } else if (message.startsWith("verbose(0):") || message.startsWith("verbose(1):")) {
-                        logError(message.substring(12));
+                        logError(object, message.substring(12));
                     } else {
                         if (message.startsWith("verbose(")) {
-                            logMessage(message.substring(12));
+                            logMessage(object, message.substring(12));
                         } else {
-                            logMessage(message);
+                            logMessage(object, message);
                         }
                     }
                 };
@@ -438,12 +438,12 @@ protected:
             }
         }
 
-        std::deque<std::tuple<String, int, int>> consoleMessages;
-        std::deque<std::tuple<String, int, int>> consoleHistory;
+        std::deque<std::tuple<void*, String, int, int>> consoleMessages;
+        std::deque<std::tuple<void*, String, int, int>> consoleHistory;
 
         char printConcatBuffer[2048];
 
-        moodycamel::ConcurrentQueue<std::pair<String, bool>> pendingMessages;
+        moodycamel::ConcurrentQueue<std::tuple<void*, String, bool>> pendingMessages;
 
         StringUtils fastStringWidth; // For formatting console messages more quickly
     };

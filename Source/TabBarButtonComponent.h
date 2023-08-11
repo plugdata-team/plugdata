@@ -30,14 +30,16 @@ public:
 
     void drawTabButton(Graphics& g, Rectangle<int> customBounds = Rectangle<int>());
     void drawTabButtonText(Graphics& g, Rectangle<int> customBounds = Rectangle<int>());
-    Image generateTabBarButtonImage();
+    ScaledImage generateTabBarButtonImage();
 
     void paint(Graphics& g) override;
+    
+    void closeTab();
 
 private:
     TabComponent* tabComponent;
     TextButton closeTabButton;
     const int boundsOffset = 10;
-    Image tabImage;
+    ScaledImage tabImage;
     bool isDirty = true;
 };

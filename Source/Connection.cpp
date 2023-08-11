@@ -154,10 +154,10 @@ void Connection::pushPathState()
 
 void Connection::popPathState()
 {
-    if (!ptr || !ptr->outconnect_path_data || !ptr->outconnect_path_data->s_name || !inlet || !outlet)
+    if (!ptr || !ptr->oc_path_data || !ptr->oc_path_data->s_name || !inlet || !outlet)
         return;
 
-    auto const state = String::fromUTF8(ptr->outconnect_path_data->s_name);
+    auto const state = String::fromUTF8(ptr->oc_path_data->s_name);
 
     if (state == "empty") {
         segmented = false;
@@ -206,7 +206,7 @@ void* Connection::getPointer()
 
 t_symbol* Connection::getPathState()
 {
-    return ptr->outconnect_path_data;
+    return ptr->oc_path_data;
 }
 
 bool Connection::hitTest(int x, int y)
@@ -277,7 +277,8 @@ void Connection::renderConnectionPath(Graphics& g,
     Point<int> mousePos,
     bool isHovering,
     int connectionCount,
-    int multiConnectNumber)
+    int multiConnectNumber,
+    int numSignalChannels)
 {
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
@@ -306,7 +307,7 @@ void Connection::renderConnectionPath(Graphics& g,
 
     if (PlugDataLook::getUseDashedConnections() && isSignal) {
         PathStrokeType dashedStroke(useThinConnection ? 0.5f : 0.8f);
-        float dash[1] = { 5.0f };
+        float dash[1] = { numSignalChannels > 1 ? 2.5f : 5.0f };
         Path dashedPath;
         dashedStroke.createDashedStroke(dashedPath, connectionPath, dash, 1);
         innerPath = dashedPath;
@@ -410,7 +411,8 @@ void Connection::paint(Graphics& g)
         getMouseXYRelative(),
         isHovering,
         getNumberOfConnections(),
-        getMultiConnectNumber());
+        getMultiConnectNumber(),
+        getNumSignalChannels());
 
 /* ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT
     static Random rng;
@@ -848,6 +850,11 @@ int Connection::getMultiConnectNumber()
     return -1;
 }
 
+int Connection::getNumSignalChannels()
+{
+    return ptr->oc_nchs;
+}
+
 void Connection::updatePath()
 {
     if (!outlet || !inlet)
@@ -1172,7 +1179,7 @@ void ConnectionPathUpdater::timerCallback()
         if (!found)
             continue;
 
-        t_symbol* oldPathState = connection->ptr->outconnect_path_data;
+        t_symbol* oldPathState = connection->ptr->oc_path_data;
 
         // This will recreate the connection with the new connection path, and return the new pointer
         // Since we mostly used indices and object pointers to differentiate connections, this is fine

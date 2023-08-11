@@ -249,7 +249,7 @@ static int hammergui_setup(void)
     ps__vised = gensym("_vised");
     if (ps_hashhammergui->s_thing)
     {
-	char *cname = class_getname(*ps_hashhammergui->s_thing);
+	const char *cname = class_getname(*ps_hashhammergui->s_thing);
 #ifdef HAMMERGUI_DEBUG
 	fprintf(stderr,
 		"'%s' already registered as the global hammergui sink \n",

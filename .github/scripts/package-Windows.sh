@@ -97,6 +97,34 @@ cat > ./plugdata.wxs <<-EOL
 						</Component>
 					</Directory>
 				</Directory>
+				<!-- Copy LV2 to Common Files\LV2 -->
+				<Directory Id="LV2_INSTALL_DIR" Name="LV2">
+					<Directory Id="LV2_PLUGIN_DIR" Name="plugdata.lv2">
+						<Component Id="LV2_FILES" Guid="07a69bc3-61f7-4907-8086-561f4e4150eb" Win64="\$(var.Win64)">
+							<RemoveFile Id="LV2_PLUGIN" Name="plugdata.dll" On="both"/>
+							<RemoveFile Id="LV2_MANIFEST" Name="manifest.ttl" On="both"/>
+							<RemoveFile Id="LV2_DSP" Name="dsp.ttl" On="both"/>
+							<RemoveFile Id="LV2_UI" Name="ui.ttl" On="both"/>
+							<File Id="LV2_PLUGIN" Source="Plugins\LV2\plugdata.lv2\plugdata.dll"/>
+							<File Id="LV2_MANIFEST" Source="Plugins\LV2\plugdata.lv2\manifest.ttl"/>
+							<File Id="LV2_DSP" Source="Plugins\LV2\plugdata.lv2\dsp.ttl"/>
+							<File Id="LV2_UI" Source="Plugins\LV2\plugdata.lv2\ui.ttl"/>
+							<ReserveCost Id="LV2_COST" RunFromSource="82700000" RunLocal="82700000"></ReserveCost>
+						</Component>
+					</Directory>
+					<Directory Id="LV2_FX_PLUGIN_DIR" Name="plugdata-fx.lv2">
+						<Component Id="LV2_FX_FILES" Guid="b676dc16-52f8-46ef-82c2-fbc7268b12d0" Win64="\$(var.Win64)">
+							<RemoveFile Id="LV2_FX_PLUGIN" Name="plugdata-fx.dll" On="both"/>
+							<RemoveFile Id="LV2_FX_MANIFEST" Name="manifest.ttl" On="both"/>
+							<RemoveFile Id="LV2_FX_DSP" Name="dsp.ttl" On="both"/>
+							<RemoveFile Id="LV2_FX_UI" Name="ui.ttl" On="both"/>
+							<File Id="LV2_FX_PLUGIN" Source="Plugins\LV2\plugdata-fx.lv2\plugdata-fx.dll"/>
+							<File Id="LV2_FX_MANIFEST" Source="Plugins\LV2\plugdata-fx.lv2\manifest.ttl"/>
+							<File Id="LV2_FX_DSP" Source="Plugins\LV2\plugdata-fx.lv2\dsp.ttl"/>
+							<File Id="LV2_FX_UI" Source="Plugins\LV2\plugdata-fx.lv2\ui.ttl"/>
+						</Component>
+					</Directory>
+				</Directory>
 				<Directory Id="CLAP_INSTALL_DIR" Name="CLAP">
 					<Component Id="CLAP_FILES" Guid="deb58e55-8e6d-435d-8cdc-790970132f53" Win64="\$(var.Win64)">
 						<RemoveFile Id="CLAP_PLUGIN" Name="plugdata.clap" On="both"/>
@@ -125,6 +153,10 @@ cat > ./plugdata.wxs <<-EOL
 			<ComponentRef Id="VST3_EXTRA"/>
 			<ComponentRef Id="VST3_FX_BIN"/>
 			<ComponentRef Id="VST3_FX_EXTRA"/>
+		</Feature>
+		<Feature Id="LV2" Level="1" Title="LV2 Plugin">
+			<ComponentRef Id="LV2_FILES"/>
+			<ComponentRef Id="LV2_FX_FILES"/>
 		</Feature>
     <Feature Id="CLAP" Level="1" Title="CLAP Plugin">
 			<ComponentRef Id="CLAP_FILES"/>

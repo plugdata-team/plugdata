@@ -105,9 +105,9 @@ struct pd::Instance::internal {
         ptr->enqueueFunctionAsync([ptr, port, byte]() mutable { ptr->processMidiEvent({ midievent::MIDIBYTE, port, byte, 0 }); });
     }
 
-    static void instance_multi_print(pd::Instance* ptr, char const* s)
+    static void instance_multi_print(pd::Instance* ptr, void* object, char const* s)
     {
-        ptr->consoleHandler.processPrint(s);
+        ptr->consoleHandler.processPrint(object, s);
     }
 };
 }
@@ -648,19 +648,19 @@ t_symbol* Instance::generateSymbol(String const& symbol) const
 void Instance::logMessage(String const& message)
 {
     if(consoleMute) return;
-    consoleHandler.logMessage(message);
+    consoleHandler.logMessage(nullptr, message);
 }
 
 void Instance::logError(String const& error)
 {
     if(consoleMute) return;
-    consoleHandler.logError(error);
+    consoleHandler.logError(nullptr, error);
 }
 
 void Instance::logWarning(String const& warning)
 {
     if(consoleMute) return;
-    consoleHandler.logWarning(warning);
+    consoleHandler.logWarning(nullptr, warning);
 }
 
 void Instance::muteConsole(bool shouldMute)
@@ -668,12 +668,12 @@ void Instance::muteConsole(bool shouldMute)
     consoleMute = shouldMute;
 }
 
-std::deque<std::tuple<String, int, int>>& Instance::getConsoleMessages()
+std::deque<std::tuple<void*, String, int, int>>& Instance::getConsoleMessages()
 {
     return consoleHandler.consoleMessages;
 }
 
-std::deque<std::tuple<String, int, int>>& Instance::getConsoleHistory()
+std::deque<std::tuple<void*, String, int, int>>& Instance::getConsoleHistory()
 {
     return consoleHandler.consoleHistory;
 }
