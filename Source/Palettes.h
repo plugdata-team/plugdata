@@ -790,8 +790,8 @@ private:
 
     PluginEditor* editor;
         
-    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes.xml");
-//    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have created all the default palettes
+    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_1");
+//    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have finished all the default palettes
 
     ValueTree objectTree;
     ValueTree palettesTree;
@@ -813,6 +813,24 @@ private:
     static inline const String placeholderPatch = "#X obj 72 264 outlet~;\n"
                                                   "#X obj 72 156 inlet;\n";
 
+        static const String delayPatch;
+        static const String chorusPatch;
+        static const String phaserPatch;
+        static const String flangerPatch;
+        static const String drivePatch;
+        static const String bitcrusherPatch;
+        static const String reverbPatch;
+        
+        static const String svfPatch;
+        static const String eqPatch;
+        static const String lowpassPatch;
+        
+        static const String metronomePatch;
+        static const String adsrPatch;
+        
+        static const String drumSequencerPatch;
+        static const String noteSequencerPatch;
+        static const String drumsPatch;
 
     std::map<String, std::map<String, String>> defaultPalettes = {
         { "Oscillators",
@@ -824,27 +842,30 @@ private:
                 { "noise", placeholderPatch },
                 { "phase ramp", placeholderPatch } } },
         { "Filters",
-            { { "lowpass", placeholderPatch },
-                { "svf", placeholderPatch },
-                { "EQ", placeholderPatch } } },
+            {   { "lowpass", lowpassPatch },
+                { "svf", svfPatch },
+                { "EQ", eqPatch } } },
         { "Effects",
             {
-                { "sample delay", placeholderPatch },
-                { "stereo delay", placeholderPatch },
-                { "chorus", placeholderPatch },
-                { "phaser", placeholderPatch },
-                { "flanger", placeholderPatch },
-                { "drive", placeholderPatch },
-                { "bitcrusher", placeholderPatch },
-                { "reverb", placeholderPatch },
+                { "delay", delayPatch },
+                { "chorus", chorusPatch },
+                { "phaser", phaserPatch },
+                { "flanger", flangerPatch },
+                { "drive", drivePatch },
+                { "bitcrusher", bitcrusherPatch },
+                { "reverb", reverbPatch },
             } },
         { "Sequencers",
             {
-                { "bpm metronome", placeholderPatch },
-                { "adsr", placeholderPatch },
-                { "drum sequencer", placeholderPatch },
-            } }
-
+                { "bpm metronome", metronomePatch },
+                { "adsr", adsrPatch },
+                { "drum sequencer", drumSequencerPatch },
+                { "note sequencer", noteSequencerPatch },
+            } },
+        { "Instruments",
+            {
+                { "drums", drumsPatch },
+            } },
     };
 
     bool showPalettes = false;
@@ -888,3 +909,4 @@ private:
 
     ResizerComponent resizer;
 };
+
