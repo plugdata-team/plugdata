@@ -165,7 +165,11 @@ struct Icons {
 
     // Multi~
     inline static const String GlyphMultiSnake = CharPointer_UTF8("Ŀ");
-    inline static const String GlyphMultiGet = CharPointer_UTF8("ŀ");
+    inline static const String GlyphMultiGet = CharPointer_UTF8("ł");
+    inline static const String GlyphMultiPick = CharPointer_UTF8("Ł");
+    inline static const String GlyphMultiSig = CharPointer_UTF8("Ń");
+    inline static const String GlyphMultiMerge = CharPointer_UTF8("ń");
+    inline static const String GlyphMultiUnmerge = CharPointer_UTF8("Ņ");
 
     // IO~
     inline static const String GlyphAdc = CharPointer_UTF8("Ī");
