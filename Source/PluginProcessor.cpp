@@ -189,12 +189,11 @@ void PluginProcessor::initialiseFilesystem()
 {
     const auto& homeDir = ProjectInfo::appDataDir;
     const auto& versionDataDir = ProjectInfo::versionDataDir;
-    auto library = homeDir.getChildFile("Library");
-    auto deken = homeDir.getChildFile("Deken");
+    auto deken = homeDir.getChildFile("Externals");
     auto patches = homeDir.getChildFile("Patches");
     
     // Check if the abstractions directory exists, if not, unzip it from binaryData
-    if (!homeDir.exists() || !abstractions.exists()) {
+    if (!homeDir.exists() || !versionDataDir.exists()) {
 
         // Binary data shouldn't be too big, then the compiler will run out of memory
         // To prevent this, we split the binarydata into multiple files, and add them back together here
@@ -220,6 +219,8 @@ void PluginProcessor::initialiseFilesystem()
         file.uncompressTo(homeDir);
 
         // Create filesystem for this specific version
+        versionDataDir.getParentDirectory().createDirectory();
+        versionDataDir.createDirectory();
         homeDir.getChildFile("plugdata_version").moveFileTo(versionDataDir);
     }
     if(!deken.exists())
@@ -230,9 +231,6 @@ void PluginProcessor::initialiseFilesystem()
     {
         patches.createDirectory();
     }
-
-    library.deleteRecursively();
-    library.createDirectory();
     
     // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS
@@ -244,25 +242,16 @@ void PluginProcessor::initialiseFilesystem()
     auto patchesPath = patches.getFullPathName();
 
     // Create NTFS directory junctions
-    OSUtils::createJunction(library.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
+    OSUtils::createJunction(homeDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
 
-    OSUtils::createJunction(library.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
+    OSUtils::createJunction(homeDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
 
-    OSUtils::createJunction(library.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
-
-    if (!library.getChildFile("Deken").exists()) {
-        OSUtils::createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
-    }
-    if (!library.getChildFile("Patches").exists()) {
-        OSUtils::createJunction(library.getChildFile("Patches").getFullPathName().replaceCharacters("/", "\\").toStdString(), patchesPath.toStdString());
-    }
+    OSUtils::createJunction(homeDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
 
 #else
-    versionDataDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
-    versionDataDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
-    versionDataDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
-    deken.createSymbolicLink(library.getChildFile("Deken"), true);
-    patches.createSymbolicLink(library.getChildFile("Patches"), true);
+    versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
+    versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
+    versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
 }
 
@@ -945,7 +934,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     // Save path and content for patch
     lockAudioThread();
 
-    auto presetDir = ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+    auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
 
     auto* patchesTree = new XmlElement("Patches");
 
@@ -1048,7 +1037,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         auto state = istream.readString();
         auto path = istream.readString();
 
-        auto presetDir = ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+        auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
         auto location = File(path);

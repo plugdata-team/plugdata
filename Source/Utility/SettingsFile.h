@@ -84,13 +84,13 @@ private:
     Array<SettingsFileListener*> listeners;
 
 
-    File settingsFile = ProjectInfo::appDataDir.getChildFile("Settings.xml");
+    File settingsFile = ProjectInfo::appDataDir.getChildFile(".settings");
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
     bool settingsChangedExternally = false;
 
     std::vector<std::pair<String, var>> defaultSettings {
-        { "browser_path", var(ProjectInfo::appDataDir.getChildFile("Library").getFullPathName()) },
+        { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },
         { "theme", var("light") },
         { "oversampling", var(0) },
         { "protected", var(1) },

@@ -789,7 +789,9 @@ private:
     }
 
     PluginEditor* editor;
-    File palettesFile = ProjectInfo::appDataDir.getChildFile("PaletteBar.xml");
+        
+    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes.xml");
+//    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have created all the default palettes
 
     ValueTree objectTree;
     ValueTree palettesTree;

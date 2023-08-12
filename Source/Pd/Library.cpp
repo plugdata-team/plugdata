@@ -39,7 +39,7 @@ namespace pd {
 
 void Library::updateLibrary()
 {
-    auto settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile("Settings.xml").loadFileAsString());
+    auto settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile(".settings").loadFileAsString());
     auto pathTree = settingsTree.getChildWithName("Paths");
 
     sys_lock();
@@ -105,8 +105,8 @@ Library::Library(pd::Instance* instance)
     // Paths to search
     // First, only search vanilla, then search all documentation
     // Lastly, check the deken folder
-    helpPaths = { ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("5.reference"), ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Documentation"),
-        ProjectInfo::appDataDir.getChildFile("Deken") };
+    helpPaths = { ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("5.reference"), ProjectInfo::appDataDir.getChildFile("Documentation"),
+        ProjectInfo::appDataDir.getChildFile("Externals") };
 
     // This is unfortunately necessary to make Windows LV2 turtle dump work
     // Let's hope its not harmful
