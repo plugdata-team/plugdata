@@ -666,3 +666,11 @@ struct t_fake_text_define {
     t_canvas* x_canvas;   /* owning canvas whose stub we use for x_gp */
     unsigned char x_keep; /* whether to embed contents in patch on save */
 };
+
+// class for connections
+struct t_fake_outconnect {
+    void* oc_next;
+    t_pd* oc_to;
+    t_symbol* oc_path_data;
+    int oc_nchs;
+};
