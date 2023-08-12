@@ -129,8 +129,6 @@ private:
     bool indexShown = false;
     bool isHvccCompatible = true;
 
-    bool isSelectedActive = false;
-
     ObjectDragState& ds;
 
     std::unique_ptr<TextEditor> newObjectEditor;
