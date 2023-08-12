@@ -235,6 +235,11 @@ void Object::mouseEnter(MouseEvent const& e)
 {
     for (auto* iolet : iolets)
         iolet->repaint();
+    
+    if (selectedFlag) {
+        isSelectedActive = true;
+        repaint();
+    }
 }
 
 void Object::mouseExit(MouseEvent const& e)
@@ -246,6 +251,11 @@ void Object::mouseExit(MouseEvent const& e)
 
     for (auto* iolet : iolets)
         iolet->repaint();
+    
+    if (isSelectedActive) {
+        isSelectedActive = false;
+        repaint();
+    }
 }
 
 void Object::mouseMove(MouseEvent const& e)
@@ -506,6 +516,9 @@ void Object::paint(Graphics& g)
         }
 
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
+
+        if (!isMouseButtonDown() && !isSelectedActive)
+            return;
 
         g.saveState();
         // Make a rounded rectangle hole path:
@@ -796,7 +809,7 @@ void Object::mouseDown(MouseEvent const& e)
     }
 
     cnv->setSelected(this, true);
-
+    isSelectedActive = true;
 
     ds.componentBeingDragged = this;
 
