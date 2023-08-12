@@ -830,17 +830,26 @@ private:
         
         static const String drumSequencerPatch;
         static const String noteSequencerPatch;
+        
         static const String drumsPatch;
-
+        static const String pianoPatch;
+        static const String ePianoPatch;
+        static const String bassPatch;
+        static const String guitarPatch;
+        static const String stringsPatch;
+        static const String brassPatch;
+        static const String organPatch;
+        
+        static const String multiOscPatch;
+        static const String noiseOscPatch;
+        static const String lfoPatch;
+        
     std::map<String, std::map<String, String>> defaultPalettes = {
         { "Oscillators",
-            { { "multi.osc", placeholderPatch },
-                { "sawtooth", placeholderPatch },
-                { "rectangle", placeholderPatch },
-                { "triangle", placeholderPatch },
-                { "sine", placeholderPatch },
-                { "noise", placeholderPatch },
-                { "phase ramp", placeholderPatch } } },
+            {   { "multi osc", multiOscPatch },
+                { "noise osc", noiseOscPatch },
+                { "lfo", lfoPatch },
+            } },
         { "Filters",
             {   { "lowpass", lowpassPatch },
                 { "svf", svfPatch },
@@ -865,6 +874,13 @@ private:
         { "Instruments",
             {
                 { "drums", drumsPatch },
+                { "piano", pianoPatch },
+                { "e-piano", ePianoPatch },
+                { "bass", bassPatch },
+                { "guitar", guitarPatch },
+                { "strings", stringsPatch },
+                { "brass", brassPatch },
+                { "organ", organPatch },
             } },
     };
 
