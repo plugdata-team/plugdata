@@ -346,8 +346,11 @@ public:
                 // we have to use our min/max as by the time we get the "range" message, it has already changed knb->x_min & knb->x_max!
                 auto oldMin = ::getValue<float>(min);
                 auto oldMax = ::getValue<float>(max);
-                setParameterExcludingListener(min, newMin);
-                setParameterExcludingListener(max, newMax);
+            
+                setParameterExcludingListener(min, std::min(newMin, newMax - 0.0001f));
+                setParameterExcludingListener(max, std::max(newMax, newMin + 0.0001f));
+                
+                
                 updateRange();
                 updateDoubleClickValue();
 
@@ -674,7 +677,7 @@ public:
             if (auto knb = ptr.get<t_fake_knob>()) {
                 oldMinVal = static_cast<float>(knb->x_min);
                 oldMaxVal = static_cast<float>(knb->x_max);
-                newMinVal = limitValueMax(min, ::getValue<float>(max));
+                newMinVal = limitValueMax(min, ::getValue<float>(max) - 0.0001f);
             } else {
                 return;
             }
@@ -689,7 +692,7 @@ public:
             if (auto knb = ptr.get<t_fake_knob>()) {
                 oldMinVal = static_cast<float>(knb->x_min);
                 oldMaxVal = static_cast<float>(knb->x_max);
-                newMaxVal = limitValueMin(max, ::getValue<float>(min));
+                newMaxVal = limitValueMin(max, ::getValue<float>(min) + 0.0001f);
             } else {
                 return;
             }
