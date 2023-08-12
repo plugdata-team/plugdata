@@ -674,11 +674,11 @@ public:
             if (auto knb = ptr.get<t_fake_knob>()) {
                 oldMinVal = static_cast<float>(knb->x_min);
                 oldMaxVal = static_cast<float>(knb->x_max);
-                newMinVal = ::getValue<float>(min);
+                newMinVal = limitValueMax(min, ::getValue<float>(max));
             } else {
                 return;
             }
-
+            
             // set new min value and update knob
             setMinimum(newMinVal);
             updateRange();
@@ -689,7 +689,7 @@ public:
             if (auto knb = ptr.get<t_fake_knob>()) {
                 oldMinVal = static_cast<float>(knb->x_min);
                 oldMaxVal = static_cast<float>(knb->x_max);
-                newMaxVal = ::getValue<float>(max);
+                newMaxVal = limitValueMin(max, ::getValue<float>(min));
             } else {
                 return;
             }
