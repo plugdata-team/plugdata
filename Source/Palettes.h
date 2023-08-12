@@ -810,39 +810,36 @@ private:
 
     bool shouldAnimate = false;
 
-    static inline const String placeholderPatch = "#X obj 72 264 outlet~;\n"
-                                                  "#X obj 72 156 inlet;\n";
+        static inline const String delayPatch = "#X obj 0 0 palette/delay";
+        static inline const String chorusPatch = "#X obj 0 0 palette/chorus";
+        static inline const String phaserPatch = "#X obj 0 0 palette/phaser";
+        static inline const String flangerPatch = "#X obj 0 0 palette/flanger";
+        static inline const String drivePatch = "#X obj 0 0 palette/drive";
+        static inline const String bitcrusherPatch = "#X obj 0 0 palette/bitcrusher";
+        static inline const String reverbPatch = "#X obj 0 0 palette/reverb";
 
-        static const String delayPatch;
-        static const String chorusPatch;
-        static const String phaserPatch;
-        static const String flangerPatch;
-        static const String drivePatch;
-        static const String bitcrusherPatch;
-        static const String reverbPatch;
-        
-        static const String svfPatch;
-        static const String eqPatch;
-        static const String lowpassPatch;
-        
-        static const String metronomePatch;
-        static const String adsrPatch;
-        
-        static const String drumSequencerPatch;
-        static const String noteSequencerPatch;
-        
-        static const String drumsPatch;
-        static const String pianoPatch;
-        static const String ePianoPatch;
-        static const String bassPatch;
-        static const String guitarPatch;
-        static const String stringsPatch;
-        static const String brassPatch;
-        static const String organPatch;
-        
-        static const String multiOscPatch;
-        static const String noiseOscPatch;
-        static const String lfoPatch;
+        static inline const String svfPatch = "#X obj 0 0 palette/svf";
+        static inline const String eqPatch = "#X obj 0 0 palette/eq";
+        static inline const String lowpassPatch = "#X obj 0 0 palette/loqpass";
+
+        static inline const String metronomePatch = "#X obj 0 0 palette/metronome";
+        static inline const String adsrPatch = "#X obj 0 0 palette/adsr";
+
+        static inline const String drumSequencerPatch = "#X obj 0 0 palette/drumseq";
+        static inline const String noteSequencerPatch = "#X obj 0 0 palette/noteseq";
+
+        static inline const String drumsPatch = "#X obj 0 0 palette/drums";
+        static inline const String pianoPatch = "#X obj 0 0 palette/piano";
+        static inline const String ePianoPatch = "#X obj 0 0 palette/epiano";
+        static inline const String bassPatch = "#X obj 0 0 palette/bass";
+        static inline const String guitarPatch = "#X obj 0 0 palette/guitar";
+        static inline const String stringsPatch = "#X obj 0 0 palette/strings";
+        static inline const String brassPatch = "#X obj 0 0 palette/brass";
+        static inline const String organPatch = "#X obj 0 0 palette/organ";
+
+        static inline const String multiOscPatch = "#X obj 0 0 palette/multiosc";
+        static inline const String noiseOscPatch = "#X obj 0 0 palette/noiseosc";
+        static inline const String lfoPatch = "#X obj 0 0 palette/lfo";
         
     std::map<String, std::map<String, String>> defaultPalettes = {
         { "Oscillators",
