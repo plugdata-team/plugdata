@@ -212,6 +212,10 @@ struct Icons {
     inline static const String GlyphClip = CharPointer_UTF8("ƣ");
     inline static const String GlyphFold = CharPointer_UTF8("Ƥ");
     inline static const String GlyphWrap = CharPointer_UTF8("ƥ");
+    inline static const String GlyphCombRev = CharPointer_UTF8("Ɵ");
+    inline static const String GlyphDuck = CharPointer_UTF8("Ơ");
+    inline static const String GlyphBallance = CharPointer_UTF8("Ƨ");
+    inline static const String GlyphPan = CharPointer_UTF8("ƨ");
 };
 
 enum PlugDataColour {
