@@ -962,6 +962,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     }
     case CommandIDs::ConnectionStyle: {
         result.setInfo("Connection style", "Set connection style", "Edit", 0);
+        result.addDefaultKeypress(76, ModifierKeys::commandModifier);
         result.setActive(hasCanvas && !isDragging && hasConnectionSelection);
         break;
     }
