@@ -130,7 +130,7 @@ public:
 
         if (getValue<bool>(outline)) {
             g.setColour(outlineColour);
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, selected ? 2.0f : 1.0f);
         }
     }
 

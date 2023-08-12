@@ -133,7 +133,7 @@ public:
         bool selected = object->isSelected() && !cnv->isGraph;
 
         g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
-        g.drawRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(bounds.reduced(0.5f), Corners::objectCornerRadius, selected ? 2.0f : 1.0f);
 
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         g.drawRoundedRectangle(bounds.reduced(6), Corners::objectCornerRadius, 1.5f);

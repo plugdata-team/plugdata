@@ -187,12 +187,12 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        if (getValue<bool>(outline)) {
-            bool selected = object->isSelected() && !cnv->isGraph;
+        bool selected = object->isSelected() && !cnv->isGraph;
+        
+        if (getValue<bool>(outline) || selected) {
             auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-
             g.setColour(outlineColour);
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, selected ? 2.0f : 1.0f);
         }
     }
 

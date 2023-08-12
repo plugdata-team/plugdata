@@ -207,7 +207,7 @@ public:
         bool selected = object->isSelected() && !object->cnv->isGraph;
 
         g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, selected ? 2.0f : 1.0f);
     }
 
     std::pair<float, float> calcMagnitudePhase(float f, float a1, float a2, float b0, float b1, float b2)
