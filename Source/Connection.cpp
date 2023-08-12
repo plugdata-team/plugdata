@@ -24,7 +24,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     , inlet(s->isInlet ? s : e)
     , outobj(outlet->object)
     , inobj(inlet->object)
-    , ptr(static_cast<t_fake_outconnect*>(oc))
+    , ptr(oc, parent->pd)
 {
     cnv->selectedComponents.addChangeListener(this);
 
@@ -50,9 +50,9 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     if (!oc) {
         auto* oc = parent->patch.createAndReturnConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
 
-        ptr = static_cast<t_fake_outconnect*>(oc);
+        ptr = pd::WeakReference(oc, cnv->pd);
 
-        if (!ptr) {
+        if (!ptr.getRaw<t_outconnect>()) {
             outlet = nullptr;
             inlet = nullptr;
 
@@ -86,12 +86,12 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
     updateOverlays(cnv->getOverlays());
 
-    setPointer(ptr);
+    setPointer(ptr.getRaw<void>());
 }
 
 Connection::~Connection()
 {
-    cnv->pd->unregisterMessageListener(ptr, this);
+    cnv->pd->unregisterMessageListener(ptr.getRaw<void>(), this);
     cnv->selectedComponents.removeChangeListener(this);
 
     if (outlet) {
@@ -154,15 +154,14 @@ void Connection::pushPathState()
 
 void Connection::popPathState()
 {
-    if (!ptr || !ptr->oc_path_data || !ptr->oc_path_data->s_name || !inlet || !outlet)
-        return;
-
-    auto const state = String::fromUTF8(ptr->oc_path_data->s_name);
-
-    if (state == "empty") {
-        segmented = false;
-        updatePath();
-        return;
+    if (!inlet || !outlet) return;
+    
+    String state;
+    if(auto oc = ptr.get<t_outconnect>())
+    {
+        auto* pathData = outconnect_get_path_data(oc.get());
+        if(!pathData || !pathData->s_name) return;
+        state = String::fromUTF8(pathData->s_name);
     }
 
     auto block = MemoryBlock();
@@ -190,10 +189,10 @@ void Connection::popPathState()
 
 void Connection::setPointer(void* newPtr)
 {
-    auto originalPointer = ptr;
-    ptr = static_cast<t_fake_outconnect*>(newPtr);
-    cnv->pd->registerMessageListener(ptr, this);
-    if (originalPointer != ptr) {
+    auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
+    ptr = pd::WeakReference(newPtr, cnv->pd);
+    cnv->pd->registerMessageListener(ptr.getRaw<t_outconnect>(), this);
+    if (originalPointer != ptr.getRaw<t_outconnect>()) {
         // do we even need to unregister, doesn't it get cleaned up automatically?
         cnv->pd->unregisterMessageListener(originalPointer, this);
     }
@@ -201,12 +200,17 @@ void Connection::setPointer(void* newPtr)
 
 void* Connection::getPointer()
 {
-    return ptr;
+    return ptr.getRaw<t_outconnect>();
 }
 
 t_symbol* Connection::getPathState()
 {
-    return ptr->oc_path_data;
+    if(auto oc = ptr.get<t_outconnect>())
+    {
+        return outconnect_get_path_data(oc.get());
+    }
+    
+    return nullptr;
 }
 
 bool Connection::hitTest(int x, int y)
@@ -852,7 +856,17 @@ int Connection::getMultiConnectNumber()
 
 int Connection::getNumSignalChannels()
 {
-    return ptr->oc_nchs;
+    if(auto oc = ptr.get<t_outconnect>())
+    {
+        return outconnect_get_num_channels(oc.get());
+    }
+    
+    if(outlet)
+    {
+        return outlet->isSignal ? 1 : 0;
+    }
+    
+    return 0;
 }
 
 void Connection::updatePath()
@@ -1164,7 +1178,8 @@ void ConnectionPathUpdater::timerCallback()
         linetraverser_start(&t, patch);
 
         while (auto* oc = linetraverser_next(&t)) {
-            if (reinterpret_cast<t_fake_outconnect*>(oc) == connection->ptr) {
+            
+            if (oc && oc == connection->ptr.getRaw<t_outconnect>()) {
 
                 outObj = t.tr_ob;
                 outIdx = t.tr_outno;
@@ -1178,16 +1193,12 @@ void ConnectionPathUpdater::timerCallback()
 
         if (!found)
             continue;
-
-        t_symbol* oldPathState = connection->ptr->oc_path_data;
-
-        // This will recreate the connection with the new connection path, and return the new pointer
-        // Since we mostly used indices and object pointers to differentiate connections, this is fine
-        // TODO: this sometimes causes a crash
-        // this is either a threading issue, or something else...
-        // I think we can solve it by not recreting the connection?
-        auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
-        connection->setPointer(newConnection);
+        
+        if(auto oc = connection->ptr.get<t_outconnect>()) {
+            t_symbol* oldPathState = outconnect_get_path_data(oc.get());
+            auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
+            connection->setPointer(newConnection);
+        }
     }
 
     canvas->patch.endUndoSequence("SetConnectionPaths");

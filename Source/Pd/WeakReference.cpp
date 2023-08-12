@@ -26,6 +26,24 @@ pd::WeakReference::~WeakReference()
     pd->unregisterWeakReference(ptr, &weakRef);
 }
 
+pd::WeakReference& pd::WeakReference::operator=(const pd::WeakReference& other)
+{
+    if (this != &other) // Check for self-assignment
+    {
+        pd->unregisterWeakReference(ptr, &other.weakRef);
+
+        // Use atomic exchange to safely copy the weakRef value
+        weakRef.store(other.weakRef.load());
+        ptr = other.ptr;
+        pd = other.pd;
+
+        pd->registerWeakReference(ptr, &weakRef);
+    }
+    
+    return *this;
+}
+
+
 void pd::WeakReference::setThis() const
 {
     pd->setThis();
