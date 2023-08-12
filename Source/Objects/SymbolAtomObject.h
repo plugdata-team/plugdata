@@ -24,6 +24,8 @@ public:
     {
         addAndMakeVisible(input);
 
+        input.setText(getSymbol(), dontSendNotification);
+        
         input.addMouseListener(this, false);
 
         input.onTextChange = [this]() {
