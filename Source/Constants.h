@@ -178,6 +178,10 @@ struct Icons {
     inline static const String GlyphBlocksize = CharPointer_UTF8("ĭ");
     inline static const String GlyphSamplerate = CharPointer_UTF8("Į");
     inline static const String GlyphSetDsp = CharPointer_UTF8("į");
+    inline static const String GlyphSend = CharPointer_UTF8("İ");
+    inline static const String GlyphReceive = CharPointer_UTF8("ı");
+    inline static const String GlyphSignalSend = CharPointer_UTF8("Ĳ");
+    inline static const String GlyphSignalReceive = CharPointer_UTF8("ĳ");
 
     // OSC~
     inline static const String GlyphOsc = CharPointer_UTF8("ō");
