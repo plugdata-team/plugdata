@@ -417,7 +417,11 @@ void Canvas::tabChanged()
 
 int Canvas::getTabIndex()
 {
-    return getTabbar()->getIndexOfCanvas(this);
+    if(auto* tabbar = getTabbar())
+    {
+        return tabbar->getIndexOfCanvas(this);
+    }
+    return -1;
 }
 
 void Canvas::handleAsyncUpdate()
