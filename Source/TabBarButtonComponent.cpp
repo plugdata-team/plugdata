@@ -134,6 +134,7 @@ ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
     StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.3f), 6, { 0, 2 }, scale);
     g.setOpacity(1.0f);
     drawTabButton(g, textBounds.withPosition(10,10));
+    
     drawTabButtonText(g, textBounds.withPosition(3, 5));
     //g.drawImage(snapshot, bounds.toFloat(), RectanglePlacement::doNotResize | RectanglePlacement::centred);
 
@@ -282,14 +283,6 @@ void TabBarButtonComponent::drawTabButtonText(Graphics& g, Rectangle<int> custom
     g.addTransform(t);
 
     auto buttonText = getButtonText().trim();
-
-    auto textAreaWithCloseButton = area.withWidth(area.getWidth() - 26);
-    if (font.getStringWidthFloat(buttonText) > textAreaWithCloseButton.getWidth()) {
-        area = textAreaWithCloseButton;
-    }
-    if (font.getStringWidthFloat(buttonText) * 0.5f > textAreaWithCloseButton.getWidth()) {
-        buttonText = buttonText.substring(0,10);
-    }
 
     g.drawFittedText(buttonText,
         area.getX(), area.getY() - 2, (int)area.getWidth(), (int)area.getHeight(),
