@@ -104,6 +104,8 @@ void TabBarButtonComponent::tabTextChanged(String const& newCurrentTabName)
 
 void TabBarButtonComponent::lookAndFeelChanged()
 {
+    closeTabButton.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+    closeTabButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
 }
 
 void TabBarButtonComponent::resized()
