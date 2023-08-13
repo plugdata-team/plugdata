@@ -425,11 +425,11 @@ public:
             hash("set"),
             hash("color"),
             hash("bgcolor"),
-            hash("justification"),
             hash("width"),
             hash("outline"),
             hash("receive"),
-            hash("bg")
+            hash("bg"),
+            hash("just")
         };
     }
 
@@ -491,7 +491,7 @@ public:
             }
             break;
         }
-        case hash("justification"): {
+        case hash("just"): {
             if (auto note = ptr.get<t_fake_note>()) {
                 justification = note->x_textjust;
             }

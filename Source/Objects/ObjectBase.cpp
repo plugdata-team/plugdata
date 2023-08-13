@@ -599,7 +599,7 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
             if (_this)
                 _this->object->updateBounds();
         });
-        return;
+        break;
     }
     default:
         break;
