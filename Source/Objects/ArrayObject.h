@@ -472,7 +472,10 @@ public:
     void resized() override
     {
         resizer.setBounds(getLocalBounds());
-        closeButton->setBounds(getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5));
+        
+        auto macOSStyle = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
+        auto closeButtonBounds = getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5);
+        closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
 
         for (auto* graph : graphs) {
             graph->setBounds(getLocalBounds().withTrimmedTop(40));

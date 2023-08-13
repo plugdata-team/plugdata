@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Constants.h"
+#include "Utility/SettingsFile.h"
 
 class PluginEditor;
 class Canvas;
@@ -33,7 +34,7 @@ public:
         grabKeyboardFocus();
 
         if (showCloseButton) {
-            closeButton.reset(getLookAndFeel().createDocumentWindowButton(5));
+            closeButton.reset(getLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
             addAndMakeVisible(closeButton.get());
             closeButton->onClick = [this]() {
                 closeDialog();
@@ -93,7 +94,9 @@ public:
         }
 
         if (closeButton) {
-            closeButton->setBounds(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
+            auto macOSStyle = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
+            auto closeButtonBounds = Rectangle<int>(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
+            closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
         }
     }
 
