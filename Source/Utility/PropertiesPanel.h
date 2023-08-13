@@ -513,7 +513,7 @@ public:
 
             void mouseDown(MouseEvent const& e) override
             {
-                auto pickerBounds = getLocalBounds() + getScreenPosition();
+                auto pickerBounds = getScreenBounds().expanded(5);
                 ColourPicker::getInstance().show(getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
                     if (!_this)
                         return;
