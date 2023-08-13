@@ -461,6 +461,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                                                     : TextButton::textColourOffId)
                               .withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
 
+            if(!button.getClickingTogglesState() && button.isMouseOver()) {
+                colour = button.findColour(TextButton::textColourOnId);
+            }
             int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
             int const cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
 
@@ -521,10 +524,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Button* createDocumentWindowButton(int buttonType) override
     {
-        // For dialogs
-        if (buttonType == 5)
-            return new PlugData_DocumentWindowButton(4);
-
         if (SettingsFile::getInstance()->getProperty<bool>("macos_buttons"))
             return new PlugData_DocumentWindowButton_macOS(buttonType);
         else

@@ -17,6 +17,8 @@ TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabbar, String const&
     closeTabButton.getProperties().set("FontScale", 0.44f);
     closeTabButton.setColour(TextButton::buttonColourId, Colour());
     closeTabButton.setColour(TextButton::buttonOnColourId, Colour());
+    closeTabButton.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+    closeTabButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
     closeTabButton.setColour(ComboBox::outlineColourId, Colour());
     closeTabButton.setConnectedEdges(12);
     closeTabButton.setSize(28, 28);
