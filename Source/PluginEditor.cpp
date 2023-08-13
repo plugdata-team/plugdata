@@ -82,6 +82,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         return true;
     })
 {
+        
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
@@ -125,7 +126,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
 
     auto* settingsFile = SettingsFile::getInstance();
-
+    PlugDataLook::setDefaultFont(settingsFile->getProperty<String>("default_font"));
+    
     auto keymap = settingsFile->getKeyMapTree();
     if (keymap.isValid()) {
         auto xmlStr = keymap.getProperty("keyxml").toString();
