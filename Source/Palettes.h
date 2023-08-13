@@ -820,7 +820,7 @@ private:
 
         static inline const String svfPatch = "#X obj 0 0 palette/svf";
         static inline const String eqPatch = "#X obj 0 0 palette/eq";
-        static inline const String lowpassPatch = "#X obj 0 0 palette/loqpass";
+        static inline const String lowpassPatch = "#X obj 0 0 palette/lowpass";
 
         static inline const String metronomePatch = "#X obj 0 0 palette/metronome";
         static inline const String adsrPatch = "#X obj 0 0 palette/adsr";
@@ -839,7 +839,7 @@ private:
 
         static inline const String multiOscPatch = "#X obj 0 0 palette/multiosc";
         static inline const String noiseOscPatch = "#X obj 0 0 palette/noiseosc";
-        static inline const String lfoPatch = "#X obj 0 0 palette/lfo";
+        static inline const String lfoPatch = "#X obj 0 0 palette/LFO";
         
     std::map<String, std::map<String, String>> defaultPalettes = {
         { "Oscillators",
