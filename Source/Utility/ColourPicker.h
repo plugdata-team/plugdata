@@ -236,11 +236,11 @@ public:
         addChildComponent(hexEditor);
 
         showRgb.onClick = [this]() {
-            setMode(false);
+            updateMode();
         };
 
         showHex.onClick = [this]() {
-            setMode(true);
+            updateMode();
         };
 
         _topLevelComponent = getTopLevelComponent();
@@ -258,7 +258,7 @@ public:
 
         update(dontSendNotification);
 
-        setMode(false);
+        updateMode();
 
         lookAndFeelChanged();
     }
@@ -294,8 +294,9 @@ public:
             callback(getCurrentColour());
     }
 
-    void setMode(bool hex)
+    void updateMode()
     {
+        auto hex = showHex.getToggleState();
         for (auto& slider : sliders) {
             slider->setVisible(!hex);
         }
@@ -303,14 +304,16 @@ public:
         hexEditor.setVisible(hex);
         update(dontSendNotification);
         repaint();
-
-        auto* topLevel = getTopLevelComponent();
-        topLevel = topLevel ? topLevel : this;
         
         if (hex) {
-            topLevel->setSize(200, 256);
+            setSize(200, 256);
         } else {
-             topLevel->setSize(200, 300);
+            setSize(200, 300);
+        }
+        
+        if(auto* parent = getParentComponent())
+        {
+            parent->setSize(getWidth(), getHeight()); // Set size of SelectorHolder
         }
     }
 
