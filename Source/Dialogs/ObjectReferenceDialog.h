@@ -16,7 +16,7 @@ class ObjectInfoPanel : public Component
         
         void paint(Graphics& g) override
         {
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawLine(0, 1, getWidth(), 0);
             
             Fonts::drawStyledText(g, categoryName, getLocalBounds().toFloat().removeFromTop(24), findColour(PlugDataColour::panelTextColourId), FontStyle::Bold, 14.0f);
@@ -32,7 +32,7 @@ class ObjectInfoPanel : public Component
                 layouts[i].draw(g, bounds);
                 
    
-                g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+                g.setColour(findColour(PlugDataColour::outlineColourId));
                 g.drawLine(24.0f, totalHeight, getWidth() - 24.0f, totalHeight);
                 
                 totalHeight += textHeight + 12;
