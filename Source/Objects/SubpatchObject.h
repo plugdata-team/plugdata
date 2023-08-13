@@ -131,18 +131,23 @@ public:
     static void checkHvccCompatibility(pd::Patch::Ptr patch, String const& prefix = "")
     {
         auto* instance = patch->instance;
+        
+        // Table is really a subpatch, but it is supported in hvcc as an object
+        // So if we find a table, just accept it
+        if(canvas_istable(static_cast<t_canvas*>(patch->getPointer().get()))) return;
 
         for (auto* object : patch->getObjects()) {
             const String name = libpd_get_object_class_name(object);
 
             if (name == "canvas" || name == "graph") {
-                pd::Patch::Ptr patch = new pd::Patch(object, instance, false);
-
+                pd::Patch::Ptr subpatch = new pd::Patch(object, instance, false);
+                
                 char* text = nullptr;
                 int size = 0;
                 libpd_get_object_text(object, &text, &size);
-
-                checkHvccCompatibility(patch, prefix + String::fromUTF8(text, size) + " -> ");
+                auto objName = String::fromUTF8(text, size);
+                
+                checkHvccCompatibility(subpatch, prefix + objName + " -> ");
                 freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
 
             } else if (!Object::hvccObjects.contains(name)) {
