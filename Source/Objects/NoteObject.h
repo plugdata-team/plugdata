@@ -337,16 +337,22 @@ public:
                 note->x_fontsize = getValue<int>(fontSize);
             updateFont();
         } else if (v.refersToSameSourceAs(bold)) {
-            if (auto note = ptr.get<t_fake_note>())
+            if (auto note = ptr.get<t_fake_note>()) {
                 note->x_bold = getValue<int>(bold);
+                note->x_fontface = note->x_bold + 2 * note->x_italic + 4 * note->x_outline;
+            }
             updateFont();
         } else if (v.refersToSameSourceAs(italic)) {
-            if (auto note = ptr.get<t_fake_note>())
+            if (auto note = ptr.get<t_fake_note>()) {
                 note->x_italic = getValue<int>(italic);
+                note->x_fontface = note->x_bold + 2 * note->x_italic + 4 * note->x_outline;
+            }
             updateFont();
         } else if (v.refersToSameSourceAs(underline)) {
-            if (auto note = ptr.get<t_fake_note>())
+            if (auto note = ptr.get<t_fake_note>()) {
                 note->x_underline = getValue<int>(underline);
+                note->x_fontface = note->x_bold + 2 * note->x_italic + 4 * note->x_outline;
+            }
             updateFont();
         } else if (v.refersToSameSourceAs(fillBackground)) {
             if (auto note = ptr.get<t_fake_note>())
