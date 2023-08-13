@@ -178,7 +178,7 @@ void SplitView::closeEmptySplits()
     {
         auto* split = splits[i];
         if (auto* tabComponent = split->getTabComponent()) {
-            if (tabComponent->getNumTabs() == 0) {
+            if (tabComponent->getNumTabs() == 0 && splits.size() > 1) {
                 removeSplit(tabComponent);
                 removedSplit = true;
             }
