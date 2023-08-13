@@ -242,11 +242,11 @@ void PluginProcessor::initialiseFilesystem()
     auto patchesPath = patches.getFullPathName();
 
     // Create NTFS directory junctions
-    OSUtils::createJunction(homeDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
+    OSUtils::createJunction(abstractionsPath.toStdString(), homeDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString());
 
-    OSUtils::createJunction(homeDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
+    OSUtils::createJunction(documentationPath.toStdString(), homeDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString());
 
-    OSUtils::createJunction(homeDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
+    OSUtils::createJunction(extraPath.toStdString(), homeDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString());
 
 #else
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
