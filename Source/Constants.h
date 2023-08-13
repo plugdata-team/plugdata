@@ -130,23 +130,23 @@ struct Icons {
     inline static const String GlyphBicoeff = CharPointer_UTF8("\xc2\xb3");
 
     // general
-    inline static const String GlyphMetro = CharPointer_UTF8("\xc3\xa6");
-    inline static const String GlyphCounter = CharPointer_UTF8("\xc3\xa7");
-    inline static const String GlyphSelect = CharPointer_UTF8("\xc3\xa8");
-    inline static const String GlyphRoute = CharPointer_UTF8("\xc3\xb5");
-    inline static const String GlyphExpr = CharPointer_UTF8("\xc3\xa9");
-    inline static const String GlyphLoadbang = CharPointer_UTF8("\xc3\xaa");
-    inline static const String GlyphPack = CharPointer_UTF8("\xc3\xab");
-    inline static const String GlyphUnpack = CharPointer_UTF8("\xc3\xac");
-    inline static const String GlyphPrint = CharPointer_UTF8("\xc3\xae");
-    inline static const String GlyphNetsend = CharPointer_UTF8("\xc3\xad");
-    inline static const String GlyphNetreceive = CharPointer_UTF8("\xc3\xaf");
-    inline static const String GlyphTimer = CharPointer_UTF8("\xc3\xb0");
-    inline static const String GlyphDelay = CharPointer_UTF8("\xc3\xb1");
-    inline static const String GlyphTrigger = CharPointer_UTF8("\xc3\xb2");
-    inline static const String GlyphMoses = CharPointer_UTF8("\xc3\xb3");
-    inline static const String GlyphSpigot = CharPointer_UTF8("\xc3\xb4");
-    inline static const String GlyphBondo = CharPointer_UTF8("\xc3\xa6");
+    inline static const String GlyphMetro = CharPointer_UTF8("\xc3\xa4");
+    inline static const String GlyphCounter = CharPointer_UTF8("\xc3\xa6");
+    inline static const String GlyphSelect = CharPointer_UTF8("\xc3\xa7");
+    inline static const String GlyphRoute = CharPointer_UTF8("\xc3\xa8");
+    inline static const String GlyphExpr = CharPointer_UTF8("\xc3\xb5");
+    inline static const String GlyphLoadbang = CharPointer_UTF8("\xc3\xa9");
+    inline static const String GlyphPack = CharPointer_UTF8("\xc3\xaa");
+    inline static const String GlyphUnpack = CharPointer_UTF8("\xc3\xab");
+    inline static const String GlyphPrint = CharPointer_UTF8("\xc3\xac");
+    inline static const String GlyphNetsend = CharPointer_UTF8("\xc3\xae");
+    inline static const String GlyphNetreceive = CharPointer_UTF8("\xc3\xad");
+    inline static const String GlyphTimer = CharPointer_UTF8("\xc3\xaf");
+    inline static const String GlyphDelay = CharPointer_UTF8("\xc3\xb0");
+    inline static const String GlyphTrigger = CharPointer_UTF8("\xc3\xb1");
+    inline static const String GlyphMoses = CharPointer_UTF8("\xc3\xb2");
+    inline static const String GlyphSpigot = CharPointer_UTF8("\xc3\xb3");
+    inline static const String GlyphBondo = CharPointer_UTF8("\xc3\xb4");
 
     // MIDI
     inline static const String GlyphMidiIn = CharPointer_UTF8("\xc4\x87");
