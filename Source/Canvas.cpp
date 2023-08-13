@@ -378,7 +378,7 @@ void Canvas::paint(Graphics& g)
 
 TabComponent* Canvas::getTabbar()
 {
-    for (auto split : editor->splitView.splits) {
+    for (auto* split : editor->splitView.splits) {
         auto tabbar = split->getTabComponent();
         if (tabbar->getIndexOfCanvas(this) >= 0)
             return tabbar;

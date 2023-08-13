@@ -98,18 +98,15 @@ void TabBarButtonComponent::mouseExit(MouseEvent const& e)
 
 void TabBarButtonComponent::tabTextChanged(String const& newCurrentTabName)
 {
-    isDirty = true; 
 }
 
 void TabBarButtonComponent::lookAndFeelChanged()
 {
-    isDirty = true;
 }
 
 void TabBarButtonComponent::resized()
 {
     closeTabButton.setCentrePosition(getBounds().getCentre().withX(getBounds().getWidth() - 15).translated(0, -1));
-    isDirty = true;
 }
 
 ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
@@ -168,19 +165,35 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         tabMenu.addItem(revealTip, canReveal, false, [cnv]() {
             cnv->patch.getCurrentFile().revealToUser();
         });
-
-        if (getTabComponent()->getNumTabs() > 1) {
-            tabMenu.addItem("Split left", true, false, [this, cnv, splitIndex]() {
-                auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
-                auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
-                currentSplit->moveToSplit(0, cnv);
-            });
-            tabMenu.addItem("Split right", true, false, [this, cnv, splitIndex]() {
-                auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
-                auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
-                currentSplit->moveToSplit(1, cnv);
-            });
-        }
+        
+        tabMenu.addSeparator();
+        
+        auto canSplitTab = cnv->editor->getSplitView()->splits.size() > 1 || getTabComponent()->getNumTabs() > 1;
+        tabMenu.addItem("Split left", canSplitTab, false, [this, cnv, splitIndex]() {
+            auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
+            auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
+            currentSplit->moveToSplit(0, cnv);
+        });
+        tabMenu.addItem("Split right", canSplitTab, false, [this, cnv, splitIndex]() {
+            auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
+            auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
+            currentSplit->moveToSplit(1, cnv);
+        });
+    
+        tabMenu.addSeparator();
+        
+        tabMenu.addItem("Close patch", true, false, [this, cnv, splitIndex]() {
+            cnv->editor->closeTab(cnv);
+        });
+        
+        tabMenu.addItem("Close all other patches", true, false, [this, cnv, splitIndex]() {
+            cnv->editor->closeAllTabs(false, cnv);
+        });
+        
+        tabMenu.addItem("Close all patches", true, false, [this, cnv, splitIndex]() {
+            cnv->editor->closeAllTabs(false);
+        });
+        
         // Show the popup menu at the mouse position
         tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(getTabComponent()->getEditor()));
     }
@@ -191,25 +204,22 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
 
 void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
 {
-    if(e.getDistanceFromDragStart() > 10) {
-        //setVisible(false);
+    if(e.getDistanceFromDragStart() > 10 && !isDragging) {
+        isDragging = true;
         closeTabButton.setVisible(false);
         var tabIndex = getIndex();
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
-        //if (isDirty) {
-            tabImage = generateTabBarButtonImage();
-        //    isDirty = false;
-        //}
-    
-        //auto offset = e.getPosition() * -1 - Point<int>(boundsOffset,boundsOffset);
+        tabImage = generateTabBarButtonImage();
         dragContainer->startDragging(tabIndex, this, tabImage, true, nullptr);
     }
 }
 
 void TabBarButtonComponent::mouseUp(MouseEvent const& e)
 {
-    setVisible(true);
+    // we need to set visibility in the LNF due to using Juce overflow extra menu which uses visibility internally
+    getProperties().set("dragged", var(false));
+    isDragging = false;
 }
 
 // FIXME: we are only using this to draw the DnD tab image

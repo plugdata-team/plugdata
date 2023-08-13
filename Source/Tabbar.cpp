@@ -10,7 +10,7 @@
 
 class ButtonBar::GhostTab : public Component {
 public:
-    GhostTab() {}
+    GhostTab(PlugDataLook& lnfRef) : lnf(lnfRef) {}
 
     void setTabButtonToGhost(TabBarButton* tabButton)
     {
@@ -29,18 +29,19 @@ public:
 
     void paint(Graphics& g) override
     {
-        LookAndFeel::getDefaultLookAndFeel().drawTabButton(*tab, g, true, true);
+        lnf.drawTabButton(*tab, g, true, true, true);
     }
 
 private:
     TabBarButton* tab;
+    PlugDataLook& lnf;
 };
 
 ButtonBar::ButtonBar(TabComponent& tabComp, TabbedButtonBar::Orientation o)
     : TabbedButtonBar(o)
     , owner(tabComp)
 {
-    ghostTab = std::make_unique<GhostTab>();
+    ghostTab = std::make_unique<GhostTab>(dynamic_cast<PlugDataLook&>(LookAndFeel::getDefaultLookAndFeel()));
     addChildComponent(ghostTab.get());
     ghostTab->setAlwaysOnTop(true);
 
@@ -62,7 +63,9 @@ void ButtonBar::changeListenerCallback(ChangeBroadcaster* source)
     if (&ghostTabAnimator == source) {
         if (!ghostTabAnimator.isAnimating()) {
             ghostTab->setVisible(false);
-            getTabButton(ghostTabIdx)->setVisible(true);
+            auto* tabButton = getTabButton(ghostTabIdx);
+            tabButton->getProperties().set("dragged", var(false));
+            tabButton->repaint();
         }
     }
 }
@@ -70,8 +73,11 @@ void ButtonBar::changeListenerCallback(ChangeBroadcaster* source)
 void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
 {
     auto animateTabToPosition = [this](){
-        getTabButton(ghostTabIdx)->setVisible(false);
-        ghostTabAnimator.animateComponent(ghostTab.get(), ghostTab->getBounds().withPosition(Point<int>(ghostTab->getIndex() * (getWidth() / getNumTabs()), 0)), 1.0f, 200, false, 3.0f, 0.0f);
+        auto* tabButton = getTabButton(ghostTabIdx);
+        tabButton->getProperties().set("dragged", var(true));
+        tabButton->repaint();
+        
+        ghostTabAnimator.animateComponent(ghostTab.get(), ghostTab->getBounds().withPosition(Point<int>(ghostTab->getIndex() * (getWidth() / getNumVisibleTabs()), 0)), 1.0f, 200, false, 3.0f, 0.0f);
     };
 
     // this has a whole lot of code replication from ResizableTabbedComponent.cpp, good candidate for refactoring!
@@ -81,7 +87,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         auto sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
         int sourceTabIndex = sourceTabButton->getIndex();
         auto sourceTabContent = sourceTabButton->getTabComponent();
-        int sourceNumTabs = sourceTabContent->getNumTabs();
+        int sourceNumTabs = sourceTabContent->getNumVisibleTabs();
 
         inOtherSplit = false;
         // we remove the ghost tab, which is NOT a proper tab, (it only a tab, and doesn't have a viewport)
@@ -94,7 +100,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         owner.setCurrentTabIndex(ghostTabIdx);
 
         sourceTabContent->removeTab(sourceTabIndex);
-        auto sourceCurrentIndex = sourceTabIndex > (sourceTabContent->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex;
+        auto sourceCurrentIndex = sourceTabIndex > (sourceTabContent->getNumVisibleTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex;
         sourceTabContent->setCurrentTabIndex(sourceCurrentIndex);
 
         if (sourceNumTabs < 2) {
@@ -129,7 +135,8 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
         // if this tabbar is DnD on itself, we don't need to add a new tab
         // we move the existing tab
         if (tab->getTabComponent() == &owner) {
-            tab->setVisible(false);
+            tab->getProperties().set("dragged", var(true));
+            tab->repaint();
             inOtherSplit = false;
             ghostTabIdx = tab->getIndex();
             ghostTab->setTabButtonToGhost(tab);
@@ -137,12 +144,16 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
             // we calculate where the tab will go when its added,
             // so we need to add 1 to the number of existing tabs
             // to take the added tab into account
-            auto targetTabPos = getWidth() / (getNumTabs() + 1);
+
+            // WARNING: because we are using the overflow (show extra items menu)
+            // we need to find out how many tabs are visible, not how many there are all together
+            auto targetTabPos = getWidth() / (getNumVisibleTabs() + 1);
             auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
             inOtherSplit = true;
             addTab(tab->getButtonText(), Colours::transparentBlack, tabPos);
             auto* fakeTab = getTabButton(tabPos);
-            fakeTab->setVisible(false);
+            tab->getProperties().set("dragged", var(true));
+            tab->repaint();
             ghostTab->setTabButtonToGhost(fakeTab);
             ghostTabIdx = tabPos;
         }
@@ -154,7 +165,8 @@ void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         ghostTab->setVisible(false);
-        tab->setVisible(false);
+        tab->getProperties().set("dragged", var(true));
+        tab->repaint();
         if (inOtherSplit) {
             inOtherSplit = false;
             removeTab(ghostTabIdx, true);
@@ -162,11 +174,21 @@ void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
     }
 }
 
+int ButtonBar::getNumVisibleTabs()
+{
+    int numVisibleTabs = 0;
+    for (int i = 0; i < getNumTabs(); i++) {
+        if (getTabButton(i)->isVisible())
+            numVisibleTabs++;
+    }
+    return numVisibleTabs;
+}
+
 void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         auto ghostTabCentreOffset = ghostTab->getWidth() / 2;
-        auto targetTabPos = getWidth() / getNumTabs();
+        auto targetTabPos = getWidth() / getNumVisibleTabs();
         auto tabPos = ghostTab->getBounds().getCentreX() / targetTabPos;
 
         auto leftPos = dragSourceDetails.localPosition.getX() - ghostTabCentreOffset;
@@ -183,8 +205,10 @@ void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
             owner.moveTab(ghostTabIdx, tabPos);
             ghostTabIdx = tabPos;
         }
-        tab->setVisible(false);
-        getTabButton(tabPos)->setVisible(false);
+        tab->getProperties().set("dragged", var(true));
+        tab->repaint();
+        getTabButton(tabPos)->getProperties().set("dragged", var(true));
+        getTabButton(tabPos)->repaint();
     }
 
 }
@@ -249,6 +273,16 @@ int TabComponent::getCurrentTabIndex()
 void TabComponent::setCurrentTabIndex(int idx)
 {
     tabs->setCurrentTabIndex(idx);
+}
+
+int TabComponent::getNumVisibleTabs()
+{
+    int numVisibleTabs = 0;
+    for (int i = 0; i < getNumTabs(); i++) {
+        if (tabs->getTabButton(i)->isVisible())
+            numVisibleTabs++;
+    }
+    return numVisibleTabs;
 }
 
 void TabComponent::clearTabs()

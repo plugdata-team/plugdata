@@ -45,13 +45,13 @@ public:
     std::function<void()> appDirChanged;
 
     static inline Array<File> const defaultPaths = {
-        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else"),
-        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("cyclone"),
-        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("heavylib"),
-        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Abstractions"),
-        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Deken"),
-        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("else"),
-        ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra")
+        ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("else"),
+        ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("cyclone"),
+        ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("heavylib"),
+        ProjectInfo::appDataDir.getChildFile("Abstractions"),
+        ProjectInfo::appDataDir.getChildFile("Externals"),
+        ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("else"),
+        ProjectInfo::appDataDir.getChildFile("Extra")
     };
 
     static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "heavylib", "pdlua" };

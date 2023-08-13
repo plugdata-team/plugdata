@@ -35,7 +35,7 @@ public:
 
 private:
     
-    File soundFont = ProjectInfo::appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("GeneralUser_GS.sf3");
+    File soundFont = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("GS").getChildFile("GeneralUser_GS.sf3");
 
     // Fluidsynth state
     FluidSynth* synth = nullptr;

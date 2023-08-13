@@ -283,6 +283,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         auto* midiDeviceManager = ProjectInfo::getMidiDeviceManager();
         midiDeviceManager->loadMidiOutputSettings();
     }
+    
+    MessageManager::callAsync([this](){
+        if(auto* window = getTopLevelComponent())
+        {
+            window->toFront(false);
+        }
+        grabKeyboardFocus();
+    });
 }
 
 PluginEditor::~PluginEditor()
@@ -643,7 +651,7 @@ Canvas* PluginEditor::getCurrentCanvas()
     return nullptr;
 }
 
-void PluginEditor::closeAllTabs(bool quitAfterComplete)
+void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude)
 {
     auto* canvas = canvases.getLast();
     if (!canvas) {
@@ -652,16 +660,19 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete)
         }
         return;
     }
+    if(patchToExclude && canvases.size() == 1)
+    {
+        return;
+    }
 
     auto* patch = &canvas->patch;
 
-    auto deleteFunc = [this, canvas, quitAfterComplete]() {
-        if (!canvas) {
-            return;
+    auto deleteFunc = [this, canvas, quitAfterComplete, patchToExclude]() {
+        if (canvas && !(patchToExclude && canvas == patchToExclude)) {
+            closeTab(canvas);
         }
-
-        closeTab(canvas);
-        closeAllTabs(quitAfterComplete);
+        
+        closeAllTabs(quitAfterComplete, patchToExclude);
     };
 
     if (canvas) {
@@ -732,12 +743,13 @@ void PluginEditor::addTab(Canvas* cnv, int splitIdx)
     TabComponent* focusedTabbar;
     if(splitIdx < 0)
     {
-        auto* focusedTabbar = splitView.getActiveTabbar();
-        int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
-
-        // Add tab next to the currently focused tab
-        focusedTabbar->addTab(patchTitle, cnv->viewport.get(), newTabIdx);
-        focusedTabbar->setCurrentTabIndex(newTabIdx);
+        if(auto* focusedTabbar = splitView.getActiveTabbar()) {
+            int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
+            
+            // Add tab next to the currently focused tab
+            focusedTabbar->addTab(patchTitle, cnv->viewport.get(), newTabIdx);
+            focusedTabbar->setCurrentTabIndex(newTabIdx);
+        }
     }
     else {
         if(splitIdx > splitView.splits.size() - 1) {
@@ -950,6 +962,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     }
     case CommandIDs::ConnectionStyle: {
         result.setInfo("Connection style", "Set connection style", "Edit", 0);
+        result.addDefaultKeypress(76, ModifierKeys::commandModifier);
         result.setActive(hasCanvas && !isDragging && hasConnectionSelection);
         break;
     }
@@ -1263,8 +1276,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::CloseTab: {
-
-        if (splitView.getActiveTabbar()->getNumTabs() == 0)
+        auto* activeTabbar = splitView.getActiveTabbar();
+        if (activeTabbar && activeTabbar->getNumTabs() == 0)
             return true;
 
         if (cnv) {

@@ -229,9 +229,7 @@ void Instance::initialisePd(String& pdlua_version)
 
     static bool initialised = false;
     if (!initialised) {
-
-        auto library = ProjectInfo::appDataDir.getChildFile("Library");
-        auto extra = library.getChildFile("Extra");
+        auto extra = ProjectInfo::appDataDir.getChildFile("Extra");
 
         set_class_prefix(gensym("else"));
         class_set_extern_dir(gensym("9.else"));
@@ -533,7 +531,7 @@ void Instance::registerWeakReference(t_pd* ptr, pd_weak_reference* ref)
     unlockAudioThread();
 }
 
-void Instance::unregisterWeakReference(t_pd* ptr, pd_weak_reference* ref)
+void Instance::unregisterWeakReference(t_pd* ptr, const pd_weak_reference* ref)
 {
     lockAudioThread();
 

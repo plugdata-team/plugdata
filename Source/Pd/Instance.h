@@ -244,7 +244,7 @@ public:
     void unregisterMessageListener(void* object, MessageListener* messageListener);
 
     void registerWeakReference(t_pd* ptr, pd_weak_reference* ref);
-    void unregisterWeakReference(t_pd* ptr, pd_weak_reference* ref);
+    void unregisterWeakReference(t_pd* ptr, const pd_weak_reference* ref);
     void clearWeakReferences(t_pd* ptr);
 
     virtual void receiveDSPState(bool dsp) {};

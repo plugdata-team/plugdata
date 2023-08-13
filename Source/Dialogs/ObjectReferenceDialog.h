@@ -5,6 +5,180 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+class ObjectInfoPanel : public Component
+{
+    struct CategoryPanel : public Component
+    {
+        CategoryPanel(const String& name, const Array<std::pair<String, String>>& content) : categoryName(name), panelContent(content)
+        {
+        }
+        
+        
+        void paint(Graphics& g) override
+        {
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawLine(0, 1, getWidth(), 0);
+            
+            Fonts::drawStyledText(g, categoryName, getLocalBounds().toFloat().removeFromTop(24), findColour(PlugDataColour::panelTextColourId), FontStyle::Bold, 14.0f);
+            
+            float totalHeight = 24;
+            for(int i = 0; i < panelContent.size(); i++)
+            {
+                auto textHeight = layouts[i].getHeight();
+                auto bounds = Rectangle<float>(24.0f, totalHeight + 6.0f, getWidth() - 48.0f, textHeight);
+                
+                Fonts::drawStyledText(g, panelContent[i].first, bounds.removeFromLeft(128), findColour(PlugDataColour::panelTextColourId), FontStyle::Semibold, 13.5f);
+                
+                layouts[i].draw(g, bounds);
+                
+   
+                g.setColour(findColour(PlugDataColour::outlineColourId));
+                g.drawLine(24.0f, totalHeight, getWidth() - 24.0f, totalHeight);
+                
+                totalHeight += textHeight + 12;
+            }
+        }
+
+        
+        void recalculateLayout(int width)
+        {
+            layouts.clear();
+            
+            int totalHeight = 24;
+            for(const auto& [name, description] : panelContent)
+            {
+                AttributedString str;
+                str.append(description, Font(13.5f), findColour(PlugDataColour::panelTextColourId));
+                TextLayout layout;
+                layout.createLayout(str, width - 192.0f);
+                layouts.add(layout);
+                totalHeight += layout.getHeight() + 12;
+            }
+            
+            setSize(width, totalHeight);
+        }
+        
+        const String categoryName;
+        const Array<std::pair<String, String>> panelContent;
+        Array<TextLayout> layouts;
+    };
+    
+public:
+    
+    ObjectInfoPanel()
+    {
+        categoriesViewport.setViewedComponent(&categoriesHolder, false);
+        addAndMakeVisible(categoriesViewport);
+        categoriesViewport.setScrollBarsShown(true, false, false, false);
+        categoriesHolder.setVisible(true);
+    }
+    
+    
+    void showObject(ValueTree objectInfo)
+    {
+        categories.clear();
+        
+        Array<std::pair<String, String>> inletInfo;
+        Array<std::pair<String, String>> outletInfo;
+        
+        auto ioletDescriptions = objectInfo.getChildWithName("iolets");
+        for (auto iolet : ioletDescriptions) {
+            auto variable = iolet.getProperty("variable").toString() == "1";
+
+            if (iolet.getType() == Identifier("inlet")) {
+                auto tooltip = iolet.getProperty("tooltip").toString();
+                inletInfo.add({String(inletInfo.size() + 1), tooltip});
+            } else {
+                auto tooltip = iolet.getProperty("tooltip").toString();
+                outletInfo.add({String(outletInfo.size() + 1), tooltip});
+            }
+        }
+        
+        if(inletInfo.size()) {
+            categories.add(new CategoryPanel("Inlets", inletInfo));
+        }
+        if(outletInfo.size()) {
+            categories.add(new CategoryPanel("Outlets", outletInfo));
+        }
+
+
+        Array<std::pair<String, String>> argsInfo;
+
+        auto arguments = objectInfo.getChildWithName("arguments");
+        for (auto argument : arguments) {
+            auto type = argument.getProperty("type").toString();
+            auto desc = argument.getProperty("description").toString();
+            auto def = argument.getProperty("default").toString();
+            String argumentDescription;
+            
+            argumentDescription += type.isNotEmpty() ? "(" + type + ") " : "";
+            argumentDescription += desc;
+            argumentDescription += def.isNotEmpty() && !desc.contains("(default") ? " (default: " + def + ")" : "";
+            argsInfo.add({String(argsInfo.size() + 1), argumentDescription});
+        }
+
+        if(argsInfo.size()) {
+            categories.add(new CategoryPanel("Arguments", argsInfo));
+        }
+        
+        Array<std::pair<String, String>> methodsInfo;
+        
+        auto methods = objectInfo.getChildWithName("methods");
+        for (auto method : methods) {
+            auto type = method.getProperty("type").toString();
+            auto description = method.getProperty("description").toString();
+            methodsInfo.add({type, description});
+        }
+        
+        if(methodsInfo.size()) {
+            categories.add(new CategoryPanel("Methods", methodsInfo));
+        }
+
+        Array<std::pair<String, String>> flagsInfo;
+        
+        auto flags = objectInfo.getChildWithName("flags");
+
+        for (auto flag : flags) {
+            auto name = flag.getProperty("name").toString().trim();
+            auto description = flag.getProperty("description").toString();
+
+            if (!name.startsWith("-"))
+                name = "- " + name;
+
+            flagsInfo.add({name, description});
+        }
+        
+        if(flagsInfo.size()) {
+            categories.add(new CategoryPanel("Flags", flagsInfo));
+        }
+        
+        
+        for(auto* category : categories)
+        {
+            categoriesHolder.addAndMakeVisible(category);
+        }
+    }
+    
+    void resized() override
+    {
+        categoriesViewport.setBounds(getLocalBounds());
+        
+        int totalHeight = 0;
+        for(auto* category : categories)
+        {
+            category->recalculateLayout(getWidth());
+            category->setTopLeftPosition(0, totalHeight);
+            totalHeight += category->getHeight();
+        }
+        
+        categoriesHolder.setSize(getWidth(), totalHeight);
+    }
+    
+    BouncingViewport categoriesViewport;
+    Component categoriesHolder;
+    OwnedArray<CategoryPanel> categories;
+};
+
 class ObjectReferenceDialog : public Component {
 
 public:
@@ -26,11 +200,7 @@ public:
         backButton.setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
         backButton.getProperties().set("Style", "LargeIcon");
         
-        addAndMakeVisible(rightSideInfo);
-        rightSideInfo.setReadOnly(true);
-        rightSideInfo.setMultiLine(true);
-        rightSideInfo.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-        rightSideInfo.setFont(Font(15));
+        addAndMakeVisible(objectInfoPanel);
     }
 
     void resized() override
@@ -40,10 +210,9 @@ public:
         auto buttonBounds = getLocalBounds().removeFromBottom(80).reduced(30, 0).translated(0, -30);
         buttonBounds.removeFromTop(10);
 
-        auto rightPanelBounds = getLocalBounds().withTrimmedLeft(getLocalBounds().proportionOfWidth(0.4f));
-        rightPanelBounds = rightPanelBounds.withTrimmedTop(20).withTrimmedBottom(20).reduced(20);
+        auto rightPanelBounds = getLocalBounds().removeFromRight(getLocalBounds().proportionOfWidth(0.7f)).reduced(20, 40);
 
-        rightSideInfo.setBounds(rightPanelBounds);
+        objectInfoPanel.setBounds(rightPanelBounds);
     }
 
     void paint(Graphics& g) override
@@ -54,7 +223,7 @@ public:
         if (objectName.isEmpty())
             return;
 
-        auto leftPanelBounds = getLocalBounds().withTrimmedRight(getLocalBounds().proportionOfWidth(0.6f));
+        auto leftPanelBounds = getLocalBounds().withTrimmedRight(getLocalBounds().proportionOfWidth(0.7f));
 
         auto infoBounds = leftPanelBounds.withTrimmedBottom(100).withTrimmedTop(100).withTrimmedLeft(5).reduced(10);
         auto objectDisplayBounds = leftPanelBounds.removeFromTop(140);
@@ -183,9 +352,6 @@ public:
         bool hasUnknownInletLayout = false;
         bool hasUnknownOutletLayout = false;
 
-        StringArray inletDescriptions;
-        StringArray outletDescriptions;
-
         auto objectInfo = library.getObjectInfo(name);
         auto ioletDescriptions = objectInfo.getChildWithName("iolets");
         for (auto iolet : ioletDescriptions) {
@@ -195,13 +361,11 @@ public:
                 if (variable)
                     hasUnknownInletLayout = true;
                 auto tooltip = iolet.getProperty("tooltip").toString();
-                inletDescriptions.add(tooltip);
                 inlets.push_back(tooltip.contains("(signal)"));
             } else {
                 if (variable)
                     hasUnknownOutletLayout = true;
                 auto tooltip = iolet.getProperty("tooltip").toString();
-                outletDescriptions.add(tooltip);
                 outlets.push_back(tooltip.contains("(signal)"));
             }
         }
@@ -241,78 +405,9 @@ public:
         }
 
         setVisible(true);
-
-        String rightSideInfoText;
-
-        auto arguments = objectInfo.getChildWithName("arguments");
-
-        if (arguments.getNumChildren())
-            rightSideInfoText += "Arguments:";
-
-        int numArgs = 1;
-
-        for (auto argument : arguments) {
-            auto type = argument.getProperty("type").toString();
-            auto desc = argument.getProperty("description").toString();
-            auto def = argument.getProperty("default").toString();
-            rightSideInfoText += "\n" + String(numArgs) + ": ";
-            rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
-            rightSideInfoText += desc;
-            rightSideInfoText += def.isNotEmpty() && !desc.contains("(default") ? " (default: " + def + ")" : "";
-
-            numArgs++;
-        }
-
-        if (inletDescriptions.size())
-            rightSideInfoText += "\n\nInlets:";
-
-        int numIn = 1;
-        for (auto description : inletDescriptions) {
-            description = description.replace("\n", "\n      ");
-            rightSideInfoText += "\n" + String(numIn) + ":\n    " + description;
-            numIn++;
-        }
-
-        if (outletDescriptions.size())
-            rightSideInfoText += "\n\nOutlets:";
-
-        int numOut = 1;
-        for (auto description : outletDescriptions) {
-            description = description.replace("\n", "\n      ");
-            rightSideInfoText += "\n" + String(numIn) + ":\n    " + description;
-            numOut++;
-        }
-
-        auto methods = objectInfo.getChildWithName("methods");
-        if (methods.getNumChildren())
-            rightSideInfoText += "\n\nMethods:";
-
-        for (auto method : methods) {
-            auto type = method.getProperty("type").toString();
-            auto description = method.getProperty("description").toString();
-
-            rightSideInfoText += "\n";
-            rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
-            rightSideInfoText += description;
-        }
-
-        auto flags = objectInfo.getChildWithName("flags");
-        if (flags.getNumChildren())
-            rightSideInfoText += "\n\nFlags:";
-
-        for (auto flag : flags) {
-            auto name = flag.getProperty("name").toString().trim();
-            auto description = flag.getProperty("description").toString();
-
-            if (!name.startsWith("-"))
-                name = "- " + name;
-
-            rightSideInfoText += "\n";
-            rightSideInfoText += name + ": ";
-            rightSideInfoText += description;
-        }
-
-        rightSideInfo.setText(rightSideInfoText);
+        
+        objectInfoPanel.showObject(objectInfo);
+        
     }
 
     bool unknownInletLayout = false;
@@ -322,7 +417,7 @@ public:
     std::vector<bool> inlets;
     std::vector<bool> outlets;
 
-    TextEditor rightSideInfo;
+    ObjectInfoPanel objectInfoPanel;
 
     TextButton backButton = TextButton(Icons::Back);
 

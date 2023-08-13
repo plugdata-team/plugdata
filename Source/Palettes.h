@@ -789,7 +789,9 @@ private:
     }
 
     PluginEditor* editor;
-    File palettesFile = ProjectInfo::appDataDir.getChildFile("PaletteBar.xml");
+        
+    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_2");
+//    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have finished all the default palettes
 
     ValueTree objectTree;
     ValueTree palettesTree;
@@ -808,41 +810,75 @@ private:
 
     bool shouldAnimate = false;
 
-    static inline const String placeholderPatch = "#X obj 72 264 outlet~;\n"
-                                                  "#X obj 72 156 inlet;\n";
+        static inline const String delayPatch = "#X obj 0 0 palette/delay";
+        static inline const String chorusPatch = "#X obj 0 0 palette/chorus";
+        static inline const String phaserPatch = "#X obj 0 0 palette/phaser";
+        static inline const String flangerPatch = "#X obj 0 0 palette/flanger";
+        static inline const String drivePatch = "#X obj 0 0 palette/drive";
+        static inline const String bitcrusherPatch = "#X obj 0 0 palette/bitcrusher";
+        static inline const String reverbPatch = "#X obj 0 0 palette/reverb";
 
+        static inline const String svfPatch = "#X obj 0 0 palette/svf";
+        static inline const String eqPatch = "#X obj 0 0 palette/eq";
+        static inline const String lowpassPatch = "#X obj 0 0 palette/lowpass";
 
+        static inline const String metronomePatch = "#X obj 0 0 palette/metronome";
+        static inline const String adsrPatch = "#X obj 0 0 palette/adsr";
+
+        static inline const String drumSequencerPatch = "#X obj 0 0 palette/drumseq";
+        static inline const String noteSequencerPatch = "#X obj 0 0 palette/noteseq";
+
+        static inline const String drumsPatch = "#X obj 0 0 palette/drums";
+        static inline const String pianoPatch = "#X obj 0 0 palette/piano";
+        static inline const String ePianoPatch = "#X obj 0 0 palette/epiano";
+        static inline const String bassPatch = "#X obj 0 0 palette/bass";
+        static inline const String guitarPatch = "#X obj 0 0 palette/guitar";
+        static inline const String stringsPatch = "#X obj 0 0 palette/strings";
+        static inline const String brassPatch = "#X obj 0 0 palette/brass";
+        static inline const String organPatch = "#X obj 0 0 palette/organ";
+
+        static inline const String multiOscPatch = "#X obj 0 0 palette/multiosc";
+        static inline const String noiseOscPatch = "#X obj 0 0 palette/noiseosc";
+        static inline const String lfoPatch = "#X obj 0 0 palette/LFO";
+        
     std::map<String, std::map<String, String>> defaultPalettes = {
         { "Oscillators",
-            { { "multi.osc", placeholderPatch },
-                { "sawtooth", placeholderPatch },
-                { "rectangle", placeholderPatch },
-                { "triangle", placeholderPatch },
-                { "sine", placeholderPatch },
-                { "noise", placeholderPatch },
-                { "phase ramp", placeholderPatch } } },
+            {   { "multi osc", multiOscPatch },
+                { "noise osc", noiseOscPatch },
+                { "lfo", lfoPatch },
+            } },
         { "Filters",
-            { { "lowpass", placeholderPatch },
-                { "svf", placeholderPatch },
-                { "EQ", placeholderPatch } } },
+            {   { "lowpass", lowpassPatch },
+                { "svf", svfPatch },
+                { "EQ", eqPatch } } },
         { "Effects",
             {
-                { "sample delay", placeholderPatch },
-                { "stereo delay", placeholderPatch },
-                { "chorus", placeholderPatch },
-                { "phaser", placeholderPatch },
-                { "flanger", placeholderPatch },
-                { "drive", placeholderPatch },
-                { "bitcrusher", placeholderPatch },
-                { "reverb", placeholderPatch },
+                { "delay", delayPatch },
+                { "chorus", chorusPatch },
+                { "phaser", phaserPatch },
+                { "flanger", flangerPatch },
+                { "drive", drivePatch },
+                { "bitcrusher", bitcrusherPatch },
+                { "reverb", reverbPatch },
             } },
         { "Sequencers",
             {
-                { "bpm metronome", placeholderPatch },
-                { "adsr", placeholderPatch },
-                { "drum sequencer", placeholderPatch },
-            } }
-
+                { "bpm metronome", metronomePatch },
+                { "adsr", adsrPatch },
+                { "drum sequencer", drumSequencerPatch },
+                { "note sequencer", noteSequencerPatch },
+            } },
+        { "Instruments",
+            {
+                { "drums", drumsPatch },
+                { "piano", pianoPatch },
+                { "e-piano", ePianoPatch },
+                { "bass", bassPatch },
+                { "guitar", guitarPatch },
+                { "strings", stringsPatch },
+                { "brass", brassPatch },
+                { "organ", organPatch },
+            } },
     };
 
     bool showPalettes = false;
@@ -886,3 +922,4 @@ private:
 
     ResizerComponent resizer;
 };
+

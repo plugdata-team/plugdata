@@ -538,7 +538,6 @@ private:
             
             auto sorter = ObjectSorter(query);
             suggestions.strings.sort(sorter);
-            
             return suggestions;
         };
 

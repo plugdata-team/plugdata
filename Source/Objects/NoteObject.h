@@ -55,7 +55,7 @@ public:
         noteEditor.setScrollbarsShown(false);
         noteEditor.setIndents(0, 2);
         noteEditor.setScrollToShowCursor(true);
-        noteEditor.setJustification(Justification::topLeft);
+
         noteEditor.setBorder(border);
         noteEditor.addMouseListener(this, true);
         noteEditor.setReadOnly(true);
@@ -123,6 +123,15 @@ public:
 
             auto receiveSym = String::fromUTF8(note->x_rcv_raw->s_name);
             receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
+        }
+        
+        auto justificationType = getValue<int>(justification);
+        if (justificationType == 1) {
+            noteEditor.setJustification(Justification::topLeft);
+        } else if (justificationType == 2) {
+            noteEditor.setJustification(Justification::centredTop);
+        } else if (justificationType == 3) {
+            noteEditor.setJustification(Justification::topRight);
         }
 
         noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
@@ -328,16 +337,22 @@ public:
                 note->x_fontsize = getValue<int>(fontSize);
             updateFont();
         } else if (v.refersToSameSourceAs(bold)) {
-            if (auto note = ptr.get<t_fake_note>())
+            if (auto note = ptr.get<t_fake_note>()) {
                 note->x_bold = getValue<int>(bold);
+                note->x_fontface = note->x_bold + 2 * note->x_italic + 4 * note->x_outline;
+            }
             updateFont();
         } else if (v.refersToSameSourceAs(italic)) {
-            if (auto note = ptr.get<t_fake_note>())
+            if (auto note = ptr.get<t_fake_note>()) {
                 note->x_italic = getValue<int>(italic);
+                note->x_fontface = note->x_bold + 2 * note->x_italic + 4 * note->x_outline;
+            }
             updateFont();
         } else if (v.refersToSameSourceAs(underline)) {
-            if (auto note = ptr.get<t_fake_note>())
+            if (auto note = ptr.get<t_fake_note>()) {
                 note->x_underline = getValue<int>(underline);
+                note->x_fontface = note->x_bold + 2 * note->x_italic + 4 * note->x_outline;
+            }
             updateFont();
         } else if (v.refersToSameSourceAs(fillBackground)) {
             if (auto note = ptr.get<t_fake_note>())
@@ -410,11 +425,11 @@ public:
             hash("set"),
             hash("color"),
             hash("bgcolor"),
-            hash("justification"),
             hash("width"),
             hash("outline"),
             hash("receive"),
-            hash("bg")
+            hash("bg"),
+            hash("just")
         };
     }
 
@@ -476,7 +491,7 @@ public:
             }
             break;
         }
-        case hash("justification"): {
+        case hash("just"): {
             if (auto note = ptr.get<t_fake_note>()) {
                 justification = note->x_textjust;
             }

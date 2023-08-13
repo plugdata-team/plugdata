@@ -147,8 +147,7 @@ private:
     float mouseDownPosition = 0;
     bool isHovering = false;
 
-    // TODO: replace with pd::WeakReference!
-    t_fake_outconnect* ptr;
+    pd::WeakReference ptr;
 
     std::vector<pd::Atom> lastValue;
     String lastSelector;

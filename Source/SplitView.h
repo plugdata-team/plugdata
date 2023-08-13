@@ -44,7 +44,7 @@ private:
     bool splitFocusIndex = false;
 
     Rectangle<int> selectedSplit;
-    ResizableTabbedComponent* activeTabComponent = nullptr;
+    SafePointer<ResizableTabbedComponent> activeTabComponent = nullptr;
     ResizableTabbedComponent* rootComponent;
 
     std::unique_ptr<FadeAnimation> fadeAnimation;

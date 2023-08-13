@@ -20,7 +20,7 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
     { toolbarHoverColourId, { "Toolbar hover", "toolbar_hover", "Toolbar" } },
     { toolbarActiveColourId, { "Toolbar active text", "toolbar_active", "Toolbar" } },
-    { toolbarOutlineColourId, { "Toolbar outline colour", "toolbar_outline_colour", "Toolbar" } },
+    { toolbarOutlineColourId, { "Toolbar outline", "toolbar_outline_colour", "Toolbar" } },
 
     { tabBackgroundColourId, { "Tab background", "tabbar_background", "Tabbar" } },
 
@@ -31,23 +31,23 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { canvasBackgroundColourId, { "Canvas background", "canvas_background", "Canvas" } },
     { canvasTextColourId, { "Canvas text", "canvas_text", "Canvas" } },
     { canvasDotsColourId, { "Canvas dots colour", "canvas_dots", "Canvas" } },
-    { outlineColourId, { "Outline colour", "outline_colour", "Canvas" } },
+    { outlineColourId, { "Outline", "outline_colour", "Canvas" } },
 
     { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
     { guiObjectInternalOutlineColour, { "GUI Object internal outline colour", "gui_internal_outline_colour", "Object" } },
-    { textObjectBackgroundColourId, { "Text object background", "text_object_background", "Object" } },
-    { commentTextColourId, { "Comment text colour", "comment_text_colour", "Object" } },
-    { objectOutlineColourId, { "Object outline colour", "object_outline_colour", "Object" } },
-    { objectSelectedOutlineColourId, { "Selected object outline colour", "selected_object_outline_colour", "Object" } },
+    { textObjectBackgroundColourId, { "Object background", "text_object_background", "Object" } },
+    { commentTextColourId, { "Comment text", "comment_text_colour", "Object" } },
+    { objectOutlineColourId, { "Object outline", "object_outline_colour", "Object" } },
+    { objectSelectedOutlineColourId, { "Selected object outline", "selected_object_outline_colour", "Object" } },
 
-    { ioletAreaColourId, { "Inlet/Outlet area colour", "iolet_area_colour", "Inlet/Outlet" } },
-    { ioletOutlineColourId, { "Inlet/Outlet outline colour", "iolet_outline_colour", "Inlet/Outlet" } },
+    { ioletAreaColourId, { "Inlet/Outlet area", "iolet_area_colour", "Inlet/Outlet" } },
+    { ioletOutlineColourId, { "Inlet/Outlet outline", "iolet_outline_colour", "Inlet/Outlet" } },
 
     { dataColourId, { "Data colour", "data_colour", "Canvas" } },
-    { connectionColourId, { "Connection colour", "connection_colour", "Canvas" } },
-    { signalColourId, { "Signal colour", "signal_colour", "Canvas" } },
+    { connectionColourId, { "Connection", "connection_colour", "Canvas" } },
+    { signalColourId, { "Signal", "signal_colour", "Canvas" } },
     { resizeableCornerColourId, { "Graph resizer", "graph_resizer", "Canvas" } },
-    { gridLineColourId, { "Grid line colour", "grid_colour", "Canvas" } },
+    { gridLineColourId, { "Grid line", "grid_colour", "Canvas" } },
 
     { popupMenuBackgroundColourId, { "Popup menu background", "popup_background", "Popup Menu" } },
     { popupMenuActiveBackgroundColourId, { "Popup menu background active", "popup_background_active", "Popup Menu" } },
@@ -69,7 +69,7 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { panelTextColourId, { "Panel text", "panel_text", "Panel" } },
     { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Panel" } },
     { panelActiveTextColourId, { "Panel active text", "panel_active_text", "Panel" } },
-    { searchBarColourId, { "Searchbar colour", "searchbar_colour", "Panel" } },
+    { searchBarColourId, { "Searchbar", "searchbar_colour", "Panel" } },
 
     { sidebarBackgroundColourId, { "Sidebar background", "sidebar_colour", "Sidebar" } },
     { sidebarTextColourId, { "Sidebar text", "sidebar_text", "Sidebar" } },
@@ -655,8 +655,16 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
-        bool isActive = button.getToggleState();
+        drawTabButton(button, g, isMouseOver, isMouseDown, false);
+    }
 
+    void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown, bool isForceDrawn)
+    {
+        auto dragged = button.getProperties()["dragged"];
+        if(!isForceDrawn && !dragged.isVoid() && static_cast<bool>(dragged)) return;
+        
+        bool isActive = button.getToggleState();
+        
         if (isActive) {
             g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
         } else if (isMouseOver) {
@@ -712,6 +720,31 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 setTriggeredOnMouseDown(true);
             }
             
+            void moved() override
+            {
+                static bool insideMove = false;
+                if(insideMove) return;
+                
+                if(auto* parent = getParentComponent())
+                {
+                    insideMove = true;
+                    auto position = parent->getLocalBounds().getTopRight() - Point<int>(28, 0);
+                    setTopLeftPosition(position);
+                    insideMove = false;
+                }
+            }
+            
+            void resized() override
+            {
+                // Try to force the size to 28x28, while also not allowing any recursion
+                // JUCE gives us very little control over the position/size otherwise...
+                static bool insideResize = false;
+                if(insideResize) return;
+                insideResize = true;
+                setSize(28, 28);
+                insideResize = false;
+            }
+            
             void paint(Graphics& g) override
             {
                 bool hiddenTabSelected = false;
@@ -729,13 +762,16 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 if(isMouseOverOrDragging() || hiddenTabSelected)
                 {
                     g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-                    fillSmoothedRectangle(g, getLocalBounds().reduced(1, 0).toFloat(), Corners::defaultCornerRadius);
+                    fillSmoothedRectangle(g, getLocalBounds().reduced(3).toFloat(), Corners::defaultCornerRadius);
+                }
+                else {
+                    g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
                 }
                 
                 g.setFont(Fonts::getIconFont().withHeight(15));
                 g.setColour(findColour(PlugDataColour::tabTextColourId));
                 
-                g.drawText(getButtonText(), getLocalBounds().reduced(1, 0), Justification::centred);
+                g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
 
                 return;
             }
@@ -1570,7 +1606,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           selected_object_outline_colour=\"ff007aff\" gui_internal_outline_colour=\"ffa8a8a8\"\n"
     "           toolbar_outline_colour=\"ffdbdbdb\" outline_colour=\"ffc8c8c8\" data_colour=\"ff007aff\"\n"
     "           connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\" dialog_background=\"ffe4e4e4\"\n"
-    "           sidebar_colour=\"ffefefef\" sidebar_text=\"ff373737\" sidebar_background_active=\"ffdfdfdf\"\n"
+    "           sidebar_colour=\"ffefefef\" sidebar_text=\"ff373737\" sidebar_background_active=\"ffe4e4e4\"\n"
     "           sidebar_active_text=\"ff373737\" levelmeter_active=\"ff007aff\" levelmeter_background=\"ffdedede\"\n"
     "           levelmeter_thumb=\"ff7a7a7a\" panel_background=\"fff7f7f7\" panel_foreground=\"fffdfdfd\"\n"
     "           panel_text=\"ff373737\" panel_background_active=\"ffebebeb\" panel_active_text=\"ff373737\"\n"
