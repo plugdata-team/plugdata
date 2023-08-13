@@ -650,7 +650,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     int getTabButtonOverlap(int tabDepth) override
     {
-        return 5;
+        return 0;
     }
 
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override

@@ -1366,6 +1366,29 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
 void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list)
 {
     switch (hash(selector)) {
+    case hash("open"): {
+        if(list.size() >= 2)
+        {
+            auto filename = list[0].getSymbol();
+            auto directory = list[1].getSymbol();
+            
+            auto patch = File(directory).getChildFile(filename);
+            loadPatch(patch);
+        }
+        break;
+    }
+    case hash("menunew"): {
+        if(list.size() >= 2)
+        {
+            auto filename = list[0].getSymbol();
+            auto directory = list[1].getSymbol();
+            
+            auto patchPtr = loadPatch(defaultPatch);
+            patchPtr->setCurrentFile(File(directory).getChildFile(filename).getFullPathName());
+            patchPtr->setTitle(filename);
+        }
+        break;
+    }
     case hash("dsp"): {
         bool dsp = list[0].getFloat();
         MessageManager::callAsync(
