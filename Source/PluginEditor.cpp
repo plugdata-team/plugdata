@@ -186,7 +186,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(redoButton);
 
     // New object button
-    addObjectMenuButton.setButtonText(Icons::Add);
+    addObjectMenuButton.setButtonText(Icons::AddObject);
     addObjectMenuButton.setTooltip("Add object");
     addObjectMenuButton.onClick = [this]() { Dialogs::showObjectMenu(this, &addObjectMenuButton); };
     addAndMakeVisible(addObjectMenuButton);

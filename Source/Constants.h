@@ -16,6 +16,7 @@ struct Icons {
     inline static const String Undo = "e";
     inline static const String Redo = "f";
     inline static const String Add = "g";
+    inline static const String AddObject = ";";
     inline static const String Settings = "h";
     inline static const String SidePanel = "i";
     inline static const String ShowSidePanel = "j";
@@ -85,7 +86,7 @@ struct Icons {
     inline static const String Compass = "+";
     
     inline static const String Reorder = "(";
-    inline static const String Object = ")";
+    inline static const String Object = ":";
     
     inline static const String Copy = "0";
     inline static const String Paste = "1";
