@@ -51,7 +51,7 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     addChildComponent(deleteButton);
 
-    isSubpatch = checkIsSubpatch(palettePatch);
+    isSubpatch = isSubpatchOrAbstraction(palettePatch);
     if (isSubpatch) {
         auto iolets = countIolets(palettePatch);
         inlets = iolets.first;
@@ -253,8 +253,8 @@ void PaletteItem::mouseDrag(MouseEvent const& e)
 
     auto scale = 2.0f;
     if (dragImage.image.isNull()) {
-        auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-        dragImage = offlineObjectRenderer->patchToTempImage(palettePatch, scale);
+        auto offlineObjectRenderer = editor->offlineRenderer;
+        dragImage = offlineObjectRenderer.patchToTempImage(palettePatch, scale);
     }
 
     if (auto* overReorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
@@ -307,10 +307,10 @@ void PaletteItem::mouseUp(MouseEvent const& e)
     }
 }
 
-bool PaletteItem::checkIsSubpatch(String const& patchAsString)
+bool PaletteItem::isSubpatchOrAbstraction(String const& patchAsString)
 {
     auto lines = StringArray::fromLines(patchAsString.trim());
-    return lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore");
+    return lines.size() == 1 || lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore");
 }
 
 std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String const& patchAsString)
@@ -350,8 +350,8 @@ std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String 
     // In case the patch contains a single object, we need to use a different method to find the number and kind inlets and outlets
     if(lines.size() == 1)
     {
-        auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-        return offlineObjectRenderer->countIolets(lines[0]);
+        auto offlineObjectRenderer = editor->offlineRenderer;
+        return offlineObjectRenderer.countIolets(lines[0]);
     }
     
     for (auto& line : lines) {

@@ -8,7 +8,7 @@
 #include "Pd/Patch.h"
 
 
-OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* pd)
+OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* instance) : pd(instance)
 {
     pd->setThis();
     
@@ -157,5 +157,7 @@ std::array<std::vector<bool>, 2> OfflineObjectRenderer::countIolets(String const
     
     pd->muteConsole(false);
     sys_unlock();
+    
+    return iolets;
 }
 
