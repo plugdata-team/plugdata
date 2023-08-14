@@ -223,10 +223,10 @@ public:
 
     void updateScale (float newScale, bool withAnimation)
     {
-        if (std::abs(newScale - newCnvZoomScale) < std::numeric_limits<float>::epsilon())
+        if (std::abs(newScale - previousScale) < std::numeric_limits<float>::epsilon())
             return;
 
-        newCnvZoomScale = newScale;
+        previousScale = newScale;
 
         auto newWidth = image.getScaledBounds().getWidth() * newScale;
         auto newHeight = image.getScaledBounds().getHeight() * newScale;
@@ -298,9 +298,6 @@ public:
 
     DragAndDropTarget::SourceDetails sourceDetails;
 
-    float cnvZoomScale = 1.0f;
-    float newCnvZoomScale = 1.0f;
-
     SmoothedValue<float> smoothedScale = 1.0f;
 
 private:
@@ -309,6 +306,7 @@ private:
     bool isZoomable = false;
 
     Component* previousTarget = nullptr;
+    float previousScale = 1.0f;
 
     ImageComponent zoomImageComponent;
 
@@ -343,8 +341,8 @@ private:
 
     void updateImageBounds()
     {
-        auto newWidth = image.getScaledBounds().getWidth() * cnvZoomScale;
-        auto newHeight = image.getScaledBounds().getHeight() * cnvZoomScale;
+        auto newWidth = image.getScaledBounds().getWidth();
+        auto newHeight = image.getScaledBounds().getHeight();
         auto zoomedImageBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
         zoomImageComponent.setBounds(zoomedImageBounds);
     }
