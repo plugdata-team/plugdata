@@ -344,8 +344,17 @@ std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String 
         if (name == "outlet~")
             outlets.push_back({ true, position });
     };
+    
+    auto lines = StringArray::fromLines(patchAsString);
 
-    for (auto& line : StringArray::fromLines(patchAsString)) {
+    // In case the patch contains a single object, we need to use a different method to find the number and kind inlets and outlets
+    if(lines.size() == 1)
+    {
+        auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
+        return offlineObjectRenderer->countIolets(lines[0]);
+    }
+    
+    for (auto& line : lines) {
 
         line = line.upToLastOccurrenceOf(";", false, false);
 

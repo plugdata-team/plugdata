@@ -22,8 +22,15 @@ public:
     ImageWithOffset patchToTempImage(String const& patch, float scale);
 
     bool checkIfPatchIsValid(String const& patch);
-
+    
+    std::array<std::vector<bool>, 2> countIolets(String const& patch);
+    
 private:
-    class OfflineObjectRendererComponent;
-    std::unique_ptr<OfflineObjectRendererComponent> offlineObjectRendererComponent;
+    
+    String stripConnections(String const& patch);
+    
+    Array<Rectangle<int>> objectRects;
+    Rectangle<int> totalSize;
+    t_glist* offlineCnv = nullptr;
+    pd::Instance* pd;
 };
