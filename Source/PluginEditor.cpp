@@ -286,13 +286,19 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         midiDeviceManager->loadMidiOutputSettings();
     }
     
-    MessageManager::callAsync([this](){
-        if(auto* window = getTopLevelComponent())
+    // This is necessary on Linux to make PluginEditor grab keyboard focus on startup
+    // Otherwise, keyboard shortcuts won't work directly after starting plugdata
+#if JUCE_LINUX
+    Timer::callAfterDelay(100, [_this = SafePointer(this)](){
+        if(!_this) return;
+        
+        if(auto* window = _this->getTopLevelComponent())
         {
             window->toFront(false);
         }
-        grabKeyboardFocus();
+        _this->grabKeyboardFocus();
     });
+#endif
 }
 
 PluginEditor::~PluginEditor()
