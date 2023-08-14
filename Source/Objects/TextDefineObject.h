@@ -59,7 +59,13 @@ public:
     void setText(String text)
     {
 
-        text = text.removeCharacters("\r");
+        // remove repeating spaces
+        while (text.length() > text.replace("  ", " ").length()) {
+            text = text.replace("  ", " ");
+        }
+        text = text.replace("\r ", "\r");
+        text = text.replace(";\r", ";");
+        text = text.replaceCharacters("\r", " ");
         auto lines = StringArray::fromTokens(text, ";", "\"");
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
@@ -74,7 +80,7 @@ public:
                 auto charptr = word.getCharPointer();
                 auto ptr = charptr;
                 auto value = CharacterFunctions::readDoubleValue(ptr);
-                if (ptr - charptr == word.getNumBytesAsUTF8()) {
+                if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
                     SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
@@ -215,7 +221,13 @@ public:
     void setText(String text)
     {
 
-        text = text.removeCharacters("\r");
+        // remove repeating spaces
+        while (text.length() > text.replace("  ", " ").length()) {
+            text = text.replace("  ", " ");
+        }
+        text = text.replace("\r ", "\r");
+        text = text.replace(";\r", ";");
+        text = text.replaceCharacters("\r", " ");
         auto lines = StringArray::fromTokens(text, ";", "\"");
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
@@ -230,7 +242,7 @@ public:
                 auto charptr = word.getCharPointer();
                 auto ptr = charptr;
                 auto value = CharacterFunctions::readDoubleValue(ptr);
-                if (ptr - charptr == word.getNumBytesAsUTF8()) {
+                if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
                     SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
