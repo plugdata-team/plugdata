@@ -289,7 +289,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // This is necessary on Linux to make PluginEditor grab keyboard focus on startup
     // Otherwise, keyboard shortcuts won't work directly after starting plugdata
 #if JUCE_LINUX
-    Timer::callAfterDelay(100, [_this = SafePointer(this)](){
+    ::Timer::callAfterDelay(100, [_this = SafePointer(this)](){
         if(!_this) return;
         
         if(auto* window = _this->getTopLevelComponent())
