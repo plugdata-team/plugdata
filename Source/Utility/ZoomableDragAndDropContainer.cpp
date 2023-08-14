@@ -65,8 +65,6 @@ public:
 
         updateSize();
 
-        updateScale(0.0f);
-
         if (mouseDragSource == nullptr)
             mouseDragSource = sourceComponent;
 
@@ -77,6 +75,8 @@ public:
         setInterceptsMouseClicks (false, false);
         setWantsKeyboardFocus (true);
         setAlwaysOnTop (true);
+
+        updateScale(0.0f, false);
     }
 
     ~DragImageComponent() override
@@ -97,6 +97,8 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        previousTarget = nullptr;
+
         if (e.originalComponent != this && isOriginalInputSource (e.source))
         {
             if (mouseDragSource != nullptr)
@@ -132,18 +134,31 @@ public:
         if (e.originalComponent != this && isOriginalInputSource(e.source)) {
             if (rateReducer.tooFast())
                 return;
-
             currentScreenPos = e.getScreenPosition();
             updateLocation(true, currentScreenPos);
-            Component* target;
+            Component* target = nullptr;
             auto* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
-            
+
+            if (isZoomable) {
+                if (target == nullptr) {
+                    updateScale(1.0f, true);
+                    previousTarget = nullptr;
+                    return;
+                }
+            }
+
+            if (target == previousTarget) {
+                return;
+            } else {
+                previousTarget = target;
+            }
+
             if (isZoomable) {
                 auto* split = dynamic_cast<ResizableTabbedComponent*>(target);
                 if (newTarget) {
                     if (split && split->getTabComponent() && split->getTabComponent()->getCurrentCanvas()) {
                         auto zoomScale = ::getValue<float>(split->getTabComponent()->getCurrentCanvas()->zoomScale);
-                        updateScale(zoomScale);
+                        updateScale(zoomScale, true);
                         return;
                     }
                 }
@@ -152,17 +167,16 @@ public:
                     // there are some objects (splitview resizer, and edges of canvas objects) that 
                     // register as a target that's null.
                     // this is a fix for that
-                    if (splitView->getScreenBounds().contains(currentScreenPos.toInt()))
+                    if (splitView->getScreenBounds().contains(currentScreenPos.toInt())) {
                         return;
+                    }
                 }
             }
             if (dynamic_cast<ButtonBar*>(target)) {
-                //zoomImageComponent.setAlpha(0.0f);
-                //zoomImageComponent.repaint();
-                updateScale(0.0f);
+                updateScale(0.0f, true);
                 return;
             }
-            updateScale(1.0f);
+            updateScale(1.0f, true);
         }
     }
 
@@ -207,21 +221,28 @@ public:
         forceMouseCursorUpdate();
     }
 
-    void updateScale (float newScale)
+    void updateScale (float newScale, bool withAnimation)
     {
-
-        if (std::abs(newScale - newCnvZoomScale) < std::numeric_limits<float>::epsilon())
+        if (std::abs(newScale - previousScale) < std::numeric_limits<float>::epsilon())
             return;
 
-        newCnvZoomScale = newScale;
+        previousScale = newScale;
 
-
-        auto newWidth = image.getScaledBounds().getWidth() * newCnvZoomScale;
-        auto newHeight = image.getScaledBounds().getHeight() * newCnvZoomScale;
+        auto newWidth = image.getScaledBounds().getWidth() * newScale;
+        auto newHeight = image.getScaledBounds().getHeight() * newScale;
         auto zoomedImageBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
 
         auto& animator = Desktop::getInstance().getAnimator();
-        animator.animateComponent(&zoomImageComponent, zoomedImageBounds, 1.0f, 150, false, 3.0f, 0.0f);
+
+        auto finalAlpha = newScale <= 0.0f ? 0.0f : 1.0f;
+
+        if (withAnimation)
+            animator.animateComponent(&zoomImageComponent, zoomedImageBounds, finalAlpha, 150, false, 3.0f, 0.0f);
+        else {
+            animator.cancelAnimation(&zoomImageComponent, true);
+            zoomImageComponent.setBounds(zoomedImageBounds);
+            zoomImageComponent.setAlpha(finalAlpha);
+        }
     }
 
     void updateImage(ScaledImage const& newImage)
@@ -277,15 +298,15 @@ public:
 
     DragAndDropTarget::SourceDetails sourceDetails;
 
-    float cnvZoomScale = 1.0f;
-    float newCnvZoomScale = 1.0f;
-
     SmoothedValue<float> smoothedScale = 1.0f;
 
 private:
     ScaledImage image;
 
     bool isZoomable = false;
+
+    Component* previousTarget = nullptr;
+    float previousScale = 1.0f;
 
     ImageComponent zoomImageComponent;
 
@@ -320,8 +341,8 @@ private:
 
     void updateImageBounds()
     {
-        auto newWidth = image.getScaledBounds().getWidth() * cnvZoomScale;
-        auto newHeight = image.getScaledBounds().getHeight() * cnvZoomScale;
+        auto newWidth = image.getScaledBounds().getWidth();
+        auto newHeight = image.getScaledBounds().getHeight();
         auto zoomedImageBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
         zoomImageComponent.setBounds(zoomedImageBounds);
     }
