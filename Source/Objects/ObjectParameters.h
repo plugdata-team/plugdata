@@ -48,6 +48,8 @@ public:
             if (!defaultVal.isVoid()) {
                 if (type == tColour) {
                     value->setValue(lnf.findColour(defaultVal).toString());
+                } else if (defaultVal.isArray() && defaultVal.getArray()->isEmpty()) {
+                    return;
                 } else {
                     value->setValue(defaultVal);
                 }
