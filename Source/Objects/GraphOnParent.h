@@ -34,8 +34,8 @@ public:
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
         objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
-        objectParameters.addParamRange("X range", cGeneral, &xRange);
-        objectParameters.addParamRange("Y range", cGeneral, &yRange);
+        objectParameters.addParamRange("X range", cGeneral, &xRange, {0, 100});
+        objectParameters.addParamRange("Y range", cGeneral, &yRange, {-1, 1});
     }
 
     void update() override
