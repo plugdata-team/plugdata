@@ -136,7 +136,7 @@ public:
                 return;
             currentScreenPos = e.getScreenPosition();
             updateLocation(true, currentScreenPos);
-            Component* target;
+            Component* target = nullptr;
             auto* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
 
             if (isZoomable) {
