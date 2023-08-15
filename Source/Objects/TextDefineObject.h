@@ -65,6 +65,7 @@ public:
         }
         text = text.replace("\r ", "\r");
         text = text.replace(";\r", ";");
+        text = text.replace("\r;", ";");
         text = text.replace(" ;", ";");
         text = text.replace("; ", ";");
         text = text.replaceCharacters("\r", " ");
@@ -230,6 +231,7 @@ public:
         }
         text = text.replace("\r ", "\r");
         text = text.replace(";\r", ";");
+        text = text.replace("\r;", ";");
         text = text.replace(" ;", ";");
         text = text.replace("; ", ";");
         text = text.replaceCharacters("\r", " ");
