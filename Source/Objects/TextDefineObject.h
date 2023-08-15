@@ -60,7 +60,7 @@ public:
     {
 
         // remove repeating spaces
-        while (text.length() > text.replace("  ", " ").length()) {
+        while (text.contains("  ")) {
             text = text.replace("  ", " ");
         }
         text = text.replace("\r ", "\r");
@@ -226,7 +226,7 @@ public:
     {
 
         // remove repeating spaces
-        while (text.length() > text.replace("  ", " ").length()) {
+        while (text.contains("  ")) {
             text = text.replace("  ", " ");
         }
         text = text.replace("\r ", "\r");
