@@ -29,7 +29,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        if(tab) {
+        if (tab) {
             lnf.drawTabButton(*tab, g, true, true, true);
         }
     }
@@ -66,6 +66,10 @@ void ButtonBar::changeListenerCallback(ChangeBroadcaster* source)
         if (!ghostTabAnimator.isAnimating()) {
             ghostTab->setVisible(false);
             auto* tabButton = getTabButton(ghostTabIdx);
+            auto ghostTabFinalPos = ghostTab->getBounds();
+
+            // we need to reset the final position of the tab, as we have stored the ghosttabs entry position into it
+            tabButton->setBounds(ghostTabFinalPos);
             tabButton->getProperties().set("dragged", var(false));
             tabButton->repaint();
         }
@@ -74,11 +78,11 @@ void ButtonBar::changeListenerCallback(ChangeBroadcaster* source)
 
 void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
 {
-    auto animateTabToPosition = [this](){
+    auto animateTabToPosition = [this]() mutable {
         auto* tabButton = getTabButton(ghostTabIdx);
         tabButton->getProperties().set("dragged", var(true));
         tabButton->repaint();
-        
+
         ghostTabAnimator.animateComponent(ghostTab.get(), ghostTab->getBounds().withPosition(Point<int>(ghostTab->getIndex() * (getWidth() / getNumVisibleTabs()), 0)), 1.0f, 200, false, 3.0f, 0.0f);
     };
 
@@ -91,6 +95,8 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         auto sourceTabContent = sourceTabButton->getTabComponent();
         int sourceNumTabs = sourceTabContent->getNumVisibleTabs();
 
+        auto ghostTabBounds = ghostTab->getBounds();
+
         inOtherSplit = false;
         // we remove the ghost tab, which is NOT a proper tab, (it only a tab, and doesn't have a viewport)
         removeTab(ghostTabIdx, true);
@@ -100,6 +106,13 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         // which allows us to inject the viewport
         owner.addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport.get(), ghostTabIdx);
         owner.setCurrentTabIndex(ghostTabIdx);
+
+        // we need to give the ghost tab the new tab button, as the old one will be deleted before
+        // the ghost tabs animation has finished
+        // this is easier than keeping the old tab alive
+        auto newTab = owner.tabs->getTabButton(ghostTabIdx);
+        newTab->setBounds(ghostTabBounds);
+        ghostTab->setTabButtonToGhost(newTab);
 
         sourceTabContent->removeTab(sourceTabIndex);
         auto sourceCurrentIndex = sourceTabIndex > (sourceTabContent->getNumVisibleTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex;
@@ -166,6 +179,7 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
 void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        static int c = 0;
         ghostTab->setVisible(false);
         tab->getProperties().set("dragged", var(true));
         tab->repaint();
@@ -190,7 +204,7 @@ void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         auto ghostTabCentreOffset = ghostTab->getWidth() / 2;
-        auto targetTabPos = getWidth() / getNumVisibleTabs();
+        auto targetTabPos = getWidth() / (getNumVisibleTabs());
         auto tabPos = ghostTab->getBounds().getCentreX() / targetTabPos;
 
         auto leftPos = dragSourceDetails.localPosition.getX() - ghostTabCentreOffset;
