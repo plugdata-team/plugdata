@@ -181,7 +181,7 @@ void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
         tab->getProperties().set("dragged", var(true));
         if (inOtherSplit) {
             inOtherSplit = false;
-            removeTab(ghostTabIdx, true);
+            owner.removeTab(ghostTabIdx);
         }
     }
 }
