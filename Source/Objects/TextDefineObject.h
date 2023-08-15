@@ -65,7 +65,10 @@ public:
         }
         text = text.replace("\r ", "\r");
         text = text.replace(";\r", ";");
+        text = text.replace(" ;", ";");
+        text = text.replace("; ", ";");
         text = text.replaceCharacters("\r", " ");
+        text = text.trimStart();
         auto lines = StringArray::fromTokens(text, ";", "\"");
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
@@ -227,7 +230,10 @@ public:
         }
         text = text.replace("\r ", "\r");
         text = text.replace(";\r", ";");
+        text = text.replace(" ;", ";");
+        text = text.replace("; ", ";");
         text = text.replaceCharacters("\r", " ");
+        text = text.trimStart();
         auto lines = StringArray::fromTokens(text, ";", "\"");
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
