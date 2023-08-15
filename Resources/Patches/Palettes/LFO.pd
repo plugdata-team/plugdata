@@ -12,7 +12,7 @@
 #X obj 22 -127 inlet note;
 #X obj 105 -146 inlet waveshape;
 #X obj 23 -90 unpack f;
-#X obj 159 300 lfo;
+#X obj 159 300 else/lfo;
 #X obj 163 189 sel 0 1 2 3;
 #X msg 161 232 sine;
 #X msg 210 231 tri;

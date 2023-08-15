@@ -167,7 +167,7 @@ private:
     int audioAdvancement = 0;
     std::vector<float> audioBufferIn;
     std::vector<float> audioBufferOut;
-
+    
     MidiBuffer midiBufferIn;
     MidiBuffer midiBufferOut;
     MidiBuffer midiBufferTemp;

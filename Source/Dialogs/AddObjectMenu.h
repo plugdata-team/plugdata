@@ -425,10 +425,9 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds();
-        auto buttonBounds = bounds.removeFromTop(48).reduced(6, 14);
+        auto buttonBounds = bounds.removeFromTop(48).reduced(6, 14).translated(4, 0);
         
         auto buttonWidth = buttonBounds.getWidth() / std::max(1, categories.size());
-        int transX = 0;
         for(auto* category : categories)
         {
             category->setBounds(buttonBounds.removeFromLeft(buttonWidth).expanded(1, 0));
@@ -547,28 +546,6 @@ public:
         pinButton.repaint();
     }
 
-    void paint(Graphics& g) override
-    {
-        /*
-         This will draw a rounded rect background below the icons, I'm not entirely decided on this yet:
-         On one hand, it adds hierarchy to the menu, which is nice. But at the same time, it also makes it busier
-        */
-        /*
-        auto backgroundColour = findColour(PlugDataColour::popupMenuBackgroundColourId);
-        auto foregroundBrightness = backgroundColour.getBrightness() + 0.03f;
-        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).withBrightness(foregroundBrightness));
-        
-        auto objectListRectBounds = objectList.getBounds().reduced(4, 0).toFloat();
-        auto categoriesListRectBounds = categoriesList.getBounds().withTrimmedTop(48).reduced(4, 0).withTrimmedBottom(4).toFloat();
-        
-        PlugDataLook::fillSmoothedRectangle(g, objectListRectBounds, Corners::largeCornerRadius);
-        PlugDataLook::fillSmoothedRectangle(g, categoriesListRectBounds, Corners::largeCornerRadius);
-        
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), objectListRectBounds, Corners::largeCornerRadius);
-        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), categoriesListRectBounds, Corners::largeCornerRadius); */
-    }
-    
     void resized() override
     {
         auto bounds = getLocalBounds();

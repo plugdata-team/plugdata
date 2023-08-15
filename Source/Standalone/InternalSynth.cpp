@@ -50,7 +50,8 @@ void InternalSynth::run()
 
     unprepareLock.lock();
 
-    internalBuffer.setSize(lastNumChannels, lastBlockSize);
+    // Fluidlite does not like setups with <2 channels
+    internalBuffer.setSize(std::max(2, lastNumChannels), lastBlockSize);
     internalBuffer.clear();
 
     // Check if soundfont exists to prevent crashing
@@ -167,7 +168,7 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
     }
 
     // Run audio through fluidsynth
-    fluid_synth_process(synth, buffer.getNumSamples(), buffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), buffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
+    fluid_synth_process(synth, buffer.getNumSamples(), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
 
     for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
         buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());

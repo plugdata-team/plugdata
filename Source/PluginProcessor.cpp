@@ -232,6 +232,11 @@ void PluginProcessor::initialiseFilesystem()
         patches.createDirectory();
     }
     
+    // We want to recreate these symlinks so that they link to the abstractions/docs for the current plugdata version
+    homeDir.getChildFile("Abstractions").deleteFile();
+    homeDir.getChildFile("Documentation").deleteFile();
+    homeDir.getChildFile("Extra").deleteFile();
+    
     // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS
     // Get paths that need symlinks
@@ -240,12 +245,10 @@ void PluginProcessor::initialiseFilesystem()
     auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
     auto dekenPath = deken.getFullPathName();
     auto patchesPath = patches.getFullPathName();
-
+    
     // Create NTFS directory junctions
     OSUtils::createJunction(homeDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
-
     OSUtils::createJunction(homeDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
-
     OSUtils::createJunction(homeDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
 
 #else

@@ -29,11 +29,13 @@ public:
 
     void paint(Graphics& g) override
     {
-        lnf.drawTabButton(*tab, g, true, true, true);
+        if(tab) {
+            lnf.drawTabButton(*tab, g, true, true, true);
+        }
     }
 
 private:
-    TabBarButton* tab;
+    SafePointer<TabBarButton> tab;
     PlugDataLook& lnf;
 };
 

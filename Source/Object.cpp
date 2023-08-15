@@ -172,7 +172,7 @@ void Object::valueChanged(Value& v)
             auto typeName = String::fromUTF8(libpd_get_object_class_name(ptr.get()));
             // Check hvcc compatibility
             bool isSubpatch = gui && gui->getPatch() != nullptr;
-            isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
+            isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName) ||  gui->getText() == "table";
 
             if (!isHvccCompatible) {
                 cnv->pd->logWarning(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());

@@ -396,7 +396,12 @@ public:
         g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
 
         if (getToggleState()) {
-            g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
+            g.setColour(findColour(PlugDataColour::toolbarActiveColourId).brighter(isMouseOver() ? 0.3f : 0.0f));
+            g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
+        }
+        else if(isMouseOver())
+        {
+            g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
             g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
         }
 

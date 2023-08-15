@@ -82,6 +82,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         return true;
     })
 {
+        
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
@@ -125,7 +126,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
 
     auto* settingsFile = SettingsFile::getInstance();
-
+    PlugDataLook::setDefaultFont(settingsFile->getProperty<String>("default_font"));
+    
     auto keymap = settingsFile->getKeyMapTree();
     if (keymap.isValid()) {
         auto xmlStr = keymap.getProperty("keyxml").toString();
@@ -186,7 +188,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(redoButton);
 
     // New object button
-    addObjectMenuButton.setButtonText(Icons::Add);
+    addObjectMenuButton.setButtonText(Icons::AddObject);
     addObjectMenuButton.setTooltip("Add object");
     addObjectMenuButton.onClick = [this]() { Dialogs::showObjectMenu(this, &addObjectMenuButton); };
     addAndMakeVisible(addObjectMenuButton);
@@ -284,13 +286,19 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         midiDeviceManager->loadMidiOutputSettings();
     }
     
-    MessageManager::callAsync([this](){
-        if(auto* window = getTopLevelComponent())
+    // This is necessary on Linux to make PluginEditor grab keyboard focus on startup
+    // Otherwise, keyboard shortcuts won't work directly after starting plugdata
+#if JUCE_LINUX
+    ::Timer::callAfterDelay(100, [_this = SafePointer(this)](){
+        if(!_this) return;
+        
+        if(auto* window = _this->getTopLevelComponent())
         {
             window->toFront(false);
         }
-        grabKeyboardFocus();
+        _this->grabKeyboardFocus();
     });
+#endif
 }
 
 PluginEditor::~PluginEditor()
