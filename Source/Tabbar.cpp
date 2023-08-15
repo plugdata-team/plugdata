@@ -78,7 +78,7 @@ void ButtonBar::changeListenerCallback(ChangeBroadcaster* source)
 
 void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
 {
-    auto animateTabToPosition = [this]() mutable {
+    auto animateTabToPosition = [this]() {
         auto* tabButton = getTabButton(ghostTabIdx);
         tabButton->getProperties().set("dragged", var(true));
         tabButton->repaint();
@@ -179,7 +179,6 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
 void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
-        static int c = 0;
         ghostTab->setVisible(false);
         tab->getProperties().set("dragged", var(true));
         tab->repaint();
