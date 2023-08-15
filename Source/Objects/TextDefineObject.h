@@ -60,12 +60,16 @@ public:
     {
 
         // remove repeating spaces
-        while (text.length() > text.replace("  ", " ").length()) {
+        while (text.contains("  ")) {
             text = text.replace("  ", " ");
         }
         text = text.replace("\r ", "\r");
         text = text.replace(";\r", ";");
+        text = text.replace("\r;", ";");
+        text = text.replace(" ;", ";");
+        text = text.replace("; ", ";");
         text = text.replaceCharacters("\r", " ");
+        text = text.trimStart();
         auto lines = StringArray::fromTokens(text, ";", "\"");
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
@@ -222,12 +226,16 @@ public:
     {
 
         // remove repeating spaces
-        while (text.length() > text.replace("  ", " ").length()) {
+        while (text.contains("  ")) {
             text = text.replace("  ", " ");
         }
         text = text.replace("\r ", "\r");
         text = text.replace(";\r", ";");
+        text = text.replace("\r;", ";");
+        text = text.replace(" ;", ";");
+        text = text.replace("; ", ";");
         text = text.replaceCharacters("\r", " ");
+        text = text.trimStart();
         auto lines = StringArray::fromTokens(text, ";", "\"");
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
