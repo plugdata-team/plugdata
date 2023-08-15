@@ -7,6 +7,7 @@
 #include "PluginProcessor.h"
 #include "Sidebar/Sidebar.h"
 #include "TabBarButtonComponent.h"
+#include "Utility/StackShadow.h"
 
 class ButtonBar::GhostTab : public Component {
 public:
@@ -27,9 +28,16 @@ public:
         return -1;
     }
 
+    void resized() override
+    {
+        shadowPath.clear();
+        shadowPath.addRoundedRectangle(getLocalBounds().reduced(5).toFloat(), Corners::defaultCornerRadius);
+    }
+
     void paint(Graphics& g) override
     {
         if (tab) {
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.3f), 4);
             lnf.drawTabButton(*tab, g, true, true, true);
         }
     }
@@ -37,6 +45,8 @@ public:
 private:
     SafePointer<TabBarButton> tab;
     PlugDataLook& lnf;
+
+    Path shadowPath;
 };
 
 ButtonBar::ButtonBar(TabComponent& tabComp, TabbedButtonBar::Orientation o)
