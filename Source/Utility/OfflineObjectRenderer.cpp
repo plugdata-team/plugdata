@@ -131,9 +131,10 @@ String OfflineObjectRenderer::stripConnections(String const& patch)
     return strippedPatch;
 }
 
-std::array<std::vector<bool>, 2> OfflineObjectRenderer::countIolets(String const& patch)
+std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIolets(String const& patch)
 {
-    std::array<std::vector<bool>, 2> iolets;
+    std::vector<bool> inlets;
+    std::vector<bool> outlets;
     pd->setThis();
     
     sys_lock();
@@ -145,11 +146,11 @@ std::array<std::vector<bool>, 2> OfflineObjectRenderer::countIolets(String const
         int numOut = libpd_ninlets(object);
         for(int i = 0; i < numIn; i++)
         {
-            iolets[0].push_back(libpd_issignalinlet(object, i));
+            inlets.push_back(libpd_issignalinlet(object, i));
         }
         for(int i = 0; i < numOut; i++)
         {
-            iolets[1].push_back(libpd_issignaloutlet(object, i));
+            outlets.push_back(libpd_issignaloutlet(object, i));
         }
     }
     
@@ -158,6 +159,6 @@ std::array<std::vector<bool>, 2> OfflineObjectRenderer::countIolets(String const
     pd->muteConsole(false);
     sys_unlock();
     
-    return iolets;
+    return std::make_pair(inlets, outlets);
 }
 
