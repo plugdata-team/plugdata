@@ -143,7 +143,7 @@ std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIole
     
     if (auto* object = reinterpret_cast<t_object*>(offlineCnv->gl_list)) {
         int numIn = libpd_ninlets(object);
-        int numOut = libpd_ninlets(object);
+        int numOut = libpd_noutlets(object);
         for(int i = 0; i < numIn; i++)
         {
             inlets.push_back(libpd_issignalinlet(object, i));
