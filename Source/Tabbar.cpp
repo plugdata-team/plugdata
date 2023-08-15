@@ -71,7 +71,6 @@ void ButtonBar::changeListenerCallback(ChangeBroadcaster* source)
             // we need to reset the final position of the tab, as we have stored the ghosttabs entry position into it
             tabButton->setBounds(ghostTabFinalPos);
             tabButton->getProperties().set("dragged", var(false));
-            tabButton->repaint();
         }
     }
 }
@@ -81,7 +80,6 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
     auto animateTabToPosition = [this]() {
         auto* tabButton = getTabButton(ghostTabIdx);
         tabButton->getProperties().set("dragged", var(true));
-        tabButton->repaint();
 
         ghostTabAnimator.animateComponent(ghostTab.get(), ghostTab->getBounds().withPosition(Point<int>(ghostTab->getIndex() * (getWidth() / getNumVisibleTabs()), 0)), 1.0f, 200, false, 3.0f, 0.0f);
     };
@@ -99,7 +97,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
 
         inOtherSplit = false;
         // we remove the ghost tab, which is NOT a proper tab, (it only a tab, and doesn't have a viewport)
-        removeTab(ghostTabIdx, true);
+        owner.removeTab(ghostTabIdx);
         auto tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
         auto tabTitle = tabCanvas->patch.getTitle();
         // we then re-add the ghost tab, but this time we add it from the owner (tabComponent) 
@@ -130,6 +128,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         } else {
             animateTabToPosition();
         }
+
         // set all current canvas viewports to visible, (if they already are this shouldn't do anything)
         for (auto* split : owner.editor->splitView.splits) {
             if (auto tabComponent = split->getTabComponent()) {
@@ -151,7 +150,6 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
         // we move the existing tab
         if (tab->getTabComponent() == &owner) {
             tab->getProperties().set("dragged", var(true));
-            tab->repaint();
             inOtherSplit = false;
             ghostTabIdx = tab->getIndex();
             ghostTab->setTabButtonToGhost(tab);
@@ -165,10 +163,10 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
             auto targetTabPos = getWidth() / (getNumVisibleTabs() + 1);
             auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
             inOtherSplit = true;
-            addTab(tab->getButtonText(), Colours::transparentBlack, tabPos);
+            auto unusedComponent = std::make_unique<Component>();
+            owner.addTab(tab->getButtonText(), unusedComponent.get(), tabPos);
             auto* fakeTab = getTabButton(tabPos);
             tab->getProperties().set("dragged", var(true));
-            tab->repaint();
             ghostTab->setTabButtonToGhost(fakeTab);
             ghostTabIdx = tabPos;
         }
@@ -181,7 +179,6 @@ void ButtonBar::itemDragExit(SourceDetails const& dragSourceDetails)
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         ghostTab->setVisible(false);
         tab->getProperties().set("dragged", var(true));
-        tab->repaint();
         if (inOtherSplit) {
             inOtherSplit = false;
             removeTab(ghostTabIdx, true);
@@ -221,9 +218,7 @@ void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
             ghostTabIdx = tabPos;
         }
         tab->getProperties().set("dragged", var(true));
-        tab->repaint();
         getTabButton(tabPos)->getProperties().set("dragged", var(true));
-        getTabButton(tabPos)->repaint();
     }
 
 }
@@ -409,11 +404,7 @@ void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabNa
             panelComponent->setVisible (true);
             panelComponent->toFront (true);
         }
-
-        repaint();
     }
-
-    resized();
     currentTabChanged (newCurrentTabIndex, newTabName);
 }
 
@@ -470,7 +461,6 @@ Component* TabComponent::getTabContentComponent (int tabIndex) const noexcept
 void TabComponent::paint(Graphics& g)
 {
     g.fillAll(findColour(PlugDataColour::tabBackgroundColourId));
-    //g.fillRect(getLocalBounds().removeFromTop(30));
 }
 
 void TabComponent::paintOverChildren(Graphics& g)
