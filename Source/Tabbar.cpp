@@ -83,7 +83,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         tabButton->getProperties().set("dragged", var(true));
         tabButton->repaint();
 
-        ghostTabAnimator.animateComponent(ghostTab.get(), ghostTab->getBounds().withPosition(Point<int>(ghostTabIdx * (getWidth() / getNumVisibleTabs()), 0)), 1.0f, 200, false, 3.0f, 0.0f);
+        ghostTabAnimator.animateComponent(ghostTab.get(), ghostTab->getBounds().withPosition(Point<int>(ghostTab->getIndex() * (getWidth() / getNumVisibleTabs()), 0)), 1.0f, 200, false, 3.0f, 0.0f);
     };
 
     // this has a whole lot of code replication from ResizableTabbedComponent.cpp, good candidate for refactoring!
