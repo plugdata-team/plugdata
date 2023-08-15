@@ -23,7 +23,7 @@ public:
 
     bool checkIfPatchIsValid(String const& patch);
     
-    std::array<std::vector<bool>, 2> countIolets(String const& patch);
+    std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patch);
     
 private:
     
