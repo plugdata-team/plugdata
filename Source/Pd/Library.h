@@ -26,7 +26,7 @@ public:
 
     void updateLibrary();
 
-    StringArray autocomplete(String const& query) const;
+    StringArray autocomplete(String const& query, const File& patchDirectory) const;
     void getExtraSuggestions(int currentNumSuggestions, String const& query, std::function<void(StringArray)> const& callback);
 
     static std::array<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);

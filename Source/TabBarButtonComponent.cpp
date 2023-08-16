@@ -9,7 +9,10 @@
 TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabbar, String const& name, TabbedButtonBar& bar)
     : TabBarButton(name, bar)
     , tabComponent(tabbar)
+    , ghostTabAnimator(&dynamic_cast<ButtonBar*>(&bar)->ghostTabAnimator)
 {
+    ghostTabAnimator->addChangeListener(this);
+
     setTooltip(name);
 
     closeTabButton.setButtonText(Icons::Clear);
@@ -26,8 +29,35 @@ TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabbar, String const&
     closeTabButton.onClick = [this]() mutable {
         closeTab();
     };
-    
+
     addChildComponent(closeTabButton);
+    updateCloseButtonState();
+}
+
+TabBarButtonComponent::~TabBarButtonComponent()
+{
+    closeTabButton.removeMouseListener(this);
+    ghostTabAnimator->removeChangeListener(this);
+}
+
+
+void TabBarButtonComponent::changeListenerCallback(ChangeBroadcaster* source)
+{
+    if (source == ghostTabAnimator) {
+        if (!ghostTabAnimator->isAnimating() && closeButtonUpdatePending) {
+            closeTabButton.setVisible(isMouseOver(true) || getToggleState());
+            closeButtonUpdatePending = false;
+        }
+    }
+} 
+
+void TabBarButtonComponent::updateCloseButtonState()
+{
+    if (!ghostTabAnimator->isAnimating()) {
+        closeTabButton.setVisible(isMouseOver(true) || getToggleState());
+    } else {
+        closeButtonUpdatePending = true;
+    }
 }
 
 void TabBarButtonComponent::closeTab()
@@ -75,12 +105,6 @@ void TabBarButtonComponent::setTabText(String const& text)
     setButtonText (text);
 }
 
-TabBarButtonComponent::~TabBarButtonComponent()
-{
-    closeTabButton.removeMouseListener(this);
-}
-
-
 TabComponent* TabBarButtonComponent::getTabComponent()
 {
     return tabComponent;
@@ -88,13 +112,13 @@ TabComponent* TabBarButtonComponent::getTabComponent()
 
 void TabBarButtonComponent::mouseEnter(MouseEvent const& e)
 {
-    closeTabButton.setVisible(true);
+    updateCloseButtonState();
     repaint();
 }
 
 void TabBarButtonComponent::mouseExit(MouseEvent const& e)
 {
-    closeTabButton.setVisible(false);
+    updateCloseButtonState();
     repaint();
 }
 

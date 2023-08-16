@@ -122,7 +122,9 @@ private:
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent : public Component
     , public KeyListener
-    , public TextEditor::Listener {
+    , public TextEditor::Listener
+    , public ComponentListener
+{
 
     class Suggestion : public TextButton {
         int idx = 0;
@@ -215,7 +217,7 @@ class SuggestionComponent : public Component
 public:
     SuggestionComponent()
         : resizer(this, &constrainer)
-        , currentBox(nullptr)
+        , currentObject(nullptr)
         , windowMargin(canBeTransparent() ? 22 : 0)
     {
         // Set up the button list that contains our suggestions
@@ -257,11 +259,12 @@ public:
 
     void createCalloutBox(Object* object, TextEditor* editor)
     {
-        currentBox = object;
+        currentObject = object;
         openedEditor = editor;
 
         setTransform(object->cnv->editor->getTransform());
 
+        editor->addComponentListener(this);
         editor->addListener(this);
         editor->addKeyListener(this);
 
@@ -297,22 +300,22 @@ public:
 
     void updateBounds()
     {
-        if (!currentBox)
+        if (!currentObject)
             return;
 
-        auto* cnv = currentBox->cnv;
+        auto* cnv = currentObject->cnv;
 
         setTransform(cnv->editor->getTransform());
 
         auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
 
-        auto objectPos = currentBox->getScreenBounds().reduced(Object::margin).getBottomLeft() / scale;
+        auto objectPos = currentObject->getScreenBounds().reduced(Object::margin).getBottomLeft() / scale;
 
         setTopLeftPosition(objectPos.translated(-windowMargin, -windowMargin + 5));
 
         // If box is not contained in canvas bounds, hide suggestions
         if (cnv->viewport) {
-            setVisible(cnv->viewport->getViewArea().contains(cnv->viewport->getLocalArea(currentBox, currentBox->getBounds())));
+            setVisible(cnv->viewport->getViewArea().contains(cnv->viewport->getLocalArea(currentObject, currentObject->getBounds())));
         }
     }
 
@@ -325,11 +328,19 @@ public:
         }
 
         autoCompleteComponent.reset(nullptr);
-        if (openedEditor)
+        if (openedEditor) {
             openedEditor->removeListener(this);
+            openedEditor->removeComponentListener(this);
+            openedEditor->removeKeyListener(this);
+        }
 
         openedEditor = nullptr;
-        currentBox = nullptr;
+        currentObject = nullptr;
+    }
+    
+    void componentBeingDeleted (Component &component) override
+    {
+        removeCalloutBox();
     }
 
     void move(int offset, int setto = -1)
@@ -358,7 +369,7 @@ public:
             String newText = buttons[currentidx]->getButtonText();
             autoCompleteComponent->setSuggestion(newText);
             autoCompleteComponent->enableAutocomplete(true);
-            currentBox->updateBounds();
+            currentObject->updateBounds();
         }
 
         // Auto-scroll item into viewport bounds
@@ -440,7 +451,7 @@ private:
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
-        if (!currentBox) {
+        if (!currentObject) {
             return false;
         }
 
@@ -456,7 +467,12 @@ private:
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
-        if (key == KeyPress::tabKey && autoCompleteComponent) {
+        if (key == KeyPress::returnKey && autoCompleteComponent->getSuggestion() == openedEditor->getText()) {
+            // if the caret is already at the end, we want to close upon enter key
+            // By ignoring the keypress we'll trigger the return callback on text editor which will close it
+            return false;
+        }
+        if ((key == KeyPress::returnKey || key == KeyPress::tabKey) && autoCompleteComponent) {
             autoCompleteComponent->autocomplete();
             return true;
         }
@@ -470,24 +486,15 @@ private:
         return false;
     }
 
-    // If there's a suggestion, it feels right to choose that suggestion with the return key
-    void textEditorReturnKeyPressed(TextEditor& e) override
-    {
-        if (e.getText().isEmpty() && autoCompleteComponent && autoCompleteComponent->getSuggestion().isNotEmpty()) {
-            e.setText(autoCompleteComponent->getSuggestion());
-            autoCompleteComponent->setSuggestion("");
-        }
-    }
-
     void textEditorTextChanged(TextEditor& e) override
     {
-        if (!currentBox)
+        if (!currentObject)
             return;
 
         String currentText = e.getText();
         resized();
 
-        auto& library = currentBox->cnv->pd->objectLibrary;
+        auto& library = currentObject->cnv->pd->objectLibrary;
         
         
         class ObjectSorter
@@ -575,7 +582,7 @@ private:
 
             if (autoCompleteComponent) {
                 autoCompleteComponent->enableAutocomplete(false);
-                currentBox->updateBounds();
+                currentObject->updateBounds();
             }
 
             resized();
@@ -588,10 +595,10 @@ private:
         }
 
         auto filterNonHvccObjectsIfNeeded = [_this = SafePointer(this)](StringArray& toFilter) {
-            if (!_this || !_this->currentBox)
+            if (!_this || !_this->currentObject)
                 return;
 
-            if (getValue<bool>(_this->currentBox->cnv->editor->hvccMode)) {
+            if (getValue<bool>(_this->currentObject->cnv->editor->hvccMode)) {
 
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {
@@ -603,9 +610,11 @@ private:
                 toFilter = hvccObjectsFound;
             }
         };
+        auto patchDir = currentObject->cnv->patch.getPatchFile().getParentDirectory();
+        if(!patchDir.isDirectory() || patchDir == File::getSpecialLocation(File::tempDirectory)) patchDir = File();
 
         // Update suggestions
-        auto found = library->autocomplete(currentText);
+        auto found = library->autocomplete(currentText, patchDir);
 
         // When hvcc mode is enabled, show only hvcc compatible objects
         filterNonHvccObjectsIfNeeded(found);
@@ -645,7 +654,7 @@ private:
                 state = Hidden;
                 if (autoCompleteComponent)
                     autoCompleteComponent->enableAutocomplete(false);
-                currentBox->updateBounds();
+                currentObject->updateBounds();
                 setVisible(false);
                 return;
             }
@@ -654,7 +663,7 @@ private:
             int numButtons = std::min(20, numOptions);
 
             // duplicate call to updateBounds :( do we need this?t
-            currentBox->updateBounds();
+            currentObject->updateBounds();
 
             setVisible(true);
 
@@ -719,8 +728,8 @@ private:
 
     SugesstionState state = Hidden;
 
-    TextEditor* openedEditor = nullptr;
-    SafePointer<Object> currentBox;
+    SafePointer<TextEditor> openedEditor = nullptr;
+    SafePointer<Object> currentObject = nullptr;
 
     int windowMargin;
 };

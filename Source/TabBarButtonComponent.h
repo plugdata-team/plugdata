@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 
 class TabComponent;
-class TabBarButtonComponent : public TabBarButton
+class TabBarButtonComponent : public TabBarButton, public ChangeListener
 {
 public:
     TabBarButtonComponent(TabComponent* tabComponent, const String& name, TabbedButtonBar& bar);
@@ -13,12 +13,16 @@ public:
     TabComponent* getTabComponent();
 
     void resized() override;
+    
+    void updateCloseButtonState();
 
     void mouseDrag(MouseEvent const& e) override;
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
+
+    void changeListenerCallback(ChangeBroadcaster* source) override; 
 
     void lookAndFeelChanged() override;
 
@@ -38,8 +42,10 @@ public:
 
 private:
     TabComponent* tabComponent;
+    ComponentAnimator* ghostTabAnimator;
     TextButton closeTabButton;
     const int boundsOffset = 10;
     ScaledImage tabImage;
     bool isDragging = false;
+    bool closeButtonUpdatePending = false;
 };

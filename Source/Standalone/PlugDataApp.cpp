@@ -200,7 +200,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     /* open patches specifies with "-open" args */
     for (auto* nl = openlist; nl; nl = nl->nl_next) {
         auto toOpen = File(String(nl->nl_string).unquoted());
-        if (toOpen.existsAsFile() && toOpen.hasFileExtension(".pd")) {
+        if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
             if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
                 SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
@@ -219,7 +219,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
             continue;
 #    endif
         auto toOpen = File(arg);
-        if (toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
+        if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
             if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
                 SettingsFile::getInstance()->addToRecentlyOpened(toOpen);

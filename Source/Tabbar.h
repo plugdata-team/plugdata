@@ -225,6 +225,8 @@ public:
     TabBarButton* createTabButton(String const& tabName, int tabIndex) override;
 
     int getNumVisibleTabs();
+
+    ComponentAnimator ghostTabAnimator;
 private:
     TabComponent& owner;
 
@@ -232,8 +234,6 @@ private:
     std::unique_ptr<GhostTab> ghostTab;
     int ghostTabIdx = -1;
     bool inOtherSplit = false;
-
-    ComponentAnimator ghostTabAnimator;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ButtonBar)
 };

@@ -51,7 +51,7 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     addChildComponent(deleteButton);
 
-    isSubpatch = checkIsSubpatch(palettePatch);
+    isSubpatch = isSubpatchOrAbstraction(palettePatch);
     if (isSubpatch) {
         auto iolets = countIolets(palettePatch);
         inlets = iolets.first;
@@ -249,18 +249,22 @@ void PaletteItem::resized()
 
 void PaletteItem::mouseDrag(MouseEvent const& e)
 {
+    if (isItemDragged || e.getDistanceFromDragStart() < 5)
+        return;
+
     auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
     auto scale = 2.0f;
     if (dragImage.image.isNull()) {
-        auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-        dragImage = offlineObjectRenderer->patchToTempImage(palettePatch, scale);
+        auto offlineObjectRenderer = editor->offlineRenderer;
+        dragImage = offlineObjectRenderer.patchToTempImage(palettePatch, scale);
     }
 
     if (auto* overReorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
         return;
     } else {
-        paletteComp->isDnD = true;
+        setIsItemDragged(true);
+
         reorderButton->setVisible(false);
         deleteButton.setVisible(false);
 
@@ -268,7 +272,6 @@ void PaletteItem::mouseDrag(MouseEvent const& e)
         palettePatchWithOffset.add(var(dragImage.offset.getX()));
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(palettePatch));
-        setIsItemDragged(true);
         dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
     }
 }
@@ -297,7 +300,6 @@ void PaletteItem::mouseUp(MouseEvent const& e)
     if (!e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
         nameLabel.showEditor();
     } else if (e.mouseWasDraggedSinceMouseDown()) {
-        paletteComp->isDnD = false;
         getParentComponent()->resized();
         setIsItemDragged(false);
     }
@@ -307,10 +309,10 @@ void PaletteItem::mouseUp(MouseEvent const& e)
     }
 }
 
-bool PaletteItem::checkIsSubpatch(String const& patchAsString)
+bool PaletteItem::isSubpatchOrAbstraction(String const& patchAsString)
 {
     auto lines = StringArray::fromLines(patchAsString.trim());
-    return lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore");
+    return lines.size() == 1 || lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore");
 }
 
 std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String const& patchAsString)
@@ -344,8 +346,17 @@ std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String 
         if (name == "outlet~")
             outlets.push_back({ true, position });
     };
+    
+    auto lines = StringArray::fromLines(patchAsString);
 
-    for (auto& line : StringArray::fromLines(patchAsString)) {
+    // In case the patch contains a single object, we need to use a different method to find the number and kind inlets and outlets
+    if(lines.size() == 1)
+    {
+        auto offlineObjectRenderer = editor->offlineRenderer;
+        return offlineObjectRenderer.countIolets(lines[0]);
+    }
+    
+    for (auto& line : lines) {
 
         line = line.upToLastOccurrenceOf(";", false, false);
 

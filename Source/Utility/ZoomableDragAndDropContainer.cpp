@@ -37,6 +37,8 @@
 // if we are inside the splitview, don't reset the scale of the dragged image, regardless of what we are over
 #include "../SplitView.h"
 
+#include "../Dialogs/AddObjectMenu.h"
+
 bool juce_performDragDropFiles(StringArray const&, bool const copyFiles, bool& shouldStop);
 bool juce_performDragDropText(String const&, bool& shouldStop);
 
@@ -60,6 +62,9 @@ public:
         , originalInputSourceType(draggingSource->getType())
         , isZoomable(canZoom)
     {
+        if (auto addObjectItem = dynamic_cast<ObjectItem*>(sourceComponent))
+            isObjectItem = true;
+
         zoomImageComponent.setImage(im.getImage());
         addAndMakeVisible(&zoomImageComponent);
 
@@ -323,6 +328,8 @@ private:
     MouseInputSource::InputSourceType originalInputSourceType;
     bool canHaveKeyboardFocus = false;
 
+    bool isObjectItem = false;
+
     void maintainKeyboardFocusWhenPossible()
     {
         auto const newCanHaveKeyboardFocus = isVisible();
@@ -397,28 +404,30 @@ private:
         // a modal loop and deletes this object before the method completes)
         auto details = sourceDetails;
 
-        while (hit != nullptr)
-        {
-            if (auto* ddt = dynamic_cast<DragAndDropTarget*> (hit))
-            {
-                if (ddt->isInterestedInDragSource (details))
-                {
-                    relativePos = hit->getLocalPoint (nullptr, screenPos);
-                    resultComponent = hit;
-                    return ddt;
-                }
-            }
+        // if the source DnD is from the Add Object Menu, deal with it differently
+        if (isObjectItem) {
+            auto* nextTarget = owner.findNextDragAndDropTarget(screenPos);
 
-            hit = hit->getParentComponent();
-        }
-        
-        auto* nextTarget = owner.findNextDragAndDropTarget(screenPos);
-        
-        if(auto* component = dynamic_cast<Component*>(nextTarget))
-        {
-            relativePos = component->getLocalPoint (nullptr, screenPos);
-            resultComponent = component; // oof
-            return nextTarget;
+            if(auto* component = dynamic_cast<Component*>(nextTarget)) {
+                relativePos = component->getLocalPoint (nullptr, screenPos);
+                resultComponent = component; // oof
+                return nextTarget;
+            }
+        } else {
+            while (hit != nullptr)
+            {
+                if (auto* ddt = dynamic_cast<DragAndDropTarget*> (hit))
+                {
+                    if (ddt->isInterestedInDragSource (details))
+                    {
+                        relativePos = hit->getLocalPoint (nullptr, screenPos);
+                        resultComponent = hit;
+                        return ddt;
+                    }
+                }
+
+                hit = hit->getParentComponent();
+            }
         }
 
         resultComponent = nullptr;

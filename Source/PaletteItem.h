@@ -25,7 +25,7 @@ public:
 
     void deleteItem();
 
-    bool checkIsSubpatch(String const& patchAsString);
+    bool isSubpatchOrAbstraction(String const& patchAsString);
 
     void lookAndFeelChanged() override;
 
