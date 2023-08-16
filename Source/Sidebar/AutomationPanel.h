@@ -280,13 +280,22 @@ public:
         reorderButton.setVisible(false);
     }
 
+    void mouseUp(MouseEvent const& e) override
+    {
+        isDragging = false;
+    }
+
     void mouseDrag(MouseEvent const& e) override
     {
-        if(e.originalComponent == &reorderButton || e.getDistanceFromDragStart() < 5) return;
-        
+        if(e.originalComponent == &reorderButton || e.getDistanceFromDragStart() < 5 || isDragging)
+            return;
+
+        isDragging = true;
+
         auto formatedParam = "#X obj 0 0 param " + param->getTitle() + ";";
 
         deleteButton.setVisible(false);
+        reorderButton.setVisible(false);
 
         auto scale = 2.0f;
         if (dragImage.image.isNull()) {
@@ -410,6 +419,8 @@ public:
     PlugDataParameter* param;
         
     std::unique_ptr<SliderParameterAttachment> attachment;
+
+    bool isDragging = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationSlider)
 };
