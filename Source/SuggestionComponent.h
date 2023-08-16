@@ -456,7 +456,7 @@ private:
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
-        if (key == KeyPress::tabKey && autoCompleteComponent) {
+        if ((key == KeyPress::returnKey || key == KeyPress::tabKey) && autoCompleteComponent) {
             autoCompleteComponent->autocomplete();
             return true;
         }
