@@ -323,7 +323,7 @@ void* Patch::createObject(int x, int y, String const& name)
         // check if string is a valid number
         auto charptr = tokens[i].getCharPointer();
         auto ptr = charptr;
-        auto value = CharacterFunctions::readDoubleValue(ptr);
+        auto value = CharacterFunctions::readDoubleValue(ptr); // This will read the number and increment the pointer to be past the number
         if (ptr - charptr == tokens[i].getNumBytesAsUTF8()) {
             SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
         } else {

@@ -461,6 +461,8 @@ private:
         }
         if (key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
             autoCompleteComponent->autocomplete();
+            currentidx = 0;
+            if(buttons.size()) buttons[0]->setToggleState(true, dontSendNotification);
             return true;
         }
         if (key == KeyPress::leftKey && !openedEditor->getHighlightedRegion().isEmpty()) {
@@ -474,6 +476,8 @@ private:
         }
         if ((key == KeyPress::returnKey || key == KeyPress::tabKey) && autoCompleteComponent) {
             autoCompleteComponent->autocomplete();
+            currentidx = 0;
+            if(buttons.size()) buttons[0]->setToggleState(true, dontSendNotification);
             return true;
         }
         if (state != ShowingObjects)
@@ -506,35 +510,42 @@ private:
             
             int compareElements (const String& a, const String& b)
             {
-                auto check = [this](const String& a, const String& b) -> bool {
-                    // Check if suggestion exacly matches query
-                    if (a == query) {
-                        return -1;
-                    }
-                    
-                    // Check if suggestion is equal to query with "~" appended
-                    if (a == (query + "~") && b != query && b != (query + "~")) {
-                        return -1;
-                    }
-                    
-                    // Check if suggestion is equal to query with "." appended
-                    if (a.startsWith(query + ".") && b != query && b != (query + "~") && !b.startsWith(query + ".")) {
-                        return 1;
-                    }
-                    
-                    if (a.length() < b.length()) {
-                        return 1;
-                    }
-                    
+                // Check if suggestion exacly matches query
+                if (a == query) {
                     return -1;
-                };
+                }
                 
-                if (check(a, b))
-                    return true;
-                if (check(b, a))
-                    return false;
+                if (b == query) {
+                    return 1;
+                }
                 
-                return a.compareNatural(b) >= 0;
+                // Check if suggestion is equal to query with "~" appended
+                if (a == (query + "~") && b != query && b != (query + "~")) {
+                    return -1;
+                }
+                
+                if (b == (query + "~") && a != query && a != (query + "~")) {
+                    return 1;
+                }
+                
+                // Check if suggestion is equal to query with "." appended
+                if (a.startsWith(query + ".") && b != query && b != (query + "~") && !b.startsWith(query + ".")) {
+                    return -1;
+                }
+                
+                if (b.startsWith(query + ".") && a != query && a != (query + "~") && !a.startsWith(query + ".")) {
+                    return 1;
+                }
+                
+                if (a.length() < b.length()) {
+                    return -1;
+                }
+                
+                if (b.length() < a.length()) {
+                    return 1;
+                }
+                
+                return a.compareNatural(b);
             }
             const String query;
         };
