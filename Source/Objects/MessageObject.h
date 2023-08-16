@@ -312,7 +312,7 @@ public:
             auto text = editor->getText();
 
             if (!editor->getHighlightedRegion().isEmpty())
-                return;
+                return false;
             if (text[caretPosition - 1] == ';') {
                 text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
                 caretPosition += 1;
