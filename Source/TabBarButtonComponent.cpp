@@ -26,8 +26,14 @@ TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabbar, String const&
     closeTabButton.onClick = [this]() mutable {
         closeTab();
     };
-    
+
     addChildComponent(closeTabButton);
+    updateCloseButtonState();
+}
+
+void TabBarButtonComponent::updateCloseButtonState()
+{
+    closeTabButton.setVisible(isMouseOver(true) || getToggleState());
 }
 
 void TabBarButtonComponent::closeTab()
@@ -88,13 +94,13 @@ TabComponent* TabBarButtonComponent::getTabComponent()
 
 void TabBarButtonComponent::mouseEnter(MouseEvent const& e)
 {
-    closeTabButton.setVisible(true);
+    updateCloseButtonState();
     repaint();
 }
 
 void TabBarButtonComponent::mouseExit(MouseEvent const& e)
 {
-    closeTabButton.setVisible(false);
+    updateCloseButtonState();
     repaint();
 }
 

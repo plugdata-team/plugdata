@@ -293,6 +293,10 @@ int TabComponent::getCurrentTabIndex()
 void TabComponent::setCurrentTabIndex(int idx)
 {
     tabs->setCurrentTabIndex(idx);
+    for(int i = 0; i < tabs->getNumTabs(); i++)
+    {
+        dynamic_cast<TabBarButtonComponent*>(tabs->getTabButton(i))->updateCloseButtonState();
+    }
 }
 
 int TabComponent::getNumVisibleTabs()

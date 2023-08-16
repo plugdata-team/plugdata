@@ -13,6 +13,8 @@ public:
     TabComponent* getTabComponent();
 
     void resized() override;
+    
+    void updateCloseButtonState();
 
     void mouseDrag(MouseEvent const& e) override;
     void mouseEnter(MouseEvent const& e) override;
