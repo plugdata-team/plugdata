@@ -194,7 +194,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (std::abs(e.getDistanceFromDragStart()) < 5 && !isDragging || isDnD)
+        if (std::abs(e.getDistanceFromDragStart()) < 5 && !isDragging)
             return;
 
         isDragging = true;
@@ -268,7 +268,6 @@ public:
     SafePointer<PaletteItem> draggedItem;
     Point<int> mouseDownPos;
     bool isDragging = false;
-    bool isDnD = false;
     bool isItemShowingMenu = false;
     bool isPaletteShowingMenu = false;
 

@@ -249,6 +249,9 @@ void PaletteItem::resized()
 
 void PaletteItem::mouseDrag(MouseEvent const& e)
 {
+    if (isItemDragged || e.getDistanceFromDragStart() < 5)
+        return;
+
     auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
     auto scale = 2.0f;
@@ -260,7 +263,8 @@ void PaletteItem::mouseDrag(MouseEvent const& e)
     if (auto* overReorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
         return;
     } else {
-        paletteComp->isDnD = true;
+        setIsItemDragged(true);
+
         reorderButton->setVisible(false);
         deleteButton.setVisible(false);
 
@@ -268,7 +272,6 @@ void PaletteItem::mouseDrag(MouseEvent const& e)
         palettePatchWithOffset.add(var(dragImage.offset.getX()));
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(palettePatch));
-        setIsItemDragged(true);
         dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
     }
 }
@@ -297,7 +300,6 @@ void PaletteItem::mouseUp(MouseEvent const& e)
     if (!e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
         nameLabel.showEditor();
     } else if (e.mouseWasDraggedSinceMouseDown()) {
-        paletteComp->isDnD = false;
         getParentComponent()->resized();
         setIsItemDragged(false);
     }
