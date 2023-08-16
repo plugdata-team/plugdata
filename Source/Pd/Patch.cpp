@@ -308,6 +308,8 @@ void* Patch::createObject(int x, int y, String const& name)
     if (tokens[0] == "+") {
         tokens.set(0, "\\+");
     }
+    
+    tokens.removeEmptyStrings();
 
     int argc = tokens.size() + 2;
 
@@ -317,7 +319,7 @@ void* Patch::createObject(int x, int y, String const& name)
     SETFLOAT(argv.data(), static_cast<float>(x));
     SETFLOAT(argv.data() + 1, static_cast<float>(y));
 
-    for (int i = 0; i < tokens.size(); i++) {
+    for (int i = 0; i < tokens.size(); i++) {        
         // check if string is a valid number
         auto charptr = tokens[i].getCharPointer();
         auto ptr = charptr;
