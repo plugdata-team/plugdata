@@ -1492,6 +1492,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
     default: {
 
         cnv = getCurrentCanvas();
+        
+        // This should close any opened editors before creating a new object
+        cnv->grabKeyboardFocus();
 
         // Get viewport area, compensate for zooming
         auto viewArea = cnv->viewport->getViewArea() / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
