@@ -393,17 +393,6 @@ private:
     DragAndDropTarget* findTarget (Point<int> screenPos, Point<int>& relativePos,
                                    Component*& resultComponent)
     {
-        auto* hit = getParentComponent();
-
-        if (hit == nullptr)
-            hit = findDesktopComponentBelow (screenPos);
-        else
-            hit = hit->getComponentAt (hit->getLocalPoint (nullptr, screenPos));
-
-        // (note: use a local copy of this in case the callback runs
-        // a modal loop and deletes this object before the method completes)
-        auto details = sourceDetails;
-
         // if the source DnD is from the Add Object Menu, deal with it differently
         if (isObjectItem) {
             auto* nextTarget = owner.findNextDragAndDropTarget(screenPos);
@@ -414,6 +403,17 @@ private:
                 return nextTarget;
             }
         } else {
+            auto* hit = getParentComponent();
+
+            if (hit == nullptr)
+                hit = findDesktopComponentBelow (screenPos);
+            else
+                hit = hit->getComponentAt (hit->getLocalPoint (nullptr, screenPos));
+
+            // (note: use a local copy of this in case the callback runs
+            // a modal loop and deletes this object before the method completes)
+            auto details = sourceDetails;
+
             while (hit != nullptr)
             {
                 if (auto* ddt = dynamic_cast<DragAndDropTarget*> (hit))
