@@ -183,8 +183,8 @@ public:
                     atom->a_text.te_width = newCharWidth;
                 }
 
-                auto newHeight = newBounds.getHeight() - Object::doubleMargin;
-                auto heightIdx = std::clamp<int>(std::upper_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
+                auto newHeight = newBounds.getHeight();
+                auto heightIdx = std::clamp<int>(std::lower_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
 
                 helper->setFontHeight(atomSizes[heightIdx]);
                 object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
