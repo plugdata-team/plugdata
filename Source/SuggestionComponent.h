@@ -122,7 +122,9 @@ private:
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent : public Component
     , public KeyListener
-    , public TextEditor::Listener {
+    , public TextEditor::Listener
+    , public ComponentListener
+{
 
     class Suggestion : public TextButton {
         int idx = 0;
@@ -262,6 +264,7 @@ public:
 
         setTransform(object->cnv->editor->getTransform());
 
+        editor->addComponentListener(this);
         editor->addListener(this);
         editor->addKeyListener(this);
 
@@ -325,11 +328,19 @@ public:
         }
 
         autoCompleteComponent.reset(nullptr);
-        if (openedEditor)
+        if (openedEditor) {
             openedEditor->removeListener(this);
+            openedEditor->removeComponentListener(this);
+            openedEditor->removeKeyListener(this);
+        }
 
         openedEditor = nullptr;
         currentBox = nullptr;
+    }
+    
+    void componentBeingDeleted (Component &component) override
+    {
+        removeCalloutBox();
     }
 
     void move(int offset, int setto = -1)
@@ -718,8 +729,8 @@ private:
 
     SugesstionState state = Hidden;
 
-    TextEditor* openedEditor = nullptr;
-    SafePointer<Object> currentBox;
+    SafePointer<TextEditor> openedEditor = nullptr;
+    SafePointer<Object> currentBox = nullptr;
 
     int windowMargin;
 };
