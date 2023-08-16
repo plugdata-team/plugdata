@@ -695,7 +695,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             col = button.getTabBackgroundColour().contrasting();
 
         // Use a gradient to make it fade out when it gets near to the close button
-        auto fadeX = isMouseOver ? area.getRight() - 25 : area.getRight() - 8;
+        auto fadeX = (isMouseOver || button.getToggleState()) ? area.getRight() - 25 : area.getRight() - 8;
         g.setGradientFill(ColourGradient(col, fadeX - 18, area.getY(), Colours::transparentBlack, fadeX, area.getY(), false));
         
         g.setFont(font);
