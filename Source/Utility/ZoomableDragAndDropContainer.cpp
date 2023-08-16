@@ -37,6 +37,8 @@
 // if we are inside the splitview, don't reset the scale of the dragged image, regardless of what we are over
 #include "../SplitView.h"
 
+#include "../Dialogs/AddObjectMenu.h"
+
 bool juce_performDragDropFiles(StringArray const&, bool const copyFiles, bool& shouldStop);
 bool juce_performDragDropText(String const&, bool& shouldStop);
 
@@ -399,7 +401,18 @@ private:
 
         while (hit != nullptr)
         {
-            if (auto* ddt = dynamic_cast<DragAndDropTarget*> (hit))
+            if (auto* addMenu = dynamic_cast<AddObjectMenu*>(hit))
+            {
+                auto* nextTarget = owner.findNextDragAndDropTarget(screenPos);
+
+                if(auto* component = dynamic_cast<Component*>(nextTarget))
+                {
+                    relativePos = component->getLocalPoint (nullptr, screenPos);
+                    resultComponent = component; // oof
+                    return nextTarget;
+                }
+            }
+            else if (auto* ddt = dynamic_cast<DragAndDropTarget*> (hit))
             {
                 if (ddt->isInterestedInDragSource (details))
                 {
@@ -410,15 +423,6 @@ private:
             }
 
             hit = hit->getParentComponent();
-        }
-        
-        auto* nextTarget = owner.findNextDragAndDropTarget(screenPos);
-        
-        if(auto* component = dynamic_cast<Component*>(nextTarget))
-        {
-            relativePos = component->getLocalPoint (nullptr, screenPos);
-            resultComponent = component; // oof
-            return nextTarget;
         }
 
         resultComponent = nullptr;
