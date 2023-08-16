@@ -282,7 +282,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 // On old versions of GCC and macos <10.15, std::filesystem is not available
 #if HAS_STD_FILESYSTEM
 
-juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles)
+juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
 {
     juce::Array<juce::File> result;
 
@@ -293,6 +293,8 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(juce::File(dirEntry.path().string()));
                 }
+                
+                if(maximum > 0 && result.size() >= maximum) break;
             }
         } catch (std::filesystem::filesystem_error e) {
             std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
@@ -304,6 +306,8 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(juce::File(dirEntry.path().string()));
                 }
+                
+                if(maximum > 0 && result.size() >= maximum) break;
             }
         } catch (std::filesystem::filesystem_error e) {
             std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
