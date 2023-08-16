@@ -72,7 +72,7 @@ void Library::updateLibrary()
             continue;
 
         for (auto const& file : OSUtils::iterateDirectory(file, false, true)) {
-            if (file.hasFileExtension(".pd")) {
+            if (file.hasFileExtension("pd")) {
                 auto filename = file.getFileNameWithoutExtension();
                 if (!filename.startsWith("help-") || filename.endsWith("-help")) {
                     allObjects.add(filename);
@@ -116,10 +116,20 @@ Library::Library(pd::Instance* instance)
     });
 }
 
-StringArray Library::autocomplete(String const& query) const
+StringArray Library::autocomplete(String const& query, const File& patchDirectory) const
 {
     StringArray result;
     result.ensureStorageAllocated(20);
+    
+    if(patchDirectory.isDirectory())
+    {
+        for (auto const& file : OSUtils::iterateDirectory(patchDirectory, false, true)) {
+            auto filename = file.getFileNameWithoutExtension();
+            if (file.hasFileExtension("pd") && filename.startsWith(query) && !filename.startsWith("help-") && !filename.endsWith("-help")) {
+                result.add(filename);
+            }
+        }
+    }
 
     for (auto const& str : allObjects) {
         if (result.size() >= 20)
