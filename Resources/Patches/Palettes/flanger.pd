@@ -1,4 +1,4 @@
-#N canvas 0 22 450 278 (subpatch) 1;
+#N canvas 0 22 450 278 12;
 #X obj 0 0 cnv 15 203 107 empty empty empty 20 12 0 14 #e9e9e9 #373737 0;
 #X obj 4 28 cnv 15 195 75 empty empty empty 20 12 0 14 #dbdbdb #373737 0;
 #X obj 75 48 knob 50 0 5 0 0 empty empty #e4e4e4 #a8a8a8 #4d4d4d 0 0 0 0 1 270 0 0;

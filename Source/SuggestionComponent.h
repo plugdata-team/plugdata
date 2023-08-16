@@ -467,6 +467,11 @@ private:
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
+        if (key == KeyPress::returnKey && autoCompleteComponent->getSuggestion() == openedEditor->getText()) {
+            // if the caret is already at the end, we want to close upon enter key
+            // By ignoring the keypress we'll trigger the return callback on text editor which will close it
+            return false;
+        }
         if ((key == KeyPress::returnKey || key == KeyPress::tabKey) && autoCompleteComponent) {
             autoCompleteComponent->autocomplete();
             return true;
@@ -479,14 +484,6 @@ private:
             return true;
         }
         return false;
-    }
-
-    void textEditorReturnKeyPressed(TextEditor& e) override
-    {
-        if (e.getText().isEmpty() && autoCompleteComponent && autoCompleteComponent->getSuggestion().isNotEmpty()) {
-            e.setText(autoCompleteComponent->getSuggestion());
-            autoCompleteComponent->setSuggestion("");
-        }
     }
 
     void textEditorTextChanged(TextEditor& e) override
