@@ -174,6 +174,7 @@ public:
             editor->addListener(this);
             editor->addKeyListener(this);
             editor->selectAll();
+            editor->setReturnKeyStartsNewLine(false);
 
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
@@ -240,22 +241,7 @@ public:
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        int caretPosition = ed.getCaretPosition();
-        auto text = ed.getText();
-
-        if (!ed.getHighlightedRegion().isEmpty())
-            return;
-
-        if (text[caretPosition - 1] == ';') {
-            text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
-            caretPosition += 1;
-        } else {
-            text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
-            caretPosition += 2;
-        }
-
-        ed.setText(text);
-        ed.setCaretPosition(caretPosition);
+        cnv->grabKeyboardFocus();
     }
 
     // For resize-while-typing behaviour
@@ -320,6 +306,27 @@ public:
             editor->setCaretPosition(editor->getHighlightedRegion().getStart());
             return true;
         }
+        if(key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown())
+        {
+            int caretPosition = editor->getCaretPosition();
+            auto text = editor->getText();
+
+            if (!editor->getHighlightedRegion().isEmpty())
+                return;
+            if (text[caretPosition - 1] == ';') {
+                text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
+                caretPosition += 1;
+            } else {
+                text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
+                caretPosition += 2;
+            }
+            
+            editor->setText(text);
+            editor->setCaretPosition(caretPosition);
+            
+            return true;
+        }
+        
         return false;
     }
 
