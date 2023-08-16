@@ -46,7 +46,10 @@ public:
         cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         dontsave.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         save.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-
+        cancel.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+        dontsave.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+        save.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+        
         setOpaque(false);
     }
 

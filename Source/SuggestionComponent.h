@@ -470,7 +470,6 @@ private:
         return false;
     }
 
-    // If there's a suggestion, it feels right to choose that suggestion with the return key
     void textEditorReturnKeyPressed(TextEditor& e) override
     {
         if (e.getText().isEmpty() && autoCompleteComponent && autoCompleteComponent->getSuggestion().isNotEmpty()) {
