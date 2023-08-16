@@ -472,6 +472,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     
     bool hasSelection = !selectedBoxes.isEmpty();
     bool multiple = selectedBoxes.size() > 1;
+    bool locked = getValue<bool>(cnv->locked);
 
     Object* object = Component::SafePointer<Object>(hasSelection ? selectedBoxes.getFirst() : nullptr);
 
@@ -535,14 +536,14 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addSeparator();
     
     PopupMenu orderMenu;
-    orderMenu.addItem(ToFront, "To Front", object != nullptr);
-    orderMenu.addItem(Forward, "Move forward", object != nullptr);
-    orderMenu.addItem(Backward, "Move backward", object != nullptr);
-    orderMenu.addItem(ToBack, "To Back", object != nullptr);
-    popupMenu.addSubMenu("Order", orderMenu);
+    orderMenu.addItem(ToFront, "To Front", object != nullptr && !locked);
+    orderMenu.addItem(Forward, "Move forward", object != nullptr && !locked);
+    orderMenu.addItem(Backward, "Move backward", object != nullptr && !locked);
+    orderMenu.addItem(ToBack, "To Back", object != nullptr && !locked);
+    popupMenu.addSubMenu("Order", orderMenu, !locked);
     
     popupMenu.addSeparator();
-    popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.getParameters().isEmpty()));
+    popupMenu.addItem(Properties, "Properties", (originalComponent == cnv || (object && !params.getParameters().isEmpty())) && !locked);
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, position, selectedBoxes](int result) mutable {
         cnv->grabKeyboardFocus();
