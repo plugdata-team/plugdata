@@ -316,7 +316,7 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
 // Otherwise use cpath
 #else
 
-static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool recursive, bool onlyFiles)
+static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool recursive, bool onlyFiles, int maximum)
 {
     juce::Array<juce::File> result;
 
@@ -324,11 +324,13 @@ static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool re
         auto isDir = file->IsDir();
 
         if (isDir && recursive && !file->IsSpecialHardLink()) {
-            result.addArray(iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles));
+            result.addArray(iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles, maximum));
         }
         if ((isDir && !onlyFiles) || !isDir) {
             result.add(juce::File(juce::String(file->GetPath().GetRawPath()->buf)));
         }
+        
+        if(maximum > 0 && result.size() >= maximum) break;
     }
 
     dir.Close();
@@ -336,11 +338,11 @@ static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool re
     return result;
 }
 
-juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles)
+juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
 {
     auto pathName = directory.getFullPathName();
     auto dir = cpath::Dir(pathName.toRawUTF8());
-    return iterateDirectoryRecurse(std::move(dir), recursive, onlyFiles);
+    return iterateDirectoryRecurse(std::move(dir), recursive, onlyFiles, maximum);
 }
 
 #endif

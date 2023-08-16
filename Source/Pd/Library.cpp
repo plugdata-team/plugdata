@@ -123,7 +123,7 @@ StringArray Library::autocomplete(String const& query, const File& patchDirector
     
     if(patchDirectory.isDirectory())
     {
-        for (auto const& file : OSUtils::iterateDirectory(patchDirectory, false, true)) {
+        for (auto const& file : OSUtils::iterateDirectory(patchDirectory, false, true, 20)) {
             auto filename = file.getFileNameWithoutExtension();
             if (file.hasFileExtension("pd") && filename.startsWith(query) && !filename.startsWith("help-") && !filename.endsWith("-help")) {
                 result.add(filename);
