@@ -467,7 +467,7 @@ private:
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
-        if (key == KeyPress::returnKey && autoCompleteComponent->getSuggestion() == openedEditor->getText()) {
+        if (key == KeyPress::returnKey && (autoCompleteComponent->getSuggestion() == openedEditor->getText() || openedEditor->getText().contains(" ") || numOptions == 0)) {
             // if the caret is already at the end, we want to close upon enter key
             // By ignoring the keypress we'll trigger the return callback on text editor which will close it
             return false;
