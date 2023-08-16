@@ -29,7 +29,7 @@ public:
     
     void mouseUp(MouseEvent const& e) override
     {
-        if (getValue<bool>(object->locked) && (e.mods.isPopupMenu() || e.getNumberOfClicks() >= 2)) {
+        if (getValue<bool>(object->locked) && e.getNumberOfClicks() >= 2) {
             
             PopupMenu popupMenu;
             
