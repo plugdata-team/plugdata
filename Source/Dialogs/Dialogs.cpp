@@ -46,6 +46,8 @@ Component* Dialogs::showTextEditorDialog(String const& text, String filename, st
 
 void Dialogs::appendTextToTextEditorDialog(Component* dialog, String const& text)
 {
+    if(!dialog) return;
+    
     auto& editor = dynamic_cast<TextEditorDialog*>(dialog)->editor;
     editor.setText(editor.getText() + text);
 }
