@@ -211,7 +211,7 @@ public:
 
     virtual void updateDrawables() {};
 
-    virtual void createPanel(int type, char const* snd, char const* location);
+    virtual void createPanel(int type, char const* snd, char const* location, const char* callbackName);
 
     void sendBang(char const* receiver) const;
     void sendFloat(char const* receiver, float value) const;

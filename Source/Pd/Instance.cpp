@@ -176,18 +176,22 @@ void Instance::initialisePd(String& pdlua_version)
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
-    auto gui_trigger = [](void* instance, char const* name, t_atom* arg1, t_atom* arg2, t_atom* arg3) {
+    auto gui_trigger = [](void* instance, char const* name,  int argc, t_atom* argv) {
         if (String::fromUTF8(name) == "openpanel") {
 
-            static_cast<Instance*>(instance)->createPanel(atom_getfloat(arg1), atom_getsymbol(arg3)->s_name, atom_getsymbol(arg2)->s_name);
+            static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback");
         }
-        if (String::fromUTF8(name) == "openfile") {
+        if (String::fromUTF8(name) == "elsepanel") {
 
-            auto url = String::fromUTF8(atom_getsymbol(arg1)->s_name);
+            static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "symbol");
+        }
+        if (String::fromUTF8(name) == "openfile" || String::fromUTF8(name) == "openfile_open") {
+
+            auto url = String::fromUTF8(atom_getsymbol(argv)->s_name);
             if (URL::isProbablyAWebsiteURL(url)) {
                 URL(url).launchInDefaultBrowser();
             } else {
-                File(String::fromUTF8(atom_getsymbol(arg1)->s_name)).startAsProcess();
+                File(String::fromUTF8(atom_getsymbol(argv)->s_name)).startAsProcess();
             }
         }
         if (String::fromUTF8(name) == "repaint") {
@@ -676,19 +680,18 @@ std::deque<std::tuple<void*, String, int, int>>& Instance::getConsoleHistory()
     return consoleHandler.consoleHistory;
 }
 
-void Instance::createPanel(int type, char const* snd, char const* location)
+void Instance::createPanel(int type, char const* snd, char const* location, const char* callbackName)
 {
-
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);
 
     if (type) {
         MessageManager::callAsync(
-            [this, obj, defaultFile]() mutable {
+            [this, obj, defaultFile, callback = String(callbackName)]() mutable {
                 auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
-                openChooser->launchAsync(folderChooserFlags, [this, obj](FileChooser const& fileChooser) {
+                openChooser->launchAsync(folderChooserFlags, [this, obj, callback](FileChooser const& fileChooser) {
                     auto const file = fileChooser.getResult();
 
                     lockAudioThread();
@@ -701,28 +704,29 @@ void Instance::createPanel(int type, char const* snd, char const* location)
 
                     t_atom argv[1];
                     libpd_set_symbol(argv, pathname.toRawUTF8());
-                    pd_typedmess(obj, generateSymbol("callback"), 1, argv);
+                    
+                    pd_typedmess(obj, generateSymbol(callback), 1, argv);
 
                     unlockAudioThread();
                 });
             });
     } else {
         MessageManager::callAsync(
-            [this, obj, defaultFile]() mutable {
+            [this, obj, defaultFile, callback = String(callbackName)]() mutable {
                 constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
                 saveChooser = std::make_unique<FileChooser>("Save...", defaultFile, "", true);
 
                 saveChooser->launchAsync(folderChooserFlags,
-                    [this, obj](FileChooser const& fileChooser) {
+                    [this, obj, callback](FileChooser const& fileChooser) {
                         const auto file = fileChooser.getResult();
-
+                    
                         const auto* path = file.getFullPathName().toRawUTF8();
 
                         t_atom argv[1];
                         libpd_set_symbol(argv, path);
 
                         lockAudioThread();
-                        pd_typedmess(obj, generateSymbol("callback"), 1, argv);
+                        pd_typedmess(obj, generateSymbol(callback), 1, argv);
                         unlockAudioThread();
                     });
             });
