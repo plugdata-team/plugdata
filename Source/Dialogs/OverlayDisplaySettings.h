@@ -134,7 +134,7 @@ public:
         buttonGroups.add(new OverlaySelector(overlayTree, Border, "border", "Border", "Plugin / window workspace size"));
         buttonGroups.add(new OverlaySelector(overlayTree, Index, "index", "Index", "Object index in patch"));
         // buttonGroups.add(new OverlaySelector(overlayTree, Coordinate, "coordinate", "Coordinate", "Object coordinate in patch"));
-        // buttonGroups.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activation state", "Data flow display"));
+        buttonGroups.add(new OverlaySelector(overlayTree, ActivationState, "activation_state", "Activity", "Show object activity"));
         buttonGroups.add(new OverlaySelector(overlayTree, Direction, "direction", "Direction", "Direction of connection"));
         buttonGroups.add(new OverlaySelector(overlayTree, Order, "order", "Order", "Trigger order of multiple outlets"));
 
@@ -162,7 +162,7 @@ public:
 
         // doesn't exist yet
         // buttonGroups[OverlayCoordinate].setBounds(bounds.removeFromTop(28));
-        // buttonGroups[OverlayActivationState].setBounds(bounds.removeFromTop(28));
+        buttonGroups[OverlayActivationState]->setBounds(bounds.removeFromTop(itemHeight));
 
         bounds.removeFromTop(spacing);
         connectionLabel.setBounds(bounds.removeFromTop(labelHeight));

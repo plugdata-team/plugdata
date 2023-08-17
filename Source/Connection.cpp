@@ -397,6 +397,7 @@ void Connection::updateOverlays(int overlay)
 
     showDirection = overlay & Overlay::Direction;
     showConnectionOrder = overlay & Overlay::Order;
+    showActiveState = overlay & Overlay::ActivationState;
     updatePath();
     resizeToFit();
     repaint();
@@ -404,6 +405,11 @@ void Connection::updateOverlays(int overlay)
 
 void Connection::paint(Graphics& g)
 {
+    // fix for JUCE graphics glitch: when moving objects the connection path will paint faster than the Activity overlay
+    if (showActiveState) {
+        inobj->repaint();
+        outobj->repaint();
+    }
     renderConnectionPath(g,
         cnv,
         toDrawLocalSpace,
@@ -1210,6 +1216,9 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 {
     // TODO: indicator
     // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
+    
+    outobj->triggerOverlayActiveState();
+    inobj->triggerOverlayActiveState();
 
     auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
 
