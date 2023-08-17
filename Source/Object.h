@@ -134,6 +134,8 @@ private:
 
     bool showActiveState = false;
     float activeStateAlpha = 0.0f;
+        
+    Image activityOverlayImage;
 
     ObjectDragState& ds;
 

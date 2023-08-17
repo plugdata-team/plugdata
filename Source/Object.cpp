@@ -520,16 +520,10 @@ void Object::triggerOverlayActiveState()
 void Object::paint(Graphics& g)
 {
     if ((showActiveState && isTimerRunning(2))) {
+        g.setOpacity(activeStateAlpha);
         // show activation state glow
-        g.saveState();
-
-        g.excludeClipRegion(getLocalBounds().reduced(Object::margin + 1));
-
-        Path objectShadow;
-        objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 2), Corners::objectCornerRadius);
-
-        StackShadow::renderDropShadow(g, objectShadow, findColour(PlugDataColour::dataColourId).withAlpha(activeStateAlpha), 5, { 0, 0 }, 0);
-        g.restoreState();
+        g.drawImage(activityOverlayImage, getLocalBounds().toFloat());
+        g.setOpacity(1.0f);
     }
     if ((selectedFlag && !cnv->isGraph) || newObjectEditor) {
         if (newObjectEditor) {
@@ -618,6 +612,21 @@ void Object::resized()
 
         index++;
     }
+    
+    if(!getLocalBounds().isEmpty()) {
+        // Pre-render activity state overlay here since it'll always look the same for the same object size
+        activityOverlayImage = Image(Image::ARGB, getWidth(), getHeight(), true);
+        Graphics g(activityOverlayImage);
+        g.saveState();
+        
+        g.excludeClipRegion(getLocalBounds().reduced(Object::margin + 1));
+        
+        Path objectShadow;
+        objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 2), Corners::objectCornerRadius);
+        StackShadow::renderDropShadow(g, objectShadow, findColour(PlugDataColour::dataColourId), 5, { 0, 0 }, 0);
+        g.restoreState();
+    }
+    
 }
 
 void Object::updateTooltips()
