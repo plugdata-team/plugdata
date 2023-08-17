@@ -138,7 +138,7 @@ void Object::timerCallback(int timerID)
         break;
     }
     case 2: {
-        activeStateAlpha -= 0.08f;
+        activeStateAlpha -= 0.16f;
         repaint();
         if (activeStateAlpha <= 0.0f) {
             activeStateAlpha = 0.0f;
@@ -513,7 +513,7 @@ void Object::triggerOverlayActiveState()
 {
     if (showActiveState) {
         activeStateAlpha = 1.0f;
-        startTimer(2, 1000 / 30);
+        startTimer(2, 1000 / 15);
     }
 }
 

@@ -405,11 +405,6 @@ void Connection::updateOverlays(int overlay)
 
 void Connection::paint(Graphics& g)
 {
-    // fix for JUCE graphics glitch: when moving objects the connection path will paint faster than the Activity overlay
-    if (showActiveState) {
-        inobj->repaint();
-        outobj->repaint();
-    }
     renderConnectionPath(g,
         cnv,
         toDrawLocalSpace,

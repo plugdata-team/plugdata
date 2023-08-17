@@ -711,7 +711,7 @@ public:
         if (area.getWidth() < 2 || area.getHeight() < 2)
             return;
 
-        auto fastHash = hash(String(path.getBounds().toString() + String(radius) + String(offset.x) + String(offset.y) + String(spread) + String(scale)));
+        auto fastHash = hash(String(path.getBounds().toString() + String(radius) + String(offset.x) + String(offset.y) + String(spread)));
 
         Image renderedPath = dropShadowCache.getFromHashCode(fastHash);
         if (renderedPath.isNull()) {
