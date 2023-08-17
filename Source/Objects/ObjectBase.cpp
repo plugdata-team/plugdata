@@ -255,12 +255,23 @@ void ObjectBase::closeOpenedSubpatchers()
     }
 }
 
-bool ObjectBase::click()
+bool ObjectBase::click(Point<int> position, bool shift, bool alt)
 {
-    if (auto obj = ptr.get<t_object>()) {
-        if (libpd_has_click_function(obj.get())) {
-            pd->sendDirectMessage(obj.get(), "click", {});
-            return true;
+    if (auto obj = ptr.get<t_text>()) {
+        
+        t_text* x = obj.get();
+        if (x->te_type == T_OBJECT)
+        {
+            t_symbol *clicksym = gensym("click");
+            if (zgetfn(&x->te_pd, clicksym))
+            {
+                pd_vmess(&x->te_pd, clicksym, "fffff",
+                    (double)position.x, (double)position.y,
+                        (double)shift, (double)0, (double)alt);
+
+                return true;
+            }
+            else return false;
         }
     }
 

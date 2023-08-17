@@ -57,7 +57,7 @@ public:
     {
         if(!e.mods.isLeftButtonDown()) return;
         
-        if (locked && click()) {
+        if (locked && click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown())) {
             return;
         }
 
