@@ -69,6 +69,8 @@ public:
 
     void updateOverlays(int overlay);
 
+    void updateActivityDropshadow();
+
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     void textEditorTextChanged(TextEditor& ed) override;
 

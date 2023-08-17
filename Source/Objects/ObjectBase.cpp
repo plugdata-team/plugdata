@@ -597,6 +597,8 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
 
 void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
 {
+    object->updateActivityDropshadow();
+
     auto sym = hash(symbol);
 
     switch (sym) {

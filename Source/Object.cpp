@@ -151,6 +151,12 @@ void Object::timerCallback(int timerID)
     }
 }
 
+void Object::updateActivityDropshadow()
+{
+    if (showActiveState)
+        repaint();
+}
+
 void Object::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (auto selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
