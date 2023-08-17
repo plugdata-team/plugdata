@@ -142,8 +142,8 @@ struct Icons {
     inline static const String GlyphPrint = CharPointer_UTF8("\xc3\xac");
     inline static const String GlyphNetsend = CharPointer_UTF8("\xc3\xae");
     inline static const String GlyphNetreceive = CharPointer_UTF8("\xc3\xad");
-    inline static const String GlyphTimer = CharPointer_UTF8("\xc3\xaf");
-    inline static const String GlyphDelay = CharPointer_UTF8("\xc3\xb0");
+    inline static const String GlyphTimer = CharPointer_UTF8("\xc3\xb6");
+    inline static const String GlyphDelay = CharPointer_UTF8("\xc3\xb7");
     inline static const String GlyphTrigger = CharPointer_UTF8("\xc3\xb1");
     inline static const String GlyphMoses = CharPointer_UTF8("\xc3\xb2");
     inline static const String GlyphSpigot = CharPointer_UTF8("\xc3\xb3");
