@@ -9,7 +9,9 @@
 #include "Utility/ModifierKeyListener.h"
 #include <JuceHeader.h>
 #include "Utility/SettingsFile.h"
+#include "Utility/RateReducer.h"
 
+#define ACTIVITY_UPDATE_RATE 15
 
 class ObjectBase;
 class Iolet;
@@ -138,6 +140,8 @@ private:
     Image activityOverlayImage;
 
     ObjectDragState& ds;
+
+    RateReducer rateReducer = RateReducer(ACTIVITY_UPDATE_RATE);
 
     std::unique_ptr<TextEditor> newObjectEditor;
 
