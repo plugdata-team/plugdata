@@ -133,6 +133,7 @@ public:
 
 struct Dialogs {
     static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback);
+    static void appendTextToTextEditorDialog(Component* dialog, String const& text);
 
     static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0);
     static void showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, ArrayDialogCallback callback);

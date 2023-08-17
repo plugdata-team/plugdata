@@ -44,6 +44,12 @@ Component* Dialogs::showTextEditorDialog(String const& text, String filename, st
     return editor;
 }
 
+void Dialogs::appendTextToTextEditorDialog(Component* dialog, String const& text)
+{
+    auto& editor = dynamic_cast<TextEditorDialog*>(dialog)->editor;
+    editor.setText(editor.getText() + text);
+}
+
 void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin)
 {
     if (*target)

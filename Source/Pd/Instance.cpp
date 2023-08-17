@@ -177,25 +177,78 @@ void Instance::initialisePd(String& pdlua_version)
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
     auto gui_trigger = [](void* instance, char const* name,  int argc, t_atom* argv) {
-        if (String::fromUTF8(name) == "openpanel") {
-
-            static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback");
-        }
-        if (String::fromUTF8(name) == "elsepanel") {
-
-            static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "symbol");
-        }
-        if (String::fromUTF8(name) == "openfile" || String::fromUTF8(name) == "openfile_open") {
-
-            auto url = String::fromUTF8(atom_getsymbol(argv)->s_name);
-            if (URL::isProbablyAWebsiteURL(url)) {
-                URL(url).launchInDefaultBrowser();
-            } else {
-                File(String::fromUTF8(atom_getsymbol(argv)->s_name)).startAsProcess();
+        
+        switch(hash(name))
+        {
+            case hash("openpanel"):
+            {
+                static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback");
+                break;
             }
-        }
-        if (String::fromUTF8(name) == "repaint") {
-            static_cast<Instance*>(instance)->updateDrawables();
+            case hash("elsepanel"):
+            {
+                static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "symbol");
+                break;
+            }
+            case hash("openfile"):
+            case hash("openfile_open"):
+            {
+                auto url = String::fromUTF8(atom_getsymbol(argv)->s_name);
+                if (URL::isProbablyAWebsiteURL(url)) {
+                    URL(url).launchInDefaultBrowser();
+                } else {
+                    if(File(url).exists())
+                    {
+                        File(url).startAsProcess();
+                    }
+                    else if(argc > 1)
+                    {
+                        auto fullPath = File(String::fromUTF8(atom_getsymbol(argv)->s_name)).getChildFile(url);
+                        if(fullPath.exists())
+                        {
+                            fullPath.startAsProcess();
+                        }
+                    }
+                }
+                
+                break;
+            }
+            case hash("repaint"):
+            {
+                static_cast<Instance*>(instance)->updateDrawables();
+                break;
+            }
+            case hash("cyclone_editor"):
+            {
+                auto ptr = (unsigned long)argv->a_w.w_gpointer;
+                auto width = atom_getfloat(argv + 1);
+                auto height = atom_getfloat(argv + 2);
+                String owner, title;
+                bool hasCallback;
+                
+                if(argc > 5)
+                {
+                    owner = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
+                    title = String::fromUTF8(atom_getsymbol(argv + 4)->s_name);
+                    hasCallback = atom_getfloat(argv + 5);
+                }
+                else {
+                    title = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
+                    hasCallback = atom_getfloat(argv + 4);
+                }
+                
+                static_cast<Instance*>(instance)->showTextEditor(ptr, Rectangle<int>(width, height), owner, title, hasCallback);
+                
+                break;
+            }
+            case hash("cyclone_editor_append"):
+            {
+                auto ptr = (unsigned long)argv->a_w.w_gpointer;
+                auto text = String::fromUTF8(atom_getsymbol(argv + 1)->s_name);
+                
+                static_cast<Instance*>(instance)->addTextToTextEditor(ptr, text);
+                break;
+            }
         }
     };
 

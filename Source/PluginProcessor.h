@@ -69,6 +69,9 @@ public:
     void receivePolyAftertouch(int channel, int pitch, int value) override;
     void receiveMidiByte(int port, int byte) override;
     void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
+        
+    void addTextToTextEditor(unsigned long ptr, String text) override;
+    void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String owner, String title, bool hasCallback) override;
 
     void updateDrawables() override;
 
@@ -188,6 +191,8 @@ private:
 
     dsp::Limiter<float> limiter;
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
+        
+    std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
     static inline const String else_version = "ELSE v1.0-rc9pre";
     static inline const String cyclone_version = "cyclone v0.7-0";

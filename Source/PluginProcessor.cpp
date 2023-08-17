@@ -1420,6 +1420,34 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     }
 }
 
+void PluginProcessor::addTextToTextEditor(unsigned long ptr, String text)
+{
+    Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), text);
+}
+void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, String owner, String title, bool hasCallback)
+{
+    static std::unique_ptr<Dialog> saveDialog = nullptr;
+    
+    textEditorDialogs[ptr].reset(Dialogs::showTextEditorDialog("", title, [this, ptr](String const& lastText, bool hasChanged) {
+        if (!hasChanged) {
+            textEditorDialogs[ptr].reset(nullptr);
+            return;
+        }
+
+        Dialogs::showSaveDialog(
+            &saveDialog, textEditorDialogs[ptr].get(), "", [this, ptr, lastText](int result) mutable {
+                if (result == 2) {
+                    // TODO: callback here!
+                    textEditorDialogs[ptr].reset(nullptr);
+                }
+                if (result == 1) {
+                    textEditorDialogs[ptr].reset(nullptr);
+                }
+            },
+            15);
+    }));
+}
+
 void PluginProcessor::performParameterChange(int type, String const& name, float value)
 {
     // Type == 1 means it sets the change gesture state
