@@ -511,7 +511,10 @@ void Object::paintOverChildren(Graphics& g)
 
 void Object::triggerOverlayActiveState()
 {
-    if (!showActiveState && rateReducer.tooFast())
+    if (!showActiveState)
+        return;
+
+    if (rateReducer.tooFast())
         return;
 
     activeStateAlpha = 1.0f;
@@ -527,7 +530,7 @@ void Object::triggerOverlayActiveState()
 
 void Object::paint(Graphics& g)
 {
-    if ((showActiveState && isTimerRunning(2))) {
+    if ((showActiveState || isTimerRunning(2))) {
         g.setOpacity(activeStateAlpha);
         // show activation state glow
         g.drawImage(activityOverlayImage, getLocalBounds().toFloat());
