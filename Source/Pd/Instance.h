@@ -221,7 +221,7 @@ public:
     void sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
 
     virtual void addTextToTextEditor(unsigned long ptr, String text) {};
-    virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String owner, String title, bool hasCallback) {};
+    virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) {};
 
     virtual void receivePrint(String const& message) {};
 

@@ -71,7 +71,7 @@ public:
     void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
         
     void addTextToTextEditor(unsigned long ptr, String text) override;
-    void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String owner, String title, bool hasCallback) override;
+    void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
 
     void updateDrawables() override;
 

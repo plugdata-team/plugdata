@@ -237,7 +237,7 @@ void Instance::initialisePd(String& pdlua_version)
                     hasCallback = atom_getfloat(argv + 4);
                 }
                 
-                static_cast<Instance*>(instance)->showTextEditor(ptr, Rectangle<int>(width, height), owner, title, hasCallback);
+                static_cast<Instance*>(instance)->showTextEditor(ptr, Rectangle<int>(width, height), title);
                 
                 break;
             }

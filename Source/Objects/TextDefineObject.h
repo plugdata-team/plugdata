@@ -60,7 +60,6 @@ public:
 
     void setText(String text)
     {
-
         // remove repeating spaces
         while (text.contains("  ")) {
             text = text.replace("  ", " ");

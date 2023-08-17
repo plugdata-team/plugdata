@@ -129,6 +129,11 @@ public:
     {
         openSubpatch();
     }
+    
+    bool showParametersWhenSelected() override
+    {
+        return true;
+    }
 
     static void checkHvccCompatibility(const String& objectText, pd::Patch::Ptr patch, String const& prefix = "")
     {
