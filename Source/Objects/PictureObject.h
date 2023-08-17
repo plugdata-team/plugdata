@@ -46,6 +46,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 1.0f);

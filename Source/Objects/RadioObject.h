@@ -158,6 +158,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         float pos = isVertical ? e.y : e.x;
         float div = isVertical ? getHeight() : getWidth();
 

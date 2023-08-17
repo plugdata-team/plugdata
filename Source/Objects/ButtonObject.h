@@ -101,6 +101,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         if (auto button = ptr.get<t_fake_button>()) {
             outlet_float(button->x_obj.ob_outlet, 1);
         }

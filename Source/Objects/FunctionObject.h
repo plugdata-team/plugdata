@@ -196,7 +196,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (ModifierKeys::getCurrentModifiers().isRightButtonDown())
+        if (e.mods.isRightButtonDown())
             return;
 
         auto realPoints = getRealPoints();

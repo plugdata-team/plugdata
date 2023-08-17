@@ -90,6 +90,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         startEdition();
         if (auto bng = ptr.get<t_pd>())
             pd_bang(bng.get());
