@@ -511,15 +511,26 @@ void Object::paintOverChildren(Graphics& g)
 
 void Object::triggerOverlayActiveState()
 {
-    if (showActiveState) {
-        activeStateAlpha = 1.0f;
-        startTimer(2, 1000 / 15);
-    }
+    if (!showActiveState)
+        return;
+
+    if (rateReducer.tooFast())
+        return;
+
+    activeStateAlpha = 1.0f;
+    startTimer(2, 1000 / ACTIVITY_UPDATE_RATE);
+
+    // Because the timer is being reset when new messages come in
+    // it will not trigger it's callback until it's free-running
+    // so we manually call the repaint here if this happens
+    MessageManager::callAsync([this](){
+        repaint();
+    });
 }
 
 void Object::paint(Graphics& g)
 {
-    if ((showActiveState && isTimerRunning(2))) {
+    if ((showActiveState || isTimerRunning(2))) {
         g.setOpacity(activeStateAlpha);
         // show activation state glow
         g.drawImage(activityOverlayImage, getLocalBounds().toFloat());
