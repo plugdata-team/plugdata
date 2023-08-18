@@ -1213,7 +1213,6 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
     // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
     
     outobj->triggerOverlayActiveState();
-    inobj->triggerOverlayActiveState();
 
     auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
 
