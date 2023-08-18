@@ -11,6 +11,7 @@ option(VERBOSE "" OFF)
 
 set (CMAKE_CXX_STANDARD 20)
 
+# Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 
@@ -389,6 +390,10 @@ set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DE
 set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+
+# To make sure externals work, we need to make the standalone have its symbols be visible
+set_target_properties(plugdata_standalone PROPERTIES CXX_VISIBILITY_PRESET default)
+set_target_properties(pd PROPERTIES CXX_VISIBILITY_PRESET default)
 
 
 set_target_properties(plugdata PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
