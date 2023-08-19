@@ -10,7 +10,6 @@
 
 struct MidiDeviceManager : public ChangeListener, public AsyncUpdater
 {
-    
     // Helper functions to encode/decode regular MIDI events into a sysex event
     // The reason we do this, is that we want to append extra information to the MIDI event when it comes in from pd or the device, but JUCE won't allow this
     // We still want to be able to use handy JUCE stuff for MIDI timing, so we treat every MIDI event as sysex
@@ -355,9 +354,19 @@ public:
         }
     }
     
-    MidiOutput* getMidiOutputByIndexIfEnabled(int index)
+    void sendMidiOutputMessage(int device, MidiMessage& message)
     {
-        auto idToFind = getOutputDevices()[index].identifier;
+        // Device ID 0 means all devices
+        if(device == 0)
+        {
+            for(auto* midiOutput : midiOutputs)
+            {
+                midiOutput->sendMessageNow(message);
+            }
+            return;
+        }
+        
+        auto idToFind = getOutputDevices()[device - 1].identifier;
         // The order of midiOutputs is not necessarily the same as that of lastMidiOutputs, that's why we need to check
         
         if(idToFind == fromPlugdata->getIdentifier())
@@ -368,11 +377,10 @@ public:
         {
             if(idToFind == midiOutput->getIdentifier())
             {
-                return midiOutput;
+                midiOutput->sendMessageNow(message);
+                break;
             }
         }
-        
-        return nullptr;
     }
     
     int getMidiInputDeviceIndex(const String& identifier)

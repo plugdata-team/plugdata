@@ -553,13 +553,13 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
             int device;
             auto message = MidiDeviceManager::convertFromSysExFormat(bufferIterator.getMessage(), device);
             
-            if(device > midiDeviceManager->getOutputDevices().size() - 1)
+            if(device > midiDeviceManager->getOutputDevices().size())
             {
                 midiBufferInternalSynth.addEvent(message, 0);
             }
-            else if(auto* midiOutput = midiDeviceManager->getMidiOutputByIndexIfEnabled(device))
+            else
             {
-                midiOutput->sendMessageNow(message);
+                midiDeviceManager->sendMidiOutputMessage(device, message);
             }
         }
 

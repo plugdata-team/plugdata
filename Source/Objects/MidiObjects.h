@@ -19,12 +19,26 @@ public:
     
     void setChannel(int channel)
     {
-        object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(channel));
+        if(channel == 1)
+        {
+            object->setType(getText().upToFirstOccurrenceOf(" ", false, false));
+        }
+        else {
+            if(midiInput) channel -= 16;
+            object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(channel));
+        }
     }
     
     void setChannelAndCC(int channel, int cc)
     {
-        object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(cc) + " " + String(channel));
+        if(channel == 1)
+        {
+            object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(cc));
+        }
+        else {
+            if(midiInput) channel -= 16;
+            object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(channel));
+        }
     }
     
     void mouseUp(MouseEvent const& e) override
@@ -37,13 +51,15 @@ public:
             auto currentPort = text.size() > 1 ? text[1].getIntValue() : 0;
             auto currentCC = text.size() > 2 ? text[2].getIntValue() : 0;
             
+            popupMenu.addItem(1, "All devices by channel", true, currentPort == 0);
+            
             if(ProjectInfo::isStandalone)
             {
                 auto* midiDeviceManager =  ProjectInfo::getMidiDeviceManager();
                 
                 if(midiInput)
                 {
-                    int port = 0;
+                    int port = 1;
                     for(auto input : midiDeviceManager->getInputDevices()) {
                         PopupMenu subMenu;
                         for(int ch = 1; ch < 16; ch++)
@@ -65,7 +81,7 @@ public:
                     }
                 }
                 else {
-                    int port = 0;
+                    int port = 1;
                     for(auto output : midiDeviceManager->getOutputDevices()) {
                         PopupMenu subMenu;
                         for(int ch = 1; ch < 16; ch++)
@@ -74,7 +90,6 @@ public:
                             if(isCtl)
                             {
                                 subMenu.addSubMenu("Channel " + String(ch), getCCSubmenu(portNumber, portNumber == currentPort, currentCC), true);
-                                // Call function to append CC submenu!
                             }
                             else {
                                 subMenu.addItem(portNumber, "Channel " + String(ch), true, portNumber == currentPort);
