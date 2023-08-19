@@ -25,6 +25,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         openTextEditor();
     }
 
@@ -58,7 +60,6 @@ public:
 
     void setText(String text)
     {
-
         // remove repeating spaces
         while (text.contains("  ")) {
             text = text.replace("  ", " ");
@@ -178,6 +179,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         openTextEditor();
     }
 

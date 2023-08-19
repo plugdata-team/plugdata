@@ -197,9 +197,9 @@ file(GLOB_RECURSE PLAITS_SOURCES
 )
 
 list(APPEND ELSE_SOURCES ${PLAITS_SOURCES})
+list(APPEND ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/signal/sfz~/sfz~.c)
 
 file(GLOB_RECURSE AUBIO_SOURCES
-
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/aubio/src/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/aubio/src/*/*.c
 )
@@ -401,11 +401,17 @@ set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(externals fluidlite lua)
-target_link_libraries(externals-multi fluidlite lua)
-
 target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/signal/sfz~)
+
+add_dependencies(externals sfizz)
+add_dependencies(externals-multi sfizz)
+
+target_link_libraries(externals fluidlite lua sfizz)
+target_link_libraries(externals-multi fluidlite lua sfizz)
+
 # ------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
 # ------------------------------------------------------------------------------#

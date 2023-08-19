@@ -194,6 +194,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         showEditor(); // TODO: Do we even need to?
     }
 

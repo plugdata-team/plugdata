@@ -762,7 +762,7 @@ void repeat_tilde_setup();
 void setup_xgate0x2emc_tilde();
 void setup_xfade0x2emc_tilde();
 
-//void sfz_tilde_setup();
+void sfz_tilde_setup();
 void knob_setup();
                                                                                                                                                      
 
@@ -1068,6 +1068,7 @@ void libpd_init_else(void)
     repeat_tilde_setup();
     setup_xgate0x2emc_tilde();
     setup_xfade0x2emc_tilde();
+    sfz_tilde_setup();
 }
 
 void libpd_init_cyclone(void)

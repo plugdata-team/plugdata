@@ -33,9 +33,8 @@
 #include "Dialogs/Dialogs.h"
 #include "Sidebar/Sidebar.h"
 
-
-
 extern "C" {
+#include "../Libraries/cyclone/shared/common/file.h"
 #include "x_libpd_extra_utils.h"
 EXTERN char* pd_version;
 }
@@ -1418,6 +1417,92 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
         break;
     }
     }
+}
+
+void PluginProcessor::addTextToTextEditor(unsigned long ptr, String text)
+{
+    Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), text);
+}
+void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title)
+{
+    static std::unique_ptr<Dialog> saveDialog = nullptr;
+    
+    textEditorDialogs[ptr].reset(Dialogs::showTextEditorDialog("", title, [this, title, ptr](String const& lastText, bool hasChanged) {
+        if (!hasChanged) {
+            textEditorDialogs[ptr].reset(nullptr);
+            return;
+        }
+
+        Dialogs::showSaveDialog(
+            &saveDialog, textEditorDialogs[ptr].get(), "", [this, ptr, title, text = lastText](int result) mutable {
+                
+                if (result == 2) {
+                    
+                    lockAudioThread();
+                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, NULL);
+                    unlockAudioThread();
+                    
+                    // remove repeating spaces
+                    while (text.contains("  ")) {
+                        text = text.replace("  ", " ");
+                    }
+                    text = text.replace("\r ", "\r");
+                    text = text.replace(";\r", ";");
+                    text = text.replace("\r;", ";");
+                    text = text.replace(" ;", ";");
+                    text = text.replace("; ", ";");
+                    text = text.replaceCharacters("\r", " ");
+                    text = text.trimStart();
+                    auto lines = StringArray::fromTokens(text, ";", "\"");
+                    auto atoms = std::vector<t_atom>();
+                    atoms.reserve(lines.size());
+
+                    int count = 0;
+                    for (auto const& line : lines) {
+                        count++;
+                        auto words = StringArray::fromTokens(line, " ", "\"");
+                        for (auto const& word : words) {
+                            atoms.emplace_back();
+                            // check if string is a valid number
+                            auto charptr = word.getCharPointer();
+                            auto ptr = charptr;
+                            auto value = CharacterFunctions::readDoubleValue(ptr);
+                            if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
+                                SETFLOAT(&atoms.back(), word.getFloatValue());
+                            } else {
+                                SETSYMBOL(&atoms.back(), generateSymbol(word));
+                            }
+                        }
+
+                        if (count != lines.size()) {
+                            atoms.emplace_back();
+                            SETSYMBOL(&atoms.back(), generateSymbol(";"));
+                        }
+                        
+                        
+                        
+                        lockAudioThread();
+                        pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("addline"), atoms.size(), atoms.data());
+                        unlockAudioThread();
+                        
+                    }
+                    
+                    t_atom fake_path;
+                    SETSYMBOL(&fake_path, generateSymbol(title.toRawUTF8()));
+      
+                    lockAudioThread();
+                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("path"), 1, &fake_path);
+                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("end"), 0, NULL);
+                    unlockAudioThread();
+                    
+                    textEditorDialogs[ptr].reset(nullptr);
+                }
+                if (result == 1) {
+                    textEditorDialogs[ptr].reset(nullptr);
+                }
+            },
+            15);
+    }));
 }
 
 void PluginProcessor::performParameterChange(int type, String const& name, float value)

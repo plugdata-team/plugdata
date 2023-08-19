@@ -8,6 +8,10 @@
 
 #include "Utility/ModifierKeyListener.h"
 #include <JuceHeader.h>
+#include "Utility/SettingsFile.h"
+#include "Utility/RateReducer.h"
+
+#define ACTIVITY_UPDATE_RATE 15
 
 class ObjectBase;
 class Iolet;
@@ -19,7 +23,7 @@ class ObjectBoundsConstrainer;
 class Object : public Component
     , public Value::Listener
     , public ChangeListener
-    , public Timer
+    , public MultiTimer
     , private TextEditor::Listener {
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
@@ -31,8 +35,7 @@ public:
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
-
-    void timerCallback() override;
+    void timerCallback(int timerID) override;
 
     void paint(Graphics&) override;
     void paintOverChildren(Graphics&) override;
@@ -72,6 +75,8 @@ public:
     void textEditorTextChanged(TextEditor& ed) override;
 
     bool hitTest(int x, int y) override;
+
+    void triggerOverlayActiveState();
 
     bool validResizeZone = false;
 
@@ -129,7 +134,14 @@ private:
     bool indexShown = false;
     bool isHvccCompatible = true;
 
+    bool showActiveState = false;
+    float activeStateAlpha = 0.0f;
+        
+    Image activityOverlayImage;
+
     ObjectDragState& ds;
+
+    RateReducer rateReducer = RateReducer(ACTIVITY_UPDATE_RATE);
 
     std::unique_ptr<TextEditor> newObjectEditor;
 

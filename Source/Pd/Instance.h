@@ -211,7 +211,7 @@ public:
 
     virtual void updateDrawables() {};
 
-    virtual void createPanel(int type, char const* snd, char const* location);
+    virtual void createPanel(int type, char const* snd, char const* location, const char* callbackName);
 
     void sendBang(char const* receiver) const;
     void sendFloat(char const* receiver, float value) const;
@@ -219,6 +219,9 @@ public:
     void sendList(char const* receiver, std::vector<pd::Atom> const& list) const;
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
     void sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
+
+    virtual void addTextToTextEditor(unsigned long ptr, String text) {};
+    virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) {};
 
     virtual void receivePrint(String const& message) {};
 

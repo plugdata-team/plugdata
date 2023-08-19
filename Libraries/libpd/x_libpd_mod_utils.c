@@ -748,28 +748,6 @@ int libpd_can_redo(t_canvas* cnv)
     return 0;
 }
 
-int libpd_has_click_function(t_object const* x)
-{
-    
-    const t_class *c = x->te_g.g_pd;
-    t_methodentry *m, *mlist;
-    int i;
-
-#ifdef PDINSTANCE
-    mlist = c->c_methods[pd_this->pd_instanceno];
-#else
-    mlist = c->c_methods;
-#endif
-    for (i = c->c_nmethod, m = mlist; i--; m++) {
-        if (m->me_name && m->me_name->s_name && !strcmp(m->me_name->s_name, "click") && m->me_arg[0] == '\0') {
-            
-            return 1;
-        }
-    }
-    
-    return 0;
-}
-
 // Can probably be used as a general purpose undo action on an object?
 void libpd_undo_apply(t_canvas* cnv, t_gobj* obj)
 {

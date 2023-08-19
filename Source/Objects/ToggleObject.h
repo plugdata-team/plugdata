@@ -128,6 +128,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         startEdition();
         auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
         sendToggleValue(newValue);

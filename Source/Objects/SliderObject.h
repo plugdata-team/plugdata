@@ -46,6 +46,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         auto normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
         auto highSensitivity = normalSensitivity * 10;
 

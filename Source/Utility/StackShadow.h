@@ -14,6 +14,9 @@
 // https://gist.github.com/benjamin9999/3809142
 // http://www.antigrain.com/__code/include/agg_blur.h.html
 
+#include <JuceHeader.h>
+#include "Utility/HashUtils.h"
+
 #if JUCE_WINDOWS
 // Enable for JUCE >=7.0.6
 //#    include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
@@ -61,6 +64,8 @@ class StackShadow {
         24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
         24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24
     };
+
+    static ImageCache dropShadowCache;
 
 public:
     static void applyStackBlurBW(Image& img, unsigned int radius)
@@ -695,28 +700,37 @@ public:
             return;
 
         auto area = (path.getBounds().getSmallestIntegerContainer() + offset)
-                        .expanded(radius + spread + 1)
-                        .getIntersection(g.getClipBounds().expanded(radius + spread + 1));
+                        .expanded(radius + spread + 1);
+                        // FIXME:
+                        // The clipping area isn't reset correctly somewhere on the canvas.
+                        // Enabling this causes the drop shadow to render incorrectly
+                        // when the object is near the top edge of the viewport
+
+                        //.getIntersection(g.getClipBounds().expanded(radius + spread + 1));
 
         if (area.getWidth() < 2 || area.getHeight() < 2)
             return;
 
-        // spread enlarges or shrinks the path before blurring it
-        auto spreadPath = Path(path);
-        if (spread != 0) {
-            area.expand(spread, spread);
-            auto bounds = path.getBounds().expanded(spread);
-            spreadPath.scaleToFit(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), true);
+        auto fastHash = hash(String(path.getBounds().toString() + String(radius) + String(offset.x) + String(offset.y) + String(spread)));
+
+        Image renderedPath = dropShadowCache.getFromHashCode(fastHash);
+        if (renderedPath.isNull()) {
+            auto spreadPath = Path(path);
+            if (spread != 0) {
+                area.expand(spread, spread);
+                auto bounds = path.getBounds().expanded(spread);
+                spreadPath.scaleToFit(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), true);
+            }
+            renderedPath = Image(Image::SingleChannel, area.getWidth(), area.getHeight(), true);
+            Graphics g2(renderedPath);
+            g2.setColour(Colours::white);
+            g2.fillPath((spread != 0) ? spreadPath : path, AffineTransform::translation((float)(offset.x - area.getX()), (float)(offset.y - area.getY())));
+            applyStackBlur(renderedPath, radius);
+            dropShadowCache.addImageToCache(renderedPath, fastHash);
+
+            // we probably don't need this
+            //dropShadowCache.releaseUnusedImages();
         }
-
-        Image renderedPath(Image::SingleChannel, area.getWidth() * scale, area.getHeight() * scale, true);
-
-        Graphics g2(renderedPath);
-        g2.addTransform(AffineTransform::scale(scale));
-        g2.setColour(Colours::white);
-        g2.fillPath((spread != 0) ? spreadPath : path, AffineTransform::translation((float)(offset.x - area.getX()), (float)(offset.y - area.getY())));
-        applyStackBlur(renderedPath, radius);
-
         g.setColour(color);
         g.drawImageAt(renderedPath, area.getX(), area.getY(), true);
     }

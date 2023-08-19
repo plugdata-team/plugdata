@@ -41,7 +41,7 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     if (cnv->attachNextObjectToMouse) {
         cnv->attachNextObjectToMouse = false;
         attachedToMouse = true;
-        startTimer(16);
+        startTimer(1, 16);
     }
 
     initialise();
@@ -78,7 +78,7 @@ Object::Object(void* object, Canvas* parent)
 Object::~Object()
 {
     if (attachedToMouse) {
-        stopTimer();
+        stopTimer(1);
     }
 
     cnv->selectedComponents.removeChangeListener(this);
@@ -126,12 +126,28 @@ void Object::initialise()
     updateOverlays(cnv->getOverlays());
 }
 
-void Object::timerCallback()
+void Object::timerCallback(int timerID)
 {
-    auto pos = cnv->getMouseXYRelative();
-    if (pos != getBounds().getCentre()) {
-        auto viewArea = cnv->viewport->getViewArea() / getValue<float>(cnv->zoomScale);
-        setCentrePosition(viewArea.getConstrainedPoint(pos));
+    switch (timerID){
+    case 1: {
+        auto pos = cnv->getMouseXYRelative();
+        if (pos != getBounds().getCentre()) {
+            auto viewArea = cnv->viewport->getViewArea() / getValue<float>(cnv->zoomScale);
+            setCentrePosition(viewArea.getConstrainedPoint(pos));
+        }
+        break;
+    }
+    case 2: {
+        activeStateAlpha -= 0.16f;
+        repaint();
+        if (activeStateAlpha <= 0.0f) {
+            activeStateAlpha = 0.0f;
+            stopTimer(2);
+        }
+        break;
+    }
+    default:
+        break;
     }
 }
 
@@ -493,10 +509,34 @@ void Object::paintOverChildren(Graphics& g)
     }
 }
 
+void Object::triggerOverlayActiveState()
+{
+    if (!showActiveState)
+        return;
+
+    if (rateReducer.tooFast())
+        return;
+
+    activeStateAlpha = 1.0f;
+    startTimer(2, 1000 / ACTIVITY_UPDATE_RATE);
+
+    // Because the timer is being reset when new messages come in
+    // it will not trigger it's callback until it's free-running
+    // so we manually call the repaint here if this happens
+    MessageManager::callAsync([this](){
+        repaint();
+    });
+}
+
 void Object::paint(Graphics& g)
 {
+    if ((showActiveState || isTimerRunning(2))) {
+        g.setOpacity(activeStateAlpha);
+        // show activation state glow
+        g.drawImage(activityOverlayImage, getLocalBounds().toFloat());
+        g.setOpacity(1.0f);
+    }
     if ((selectedFlag && !cnv->isGraph) || newObjectEditor) {
-
         if (newObjectEditor) {
 
             g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
@@ -583,6 +623,21 @@ void Object::resized()
 
         index++;
     }
+    
+    if(!getLocalBounds().isEmpty()) {
+        // Pre-render activity state overlay here since it'll always look the same for the same object size
+        activityOverlayImage = Image(Image::ARGB, getWidth(), getHeight(), true);
+        Graphics g(activityOverlayImage);
+        g.saveState();
+        
+        g.excludeClipRegion(getLocalBounds().reduced(Object::margin + 1));
+        
+        Path objectShadow;
+        objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 2), Corners::objectCornerRadius);
+        StackShadow::renderDropShadow(g, objectShadow, findColour(PlugDataColour::dataColourId), 5, { 0, 0 }, 0);
+        g.restoreState();
+    }
+    
 }
 
 void Object::updateTooltips()
@@ -761,7 +816,7 @@ void Object::mouseDown(MouseEvent const& e)
 
     if (attachedToMouse) {
         attachedToMouse = false;
-        stopTimer();
+        stopTimer(1);
         repaint();
         
         if (createEditorOnMouseDown) {
@@ -1233,9 +1288,9 @@ void Object::updateOverlays(int overlay)
 
     bool indexWasShown = indexShown;
     indexShown = overlay & Overlay::Index;
+    showActiveState = overlay & Overlay::ActivationState;
 
     if (indexWasShown != indexShown) {
-
         repaint();
     }
 }

@@ -397,6 +397,7 @@ void Connection::updateOverlays(int overlay)
 
     showDirection = overlay & Overlay::Direction;
     showConnectionOrder = overlay & Overlay::Order;
+    showActiveState = overlay & Overlay::ActivationState;
     updatePath();
     resizeToFit();
     repaint();
@@ -1210,6 +1211,8 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 {
     // TODO: indicator
     // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
+    
+    outobj->triggerOverlayActiveState();
 
     auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
 

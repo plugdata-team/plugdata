@@ -331,8 +331,10 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!e.mods.isLeftButtonDown()) return;
+        
         if (isLocked) {
-            click();
+            click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown());
         }
     }
 

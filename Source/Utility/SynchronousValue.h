@@ -33,12 +33,4 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SynchronousValueSource)
 };
 
-#define CONCAT_IMPL(x, y) x##y
-#define MACRO_CONCAT(x, y) CONCAT_IMPL(x, y)
-
 #define SynchronousValue(x) Value(new SynchronousValueSource(x));
-
-//#define Value = Value
-
-
-//#define SynchronousValue Value _temp_##__LINE__ = Value(new SynchronousValueSource()); Value

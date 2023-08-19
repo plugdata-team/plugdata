@@ -44,6 +44,14 @@ Component* Dialogs::showTextEditorDialog(String const& text, String filename, st
     return editor;
 }
 
+void Dialogs::appendTextToTextEditorDialog(Component* dialog, String const& text)
+{
+    if(!dialog) return;
+    
+    auto& editor = dynamic_cast<TextEditorDialog*>(dialog)->editor;
+    editor.setText(editor.getText() + text);
+}
+
 void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin)
 {
     if (*target)
@@ -563,6 +571,15 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             if (originalComponent == cnv) {
                 editor->sidebar->showParameters("canvas", cnv->getInspectorParameters());
             } else if (object && object->gui) {
+                
+                cnv->pd->lockAudioThread();
+                // this makes sure that objects can handle the "properties" message as well if they like, for example for [else/properties]
+                auto* pdClass = pd_class(&static_cast<t_gobj*>(object->getPointer())->g_pd);
+                auto propertiesFn = class_getpropertiesfn(pdClass);
+                
+                if(propertiesFn) propertiesFn(static_cast<t_gobj*>(object->getPointer()), cnv->patch.getPointer().get());
+                cnv->pd->unlockAudioThread();
+                
                 editor->sidebar->showParameters(object->gui->getText(), params);
             }
 

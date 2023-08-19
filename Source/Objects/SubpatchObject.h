@@ -55,7 +55,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (locked && click()) {
+        if(!e.mods.isLeftButtonDown()) return;
+        
+        if (locked && click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown())) {
             return;
         }
 
@@ -126,6 +128,11 @@ public:
     void openFromMenu() override
     {
         openSubpatch();
+    }
+    
+    bool showParametersWhenSelected() override
+    {
+        return true;
     }
 
     static void checkHvccCompatibility(const String& objectText, pd::Patch::Ptr patch, String const& prefix = "")

@@ -129,7 +129,7 @@ public:
     void openSubpatch();
     
     // Attempt to send "click" message to object. Returns false if the object has no such method
-    bool click();
+    bool click(Point<int> position, bool shift, bool alt);
     
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
     

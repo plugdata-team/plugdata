@@ -137,6 +137,7 @@ private:
 
     bool showDirection = false;
     bool showConnectionOrder = false;
+    bool showActiveState = false;
 
     Canvas* cnv;
 
