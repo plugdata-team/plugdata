@@ -204,7 +204,7 @@ String ObjectBase::getType() const
         }
         
         auto* className = libpd_get_object_class_name(obj.get());
-        if(!className) return;
+        if(!className) return {};
         
         // Deal with different text objects
         switch (hash(className)) {
