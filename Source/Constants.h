@@ -148,6 +148,7 @@ struct Icons {
     inline static const String GlyphMoses = CharPointer_UTF8("\xc3\xb2");
     inline static const String GlyphSpigot = CharPointer_UTF8("\xc3\xb3");
     inline static const String GlyphBondo = CharPointer_UTF8("\xc3\xb4");
+    inline static const String GlyphSfz = CharPointer_UTF8("\xc3\xb8");
 
     // MIDI
     inline static const String GlyphMidiIn = CharPointer_UTF8("\xc4\x87");

@@ -269,6 +269,7 @@ public:
                     { Icons::GlyphPrint, "#X obj 0 0 print", "Print", "Print", OtherObject },
                     { Icons::GlyphTimer, "#X obj 0 0 timer", "Timer", "Timer", OtherObject },
                     { Icons::GlyphDelay, "#X obj 0 0 delay 1 60 permin", "Delay", "Delay", OtherObject },
+                    { Icons::GlyphSfz, "#X obj 0 0 sfz~", "Sfz sample player using sfizz", "Sfz", OtherObject },
                 } },
             { "MIDI",
                 {
