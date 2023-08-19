@@ -613,7 +613,8 @@ private:
 
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {
-                    if (Object::hvccObjects.contains(object)) {
+                    // We support arrays, but when you create [array] it is really [array define] which is unsupported
+                    if (Object::hvccObjects.contains(object) && object != "array") {
                         hvccObjectsFound.add(object);
                     }
                 }

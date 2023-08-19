@@ -180,38 +180,40 @@ bool Object::isSelected() const
 void Object::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(hvccMode)) {
-        if (gui) {
-            auto ptr = gui->ptr.get<t_pd>();
-            if (!ptr)
-                return;
 
-            auto typeName = String::fromUTF8(libpd_get_object_class_name(ptr.get()));
-            // Check hvcc compatibility
-            bool isSubpatch = gui->getPatch() != nullptr;
-            auto objectText = gui->getText();
-            isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName) ||  objectText == "table";
-
-            if (!isHvccCompatible) {
-                cnv->pd->logWarning(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
-            }
-
-            repaint();
+        isHvccCompatible = checkIfHvccCompatible();
+        
+        if (gui && !isHvccCompatible) {
+            cnv->pd->logWarning(String("Warning: object \"" + gui->getType() + "\" is not supported in Compiled Mode").toRawUTF8());
         }
 
-        return;
+        repaint();
     }
-    if (v.refersToSameSourceAs(cnv->presentationMode)) {
+    else if (v.refersToSameSourceAs(cnv->presentationMode)) {
         // else it was a lock/unlock/presentation mode action
         // Hide certain objects in GOP
         setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
     }
-    if (v.refersToSameSourceAs(cnv->locked) || v.refersToSameSourceAs(cnv->commandLocked)) {
+    else if (v.refersToSameSourceAs(cnv->locked) || v.refersToSameSourceAs(cnv->commandLocked)) {
         if (gui) {
             gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         }
     }
 
     repaint();
+}
+
+bool Object::checkIfHvccCompatible()
+{
+    if (gui) {
+        auto typeName = gui->getType();
+        // Check hvcc compatibility
+        bool isSubpatch = gui->getPatch() != nullptr;
+        
+        return !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
+    }
+    
+    return true;
 }
 
 bool Object::hitTest(int x, int y)
@@ -377,17 +379,10 @@ void Object::setType(String const& newType, void* existingObject)
         addAndMakeVisible(gui.get());
     }
 
-    auto ptr = gui->ptr.get<t_pd>();
-    if (!ptr)
-        return;
+    isHvccCompatible = checkIfHvccCompatible();
 
-    auto typeName = String::fromUTF8(libpd_get_object_class_name(ptr.get()));
-    // Check hvcc compatibility
-    bool isSubpatch = gui && gui->getPatch() != nullptr;
-    isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
-
-    if (!isHvccCompatible) {
-        cnv->pd->logWarning(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
+    if (gui && !isHvccCompatible) {
+        cnv->pd->logWarning(String("Warning: object \"" + gui->getType() + "\" is not supported in Compiled Mode").toRawUTF8());
     }
 
     // Update inlets/outlets

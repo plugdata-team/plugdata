@@ -202,8 +202,12 @@ String ObjectBase::getType() const
 
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
+        
+        auto* className = libpd_get_object_class_name(obj.get());
+        if(!className) return;
+        
         // Deal with different text objects
-        switch (hash(libpd_get_object_class_name(obj.get()))) {
+        switch (hash(className)) {
         case hash("text"):
             if (ptr.get<t_text>()->te_type == T_OBJECT)
                 return "invalid";
@@ -224,10 +228,8 @@ String ObjectBase::getType() const
         default:
             break;
         }
-        // Get class name for all other objects
-        if (auto* name = libpd_get_object_class_name(obj.get())) {
-            return String::fromUTF8(name);
-        }
+        
+        return String::fromUTF8(className);
     }
 
     return {};

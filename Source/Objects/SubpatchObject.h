@@ -143,15 +143,11 @@ public:
         {
             return;
         }
-        
-        // Table is really a subpatch, but it is supported in hvcc as an object
-        // So if we find a table, just accept it
-        if(canvas_istable(static_cast<t_canvas*>(patch->getPointer().get()))) return;
 
         for (auto* object : patch->getObjects()) {
-            const String name = libpd_get_object_class_name(object);
+            const String type = libpd_get_object_class_name(object);
 
-            if (name == "canvas" || name == "graph") {
+            if (type == "canvas" || type == "graph") {
                 pd::Patch::Ptr subpatch = new pd::Patch(object, instance, false);
                 
                 char* text = nullptr;
@@ -161,9 +157,9 @@ public:
                 
                 checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
                 freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-
-            } else if (!Object::hvccObjects.contains(name)) {
-                instance->logWarning(String("Warning: object \"" + prefix + name + "\" is not supported in Compiled Mode"));
+                
+            } else if (!Object::hvccObjects.contains(type)) {
+                instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
             }
         }
     }
