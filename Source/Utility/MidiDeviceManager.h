@@ -371,8 +371,10 @@ public:
         
         if(idToFind == fromPlugdata->getIdentifier())
         {
-            return internalOutputEnabled ? fromPlugdata.get() : nullptr;
+            fromPlugdata->sendMessageNow(message);
+            return;
         }
+        
         for(auto* midiOutput : midiOutputs)
         {
             if(idToFind == midiOutput->getIdentifier())
