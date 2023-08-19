@@ -56,6 +56,11 @@ public:
     {
         shouldAutocomplete = enabled;
     }
+        
+    bool isAutocompleting()
+    {
+        return shouldAutocomplete && suggestion.isNotEmpty();
+    }
 
     void setSuggestion(String const& suggestionText)
     {
@@ -469,16 +474,20 @@ private:
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
-        if (key == KeyPress::returnKey && (autoCompleteComponent->getSuggestion() == openedEditor->getText() || openedEditor->getText().contains(" ") || numOptions == 0)) {
-            // if the caret is already at the end, we want to close upon enter key
-            // By ignoring the keypress we'll trigger the return callback on text editor which will close it
-            return false;
-        }
-        if ((key == KeyPress::returnKey || key == KeyPress::tabKey) && autoCompleteComponent) {
-            autoCompleteComponent->autocomplete();
-            currentidx = 0;
-            if(buttons.size()) buttons[0]->setToggleState(true, dontSendNotification);
-            return true;
+
+        if (key == KeyPress::returnKey) {
+            if(autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0 )
+            {
+                autoCompleteComponent->autocomplete();
+                currentidx = 0;
+                if(buttons.size()) buttons[0]->setToggleState(true, dontSendNotification);
+                return true;
+            }
+            else {
+                // if there is no autocomplete action going on, we want to close upon error
+                // By ignoring the keypress we'll trigger the return callback on text editor which will close it
+                return false;
+            }
         }
         if (state != ShowingObjects)
             return false;
@@ -627,7 +636,7 @@ private:
 
         // Update suggestions
         auto found = library->autocomplete(currentText, patchDir);
-
+        
         // When hvcc mode is enabled, show only hvcc compatible objects
         filterNonHvccObjectsIfNeeded(found);
 
