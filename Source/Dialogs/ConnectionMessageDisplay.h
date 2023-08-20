@@ -101,11 +101,9 @@ private:
         // only make the size wider, to fit changing size of values
         if (totalStringWidth > getWidth() || isHoverEntered) {
             proposedPosition.setSize(totalStringWidth, 36);
-            // make sure the proposed position is inside the viewport area
+            // make sure the proposed position is inside the editor area
             proposedPosition.setCentre(getParentComponent()->getLocalPoint(nullptr, mousePosition).translated(0, -(getHeight() * 0.5)));
-            auto activeCanvas = static_cast<PluginEditor*>(getParentComponent())->getCurrentCanvas();
-            auto viewArea = getParentComponent()->getLocalArea(activeCanvas, activeCanvas->viewport->getViewArea() / getValue<float>(activeCanvas->zoomScale));
-            constrainedBounds = proposedPosition.constrainedWithin(viewArea);
+            constrainedBounds = proposedPosition.constrainedWithin(getParentComponent()->getLocalBounds());
         }
 
         if (getBounds() != constrainedBounds)
