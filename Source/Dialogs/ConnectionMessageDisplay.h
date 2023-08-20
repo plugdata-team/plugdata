@@ -81,20 +81,31 @@ private:
         int totalStringWidth = (8 * 2) + 4;
         String stringItem;
         for (int i = 0; i < textString.size(); i++) {
+            if (totalStringWidth > getParentComponent()->getWidth() / 2) {
+                auto elideText = String("(" + String(textString.size() - i) + String(")..."));
+                auto elideFont = Font(Fonts::getSemiBoldFont());
+                auto elideWidth = elideFont.getStringWidth(elideText);
+                messageItemsWithFormat.add(TextStringWithMetrics(elideText, FontStyle::Semibold, elideWidth));
+                totalStringWidth += elideWidth + 4;
+                break;
+            }
+
             auto firstOrLast = (i == 0 || i == textString.size() - 1);
             stringItem = textString[i];
             stringItem += firstOrLast ? "" : ",";
             // first item uses system font
             stringWidth = textFont.getStringWidth(stringItem);
 
-            messageItemsWithFormat.add(TextStringWithMetrics(stringItem, fontStyle, stringWidth));
-
-            // set up font for next item/s
-            fontStyle = FontStyle::Monospace;
-            textFont = Font(Fonts::getMonospaceFont());
-
             // calculate total needed width
             totalStringWidth += stringWidth + 4;
+
+            messageItemsWithFormat.add(TextStringWithMetrics(stringItem, fontStyle, stringWidth));
+
+            if (fontStyle != FontStyle::Monospace) {
+                // set up font for next item/s - use monospace for values / lists etc
+                fontStyle = FontStyle::Monospace;
+                textFont = Font(Fonts::getMonospaceFont());
+            }
         }
 
         Rectangle<int> proposedPosition;
