@@ -19,7 +19,7 @@ inlets:
 outlets:
   1st:
   - type: float
-    description: latch status (on=1 or off=0)
+    description: knob's value
 
 flags:
   - name: -set <float>
