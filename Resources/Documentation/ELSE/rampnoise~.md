@@ -6,7 +6,7 @@ description: ramp noise
 categories:
  - object
 
-pdcategory: ELSE, Random and Noise
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float

@@ -15,8 +15,7 @@ arguments:
 
 flags:
 - name: -seed <f>
-  description: sets seed
-  default: unique internal
+  description: sets seed (default: unique internal)
 
 inlets:
   1st:
