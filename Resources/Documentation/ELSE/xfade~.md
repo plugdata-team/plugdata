@@ -1,7 +1,7 @@
 ---
 title: xfade~
 
-description: crossfade
+description: multi-channel crossfade
 
 categories:
  - object
