@@ -20,7 +20,7 @@ inlets:
 
 outlets:
   1st:
-  - type: signal(s)
+  - type: signals
     description: converted signal
 
 draft: false

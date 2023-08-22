@@ -15,6 +15,12 @@ arguments:
 - type: symbol
   description: catch~ name symbol 
   default: empty symbol
+- type: float
+  description: number of channels
+
+methods:
+- type: channels <float>
+  description: sets number of channels
 draft: false
 ---
 Any number of throw~ objects can add into one catch~ object (but two catch~ objects cannot share the same name
