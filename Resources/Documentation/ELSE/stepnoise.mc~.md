@@ -16,7 +16,7 @@ flags:
 - name: -sum
   description: sums the step noises
 - name: -seed <float>
-  description: sets seed 
+  description: sets seed value
   default: unique internal
 
 inlets:
@@ -27,7 +27,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: bandlimited step noise
+    description: multichannel signal from stepnoise bank
 
 methods:
   - type: sum

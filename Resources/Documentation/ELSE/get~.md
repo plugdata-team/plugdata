@@ -15,7 +15,7 @@ arguments:
 
 inlets:
   1st:
-  - type: signal
+  - type: signals
     description: multichannel signal to get stuff from
   - type: list
     description: channels to get

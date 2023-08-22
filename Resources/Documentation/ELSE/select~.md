@@ -19,19 +19,15 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: input signal
-   nth:
+    description: input to select
+  nth:
   - type: signal(s)
     description: input signals to select from
 
 outlets:
   1st:
   - type: signal(s)
-    description: selected input
-
-methods:
-  - type: seed <float>
-    description: a float sets seed, no float sets a unique internal
+    description: the selected input
 
 draft: false
 ---

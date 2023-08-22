@@ -12,7 +12,7 @@ arguments:
 
 inlets:
   1st:
-  - type: signal
+  - type: signals
     description: signal to query number of channels
   - type: bang
     description: query number of channels

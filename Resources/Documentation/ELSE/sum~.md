@@ -15,7 +15,7 @@ arguments:
 
 inlets:
   1st:
-  - type: signal(s)
+  - type: signals
     description: incoming multichannel connection to sum
 
 outlets:

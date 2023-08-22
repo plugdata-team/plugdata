@@ -15,7 +15,7 @@ arguments:
  
 inlets:
   1st:
-  - type: signal(s)
+  - type: signals
     description: multichannel signals to pick from
   - type: float
     description: channel to pick

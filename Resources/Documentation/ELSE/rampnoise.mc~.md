@@ -16,7 +16,7 @@ flags:
   - name: -sum
     description: sums the rampnoises 
   - name: -seed <float>
-    description: sets seed
+    description: sets seed value
 
 inlets: 
   1st:

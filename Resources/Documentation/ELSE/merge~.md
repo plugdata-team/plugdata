@@ -23,9 +23,6 @@ outlets:
   - type: signals
     description: merged signals
 
-methods:
-  - type: seed <float>
-    description: a float sets seed, no float sets a unique internal
 
 draft: false
 ---
