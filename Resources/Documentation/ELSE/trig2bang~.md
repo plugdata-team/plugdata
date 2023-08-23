@@ -8,8 +8,6 @@ categories:
 
 pdcategory: ELSE, Triggers and Clocks
 
-arguments:
-
 inlets:
   1st:
   - type: signal

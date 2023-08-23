@@ -16,7 +16,7 @@ arguments:
     type: float
     default: 0
 
-- flags:
+flags:
   - name: -ch <float>
     description: sets starting output channel
     default: 1
@@ -30,8 +30,6 @@ inlets:
   2nd:
   - type: signal
     description: incoming signal routed to right channel output: [dac~ 2]
-
-outlets:
 
 methods:
   - type: <on/off>
