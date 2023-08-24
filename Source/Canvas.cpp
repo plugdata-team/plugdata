@@ -806,9 +806,7 @@ void Canvas::updateSidebarSelection()
             return;
         }
 
-        if (commandLocked == var(true)) {
-            editor->sidebar->hideParameters();
-        } else if ((showOnSelect && !params.getParameters().isEmpty()) || editor->sidebar->isPinned()) {
+        if ((showOnSelect && !params.getParameters().isEmpty()) || editor->sidebar->isPinned()) {
             editor->sidebar->showParameters(object->gui->getText(), params);
         } else {
             editor->sidebar->hideParameters();
@@ -959,6 +957,8 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
     patch.deselectAll();
     pastedObjects.clear();
     patch.endUndoSequence("DragAndDropPaste");
+    
+    updateSidebarSelection();
 }
 
 void Canvas::pasteSelection()
@@ -1002,6 +1002,8 @@ void Canvas::pasteSelection()
     patch.deselectAll();
     pastedObjects.clear();
     patch.endUndoSequence("Paste");
+    
+    updateSidebarSelection();
 }
 
 void Canvas::duplicateSelection()
