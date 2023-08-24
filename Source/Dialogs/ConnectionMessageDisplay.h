@@ -73,15 +73,23 @@ private:
             haveMessage = false;
             textString = StringArray("no message yet");
         }
-
+        
+        auto halfEditorWidth = getParentComponent()->getWidth() / 2;
         auto fontStyle = haveMessage ? FontStyle::Semibold : FontStyle::Regular;
         auto textFont = Font(haveMessage ? Fonts::getSemiBoldFont() : Fonts::getCurrentFont());
         textFont.setSizeAndStyle(14, FontStyle::Regular, 1.0f, 0.0f);
+
         int stringWidth;
         int totalStringWidth = (8 * 2) + 4;
         String stringItem;
         for (int i = 0; i < textString.size(); i++) {
-            if (totalStringWidth > getParentComponent()->getWidth() / 2) {
+            auto firstOrLast = (i == 0 || i == textString.size() - 1);
+            stringItem = textString[i];
+            stringItem += firstOrLast ? "" : ",";
+            // first item uses system font
+            stringWidth = textFont.getStringWidth(stringItem);
+
+            if ((totalStringWidth + stringWidth) > halfEditorWidth) {
                 auto elideText = String("(" + String(textString.size() - i) + String(")..."));
                 auto elideFont = Font(Fonts::getSemiBoldFont());
                 auto elideWidth = elideFont.getStringWidth(elideText);
@@ -89,12 +97,6 @@ private:
                 totalStringWidth += elideWidth + 4;
                 break;
             }
-
-            auto firstOrLast = (i == 0 || i == textString.size() - 1);
-            stringItem = textString[i];
-            stringItem += firstOrLast ? "" : ",";
-            // first item uses system font
-            stringWidth = textFont.getStringWidth(stringItem);
 
             // calculate total needed width
             totalStringWidth += stringWidth + 4;
