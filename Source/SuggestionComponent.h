@@ -474,9 +474,14 @@ private:
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
-
+        if (key == KeyPress::tabKey && autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {
+            autoCompleteComponent->autocomplete();
+            currentidx = 0;
+            if(buttons.size()) buttons[0]->setToggleState(true, dontSendNotification);
+            return true;
+        }
         if (key == KeyPress::returnKey) {
-            if(autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0 )
+            if(autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0)
             {
                 autoCompleteComponent->autocomplete();
                 currentidx = 0;
