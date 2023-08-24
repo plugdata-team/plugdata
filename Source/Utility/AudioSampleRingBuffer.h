@@ -27,18 +27,23 @@ public:
         mainBufferSize = sourceBufferSize;
         peakWindowSize = sampleRate / 60;
         bufferSize = jmax(peakWindowSize, mainBufferSize) * 3;
+        
+        audioBufferMutex.lock();
         peakBuffer.setSize(numChannels, peakWindowSize, true, true);
         buffer.setSize(numChannels, bufferSize, false, true);
+        audioBufferMutex.unlock();
     }
 
     void write(AudioBuffer<float>& samples)
     {
-        
+        audioBufferMutex.lock();
         for (int ch = 0; ch < peakBuffer.getNumChannels(); ch++) {
             for (int i = 0; i < samples.getNumSamples(); i++) {
                 buffer.setSample(ch, (writePosition + i) % buffer.getNumSamples(), samples.getSample(ch, i));
             }
         }
+        audioBufferMutex.unlock();
+        
         writeTime.store(Time::getMillisecondCounterHiRes());
         oldWritePosition.store(writePosition);
         writePosition = (writePosition + samples.getNumSamples()) % buffer.getNumSamples();
@@ -64,11 +69,13 @@ public:
         if (readPos < 0)
             readPos += bufferSize;
 
+        audioBufferMutex.lock();
         for (int ch = 0; ch < std::min(2, peakBuffer.getNumChannels()); ch++) {
             for (int i = 0; i < peakWindowSize; i++) {
                 peakBuffer.setSample(ch, i, buffer.getSample(ch, (readPos + i) % bufferSize));
             }
         }
+        audioBufferMutex.unlock();
 
         Array<float> peak;
         for (int ch = 0; ch < peakBuffer.getNumChannels(); ch++) {
@@ -92,4 +99,5 @@ private:
     std::atomic<bool> useNewPosition = false;
     std::atomic<double> writeTime = 0;
     std::atomic<double> readTime = 0;
+    std::mutex audioBufferMutex;
 };
