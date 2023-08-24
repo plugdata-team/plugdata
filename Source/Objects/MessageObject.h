@@ -88,7 +88,8 @@ public:
     void paint(Graphics& g) override
     {
         // Draw background
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        auto bgColour = isDown? object->findColour(PlugDataColour::outlineColourId) : object->findColour(PlugDataColour::guiObjectBackgroundColourId);
+        g.setColour(bgColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         // Draw text
@@ -116,10 +117,6 @@ public:
         g.saveState();
         g.reduceClipRegion(roundEdgeClipping);
 
-        if (isDown) {
-            g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            g.drawRect(getLocalBounds(), d);
-        }
         g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
         g.fillPath(flagPath);
 
