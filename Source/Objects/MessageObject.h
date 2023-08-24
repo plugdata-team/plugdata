@@ -102,27 +102,34 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(1);
+        auto b = getLocalBounds();
+        auto reducedBounds = b.toFloat().reduced(0.5f);
+
+        const int d = 5;
 
         Path flagPath;
-        flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - 4, b.getY() + 4, b.getRight() - 4, b.getBottom() - 4, b.getRight(), b.getBottom());
+        flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - d, b.getY() + d, b.getRight() - d, b.getBottom() - d, b.getRight(), b.getBottom());
+
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
 
         if (isDown) {
             g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(b.reduced(1).toFloat(), Corners::objectCornerRadius, 3.0f);
-
-            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.fillPath(flagPath);
-        } else {
-            g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            g.fillPath(flagPath);
+            g.drawRect(getLocalBounds(), d);
         }
+        g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        g.fillPath(flagPath);
+
+        g.restoreState();
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(reducedBounds, Corners::objectCornerRadius, 1.0f);
     }
 
     std::vector<hash32> getAllMessages() override
