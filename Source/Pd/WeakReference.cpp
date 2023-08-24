@@ -15,7 +15,7 @@ extern "C" {
 #include "Instance.h"
 
 pd::WeakReference::WeakReference(void* p, Instance* instance)
-    : ptr(static_cast<t_pd*>(p))
+    : ptr(p)
     , pd(instance)
 {
     pd->registerWeakReference(ptr, &weakRef);

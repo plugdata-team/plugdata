@@ -246,9 +246,9 @@ public:
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(void* object, MessageListener* messageListener);
 
-    void registerWeakReference(t_pd* ptr, pd_weak_reference* ref);
-    void unregisterWeakReference(t_pd* ptr, const pd_weak_reference* ref);
-    void clearWeakReferences(t_pd* ptr);
+    void registerWeakReference(void* ptr, pd_weak_reference* ref);
+    void unregisterWeakReference(void* ptr, const pd_weak_reference* ref);
+    void clearWeakReferences(void* ptr);
 
     virtual void receiveDSPState(bool dsp) {};
 
@@ -330,7 +330,7 @@ public:
 private:
     
     std::mutex weakReferenceMutex;
-    std::unordered_map<t_pd*, std::vector<pd_weak_reference*>> pdWeakReferences;
+    std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
     std::unordered_map<void*, std::vector<juce::WeakReference<MessageListener>>> messageListeners;
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;

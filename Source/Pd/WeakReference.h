@@ -87,7 +87,7 @@ struct WeakReference {
     }
 
 private:
-    t_pd* ptr;
+    void* ptr;
     Instance* pd;
     pd_weak_reference weakRef = true;
 };

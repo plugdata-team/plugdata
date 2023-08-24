@@ -49,17 +49,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     // If it doesn't already exist in pd, create connection in pd
     if (!oc) {
         auto* oc = parent->patch.createAndReturnConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
-
         ptr = pd::WeakReference(oc, cnv->pd);
-
-        if (!ptr.getRaw<t_outconnect>()) {
-            outlet = nullptr;
-            inlet = nullptr;
-
-            // MessageManager::callAsync([this]() { cnv->connections.removeObject(this); });
-
-            return;
-        }
     } else {
 
         popPathState();
@@ -91,7 +81,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
 Connection::~Connection()
 {
-    cnv->pd->unregisterMessageListener(ptr.getRaw<void>(), this);
+    cnv->pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     cnv->selectedComponents.removeChangeListener(this);
 
     if (outlet) {
@@ -190,6 +180,8 @@ void Connection::popPathState()
 void Connection::setPointer(void* newPtr)
 {
     auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
+    if(originalPointer == newPtr) return; // No need to update
+    
     ptr = pd::WeakReference(newPtr, cnv->pd);
     cnv->pd->registerMessageListener(ptr.getRaw<t_outconnect>(), this);
     if (originalPointer != ptr.getRaw<t_outconnect>()) {

@@ -151,7 +151,7 @@ void Instance::initialisePd(String& pdlua_version)
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->exit();
         },
-        [](void* instance, t_pd* ref) {
+        [](void* instance, void* ref) {
             static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
         });
 
@@ -581,15 +581,15 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
         listeners.erase(it);
 }
 
-void Instance::registerWeakReference(t_pd* ptr, pd_weak_reference* ref)
+void Instance::registerWeakReference(void* ptr, pd_weak_reference* ref)
 {
     weakReferenceMutex.lock();
     pdWeakReferences[ptr].push_back(ref);
     weakReferenceMutex.unlock();
 }
 
-void Instance::unregisterWeakReference(t_pd* ptr, const pd_weak_reference* ref)
-{
+void Instance::unregisterWeakReference(void* ptr, const pd_weak_reference* ref)
+{    
     weakReferenceMutex.lock();
 
     auto& refs = pdWeakReferences[ptr];
@@ -603,7 +603,7 @@ void Instance::unregisterWeakReference(t_pd* ptr, const pd_weak_reference* ref)
     weakReferenceMutex.unlock();
 }
 
-void Instance::clearWeakReferences(t_pd* ptr)
+void Instance::clearWeakReferences(void* ptr)
 {
     weakReferenceMutex.lock();
     for (auto* ref : pdWeakReferences[ptr]) {
