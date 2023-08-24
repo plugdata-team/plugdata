@@ -51,7 +51,7 @@ void InternalSynth::run()
     unprepareLock.lock();
 
     // Fluidlite does not like setups with <2 channels
-    internalBuffer.setSize(std::max(2, lastNumChannels), lastBlockSize);
+    internalBuffer.setSize(std::max(2, lastNumChannels.load()), lastBlockSize);
     internalBuffer.clear();
 
     // Check if soundfont exists to prevent crashing

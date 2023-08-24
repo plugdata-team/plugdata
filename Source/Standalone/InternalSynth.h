@@ -44,9 +44,9 @@ private:
     std::atomic<bool> ready = false;
     std::mutex unprepareLock;
 
-    int lastSampleRate = 0;
-    int lastBlockSize = 0;
-    int lastNumChannels = 0;
+    std::atomic<int> lastSampleRate = 0;
+    std::atomic<int> lastBlockSize = 0;
+    std::atomic<int> lastNumChannels = 0;
 
     AudioBuffer<float> internalBuffer;
 };
