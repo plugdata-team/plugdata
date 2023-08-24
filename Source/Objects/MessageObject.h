@@ -87,9 +87,25 @@ public:
 
     void paint(Graphics& g) override
     {
+        const int d = 6;
+        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+
         // Draw background
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
+
+        if (isDown) {
+            g.setColour(object->findColour(PlugDataColour::outlineColourId));
+            g.drawRect(getLocalBounds(), d);
+        }
+
+        g.restoreState();
 
         // Draw text
         if (!editor) {
@@ -105,7 +121,7 @@ public:
         auto b = getLocalBounds();
         auto reducedBounds = b.toFloat().reduced(0.5f);
 
-        const int d = 5;
+        const int d = 6;
 
         Path flagPath;
         flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - d, b.getY() + d, b.getRight() - d, b.getBottom() - d, b.getRight(), b.getBottom());
@@ -116,10 +132,6 @@ public:
         g.saveState();
         g.reduceClipRegion(roundEdgeClipping);
 
-        if (isDown) {
-            g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            g.drawRect(getLocalBounds(), d);
-        }
         g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
         g.fillPath(flagPath);
 

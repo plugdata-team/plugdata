@@ -132,8 +132,16 @@ public:
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-        triangle = triangle.createPathWithRoundedCorners(4.0f);
+
+        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
         g.fillPath(triangle);
+        g.restoreState();
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
