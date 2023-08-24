@@ -119,7 +119,7 @@ ObjectBase::PropertyUndoListener::PropertyUndoListener()
 
 void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
 {
-    if(Time::getMillisecondCounter() - lastChange > 200)
+    if(Time::getMillisecondCounter() - lastChange > 400)
     {
         onChange();
     }
