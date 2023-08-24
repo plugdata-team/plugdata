@@ -1373,6 +1373,7 @@ void Canvas::undo()
     patch.deselectAll();
 
     synchroniseSplitCanvas();
+    updateSidebarSelection();
 }
 
 void Canvas::redo()
@@ -1387,6 +1388,7 @@ void Canvas::redo()
     patch.deselectAll();
 
     synchroniseSplitCanvas();
+    updateSidebarSelection();
 }
 
 void Canvas::valueChanged(Value& v)

@@ -30,7 +30,7 @@ public:
         bool hideLabel = false;
         bool roundTopCorner = false;
         bool roundBottomCorner = false;
-
+        
     public:
         explicit Property(String const& propertyName)
             : PropertyComponent(propertyName, 32)
@@ -692,7 +692,7 @@ public:
 
                 
                 // By setting the text before attaching the value, we can prevent an unnesssary/harmful call to ValueChanged
-                draggableNumber->setText(String(getValue<T>(property)), dontSendNotification);
+                draggableNumber->setText(property.toString(), dontSendNotification);
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
 

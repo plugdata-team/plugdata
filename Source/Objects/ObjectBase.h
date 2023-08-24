@@ -56,6 +56,16 @@ class ObjectBase : public Component
         Object* object;
     };
     
+    struct PropertyUndoListener : public Value::Listener
+    {
+        PropertyUndoListener();
+        
+        void valueChanged(Value& v) override;
+        
+        uint32 lastChange;
+        std::function<void()> onChange = [](){};
+    };
+    
 public:
     ObjectBase(void* obj, Object* parent);
     
@@ -218,6 +228,9 @@ public:
     PluginProcessor* pd;
 
 protected:
+    
+    PropertyUndoListener propertyUndoListener;
+    
     std::function<void()> onConstrainerCreate = []() {};
 
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();

@@ -111,6 +111,21 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
     }
 }
 
+ObjectBase::PropertyUndoListener::PropertyUndoListener()
+{
+    lastChange = Time::getMillisecondCounter();
+}
+
+void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
+{
+    if(Time::getMillisecondCounter() - lastChange > 200)
+    {
+        onChange();
+    }
+    
+    lastChange = Time::getMillisecondCounter();
+}
+
 ObjectBase::ObjectBase(void* obj, Object* parent)
     : ptr(obj, parent->cnv->pd)
     , object(parent)
@@ -139,9 +154,23 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 
             for (auto& [name, type, cat, value, list, valueDefault] : _this->objectParameters.getParameters()) {
                 value->addListener(_this.getComponent());
+                value->addListener(&_this->propertyUndoListener);
             }
         }
     });
+    
+    propertyUndoListener.onChange = [_this = SafePointer(this)](){
+        if(!_this) return;
+        
+        if(auto obj = _this->ptr.get<t_gobj>())
+        {
+            auto* canvas = _this->cnv->patch.getPointer().get();
+            if(!canvas) return;
+            
+            libpd_undo_apply(canvas, obj.get());
+            
+        }
+    };
 }
 
 ObjectBase::~ObjectBase()
