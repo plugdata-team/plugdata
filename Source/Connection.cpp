@@ -180,9 +180,10 @@ void Connection::popPathState()
 void Connection::setPointer(void* newPtr)
 {
     auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
-    if(originalPointer == newPtr) return; // No need to update
+    if(originalPointer != newPtr) {
+        ptr = pd::WeakReference(newPtr, cnv->pd);
+    }
     
-    ptr = pd::WeakReference(newPtr, cnv->pd);
     cnv->pd->registerMessageListener(ptr.getRaw<t_outconnect>(), this);
     if (originalPointer != ptr.getRaw<t_outconnect>()) {
         // do we even need to unregister, doesn't it get cleaned up automatically?
