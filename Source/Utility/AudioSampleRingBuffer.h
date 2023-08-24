@@ -32,6 +32,7 @@ public:
         peakBuffer.setSize(numChannels, peakWindowSize, true, true);
         buffer.setSize(numChannels, bufferSize, false, true);
         audioBufferMutex.unlock();
+        useNewPosition = true;
     }
 
     void write(AudioBuffer<float>& samples)
