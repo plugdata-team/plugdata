@@ -586,9 +586,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
             }
         }
 
-        auto block = dsp::AudioBlock<float>();
-        block.copyFrom(buffer);
-
+        auto block = dsp::AudioBlock<float>(buffer);
         limiter.process(dsp::ProcessContextReplacing<float>(block));
     }
 }
