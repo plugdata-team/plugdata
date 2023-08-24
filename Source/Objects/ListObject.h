@@ -162,16 +162,25 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        Path triangle;
-        triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-        triangle = triangle.createPathWithRoundedCorners(4.0f);
-        g.fillPath(triangle);
+        Path triangles;
+        triangles.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
+        triangles.addTriangle(Point<float>(getWidth() - 8, getHeight()), Point<float>(getWidth(), getHeight()), Point<float>(getWidth(), getHeight() - 8));
+
+        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
+        g.fillPath(triangles);
+        g.restoreState();
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(reducedBounds, Corners::objectCornerRadius, 1.0f);
 
         bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
 
@@ -193,13 +202,6 @@ public:
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-
-        Path bottomTriangle;
-        bottomTriangle.addTriangle(Point<float>(getWidth() - 8, getHeight()), Point<float>(getWidth(), getHeight()), Point<float>(getWidth(), getHeight() - 8));
-        bottomTriangle = bottomTriangle.createPathWithRoundedCorners(4.0f);
-        g.fillPath(bottomTriangle);
     }
 
     // If we already know the atoms, this will allow a lock-free update

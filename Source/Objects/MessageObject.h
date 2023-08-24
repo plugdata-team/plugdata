@@ -106,7 +106,7 @@ public:
         auto b = getLocalBounds();
         auto reducedBounds = b.toFloat().reduced(0.5f);
 
-        const int d = 5;
+        const int d = 6;
 
         Path flagPath;
         flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - d, b.getY() + d, b.getRight() - d, b.getBottom() - d, b.getRight(), b.getBottom());
