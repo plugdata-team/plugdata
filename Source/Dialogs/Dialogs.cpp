@@ -482,7 +482,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     bool multiple = selectedBoxes.size() > 1;
     bool locked = getValue<bool>(cnv->locked);
 
-    Object* object = Component::SafePointer<Object>(hasSelection ? selectedBoxes.getFirst() : nullptr);
+    auto object = Component::SafePointer<Object>(hasSelection ? selectedBoxes.getFirst() : nullptr);
 
     // Find top-level object, so we never trigger it on an object inside a graph
     if (object && object->findParentComponentOfClass<Object>()) {
