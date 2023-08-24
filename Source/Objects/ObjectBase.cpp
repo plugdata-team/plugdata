@@ -21,6 +21,7 @@ extern "C" {
 #include <g_undo.h>
 
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
+void canvas_click(t_canvas *x, t_floatarg xpos, t_floatarg ypos, t_floatarg shift, t_floatarg ctrl, t_floatarg alt);
 }
 
 #include "AllGuis.h"
@@ -294,7 +295,10 @@ bool ObjectBase::click(Point<int> position, bool shift, bool alt)
         if (x->te_type == T_OBJECT)
         {
             t_symbol *clicksym = gensym("click");
-            if (zgetfn(&x->te_pd, clicksym))
+            auto click_func = zgetfn(&x->te_pd, clicksym);
+            
+            // Check if a click function has been registered, and if it's not the default canvas click function (in which case we want to handle it manually)
+            if (click_func && reinterpret_cast<void*>(click_func) != reinterpret_cast<void*>(canvas_click))
             {
                 pd_vmess(&x->te_pd, clicksym, "fffff",
                     (double)position.x, (double)position.y,
