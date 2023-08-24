@@ -37,7 +37,7 @@ public:
     void resized() override
     {
         shadowPath.clear();
-        shadowPath.addRoundedRectangle(getLocalBounds().reduced(5).toFloat(), Corners::defaultCornerRadius);
+        shadowPath.addRoundedRectangle(getLocalBounds().reduced(8).toFloat(), Corners::defaultCornerRadius);
     }
 
     void paint(Graphics& g) override

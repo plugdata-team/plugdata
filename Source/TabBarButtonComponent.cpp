@@ -150,7 +150,8 @@ ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
     auto text = getButtonText();
     Font font(Fonts::getDefaultFont());
     auto length = font.getStringWidth(getButtonText()) + 32;
-
+    const auto boundsOffset = 10;
+    
     // we need to expand the bounds, but reset the position to top left
     // then we offset the mouse drag by the same amount
     // this is to allow area for the shadow to render correctly

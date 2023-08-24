@@ -50,7 +50,6 @@ private:
     TabComponent* tabComponent;
     ComponentAnimator* ghostTabAnimator;
     TextButton closeTabButton;
-    const int boundsOffset = 10;
     ScaledImage tabImage;
     bool isDragging = false;
     bool closeButtonUpdatePending = false;
