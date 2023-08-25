@@ -134,7 +134,6 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
     , pd(parent->cnv->pd)
     , objectSizeListener(parent)
 {
-    pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
     object->addComponentListener(&objectSizeListener);
     
     setWantsKeyboardFocus(true);
@@ -152,7 +151,11 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
             _this->updateLabel();
             _this->constrainer = _this->createConstrainer();
             _this->onConstrainerCreate();
-
+            
+            // By registering the message listener asynchronously, we prevent a potential data race on a virtual function
+            // If we initialise the message listener directly in the constructor of ObjectBase, the derived class isn't initialised yet, meaning the receiveMessage function hasn't has its virtual override assigned yet, but since the listener is registered already, it might get called anyway
+            _this->pd->registerMessageListener(_this->ptr.getRawUnchecked<void>(), _this.getComponent());
+            
             for (auto& [name, type, cat, value, list, valueDefault] : _this->objectParameters.getParameters()) {
                 value->addListener(_this.getComponent());
                 value->addListener(&_this->propertyUndoListener);
@@ -448,6 +451,7 @@ void ObjectBase::sendFloatValue(float newValue)
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
+    ScopedLock(parent->cnv->pd->audioLock);
 
     auto const name = hash(libpd_get_object_class_name(ptr));
 
