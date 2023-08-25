@@ -743,7 +743,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, cons
     
     if(!defaultFile.exists())
     {
-        
+        defaultFile = ProjectInfo::appDataDir;
     }
     
     if (type) {
