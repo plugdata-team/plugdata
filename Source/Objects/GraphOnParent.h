@@ -302,7 +302,7 @@ public:
             int isGraph = getValue<bool>(isGraphChild);
             
             if (auto glist = ptr.get<t_glist>()) {
-                canvas_setgraph(glist.get(), isGraph + 2 * glist->gl_hidetext, 0);
+                canvas_setgraph(glist.get(), isGraph + 2 * (isGraph && glist->gl_hidetext), 0);
             }
             
             if (!isGraph) {
