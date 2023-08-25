@@ -309,7 +309,7 @@ juce_add_plugin(plugdata_midi
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdMd
     FORMATS                     AU
-    PRODUCT_NAME                "plugdata-miWdi"
+    PRODUCT_NAME                "plugdata-midi"
     AU_MAIN_TYPE                kAudioUnitType_MIDIProcessor)
 endif()
 
