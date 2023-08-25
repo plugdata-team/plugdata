@@ -71,6 +71,8 @@ public:
     
     ~ObjectBase() override;
     
+    void initialise();
+    
     void paint(Graphics& g) override;
     
     // Functions to show and hide a text editor

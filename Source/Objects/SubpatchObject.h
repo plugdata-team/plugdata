@@ -8,7 +8,6 @@ class SubpatchObject final : public TextBase {
 
     pd::Patch::Ptr subpatch;
     Value isGraphChild = SynchronousValue(var(false));
-    Value hideNameAndArgs = SynchronousValue(var(false));
 
     bool locked = false;
 
@@ -24,7 +23,15 @@ public:
         }
 
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
-        objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
+        
+        // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
+        // By running another update call asynchrounously, we can still respond to the new state
+        MessageManager::callAsync([_this = SafePointer(this)](){
+            if(_this) {
+                _this->update();
+                _this->valueChanged(_this->isGraphChild);
+            }
+        });
     }
 
     ~SubpatchObject() override
@@ -36,21 +43,18 @@ public:
     void update() override
     {
         isGraphChild = static_cast<bool>(subpatch->getPointer()->gl_isgraph);
-        hideNameAndArgs = static_cast<bool>(subpatch->getPointer()->gl_hidetext);
 
-        updateValue();
-    }
-
-    void updateValue()
-    {
         // Change from subpatch to graph
+        bool graph;
         if (auto canvas = ptr.get<t_canvas>()) {
-            if (canvas->gl_isgraph) {
-                cnv->setSelected(object, false);
-                object->cnv->editor->sidebar->hideParameters();
-                object->setType(objectText, canvas.get());
-            }
+            graph = canvas->gl_isgraph;
         }
+        else
+        {
+            return;
+        }
+        
+        isGraphChild = graph;
     };
 
     void mouseDown(MouseEvent const& e) override
@@ -85,34 +89,29 @@ public:
 
     void checkGraphState()
     {
-        int isGraph = getValue<bool>(isGraphChild);
-        int hideText = getValue<bool>(hideNameAndArgs);
-
-        if (auto glist = ptr.get<t_glist>()) {
-            canvas_setgraph(glist.get(), isGraph + 2 * hideText, 0);
-        }
-        repaint();
-
-        MessageManager::callAsync([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
-
-            // Change from subpatch to graph
-            if (auto glist = ptr.get<t_glist>()) {
-                if (glist->gl_isgraph) {
-                    cnv->setSelected(object, false);
-                    object->cnv->editor->sidebar->hideParameters();
-                    object->setType(getText(), glist.get());
-                    return;
-                }
-            }
-        });
+        
     }
 
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
-            checkGraphState();
+        if (v.refersToSameSourceAs(isGraphChild)) {
+            int isGraph = getValue<bool>(isGraphChild);
+            if (auto glist = ptr.get<t_glist>()) {
+                canvas_setgraph(glist.get(), isGraph + 2 * glist->gl_hidetext, 0);
+            }
+
+            if(isGraph)
+            {
+                MessageManager::callAsync([this, _this = SafePointer(this)]() {
+                    if (!_this)
+                        return;
+                    
+                    _this->cnv->setSelected(object, false);
+                    _this->object->cnv->editor->sidebar->hideParameters();
+                    _this->object->setType(_this->getText(), ptr.getRaw<void>());
+                });
+            }
+            
         } else if (v.refersToSameSourceAs(object->hvccMode)) {
             if (getValue<bool>(v)) {
                 checkHvccCompatibility(getText(), subpatch.get());

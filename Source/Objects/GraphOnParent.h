@@ -26,16 +26,21 @@ public:
     {
         resized();
 
-        MessageManager::callAsync([_this = SafePointer(this)]() {
-            if (_this)
-                _this->checkGraphState();
-        });
-
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
         objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
         objectParameters.addParamRange("X range", cGeneral, &xRange, {0, 100});
         objectParameters.addParamRange("Y range", cGeneral, &yRange, {-1, 1});
+        
+        // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
+        // By running another update call asynchrounously, we can still respond to the new state
+        MessageManager::callAsync([_this = SafePointer(this)](){
+            if(_this)
+            {
+                _this->update();
+                _this->valueChanged(_this->isGraphChild);
+            }
+        });
     }
 
     void update() override
@@ -267,36 +272,6 @@ public:
         return canvas.get();
     }
 
-    void checkGraphState()
-    {
-        int isGraph = getValue<bool>(isGraphChild);
-        int hideText = isGraph && getValue<bool>(hideNameAndArgs);
-
-        if (auto glist = ptr.get<t_glist>()) {
-            canvas_setgraph(glist.get(), isGraph + 2 * hideText, 0);
-        }
-
-        repaint();
-
-        MessageManager::callAsync([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
-
-            // Change from graph to subpatch
-            if (auto glist = ptr.get<t_canvas>()) {
-                if (!glist->gl_isgraph) {
-                    cnv->setSelected(object, false);
-                    object->cnv->editor->sidebar->hideParameters();
-
-                    object->setType(getText(), glist.get());
-                    return; // Make sure we don't run updateCanvas because class might be deleted!
-                }
-            }
-
-            updateCanvas();
-        });
-    }
-
     void valueChanged(Value& v) override
     {
 
@@ -316,8 +291,34 @@ public:
             
             object->updateBounds();
         }
-        else if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
-            checkGraphState();
+        else if (v.refersToSameSourceAs(hideNameAndArgs)) {
+            int hideText = getValue<bool>(hideNameAndArgs);
+            if (auto glist = ptr.get<t_glist>()) {
+                canvas_setgraph(glist.get(), glist->gl_isgraph + 2 * hideText, 0);
+            }
+            repaint();
+        }
+        else if (v.refersToSameSourceAs(isGraphChild)) {
+            int isGraph = getValue<bool>(isGraphChild);
+            
+            if (auto glist = ptr.get<t_glist>()) {
+                canvas_setgraph(glist.get(), isGraph + 2 * glist->gl_hidetext, 0);
+            }
+            
+            if (!isGraph) {
+                MessageManager::callAsync([_this = SafePointer(this)]() {
+                    if(!_this) return;
+                    
+                    _this->cnv->setSelected(_this->object, false);
+                    _this->object->cnv->editor->sidebar->hideParameters();
+                    
+                    _this->object->setType(_this->getText(), _this->ptr.getRaw<void>());
+                });
+            }
+            else {
+                updateCanvas();
+                repaint();
+            }
         }
         else if (v.refersToSameSourceAs(xRange)) {
             if (auto glist = ptr.get<t_canvas>()) {

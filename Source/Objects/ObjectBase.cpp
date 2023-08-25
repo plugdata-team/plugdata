@@ -145,23 +145,6 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 
     objectParameters.addParamPosition(&positionParameter);
     positionParameter.addListener(&objectSizeListener);
-
-    MessageManager::callAsync([_this = SafePointer(this)] {
-        if (_this) {
-            _this->updateLabel();
-            _this->constrainer = _this->createConstrainer();
-            _this->onConstrainerCreate();
-            
-            // By registering the message listener asynchronously, we prevent a potential data race on a virtual function
-            // If we initialise the message listener directly in the constructor of ObjectBase, the derived class isn't initialised yet, meaning the receiveMessage function hasn't has its virtual override assigned yet, but since the listener is registered already, it might get called anyway
-            _this->pd->registerMessageListener(_this->ptr.getRawUnchecked<void>(), _this.getComponent());
-            
-            for (auto& [name, type, cat, value, list, valueDefault] : _this->objectParameters.getParameters()) {
-                value->addListener(_this.getComponent());
-                value->addListener(&_this->propertyUndoListener);
-            }
-        }
-    });
     
     propertyUndoListener.onChange = [_this = SafePointer(this)](){
         if(!_this) return;
@@ -185,6 +168,21 @@ ObjectBase::~ObjectBase()
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
     delete lnf;
+}
+
+void ObjectBase::initialise()
+{
+    update();
+    updateLabel();
+    constrainer = createConstrainer();
+    onConstrainerCreate();
+
+    pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
+    
+    for (auto& [name, type, cat, value, list, valueDefault] : objectParameters.getParameters()) {
+        value->addListener(this);
+        value->addListener(&propertyUndoListener);
+    }
 }
 
 void ObjectBase::objectMovedOrResized(bool resized)
