@@ -1478,16 +1478,33 @@ void Canvas::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(presentationMode)) {
         deselectAll();
         commandLocked.setValue(presentationMode.getValue());
-    } else if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
+    }
+    else if (v.refersToSameSourceAs(hideNameAndArgs)) {
+        if (!patch.getPointer())
+            return;
+        
+        int hideText = getValue<bool>(hideNameAndArgs);
+        if (auto glist = patch.getPointer()) {
+            hideText = glist->gl_isgraph && hideText;
+            canvas_setgraph(glist.get(), glist->gl_isgraph + 2 * hideText, 0);
+        }
+        
+        hideNameAndArgs = hideText;
+    }
+    else if (v.refersToSameSourceAs(isGraphChild)) {
 
         if (!patch.getPointer())
             return;
 
         int graphChild = getValue<bool>(isGraphChild);
-        int hideText = getValue<bool>(hideNameAndArgs);
-
+        
         if (auto glist = patch.getPointer()) {
-            canvas_setgraph(glist.get(), isGraph + 2 * hideText, 0);
+            canvas_setgraph(glist.get(), graphChild + 2 * (graphChild && glist->gl_hidetext), 0);
+        }
+        
+        if(!graphChild)
+        {
+            hideNameAndArgs = false;
         }
 
         if (graphChild && !isGraph) {
