@@ -714,6 +714,8 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     sidebar->hideParameters();
 
+    patch->setVisible(false);
+    
     tabbar->removeTab(tabIdx);
     canvases.removeObject(cnv);
 
@@ -784,6 +786,7 @@ void PluginEditor::addTab(Canvas* cnv, int splitIdx)
 
     cnv->setVisible(true);
     cnv->jumpToOrigin();
+    cnv->patch.setVisible(true);
 
     if (cnv->patch.openInPluginMode) {
         enablePluginMode(cnv);
