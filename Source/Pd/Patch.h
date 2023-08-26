@@ -55,6 +55,8 @@ public:
 
     bool isSubpatch();
     bool isAbstraction();
+    
+    void setVisible(bool shouldVis);
 
     static String translatePatchAsString(String const& clipboardContent, Point<int> position);
 

@@ -165,25 +165,28 @@ void Patch::savePatch()
         canvas_dirty(patch.get(), 0);
 
         libpd_savetofile(patch.get(), file, dir);
-        instance->reloadAbstractions(currentFile, patch.get());
     }
-
-    instance->lockAudioThread();
-
-    instance->unlockAudioThread();
+    
+    MessageManager::callAsync([this, patch = ptr.getRaw<t_glist>()](){
+        sys_lock();
+        instance->reloadAbstractions(currentFile, patch);
+        sys_unlock();
+    });
 }
 
 void Patch::setCurrent()
 {
     if (auto patch = ptr.get<t_glist>()) {
         instance->setThis();
-        // This is the same as calling canvas_vis and canvas_map,
-        // but all the other stuff inside those functions is just for tcl/tk anyway
+        patch->gl_havewindow = true;
+        canvas_create_editor(patch.get());
+    }
+}
 
-        patch->gl_havewindow = 1;
-        patch->gl_mapped = 1;
-
-        canvas_create_editor(patch.get()); // can't hurt to make sure of this!
+void Patch::setVisible(bool shouldVis)
+{
+    if (auto patch = ptr.get<t_glist>()) {
+        patch->gl_mapped = shouldVis;
     }
 }
 

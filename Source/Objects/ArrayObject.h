@@ -561,7 +561,6 @@ public:
         objectParameters.addParamBool("Save contents", cGeneral, &saveContents, { "No", "Yes" }, 0);
 
         objectParameters.addParamCombo("Draw mode", cAppearance, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2);
-        objectParameters.addParamInt("Line Width", cAppearance, &lineWidth);
         
         startTimer(20);
     }
@@ -658,7 +657,6 @@ public:
         saveContents = graphs[0]->willSaveContent();
         name = String(graphs[0]->getUnexpandedName());
         drawMode = static_cast<int>(graphs[0]->getDrawType()) + 1;
-        lineWidth = graphs[0]->getLineWidth();
         if (auto glist = ptr.get<t_glist>()) {
             sizeProperty = Array<var>{var(glist->gl_pixwidth), var(glist->gl_pixheight)};
         }
@@ -719,8 +717,6 @@ public:
         for (auto* graph : graphs) {
             graph->repaint();
         }
-        
-        lineWidth = graphs[0]->getLineWidth();
     }
 
     void valueChanged(Value& value) override
@@ -750,16 +746,6 @@ public:
                 graph->setScale({ min, max });
                 graph->repaint();
             }
-        }
-        else if(value.refersToSameSourceAs(lineWidth))
-        {
-            for (auto* graph : graphs) {
-                if(auto array = graph->arr.get<t_garray>())
-                {
-                    cnv->pd->sendTypedMessage(array.get(), "width", std::vector<pd::Atom>{getValue<int>(lineWidth)});
-                }
-            }
-            repaint();
         }
         else {
             ObjectBase::valueChanged(value);
@@ -866,7 +852,6 @@ public:
         }
         case hash("width"):
         {
-            lineWidth = static_cast<int>(atoms[0].getFloat());
             repaint();
             break;
         }
@@ -888,7 +873,6 @@ private:
     Value saveContents = SynchronousValue();
     Value range = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-    Value lineWidth = SynchronousValue();
         
     OwnedArray<GraphicalArray> graphs;
     std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
