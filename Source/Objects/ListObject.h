@@ -108,7 +108,6 @@ public:
         std::vector<pd::Atom> list;
         list.reserve(array.size());
         for (auto const& elem : array) {
-            
             auto charptr = elem.getCharPointer();
             auto numptr = charptr;
             auto value = CharacterFunctions::readDoubleValue(numptr);
