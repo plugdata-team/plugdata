@@ -178,9 +178,7 @@ void Patch::setCurrent()
 {
     if (auto patch = ptr.get<t_glist>()) {
         instance->setThis();
-        // This is the same as calling canvas_vis and canvas_map,
-        // but all the other stuff inside those functions is just for tcl/tk anyway
-
+        patch->gl_havewindow = true;
         canvas_create_editor(patch.get());
     }
 }
@@ -188,7 +186,6 @@ void Patch::setCurrent()
 void Patch::setVisible(bool shouldVis)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        patch->gl_havewindow = shouldVis;
         patch->gl_mapped = shouldVis;
     }
 }

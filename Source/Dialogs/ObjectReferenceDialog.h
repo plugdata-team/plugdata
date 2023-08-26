@@ -141,7 +141,11 @@ public:
         for (auto flag : flags) {
             auto name = flag.getProperty("name").toString().trim();
             auto description = flag.getProperty("description").toString();
+            auto def = flag.getProperty("default").toString();
 
+            if(def.isNotEmpty())
+                description += " (default: " + def + ")";
+                
             if (!name.startsWith("-"))
                 name = "- " + name;
 

@@ -582,8 +582,10 @@ private:
             for (auto flag : objectInfo.getChildWithName("flags")) {
                 auto flagCopy = flag.createCopy();
                 auto name = flagCopy.getProperty("name").toString().trim();
+                
                 if (!name.startsWith("-"))
                     name = "-" + name;
+                
                 flagCopy.setProperty("type", name, nullptr);
                 found.appendChild(flagCopy, nullptr);
             }
@@ -592,7 +594,11 @@ private:
             for (int i = 0; i < numOptions; i++) {
                 auto type = found.getChild(i).getProperty("type").toString();
                 auto description = found.getChild(i).getProperty("description").toString();
-
+                auto def = found.getChild(i).getProperty("default").toString();
+                
+                if(def.isNotEmpty())
+                    description += " (default: " + def + ")";
+                
                 buttons[i]->setText(type, description, false);
                 buttons[i]->setInterceptsMouseClicks(false, false);
                 buttons[i]->setToggleState(false, dontSendNotification);
