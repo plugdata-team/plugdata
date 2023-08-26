@@ -299,19 +299,7 @@ void Object::applyBounds()
     patch->startUndoSequence("resize");
 
     for (auto& [object, bounds] : newObjectSizes) {
-        if (!object || !object->gui)
-            return;
-
-        auto* obj = static_cast<t_gobj*>(object->getPointer());
-        auto* cnv = object->cnv;
-
-        if (!obj) return;
-        
-        // Used for size changes, could also be used for properties
-        libpd_undo_apply(patchPtr, obj);
-
         object->gui->setPdBounds(bounds);
-
         canvas_dirty(patchPtr, 1);
     }
 
@@ -977,9 +965,21 @@ void Object::mouseDrag(MouseEvent const& e)
 
             if (!obj->gui)
                 continue;
+               
+            // Create undo step when we start resizing
+            if(!ds.wasResized) {
+                auto* objPtr = static_cast<t_gobj*>(obj->getPointer());
+                auto* cnv = obj->cnv;
+                
+                auto* patchPtr = cnv->patch.getPointer().get();
+                if (!patchPtr)
+                    continue;
+                
+                // Used for size changes, could also be used for properties
+                libpd_undo_apply(patchPtr, objPtr);
+            }
 
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
-            
             
             if (auto* constrainer = obj->getConstrainer()) {
                 

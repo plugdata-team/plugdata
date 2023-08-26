@@ -679,6 +679,17 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
     parameter.addListener(&propertyUndoListener);
 }
 
+
+void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* listener)
+{
+    parameter.removeListener(listener);
+    
+    auto oldValue = parameter.getValue();
+    parameter.setValue(value);
+    
+    parameter.addListener(listener);
+}
+
 ObjectLabel* ObjectBase::getLabel()
 {
     return label.get();
