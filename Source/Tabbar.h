@@ -190,8 +190,6 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto styles = Font(32).getAvailableStyles();
-
         g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
 
         Fonts::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 195, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
