@@ -156,7 +156,6 @@ public:
             categories.add(new CategoryPanel("Flags", flagsInfo));
         }
         
-        
         for(auto* category : categories)
         {
             categoriesHolder.addAndMakeVisible(category);

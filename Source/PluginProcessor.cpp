@@ -436,9 +436,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     statusbarSource->setBufferSize(samplesPerBlock);
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
     
-    if(getTotalNumOutputChannels() > 0 && sampleRate > 0) {
-        limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(getTotalNumOutputChannels()) });
-    }
+    limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(maxChannels) });
 
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
 }
