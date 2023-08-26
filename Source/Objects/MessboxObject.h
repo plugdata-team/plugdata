@@ -18,8 +18,6 @@ class MessboxObject final : public ObjectBase
     Value fontSize = SynchronousValue();
     Value bold = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-    
-    t_binbuf* contentBinbuf;
         
 public:
     MessboxObject(void* obj, Object* parent)
