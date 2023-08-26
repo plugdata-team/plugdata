@@ -51,6 +51,7 @@ public:
         setWantsKeyboardFocus(true);
         addListener(this);
         setFont(Fonts::getTabularNumbersFont().withHeight(14.0f));
+        setBufferedToImage(true);
     }
 
     void labelTextChanged(Label* labelThatHasChanged) override {};
