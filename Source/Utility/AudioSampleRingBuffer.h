@@ -67,8 +67,11 @@ public:
 
         int readPos = readPosition + std::ceil((diff / 1000) * sampleRate) - mainBufferSize - peakWindowSize;
 
-        if (readPos < 0)
+        while (readPos < 0)
             readPos += bufferSize;
+        
+        while (readPos >= buffer.getNumSamples())
+            readPos -= bufferSize;
 
         audioBufferMutex.lock();
         for (int ch = 0; ch < std::min(2, peakBuffer.getNumChannels()); ch++) {
