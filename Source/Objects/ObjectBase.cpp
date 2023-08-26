@@ -667,16 +667,16 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
     }
 }
 
-void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* listener)
-{
-    if(!listener) listener = this;
-    
-    parameter.removeListener(listener);
+void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
+{    
+    parameter.removeListener(&propertyUndoListener);
+    parameter.removeListener(this);
     
     auto oldValue = parameter.getValue();
     parameter.setValue(value);
     
-    parameter.addListener(listener);
+    parameter.addListener(this);
+    parameter.addListener(&propertyUndoListener);
 }
 
 ObjectLabel* ObjectBase::getLabel()
