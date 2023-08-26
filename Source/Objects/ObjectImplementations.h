@@ -504,14 +504,7 @@ public:
         if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
-        Point<int> pos;
-        getMousePos(e, pos);
-
-        pos -= zeroPosition;
-
         if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
-            outlet_float(mouse->x_outlet_y, (float)pos.y);
-            outlet_float(mouse->x_outlet_x, (float)pos.x);
             outlet_float(mouse->x_obj.ob_outlet, 1.0);
         }
     }
