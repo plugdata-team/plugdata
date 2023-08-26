@@ -720,7 +720,7 @@ void PluginEditor::closeTab(Canvas* cnv)
     // It's possible that the tabbar has been deleted if this was the last tab
     if(tabbar && tabbar->getNumTabs() > 0) {
         int newTabIdx = std::max(currentTabIdx, 0);
-        if ((currentTabIdx >= tabIdx || currentTabIdx > tabbar->getNumTabs() - 1) && currentTabIdx > 0) {
+        if ((currentTabIdx >= tabIdx || currentTabIdx >= tabbar->getNumTabs()) && currentTabIdx > 0) {
             newTabIdx--;
         }
 
