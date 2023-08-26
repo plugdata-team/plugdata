@@ -179,6 +179,8 @@ ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
 
 void TabBarButtonComponent::mouseDown(MouseEvent const& e)
 {
+    if(e.originalComponent != this) return;
+    
     if (e.mods.isPopupMenu()) {
         auto splitIndex = getTabComponent()->getEditor()->splitView.getTabComponentSplitIndex(getTabComponent());
 

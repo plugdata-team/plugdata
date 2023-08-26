@@ -36,12 +36,14 @@ public:
     JUCE_DECLARE_WEAK_REFERENCEABLE(ImplementationBase);
 };
 
-class ObjectImplementationManager {
+class ObjectImplementationManager : public AsyncUpdater {
 public:
     explicit ObjectImplementationManager(pd::Instance* pd);
 
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(void* patch);
+    
+    void handleAsyncUpdate();
 
 private:
     Array<void*> getImplementationsForPatch(void* patch);

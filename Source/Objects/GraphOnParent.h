@@ -68,36 +68,24 @@ public:
     {
         switch (hash(symbol)) {
         case hash("coords"): {
-            if (atoms.size() >= 8) {
+            Rectangle<int> bounds;
+            if (auto gobj = ptr.get<t_gobj>()) {
+                auto* patch = cnv->patch.getPointer().get();
+                if (!patch)
+                    return;
 
-                // x_range: 0 1
-                // y_range: 1 -1
-                // w: $4 h: 22
-                // hidetext: 2
-                // margin: 100 100
-                // isgraph: 1
-
-                Rectangle<int> bounds;
-                if (auto gobj = ptr.get<t_gobj>()) {
-                    auto* patch = cnv->patch.getPointer().get();
-                    if (!patch)
-                        return;
-
-                    int x = 0, y = 0, w = 0, h = 0;
-                    libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
-                    bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
-                }
-
-                object->setObjectBounds(bounds);
+                int x = 0, y = 0, w = 0, h = 0;
+                libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+                bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
             }
+            update();
+            object->setObjectBounds(bounds);
             break;
         }
         case hash("donecanvasdialog"): {
-            if (atoms.size() >= 11) {
-
-                updateCanvas();
-                updateDrawables();
-            }
+            update();
+            updateCanvas();
+            updateDrawables();
             break;
         }
         default:
@@ -302,7 +290,7 @@ public:
             int isGraph = getValue<bool>(isGraphChild);
             
             if (auto glist = ptr.get<t_glist>()) {
-                canvas_setgraph(glist.get(), isGraph + 2 * glist->gl_hidetext, 0);
+                canvas_setgraph(glist.get(), isGraph + 2 * (isGraph && glist->gl_hidetext), 0);
             }
             
             if (!isGraph) {

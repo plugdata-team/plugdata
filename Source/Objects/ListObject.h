@@ -108,9 +108,14 @@ public:
         std::vector<pd::Atom> list;
         list.reserve(array.size());
         for (auto const& elem : array) {
-            if (elem.getCharPointer().isDigit()) {
-                list.emplace_back(elem.getFloatValue());
-            } else {
+            auto charptr = elem.getCharPointer();
+            auto numptr = charptr;
+            auto value = CharacterFunctions::readDoubleValue(numptr);
+            
+            if (numptr - charptr == elem.getNumBytesAsUTF8()) {
+                list.emplace_back(value);
+            }
+            else {
                 list.emplace_back(elem);
             }
         }

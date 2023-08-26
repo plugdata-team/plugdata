@@ -61,11 +61,13 @@ public:
     {
         if (auto messbox = ptr.get<t_fake_messbox>()) {
             fontSize = messbox->x_font_size;
-
             primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
             secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
             sizeProperty = Array<var>{var(messbox->x_width), var(messbox->x_height)};
         }
+        
+        editor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
+        editor.applyFontToAllText(editor.getFont().withHeight(getValue<int>(fontSize)));
 
         repaint();
     }
@@ -134,6 +136,10 @@ public:
     std::vector<hash32> getAllMessages() override
     {
         return {
+            hash("list"),
+            hash("float"),
+            hash("symbol"),
+            hash("bang"),
             hash("set"),
             hash("append"),
             hash("fgcolor"),
@@ -156,8 +162,11 @@ public:
             getSymbols(atoms);
             break;
         }
+        case hash("list"):
+        case hash("float"):
+        case hash("symbol"):
         case hash("bang"): {
-            setSymbols(editor.getText());
+            setSymbols(editor.getText(), atoms);
             break;
         }
         case hash("bold"): {
@@ -201,7 +210,7 @@ public:
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        setSymbols(ed.getText());
+        setSymbols(ed.getText(), std::vector<pd::Atom>{});
     }
 
     // For resize-while-typing behaviour
@@ -210,28 +219,34 @@ public:
         object->updateBounds();
     }
 
-    void setSymbols(String const& symbols)
+    void setSymbols(String const& symbols, const std::vector<pd::Atom>& atoms)
     {
-
-        std::vector<t_atom> atoms;
-        auto words = StringArray::fromTokens(symbols.trim(), true);
-        for (auto const& word : words) {
-            atoms.emplace_back();
-            // check if string is a valid number
-            auto charptr = word.getCharPointer();
-            auto ptr = charptr;
-            auto value = CharacterFunctions::readDoubleValue(ptr);
-            if (ptr - charptr == word.getNumBytesAsUTF8()) {
-                SETFLOAT(&atoms.back(), word.getFloatValue());
-            } else {
-                SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
+        String text;
+        if (auto messObj = ptr.get<t_fake_messbox>()) {
+            text = symbols.replace("$0", String::fromUTF8(messObj->x_dollzero->s_name));
+        }
+        else {
+            return;
+        }
+        
+        t_binbuf* buf = binbuf_new();
+        binbuf_text(buf, text.toRawUTF8(), text.getNumBytesAsUTF8());
+        
+        std::vector<t_atom> pd_atoms(atoms.size());
+        for(int i = 0; i < atoms.size(); i++)
+        {
+            if(atoms[i].isFloat())
+            {
+                SETFLOAT(pd_atoms.data() + i, atoms[i].getFloat());
+            }
+            else {
+                auto sym = atoms[i].getSymbol();
+                SETSYMBOL(pd_atoms.data() + i, gensym(sym.toRawUTF8()));
             }
         }
-
-        if (atoms.size()) {
-            if (auto messObj = ptr.get<t_object>()) {
-                outlet_anything(messObj->ob_outlet, pd->generateSymbol("list"), atoms.size(), atoms.data());
-            }
+        
+        if (auto messObj = ptr.get<t_fake_messbox>()) {
+            binbuf_eval(buf, static_cast<t_pd*>(messObj->x_proxy), pd_atoms.size(), pd_atoms.data());
         }
     }
 

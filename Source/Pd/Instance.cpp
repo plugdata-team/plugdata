@@ -182,7 +182,9 @@ void Instance::initialisePd(String& pdlua_version)
         {
             case hash("openpanel"):
             {
-                static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback");
+                auto openMode = argc >=4 ? static_cast<int>(atom_getfloat(argv + 3)) : -1;
+                static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback", openMode);
+                
                 break;
             }
             case hash("elsepanel"):
@@ -733,33 +735,59 @@ std::deque<std::tuple<void*, String, int, int>>& Instance::getConsoleHistory()
     return consoleHandler.consoleHistory;
 }
 
-void Instance::createPanel(int type, char const* snd, char const* location, const char* callbackName)
+void Instance::createPanel(int type, char const* snd, char const* location, const char* callbackName, int openMode)
 {
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);
-
+    
+    if(!defaultFile.exists())
+    {
+        defaultFile = ProjectInfo::appDataDir;
+    }
+    
     if (type) {
         MessageManager::callAsync(
-            [this, obj, defaultFile, callback = String(callbackName)]() mutable {
-                auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
+            [this, obj, defaultFile, openMode, callback = String(callbackName)]() mutable {
+                
+                FileBrowserComponent::FileChooserFlags folderChooserFlags;
+                
+                if(openMode <= 0)
+                {
+                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles);
+                }
+                else if(openMode == 1)
+                {
+                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories);
+                }
+                else
+                {
+                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectMultipleItems);
+                }
+                
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
-                openChooser->launchAsync(folderChooserFlags, [this, obj, callback](FileChooser const& fileChooser) {
-                    auto const file = fileChooser.getResult();
-
-                    lockAudioThread();
-                    String pathname = file.getFullPathName().toRawUTF8();
-
-                // Convert slashes to backslashes
-#if JUCE_WINDOWS
-                    pathname = pathname.replaceCharacter('\\', '/');
-#endif
-
-                    t_atom argv[1];
-                    libpd_set_symbol(argv, pathname.toRawUTF8());
+                openChooser->launchAsync(folderChooserFlags, [this, obj, openMode, callback](FileChooser const& fileChooser) {
                     
-                    pd_typedmess(obj, generateSymbol(callback), 1, argv);
-
+                    auto const files = fileChooser.getResults();
+                    
+                    lockAudioThread();
+ 
+                    std::vector<t_atom> atoms(files.size());
+                    
+                    for(int i = 0; i < atoms.size(); i++)
+                    {
+                        String pathname = files[i].getFullPathName();
+                        
+                        // Convert slashes to backslashes
+    #if JUCE_WINDOWS
+                        pathname = pathname.replaceCharacter('\\', '/');
+    #endif
+                        
+                        libpd_set_symbol(atoms.data() + i, pathname.toRawUTF8());
+                    }
+                   
+                    pd_typedmess(obj, generateSymbol(callback), atoms.size(), atoms.data());
+                    
                     unlockAudioThread();
                 });
             });

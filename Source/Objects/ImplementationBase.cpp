@@ -192,16 +192,18 @@ ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor
 {
 }
 
-void ObjectImplementationManager::updateObjectImplementations()
+void ObjectImplementationManager::handleAsyncUpdate()
 {
     Array<void*> allImplementations;
-
+    
     pd->setThis();
 
+    pd->lockAudioThread();
     t_glist* x;
     for (x = pd_getcanvaslist(); x; x = x->gl_next) {
         allImplementations.addArray(getImplementationsForPatch(x));
     }
+    pd->unlockAudioThread();
 
     // Remove unused object implementations
     for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
@@ -214,7 +216,7 @@ void ObjectImplementationManager::updateObjectImplementations()
             it++;
         }
     }
-
+    
     for (auto* ptr : allImplementations) {
         if (!objectImplementations.count(ptr)) {
 
@@ -227,11 +229,14 @@ void ObjectImplementationManager::updateObjectImplementations()
     }
 }
 
+void ObjectImplementationManager::updateObjectImplementations()
+{
+    triggerAsyncUpdate();
+}
+
 Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch)
 {
     Array<void*> implementations;
-
-    pd->lockAudioThread();
 
     auto* glist = static_cast<t_glist*>(patch);
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
@@ -253,8 +258,6 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
             implementations.add(y);
         }
     }
-
-    pd->unlockAudioThread();
 
     return implementations;
 }

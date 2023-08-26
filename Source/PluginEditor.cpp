@@ -709,7 +709,7 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     auto tabbar = SafePointer<TabComponent>(cnv->getTabbar());
     auto const tabIdx = cnv->getTabIndex();
-
+    auto const currentTabIdx = tabbar->getCurrentTabIndex();
     auto patch = cnv->refCountedPatch;
 
     sidebar->hideParameters();
@@ -718,8 +718,14 @@ void PluginEditor::closeTab(Canvas* cnv)
     canvases.removeObject(cnv);
 
     // It's possible that the tabbar has been deleted if this was the last tab
-    if(tabbar) {
-        tabbar->setCurrentTabIndex(tabIdx > (tabbar->getNumTabs() - 1) ? tabIdx - 1 : tabIdx);
+    if(tabbar && tabbar->getNumTabs() > 0) {
+        int newTabIdx = std::max(currentTabIdx, 0);
+        if ((currentTabIdx >= tabIdx || currentTabIdx >= tabbar->getNumTabs()) && currentTabIdx > 0) {
+            newTabIdx--;
+        }
+
+        // Set the new current tab index
+        tabbar->setCurrentTabIndex(newTabIdx);
     }
 
     pd->patches.removeAllInstancesOf(patch);

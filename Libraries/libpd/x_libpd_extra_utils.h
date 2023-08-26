@@ -32,6 +32,7 @@ void libpd_array_set_scale(void* array, float min, float max);
 int libpd_array_get_size(void* array);
 int libpd_array_get_style(void* array);
 int libpd_array_get_saveit(void* array);
+int libpd_array_get_linewidth(void* array);
 
 // (re)size an array by name; sizes <= 0 are clipped to 1
 // returns 0 on success or negative error code if non-existent

@@ -66,13 +66,11 @@ private:
     void run() override
     {
         while(!shouldQuit) {
-            
-            
             auto ofeliaExecutable = findOfeliaExecutable();
             
             if(!ofeliaExecutable.existsAsFile())
             {
-                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 1000);
+                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 5000);
                 continue;
             }
             
@@ -129,7 +127,11 @@ private:
         auto paths = StringArray(p, numItems);
         
         for (auto& dir : paths) {
-            for (const auto& file : OSUtils::iterateDirectory(dir, true, true)) {
+            auto ofeliaDir = File(dir).getChildFile("ofelia");
+            
+            if(!ofeliaDir.isDirectory()) continue;
+            
+            for (const auto& file : OSUtils::iterateDirectory(ofeliaDir, false, true)) {
                 if (file.getFileName() == "ofelia" || file.getFileName() == "ofelia.exe") {
                     return ofeliaExecutable = file;
                 }

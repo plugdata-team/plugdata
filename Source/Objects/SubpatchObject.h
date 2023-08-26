@@ -118,6 +118,29 @@ public:
             }
         }
     }
+    
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("coords"),
+            hash("donecanvasdialog")
+        };
+    }
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        switch (hash(symbol)) {
+            case hash("coords"): {
+                update();
+                break;
+            }
+            case hash("donecanvasdialog"): {
+                update();
+                break;
+            }
+            default: break;
+        }
+    }
 
     bool canOpenFromMenu() override
     {
