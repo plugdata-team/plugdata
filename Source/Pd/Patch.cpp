@@ -165,12 +165,13 @@ void Patch::savePatch()
         canvas_dirty(patch.get(), 0);
 
         libpd_savetofile(patch.get(), file, dir);
-        instance->reloadAbstractions(currentFile, patch.get());
     }
-
-    instance->lockAudioThread();
-
-    instance->unlockAudioThread();
+    
+    MessageManager::callAsync([this, patch = ptr.getRaw<t_glist>()](){
+        sys_lock();
+        instance->reloadAbstractions(currentFile, patch);
+        sys_unlock();
+    });
 }
 
 void Patch::setCurrent()
