@@ -8,6 +8,7 @@ class DaisyExporter : public ExporterBase {
 public:
     Value targetBoardValue = Value(var(1));
     Value exportTypeValue = Value(var(3));
+    Value patchSizeValue = Value(var(1));
     Value romOptimisationType = Value(var(2));
     Value ramOptimisationType = Value(var(2));
 
@@ -22,14 +23,17 @@ public:
     {
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Simple", "Custom JSON..." }));
-
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
+        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge", "Advanced" }));
 
         romOptimisation = new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, { "Optimise for size", "Optimise for speed" });
         ramOptimisation = new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, { "Optimise for size", "Optimise for speed" });
 
         properties.add(romOptimisation);
         properties.add(ramOptimisation);
+
+        romOptimisation->setVisible(false);
+        ramOptimisation->setVisible(false);
 
         for (auto* property : properties) {
             property->setPreferredHeight(28);
@@ -42,6 +46,7 @@ public:
 
         exportTypeValue.addListener(this);
         targetBoardValue.addListener(this);
+        patchSizeValue.addListener(this);
 
         flashButton.onClick = [this]() {
             auto tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
@@ -66,8 +71,9 @@ public:
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
 
-        ramOptimisation->setVisible(flash);
-        romOptimisation->setVisible(flash);
+        bool size = getValue<int>(patchSizeValue) == 4;
+        ramOptimisation->setVisible(size);
+        romOptimisation->setVisible(size);
 
         if (v.refersToSameSourceAs(targetBoardValue)) {
             int idx = getValue<int>(targetBoardValue);
@@ -96,6 +102,8 @@ public:
         auto target = getValue<int>(targetBoardValue) - 1;
         bool compile = getValue<int>(exportTypeValue) - 1;
         bool flash = getValue<int>(exportTypeValue) == 3;
+        auto size = getValue<int>(patchSizeValue);
+        bool bootloader = false;
 
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
 
@@ -107,6 +115,7 @@ public:
             args.add("\"" + copyright + "\"");
         }
 
+        // set board definition
         auto boards = StringArray { "seed", "pod", "petal", "patch", "patch_init", "field", "simple", "custom" };
         auto const& board = boards[target];
 
@@ -120,6 +129,37 @@ public:
         } else {
             metaDaisy.getDynamicObject()->setProperty("board", board);
         }
+
+        // set linker script and bootloader
+        auto linkerDir = Toolchain::dir.getChildFile("etc").getChildFile("linkers");
+        File linkerFile;
+
+        if (size == 2) {
+            metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("sram_linker_sdram.lds").getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
+            bootloader = true;
+        } else if (size == 3) {
+            metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("qspi_linker_sdram.lds").getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
+            bootloader = true;
+        } else if (size == 4) {
+            int ramType = getValue<int>(ramOptimisationType);
+            int romType = getValue<int>(romOptimisationType);
+
+            if (romType == 1) {
+                if (ramType == 1) {
+                    metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("sram_linker_sdram.lds").getFullPathName());
+                } else if (ramType == 2) {
+                    metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("sram_linker.lds").getFullPathName());
+                }
+
+                metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
+                bootloader = true;
+            } else if (romType == 2 && ramType == 1) {
+                metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("default_linker_sdram.lds").getFullPathName());
+            }
+        }
+
         metaJson->setProperty("daisy", metaDaisy);
         args.add("-m" + createMetaJson(metaJson));
 
@@ -169,9 +209,6 @@ public:
 
             sourceDir.getChildFile("build").createDirectory();
             Toolchain::dir.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
-            Toolchain::dir.getChildFile("etc").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
-
-            bool bootloader = setMakefileVariables(sourceDir.getChildFile("Makefile"));
 
             auto const& gccPath = bin.getFullPathName();
 
@@ -208,6 +245,8 @@ public:
                 auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
 
                 if (bootloader) {
+                    // we should first detect wether our device already has the bootloader installed
+
                     exportingView->logToConsole("Flashing bootloader...");
 
 #if JUCE_WINDOWS
@@ -283,42 +322,5 @@ public:
             outputFile.getChildFile("c").deleteRecursively();
             return heavyExitCode;
         }
-    }
-
-    bool setMakefileVariables(File const& makefile) const
-    {
-
-        int ramType = getValue<int>(ramOptimisationType);
-        int romType = getValue<int>(romOptimisationType);
-
-        auto linkerDir = Toolchain::dir.getChildFile("etc").getChildFile("linkers");
-        File linkerFile;
-
-        bool bootloader = false;
-
-        // Optimisation: 1 is size, 2 is speed
-        if (romType == 1) {
-            if (ramType == 1) {
-                linkerFile = linkerDir.getChildFile("sram_linker_sdram.lds");
-            } else if (ramType == 2) {
-                linkerFile = linkerDir.getChildFile("sram_linker.lds");
-            }
-
-            bootloader = true;
-        } else if (romType == 2 && ramType == 1) {
-            linkerFile = linkerDir.getChildFile("default_linker_sdram.lds");
-        }
-        // 2-2 is skipped because it's the default
-
-        // Modify makefile
-        auto makefileText = makefile.loadFileAsString();
-        if (linkerFile.existsAsFile())
-            makefileText = makefileText.replace("# LINKER", "LDSCRIPT = " + linkerFile.getFullPathName());
-        if (bootloader)
-            makefileText = makefileText.replace("# BOOTLOADER", "APP_TYPE = BOOT_SRAM");
-
-        makefile.replaceWithText(makefileText, false, false, "\n");
-
-        return bootloader;
     }
 };
