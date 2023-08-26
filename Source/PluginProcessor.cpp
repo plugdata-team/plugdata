@@ -574,7 +574,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
         midiBufferInternalSynth.clear();
     }
 
-    if (protectedMode) {
+    if (protectedMode && buffer.getNumChannels() > 0) {
 
         // Take out inf and NaN values
         auto* const* writePtr = buffer.getArrayOfWritePointers();
