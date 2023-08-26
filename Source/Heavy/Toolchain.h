@@ -63,6 +63,30 @@ struct Toolchain {
 #endif
     }
 
+    const String startShellScriptWithOutput(String scriptText)
+    {
+
+        File scriptFile = File::createTempFile(".sh");
+        Toolchain::deleteTempFileLater(scriptFile);
+
+        auto bash = String("#!/bin/bash\n");
+        scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
+
+#if JUCE_WINDOWS
+        auto sh = Toolchain::dir.getChildFile("bin").getChildFile("sh.exe");
+
+        ChildProcess process;
+        process.start(StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') }, ChildProcess::wantStdOut | ChildProcess::wantStdErr);
+        return process.readAllProcessOutput();
+#else
+        scriptFile.setExecutePermission(true);
+
+        ChildProcess process;
+        process.start(scriptFile.getFullPathName(), ChildProcess::wantStdOut | ChildProcess::wantStdErr);
+        return process.readAllProcessOutput();
+#endif
+    }
+
 private:
     inline static Array<File> tempFilesToDelete;
 };

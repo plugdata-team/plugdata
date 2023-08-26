@@ -254,37 +254,52 @@ public:
                 auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
 
                 if (bootloader) {
-                    // we should first detect wether our device already has the bootloader installed
+                    // We should first detect whether our device already has the bootloader installed
+                    // This (likely) is the case when more than one altsetting is found
+                    exportingView->logToConsole("Testing bootloader...\n");
 
-                    exportingView->logToConsole("Flashing bootloader...");
+                    String testBootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
+                        + dfuUtil.getFullPathName() + " -l ";
+
+                    Toolchain runTest;
+                    auto output = runTest.startShellScriptWithOutput(testBootloaderScript);
+                    bool bootloaderNotFound = output.contains("alt=1");
+
+                    if (bootloaderNotFound) {
+                        exportingView->logToConsole("Bootloader not found...\n");
+                        exportingView->logToConsole("Flashing bootloader...\n");
 
 #if JUCE_WINDOWS
-                    String bootloaderScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
-                        + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
-                        + make.getFullPathName().replaceCharacter('\\', '/') + " program-boot"
-                        + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/')
-                        + " PROJECT_NAME=" + name;
+                        String bootloaderScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
+                            + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
+                            + make.getFullPathName().replaceCharacter('\\', '/') + " program-boot"
+                            + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/')
+                            + " PROJECT_NAME=" + name;
 #else
-                    String bootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
-                        + "cd " + sourceDir.getFullPathName() + "\n"
-                        + make.getFullPathName() + " program-boot"
-                        + " GCC_PATH=" + gccPath
-                        + " PROJECT_NAME=" + name;
+                        String bootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
+                            + "cd " + sourceDir.getFullPathName() + "\n"
+                            + make.getFullPathName() + " program-boot"
+                            + " GCC_PATH=" + gccPath
+                            + " PROJECT_NAME=" + name;
 #endif
 
-                    Toolchain::startShellScript(bootloaderScript, this);
+                        Toolchain::startShellScript(bootloaderScript, this);
 
-                    waitForProcessToFinish(-1);
-                    exportingView->flushConsole();
+                        waitForProcessToFinish(-1);
+                        exportingView->flushConsole();
 
-                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 600);
+                        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 600);
 
-                    // We need to enable DFU mode again after flashing the bootloader
-                    // This will show DFU mode dialog synchonously
-                    // exportingView->waitForUserInput("Please put your Daisy in DFU mode again");
+                        // We need to enable DFU mode again after flashing the bootloader
+                        // This will show DFU mode dialog synchonously
+                        // exportingView->waitForUserInput("Please put your Daisy in DFU mode again");
+
+                    } else {
+                        exportingView->logToConsole("Bootloader found...\n");
+                    }
                 }
 
-                exportingView->logToConsole("Flashing...");
+                exportingView->logToConsole("Flashing...\n");
 
 #if JUCE_WINDOWS
                 String flashScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
