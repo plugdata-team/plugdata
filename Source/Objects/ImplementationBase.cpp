@@ -140,36 +140,6 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
     }
 }
 
-/*
-bool ImplementationBase::objectStillExists(t_glist* patch)
-{
-    pd->setThis();
-
-    auto* root = canvas_getrootfor(patch);
-    bool canvasExists = false;
-
-    auto* roots = pd_getcanvaslist();
-    while(roots)
-    {
-        if(roots == root)
-        {
-            canvasExists = true;
-        }
-        roots = roots->gl_next;
-    }
-
-    if(!canvasExists) return false;
-
-    auto* object = patch->gl_list;
-    while(object)
-    {
-        if(object == ptr) return true;
-        object = object->g_next;
-    }
-
-    return false;
-} */
-
 void ImplementationBase::closeOpenedSubpatchers()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
@@ -246,14 +216,14 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
         if (pd_class(&y->g_pd) == canvas_class) {
             implementations.addArray(getImplementationsForPatch(y));
         }
-        /*
         if (pd_class(&y->g_pd) == clone_class) {
             for(int i = 0; i < clone_get_n(y); i++)
             {
                 auto* clone = clone_get_instance(y, i);
                 implementations.addArray(getImplementationsForPatch(clone));
+                implementations.add(clone);
             }
-        } */
+        }
         if (ImplementationBase::hasImplementation(name)) {
             implementations.add(y);
         }
@@ -271,6 +241,13 @@ void ObjectImplementationManager::clearObjectImplementationsForPatch(void* patch
 
         if (pd_class(&y->g_pd) == canvas_class) {
             clearObjectImplementationsForPatch(y);
+        }
+        if (pd_class(&y->g_pd) == clone_class) {
+            for(int i = 0; i < clone_get_n(y); i++)
+            {
+                auto* clone = clone_get_instance(y, i);
+                clearObjectImplementationsForPatch(clone);
+            }
         }
         objectImplementations.erase(y);
     }

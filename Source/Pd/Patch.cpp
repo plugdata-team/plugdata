@@ -670,6 +670,26 @@ String Patch::getTitle() const
 {
     if (auto patch = ptr.get<t_glist>()) {
         String name = String::fromUTF8(patch->gl_name->s_name);
+        
+        int argc = 0;
+        t_atom* argv = nullptr;
+        
+        canvas_setcurrent(patch.get());
+        canvas_getargs(&argc, &argv);
+        canvas_unsetcurrent(patch.get());
+
+        if (argc)
+        {
+            char namebuf[MAXPDSTRING];
+            name += " (";
+            for (int i = 0; i < argc; i++)
+            {
+                atom_string(&argv[i], namebuf, MAXPDSTRING);
+                name += String::fromUTF8(namebuf);
+            }
+            name += ")";
+        }
+        
         return name.isEmpty() ? "Untitled Patcher" : name;
     }
 
