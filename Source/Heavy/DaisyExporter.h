@@ -8,6 +8,7 @@ class DaisyExporter : public ExporterBase {
 public:
     Value targetBoardValue = Value(var(1));
     Value exportTypeValue = Value(var(3));
+    Value debugPrintValue = Value(var(0));
     Value patchSizeValue = Value(var(1));
     Value romOptimisationType = Value(var(2));
     Value ramOptimisationType = Value(var(2));
@@ -24,6 +25,7 @@ public:
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Simple", "Custom JSON..." }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
+        properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
         properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge", "Advanced" }));
 
         romOptimisation = new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, { "Optimise for size", "Optimise for speed" });
@@ -46,6 +48,7 @@ public:
 
         exportTypeValue.addListener(this);
         targetBoardValue.addListener(this);
+        debugPrintValue.addListener(this);
         patchSizeValue.addListener(this);
 
         flashButton.onClick = [this]() {
@@ -102,6 +105,7 @@ public:
         auto target = getValue<int>(targetBoardValue) - 1;
         bool compile = getValue<int>(exportTypeValue) - 1;
         bool flash = getValue<int>(exportTypeValue) == 3;
+        bool print = getValue<int>(debugPrintValue);
         auto size = getValue<int>(patchSizeValue);
         bool bootloader = false;
 
@@ -128,6 +132,11 @@ public:
             metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("etc").getChildFile("simple.json").getFullPathName());
         } else {
             metaDaisy.getDynamicObject()->setProperty("board", board);
+        }
+
+        // enable debug printing option
+        if (print) {
+            metaDaisy.getDynamicObject()->setProperty("debug_printing", "True");
         }
 
         // set linker script and bootloader
