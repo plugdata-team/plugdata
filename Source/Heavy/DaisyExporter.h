@@ -255,7 +255,17 @@ public:
 
                 if (bootloader) {
                     // We should first detect whether our device already has the bootloader installed
-                    // This (likely) is the case when more than one altsetting is found
+                    // This (likely) is not the case when more than one altsetting is found by dfu-util
+                    //
+                    // # No Bootloader:
+                    // Found DFU: [0483:df11] ver=0200, devnum=33, cfg=1, intf=0, path="1-4", alt=1, name="@Option Bytes   /0x5200201C/01*128 e", serial="200364500000"
+                    // Found DFU: [0483:df11] ver=0200, devnum=33, cfg=1, intf=0, path="1-4", alt=0, name="@Internal Flash   /0x08000000/16*128Kg", serial="200364500000"
+
+                    // # Bootloader:
+                    // Found DFU: [0483:df11] ver=0200, devnum=46, cfg=1, intf=0, path="1-4", alt=0, name="@Flash /0x90000000/64*4Kg/0x90040000/60*64Kg/0x90400000/60*64Kg", serial="395B377C3330"
+                    //
+                    // So we check for `alt=1`
+
                     exportingView->logToConsole("Testing bootloader...\n");
 
                     String testBootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
