@@ -13,12 +13,12 @@ public:
     SubpatchImpl(void* ptr, PluginProcessor* pd)
         : ImplementationBase(ptr, pd)
     {
-        pd->registerMessageListener(this->ptr.getRaw<void>(), this);
+        pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
     ~SubpatchImpl() override
     {
-        pd->unregisterMessageListener(ptr.getRaw<void>(), this);
+        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
         closeOpenedSubpatchers();
     }
 
@@ -422,12 +422,12 @@ public:
     CanvasMouseObject(void* ptr, PluginProcessor* pd)
         : ImplementationBase(ptr, pd)
     {
-        pd->registerMessageListener(ptr, this);
+        pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
     ~CanvasMouseObject() override
     {
-        pd->unregisterMessageListener(ptr.get<void>().get(), this);
+        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
         if (!cnv)
             return;
 
