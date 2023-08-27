@@ -33,7 +33,6 @@ struct Toolchain {
 
     static void startShellScript(String scriptText, ChildProcess* processToUse = nullptr)
     {
-
         File scriptFile = File::createTempFile(".sh");
         Toolchain::deleteTempFileLater(scriptFile);
 
@@ -61,6 +60,26 @@ struct Toolchain {
             process.waitForProcessToFinish(-1);
         }
 #endif
+    }
+
+    const String startShellScriptWithOutput(String scriptText)
+    {
+        File scriptFile = File::createTempFile(".sh");
+        Toolchain::deleteTempFileLater(scriptFile);
+
+        auto bash = String("#!/bin/bash\n");
+        scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
+
+        ChildProcess process;
+#if JUCE_WINDOWS
+        auto sh = Toolchain::dir.getChildFile("bin").getChildFile("sh.exe");
+        auto arguments = StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') };
+#else
+        scriptFile.setExecutePermission(true);
+        auto arguments = scriptFile.getFullPathName();
+#endif
+        process.start(arguments, ChildProcess::wantStdOut | ChildProcess::wantStdErr);
+        return process.readAllProcessOutput();
     }
 
 private:
