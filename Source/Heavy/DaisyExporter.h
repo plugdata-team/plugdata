@@ -26,7 +26,7 @@ public:
         properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Simple", "Custom JSON..." }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
         properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
-        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge", "Advanced" }));
+        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge" }));
 
         romOptimisation = new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, { "Optimise for size", "Optimise for speed" });
         ramOptimisation = new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, { "Optimise for size", "Optimise for speed" });
@@ -107,7 +107,6 @@ public:
         bool flash = getValue<int>(exportTypeValue) == 3;
         bool print = getValue<int>(debugPrintValue);
         auto size = getValue<int>(patchSizeValue);
-        bool bootloader = false;
 
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
 
@@ -139,34 +138,17 @@ public:
             metaDaisy.getDynamicObject()->setProperty("debug_printing", "True");
         }
 
-        // set linker script and bootloader
-        auto linkerDir = Toolchain::dir.getChildFile("etc").getChildFile("linkers");
-        File linkerFile;
+        // set linker script and if we want bootloader
+        bool bootloader = false;
 
         if (size == 2) {
-            metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("sram_linker_sdram.lds").getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_sram.lds");
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
             bootloader = true;
         } else if (size == 3) {
-            metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("qspi_linker_sdram.lds").getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_qspi.lds");
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
             bootloader = true;
-        } else if (size == 4) {
-            int ramType = getValue<int>(ramOptimisationType);
-            int romType = getValue<int>(romOptimisationType);
-
-            if (romType == 1) {
-                if (ramType == 1) {
-                    metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("sram_linker_sdram.lds").getFullPathName());
-                } else if (ramType == 2) {
-                    metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("sram_linker.lds").getFullPathName());
-                }
-
-                metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
-                bootloader = true;
-            } else if (romType == 2 && ramType == 1) {
-                metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("default_linker_sdram.lds").getFullPathName());
-            }
         }
 
         metaJson->setProperty("daisy", metaDaisy);
