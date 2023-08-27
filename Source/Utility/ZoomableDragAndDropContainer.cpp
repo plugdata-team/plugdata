@@ -82,6 +82,8 @@ public:
         setAlwaysOnTop (true);
 
         updateScale(0.0f, false);
+
+        setBufferedToImage(true);
     }
 
     ~DragImageComponent() override
@@ -139,60 +141,65 @@ public:
         if (e.originalComponent != this && isOriginalInputSource(e.source)) {
             if (rateReducer.tooFast())
                 return;
-            currentScreenPos = e.getScreenPosition();
-            updateLocation(true, currentScreenPos);
-            Component* target = nullptr;
-            auto* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
-
-            if (isZoomable) {
-                if (target == nullptr) {
-                    updateScale(1.0f, true);
-                    previousTarget = nullptr;
-                    return;
-                }
+            auto pos = e.getScreenPosition();
+            if (currentScreenPos != pos){
+                doUpdate(pos);
             }
-
-            if (target == previousTarget) {
-                return;
-            } else {
-                previousTarget = target;
-            }
-
-            if (isZoomable) {
-                auto* split = dynamic_cast<ResizableTabbedComponent*>(target);
-                if (newTarget) {
-                    if (split && split->getTabComponent() && split->getTabComponent()->getCurrentCanvas()) {
-                        auto zoomScale = ::getValue<float>(split->getTabComponent()->getCurrentCanvas()->zoomScale);
-                        updateScale(zoomScale, true);
-                        return;
-                    }
-                }
-                if (auto splitView = owner.getSplitView()) {
-                    // don't reset the scale of the dragged image if we are inside of the splitview area
-                    // there are some objects (splitview resizer, and edges of canvas objects) that 
-                    // register as a target that's null.
-                    // this is a fix for that
-                    if (splitView->getScreenBounds().contains(currentScreenPos.toInt())) {
-                        return;
-                    }
-                }
-            }
-            if (dynamic_cast<ButtonBar*>(target)) {
-                updateScale(0.0f, true);
-                return;
-            }
-            updateScale(1.0f, true);
         }
     }
 
-    void updateLocation(bool const canDoExternalDrag, Point<int> screenPos)
+    void doUpdate(Point<int> screenPos)
+    {
+        currentScreenPos = screenPos;
+        Component* target = nullptr;
+        auto* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
+        updateLocation(true, currentScreenPos, newTarget, target);
+
+        if (isZoomable) {
+            if (target == nullptr) {
+                updateScale(1.0f, true);
+                previousTarget = nullptr;
+                return;
+            }
+        }
+
+        if (target == previousTarget) {
+            return;
+        } else {
+            previousTarget = target;
+        }
+
+        if (isZoomable) {
+            auto* split = dynamic_cast<ResizableTabbedComponent*>(target);
+            if (newTarget) {
+                if (split && split->getTabComponent() && split->getTabComponent()->getCurrentCanvas()) {
+                    auto zoomScale = ::getValue<float>(split->getTabComponent()->getCurrentCanvas()->zoomScale);
+                    updateScale(zoomScale, true);
+                    return;
+                }
+            }
+            if (auto splitView = owner.getSplitView()) {
+                // don't reset the scale of the dragged image if we are inside of the splitview area
+                // there are some objects (splitview resizer, and edges of canvas objects) that
+                // register as a target that's null.
+                // this is a fix for that
+                if (splitView->getScreenBounds().contains(currentScreenPos)) {
+                    return;
+                }
+            }
+        }
+        if (dynamic_cast<ButtonBar*>(target)) {
+            updateScale(0.0f, true);
+            return;
+        }
+        updateScale(1.0f, true);
+    }
+
+    void updateLocation(bool const canDoExternalDrag, Point<int> screenPos, juce::DragAndDropTarget* newTarget, Component* newTargetComp)
     {
         auto details = sourceDetails;
 
         setNewScreenPos(screenPos);
-
-        Component* newTargetComp;
-        auto* newTarget = findTarget (screenPos.toInt(), details.localPosition, newTargetComp);
 
         setVisible (newTarget == nullptr || newTarget->shouldDrawDragImageWhenOver());
 
@@ -236,8 +243,6 @@ public:
         auto newWidth = image.getScaledBounds().getWidth() * newScale;
         auto newHeight = image.getScaledBounds().getHeight() * newScale;
         auto zoomedImageBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
-
-        auto& animator = Desktop::getInstance().getAnimator();
 
         auto finalAlpha = newScale <= 0.0f ? 0.0f : 1.0f;
 
@@ -301,6 +306,50 @@ public:
     // (overridden to avoid beeps when dragging)
     void inputAttemptWhenModal() override {}
 
+    DragAndDropTarget* findTarget (Point<int> screenPos, Point<int>& relativePos,
+                                   Component*& resultComponent)
+    {
+        // if the source DnD is from the Add Object Menu, deal with it differently
+        if (isObjectItem) {
+            auto* nextTarget = owner.findNextDragAndDropTarget(screenPos);
+
+            if(auto* component = dynamic_cast<Component*>(nextTarget)) {
+                relativePos = component->getLocalPoint (nullptr, screenPos);
+                resultComponent = component; // oof
+                return nextTarget;
+            }
+        } else {
+            auto* hit = getParentComponent();
+
+            if (hit == nullptr)
+                hit = findDesktopComponentBelow (screenPos);
+            else
+                hit = hit->getComponentAt (hit->getLocalPoint (nullptr, screenPos));
+
+            // (note: use a local copy of this in case the callback runs
+            // a modal loop and deletes this object before the method completes)
+            auto details = sourceDetails;
+
+            while (hit != nullptr)
+            {
+                if (auto* ddt = dynamic_cast<DragAndDropTarget*> (hit))
+                {
+                    if (ddt->isInterestedInDragSource (details))
+                    {
+                        relativePos = hit->getLocalPoint (nullptr, screenPos);
+                        resultComponent = hit;
+                        return ddt;
+                    }
+                }
+
+                hit = hit->getParentComponent();
+            }
+        }
+
+        resultComponent = nullptr;
+        return nullptr;
+    }
+
     DragAndDropTarget::SourceDetails sourceDetails;
 
     SmoothedValue<float> smoothedScale = 1.0f;
@@ -314,6 +363,8 @@ private:
     float previousScale = 1.0f;
 
     ImageComponent zoomImageComponent;
+
+    ComponentAnimator animator;
 
     Point<int> oldScreenPos = {0,0};
 
@@ -390,50 +441,6 @@ private:
         return getLocalPoint (sourceComponent, offsetInSource) - getLocalPoint (sourceComponent, Point<int>());
     }
 
-    DragAndDropTarget* findTarget (Point<int> screenPos, Point<int>& relativePos,
-                                   Component*& resultComponent)
-    {
-        // if the source DnD is from the Add Object Menu, deal with it differently
-        if (isObjectItem) {
-            auto* nextTarget = owner.findNextDragAndDropTarget(screenPos);
-
-            if(auto* component = dynamic_cast<Component*>(nextTarget)) {
-                relativePos = component->getLocalPoint (nullptr, screenPos);
-                resultComponent = component; // oof
-                return nextTarget;
-            }
-        } else {
-            auto* hit = getParentComponent();
-
-            if (hit == nullptr)
-                hit = findDesktopComponentBelow (screenPos);
-            else
-                hit = hit->getComponentAt (hit->getLocalPoint (nullptr, screenPos));
-
-            // (note: use a local copy of this in case the callback runs
-            // a modal loop and deletes this object before the method completes)
-            auto details = sourceDetails;
-
-            while (hit != nullptr)
-            {
-                if (auto* ddt = dynamic_cast<DragAndDropTarget*> (hit))
-                {
-                    if (ddt->isInterestedInDragSource (details))
-                    {
-                        relativePos = hit->getLocalPoint (nullptr, screenPos);
-                        resultComponent = hit;
-                        return ddt;
-                    }
-                }
-
-                hit = hit->getParentComponent();
-            }
-        }
-
-        resultComponent = nullptr;
-        return nullptr;
-    }
-
     void setNewScreenPos (Point<int> currentPos)
     {
         auto newPos = currentPos - (isZoomable ? Point<int>() : imageOffset);
@@ -495,7 +502,6 @@ private:
     void dismissWithAnimation(bool const shouldSnapBack)
     {
         setVisible (true);
-        auto& animator = Desktop::getInstance().getAnimator();
 
         if (shouldSnapBack && sourceDetails.sourceComponent != nullptr)
         {
@@ -620,9 +626,11 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
             return;
         }
     }
-
-    dragImageComponent->sourceDetails.localPosition = sourceComponent->getLocalPoint (nullptr, lastMouseDown).toInt();
-    dragImageComponent->updateLocation (false, lastMouseDown.toInt());
+    auto localPos = sourceComponent->getLocalPoint (nullptr, lastMouseDown).toInt();
+    dragImageComponent->sourceDetails.localPosition = localPos;
+    Component* newTargetComp;
+    auto* newTarget = dragImageComponent->findTarget (lastMouseDown.toInt(), localPos, newTargetComp);
+    dragImageComponent->updateLocation (false, lastMouseDown.toInt(), newTarget, newTargetComp);
 
    // plugdata fix for bug in JUCE, Linux also exhibits the same issue as Windows
 #if JUCE_WINDOWS || JUCE_LINUX

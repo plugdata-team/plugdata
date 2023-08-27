@@ -8,7 +8,9 @@
 
 // Class that blocks events that are too close together, up to a certain rate
 // We use this to reduce the rate at which MouseEvents come in, to improve performance (especially on Linux)
-struct RateReducer : public Timer {
+// This is also a change broadcaster, register this to change listener to be informed when the timer ends
+// Which means we can deal with events that have been lost
+struct RateReducer : public Timer, public ChangeBroadcaster {
     explicit RateReducer(int rate)
         : timerHz(rate)
     {
@@ -29,6 +31,7 @@ struct RateReducer : public Timer {
     {
         allowEvent = true;
         stopTimer();
+        sendChangeMessage();
     }
 
 private:
