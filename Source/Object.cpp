@@ -325,8 +325,6 @@ void Object::updateBounds()
     if (newObjectEditor) {
         textEditorTextChanged(*newObjectEditor);
     }
-
-    resized();
 }
 
 void Object::setType(String const& newType, void* existingObject)
@@ -788,7 +786,6 @@ void Object::updateIolets()
     }
 
     updateTooltips();
-    resized();
 }
 
 void Object::mouseDown(MouseEvent const& e)
