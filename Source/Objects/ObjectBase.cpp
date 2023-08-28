@@ -71,6 +71,7 @@ void canvas_click(t_canvas *x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "NoteObject.h"
 #include "ColourPickerObject.h"
 #include "MidiObjects.h"
+#include "PdTildeObject.h"
 
 // Class for non-patchable objects
 class NonPatchable : public ObjectBase {
@@ -540,6 +541,8 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new CloneObject(ptr, parent);
         case hash("pd"):
             return new SubpatchObject(ptr, parent);
+        case hash("pd~"):
+            return new PdTildeObject(ptr, parent);
         case hash("scalar"): {
             auto* gobj = static_cast<t_gobj*>(ptr);
             if (gobj->g_pd == scalar_class) {

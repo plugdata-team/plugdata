@@ -666,3 +666,26 @@ struct t_fake_text_define {
     t_canvas* x_canvas;   /* owning canvas whose stub we use for x_gp */
     unsigned char x_keep; /* whether to embed contents in patch on save */
 };
+
+struct t_fake_pd_tilde
+{
+    t_object x_obj;
+    t_clock *x_clock;
+    t_outlet *x_outlet1;        /* for messages back from subproc */
+    t_canvas *x_canvas;
+    FILE *x_infd;
+    FILE *x_outfd;
+    t_binbuf *x_binbuf;
+    int x_childpid;
+    int x_ninsig;
+    int x_noutsig;
+    int x_fifo;
+    int x_binary;
+    t_float x_sr;
+    t_symbol *x_pddir;
+    t_symbol *x_schedlibdir;
+    float **x_insig;
+    float **x_outsig;
+    int x_blksize;
+};
+
