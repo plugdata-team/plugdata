@@ -18,6 +18,9 @@ namespace pd {
 class Instance;
 struct WeakReference {
     WeakReference(void* p, Instance* instance);
+    
+    WeakReference();
+    
     ~WeakReference();
     
     WeakReference& operator=(const WeakReference& other);

@@ -21,6 +21,10 @@ pd::WeakReference::WeakReference(void* p, Instance* instance)
     pd->registerWeakReference(ptr, &weakRef);
 }
 
+pd::WeakReference::WeakReference() : ptr(nullptr), pd(nullptr)
+{
+}
+
 pd::WeakReference::~WeakReference()
 {
     pd->unregisterWeakReference(ptr, &weakRef);
