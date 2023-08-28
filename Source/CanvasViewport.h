@@ -367,7 +367,17 @@ public:
 
         adjustScrollbarBounds();
 
+        // centre viewport canvas when resizing viewport
+        // calculate current centre
+        auto currentCenter = getViewPosition() + (getViewArea().getCentre());
+
         Viewport::resized();
+
+        // calculate the new centre after the resize
+        auto newCenter = getViewPosition() + (getViewArea().getCentre());
+        auto offset = currentCenter - newCenter;
+
+        setViewPosition(getViewPosition() + offset);
     }
 
     // Never respond to arrow keys, they have a different meaning
