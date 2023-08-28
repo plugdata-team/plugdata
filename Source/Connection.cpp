@@ -76,7 +76,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
     updateOverlays(cnv->getOverlays());
 
-    setPointer(ptr.getRaw<void>());
+    setPointer(ptr.getRaw<void>(), true);
 }
 
 Connection::~Connection()
@@ -177,12 +177,12 @@ void Connection::popPathState()
     updatePath();
 }
 
-void Connection::setPointer(void* newPtr)
+void Connection::setPointer(void* newPtr, bool forceUpdate)
 {
     auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
-    if(originalPointer != newPtr) {
+    if(forceUpdate || originalPointer != newPtr) {
         ptr = pd::WeakReference(newPtr, cnv->pd);
-        
+
         cnv->pd->unregisterMessageListener(originalPointer, this);
         cnv->pd->registerMessageListener(newPtr, this);
     }
