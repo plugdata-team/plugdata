@@ -9,7 +9,7 @@
 class PdTildeObject final : public TextBase {
 public:
     
-    bool pdLocationWasSet = false;
+    static inline File pdLocation = File();
     std::unique_ptr<FileChooser> openChooser;
     
     PdTildeObject(void* ptr, Object* object)
@@ -35,28 +35,29 @@ public:
 #if JUCE_MAC
             if(pdDir.hasFileExtension("app"))
             {
-                pdDir = pdDir.getChildFile("Contents").getChildFile("Resources");
+                pdLocation = pdDir.getChildFile("Contents").getChildFile("Resources");
+            }
+            else if(pdDir.isDirectory())
+            {
+                pdLocation = pdDir;
+            }
+            else
+            {
+                return;
             }
 #endif
             
-            if(pdDir.isDirectory())
+            if(auto pdTilde = ptr.get<t_fake_pd_tilde>())
             {
-                if(auto pdTilde = ptr.get<t_fake_pd_tilde>())
-                {
-                    auto pdPath = pdDir.getFullPathName();
-                    auto schedPath = pdDir.getChildFile("extra").getChildFile("pd~").getFullPathName();;
-                    pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
-                    pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
-                }
-                
-                if(auto pdTilde = ptr.get<t_fake_pd_tilde>())
-                {
-                    pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
-                }
+                auto pdPath = pdLocation.getFullPathName();
+                auto schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();;
+                pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
+                pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
+                pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
             }
         };
             
-        if(!pdLocationWasSet) {
+        if(!pdLocation.exists()) {
             
             openChooser = std::make_unique<FileChooser>("Locate pd folder", File::getSpecialLocation(File::SpecialLocationType::globalApplicationsDirectory), "", SettingsFile::getInstance()->wantsNativeDialog());
             
@@ -65,6 +66,10 @@ public:
         else {
             if(auto pdTilde = ptr.get<t_fake_pd_tilde>())
             {
+                auto pdPath = pdLocation.getFullPathName();
+                auto schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();;
+                pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
+                pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
                 pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
             }
         }
