@@ -49,7 +49,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     // If it doesn't already exist in pd, create connection in pd
     if (!oc) {
         auto* oc = parent->patch.createAndReturnConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
-        ptr = pd::WeakReference(oc, cnv->pd);
+        setPointer(oc);
     } else {
 
         popPathState();
@@ -76,7 +76,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
     updateOverlays(cnv->getOverlays());
 
-    setPointer(ptr.getRaw<void>(), true);
+    setPointer(ptr.getRaw<void>());
 }
 
 Connection::~Connection()
@@ -177,10 +177,10 @@ void Connection::popPathState()
     updatePath();
 }
 
-void Connection::setPointer(void* newPtr, bool forceUpdate)
+void Connection::setPointer(void* newPtr)
 {
     auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
-    if(forceUpdate || originalPointer != newPtr) {
+    if(originalPointer != newPtr) {
         ptr = pd::WeakReference(newPtr, cnv->pd);
 
         cnv->pd->unregisterMessageListener(originalPointer, this);
