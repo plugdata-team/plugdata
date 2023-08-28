@@ -48,12 +48,12 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     // If it doesn't already exist in pd, create connection in pd
     if (!oc) {
         auto* oc = parent->patch.createAndReturnConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
+        setPointer(oc);
     } else {
-
+        setPointer(oc);
         popPathState();
     }
-    
-    setPointer(oc);
+
 
     // Listen to changes at iolets
     outobj->addComponentListener(this);
