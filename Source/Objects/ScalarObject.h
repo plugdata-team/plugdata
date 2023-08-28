@@ -182,8 +182,7 @@ public:
             int flags = x->x_flags;
             int closed = flags & CLOSED;
             
-            
-            auto bounds = canvas->isGraph ? Rectangle<int>(glist->gl_pixwidth, glist->gl_pixheight) : Rectangle<int>(1, 1);
+            auto bounds = glist->gl_isgraph ? Rectangle<int>(glist->gl_pixwidth, glist->gl_pixheight) : Rectangle<int>(1, 1);
         
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
 
