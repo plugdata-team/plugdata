@@ -299,9 +299,10 @@ void Object::applyBounds()
     patch->startUndoSequence("resize");
 
     for (auto& [object, bounds] : newObjectSizes) {
-        object->gui->setPdBounds(bounds);
-        canvas_dirty(patchPtr, 1);
+        if(object->gui) object->gui->setPdBounds(bounds);
     }
+    
+    canvas_dirty(patchPtr, 1);
 
     patch->endUndoSequence("resize");
     
@@ -374,6 +375,7 @@ void Object::setType(String const& newType, void* existingObject)
     // Update inlets/outlets
     updateIolets();
     updateBounds();
+    resized(); // If bounds haven't changed, we'll still want to update gui and iolets bounds
 
     // Auto patching
     if (!attachedToMouse && getValue<bool>(cnv->editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
@@ -605,7 +607,7 @@ void Object::resized()
         index++;
     }
     
-    if(!getLocalBounds().isEmpty()) {
+    if(!getLocalBounds().isEmpty() && activityOverlayImage.getBounds() != getLocalBounds()) {
         // Pre-render activity state overlay here since it'll always look the same for the same object size
         activityOverlayImage = Image(Image::ARGB, getWidth(), getHeight(), true);
         Graphics g(activityOverlayImage);
