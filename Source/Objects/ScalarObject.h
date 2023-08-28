@@ -37,6 +37,7 @@ public:
     DrawableTemplate(void* object, pd::Instance* instance) : ptr(object), pd(instance)
     {
         pd->registerMessageListener(ptr, this);
+        triggerAsyncUpdate();
     }
 
     ~DrawableTemplate()
@@ -176,12 +177,14 @@ public:
             return;
         }
 
-        auto bounds = canvas->isGraph ? canvas->getParentComponent()->getLocalBounds() : canvas->getLocalBounds();
-
+ 
         if (n > 1) {
             int flags = x->x_flags;
             int closed = flags & CLOSED;
-
+            
+            
+            auto bounds = canvas->isGraph ? Rectangle<int>(glist->gl_pixwidth, glist->gl_pixheight) : Rectangle<int>(1, 1);
+        
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
 
             int pix[200];
