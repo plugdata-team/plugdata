@@ -215,11 +215,6 @@ void Instance::initialisePd(String& pdlua_version)
                 
                 break;
             }
-            case hash("repaint"):
-            {
-                static_cast<Instance*>(instance)->updateDrawables();
-                break;
-            }
             case hash("cyclone_editor"):
             {
                 auto ptr = (unsigned long)argv->a_w.w_gpointer;

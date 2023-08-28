@@ -1602,17 +1602,6 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
     }
 }
 
-void PluginProcessor::updateDrawables()
-{
-    // TODO: fix for split view
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([cnv = editor->getCurrentCanvas()]() {
-            if (cnv)
-                cnv->updateDrawables();
-        });
-    }
-}
-
 void PluginProcessor::updateConsole()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {

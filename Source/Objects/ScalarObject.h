@@ -26,9 +26,36 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 // accidentally passing on mouse scroll events to the viewport.
 // This prevents that with a separation layer.
 
-class DrawableTemplate {
+class DrawableTemplate : public pd::MessageListener, public AsyncUpdater
+{
 
 public:
+    
+    void* ptr;
+    pd::Instance* pd;
+    
+    DrawableTemplate(void* object, pd::Instance* instance) : ptr(object), pd(instance)
+    {
+        pd->registerMessageListener(ptr, this);
+    }
+
+    ~DrawableTemplate()
+    {
+        pd->unregisterMessageListener(ptr, this);
+    }
+    
+    void receiveMessage(String const& name, int argc, t_atom* argv) {
+        if(name == "redraw")
+        {
+            triggerAsyncUpdate();
+        }
+    };
+    
+    void handleAsyncUpdate()
+    {
+        update();
+    }
+    
     virtual void update() = 0;
 
     /* getting and setting values via fielddescs -- note confusing names;
@@ -88,13 +115,15 @@ class DrawableCurve final : public DrawableTemplate
 
 public:
     DrawableCurve(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
-        : scalar(s, cnv->pd)
+        : DrawableTemplate(static_cast<void*>(s), cnv->pd)
+        , scalar(s, cnv->pd)
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , canvas(cnv)
         , baseX(x)
         , baseY(y)
         , mouseListener(this)
     {
+
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             handleMouseDown(e);
         };
@@ -236,7 +265,8 @@ class DrawableSymbol final : public DrawableTemplate
 
 public:
     DrawableSymbol(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
-        : scalar(s, cnv->pd)
+        : DrawableTemplate(static_cast<void*>(s), cnv->pd)
+        , scalar(s, cnv->pd)
         , object(reinterpret_cast<t_fake_drawnumber*>(obj))
         , canvas(cnv)
         , baseX(x)
