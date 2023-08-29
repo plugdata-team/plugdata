@@ -8,15 +8,18 @@ class SaveDialog : public Component {
 
 public:
     SaveDialog(Dialog* parent, String const& filename, std::function<void(int)> callback)
-        : savelabel("savelabel", filename.isEmpty() ? "Save Changes?" : "Save Changes to \"" + filename + "\"?")
+        : savelabel("savelabel", filename.isEmpty() ? "Save changes before closing?" : "Save changes to \"" + filename + "\"\n before closing?")
     {
         cb = callback;
-        setSize(400, 200);
+        setSize(265, 280);
         addAndMakeVisible(savelabel);
         addAndMakeVisible(cancel);
         addAndMakeVisible(dontsave);
         addAndMakeVisible(save);
-
+        
+        savelabel.setFont(Fonts::getBoldFont().withHeight(15.0f));
+        savelabel.setJustificationType(Justification::centred);
+        
         cancel.onClick = [parent] {
             MessageManager::callAsync(
                 [parent]() {
@@ -39,32 +42,48 @@ public:
                 });
         };
 
-        cancel.changeWidthToFitText();
-        dontsave.changeWidthToFitText();
-        save.changeWidthToFitText();
-
         cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         dontsave.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         save.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+        
         cancel.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         dontsave.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         save.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         
         setOpaque(false);
     }
+    
+    void paint(Graphics& g) override
+    {
+        auto contentBounds = getLocalBounds().reduced(16);
+        auto logoBounds = contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f).withSizeKeepingCentre(64, 64);
+        g.drawImage(logo, logoBounds.toFloat());
+    }
 
     void resized() override
     {
-        savelabel.setBounds(20, 25, 360, 30);
-        cancel.setBounds(20, 80, 80, 25);
-        dontsave.setBounds(200, 80, 80, 25);
-        save.setBounds(300, 80, 80, 25);
+        auto contentBounds = getLocalBounds().reduced(16);
+        
+        // logo space
+        contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f);
+        
+        contentBounds.removeFromTop(8);
+        savelabel.setBounds(contentBounds.removeFromTop(contentBounds.getHeight() / 3));
+        contentBounds.removeFromTop(8);
+        
+        save.setBounds(contentBounds.removeFromTop(26));
+        contentBounds.removeFromTop(6);
+        dontsave.setBounds(contentBounds.removeFromTop(26));
+        contentBounds.removeFromTop(16);
+        cancel.setBounds(contentBounds.removeFromTop(26));
     }
 
     static inline std::function<void(int)> cb = [](int) {};
 
 private:
     Label savelabel;
+
+    Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
 
     TextButton cancel = TextButton("Cancel");
     TextButton dontsave = TextButton("Don't Save");
