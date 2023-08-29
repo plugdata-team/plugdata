@@ -57,7 +57,10 @@ public:
     {
         auto contentBounds = getLocalBounds().reduced(16);
         auto logoBounds = contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f).withSizeKeepingCentre(64, 64);
+
+        g.setImageResamplingQuality(Graphics::highResamplingQuality);
         g.drawImage(logo, logoBounds.toFloat());
+        g.setImageResamplingQuality(Graphics::mediumResamplingQuality);
     }
 
     void resized() override

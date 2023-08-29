@@ -66,7 +66,9 @@ public:
         
         Rectangle<float> logoBounds = { logoStart, 25.0f, logoSize, logoSize };
 
+        g.setImageResamplingQuality(Graphics::highResamplingQuality);
         g.drawImage(logo, logoBounds);
+        g.setImageResamplingQuality(Graphics::mediumResamplingQuality);
         
         auto creditsBounds = credits.getBounds().expanded(5);
         g.setColour(findColour(TextEditor::backgroundColourId));
