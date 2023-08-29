@@ -31,15 +31,6 @@ public:
         , text(std::move(textToShow))
     {
     }
-    
-    
-    int getBestWidth()
-    {
-        auto boldFont = Fonts::getBoldFont().withHeight(13.5f);
-        auto stringsWidth = boldFont.getStringWidth(text) + 52;
-        
-        return std::max(stringsWidth, 94);
-    }
 
     void paint(Graphics& g) override
     {
@@ -54,22 +45,18 @@ public:
             PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
         }
 
-        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+        auto textColour = findColour(PlugDataColour::toolbarTextColourId);
+        auto boldFont = Fonts::getBoldFont().withHeight(13.5f);
+        auto iconFont = Fonts::getIconFont().withHeight(13.5f);
 
-        auto iconBounds = b;
-        iconBounds = iconBounds.removeFromLeft(24).withTrimmedLeft(10);
-        auto textBounds = b.withTrimmedLeft(12);
+        auto textWidth = boldFont.getStringWidth(text);
+        auto iconWidth = iconFont.getStringWidth(icon);
 
-        auto font = Fonts::getIconFont().withHeight(13.5f);
-        g.setFont(font);
-
-        g.drawFittedText(icon, iconBounds, Justification::centred, 1);
-        
-        font = Fonts::getBoldFont().withHeight(13.5f);
-        g.setFont(font);
-
-        // Draw bottom text
-        g.drawFittedText(text, textBounds, Justification::centred, 1);
+        AttributedString attrStr;
+        attrStr.setJustification(Justification::centred);
+        attrStr.append(icon, iconFont, textColour);
+        attrStr.append("  " + text, boldFont, textColour);
+        attrStr.draw(g, b.toFloat());
     }
 };
 
@@ -143,9 +130,9 @@ public:
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight);
 
         int toolbarPosition = 32;
-        
+        auto spacing = (getWidth() - 96) / toolbarButtons.size();
+
         for (auto& button : toolbarButtons) {
-            auto spacing = button->getBestWidth();
             button->setBounds(toolbarPosition, 1, spacing, toolbarHeight - 2);
             toolbarPosition += spacing;
         }
