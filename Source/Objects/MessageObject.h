@@ -132,7 +132,7 @@ public:
         g.saveState();
         g.reduceClipRegion(roundEdgeClipping);
 
-        g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         g.fillPath(flagPath);
 
         g.restoreState();
