@@ -42,7 +42,6 @@ public:
         };
 
         input.onEditorHide = [this]() {
-            sendFloatValue(input.getText().getFloatValue());
             stopEdition();
         };
 

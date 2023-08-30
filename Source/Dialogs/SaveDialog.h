@@ -20,15 +20,11 @@ private:
         auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
         auto activeColour = findColour(PlugDataColour::toolbarActiveColourId);
         
-        if(isMouseOver())
+        if(isMouseOver() || isMouseButtonDown())
         {
             backgroundColour = backgroundColour.contrasting(0.1f);
         }
-        if(isMouseButtonDown())
-        {
-            backgroundColour = activeColour;
-        }
-        
+
         g.setColour(backgroundColour);
         PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
         

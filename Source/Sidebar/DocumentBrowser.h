@@ -217,6 +217,9 @@ public:
 
     void rebuildItemsFromContentList()
     {
+        std::unique_ptr<OpennessRestorer> opennessRestorer = getUniqueName().isNotEmpty() ?
+        std::make_unique<OpennessRestorer>(*this) : nullptr;
+        
         clearSubItems();
 
         if (isOpen() && subContentsList != nullptr) {

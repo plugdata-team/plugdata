@@ -549,7 +549,7 @@ struct DraggableListNumber : public DraggableNumber {
     void editorHidden(Label* l, TextEditor& editor) override
     {
         setText(editor.getText().trimEnd(), dontSendNotification);
-
+        onValueChange(0);
         dragEnd();
     }
     

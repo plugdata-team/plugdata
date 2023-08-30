@@ -26,12 +26,11 @@ public:
         addAndMakeVisible(listLabel);
 
         listLabel.onEditorHide = [this]() {
-            startEdition();
-            updateFromGui();
             stopEdition();
         };
 
         listLabel.onEditorShow = [this]() {
+            startEdition();
             auto* editor = listLabel.getCurrentTextEditor();
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             if (editor != nullptr) {
