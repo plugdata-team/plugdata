@@ -10,7 +10,7 @@ EXTERN char* pd_version;
 
 class AboutPanel : public Component {
 
-    String creditsText = " - ELSE v1.0-rc9pre by Alexandre Porres\n - cyclone v0.7-0 by Krzysztof Czaja, Hans-Christoph Steiner, Fred Jan Kraan, Alexandre Porres, Derek Kwan, Matt Barber et al.\n - Based on Camomile by Pierre Guillot\n - Inter font by Rasmus Andersson\n - Made with JUCE\n\n\nSpecial thanks to: Deskew Technologies, BonefishSam, DSBHproject, CFDAF, AurelienConil, jamescorrea, Soundworlds-JO, vasilymilovidov, grabanton, polarity, rubenlorenzo, chee, kreth608, Joshua A.C. Newman, ludnny, duddex, mungbean and droussel for supporting this project\n\n\nThis program is published under the terms of the GPL3 license";
+    String creditsText = " - ELSE v1.0-rc9 by Alexandre Porres\n - cyclone v0.7-0 by Krzysztof Czaja, Hans-Christoph Steiner, Fred Jan Kraan, Alexandre Porres, Derek Kwan, Matt Barber et al.\n - Based on Camomile by Pierre Guillot\n - Inter font by Rasmus Andersson\n - Made with JUCE\n\n\nSpecial thanks to: Deskew Technologies, BonefishSam, DSBHproject, CFDAF, AurelienConil, jamescorrea, Soundworlds-JO, vasilymilovidov, grabanton, polarity, rubenlorenzo, chee, kreth608, Joshua A.C. Newman, ludnny, duddex, mungbean and droussel for supporting this project\n\n\nThis program is published under the terms of the GPL3 license";
     
     TextEditor credits;
     TextButton viewOnGithub;

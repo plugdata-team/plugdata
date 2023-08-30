@@ -1181,6 +1181,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
     }
 
     // Stop the audio callback when loading a new patch
+    // TODO: why though?
     lockAudioThread();
     suspendProcessing(true);
 
@@ -1700,3 +1701,4 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new PluginProcessor();
 }
+

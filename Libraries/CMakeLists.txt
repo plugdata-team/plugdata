@@ -186,20 +186,20 @@ list(APPEND SOURCE_FILES ${LIBPD_SOURCES})
 # ------------------------------------------------------------------------------#
 file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/signal/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/extra_source/Aliases/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/extra_source/Aliases/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/*.c
 )
 
 file(GLOB_RECURSE PLAITS_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/signal/plaits~/plaits~.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/signal/plaits~/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/plaits~.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/*.cc
 )
 
 list(APPEND ELSE_SOURCES ${PLAITS_SOURCES})
 
 if(ENABLE_SFIZZ)
-list(APPEND ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/signal/sfz~/sfz~.c)
+list(APPEND ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~/sfz~.c)
 endif()
 
 file(GLOB_RECURSE AUBIO_SOURCES
@@ -209,10 +209,10 @@ file(GLOB_RECURSE AUBIO_SOURCES
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(pd-else/Code_source/Compiled/control/)
-include_directories(pd-else/Code_source/Compiled/signal/)
+include_directories(pd-else/Code_source/Compiled/audio/)
 include_directories(pd-else/Code_source/shared/)
 include_directories(pd-else/Code_source/shared/aubio/src)
-include_directories(pd-else/Code_source/Compiled/signal/plaits~)
+include_directories(pd-else/Code_source/Compiled/audio/plaits~)
 
 source_group(ELSE FILES ${ELSE_SOURCES})
 
@@ -293,7 +293,7 @@ if(ENABLE_SFONT)
 
     list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
 
-    set(SFONT_DIR pd-else/Code_source/Compiled/signal/sfont~)
+    set(SFONT_DIR pd-else/Code_source/Compiled/audio/sfont~)
     set(FLUIDLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
 
     list(APPEND SFONT_SOURCES
@@ -409,7 +409,7 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 
 if(ENABLE_SFIZZ)
 list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/signal/sfz~)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
 
 add_dependencies(externals sfizz)
 add_dependencies(externals-multi sfizz)

@@ -192,7 +192,7 @@ private:
         
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
-    static inline const String else_version = "ELSE v1.0-rc9pre";
+    static inline const String else_version = "ELSE v1.0-rc9";
     static inline const String cyclone_version = "cyclone v0.7-0";
     // this gets updated with live version data later
     static String pdlua_version;
