@@ -70,7 +70,11 @@ private:
             
             if(!ofeliaExecutable.existsAsFile())
             {
-                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 5000);
+                for(int i = 0; i < 10; i++)
+                {
+                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 500);
+                    if(shouldQuit) break;
+                }
                 continue;
             }
             
