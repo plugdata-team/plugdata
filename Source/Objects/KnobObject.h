@@ -224,7 +224,7 @@ public:
         knob.setValue(currentValue, dontSendNotification);
 
         if (auto knb = ptr.get<t_fake_knob>()) {
-            initialValue = knb->x_init;
+            initialValue = knb->x_load;
             ticks = knb->x_ticks;
             angularRange = knb->x_range;
             angularOffset = knb->x_offset;
