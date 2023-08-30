@@ -259,6 +259,11 @@ source_group(pdlua FILES ${PDLUA_SOURCES})
 # ------------------------------------------------------------------------------#
 set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 
+
+if(ENABLE_SFIZZ)
+list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
+endif()
+
 # COMPILE DEFINITIONS OPTIONS
 # ------------------------------------------------------------------------------#
 if(PD_EXTRA)
@@ -408,7 +413,6 @@ target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES
 target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
 if(ENABLE_SFIZZ)
-list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
 
 add_dependencies(externals sfizz)
