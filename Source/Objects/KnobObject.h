@@ -418,7 +418,7 @@ public:
         }
         case hash("init"): {
             if (auto knb = ptr.get<t_fake_knob>()) {
-                initialValue = knb->x_init;
+                initialValue = knb->x_load;
                 knob.setValue(getValue(), dontSendNotification);
             }
             break;
@@ -703,7 +703,7 @@ public:
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_init = ::getValue<float>(initialValue);
+                knb->x_load = ::getValue<float>(initialValue);
         } else if (value.refersToSameSourceAs(circular)) {
             auto mode = ::getValue<int>(circular);
             knob.setSliderStyle(mode ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
