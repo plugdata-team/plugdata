@@ -1403,7 +1403,17 @@ void Canvas::alignObjects(Align alignment)
         return;
     
     patch.startUndoSequence("align objects");
-
+    
+    // mark canvas as dirty, and set undo for all positions
+    auto patchPtr = patch.getPointer().get();
+    canvas_dirty(patch.getPointer().get(), 1);
+    for (auto object : objects) {
+        if(auto* ptr = object->getPointer())
+            libpd_undo_apply(patchPtr, &patch.checkObject(ptr)->te_g);
+    }
+    
+    patch.endUndoSequence("align objects");
+    
     // get the bounding box of all selected objects
     Array<std::tuple<void*, Rectangle<int>>> pdObjectAndDimensions;
     auto selectedBounds = getBoundingBox(objects, pdObjectAndDimensions);
@@ -1455,23 +1465,8 @@ void Canvas::alignObjects(Align alignment)
         break;
     }
 
-    // mark canvas as dirty, and set undo for all positions
-    auto patchPtr = patch.getPointer().get();
-    canvas_dirty(patch.getPointer().get(), 1);
-    for (auto object : objects) {
-        if(auto* ptr = object->getPointer())
-            libpd_undo_apply(patchPtr, &patch.checkObject(ptr)->te_g);
-    }
-
     performSynchronise();
-
-    patch.endUndoSequence("align objects");
-
-    //synchronise();
-    //handleUpdateNowIfNeeded();
-
-    //synchroniseSplitCanvas();
-
+    
     for (auto* connection : connections){
         connection->forceUpdate();
     }

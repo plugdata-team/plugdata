@@ -764,6 +764,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, cons
                 openChooser->launchAsync(folderChooserFlags, [this, obj, openMode, callback](FileChooser const& fileChooser) {
                     
                     auto const files = fileChooser.getResults();
+                    if(files.isEmpty()) return;
                     
                     lockAudioThread();
  
