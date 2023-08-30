@@ -299,9 +299,10 @@ void Object::applyBounds()
     patch->startUndoSequence("resize");
 
     for (auto& [object, bounds] : newObjectSizes) {
-        object->gui->setPdBounds(bounds);
-        canvas_dirty(patchPtr, 1);
+        if(object->gui) object->gui->setPdBounds(bounds);
     }
+    
+    canvas_dirty(patchPtr, 1);
 
     patch->endUndoSequence("resize");
     
@@ -325,8 +326,6 @@ void Object::updateBounds()
     if (newObjectEditor) {
         textEditorTextChanged(*newObjectEditor);
     }
-
-    resized();
 }
 
 void Object::setType(String const& newType, void* existingObject)
@@ -376,6 +375,7 @@ void Object::setType(String const& newType, void* existingObject)
     // Update inlets/outlets
     updateIolets();
     updateBounds();
+    resized(); // If bounds haven't changed, we'll still want to update gui and iolets bounds
 
     // Auto patching
     if (!attachedToMouse && getValue<bool>(cnv->editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
@@ -607,7 +607,7 @@ void Object::resized()
         index++;
     }
     
-    if(!getLocalBounds().isEmpty()) {
+    if(!getLocalBounds().isEmpty() && activityOverlayImage.getBounds() != getLocalBounds()) {
         // Pre-render activity state overlay here since it'll always look the same for the same object size
         activityOverlayImage = Image(Image::ARGB, getWidth(), getHeight(), true);
         Graphics g(activityOverlayImage);
@@ -814,7 +814,7 @@ void Object::mouseDown(MouseEvent const& e)
 
     // Only show right-click menu in locked mode if the object can be opened
     // We don't allow alt+click for popupmenus here, as that will conflict with some object behaviour, like for [range.hsl]
-    if (e.mods.isRightButtonDown()) {
+    if (e.mods.isRightButtonDown() && !cnv->editor->pluginMode) {
         PopupMenu::dismissAllActiveMenus();
         if(!getValue<bool>(locked)) cnv->setSelected(this, true);
         Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());

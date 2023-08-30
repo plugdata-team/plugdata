@@ -840,10 +840,33 @@ bool Canvas::keyPressed(KeyPress const& key)
         }
 
         patch.moveObjects(pdObjects, x, y);
-
+        
+        // Update object bounds and store the total bounds of the selection
+        auto totalBounds = Rectangle<int>();
         for (auto* object : objects) {
             object->updateBounds();
+            totalBounds = totalBounds.getUnion(object->getBounds());
         }
+        
+        int viewX = viewport->getViewPositionX();
+        int viewY = viewport->getViewPositionY();
+        if(x < 0 && totalBounds.getX() < viewX)
+        {
+            viewX = totalBounds.getX();
+        }
+        else if(totalBounds.getRight() > viewX + viewport->getWidth()){
+            viewX = totalBounds.getRight() - viewport->getWidth();
+        }
+        if(y < 0 && totalBounds.getY() < viewY)
+        {
+            viewY = totalBounds.getY();
+        }
+        else if(totalBounds.getBottom() > viewY + viewport->getHeight())
+        {
+            viewY = totalBounds.getBottom() - viewport->getHeight();
+        }
+        
+        viewport->setViewPosition(viewX, viewY);
     };
 
     // Cancel connections being created by ESC key

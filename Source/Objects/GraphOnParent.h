@@ -85,7 +85,6 @@ public:
         case hash("donecanvasdialog"): {
             update();
             updateCanvas();
-            updateDrawables();
             break;
         }
         default:
@@ -213,11 +212,8 @@ public:
     {
         if (!canvas)
             return;
-        for (auto& object : canvas->objects) {
-            if (object->gui) {
-                object->gui->updateDrawables();
-            }
-        }
+        
+        canvas->updateDrawables();
     }
 
     // override to make transparent

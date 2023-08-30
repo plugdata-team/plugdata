@@ -163,14 +163,6 @@ PluginProcessor::PluginProcessor()
             setTheme(newTheme);
         }
 
-        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-            for (auto* cnv : editor->canvases) {
-                // Make sure inlets/outlets are updated
-                for (auto* object : cnv->objects)
-                    object->updateIolets();
-            }
-        }
-
         updateSearchPaths();
         objectLibrary->updateLibrary();
     };
@@ -1607,17 +1599,6 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 
     if (!loaded) {
         sendBang("load");
-    }
-}
-
-void PluginProcessor::updateDrawables()
-{
-    // TODO: fix for split view
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([cnv = editor->getCurrentCanvas()]() {
-            if (cnv)
-                cnv->updateDrawables();
-        });
     }
 }
 

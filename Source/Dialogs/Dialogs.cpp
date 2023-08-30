@@ -57,7 +57,7 @@ void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre,
     if (*target)
         return;
 
-    auto* dialog = new Dialog(target, centre, 400, 130, 160, false, margin);
+    auto* dialog = new Dialog(target, centre, 265, 270, centre->getBounds().getCentreY() + 130, false, margin);
     auto* saveDialog = new SaveDialog(dialog, filename, std::move(callback));
 
     dialog->setViewedComponent(saveDialog);

@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/plugdata-team/plugdata/wiki">
-    <img src="https://user-images.githubusercontent.com/44585538/199558692-df4fdd3f-b15b-4d88-82e8-d08ab7309c7c.png" alt="Logo" width=130 height=130>
+    <img src="https://github.com/plugdata-team/plugdata/assets/44585538/17062f59-bb1b-442e-a0ba-a96a74327460" alt="Logo" width=130 height=130>
   </a>
   <h1 align="center">plugdata</h1>
   <p align="center">
@@ -77,7 +77,7 @@ You can use externals inside plugdata's plugin version by recompiling the extern
 
 ## Credits
 Supported by [Deskew Technologies](https://gigperformer.com)
-- Logo by [Joshua A.C. Newman](https://glyphpress.com/talk/) 
+- Logo by [Bas de Bruin](https://www.bdebruin.nl/), based on concept by [Joshua A.C. Newman](https://glyphpress.com/talk/) 
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
 - [ELSE](https://github.com/porres/pd-else) by Alexandre Torres Porres
 - [cyclone](https://github.com/porres/pd-cyclone) by Krzysztof Czaja, Hans-Christoph Steiner, Fred Jan Kraan, Alexandre Torres Porres, Derek Kwan, Matt Barber and others (note: Cyclone is included to offer an easy entry point for Max users but ELSE contains several alternatives to objects in Cyclone and Pure Data Vanilla itself also has some alternatives. Not only that, but objects that weren't cloned into Cyclone also have alternatives in ELSE, see: [this](https://github.com/porres/pd-else/wiki/Cyclone-alternatives))

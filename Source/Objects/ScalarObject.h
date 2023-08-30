@@ -26,9 +26,37 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 // accidentally passing on mouse scroll events to the viewport.
 // This prevents that with a separation layer.
 
-class DrawableTemplate {
+class DrawableTemplate : public pd::MessageListener, public AsyncUpdater
+{
 
 public:
+    
+    void* ptr;
+    pd::Instance* pd;
+    
+    DrawableTemplate(void* object, pd::Instance* instance) : ptr(object), pd(instance)
+    {
+        pd->registerMessageListener(ptr, this);
+        triggerAsyncUpdate();
+    }
+
+    ~DrawableTemplate()
+    {
+        pd->unregisterMessageListener(ptr, this);
+    }
+    
+    void receiveMessage(String const& name, int argc, t_atom* argv) {
+        if(name == "redraw")
+        {
+            triggerAsyncUpdate();
+        }
+    };
+    
+    void handleAsyncUpdate()
+    {
+        update();
+    }
+    
     virtual void update() = 0;
 
     /* getting and setting values via fielddescs -- note confusing names;
@@ -88,13 +116,15 @@ class DrawableCurve final : public DrawableTemplate
 
 public:
     DrawableCurve(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
-        : scalar(s, cnv->pd)
+        : DrawableTemplate(static_cast<void*>(s), cnv->pd)
+        , scalar(s, cnv->pd)
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , canvas(cnv)
         , baseX(x)
         , baseY(y)
         , mouseListener(this)
     {
+
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             handleMouseDown(e);
         };
@@ -147,12 +177,13 @@ public:
             return;
         }
 
-        auto bounds = canvas->isGraph ? canvas->getParentComponent()->getLocalBounds() : canvas->getLocalBounds();
-
+ 
         if (n > 1) {
             int flags = x->x_flags;
             int closed = flags & CLOSED;
-
+            
+            auto bounds = glist->gl_isgraph ? Rectangle<int>(glist->gl_pixwidth, glist->gl_pixheight) : Rectangle<int>(1, 1);
+        
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
 
             int pix[200];
@@ -236,7 +267,8 @@ class DrawableSymbol final : public DrawableTemplate
 
 public:
     DrawableSymbol(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
-        : scalar(s, cnv->pd)
+        : DrawableTemplate(static_cast<void*>(s), cnv->pd)
+        , scalar(s, cnv->pd)
         , object(reinterpret_cast<t_fake_drawnumber*>(obj))
         , canvas(cnv)
         , baseX(x)

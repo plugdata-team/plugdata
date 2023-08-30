@@ -238,7 +238,7 @@ public:
             }
         }
 
-        if (isShowing() && needsRepaint)
+        if (needsRepaint)
             repaint();
     }
 

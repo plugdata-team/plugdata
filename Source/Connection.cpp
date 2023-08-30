@@ -24,7 +24,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     , inlet(s->isInlet ? s : e)
     , outobj(outlet->object)
     , inobj(inlet->object)
-    , ptr(oc, parent->pd)
 {
     cnv->selectedComponents.addChangeListener(this);
 
@@ -49,11 +48,12 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     // If it doesn't already exist in pd, create connection in pd
     if (!oc) {
         auto* oc = parent->patch.createAndReturnConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
-        ptr = pd::WeakReference(oc, cnv->pd);
+        setPointer(oc);
     } else {
-
+        setPointer(oc);
         popPathState();
     }
+
 
     // Listen to changes at iolets
     outobj->addComponentListener(this);
@@ -75,8 +75,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     valueChanged(presentationMode);
 
     updateOverlays(cnv->getOverlays());
-
-    setPointer(ptr.getRaw<void>());
 }
 
 Connection::~Connection()
@@ -182,12 +180,9 @@ void Connection::setPointer(void* newPtr)
     auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
     if(originalPointer != newPtr) {
         ptr = pd::WeakReference(newPtr, cnv->pd);
-    }
-    
-    cnv->pd->registerMessageListener(ptr.getRaw<t_outconnect>(), this);
-    if (originalPointer != ptr.getRaw<t_outconnect>()) {
-        // do we even need to unregister, doesn't it get cleaned up automatically?
+
         cnv->pd->unregisterMessageListener(originalPointer, this);
+        cnv->pd->registerMessageListener(newPtr, this);
     }
 }
 

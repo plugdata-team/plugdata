@@ -73,8 +73,6 @@ public:
     void addTextToTextEditor(unsigned long ptr, String text) override;
     void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
 
-    void updateDrawables() override;
-
     void updateConsole() override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
