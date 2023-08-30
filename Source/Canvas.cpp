@@ -1387,11 +1387,13 @@ void Canvas::cancelConnectionCreation()
 void Canvas::alignObjects(Align alignment)
 {
     auto getBoundingBox = [this](Array<Object *> objects, Array<std::tuple<void*, Rectangle<int>>> &pdObjectAndDimensions) -> Rectangle<int> {
+        auto patchPtr = patch.getPointer().get();
         auto totalBounds = Rectangle<int>();
         for (auto* object : objects){
             if(auto* ptr = object->getPointer()) {
                 pdObjectAndDimensions.add(std::make_tuple(static_cast<void*>(ptr), object->getBounds()));
                 totalBounds = totalBounds.getUnion(object->getBounds());
+                libpd_undo_apply(patchPtr, &patch.checkObject(ptr)->te_g);
             }
         }
         return totalBounds;
@@ -1401,17 +1403,12 @@ void Canvas::alignObjects(Align alignment)
 
     if (objects.isEmpty())
         return;
-    
+
     patch.startUndoSequence("align objects");
-    
-    // mark canvas as dirty, and set undo for all positions
-    auto patchPtr = patch.getPointer().get();
+
+    // mark canvas as dirty
     canvas_dirty(patch.getPointer().get(), 1);
-    for (auto object : objects) {
-        if(auto* ptr = object->getPointer())
-            libpd_undo_apply(patchPtr, &patch.checkObject(ptr)->te_g);
-    }
-        
+
     // get the bounding box of all selected objects
     Array<std::tuple<void*, Rectangle<int>>> pdObjectAndDimensions;
     auto selectedBounds = getBoundingBox(objects, pdObjectAndDimensions);
