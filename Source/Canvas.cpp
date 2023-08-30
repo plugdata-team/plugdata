@@ -1384,6 +1384,99 @@ void Canvas::cancelConnectionCreation()
     }
 }
 
+void Canvas::alignObjects(Align alignment)
+{
+    auto getBoundingBox = [this](Array<Object *> objects, Array<std::tuple<void*, Rectangle<int>>> &pdObjectAndDimensions) -> Rectangle<int> {
+        auto totalBounds = Rectangle<int>();
+        for (auto* object : objects){
+            if(auto* ptr = object->getPointer()) {
+                pdObjectAndDimensions.add(std::make_tuple(static_cast<void*>(ptr), object->getBounds()));
+                totalBounds = totalBounds.getUnion(object->getBounds());
+            }
+        }
+        return totalBounds;
+    };
+
+    auto objects = getSelectionOfType<Object>();
+
+    if (objects.isEmpty())
+        return;
+    
+    patch.startUndoSequence("align objects");
+
+    // get the bounding box of all selected objects
+    Array<std::tuple<void*, Rectangle<int>>> pdObjectAndDimensions;
+    auto selectedBounds = getBoundingBox(objects, pdObjectAndDimensions);
+
+    switch(alignment){
+    case Align::Left:{
+        auto leftPos = selectedBounds.getTopLeft().x;
+        for (auto& [ pdObject, objectBounds ] : pdObjectAndDimensions) {
+            patch.moveObjectTo(pdObject, leftPos, objectBounds.getY());
+        }
+        break;
+    }
+    case Align::Right:{
+        auto rightPos = selectedBounds.getRight();
+        for (auto& [ pdObject, objectBounds ] : pdObjectAndDimensions) {
+            patch.moveObjectTo(pdObject, rightPos - objectBounds.getWidth(), objectBounds.getY());
+        }
+        break;
+    }
+    case Align::VCenter:{
+        auto centrePos = selectedBounds.getCentreX();
+        for (auto& [ pdObject, objectBounds ] : pdObjectAndDimensions) {
+            patch.moveObjectTo(pdObject, centrePos - objectBounds.withZeroOrigin().getCentreX(), objectBounds.getY());
+        }
+        break;
+    }
+    case Align::Top:{
+        auto topPos = selectedBounds.getTopLeft().y;
+        for (auto& [ pdObject, objectBounds ] : pdObjectAndDimensions) {
+            patch.moveObjectTo(pdObject, objectBounds.getX(), topPos);
+        }
+        break;
+    }
+    case Align::Bottom:{
+        auto bottomPos = selectedBounds.getBottom();
+        for (auto& [ pdObject, objectBounds ] : pdObjectAndDimensions) {
+            patch.moveObjectTo(pdObject, objectBounds.getX(), bottomPos - objectBounds.getHeight());
+        }
+        break;
+    }
+    case Align::HCenter:{
+        auto centerPos = selectedBounds.getCentreY();
+        for (auto& [ pdObject, objectBounds ] : pdObjectAndDimensions) {
+            patch.moveObjectTo(pdObject, objectBounds.getX(), centerPos - objectBounds.withZeroOrigin().getCentreY());
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
+    // mark canvas as dirty, and set undo for all positions
+    auto patchPtr = patch.getPointer().get();
+    canvas_dirty(patch.getPointer().get(), 1);
+    for (auto object : objects) {
+        if(auto* ptr = object->getPointer())
+            libpd_undo_apply(patchPtr, &patch.checkObject(ptr)->te_g);
+    }
+
+    performSynchronise();
+
+    patch.endUndoSequence("align objects");
+
+    //synchronise();
+    //handleUpdateNowIfNeeded();
+
+    //synchroniseSplitCanvas();
+
+    for (auto* connection : connections){
+        connection->forceUpdate();
+    }
+}
+
 void Canvas::undo()
 {
     // Tell pd to undo the last action

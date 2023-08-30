@@ -113,6 +113,8 @@ public:
 
     void cancelConnectionCreation();
 
+    void alignObjects(Align alignment);
+
     void undo();
     void redo();
 

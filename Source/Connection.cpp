@@ -391,6 +391,13 @@ void Connection::updateOverlays(int overlay)
     repaint();
 }
 
+void Connection::forceUpdate()
+{
+    updatePath();
+    resizeToFit();
+    repaint();
+}
+
 void Connection::paint(Graphics& g)
 {
     renderConnectionPath(g,

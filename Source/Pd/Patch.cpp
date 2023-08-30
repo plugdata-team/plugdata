@@ -613,6 +613,13 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
     }
 }
 
+void Patch::moveObjectTo(void* object, int x, int y)
+{
+    if (auto patch = ptr.get<t_glist>()){
+        libpd_moveobj(patch.get(), &checkObject(object)->te_g, x + 1544, y + 1544); // FIXME: why do we have to offset by 1544?
+    }
+}
+
 void Patch::finishRemove()
 {
     if (auto patch = ptr.get<t_glist>()) {

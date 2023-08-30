@@ -67,6 +67,8 @@ public:
 
     void updatePath();
 
+    void forceUpdate();
+
     void lookAndFeelChanged() override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
