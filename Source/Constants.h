@@ -87,14 +87,21 @@ struct Icons {
     
     inline static const String Reorder = "(";
     inline static const String Object = ":";
-    
+
+    inline static const String Heart = ",";    // TODO
+    inline static const String Download = "-"; // TODO
+
     inline static const String Copy = "0";
     inline static const String Paste = "1";
     inline static const String Duplicate = "2";
     inline static const String Cut = "3";
 
-    inline static const String Heart = "4";
-    inline static const String Download = "5";
+    inline static const String AlignLeft = "4";
+    inline static const String AlignRight = "5";
+    inline static const String AlignVCentre = "6";
+    inline static const String AlignTop = "7";
+    inline static const String AlignBottom = "8";
+    inline static const String AlignHCentre = "9";
 
     // ================== OBJECT ICONS ==================
 
@@ -397,4 +404,13 @@ enum OverlayItem {
     OverlayActivationState,
     OverlayDirection,
     OverlayOrder
+};
+
+enum Align {
+    Left = 0,
+    Right,
+    HCenter,
+    Top,
+    Bottom,
+    VCenter
 };

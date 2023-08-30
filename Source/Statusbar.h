@@ -97,6 +97,9 @@ public:
     TextButton overlayButton, overlaySettingsButton;
 
     TextButton snapEnableButton, snapSettingsButton;
+
+    TextButton alignmentButton;
+
     std::unique_ptr<OversampleSelector> oversampleSelector;
 
     Label zoomLabel;

@@ -18,6 +18,7 @@
 
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
+#include "Dialogs/AlignmentTools.h"
 
 #include "Utility/ArrowPopupMenu.h"
 
@@ -425,6 +426,12 @@ Statusbar::Statusbar(PluginProcessor* processor)
         SnapSettings::show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
     };
 
+    alignmentButton.setButtonText(Icons::AlignLeft);
+    alignmentButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        AlignmentTools::show(editor, editor->getLocalArea(this, alignmentButton.getBounds()));
+    };
+
     // overlay button
     overlayButton.getProperties().set("Style", "SmallIcon");
     overlaySettingsButton.getProperties().set("Style", "SmallIcon");
@@ -457,6 +464,13 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     snapEnableButton.setTooltip(String("Enable snapping"));
     snapSettingsButton.setTooltip(String("Snap settings"));
+
+    // alignment button
+    alignmentButton.getProperties().set("Style", "SmallIcon");
+
+    addAndMakeVisible(alignmentButton);
+
+    alignmentButton.setTooltip(String("Alignment tools"));
 
     setSize(getWidth(), statusbarHeight);
 }
@@ -504,6 +518,9 @@ void Statusbar::resized()
 
     snapEnableButton.setBounds(position(spacing), 0, getHeight(), getHeight());
     snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(getHeight() - 3, 0).withTrimmedRight(8));
+    position(10);
+
+    alignmentButton.setBounds(position(spacing), 0, getHeight(), getHeight());
     
     pos = 4; // reset position for elements on the right
 
