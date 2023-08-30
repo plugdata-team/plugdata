@@ -4,37 +4,35 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
-class SaveDialogButton : public TextButton
-{
+class SaveDialogButton : public TextButton {
 public:
-    SaveDialogButton(String buttonText) : TextButton(buttonText)
+    SaveDialogButton(String buttonText)
+        : TextButton(buttonText)
     {
     }
-    
+
 private:
     void paint(Graphics& g) override
     {
         auto bounds = getLocalBounds().toFloat().reduced(1.0f);
-        
+
         auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
         auto activeColour = findColour(PlugDataColour::toolbarActiveColourId);
-        
-        if(isMouseOver() || isMouseButtonDown())
-        {
+
+        if (isMouseOver() || isMouseButtonDown()) {
             backgroundColour = backgroundColour.contrasting(0.1f);
         }
 
         g.setColour(backgroundColour);
         PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
-        
+
         g.setFont(Fonts::getDefaultFont().withHeight(15));
         g.setColour(findColour(PlugDataColour::panelTextColourId));
-        
+
         g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
 
         auto outlineColour = hasKeyboardFocus(false) ? activeColour : findColour(PlugDataColour::outlineColourId);
-        
+
         g.setColour(outlineColour);
         PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::defaultCornerRadius);
     }
@@ -52,10 +50,10 @@ public:
         addAndMakeVisible(cancel);
         addAndMakeVisible(dontsave);
         addAndMakeVisible(save);
-        
+
         savelabel.setFont(Fonts::getBoldFont().withHeight(15.0f));
         savelabel.setJustificationType(Justification::centred);
-        
+
         cancel.onClick = [parent] {
             MessageManager::callAsync(
                 [parent]() {
@@ -81,18 +79,19 @@ public:
         cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         dontsave.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         save.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-        
+
         cancel.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         dontsave.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         save.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-                
+
         setOpaque(false);
-        
-        MessageManager::callAsync([_this = SafePointer(this)](){
-            if(_this) _this->save.grabKeyboardFocus();
+
+        MessageManager::callAsync([_this = SafePointer(this)]() {
+            if (_this)
+                _this->save.grabKeyboardFocus();
         });
     }
-    
+
     void paint(Graphics& g) override
     {
         auto contentBounds = getLocalBounds().reduced(16);
@@ -106,14 +105,14 @@ public:
     void resized() override
     {
         auto contentBounds = getLocalBounds().reduced(16);
-        
+
         // logo space
         contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f);
-        
+
         contentBounds.removeFromTop(8);
         savelabel.setBounds(contentBounds.removeFromTop(contentBounds.getHeight() / 3));
         contentBounds.removeFromTop(8);
-        
+
         save.setBounds(contentBounds.removeFromTop(26));
         contentBounds.removeFromTop(6);
         dontsave.setBounds(contentBounds.removeFromTop(26));

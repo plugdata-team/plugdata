@@ -62,14 +62,14 @@ public:
     void update() override
     {
         sizeProperty = atomHelper.getWidthInChars();
-        
+
         min = atomHelper.getMinimum();
         max = atomHelper.getMaximum();
         updateValue();
 
         atomHelper.update();
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
@@ -81,13 +81,12 @@ public:
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
             auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
-            
+
             setParameterExcludingListener(sizeProperty, width);
-            
+
             atomHelper.setWidthInChars(width);
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(min)) {
+        } else if (value.refersToSameSourceAs(min)) {
             auto v = getValue<float>(min);
             listLabel.setMinimum(v);
             atomHelper.setMinimum(v);
@@ -110,11 +109,10 @@ public:
             auto charptr = elem.getCharPointer();
             auto numptr = charptr;
             auto value = CharacterFunctions::readDoubleValue(numptr);
-            
+
             if (numptr - charptr == elem.getNumBytesAsUTF8()) {
                 list.emplace_back(value);
-            }
-            else {
+            } else {
                 list.emplace_back(elem);
             }
         }

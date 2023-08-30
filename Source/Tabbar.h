@@ -14,7 +14,6 @@
 #include "PluginEditor.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
 
-
 class WelcomePanel : public Component {
 
     class WelcomeButton : public Component {
@@ -77,7 +76,7 @@ class WelcomePanel : public Component {
             listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
             addAndMakeVisible(listBox);
-            
+
             bouncer = std::make_unique<BouncingViewportAttachment>(listBox.getViewport());
         }
 
@@ -136,7 +135,7 @@ class WelcomePanel : public Component {
             auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
 
             Fonts::drawText(g, items[rowNumber].first, 12, 0, width - 9, height, colour, 15); */
-            
+
             if (rowIsSelected) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5.5, 1.5, width - 9, height - 4), Corners::defaultCornerRadius);
@@ -205,10 +204,11 @@ public:
 
 class PluginEditor;
 
-class ButtonBar : public TabbedButtonBar, public DragAndDropTarget, public ChangeListener
-{
+class ButtonBar : public TabbedButtonBar
+    , public DragAndDropTarget
+    , public ChangeListener {
 public:
-    ButtonBar (TabComponent& tabComp, TabbedButtonBar::Orientation o);
+    ButtonBar(TabComponent& tabComp, TabbedButtonBar::Orientation o);
 
     bool isInterestedInDragSource(SourceDetails const& dragSourceDetails) override;
     void itemDropped(SourceDetails const& dragSourceDetails) override;
@@ -225,6 +225,7 @@ public:
     int getNumVisibleTabs();
 
     ComponentAnimator ghostTabAnimator;
+
 private:
     TabComponent& owner;
 
@@ -233,11 +234,11 @@ private:
     int ghostTabIdx = -1;
     bool inOtherSplit = false;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ButtonBar)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ButtonBar)
 };
 
-
-class TabComponent : public Component, public AsyncUpdater {
+class TabComponent : public Component
+    , public AsyncUpdater {
 
     TextButton newButton;
     WelcomePanel welcomePanel;
@@ -250,19 +251,19 @@ public:
     void onTabMoved();
     void onTabChange(int tabIndex);
     void newTab();
-    void addTab(const String& tabName, Component* contentComponent, int insertIndex);
+    void addTab(String const& tabName, Component* contentComponent, int insertIndex);
     void moveTab(int oldIndex, int newIndex);
     void clearTabs();
-    void setTabBarDepth (int newDepth);
-    Component* getTabContentComponent (int tabIndex) const noexcept;
-    Component* getCurrentContentComponent() const noexcept          { return panelComponent.get(); }
+    void setTabBarDepth(int newDepth);
+    Component* getTabContentComponent(int tabIndex) const noexcept;
+    Component* getCurrentContentComponent() const noexcept { return panelComponent.get(); }
     int getCurrentTabIndex();
     void setCurrentTabIndex(int idx);
-    int getNumTabs() const noexcept                                 { return tabs->getNumTabs(); }
+    int getNumTabs() const noexcept { return tabs->getNumTabs(); }
     int getNumVisibleTabs();
     void removeTab(int idx);
-    int getTabBarDepth() const noexcept                             { return tabDepth; };
-    void changeCallback (int newCurrentTabIndex, const String& newTabName);
+    int getTabBarDepth() const noexcept { return tabDepth; };
+    void changeCallback(int newCurrentTabIndex, String const& newTabName);
 
     void openProject();
     void openProjectFile(File& patchFile);
@@ -277,7 +278,7 @@ public:
 
     int getIndexOfCanvas(Canvas* cnv);
 
-    void setTabText(int tabIndex, const String& newName);
+    void setTabText(int tabIndex, String const& newName);
 
     Canvas* getCanvas(int idx);
 

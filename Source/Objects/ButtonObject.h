@@ -89,11 +89,11 @@ public:
             button->x_h = b.getHeight() - 1;
         }
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto button = ptr.get<t_fake_button>()) {
             setParameterExcludingListener(sizeProperty, var(button->x_w));
         }
@@ -101,8 +101,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         if (auto button = ptr.get<t_fake_button>()) {
             outlet_float(button->x_obj.ob_outlet, 1);
         }
@@ -153,14 +154,12 @@ public:
             auto* constrainer = getConstrainer();
             auto size = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
             setParameterExcludingListener(sizeProperty, size);
-            if (auto button = ptr.get<t_fake_button>())
-            {
+            if (auto button = ptr.get<t_fake_button>()) {
                 button->x_w = size;
                 button->x_h = size;
             }
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(primaryColour)) {
+        } else if (value.refersToSameSourceAs(primaryColour)) {
             auto col = Colour::fromString(primaryColour.toString());
             if (auto button = ptr.get<t_fake_button>()) {
                 button->x_fgcolor[0] = col.getRed();
@@ -168,8 +167,7 @@ public:
                 button->x_fgcolor[2] = col.getBlue();
             }
             repaint();
-        }
-        else if (value.refersToSameSourceAs(secondaryColour)) {
+        } else if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
             if (auto button = ptr.get<t_fake_button>()) {
                 button->x_bgcolor[0] = col.getRed();

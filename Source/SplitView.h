@@ -9,7 +9,6 @@
 #include "SplitViewResizer.h"
 #include "ResizableTabbedComponent.h"
 
-
 class PluginEditor;
 class Canvas;
 class FadeAnimation;
@@ -19,7 +18,7 @@ public:
     ~SplitView() override;
 
     TabComponent* getActiveTabbar();
-    
+
     void createNewSplit(Canvas* cnv);
     void addSplit(ResizableTabbedComponent* toSplit);
     void addResizer(SplitViewResizer* resizer);
@@ -37,7 +36,7 @@ public:
     int getTabComponentSplitIndex(TabComponent* tabComponent);
 
     ResizableTabbedComponent* getSplitAtScreenPosition(Point<int> position);
-    
+
     OwnedArray<ResizableTabbedComponent> splits;
     OwnedArray<SplitViewResizer> resizers;
 

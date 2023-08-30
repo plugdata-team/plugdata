@@ -6,7 +6,6 @@
 
 #include "Utility/GlobalMouseListener.h"
 
-
 class SubpatchImpl : public ImplementationBase
     , public pd::MessageListener {
 public:
@@ -497,8 +496,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         if (pd->isPerformingGlobalSync)
             return;
 

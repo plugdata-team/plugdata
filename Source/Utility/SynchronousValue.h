@@ -1,15 +1,13 @@
 #pragma once
 
-class SynchronousValueSource  : public Value::ValueSource
-{
+class SynchronousValueSource : public Value::ValueSource {
 public:
-    
     SynchronousValueSource()
     {
     }
-    
-    explicit SynchronousValueSource (const var& initialValue)
-        : value (initialValue)
+
+    explicit SynchronousValueSource(var const& initialValue)
+        : value(initialValue)
     {
     }
 
@@ -18,19 +16,18 @@ public:
         return value;
     }
 
-    void setValue (const var& newValue) override
+    void setValue(var const& newValue) override
     {
-        if (! newValue.equalsWithSameType (value))
-        {
+        if (!newValue.equalsWithSameType(value)) {
             value = newValue;
-            sendChangeMessage (true);
+            sendChangeMessage(true);
         }
     }
 
 private:
     var value;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SynchronousValueSource)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SynchronousValueSource)
 };
 
 #define SynchronousValue(x) Value(new SynchronousValueSource(x));

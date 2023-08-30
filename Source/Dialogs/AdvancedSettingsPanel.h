@@ -33,15 +33,14 @@ public:
             propertiesPanel.addSection("Window", windowProperties);
 
             otherProperties.add(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
-        }
-        else {
-            
+        } else {
+
             if (!settingsTree.hasProperty("NativeDialog")) {
                 settingsTree.setProperty("NativeDialog", true, nullptr);
             }
-            
+
             nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
-            
+
             otherProperties.add(new PropertiesPanel::BoolComponent("Use system file dialogs", nativeDialogValue, StringArray { "No", "Yes" }));
         }
 

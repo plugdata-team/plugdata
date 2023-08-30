@@ -49,7 +49,6 @@ public:
 
         auto plugdataState = new PopupMenu();
         plugdataState->addItem("Import workspace", [editor]() mutable {
-            
             static auto openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
             openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
@@ -70,9 +69,9 @@ public:
                 }
             });
         });
-        
+
         addCustomItem(getMenuItemID(MenuItem::State), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::State)]), std::unique_ptr<PopupMenu const>(plugdataState), "Workspace");
-        
+
         addSeparator();
 
         addCustomItem(getMenuItemID(MenuItem::CompiledMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::CompiledMode)]), nullptr, "Compiled mode");
@@ -81,8 +80,8 @@ public:
         addSeparator();
 
         addCustomItem(getMenuItemID(MenuItem::FindExternals), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::FindExternals)]), nullptr, "Find externals...");
-        
-        //addCustomItem(getMenuItemID(MenuItem::Discover), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Discover)]), nullptr, "Discover...");
+
+        // addCustomItem(getMenuItemID(MenuItem::Discover), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Discover)]), nullptr, "Discover...");
 
         addCustomItem(getMenuItemID(MenuItem::Settings), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Settings)]), nullptr, "Settings...");
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
@@ -240,7 +239,7 @@ public:
             auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-                
+
                 PlugDataLook::fillSmoothedRectangle(g, r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
                 colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
@@ -372,7 +371,7 @@ public:
         CompiledMode,
         Compile,
         FindExternals,
-        //Discover,
+        // Discover,
         Settings,
         About
     };
@@ -404,7 +403,7 @@ public:
         new IconMenuItem(Icons::DevTools, "Compile...", false, false),
 
         new IconMenuItem(Icons::Externals, "Find externals...", false, false),
-        //new IconMenuItem(Icons::Compass, "Discover...", false, false),
+        // new IconMenuItem(Icons::Compass, "Discover...", false, false),
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),
     };
@@ -413,5 +412,3 @@ public:
     ThemeSelector themeSelector;
     ZoomSelector zoomSelector;
 };
-
-

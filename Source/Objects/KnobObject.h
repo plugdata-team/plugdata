@@ -11,7 +11,7 @@ class Knob : public Slider {
 
     Colour fgColour;
     Colour arcColour;
-    
+
     bool drawArc = true;
 
     int numberOfTicks = 0;
@@ -139,7 +139,7 @@ class KnobObject : public ObjectBase {
     Value arcColour = SynchronousValue();
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
-    
+
     Value sizeProperty = SynchronousValue();
 
     float value = 0.0f;
@@ -265,11 +265,11 @@ public:
     {
         return hasSendSymbol();
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto knob = ptr.get<t_fake_knob>()) {
             setParameterExcludingListener(sizeProperty, var(knob->x_size));
         }
@@ -346,11 +346,10 @@ public:
                 // we have to use our min/max as by the time we get the "range" message, it has already changed knb->x_min & knb->x_max!
                 auto oldMin = ::getValue<float>(min);
                 auto oldMax = ::getValue<float>(max);
-            
+
                 setParameterExcludingListener(min, std::min(newMin, newMax - 0.0001f));
                 setParameterExcludingListener(max, std::max(newMax, newMin + 0.0001f));
-                
-                
+
                 updateRange();
                 updateDoubleClickValue();
 
@@ -665,14 +664,12 @@ public:
             auto* constrainer = getConstrainer();
             auto size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
             setParameterExcludingListener(sizeProperty, size);
-            if (auto knob = ptr.get<t_fake_knob>())
-            {
+            if (auto knob = ptr.get<t_fake_knob>()) {
                 knob->x_size = size;
             }
-            
+
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(min)) {
+        } else if (value.refersToSameSourceAs(min)) {
             float oldMinVal, oldMaxVal, newMinVal;
             if (auto knb = ptr.get<t_fake_knob>()) {
                 oldMinVal = static_cast<float>(knb->x_min);
@@ -681,7 +678,7 @@ public:
             } else {
                 return;
             }
-            
+
             // set new min value and update knob
             setMinimum(newMinVal);
             updateRange();

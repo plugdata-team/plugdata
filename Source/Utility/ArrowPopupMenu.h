@@ -78,12 +78,12 @@ public:
         arrow.closeSubPath();
 
         // Reduce clip region before drawing shadow to ensure there's no shadow at the bottom
-        if(ProjectInfo::canUseSemiTransparentWindows()) {
+        if (ProjectInfo::canUseSemiTransparentWindows()) {
             g.saveState();
             g.reduceClipRegion(arrowBounds.toNearestInt());
-            
+
             StackShadow::renderDropShadow(g, arrowOutline, Colour(0, 0, 0).withAlpha(0.3f), 7, { 0, targetArea.getY() <= menuBounds.getY() ? 2 : -2 });
-            
+
             g.restoreState();
         }
 

@@ -69,7 +69,7 @@ public:
     void receivePolyAftertouch(int channel, int pitch, int value) override;
     void receiveMidiByte(int port, int byte) override;
     void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
-        
+
     void addTextToTextEditor(unsigned long ptr, String text) override;
     void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
 
@@ -156,7 +156,6 @@ public:
     int lastLeftTab = -1;
     int lastRightTab = -1;
 
-
     std::unique_ptr<InternalSynth> internalSynth;
     std::atomic<bool> enableInternalSynth = false;
 
@@ -168,7 +167,7 @@ private:
     int audioAdvancement = 0;
     std::vector<float> audioBufferIn;
     std::vector<float> audioBufferOut;
-    
+
     MidiBuffer midiBufferIn;
     MidiBuffer midiBufferOut;
     MidiBuffer midiBufferTemp;
@@ -189,7 +188,7 @@ private:
 
     dsp::Limiter<float> limiter;
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
-        
+
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
     static inline const String else_version = "ELSE v1.0-rc9";

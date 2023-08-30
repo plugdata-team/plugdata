@@ -124,7 +124,7 @@ public:
             auto receiveSym = String::fromUTF8(note->x_rcv_raw->s_name);
             receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
         }
-        
+
         auto justificationType = getValue<int>(justification);
         if (justificationType == 1) {
             noteEditor.setJustification(Justification::topLeft);
@@ -142,11 +142,11 @@ public:
         getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto note = ptr.get<t_fake_note>()) {
             setParameterExcludingListener(width, var(note->x_max_pixwidth));
         }
@@ -154,8 +154,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         wasSelectedOnMouseDown = object->isSelected();
     }
 
@@ -313,18 +314,16 @@ public:
         if (v.refersToSameSourceAs(width)) {
             auto* constrainer = getConstrainer();
             auto newWidth = std::max(getValue<int>(width), constrainer->getMinimumWidth());
-            
+
             setParameterExcludingListener(width, var(newWidth));
-            
-            if (auto note = ptr.get<t_fake_note>())
-            {
+
+            if (auto note = ptr.get<t_fake_note>()) {
                 note->x_max_pixwidth = newWidth;
                 note->x_resized = 1;
             }
-            
+
             object->updateBounds();
-        }
-        else if (v.refersToSameSourceAs(primaryColour)) {
+        } else if (v.refersToSameSourceAs(primaryColour)) {
             auto colour = Colour::fromString(primaryColour.toString());
             noteEditor.applyColourToAllText(colour);
             if (auto note = ptr.get<t_fake_note>())

@@ -85,7 +85,6 @@ void PaletteItem::setIsItemDragged(bool isActive)
     }
 }
 
-
 void PaletteItem::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
@@ -158,7 +157,7 @@ void PaletteItem::paint(Graphics& g)
         auto const fromRadians = MathConstants<float>::pi * 1.5f;
         auto const toRadians = MathConstants<float>::pi * 0.5f;
 
-        //p.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
+        // p.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
         inletArc.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
 
         auto inletColour = inlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
@@ -193,7 +192,7 @@ void PaletteItem::paint(Graphics& g)
         auto const fromRadians = MathConstants<float>::pi * -0.5f;
         auto const toRadians = MathConstants<float>::pi * 0.5f;
 
-        //p.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0, fromRadians, toRadians, false);
+        // p.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0, fromRadians, toRadians, false);
         outletArc.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0.0f, fromRadians, toRadians, false);
 
         auto outletColour = outlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
@@ -346,16 +345,15 @@ std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String 
         if (name == "outlet~")
             outlets.push_back({ true, position });
     };
-    
+
     auto lines = StringArray::fromLines(patchAsString);
 
     // In case the patch contains a single object, we need to use a different method to find the number and kind inlets and outlets
-    if(lines.size() == 1)
-    {
+    if (lines.size() == 1) {
         auto offlineObjectRenderer = editor->offlineRenderer;
         return offlineObjectRenderer.countIolets(lines[0]);
     }
-    
+
     for (auto& line : lines) {
 
         line = line.upToLastOccurrenceOf(";", false, false);

@@ -26,15 +26,16 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 // accidentally passing on mouse scroll events to the viewport.
 // This prevents that with a separation layer.
 
-class DrawableTemplate : public pd::MessageListener, public AsyncUpdater
-{
+class DrawableTemplate : public pd::MessageListener
+    , public AsyncUpdater {
 
 public:
-    
     void* ptr;
     pd::Instance* pd;
-    
-    DrawableTemplate(void* object, pd::Instance* instance) : ptr(object), pd(instance)
+
+    DrawableTemplate(void* object, pd::Instance* instance)
+        : ptr(object)
+        , pd(instance)
     {
         pd->registerMessageListener(ptr, this);
         triggerAsyncUpdate();
@@ -44,19 +45,19 @@ public:
     {
         pd->unregisterMessageListener(ptr, this);
     }
-    
-    void receiveMessage(String const& name, int argc, t_atom* argv) {
-        if(name == "redraw")
-        {
+
+    void receiveMessage(String const& name, int argc, t_atom* argv)
+    {
+        if (name == "redraw") {
             triggerAsyncUpdate();
         }
     };
-    
+
     void handleAsyncUpdate()
     {
         update();
     }
-    
+
     virtual void update() = 0;
 
     /* getting and setting values via fielddescs -- note confusing names;
@@ -177,13 +178,12 @@ public:
             return;
         }
 
- 
         if (n > 1) {
             int flags = x->x_flags;
             int closed = flags & CLOSED;
-            
+
             auto bounds = glist->gl_isgraph ? Rectangle<int>(glist->gl_pixwidth, glist->gl_pixheight) : Rectangle<int>(1, 1);
-        
+
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
 
             int pix[200];

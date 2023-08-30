@@ -153,6 +153,7 @@ class ColourPicker : public Component {
         {
             colourPicker->runCallback();
         }
+
     private:
         ColourPicker* colourPicker;
     };
@@ -304,15 +305,14 @@ public:
         hexEditor.setVisible(hex);
         update(dontSendNotification);
         repaint();
-        
+
         if (hex) {
             setSize(200, 256);
         } else {
             setSize(200, 300);
         }
-        
-        if(auto* parent = getParentComponent())
-        {
+
+        if (auto* parent = getParentComponent()) {
             parent->setSize(getWidth(), getHeight()); // Set size of SelectorHolder
         }
     }

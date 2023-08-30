@@ -43,7 +43,7 @@ void Library::updateLibrary()
     auto pathTree = settingsTree.getChildWithName("Paths");
 
     sys_lock();
-    
+
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
 
@@ -80,7 +80,7 @@ void Library::updateLibrary()
             }
         }
     }
-    
+
     sys_unlock();
 }
 
@@ -116,13 +116,12 @@ Library::Library(pd::Instance* instance)
     });
 }
 
-StringArray Library::autocomplete(String const& query, const File& patchDirectory) const
+StringArray Library::autocomplete(String const& query, File const& patchDirectory) const
 {
     StringArray result;
     result.ensureStorageAllocated(20);
-    
-    if(patchDirectory.isDirectory())
-    {
+
+    if (patchDirectory.isDirectory()) {
         for (auto const& file : OSUtils::iterateDirectory(patchDirectory, false, true, 20)) {
             auto filename = file.getFileNameWithoutExtension();
             if (file.hasFileExtension("pd") && filename.startsWith(query) && !filename.startsWith("help-") && !filename.endsWith("-help")) {
@@ -291,8 +290,6 @@ void Library::fsChangeCallback()
 {
     appDirChanged();
 }
-
-
 
 File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
 {

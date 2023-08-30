@@ -16,7 +16,7 @@ class RadioObject final : public ObjectBase {
 
     Value max = SynchronousValue(0.0f);
     Value sizeProperty = SynchronousValue();
-    
+
 public:
     RadioObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -158,8 +158,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         float pos = isVertical ? e.y : e.x;
         float div = isVertical ? getHeight() : getWidth();
 
@@ -236,23 +237,19 @@ public:
             auto* constrainer = getConstrainer();
             auto size = std::max(::getValue<int>(sizeProperty), isVertical ? constrainer->getMinimumWidth() : constrainer->getMinimumHeight());
             setParameterExcludingListener(sizeProperty, size);
-            
-            if (auto radio = ptr.get<t_radio>())
-            {
-                if(isVertical)
-                {
+
+            if (auto radio = ptr.get<t_radio>()) {
+                if (isVertical) {
                     radio->x_gui.x_w = size;
                     radio->x_gui.x_h = size * numItems;
-                }
-                else {
+                } else {
                     radio->x_gui.x_h = size;
                     radio->x_gui.x_w = size * numItems;
                 }
             }
-            
+
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(max)) {
+        } else if (value.refersToSameSourceAs(max)) {
             if (::getValue<int>(max) != numItems) {
                 limitValueMin(value, 1);
                 numItems = ::getValue<int>(max);
@@ -279,11 +276,11 @@ public:
 
         resized();
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto radio = ptr.get<t_radio>()) {
             setParameterExcludingListener(sizeProperty, isVertical ? var(radio->x_gui.x_w) : var(radio->x_gui.x_h));
         }

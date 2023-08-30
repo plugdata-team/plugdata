@@ -31,9 +31,8 @@ public:
             if (isMouseOver()) {
                 colour = colour.contrasting(0.3f);
             }
-            
-            Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(28), colour, 14);
 
+            Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(28), colour, 14);
 
             if (getToggleState()) {
                 colour = findColour(PlugDataColour::toolbarActiveColourId);
@@ -82,8 +81,9 @@ class DocumentBrowserViewBase : public TreeView
 
 public:
     explicit DocumentBrowserViewBase(DirectoryContentsList& listToShow)
-        : DirectoryContentsDisplayComponent(listToShow), bouncer(getViewport()) {};
-        
+        : DirectoryContentsDisplayComponent(listToShow)
+        , bouncer(getViewport()) {};
+
     BouncingViewportAttachment bouncer;
 };
 
@@ -118,7 +118,7 @@ public:
         , subContentsList(nullptr, false)
     {
         DirectoryContentsList::FileInfo fileInfo;
-        
+
         if (parentContents != nullptr && parentContents->getFileInfo(indexInContents, fileInfo)) {
             fileSize = File::descriptionOfSizeInBytes(fileInfo.fileSize);
             isDirectory = fileInfo.isDirectory;
@@ -217,9 +217,8 @@ public:
 
     void rebuildItemsFromContentList()
     {
-        std::unique_ptr<OpennessRestorer> opennessRestorer = getUniqueName().isNotEmpty() ?
-        std::make_unique<OpennessRestorer>(*this) : nullptr;
-        
+        std::unique_ptr<OpennessRestorer> opennessRestorer = getUniqueName().isNotEmpty() ? std::make_unique<OpennessRestorer>(*this) : nullptr;
+
         clearSubItems();
 
         if (isOpen() && subContentsList != nullptr) {
@@ -428,18 +427,18 @@ public:
         // Paint selected row
         if (getNumSelectedFiles()) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            
+
             auto* selectedItem = getSelectedItem(0);
-            if(selectedItem == getRootItem()) return;
-            
+            if (selectedItem == getRootItem())
+                return;
+
             auto y = selectedItem->getItemPosition(true).getY();
-            
+
             // Fix for bouncing viewport
-            if(auto* holder = getViewport()->getChildComponent(0))
-            {
+            if (auto* holder = getViewport()->getChildComponent(0)) {
                 y += holder->getTransform().getTranslationY();
             }
-            
+
             auto selectedRect = Rectangle<float>(3.5f, y + 2.0f, getWidth() - 6.0f, 22.0f);
 
             PlugDataLook::fillSmoothedRectangle(g, selectedRect, Corners::defaultCornerRadius);
@@ -458,14 +457,12 @@ public:
     {
         repaint();
     }
-        
-        
-    void mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& d) override
+
+    void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d) override
     {
         bouncer.mouseWheelMove(e, d);
         repaint();
     }
-
 
     /** Callback when the user double-clicks on a file in the browser. */
     void fileDoubleClicked(File const& file) override
@@ -560,7 +557,6 @@ public:
         repaint();
     }
 
-
 private:
     DocumentBrowserBase* browser;
     bool isDraggingFile = false;
@@ -577,13 +573,14 @@ class FileSearchComponent : public Component
     , public KeyListener {
 public:
     explicit FileSearchComponent(DirectoryContentsList& directory)
-        : searchPath(directory), bouncer(listBox.getViewport())
+        : searchPath(directory)
+        , bouncer(listBox.getViewport())
     {
         listBox.setModel(this);
         listBox.setRowHeight(26);
         listBox.setOutlineThickness(0);
         listBox.deselectAllRows();
-        
+
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
         input.getProperties().set("NoOutline", true);
@@ -812,7 +809,6 @@ public:
             }
         }
 
-        
         directory.setDirectory(location, true, true);
 
         updateThread.startThread();
@@ -836,7 +832,6 @@ public:
     {
         updateThread.stopThread(1000);
     }
-    
 
     bool isSearching() override
     {
@@ -872,38 +867,38 @@ public:
         settingsCalloutButton->setTooltip("Show browser settings");
         settingsCalloutButton->setConnectedEdges(12);
         settingsCalloutButton->getProperties().set("Style", "SmallIcon");
-        settingsCalloutButton->onClick = [this, settingsCalloutButton](){
+        settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
             auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
             auto* sidebar = getParentComponent();
             auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
             auto openFolderCallback = [this]() {
                 openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", SettingsFile::getInstance()->wantsNativeDialog());
-                
+
                 openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
-                                         [this](FileChooser const& fileChooser) {
-                    const auto file = fileChooser.getResult();
-                    if (file.exists()) {
-                        const auto& path = file.getFullPathName();
-                        pd->settingsFile->setProperty("browser_path", path);
-                        directory.setDirectory(path, true, true);
-                    }
-                });
+                    [this](FileChooser const& fileChooser) {
+                        const auto file = fileChooser.getResult();
+                        if (file.exists()) {
+                            const auto& path = file.getFullPathName();
+                            pd->settingsFile->setProperty("browser_path", path);
+                            directory.setDirectory(path, true, true);
+                        }
+                    });
             };
-            
+
             auto resetFolderCallback = [this]() {
-                        auto location = ProjectInfo::appDataDir;
-                        const auto& path = location.getFullPathName();
-                        pd->settingsFile->setProperty("browser_path", path);
-                        directory.setDirectory(path, true, true);
-                    };
+                auto location = ProjectInfo::appDataDir;
+                const auto& path = location.getFullPathName();
+                pd->settingsFile->setProperty("browser_path", path);
+                directory.setDirectory(path, true, true);
+            };
 
             auto docsSettings = std::make_unique<DocumentBrowserSettings>(openFolderCallback, resetFolderCallback);
             CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, editor);
         };
-            
+
         return std::unique_ptr<TextButton>(settingsCalloutButton);
     }
-    
+
 private:
     TextButton revealButton = TextButton(Icons::OpenedFolder);
     TextButton loadFolderButton = TextButton(Icons::Folder);
@@ -911,9 +906,8 @@ private:
 
     std::unique_ptr<FileChooser> openChooser;
     TextButton settingsCalloutButton = TextButton();
-    
+
 public:
-    
     DocumentBrowserView fileList;
     FileSearchComponent searchComponent;
 };

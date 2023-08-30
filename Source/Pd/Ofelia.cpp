@@ -7,9 +7,9 @@
 #include "Ofelia.h"
 
 #if defined(_WIN32)
-    #define DLL_EXPORT __declspec(dllexport)
+#    define DLL_EXPORT __declspec(dllexport)
 #elif defined(__GNUC__)
-    #define DLL_EXPORT __attribute__((visibility("default")))
+#    define DLL_EXPORT __attribute__((visibility("default")))
 #else
-    #define DLL_EXPORT
+#    define DLL_EXPORT
 #endif

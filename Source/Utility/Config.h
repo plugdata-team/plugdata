@@ -23,9 +23,9 @@ struct ProjectInfo {
     static AudioDeviceManager* getDeviceManager();
 
     static bool canUseSemiTransparentWindows();
-    
+
     static inline const File appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
-    
+
     static inline const String versionSuffix = "-8";
     static inline const File versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
 };
@@ -36,7 +36,7 @@ inline T getValue(Value const& v)
     return static_cast<T>(v.getValue());
 }
 
-static String getRelativeTimeDescription(const String& timestampString)
+static String getRelativeTimeDescription(String const& timestampString)
 {
     StringArray dateAndTime = StringArray::fromTokens(timestampString, true);
     StringArray dateComponents = StringArray::fromTokens(dateAndTime[0], "-", "");
@@ -54,7 +54,6 @@ static String getRelativeTimeDescription(const String& timestampString)
     Time currentTime = Time::getCurrentTime();
     RelativeTime relativeTime = currentTime - timestamp;
 
-    
     int years = relativeTime.inDays() / 365;
     int months = relativeTime.inDays() / 30;
     int weeks = relativeTime.inWeeks();

@@ -46,8 +46,9 @@ Component* Dialogs::showTextEditorDialog(String const& text, String filename, st
 
 void Dialogs::appendTextToTextEditorDialog(Component* dialog, String const& text)
 {
-    if(!dialog) return;
-    
+    if (!dialog)
+        return;
+
     auto& editor = dynamic_cast<TextEditorDialog*>(dialog)->editor;
     editor.setText(editor.getText() + text);
 }
@@ -84,7 +85,6 @@ void Dialogs::showSettingsDialog(PluginEditor* editor)
     editor->openedDialog.reset(dialog);
 }
 
-                                  
 void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 {
     auto* popup = new MainMenu(editor);
@@ -123,11 +123,11 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 Dialogs::showDeken(editor);
                 break;
             }
-                    /*
-            case MainMenu::MenuItem::Discover: {
-                Dialogs::showPatchStorage(editor);
-                break;
-            } */
+                /*
+        case MainMenu::MenuItem::Discover: {
+            Dialogs::showPatchStorage(editor);
+            break;
+        } */
             case MainMenu::MenuItem::Settings: {
                 Dialogs::showSettingsDialog(editor);
                 break;
@@ -249,7 +249,6 @@ void Dialogs::showPatchStorage(PluginEditor* editor)
     editor->openedDialog.reset(dialog);
 }
 
-
 StringArray DekenInterface::getExternalPaths()
 {
     StringArray searchPaths;
@@ -351,93 +350,89 @@ void Dialogs::askToLocatePatch(PluginEditor* editor, String const& backupState, 
 
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
 {
-    struct QuickActionsBar : public PopupMenu::CustomComponent
-    {
-        struct QuickActionButton : public TextButton
-        {
-            QuickActionButton(String buttonText) : TextButton(buttonText) {}
-            
+    struct QuickActionsBar : public PopupMenu::CustomComponent {
+        struct QuickActionButton : public TextButton {
+            QuickActionButton(String buttonText)
+                : TextButton(buttonText)
+            {
+            }
+
             void paint(Graphics& g) override
             {
                 auto textColour = findColour(PlugDataColour::sidebarTextColourId);
-                
-                if(!isEnabled())
-                {
+
+                if (!isEnabled()) {
                     textColour = textColour.withAlpha(0.35f);
-                }
-                else if(isOver() || isDown())
-                {
+                } else if (isOver() || isDown()) {
                     auto bounds = getLocalBounds().toFloat();
                     bounds = bounds.withSizeKeepingCentre(bounds.getHeight(), bounds.getHeight());
-                    
+
                     g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
                     PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
 
                     textColour = findColour(PlugDataColour::sidebarActiveTextColourId);
                 }
-                
-                Fonts::drawIcon(g, getButtonText(), std::max(0, getWidth() - getHeight()) / 2, 0, getHeight(), textColour, 12.8f);
 
+                Fonts::drawIcon(g, getButtonText(), std::max(0, getWidth() - getHeight()) / 2, 0, getHeight(), textColour, 12.8f);
             }
         };
-        
+
         CheckedTooltip tooltipWindow;
-        
-        QuickActionsBar(ApplicationCommandManager* commandManager) : tooltipWindow(this)
+
+        QuickActionsBar(ApplicationCommandManager* commandManager)
+            : tooltipWindow(this)
         {
-            auto commandIds = Array<CommandID>{CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete};
-            
-            for(auto* button : Array<TextButton*>{&cut, &copy, &paste, &duplicate, &remove}) {
+            auto commandIds = Array<CommandID> { CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete };
+
+            for (auto* button : Array<TextButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
                 addAndMakeVisible(button);
                 button->getProperties().set("Style", "LargeIcon");
                 auto id = commandIds.removeAndReturn(0);
-                
-                button->onClick = [commandManager, id](){
-                    if(auto* editor = dynamic_cast<PluginEditor*>(commandManager)) {
+
+                button->onClick = [commandManager, id]() {
+                    if (auto* editor = dynamic_cast<PluginEditor*>(commandManager)) {
                         editor->grabKeyboardFocus();
                     }
-                    
-                    ApplicationCommandTarget::InvocationInfo info (id);
+
+                    ApplicationCommandTarget::InvocationInfo info(id);
                     info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                    commandManager->invoke (info, true);
+                    commandManager->invoke(info, true);
                 };
-                
-                if (auto* registeredInfo = commandManager->getCommandForID (id))
-                {
-                    ApplicationCommandInfo info (*registeredInfo);
-                    commandManager->getTargetForCommand (id, info);
+
+                if (auto* registeredInfo = commandManager->getCommandForID(id)) {
+                    ApplicationCommandInfo info(*registeredInfo);
+                    commandManager->getTargetForCommand(id, info);
                     bool canPerformCommand = (info.flags & ApplicationCommandInfo::isDisabled) == 0;
                     button->setEnabled(canPerformCommand);
-                }
-                else {
+                } else {
                     button->setEnabled(false);
                 }
             }
-    
+
             cut.setTooltip("Cut");
             copy.setTooltip("Copy");
             paste.setTooltip("Paste");
             duplicate.setTooltip("Duplicate");
             remove.setTooltip("Delete");
         }
-        
-        void getIdealSize (int& idealWidth, int& idealHeight) override
+
+        void getIdealSize(int& idealWidth, int& idealHeight) override
         {
             idealWidth = 130;
             idealHeight = 26;
         }
-        
+
         void resized() override
         {
             auto buttonHeight = 26;
             auto buttonWidth = getWidth() / 5;
             auto bounds = getLocalBounds();
-            
-            for(auto* button : Array<TextButton*>{&cut, &copy, &paste, &duplicate, &remove}) {
+
+            for (auto* button : Array<TextButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
                 button->setBounds(bounds.removeFromLeft(buttonWidth).withHeight(buttonHeight));
             }
         }
-        
+
         QuickActionButton cut = QuickActionButton(Icons::Cut);
         QuickActionButton copy = QuickActionButton(Icons::Copy);
         QuickActionButton paste = QuickActionButton(Icons::Paste);
@@ -447,37 +442,33 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     // We have a custom function for this, instead of the default JUCE way, because the default JUCE way is broken on Linux
     // It will not find a target to apply the command to once the popupmenu grabs focus...
-    auto addCommandItem = [commandManager = cnv->editor](PopupMenu& menu, const CommandID commandID, String displayName = ""){
-        if (auto* registeredInfo = commandManager->getCommandForID (commandID))
-        {
-            ApplicationCommandInfo info (*registeredInfo);
+    auto addCommandItem = [commandManager = cnv->editor](PopupMenu& menu, const CommandID commandID, String displayName = "") {
+        if (auto* registeredInfo = commandManager->getCommandForID(commandID)) {
+            ApplicationCommandInfo info(*registeredInfo);
             commandManager->getCommandInfo(commandID, info);
-            
+
             PopupMenu::Item i;
-            i.text = displayName.isNotEmpty() ? std::move (displayName) : info.shortName;
-            i.itemID = (int) commandID;
+            i.text = displayName.isNotEmpty() ? std::move(displayName) : info.shortName;
+            i.itemID = (int)commandID;
             i.commandManager = commandManager;
             i.isEnabled = (info.flags & ApplicationCommandInfo::isDisabled) == 0;
             i.isTicked = (info.flags & ApplicationCommandInfo::isTicked) != 0;
-            menu.addItem (std::move (i));
+            menu.addItem(std::move(i));
         }
     };
-    
+
     cnv->cancelConnectionCreation();
 
     // Info about selection status
     auto selectedBoxes = cnv->getSelectionOfType<Object>();
 
     // If we directly right-clicked on an object, make sure it has been added to selection
-    if(auto* obj = dynamic_cast<Object*>(originalComponent))
-    {
+    if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
+        selectedBoxes.addIfNotAlreadyThere(obj);
+    } else if (auto* obj = originalComponent->findParentComponentOfClass<Object>()) {
         selectedBoxes.addIfNotAlreadyThere(obj);
     }
-    else if(auto* obj = originalComponent->findParentComponentOfClass<Object>())
-    {
-        selectedBoxes.addIfNotAlreadyThere(obj);
-    }
-    
+
     bool hasSelection = !selectedBoxes.isEmpty();
     bool multiple = selectedBoxes.size() > 1;
     bool locked = getValue<bool>(cnv->locked);
@@ -511,21 +502,21 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     popupMenu.addCustomItem(Extra, std::make_unique<QuickActionsBar>(editor), nullptr, "Quick Actions");
     popupMenu.addSeparator();
-    
+
     popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
 
     popupMenu.addSeparator();
     popupMenu.addItem(Help, "Help", object != nullptr);
     popupMenu.addItem(Reference, "Reference", object != nullptr);
     popupMenu.addSeparator();
-    
+
     bool selectedConnection = false, noneSegmented = true;
     for (auto& connection : cnv->getSelectionOfType<Connection>()) {
         noneSegmented = noneSegmented && !connection->isSegmented();
         selectedConnection = true;
     }
-    
-    popupMenu.addItem("Curved Connection", selectedConnection, selectedConnection && !noneSegmented, [editor, cnv, noneSegmented](){
+
+    popupMenu.addItem("Curved Connection", selectedConnection, selectedConnection && !noneSegmented, [editor, cnv, noneSegmented]() {
         bool segmented = noneSegmented;
         auto* cnv = editor->getCurrentCanvas();
 
@@ -538,18 +529,18 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         // cnv->patch.endUndoSequence("ChangeSegmentedPaths");
     });
     addCommandItem(popupMenu, CommandIDs::ConnectionPathfind);
-    
+
     popupMenu.addSeparator();
     addCommandItem(popupMenu, CommandIDs::Encapsulate);
     popupMenu.addSeparator();
-    
+
     PopupMenu orderMenu;
     orderMenu.addItem(ToFront, "To Front", object != nullptr && !locked);
     orderMenu.addItem(Forward, "Move forward", object != nullptr && !locked);
     orderMenu.addItem(Backward, "Move backward", object != nullptr && !locked);
     orderMenu.addItem(ToBack, "To Back", object != nullptr && !locked);
     popupMenu.addSubMenu("Order", orderMenu, !locked);
-    
+
     popupMenu.addSeparator();
     popupMenu.addItem(Properties, "Properties", (originalComponent == cnv || (object && !params.getParameters().isEmpty())) && !locked);
     // showObjectReferenceDialog
@@ -571,15 +562,16 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             if (originalComponent == cnv) {
                 editor->sidebar->showParameters("canvas", cnv->getInspectorParameters());
             } else if (object && object->gui) {
-                
+
                 cnv->pd->lockAudioThread();
                 // this makes sure that objects can handle the "properties" message as well if they like, for example for [else/properties]
                 auto* pdClass = pd_class(&static_cast<t_gobj*>(object->getPointer())->g_pd);
                 auto propertiesFn = class_getpropertiesfn(pdClass);
-                
-                if(propertiesFn) propertiesFn(static_cast<t_gobj*>(object->getPointer()), cnv->patch.getPointer().get());
+
+                if (propertiesFn)
+                    propertiesFn(static_cast<t_gobj*>(object->getPointer()), cnv->patch.getPointer().get());
                 cnv->pd->unlockAudioThread();
-                
+
                 editor->sidebar->showParameters(object->gui->getText(), params);
             }
 
@@ -679,9 +671,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             break;
         }
     };
-    
+
     auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? nullptr : editor;
- 
+
     popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(parent).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
 }
 

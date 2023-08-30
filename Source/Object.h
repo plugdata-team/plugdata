@@ -124,7 +124,7 @@ private:
     void updateTooltips();
 
     void openNewObjectEditor();
-        
+
     bool checkIfHvccCompatible();
 
     void setSelected(bool shouldBeSelected);
@@ -138,7 +138,7 @@ private:
 
     bool showActiveState = false;
     float activeStateAlpha = 0.0f;
-        
+
     Image activityOverlayImage;
 
     ObjectDragState& ds;

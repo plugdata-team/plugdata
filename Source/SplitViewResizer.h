@@ -9,7 +9,10 @@ class ResizableTabbedComponent;
 class SplitViewResizer : public Component {
 public:
     static inline constexpr int thickness = 6;
-    enum ResizerEdge { Left, Right, Top, Bottom };
+    enum ResizerEdge { Left,
+        Right,
+        Top,
+        Bottom };
     float resizerPosition;
     Split::SplitMode splitMode = Split::SplitMode::None;
 
@@ -50,4 +53,3 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SplitViewResizer)
 };
-

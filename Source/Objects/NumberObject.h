@@ -9,7 +9,7 @@
 class NumberObject final : public ObjectBase {
 
     Value sizeProperty = SynchronousValue();
-    
+
     DraggableNumber input;
     IEMHelper iemHelper;
 
@@ -19,7 +19,7 @@ class NumberObject final : public ObjectBase {
     Value max = SynchronousValue(std::numeric_limits<float>::infinity());
     Value logHeight = SynchronousValue();
     Value logMode = SynchronousValue();
-    
+
     float value = 0.0f;
 
 public:
@@ -28,7 +28,7 @@ public:
         , iemHelper(ptr, object, this)
         , input(false)
 
-    {        
+    {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
@@ -64,12 +64,12 @@ public:
         };
 
         objectParameters.addParamSize(&sizeProperty);
-        
+
         objectParameters.addParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 9.999999933815813e36);
-        objectParameters.addParamBool("Logarithmic mode", cGeneral, &logMode, {"Off", "On"}, var(false));
+        objectParameters.addParamBool("Logarithmic mode", cGeneral, &logMode, { "Off", "On" }, var(false));
         objectParameters.addParamInt("Logarithmic height", cGeneral, &logHeight, var(256));
-        
+
         iemHelper.addIemParameters(objectParameters);
 
         input.setResetValue(0.0f);
@@ -85,9 +85,9 @@ public:
 
         input.setMinimum(::getValue<float>(min));
         input.setMaximum(::getValue<float>(max));
-        
+
         if (auto nbx = ptr.get<t_my_numbox>()) {
-            sizeProperty = Array<var>{var(nbx->x_gui.x_w), var(nbx->x_gui.x_h)};
+            sizeProperty = Array<var> { var(nbx->x_gui.x_w), var(nbx->x_gui.x_h) };
             logMode = nbx->x_lin0_log1;
             logHeight = nbx->x_log_height;
         }
@@ -132,23 +132,23 @@ public:
             auto* patch = cnv->patch.getPointer().get();
             if (!patch)
                 return;
-           
+
             nbx->x_gui.x_w = b.getWidth() - 1;
             nbx->x_gui.x_h = b.getHeight() - 1;
-            
+
             auto fontsize = nbx->x_gui.x_fontsize * 31;
-            nbx->x_numwidth = (((nbx->x_gui.x_w - 4.0- (nbx->x_gui.x_h / 2.0)) * 36.0) / fontsize) + 0.5;
+            nbx->x_numwidth = (((nbx->x_gui.x_w - 4.0 - (nbx->x_gui.x_h / 2.0)) * 36.0) / fontsize) + 0.5;
 
             libpd_moveobj(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto iem = ptr.get<t_iemgui>()) {
-            setParameterExcludingListener(sizeProperty, Array<var>{var(iem->x_w), var(iem->x_h)});
+            setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
         }
     }
 
@@ -242,47 +242,39 @@ public:
 
     void valueChanged(Value& value) override
     {
-        
+
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto& arr = *sizeProperty.getValue().getArray();
             auto* constrainer = getConstrainer();
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
-            
-            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
-            
-            if (auto nbx = ptr.get<t_my_numbox>())
-            {
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto nbx = ptr.get<t_my_numbox>()) {
                 nbx->x_gui.x_w = width;
                 nbx->x_gui.x_h = height;
             }
-            
+
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(min)) {
+        } else if (value.refersToSameSourceAs(min)) {
             setMinimum(::getValue<float>(min));
-        }
-        else if (value.refersToSameSourceAs(max)) {
+        } else if (value.refersToSameSourceAs(max)) {
             setMaximum(::getValue<float>(max));
-        }
-        else if (value.refersToSameSourceAs(logHeight)) {
+        } else if (value.refersToSameSourceAs(logHeight)) {
             auto height = ::getValue<int>(logHeight);
-            if (auto nbx = ptr.get<t_my_numbox>())
-            {
+            if (auto nbx = ptr.get<t_my_numbox>()) {
                 nbx->x_log_height = height;
             }
-            
+
             input.setLogarithmicHeight(height);
-        }
-        else if (value.refersToSameSourceAs(logMode)) {
+        } else if (value.refersToSameSourceAs(logMode)) {
             auto logarithmicDrag = ::getValue<bool>(logMode);
-            if (auto nbx = ptr.get<t_my_numbox>())
-            {
+            if (auto nbx = ptr.get<t_my_numbox>()) {
                 nbx->x_lin0_log1 = logarithmicDrag;
             }
             input.setDragMode(logarithmicDrag ? DraggableNumber::Logarithmic : DraggableNumber::Regular);
-        }
-        else {
+        } else {
             iemHelper.valueChanged(value);
         }
     }

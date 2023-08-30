@@ -70,7 +70,7 @@ public:
                 patch = new pd::Patch(clone_get_instance(gobj.get(), idx), cnv->pd, false);
             }
         }
-        
+
         if (!patch)
             return;
 
@@ -82,19 +82,18 @@ public:
         // Check if patch is already opened
         for (auto* cnv : cnv->editor->canvases) {
             if (cnv->patch == *patch) {
-                
+
                 auto* tabbar = cnv->getTabbar();
-                
+
                 // Close the patch on "vis 0"
-                if(!shouldVis)
-                {
+                if (!shouldVis) {
                     cnv->editor->closeTab(cnv);
                 }
                 // Show the current tab on "vis 1"
                 else {
                     tabbar->setCurrentTabIndex(cnv->getTabIndex());
                 }
-                
+
                 return;
             }
         }
@@ -105,7 +104,7 @@ public:
         if (abstraction) {
             path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
         }
-        
+
         cnv->editor->pd->patches.add(patch);
         auto newPatch = cnv->editor->pd->patches.getLast();
         auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
@@ -114,7 +113,7 @@ public:
 
         cnv->editor->addTab(newCanvas);
     }
-    
+
     std::vector<hash32> getAllMessages() override
     {
         return {

@@ -361,25 +361,25 @@ struct PlugDataLook : public LookAndFeel_V4 {
         auto flatOnBottom = button.isConnectedOnBottom();
 
         if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
-            
+
             auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting((shouldDrawButtonAsHighlighted && !button.getToggleState()) ? 0.0f : 0.05f);
-            
+
             auto bounds = button.getLocalBounds().toFloat();
             bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
-            
+
             g.setColour(backgroundColour);
             fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius,
-                                  !(flatOnLeft || flatOnTop),
-                                  !(flatOnRight || flatOnTop),
-                                  !(flatOnLeft || flatOnBottom),
-                                  !(flatOnRight || flatOnBottom));
+                !(flatOnLeft || flatOnTop),
+                !(flatOnRight || flatOnTop),
+                !(flatOnLeft || flatOnBottom),
+                !(flatOnRight || flatOnBottom));
         } else {
             auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
             auto bounds = button.getLocalBounds().toFloat().reduced(2.0f, 4.0f);
 
             g.setColour(backgroundColour);
             fillSmoothedRectangle(g, bounds, cornerSize);
-            //g.fillRoundedRectangle(bounds, cornerSize);
+            // g.fillRoundedRectangle(bounds, cornerSize);
         }
     }
 
@@ -461,7 +461,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                                                     : TextButton::textColourOffId)
                               .withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
 
-            if(!button.getClickingTogglesState() && button.isMouseOver()) {
+            if (!button.getClickingTogglesState() && button.isMouseOver()) {
                 colour = button.findColour(TextButton::textColourOnId);
             }
             int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
@@ -660,10 +660,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown, bool isForceDrawn)
     {
         auto dragged = button.getProperties()["dragged"];
-        if(!isForceDrawn && !dragged.isVoid() && static_cast<bool>(dragged)) return;
-        
+        if (!isForceDrawn && !dragged.isVoid() && static_cast<bool>(dragged))
+            return;
+
         bool isActive = button.getToggleState();
-        
+
         if (isActive) {
             g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
         } else if (isMouseOver) {
@@ -675,7 +676,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         fillSmoothedRectangle(g, button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
         drawTabButtonText(button, g, isMouseOver, isMouseDown);
     }
-
 
     void drawTabButtonText(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
@@ -697,7 +697,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         // Use a gradient to make it fade out when it gets near to the close button
         auto fadeX = (isMouseOver || button.getToggleState()) ? area.getRight() - 25 : area.getRight() - 8;
         g.setGradientFill(ColourGradient(col, fadeX - 18, area.getY(), Colours::transparentBlack, fadeX, area.getY(), false));
-        
+
         g.setFont(font);
 
         g.drawText(button.getButtonText().trim(), area.reduced(4, 0), Justification::centred, false);
@@ -706,88 +706,85 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override
     {
     }
-    
+
     Button* createTabBarExtrasButton() override
     {
-        
-        class TabBarExtrasButton : public TextButton
-        {
+
+        class TabBarExtrasButton : public TextButton {
         public:
             TabBarExtrasButton()
             {
                 setButtonText(Icons::ThinDown);
                 setTriggeredOnMouseDown(true);
             }
-            
+
             void moved() override
             {
                 static bool insideMove = false;
-                if(insideMove) return;
-                
-                if(auto* parent = getParentComponent())
-                {
+                if (insideMove)
+                    return;
+
+                if (auto* parent = getParentComponent()) {
                     insideMove = true;
                     auto position = parent->getLocalBounds().getTopRight() - Point<int>(28, 0);
                     setTopLeftPosition(position);
                     insideMove = false;
                 }
             }
-            
+
             void resized() override
             {
                 // Try to force the size to 28x28, while also not allowing any recursion
                 // JUCE gives us very little control over the position/size otherwise...
                 static bool insideResize = false;
-                if(insideResize) return;
+                if (insideResize)
+                    return;
                 insideResize = true;
                 setSize(28, 28);
                 insideResize = false;
             }
-            
+
             void paint(Graphics& g) override
             {
                 bool hiddenTabSelected = false;
-                if(auto* tabbar = findParentComponentOfClass<TabbedButtonBar>())
-                {
-                    
+                if (auto* tabbar = findParentComponentOfClass<TabbedButtonBar>()) {
+
                     auto currentTabIndex = tabbar->getCurrentTabIndex();
-                    if(currentTabIndex >= 0)
-                    {
+                    if (currentTabIndex >= 0) {
                         auto* currentTab = tabbar->getTabButton(currentTabIndex);
                         hiddenTabSelected = !currentTab->isVisible();
                     }
                 }
-                
-                if(isMouseOverOrDragging() || hiddenTabSelected)
-                {
+
+                if (isMouseOverOrDragging() || hiddenTabSelected) {
                     g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
                     fillSmoothedRectangle(g, getLocalBounds().reduced(3).toFloat(), Corners::defaultCornerRadius);
-                }
-                else {
+                } else {
                     g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
                 }
-                
+
                 g.setFont(Fonts::getIconFont().withHeight(15));
                 g.setColour(findColour(PlugDataColour::tabTextColourId));
-                
+
                 g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
 
                 return;
             }
 
-
-            void mouseDown(const MouseEvent& e) override
+            void mouseDown(MouseEvent const& e) override
             {
                 class HiddenTabMenuItem : public PopupMenu::CustomComponent {
 
                     String tabTitle;
 
                 public:
-
                     int index;
                     TabbedButtonBar& tabbar;
-                    
-                    HiddenTabMenuItem(String text, int idx, TabbedButtonBar& buttonBar) : tabTitle(text), index(idx), tabbar(buttonBar)
+
+                    HiddenTabMenuItem(String text, int idx, TabbedButtonBar& buttonBar)
+                        : tabTitle(text)
+                        , index(idx)
+                        , tabbar(buttonBar)
                     {
                         closeTabButton.setButtonText(Icons::Clear);
                         closeTabButton.getProperties().set("Style", "Icon");
@@ -801,10 +798,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
                         closeTabButton.onClick = [this]() mutable {
                             dynamic_cast<TabBarButtonComponent*>(tabbar.getTabButton(index))->closeTab();
                         };
-                        
+
                         addChildComponent(closeTabButton);
                     }
-                    
+
                     void resized() override
                     {
                         closeTabButton.setTopLeftPosition(getWidth() - 26, -2);
@@ -815,21 +812,22 @@ struct PlugDataLook : public LookAndFeel_V4 {
                         idealWidth = 150;
                         idealHeight = 24;
                     }
-                    
-                    void mouseDown(const MouseEvent& e) override
+
+                    void mouseDown(MouseEvent const& e) override
                     {
-                        if(e.originalComponent == &closeTabButton) return;
-                        
+                        if (e.originalComponent == &closeTabButton)
+                            return;
+
                         tabbar.setCurrentTabIndex(index);
                         triggerMenuItem();
                     }
-                    
-                    void mouseEnter(const MouseEvent& e) override
+
+                    void mouseEnter(MouseEvent const& e) override
                     {
                         closeTabButton.setVisible(true);
                     }
-                    
-                    void mouseExit(const MouseEvent& e) override
+
+                    void mouseExit(MouseEvent const& e) override
                     {
                         closeTabButton.setVisible(false);
                     }
@@ -846,8 +844,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
                             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
                         }
 
-                        fillSmoothedRectangle(g,getLocalBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
-                        
+                        fillSmoothedRectangle(g, getLocalBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
+
                         auto area = getLocalBounds().reduced(4, 1).toFloat();
 
                         Font font = Font(14);
@@ -856,35 +854,33 @@ struct PlugDataLook : public LookAndFeel_V4 {
                         g.setFont(font);
                         g.drawText(tabTitle.trim(), area.reduced(4, 0), Justification::centred, false);
                     }
-                    
+
                     TextButton closeTabButton;
                 };
-                
-                if(auto* parent = findParentComponentOfClass<TabbedButtonBar>())
-                {
+
+                if (auto* parent = findParentComponentOfClass<TabbedButtonBar>()) {
                     PopupMenu m;
 
                     auto tabNames = parent->getTabNames();
-                    for (int i = 0; i < parent->getNumTabs(); ++i)
-                    {
+                    for (int i = 0; i < parent->getNumTabs(); ++i) {
                         auto* tab = parent->getTabButton(i);
-                        
+
                         if (!tab->isVisible()) {
                             m.addCustomItem(i + 1, std::make_unique<HiddenTabMenuItem>(tabNames[i], i, *parent), nullptr, tabNames[i]);
                         }
-                           /*
-                            m.addItem (PopupMenu::Item (tabNames[i])
-                                         .setTicked (i == parent->getCurrentTabIndex())
-                                         .setAction ([this, i, parent] { parent->setCurrentTabIndex (i); })); */
+                        /*
+                         m.addItem (PopupMenu::Item (tabNames[i])
+                                      .setTicked (i == parent->getCurrentTabIndex())
+                                      .setAction ([this, i, parent] { parent->setCurrentTabIndex (i); })); */
                     }
 
-                    m.showMenuAsync (PopupMenu::Options()
-                                        .withDeletionCheck (*this)
-                                        .withTargetComponent (this));
+                    m.showMenuAsync(PopupMenu::Options()
+                                        .withDeletionCheck(*this)
+                                        .withTargetComponent(this));
                 }
             }
         };
-        
+
         return new TabBarExtrasButton();
     }
 
@@ -892,9 +888,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         return Fonts::getCurrentFont().withHeight(13.0f);
     }
-    
-    void drawScrollbar (Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,
-                                        bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, [[maybe_unused]] bool isMouseDown) override
+
+    void drawScrollbar(Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,
+        bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, [[maybe_unused]] bool isMouseDown) override
     {
         Rectangle<int> thumbBounds;
 
@@ -903,11 +899,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
         else
             thumbBounds = { thumbStartPosition, y, thumbSize, height };
 
-        auto c = scrollbar.findColour (ScrollBar::ColourIds::thumbColourId);
-        g.setColour (isMouseOver ? c.brighter (0.25f) : c);
-        
+        auto c = scrollbar.findColour(ScrollBar::ColourIds::thumbColourId);
+        g.setColour(isMouseOver ? c.brighter(0.25f) : c);
+
         auto thumbRadius = isScrollbarVertical ? (thumbBounds.getWidth() - 2.0f) / 2.0f : (thumbBounds.getHeight() - 2.0f) / 2.0f;
-        g.fillRoundedRectangle (thumbBounds.reduced (1).toFloat(), thumbRadius);
+        g.fillRoundedRectangle(thumbBounds.reduced(1).toFloat(), thumbRadius);
     }
 
     void getIdealPopupMenuItemSize(String const& text, bool const isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override
@@ -955,8 +951,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.drawRect(bounds, 1.0f);
         }
     }
-    
-    Path getTickShape (float height) override
+
+    Path getTickShape(float height) override
     {
         Path path;
         path.startNewSubPath(0.4f * height, 0.6f * height);
@@ -965,7 +961,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         Path strokedPath;
         PathStrokeType(height / 15.0f, PathStrokeType::curved, PathStrokeType::rounded).createStrokedPath(strokedPath, path, AffineTransform(), 5.0f);
-        
+
         return strokedPath;
     }
 
@@ -991,7 +987,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             if (isHighlighted && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
                 fillSmoothedRectangle(g, r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
-                //g.fillRoundedRectangle(r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
+                // g.fillRoundedRectangle(r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
                 colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
 
@@ -1010,15 +1006,14 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
             if (icon != nullptr) {
                 auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).toFloat();
-                
+
                 icon->drawWithin(g, iconArea, RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize, 1.0f);
                 r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
             } else if (isTicked) {
                 auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).toFloat();
                 auto tick = getTickShape(1.0f);
                 g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.reduced(iconArea.getWidth() / 5, 0).toFloat(), true));
-            }
-            else {
+            } else {
                 r.removeFromLeft(8);
             }
 
@@ -1096,15 +1091,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         g.strokePath(path, PathStrokeType(2.0f));
     }
-    
-    PopupMenu::Options getOptionsForComboBoxPopupMenu (ComboBox& box, Label& label) override
+
+    PopupMenu::Options getOptionsForComboBoxPopupMenu(ComboBox& box, Label& label) override
     {
-        return PopupMenu::Options().withTargetComponent (&box)
-                                   .withItemThatMustBeVisible (box.getSelectedId())
-                                   .withInitiallySelectedItem (box.getSelectedId())
-                                   .withMinimumWidth (box.getWidth())
-                                   .withMaximumNumColumns (1)
-                                   .withStandardItemHeight (22);
+        return PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(22);
     }
 
     void drawResizableFrame(Graphics& g, int w, int h, BorderSize<int> const& border) override
@@ -1238,11 +1228,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         g.drawRect(label.getLocalBounds());
     }
-    
-    static Path getSquircle(const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
+
+    static Path getSquircle(Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true)
     {
         Path path;
-        
+
         float x = bounds.getX();
         float y = bounds.getY();
         float width = bounds.getWidth();
@@ -1253,48 +1243,36 @@ struct PlugDataLook : public LookAndFeel_V4 {
             radius = width * 0.5f;
         if (radius > height * 0.5f)
             radius = height * 0.5f;
-        
+
         float controlOffset = radius * 0.45f;
-        
+
         path.startNewSubPath(x + radius, y);
-        
-        if (curveTopRight)
-        {
+
+        if (curveTopRight) {
             path.lineTo(x + width - radius, y);
             path.cubicTo(x + width - radius + controlOffset, y, x + width, y + radius - controlOffset, x + width, y + radius);
-        }
-        else
-        {
+        } else {
             path.lineTo(x + width, y);
         }
 
-        if (curveBottomRight)
-        {
+        if (curveBottomRight) {
             path.lineTo(x + width, y + height - radius);
             path.cubicTo(x + width, y + height - radius + controlOffset, x + width - radius + controlOffset, y + height, x + width - radius, y + height);
-        }
-        else
-        {
+        } else {
             path.lineTo(x + width, y + height);
         }
 
-        if (curveBottomLeft)
-        {
+        if (curveBottomLeft) {
             path.lineTo(x + radius, y + height);
             path.cubicTo(x + radius - controlOffset, y + height, x, y + height - radius + controlOffset, x, y + height - radius);
-        }
-        else
-        {
+        } else {
             path.lineTo(x, y + height);
         }
 
-        if (curveTopLeft)
-        {
+        if (curveTopLeft) {
             path.lineTo(x, y + radius);
             path.cubicTo(x, y + radius - controlOffset, x + radius - controlOffset, y, x + radius, y);
-        }
-        else
-        {
+        } else {
             path.lineTo(x, y);
         }
 
@@ -1302,18 +1280,17 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         return path;
     }
-    
-    
-    static void fillSmoothedRectangle(Graphics& g, const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
+
+    static void fillSmoothedRectangle(Graphics& g, Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true)
     {
         g.fillPath(getSquircle(bounds, cornerRadius, curveTopLeft, curveTopRight, curveBottomLeft, curveBottomRight));
     }
-        
-    static void drawSmoothedRectangle(Graphics& g, PathStrokeType strokeType, const Rectangle<float>& bounds, float cornerRadius, const bool curveTopLeft = true, const bool curveTopRight = true, const bool curveBottomLeft = true, const bool curveBottomRight = true)
+
+    static void drawSmoothedRectangle(Graphics& g, PathStrokeType strokeType, Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true)
     {
         g.strokePath(getSquircle(bounds, cornerRadius, curveTopLeft, curveTopRight, curveBottomLeft, curveBottomRight), strokeType);
     }
-    
+
     void drawPropertyComponentLabel(Graphics& g, int width, int height, PropertyComponent& component) override
     {
         auto indent = jmin(10, component.getWidth() / 10);

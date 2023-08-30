@@ -125,7 +125,7 @@ PluginProcessor::PluginProcessor()
 
     atoms_playhead.reserve(3);
     atoms_playhead.resize(1);
-    
+
     sendMessagesFromQueue();
 
     auto themeName = settingsFile->getProperty<String>("theme");
@@ -178,11 +178,11 @@ PluginProcessor::~PluginProcessor()
 
 void PluginProcessor::initialiseFilesystem()
 {
-    const auto& homeDir = ProjectInfo::appDataDir;
-    const auto& versionDataDir = ProjectInfo::versionDataDir;
+    auto const& homeDir = ProjectInfo::appDataDir;
+    auto const& versionDataDir = ProjectInfo::versionDataDir;
     auto deken = homeDir.getChildFile("Externals");
     auto patches = homeDir.getChildFile("Patches");
-    
+
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !versionDataDir.exists()) {
 
@@ -214,20 +214,18 @@ void PluginProcessor::initialiseFilesystem()
         versionDataDir.createDirectory();
         homeDir.getChildFile("plugdata_version").moveFileTo(versionDataDir);
     }
-    if(!deken.exists())
-    {
+    if (!deken.exists()) {
         deken.createDirectory();
     }
-    if(!patches.exists())
-    {
+    if (!patches.exists()) {
         patches.createDirectory();
     }
-    
+
     // We want to recreate these symlinks so that they link to the abstractions/docs for the current plugdata version
     homeDir.getChildFile("Abstractions").deleteFile();
     homeDir.getChildFile("Documentation").deleteFile();
     homeDir.getChildFile("Extra").deleteFile();
-    
+
     // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS
     // Get paths that need symlinks
@@ -236,7 +234,7 @@ void PluginProcessor::initialiseFilesystem()
     auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
     auto dekenPath = deken.getFullPathName();
     auto patchesPath = patches.getFullPathName();
-    
+
     // Create NTFS directory junctions
     OSUtils::createJunction(homeDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
     OSUtils::createJunction(homeDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
@@ -427,7 +425,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     statusbarSource->setSampleRate(sampleRate);
     statusbarSource->setBufferSize(samplesPerBlock);
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
-    
+
     limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(maxChannels) });
 
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
@@ -499,7 +497,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     if (oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
     }
-    
+
     auto targetGain = volume->load();
     float mappedTargetGain = 0.0f;
 
@@ -534,21 +532,16 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     statusbarSource->processBlock(midiBufferCopy, midiMessages, totalNumOutputChannels);
     statusbarSource->peakBuffer.write(buffer);
 
-
     if (ProjectInfo::isStandalone) {
-        for(auto bufferIterator : midiMessages)
-        {
+        for (auto bufferIterator : midiMessages) {
             auto* midiDeviceManager = ProjectInfo::getMidiDeviceManager();
-            
+
             int device;
             auto message = MidiDeviceManager::convertFromSysExFormat(bufferIterator.getMessage(), device);
-            
-            if(device > midiDeviceManager->getOutputDevices().size())
-            {
+
+            if (device > midiDeviceManager->getOutputDevices().size()) {
                 midiBufferInternalSynth.addEvent(message, 0);
-            }
-            else
-            {
+            } else {
                 midiDeviceManager->sendMidiOutputMessage(device, message);
             }
         }
@@ -819,12 +812,12 @@ void PluginProcessor::sendMidiBuffer()
 {
     if (acceptsMidi()) {
         for (auto const& event : midiBufferIn) {
-            
+
             int device;
             auto message = MidiDeviceManager::convertFromSysExFormat(event.getMessage(), device);
-            
+
             auto channel = message.getChannel() + (device << 4);
-            
+
             if (message.isNoteOn()) {
                 sendNoteOn(channel, message.getNoteNumber(), message.getVelocity());
             } else if (message.isNoteOff()) {
@@ -943,9 +936,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         patchTree->setAttribute("Location", patchFile);
         patchTree->setAttribute("PluginMode", patch->openInPluginMode);
         patchTree->setAttribute("SplitIndex", patch->splitViewIndex);
-        
-        
-        
+
         patchesTree->addChildElement(patchTree);
     }
     unlockAudioThread();
@@ -1080,10 +1071,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto content = p->getStringAttribute("Content");
                 auto location = p->getStringAttribute("Location");
                 auto pluginMode = p->getBoolAttribute("PluginMode");
-                
+
                 int splitIndex = 0;
-                if(p->hasAttribute("SplitIndex"))
-                {
+                if (p->hasAttribute("SplitIndex")) {
                     splitIndex = p->getIntAttribute("SplitIndex");
                 }
 
@@ -1189,7 +1179,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
 
     suspendProcessing(false);
     unlockAudioThread();
-    
+
     if (!newPatch->getPointer()) {
         logError("Couldn't open patch");
         return nullptr;
@@ -1294,7 +1284,7 @@ void PluginProcessor::receiveControlChange(int const channel, int const controll
 {
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
-    
+
     midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::controllerEvent(deviceChannel, controller, value), device), audioAdvancement);
 }
 
@@ -1302,7 +1292,7 @@ void PluginProcessor::receiveProgramChange(int const channel, int const value)
 {
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
-    
+
     midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::programChange(deviceChannel, value), device), audioAdvancement);
 }
 
@@ -1310,7 +1300,7 @@ void PluginProcessor::receivePitchBend(int const channel, int const value)
 {
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
-    
+
     midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::pitchWheel(deviceChannel, value + 8192), device), audioAdvancement);
 }
 
@@ -1318,7 +1308,7 @@ void PluginProcessor::receiveAftertouch(int const channel, int const value)
 {
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
-    
+
     midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::channelPressureChange(deviceChannel, value), device), audioAdvancement);
 }
 
@@ -1326,7 +1316,7 @@ void PluginProcessor::receivePolyAftertouch(int const channel, int const pitch, 
 {
     auto device = channel >> 4;
     auto deviceChannel = channel - (device * 16);
-    
+
     midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::aftertouchChange(deviceChannel, pitch, value), device), audioAdvancement);
 }
 
@@ -1358,22 +1348,20 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
 {
     switch (hash(selector)) {
     case hash("open"): {
-        if(list.size() >= 2)
-        {
+        if (list.size() >= 2) {
             auto filename = list[0].getSymbol();
             auto directory = list[1].getSymbol();
-            
+
             auto patch = File(directory).getChildFile(filename);
             loadPatch(patch);
         }
         break;
     }
     case hash("menunew"): {
-        if(list.size() >= 2)
-        {
+        if (list.size() >= 2) {
             auto filename = list[0].getSymbol();
             auto directory = list[1].getSymbol();
-            
+
             auto patchPtr = loadPatch(defaultPatch);
             patchPtr->setCurrentFile(File(directory).getChildFile(filename).getFullPathName());
             patchPtr->setTitle(filename);
@@ -1415,7 +1403,7 @@ void PluginProcessor::addTextToTextEditor(unsigned long ptr, String text)
 void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title)
 {
     static std::unique_ptr<Dialog> saveDialog = nullptr;
-    
+
     textEditorDialogs[ptr].reset(Dialogs::showTextEditorDialog("", title, [this, title, ptr](String const& lastText, bool hasChanged) {
         if (!hasChanged) {
             textEditorDialogs[ptr].reset(nullptr);
@@ -1424,13 +1412,12 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
 
         Dialogs::showSaveDialog(
             &saveDialog, textEditorDialogs[ptr].get(), "", [this, ptr, title, text = lastText](int result) mutable {
-                
                 if (result == 2) {
-                    
+
                     lockAudioThread();
                     pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, NULL);
                     unlockAudioThread();
-                    
+
                     // remove repeating spaces
                     while (text.contains("  ")) {
                         text = text.replace("  ", " ");
@@ -1467,23 +1454,20 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
                             atoms.emplace_back();
                             SETSYMBOL(&atoms.back(), generateSymbol(";"));
                         }
-                        
-                        
-                        
+
                         lockAudioThread();
                         pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("addline"), atoms.size(), atoms.data());
                         unlockAudioThread();
-                        
                     }
-                    
+
                     t_atom fake_path;
                     SETSYMBOL(&fake_path, generateSymbol(title.toRawUTF8()));
-      
+
                     lockAudioThread();
                     pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("path"), 1, &fake_path);
                     pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("end"), 0, NULL);
                     unlockAudioThread();
-                    
+
                     textEditorDialogs[ptr].reset(nullptr);
                 }
                 if (result == 1) {
@@ -1666,23 +1650,22 @@ void PluginProcessor::savePatchTabPositions()
 {
     Array<std::tuple<pd::Patch*, int>> sortedPatches;
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        for(auto* cnv : editor->canvases)
-        {
+        for (auto* cnv : editor->canvases) {
             cnv->patch.splitViewIndex = editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
             sortedPatches.add({ &cnv->patch, cnv->getTabIndex() });
         }
     }
-    
+
     std::sort(sortedPatches.begin(), sortedPatches.end(), [](auto const& a, auto const& b) {
         auto& [patchA, idxA] = a;
         auto& [patchB, idxB] = b;
-        
+
         if (patchA->splitViewIndex == patchB->splitViewIndex)
             return idxA < idxB;
 
         return patchA->splitViewIndex < patchB->splitViewIndex;
     });
-    
+
     patches.getLock().enter();
     int i = 0;
     for (auto& [patch, tabIdx] : sortedPatches) {
@@ -1701,4 +1684,3 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new PluginProcessor();
 }
-

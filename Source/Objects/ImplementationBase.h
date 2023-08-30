@@ -42,7 +42,7 @@ public:
 
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(void* patch);
-    
+
     void handleAsyncUpdate();
 
 private:

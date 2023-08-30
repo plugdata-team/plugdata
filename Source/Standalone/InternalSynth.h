@@ -34,7 +34,6 @@ public:
     bool isReady();
 
 private:
-    
     File soundFont = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("GS").getChildFile("GeneralUser_GS.sf3");
 
     // Fluidsynth state

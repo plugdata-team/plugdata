@@ -25,7 +25,7 @@ public:
 
         objectParameters.addParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f);
         objectParameters.addParamSize(&sizeProperty, true);
-        
+
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
 
@@ -128,8 +128,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         startEdition();
         auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
         sendToggleValue(newValue);
@@ -184,11 +185,11 @@ public:
         }
         }
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto iem = ptr.get<t_iemgui>()) {
             setParameterExcludingListener(sizeProperty, var(iem->x_w));
         }
@@ -200,16 +201,14 @@ public:
             auto* constrainer = getConstrainer();
             auto size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
             setParameterExcludingListener(sizeProperty, size);
-            
-            if (auto tgl = ptr.get<t_toggle>())
-            {
+
+            if (auto tgl = ptr.get<t_toggle>()) {
                 tgl->x_gui.x_w = size;
                 tgl->x_gui.x_h = size;
             }
-            
+
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(nonZero)) {
+        } else if (value.refersToSameSourceAs(nonZero)) {
             float val = nonZero.getValue();
             if (auto toggle = ptr.get<t_toggle>()) {
                 toggle->x_nonzero = val;

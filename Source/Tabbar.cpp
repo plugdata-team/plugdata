@@ -17,7 +17,10 @@
 
 class ButtonBar::GhostTab : public Component {
 public:
-    GhostTab(PlugDataLook& lnfRef) : lnf(lnfRef) {}
+    GhostTab(PlugDataLook& lnfRef)
+        : lnf(lnfRef)
+    {
+    }
 
     void setTabButtonToGhost(TabBarButton* tabButton)
     {
@@ -116,7 +119,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         owner.removeTab(ghostTabIdx);
         auto tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
         auto tabTitle = tabCanvas->patch.getTitle();
-        // we then re-add the ghost tab, but this time we add it from the owner (tabComponent) 
+        // we then re-add the ghost tab, but this time we add it from the owner (tabComponent)
         // which allows us to inject the viewport
         owner.addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport.get(), ghostTabIdx);
         owner.setCurrentTabIndex(ghostTabIdx);
@@ -236,7 +239,6 @@ void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
         tab->getProperties().set("dragged", var(true));
         getTabButton(tabPos)->getProperties().set("dragged", var(true));
     }
-
 }
 
 void ButtonBar::currentTabChanged(int newCurrentTabIndex, String const& newTabName)
@@ -299,8 +301,7 @@ int TabComponent::getCurrentTabIndex()
 void TabComponent::setCurrentTabIndex(int idx)
 {
     tabs->setCurrentTabIndex(idx);
-    for(int i = 0; i < tabs->getNumTabs(); i++)
-    {
+    for (int i = 0; i < tabs->getNumTabs(); i++) {
         dynamic_cast<TabBarButtonComponent*>(tabs->getTabButton(i))->updateCloseButtonState();
     }
 }
@@ -317,10 +318,9 @@ int TabComponent::getNumVisibleTabs()
 
 void TabComponent::clearTabs()
 {
-    if (panelComponent != nullptr)
-    {
-        panelComponent->setVisible (false);
-        removeChildComponent (panelComponent.get());
+    if (panelComponent != nullptr) {
+        panelComponent->setVisible(false);
+        removeChildComponent(panelComponent.get());
         panelComponent = nullptr;
     }
 
@@ -341,9 +341,9 @@ void TabComponent::newTab()
 
 void TabComponent::addTab(String const& tabName, Component* contentComponent, int insertIndex)
 {
-    contentComponents.insert (insertIndex, WeakReference<Component> (contentComponent));
+    contentComponents.insert(insertIndex, WeakReference<Component>(contentComponent));
 
-    tabs->addTab (tabName, findColour(ResizableWindow::backgroundColourId), insertIndex);
+    tabs->addTab(tabName, findColour(ResizableWindow::backgroundColourId), insertIndex);
     resized();
 }
 
@@ -355,8 +355,8 @@ void TabComponent::removeTab(int idx)
 
 void TabComponent::moveTab(int currentIndex, int newIndex)
 {
-    contentComponents.move (currentIndex, newIndex);
-    tabs->moveTab (currentIndex, newIndex, true);
+    contentComponents.move(currentIndex, newIndex);
+    tabs->moveTab(currentIndex, newIndex, true);
 }
 
 void TabComponent::openProject()
@@ -380,14 +380,14 @@ void TabComponent::onTabChange(int tabIndex)
         welcomePanel.show();
     } else {
         tabs->setVisible(true);
-        //static_cast<TabBarButtonComponent*>(getTabbedButtonBar().getTabButton(newCurrentTabIndex))->tabTextChanged(newCurrentTabName);
+        // static_cast<TabBarButtonComponent*>(getTabbedButtonBar().getTabButton(newCurrentTabIndex))->tabTextChanged(newCurrentTabName);
         welcomePanel.hide();
         setTabBarDepth(30);
         // we need to update the dropzones, because no resize will be automatically triggered when there is a tab added from welcome screen
         if (auto* parentHolder = dynamic_cast<ResizableTabbedComponent*>(getParentComponent()))
             parentHolder->updateDropZones();
     }
-    
+
     auto* cnv = getCurrentCanvas();
     if (!cnv || tabIndex == -1 || editor->pd->isPerformingGlobalSync)
         return;
@@ -403,29 +403,26 @@ void TabComponent::onTabChange(int tabIndex)
 
 void TabComponent::changeCallback(int newCurrentTabIndex, String const& newTabName)
 {
-    auto* newPanelComp = getTabContentComponent (getCurrentTabIndex());
+    auto* newPanelComp = getTabContentComponent(getCurrentTabIndex());
 
-    if (newPanelComp != panelComponent)
-    {
-        if (panelComponent != nullptr)
-        {
-            panelComponent->setVisible (false);
-            removeChildComponent (panelComponent);
+    if (newPanelComp != panelComponent) {
+        if (panelComponent != nullptr) {
+            panelComponent->setVisible(false);
+            removeChildComponent(panelComponent);
         }
 
         panelComponent = newPanelComp;
 
-        if (panelComponent != nullptr)
-        {
+        if (panelComponent != nullptr) {
             // do these ops as two stages instead of addAndMakeVisible() so that the
             // component has always got a parent when it gets the visibilityChanged() callback
-            addChildComponent (panelComponent);
+            addChildComponent(panelComponent);
             panelComponent->sendLookAndFeelChange();
-            panelComponent->setVisible (true);
-            panelComponent->toFront (true);
+            panelComponent->setVisible(true);
+            panelComponent->toFront(true);
         }
     }
-    currentTabChanged (newCurrentTabIndex, newTabName);
+    currentTabChanged(newCurrentTabIndex, newTabName);
 }
 
 void TabComponent::openProjectFile(File& patchFile)
@@ -433,10 +430,9 @@ void TabComponent::openProjectFile(File& patchFile)
     editor->pd->loadPatch(patchFile);
 }
 
-void TabComponent::setTabBarDepth (int newDepth)
+void TabComponent::setTabBarDepth(int newDepth)
 {
-    if (tabDepth != newDepth)
-    {
+    if (tabDepth != newDepth) {
         tabDepth = newDepth;
         resized();
     }
@@ -473,7 +469,7 @@ void TabComponent::resized()
     }
 }
 
-Component* TabComponent::getTabContentComponent (int tabIndex) const noexcept
+Component* TabComponent::getTabContentComponent(int tabIndex) const noexcept
 {
     return contentComponents[tabIndex].get();
 }
@@ -530,5 +526,3 @@ void TabComponent::setTabText(int tabIndex, String const& newName)
 {
     dynamic_cast<TabBarButtonComponent*>(tabs->getTabButton(tabIndex))->setTabText(newName);
 }
-
-

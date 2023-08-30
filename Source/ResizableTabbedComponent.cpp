@@ -55,7 +55,7 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
     repaint();
 
     if (auto windowTab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
-        switch(activeZone){
+        switch (activeZone) {
         case DropZones::Right:
             splitMode = Split::SplitMode::Horizontal;
             moveTabToNewSplit(dragSourceDetails);
@@ -66,11 +66,11 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
             break;
         case DropZones::Top:
             moveTabToNewSplit(dragSourceDetails);
-            //splitMode = Split::SplitMode::Vertical;
+            // splitMode = Split::SplitMode::Vertical;
             break;
         case DropZones::Bottom:
             moveTabToNewSplit(dragSourceDetails);
-            //splitMode = Split::SplitMode::Vertical;
+            // splitMode = Split::SplitMode::Vertical;
             break;
         case DropZones::TabBar:
             splitMode = Split::SplitMode::None;
@@ -79,10 +79,7 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
             moveTabToNewSplit(dragSourceDetails);
             break;
         }
-    }
-    else if (dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get()) ||
-             dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get()) ||
-             dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get())) {
+    } else if (dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get()) || dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get()) || dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get())) {
         if (!tabComponent)
             return;
 
@@ -98,34 +95,31 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
         auto patchData = patchWithSize[2].toString();
 
         cnv->dragAndDropPaste(patchData, mousePos, patchSize.x, patchSize.y);
-    }
-    else if (auto docBrowserItem = dynamic_cast<DocumentBrowserItem*>(dragSourceDetails.sourceComponent.get())) {
+    } else if (auto docBrowserItem = dynamic_cast<DocumentBrowserItem*>(dragSourceDetails.sourceComponent.get())) {
         // ALEX TODO: not implemented
         // we also have an issue that the DocumentBrowserItem is a TreeViewItem which is a Juce class that uses DragAndDropContainer!
         // so we wil need to somehow get that using ZoomableDragAndDropContainer?
-            //browser->pd->loadPatch(file);
-            //SettingsFile::getInstance()->addToRecentlyOpened(file);
+        // browser->pd->loadPatch(file);
+        // SettingsFile::getInstance()->addToRecentlyOpened(file);
     }
 }
 
 void ResizableTabbedComponent::moveToSplit(int splitIdx, Canvas* canvas)
 {
-    if(splitIdx >= editor->splitView.splits.size())
-    {
+    if (splitIdx >= editor->splitView.splits.size()) {
         createNewSplit(DropZones::Right, canvas);
-    }
-    else {
+    } else {
         if (auto* sourceTabBar = canvas->getTabbar()) {
             auto sourceTabIndex = canvas->getTabIndex();
             sourceTabBar->removeTab(sourceTabIndex);
             sourceTabBar->setCurrentTabIndex(sourceTabIndex > (sourceTabBar->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex);
         }
-        
+
         auto* targetSplit = editor->splitView.splits[splitIdx];
         auto tabTitle = canvas->patch.getTitle();
         targetSplit->getTabComponent()->addTab(tabTitle, canvas->viewport.get(), 0);
         canvas->viewport->setVisible(true);
-        
+
         targetSplit->resized();
         targetSplit->getTabComponent()->resized();
     }
@@ -164,7 +158,7 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
         }
         resizerLeft = resizer;
     }
-    
+
     // update the bounds of the new and existing split using the resizer factors
     newSplit->setBoundsWithFactors(getParentComponent()->getLocalBounds());
     setBoundsWithFactors(getParentComponent()->getLocalBounds());
@@ -172,11 +166,11 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
     // add the split to the splitview and make it active (both owned arrays of SplitView)
     editor->splitView.addSplit(newSplit);
     editor->splitView.addResizer(resizer);
-    
+
     auto tabTitle = canvas->patch.getTitle();
     newSplit->getTabComponent()->addTab(tabTitle, canvas->viewport.get(), 0);
     canvas->viewport->setVisible(true);
-    
+
     newSplit->resized();
     newSplit->getTabComponent()->resized();
 }
@@ -197,18 +191,17 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
         auto newTabIdx = tabComponent->getNumTabs();
         tabComponent->addTab(tabTitle, sourceTabContent->getCanvas(sourceTabIndex)->viewport.get(), newTabIdx);
         tabComponent->setCurrentTabIndex(newTabIdx);
-        
+
         editor->splitView.setFocus(this);
         sourceTabContent->removeTab(sourceTabIndex);
         sourceTabContent->setCurrentTabIndex(sourceTabIndex > (sourceTabContent->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex);
         for (auto* split : editor->splitView.splits) {
             split->setBoundsWithFactors(getParentComponent()->getLocalBounds());
         }
-    }
-    else if(activeZone == DropZones::Left || activeZone == DropZones::Right) {
+    } else if (activeZone == DropZones::Left || activeZone == DropZones::Right) {
         createNewSplit(static_cast<DropZones>(activeZone), sourceTabContent->getCanvas(sourceTabIndex));
     }
-    
+
     if (shouldDelete) {
         editor->splitView.setFocus(this);
         editor->splitView.removeSplit(sourceTabContent);
@@ -221,8 +214,7 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
     for (auto* split : editor->splitView.splits) {
         if (auto tabComponent = split->getTabComponent()) {
             auto tabIndex = tabComponent->getCurrentTabIndex();
-            if(tabIndex < 0 && tabComponent->getNumTabs() > 0)
-            {
+            if (tabIndex < 0 && tabComponent->getNumTabs() > 0) {
                 tabComponent->setCurrentTabIndex(0);
             }
             if (auto cnv = tabComponent->getCanvas(tabIndex)) {
@@ -232,7 +224,7 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
             }
         }
     }
-    
+
     editor->pd->savePatchTabPositions();
 }
 
@@ -240,7 +232,7 @@ String ResizableTabbedComponent::getZoneName(int zone)
 {
     // for console debugging
     String zoneName;
-    switch(zone){
+    switch (zone) {
     case DropZones::Left:
         zoneName = "left";
         break;
@@ -265,7 +257,7 @@ String ResizableTabbedComponent::getZoneName(int zone)
 
 int ResizableTabbedComponent::findZoneFromSource(SourceDetails const& dragSourceDetails)
 {
-    for (auto const& [zone, dropZone] : dropZones){
+    for (auto const& [zone, dropZone] : dropZones) {
         if (dropZone.contains(dragSourceDetails.localPosition.toFloat())) {
             return zone;
         }
@@ -290,7 +282,7 @@ void ResizableTabbedComponent::setBoundsWithFactors(Rectangle<int> bounds)
 {
     if (resizerLeft)
         leftFactor = resizerLeft->resizerPosition;
-    else 
+    else
         leftFactor = leftFactorDefault;
 
     if (resizerRight)
@@ -333,7 +325,7 @@ void ResizableTabbedComponent::resized()
 void ResizableTabbedComponent::paintOverChildren(Graphics& g)
 {
 #if (ENABLE_SPLITS_DROPZONE_DEBUGGING == 1)
-    for (auto const& [ zone, path ] : dropZones) {
+    for (auto const& [zone, path] : dropZones) {
         static Random rng;
         uint8 R = rng.nextInt(255);
         uint8 G = rng.nextInt(255);
@@ -347,13 +339,13 @@ void ResizableTabbedComponent::paintOverChildren(Graphics& g)
 
     if (isDragAndDropOver) {
         Rectangle<int> highlight;
-        switch(activeZone){
+        switch (activeZone) {
         case DropZones::Left:
             highlight = splitBoundsLeft;
             break;
         case DropZones::Top:
-            //highlight = splitBoundsTop;
-            if(editor->splitView.splits.size() > 1) {
+            // highlight = splitBoundsTop;
+            if (editor->splitView.splits.size() > 1) {
                 highlight = splitBoundsFull;
             }
             break;
@@ -361,14 +353,14 @@ void ResizableTabbedComponent::paintOverChildren(Graphics& g)
             highlight = splitBoundsRight;
             break;
         case DropZones::Bottom:
-            //highlight = splitBoundsBottom;
-            if(editor->splitView.splits.size() > 1) {
+            // highlight = splitBoundsBottom;
+            if (editor->splitView.splits.size() > 1) {
                 highlight = splitBoundsFull;
             }
             break;
         case DropZones::Centre:
         case DropZones::TabBar:
-            if(editor->splitView.splits.size() > 1) {
+            if (editor->splitView.splits.size() > 1) {
                 highlight = getLocalBounds();
             }
             break;
@@ -393,115 +385,114 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
     }
 }
 
-    void ResizableTabbedComponent::itemDragExit(SourceDetails const& dragSourceDetails)
-    {
+void ResizableTabbedComponent::itemDragExit(SourceDetails const& dragSourceDetails)
+{
+    isDragAndDropOver = false;
+    repaint();
+}
+
+void ResizableTabbedComponent::itemDragMove(SourceDetails const& dragSourceDetails)
+{
+    activeZone = DropZones::None;
+    // if we are dragging from a palette or automation item, highlight the dragged over split
+    auto palette = dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get());
+    auto automationSlider = dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get());
+    auto objectItem = dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get());
+    if (palette || automationSlider || objectItem) {
         isDragAndDropOver = false;
-        repaint();
+        editor->splitView.setFocus(this);
     }
+    // if we are dragging a tabbed window or from the document browser
+    else if (auto sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        auto sourceTabContent = sourceTabButton->getTabComponent();
+        int sourceNumTabs = sourceTabContent->getNumTabs();
 
-    void ResizableTabbedComponent::itemDragMove(SourceDetails const& dragSourceDetails)
-    {
-        activeZone = DropZones::None;
-        // if we are dragging from a palette or automation item, highlight the dragged over split
-        auto palette = dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get());
-        auto automationSlider = dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get());
-        auto objectItem = dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get());
-        if (palette || automationSlider || objectItem) {
-            isDragAndDropOver = false;
-            editor->splitView.setFocus(this);
-        }
-        // if we are dragging a tabbed window or from the document browser
-        else if (auto sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
-            auto sourceTabContent = sourceTabButton->getTabComponent();
-            int sourceNumTabs = sourceTabContent->getNumTabs();
+        auto zone = findZoneFromSource(dragSourceDetails);
 
-            auto zone = findZoneFromSource(dragSourceDetails);
+        editor->splitView.setFocus(this);
 
-            editor->splitView.setFocus(this);
-
-            if (editor->splitView.canSplit() && sourceNumTabs > 1) {
-                if (activeZone != zone) {
-                    activeZone = zone;
-                    repaint();
-                    //std::cout << "dragging over: " << getZoneName(zone) << std::endl;
-                }
-            } else if (sourceTabButton->getTabComponent() != tabComponent.get()) {
-                activeZone = zone == DropZones::TabBar ? DropZones::None : DropZones::Centre;
+        if (editor->splitView.canSplit() && sourceNumTabs > 1) {
+            if (activeZone != zone) {
+                activeZone = zone;
                 repaint();
+                // std::cout << "dragging over: " << getZoneName(zone) << std::endl;
             }
+        } else if (sourceTabButton->getTabComponent() != tabComponent.get()) {
+            activeZone = zone == DropZones::TabBar ? DropZones::None : DropZones::Centre;
+            repaint();
         }
     }
+}
 
-    void ResizableTabbedComponent::updateDropZones()
-    {
-        auto objectBounds = getLocalBounds();
+void ResizableTabbedComponent::updateDropZones()
+{
+    auto objectBounds = getLocalBounds();
 
-        auto vHalf = objectBounds.getHeight() * 0.5f;
-        auto hHalf = objectBounds.getWidth() * 0.5f;
-        splitBoundsTop = objectBounds.withBottom(vHalf);
-        splitBoundsBottom = objectBounds.withTop(vHalf);
-        splitBoundsRight = objectBounds.withLeft(hHalf);
-        splitBoundsLeft = objectBounds.withRight(hHalf);
-        splitBoundsFull = objectBounds;
+    auto vHalf = objectBounds.getHeight() * 0.5f;
+    auto hHalf = objectBounds.getWidth() * 0.5f;
+    splitBoundsTop = objectBounds.withBottom(vHalf);
+    splitBoundsBottom = objectBounds.withTop(vHalf);
+    splitBoundsRight = objectBounds.withLeft(hHalf);
+    splitBoundsLeft = objectBounds.withRight(hHalf);
+    splitBoundsFull = objectBounds;
 
-        Rectangle<float> innerRect;
-        auto localBounds = objectBounds.toFloat();
-        auto tabbarBounds = localBounds.removeFromTop(tabComponent->getTabBarDepth());
-        auto canvasBounds = localBounds.withTop(tabComponent->getTabBarDepth());
-        auto bounds = canvasBounds.reduced(canvasBounds.getWidth() * 0.25f, canvasBounds.getHeight() * 0.25f);
-        innerRect.setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+    Rectangle<float> innerRect;
+    auto localBounds = objectBounds.toFloat();
+    auto tabbarBounds = localBounds.removeFromTop(tabComponent->getTabBarDepth());
+    auto canvasBounds = localBounds.withTop(tabComponent->getTabBarDepth());
+    auto bounds = canvasBounds.reduced(canvasBounds.getWidth() * 0.25f, canvasBounds.getHeight() * 0.25f);
+    innerRect.setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
 
-        /*
-        DROP ZONE ARRANGEMENT
-        ┌─────────────────────────┐
-        │0          TAB          1│
-        ├─────────────────────────┤
-        │5                       2│
-        │ \                     / │
-        │  \        TOP        /  │
-        │   \                 /   │
-        │    ┌───────────────┐    │
-        │    │9             6│    │
-        │ L  │   TAB CENTRE  │ R  │
-        │    │8             7│    │
-        │    └───────────────┘    │
-        │   /                 \   │
-        │  /      BOTTOM       \  │
-        │ /                     \ │
-        │4                       3│
-        └─────────────────────────┘
-        */
+    /*
+    DROP ZONE ARRANGEMENT
+    ┌─────────────────────────┐
+    │0          TAB          1│
+    ├─────────────────────────┤
+    │5                       2│
+    │ \                     / │
+    │  \        TOP        /  │
+    │   \                 /   │
+    │    ┌───────────────┐    │
+    │    │9             6│    │
+    │ L  │   TAB CENTRE  │ R  │
+    │    │8             7│    │
+    │    └───────────────┘    │
+    │   /                 \   │
+    │  /      BOTTOM       \  │
+    │ /                     \ │
+    │4                       3│
+    └─────────────────────────┘
+    */
 
-        auto point_0 = localBounds.getTopLeft();
-        auto point_1 = localBounds.getTopRight();
-        auto point_2 = canvasBounds.getTopRight();
-        auto point_3 = canvasBounds.getBottomRight();
-        auto point_4 = canvasBounds.getBottomLeft();
-        auto point_5 = canvasBounds.getTopLeft();
-        auto point_6 = innerRect.getTopRight();
-        auto point_7 = innerRect.getBottomRight();
-        auto point_8 = innerRect.getBottomLeft();
-        auto point_9 = innerRect.getTopLeft();
+    auto point_0 = localBounds.getTopLeft();
+    auto point_1 = localBounds.getTopRight();
+    auto point_2 = canvasBounds.getTopRight();
+    auto point_3 = canvasBounds.getBottomRight();
+    auto point_4 = canvasBounds.getBottomLeft();
+    auto point_5 = canvasBounds.getTopLeft();
+    auto point_6 = innerRect.getTopRight();
+    auto point_7 = innerRect.getBottomRight();
+    auto point_8 = innerRect.getBottomLeft();
+    auto point_9 = innerRect.getTopLeft();
 
-        Path zoneLeft, zoneTop, zoneRight, zoneBottom, zoneTabCentre, zoneTab;
+    Path zoneLeft, zoneTop, zoneRight, zoneBottom, zoneTabCentre, zoneTab;
 
-        zoneLeft.addQuadrilateral(point_5.x, point_5.y, point_9.x, point_9.y, point_8.x, point_8.y, point_4.x, point_4.y);
-        zoneTop.addQuadrilateral(point_5.x, point_5.y, point_2.x, point_2.y, point_6.x, point_6.y, point_9.x, point_9.y);
-        zoneRight.addQuadrilateral(point_6.x, point_6.y, point_2.x, point_2.y, point_3.x, point_3.y, point_7.x, point_7.y);
-        zoneBottom.addQuadrilateral(point_8.x, point_8.y, point_7.x, point_7.y, point_3.x, point_3.y, point_4.x, point_4.y);
-        zoneTabCentre.addRectangle(innerRect);
-        zoneTab.addRectangle(tabbarBounds);
+    zoneLeft.addQuadrilateral(point_5.x, point_5.y, point_9.x, point_9.y, point_8.x, point_8.y, point_4.x, point_4.y);
+    zoneTop.addQuadrilateral(point_5.x, point_5.y, point_2.x, point_2.y, point_6.x, point_6.y, point_9.x, point_9.y);
+    zoneRight.addQuadrilateral(point_6.x, point_6.y, point_2.x, point_2.y, point_3.x, point_3.y, point_7.x, point_7.y);
+    zoneBottom.addQuadrilateral(point_8.x, point_8.y, point_7.x, point_7.y, point_3.x, point_3.y, point_4.x, point_4.y);
+    zoneTabCentre.addRectangle(innerRect);
+    zoneTab.addRectangle(tabbarBounds);
 
-        dropZones[0] = std::tuple<DropZones, Path>(DropZones::Left, zoneLeft);
-        dropZones[1] = std::tuple<DropZones, Path>(DropZones::Top, zoneTop);
-        dropZones[2] = std::tuple<DropZones, Path>(DropZones::Right, zoneRight);
-        dropZones[3] = std::tuple<DropZones, Path>(DropZones::Bottom, zoneBottom);
-        dropZones[4] = std::tuple<DropZones, Path>(DropZones::Centre, zoneTabCentre);
-        dropZones[5] = std::tuple<DropZones, Path>(DropZones::TabBar, zoneTab);
-    }
+    dropZones[0] = std::tuple<DropZones, Path>(DropZones::Left, zoneLeft);
+    dropZones[1] = std::tuple<DropZones, Path>(DropZones::Top, zoneTop);
+    dropZones[2] = std::tuple<DropZones, Path>(DropZones::Right, zoneRight);
+    dropZones[3] = std::tuple<DropZones, Path>(DropZones::Bottom, zoneBottom);
+    dropZones[4] = std::tuple<DropZones, Path>(DropZones::Centre, zoneTabCentre);
+    dropZones[5] = std::tuple<DropZones, Path>(DropZones::TabBar, zoneTab);
+}
 
-
-    TabComponent* ResizableTabbedComponent::getTabComponent()
-    {
-        return tabComponent.get();
-    }
+TabComponent* ResizableTabbedComponent::getTabComponent()
+{
+    return tabComponent.get();
+}

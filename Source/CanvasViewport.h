@@ -371,7 +371,7 @@ public:
 
         // centre canvas when resizing viewport
         auto getCentre = [this, scale](Rectangle<int> bounds) {
-            if (scale > 1.0f){
+            if (scale > 1.0f) {
                 auto point = cnv->getLocalPoint(this, bounds.withZeroOrigin().getCentre());
                 return point * scale;
             }

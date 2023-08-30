@@ -83,7 +83,6 @@ private:
 
     Array<SettingsFileListener*> listeners;
 
-
     File settingsFile = ProjectInfo::appDataDir.getChildFile(".settings");
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;

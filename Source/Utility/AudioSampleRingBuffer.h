@@ -27,7 +27,7 @@ public:
         mainBufferSize = sourceBufferSize;
         peakWindowSize = sampleRate / 60;
         bufferSize = jmax(peakWindowSize, mainBufferSize) * 3;
-        
+
         audioBufferMutex.lock();
         peakBuffer.setSize(numChannels, peakWindowSize, true, true);
         buffer.setSize(numChannels, bufferSize, false, true);
@@ -44,7 +44,7 @@ public:
             }
         }
         audioBufferMutex.unlock();
-        
+
         writeTime.store(Time::getMillisecondCounterHiRes());
         oldWritePosition.store(writePosition);
         writePosition = (writePosition + samples.getNumSamples()) % buffer.getNumSamples();
@@ -69,7 +69,7 @@ public:
 
         while (readPos < 0)
             readPos += bufferSize;
-        
+
         while (readPos >= buffer.getNumSamples())
             readPos -= bufferSize;
 

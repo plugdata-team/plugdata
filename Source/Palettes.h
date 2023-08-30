@@ -133,7 +133,7 @@ public:
                         _paletteItem->nameLabel.showEditor();
                 });
 
-            //pushViewportToBottom = true;
+            // pushViewportToBottom = true;
             resized();
         };
 
@@ -163,16 +163,16 @@ public:
         }
         bounds = itemsBounds.withPosition(0, totalHeight + 5).withHeight(30);
         pasteButton.setBounds(bounds.reduced(12, 0));
-        // we set the bounds to the size of the component, but if we grow larger, 
+        // we set the bounds to the size of the component, but if we grow larger,
         // we want to make it larger so the viewport can scroll the component
         setBounds(getLocalBounds().withHeight(jmax(getHeight(), totalHeight + 35)));
         shouldAnimate = false;
 
         auto viewport = findParentComponentOfClass<BouncingViewport>();
-        //if (pushViewportToBottom) {
-        //    viewport->setViewPositionProportionately(0.0f, 1.0f);
-        //    pushViewportToBottom = false;
-        //} else 
+        // if (pushViewportToBottom) {
+        //     viewport->setViewPositionProportionately(0.0f, 1.0f);
+        //     pushViewportToBottom = false;
+        // } else
         if (viewport && viewport->getViewPositionY() != viewportPosHackY)
             viewport->setViewPosition(Point<int>(0, viewportPosHackY));
     }
@@ -274,7 +274,7 @@ public:
     bool shouldAnimate = false;
 
     int viewportPosHackY;
-    //bool pushViewportToBottom = false;
+    // bool pushViewportToBottom = false;
     Point<int> accumulatedOffsetY;
 };
 
@@ -319,8 +319,8 @@ public:
     void showAndGrabEditorFocus()
     {
         MessageManager::callAsync([_this = SafePointer(this)]() {
-        if (_this)
-            _this->nameLabel.showEditor();
+            if (_this)
+                _this->nameLabel.showEditor();
         });
     }
 
@@ -397,9 +397,7 @@ public:
         if (getToggleState()) {
             g.setColour(findColour(PlugDataColour::toolbarActiveColourId).brighter(isMouseOver() ? 0.3f : 0.0f));
             g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
-        }
-        else if(isMouseOver())
-        {
+        } else if (isMouseOver()) {
             g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
             g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f).removeFromRight(4));
         }
@@ -431,6 +429,7 @@ public:
     }
 
     std::function<void()> rightClicked = []() {};
+
 private:
     ValueTree palette;
 };
@@ -467,7 +466,7 @@ public:
         }
 
         palettesTree.addListener(this);
-        
+
         addButton.getProperties().set("Style", "SmallIcon");
         addButton.onClick = [this, e]() {
             PopupMenu menu;
@@ -491,7 +490,7 @@ public:
                             categoryTree.appendChild(paletteTree, nullptr);
                         }
 
-                        //palettesTree.appendChild(categoryTree, nullptr);
+                        // palettesTree.appendChild(categoryTree, nullptr);
                         newPalette(categoryTree);
                     }
                 });
@@ -528,7 +527,7 @@ public:
 
         showPalettes = SettingsFile::getInstance()->getProperty<bool>("show_palettes");
         setVisible(showPalettes);
-        
+
         showPalette(ValueTree());
     }
 
@@ -562,7 +561,7 @@ private:
     void resized() override
     {
         paletteViewport.setBounds(getLocalBounds());
-        
+
         int totalHeight = 0;
         for (auto* button : paletteSelectors) {
             totalHeight += Font(14).getStringWidth(button->getButtonText()) + 26;
@@ -661,11 +660,11 @@ private:
             resizer.setVisible(false);
             view.reset(nullptr);
         } else {
-            //for (auto* paletteSelector : paletteSelectors) {
-            //    if (paletteSelector->getTree() == paletteToShow)
-            //        paletteSelector->setVisible(true);
-            //        resizer.setVisible(true);
-            //}
+            // for (auto* paletteSelector : paletteSelectors) {
+            //     if (paletteSelector->getTree() == paletteToShow)
+            //         paletteSelector->setVisible(true);
+            //         resizer.setVisible(true);
+            // }
             view = std::make_unique<PaletteComponent>(editor, paletteToShow);
 
             // if the user hasn't changed the default title of this palette
@@ -720,7 +719,7 @@ private:
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override
     {
         savePalettes();
-        if (property == Identifier("Name")){
+        if (property == Identifier("Name")) {
             for (auto paletteSelector : paletteSelectors) {
                 if (paletteSelector->getTree() == treeWhosePropertyHasChanged) {
                     paletteSelector->setTextToShow(treeWhosePropertyHasChanged.getPropertyAsValue("Name", nullptr).toString());
@@ -755,8 +754,8 @@ private:
         palettesTree.appendChild(newPaletteTree, nullptr);
         auto title = newPaletteTree.getPropertyAsValue("Name", nullptr).toString();
         auto* button = paletteSelectors.add(new PaletteSelector(title, newPaletteTree));
-        button->onClick = [this, button, newPaletteTree](){
-        if (button->getToggleState()) {
+        button->onClick = [this, button, newPaletteTree]() {
+            if (button->getToggleState()) {
                 showPalette(ValueTree());
             } else {
                 button->setToggleState(true, dontSendNotification);
@@ -785,7 +784,7 @@ private:
             resized();
         };
         paletteBar.addAndMakeVisible(button);
-        
+
         if (!construct) {
             paletteSelectors.getLast()->triggerClick();
             resized();
@@ -793,9 +792,9 @@ private:
     }
 
     PluginEditor* editor;
-        
+
     File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_3");
-//    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have finished all the default palettes
+    //    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have finished all the default palettes
 
     ValueTree objectTree;
     ValueTree palettesTree;
@@ -814,45 +813,46 @@ private:
 
     bool shouldAnimate = false;
 
-        static inline const String delayPatch = "#X obj 0 0 palette/delay";
-        static inline const String chorusPatch = "#X obj 0 0 palette/chorus";
-        static inline const String phaserPatch = "#X obj 0 0 palette/phaser";
-        static inline const String flangerPatch = "#X obj 0 0 palette/flanger";
-        static inline const String drivePatch = "#X obj 0 0 palette/drive";
-        static inline const String bitcrusherPatch = "#X obj 0 0 palette/bitcrusher";
-        static inline const String reverbPatch = "#X obj 0 0 palette/reverb";
+    static inline const String delayPatch = "#X obj 0 0 palette/delay";
+    static inline const String chorusPatch = "#X obj 0 0 palette/chorus";
+    static inline const String phaserPatch = "#X obj 0 0 palette/phaser";
+    static inline const String flangerPatch = "#X obj 0 0 palette/flanger";
+    static inline const String drivePatch = "#X obj 0 0 palette/drive";
+    static inline const String bitcrusherPatch = "#X obj 0 0 palette/bitcrusher";
+    static inline const String reverbPatch = "#X obj 0 0 palette/reverb";
 
-        static inline const String svfPatch = "#X obj 0 0 palette/svf";
-        static inline const String eqPatch = "#X obj 0 0 palette/eq";
-        static inline const String lowpassPatch = "#X obj 0 0 palette/lowpass";
+    static inline const String svfPatch = "#X obj 0 0 palette/svf";
+    static inline const String eqPatch = "#X obj 0 0 palette/eq";
+    static inline const String lowpassPatch = "#X obj 0 0 palette/lowpass";
 
-        static inline const String metronomePatch = "#X obj 0 0 palette/metronome";
-        static inline const String adsrPatch = "#X obj 0 0 palette/adsr";
+    static inline const String metronomePatch = "#X obj 0 0 palette/metronome";
+    static inline const String adsrPatch = "#X obj 0 0 palette/adsr";
 
-        static inline const String drumSequencerPatch = "#X obj 0 0 palette/drumseq";
-        static inline const String noteSequencerPatch = "#X obj 0 0 palette/noteseq";
+    static inline const String drumSequencerPatch = "#X obj 0 0 palette/drumseq";
+    static inline const String noteSequencerPatch = "#X obj 0 0 palette/noteseq";
 
-        static inline const String drumsPatch = "#X obj 0 0 palette/drums";
-        static inline const String pianoPatch = "#X obj 0 0 palette/piano";
-        static inline const String ePianoPatch = "#X obj 0 0 palette/epiano";
-        static inline const String bassPatch = "#X obj 0 0 palette/bass";
-        static inline const String guitarPatch = "#X obj 0 0 palette/guitar";
-        static inline const String stringsPatch = "#X obj 0 0 palette/strings";
-        static inline const String brassPatch = "#X obj 0 0 palette/brass";
-        static inline const String organPatch = "#X obj 0 0 palette/organ";
+    static inline const String drumsPatch = "#X obj 0 0 palette/drums";
+    static inline const String pianoPatch = "#X obj 0 0 palette/piano";
+    static inline const String ePianoPatch = "#X obj 0 0 palette/epiano";
+    static inline const String bassPatch = "#X obj 0 0 palette/bass";
+    static inline const String guitarPatch = "#X obj 0 0 palette/guitar";
+    static inline const String stringsPatch = "#X obj 0 0 palette/strings";
+    static inline const String brassPatch = "#X obj 0 0 palette/brass";
+    static inline const String organPatch = "#X obj 0 0 palette/organ";
 
-        static inline const String multiOscPatch = "#X obj 0 0 palette/multiosc";
-        static inline const String noiseOscPatch = "#X obj 0 0 palette/noiseosc";
-        static inline const String lfoPatch = "#X obj 0 0 palette/LFO";
-        
+    static inline const String multiOscPatch = "#X obj 0 0 palette/multiosc";
+    static inline const String noiseOscPatch = "#X obj 0 0 palette/noiseosc";
+    static inline const String lfoPatch = "#X obj 0 0 palette/LFO";
+
     std::map<String, std::map<String, String>> defaultPalettes = {
         { "Oscillators",
-            {   { "multi osc", multiOscPatch },
+            {
+                { "multi osc", multiOscPatch },
                 { "noise osc", noiseOscPatch },
                 { "lfo", lfoPatch },
             } },
         { "Filters",
-            {   { "lowpass", lowpassPatch },
+            { { "lowpass", lowpassPatch },
                 { "svf", svfPatch },
                 { "EQ", eqPatch } } },
         { "Effects",
@@ -926,4 +926,3 @@ private:
 
     ResizerComponent resizer;
 };
-

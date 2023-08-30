@@ -18,7 +18,7 @@ class MessboxObject final : public ObjectBase
     Value fontSize = SynchronousValue();
     Value bold = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-        
+
 public:
     MessboxObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -63,9 +63,9 @@ public:
             fontSize = messbox->x_font_size;
             primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
             secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
-            sizeProperty = Array<var>{var(messbox->x_width), var(messbox->x_height)};
+            sizeProperty = Array<var> { var(messbox->x_width), var(messbox->x_height) };
         }
-        
+
         editor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
         editor.applyFontToAllText(editor.getFont().withHeight(getValue<int>(fontSize)));
 
@@ -104,12 +104,12 @@ public:
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto messbox = ptr.get<t_fake_messbox>()) {
-            setParameterExcludingListener(sizeProperty, Array<var>{var(messbox->x_width), var(messbox->x_height)});
+            setParameterExcludingListener(sizeProperty, Array<var> { var(messbox->x_width), var(messbox->x_height) });
         }
     }
-    
+
     void lock(bool locked) override
     {
         setInterceptsMouseClicks(locked, locked);
@@ -203,14 +203,15 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         showEditor(); // TODO: Do we even need to?
     }
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        setSymbols(ed.getText(), std::vector<pd::Atom>{});
+        setSymbols(ed.getText(), std::vector<pd::Atom> {});
     }
 
     // For resize-while-typing behaviour
@@ -219,32 +220,28 @@ public:
         object->updateBounds();
     }
 
-    void setSymbols(String const& symbols, const std::vector<pd::Atom>& atoms)
+    void setSymbols(String const& symbols, std::vector<pd::Atom> const& atoms)
     {
         String text;
         if (auto messObj = ptr.get<t_fake_messbox>()) {
             text = symbols.replace("$0", String::fromUTF8(messObj->x_dollzero->s_name));
-        }
-        else {
+        } else {
             return;
         }
-        
+
         t_binbuf* buf = binbuf_new();
         binbuf_text(buf, text.toRawUTF8(), text.getNumBytesAsUTF8());
-        
+
         std::vector<t_atom> pd_atoms(atoms.size());
-        for(int i = 0; i < atoms.size(); i++)
-        {
-            if(atoms[i].isFloat())
-            {
+        for (int i = 0; i < atoms.size(); i++) {
+            if (atoms[i].isFloat()) {
                 SETFLOAT(pd_atoms.data() + i, atoms[i].getFloat());
-            }
-            else {
+            } else {
                 auto sym = atoms[i].getSymbol();
                 SETSYMBOL(pd_atoms.data() + i, gensym(sym.toRawUTF8()));
             }
         }
-        
+
         if (auto messObj = ptr.get<t_fake_messbox>()) {
             binbuf_eval(buf, static_cast<t_pd*>(messObj->x_proxy), pd_atoms.size(), pd_atoms.data());
         }
@@ -333,18 +330,16 @@ public:
             auto* constrainer = getConstrainer();
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
-            
-            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
-            
-            if (auto messbox = ptr.get<t_fake_messbox>())
-            {
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto messbox = ptr.get<t_fake_messbox>()) {
                 messbox->x_width = width;
                 messbox->x_height = height;
             }
 
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(primaryColour)) {
+        } else if (value.refersToSameSourceAs(primaryColour)) {
 
             auto col = Colour::fromString(primaryColour.toString());
             editor.applyColourToAllText(col);

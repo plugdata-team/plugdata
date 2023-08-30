@@ -165,7 +165,7 @@ ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor
 void ObjectImplementationManager::handleAsyncUpdate()
 {
     Array<void*> allImplementations;
-    
+
     pd->setThis();
 
     pd->lockAudioThread();
@@ -186,7 +186,7 @@ void ObjectImplementationManager::handleAsyncUpdate()
             it++;
         }
     }
-    
+
     for (auto* ptr : allImplementations) {
         if (!objectImplementations.count(ptr)) {
 
@@ -217,8 +217,7 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
             implementations.addArray(getImplementationsForPatch(y));
         }
         if (pd_class(&y->g_pd) == clone_class) {
-            for(int i = 0; i < clone_get_n(y); i++)
-            {
+            for (int i = 0; i < clone_get_n(y); i++) {
                 auto* clone = clone_get_instance(y, i);
                 implementations.addArray(getImplementationsForPatch(clone));
                 implementations.add(clone);
@@ -243,8 +242,7 @@ void ObjectImplementationManager::clearObjectImplementationsForPatch(void* patch
             clearObjectImplementationsForPatch(y);
         }
         if (pd_class(&y->g_pd) == clone_class) {
-            for(int i = 0; i < clone_get_n(y); i++)
-            {
+            for (int i = 0; i < clone_get_n(y); i++) {
                 auto* clone = clone_get_instance(y, i);
                 clearObjectImplementationsForPatch(clone);
             }

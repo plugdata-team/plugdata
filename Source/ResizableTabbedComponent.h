@@ -13,8 +13,8 @@
 class TabComponent;
 class PluginEditor;
 class SplitViewResizer;
-class ResizableTabbedComponent : public Component, public DragAndDropTarget
-{
+class ResizableTabbedComponent : public Component
+    , public DragAndDropTarget {
 public:
     ResizableTabbedComponent(PluginEditor* editor, TabComponent* splitTabComponent = nullptr);
 
@@ -28,7 +28,7 @@ public:
     void paintOverChildren(Graphics& g) override;
 
     void itemDragMove(SourceDetails const& dragSourceDetails) override;
-    bool isInterestedInDragSource(SourceDetails const& dragSourceDetails) override; 
+    bool isInterestedInDragSource(SourceDetails const& dragSourceDetails) override;
     void itemDropped(SourceDetails const& dragSourceDetails) override;
     void itemDragEnter(SourceDetails const& dragSourceDetails) override;
     void itemDragExit(SourceDetails const& dragSourceDetails) override;
@@ -44,10 +44,16 @@ public:
     SplitViewResizer* resizerTop = nullptr;
     SplitViewResizer* resizerBottom = nullptr;
 
-    enum DropZones { Left = 1, Top = 2, Right = 4, Bottom = 8, Centre = 16, TabBar = 32, None = 64};
+    enum DropZones { Left = 1,
+        Top = 2,
+        Right = 4,
+        Bottom = 8,
+        Centre = 16,
+        TabBar = 32,
+        None = 64 };
 
     void updateDropZones();
-    
+
     void moveToSplit(int splitIdx, Canvas* canvas);
     void createNewSplit(DropZones activeZone, Canvas* canvas);
 
@@ -76,10 +82,10 @@ private:
     Rectangle<int> oldObjectBounds;
     Rectangle<int> oldBounds;
 
-    const float topFactorDefault = 0.0f;
-    const float bottomFactorDefault = 1.0f;
-    const float leftFactorDefault = 0.0f;
-    const float rightFactorDefault = 1.0f;
+    float const topFactorDefault = 0.0f;
+    float const bottomFactorDefault = 1.0f;
+    float const leftFactorDefault = 0.0f;
+    float const rightFactorDefault = 1.0f;
 
     float topFactor = 0.0f;
     float bottomFactor = 1.0f;

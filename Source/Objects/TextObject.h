@@ -19,7 +19,7 @@ struct TextObjectHelper {
         // For regular text object, we want to adjust the width so ideal text with aligns with fontWidth
         int offset = applyOffset ? idealTextWidth % fontWidth : 0;
         int charWidth = getWidthInChars(obj);
-        
+
         if (currentText.isEmpty()) { // If text is empty, set to minimum width
             w = std::max(charWidth, minWidth) * fontWidth;
         } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
@@ -209,13 +209,12 @@ public:
     {
         objectText = getText();
         isLocked = getValue<bool>(cnv->locked);
-        
+
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
     }
 
     ~TextBase() override = default;
-        
-        
+
     void update() override
     {
         if (auto obj = ptr.get<t_text>()) {
@@ -319,11 +318,9 @@ public:
 
             auto type = hash(getText().upToFirstOccurrenceOf(" ", false, false));
 
-            if (type == hash("inlet")|| type == hash("inlet~")) {
+            if (type == hash("inlet") || type == hash("inlet~")) {
                 canvas_resortinlets(patch);
-            }
-            else if(type == hash("outlet") || type == hash("outlet~"))
-            {
+            } else if (type == hash("outlet") || type == hash("outlet~")) {
                 canvas_resortoutlets(patch);
             }
         }
@@ -331,8 +328,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         if (isLocked) {
             click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown());
         }
@@ -342,7 +340,7 @@ public:
     {
         return false;
     }
-    
+
     void hideEditor() override
     {
         if (editor != nullptr) {
@@ -413,11 +411,11 @@ public:
             repaint();
         }
     }
-        
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto text = ptr.get<t_text>()) {
             setParameterExcludingListener(sizeProperty, TextObjectHelper::getWidthInChars(text.get()));
         }
@@ -428,18 +426,17 @@ public:
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
             auto width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
-            
+
             setParameterExcludingListener(sizeProperty, width);
-            
-            if (auto text = ptr.get<t_text>())
-            {
+
+            if (auto text = ptr.get<t_text>()) {
                 TextObjectHelper::setWidthInChars(text.get(), width);
             }
-            
+
             object->updateBounds();
         }
     }
-        
+
     void resized() override
     {
         if (editor) {

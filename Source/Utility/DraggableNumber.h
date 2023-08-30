@@ -9,15 +9,12 @@
 class DraggableNumber : public Label
     , public Label::Listener {
 public:
-        
-    enum DragMode
-    {
+    enum DragMode {
         Regular,
         Integer,
         Logarithmic
     };
-        
-        
+
 protected:
     double dragValue = 0.0;
     int decimalDrag = 0;
@@ -36,11 +33,10 @@ protected:
     bool wasReset = false;
     double valueToResetTo = 0.0;
     double valueToRevertTo = 0.0;
-        
+
     GlyphArrangement currentGlyphs;
 
 public:
-
     std::function<void(double)> onValueChange = [](double) {};
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
@@ -85,7 +81,7 @@ public:
         isMinLimited = true;
         min = minimum;
     }
-        
+
     void setLogarithmicHeight(double logHeight)
     {
         logarithmicHeight = logHeight;
@@ -132,7 +128,7 @@ public:
 
         if (lastValue != newValue) {
             lastValue = newValue;
-            
+
             setText(String(newValue, 8), notification);
             onValueChange(newValue);
         }
@@ -170,7 +166,7 @@ public:
 
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
-        
+
         hoveredDecimal = -1;
         repaint();
     }
@@ -205,122 +201,116 @@ public:
             lastLogarithmicDragPosition = e.y;
             return;
         }
-        
+
         decimalDrag = getDecimalAtPosition(e.getMouseDownX());
-        
+
         dragStart();
     }
-        
+
     void setDragMode(DragMode newDragMode)
     {
         dragMode = newDragMode;
     }
-    
+
     int getDecimalAtPosition(int x, Rectangle<float>* position = nullptr)
     {
         auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
-                
+
         // For integer or logarithmic drag mode, draw the highlighted area around the whole number
-        if(dragMode != Regular)
-        {
-           auto text = dragMode == Integer ? getText().upToFirstOccurrenceOf(".", false, false) : String(getText().getDoubleValue());
-           
-           GlyphArrangement glyphs;
-           glyphs.addFittedText(getFont(), text, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
-           auto glyphsBounds = glyphs.getBoundingBox(0, glyphs.getNumGlyphs(), false);
-           if(x < glyphsBounds.getRight())
-           {
-               if(position) *position = glyphsBounds;
-               return 0;
-           }
-           else
-           {
-               if(position) *position = Rectangle<float>();
-               return -1;
-           }
+        if (dragMode != Regular) {
+            auto text = dragMode == Integer ? getText().upToFirstOccurrenceOf(".", false, false) : String(getText().getDoubleValue());
+
+            GlyphArrangement glyphs;
+            glyphs.addFittedText(getFont(), text, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
+            auto glyphsBounds = glyphs.getBoundingBox(0, glyphs.getNumGlyphs(), false);
+            if (x < glyphsBounds.getRight()) {
+                if (position)
+                    *position = glyphsBounds;
+                return 0;
+            } else {
+                if (position)
+                    *position = Rectangle<float>();
+                return -1;
+            }
         }
-        
+
         GlyphArrangement glyphs;
         auto formattedNumber = formatNumber(getText().getDoubleValue());
         auto fullNumber = formattedNumber + String("000000");
         glyphs.addFittedText(getFont(), fullNumber, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
         int draggedDecimal = -1;
-        
+
         int decimalPointPosition = 0;
         bool afterDecimalPoint = false;
         for (int i = 0; i < glyphs.getNumGlyphs(); ++i) {
             auto const& glyph = glyphs.getGlyph(i);
-            
+
             bool isDecimalPoint = glyph.getCharacter() == '.';
-            if(isDecimalPoint)
-            {
+            if (isDecimalPoint) {
                 decimalPointPosition = i;
                 afterDecimalPoint = true;
             }
-            
+
             if (x <= glyph.getRight()) {
                 draggedDecimal = isDecimalPoint ? 0 : i - decimalPointPosition;
-                
+
                 auto glyphBounds = glyph.getBounds();
-                if(!afterDecimalPoint)
-                {
+                if (!afterDecimalPoint) {
                     continue;
                 }
-                if(isDecimalPoint) {
+                if (isDecimalPoint) {
                     glyphBounds = Rectangle<float>();
-                    for(int j = 0; j < i; j++)
-                    {
+                    for (int j = 0; j < i; j++) {
                         glyphBounds = glyphBounds.getUnion(glyphs.getGlyph(j).getBounds());
                     }
                 }
-                if(position) *position = glyphBounds;
-                
+                if (position)
+                    *position = glyphBounds;
+
                 break;
             }
         }
-        
+
         return draggedDecimal;
     }
 
     void paint(Graphics& g) override
     {
-        if(hoveredDecimal >= 0)
-        {
+        if (hoveredDecimal >= 0) {
             // TODO: make this colour Id configurable?
             g.setColour(findColour(ComboBox::outlineColourId).withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
             PlugDataLook::fillSmoothedRectangle(g, hoveredDecimalPosition, 2.5f);
         }
-        
+
         if (!isBeingEdited()) {
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds()).toFloat();
-            //g.drawText(formatNumber(getText().getDoubleValue(), decimalDrag), textArea, Justification::centredLeft);
-            
+            // g.drawText(formatNumber(getText().getDoubleValue(), decimalDrag), textArea, Justification::centredLeft);
+
             auto numberText = formatNumber(getText().getDoubleValue(), decimalDrag);
             auto extraNumberText = String();
             auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
             for (int i = 0; i < std::min(hoveredDecimal - decimalDrag, 7 - numDecimals); ++i)
                 extraNumberText += "0";
-            
+
             auto numberTextLength = getFont().getStringWidthFloat(numberText);
-            
+
             g.setFont(getFont());
             g.setColour(findColour(Label::textColourId));
             g.drawText(numberText, textArea, Justification::centredLeft);
-            
-            if(dragMode == Regular) {
+
+            if (dragMode == Regular) {
                 g.setColour(findColour(Label::textColourId).withAlpha(0.4f));
                 g.drawText(extraNumberText, textArea.withTrimmedLeft(numberTextLength), Justification::centredLeft);
             }
         }
     }
-    
+
     void updateHoverPosition(int x)
     {
         int oldHoverPosition = hoveredDecimal;
         hoveredDecimal = getDecimalAtPosition(x, &hoveredDecimalPosition);
-        
-        if(oldHoverPosition != hoveredDecimal)
-        {
+
+        if (oldHoverPosition != hoveredDecimal) {
             repaint();
         }
     }
@@ -336,7 +326,7 @@ public:
             return;
 
         updateHoverPosition(e.getMouseDownX());
-        
+
         // Hide cursor and set unbounded mouse movement
         setMouseCursor(MouseCursor::NoCursor);
         updateMouseCursor();
@@ -344,32 +334,27 @@ public:
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
-        if(dragMode == Logarithmic)
-        {
+        if (dragMode == Logarithmic) {
             double logMin = min;
             double logMax = max;
-            
-            if((logMin == 0.0) && (logMax == 0.0))
+
+            if ((logMin == 0.0) && (logMax == 0.0))
                 logMax = 1.0;
-            if(logMax > 0.0)
-            {
-                if(logMin <= 0.0)
+            if (logMax > 0.0) {
+                if (logMin <= 0.0)
                     logMin = 0.01 * logMax;
-            }
-            else
-            {
-                if(logMin > 0.0)
+            } else {
+                if (logMin > 0.0)
                     logMax = 0.01 * logMin;
             }
-            
+
             double dy = lastLogarithmicDragPosition - e.y;
-            double k  = exp(log(logMax / logMin) / std::max(logarithmicHeight, 10.0));
+            double k = exp(log(logMax / logMin) / std::max(logarithmicHeight, 10.0));
             double factor = pow(k, dy);
             setValue(std::clamp(getValue(), logMin, logMax) * factor);
-            
+
             lastLogarithmicDragPosition = e.y;
-        }
-        else {
+        } else {
             int const decimal = decimalDrag + e.mods.isShiftDown();
             double const increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
             double const deltaY = (e.y - e.mouseDownPosition.y) * 0.7;
@@ -384,11 +369,9 @@ public:
             } else {
                 newValue = static_cast<int64_t>(newValue);
             }
-            
+
             setValue(newValue);
         }
-
-        
     }
 
     double limitValue(double valueToLimit) const
@@ -410,7 +393,7 @@ public:
             return;
 
         repaint();
-        
+
         // Show cursor again
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
@@ -453,23 +436,21 @@ struct DraggableListNumber : public DraggableNumber {
     {
         if (isBeingEdited())
             return;
-        
+
         repaint();
 
         auto [numberStart, numberEnd, numberValue] = getListItemAtPosition(e.x);
-     
+
         numberStartIdx = numberStart;
         numberEndIdx = numberEnd;
         dragValue = numberValue;
-        
+
         targetFound = numberStart != -1;
-        if(targetFound)
-        {
+        if (targetFound) {
             dragStart();
         }
     }
-    
-    
+
     void mouseMove(MouseEvent const& e) override
     {
         updateListHoverPosition(e.x);
@@ -481,7 +462,7 @@ struct DraggableListNumber : public DraggableNumber {
             return;
 
         updateListHoverPosition(e.x);
-        
+
         // Hide cursor and set unbounded mouse movement
         setMouseCursor(MouseCursor::NoCursor);
         updateMouseCursor();
@@ -516,7 +497,7 @@ struct DraggableListNumber : public DraggableNumber {
     {
         if (isBeingEdited() || !targetFound)
             return;
-        
+
         // Show cursor again
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
@@ -530,13 +511,12 @@ struct DraggableListNumber : public DraggableNumber {
 
     void paint(Graphics& g) override
     {
-        if(hoveredDecimal >= 0)
-        {
+        if (hoveredDecimal >= 0) {
             // TODO: make this colour Id configurable?
             g.setColour(findColour(ComboBox::outlineColourId).withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
             PlugDataLook::fillSmoothedRectangle(g, hoveredDecimalPosition, 2.5f);
         }
-        
+
         if (!isBeingEdited()) {
             g.setColour(findColour(Label::textColourId));
             g.setFont(getFont());
@@ -552,22 +532,21 @@ struct DraggableListNumber : public DraggableNumber {
         onValueChange(0);
         dragEnd();
     }
-    
+
     void updateListHoverPosition(int x)
     {
         int oldHoverPosition = hoveredDecimal;
-        
+
         Rectangle<float> position;
         auto [numberStart, numberEnd, numberValue] = getListItemAtPosition(x, &hoveredDecimalPosition);
 
         hoveredDecimal = numberStart;
-        
-        if(oldHoverPosition != hoveredDecimal)
-        {
+
+        if (oldHoverPosition != hoveredDecimal) {
             repaint();
         }
     }
-    
+
     std::tuple<int, int, double> getListItemAtPosition(int x, Rectangle<float>* position = nullptr)
     {
         auto const textArea = getBorderSize().subtractedFrom(getBounds());
@@ -596,9 +575,10 @@ struct DraggableListNumber : public DraggableNumber {
 
                     // Check if item is a number and if mouse clicked on it
                     if (number.containsOnly("0123456789.-") && x >= startGlyph.getLeft() && x <= endGlyph.getRight()) {
-                        
-                        if(position) *position = glyphs.getBoundingBox(i, j - i, false).translated(0, 2);
-                        return {i, j, number.getDoubleValue()};
+
+                        if (position)
+                            *position = glyphs.getBoundingBox(i, j - i, false).translated(0, 2);
+                        return { i, j, number.getDoubleValue() };
                     }
 
                     // Move start to end of current item
@@ -607,7 +587,7 @@ struct DraggableListNumber : public DraggableNumber {
                 }
             }
         }
-        
-        return {-1, -1, 0.0f};
+
+        return { -1, -1, 0.0f };
     }
 };

@@ -17,7 +17,7 @@ class FunctionObject final : public ObjectBase {
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-    
+
     Array<Point<float>> points;
 
 public:
@@ -38,7 +38,7 @@ public:
         if (auto function = ptr.get<t_fake_function>()) {
             secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
             primaryColour = colourFromHexArray(function->x_fgcolor).toString();
-            sizeProperty = Array<var>{var(function->x_width), var(function->x_height)};
+            sizeProperty = Array<var> { var(function->x_width), var(function->x_height) };
             initialise = function->x_init;
 
             Array<var> arr = { function->x_min, function->x_max };
@@ -81,13 +81,13 @@ public:
 
         return {};
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto function = ptr.get<t_fake_function>()) {
-            setParameterExcludingListener(sizeProperty, Array<var>{var(function->x_width), var(function->x_height)});
+            setParameterExcludingListener(sizeProperty, Array<var> { var(function->x_width), var(function->x_height) });
         }
     }
 
@@ -369,15 +369,14 @@ public:
                 auto* constrainer = getConstrainer();
                 auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
                 auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
-                
-                setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
-                
+
+                setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
                 function->x_width = width;
                 function->x_height = height;
-                
+
                 object->updateBounds();
-            }
-            else if (v.refersToSameSourceAs(primaryColour)) {
+            } else if (v.refersToSameSourceAs(primaryColour)) {
                 colourToHexArray(Colour::fromString(primaryColour.toString()), function->x_fgcolor);
                 repaint();
             } else if (v.refersToSameSourceAs(secondaryColour)) {

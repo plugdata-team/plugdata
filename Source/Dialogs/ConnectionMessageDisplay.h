@@ -73,7 +73,7 @@ private:
             haveMessage = false;
             textString = StringArray("no message yet");
         }
-        
+
         auto halfEditorWidth = getParentComponent()->getWidth() / 2;
         auto fontStyle = haveMessage ? FontStyle::Semibold : FontStyle::Regular;
         auto textFont = Font(haveMessage ? Fonts::getSemiBoldFont() : Fonts::getCurrentFont());

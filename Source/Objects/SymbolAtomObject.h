@@ -25,7 +25,7 @@ public:
         addAndMakeVisible(input);
 
         input.setText(getSymbol(), dontSendNotification);
-        
+
         input.addMouseListener(this, false);
 
         input.onTextChange = [this]() {
@@ -43,7 +43,7 @@ public:
         };
 
         input.setMinimumHorizontalScale(0.9f);
-        
+
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         atomHelper.addAtomParameters(objectParameters);
     }
@@ -53,7 +53,7 @@ public:
         sizeProperty = atomHelper.getWidthInChars();
         atomHelper.update();
     }
-        
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
@@ -179,13 +179,12 @@ public:
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
             auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
-            
+
             setParameterExcludingListener(sizeProperty, width);
-            
+
             atomHelper.setWidthInChars(width);
             object->updateBounds();
-        }
-        else {
+        } else {
             atomHelper.valueChanged(v);
         }
     }

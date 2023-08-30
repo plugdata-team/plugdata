@@ -36,37 +36,37 @@ public:
         alignButtons[AlignButton::HCentre]->setTooltip("Align objects to horizontal center");
         alignButtons[AlignButton::Bottom]->setTooltip("Align objects to bottom");
 
-        alignButtons[AlignButton::Left]->onClick = [this](){
+        alignButtons[AlignButton::Left]->onClick = [this]() {
             auto cnv = pluginEditor->getCurrentCanvas();
             if (cnv)
                 cnv->alignObjects(Align::Left);
         };
 
-        alignButtons[AlignButton::Right]->onClick = [this](){
+        alignButtons[AlignButton::Right]->onClick = [this]() {
             auto cnv = pluginEditor->getCurrentCanvas();
             if (cnv)
                 cnv->alignObjects(Align::Right);
         };
 
-        alignButtons[AlignButton::VCentre]->onClick = [this](){
+        alignButtons[AlignButton::VCentre]->onClick = [this]() {
             auto cnv = pluginEditor->getCurrentCanvas();
             if (cnv)
                 cnv->alignObjects(Align::VCenter);
         };
 
-        alignButtons[AlignButton::Top]->onClick = [this](){
+        alignButtons[AlignButton::Top]->onClick = [this]() {
             auto cnv = pluginEditor->getCurrentCanvas();
             if (cnv)
                 cnv->alignObjects(Align::Top);
         };
 
-        alignButtons[AlignButton::Bottom]->onClick = [this](){
+        alignButtons[AlignButton::Bottom]->onClick = [this]() {
             auto cnv = pluginEditor->getCurrentCanvas();
             if (cnv)
                 cnv->alignObjects(Align::Bottom);
         };
 
-        alignButtons[AlignButton::HCentre]->onClick = [this](){
+        alignButtons[AlignButton::HCentre]->onClick = [this]() {
             auto cnv = pluginEditor->getCurrentCanvas();
             if (cnv)
                 cnv->alignObjects(Align::HCenter);
@@ -127,7 +127,12 @@ private:
 
     static inline bool isShowing = false;
 
-    enum AlignButton {Left, VCentre, Right, Top, HCentre, Bottom};
+    enum AlignButton { Left,
+        VCentre,
+        Right,
+        Top,
+        HCentre,
+        Bottom };
 
     OwnedArray<TextButton> alignButtons;
 

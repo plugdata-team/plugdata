@@ -10,7 +10,7 @@
 #include "Utility/StackShadow.h"
 #include "Utility/Fonts.h"
 
-//#define ENABLE_TABBAR_DEBUGGING 1
+// #define ENABLE_TABBAR_DEBUGGING 1
 
 TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabbar, String const& name, TabbedButtonBar& bar)
     : TabBarButton(name, bar)
@@ -46,7 +46,6 @@ TabBarButtonComponent::~TabBarButtonComponent()
     ghostTabAnimator->removeChangeListener(this);
 }
 
-
 void TabBarButtonComponent::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (source == ghostTabAnimator) {
@@ -55,7 +54,7 @@ void TabBarButtonComponent::changeListenerCallback(ChangeBroadcaster* source)
             closeButtonUpdatePending = false;
         }
     }
-} 
+}
 
 void TabBarButtonComponent::updateCloseButtonState()
 {
@@ -69,7 +68,7 @@ void TabBarButtonComponent::updateCloseButtonState()
 void TabBarButtonComponent::closeTab()
 {
     // We cant use the index from earlier because it might have changed!
-    const int tabIdx = getIndex();
+    int const tabIdx = getIndex();
     auto* cnv = tabComponent->getCanvas(tabIdx);
     auto* editor = tabComponent->getEditor();
 
@@ -108,7 +107,7 @@ void TabBarButtonComponent::setFocusForTabSplit()
 void TabBarButtonComponent::setTabText(String const& text)
 {
     setTooltip(text);
-    setButtonText (text);
+    setButtonText(text);
 }
 
 TabComponent* TabBarButtonComponent::getTabComponent()
@@ -150,8 +149,8 @@ ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
     auto text = getButtonText();
     Font font(Fonts::getDefaultFont());
     auto length = font.getStringWidth(getButtonText()) + 32;
-    const auto boundsOffset = 10;
-    
+    auto const boundsOffset = 10;
+
     // we need to expand the bounds, but reset the position to top left
     // then we offset the mouse drag by the same amount
     // this is to allow area for the shadow to render correctly
@@ -164,10 +163,10 @@ ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
     path.addRoundedRectangle(bounds.reduced(14), 5.0f);
     StackShadow::renderDropShadow(g, path, Colour(0, 0, 0).withAlpha(0.3f), 6, { 0, 2 }, scale);
     g.setOpacity(1.0f);
-    drawTabButton(g, textBounds.withPosition(10,10));
-    
+    drawTabButton(g, textBounds.withPosition(10, 10));
+
     drawTabButtonText(g, textBounds.withPosition(3, 5));
-    //g.drawImage(snapshot, bounds.toFloat(), RectanglePlacement::doNotResize | RectanglePlacement::centred);
+    // g.drawImage(snapshot, bounds.toFloat(), RectanglePlacement::doNotResize | RectanglePlacement::centred);
 
 #if ENABLE_TABBAR_DEBUGGING == 1
     g.setColour(Colours::red);
@@ -179,8 +178,9 @@ ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
 
 void TabBarButtonComponent::mouseDown(MouseEvent const& e)
 {
-    if(e.originalComponent != this) return;
-    
+    if (e.originalComponent != this)
+        return;
+
     if (e.mods.isPopupMenu()) {
         auto splitIndex = getTabComponent()->getEditor()->splitView.getTabComponentSplitIndex(getTabComponent());
 
@@ -203,9 +203,9 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         tabMenu.addItem(revealTip, canReveal, false, [cnv]() {
             cnv->patch.getCurrentFile().revealToUser();
         });
-        
+
         tabMenu.addSeparator();
-        
+
         auto canSplitTab = cnv->editor->getSplitView()->splits.size() > 1 || getTabComponent()->getNumTabs() > 1;
         tabMenu.addItem("Split left", canSplitTab, false, [this, cnv, splitIndex]() {
             auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
@@ -217,32 +217,31 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
             auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
             currentSplit->moveToSplit(1, cnv);
         });
-    
+
         tabMenu.addSeparator();
-        
+
         tabMenu.addItem("Close patch", true, false, [this, cnv, splitIndex]() {
             cnv->editor->closeTab(cnv);
         });
-        
+
         tabMenu.addItem("Close all other patches", true, false, [this, cnv, splitIndex]() {
             cnv->editor->closeAllTabs(false, cnv);
         });
-        
+
         tabMenu.addItem("Close all patches", true, false, [this, cnv, splitIndex]() {
             cnv->editor->closeAllTabs(false);
         });
-        
+
         // Show the popup menu at the mouse position
         tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(getTabComponent()->getEditor()));
-    }
-    else if (e.mods.isLeftButtonDown()) {
+    } else if (e.mods.isLeftButtonDown()) {
         getTabComponent()->setCurrentTabIndex(getIndex());
     }
 }
 
 void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
 {
-    if(e.getDistanceFromDragStart() > 10 && !isDragging) {
+    if (e.getDistanceFromDragStart() > 10 && !isDragging) {
         isDragging = true;
         closeTabButton.setVisible(false);
         var tabIndex = getIndex();

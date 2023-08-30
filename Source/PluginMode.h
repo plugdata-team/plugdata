@@ -5,7 +5,6 @@
 #include "Tabbar.h"
 #include "Standalone/PlugDataWindow.h"
 
-
 class PluginMode : public Component {
 public:
     explicit PluginMode(Canvas* cnv)
@@ -34,15 +33,13 @@ public:
         cnv->zoomScale.setValue(1.0f);
         cnv->zoomScale.getValueSource().sendChangeMessage(true);
 
-        if(ProjectInfo::isStandalone) {
+        if (ProjectInfo::isStandalone) {
             auto frameSize = desktopWindow->getFrameSizeIfPresent();
             nativeTitleBarHeight = frameSize ? frameSize->getTop() : 0;
-        }
-        else {
+        } else {
             nativeTitleBarHeight = 0;
         }
-        
-        
+
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);
@@ -133,11 +130,9 @@ public:
             editor->setConstrainer(editor->defaultConstrainer);
             editor->setBoundsConstrained(bounds);
             editor->getParentComponent()->resized();
-            if(auto* tabbar = editor->getActiveTabbar())
-            {
+            if (auto* tabbar = editor->getActiveTabbar()) {
                 tabbar->resized();
             }
-            
         });
 
         // Destroy this view

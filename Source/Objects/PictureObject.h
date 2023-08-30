@@ -14,7 +14,7 @@ class PictureObject final : public ObjectBase {
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-    
+
     File imageFile;
     Image img;
 
@@ -46,8 +46,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 1.0f);
@@ -81,8 +82,8 @@ public:
             reportSize = pic->x_size;
             sendSymbol = pic->x_snd_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_snd_raw->s_name);
             receiveSymbol = pic->x_rcv_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_rcv_raw->s_name);
-            
-            sizeProperty = Array<var>{var(pic->x_width), var(pic->x_height)};
+
+            sizeProperty = Array<var> { var(pic->x_width), var(pic->x_height) };
         }
 
         repaint();
@@ -143,18 +144,16 @@ public:
             auto* constrainer = getConstrainer();
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
-            
-            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
-            
-            if (auto pic = ptr.get<t_fake_pic>())
-            {
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto pic = ptr.get<t_fake_pic>()) {
                 pic->x_width = width;
                 pic->x_height = height;
             }
 
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(path)) {
+        } else if (value.refersToSameSourceAs(path)) {
             openFile(path.toString());
         } else if (value.refersToSameSourceAs(latch)) {
             if (auto pic = ptr.get<t_fake_pic>())
@@ -204,13 +203,13 @@ public:
 
         return {};
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto pic = ptr.get<t_fake_pic>()) {
-            setParameterExcludingListener(sizeProperty, Array<var>{var(pic->x_width), var(pic->x_height)});
+            setParameterExcludingListener(sizeProperty, Array<var> { var(pic->x_width), var(pic->x_height) });
         }
     }
 

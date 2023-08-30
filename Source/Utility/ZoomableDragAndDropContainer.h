@@ -49,8 +49,7 @@
     @tags{GUI}
 */
 class SplitView;
-class ZoomableDragAndDropContainer
-{
+class ZoomableDragAndDropContainer {
 public:
     //==============================================================================
     /** Creates a ZoomableDragAndDropContainer.
@@ -94,30 +93,29 @@ public:
                                                  are several dragging mouse input sources (which can often occur on mobile)
                                                  then JUCE will use the mouseInputSource which is closest to the sourceComponent.
     */
-    void startDragging (const var& sourceDescription,
-                        Component* sourceComponent,
-                        const ScaledImage& dragImage = ScaledImage(),
-                        bool allowDraggingToOtherJuceWindows = false,
-                        const Point<int>* imageOffsetFromMouse = nullptr,
-                        const MouseInputSource* inputSourceCausingDrag = nullptr,
-                        bool canZoom = false);
+    void startDragging(var const& sourceDescription,
+        Component* sourceComponent,
+        ScaledImage const& dragImage = ScaledImage(),
+        bool allowDraggingToOtherJuceWindows = false,
+        Point<int> const* imageOffsetFromMouse = nullptr,
+        MouseInputSource const* inputSourceCausingDrag = nullptr,
+        bool canZoom = false);
 
-    [[deprecated ("This overload does not allow the image's scale to be specified. Use the other overload of startDragging instead.")]]
-    void startDragging (const var& sourceDescription,
-                        Component* sourceComponent,
-                        Image dragImage,
-                        bool allowDraggingToOtherJuceWindows = false,
-                        const Point<int>* imageOffsetFromMouse = nullptr,
-                        const MouseInputSource* inputSourceCausingDrag = nullptr,
-                        bool canZoom = false)
+    [[deprecated("This overload does not allow the image's scale to be specified. Use the other overload of startDragging instead.")]] void startDragging(var const& sourceDescription,
+        Component* sourceComponent,
+        Image dragImage,
+        bool allowDraggingToOtherJuceWindows = false,
+        Point<int> const* imageOffsetFromMouse = nullptr,
+        MouseInputSource const* inputSourceCausingDrag = nullptr,
+        bool canZoom = false)
     {
-        startDragging (sourceDescription,
-                       sourceComponent,
-                       ScaledImage (dragImage),
-                       allowDraggingToOtherJuceWindows,
-                       imageOffsetFromMouse,
-                       inputSourceCausingDrag,
-                       canZoom);
+        startDragging(sourceDescription,
+            sourceComponent,
+            ScaledImage(dragImage),
+            allowDraggingToOtherJuceWindows,
+            imageOffsetFromMouse,
+            inputSourceCausingDrag,
+            canZoom);
     }
 
     /** Returns true if something is currently being dragged. */
@@ -142,7 +140,7 @@ public:
 
         @see getCurrentDragDescription
     */
-    var getDragDescriptionForIndex (int index) const;
+    var getDragDescriptionForIndex(int index) const;
 
     /** If a drag is in progress, this allows the image being shown to be dynamically updated.
 
@@ -151,19 +149,17 @@ public:
 
         @see setDragImageForIndex
     */
-    void setCurrentDragImage (const ScaledImage& newImage);
+    void setCurrentDragImage(ScaledImage const& newImage);
 
-    [[deprecated ("This overload does not allow the image's scale to be specified. Use the other overload of setCurrentDragImage instead.")]]
-    void setCurrentDragImage (const Image& newImage) { setCurrentDragImage (ScaledImage (newImage)); }
+    [[deprecated("This overload does not allow the image's scale to be specified. Use the other overload of setCurrentDragImage instead.")]] void setCurrentDragImage(Image const& newImage) { setCurrentDragImage(ScaledImage(newImage)); }
 
     /** Same as the setCurrentDragImage() method but takes a touch index parameter.
 
         @see setCurrentDragImage
     */
-    void setDragImageForIndex (int index, const ScaledImage& newImage);
+    void setDragImageForIndex(int index, ScaledImage const& newImage);
 
-    [[deprecated ("This overload does not allow the image's scale to be specified. Use the other overload of setDragImageForIndex instead.")]]
-    void setDragImageForIndex (int index, const Image& newImage) { setDragImageForIndex (index, ScaledImage (newImage)); }
+    [[deprecated("This overload does not allow the image's scale to be specified. Use the other overload of setDragImageForIndex instead.")]] void setDragImageForIndex(int index, Image const& newImage) { setDragImageForIndex(index, ScaledImage(newImage)); }
 
     /** Utility to find the ZoomableDragAndDropContainer for a given Component.
 
@@ -175,10 +171,9 @@ public:
 
         Obviously this may return nullptr if it doesn't find a suitable component.
     */
-    static ZoomableDragAndDropContainer* findParentDragContainerFor (Component* childComponent);
+    static ZoomableDragAndDropContainer* findParentDragContainerFor(Component* childComponent);
 
     virtual SplitView* getSplitView() { return nullptr; };
-
 
     //==============================================================================
     /** This performs an asynchronous drag-and-drop of a set of files to some external
@@ -199,9 +194,9 @@ public:
 
         @see performExternalDragDropOfText
     */
-    static bool performExternalDragDropOfFiles (const StringArray& files, bool canMoveFiles,
-                                                Component* sourceComponent = nullptr,
-                                                std::function<void()> callback = nullptr);
+    static bool performExternalDragDropOfFiles(StringArray const& files, bool canMoveFiles,
+        Component* sourceComponent = nullptr,
+        std::function<void()> callback = nullptr);
 
     /** This performs an asynchronous drag-and-drop of a block of text to some external
         application.
@@ -219,8 +214,8 @@ public:
 
         @see performExternalDragDropOfFiles
     */
-    static bool performExternalDragDropOfText (const String& text, Component* sourceComponent = nullptr,
-                                               std::function<void()> callback = nullptr);
+    static bool performExternalDragDropOfText(String const& text, Component* sourceComponent = nullptr,
+        std::function<void()> callback = nullptr);
 
 protected:
     /** Override this if you want to be able to perform an external drag of a set of files
@@ -236,8 +231,8 @@ protected:
                                 it must make a copy of them (see the performExternalDragDropOfFiles() method)
         @see performExternalDragDropOfFiles, shouldDropTextWhenDraggedExternally
     */
-    virtual bool shouldDropFilesWhenDraggedExternally (const DragAndDropTarget::SourceDetails& sourceDetails,
-                                                       StringArray& files, bool& canMoveFiles);
+    virtual bool shouldDropFilesWhenDraggedExternally(DragAndDropTarget::SourceDetails const& sourceDetails,
+        StringArray& files, bool& canMoveFiles);
 
     /** Override this if you want to be able to perform an external drag of text
         when the user drags outside of this container component.
@@ -250,29 +245,28 @@ protected:
         @param text             on return, the text you want to drag
         @see shouldDropFilesWhenDraggedExternally
     */
-    virtual bool shouldDropTextWhenDraggedExternally (const DragAndDropTarget::SourceDetails& sourceDetails,
-                                                      String& text);
+    virtual bool shouldDropTextWhenDraggedExternally(DragAndDropTarget::SourceDetails const& sourceDetails,
+        String& text);
 
     /** Subclasses can override this to be told when a drag starts. */
-    virtual void dragOperationStarted (const DragAndDropTarget::SourceDetails&);
+    virtual void dragOperationStarted(DragAndDropTarget::SourceDetails const&);
 
     /** Subclasses can override this to be told when a drag finishes. */
-    virtual void dragOperationEnded (const DragAndDropTarget::SourceDetails&);
+    virtual void dragOperationEnded(DragAndDropTarget::SourceDetails const&);
 
     virtual DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos);
-    
+
 private:
     //==============================================================================
     class DragImageComponent;
     OwnedArray<DragImageComponent> dragImageComponents;
 
-    Point<int> oldLocation = {0,0};
+    Point<int> oldLocation = { 0, 0 };
 
     float zoomScale;
 
-    const MouseInputSource* getMouseInputSourceForDrag (Component* sourceComponent, const MouseInputSource* inputSourceCausingDrag);
-    bool isAlreadyDragging (Component* sourceComponent) const noexcept;
+    MouseInputSource const* getMouseInputSourceForDrag(Component* sourceComponent, MouseInputSource const* inputSourceCausingDrag);
+    bool isAlreadyDragging(Component* sourceComponent) const noexcept;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ZoomableDragAndDropContainer)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ZoomableDragAndDropContainer)
 };
-

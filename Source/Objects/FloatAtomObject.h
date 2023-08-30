@@ -14,7 +14,7 @@ class FloatAtomObject final : public ObjectBase {
     Value min = SynchronousValue(0.0f);
     Value max = SynchronousValue(0.0f);
     Value sizeProperty = SynchronousValue();
-    
+
     float value = 0.0f;
 
 public:
@@ -70,7 +70,7 @@ public:
 
         min = atomHelper.getMinimum();
         max = atomHelper.getMaximum();
-        
+
         sizeProperty = atomHelper.getWidthInChars();
 
         input.setMinimum(::getValue<float>(min));
@@ -80,7 +80,7 @@ public:
 
         atomHelper.update();
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
@@ -193,13 +193,12 @@ public:
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
             auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
-            
+
             setParameterExcludingListener(sizeProperty, width);
-            
+
             atomHelper.setWidthInChars(width);
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(min)) {
+        } else if (value.refersToSameSourceAs(min)) {
             auto v = ::getValue<float>(min);
             input.setMinimum(v);
             atomHelper.setMinimum(v);

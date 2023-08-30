@@ -21,7 +21,6 @@ class Patch;
 
 class Object;
 
-
 class ObjectLabel : public Label {
 
 public:
@@ -35,7 +34,6 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-
 private:
     Component* object;
 };
@@ -43,118 +41,117 @@ private:
 class ObjectBase : public Component
     , public pd::MessageListener
     , public Value::Listener
-, public SettableTooltipClient {
-    
-    struct ObjectSizeListener : public juce::ComponentListener, public Value::Listener {
-        
+    , public SettableTooltipClient {
+
+    struct ObjectSizeListener : public juce::ComponentListener
+        , public Value::Listener {
+
         ObjectSizeListener(Object* obj);
-        
+
         void componentMovedOrResized(Component& component, bool moved, bool resized) override;
-        
+
         void valueChanged(Value& v) override;
-        
+
         Object* object;
     };
-    
-    struct PropertyUndoListener : public Value::Listener
-    {
+
+    struct PropertyUndoListener : public Value::Listener {
         PropertyUndoListener();
-        
+
         void valueChanged(Value& v) override;
-        
+
         uint32 lastChange;
-        std::function<void()> onChange = [](){};
+        std::function<void()> onChange = []() {};
     };
-    
+
 public:
     ObjectBase(void* obj, Object* parent);
-    
+
     ~ObjectBase() override;
-    
+
     void initialise();
-    
+
     void paint(Graphics& g) override;
-    
+
     // Functions to show and hide a text editor
     // Used internally, or to trigger a text editor when creating a new object (comment, message, new text object etc.)
     virtual bool isEditorShown() { return false; };
     virtual void showEditor() {};
     virtual void hideEditor() {};
-    
+
     bool hitTest(int x, int y) override;
-    
+
     // Some objects need to show/hide iolets when send/receive symbols are set
     virtual bool hideInlets() { return false; }
     virtual bool hideOutlets() { return false; }
-    
+
     virtual std::vector<hash32> getAllMessages() { return {}; }
-    
+
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getPdBounds() = 0;
-    
+
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getSelectableBounds()
     {
         return getPdBounds();
     }
-    
+
     // Push current object bounds into pd
     virtual void setPdBounds(Rectangle<int> newBounds) = 0;
-    
+
     // Called whenever a drawable changes
     virtual void updateDrawables() {};
-    
+
     // Called after creation, to initialise parameter listeners
     virtual void update() {};
-    
+
     virtual void tabChanged() {};
-    
+
     virtual bool canOpenFromMenu();
     virtual void openFromMenu();
-    
+
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph();
-    
+
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
     virtual void lock(bool isLocked);
-    
+
     // Returns the Pd class name of the object
     String getType() const;
-    
+
     void moveToFront();
     void moveForward();
     void moveBackward();
     void moveToBack();
-    
+
     virtual Canvas* getCanvas();
     virtual pd::Patch::Ptr getPatch();
-    
+
     // Override if you want a part of your object to ignore mouse clicks
     virtual bool canReceiveMouseEvent(int x, int y);
-    
+
     // Called whenever the object receives a pd message
     virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
-    
+
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
     void openSubpatch();
-    
+
     // Attempt to send "click" message to object. Returns false if the object has no such method
     bool click(Point<int> position, bool shift, bool alt);
-    
+
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
-    
+
     static ObjectBase* createGui(void* ptr, Object* parent);
-    
+
     // Override this to return parameters that will be shown in the inspector
     virtual ObjectParameters getParameters();
     virtual bool showParametersWhenSelected();
-    
-    
+
     void objectMovedOrResized(bool resized);
     virtual void updateSizeProperty() {};
-        
+
     virtual void updateLabel() {};
 
     // Implement this if you want to allow toggling an object by dragging over it in run mode
@@ -231,9 +228,8 @@ public:
     PluginProcessor* pd;
 
 protected:
-    
     PropertyUndoListener propertyUndoListener;
-    
+
     std::function<void()> onConstrainerCreate = []() {};
 
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
@@ -245,7 +241,7 @@ protected:
 
     ObjectSizeListener objectSizeListener;
     Value positionParameter = SynchronousValue();
-        
+
     friend class IEMHelper;
     friend class AtomHelper;
 };

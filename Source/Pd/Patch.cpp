@@ -166,8 +166,8 @@ void Patch::savePatch()
 
         libpd_savetofile(patch.get(), file, dir);
     }
-    
-    MessageManager::callAsync([this, patch = ptr.getRaw<t_glist>()](){
+
+    MessageManager::callAsync([this, patch = ptr.getRaw<t_glist>()]() {
         sys_lock();
         instance->reloadAbstractions(currentFile, patch);
         sys_unlock();
@@ -311,7 +311,7 @@ void* Patch::createObject(int x, int y, String const& name)
     if (tokens[0] == "+") {
         tokens.set(0, "\\+");
     }
-    
+
     tokens.removeEmptyStrings();
 
     int argc = tokens.size() + 2;
@@ -322,7 +322,7 @@ void* Patch::createObject(int x, int y, String const& name)
     SETFLOAT(argv.data(), static_cast<float>(x));
     SETFLOAT(argv.data() + 1, static_cast<float>(y));
 
-    for (int i = 0; i < tokens.size(); i++) {        
+    for (int i = 0; i < tokens.size(); i++) {
         // check if string is a valid number
         auto charptr = tokens[i].getCharPointer();
         auto ptr = charptr;
@@ -431,8 +431,8 @@ String Patch::translatePatchAsString(String const& patchAsString, Point<int> pos
             canvasDepth++;
         }
 
-        if (canvasDepth == 0) { 
-            if (isObject(tokens)){
+        if (canvasDepth == 0) {
+            if (isObject(tokens)) {
                 minX = std::min(minX, tokens[2].getIntValue());
                 minY = std::min(minY, tokens[3].getIntValue());
             } else if (isMsg(tokens)) {
@@ -459,8 +459,8 @@ String Patch::translatePatchAsString(String const& patchAsString, Point<int> pos
             canvasDepth++;
         }
 
-        if (canvasDepth == 0) { 
-            if (isObject(tokens)){
+        if (canvasDepth == 0) {
+            if (isObject(tokens)) {
                 tokens.set(2, String(tokens[2].getIntValue() - minX + position.x));
                 tokens.set(3, String(tokens[3].getIntValue() - minY + position.y));
                 line = tokens.joinIntoString(" ");
@@ -492,7 +492,7 @@ void Patch::paste(Point<int> position)
 {
     auto text = SystemClipboard::getTextFromClipboard();
 
-    // for some reason when we paste into PD, we need to apply a translation? 
+    // for some reason when we paste into PD, we need to apply a translation?
     auto translatedObjects = translatePatchAsString(text, position.translated(1540, 1540));
 
     if (auto patch = ptr.get<t_glist>()) {
@@ -615,7 +615,7 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
 
 void Patch::moveObjectTo(void* object, int x, int y)
 {
-    if (auto patch = ptr.get<t_glist>()){
+    if (auto patch = ptr.get<t_glist>()) {
         libpd_moveobj(patch.get(), &checkObject(object)->te_g, x + 1544, y + 1544); // FIXME: why do we have to offset by 1544?
     }
 }
@@ -680,26 +680,24 @@ String Patch::getTitle() const
 {
     if (auto patch = ptr.get<t_glist>()) {
         String name = String::fromUTF8(patch->gl_name->s_name);
-        
+
         int argc = 0;
         t_atom* argv = nullptr;
-        
+
         canvas_setcurrent(patch.get());
         canvas_getargs(&argc, &argv);
         canvas_unsetcurrent(patch.get());
 
-        if (argc)
-        {
+        if (argc) {
             char namebuf[MAXPDSTRING];
             name += " (";
-            for (int i = 0; i < argc; i++)
-            {
+            for (int i = 0; i < argc; i++) {
                 atom_string(&argv[i], namebuf, MAXPDSTRING);
                 name += String::fromUTF8(namebuf);
             }
             name += ")";
         }
-        
+
         return name.isEmpty() ? "Untitled Patcher" : name;
     }
 
