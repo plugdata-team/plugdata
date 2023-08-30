@@ -1411,9 +1411,7 @@ void Canvas::alignObjects(Align alignment)
         if(auto* ptr = object->getPointer())
             libpd_undo_apply(patchPtr, &patch.checkObject(ptr)->te_g);
     }
-    
-    patch.endUndoSequence("align objects");
-    
+        
     // get the bounding box of all selected objects
     Array<std::tuple<void*, Rectangle<int>>> pdObjectAndDimensions;
     auto selectedBounds = getBoundingBox(objects, pdObjectAndDimensions);
@@ -1470,6 +1468,8 @@ void Canvas::alignObjects(Align alignment)
     for (auto* connection : connections){
         connection->forceUpdate();
     }
+    
+    patch.endUndoSequence("align objects");
 }
 
 void Canvas::undo()
