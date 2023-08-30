@@ -4,6 +4,46 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+
+class SaveDialogButton : public TextButton
+{
+public:
+    SaveDialogButton(String buttonText) : TextButton(buttonText)
+    {
+    }
+    
+private:
+    void paint(Graphics& g) override
+    {
+        auto bounds = getLocalBounds().toFloat().reduced(1.0f);
+        
+        auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+        auto activeColour = findColour(PlugDataColour::toolbarActiveColourId);
+        
+        if(isMouseOver())
+        {
+            backgroundColour = backgroundColour.contrasting(0.1f);
+        }
+        if(isMouseButtonDown())
+        {
+            backgroundColour = activeColour;
+        }
+        
+        g.setColour(backgroundColour);
+        PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
+        
+        g.setFont(Fonts::getDefaultFont().withHeight(15));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        
+        g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
+
+        auto outlineColour = hasKeyboardFocus(false) ? activeColour : findColour(PlugDataColour::outlineColourId);
+        
+        g.setColour(outlineColour);
+        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::defaultCornerRadius);
+    }
+};
+
 class SaveDialog : public Component {
 
 public:
@@ -49,8 +89,12 @@ public:
         cancel.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         dontsave.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         save.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        
+                
         setOpaque(false);
+        
+        MessageManager::callAsync([_this = SafePointer(this)](){
+            if(_this) _this->save.grabKeyboardFocus();
+        });
     }
     
     void paint(Graphics& g) override
@@ -88,7 +132,7 @@ private:
 
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
 
-    TextButton cancel = TextButton("Cancel");
-    TextButton dontsave = TextButton("Don't Save");
-    TextButton save = TextButton("Save");
+    SaveDialogButton cancel = SaveDialogButton("Cancel");
+    SaveDialogButton dontsave = SaveDialogButton("Don't Save");
+    SaveDialogButton save = SaveDialogButton("Save");
 };
