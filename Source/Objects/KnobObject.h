@@ -706,7 +706,7 @@ public:
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_init = ::getValue<int>(initialValue);
+                knb->x_init = ::getValue<float>(initialValue);
         } else if (value.refersToSameSourceAs(circular)) {
             auto mode = ::getValue<int>(circular);
             knob.setSliderStyle(mode ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
