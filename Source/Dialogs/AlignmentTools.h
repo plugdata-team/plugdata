@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <juce_gui_basics/juce_gui_basics.h>
+//#include <JuceHeader.h>
 
 #include <utility>
 #include "Constants.h"
@@ -25,16 +25,42 @@ public:
         alignButtons.add(new TextButton(Icons::AlignLeft));
         alignButtons.add(new TextButton(Icons::AlignVCentre));
         alignButtons.add(new TextButton(Icons::AlignRight));
+        alignButtons.add(new TextButton(Icons::AlignHDistribute));
         alignButtons.add(new TextButton(Icons::AlignTop));
         alignButtons.add(new TextButton(Icons::AlignHCentre));
         alignButtons.add(new TextButton(Icons::AlignBottom));
+        alignButtons.add(new TextButton(Icons::AlignVDistribute));
 
+        // tooltips
         alignButtons[AlignButton::Left]->setTooltip("Align objects to left");
         alignButtons[AlignButton::VCentre]->setTooltip("Align objects to vertical center");
         alignButtons[AlignButton::Right]->setTooltip("Align objects to right");
+        alignButtons[AlignButton::HDistribute]->setTooltip("Distribute objects horizontal");
+
         alignButtons[AlignButton::Top]->setTooltip("Align objects to top");
         alignButtons[AlignButton::HCentre]->setTooltip("Align objects to horizontal center");
         alignButtons[AlignButton::Bottom]->setTooltip("Align objects to bottom");
+        alignButtons[AlignButton::VDistribute]->setTooltip("Distribute objects vertical");
+
+        // connected edges
+        alignButtons[AlignButton::Left]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnRight);
+        alignButtons[AlignButton::VCentre]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft | Button::ConnectedEdgeFlags::ConnectedOnRight);
+        alignButtons[AlignButton::Right]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft | Button::ConnectedEdgeFlags::ConnectedOnRight);
+        alignButtons[AlignButton::HDistribute]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft);
+
+        alignButtons[AlignButton::Top]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnRight);
+        alignButtons[AlignButton::HCentre]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft | Button::ConnectedEdgeFlags::ConnectedOnRight);
+        alignButtons[AlignButton::Bottom]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft | Button::ConnectedEdgeFlags::ConnectedOnRight);
+        alignButtons[AlignButton::VDistribute]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft);
+
+        auto buttonNum = 0;
+        for (auto* button : alignButtons) {
+            button->getProperties().set("Style", "SmallIcon");
+            button->setClickingTogglesState(true);
+            button->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
+            button->setRadioGroupId(hash("alignment_tools"));
+            addAndMakeVisible(button);
+        }
 
         alignButtons[AlignButton::Left]->onClick = [this]() {
             auto cnv = pluginEditor->getCurrentCanvas();
@@ -72,11 +98,17 @@ public:
                 cnv->alignObjects(Align::HCenter);
         };
 
-        for (auto* button : alignButtons) {
-            button->getProperties().set("Style", "LargeIcon");
-            button->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-            addAndMakeVisible(button);
-        }
+        alignButtons[AlignButton::HDistribute]->onClick = [this]() {
+            auto cnv = pluginEditor->getCurrentCanvas();
+            if (cnv)
+                cnv->alignObjects(Align::HDistribute);
+        };
+
+        alignButtons[AlignButton::VDistribute]->onClick = [this]() {
+            auto cnv = pluginEditor->getCurrentCanvas();
+            if (cnv)
+                cnv->alignObjects(Align::VDistribute);
+        };
 
         setSize(110, 110);
     }
@@ -97,7 +129,7 @@ public:
             button->setBounds(buttonBounds);
             bounds = bounds.getUnion(buttonBounds);
             buttonColumn++;
-            if (buttonColumn >= 3) {
+            if (buttonColumn >= 4) {
                 buttonYPos += size;
                 buttonColumn = 0;
             }
@@ -127,12 +159,15 @@ private:
 
     static inline bool isShowing = false;
 
-    enum AlignButton { Left,
+    enum AlignButton { 
+        Left,
         VCentre,
         Right,
+        HDistribute,
         Top,
         HCentre,
-        Bottom };
+        Bottom,
+        VDistribute };
 
     OwnedArray<TextButton> alignButtons;
 
