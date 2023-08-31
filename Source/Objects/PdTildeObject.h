@@ -40,12 +40,18 @@ public:
             } else {
                 return;
             }
+#else
+            if (pdDir.isDirectory()) {
+                pdLocation = pdDir;
+            } else {
+                return;
+            }
 #endif
 
             if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
                 auto pdPath = pdLocation.getFullPathName();
                 auto schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();
-                ;
+
                 pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
                 pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
                 pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
@@ -56,12 +62,17 @@ public:
 
             openChooser = std::make_unique<FileChooser>("Locate pd folder", File::getSpecialLocation(File::SpecialLocationType::globalApplicationsDirectory), "", SettingsFile::getInstance()->wantsNativeDialog());
 
-            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectDirectories, openFunc);
+#if JUCE_MAC
+    auto openFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectDirectories;
+#else
+    auto openFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
+#endif
+            openChooser->launchAsync(openFlags, openFunc);
         } else {
             if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
                 auto pdPath = pdLocation.getFullPathName();
                 auto schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();
-                ;
+
                 pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
                 pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
                 pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
