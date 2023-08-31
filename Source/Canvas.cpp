@@ -1379,8 +1379,21 @@ void Canvas::alignObjects(Align alignment)
 {
     auto objects = getSelectionOfType<Object>();
 
-    if (objects.isEmpty())
+    if (objects.size() < 2)
         return;
+
+    auto sortByXPos = [](Array<Object *> &objects){
+        std::sort(objects.begin(), objects.end(), [](const auto& a, const auto& b){
+            auto ret = a->getBounds().getX() < b->getBounds().getX();
+            return ret;
+        });
+    };
+
+    auto sortByYPos = [](Array<Object *> &objects){
+        std::sort(objects.begin(), objects.end(), [](const auto& a, const auto& b){
+            return a->getBounds().getY() < b->getBounds().getY();
+        });
+    };
 
     auto getBoundingBox = [this](Array<Object *> &objects) -> Rectangle<int> {
         auto totalBounds = Rectangle<int>();
@@ -1405,9 +1418,29 @@ void Canvas::alignObjects(Align alignment)
     // get the bounding box of all selected objects
     auto selectedBounds = getBoundingBox(objects);
 
+    auto getSpacerX = [selectedBounds](Array<Object *> &objects) -> float {
+        auto totalWidths = 0;
+        for (int i = 0; i < objects.size(); i++){
+            totalWidths += objects[i]->getWidth() - (Object::margin * 2);
+        }
+        auto selectedBoundsNoMargin = selectedBounds.getWidth() - (Object::margin * 2);
+        auto spacer = (selectedBoundsNoMargin - totalWidths) / static_cast<float>(objects.size() - 1);
+        return spacer;
+    };
+
+    auto getSpacerY = [selectedBounds](Array<Object *> &objects) -> float {
+        auto totalWidths = 0;
+        for (int i = 0; i < objects.size(); i++){
+            totalWidths += objects[i]->getHeight() - (Object::margin * 2);
+        }
+        auto selectedBoundsNoMargin = selectedBounds.getHeight() - (Object::margin * 2);
+        auto spacer = (selectedBoundsNoMargin - totalWidths) / static_cast<float>(objects.size() - 1);
+        return spacer;
+    };
+
     switch (alignment) {
     case Align::Left: {
-        auto leftPos = selectedBounds.getTopLeft().x;
+        auto leftPos = selectedBounds.getTopLeft().getX();
         for (auto* object : objects) {
             patch.moveObjectTo(object->getPointer(), leftPos, object->getBounds().getY());
         }
@@ -1449,6 +1482,28 @@ void Canvas::alignObjects(Align alignment)
         for (auto* object : objects) {
             auto objectBounds = object->getBounds();
             patch.moveObjectTo(object->getPointer(), objectBounds.getX(), centerPos - objectBounds.withZeroOrigin().getCentreY());
+        }
+        break;
+    }
+    case Align::HDistribute: {
+        sortByXPos(objects);
+        float spacer = getSpacerX(objects);
+        float offset = objects[0]->getBounds().getX();
+        for (int i = 1; i < objects.size() - 1; i++){
+            auto leftObjWidth = objects[i - 1]->getBounds().getWidth() - (Object::margin * 2);
+            offset += leftObjWidth + spacer;
+            patch.moveObjectTo(objects[i]->getPointer(), offset, objects[i]->getBounds().getY());
+        }
+        break;
+    }
+    case Align::VDistribute: {
+        sortByYPos(objects);
+        float spacer = getSpacerY(objects);
+        float offset = objects[0]->getBounds().getY();
+        for (int i = 1; i < objects.size() - 1; i++){
+            auto topObjHeight = objects[i - 1]->getBounds().getHeight() - (Object::margin * 2);
+            offset += topObjHeight + spacer;
+            patch.moveObjectTo(objects[i]->getPointer(), objects[i]->getBounds().getX(), offset);
         }
         break;
     }

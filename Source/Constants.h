@@ -99,9 +99,11 @@ struct Icons {
     inline static const String AlignLeft = "4";
     inline static const String AlignRight = "5";
     inline static const String AlignVCentre = "6";
+    inline static const String AlignHDistribute = "/";
     inline static const String AlignTop = "7";
     inline static const String AlignBottom = "8";
     inline static const String AlignHCentre = "9";
+    inline static const String AlignVDistribute = "*";
 
     // ================== OBJECT ICONS ==================
 
@@ -409,7 +411,9 @@ enum Align {
     Left = 0,
     Right,
     HCenter,
+    HDistribute,
     Top,
     Bottom,
-    VCenter
+    VCenter,
+    VDistribute
 };
