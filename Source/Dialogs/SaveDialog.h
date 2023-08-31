@@ -87,8 +87,12 @@ public:
         setOpaque(false);
 
         MessageManager::callAsync([_this = SafePointer(this)]() {
-            if (_this)
+            if (_this) {
+                // Move window to front when opening dialog
+                if(auto* topLevel = _this->getTopLevelComponent()) topLevel->toFront(false);
+    
                 _this->save.grabKeyboardFocus();
+            }
         });
     }
 
