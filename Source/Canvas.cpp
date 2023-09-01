@@ -844,20 +844,26 @@ bool Canvas::keyPressed(KeyPress const& key)
             totalBounds = totalBounds.getUnion(object->getBounds());
         }
 
-        int viewX = viewport->getViewPositionX();
-        int viewY = viewport->getViewPositionY();
+        // TODO: consider calculating the totalBounds with object->getBounds().reduced(Object::margin)
+        // then adding viewport padding in screen pixels so it's consistent regardless of scale
+        auto scale = ::getValue<float>(zoomScale);
+        auto viewportPadding = 10;
+
+        auto viewX = viewport->getViewPositionX() / scale;
+        auto viewY = viewport->getViewPositionY() / scale;
+        auto viewWidth = (viewport->getWidth() - viewportPadding) / scale;
+        auto viewHeight = (viewport->getHeight() - viewportPadding) / scale;
         if (x < 0 && totalBounds.getX() < viewX) {
             viewX = totalBounds.getX();
-        } else if (totalBounds.getRight() > viewX + viewport->getWidth()) {
-            viewX = totalBounds.getRight() - viewport->getWidth();
+        } else if (totalBounds.getRight() > viewX + viewWidth) {
+            viewX = totalBounds.getRight() - viewWidth;
         }
         if (y < 0 && totalBounds.getY() < viewY) {
             viewY = totalBounds.getY();
-        } else if (totalBounds.getBottom() > viewY + viewport->getHeight()) {
-            viewY = totalBounds.getBottom() - viewport->getHeight();
+        } else if (totalBounds.getBottom() > viewY + viewHeight) {
+            viewY = totalBounds.getBottom() - viewHeight;
         }
-
-        viewport->setViewPosition(viewX, viewY);
+        viewport->setViewPosition(viewX * scale, viewY * scale);
     };
 
     // Cancel connections being created by ESC key
