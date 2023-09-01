@@ -88,8 +88,8 @@ struct Icons {
     inline static const String Reorder = "(";
     inline static const String Object = ":";
 
-    inline static const String Heart = ",";    // TODO
-    inline static const String Download = "-"; // TODO
+    inline static const String Heart = ",";
+    inline static const String Download = "-";
 
     inline static const String Copy = "0";
     inline static const String Paste = "1";
