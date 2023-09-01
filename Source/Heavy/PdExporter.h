@@ -79,10 +79,10 @@ public:
 #elif JUCE_WINDOWS
             File pdDll;
             if(ProjectInfo::isStandalone) {
-                pdDll = File::getSpecialLocation(File::currentApplicationFile).getParentDirectory().getChildFile("pd.dll");
+                pdDll = File::getSpecialLocation(File::currentApplicationFile).getParentDirectory();
             }
             else {
-                pdDll = File::getSpecialLocation(File::globalApplicationsDirectory).getChildFile("plugdata").getChildFile("pd.dll");
+                pdDll = File::getSpecialLocation(File::globalApplicationsDirectory).getChildFile("plugdata");
             }
             
             auto path = "export PATH=\"$PATH:" + Toolchain::dir.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + "\"\n";
