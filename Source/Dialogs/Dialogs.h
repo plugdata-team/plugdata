@@ -17,11 +17,10 @@ using ArrayDialogCallback = std::function<void(int, String, int, int, bool, std:
 class Dialog : public Component {
 
 public:
-    Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton, int margin = 0)
+    Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0)
         : parentComponent(editor)
         , height(childHeight)
         , width(childWidth)
-        , y(yPosition)
         , owner(ownerPtr)
         , backgroundMargin(margin)
     {
@@ -90,7 +89,7 @@ public:
     {
         if (viewedComponent) {
             viewedComponent->setSize(width, height);
-            viewedComponent->setCentrePosition({ getBounds().getCentreX(), y - (height / 2) });
+            viewedComponent->setCentrePosition({ getBounds().getCentreX(), getBounds().getCentreY() });
         }
 
         if (closeButton) {
@@ -120,7 +119,7 @@ public:
         owner->reset(nullptr);
     }
 
-    int height, width, y;
+    int height, width;
 
     Component* parentComponent;
 
