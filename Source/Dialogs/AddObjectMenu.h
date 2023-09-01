@@ -67,6 +67,9 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
+        if (e.getDistanceFromDragStart() < 5)
+            return;
+
         auto* dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
         if (dragContainer->isDragAndDropActive())
@@ -91,7 +94,8 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        dismissMenu(false);
+        if (e.mouseWasDraggedSinceMouseDown())
+            dismissMenu(false);
     }
 
     void lookAndFeelChanged() override
