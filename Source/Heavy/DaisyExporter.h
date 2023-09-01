@@ -322,7 +322,7 @@ public:
                 return heavyExitCode && flashExitCode;
             } else {
                 auto binLocation = outputFile.getChildFile(name + ".bin");
-                sourceDir.getChildFile("build").getChildFile("Heavy_" + name + ".bin").moveFileTo(binLocation);
+                sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin").moveFileTo(binLocation);
             }
 
             outputFile.getChildFile("daisy").deleteRecursively();
