@@ -422,6 +422,8 @@ public:
 
         bool hitTest(int x, int y) override
         {
+            if(!isEnabled()) return false;
+            
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
             return bounds.contains(x, y);
         }
@@ -443,6 +445,11 @@ public:
             }
 
             auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            
+            if(!isEnabled())
+            {
+                textColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f);
+            }
             Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
 
             // Paint label
