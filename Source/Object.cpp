@@ -22,6 +22,7 @@
 #include "Objects/ObjectBase.h"
 
 #include "Dialogs/Dialogs.h"
+#include "Heavy/CompatibleObjects.h"
 
 #include "Pd/Patch.h"
 
@@ -206,7 +207,7 @@ bool Object::checkIfHvccCompatible()
         // Check hvcc compatibility
         bool isSubpatch = gui->getPatch() != nullptr;
 
-        return !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
+        return !getValue<bool>(hvccMode) || isSubpatch || HeavyCompatibleObjects::getAllCompatibleObjects();
     }
 
     return true;
