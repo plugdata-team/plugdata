@@ -68,6 +68,9 @@ public:
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
 
+        bool debugPrint = getValue<int>(debugPrintValue);
+        usbMidiProperty->setEnabled(!debugPrint);
+
         if (v.refersToSameSourceAs(targetBoardValue)) {
             int idx = getValue<int>(targetBoardValue);
 
@@ -125,7 +128,7 @@ public:
         }
 
         // enable debug printing option
-        if (usbMidi) {
+        if (usbMidi && !print) {
             metaDaisy.getDynamicObject()->setProperty("usb_midi", "True");
         }
 
