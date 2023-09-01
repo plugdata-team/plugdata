@@ -8,6 +8,7 @@ class DaisyExporter : public ExporterBase {
 public:
     Value targetBoardValue = Value(var(1));
     Value exportTypeValue = Value(var(3));
+    Value usbMidiValue = Value(var(0));
     Value debugPrintValue = Value(var(0));
     Value patchSizeValue = Value(var(1));
     Value romOptimisationType = Value(var(2));
@@ -18,6 +19,7 @@ public:
     TextButton flashButton = TextButton("Flash");
     PropertiesPanel::Property* ramOptimisation;
     PropertiesPanel::Property* romOptimisation;
+    PropertiesPanel::Property* usbMidiProperty;
 
     DaisyExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
@@ -25,6 +27,8 @@ public:
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Simple", "Custom JSON..." }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
+        usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
+        properties.add(usbMidiProperty);
         properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
         properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge" }));
 
@@ -48,6 +52,7 @@ public:
 
         exportTypeValue.addListener(this);
         targetBoardValue.addListener(this);
+        usbMidiValue.addListener(this);
         debugPrintValue.addListener(this);
         patchSizeValue.addListener(this);
 
@@ -78,6 +83,9 @@ public:
         ramOptimisation->setVisible(size);
         romOptimisation->setVisible(size);
 
+        bool debugPrint = getValue<int>(debugPrintValue);
+        usbMidiProperty->setEnabled(!debugPrint);
+
         if (v.refersToSameSourceAs(targetBoardValue)) {
             int idx = getValue<int>(targetBoardValue);
 
@@ -105,6 +113,7 @@ public:
         auto target = getValue<int>(targetBoardValue) - 1;
         bool compile = getValue<int>(exportTypeValue) - 1;
         bool flash = getValue<int>(exportTypeValue) == 3;
+        bool usbMidi = getValue<int>(usbMidiValue);
         bool print = getValue<int>(debugPrintValue);
         auto size = getValue<int>(patchSizeValue);
 
@@ -131,6 +140,11 @@ public:
             metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("etc").getChildFile("simple.json").getFullPathName());
         } else {
             metaDaisy.getDynamicObject()->setProperty("board", board);
+        }
+
+        // enable debug printing option
+        if (usbMidi) {
+            metaDaisy.getDynamicObject()->setProperty("usb_midi", "True");
         }
 
         // enable debug printing option
