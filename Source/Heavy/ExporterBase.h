@@ -51,7 +51,8 @@ struct ExporterBase : public Component
         , editor(pluginEditor)
     {
         addAndMakeVisible(exportButton);
-
+        exportButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+        
         Array<PropertiesPanel::Property*> properties;
 
         auto* patchChooser = new PropertiesPanel::ComboComponent("Patch to export", inputPatchValue, { "Currently opened patch", "Other patch (browse)" });

@@ -45,6 +45,8 @@ public:
 
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
+        
+        flashButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
         exportTypeValue.addListener(this);
         targetBoardValue.addListener(this);
