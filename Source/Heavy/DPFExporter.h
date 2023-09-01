@@ -22,6 +22,7 @@ public:
     {
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
+        
         properties.add(new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" }));
         properties.add(new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, { "No", "yes" }));
 

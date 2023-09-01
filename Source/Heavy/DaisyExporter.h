@@ -11,14 +11,10 @@ public:
     Value usbMidiValue = Value(var(0));
     Value debugPrintValue = Value(var(0));
     Value patchSizeValue = Value(var(1));
-    Value romOptimisationType = Value(var(2));
-    Value ramOptimisationType = Value(var(2));
 
     File customBoardDefinition;
 
     TextButton flashButton = TextButton("Flash");
-    PropertiesPanel::Property* ramOptimisation;
-    PropertiesPanel::Property* romOptimisation;
     PropertiesPanel::Property* usbMidiProperty;
 
     DaisyExporter(PluginEditor* editor, ExportingProgressView* exportingView)
@@ -32,15 +28,6 @@ public:
         properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
         properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge" }));
 
-        romOptimisation = new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, { "Optimise for size", "Optimise for speed" });
-        ramOptimisation = new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, { "Optimise for size", "Optimise for speed" });
-
-        properties.add(romOptimisation);
-        properties.add(ramOptimisation);
-
-        romOptimisation->setVisible(false);
-        ramOptimisation->setVisible(false);
-
         for (auto* property : properties) {
             property->setPreferredHeight(28);
         }
@@ -49,6 +36,8 @@ public:
 
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
+
+        flashButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
         exportTypeValue.addListener(this);
         targetBoardValue.addListener(this);
@@ -78,13 +67,6 @@ public:
         bool flash = getValue<int>(exportTypeValue) == 3;
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
-
-        bool size = getValue<int>(patchSizeValue) == 4;
-        ramOptimisation->setVisible(size);
-        romOptimisation->setVisible(size);
-
-        bool debugPrint = getValue<int>(debugPrintValue);
-        usbMidiProperty->setEnabled(!debugPrint);
 
         if (v.refersToSameSourceAs(targetBoardValue)) {
             int idx = getValue<int>(targetBoardValue);
@@ -334,7 +316,7 @@ public:
                 return heavyExitCode && flashExitCode;
             } else {
                 auto binLocation = outputFile.getChildFile(name + ".bin");
-                sourceDir.getChildFile("build").getChildFile("Heavy_" + name + ".bin").moveFileTo(binLocation);
+                sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin").moveFileTo(binLocation);
             }
 
             outputFile.getChildFile("daisy").deleteRecursively();
