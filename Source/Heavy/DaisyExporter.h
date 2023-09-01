@@ -8,6 +8,8 @@ class DaisyExporter : public ExporterBase {
 public:
     Value targetBoardValue = Value(var(1));
     Value exportTypeValue = Value(var(3));
+    Value debugPrintValue = Value(var(0));
+    Value patchSizeValue = Value(var(1));
     Value romOptimisationType = Value(var(2));
     Value ramOptimisationType = Value(var(2));
 
@@ -22,14 +24,18 @@ public:
     {
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Simple", "Custom JSON..." }));
-
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
+        properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
+        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge", "Advanced" }));
 
         romOptimisation = new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, { "Optimise for size", "Optimise for speed" });
         ramOptimisation = new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, { "Optimise for size", "Optimise for speed" });
 
         properties.add(romOptimisation);
         properties.add(ramOptimisation);
+
+        romOptimisation->setVisible(false);
+        ramOptimisation->setVisible(false);
 
         for (auto* property : properties) {
             property->setPreferredHeight(28);
@@ -42,6 +48,8 @@ public:
 
         exportTypeValue.addListener(this);
         targetBoardValue.addListener(this);
+        debugPrintValue.addListener(this);
+        patchSizeValue.addListener(this);
 
         flashButton.onClick = [this]() {
             auto tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
@@ -66,8 +74,9 @@ public:
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
 
-        ramOptimisation->setVisible(flash);
-        romOptimisation->setVisible(flash);
+        bool size = getValue<int>(patchSizeValue) == 4;
+        ramOptimisation->setVisible(size);
+        romOptimisation->setVisible(size);
 
         if (v.refersToSameSourceAs(targetBoardValue)) {
             int idx = getValue<int>(targetBoardValue);
@@ -96,6 +105,9 @@ public:
         auto target = getValue<int>(targetBoardValue) - 1;
         bool compile = getValue<int>(exportTypeValue) - 1;
         bool flash = getValue<int>(exportTypeValue) == 3;
+        bool print = getValue<int>(debugPrintValue);
+        auto size = getValue<int>(patchSizeValue);
+        bool bootloader = false;
 
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
 
@@ -107,6 +119,7 @@ public:
             args.add("\"" + copyright + "\"");
         }
 
+        // set board definition
         auto boards = StringArray { "seed", "pod", "petal", "patch", "patch_init", "field", "simple", "custom" };
         auto const& board = boards[target];
 
@@ -120,6 +133,42 @@ public:
         } else {
             metaDaisy.getDynamicObject()->setProperty("board", board);
         }
+
+        // enable debug printing option
+        if (print) {
+            metaDaisy.getDynamicObject()->setProperty("debug_printing", "True");
+        }
+
+        // set linker script and bootloader
+        auto linkerDir = Toolchain::dir.getChildFile("etc").getChildFile("linkers");
+        File linkerFile;
+
+        if (size == 2) {
+            metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("sram_linker_sdram.lds").getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
+            bootloader = true;
+        } else if (size == 3) {
+            metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("qspi_linker_sdram.lds").getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
+            bootloader = true;
+        } else if (size == 4) {
+            int ramType = getValue<int>(ramOptimisationType);
+            int romType = getValue<int>(romOptimisationType);
+
+            if (romType == 1) {
+                if (ramType == 1) {
+                    metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("sram_linker_sdram.lds").getFullPathName());
+                } else if (ramType == 2) {
+                    metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("sram_linker.lds").getFullPathName());
+                }
+
+                metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
+                bootloader = true;
+            } else if (romType == 2 && ramType == 1) {
+                metaDaisy.getDynamicObject()->setProperty("linker_script", linkerDir.getChildFile("default_linker_sdram.lds").getFullPathName());
+            }
+        }
+
         metaJson->setProperty("daisy", metaDaisy);
         args.add("-m" + createMetaJson(metaJson));
 
@@ -169,9 +218,6 @@ public:
 
             sourceDir.getChildFile("build").createDirectory();
             Toolchain::dir.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
-            Toolchain::dir.getChildFile("etc").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
-
-            bool bootloader = setMakefileVariables(sourceDir.getChildFile("Makefile"));
 
             auto const& gccPath = bin.getFullPathName();
 
@@ -208,35 +254,62 @@ public:
                 auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
 
                 if (bootloader) {
-                    exportingView->logToConsole("Flashing bootloader...");
+                    // We should first detect whether our device already has the bootloader installed
+                    // This (likely) is not the case when more than one altsetting is found by dfu-util
+                    //
+                    // # No Bootloader:
+                    // Found DFU: [0483:df11] ver=0200, devnum=33, cfg=1, intf=0, path="1-4", alt=1, name="@Option Bytes   /0x5200201C/01*128 e", serial="200364500000"
+                    // Found DFU: [0483:df11] ver=0200, devnum=33, cfg=1, intf=0, path="1-4", alt=0, name="@Internal Flash   /0x08000000/16*128Kg", serial="200364500000"
+
+                    // # Bootloader:
+                    // Found DFU: [0483:df11] ver=0200, devnum=46, cfg=1, intf=0, path="1-4", alt=0, name="@Flash /0x90000000/64*4Kg/0x90040000/60*64Kg/0x90400000/60*64Kg", serial="395B377C3330"
+                    //
+                    // So we check for `alt=1`
+
+                    exportingView->logToConsole("Testing bootloader...\n");
+
+                    String testBootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
+                        + dfuUtil.getFullPathName() + " -l ";
+
+                    Toolchain runTest;
+                    auto output = runTest.startShellScriptWithOutput(testBootloaderScript);
+                    bool bootloaderNotFound = output.contains("alt=1");
+
+                    if (bootloaderNotFound) {
+                        exportingView->logToConsole("Bootloader not found...\n");
+                        exportingView->logToConsole("Flashing bootloader...\n");
 
 #if JUCE_WINDOWS
-                    String bootloaderScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
-                        + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
-                        + make.getFullPathName().replaceCharacter('\\', '/') + " program-boot"
-                        + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/')
-                        + " PROJECT_NAME=" + name;
+                        String bootloaderScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
+                            + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
+                            + make.getFullPathName().replaceCharacter('\\', '/') + " program-boot"
+                            + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/')
+                            + " PROJECT_NAME=" + name;
 #else
-                    String bootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
-                        + "cd " + sourceDir.getFullPathName() + "\n"
-                        + make.getFullPathName() + " program-boot"
-                        + " GCC_PATH=" + gccPath
-                        + " PROJECT_NAME=" + name;
+                        String bootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
+                            + "cd " + sourceDir.getFullPathName() + "\n"
+                            + make.getFullPathName() + " program-boot"
+                            + " GCC_PATH=" + gccPath
+                            + " PROJECT_NAME=" + name;
 #endif
 
-                    Toolchain::startShellScript(bootloaderScript, this);
+                        Toolchain::startShellScript(bootloaderScript, this);
 
-                    waitForProcessToFinish(-1);
-                    exportingView->flushConsole();
+                        waitForProcessToFinish(-1);
+                        exportingView->flushConsole();
 
-                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 600);
+                        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 600);
 
-                    // We need to enable DFU mode again after flashing the bootloader
-                    // This will show DFU mode dialog synchonously
-                    // exportingView->waitForUserInput("Please put your Daisy in DFU mode again");
+                        // We need to enable DFU mode again after flashing the bootloader
+                        // This will show DFU mode dialog synchonously
+                        // exportingView->waitForUserInput("Please put your Daisy in DFU mode again");
+
+                    } else {
+                        exportingView->logToConsole("Bootloader found...\n");
+                    }
                 }
 
-                exportingView->logToConsole("Flashing...");
+                exportingView->logToConsole("Flashing...\n");
 
 #if JUCE_WINDOWS
                 String flashScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
@@ -283,42 +356,5 @@ public:
             outputFile.getChildFile("c").deleteRecursively();
             return heavyExitCode;
         }
-    }
-
-    bool setMakefileVariables(File const& makefile) const
-    {
-
-        int ramType = getValue<int>(ramOptimisationType);
-        int romType = getValue<int>(romOptimisationType);
-
-        auto linkerDir = Toolchain::dir.getChildFile("etc").getChildFile("linkers");
-        File linkerFile;
-
-        bool bootloader = false;
-
-        // Optimisation: 1 is size, 2 is speed
-        if (romType == 1) {
-            if (ramType == 1) {
-                linkerFile = linkerDir.getChildFile("sram_linker_sdram.lds");
-            } else if (ramType == 2) {
-                linkerFile = linkerDir.getChildFile("sram_linker.lds");
-            }
-
-            bootloader = true;
-        } else if (romType == 2 && ramType == 1) {
-            linkerFile = linkerDir.getChildFile("default_linker_sdram.lds");
-        }
-        // 2-2 is skipped because it's the default
-
-        // Modify makefile
-        auto makefileText = makefile.loadFileAsString();
-        if (linkerFile.existsAsFile())
-            makefileText = makefileText.replace("# LINKER", "LDSCRIPT = " + linkerFile.getFullPathName());
-        if (bootloader)
-            makefileText = makefileText.replace("# BOOTLOADER", "APP_TYPE = BOOT_SRAM");
-
-        makefile.replaceWithText(makefileText, false, false, "\n");
-
-        return bootloader;
     }
 };
