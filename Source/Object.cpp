@@ -207,7 +207,7 @@ bool Object::checkIfHvccCompatible()
         // Check hvcc compatibility
         bool isSubpatch = gui->getPatch() != nullptr;
 
-        return !getValue<bool>(hvccMode) || isSubpatch || HeavyCompatibleObjects::getAllCompatibleObjects();
+        return !getValue<bool>(hvccMode) || isSubpatch || HeavyCompatibleObjects::getAllCompatibleObjects().contains(typeName);
     }
 
     return true;

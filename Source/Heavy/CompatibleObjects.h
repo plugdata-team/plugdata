@@ -217,7 +217,8 @@ struct HeavyCompatibleObjects
         "comment",
         "floatbox",
         "symbolbox",
-        "message"
+        "message",
+        "invalid"
     };
     
     static StringArray getAllCompatibleObjects()
