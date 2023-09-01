@@ -58,7 +58,7 @@ void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre,
     if (*target)
         return;
 
-    auto* dialog = new Dialog(target, centre, 265, 270, centre->getBounds().getCentreY() + 130, false, margin);
+    auto* dialog = new Dialog(target, centre, 265, 270, false, margin);
     auto* saveDialog = new SaveDialog(dialog, filename, std::move(callback));
 
     dialog->setViewedComponent(saveDialog);
@@ -71,7 +71,7 @@ void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre
     if (*target)
         return;
 
-    auto* dialog = new Dialog(target, centre, 300, 270, 350, false);
+    auto* dialog = new Dialog(target, centre, 300, 270, false);
     auto* arrayDialog = new ArrayDialog(dialog, std::move(callback));
     dialog->setViewedComponent(arrayDialog);
     target->reset(dialog);
@@ -79,7 +79,7 @@ void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre
 
 void Dialogs::showSettingsDialog(PluginEditor* editor)
 {
-    auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
+    auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, true);
     auto* settingsDialog = new SettingsDialog(editor);
     dialog->setViewedComponent(settingsDialog);
     editor->openedDialog.reset(dialog);
@@ -133,7 +133,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             case MainMenu::MenuItem::About: {
-                auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
+                auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, true);
                 auto* aboutPanel = new AboutPanel();
                 dialog->setViewedComponent(aboutPanel);
                 editor->openedDialog.reset(dialog);
@@ -196,7 +196,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         TextButton okay = TextButton("OK");
     };
 
-    auto* dialog = new Dialog(target, parent, 400, 130, 160, false);
+    auto* dialog = new Dialog(target, parent, 400, 130, false);
     auto* dialogContent = new OkayCancelDialog(dialog, title, callback);
 
     dialog->setViewedComponent(dialogContent);
@@ -205,7 +205,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
 
 void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent)
 {
-    auto* dialog = new Dialog(target, parent, 625, 400, parent->getBounds().getCentreY() + 200, true);
+    auto* dialog = new Dialog(target, parent, 625, 400, true);
     auto* dialogContent = new HeavyExportDialog(dialog);
 
     dialog->setViewedComponent(dialogContent);
@@ -215,7 +215,7 @@ void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* 
 void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent)
 {
 
-    auto* dialog = new Dialog(target, parent, 750, 450, parent->getBounds().getCentreY() + 200, true);
+    auto* dialog = new Dialog(target, parent, 750, 450, true);
     auto* dialogContent = new ObjectBrowserDialog(parent, dialog);
 
     dialog->setViewedComponent(dialogContent);
@@ -224,7 +224,7 @@ void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component
 
 void Dialogs::showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& objectName)
 {
-    auto* dialog = new Dialog(target, parent, 750, 450, parent->getBounds().getCentreY() + 200, true);
+    auto* dialog = new Dialog(target, parent, 750, 450, true);
     auto* dialogContent = new ObjectReferenceDialog(dynamic_cast<PluginEditor*>(parent), false);
 
     dialogContent->showObject(objectName);
@@ -235,7 +235,7 @@ void Dialogs::showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Compone
 
 void Dialogs::showDeken(PluginEditor* editor)
 {
-    auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
+    auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, true);
     auto* dialogContent = new Deken();
     dialog->setViewedComponent(dialogContent);
     editor->openedDialog.reset(dialog);
@@ -243,7 +243,7 @@ void Dialogs::showDeken(PluginEditor* editor)
 
 void Dialogs::showPatchStorage(PluginEditor* editor)
 {
-    auto* dialog = new Dialog(&editor->openedDialog, editor, 800, 550, editor->getBounds().getCentreY() + 290, true);
+    auto* dialog = new Dialog(&editor->openedDialog, editor, 800, 550, true);
     auto* dialogContent = new PatchStorage();
     dialog->setViewedComponent(dialogContent);
     editor->openedDialog.reset(dialog);
@@ -341,7 +341,7 @@ void Dialogs::askToLocatePatch(PluginEditor* editor, String const& backupState, 
         TextButton locate = TextButton("Locate...");
     };
 
-    auto* dialog = new Dialog(&editor->openedDialog, editor, 400, 130, 160, false);
+    auto* dialog = new Dialog(&editor->openedDialog, editor, 400, 130, false);
     auto* dialogContent = new LocatePatchDialog(dialog, backupState, std::move(callback));
 
     dialog->setViewedComponent(dialogContent);
