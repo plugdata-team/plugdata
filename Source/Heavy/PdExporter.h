@@ -77,11 +77,20 @@ public:
 #if JUCE_MAC
             Toolchain::startShellScript("make -j4", this);
 #elif JUCE_WINDOWS
+            File pdDll;
+            if(ProjectInfo::isStandalone) {
+                pdDll = File::getSpecialLocation(File::currentApplicationFile).getParentDirectory().getChildFile("pd.dll");
+            }
+            else {
+                pdDll = File::getSpecialLocation(File::globalApplicationsDirectory).getChildFile("plugdata").getChildFile("pd.dll");
+            }
+            
             auto path = "export PATH=\"$PATH:" + Toolchain::dir.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + "\"\n";
             auto cc = "CC=" + Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
             auto cxx = "CXX=" + Toolchain::dir.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
+            auto pdbindir = "PDBINDIR=" + pdDll.getFullPathName().replaceCharacter('\\', '/') + " ";
 
-            Toolchain::startShellScript(path + cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4", this);
+            Toolchain::startShellScript(path + cc + cxx + pdbindir + make.getFullPathName().replaceCharacter('\\', '/') + " -j4", this);
 
 #else // Linux or BSD
             auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
