@@ -184,8 +184,6 @@ public:
             sourceDir.setAsCurrentWorkingDirectory();
 
             sourceDir.getChildFile("build").createDirectory();
-            Toolchain::dir.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
-
             auto const& gccPath = bin.getFullPathName();
 
 #if JUCE_WINDOWS
@@ -242,6 +240,7 @@ public:
                     auto output = runTest.startShellScriptWithOutput(testBootloaderScript);
                     bool bootloaderNotFound = output.contains("alt=1");
 
+                    
                     if (bootloaderNotFound) {
                         exportingView->logToConsole("Bootloader not found...\n");
                         exportingView->logToConsole("Flashing bootloader...\n");
@@ -265,7 +264,7 @@ public:
                         waitForProcessToFinish(-1);
                         exportingView->flushConsole();
 
-                        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 600);
+                        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 900);
 
                         // We need to enable DFU mode again after flashing the bootloader
                         // This will show DFU mode dialog synchonously
