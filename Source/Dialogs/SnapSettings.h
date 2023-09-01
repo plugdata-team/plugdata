@@ -63,7 +63,6 @@ public:
         , public Value::Listener
         , public SettableTooltipClient {
     private:
-            
         const String property = "grid_type";
 
         SnapBitMask snapBit;
@@ -99,37 +98,36 @@ public:
                 g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
                 PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
             }
-            
+
             auto iconColour = getToggleState() ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
             auto textColour = findColour(PlugDataColour::toolbarTextColourId);
-            
-            if(isMouseOver())
-            {
+
+            if (isMouseOver()) {
                 iconColour = iconColour.contrasting(0.3f);
                 textColour = textColour.contrasting(0.3f);
             }
-            
+
             Fonts::drawIcon(g, icon, Rectangle<int>(0, 0, 30, getHeight()), iconColour, 14);
             Fonts::drawText(g, groupName, Rectangle<int>(30, 0, getWidth(), getHeight()), textColour, 14);
         }
-            
+
         bool getToggleState()
         {
             return getValue<int>(snapValue) & snapBit;
         }
-            
+
         void setToggleState(bool state)
         {
             auto currentBitValue = getValue<int>(snapValue);
-            
+
             if (state) {
                 snapValue = currentBitValue | snapBit;
             } else {
-                snapValue = currentBitValue &~ snapBit;
+                snapValue = currentBitValue & ~snapBit;
             }
-            
+
             SettingsFile::getInstance()->setProperty(property, snapValue);
-            
+
             repaint();
         }
 

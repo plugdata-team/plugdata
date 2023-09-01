@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2021-2023 Timothy Schoen and Alex Mitchell
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #include "OfflineObjectRenderer.h"
 #include "Constants.h"
 #include "PluginEditor.h"
@@ -7,11 +13,11 @@
 
 #include "Pd/Patch.h"
 
-
-OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* instance) : pd(instance)
+OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* instance)
+    : pd(instance)
 {
     pd->setThis();
-    
+
     auto patchFile = File::createTempFile(".pd");
     patchFile.replaceWithText(pd::Instance::defaultPatch);
     String dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
@@ -33,10 +39,10 @@ OfflineObjectRenderer* OfflineObjectRenderer::findParentOfflineObjectRendererFor
 ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float scale)
 {
     pd->setThis();
-    
+
     sys_lock();
     pd->muteConsole(true);
-    
+
     objectRects.clear();
     totalSize.setBounds(0, 0, 0, 0);
     int obj_x, obj_y, obj_w, obj_h;
@@ -64,10 +70,10 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
         // move to the next object in the linked list
         object = nextObject;
     }
-    
+
     pd->muteConsole(false);
     sys_unlock();
-    
+
     // apply the top left offset to all rects
     for (auto& rect : objectRects) {
         rect.translate(-totalSize.getX(), -totalSize.getY());
@@ -82,17 +88,17 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     }
     // ALEX TODO we shouldn't apply alpha here! Do it in the zoomableDragAndDropContainer
     image.multiplyAllAlphas(0.3f);
-    
+
     return ImageWithOffset(image, size);
 }
 
 bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
 {
     pd->setThis();
-    
+
     sys_lock();
     pd->muteConsole(true);
-    
+
     bool isValid = false;
     libpd_paste(offlineCnv, stripConnections(patch).toRawUTF8());
 
@@ -105,10 +111,10 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
         libpd_removeobj(offlineCnv, object);
         object = nextObject;
     }
-    
+
     pd->muteConsole(false);
     sys_unlock();
-    
+
     return isValid;
 }
 
@@ -124,7 +130,7 @@ String OfflineObjectRenderer::stripConnections(String const& patch)
 
     String strippedPatch;
 
-    for (const auto& line : lines) {
+    for (auto const& line : lines) {
         strippedPatch += line + "\n";
     }
 
@@ -136,29 +142,26 @@ std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIole
     std::vector<bool> inlets;
     std::vector<bool> outlets;
     pd->setThis();
-    
+
     sys_lock();
     pd->muteConsole(true);
     libpd_paste(offlineCnv, stripConnections(patch).toRawUTF8());
-    
+
     if (auto* object = reinterpret_cast<t_object*>(offlineCnv->gl_list)) {
         int numIn = libpd_ninlets(object);
         int numOut = libpd_noutlets(object);
-        for(int i = 0; i < numIn; i++)
-        {
+        for (int i = 0; i < numIn; i++) {
             inlets.push_back(libpd_issignalinlet(object, i));
         }
-        for(int i = 0; i < numOut; i++)
-        {
+        for (int i = 0; i < numOut; i++) {
             outlets.push_back(libpd_issignaloutlet(object, i));
         }
     }
-    
+
     glist_clear(offlineCnv);
-    
+
     pd->muteConsole(false);
     sys_unlock();
-    
+
     return std::make_pair(inlets, outlets);
 }
-

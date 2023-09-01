@@ -146,8 +146,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         lastCentre = filterCentre;
         lastX1 = filterX1;
         lastX2 = filterX2;
@@ -506,7 +507,7 @@ class BicoeffObject : public ObjectBase {
 
     BicoeffGraph graph;
     Value sizeProperty = SynchronousValue();
-    
+
 public:
     BicoeffObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -518,7 +519,7 @@ public:
             if (auto obj = ptr.get<void>())
                 pd->sendDirectMessage(obj.get(), "biquad", { a1, a2, b0, b1, b2 });
         };
-        
+
         objectParameters.addParamSize(&sizeProperty);
     }
 
@@ -526,37 +527,38 @@ public:
     {
         graph.setBounds(getLocalBounds());
     }
-    
+
     void update() override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            
+
             auto* patch = object->cnv->patch.getPointer().get();
-            if (!patch) return;
-            
+            if (!patch)
+                return;
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
-            
-            sizeProperty = Array<var>{var(w), var(h)};
+
+            sizeProperty = Array<var> { var(w), var(h) };
         }
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
-        
+
         if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = object->cnv->patch.getPointer().get();
-            if (!patch) return;
-            
+            if (!patch)
+                return;
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
-            
-            setParameterExcludingListener(sizeProperty, Array<var>{var(w), var(h)});
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(w), var(h) });
         }
     }
-    
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
@@ -564,17 +566,17 @@ public:
             auto* constrainer = getConstrainer();
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
-            
-            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
-            
-            if (auto gobj = ptr.get<t_gobj>())
-            {
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto gobj = ptr.get<t_gobj>()) {
                 auto* patch = object->cnv->patch.getPointer().get();
-                if (!patch) return;
-                
+                if (!patch)
+                    return;
+
                 pd->sendDirectMessage(gobj.get(), "dim", { (float)width, (float)height });
             }
-            
+
             object->updateBounds();
         }
     }
@@ -583,7 +585,8 @@ public:
     {
         if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = object->cnv->patch.getPointer().get();
-            if (!patch) return {};
+            if (!patch)
+                return {};
 
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);

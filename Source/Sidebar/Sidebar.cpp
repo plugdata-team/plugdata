@@ -79,7 +79,6 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     };
     addAndMakeVisible(searchButton);
 
-
     panelPinButton.setTooltip("Pin panel");
     panelPinButton.setConnectedEdges(12);
     panelPinButton.getProperties().set("Style", "SmallIcon");
@@ -148,8 +147,9 @@ void Sidebar::resized()
     searchButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
 
     auto panelTitleBarBounds = bounds.removeFromTop(30);
-    
-    if(extraSettingsButton) extraSettingsButton->setBounds(panelTitleBarBounds.removeFromRight(30));
+
+    if (extraSettingsButton)
+        extraSettingsButton->setBounds(panelTitleBarBounds.removeFromRight(30));
     panelPinButton.setBounds(panelTitleBarBounds.removeFromLeft(30));
 
     browser->setBounds(bounds);
@@ -262,9 +262,8 @@ void Sidebar::showSidebar(bool show)
     } else {
         int newWidth = lastWidth;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
-        
-        if(inspector->isVisible())
-        {
+
+        if (inspector->isVisible()) {
             inspector->showParameters();
         }
     }
@@ -300,23 +299,17 @@ void Sidebar::showParameters(String const& name, ObjectParameters& params)
 
 void Sidebar::updateExtraSettingsButton()
 {
-    if(inspector->isVisible())
-    {
+    if (inspector->isVisible()) {
         extraSettingsButton = inspector->getExtraSettingsComponent();
-    }
-    else if(console->isVisible())
-    {
+    } else if (console->isVisible()) {
         extraSettingsButton = console->getExtraSettingsComponent();
-    }
-    else if(browser->isVisible())
-    {
+    } else if (browser->isVisible()) {
         extraSettingsButton = browser->getExtraSettingsComponent();
-    }
-    else {
+    } else {
         extraSettingsButton.reset(nullptr);
         return;
     }
-    
+
     addAndMakeVisible(*extraSettingsButton);
     resized();
 }
@@ -332,7 +325,7 @@ void Sidebar::showParameters()
         searchPanel->setVisible(false);
         automationPanel->setVisible(false);
     }
-    
+
     updateExtraSettingsButton();
     repaint();
 }
@@ -349,7 +342,7 @@ void Sidebar::hideParameters()
 
     console->deselect();
     updateExtraSettingsButton();
-    
+
     repaint();
 }
 

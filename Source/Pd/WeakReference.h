@@ -18,10 +18,13 @@ namespace pd {
 class Instance;
 struct WeakReference {
     WeakReference(void* p, Instance* instance);
+
+    WeakReference();
+
     ~WeakReference();
-    
-    WeakReference& operator=(const WeakReference& other);
-    
+
+    WeakReference& operator=(WeakReference const& other);
+
     void setThis() const;
 
     template<typename T>
@@ -87,7 +90,7 @@ struct WeakReference {
     }
 
 private:
-    t_pd* ptr;
+    void* ptr;
     Instance* pd;
     pd_weak_reference weakRef = true;
 };

@@ -367,7 +367,24 @@ public:
 
         adjustScrollbarBounds();
 
+        float scale = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+
+        // centre canvas when resizing viewport
+        auto getCentre = [this, scale](Rectangle<int> bounds) {
+            if (scale > 1.0f) {
+                auto point = cnv->getLocalPoint(this, bounds.withZeroOrigin().getCentre());
+                return point * scale;
+            }
+            return getViewArea().withZeroOrigin().getCentre();
+        };
+
+        auto currentCenter = getCentre(previousBounds);
+        previousBounds = getBounds();
         Viewport::resized();
+        auto newCenter = getCentre(getBounds());
+
+        auto offset = currentCenter - newCenter;
+        setViewPosition(getViewPosition() + offset);
     }
 
     // Never respond to arrow keys, they have a different meaning
@@ -382,6 +399,7 @@ private:
     Time lastScrollTime;
     PluginEditor* editor;
     Canvas* cnv;
+    Rectangle<int> previousBounds;
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);

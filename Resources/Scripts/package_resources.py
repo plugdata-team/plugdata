@@ -72,8 +72,8 @@ copyDir("../../Libraries/pure-data/doc", "./Documentation")
 globCopy("../../Libraries/pure-data/extra/*.pd", "./Abstractions")
 globCopy("../../Libraries/pure-data/extra/**/*-help.pd", "./Abstractions")
 
-globCopy("../../Libraries/pd-else/Code_source/Abstractions/abs_objects/control/*.pd", "./Abstractions/else")
-globCopy("../../Libraries/pd-else/Code_source/Abstractions/abs_objects/signal/*.pd", "./Abstractions/else")
+globCopy("../../Libraries/pd-else/Code_source/Abstractions/control/*.pd", "./Abstractions/else")
+globCopy("../../Libraries/pd-else/Code_source/Abstractions/audio/*.pd", "./Abstractions/else")
 globCopy("../../Libraries/pd-else/Code_source/Abstractions/extra_abs/*.pd", "./Abstractions/else")
 copyFile("../Patches/playhead.pd", "./Abstractions")
 copyFile("../Patches/param.pd", "./Abstractions")
@@ -99,7 +99,7 @@ removeFile("./Documentation/Makefile.am")
 makeDir("Extra")
 makeDir("Extra/GS")
 copyDir("../../Libraries/pd-else/Documentation/extra_files", "Extra/else");
-copyDir("../../Libraries/pd-else/Code_source/Compiled/signal/sfont~/sf", "Extra/else/sf");
+copyDir("../../Libraries/pd-else/Code_source/Compiled/audio/sfont~/sf", "Extra/else/sf");
 copyDir("../Patches/Presets", "./Extra/Presets")
 copyDir("../Patches/Palettes", "./Extra/palette")
 globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else");

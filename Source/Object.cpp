@@ -128,7 +128,7 @@ void Object::initialise()
 
 void Object::timerCallback(int timerID)
 {
-    switch (timerID){
+    switch (timerID) {
     case 1: {
         auto pos = cnv->getMouseXYRelative();
         if (pos != getBounds().getCentre()) {
@@ -163,13 +163,11 @@ void Object::setSelected(bool shouldBeSelected)
         selectedFlag = shouldBeSelected;
         repaint();
     }
-    
-    if(!shouldBeSelected && Object::consoleTarget == this)
-    {
+
+    if (!shouldBeSelected && Object::consoleTarget == this) {
         Object::consoleTarget = nullptr;
         repaint();
     }
-    
 }
 
 bool Object::isSelected() const
@@ -180,38 +178,38 @@ bool Object::isSelected() const
 void Object::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(hvccMode)) {
-        if (gui) {
-            auto ptr = gui->ptr.get<t_pd>();
-            if (!ptr)
-                return;
 
-            auto typeName = String::fromUTF8(libpd_get_object_class_name(ptr.get()));
-            // Check hvcc compatibility
-            bool isSubpatch = gui->getPatch() != nullptr;
-            auto objectText = gui->getText();
-            isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName) ||  objectText == "table";
+        isHvccCompatible = checkIfHvccCompatible();
 
-            if (!isHvccCompatible) {
-                cnv->pd->logWarning(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
-            }
-
-            repaint();
+        if (gui && !isHvccCompatible) {
+            cnv->pd->logWarning(String("Warning: object \"" + gui->getType() + "\" is not supported in Compiled Mode").toRawUTF8());
         }
 
-        return;
-    }
-    if (v.refersToSameSourceAs(cnv->presentationMode)) {
+        repaint();
+    } else if (v.refersToSameSourceAs(cnv->presentationMode)) {
         // else it was a lock/unlock/presentation mode action
         // Hide certain objects in GOP
         setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
-    }
-    if (v.refersToSameSourceAs(cnv->locked) || v.refersToSameSourceAs(cnv->commandLocked)) {
+    } else if (v.refersToSameSourceAs(cnv->locked) || v.refersToSameSourceAs(cnv->commandLocked)) {
         if (gui) {
             gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         }
     }
 
     repaint();
+}
+
+bool Object::checkIfHvccCompatible()
+{
+    if (gui) {
+        auto typeName = gui->getType();
+        // Check hvcc compatibility
+        bool isSubpatch = gui->getPatch() != nullptr;
+
+        return !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
+    }
+
+    return true;
 }
 
 bool Object::hitTest(int x, int y)
@@ -297,26 +295,17 @@ void Object::applyBounds()
     patch->startUndoSequence("resize");
 
     for (auto& [object, bounds] : newObjectSizes) {
-        if (!object || !object->gui)
-            return;
-
-        auto* obj = static_cast<t_gobj*>(object->getPointer());
-        auto* cnv = object->cnv;
-
-        if (!obj) return;
-        
-        // Used for size changes, could also be used for properties
-        libpd_undo_apply(patchPtr, obj);
-
-        object->gui->setPdBounds(bounds);
-
-        canvas_dirty(patchPtr, 1);
+        if (object->gui)
+            object->gui->setPdBounds(bounds);
     }
 
+    canvas_dirty(patchPtr, 1);
+
     patch->endUndoSequence("resize");
-    
-    MessageManager::callAsync([cnv = SafePointer(this->cnv)]{
-        if(cnv) cnv->editor->updateCommandStatus();
+
+    MessageManager::callAsync([cnv = SafePointer(this->cnv)] {
+        if (cnv)
+            cnv->editor->updateCommandStatus();
     });
 
     cnv->pd->unlockAudioThread();
@@ -335,8 +324,6 @@ void Object::updateBounds()
     if (newObjectEditor) {
         textEditorTextChanged(*newObjectEditor);
     }
-
-    resized();
 }
 
 void Object::setType(String const& newType, void* existingObject)
@@ -371,28 +358,22 @@ void Object::setType(String const& newType, void* existingObject)
     gui.reset(ObjectBase::createGui(objectPtr, this));
 
     if (gui) {
-        gui->update();
+        gui->initialise();
         gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
     }
 
-    auto ptr = gui->ptr.get<t_pd>();
-    if (!ptr)
-        return;
+    isHvccCompatible = checkIfHvccCompatible();
 
-    auto typeName = String::fromUTF8(libpd_get_object_class_name(ptr.get()));
-    // Check hvcc compatibility
-    bool isSubpatch = gui && gui->getPatch() != nullptr;
-    isHvccCompatible = !getValue<bool>(hvccMode) || isSubpatch || hvccObjects.contains(typeName);
-
-    if (!isHvccCompatible) {
-        cnv->pd->logWarning(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
+    if (gui && !isHvccCompatible) {
+        cnv->pd->logWarning(String("Warning: object \"" + gui->getType() + "\" is not supported in Compiled Mode").toRawUTF8());
     }
 
     // Update inlets/outlets
     updateIolets();
     updateBounds();
+    resized(); // If bounds haven't changed, we'll still want to update gui and iolets bounds
 
     // Auto patching
     if (!attachedToMouse && getValue<bool>(cnv->editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
@@ -523,7 +504,7 @@ void Object::triggerOverlayActiveState()
     // Because the timer is being reset when new messages come in
     // it will not trigger it's callback until it's free-running
     // so we manually call the repaint here if this happens
-    MessageManager::callAsync([this](){
+    MessageManager::callAsync([this]() {
         repaint();
     });
 }
@@ -558,7 +539,7 @@ void Object::paint(Graphics& g)
         outerArea.setUsingNonZeroWinding(false);
         Path innerArea;
         auto innerRect = getLocalBounds().reduced(margin + 1);
-        innerArea.addRoundedRectangle(innerRect,Corners::objectCornerRadius);
+        innerArea.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
         outerArea.addPath(innerArea);
 
         // use the path with a hole in it to exclude the inner rounded rect from painting
@@ -623,21 +604,20 @@ void Object::resized()
 
         index++;
     }
-    
-    if(!getLocalBounds().isEmpty()) {
+
+    if (!getLocalBounds().isEmpty() && activityOverlayImage.getBounds() != getLocalBounds()) {
         // Pre-render activity state overlay here since it'll always look the same for the same object size
         activityOverlayImage = Image(Image::ARGB, getWidth(), getHeight(), true);
         Graphics g(activityOverlayImage);
         g.saveState();
-        
+
         g.excludeClipRegion(getLocalBounds().reduced(Object::margin + 1));
-        
+
         Path objectShadow;
         objectShadow.addRoundedRectangle(getLocalBounds().reduced(Object::margin - 2), Corners::objectCornerRadius);
         StackShadow::renderDropShadow(g, objectShadow, findColour(PlugDataColour::dataColourId), 5, { 0, 0 }, 0);
         g.restoreState();
     }
-    
 }
 
 void Object::updateTooltips()
@@ -818,7 +798,7 @@ void Object::mouseDown(MouseEvent const& e)
         attachedToMouse = false;
         stopTimer(1);
         repaint();
-        
+
         if (createEditorOnMouseDown) {
             createEditorOnMouseDown = false;
 
@@ -830,13 +810,15 @@ void Object::mouseDown(MouseEvent const& e)
     }
 
     // Only show right-click menu in locked mode if the object can be opened
-    if (e.mods.isPopupMenu()) {
+    // We don't allow alt+click for popupmenus here, as that will conflict with some object behaviour, like for [range.hsl]
+    if (e.mods.isRightButtonDown() && !cnv->editor->pluginMode) {
         PopupMenu::dismissAllActiveMenus();
-        if(!getValue<bool>(locked)) cnv->setSelected(this, true);
+        if (!getValue<bool>(locked))
+            cnv->setSelected(this, true);
         Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
         return;
     }
-    
+
     if (cnv->isGraph || getValue<bool>(presentationMode) || getValue<bool>(locked) || getValue<bool>(commandLocked)) {
         wasLockedOnMouseDown = true;
         return;
@@ -852,7 +834,6 @@ void Object::mouseDown(MouseEvent const& e)
     }
 
     cnv->setSelected(this, true);
-
 
     ds.componentBeingDragged = this;
 
@@ -982,18 +963,30 @@ void Object::mouseDrag(MouseEvent const& e)
             if (!obj->gui)
                 continue;
 
+            // Create undo step when we start resizing
+            if (!ds.wasResized) {
+                auto* objPtr = static_cast<t_gobj*>(obj->getPointer());
+                auto* cnv = obj->cnv;
+
+                auto* patchPtr = cnv->patch.getPointer().get();
+                if (!patchPtr)
+                    continue;
+
+                // Used for size changes, could also be used for properties
+                libpd_undo_apply(patchPtr, objPtr);
+            }
+
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
-            
-            
+
             if (auto* constrainer = obj->getConstrainer()) {
-                
+
                 constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(),
                     resizeZone.isDraggingLeftEdge(),
                     resizeZone.isDraggingBottomEdge(),
                     resizeZone.isDraggingRightEdge());
             }
         }
-        
+
         ds.wasResized = true;
     } else if (!cnv->isGraph) {
         // Ensure tiny movements don't start a drag.

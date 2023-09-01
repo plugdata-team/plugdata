@@ -1,3 +1,8 @@
+/*
+ // Copyright (c) 2021-2023 Timothy Schoen and Alex Mitchell
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
 
 #include "SplitViewResizer.h"
 #include "ResizableTabbedComponent.h"
@@ -5,7 +10,7 @@
 SplitViewResizer::SplitViewResizer(ResizableTabbedComponent* originalComponent, ResizableTabbedComponent* newComponent, Split::SplitMode mode, int flipped)
 {
     setAlwaysOnTop(true);
-    
+
     splitMode = mode;
     resizerPosition = 0.5f;
     auto resizerRightPostion = 1.0f;
@@ -33,7 +38,7 @@ SplitViewResizer::SplitViewResizer(ResizableTabbedComponent* originalComponent, 
 
 MouseCursor SplitViewResizer::getMouseCursor()
 {
-    switch(splitMode){
+    switch (splitMode) {
     case Split::SplitMode::Horizontal:
         return MouseCursor::LeftRightResizeCursor;
     case Split::SplitMode::Vertical:
@@ -47,7 +52,7 @@ bool SplitViewResizer::hitTest(int x, int y)
 {
     if (splitMode == Split::SplitMode::None)
         return false;
-    return resizeArea.contains(Point<int>(x,y));
+    return resizeArea.contains(Point<int>(x, y));
 }
 
 void SplitViewResizer::resized()

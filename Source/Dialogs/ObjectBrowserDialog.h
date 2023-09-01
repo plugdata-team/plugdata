@@ -17,7 +17,8 @@ class CategoriesListBox : public ListBox
     BouncingViewportAttachment bouncer;
 
 public:
-    CategoriesListBox() : bouncer(getViewport())
+    CategoriesListBox()
+        : bouncer(getViewport())
     {
         setOutlineThickness(0);
         setRowHeight(25);
@@ -71,8 +72,10 @@ class ObjectsListBox : public ListBox
     , public ListBoxModel {
 
     BouncingViewportAttachment bouncer;
+
 public:
-    explicit ObjectsListBox(pd::Library& library) : bouncer(getViewport())
+    explicit ObjectsListBox(pd::Library& library)
+        : bouncer(getViewport())
     {
         setOutlineThickness(0);
         setRowHeight(45);
@@ -401,9 +404,10 @@ class ObjectSearchComponent : public Component
     , public ListBoxModel
     , public ScrollBar::Listener
     , public KeyListener {
-        
+
 public:
-        explicit ObjectSearchComponent(pd::Library& library) : bouncer(listBox.getViewport())
+    explicit ObjectSearchComponent(pd::Library& library)
+        : bouncer(listBox.getViewport())
     {
         listBox.setModel(this);
         listBox.setRowHeight(28);
@@ -627,7 +631,7 @@ public:
 private:
     ListBox listBox;
     BouncingViewportAttachment bouncer;
-        
+
     Array<String> searchResult;
     TextEditor input;
     TextButton clearButton = TextButton(Icons::ClearText);

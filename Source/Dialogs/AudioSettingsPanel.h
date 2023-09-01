@@ -103,8 +103,7 @@ struct CallbackComboPropertyWithTestButton : public CallbackComboProperty {
     TextButton testButton = TextButton("Test");
 };
 
-class ChannelToggleProperty : public PropertiesPanel::BoolComponent
-{
+class ChannelToggleProperty : public PropertiesPanel::BoolComponent {
 public:
     ChannelToggleProperty(String const& channelName, bool isEnabled, std::function<void(bool)> onClick)
         : PropertiesPanel::BoolComponent(channelName, isEnabled, { "Disabled", "Enabled" })
@@ -125,7 +124,7 @@ public:
     {
         bool isDown = getValue<bool>(toggleStateValue);
         bool isHovered = isMouseOver();
-        
+
         Path backgroundShape;
         backgroundShape.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTopCorner, roundTopCorner, roundBottomCorner, roundBottomCorner);
 
@@ -244,8 +243,8 @@ private:
             // also make sure that setup.sampleRate is set to a supported rate
             if (!sampleRates.contains(setup.sampleRate)) {
                 for (auto& rate : sampleRates) {
-                  setup.sampleRate = rate;
-                  break;
+                    setup.sampleRate = rate;
+                    break;
                 }
             }
 
@@ -366,19 +365,18 @@ private:
 
         audioPropertiesPanel.addSection("Audio Output", outputProperties);
         audioPropertiesPanel.addSection("Audio Input", inputProperties);
-        
+
         auto* outputSection = audioPropertiesPanel.getSectionByName("Audio Output");
         auto* inputSection = audioPropertiesPanel.getSectionByName("Audio Input");
 
-        if(outputLevelMeter.getParentComponent())
-        {
+        if (outputLevelMeter.getParentComponent()) {
             outputLevelMeter.getParentComponent()->removeChildComponent(&outputLevelMeter);
             inputLevelMeter.getParentComponent()->removeChildComponent(&inputLevelMeter);
         }
-        
+
         outputSection->addAndMakeVisible(outputLevelMeter);
         inputSection->addAndMakeVisible(inputLevelMeter);
-        
+
         viewport.setViewPosition(0, viewY);
     }
 
@@ -413,7 +411,7 @@ private:
         audioPropertiesPanel.setBounds(getLocalBounds());
 
         auto [x, width] = audioPropertiesPanel.getContentXAndWidth();
-        
+
         if (inputSelectorProperty) {
             inputLevelMeter.setBounds((x + width) - 60, 12, 60, 6);
         }

@@ -1,8 +1,13 @@
+/*
+ // Copyright (c) 2021-2023 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #pragma once
 
 #include "SplitViewResizer.h"
 #include "ResizableTabbedComponent.h"
-
 
 class PluginEditor;
 class Canvas;
@@ -13,7 +18,7 @@ public:
     ~SplitView() override;
 
     TabComponent* getActiveTabbar();
-    
+
     void createNewSplit(Canvas* cnv);
     void addSplit(ResizableTabbedComponent* toSplit);
     void addResizer(SplitViewResizer* resizer);
@@ -31,7 +36,7 @@ public:
     int getTabComponentSplitIndex(TabComponent* tabComponent);
 
     ResizableTabbedComponent* getSplitAtScreenPosition(Point<int> position);
-    
+
     OwnedArray<ResizableTabbedComponent> splits;
     OwnedArray<SplitViewResizer> resizers;
 

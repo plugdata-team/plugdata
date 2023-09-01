@@ -26,11 +26,68 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 // accidentally passing on mouse scroll events to the viewport.
 // This prevents that with a separation layer.
 
-class DrawableTemplate {
+class DrawableTemplate : public pd::MessageListener
+    , public AsyncUpdater {
 
 public:
-    virtual void update() = 0;
+    void* ptr;
+    pd::Instance* pd;
 
+    DrawableTemplate(void* object, pd::Instance* instance)
+        : ptr(object)
+        , pd(instance)
+    {
+        pd->registerMessageListener(ptr, this);
+        triggerAsyncUpdate();
+    }
+
+    ~DrawableTemplate()
+    {
+        pd->unregisterMessageListener(ptr, this);
+    }
+
+    void receiveMessage(String const& name, int argc, t_atom* argv)
+    {
+        if (name == "redraw") {
+            triggerAsyncUpdate();
+        }
+    };
+
+    void handleAsyncUpdate()
+    {
+        update();
+    }
+
+    virtual void update() = 0;
+        
+    static t_float xToPixels(Canvas* cnv, t_float xval)
+    {
+        auto x = cnv->patch.getPointer();
+        if (!getValue<bool>(cnv->isGraphChild))
+            return (((xval - x->gl_x1)) / (x->gl_x2 - x->gl_x1));
+        else if (getValue<bool>(cnv->isGraphChild) && !cnv->isGraph)
+            return (x->gl_screenx2 - x->gl_screenx1) *
+                (xval - x->gl_x1) / (x->gl_x2 - x->gl_x1);
+        else
+        {
+            return (x->gl_pixwidth * (xval - x->gl_x1) / (x->gl_x2 - x->gl_x1))  + x->gl_xmargin;
+        }
+    }
+
+    static t_float yToPixels(Canvas* cnv, t_float yval)
+    {
+        auto x = cnv->patch.getPointer();
+        if (!getValue<bool>(cnv->isGraphChild))
+            return (((yval - x->gl_y1)) / (x->gl_y2 - x->gl_y1));
+        else if (getValue<bool>(cnv->isGraphChild) && !cnv->isGraph)
+            return (x->gl_screeny2 - x->gl_screeny1) *
+                    (yval - x->gl_y1) / (x->gl_y2 - x->gl_y1);
+        else
+        {
+            return (x->gl_pixheight * (yval - x->gl_y1) / (x->gl_y2 - x->gl_y1)) + x->gl_ymargin;
+        }
+    }
+        
     /* getting and setting values via fielddescs -- note confusing names;
      the above are setting up the fielddesc itself. */
     static t_float fielddesc_getfloat(t_fake_fielddesc* f, t_template* templ, t_word* wp, int loud)
@@ -88,13 +145,15 @@ class DrawableCurve final : public DrawableTemplate
 
 public:
     DrawableCurve(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
-        : scalar(s, cnv->pd)
+        : DrawableTemplate(static_cast<void*>(s), cnv->pd)
+        , scalar(s, cnv->pd)
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , canvas(cnv)
         , baseX(x)
         , baseY(y)
         , mouseListener(this)
     {
+
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             handleMouseDown(e);
         };
@@ -125,7 +184,7 @@ public:
             object->gui->updateDrawables();
         }
     }
-
+        
     void update() override
     {
         auto* s = scalar.getRaw<t_scalar>();
@@ -147,11 +206,11 @@ public:
             return;
         }
 
-        auto bounds = canvas->isGraph ? canvas->getParentComponent()->getLocalBounds() : canvas->getLocalBounds();
-
         if (n > 1) {
             int flags = x->x_flags;
             int closed = flags & CLOSED;
+
+            auto bounds = glist->gl_isgraph ? Rectangle<int>(glist->gl_pixwidth, glist->gl_pixheight) : Rectangle<int>(1, 1);
 
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
 
@@ -163,21 +222,15 @@ public:
 
             for (int i = 0; i < n; i++) {
                 auto* f = x->x_vec + (i * 2);
-                float xCoord = (baseX + fielddesc_getcoord((t_fielddesc*)f, templ, data, 1)) / (glist->gl_x2 - glist->gl_x1);
-                float yCoord = (baseY + fielddesc_getcoord((t_fielddesc*)(f + 1), templ, data, 1)) / (glist->gl_y1 - glist->gl_y2);
+                
+                float xCoord = xToPixels(canvas,
+                                               baseX + fielddesc_getcoord((t_fielddesc*)f, templ, data, 1));
+                float yCoord = yToPixels(canvas,
+                    baseY + fielddesc_getcoord((t_fielddesc*)(f+1), templ, data, 1));
+                
 
-                yCoord = 1.0f - yCoord;
-                // In a graph, offset the position by canvas margin
-                // This will make sure the drawing is shown at origin in the original subpatch,
-                // but at the graph's origin when shown inside a graph
-                auto xOffset = canvas->isGraph ? glist->gl_xmargin : 0;
-                auto yOffset = canvas->isGraph ? glist->gl_ymargin : 0;
-
-                xOffset += canvas->canvasOrigin.x;
-                yOffset += canvas->canvasOrigin.y;
-
-                pix[2 * i] = xCoord * bounds.getWidth() + xOffset;
-                pix[2 * i + 1] = yCoord * bounds.getHeight() + yOffset;
+                pix[2 * i] = xCoord + canvas->canvasOrigin.x;
+                pix[2 * i + 1] = yCoord + canvas->canvasOrigin.y;
             }
 
             canvas->pd->unlockAudioThread();
@@ -236,7 +289,8 @@ class DrawableSymbol final : public DrawableTemplate
 
 public:
     DrawableSymbol(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
-        : scalar(s, cnv->pd)
+        : DrawableTemplate(static_cast<void*>(s), cnv->pd)
+        , scalar(s, cnv->pd)
         , object(reinterpret_cast<t_fake_drawnumber*>(obj))
         , canvas(cnv)
         , baseX(x)
@@ -265,8 +319,8 @@ public:
 
         int xloc = 0, yloc = 0;
         if (auto glist = canvas->patch.getPointer()) {
-            xloc = glist_xtopixels(glist.get(), baseX + fielddesc_getcoord((t_fielddesc*)&x->x_xloc, templ, data, 0));
-            yloc = glist_ytopixels(glist.get(), baseY + fielddesc_getcoord((t_fielddesc*)&x->x_yloc, templ, data, 0));
+            xloc = xToPixels(canvas, baseX + fielddesc_getcoord((t_fielddesc*)&x->x_xloc, templ, data, 0));
+            yloc = yToPixels(canvas, baseY + fielddesc_getcoord((t_fielddesc*)&x->x_yloc, templ, data, 0));
         }
 
         char buf[DRAWNUMBER_BUFSIZE];

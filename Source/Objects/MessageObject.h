@@ -28,7 +28,7 @@ public:
     void update() override
     {
         objectText = getSymbol();
-        
+
         if (auto obj = ptr.get<t_text>()) {
             sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
         }
@@ -74,12 +74,12 @@ public:
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto text = ptr.get<t_text>()) {
             setParameterExcludingListener(sizeProperty, TextObjectHelper::getWidthInChars(text.get()));
         }
     }
-        
+
     void lock(bool locked) override
     {
         isLocked = locked;
@@ -87,9 +87,25 @@ public:
 
     void paint(Graphics& g) override
     {
+        int const d = 6;
+        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+
         // Draw background
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
+
+        if (isDown) {
+            g.setColour(object->findColour(PlugDataColour::outlineColourId));
+            g.drawRect(getLocalBounds(), d);
+        }
+
+        g.restoreState();
 
         // Draw text
         if (!editor) {
@@ -102,27 +118,30 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(1);
+        auto b = getLocalBounds();
+        auto reducedBounds = b.toFloat().reduced(0.5f);
+
+        int const d = 6;
 
         Path flagPath;
-        flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - 4, b.getY() + 4, b.getRight() - 4, b.getBottom() - 4, b.getRight(), b.getBottom());
+        flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - d, b.getY() + d, b.getRight() - d, b.getBottom() - d, b.getRight(), b.getBottom());
 
-        if (isDown) {
-            g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(b.reduced(1).toFloat(), Corners::objectCornerRadius, 3.0f);
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
 
-            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.fillPath(flagPath);
-        } else {
-            g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            g.fillPath(flagPath);
-        }
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
+
+        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        g.fillPath(flagPath);
+
+        g.restoreState();
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(reducedBounds, Corners::objectCornerRadius, 1.0f);
     }
 
     std::vector<hash32> getAllMessages() override
@@ -216,8 +235,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         if (isLocked) {
             isDown = true;
             repaint();
@@ -268,20 +288,19 @@ public:
 
         return result.trimEnd();
     }
-        
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
             auto width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
-            
+
             setParameterExcludingListener(sizeProperty, width);
-            
-            if (auto text = ptr.get<t_text>())
-            {
+
+            if (auto text = ptr.get<t_text>()) {
                 TextObjectHelper::setWidthInChars(text.get(), width);
             }
-            
+
             object->updateBounds();
         }
     }
@@ -308,8 +327,7 @@ public:
             editor->setCaretPosition(editor->getHighlightedRegion().getStart());
             return true;
         }
-        if(key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown())
-        {
+        if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
             int caretPosition = editor->getCaretPosition();
             auto text = editor->getText();
 
@@ -322,13 +340,13 @@ public:
                 text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
                 caretPosition += 2;
             }
-            
+
             editor->setText(text);
             editor->setCaretPosition(caretPosition);
-            
+
             return true;
         }
-        
+
         return false;
     }
 

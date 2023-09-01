@@ -243,5 +243,4 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     return retval;
 }
 
-
 START_JUCE_APPLICATION(PlugDataApp)

@@ -15,7 +15,7 @@
 #include "Utility/StackShadow.h" // TODO: move to impl
 #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
-#include "SplitView.h"           // TODO: move to impl
+#include "SplitView.h" // TODO: move to impl
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
 
@@ -36,8 +36,7 @@ class PluginEditor : public AudioProcessorEditor
     , public FileDragAndDropTarget
     , public ModifierKeyBroadcaster
     , public ModifierKeyListener
-    , public ZoomableDragAndDropContainer
-{
+    , public ZoomableDragAndDropContainer {
 public:
     enum ToolbarButtonType {
         Settings = 0,
@@ -92,7 +91,7 @@ public:
     void fileDragExit(StringArray const&) override;
 
     DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos) override;
-        
+
     ApplicationCommandTarget* getNextCommandTarget() override;
     void getAllCommands(Array<CommandID>& commands) override;
     void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;
@@ -140,7 +139,6 @@ public:
     OfflineObjectRenderer offlineRenderer;
 
 private:
-
     // Used by standalone to handle dragging the window
     ComponentDragger windowDragger;
 

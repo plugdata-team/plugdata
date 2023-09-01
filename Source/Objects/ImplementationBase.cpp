@@ -140,36 +140,6 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
     }
 }
 
-/*
-bool ImplementationBase::objectStillExists(t_glist* patch)
-{
-    pd->setThis();
-
-    auto* root = canvas_getrootfor(patch);
-    bool canvasExists = false;
-
-    auto* roots = pd_getcanvaslist();
-    while(roots)
-    {
-        if(roots == root)
-        {
-            canvasExists = true;
-        }
-        roots = roots->gl_next;
-    }
-
-    if(!canvasExists) return false;
-
-    auto* object = patch->gl_list;
-    while(object)
-    {
-        if(object == ptr) return true;
-        object = object->g_next;
-    }
-
-    return false;
-} */
-
 void ImplementationBase::closeOpenedSubpatchers()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
@@ -192,16 +162,18 @@ ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor
 {
 }
 
-void ObjectImplementationManager::updateObjectImplementations()
+void ObjectImplementationManager::handleAsyncUpdate()
 {
     Array<void*> allImplementations;
 
     pd->setThis();
 
+    pd->lockAudioThread();
     t_glist* x;
     for (x = pd_getcanvaslist(); x; x = x->gl_next) {
         allImplementations.addArray(getImplementationsForPatch(x));
     }
+    pd->unlockAudioThread();
 
     // Remove unused object implementations
     for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
@@ -227,11 +199,14 @@ void ObjectImplementationManager::updateObjectImplementations()
     }
 }
 
+void ObjectImplementationManager::updateObjectImplementations()
+{
+    triggerAsyncUpdate();
+}
+
 Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch)
 {
     Array<void*> implementations;
-
-    pd->lockAudioThread();
 
     auto* glist = static_cast<t_glist*>(patch);
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
@@ -241,20 +216,17 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
         if (pd_class(&y->g_pd) == canvas_class) {
             implementations.addArray(getImplementationsForPatch(y));
         }
-        /*
         if (pd_class(&y->g_pd) == clone_class) {
-            for(int i = 0; i < clone_get_n(y); i++)
-            {
+            for (int i = 0; i < clone_get_n(y); i++) {
                 auto* clone = clone_get_instance(y, i);
                 implementations.addArray(getImplementationsForPatch(clone));
+                implementations.add(clone);
             }
-        } */
+        }
         if (ImplementationBase::hasImplementation(name)) {
             implementations.add(y);
         }
     }
-
-    pd->unlockAudioThread();
 
     return implementations;
 }
@@ -268,6 +240,12 @@ void ObjectImplementationManager::clearObjectImplementationsForPatch(void* patch
 
         if (pd_class(&y->g_pd) == canvas_class) {
             clearObjectImplementationsForPatch(y);
+        }
+        if (pd_class(&y->g_pd) == clone_class) {
+            for (int i = 0; i < clone_get_n(y); i++) {
+                auto* clone = clone_get_instance(y, i);
+                clearObjectImplementationsForPatch(clone);
+            }
         }
         objectImplementations.erase(y);
     }

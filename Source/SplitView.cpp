@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2021-2023 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
@@ -98,14 +104,13 @@ void SplitView::removeSplit(TabComponent* toRemove)
         if (toBeRemoved->resizerRight) {
             toBeRemoved->resizerRight->splits[1]->resizerLeft = toBeRemoved->resizerLeft;
             setFocus(toBeRemoved->resizerRight->splits[1]);
-            // We prioritize the deletion of the Right Resizer, and hence also need to 
+            // We prioritize the deletion of the Right Resizer, and hence also need to
             // update the pointer to the split
             if (toBeRemoved->resizerLeft) {
                 toBeRemoved->resizerLeft->splits[0]->resizerRight->splits[1] = toBeRemoved->resizerRight->splits[1];
             }
             resizers.removeObject(toBeRemoved->resizerRight, true);
-        }
-        else if (toBeRemoved->resizerLeft) {
+        } else if (toBeRemoved->resizerLeft) {
             toBeRemoved->resizerLeft->splits[0]->resizerRight = toBeRemoved->resizerRight;
             setFocus(toBeRemoved->resizerLeft->splits[0]);
             resizers.removeObject(toBeRemoved->resizerLeft, true);
@@ -140,7 +145,7 @@ int SplitView::getTabComponentSplitIndex(TabComponent* tabComponent)
             return i;
         }
     }
-    
+
     // This should never happen, but if we ever get here, pretend we're in the first split
     jassertfalse;
     return 0;
@@ -166,7 +171,7 @@ void SplitView::setFocus(ResizableTabbedComponent* selectedTabComponent)
 }
 
 void SplitView::closeEmptySplits()
-{   
+{
     // if we have one split, allow welcome screen to show
     if (splits.size() == 1)
         return;
@@ -174,8 +179,7 @@ void SplitView::closeEmptySplits()
     auto removedSplit = false;
 
     // search over all splits, and see if they have tab components with tabs, if not, delete
-    for(int i = splits.size() - 1; i >= 0; i--)
-    {
+    for (int i = splits.size() - 1; i >= 0; i--) {
         auto* split = splits[i];
         if (auto* tabComponent = split->getTabComponent()) {
             if (tabComponent->getNumTabs() == 0 && splits.size() > 1) {
@@ -195,7 +199,7 @@ void SplitView::closeEmptySplits()
 
 void SplitView::paintOverChildren(Graphics& g)
 {
-    if(splits.size() > 1) {
+    if (splits.size() > 1) {
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
         auto screenBounds = activeTabComponent->getScreenBounds();
         auto b = getLocalArea(nullptr, screenBounds);
@@ -205,14 +209,12 @@ void SplitView::paintOverChildren(Graphics& g)
 
 ResizableTabbedComponent* SplitView::getSplitAtScreenPosition(Point<int> position)
 {
-    for(auto* split : splits)
-    {
-        if(split->getScreenBounds().contains(position))
-        {
+    for (auto* split : splits) {
+        if (split->getScreenBounds().contains(position)) {
             return split;
         }
     }
-    
+
     return nullptr;
 }
 
@@ -223,4 +225,3 @@ TabComponent* SplitView::getActiveTabbar()
 
     return nullptr;
 }
-

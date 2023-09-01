@@ -1,19 +1,25 @@
+/*
+ // Copyright (c) 2021-2023 Timothy Schoen and Alex Mitchell
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #pragma once
 
 #include <JuceHeader.h>
 
 class TabComponent;
-class TabBarButtonComponent : public TabBarButton, public ChangeListener
-{
+class TabBarButtonComponent : public TabBarButton
+    , public ChangeListener {
 public:
-    TabBarButtonComponent(TabComponent* tabComponent, const String& name, TabbedButtonBar& bar);
+    TabBarButtonComponent(TabComponent* tabComponent, String const& name, TabbedButtonBar& bar);
 
     ~TabBarButtonComponent();
 
     TabComponent* getTabComponent();
 
     void resized() override;
-    
+
     void updateCloseButtonState();
 
     void mouseDrag(MouseEvent const& e) override;
@@ -22,13 +28,13 @@ public:
     void mouseUp(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
 
-    void changeListenerCallback(ChangeBroadcaster* source) override; 
+    void changeListenerCallback(ChangeBroadcaster* source) override;
 
     void lookAndFeelChanged() override;
 
     void setTabText(String const& text);
 
-    void tabTextChanged(const String& newCurrentTabName);
+    void tabTextChanged(String const& newCurrentTabName);
 
     void setFocusForTabSplit();
 
@@ -37,14 +43,13 @@ public:
     ScaledImage generateTabBarButtonImage();
 
     void paint(Graphics& g) override;
-    
+
     void closeTab();
 
 private:
     TabComponent* tabComponent;
     ComponentAnimator* ghostTabAnimator;
     TextButton closeTabButton;
-    const int boundsOffset = 10;
     ScaledImage tabImage;
     bool isDragging = false;
     bool closeButtonUpdatePending = false;

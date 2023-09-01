@@ -8,13 +8,13 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "Standalone/InternalSynth.h"
 
-struct MidiDeviceManager : public ChangeListener, public AsyncUpdater
-{
-    
+struct MidiDeviceManager : public ChangeListener
+    , public AsyncUpdater {
     // Helper functions to encode/decode regular MIDI events into a sysex event
     // The reason we do this, is that we want to append extra information to the MIDI event when it comes in from pd or the device, but JUCE won't allow this
     // We still want to be able to use handy JUCE stuff for MIDI timing, so we treat every MIDI event as sysex
-    static std::vector<uint16_t> encodeSysExData(const std::vector<uint8_t>& data) {
+    static std::vector<uint16_t> encodeSysExData(std::vector<uint8_t> const& data)
+    {
         std::vector<uint16_t> encoded_data;
         for (auto& value : data) {
             if (value == 0xF0 || value == 0xF7) {
@@ -28,43 +28,41 @@ struct MidiDeviceManager : public ChangeListener, public AsyncUpdater
         return encoded_data;
     }
 
-    static std::vector<uint8_t> decodeSysExData(const std::vector<uint16_t>& encoded_data) {
+    static std::vector<uint8_t> decodeSysExData(std::vector<uint16_t> const& encoded_data)
+    {
         std::vector<uint8_t> decoded_data;
         for (auto& value : encoded_data) {
             auto upperByte = value >> 8;
-            if(upperByte == 0xF0 || upperByte == 0xF7)
-            {
+            if (upperByte == 0xF0 || upperByte == 0xF7) {
                 decoded_data.push_back(upperByte);
-            }
-            else {
+            } else {
                 // Extract the lower 8 bits to obtain the original 8-bit data
                 decoded_data.push_back(static_cast<uint8_t>(value));
             }
-
         }
         return decoded_data;
     }
-    
+
     static MidiMessage convertToSysExFormat(MidiMessage m, int device)
     {
-        if(ProjectInfo::isStandalone) {
+        if (ProjectInfo::isStandalone) {
             // We append the device index so we can use it as a selector later
-            const auto* data = static_cast<const uint8*>(m.getRawData());
+            auto const* data = static_cast<uint8 const*>(m.getRawData());
             auto message = std::vector<uint8>(data, data + m.getRawDataSize());
             message.push_back(device);
             auto encodedMessage = encodeSysExData(message);
-            
+
             // Temporarily convert all messages to sysex so we can add as much data as we want
             return MidiMessage::createSysExMessage(static_cast<void*>(encodedMessage.data()), encodedMessage.size() * sizeof(uint16_t)).withTimeStamp(m.getTimeStamp());
         }
-        
+
         return m;
     }
 
     static MidiMessage convertFromSysExFormat(MidiMessage m, int& device)
     {
         if (ProjectInfo::isStandalone) {
-            const auto* sysexData = reinterpret_cast<const uint16_t*>(m.getSysExData());
+            auto const* sysexData = reinterpret_cast<uint16_t const*>(m.getSysExData());
             auto sysexDataSize = m.getSysExDataSize() / sizeof(uint16_t);
             auto midiMessage = decodeSysExData(std::vector<uint16_t>(sysexData, sysexData + sysexDataSize));
 
@@ -76,7 +74,7 @@ struct MidiDeviceManager : public ChangeListener, public AsyncUpdater
         device = 0;
         return m;
     }
-    
+
     MidiDeviceManager(MidiInputCallback* inputCallback)
     {
 #if !JUCE_WINDOWS
@@ -87,8 +85,7 @@ struct MidiDeviceManager : public ChangeListener, public AsyncUpdater
             toPlugdata.reset(newIn);
         }
 #endif
-        if(auto* deviceManager = ProjectInfo::getDeviceManager())
-        {
+        if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
             deviceManager->addChangeListener(this);
         }
 
@@ -102,46 +99,43 @@ struct MidiDeviceManager : public ChangeListener, public AsyncUpdater
         clearInputFilter();
         clearOutputFilter();
     }
-    
+
     void loadMidiOutputSettings()
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
         auto midiOutputsTree = settingsTree.getChildWithName("EnabledMidiOutputPorts");
-        
-        for (int i = 0; i < midiOutputsTree.getNumChildren(); i++)
-        {
+
+        for (int i = 0; i < midiOutputsTree.getNumChildren(); i++) {
             // This will try to enable the same MIDI devices that were enabled
             // last time. It the device doesn't exist, it will do nothing.
             // Note: We're checking the device names against the current
             // device table here, since the identifiers may change between
             // invocations.
             auto name = midiOutputsTree.getChild(i).getProperty("Name").toString();
-            for (auto& output : lastMidiOutputs)
-            {
-              if (output.name == name) {
-                setMidiDeviceEnabled(false, output.identifier, true);
-                break;
-              }
+            for (auto& output : lastMidiOutputs) {
+                if (output.name == name) {
+                    setMidiDeviceEnabled(false, output.identifier, true);
+                    break;
+                }
             }
         }
     }
-    
+
     void handleAsyncUpdate() override
     {
         auto midiOutputsTree = SettingsFile::getInstance()->getValueTree().getChildWithName("EnabledMidiOutputPorts");
-        
+
         midiOutputsTree.removeAllChildren(nullptr);
-        
-        for (auto& output : getOutputDevices())
-        {
+
+        for (auto& output : getOutputDevices()) {
             ValueTree midiOutputPort("MidiPort");
             midiOutputPort.setProperty("Name", output.name, nullptr);
             midiOutputPort.setProperty("Identifier", output.identifier, nullptr);
-            
+
             midiOutputsTree.appendChild(midiOutputPort, nullptr);
         }
     }
-    
+
     void saveMidiOutputSettings()
     {
         triggerAsyncUpdate();
@@ -155,13 +149,15 @@ private:
 
     void clearInputFilter()
     {
-        if (filteredMidiInputs) delete filteredMidiInputs;
+        if (filteredMidiInputs)
+            delete filteredMidiInputs;
         filteredMidiInputs = 0;
     }
 
     void clearOutputFilter()
     {
-        if (filteredMidiOutputs) delete filteredMidiOutputs;
+        if (filteredMidiOutputs)
+            delete filteredMidiOutputs;
         filteredMidiOutputs = 0;
     }
 
@@ -171,33 +167,29 @@ public:
         midiDeviceMutex.lock();
         lastMidiInputs = MidiInput::getAvailableDevices();
         lastMidiOutputs = MidiOutput::getAvailableDevices();
-        
-        for(int i = 0; i < lastMidiInputs.size(); i++)
-        {
-            if(toPlugdata && lastMidiInputs[i].name == "from plugdata")
-            {
+
+        for (int i = 0; i < lastMidiInputs.size(); i++) {
+            if (toPlugdata && lastMidiInputs[i].name == "from plugdata") {
                 lastMidiInputs.set(i, toPlugdata->getDeviceInfo());
             }
         }
-        
-        for(int i = 0; i < lastMidiOutputs.size(); i++)
-        {
-            if(fromPlugdata && lastMidiOutputs[i].name == "to plugdata")
-            {
+
+        for (int i = 0; i < lastMidiOutputs.size(); i++) {
+            if (fromPlugdata && lastMidiOutputs[i].name == "to plugdata") {
                 lastMidiOutputs.set(i, fromPlugdata->getDeviceInfo());
             }
         }
-        
+
         midiDeviceMutex.unlock();
         clearInputFilter();
         clearOutputFilter();
     }
-    
+
     Array<MidiDeviceInfo> getInputDevicesUnfiltered()
     {
         return lastMidiInputs;
     }
-    
+
     Array<MidiDeviceInfo> getOutputDevicesUnfiltered()
     {
         return lastMidiOutputs;
@@ -209,23 +201,28 @@ private:
     // first. In the future, we might also apply secondary criteria, e.g., to
     // implement freely assigned port numbers resembling what vanilla Pd has.
     class compareDevs {
-      MidiDeviceManager *self;
-      bool isInput;
+        MidiDeviceManager* self;
+        bool isInput;
+
     public:
-      compareDevs(MidiDeviceManager *x, bool in) : self(x), isInput(in) {}
-      int compareElements (const MidiDeviceInfo& dev1, const MidiDeviceInfo& dev2)
-      {
-        auto id1 = dev1.identifier;
-        auto id2 = dev2.identifier;
-        bool enabled1 = self->isMidiDeviceEnabled(isInput, id1);
-        bool enabled2 = self->isMidiDeviceEnabled(isInput, id2);
-        if (enabled1 > enabled2)
-          return -1;
-        else if (enabled1 < enabled2)
-          return 1;
-        else
-          return 0;
-      }
+        compareDevs(MidiDeviceManager* x, bool in)
+            : self(x)
+            , isInput(in)
+        {
+        }
+        int compareElements(MidiDeviceInfo const& dev1, MidiDeviceInfo const& dev2)
+        {
+            auto id1 = dev1.identifier;
+            auto id2 = dev2.identifier;
+            bool enabled1 = self->isMidiDeviceEnabled(isInput, id1);
+            bool enabled2 = self->isMidiDeviceEnabled(isInput, id2);
+            if (enabled1 > enabled2)
+                return -1;
+            else if (enabled1 < enabled2)
+                return 1;
+            else
+                return 0;
+        }
     };
 
 public:
@@ -255,13 +252,14 @@ public:
             filteredMidiInputs->sort(cmp, true);
             int i, n = filteredMidiInputs->size();
             // this assumes that all disabled ports come last
-            for (i = 0; i < n && isMidiDeviceEnabled(true, (*filteredMidiInputs)[i].identifier); i++) ;
+            for (i = 0; i < n && isMidiDeviceEnabled(true, (*filteredMidiInputs)[i].identifier); i++)
+                ;
             // remove all disabled ports from the end of the array
-            filteredMidiInputs->removeLast(n-i);
+            filteredMidiInputs->removeLast(n - i);
         }
         return *filteredMidiInputs;
     }
-    
+
     Array<MidiDeviceInfo> getOutputDevices()
     {
         if (!ProjectInfo::getDeviceManager()) {
@@ -274,75 +272,63 @@ public:
             compareDevs cmp(this, false);
             filteredMidiOutputs->sort(cmp, true);
             int i, n = filteredMidiOutputs->size();
-            for (i = 0; i < n && isMidiDeviceEnabled(false, (*filteredMidiOutputs)[i].identifier); i++) ;
-            filteredMidiOutputs->removeLast(n-i);
+            for (i = 0; i < n && isMidiDeviceEnabled(false, (*filteredMidiOutputs)[i].identifier); i++)
+                ;
+            filteredMidiOutputs->removeLast(n - i);
         }
         return *filteredMidiOutputs;
     }
-    
-    bool isMidiDeviceEnabled(bool isInput, const String& identifier)
+
+    bool isMidiDeviceEnabled(bool isInput, String const& identifier)
     {
-        if(fromPlugdata && identifier == fromPlugdata->getIdentifier())
-        {
+        if (fromPlugdata && identifier == fromPlugdata->getIdentifier()) {
             return internalOutputEnabled;
         }
-        if(toPlugdata && identifier == toPlugdata->getIdentifier())
-        {
+        if (toPlugdata && identifier == toPlugdata->getIdentifier()) {
             return internalInputEnabled;
         }
-        if(isInput)
-        {
+        if (isInput) {
             return ProjectInfo::getDeviceManager()->isMidiInputDeviceEnabled(identifier);
-        }
-        else {
+        } else {
             for (auto* midiOut : midiOutputs) {
                 if (midiOut->getIdentifier() == identifier) {
                     return true;
                 }
             }
         }
-        
+
         return false;
     }
-    
-    void setMidiDeviceEnabled(bool isInput, const String& identifier, bool shouldBeEnabled)
+
+    void setMidiDeviceEnabled(bool isInput, String const& identifier, bool shouldBeEnabled)
     {
-        if(fromPlugdata && identifier == fromPlugdata->getIdentifier())
-        {
-            if(shouldBeEnabled != internalOutputEnabled)
+        if (fromPlugdata && identifier == fromPlugdata->getIdentifier()) {
+            if (shouldBeEnabled != internalOutputEnabled)
                 clearOutputFilter();
             internalOutputEnabled = shouldBeEnabled;
             saveMidiOutputSettings();
-        }
-        else if(toPlugdata && identifier == toPlugdata->getIdentifier())
-        {
-            if(shouldBeEnabled != internalInputEnabled) {
+        } else if (toPlugdata && identifier == toPlugdata->getIdentifier()) {
+            if (shouldBeEnabled != internalInputEnabled) {
                 clearInputFilter();
                 internalInputEnabled = shouldBeEnabled;
-                if(internalInputEnabled)
-                {
+                if (internalInputEnabled) {
                     toPlugdata->start();
-                }
-                else {
+                } else {
                     toPlugdata->stop();
                 }
             }
-        }
-        else if(isInput)
-        {
+        } else if (isInput) {
             if (shouldBeEnabled != isMidiDeviceEnabled(true, identifier)) {
                 ProjectInfo::getDeviceManager()->setMidiInputDeviceEnabled(identifier, shouldBeEnabled);
                 clearInputFilter();
             }
-        }
-        else if(shouldBeEnabled != isMidiDeviceEnabled(false, identifier)) {
+        } else if (shouldBeEnabled != isMidiDeviceEnabled(false, identifier)) {
             clearOutputFilter();
-            if(shouldBeEnabled)
-            {
+            if (shouldBeEnabled) {
                 auto* device = midiOutputs.add(MidiOutput::openDevice(identifier));
-                if(device) device->startBackgroundThread();
-            }
-            else {
+                if (device)
+                    device->startBackgroundThread();
+            } else {
                 for (auto* midiOut : midiOutputs) {
                     if (midiOut->getIdentifier() == identifier) {
                         midiOutputs.removeObject(midiOut);
@@ -350,63 +336,67 @@ public:
                     }
                 }
             }
-            
+
             saveMidiOutputSettings();
         }
     }
-    
-    MidiOutput* getMidiOutputByIndexIfEnabled(int index)
+
+    void sendMidiOutputMessage(int device, MidiMessage& message)
     {
-        auto idToFind = getOutputDevices()[index].identifier;
-        // The order of midiOutputs is not necessarily the same as that of lastMidiOutputs, that's why we need to check
-        
-        if(idToFind == fromPlugdata->getIdentifier())
-        {
-            return internalOutputEnabled ? fromPlugdata.get() : nullptr;
+        // Device ID 0 means all devices
+        if (device == 0) {
+            for (auto* midiOutput : midiOutputs) {
+                midiOutput->sendMessageNow(message);
+            }
+            return;
         }
-        for(auto* midiOutput : midiOutputs)
-        {
-            if(idToFind == midiOutput->getIdentifier())
-            {
-                return midiOutput;
+
+        auto idToFind = getOutputDevices()[device - 1].identifier;
+        // The order of midiOutputs is not necessarily the same as that of lastMidiOutputs, that's why we need to check
+
+        if (idToFind == fromPlugdata->getIdentifier()) {
+            fromPlugdata->sendMessageNow(message);
+            return;
+        }
+
+        for (auto* midiOutput : midiOutputs) {
+            if (idToFind == midiOutput->getIdentifier()) {
+                midiOutput->sendMessageNow(message);
+                break;
             }
         }
-        
-        return nullptr;
     }
-    
-    int getMidiInputDeviceIndex(const String& identifier)
+
+    int getMidiInputDeviceIndex(String const& identifier)
     {
         auto devices = getInputDevices();
-        
-        for(int i = 0; i < devices.size(); i++)
-        {
-            if(devices[i].identifier == identifier)
-            {
+
+        for (int i = 0; i < devices.size(); i++) {
+            if (devices[i].identifier == identifier) {
                 return i;
             }
         }
-        
+
         return -1;
     }
 
 private:
     bool internalOutputEnabled = false;
     bool internalInputEnabled = false;
-    
+
     std::unique_ptr<MidiInput> toPlugdata;
     std::unique_ptr<MidiOutput> fromPlugdata;
-    
+
     // These arrays hold the actual midi ports
     OwnedArray<MidiOutput> midiOutputs;
-    
+
     std::mutex midiDeviceMutex;
-    
+
     // List of ports in the canonical order
     // This can't be accessed from the audio thread so we need to store it when it changes
     Array<MidiDeviceInfo> lastMidiInputs;
     Array<MidiDeviceInfo> lastMidiOutputs;
 
-    Array<MidiDeviceInfo> *filteredMidiInputs;
-    Array<MidiDeviceInfo> *filteredMidiOutputs;
+    Array<MidiDeviceInfo>* filteredMidiInputs;
+    Array<MidiDeviceInfo>* filteredMidiOutputs;
 };

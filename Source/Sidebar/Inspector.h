@@ -6,9 +6,7 @@
 
 #include "../Utility/PropertiesPanel.h"
 
-class InspectorPanel : public PropertiesPanel
-{
-
+class InspectorPanel : public PropertiesPanel {
 };
 
 class Inspector : public Component {
@@ -27,7 +25,7 @@ public:
         addAndMakeVisible(panel);
         lookAndFeelChanged();
     }
-    
+
     void lookAndFeelChanged() override
     {
         panel.setSeparatorColour(findColour(PlugDataColour::sidebarBackgroundColourId));
@@ -43,7 +41,7 @@ public:
     {
         panel.setBounds(getLocalBounds());
         resetButton.setTopLeftPosition(getLocalBounds().withTrimmedRight(23).getRight(), 0);
-        
+
         panel.setContentWidth(getWidth() - 16);
     }
 
@@ -51,7 +49,7 @@ public:
     {
         title = name;
     }
-    
+
     String getTitle()
     {
         return title;
@@ -82,7 +80,7 @@ public:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
         }
     }
-    
+
     void showParameters()
     {
         loadParameters(properties);
@@ -112,7 +110,7 @@ public:
             }
         }
     }
-    
+
     std::unique_ptr<Component> getExtraSettingsComponent()
     {
         auto* resetButton = new TextButton(Icons::Reset);
@@ -122,7 +120,7 @@ public:
         resetButton->onClick = [this]() {
             properties.resetAll();
         };
-        
+
         return std::unique_ptr<TextButton>(resetButton);
     }
 };

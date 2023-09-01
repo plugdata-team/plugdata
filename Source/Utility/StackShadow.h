@@ -19,7 +19,7 @@
 
 #if JUCE_WINDOWS
 // Enable for JUCE >=7.0.6
-//#    include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
+// #    include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
 #    include <juce_gui_basics/native/juce_win32_ScopedThreadDPIAwarenessSetter.h>
 #endif
 
@@ -701,12 +701,12 @@ public:
 
         auto area = (path.getBounds().getSmallestIntegerContainer() + offset)
                         .expanded(radius + spread + 1);
-                        // FIXME:
-                        // The clipping area isn't reset correctly somewhere on the canvas.
-                        // Enabling this causes the drop shadow to render incorrectly
-                        // when the object is near the top edge of the viewport
+        // FIXME:
+        // The clipping area isn't reset correctly somewhere on the canvas.
+        // Enabling this causes the drop shadow to render incorrectly
+        // when the object is near the top edge of the viewport
 
-                        //.getIntersection(g.getClipBounds().expanded(radius + spread + 1));
+        //.getIntersection(g.getClipBounds().expanded(radius + spread + 1));
 
         if (area.getWidth() < 2 || area.getHeight() < 2)
             return;
@@ -729,7 +729,7 @@ public:
             dropShadowCache.addImageToCache(renderedPath, fastHash);
 
             // we probably don't need this
-            //dropShadowCache.releaseUnusedImages();
+            // dropShadowCache.releaseUnusedImages();
         }
         g.setColour(color);
         g.drawImageAt(renderedPath, area.getX(), area.getY(), true);

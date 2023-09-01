@@ -26,12 +26,11 @@ public:
         addAndMakeVisible(listLabel);
 
         listLabel.onEditorHide = [this]() {
-            startEdition();
-            updateFromGui();
             stopEdition();
         };
 
         listLabel.onEditorShow = [this]() {
+            startEdition();
             auto* editor = listLabel.getCurrentTextEditor();
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             if (editor != nullptr) {
@@ -63,14 +62,14 @@ public:
     void update() override
     {
         sizeProperty = atomHelper.getWidthInChars();
-        
+
         min = atomHelper.getMinimum();
         max = atomHelper.getMaximum();
         updateValue();
 
         atomHelper.update();
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
@@ -82,13 +81,12 @@ public:
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
             auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
-            
+
             setParameterExcludingListener(sizeProperty, width);
-            
+
             atomHelper.setWidthInChars(width);
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(min)) {
+        } else if (value.refersToSameSourceAs(min)) {
             auto v = getValue<float>(min);
             listLabel.setMinimum(v);
             atomHelper.setMinimum(v);
@@ -108,8 +106,12 @@ public:
         std::vector<pd::Atom> list;
         list.reserve(array.size());
         for (auto const& elem : array) {
-            if (elem.getCharPointer().isDigit()) {
-                list.emplace_back(elem.getFloatValue());
+            auto charptr = elem.getCharPointer();
+            auto numptr = charptr;
+            auto value = CharacterFunctions::readDoubleValue(numptr);
+
+            if (numptr - charptr == elem.getNumBytesAsUTF8()) {
+                list.emplace_back(value);
             } else {
                 list.emplace_back(elem);
             }
@@ -162,16 +164,25 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        Path triangle;
-        triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-        triangle = triangle.createPathWithRoundedCorners(4.0f);
-        g.fillPath(triangle);
+        Path triangles;
+        triangles.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
+        triangles.addTriangle(Point<float>(getWidth() - 8, getHeight()), Point<float>(getWidth(), getHeight()), Point<float>(getWidth(), getHeight() - 8));
+
+        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
+        g.fillPath(triangles);
+        g.restoreState();
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(reducedBounds, Corners::objectCornerRadius, 1.0f);
 
         bool highlighed = hasKeyboardFocus(true) && getValue<bool>(object->locked);
 
@@ -193,13 +204,6 @@ public:
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
-        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-
-        Path bottomTriangle;
-        bottomTriangle.addTriangle(Point<float>(getWidth() - 8, getHeight()), Point<float>(getWidth(), getHeight()), Point<float>(getWidth(), getHeight() - 8));
-        bottomTriangle = bottomTriangle.createPathWithRoundedCorners(4.0f);
-        g.fillPath(bottomTriangle);
     }
 
     // If we already know the atoms, this will allow a lock-free update

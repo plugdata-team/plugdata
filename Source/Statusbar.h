@@ -47,7 +47,6 @@ public:
     AudioSampleRingBuffer peakBuffer;
 
 private:
-    
     std::atomic<int> lastMidiReceivedTime = 0;
     std::atomic<int> lastMidiSentTime = 0;
     std::atomic<int> lastAudioProcessedTime = 0;
@@ -91,12 +90,15 @@ public:
     std::unique_ptr<LevelMeter> levelMeter;
     std::unique_ptr<MidiBlinker> midiBlinker;
     std::unique_ptr<VolumeSlider> volumeSlider;
-        
+
     TextButton powerButton, centreButton, fitAllButton, protectButton;
 
     TextButton overlayButton, overlaySettingsButton;
 
     TextButton snapEnableButton, snapSettingsButton;
+
+    TextButton alignmentButton;
+
     std::unique_ptr<OversampleSelector> oversampleSelector;
 
     Label zoomLabel;
@@ -111,6 +113,6 @@ public:
     int firstSeparatorPosition;
     int secondSeparatorPosition;
     int thirdSeparatorPosition;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

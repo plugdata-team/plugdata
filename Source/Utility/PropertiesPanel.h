@@ -14,16 +14,13 @@
 #include "ColourPicker.h"
 #include "Utility/BouncingViewport.h"
 
-class PropertiesPanel : public Component
-{
+class PropertiesPanel : public Component {
 public:
-        
-    enum TitleAlignment
-    {
+    enum TitleAlignment {
         AlignWithSection,
         AlignWithPropertyName,
     };
-        
+
     class Property : public PropertyComponent {
 
     protected:
@@ -91,33 +88,32 @@ private:
         {
             propertyComps.clear();
         }
-        
+
         void paint(Graphics& g) override
         {
             auto [x, width] = parent.getContentXAndWidth();
-            
+
             auto titleX = x;
-            if(parent.titleAlignment == AlignWithPropertyName)
-            {
+            if (parent.titleAlignment == AlignWithPropertyName) {
                 titleX += 8;
             }
-            
+
             Fonts::drawStyledText(g, getName(), titleX, 0, width - 4, parent.titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 14.5f);
-            
+
             auto propertyBounds = Rectangle<float>(x, parent.titleHeight + 8.0f, width, getHeight() - (parent.titleHeight + 16.0f));
-            
+
             // Don't draw the shadow if the background colour has opacity
-            if(parent.drawShadowAndOutline) {
+            if (parent.drawShadowAndOutline) {
                 Path p;
                 p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
                 StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
             }
-            
+
             g.setColour(parent.panelColour);
             g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
             // Don't draw the outline if the background colour has opacity
-            if(parent.drawShadowAndOutline) {
+            if (parent.drawShadowAndOutline) {
                 g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
                 g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
             }
@@ -390,9 +386,9 @@ public:
             }
         }
     };
-    
-    struct BoolComponent : public Property, public Value::Listener
-    {
+
+    struct BoolComponent : public Property
+        , public Value::Listener {
         BoolComponent(String const& propertyName, Value& value, StringArray options)
             : Property(propertyName)
             , textOptions(std::move(options))
@@ -408,7 +404,7 @@ public:
         {
             toggleStateValue.addListener(this);
         }
-        
+
         // Allow creation without an attached juce::Value, but with an initial value
         // We need this constructor sometimes to prevent feedback caused by the initial value being set after the listener is attached
         BoolComponent(String const& propertyName, bool initialValue, StringArray options)
@@ -418,7 +414,7 @@ public:
             toggleStateValue = initialValue;
             toggleStateValue.addListener(this);
         }
-        
+
         ~BoolComponent()
         {
             toggleStateValue.removeListener(this);
@@ -468,18 +464,17 @@ public:
             toggleStateValue.setValue(!getValue<bool>(toggleStateValue));
             repaint();
         }
-        
+
         void valueChanged(Value& v) override
         {
             if (v.refersToSameSourceAs(toggleStateValue))
                 repaint();
         }
-        
+
     protected:
         StringArray textOptions;
         Value toggleStateValue;
     };
-
 
     struct ColourComponent : public Property
         , public Value::Listener {
@@ -589,7 +584,7 @@ public:
         Value property;
 
         DraggableNumber minLabel, maxLabel;
-            
+
         float min, max;
 
         RangeComponent(String const& propertyName, Value& value, bool integerMode)
@@ -607,12 +602,12 @@ public:
             minLabel.setEditableOnClick(true);
             minLabel.addMouseListener(this, true);
             minLabel.setText(String(min), dontSendNotification);
-            
+
             addAndMakeVisible(maxLabel);
             maxLabel.setEditableOnClick(true);
             maxLabel.addMouseListener(this, true);
             maxLabel.setText(String(max), dontSendNotification);
-            
+
             auto setMinimum = [this](float value) {
                 min = value;
                 Array<var> arr = { min, max };
@@ -642,17 +637,17 @@ public:
         {
             property.removeListener(this);
         }
-            
+
         DraggableNumber& getMinimumComponent()
         {
             return minLabel;
         }
-            
+
         DraggableNumber& getMaximumComponent()
         {
             return maxLabel;
         }
-            
+
         void setIntegerMode(bool integerMode)
         {
             minLabel.setDragMode(integerMode ? DraggableNumber::Integer : DraggableNumber::Regular);
@@ -690,9 +685,8 @@ public:
                 auto* draggableNumber = new DraggableNumber(std::is_integral<T>::value);
                 label = std::unique_ptr<DraggableNumber>(draggableNumber);
 
-                
                 // By setting the text before attaching the value, we can prevent an unnesssary/harmful call to ValueChanged
-                draggableNumber->setText(String(getValue<T>(property)), dontSendNotification);
+                draggableNumber->setText(property.toString(), dontSendNotification);
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
 
@@ -865,11 +859,11 @@ public:
         viewport.setFocusContainerType(FocusContainerType::focusContainer);
 
         viewport.addMouseListener(this, true);
-        
+
         panelColour = findColour(PlugDataColour::panelForegroundColourId);
         separatorColour = findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f);
     }
-        
+
     /** Destructor. */
     ~PropertiesPanel() override
     {
@@ -911,10 +905,9 @@ public:
         repaint();
     }
 
-    Component* getSectionByName(const String& name) const noexcept
+    Component* getSectionByName(String const& name) const noexcept
     {
-        if(propertyHolderComponent)
-        {
+        if (propertyHolderComponent) {
             for (auto* section : propertyHolderComponent->sections) {
                 if (section->getName() == name)
                     return section;
@@ -923,7 +916,7 @@ public:
 
         return nullptr;
     }
-        
+
     std::pair<int, int> getContentXAndWidth()
     {
         auto marginWidth = (getWidth() - contentWidth) / 2;
@@ -955,27 +948,27 @@ public:
                 Justification::centred, true);
         }
     }
-        
+
     void setTitleAlignment(TitleAlignment newTitleAlignment)
     {
         titleAlignment = newTitleAlignment;
     }
-        
+
     void setPanelColour(Colour newPanelColour)
     {
         panelColour = newPanelColour;
     }
-        
+
     void setSeparatorColour(Colour newSeparatorColour)
     {
         separatorColour = newSeparatorColour;
     }
-        
+
     void setDrawShadowAndOutline(bool shouldDrawShadowAndOutline)
     {
         drawShadowAndOutline = shouldDrawShadowAndOutline;
     }
-        
+
     void setTitleHeight(int newTitleHeight)
     {
         titleHeight = newTitleHeight;
@@ -1009,7 +1002,7 @@ public:
             propertyHolderComponent->updateLayout(newMaxWidth, maxHeight);
         }
     }
-    
+
     TitleAlignment titleAlignment = AlignWithSection;
     Colour panelColour;
     Colour separatorColour;

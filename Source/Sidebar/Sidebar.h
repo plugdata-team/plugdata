@@ -19,7 +19,6 @@ namespace pd {
 struct Instance;
 }
 
-
 class PluginEditor;
 class Sidebar : public Component {
 
@@ -62,9 +61,8 @@ public:
     static constexpr int dragbarWidth = 6;
 
 private:
-    
     void updateExtraSettingsButton();
-    
+
     PluginProcessor* pd;
     ObjectParameters lastParameters;
 
@@ -82,7 +80,6 @@ private:
     std::unique_ptr<AutomationPanel> automationPanel;
     std::unique_ptr<SearchPanel> searchPanel;
 
-    
     StringArray panelNames = { "Console", "Documentation Browser", "Automation Parameters", "Search" };
     int currentPanel = 0;
 

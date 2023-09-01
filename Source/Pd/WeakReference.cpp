@@ -15,10 +15,16 @@ extern "C" {
 #include "Instance.h"
 
 pd::WeakReference::WeakReference(void* p, Instance* instance)
-    : ptr(static_cast<t_pd*>(p))
+    : ptr(p)
     , pd(instance)
 {
     pd->registerWeakReference(ptr, &weakRef);
+}
+
+pd::WeakReference::WeakReference()
+    : ptr(nullptr)
+    , pd(nullptr)
+{
 }
 
 pd::WeakReference::~WeakReference()
@@ -26,11 +32,12 @@ pd::WeakReference::~WeakReference()
     pd->unregisterWeakReference(ptr, &weakRef);
 }
 
-pd::WeakReference& pd::WeakReference::operator=(const pd::WeakReference& other)
+pd::WeakReference& pd::WeakReference::operator=(pd::WeakReference const& other)
 {
     if (this != &other) // Check for self-assignment
     {
-        pd->unregisterWeakReference(ptr, &other.weakRef);
+        if (ptr)
+            pd->unregisterWeakReference(ptr, &other.weakRef);
 
         // Use atomic exchange to safely copy the weakRef value
         weakRef.store(other.weakRef.load());
@@ -39,10 +46,9 @@ pd::WeakReference& pd::WeakReference::operator=(const pd::WeakReference& other)
 
         pd->registerWeakReference(ptr, &weakRef);
     }
-    
+
     return *this;
 }
-
 
 void pd::WeakReference::setThis() const
 {

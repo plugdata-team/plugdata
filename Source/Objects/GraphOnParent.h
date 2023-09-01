@@ -26,16 +26,20 @@ public:
     {
         resized();
 
-        MessageManager::callAsync([_this = SafePointer(this)]() {
-            if (_this)
-                _this->checkGraphState();
-        });
-
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
         objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
-        objectParameters.addParamRange("X range", cGeneral, &xRange, {0, 100});
-        objectParameters.addParamRange("Y range", cGeneral, &yRange, {-1, 1});
+        objectParameters.addParamRange("X range", cGeneral, &xRange, { 0, 100 });
+        objectParameters.addParamRange("Y range", cGeneral, &yRange, { -1, 1 });
+
+        // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
+        // By running another update call asynchrounously, we can still respond to the new state
+        MessageManager::callAsync([_this = SafePointer(this)]() {
+            if (_this) {
+                _this->update();
+                _this->valueChanged(_this->isGraphChild);
+            }
+        });
     }
 
     void update() override
@@ -45,7 +49,7 @@ public:
             hideNameAndArgs = static_cast<bool>(glist->gl_hidetext);
             xRange = Array<var> { var(glist->gl_x1), var(glist->gl_x2) };
             yRange = Array<var> { var(glist->gl_y2), var(glist->gl_y1) };
-            sizeProperty = Array<var>{var(glist->gl_pixwidth), var(glist->gl_pixheight)};
+            sizeProperty = Array<var> { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
         }
 
         updateCanvas();
@@ -63,36 +67,23 @@ public:
     {
         switch (hash(symbol)) {
         case hash("coords"): {
-            if (atoms.size() >= 8) {
+            Rectangle<int> bounds;
+            if (auto gobj = ptr.get<t_gobj>()) {
+                auto* patch = cnv->patch.getPointer().get();
+                if (!patch)
+                    return;
 
-                // x_range: 0 1
-                // y_range: 1 -1
-                // w: $4 h: 22
-                // hidetext: 2
-                // margin: 100 100
-                // isgraph: 1
-
-                Rectangle<int> bounds;
-                if (auto gobj = ptr.get<t_gobj>()) {
-                    auto* patch = cnv->patch.getPointer().get();
-                    if (!patch)
-                        return;
-
-                    int x = 0, y = 0, w = 0, h = 0;
-                    libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
-                    bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
-                }
-
-                object->setObjectBounds(bounds);
+                int x = 0, y = 0, w = 0, h = 0;
+                libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+                bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
             }
+            update();
+            object->setObjectBounds(bounds);
             break;
         }
         case hash("donecanvasdialog"): {
-            if (atoms.size() >= 11) {
-
-                updateCanvas();
-                updateDrawables();
-            }
+            update();
+            updateCanvas();
             break;
         }
         default:
@@ -160,13 +151,13 @@ public:
 
         return {};
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto glist = ptr.get<t_glist>()) {
-            setParameterExcludingListener(sizeProperty, Array<var>{var(glist->gl_pixwidth), var(glist->gl_pixheight)});
+            setParameterExcludingListener(sizeProperty, Array<var> { var(glist->gl_pixwidth), var(glist->gl_pixheight) });
         }
     }
 
@@ -179,15 +170,13 @@ public:
     {
         isOpenedInSplitView = false;
         for (auto* split : cnv->editor->splitView.splits) {
-            if(auto* cnv = split->getTabComponent()->getCurrentCanvas())
-            {
-                if(cnv->patch == *getPatch())
-                {
+            if (auto* cnv = split->getTabComponent()->getCurrentCanvas()) {
+                if (cnv->patch == *getPatch()) {
                     isOpenedInSplitView = true;
                 }
             }
         }
-        
+
         updateCanvas();
         repaint();
     }
@@ -220,11 +209,8 @@ public:
     {
         if (!canvas)
             return;
-        for (auto& object : canvas->objects) {
-            if (object->gui) {
-                object->gui->updateDrawables();
-            }
-        }
+
+        canvas->updateDrawables();
     }
 
     // override to make transparent
@@ -267,36 +253,6 @@ public:
         return canvas.get();
     }
 
-    void checkGraphState()
-    {
-        int isGraph = getValue<bool>(isGraphChild);
-        int hideText = isGraph && getValue<bool>(hideNameAndArgs);
-
-        if (auto glist = ptr.get<t_glist>()) {
-            canvas_setgraph(glist.get(), isGraph + 2 * hideText, 0);
-        }
-
-        repaint();
-
-        MessageManager::callAsync([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
-
-            // Change from graph to subpatch
-            if (auto glist = ptr.get<t_canvas>()) {
-                if (!glist->gl_isgraph) {
-                    cnv->setSelected(object, false);
-                    object->cnv->editor->sidebar->hideParameters();
-
-                    object->setType(getText(), glist.get());
-                    return; // Make sure we don't run updateCanvas because class might be deleted!
-                }
-            }
-
-            updateCanvas();
-        });
-    }
-
     void valueChanged(Value& v) override
     {
 
@@ -305,21 +261,43 @@ public:
             auto* constrainer = getConstrainer();
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
-            
-            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
-            
-            if (auto glist = ptr.get<t_glist>())
-            {
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto glist = ptr.get<t_glist>()) {
                 glist->gl_pixwidth = width;
                 glist->gl_pixheight = height;
             }
-            
+
             object->updateBounds();
-        }
-        else if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
-            checkGraphState();
-        }
-        else if (v.refersToSameSourceAs(xRange)) {
+        } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
+            int hideText = getValue<bool>(hideNameAndArgs);
+            if (auto glist = ptr.get<t_glist>()) {
+                canvas_setgraph(glist.get(), glist->gl_isgraph + 2 * hideText, 0);
+            }
+            repaint();
+        } else if (v.refersToSameSourceAs(isGraphChild)) {
+            int isGraph = getValue<bool>(isGraphChild);
+
+            if (auto glist = ptr.get<t_glist>()) {
+                canvas_setgraph(glist.get(), isGraph + 2 * (isGraph && glist->gl_hidetext), 0);
+            }
+
+            if (!isGraph) {
+                MessageManager::callAsync([_this = SafePointer(this)]() {
+                    if (!_this)
+                        return;
+
+                    _this->cnv->setSelected(_this->object, false);
+                    _this->object->cnv->editor->sidebar->hideParameters();
+
+                    _this->object->setType(_this->getText(), _this->ptr.getRaw<void>());
+                });
+            } else {
+                updateCanvas();
+                repaint();
+            }
+        } else if (v.refersToSameSourceAs(xRange)) {
             if (auto glist = ptr.get<t_canvas>()) {
                 glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
                 glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));

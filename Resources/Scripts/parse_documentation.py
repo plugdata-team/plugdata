@@ -180,7 +180,7 @@ def prepareDocsForWebpage(xml):
   if " " in xml.get("name"): return
 
 
-  with open("../Website/" + xml.get("name") + ".md", "w") as markdown:
+  with open("../Website/" + xml.get("name") + ".md", "w", encoding='utf-8') as markdown:
     # Write bytes to file
     markdown.write(md)
 
@@ -274,7 +274,7 @@ def parseFilesInDir(dir, generateXml, generateWebsite):
       for file in os.listdir(originPath):
         filePath = os.path.join(originPath, file)
         if os.fsdecode(filePath).endswith(".md"):
-          with open(filePath, 'r') as f:
+          with open(filePath, 'r', encoding='utf-8') as f:
               markdownToXml(root, f.read())
 
   # Save the generate xml if asked for

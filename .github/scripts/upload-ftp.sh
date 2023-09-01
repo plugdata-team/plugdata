@@ -16,6 +16,12 @@ COMMIT_TIMESTAMP=$(git show -s --format=%ct HEAD)
 
 LATEST_HASH=$(git rev-parse HEAD)
 
+# Only run on develop branch
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" != "develop" ]; then
+    exit 0
+fi
+
 cat > $INFO_FILE <<END_FILE
 $DATE
 $GIT_HASH

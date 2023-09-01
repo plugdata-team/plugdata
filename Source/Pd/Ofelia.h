@@ -16,94 +16,90 @@ extern "C" {
 #include <x_libpd_mod_utils.h>
 
 void ofelia_setup();
-
 }
 
 #include "../Libraries/plugdata-ofelia/Source/Objects/ofxOfeliaMessageManager.h"
 
-
-
 namespace pd {
 
-class Ofelia : public Thread
-{
+class Ofelia : public Thread {
 public:
     static inline File ofeliaExecutable = File();
-    
-    Ofelia(t_pdinstance* pdthis) : Thread("Ofelia Thread"), pdinstance(pdthis)
+
+    Ofelia(t_pdinstance* pdthis)
+        : Thread("Ofelia Thread")
+        , pdinstance(pdthis)
     {
         setup();
         startThread();
     }
-    
+
     ~Ofelia()
     {
         shouldQuit = true;
         ofeliaProcess.kill();
-        waitForThreadToExit(5000);
+        stopThread(5000);
     }
-    
+
 private:
-    
     void setup()
     {
         auto ofeliaExecutable = findOfeliaExecutable();
-        if(!ofeliaInitialised && ofeliaExecutable.existsAsFile()) {
+        if (!ofeliaInitialised && ofeliaExecutable.existsAsFile()) {
             ofeliaInitialised = true;
-            
+
             libpd_set_instance(pdinstance);
             sys_lock();
             pd_globallock();
             set_class_prefix(gensym("ofelia"));
             ofelia_setup();
-            
+
             set_class_prefix(nullptr);
             pd_globalunlock();
             sys_unlock();
         }
     }
-    
+
     void run() override
     {
-        while(!shouldQuit) {
-            
-            
+        while (!shouldQuit) {
             auto ofeliaExecutable = findOfeliaExecutable();
-            
-            if(!ofeliaExecutable.existsAsFile())
-            {
-                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 1000);
+
+            if (!ofeliaExecutable.existsAsFile()) {
+                for (int i = 0; i < 10; i++) {
+                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 500);
+                    if (shouldQuit)
+                        break;
+                }
                 continue;
             }
-            
+
             ofeliaExecutable.setExecutePermission(true);
-            
+
             setup();
-            
+
             // Initialise threading system for ofelia
             auto* messageManager = ofxOfeliaMessageManager::initialise(canvas_class);
-            
-            int uniquePortNumber = Random().nextInt({20000, 50000});
-            
+
+            int uniquePortNumber = Random().nextInt({ 20000, 50000 });
+
             ofeliaProcess.start(ofeliaExecutable.getFullPathName() + " " + String(uniquePortNumber));
-            
+
             bool success = messageManager->bind(uniquePortNumber);
-            
-            if(!success)
-            {
+
+            if (!success) {
                 ofeliaProcess.kill();
                 continue;
             }
-            
+
 #if JUCE_DEBUG
-            
+
             auto err = ofeliaProcess.readAllProcessOutput();
             std::cerr << err << std::endl;
-            
+
             // When debugging ofelia, it will falsly report that the process has finished
             // Instead we wait forever
-            while(!shouldQuit)
-            {
+            while (!shouldQuit) {
                 Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 3000);
             }
 #else
@@ -112,33 +108,36 @@ private:
 #endif
         }
     }
-    
-    
+
     File findOfeliaExecutable()
     {
-        if(ofeliaExecutable.existsAsFile())
-        {
+        if (ofeliaExecutable.existsAsFile()) {
             return ofeliaExecutable;
         }
-        
+
         libpd_set_instance(pdinstance);
-        
+
         char* p[1024];
         int numItems;
         libpd_get_search_paths(p, &numItems);
         auto paths = StringArray(p, numItems);
-        
+
         for (auto& dir : paths) {
-            for (const auto& file : OSUtils::iterateDirectory(dir, true, true)) {
+            auto ofeliaDir = File(dir).getChildFile("ofelia");
+
+            if (!ofeliaDir.isDirectory())
+                continue;
+
+            for (auto const& file : OSUtils::iterateDirectory(ofeliaDir, false, true)) {
                 if (file.getFileName() == "ofelia" || file.getFileName() == "ofelia.exe") {
                     return ofeliaExecutable = file;
                 }
             }
         }
-        
+
         return ofeliaExecutable = File();
     }
-    
+
     t_pdinstance* pdinstance;
     std::atomic<bool> ofeliaInitialised = false;
     std::atomic<bool> shouldQuit = false;

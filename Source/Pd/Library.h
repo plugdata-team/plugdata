@@ -26,13 +26,13 @@ public:
 
     void updateLibrary();
 
-    StringArray autocomplete(String const& query, const File& patchDirectory) const;
+    StringArray autocomplete(String const& query, File const& patchDirectory) const;
     void getExtraSuggestions(int currentNumSuggestions, String const& query, std::function<void(StringArray)> const& callback);
 
     static std::array<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
 
     void fsChangeCallback() override;
-    
+
     File findHelpfile(t_object* obj, File const& parentPatchFile) const;
 
     ValueTree getObjectInfo(String const& name);
@@ -69,5 +69,3 @@ private:
 };
 
 } // namespace pd
-
-

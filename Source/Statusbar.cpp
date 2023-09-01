@@ -18,115 +18,108 @@
 
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
+#include "Dialogs/AlignmentTools.h"
 
 #include "Utility/ArrowPopupMenu.h"
 
 class OversampleSelector : public TextButton {
-        
-    class OversampleSettingsPopup : public Component
-    {
+
+    class OversampleSettingsPopup : public Component {
     public:
-        
-        std::function<void(int)> onChange = [](int){};
-        std::function<void()> onClose = [](){};
-        
+        std::function<void(int)> onChange = [](int) {};
+        std::function<void()> onClose = []() {};
+
         OversampleSettingsPopup(int currentSelection)
         {
             title.setText("Oversampling factor", dontSendNotification);
             title.setFont(Fonts::getBoldFont().withHeight(14.0f));
             addAndMakeVisible(title);
-            
+
             one.setConnectedEdges(ConnectedOnRight);
             two.setConnectedEdges(ConnectedOnLeft | ConnectedOnRight);
             four.setConnectedEdges(ConnectedOnLeft | ConnectedOnRight);
             eight.setConnectedEdges(ConnectedOnLeft);
 
-            auto buttons = Array<TextButton*>{&one, &two, &four, &eight};
-            
+            auto buttons = Array<TextButton*> { &one, &two, &four, &eight };
+
             int i = 0;
-            for(auto* button : buttons)
-            {
+            for (auto* button : buttons) {
                 button->setRadioGroupId(hash("oversampling_selector"));
                 button->setClickingTogglesState(true);
-                button->onClick = [this, i](){
+                button->onClick = [this, i]() {
                     onChange(i);
                 };
-                
+
                 button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
                 button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
                 button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
                 button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-                
+
                 addAndMakeVisible(button);
                 i++;
             }
-            
+
             buttons[currentSelection]->setToggleState(true, dontSendNotification);
-            
+
             setSize(180, 50);
         }
-        
+
         ~OversampleSettingsPopup()
         {
             onClose();
         }
-        
+
     private:
         void resized() override
         {
             auto b = getLocalBounds().reduced(4, 4);
             auto titleBounds = b.removeFromTop(22);
-            
+
             title.setBounds(titleBounds.translated(0, -2));
-            
+
             auto buttonWidth = b.getWidth() / 4;
-            
+
             one.setBounds(b.removeFromLeft(buttonWidth));
             two.setBounds(b.removeFromLeft(buttonWidth).translated(-1, 0));
             four.setBounds(b.removeFromLeft(buttonWidth).translated(-2, 0));
             eight.setBounds(b.removeFromLeft(buttonWidth).translated(-3, 0));
         }
-        
+
         Label title;
         TextButton one = TextButton("1x");
         TextButton two = TextButton("2x");
         TextButton four = TextButton("4x");
         TextButton eight = TextButton("8x");
     };
-    
+
 public:
     OversampleSelector(PluginProcessor* pd)
     {
-        onClick = [this, pd](){
-
+        onClick = [this, pd]() {
             auto selection = log2(getButtonText().upToLastOccurrenceOf("x", false, false).getIntValue());
             auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
             auto oversampleSettings = std::make_unique<OversampleSettingsPopup>(selection);
             auto bounds = editor->getLocalArea(this, getLocalBounds());
-            
-            oversampleSettings->onChange = [this, pd](int result)
-            {
+
+            oversampleSettings->onChange = [this, pd](int result) {
                 setButtonText(String(1 << result) + "x");
                 pd->setOversampling(result);
             };
-            oversampleSettings->onClose = [this](){
+            oversampleSettings->onClose = [this]() {
                 repaint();
             };
-            
+
             CallOutBox::launchAsynchronously(std::move(oversampleSettings), bounds, editor);
         };
     }
-    
+
 private:
     void paint(Graphics& g) override
     {
         auto buttonText = getButtonText();
-        if(buttonText == "1x")
-        {
+        if (buttonText == "1x") {
             g.setColour(isMouseOverOrDragging() ? findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f) : findColour(PlugDataColour::toolbarTextColourId));
-        }
-        else
-        {
+        } else {
             g.setColour(isMouseOverOrDragging() ? findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f) : findColour(PlugDataColour::toolbarActiveColourId));
         }
 
@@ -148,19 +141,19 @@ public:
         setMouseDragSensitivity(getWidth() - (margin * 2));
     }
 
-    void mouseMove(const MouseEvent& e) override
+    void mouseMove(MouseEvent const& e) override
     {
         repaint();
         Slider::mouseMove(e);
     }
 
-    void mouseUp(const MouseEvent& e) override
+    void mouseUp(MouseEvent const& e) override
     {
         repaint();
         Slider::mouseUp(e);
     }
 
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
         repaint();
         Slider::mouseDown(e);
@@ -169,7 +162,7 @@ public:
     void paint(Graphics& g) override
     {
         auto backgroundColour = findColour(PlugDataColour::levelMeterThumbColourId);
-        
+
         auto value = getValue();
         auto thumbSize = getHeight() * 0.7f;
         auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
@@ -182,8 +175,6 @@ public:
 private:
     int margin = 18;
 };
-
-
 
 class LevelMeter : public Component
     , public StatusbarSource::Listener
@@ -238,7 +229,7 @@ public:
             }
         }
 
-        if (isShowing() && needsRepaint)
+        if (needsRepaint)
             repaint();
     }
 
@@ -266,7 +257,7 @@ public:
 
         g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(x + outerBorderWidth + 4, outerBorderWidth, bgWidth - 8, bgHeight, Corners::defaultCornerRadius);
-        
+
         for (int ch = 0; ch < numChannels; ch++) {
             auto barYPos = outerBorderWidth + ((ch + 1) * (bgHeight / 3.0f)) - halfBarHeight;
             auto barLength = jmin(audioLevel[ch] * barWidth, barWidth);
@@ -324,7 +315,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     midiBlinker = std::make_unique<MidiBlinker>();
     volumeSlider = std::make_unique<VolumeSlider>();
     oversampleSelector = std::make_unique<OversampleSelector>(processor);
-    
+
     pd->statusbarSource->addListener(levelMeter.get());
     pd->statusbarSource->addListener(midiBlinker.get());
     pd->statusbarSource->addListener(this);
@@ -385,23 +376,19 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
     addAndMakeVisible(protectButton);
 
-
-
     volumeSlider->setRange(0.0f, 1.0f);
     volumeSlider->setValue(0.8f);
     volumeSlider->setDoubleClickReturnValue(true, 0.8f);
     addAndMakeVisible(*volumeSlider);
-    
-    if(ProjectInfo::isStandalone)
-    {
-        volumeSlider->onValueChange = [this](){
+
+    if (ProjectInfo::isStandalone) {
+        volumeSlider->onValueChange = [this]() {
             pd->volume->store(volumeSlider->getValue());
         };
-    }
-    else {
+    } else {
         volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), *volumeSlider, nullptr);
     }
-    
+
     addAndMakeVisible(*levelMeter);
     addAndMakeVisible(*midiBlinker);
 
@@ -423,6 +410,12 @@ Statusbar::Statusbar(PluginProcessor* processor)
     snapSettingsButton.onClick = [this]() {
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
         SnapSettings::show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
+    };
+
+    alignmentButton.setButtonText(Icons::AlignLeft);
+    alignmentButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        AlignmentTools::show(editor, editor->getLocalArea(this, alignmentButton.getBounds()));
     };
 
     // overlay button
@@ -458,6 +451,13 @@ Statusbar::Statusbar(PluginProcessor* processor)
     snapEnableButton.setTooltip(String("Enable snapping"));
     snapSettingsButton.setTooltip(String("Snap settings"));
 
+    // alignment button
+    alignmentButton.getProperties().set("Style", "SmallIcon");
+
+    addAndMakeVisible(alignmentButton);
+
+    alignmentButton.setTooltip(String("Alignment tools"));
+
     setSize(getWidth(), statusbarHeight);
 }
 
@@ -476,10 +476,10 @@ void Statusbar::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawLine(0.0f, 0.5f, static_cast<float>(getWidth()), 0.5f);
-    
-    g.drawLine(firstSeparatorPosition, 6.0f,firstSeparatorPosition, getHeight() - 6.0f);
+
+    g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
     g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
-    g.drawLine(thirdSeparatorPosition, 6.0f,thirdSeparatorPosition, getHeight() - 6.0f);
+    g.drawLine(thirdSeparatorPosition, 6.0f, thirdSeparatorPosition, getHeight() - 6.0f);
 }
 
 void Statusbar::resized()
@@ -490,21 +490,24 @@ void Statusbar::resized()
         pos += width + 3;
         return inverse ? getWidth() - pos : result;
     };
-    
+
     auto spacing = getHeight() + 4;
 
     centreButton.setBounds(position(spacing), 0, getHeight(), getHeight());
     fitAllButton.setBounds(position(spacing), 0, getHeight(), getHeight());
-    
+
     firstSeparatorPosition = position(7) + 3.5f; // Second seperator
-    
+
     overlayButton.setBounds(position(spacing), 0, getHeight(), getHeight());
     overlaySettingsButton.setBounds(overlayButton.getBounds().translated(getHeight() - 3, 0).withTrimmedRight(8));
     position(10);
 
     snapEnableButton.setBounds(position(spacing), 0, getHeight(), getHeight());
     snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(getHeight() - 3, 0).withTrimmedRight(8));
-    
+    position(10);
+
+    alignmentButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+
     pos = 4; // reset position for elements on the right
 
     protectButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
@@ -522,7 +525,7 @@ void Statusbar::resized()
     oversampleSelector->setBounds(position(spacing - 8, true), 1, getHeight() - 2, getHeight() - 2);
 
     thirdSeparatorPosition = position(5, true) + 2.5f; // Fourth seperator
-    
+
     midiBlinker->setBounds(position(55, true) - 8, 0, 55, getHeight());
 }
 

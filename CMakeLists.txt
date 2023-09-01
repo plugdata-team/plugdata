@@ -7,6 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFONT "" ON)
+option(ENABLE_SFIZZ "" ON)
 option(VERBOSE "" OFF)
 
 set (CMAKE_CXX_STANDARD 20)
@@ -309,7 +310,7 @@ juce_add_plugin(plugdata_midi
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdMd
     FORMATS                     AU
-    PRODUCT_NAME                "plugdata-miWdi"
+    PRODUCT_NAME                "plugdata-midi"
     AU_MAIN_TYPE                kAudioUnitType_MIDIProcessor)
 endif()
 

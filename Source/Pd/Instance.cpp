@@ -151,7 +151,7 @@ void Instance::initialisePd(String& pdlua_version)
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->exit();
         },
-        [](void* instance, t_pd* ref) {
+        [](void* instance, void* ref) {
             static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
         });
 
@@ -176,79 +176,63 @@ void Instance::initialisePd(String& pdlua_version)
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
-    auto gui_trigger = [](void* instance, char const* name,  int argc, t_atom* argv) {
-        
-        switch(hash(name))
-        {
-            case hash("openpanel"):
-            {
-                static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback");
-                break;
-            }
-            case hash("elsepanel"):
-            {
-                static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "symbol");
-                break;
-            }
-            case hash("openfile"):
-            case hash("openfile_open"):
-            {
-                auto url = String::fromUTF8(atom_getsymbol(argv)->s_name);
-                if (URL::isProbablyAWebsiteURL(url)) {
-                    URL(url).launchInDefaultBrowser();
-                } else {
-                    if(File(url).exists())
-                    {
-                        File(url).startAsProcess();
-                    }
-                    else if(argc > 1)
-                    {
-                        auto fullPath = File(String::fromUTF8(atom_getsymbol(argv)->s_name)).getChildFile(url);
-                        if(fullPath.exists())
-                        {
-                            fullPath.startAsProcess();
-                        }
+    auto gui_trigger = [](void* instance, char const* name, int argc, t_atom* argv) {
+        switch (hash(name)) {
+        case hash("openpanel"): {
+            auto openMode = argc >= 4 ? static_cast<int>(atom_getfloat(argv + 3)) : -1;
+            static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback", openMode);
+
+            break;
+        }
+        case hash("elsepanel"): {
+            static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "symbol");
+            break;
+        }
+        case hash("openfile"):
+        case hash("openfile_open"): {
+            auto url = String::fromUTF8(atom_getsymbol(argv)->s_name);
+            if (URL::isProbablyAWebsiteURL(url)) {
+                URL(url).launchInDefaultBrowser();
+            } else {
+                if (File(url).exists()) {
+                    File(url).startAsProcess();
+                } else if (argc > 1) {
+                    auto fullPath = File(String::fromUTF8(atom_getsymbol(argv)->s_name)).getChildFile(url);
+                    if (fullPath.exists()) {
+                        fullPath.startAsProcess();
                     }
                 }
-                
-                break;
             }
-            case hash("repaint"):
-            {
-                static_cast<Instance*>(instance)->updateDrawables();
-                break;
+
+            break;
+        }
+        case hash("cyclone_editor"): {
+            auto ptr = (unsigned long)argv->a_w.w_gpointer;
+            auto width = atom_getfloat(argv + 1);
+            auto height = atom_getfloat(argv + 2);
+            String owner, title;
+            bool hasCallback;
+
+            if (argc > 5) {
+                owner = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
+                title = String::fromUTF8(atom_getsymbol(argv + 4)->s_name);
+                hasCallback = atom_getfloat(argv + 5);
+            } else {
+                title = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
+                hasCallback = atom_getfloat(argv + 4);
             }
-            case hash("cyclone_editor"):
-            {
-                auto ptr = (unsigned long)argv->a_w.w_gpointer;
-                auto width = atom_getfloat(argv + 1);
-                auto height = atom_getfloat(argv + 2);
-                String owner, title;
-                bool hasCallback;
-                
-                if(argc > 5)
-                {
-                    owner = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
-                    title = String::fromUTF8(atom_getsymbol(argv + 4)->s_name);
-                    hasCallback = atom_getfloat(argv + 5);
-                }
-                else {
-                    title = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
-                    hasCallback = atom_getfloat(argv + 4);
-                }
-                
-                static_cast<Instance*>(instance)->showTextEditor(ptr, Rectangle<int>(width, height), title);
-                
-                break;
-            }
-            case hash("cyclone_editor_append"):
-            {
-                auto ptr = (unsigned long)argv->a_w.w_gpointer;
-                auto text = String::fromUTF8(atom_getsymbol(argv + 1)->s_name);
-                
-                static_cast<Instance*>(instance)->addTextToTextEditor(ptr, text);
-                break;
-            }
+
+            static_cast<Instance*>(instance)->showTextEditor(ptr, Rectangle<int>(width, height), title);
+
+            break;
+        }
+        case hash("cyclone_editor_append"): {
+            auto ptr = (unsigned long)argv->a_w.w_gpointer;
+            auto text = String::fromUTF8(atom_getsymbol(argv + 1)->s_name);
+
+            static_cast<Instance*>(instance)->addTextToTextEditor(ptr, text);
+            break;
+        }
         }
     };
 
@@ -294,9 +278,8 @@ void Instance::initialisePd(String& pdlua_version)
         set_class_prefix(gensym("cyclone"));
         class_set_extern_dir(gensym("10.cyclone"));
         libpd_init_cyclone();
-        
-        set_class_prefix(nullptr);
 
+        set_class_prefix(nullptr);
 
         // Class prefix doesn't seem to work for pdlua
         char vers[1000];
@@ -307,13 +290,12 @@ void Instance::initialisePd(String& pdlua_version)
 
         initialised = true;
     }
-    
+
     // Hack to make sure ofelia doesn't get initialised during plugin validation, as this can cause problems
-    MessageManager::callAsync([this](){
+    MessageManager::callAsync([this]() {
         ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(m_instance));
     });
-    
-    
+
     setThis();
 
     // ag: need to do this here to suppress noise from chatty externals
@@ -581,14 +563,14 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
         listeners.erase(it);
 }
 
-void Instance::registerWeakReference(t_pd* ptr, pd_weak_reference* ref)
+void Instance::registerWeakReference(void* ptr, pd_weak_reference* ref)
 {
     weakReferenceMutex.lock();
     pdWeakReferences[ptr].push_back(ref);
     weakReferenceMutex.unlock();
 }
 
-void Instance::unregisterWeakReference(t_pd* ptr, const pd_weak_reference* ref)
+void Instance::unregisterWeakReference(void* ptr, pd_weak_reference const* ref)
 {
     weakReferenceMutex.lock();
 
@@ -603,7 +585,7 @@ void Instance::unregisterWeakReference(t_pd* ptr, const pd_weak_reference* ref)
     weakReferenceMutex.unlock();
 }
 
-void Instance::clearWeakReferences(t_pd* ptr)
+void Instance::clearWeakReferences(void* ptr)
 {
     weakReferenceMutex.lock();
     for (auto* ref : pdWeakReferences[ptr]) {
@@ -702,19 +684,22 @@ t_symbol* Instance::generateSymbol(String const& symbol) const
 
 void Instance::logMessage(String const& message)
 {
-    if(consoleMute) return;
+    if (consoleMute)
+        return;
     consoleHandler.logMessage(nullptr, message);
 }
 
 void Instance::logError(String const& error)
 {
-    if(consoleMute) return;
+    if (consoleMute)
+        return;
     consoleHandler.logError(nullptr, error);
 }
 
 void Instance::logWarning(String const& warning)
 {
-    if(consoleMute) return;
+    if (consoleMute)
+        return;
     consoleHandler.logWarning(nullptr, warning);
 }
 
@@ -733,32 +718,51 @@ std::deque<std::tuple<void*, String, int, int>>& Instance::getConsoleHistory()
     return consoleHandler.consoleHistory;
 }
 
-void Instance::createPanel(int type, char const* snd, char const* location, const char* callbackName)
+void Instance::createPanel(int type, char const* snd, char const* location, char const* callbackName, int openMode)
 {
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);
 
+    if (!defaultFile.exists()) {
+        defaultFile = ProjectInfo::appDataDir;
+    }
+
     if (type) {
         MessageManager::callAsync(
-            [this, obj, defaultFile, callback = String(callbackName)]() mutable {
-                auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
+            [this, obj, defaultFile, openMode, callback = String(callbackName)]() mutable {
+                FileBrowserComponent::FileChooserFlags folderChooserFlags;
+
+                if (openMode <= 0) {
+                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles);
+                } else if (openMode == 1) {
+                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories);
+                } else {
+                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectMultipleItems);
+                }
+
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
-                openChooser->launchAsync(folderChooserFlags, [this, obj, callback](FileChooser const& fileChooser) {
-                    auto const file = fileChooser.getResult();
+                openChooser->launchAsync(folderChooserFlags, [this, obj, openMode, callback](FileChooser const& fileChooser) {
+                    auto const files = fileChooser.getResults();
+                    if (files.isEmpty())
+                        return;
 
                     lockAudioThread();
-                    String pathname = file.getFullPathName().toRawUTF8();
 
-                // Convert slashes to backslashes
+                    std::vector<t_atom> atoms(files.size());
+
+                    for (int i = 0; i < atoms.size(); i++) {
+                        String pathname = files[i].getFullPathName();
+
+                    // Convert slashes to backslashes
 #if JUCE_WINDOWS
-                    pathname = pathname.replaceCharacter('\\', '/');
+                        pathname = pathname.replaceCharacter('\\', '/');
 #endif
 
-                    t_atom argv[1];
-                    libpd_set_symbol(argv, pathname.toRawUTF8());
-                    
-                    pd_typedmess(obj, generateSymbol(callback), 1, argv);
+                        libpd_set_symbol(atoms.data() + i, pathname.toRawUTF8());
+                    }
+
+                    pd_typedmess(obj, generateSymbol(callback), atoms.size(), atoms.data());
 
                     unlockAudioThread();
                 });
@@ -772,7 +776,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, cons
                 saveChooser->launchAsync(folderChooserFlags,
                     [this, obj, callback](FileChooser const& fileChooser) {
                         const auto file = fileChooser.getResult();
-                    
+
                         const auto* path = file.getFullPathName().toRawUTF8();
 
                         t_atom argv[1];
@@ -823,4 +827,3 @@ void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
 }
 
 } // namespace pd
-

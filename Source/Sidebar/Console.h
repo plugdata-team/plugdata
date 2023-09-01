@@ -28,9 +28,9 @@ public:
             if (isMouseOver()) {
                 colour = colour.contrasting(0.3f);
             }
-            
+
             Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14);
-            
+
             if (getToggleState()) {
                 colour = findColour(PlugDataColour::toolbarActiveColourId);
             }
@@ -101,7 +101,6 @@ public:
         console->setVisible(true);
 
         addAndMakeVisible(viewport);
-        
 
         for (auto& settingsValue : settingsValues) {
             settingsValue.addListener(this);
@@ -152,8 +151,7 @@ public:
 
     void deselect()
     {
-        if(auto* target = Object::consoleTarget)
-        {
+        if (auto* target = Object::consoleTarget) {
             Object::consoleTarget = nullptr;
             target->repaint();
         }
@@ -185,14 +183,13 @@ public:
 
                 console.selectedItems.addIfNotAlreadyThere(SafePointer(this));
                 console.repaint();
-                
+
                 auto& [object, message, type, length] = console.pd->getConsoleMessages()[idx];
-                if(object)
-                {
+                if (object) {
                     highlightSearchTarget(object);
                 }
             }
-            
+
             void highlightSearchTarget(void* target)
             {
                 auto* editor = findParentComponentOfClass<PluginEditor>();
@@ -201,26 +198,24 @@ public:
                     return;
 
                 for (auto* object : cnv->objects) {
-                    
-                    if(object->getPointer() == target)
-                    {
+
+                    if (object->getPointer() == target) {
                         Object::consoleTarget = object;
                         object->repaint();
-                    }
-                    else if(Object::consoleTarget == object) {
+                    } else if (Object::consoleTarget == object) {
                         Object::consoleTarget = nullptr;
                         object->repaint();
                     }
                 }
 
-                if(Object::consoleTarget) {
+                if (Object::consoleTarget) {
                     if (auto* viewport = cnv->viewport.get()) {
                         auto scale = getValue<float>(cnv->zoomScale);
                         auto pos = Object::consoleTarget->getBounds().getCentre() * scale;
-                        
+
                         pos.x -= viewport->getViewWidth() * 0.5f;
                         pos.y -= viewport->getViewHeight() * 0.5f;
-                        
+
                         viewport->setViewPosition(pos);
                     }
                 }
@@ -236,7 +231,7 @@ public:
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
                     PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().reduced(0, 1).toFloat().withTrimmedTop(0.5f), Corners::defaultCornerRadius);
-                    
+
                     for (auto& item : console.selectedItems) {
 
                         if (!item.getComponent())
@@ -385,8 +380,7 @@ public:
 
         void mouseDown(MouseEvent const& e) override
         {
-            if(auto* target = Object::consoleTarget)
-            {
+            if (auto* target = Object::consoleTarget) {
                 Object::consoleTarget = nullptr;
                 target->repaint();
             }
@@ -411,7 +405,7 @@ public:
 
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
                     continue;
-                
+
                 int rightMargin = viewport.canScrollVertically() ? 13 : 11;
                 messages[row]->setBounds(6, totalHeight, getWidth() - rightMargin, height);
 
@@ -421,21 +415,21 @@ public:
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
     };
-        
+
     std::unique_ptr<Component> getExtraSettingsComponent()
     {
         auto* settingsCalloutButton = new TextButton(Icons::More);
         settingsCalloutButton->setTooltip("Show console settings");
         settingsCalloutButton->setConnectedEdges(12);
         settingsCalloutButton->getProperties().set("Style", "SmallIcon");
-        settingsCalloutButton->onClick = [this, settingsCalloutButton](){
+        settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
             auto* editor = findParentComponentOfClass<PluginEditor>();
             auto* sidebar = findParentComponentOfClass<Sidebar>();
             auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
             auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
             CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, editor);
         };
-        
+
         return std::unique_ptr<TextButton>(settingsCalloutButton);
     }
 

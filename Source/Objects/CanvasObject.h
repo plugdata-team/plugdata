@@ -8,7 +8,7 @@ class CanvasObject final : public ObjectBase {
 
     bool locked;
     Value sizeProperty = SynchronousValue();
-    
+
     IEMHelper iemHelper;
 
 public:
@@ -23,13 +23,13 @@ public:
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto canvasObj = ptr.get<t_my_canvas>()) {
-            setParameterExcludingListener(sizeProperty, Array<var>{var(canvasObj->x_vis_w), var(canvasObj->x_vis_h)});
+            setParameterExcludingListener(sizeProperty, Array<var> { var(canvasObj->x_vis_w), var(canvasObj->x_vis_h) });
         }
     }
 
@@ -63,9 +63,9 @@ public:
     void update() override
     {
         if (auto cnvObj = ptr.get<t_my_canvas>()) {
-            sizeProperty = Array<var>{var(cnvObj->x_vis_w), var(cnvObj->x_vis_h)};
+            sizeProperty = Array<var> { var(cnvObj->x_vis_w), var(cnvObj->x_vis_h) };
         }
-        
+
         iemHelper.update();
     }
 
@@ -146,18 +146,16 @@ public:
             auto* constrainer = getConstrainer();
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
-            
-            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
-            
-            if (auto cnvObj = ptr.get<t_my_canvas>())
-            {
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto cnvObj = ptr.get<t_my_canvas>()) {
                 cnvObj->x_vis_w = width;
                 cnvObj->x_vis_h = height;
             }
-            
+
             object->updateBounds();
-        }
-        else {
+        } else {
             iemHelper.valueChanged(v);
         }
     }

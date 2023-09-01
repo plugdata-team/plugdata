@@ -209,9 +209,7 @@ public:
     {
     }
 
-    virtual void updateDrawables() {};
-
-    virtual void createPanel(int type, char const* snd, char const* location, const char* callbackName);
+    virtual void createPanel(int type, char const* snd, char const* location, char const* callbackName, int openMode = -1);
 
     void sendBang(char const* receiver) const;
     void sendFloat(char const* receiver, float value) const;
@@ -246,9 +244,9 @@ public:
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(void* object, MessageListener* messageListener);
 
-    void registerWeakReference(t_pd* ptr, pd_weak_reference* ref);
-    void unregisterWeakReference(t_pd* ptr, const pd_weak_reference* ref);
-    void clearWeakReferences(t_pd* ptr);
+    void registerWeakReference(void* ptr, pd_weak_reference* ref);
+    void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
+    void clearWeakReferences(void* ptr);
 
     virtual void receiveDSPState(bool dsp) {};
 
@@ -326,11 +324,10 @@ public:
 
     bool isPerformingGlobalSync = false;
     CriticalSection const audioLock;
-    
+
 private:
-    
     std::mutex weakReferenceMutex;
-    std::unordered_map<t_pd*, std::vector<pd_weak_reference*>> pdWeakReferences;
+    std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
     std::unordered_map<void*, std::vector<juce::WeakReference<MessageListener>>> messageListeners;
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
@@ -342,7 +339,7 @@ private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
     std::atomic<bool> consoleMute;
-    
+
 protected:
     struct internal;
 
@@ -454,7 +451,7 @@ protected:
     };
 
     std::unique_ptr<Ofelia> ofelia;
-    
+
     ConsoleHandler consoleHandler;
 };
 } // namespace pd

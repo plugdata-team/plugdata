@@ -74,16 +74,16 @@ public:
         gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
         gui->getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
     }
-    
+
     int getWidthInChars()
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
             return atom->a_text.te_width;
         }
-        
+
         return 0;
     }
-    
+
     void setWidthInChars(int charWidth)
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {

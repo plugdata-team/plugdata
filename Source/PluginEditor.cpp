@@ -82,7 +82,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         return true;
     })
 {
-        
+
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
@@ -127,7 +127,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     auto* settingsFile = SettingsFile::getInstance();
     PlugDataLook::setDefaultFont(settingsFile->getProperty<String>("default_font"));
-    
+
     auto keymap = settingsFile->getKeyMapTree();
     if (keymap.isValid()) {
         auto xmlStr = keymap.getProperty("keyxml").toString();
@@ -279,21 +279,21 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>();
     addChildComponent(connectionMessageDisplay.get());
-    
+
     // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
     if (ProjectInfo::isStandalone) {
         auto* midiDeviceManager = ProjectInfo::getMidiDeviceManager();
         midiDeviceManager->loadMidiOutputSettings();
     }
-    
+
     // This is necessary on Linux to make PluginEditor grab keyboard focus on startup
     // Otherwise, keyboard shortcuts won't work directly after starting plugdata
 #if JUCE_LINUX
-    ::Timer::callAfterDelay(100, [_this = SafePointer(this)](){
-        if(!_this) return;
-        
-        if(auto* window = _this->getTopLevelComponent())
-        {
+    ::Timer::callAfterDelay(100, [_this = SafePointer(this)]() {
+        if (!_this)
+            return;
+
+        if (auto* window = _this->getTopLevelComponent()) {
             window->toFront(false);
         }
         _this->grabKeyboardFocus();
@@ -310,7 +310,6 @@ PluginEditor::~PluginEditor()
 
     theme.removeListener(this);
 }
-
 
 SplitView* PluginEditor::getSplitView()
 {
@@ -367,7 +366,6 @@ void PluginEditor::paintOverChildren(Graphics& g)
         g.drawRect(getLocalBounds().reduced(1), 2.0f);
     }
 }
-
 
 DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 {
@@ -555,7 +553,7 @@ void PluginEditor::fileDragExit(StringArray const&)
 void PluginEditor::newProject()
 {
     // find the lowest `Untitled-N` number, for the new patch title
-    int lowestNumber= 1;
+    int lowestNumber = 1;
     Array<int> patchNumbers;
     for (auto patch : pd->patches) {
         patchNumbers.add(patch->untitledPatchNum);
@@ -668,8 +666,7 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude)
         }
         return;
     }
-    if(patchToExclude && canvases.size() == 1)
-    {
+    if (patchToExclude && canvases.size() == 1) {
         return;
     }
 
@@ -679,7 +676,7 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude)
         if (canvas && !(patchToExclude && canvas == patchToExclude)) {
             closeTab(canvas);
         }
-        
+
         closeAllTabs(quitAfterComplete, patchToExclude);
     };
 
@@ -709,17 +706,25 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     auto tabbar = SafePointer<TabComponent>(cnv->getTabbar());
     auto const tabIdx = cnv->getTabIndex();
-
+    auto const currentTabIdx = tabbar->getCurrentTabIndex();
     auto patch = cnv->refCountedPatch;
 
     sidebar->hideParameters();
+
+    patch->setVisible(false);
 
     tabbar->removeTab(tabIdx);
     canvases.removeObject(cnv);
 
     // It's possible that the tabbar has been deleted if this was the last tab
-    if(tabbar) {
-        tabbar->setCurrentTabIndex(tabIdx > (tabbar->getNumTabs() - 1) ? tabIdx - 1 : tabIdx);
+    if (tabbar && tabbar->getNumTabs() > 0) {
+        int newTabIdx = std::max(currentTabIdx, 0);
+        if ((currentTabIdx >= tabIdx || currentTabIdx >= tabbar->getNumTabs()) && currentTabIdx > 0) {
+            newTabIdx--;
+        }
+
+        // Set the new current tab index
+        tabbar->setCurrentTabIndex(newTabIdx);
     }
 
     pd->patches.removeAllInstancesOf(patch);
@@ -746,27 +751,23 @@ void PluginEditor::closeTab(Canvas* cnv)
 void PluginEditor::addTab(Canvas* cnv, int splitIdx)
 {
     auto patchTitle = cnv->patch.getTitle();
-    
+
     // Create a pointer to the TabBar in focus
     TabComponent* focusedTabbar;
-    if(splitIdx < 0)
-    {
-        if(auto* focusedTabbar = splitView.getActiveTabbar()) {
+    if (splitIdx < 0) {
+        if (auto* focusedTabbar = splitView.getActiveTabbar()) {
             int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
-            
+
             // Add tab next to the currently focused tab
             focusedTabbar->addTab(patchTitle, cnv->viewport.get(), newTabIdx);
             focusedTabbar->setCurrentTabIndex(newTabIdx);
         }
-    }
-    else {
-        if(splitIdx > splitView.splits.size() - 1) {
-            while(splitIdx > splitView.splits.size() - 1)
-            {
+    } else {
+        if (splitIdx > splitView.splits.size() - 1) {
+            while (splitIdx > splitView.splits.size() - 1) {
                 splitView.createNewSplit(cnv);
             }
-        }
-        else {
+        } else {
             auto* tabComponent = splitView.splits[splitIdx]->getTabComponent();
             tabComponent->addTab(patchTitle, cnv->viewport.get(), tabComponent->getNumTabs() + 1);
         }
@@ -778,6 +779,7 @@ void PluginEditor::addTab(Canvas* cnv, int splitIdx)
 
     cnv->setVisible(true);
     cnv->jumpToOrigin();
+    cnv->patch.setVisible(true);
 
     if (cnv->patch.openInPluginMode) {
         enablePluginMode(cnv);
@@ -897,14 +899,14 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     bool hasCanvas = false;
     bool locked = true;
     bool canConnect = false;
-    
+
     if (auto* cnv = getCurrentCanvas()) {
         auto selectedObjects = cnv->getSelectionOfType<Object>();
         auto selectedConnections = cnv->getSelectionOfType<Connection>();
 
         hasObjectSelection = !selectedObjects.isEmpty();
         hasConnectionSelection = !selectedConnections.isEmpty();
-        
+
         hasSelection = hasObjectSelection || hasConnectionSelection;
         isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
         hasCanvas = true;
@@ -1205,7 +1207,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         if (name.isEmpty())
             name = "object";
 
-        result.setInfo("New " + name, "Create new " + name, "Objects" , 0);
+        result.setInfo("New " + name, "Create new " + name, "Objects", 0);
         result.setActive(hasCanvas && !isDragging && !locked);
 
         if (defaultShortcuts.count(static_cast<ObjectIDs>(commandID))) {
@@ -1367,16 +1369,17 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ConnectionStyle: {
-        
+
         bool noneSegmented = true;
         for (auto* con : cnv->getSelectionOfType<Connection>()) {
-            if(con->isSegmented()) noneSegmented = false;
+            if (con->isSegmented())
+                noneSegmented = false;
         }
-        
+
         for (auto* con : cnv->getSelectionOfType<Connection>()) {
             con->setSegmented(noneSegmented);
         }
-        
+
         return true;
     }
     case CommandIDs::ConnectionPathfind: {
@@ -1492,7 +1495,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
     default: {
 
         cnv = getCurrentCanvas();
-        
+
         // This should close any opened editors before creating a new object
         cnv->grabKeyboardFocus();
 

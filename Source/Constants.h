@@ -84,17 +84,26 @@ struct Icons {
     inline static const String MIDI = "`";
     inline static const String PluginMode = "=";
     inline static const String Compass = "+";
-    
+
     inline static const String Reorder = "(";
     inline static const String Object = ":";
-    
+
+    inline static const String Heart = ",";
+    inline static const String Download = "-";
+
     inline static const String Copy = "0";
     inline static const String Paste = "1";
     inline static const String Duplicate = "2";
     inline static const String Cut = "3";
 
-    inline static const String Heart = "4";
-    inline static const String Download = "5";
+    inline static const String AlignLeft = "4";
+    inline static const String AlignRight = "5";
+    inline static const String AlignVCentre = "6";
+    inline static const String AlignHDistribute = "/";
+    inline static const String AlignTop = "7";
+    inline static const String AlignBottom = "8";
+    inline static const String AlignHCentre = "9";
+    inline static const String AlignVDistribute = "*";
 
     // ================== OBJECT ICONS ==================
 
@@ -148,6 +157,7 @@ struct Icons {
     inline static const String GlyphMoses = CharPointer_UTF8("\xc3\xb2");
     inline static const String GlyphSpigot = CharPointer_UTF8("\xc3\xb3");
     inline static const String GlyphBondo = CharPointer_UTF8("\xc3\xb4");
+    inline static const String GlyphSfz = CharPointer_UTF8("\xc3\xb8");
 
     // MIDI
     inline static const String GlyphMidiIn = CharPointer_UTF8("\xc4\x87");
@@ -164,7 +174,6 @@ struct Icons {
     inline static const String GlyphFtom = CharPointer_UTF8("\xc4\x92");
     inline static const String GlyphAutotune = CharPointer_UTF8("\xc4\x93");
 
-    
     // Multi~
     inline static const String GlyphMultiSnake = CharPointer_UTF8("\xc4\xbf");
     inline static const String GlyphMultiGet = CharPointer_UTF8("\xc5\x82");
@@ -184,7 +193,7 @@ struct Icons {
     inline static const String GlyphReceive = CharPointer_UTF8("\xc4\xb1");
     inline static const String GlyphSignalSend = CharPointer_UTF8("\xc4\xb2");
     inline static const String GlyphSignalReceive = CharPointer_UTF8("\xc4\xb3");
-    
+
     // OSC~
     inline static const String GlyphOsc = CharPointer_UTF8("\xc5\x8d");
     inline static const String GlyphPhasor = CharPointer_UTF8("\xc5\x8e");
@@ -196,7 +205,7 @@ struct Icons {
     inline static const String GlyphImp2 = CharPointer_UTF8("\xc5\x94");
     inline static const String GlyphWavetable = CharPointer_UTF8("\xc5\x95");
     inline static const String GlyphPlaits = CharPointer_UTF8("\xc5\x96");
-    
+
     inline static const String GlyphOscBL = CharPointer_UTF8("\xc5\x97");
     inline static const String GlyphSawBL = CharPointer_UTF8("\xc5\x98");
     inline static const String GlyphSawBL2 = CharPointer_UTF8("\xc5\x99");
@@ -396,4 +405,15 @@ enum OverlayItem {
     OverlayActivationState,
     OverlayDirection,
     OverlayOrder
+};
+
+enum Align {
+    Left = 0,
+    Right,
+    HCenter,
+    HDistribute,
+    Top,
+    Bottom,
+    VCenter,
+    VDistribute
 };

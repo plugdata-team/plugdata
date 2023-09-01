@@ -12,12 +12,12 @@ public:
     SubpatchImpl(void* ptr, PluginProcessor* pd)
         : ImplementationBase(ptr, pd)
     {
-        pd->registerMessageListener(this->ptr.getRaw<void>(), this);
+        pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
     ~SubpatchImpl() override
     {
-        pd->unregisterMessageListener(ptr.getRaw<void>(), this);
+        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
         closeOpenedSubpatchers();
     }
 
@@ -421,12 +421,12 @@ public:
     CanvasMouseObject(void* ptr, PluginProcessor* pd)
         : ImplementationBase(ptr, pd)
     {
-        pd->registerMessageListener(ptr, this);
+        pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
     ~CanvasMouseObject() override
     {
-        pd->unregisterMessageListener(ptr.get<void>().get(), this);
+        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
         if (!cnv)
             return;
 
@@ -496,22 +496,16 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         if (pd->isPerformingGlobalSync)
             return;
 
         if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
-        Point<int> pos;
-        getMousePos(e, pos);
-
-        pos -= zeroPosition;
-
         if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
-            outlet_float(mouse->x_outlet_y, (float)pos.y);
-            outlet_float(mouse->x_outlet_x, (float)pos.x);
             outlet_float(mouse->x_obj.ob_outlet, 1.0);
         }
     }

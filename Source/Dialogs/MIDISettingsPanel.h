@@ -79,34 +79,29 @@ private:
     void updateDevices()
     {
         midiProperties.clear();
-        
-        
 
         auto midiInputDevices = ProjectInfo::getMidiDeviceManager()->getInputDevicesUnfiltered();
         auto midiInputProperties = Array<PropertiesPanel::Property*>();
 
         auto midiOutputDevices = ProjectInfo::getMidiDeviceManager()->getOutputDevicesUnfiltered();
         auto midiOutputProperties = Array<PropertiesPanel::Property*>();
-        
+
         for (auto& deviceInfo : midiInputDevices) {
             // The internal plugdata ports should be viewed from our perspective instead of that of an external application
-            if(deviceInfo.name == "to plugdata")
-            {
+            if (deviceInfo.name == "to plugdata") {
                 midiInputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo, deviceManager));
                 continue;
             }
-            
+
             midiInputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
-            
         }
 
         for (auto& deviceInfo : midiOutputDevices) {
-            if(deviceInfo.name == "from plugdata")
-            {
+            if (deviceInfo.name == "from plugdata") {
                 midiOutputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
                 continue;
             }
-            
+
             midiOutputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo, deviceManager));
         }
 

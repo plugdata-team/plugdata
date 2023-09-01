@@ -8,7 +8,7 @@ class VUMeterObject final : public ObjectBase {
 
     IEMHelper iemHelper;
     Value sizeProperty = SynchronousValue();
-    
+
 public:
     VUMeterObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -25,17 +25,16 @@ public:
         objectParameters.addParamSendSymbol(&iemHelper.sendSymbol, "nosndno");
         iemHelper.addIemParameters(objectParameters, false, false, -1);
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto iem = ptr.get<t_iemgui>()) {
-            setParameterExcludingListener(sizeProperty, Array<var>{var(iem->x_w), var(iem->x_h)});
+            setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
         }
     }
 
-    
     bool hideInlets() override
     {
         return iemHelper.hasReceiveSymbol();
@@ -58,18 +57,16 @@ public:
             auto* constrainer = getConstrainer();
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
-            
-            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
-            
-            if (auto vu = ptr.get<t_vu>())
-            {
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto vu = ptr.get<t_vu>()) {
                 vu->x_gui.x_w = width;
                 vu->x_gui.x_h = height;
             }
-            
+
             object->updateBounds();
-        }
-        else {
+        } else {
             iemHelper.valueChanged(v);
         }
     }
@@ -77,9 +74,9 @@ public:
     void update() override
     {
         if (auto vu = ptr.get<t_vu>()) {
-            sizeProperty = Array<var>{var(vu->x_gui.x_w), var(vu->x_gui.x_h)};
+            sizeProperty = Array<var> { var(vu->x_gui.x_w), var(vu->x_gui.x_h) };
         }
-        
+
         iemHelper.update();
     }
 

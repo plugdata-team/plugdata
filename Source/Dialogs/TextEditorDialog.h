@@ -2102,7 +2102,7 @@ struct TextEditorDialog : public Component {
         auto b = getLocalBounds().reduced(15);
 
         resizer.setBounds(b);
-        
+
         auto macOSStyle = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
         auto closeButtonBounds = b.removeFromTop(30).removeFromRight(30).translated(-5, 5);
         closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));

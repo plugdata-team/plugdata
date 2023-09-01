@@ -27,7 +27,7 @@ public:
     void update() override
     {
         objectText = getText().trimEnd();
-        
+
         if (auto obj = ptr.get<t_text>()) {
             sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
         }
@@ -158,11 +158,11 @@ public:
             }
         }
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto text = ptr.get<t_text>()) {
             setParameterExcludingListener(sizeProperty, TextObjectHelper::getWidthInChars(text.get()));
         }
@@ -173,18 +173,17 @@ public:
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
             auto width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
-            
+
             setParameterExcludingListener(sizeProperty, width);
-            
-            if (auto text = ptr.get<t_text>())
-            {
+
+            if (auto text = ptr.get<t_text>()) {
                 TextObjectHelper::setWidthInChars(text.get(), width);
             }
-            
+
             object->updateBounds();
         }
     }
-        
+
     void setSymbol(String const& value)
     {
         if (auto comment = ptr.get<t_text>()) {
@@ -223,8 +222,7 @@ public:
             editor->setCaretPosition(editor->getHighlightedRegion().getStart());
             return true;
         }
-        if(key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown())
-        {
+        if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
             int caretPosition = editor->getCaretPosition();
             auto text = editor->getText();
 

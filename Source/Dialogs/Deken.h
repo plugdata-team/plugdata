@@ -263,13 +263,13 @@ public:
                 break;
             }
         }
-        
+
         packages.add(PackageInfo("plugdata-ofelia",
-                                 "cuinjune and timothyschoen",
-                                 "0",
-                                 "",
-                                 "Ofelia graphics environment for plugdata",
-                                 "v4.0.0-test4", {"ofelia"}));
+            "cuinjune and timothyschoen",
+            "0",
+            "",
+            "Ofelia graphics environment for plugdata",
+            "v4.0.0-test4", { "ofelia" }));
         return packages;
     }
 
@@ -417,9 +417,9 @@ public:
     Deken()
     {
         setInterceptsMouseClicks(false, true);
-        
+
         listBox.setModel(this);
-        
+
         input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
         input.setJustification(Justification::centredLeft);
@@ -523,7 +523,6 @@ public:
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillPath(p);
-        
 
         if (errorMessage.isNotEmpty()) {
             Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
@@ -682,15 +681,13 @@ public:
     }
 
 private:
-        
-    struct DekenListBox : public Component
-    {
+    struct DekenListBox : public Component {
         DekenListBox()
         {
             viewport.setViewedComponent(this, false);
-            
+
             viewport.setScrollBarsShown(true, false, false, false);
-            
+
             listBox.setRowHeight(66);
             listBox.setOutlineThickness(0);
             listBox.deselectAllRows();
@@ -698,56 +695,57 @@ private:
             listBox.addMouseListener(this, true);
             listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
             listBox.getViewport()->setScrollBarsShown(false, false, false, false);
-            
+
             setVisible(true);
             addAndMakeVisible(listBox);
         }
-        
+
         Viewport* getViewport()
         {
             return &viewport;
         }
-        
+
         void updateContent()
         {
             listBox.updateContent();
-            
+
             auto* model = listBox.getModel();
             auto height = model ? model->getNumRows() * listBox.getRowHeight() : viewport.getParentComponent()->getHeight();
             listBox.setBounds(getLocalBounds().reduced(10, 18).withHeight(height));
             setSize(getWidth(), height + 26);
         }
-        
+
         void setModel(ListBoxModel* model)
         {
             listBox.setModel(model);
         }
-                
-        void paint (Graphics& g) override
+
+        void paint(Graphics& g) override
         {
             auto* model = listBox.getModel();
-            if(!model || !model->getNumRows()) return;
-            
+            if (!model || !model->getNumRows())
+                return;
+
             auto bounds = getLocalBounds();
             auto margin = 20;
-            
+
             auto shadowY = 20;
             auto shadowX = bounds.getX() + margin;
             auto shadowWidth = bounds.getWidth() - (margin * 2);
             auto shadowHeight = (model->getNumRows() * listBox.getRowHeight()) - 5;
-            
+
             Path shadowPath;
             shadowPath.addRoundedRectangle(shadowX, shadowY, shadowWidth, shadowHeight, Corners::largeCornerRadius);
             StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
         }
-        
+
         ListBox listBox;
         BouncingViewport viewport;
     };
-        
+
     // List component to list packages
     DekenListBox listBox;
-        
+
     // Last error message
     String errorMessage;
 
@@ -762,7 +760,7 @@ private:
     TextButton clearButton = TextButton(Icons::ClearText);
 
     Spinner updateSpinner;
-        
+
     // Component representing a search result
     // It holds package info about the package it represents
     // and can
@@ -777,9 +775,9 @@ private:
 
         float installProgress;
         ValueTree& packageState;
-        
+
         bool isFirst, isLast;
-        
+
         DekenRowComponent(Deken& parent, PackageInfo& info, bool first, bool last)
             : deken(parent)
             , isFirst(first)
@@ -794,7 +792,7 @@ private:
             installButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
             uninstallButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
             addToPathButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
-            
+
             installButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
             uninstallButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
             addToPathButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
@@ -802,7 +800,7 @@ private:
             installButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
             uninstallButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
             addToPathButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
-            
+
             installButton.setTooltip("Install package");
             uninstallButton.setTooltip("Uninstall package");
             addToPathButton.setTooltip("Add to search path");
@@ -879,23 +877,21 @@ private:
         void paint(Graphics& g) override
         {
             auto b = getLocalBounds().toFloat().reduced(8.0f, 0.0f).withTrimmedBottom(-1.0f);
-            
+
             Path p;
             p.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), isLast ? b.getHeight() - 2.0f : b.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, isFirst, isFirst, isLast, isLast);
-            
+
             g.setColour(findColour(PlugDataColour::panelForegroundColourId));
             g.fillPath(p);
-            
+
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.strokePath(p, PathStrokeType(1.0f));
-            
 
             Fonts::drawStyledText(g, packageInfo.name, 64, 8, 200, 25, findColour(ComboBox::textColourId), Semibold, 15);
             Fonts::drawIcon(g, Icons::Externals, Rectangle<int>(16, 14, 38, 38), findColour(ComboBox::textColourId));
-            
-    
+
             Fonts::drawFittedText(g, "Uploaded " + getRelativeTimeDescription(packageInfo.timestamp) + " by " + packageInfo.author, getWidth() - 418, 8, 400, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 13.5f, Justification::centredRight);
-            
+
             // draw progressbar
             if (deken.packageManager->getDownloadForPackage(packageInfo)) {
                 float width = getWidth() - 26.0f;
@@ -914,7 +910,7 @@ private:
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             } else {
                 Fonts::drawFittedText(g, packageInfo.version, 64, 31, 400, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 15);
-                //Fonts::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                // Fonts::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
             }
         }
 

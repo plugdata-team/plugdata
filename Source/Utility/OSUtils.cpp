@@ -293,8 +293,9 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(juce::File(dirEntry.path().string()));
                 }
-                
-                if(maximum > 0 && result.size() >= maximum) break;
+
+                if (maximum > 0 && result.size() >= maximum)
+                    break;
             }
         } catch (std::filesystem::filesystem_error e) {
             std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
@@ -306,8 +307,9 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(juce::File(dirEntry.path().string()));
                 }
-                
-                if(maximum > 0 && result.size() >= maximum) break;
+
+                if (maximum > 0 && result.size() >= maximum)
+                    break;
             }
         } catch (std::filesystem::filesystem_error e) {
             std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
@@ -333,8 +335,9 @@ static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool re
         if ((isDir && !onlyFiles) || !isDir) {
             result.add(juce::File(juce::String(file->GetPath().GetRawPath()->buf)));
         }
-        
-        if(maximum > 0 && result.size() >= maximum) break;
+
+        if (maximum > 0 && result.size() >= maximum)
+            break;
     }
 
     dir.Close();

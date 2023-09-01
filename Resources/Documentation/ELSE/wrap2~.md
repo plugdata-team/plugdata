@@ -18,10 +18,10 @@ inlets:
   - type: signal
     description: input values to be wrapped
   2nd:
-  - type: float/signal
+  - type: float
     description: lowest wrap value
   3rd:
-  - type: float/signal
+  - type: float
     description: highest wrap value
     
 outlets:

@@ -19,7 +19,7 @@ public:
         addAndMakeVisible(resizer);
         updateBounds();
         setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        
+
         resizer.addMouseListener(this, false);
         canvas->locked.addListener(this);
         valueChanged(canvas->locked);
@@ -48,14 +48,14 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(e.originalComponent != &resizer) {
+        if (e.originalComponent != &resizer) {
             startDraggingComponent(this, e);
         }
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if(e.originalComponent != &resizer) {
+        if (e.originalComponent != &resizer) {
             dragComponent(this, e, nullptr);
         }
     }

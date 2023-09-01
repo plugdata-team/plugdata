@@ -35,7 +35,6 @@
 #include "Utility/RateReducer.h"
 #include "Utility/MidiDeviceManager.h"
 
-
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
 // - Use the native shadow, it works fine
@@ -54,22 +53,21 @@ namespace pd {
 class Patch;
 };
 
-class PlugDataProcessorPlayer : public AudioProcessorPlayer
-{
+class PlugDataProcessorPlayer : public AudioProcessorPlayer {
 public:
-    
-    PlugDataProcessorPlayer() : midiDeviceManager(this)
+    PlugDataProcessorPlayer()
+        : midiDeviceManager(this)
     {
     }
 
-    void handleIncomingMidiMessage(MidiInput* input, const MidiMessage& message) override
+    void handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message) override
     {
-        auto deviceIndex =  midiDeviceManager.getMidiInputDeviceIndex(input->getIdentifier());
-        if(deviceIndex >= 0) {
+        auto deviceIndex = midiDeviceManager.getMidiInputDeviceIndex(input->getIdentifier());
+        if (deviceIndex >= 0) {
             getMidiMessageCollector().addMessageToQueue(MidiDeviceManager::convertToSysExFormat(message, deviceIndex));
         }
     }
-    
+
     MidiDeviceManager midiDeviceManager;
 };
 

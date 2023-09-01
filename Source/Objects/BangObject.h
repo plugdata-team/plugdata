@@ -10,7 +10,7 @@ class BangObject final : public ObjectBase {
     Value bangInterrupt = SynchronousValue(100.0f);
     Value bangHold = SynchronousValue(40.0f);
     Value sizeProperty = SynchronousValue();
-    
+
     bool bangState = false;
     bool alreadyBanged = false;
 
@@ -28,8 +28,7 @@ public:
         objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamInt("Minimum flash time", cGeneral, &bangInterrupt, 50);
         objectParameters.addParamInt("Maximum flash time", cGeneral, &bangHold, 250);
-        
-        
+
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
 
@@ -90,8 +89,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         startEdition();
         if (auto bng = ptr.get<t_pd>())
             pd_bang(bng.get());
@@ -163,11 +163,11 @@ public:
                 }
             });
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto iem = ptr.get<t_iemgui>()) {
             setParameterExcludingListener(sizeProperty, var(iem->x_w));
         }
@@ -179,18 +179,15 @@ public:
             auto* constrainer = getConstrainer();
             auto size = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
             setParameterExcludingListener(sizeProperty, size);
-            if (auto bng = ptr.get<t_bng>())
-            {
+            if (auto bng = ptr.get<t_bng>()) {
                 bng->x_gui.x_w = size;
                 bng->x_gui.x_h = size;
             }
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(bangInterrupt)) {
+        } else if (value.refersToSameSourceAs(bangInterrupt)) {
             if (auto bng = ptr.get<t_bng>())
                 bng->x_flashtime_break = bangInterrupt.getValue();
-        }
-        else if (value.refersToSameSourceAs(bangHold)) {
+        } else if (value.refersToSameSourceAs(bangHold)) {
             if (auto bng = ptr.get<t_bng>())
                 bng->x_flashtime_hold = bangHold.getValue();
         } else {

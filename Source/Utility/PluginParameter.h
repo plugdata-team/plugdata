@@ -10,15 +10,13 @@
 
 class PlugDataParameter : public RangedAudioParameter {
 public:
-    
-    enum Mode
-    {
+    enum Mode {
         Float = 1,
         Integer,
         Logarithmic,
         Exponential
     };
-    
+
     PluginProcessor& processor;
 
     PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled, int idx, float minimum, float maximum)
@@ -40,7 +38,7 @@ public:
     {
         return (static_cast<int>((range.end - range.start) / 0.000001f) + 1);
     }
-    
+
     void setInterval(float interval)
     {
         range.interval = interval;
@@ -51,33 +49,26 @@ public:
         range.start = min;
         range.end = max;
     }
-    
+
     void setMode(Mode newMode)
     {
         mode = newMode;
-        if(newMode == Logarithmic)
-        {
+        if (newMode == Logarithmic) {
             range.skew = 4.0f;
             setInterval(0.000001f);
-        }
-        else if(newMode == Exponential)
-        {
+        } else if (newMode == Exponential) {
             range.skew = 0.25f;
             setInterval(0.000001f);
-        }
-        else if(newMode == Float)
-        {
+        } else if (newMode == Float) {
             range.skew = 1.0f;
             setInterval(0.000001f);
-        }
-        else if(newMode == Integer)
-        {
+        } else if (newMode == Integer) {
             range.skew = 1.0f;
             setRange(std::floor(range.start), std::floor(range.end));
             setInterval(1.0f);
             setValue(std::floor(getValue()));
         }
-        
+
         notifyDAW();
     }
 
@@ -87,7 +78,7 @@ public:
         // We can add more DAWs or formats here if needed
         return PluginHostType::getPluginLoadedAs() != AudioProcessor::wrapperType_LV2;
     }
-    
+
     void setName(String const& newName)
     {
         name = newName;
@@ -109,12 +100,11 @@ public:
 
     void setEnabled(bool shouldBeEnabled)
     {
-        if(!enabled && shouldBeEnabled)
-        {
+        if (!enabled && shouldBeEnabled) {
             range = NormalisableRange<float>(0.0f, 1.0f, 0.000001f);
             mode = Float;
         }
-        
+
         enabled = shouldBeEnabled;
     }
 
@@ -198,7 +188,7 @@ public:
     {
         return &value;
     }
-    
+
     static void saveStateInformation(XmlElement& xml, Array<AudioProcessorParameter*> const& parameters)
     {
         auto* volumeXml = new XmlElement("PARAM");
@@ -222,7 +212,7 @@ public:
             paramXml->setAttribute(String("value"), static_cast<double>(param->getValue()));
             paramXml->setAttribute(String("index"), param->index);
             paramXml->setAttribute(String("mode"), static_cast<int>(param->mode));
-            
+
             xml.addChildElement(paramXml);
         }
     }
@@ -298,12 +288,12 @@ public:
     {
         return gestureState;
     }
-    
+
     void setIndex(int idx)
     {
         index = idx;
     }
-    
+
     int getIndex()
     {
         return index;
@@ -330,7 +320,7 @@ private:
     NormalisableRange<float> range;
     String name;
     std::atomic<bool> enabled = false;
-        
+
     std::atomic<Mode> mode;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)

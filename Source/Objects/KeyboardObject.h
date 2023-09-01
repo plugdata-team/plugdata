@@ -79,7 +79,7 @@ public:
             for (auto& note : heldKeys) {
                 noteOff(note);
             }
-            if (lastKey != midiNoteNumber){
+            if (lastKey != midiNoteNumber) {
                 heldKeys.erase(lastKey);
             }
 
@@ -95,7 +95,7 @@ public:
     }
 
     // When dragging over the keyboard, the cursor may leave the keyboard object.
-    // If the user ends the drag action (mouse up) when not over the keyboard object, 
+    // If the user ends the drag action (mouse up) when not over the keyboard object,
     // the keyboard will not register the mouse up, and the key will be stuck on.
     // This could possibly be a bug in juce.
     // So we completely replace mouseUpOnKey functionality here, mouseUp() will stop mouseUpOnKey() being called.
@@ -261,7 +261,7 @@ public:
             octaves.setValue(obj->x_octaves);
             toggleMode.setValue(obj->x_toggle_mode);
             sizeProperty.setValue(obj->x_height);
-            
+
             auto sndSym = String::fromUTF8(obj->x_send->s_name);
             auto rcvSym = String::fromUTF8(obj->x_receive->s_name);
 
@@ -283,7 +283,7 @@ public:
             setParameterExcludingListener(sizeProperty, object->getObjectBounds().getHeight());
         }
     }
-    
+
     Rectangle<int> getPdBounds() override
     {
         if (auto obj = ptr.get<t_fake_keyboard>()) {
@@ -351,13 +351,11 @@ public:
             auto* constrainer = getConstrainer();
             auto height = std::max(getValue<int>(sizeProperty), constrainer->getMinimumHeight());
             setParameterExcludingListener(sizeProperty, height);
-            if (auto keyboard = ptr.get<t_fake_keyboard>())
-            {
+            if (auto keyboard = ptr.get<t_fake_keyboard>()) {
                 keyboard->x_height = height;
             }
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(lowC)) {
+        } else if (value.refersToSameSourceAs(lowC)) {
             lowC = std::clamp<int>(getValue<int>(lowC), -1, 9);
             if (auto obj = ptr.get<t_fake_keyboard>())
                 obj->x_low_c = getValue<int>(lowC);

@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2021-2023 Timothy Schoen and Alex Mitchell
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #pragma once
 
 #include <JuceHeader.h>
@@ -22,13 +28,12 @@ public:
     ImageWithOffset patchToTempImage(String const& patch, float scale);
 
     bool checkIfPatchIsValid(String const& patch);
-    
+
     std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patch);
-    
+
 private:
-    
     String stripConnections(String const& patch);
-    
+
     Array<Rectangle<int>> objectRects;
     Rectangle<int> totalSize;
     t_glist* offlineCnv = nullptr;

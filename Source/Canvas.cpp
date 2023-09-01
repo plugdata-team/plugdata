@@ -69,11 +69,11 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         isGraph = false;
     }
 
-    if(!isGraph) {
+    if (!isGraph) {
         auto* canvasViewport = new CanvasViewport(editor, this);
-        
+
         canvasViewport->setViewedComponent(this, false);
-        
+
         canvasViewport->onScroll = [this]() {
             if (suggestor) {
                 suggestor->updateBounds();
@@ -82,13 +82,12 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
                 graphArea->updateBounds();
             }
         };
-        
+
         canvasViewport->setScrollBarsShown(true, true, true, true);
-        
+
         viewport.reset(canvasViewport); // Owned by the tabbar, but doesn't exist for graph!
         jumpToOrigin();
     }
-    
 
     suggestor = new SuggestionComponent;
 
@@ -228,7 +227,6 @@ void Canvas::updateOverlays()
 
     repaint();
 }
-
 
 void Canvas::jumpToOrigin()
 {
@@ -390,10 +388,10 @@ TabComponent* Canvas::getTabbar()
 void Canvas::globalFocusChanged(Component* focusedComponent)
 {
     // ALEX do we need any of this?
-    //if (!focusedComponent || !editor->splitView.isSplitEnabled() || editor->splitView.hasFocus(this))
+    // if (!focusedComponent || !editor->splitView.isSplitEnabled() || editor->splitView.hasFocus(this))
     //    return;
     //
-    //if (focusedComponent == this || focusedComponent->findParentComponentOfClass<Canvas>() == this) {
+    // if (focusedComponent == this || focusedComponent->findParentComponentOfClass<Canvas>() == this) {
     //    editor->splitView.setFocus(this);
     //}
 }
@@ -417,8 +415,7 @@ void Canvas::tabChanged()
 
 int Canvas::getTabIndex()
 {
-    if(auto* tabbar = getTabbar())
-    {
+    if (auto* tabbar = getTabbar()) {
         return tabbar->getIndexOfCanvas(this);
     }
     return -1;
@@ -435,7 +432,7 @@ void Canvas::synchronise()
 }
 
 void Canvas::synchroniseSplitCanvas()
-{   
+{
     for (auto split : editor->splitView.splits) {
         auto tabbar = split->getTabComponent();
         if (auto* activeTabCanvas = tabbar->getCurrentCanvas())
@@ -560,16 +557,14 @@ void Canvas::performSynchronise()
             connections.add(new Connection(this, inlet, outlet, ptr));
         } else {
             auto& c = *(*it);
-            
+
             // This is necessary to make resorting a subpatchers iolets work
             // And it can't hurt to check if the connection is valid anyway
-            if(c.inlet != inlet || c.outlet != outlet)
-            {
+            if (c.inlet != inlet || c.outlet != outlet) {
                 int idx = connections.indexOf(*it);
                 connections.removeObject(*it);
                 connections.insert(idx, new Connection(this, inlet, outlet, ptr));
-            }
-            else {
+            } else {
                 c.popPathState();
             }
         }
@@ -578,8 +573,9 @@ void Canvas::performSynchronise()
     if (!isGraph) {
         setTransform(AffineTransform().scaled(getValue<float>(zoomScale)));
     }
-    
-    if(graphArea) graphArea->updateBounds();
+
+    if (graphArea)
+        graphArea->updateBounds();
 
     editor->updateCommandStatus();
     repaint();
@@ -618,12 +614,12 @@ void Canvas::altKeyChanged(bool isHeld)
 
 void Canvas::focusGained(FocusChangeType type)
 {
-    //std::cout << "focus on canvas: " << this << std::endl;
+    // std::cout << "focus on canvas: " << this << std::endl;
 }
 
 void Canvas::focusLost(FocusChangeType type)
 {
-    //std::cout << "focus lost on canvas: " << this << std::endl;
+    // std::cout << "focus lost on canvas: " << this << std::endl;
 }
 
 void Canvas::mouseDown(MouseEvent const& e)
@@ -637,7 +633,7 @@ void Canvas::mouseDown(MouseEvent const& e)
 
     // Left-click
     if (!e.mods.isRightButtonDown()) {
-        
+
         if (source == this /*|| source == graphArea */) {
 
             cancelConnectionCreation();
@@ -800,15 +796,13 @@ void Canvas::updateSidebarSelection()
         auto* object = lassoSelection.getFirst();
         auto params = object->gui ? object->gui->getParameters() : ObjectParameters();
         auto showOnSelect = object->gui ? object->gui->showParametersWhenSelected() : false;
-        
+
         if (!object->gui) {
             editor->sidebar->hideParameters();
             return;
         }
 
-        if (commandLocked == var(true)) {
-            editor->sidebar->hideParameters();
-        } else if ((showOnSelect && !params.getParameters().isEmpty()) || editor->sidebar->isPinned()) {
+        if ((showOnSelect && !params.getParameters().isEmpty()) || editor->sidebar->isPinned()) {
             editor->sidebar->showParameters(object->gui->getText(), params);
         } else {
             editor->sidebar->hideParameters();
@@ -836,16 +830,40 @@ bool Canvas::keyPressed(KeyPress const& key)
         std::vector<void*> pdObjects;
 
         for (auto* object : objects) {
-            if(auto* ptr = object->getPointer()) {
+            if (auto* ptr = object->getPointer()) {
                 pdObjects.push_back(ptr);
             }
         }
 
         patch.moveObjects(pdObjects, x, y);
 
+        // Update object bounds and store the total bounds of the selection
+        auto totalBounds = Rectangle<int>();
         for (auto* object : objects) {
             object->updateBounds();
+            totalBounds = totalBounds.getUnion(object->getBounds());
         }
+
+        // TODO: consider calculating the totalBounds with object->getBounds().reduced(Object::margin)
+        // then adding viewport padding in screen pixels so it's consistent regardless of scale
+        auto scale = ::getValue<float>(zoomScale);
+        auto viewportPadding = 10;
+
+        auto viewX = viewport->getViewPositionX() / scale;
+        auto viewY = viewport->getViewPositionY() / scale;
+        auto viewWidth = (viewport->getWidth() - viewportPadding) / scale;
+        auto viewHeight = (viewport->getHeight() - viewportPadding) / scale;
+        if (x < 0 && totalBounds.getX() < viewX) {
+            viewX = totalBounds.getX();
+        } else if (totalBounds.getRight() > viewX + viewWidth) {
+            viewX = totalBounds.getRight() - viewWidth;
+        }
+        if (y < 0 && totalBounds.getY() < viewY) {
+            viewY = totalBounds.getY();
+        } else if (totalBounds.getBottom() > viewY + viewHeight) {
+            viewY = totalBounds.getBottom() - viewHeight;
+        }
+        viewport->setViewPosition(viewX * scale, viewY * scale);
     };
 
     // Cancel connections being created by ESC key
@@ -900,7 +918,7 @@ void Canvas::copySelection()
 {
     // Tell pd to select all objects that are currently selected
     for (auto* object : getSelectionOfType<Object>()) {
-        if(auto* ptr = object->getPointer()) {
+        if (auto* ptr = object->getPointer()) {
             patch.selectObject(ptr);
         }
     }
@@ -959,6 +977,8 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
     patch.deselectAll();
     pastedObjects.clear();
     patch.endUndoSequence("DragAndDropPaste");
+
+    updateSidebarSelection();
 }
 
 void Canvas::pasteSelection()
@@ -1002,6 +1022,8 @@ void Canvas::pasteSelection()
     patch.deselectAll();
     pastedObjects.clear();
     patch.endUndoSequence("Paste");
+
+    updateSidebarSelection();
 }
 
 void Canvas::duplicateSelection()
@@ -1015,12 +1037,12 @@ void Canvas::duplicateSelection()
     patch.deselectAll();
 
     for (auto* object : selection) {
-        
+
         auto* ptr = object->getPointer();
         // Check if object exists in pd and is not attached to mouse
         if (!ptr || object->attachedToMouse)
             return;
-        
+
         // Tell pd to select all objects that are currently selected
         patch.selectObject(ptr);
 
@@ -1288,7 +1310,7 @@ void Canvas::encapsulateSelection()
 
     for (auto& [idx, iolets] : newExternalConnections) {
         for (auto* iolet : iolets) {
-            if(auto* externalObject = static_cast<t_object*>(iolet->object->getPointer())) {
+            if (auto* externalObject = static_cast<t_object*>(iolet->object->getPointer())) {
                 if (iolet->isInlet) {
                     libpd_createconnection(patchPtr, newObject, idx - numIn, externalObject, iolet->ioletIdx);
                 } else {
@@ -1336,7 +1358,7 @@ bool Canvas::connectSelectedObjects()
     void* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1]->getPointer() : selection[0]->getPointer();
     void* bottomObject = selection[0] == topObject ? selection[1]->getPointer() : selection[0]->getPointer();
 
-    if(topObject && bottomObject) {
+    if (topObject && bottomObject) {
         patch.createConnection(topObject, 0, bottomObject, 0);
     }
 
@@ -1359,6 +1381,151 @@ void Canvas::cancelConnectionCreation()
     }
 }
 
+void Canvas::alignObjects(Align alignment)
+{
+    auto objects = getSelectionOfType<Object>();
+
+    if (objects.size() < 2)
+        return;
+
+    auto sortByXPos = [](Array<Object *> &objects){
+        std::sort(objects.begin(), objects.end(), [](const auto& a, const auto& b){
+            auto ret = a->getBounds().getX() < b->getBounds().getX();
+            return ret;
+        });
+    };
+
+    auto sortByYPos = [](Array<Object *> &objects){
+        std::sort(objects.begin(), objects.end(), [](const auto& a, const auto& b){
+            return a->getBounds().getY() < b->getBounds().getY();
+        });
+    };
+
+    auto getBoundingBox = [this](Array<Object *> &objects) -> Rectangle<int> {
+        auto totalBounds = Rectangle<int>();
+        for (auto* object : objects) {
+            if (object->getPointer()) {
+                totalBounds = totalBounds.getUnion(object->getBounds());
+            }
+        }
+        return totalBounds;
+    };
+
+    patch.startUndoSequence("align objects");
+
+    // mark canvas as dirty, and set undo for all positions
+    auto patchPtr = patch.getPointer().get();
+    canvas_dirty(patch.getPointer().get(), 1);
+    for (auto object : objects) {
+        if (auto* ptr = object->getPointer())
+            libpd_undo_apply(patchPtr, &patch.checkObject(ptr)->te_g);
+    }
+
+    // get the bounding box of all selected objects
+    auto selectedBounds = getBoundingBox(objects);
+
+    auto getSpacerX = [selectedBounds](Array<Object *> &objects) -> float {
+        auto totalWidths = 0;
+        for (int i = 0; i < objects.size(); i++){
+            totalWidths += objects[i]->getWidth() - (Object::margin * 2);
+        }
+        auto selectedBoundsNoMargin = selectedBounds.getWidth() - (Object::margin * 2);
+        auto spacer = (selectedBoundsNoMargin - totalWidths) / static_cast<float>(objects.size() - 1);
+        return spacer;
+    };
+
+    auto getSpacerY = [selectedBounds](Array<Object *> &objects) -> float {
+        auto totalWidths = 0;
+        for (int i = 0; i < objects.size(); i++){
+            totalWidths += objects[i]->getHeight() - (Object::margin * 2);
+        }
+        auto selectedBoundsNoMargin = selectedBounds.getHeight() - (Object::margin * 2);
+        auto spacer = (selectedBoundsNoMargin - totalWidths) / static_cast<float>(objects.size() - 1);
+        return spacer;
+    };
+
+    switch (alignment) {
+    case Align::Left: {
+        auto leftPos = selectedBounds.getTopLeft().getX();
+        for (auto* object : objects) {
+            patch.moveObjectTo(object->getPointer(), leftPos, object->getBounds().getY());
+        }
+        break;
+    }
+    case Align::Right: {
+        auto rightPos = selectedBounds.getRight();
+        for (auto* object : objects) {
+            auto objectBounds = object->getBounds();
+            patch.moveObjectTo(object->getPointer(), rightPos - objectBounds.getWidth(), objectBounds.getY());
+        }
+        break;
+    }
+    case Align::VCenter: {
+        auto centrePos = selectedBounds.getCentreX();
+        for (auto* object : objects) {
+            auto objectBounds = object->getBounds();
+            patch.moveObjectTo(object->getPointer(), centrePos - objectBounds.withZeroOrigin().getCentreX(), objectBounds.getY());
+        }
+        break;
+    }
+    case Align::Top: {
+        auto topPos = selectedBounds.getTopLeft().y;
+        for (auto* object : objects) {
+            patch.moveObjectTo(object->getPointer(), object->getX(), topPos);
+        }
+        break;
+    }
+    case Align::Bottom: {
+        auto bottomPos = selectedBounds.getBottom();
+        for (auto* object : objects) {
+            auto objectBounds = object->getBounds();
+            patch.moveObjectTo(object->getPointer(), objectBounds.getX(), bottomPos - objectBounds.getHeight());
+        }
+        break;
+    }
+    case Align::HCenter: {
+        auto centerPos = selectedBounds.getCentreY();
+        for (auto* object : objects) {
+            auto objectBounds = object->getBounds();
+            patch.moveObjectTo(object->getPointer(), objectBounds.getX(), centerPos - objectBounds.withZeroOrigin().getCentreY());
+        }
+        break;
+    }
+    case Align::HDistribute: {
+        sortByXPos(objects);
+        float spacer = getSpacerX(objects);
+        float offset = objects[0]->getBounds().getX();
+        for (int i = 1; i < objects.size() - 1; i++){
+            auto leftObjWidth = objects[i - 1]->getBounds().getWidth() - (Object::margin * 2);
+            offset += leftObjWidth + spacer;
+            patch.moveObjectTo(objects[i]->getPointer(), offset, objects[i]->getBounds().getY());
+        }
+        break;
+    }
+    case Align::VDistribute: {
+        sortByYPos(objects);
+        float spacer = getSpacerY(objects);
+        float offset = objects[0]->getBounds().getY();
+        for (int i = 1; i < objects.size() - 1; i++){
+            auto topObjHeight = objects[i - 1]->getBounds().getHeight() - (Object::margin * 2);
+            offset += topObjHeight + spacer;
+            patch.moveObjectTo(objects[i]->getPointer(), objects[i]->getBounds().getX(), offset);
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
+    performSynchronise();
+
+    for (auto* connection : connections) {
+        connection->forceUpdate();
+    }
+
+    patch.endUndoSequence("align objects");
+}
+
 void Canvas::undo()
 {
     // Tell pd to undo the last action
@@ -1371,6 +1538,7 @@ void Canvas::undo()
     patch.deselectAll();
 
     synchroniseSplitCanvas();
+    updateSidebarSelection();
 }
 
 void Canvas::redo()
@@ -1385,6 +1553,7 @@ void Canvas::redo()
     patch.deselectAll();
 
     synchroniseSplitCanvas();
+    updateSidebarSelection();
 }
 
 void Canvas::valueChanged(Value& v)
@@ -1474,16 +1643,30 @@ void Canvas::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(presentationMode)) {
         deselectAll();
         commandLocked.setValue(presentationMode.getValue());
-    } else if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
+    } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
+        if (!patch.getPointer())
+            return;
+
+        int hideText = getValue<bool>(hideNameAndArgs);
+        if (auto glist = patch.getPointer()) {
+            hideText = glist->gl_isgraph && hideText;
+            canvas_setgraph(glist.get(), glist->gl_isgraph + 2 * hideText, 0);
+        }
+
+        hideNameAndArgs = hideText;
+    } else if (v.refersToSameSourceAs(isGraphChild)) {
 
         if (!patch.getPointer())
             return;
 
         int graphChild = getValue<bool>(isGraphChild);
-        int hideText = getValue<bool>(hideNameAndArgs);
 
         if (auto glist = patch.getPointer()) {
-            canvas_setgraph(glist.get(), isGraph + 2 * hideText, 0);
+            canvas_setgraph(glist.get(), graphChild + 2 * (graphChild && glist->gl_hidetext), 0);
+        }
+
+        if (!graphChild) {
+            hideNameAndArgs = false;
         }
 
         if (graphChild && !isGraph) {

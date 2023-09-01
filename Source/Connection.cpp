@@ -24,7 +24,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     , inlet(s->isInlet ? s : e)
     , outobj(outlet->object)
     , inobj(inlet->object)
-    , ptr(oc, parent->pd)
 {
     cnv->selectedComponents.addChangeListener(this);
 
@@ -49,19 +48,9 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     // If it doesn't already exist in pd, create connection in pd
     if (!oc) {
         auto* oc = parent->patch.createAndReturnConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
-
-        ptr = pd::WeakReference(oc, cnv->pd);
-
-        if (!ptr.getRaw<t_outconnect>()) {
-            outlet = nullptr;
-            inlet = nullptr;
-
-            // MessageManager::callAsync([this]() { cnv->connections.removeObject(this); });
-
-            return;
-        }
+        setPointer(oc);
     } else {
-
+        setPointer(oc);
         popPathState();
     }
 
@@ -85,13 +74,11 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     valueChanged(presentationMode);
 
     updateOverlays(cnv->getOverlays());
-
-    setPointer(ptr.getRaw<void>());
 }
 
 Connection::~Connection()
 {
-    cnv->pd->unregisterMessageListener(ptr.getRaw<void>(), this);
+    cnv->pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     cnv->selectedComponents.removeChangeListener(this);
 
     if (outlet) {
@@ -133,8 +120,9 @@ void Connection::lookAndFeelChanged()
 
 void Connection::pushPathState()
 {
-    if(!inlet || !outlet) return;
-    
+    if (!inlet || !outlet)
+        return;
+
     t_symbol* newPathState;
     if (segmented) {
         MemoryOutputStream stream;
@@ -154,13 +142,14 @@ void Connection::pushPathState()
 
 void Connection::popPathState()
 {
-    if (!inlet || !outlet) return;
-    
+    if (!inlet || !outlet)
+        return;
+
     String state;
-    if(auto oc = ptr.get<t_outconnect>())
-    {
+    if (auto oc = ptr.get<t_outconnect>()) {
         auto* pathData = outconnect_get_path_data(oc.get());
-        if(!pathData || !pathData->s_name) return;
+        if (!pathData || !pathData->s_name)
+            return;
         state = String::fromUTF8(pathData->s_name);
     }
 
@@ -190,11 +179,11 @@ void Connection::popPathState()
 void Connection::setPointer(void* newPtr)
 {
     auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
-    ptr = pd::WeakReference(newPtr, cnv->pd);
-    cnv->pd->registerMessageListener(ptr.getRaw<t_outconnect>(), this);
-    if (originalPointer != ptr.getRaw<t_outconnect>()) {
-        // do we even need to unregister, doesn't it get cleaned up automatically?
+    if (originalPointer != newPtr) {
+        ptr = pd::WeakReference(newPtr, cnv->pd);
+
         cnv->pd->unregisterMessageListener(originalPointer, this);
+        cnv->pd->registerMessageListener(newPtr, this);
     }
 }
 
@@ -205,11 +194,10 @@ void* Connection::getPointer()
 
 t_symbol* Connection::getPathState()
 {
-    if(auto oc = ptr.get<t_outconnect>())
-    {
+    if (auto oc = ptr.get<t_outconnect>()) {
         return outconnect_get_path_data(oc.get());
     }
-    
+
     return nullptr;
 }
 
@@ -403,6 +391,13 @@ void Connection::updateOverlays(int overlay)
     repaint();
 }
 
+void Connection::forceUpdate()
+{
+    updatePath();
+    resizeToFit();
+    repaint();
+}
+
 void Connection::paint(Graphics& g)
 {
     renderConnectionPath(g,
@@ -419,25 +414,25 @@ void Connection::paint(Graphics& g)
         getMultiConnectNumber(),
         getNumSignalChannels());
 
-/* ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT
-    static Random rng;
+    /* ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT
+        static Random rng;
 
-    g.fillAll(Colour((uint8)rng.nextInt(255),
-        (uint8)rng.nextInt(255),
-        (uint8)rng.nextInt(255),
-        (uint8)0x50));
-*/
+        g.fillAll(Colour((uint8)rng.nextInt(255),
+            (uint8)rng.nextInt(255),
+            (uint8)rng.nextInt(255),
+            (uint8)0x50));
+    */
 
-/* ENABLE_CONNECTION_GRAPHICS_DEBUGGING
-    g.setColour(Colours::orange);
-    for (auto& point : currentPlan) {
-        auto local = getLocalPoint(cnv, point);
-        g.fillEllipse(local.x, local.y, 2, 2);
-    }
+    /* ENABLE_CONNECTION_GRAPHICS_DEBUGGING
+        g.setColour(Colours::orange);
+        for (auto& point : currentPlan) {
+            auto local = getLocalPoint(cnv, point);
+            g.fillEllipse(local.x, local.y, 2, 2);
+        }
 
-    g.setColour(Colours::red);
-    g.drawRect(getLocalBounds(), 1.0f);
-*/
+        g.setColour(Colours::red);
+        g.drawRect(getLocalBounds(), 1.0f);
+    */
 }
 
 bool Connection::isSegmented() const
@@ -857,16 +852,14 @@ int Connection::getMultiConnectNumber()
 
 int Connection::getNumSignalChannels()
 {
-    if(auto oc = ptr.get<t_outconnect>())
-    {
+    if (auto oc = ptr.get<t_outconnect>()) {
         return outconnect_get_num_channels(oc.get());
     }
-    
-    if(outlet)
-    {
+
+    if (outlet) {
         return outlet->isSignal ? 1 : 0;
     }
-    
+
     return 0;
 }
 
@@ -1179,7 +1172,7 @@ void ConnectionPathUpdater::timerCallback()
         linetraverser_start(&t, patch);
 
         while (auto* oc = linetraverser_next(&t)) {
-            
+
             if (oc && oc == connection->ptr.getRaw<t_outconnect>()) {
 
                 outObj = t.tr_ob;
@@ -1194,8 +1187,8 @@ void ConnectionPathUpdater::timerCallback()
 
         if (!found)
             continue;
-        
-        if(auto oc = connection->ptr.get<t_outconnect>()) {
+
+        if (auto oc = connection->ptr.get<t_outconnect>()) {
             t_symbol* oldPathState = outconnect_get_path_data(oc.get());
             auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
             connection->setPointer(newConnection);
@@ -1211,7 +1204,7 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 {
     // TODO: indicator
     // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
-    
+
     outobj->triggerOverlayActiveState();
 
     auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();

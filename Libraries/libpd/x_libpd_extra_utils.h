@@ -16,7 +16,6 @@ extern "C" {
 void* libpd_create_canvas(char const* name, char const* path);
 
 char const* libpd_get_object_class_name(void* ptr);
-t_symbol* libpd_get_object_class_symbol(void* ptr);
 void libpd_get_object_text(void* ptr, char** text, int* size);
 void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int* h);
 
@@ -33,6 +32,7 @@ void libpd_array_set_scale(void* array, float min, float max);
 int libpd_array_get_size(void* array);
 int libpd_array_get_style(void* array);
 int libpd_array_get_saveit(void* array);
+int libpd_array_get_linewidth(void* array);
 
 // (re)size an array by name; sizes <= 0 are clipped to 1
 // returns 0 on success or negative error code if non-existent

@@ -30,7 +30,8 @@ public:
 
     ~AutoCompleteComponent() override
     {
-        if(editor) editor->removeComponentListener(this);
+        if (editor)
+            editor->removeComponentListener(this);
     }
 
     String getSuggestion()
@@ -55,6 +56,11 @@ public:
     void enableAutocomplete(bool enabled)
     {
         shouldAutocomplete = enabled;
+    }
+
+    bool isAutocompleting()
+    {
+        return shouldAutocomplete && suggestion.isNotEmpty();
     }
 
     void setSuggestion(String const& suggestionText)
@@ -123,8 +129,7 @@ private:
 class SuggestionComponent : public Component
     , public KeyListener
     , public TextEditor::Listener
-    , public ComponentListener
-{
+    , public ComponentListener {
 
     class Suggestion : public TextButton {
         int idx = 0;
@@ -172,7 +177,7 @@ class SuggestionComponent : public Component
             auto buttonArea = getLocalBounds().withTrimmedRight((parent->canBeTransparent() ? 42 : 2) + scrollbarIndent).toFloat().reduced(4, 1);
 
             g.setColour(backgroundColour);
-            PlugDataLook::fillSmoothedRectangle(g, buttonArea,  Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, buttonArea, Corners::defaultCornerRadius);
 
             auto colour = getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
 
@@ -337,8 +342,8 @@ public:
         openedEditor = nullptr;
         currentObject = nullptr;
     }
-    
-    void componentBeingDeleted (Component &component) override
+
+    void componentBeingDeleted(Component& component) override
     {
         removeCalloutBox();
     }
@@ -462,23 +467,33 @@ private:
         if (key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
             autoCompleteComponent->autocomplete();
             currentidx = 0;
-            if(buttons.size()) buttons[0]->setToggleState(true, dontSendNotification);
+            if (buttons.size())
+                buttons[0]->setToggleState(true, dontSendNotification);
             return true;
         }
         if (key == KeyPress::leftKey && !openedEditor->getHighlightedRegion().isEmpty()) {
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
-        if (key == KeyPress::returnKey && (autoCompleteComponent->getSuggestion() == openedEditor->getText() || openedEditor->getText().contains(" ") || numOptions == 0)) {
-            // if the caret is already at the end, we want to close upon enter key
-            // By ignoring the keypress we'll trigger the return callback on text editor which will close it
-            return false;
-        }
-        if ((key == KeyPress::returnKey || key == KeyPress::tabKey) && autoCompleteComponent) {
+        if (key == KeyPress::tabKey && autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {
             autoCompleteComponent->autocomplete();
             currentidx = 0;
-            if(buttons.size()) buttons[0]->setToggleState(true, dontSendNotification);
+            if (buttons.size())
+                buttons[0]->setToggleState(true, dontSendNotification);
             return true;
+        }
+        if (key == KeyPress::returnKey) {
+            if (autoCompleteComponent->isAutocompleting() && openedEditor->getText() != autoCompleteComponent->getSuggestion() && numOptions != 0) {
+                autoCompleteComponent->autocomplete();
+                currentidx = 0;
+                if (buttons.size())
+                    buttons[0]->setToggleState(true, dontSendNotification);
+                return true;
+            } else {
+                // if there is no autocomplete action going on, we want to close upon error
+                // By ignoring the keypress we'll trigger the return callback on text editor which will close it
+                return false;
+            }
         }
         if (state != ShowingObjects)
             return false;
@@ -499,52 +514,51 @@ private:
         resized();
 
         auto& library = currentObject->cnv->pd->objectLibrary;
-        
-        
-        class ObjectSorter
-        {
+
+        class ObjectSorter {
         public:
-            ObjectSorter(String searchQuery) : query(searchQuery)
+            ObjectSorter(String searchQuery)
+                : query(searchQuery)
             {
             }
-            
-            int compareElements (const String& a, const String& b)
+
+            int compareElements(String const& a, String const& b)
             {
                 // Check if suggestion exacly matches query
                 if (a == query) {
                     return -1;
                 }
-                
+
                 if (b == query) {
                     return 1;
                 }
-                
+
                 // Check if suggestion is equal to query with "~" appended
                 if (a == (query + "~") && b != query && b != (query + "~")) {
                     return -1;
                 }
-                
+
                 if (b == (query + "~") && a != query && a != (query + "~")) {
                     return 1;
                 }
-                
+
                 // Check if suggestion is equal to query with "." appended
                 if (a.startsWith(query + ".") && b != query && b != (query + "~") && !b.startsWith(query + ".")) {
                     return -1;
                 }
-                
+
                 if (b.startsWith(query + ".") && a != query && a != (query + "~") && !a.startsWith(query + ".")) {
                     return 1;
                 }
-                
+
                 if (a.length() < b.length()) {
                     return -1;
                 }
-                
+
                 if (b.length() < a.length()) {
                     return 1;
                 }
-                
+
                 return a.compareNatural(b);
             }
             const String query;
@@ -553,7 +567,7 @@ private:
         auto sortSuggestions = [](String query, StringArray suggestions) -> StringArray {
             if (query.length() == 0)
                 return suggestions;
-            
+
             auto sorter = ObjectSorter(query);
             suggestions.strings.sort(sorter);
             return suggestions;
@@ -568,8 +582,10 @@ private:
             for (auto flag : objectInfo.getChildWithName("flags")) {
                 auto flagCopy = flag.createCopy();
                 auto name = flagCopy.getProperty("name").toString().trim();
+
                 if (!name.startsWith("-"))
                     name = "-" + name;
+
                 flagCopy.setProperty("type", name, nullptr);
                 found.appendChild(flagCopy, nullptr);
             }
@@ -578,6 +594,10 @@ private:
             for (int i = 0; i < numOptions; i++) {
                 auto type = found.getChild(i).getProperty("type").toString();
                 auto description = found.getChild(i).getProperty("description").toString();
+                auto def = found.getChild(i).getProperty("default").toString();
+
+                if (def.isNotEmpty())
+                    description += " (default: " + def + ")";
 
                 buttons[i]->setText(type, description, false);
                 buttons[i]->setInterceptsMouseClicks(false, false);
@@ -613,7 +633,8 @@ private:
 
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {
-                    if (Object::hvccObjects.contains(object)) {
+                    // We support arrays, but when you create [array] it is really [array define] which is unsupported
+                    if (Object::hvccObjects.contains(object) && object != "array") {
                         hvccObjectsFound.add(object);
                     }
                 }
@@ -622,7 +643,8 @@ private:
             }
         };
         auto patchDir = currentObject->cnv->patch.getPatchFile().getParentDirectory();
-        if(!patchDir.isDirectory() || patchDir == File::getSpecialLocation(File::tempDirectory)) patchDir = File();
+        if (!patchDir.isDirectory() || patchDir == File::getSpecialLocation(File::tempDirectory))
+            patchDir = File();
 
         // Update suggestions
         auto found = library->autocomplete(currentText, patchDir);

@@ -11,7 +11,6 @@ class ScopeBase : public ObjectBase
     std::vector<float> x_buffer;
     std::vector<float> y_buffer;
 
-    
     Value gridColour = SynchronousValue();
     Value triggerMode = SynchronousValue();
     Value triggerValue = SynchronousValue();
@@ -29,7 +28,7 @@ public:
     ScopeBase(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
-        
+
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColour("Grid color", cAppearance, &gridColour, PlugDataColour::guiObjectInternalOutlineColour);
@@ -45,15 +44,15 @@ public:
         startTimerHz(25);
     }
 
-        void updateSizeProperty() override
-        {
-            setPdBounds(object->getObjectBounds());
-            
-            if (auto scope = ptr.get<S>()) {
-                setParameterExcludingListener(sizeProperty, Array<var>{var(scope->x_width), var(scope->x_height)});
-            }
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto scope = ptr.get<S>()) {
+            setParameterExcludingListener(sizeProperty, Array<var> { var(scope->x_width), var(scope->x_height) });
         }
-        
+    }
+
     void update() override
     {
         if (auto scope = ptr.get<S>()) {
@@ -65,8 +64,8 @@ public:
             secondaryColour = colourFromHexArray(scope->x_bg).toString();
             primaryColour = colourFromHexArray(scope->x_fg).toString();
             gridColour = colourFromHexArray(scope->x_gg).toString();
-            sizeProperty = Array<var>{var(scope->x_width), var(scope->x_height)};
-            
+            sizeProperty = Array<var> { var(scope->x_width), var(scope->x_height) };
+
             auto rcv = String::fromUTF8(scope->x_rcv_raw->s_name);
             if (rcv == "empty")
                 rcv = "";
@@ -229,18 +228,16 @@ public:
             auto* constrainer = getConstrainer();
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
-            
-            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
-            
-            if (auto scope = ptr.get<S>())
-            {
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto scope = ptr.get<S>()) {
                 scope->x_width = width;
                 scope->x_height = height;
             }
 
             object->updateBounds();
-        }
-        else if (v.refersToSameSourceAs(primaryColour)) {
+        } else if (v.refersToSameSourceAs(primaryColour)) {
             if (auto scope = ptr.get<S>())
                 colourToHexArray(Colour::fromString(primaryColour.toString()), scope->x_fg);
         } else if (v.refersToSameSourceAs(secondaryColour)) {

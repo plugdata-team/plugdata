@@ -46,8 +46,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!e.mods.isLeftButtonDown()) return;
-        
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         auto normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
         auto highSensitivity = normalSensitivity * 10;
 
@@ -151,7 +152,7 @@ public:
         if (auto obj = ptr.get<t_slider>()) {
             isVertical = obj->x_orientation;
             slider.setRangeFlipped(obj->x_min > obj->x_max);
-            sizeProperty = Array<var>{var(obj->x_gui.x_w), var(obj->x_gui.x_h)};
+            sizeProperty = Array<var> { var(obj->x_gui.x_w), var(obj->x_gui.x_h) };
         }
 
         min = getMinimum();
@@ -311,13 +312,13 @@ public:
     {
         slider.setBounds(getLocalBounds());
     }
-    
+
     void updateSizeProperty() override
     {
         setPdBounds(object->getObjectBounds());
-        
+
         if (auto iem = ptr.get<t_iemgui>()) {
-            setParameterExcludingListener(sizeProperty, Array<var>{var(iem->x_w), var(iem->x_h)});
+            setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
         }
     }
 
@@ -419,18 +420,16 @@ public:
             auto* constrainer = getConstrainer();
             auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
-            
-            setParameterExcludingListener(sizeProperty, Array<var>{var(width), var(height)});
-            
-            if (auto obj = ptr.get<t_slider>())
-            {
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto obj = ptr.get<t_slider>()) {
                 obj->x_gui.x_w = width;
                 obj->x_gui.x_h = height;
             }
 
             object->updateBounds();
-        }
-        else if (value.refersToSameSourceAs(min)) {
+        } else if (value.refersToSameSourceAs(min)) {
             setMinimum(::getValue<float>(min));
             updateRange();
         } else if (value.refersToSameSourceAs(max)) {
