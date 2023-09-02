@@ -52,6 +52,7 @@ public:
             property->setPreferredHeight(28);
         }
 
+        pluginTypeValue.addListener(this);
         midiinEnableValue.addListener(this);
         midioutEnableValue.addListener(this);
 
@@ -65,17 +66,17 @@ public:
     {
         ExporterBase::valueChanged(v);
 
-        bool customMidi = getValue<int>(pluginTypeValue) == 4;
-        midiinProperty->setEnabled(customMidi);
-        midioutProperty->setEnabled(customMidi);
+        int pluginType = getValue<int>(pluginTypeValue);
+        midiinProperty->setEnabled(pluginType == 4);
+        midioutProperty->setEnabled(pluginType == 4);
 
-        // if (pluginType == 1) {
-        //     midiinEnableValue.setValue(0);
-        //     midioutEnableValue.setValue(0);
-        // } else if (pluginType == 2) {
-        //     midiinEnableValue.setValue(1);
-        //     midioutEnableValue.setValue(0);
-        // }
+        if (pluginType == 2) {
+            midiinEnableValue.setValue(0);
+            midioutEnableValue.setValue(0);
+        } else if (pluginType == 3) {
+            midiinEnableValue.setValue(1);
+            midioutEnableValue.setValue(0);
+        }
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
