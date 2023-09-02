@@ -6,25 +6,32 @@
 
 class DPFExporter : public ExporterBase {
 public:
-    Value midiinEnableValue = Value(var(1));
-    Value midioutEnableValue = Value(var(1));
+    Value midiinEnableValue = Value(var(0));
+    Value midioutEnableValue = Value(var(0));
 
     Value lv2EnableValue = Value(var(1));
     Value vst2EnableValue = Value(var(1));
     Value vst3EnableValue = Value(var(1));
     Value clapEnableValue = Value(var(1));
-    Value jackEnableValue = Value(var(1));
+    Value jackEnableValue = Value(var(0));
 
     Value exportTypeValue = Value(var(2));
+    Value pluginTypeValue = Value(var(1));
+
+    PropertiesPanel::Property* midiinProperty;
+    PropertiesPanel::Property* midioutProperty;
 
     DPFExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
-        
-        properties.add(new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" }));
-        properties.add(new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, { "No", "yes" }));
+        properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Choose", "Effect", "Instrument", "Custom" }));
+
+        midiinProperty = new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" });
+        properties.add(midiinProperty);
+        midioutProperty = new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, { "No", "yes" });
+        properties.add(midioutProperty);
 
         Array<PropertiesPanel::Property*> pluginFormats;
 
@@ -45,6 +52,7 @@ public:
             property->setPreferredHeight(28);
         }
 
+        pluginTypeValue.addListener(this);
         midiinEnableValue.addListener(this);
         midioutEnableValue.addListener(this);
 
@@ -52,6 +60,23 @@ public:
 
         panel.addSection("DPF", properties);
         panel.addSection("Plugin formats", pluginFormats);
+    }
+
+    void valueChanged(Value& v) override
+    {
+        ExporterBase::valueChanged(v);
+
+        int pluginType = getValue<int>(pluginTypeValue);
+        midiinProperty->setEnabled(pluginType == 4);
+        midioutProperty->setEnabled(pluginType == 4);
+
+        if (pluginType == 2) {
+            midiinEnableValue.setValue(0);
+            midioutEnableValue.setValue(0);
+        } else if (pluginType == 3) {
+            midiinEnableValue.setValue(1);
+            midioutEnableValue.setValue(0);
+        }
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
