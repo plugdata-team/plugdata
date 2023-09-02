@@ -20,6 +20,7 @@
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     : cnv(parent)
+    , ptr(parent->pd)
     , outlet(s->isInlet ? e : s)
     , inlet(s->isInlet ? s : e)
     , outobj(outlet->object)

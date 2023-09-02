@@ -19,7 +19,7 @@ class Instance;
 struct WeakReference {
     WeakReference(void* p, Instance* instance);
 
-    WeakReference();
+    WeakReference(Instance* instance);
 
     ~WeakReference();
 
