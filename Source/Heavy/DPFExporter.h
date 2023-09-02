@@ -13,7 +13,7 @@ public:
     Value vst2EnableValue = Value(var(1));
     Value vst3EnableValue = Value(var(1));
     Value clapEnableValue = Value(var(1));
-    Value jackEnableValue = Value(var(1));
+    Value jackEnableValue = Value(var(0));
 
     Value exportTypeValue = Value(var(2));
     Value pluginTypeValue = Value(var(1));
