@@ -8,16 +8,15 @@ class PdExporter : public ExporterBase {
 public:
 
     Value exportTypeValue = Value(var(2));
-    // Value pathEnableValue = Value(var(1));
+    Value copyToPath = Value(var(0));
 
     PdExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
-        // properties.add(new PropertiesPanel::BoolComponent("Add external to Path", pathEnableValue, { "No", "Yes"}));
-        // pathEnableValue.addListener(this);
-
+        properties.add(new PropertiesPanel::BoolComponent("Copy to externals path", copyToPath, { "No", "Yes" }));
+        
         panel.addSection("Pd", properties);
     }
 
@@ -101,7 +100,7 @@ public:
 
             Toolchain::startShellScript(buildScript, this);
 #endif
-
+            
             waitForProcessToFinish(-1);
             exportingView->flushConsole();
 
@@ -109,6 +108,27 @@ public:
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
             workingDir.setAsCurrentWorkingDirectory();
+            
+#if JUCE_MAC
+                auto external = outputFile.getChildFile(name + "~.pd_darwin");
+#elif JUCE_WINDOWS
+                auto external = outputFile.getChildFile(name + "~.pd_linux")
+#else
+                auto external = outputFile.getChildFile(name + "~.dll")
+#endif
+            
+            if(getValue<bool>(copyToPath)) {
+
+                external.copyFileTo(ProjectInfo::appDataDir.getChildFile("Externals").getChildFile(external.getFileName()));
+            }
+            
+            auto binLocation = outputFile.getChildFile(name + ".bin");
+            
+            // Clean up
+            outputFile.getChildFile("c").deleteRecursively();
+            outputFile.getChildFile("pdext").deleteRecursively();
+            outputFile.getChildFile("Makefile").deleteFile();
+            outputFile.getChildFile("Makefile.pdlibbuilder").deleteFile();
 
             bool compilationExitCode = getExitCode();
 

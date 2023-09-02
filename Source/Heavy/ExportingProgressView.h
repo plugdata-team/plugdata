@@ -170,10 +170,10 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(console.getBounds().toFloat(), Corners::defaultCornerRadius, 1.0f);
+        g.drawRoundedRectangle(console.getBounds().expanded(2).toFloat(), Corners::defaultCornerRadius, 1.0f);
         
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRoundedRectangle(console.getBounds().toFloat(), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(console.getBounds().expanded(2).toFloat(), Corners::defaultCornerRadius);
         
         // TODO: use panel colour IDs?
         if (state == Busy) {
@@ -192,7 +192,7 @@ public:
 
     void resized() override
     {
-        console.setBounds(proportionOfWidth(0.1f), 80, proportionOfWidth(0.8f), getHeight() - 172);
+        console.setBounds(proportionOfWidth(0.05f), 80, proportionOfWidth(0.9f), getHeight() - 172);
         continueButton.setBounds(proportionOfWidth(0.42f), getHeight() - 60, proportionOfWidth(0.12f), 24);
         confirmButton.setBounds(proportionOfWidth(0.42f), getHeight() - 60, proportionOfWidth(0.12f), 24);
     }
