@@ -39,7 +39,6 @@ struct HeavyCompatibleObjects
         "change",
         "clip",
         "cnv",
-        "comment",
         "cos",
         "ctlin",
         "ctlout",
@@ -180,7 +179,7 @@ struct HeavyCompatibleObjects
         "vd~",
         "wrap~"
     };
-    
+
     // Heavylib abstractions:
     // These won't be used for the compatibility testing (it will recognise any abstractions as a canvas)
     // These are only for the suggestions
@@ -212,7 +211,7 @@ struct HeavyCompatibleObjects
         "hv.tanh~",
         "hv.vline~"
     };
-    
+
     static inline const StringArray extra = {
         "comment",
         "floatbox",
@@ -220,15 +219,15 @@ struct HeavyCompatibleObjects
         "message",
         "invalid"
     };
-    
+
     static StringArray getAllCompatibleObjects()
     {
         StringArray allObjects;
         allObjects.addArray(heavyObjects);
         allObjects.addArray(heavyAbstractions);
         allObjects.addArray(extra);
-        
+
         return allObjects;
     }
-    
+
 };
