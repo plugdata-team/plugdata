@@ -112,9 +112,9 @@ public:
 #if JUCE_MAC
                 auto external = outputFile.getChildFile(name + "~.pd_darwin");
 #elif JUCE_WINDOWS
-                auto external = outputFile.getChildFile(name + "~.pd_linux")
+                auto external = outputFile.getChildFile(name + "~.pd_linux");
 #else
-                auto external = outputFile.getChildFile(name + "~.dll")
+                auto external = outputFile.getChildFile(name + "~.dll");
 #endif
             
             if(getValue<bool>(copyToPath)) {

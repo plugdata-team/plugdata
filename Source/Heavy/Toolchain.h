@@ -157,16 +157,23 @@ struct ToolchainInstaller : public Component
             errorMessage = "";
             repaint();
 
-            // Get latest version
-            auto latestVersion = "v" + URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/VERSION").readEntireTextStream().trim();
-
-            if (latestVersion == "v") {
+            String latestVersion;
+            try {
+                auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
+                // Get latest version
+                
+                latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
+                if(latestVersion.isEmpty()) throw;
+            }
+            // Network error, JSON error or empty version string somehow
+            catch (...) {
                 errorMessage = "Error: Could not download files (possibly no network connection)";
                 installButton.topText = "Try Again";
                 repaint();
+                return;
             }
-
-            String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/" + latestVersion + "/";
+            
+            String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/v" + latestVersion + "/";
 
 #if JUCE_MAC
             downloadLocation += "Heavy-MacOS-Universal.zip";
