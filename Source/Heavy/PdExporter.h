@@ -9,15 +9,36 @@ public:
 
     Value exportTypeValue = Value(var(2));
     Value copyToPath = Value(var(0));
+    
+    PropertiesPanel::BoolComponent* copyToPathProperty;
 
     PdExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
-        properties.add(new PropertiesPanel::BoolComponent("Copy to externals path", copyToPath, { "No", "Yes" }));
+        
+        copyToPathProperty = new PropertiesPanel::BoolComponent("Copy to externals path", copyToPath, { "No", "Yes" });
+        properties.add(copyToPathProperty);
         
         panel.addSection("Pd", properties);
+        
+        exportTypeValue.addListener(this);
+    }
+    
+    void valueChanged(Value& v) override
+    {
+        if(v.refersToSameSourceAs(exportTypeValue)) {
+            copyToPathProperty->setEnabled(exportTypeValue == 2);
+            if(exportTypeValue == 1)
+            {
+                copyToPath = 0;
+            }
+        }
+        else {
+            ExporterBase::valueChanged(v);
+        }
+        
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
