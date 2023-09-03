@@ -87,7 +87,7 @@ void TabBarButtonComponent::closeTab()
                             _editor->saveProject([_cnv, _editor]() mutable { _editor->closeTab(_cnv); });
                         else if (result == 1)
                             _editor->closeTab(_cnv);
-                    });
+                    }, 0, true);
             } else {
                 _editor->closeTab(_cnv);
             }

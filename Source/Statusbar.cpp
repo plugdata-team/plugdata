@@ -33,6 +33,7 @@ class OversampleSelector : public TextButton {
         {
             title.setText("Oversampling factor", dontSendNotification);
             title.setFont(Fonts::getBoldFont().withHeight(14.0f));
+            title.setJustificationType(Justification::centred);
             addAndMakeVisible(title);
 
             one.setConnectedEdges(ConnectedOnRight);

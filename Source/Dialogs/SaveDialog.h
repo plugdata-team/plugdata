@@ -41,11 +41,11 @@ private:
 class SaveDialog : public Component {
 
 public:
-    SaveDialog(Dialog* parent, String const& filename, std::function<void(int)> callback)
-        : savelabel("savelabel", filename.isEmpty() ? "Save changes before closing?" : "Save changes to \"" + filename + "\"\n before closing?")
+    SaveDialog(Dialog* parent, String const& filename, std::function<void(int)> callback, bool withLogo)
+        : savelabel("savelabel", filename.isEmpty() ? "Save changes before closing?" : "Save changes to \"" + filename + "\"\n before closing?"), hasLogo(withLogo)
     {
         cb = callback;
-        setSize(265, 280);
+        setSize(265, 270);
         addAndMakeVisible(savelabel);
         addAndMakeVisible(cancel);
         addAndMakeVisible(dontsave);
@@ -98,6 +98,8 @@ public:
 
     void paint(Graphics& g) override
     {
+        if(!hasLogo) return;
+        
         auto contentBounds = getLocalBounds().reduced(16);
         auto logoBounds = contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f).withSizeKeepingCentre(64, 64);
 
@@ -111,9 +113,10 @@ public:
         auto contentBounds = getLocalBounds().reduced(16);
 
         // logo space
-        contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f);
-
-        contentBounds.removeFromTop(8);
+        if(hasLogo) {
+            contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f + 8.0f);
+        }
+    
         savelabel.setBounds(contentBounds.removeFromTop(contentBounds.getHeight() / 3));
         contentBounds.removeFromTop(8);
 
@@ -127,6 +130,7 @@ public:
     static inline std::function<void(int)> cb = [](int) {};
 
 private:
+    bool hasLogo;
     Label savelabel;
 
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
