@@ -201,6 +201,7 @@ struct HeavyCompatibleObjects
         "hv.gte~",
         "hv.log~",
         "hv.lt~",
+        "hv.lfo",
         "hv.lte~",
         "hv.multiplex~",
         "hv.neq~",
