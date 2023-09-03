@@ -26,7 +26,7 @@ public:
     {
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
-        properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Choose", "Effect", "Instrument", "Custom" }));
+        properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
 
         midiinProperty = new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" });
         properties.add(midiinProperty);
@@ -67,13 +67,13 @@ public:
         ExporterBase::valueChanged(v);
 
         int pluginType = getValue<int>(pluginTypeValue);
-        midiinProperty->setEnabled(pluginType == 4);
-        midioutProperty->setEnabled(pluginType == 4);
+        midiinProperty->setEnabled(pluginType == 3);
+        midioutProperty->setEnabled(pluginType == 3);
 
-        if (pluginType == 2) {
+        if (pluginType == 1) {
             midiinEnableValue.setValue(0);
             midioutEnableValue.setValue(0);
-        } else if (pluginType == 3) {
+        } else if (pluginType == 2) {
             midiinEnableValue.setValue(1);
             midioutEnableValue.setValue(0);
         }

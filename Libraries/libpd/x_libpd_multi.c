@@ -761,6 +761,12 @@ void order_setup();
 void repeat_tilde_setup();
 void setup_xgate0x2emc_tilde();
 void setup_xfade0x2emc_tilde();
+void sender_setup();
+void setup_ptouch0x2ein();
+void setup_ptouch0x2eout();
+void setup_spread0x2emc_tilde();
+void setup_rotate0x2emc_tilde();
+void pipe2_setup();
 
 #if ENABLE_SFIZZ
 void sfz_tilde_setup();
@@ -1073,6 +1079,12 @@ void libpd_init_else(void)
 #if ENABLE_SFIZZ
     sfz_tilde_setup();
 #endif
+    sender_setup();
+    setup_ptouch0x2ein();
+    setup_ptouch0x2eout();
+    setup_spread0x2emc_tilde();
+    setup_rotate0x2emc_tilde();
+    pipe2_setup();
 }
 
 void libpd_init_cyclone(void)
