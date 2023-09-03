@@ -1,7 +1,7 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 /*
- // Copyright (c) 2022 Timothy Schoen and Wasted-Audio
+ // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -33,7 +33,6 @@ struct Toolchain {
 
     static void startShellScript(String scriptText, ChildProcess* processToUse = nullptr)
     {
-
         File scriptFile = File::createTempFile(".sh");
         Toolchain::deleteTempFileLater(scriptFile);
 
@@ -61,6 +60,26 @@ struct Toolchain {
             process.waitForProcessToFinish(-1);
         }
 #endif
+    }
+
+    const String startShellScriptWithOutput(String scriptText)
+    {
+        File scriptFile = File::createTempFile(".sh");
+        Toolchain::deleteTempFileLater(scriptFile);
+
+        auto bash = String("#!/bin/bash\n");
+        scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
+
+        ChildProcess process;
+#if JUCE_WINDOWS
+        auto sh = Toolchain::dir.getChildFile("bin").getChildFile("sh.exe");
+        auto arguments = StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') };
+#else
+        scriptFile.setExecutePermission(true);
+        auto arguments = scriptFile.getFullPathName();
+#endif
+        process.start(arguments, ChildProcess::wantStdOut | ChildProcess::wantStdErr);
+        return process.readAllProcessOutput();
     }
 
 private:
@@ -138,16 +157,23 @@ struct ToolchainInstaller : public Component
             errorMessage = "";
             repaint();
 
-            // Get latest version
-            auto latestVersion = "v" + URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/VERSION").readEntireTextStream().trim();
-
-            if (latestVersion == "v") {
+            String latestVersion;
+            try {
+                auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
+                // Get latest version
+                
+                latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
+                if(latestVersion.isEmpty()) throw;
+            }
+            // Network error, JSON error or empty version string somehow
+            catch (...) {
                 errorMessage = "Error: Could not download files (possibly no network connection)";
                 installButton.topText = "Try Again";
                 repaint();
+                return;
             }
-
-            String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/" + latestVersion + "/";
+            
+            String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/v" + latestVersion + "/";
 
 #if JUCE_MAC
             downloadLocation += "Heavy-MacOS-Universal.zip";

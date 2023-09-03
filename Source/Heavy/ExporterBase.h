@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2022 Timothy Schoen and Wasted-Audio
+ // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -51,7 +51,8 @@ struct ExporterBase : public Component
         , editor(pluginEditor)
     {
         addAndMakeVisible(exportButton);
-
+        exportButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+        
         Array<PropertiesPanel::Property*> properties;
 
         auto* patchChooser = new PropertiesPanel::ComboComponent("Patch to export", inputPatchValue, { "Currently opened patch", "Other patch (browse)" });
@@ -94,21 +95,13 @@ struct ExporterBase : public Component
         }
 
         exportButton.onClick = [this]() {
-
-#if JUCE_LINUX
-            constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
-#else
-            constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
-#endif
-
             saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", true);
 
-            saveChooser->launchAsync(folderChooserFlags,
-                [this](FileChooser const& fileChooser) {
-                    const auto file = fileChooser.getResult();
-
-                    if (file.getParentDirectory().exists()) {
-                        startExport(file);
+            saveChooser->launchAsync(FileBrowserComponent::canSelectDirectories,
+                [this](const FileChooser& fileChooser) {
+                    const auto folder = fileChooser.getResult();
+                    if(folder.exists()) {
+                        startExport(folder);
                     }
                 });
         };

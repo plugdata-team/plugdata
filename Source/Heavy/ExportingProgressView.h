@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2022 Timothy Schoen and Wasted-Audio
+ // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -58,8 +58,13 @@ public:
             showState(Busy);
             userInteractionWait.signal();
         };
+        
+        continueButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
-        console.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
+        console.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        console.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        
+        
         console.setScrollbarsShown(true);
         console.setMultiLine(true);
         console.setReadOnly(true);
@@ -139,7 +144,7 @@ public:
             MessageManager::callAsync([_this = SafePointer(this), text]() {
                 if (!_this)
                     return;
-
+                
                 _this->console.setText(_this->console.getText() + text);
                 _this->console.moveCaretToEnd();
                 _this->console.setScrollToShowCursor(true);
@@ -164,6 +169,12 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawRoundedRectangle(console.getBounds().expanded(2).toFloat(), Corners::defaultCornerRadius, 1.0f);
+        
+        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        g.fillRoundedRectangle(console.getBounds().expanded(2).toFloat(), Corners::defaultCornerRadius);
+        
         // TODO: use panel colour IDs?
         if (state == Busy) {
             Fonts::drawStyledText(g, "Exporting...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
@@ -181,7 +192,7 @@ public:
 
     void resized() override
     {
-        console.setBounds(proportionOfWidth(0.1f), 80, proportionOfWidth(0.8f), getHeight() - 172);
+        console.setBounds(proportionOfWidth(0.05f), 80, proportionOfWidth(0.9f), getHeight() - 172);
         continueButton.setBounds(proportionOfWidth(0.42f), getHeight() - 60, proportionOfWidth(0.12f), 24);
         confirmButton.setBounds(proportionOfWidth(0.42f), getHeight() - 60, proportionOfWidth(0.12f), 24);
     }

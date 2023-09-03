@@ -6,6 +6,7 @@
 
 #include "PluginEditor.h"
 #include "PluginProcessor.h" // TODO: We shouldn't need this!
+#include "Heavy/CompatibleObjects.h"
 
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
 class AutoCompleteComponent
@@ -628,13 +629,13 @@ private:
         auto filterNonHvccObjectsIfNeeded = [_this = SafePointer(this)](StringArray& toFilter) {
             if (!_this || !_this->currentObject)
                 return;
-
+            
             if (getValue<bool>(_this->currentObject->cnv->editor->hvccMode)) {
 
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {
                     // We support arrays, but when you create [array] it is really [array define] which is unsupported
-                    if (Object::hvccObjects.contains(object) && object != "array") {
+                    if (HeavyCompatibleObjects::getAllCompatibleObjects().contains(object) && object != "array") {
                         hvccObjectsFound.add(object);
                     }
                 }
