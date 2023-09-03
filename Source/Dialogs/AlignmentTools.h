@@ -7,51 +7,87 @@
 
 #pragma once
 
-//#include <JuceHeader.h>
-
 #include <utility>
 #include "Constants.h"
 #include "LookAndFeel.h"
 #include "../PluginEditor.h"
 
+class AlignmentButton : public TextButton
+{
+public:
+    AlignmentButton(String const& icon, String const& text)
+        : iconText(icon)
+        , titleText(text)
+    {
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto iconBounds = getLocalBounds().reduced(9).translated(0, 0);
+        auto textBounds = getLocalBounds().removeFromBottom(14);
+        
+        auto textColour = findColour(PlugDataColour::popupMenuTextColourId);
+        if(isHovering) textColour = textColour.contrasting(0.3f);
+        
+        Fonts::drawText(g, titleText, textBounds, textColour, 13.0f, Justification::centred);
+        Fonts::drawIcon(g, iconText, iconBounds, textColour, 15.0f);
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        return getLocalBounds().reduced(4).contains(x, y);
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        isHovering = true;
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        isHovering = false;
+        repaint();
+    }
+private:
+    String titleText;
+    String iconText;
+    bool isHovering = false;
+};
+
 class AlignmentTools : public Component {
 public:
     AlignmentTools()
     {
-        alignmentLabel.setText("Alignment", dontSendNotification);
-        alignmentLabel.setFont(Font(14));
-        addAndMakeVisible(alignmentLabel);
+        verticalAlignmentLabel.setText("Vertical alignment", dontSendNotification);
+        verticalAlignmentLabel.setFont(Fonts::getBoldFont().withHeight(14));
+        verticalAlignmentLabel.setJustificationType(Justification::centred);
+        addAndMakeVisible(verticalAlignmentLabel);
 
-        alignButtons.add(new TextButton(Icons::AlignLeft));
-        alignButtons.add(new TextButton(Icons::AlignVCentre));
-        alignButtons.add(new TextButton(Icons::AlignRight));
-        alignButtons.add(new TextButton(Icons::AlignHDistribute));
-        alignButtons.add(new TextButton(Icons::AlignTop));
-        alignButtons.add(new TextButton(Icons::AlignHCentre));
-        alignButtons.add(new TextButton(Icons::AlignBottom));
-        alignButtons.add(new TextButton(Icons::AlignVDistribute));
+        horizontalAlignmentLabel.setText("Horizontal alignment", dontSendNotification);
+        horizontalAlignmentLabel.setFont(Fonts::getBoldFont().withHeight(14));
+        horizontalAlignmentLabel.setJustificationType(Justification::centred);
+        addAndMakeVisible(horizontalAlignmentLabel);
+        
+        alignButtons.add(new AlignmentButton(Icons::AlignLeft, "Left"));
+        alignButtons.add(new AlignmentButton(Icons::AlignVCentre, "Center"));
+        alignButtons.add(new AlignmentButton(Icons::AlignRight, "Right"));
+        alignButtons.add(new AlignmentButton(Icons::AlignHDistribute, "Distribute"));
+        alignButtons.add(new AlignmentButton(Icons::AlignTop, "Top"));
+        alignButtons.add(new AlignmentButton(Icons::AlignHCentre, "Center"));
+        alignButtons.add(new AlignmentButton(Icons::AlignBottom, "Bottom"));
+        alignButtons.add(new AlignmentButton(Icons::AlignVDistribute, "Distribute"));
 
         // tooltips
-        alignButtons[AlignButton::Left]->setTooltip("Align objects to left");
-        alignButtons[AlignButton::VCentre]->setTooltip("Align objects to vertical center");
-        alignButtons[AlignButton::Right]->setTooltip("Align objects to right");
-        alignButtons[AlignButton::HDistribute]->setTooltip("Distribute objects horizontal");
+        alignButtons[AlignButton::Left]->setTooltip("Align selected objects to left");
+        alignButtons[AlignButton::VCentre]->setTooltip("Align selected objects to vertical center");
+        alignButtons[AlignButton::Right]->setTooltip("Align selected objects to right");
+        alignButtons[AlignButton::HDistribute]->setTooltip("Distribute selected objects horizontal");
 
-        alignButtons[AlignButton::Top]->setTooltip("Align objects to top");
-        alignButtons[AlignButton::HCentre]->setTooltip("Align objects to horizontal center");
-        alignButtons[AlignButton::Bottom]->setTooltip("Align objects to bottom");
-        alignButtons[AlignButton::VDistribute]->setTooltip("Distribute objects vertical");
-
-        // connected edges
-        alignButtons[AlignButton::Left]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnRight);
-        alignButtons[AlignButton::VCentre]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft | Button::ConnectedEdgeFlags::ConnectedOnRight);
-        alignButtons[AlignButton::Right]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft | Button::ConnectedEdgeFlags::ConnectedOnRight);
-        alignButtons[AlignButton::HDistribute]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft);
-
-        alignButtons[AlignButton::Top]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnRight);
-        alignButtons[AlignButton::HCentre]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft | Button::ConnectedEdgeFlags::ConnectedOnRight);
-        alignButtons[AlignButton::Bottom]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft | Button::ConnectedEdgeFlags::ConnectedOnRight);
-        alignButtons[AlignButton::VDistribute]->setConnectedEdges(Button::ConnectedEdgeFlags::ConnectedOnLeft);
+        alignButtons[AlignButton::Top]->setTooltip("Align selected objects to top");
+        alignButtons[AlignButton::HCentre]->setTooltip("Align selected objects to horizontal center");
+        alignButtons[AlignButton::Bottom]->setTooltip("Align selected objects to bottom");
+        alignButtons[AlignButton::VDistribute]->setTooltip("Distribute selected objects vertical");
 
         auto buttonNum = 0;
         for (auto* button : alignButtons) {
@@ -110,31 +146,28 @@ public:
                 cnv->alignObjects(Align::VDistribute);
         };
 
-        setSize(110, 110);
+        setSize(210, 180);
     }
 
     void resized() override
     {
-        Rectangle<int> bounds;
-        auto size = 32;
-        alignmentLabel.setBounds(5, 0, 80, 26);
-        bounds = bounds.getUnion(alignmentLabel.getBounds());
-
-        auto buttonSize = Rectangle<int>(0, 0, size, size);
-        auto buttonYPos = 26;
-        auto buttonColumn = 0;
-        for (auto* button : alignButtons) {
-            auto buttonRowColumn = Point<int>(buttonColumn * size, buttonYPos);
-            auto buttonBounds = buttonSize.withPosition(buttonRowColumn);
-            button->setBounds(buttonBounds);
-            bounds = bounds.getUnion(buttonBounds);
-            buttonColumn++;
-            if (buttonColumn >= 4) {
-                buttonYPos += size;
-                buttonColumn = 0;
-            }
+        auto horizontalButtonBounds = getLocalBounds().reduced(4);
+        auto verticalButtonBounds = horizontalButtonBounds.removeFromBottom(horizontalButtonBounds.getHeight() / 2).withTrimmedTop(8);
+         
+        verticalAlignmentLabel.setBounds(verticalButtonBounds.removeFromTop(18));
+        horizontalAlignmentLabel.setBounds(horizontalButtonBounds.removeFromTop(18));
+          
+        auto buttonWidth = verticalButtonBounds.getWidth() / 4;
+        
+        for(int i = 0; i < 4; i++)
+        {
+            alignButtons[i]->setBounds(horizontalButtonBounds.removeFromLeft(buttonWidth).translated(0, -8));
         }
-        setSize(bounds.getWidth(), bounds.getHeight());
+        
+        for(int i = 4; i < 8; i++)
+        {
+            alignButtons[i]->setBounds(verticalButtonBounds.removeFromLeft(buttonWidth).translated(0, -8));
+        }
     }
 
     static void show(Component* editor, Rectangle<int> bounds)
@@ -171,7 +204,8 @@ private:
 
     OwnedArray<TextButton> alignButtons;
 
-    Label alignmentLabel;
+    Label verticalAlignmentLabel;
+    Label horizontalAlignmentLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AlignmentTools)
 };

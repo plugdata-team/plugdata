@@ -1474,7 +1474,7 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
                     textEditorDialogs[ptr].reset(nullptr);
                 }
             },
-            15);
+            15, false);
     }));
 }
 

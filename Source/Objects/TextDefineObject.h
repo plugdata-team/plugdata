@@ -55,7 +55,7 @@ public:
                             textEditor.reset(nullptr);
                         }
                     },
-                    15);
+                    15, false);
             }));
     }
 
@@ -223,7 +223,7 @@ public:
                             textEditor.reset(nullptr);
                         }
                     },
-                    15);
+                    15, false);
             }));
     }
 

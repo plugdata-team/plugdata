@@ -53,13 +53,13 @@ void Dialogs::appendTextToTextEditorDialog(Component* dialog, String const& text
     editor.setText(editor.getText() + text);
 }
 
-void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin)
+void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin, bool withLogo)
 {
     if (*target)
         return;
 
-    auto* dialog = new Dialog(target, centre, 265, 270, false, margin);
-    auto* saveDialog = new SaveDialog(dialog, filename, std::move(callback));
+    auto* dialog = new Dialog(target, centre, 265, withLogo ? 270 : 210, false, margin);
+    auto* saveDialog = new SaveDialog(dialog, filename, std::move(callback), withLogo);
 
     dialog->setViewedComponent(saveDialog);
     target->reset(dialog);

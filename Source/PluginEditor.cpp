@@ -691,7 +691,7 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude)
                             saveProject([&deleteFunc]() mutable { deleteFunc(); });
                         else if (result == 1)
                             deleteFunc();
-                    });
+                    }, 0, true);
             } else {
                 deleteFunc();
             }
@@ -1301,7 +1301,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
                                 saveProject([this, cnv]() mutable { closeTab(cnv); });
                             else if (result == 1)
                                 closeTab(cnv);
-                        });
+                        }, 0, true);
                 } else {
                     closeTab(cnv);
                 }

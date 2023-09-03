@@ -827,6 +827,8 @@ bool Canvas::keyPressed(KeyPress const& key)
 
     auto moveSelection = [this](int x, int y) {
         auto objects = getSelectionOfType<Object>();
+        if(objects.isEmpty()) return;
+        
         std::vector<void*> pdObjects;
 
         for (auto* object : objects) {
