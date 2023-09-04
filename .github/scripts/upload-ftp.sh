@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ -z "$FTP_USERNAME" ]; then
+    echo "No user name, skipping ftp upload"
+    exit 0
+fi
+
 git config --global --add safe.directory /__w/plugdata/plugdata
 
 FILE=$1
@@ -10,6 +15,12 @@ DATE=$(date -u +"%d-%m-%y %H:%M UTC")
 COMMIT_TIMESTAMP=$(git show -s --format=%ct HEAD)
 
 LATEST_HASH=$(git rev-parse HEAD)
+
+# Only run on develop branch
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" != "develop" ]; then
+    exit 0
+fi
 
 cat > $INFO_FILE <<END_FILE
 $DATE

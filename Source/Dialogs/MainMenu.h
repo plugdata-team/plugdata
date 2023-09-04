@@ -47,10 +47,30 @@ public:
         addCustomItem(getMenuItemID(MenuItem::Save), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Save)]), nullptr, "Save patch");
         addCustomItem(getMenuItemID(MenuItem::SaveAs), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::SaveAs)]), nullptr, "Save patch as");
 
-        addSeparator();
+        auto plugdataState = new PopupMenu();
+        plugdataState->addItem("Import workspace", [editor]() mutable {
+            static auto openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
-        addCustomItem(getMenuItemID(MenuItem::Close), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Close)]), nullptr, "Close patch");
-        addCustomItem(getMenuItemID(MenuItem::CloseAll), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::CloseAll)]), nullptr, "Close all patches");
+            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
+                MemoryBlock block;
+                f.getResult().loadFileAsData(block);
+                editor->processor.setStateInformation(block.getData(), block.getSize());
+            });
+        });
+        plugdataState->addItem("Export workspace", [editor]() mutable {
+            static auto saveChooser = std::make_unique<FileChooser>("Choose save location", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
+
+            saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
+                auto file = f.getResult();
+                if (file.getParentDirectory().exists()) {
+                    MemoryBlock destData;
+                    editor->processor.getStateInformation(destData);
+                    file.replaceWithData(destData.getData(), destData.getSize());
+                }
+            });
+        });
+
+        addCustomItem(getMenuItemID(MenuItem::State), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::State)]), std::unique_ptr<PopupMenu const>(plugdataState), "Workspace");
 
         addSeparator();
 
@@ -59,40 +79,22 @@ public:
 
         addSeparator();
 
-        addCustomItem(getMenuItemID(MenuItem::EnablePalettes), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]), nullptr, "Enable Palettes");
-
-        addSeparator();
-
-        addCustomItem(getMenuItemID(MenuItem::PluginMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::PluginMode)]), nullptr, "Plugin Mode");
-
-        addSeparator();
-
-        addCustomItem(getMenuItemID(MenuItem::AutoConnect), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::AutoConnect)]), nullptr, "Auto-connect objects");
-
-        addSeparator();
-
         addCustomItem(getMenuItemID(MenuItem::FindExternals), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::FindExternals)]), nullptr, "Find externals...");
+
+        // addCustomItem(getMenuItemID(MenuItem::Discover), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Discover)]), nullptr, "Discover...");
 
         addCustomItem(getMenuItemID(MenuItem::Settings), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Settings)]), nullptr, "Settings...");
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
 
         // Toggles hvcc compatibility mode
-        bool palettesEnabled = settingsTree.hasProperty("show_palettes") && static_cast<bool>(settingsTree.getProperty("show_palettes"));
         bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
-        bool autoconnectEnabled = settingsTree.hasProperty("autoconnect") && static_cast<bool>(settingsTree.getProperty("autoconnect"));
         bool hasCanvas = editor->getCurrentCanvas() != nullptr;
 
         zoomSelector.setEnabled(hasCanvas);
         menuItems[getMenuItemIndex(MenuItem::Save)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
-        menuItems[getMenuItemIndex(MenuItem::Close)]->isActive = hasCanvas;
-        menuItems[getMenuItemIndex(MenuItem::CloseAll)]->isActive = hasCanvas;
-        menuItems[getMenuItemIndex(MenuItem::PluginMode)]->isActive = hasCanvas;
 
-        menuItems[getMenuItemIndex(MenuItem::EnablePalettes)]->isTicked = palettesEnabled;
         menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
-        menuItems[getMenuItemIndex(MenuItem::AutoConnect)]->isTicked = autoconnectEnabled;
-        menuItems[getMenuItemIndex(MenuItem::PluginMode)]->isTicked = false;
     }
 
     class ZoomSelector : public Component {
@@ -169,21 +171,22 @@ public:
             scale = static_cast<float>(static_cast<int>(round(scale * 10.))) / 10.;
 
             // Get the current viewport position in canvas coordinates
-            auto oldViewportPosition = cnv->getLocalPoint(cnv->viewport, cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
+            auto oldViewportPosition = cnv->getLocalPoint(cnv->viewport.get(), cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
 
             // Apply transform and make sure viewport bounds get updated
             cnv->setTransform(AffineTransform::scale(scale));
             cnv->viewport->resized();
 
             // After zooming, get the new viewport position in canvas coordinates
-            auto newViewportPosition = cnv->getLocalPoint(cnv->viewport, cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
+            auto newViewportPosition = cnv->getLocalPoint(cnv->viewport.get(), cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
 
             // Calculate offset to keep the center point of the viewport the same as before this zoom action
             auto offset = newViewportPosition - oldViewportPosition;
 
             // Set the new canvas position
-            // TODO: there is an accumulated error when zooming in/out
+            // Alex: there is an accumulated error when zooming in/out
             //       possibly we should save the canvas position as an additional Point<float> ?
+            // Tim: pretty sure there isn't? You can tell more clearly by using a macbook trackpad, zooming appears to be accurate
             cnv->setTopLeftPosition((cnv->getPosition().toFloat() + offset).roundToInt());
 
             cnv->zoomScale = scale;
@@ -231,13 +234,13 @@ public:
 
         void paint(Graphics& g) override
         {
-            auto r = getLocalBounds().reduced(0, 1);
+            auto r = getLocalBounds();
 
             auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-                g.fillRoundedRectangle(r.toFloat().reduced(2, 0), Corners::smallCornerRadius);
 
+                PlugDataLook::fillSmoothedRectangle(g, r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
                 colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
 
@@ -274,10 +277,10 @@ public:
 
                 Path path;
                 path.startNewSubPath(x, halfH - arrowH * 0.5f);
-                path.lineTo(x + arrowH * 0.6f, halfH);
+                path.lineTo(x + arrowH * 0.5f, halfH);
                 path.lineTo(x, halfH + arrowH * 0.5f);
 
-                g.strokePath(path, PathStrokeType(2.0f));
+                g.strokePath(path, PathStrokeType(1.5f));
             }
 
             r.removeFromRight(3);
@@ -364,14 +367,11 @@ public:
         History,
         Save,
         SaveAs,
-        Close,
-        CloseAll,
+        State,
         CompiledMode,
         Compile,
-        PluginMode,
-        AutoConnect,
-        EnablePalettes,
         FindExternals,
+        // Discover,
         Settings,
         About
     };
@@ -397,18 +397,13 @@ public:
         new IconMenuItem(Icons::SavePatch, "Save patch", false, false),
         new IconMenuItem(Icons::SaveAs, "Save patch as...", false, false),
 
-        new IconMenuItem(Icons::ClosePatch, "Close patch", false, false),
-        new IconMenuItem(Icons::CloseAllPatches, "Close all patches", false, false),
+        new IconMenuItem(Icons::ExportState, "Workspace", true, false),
 
-        new IconMenuItem("", "Compiled Mode", false, true),
+        new IconMenuItem("", "Compiled mode", false, true),
         new IconMenuItem(Icons::DevTools, "Compile...", false, false),
 
-        new IconMenuItem("", "Plugin Mode", false, true),
-
-        new IconMenuItem("", "Auto-connect objects", false, true),
-        new IconMenuItem("", "Enable palettes", false, true),
-
-        new IconMenuItem(Icons::Externals, "Find Externals...", false, false),
+        new IconMenuItem(Icons::Externals, "Find externals...", false, false),
+        // new IconMenuItem(Icons::Compass, "Discover...", false, false),
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),
     };

@@ -25,17 +25,23 @@ outlets:
 
 flags:
   - name: -open <symbol>
-    description: sets file name to open (default 'empty')
+    description: sets file name to open
+    default: empty
   - name: -send <symbol>
-    description: sets send symbol (default 'empty')
+    description: sets send symbol
+    default: empty
   - name: -receive <symbol>
-    description: sets receive symbol (default 'empty')
+    description: sets receive symbol
+    default: empty
   - name: -outline
-    description: sets to outline mode (default no outline)
+    description: sets to outline mode
+    default: no outline
   - name: -size
-    description: sets to "report size" mode (default no report)
+    description: sets to "report size" mode
+    default: no report
   - name: -latch
-    description: sets to "latch" mode (default "bang" mode)
+    description: sets to "latch" mode
+    default: "bang" mode
 
 methods:
   - type: open <symbol>

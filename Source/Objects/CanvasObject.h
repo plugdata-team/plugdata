@@ -7,6 +7,7 @@
 class CanvasObject final : public ObjectBase {
 
     bool locked;
+    Value sizeProperty = SynchronousValue();
 
     IEMHelper iemHelper;
 
@@ -18,8 +19,18 @@ public:
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = getValue<bool>(object->locked);
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto canvasObj = ptr.get<t_my_canvas>()) {
+            setParameterExcludingListener(sizeProperty, Array<var> { var(canvasObj->x_vis_w), var(canvasObj->x_vis_h) });
+        }
     }
 
     bool hideInlets() override
@@ -51,18 +62,29 @@ public:
 
     void update() override
     {
+        if (auto cnvObj = ptr.get<t_my_canvas>()) {
+            sizeProperty = Array<var> { var(cnvObj->x_vis_w), var(cnvObj->x_vis_h) };
+        }
+
         iemHelper.update();
     }
 
     Rectangle<int> getSelectableBounds() override
     {
-        auto* cnvObj = reinterpret_cast<t_my_canvas*>(iemHelper.iemgui);
-        return { cnvObj->x_gui.x_obj.te_xpix, cnvObj->x_gui.x_obj.te_ypix, cnvObj->x_gui.x_w, cnvObj->x_gui.x_h };
+        if (auto cnvObj = ptr.get<t_my_canvas>()) {
+            return { cnvObj->x_gui.x_obj.te_xpix, cnvObj->x_gui.x_obj.te_ypix, cnvObj->x_gui.x_w, cnvObj->x_gui.x_h };
+        }
+
+        return {};
     }
 
     bool canReceiveMouseEvent(int x, int y) override
     {
-        return !locked && Rectangle<int>(static_cast<t_iemgui*>(ptr)->x_w, static_cast<t_iemgui*>(ptr)->x_h).contains(x - Object::margin, y - Object::margin);
+        if (auto iemgui = ptr.get<t_iemgui>()) {
+            return !locked && Rectangle<int>(iemgui->x_w, iemgui->x_h).contains(x - Object::margin, y - Object::margin);
+        }
+
+        return false;
     }
 
     void lock(bool isLocked) override
@@ -72,25 +94,28 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        auto* cnvObj = reinterpret_cast<t_my_canvas*>(iemHelper.iemgui);
-
-        cnvObj->x_gui.x_obj.te_xpix = b.getX();
-        cnvObj->x_gui.x_obj.te_ypix = b.getY();
-        cnvObj->x_vis_w = b.getWidth() - 1;
-        cnvObj->x_vis_h = b.getHeight() - 1;
+        if (auto cnvObj = ptr.get<t_my_canvas>()) {
+            cnvObj->x_gui.x_obj.te_xpix = b.getX();
+            cnvObj->x_gui.x_obj.te_ypix = b.getY();
+            cnvObj->x_vis_w = b.getWidth() - 1;
+            cnvObj->x_vis_h = b.getHeight() - 1;
+        }
     }
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if (auto canvas = ptr.get<t_my_canvas>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, canvas.get(), &x, &y, &w, &h);
 
-        auto bounds = Rectangle<int>(x, y, static_cast<t_my_canvas*>(ptr)->x_vis_w + 1, static_cast<t_my_canvas*>(ptr)->x_vis_h + 1);
+            return Rectangle<int>(x, y, ptr.get<t_my_canvas>()->x_vis_w + 1, ptr.get<t_my_canvas>()->x_vis_h + 1);
+        }
 
-        pd->unlockAudioThread();
-        return bounds;
+        return {};
     }
 
     void paint(Graphics& g) override
@@ -101,7 +126,14 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
 
         if (!locked) {
-            auto draggableRect = Rectangle<float>(static_cast<t_iemgui*>(ptr)->x_w, static_cast<t_iemgui*>(ptr)->x_h);
+
+            Rectangle<float> draggableRect;
+            if (auto iemgui = ptr.get<t_iemgui>()) {
+                draggableRect = Rectangle<float>(ptr.get<t_iemgui>()->x_w, ptr.get<t_iemgui>()->x_h);
+            } else {
+                return;
+            }
+
             g.setColour(object->isSelected() ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : object->findColour(PlugDataColour::objectOutlineColourId));
             g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
         }
@@ -109,6 +141,22 @@ public:
 
     void valueChanged(Value& v) override
     {
-        iemHelper.valueChanged(v);
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto cnvObj = ptr.get<t_my_canvas>()) {
+                cnvObj->x_vis_w = width;
+                cnvObj->x_vis_h = height;
+            }
+
+            object->updateBounds();
+        } else {
+            iemHelper.valueChanged(v);
+        }
     }
 };

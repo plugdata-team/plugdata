@@ -10,11 +10,13 @@ class FunctionObject final : public ObjectBase {
     int dragIdx = -1;
     bool newPointAdded = false;
 
-    Value range;
-    Value primaryColour;
-    Value secondaryColour;
-    Value sendSymbol;
-    Value receiveSymbol;
+    Value initialise = SynchronousValue();
+    Value range = SynchronousValue();
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value sendSymbol = SynchronousValue();
+    Value receiveSymbol = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
 
     Array<Point<float>> points;
 
@@ -22,51 +24,71 @@ public:
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamRange("Range", cGeneral, &range, { 0.0f, 1.0f });
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
+        objectParameters.addParamBool("Initialise", cGeneral, &initialise, { "No", "Yes" }, 0);
     }
 
     void update() override
     {
-        auto* function = static_cast<t_fake_function*>(ptr);
+        if (auto function = ptr.get<t_fake_function>()) {
+            secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
+            primaryColour = colourFromHexArray(function->x_fgcolor).toString();
+            sizeProperty = Array<var> { var(function->x_width), var(function->x_height) };
+            initialise = function->x_init;
 
-        secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
-        primaryColour = colourFromHexArray(function->x_fgcolor).toString();
+            Array<var> arr = { function->x_min, function->x_max };
+            range = var(arr);
 
-        Array<var> arr = { function->x_min, function->x_max };
-        range = var(arr);
+            auto sndSym = String::fromUTF8(function->x_send->s_name);
+            auto rcvSym = String::fromUTF8(function->x_receive->s_name);
 
-        auto sndSym = String::fromUTF8(function->x_send->s_name);
-        auto rcvSym = String::fromUTF8(function->x_receive->s_name);
+            sendSymbol = sndSym != "empty" ? sndSym : "";
+            receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
-        sendSymbol = sndSym != "empty" ? sndSym : "";
-        receiveSymbol = rcvSym != "empty" ? rcvSym : "";
-
-        getPointsFromFunction();
+            getPointsFromFunction(function.get());
+        }
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        if (auto function = ptr.get<t_fake_function>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-        auto* function = static_cast<t_fake_function*>(ptr);
-        function->x_width = b.getWidth() - 1;
-        function->x_height = b.getHeight() - 1;
+            libpd_moveobj(patch, function.cast<t_gobj>(), b.getX(), b.getY());
+            function->x_width = b.getWidth() - 1;
+            function->x_height = b.getHeight() - 1;
+        }
     }
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            return { x, y, w + 1, h + 1 };
+        }
 
-        pd->unlockAudioThread();
+        return {};
+    }
 
-        return { x, y, w + 1, h + 1 };
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto function = ptr.get<t_fake_function>()) {
+            setParameterExcludingListener(sizeProperty, Array<var> { var(function->x_width), var(function->x_height) });
+        }
     }
 
     Array<Point<float>> getRealPoints()
@@ -114,14 +136,13 @@ public:
         }
     }
 
-    void getPointsFromFunction()
+    void getPointsFromFunction(t_fake_function* function)
     {
         // Don't update while dragging
         if (dragIdx != -1)
             return;
 
         points.clear();
-        auto* function = static_cast<t_fake_function*>(ptr);
 
         setRange({ function->x_min, function->x_max });
 
@@ -175,7 +196,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (ModifierKeys::getCurrentModifiers().isRightButtonDown())
+        if (e.mods.isRightButtonDown())
             return;
 
         auto realPoints = getRealPoints();
@@ -233,9 +254,25 @@ public:
         arr[0] = newRange.first;
         arr[1] = newRange.second;
 
-        auto* function = static_cast<t_fake_function*>(ptr);
-        function->x_min = newRange.first;
-        function->x_max = newRange.second;
+        if (auto function = ptr.get<t_fake_function>()) {
+            function->x_min = newRange.first;
+            function->x_max = newRange.second;
+        }
+    }
+
+    bool getInit()
+    {
+        bool init = false;
+        if (auto function = ptr.get<t_fake_function>()) {
+            init = initialise.getValue();
+        }
+        return init;
+    }
+    void setInit(bool init)
+    {
+        if (auto function = ptr.get<t_fake_function>()) {
+            function->x_init = static_cast<int>(init);
+        }
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -273,78 +310,93 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        auto* function = static_cast<t_fake_function*>(ptr);
         points.sort(*this);
 
-        auto scale = function->x_dur[function->x_n_states];
+        if (auto function = ptr.get<t_fake_function>()) {
+            auto scale = function->x_dur[function->x_n_states];
 
-        for (int i = 0; i < points.size(); i++) {
-            function->x_points[i] = jmap(points[i].y, 0.0f, 1.0f, function->x_min, function->x_max);
-            function->x_dur[i] = points[i].x * scale;
+            for (int i = 0; i < points.size(); i++) {
+                function->x_points[i] = jmap(points[i].y, 0.0f, 1.0f, function->x_min, function->x_max);
+                function->x_dur[i] = points[i].x * scale;
+            }
+
+            function->x_n_states = points.size() - 1;
+
+            getPointsFromFunction(function.get());
         }
 
-        function->x_n_states = points.size() - 1;
-
         dragIdx = -1;
-
-        getPointsFromFunction();
     }
 
     void triggerOutput()
     {
 
-        auto* x = static_cast<t_fake_function*>(ptr);
-        int ac = points.size() * 2 + 1;
+        if (auto function = ptr.get<t_fake_function>()) {
+            int ac = points.size() * 2 + 1;
 
-        auto scale = x->x_dur[x->x_n_states];
+            auto scale = function->x_dur[function->x_n_states];
 
-        auto at = std::vector<t_atom>(ac);
-        auto firstPoint = jmap<float>(points[0].y, 0.0f, 1.0f, x->x_min, x->x_max);
-        SETFLOAT(at.data(), firstPoint); // get 1st
+            auto at = std::vector<t_atom>(ac);
+            auto firstPoint = jmap<float>(points[0].y, 0.0f, 1.0f, function->x_min, function->x_max);
+            SETFLOAT(at.data(), firstPoint); // get 1st
 
-        x->x_state = 0;
-        for (int i = 1; i < ac; i++) { // get the rest
+            function->x_state = 0;
+            for (int i = 1; i < ac; i++) { // get the rest
 
-            auto dur = jmap<float>(points[x->x_state + 1].x - points[x->x_state].x, 0.0f, 1.0f, 0.0f, scale);
+                auto dur = jmap<float>(points[function->x_state + 1].x - points[function->x_state].x, 0.0f, 1.0f, 0.0f, scale);
 
-            SETFLOAT(at.data() + i, dur); // duration
-            i++, x->x_state++;
-            auto point = jmap<float>(points[x->x_state].y, 0.0f, 1.0f, x->x_min, x->x_max);
-            if (point < x->x_min_point)
-                x->x_min_point = point;
-            if (point > x->x_max_point)
-                x->x_max_point = point;
-            SETFLOAT(at.data() + i, point);
+                SETFLOAT(at.data() + i, dur); // duration
+                i++, function->x_state++;
+                auto point = jmap<float>(points[function->x_state].y, 0.0f, 1.0f, function->x_min, function->x_max);
+                if (point < function->x_min_point)
+                    function->x_min_point = point;
+                if (point > function->x_max_point)
+                    function->x_max_point = point;
+                SETFLOAT(at.data() + i, point);
+            }
+
+            outlet_list(function->x_obj.ob_outlet, gensym("list"), ac - 2, at.data());
+            if (function->x_send != gensym("") && function->x_send->s_thing)
+                pd_list(function->x_send->s_thing, gensym("list"), ac - 2, at.data());
         }
-
-        pd->lockAudioThread();
-
-        outlet_list(x->x_obj.ob_outlet, gensym("list"), ac - 2, at.data());
-        if (x->x_send != gensym("") && x->x_send->s_thing)
-            pd_list(x->x_send->s_thing, gensym("list"), ac - 2, at.data());
-
-        pd->unlockAudioThread();
     }
 
     void valueChanged(Value& v) override
     {
-        auto* function = static_cast<t_fake_function*>(ptr);
-        if (v.refersToSameSourceAs(primaryColour)) {
-            colourToHexArray(Colour::fromString(primaryColour.toString()), function->x_fgcolor);
-            repaint();
-        } else if (v.refersToSameSourceAs(secondaryColour)) {
-            colourToHexArray(Colour::fromString(secondaryColour.toString()), function->x_bgcolor);
-            repaint();
-        } else if (v.refersToSameSourceAs(sendSymbol)) {
-            auto symbol = sendSymbol.toString();
-            pd->sendDirectMessage(ptr, "send", { symbol });
-        } else if (v.refersToSameSourceAs(receiveSymbol)) {
-            auto symbol = receiveSymbol.toString();
-            pd->sendDirectMessage(ptr, "receive", { symbol });
+        if (auto function = ptr.get<t_fake_function>()) {
+            if (v.refersToSameSourceAs(sizeProperty)) {
+                auto& arr = *sizeProperty.getValue().getArray();
+                auto* constrainer = getConstrainer();
+                auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+                auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
 
-        } else if (v.refersToSameSourceAs(range)) {
-            setRange(getRange());
-            getPointsFromFunction();
+                setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+                function->x_width = width;
+                function->x_height = height;
+
+                object->updateBounds();
+            } else if (v.refersToSameSourceAs(primaryColour)) {
+                colourToHexArray(Colour::fromString(primaryColour.toString()), function->x_fgcolor);
+                repaint();
+            } else if (v.refersToSameSourceAs(secondaryColour)) {
+                colourToHexArray(Colour::fromString(secondaryColour.toString()), function->x_bgcolor);
+                repaint();
+            } else if (v.refersToSameSourceAs(sendSymbol)) {
+                auto symbol = sendSymbol.toString();
+                if (auto obj = ptr.get<void>())
+                    pd->sendDirectMessage(obj.get(), "send", { symbol });
+            } else if (v.refersToSameSourceAs(receiveSymbol)) {
+                auto symbol = receiveSymbol.toString();
+                if (auto obj = ptr.get<void>())
+                    pd->sendDirectMessage(obj.get(), "receive", { symbol });
+
+            } else if (v.refersToSameSourceAs(range)) {
+                setRange(getRange());
+                getPointsFromFunction(function.get());
+            } else if (v.refersToSameSourceAs(initialise)) {
+                setInit(getInit());
+            }
         }
     }
 
@@ -363,6 +415,7 @@ public:
             hash("max"),
             hash("fgcolor"),
             hash("bgcolor"),
+            hash("init"),
         };
     }
 
@@ -380,17 +433,21 @@ public:
             break;
         }
         case hash("list"): {
-            getPointsFromFunction();
+            if (auto function = ptr.get<t_fake_function>()) {
+                getPointsFromFunction(function.get());
+            }
             break;
         }
         case hash("min"):
         case hash("max"): {
-            auto* function = static_cast<t_fake_function*>(ptr);
-            Array<var> arr = { function->x_min, function->x_max };
-            setParameterExcludingListener(range, var(arr));
-            getPointsFromFunction();
+            if (auto function = ptr.get<t_fake_function>()) {
+                Array<var> arr = { function->x_min, function->x_max };
+                setParameterExcludingListener(range, var(arr));
+                getPointsFromFunction(function.get());
+            }
             break;
         }
+        case hash("init"):
         case hash("fgcolor"):
         case hash("bgcolor"): {
             update();

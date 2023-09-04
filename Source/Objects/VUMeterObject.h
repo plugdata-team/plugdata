@@ -7,6 +7,7 @@
 class VUMeterObject final : public ObjectBase {
 
     IEMHelper iemHelper;
+    Value sizeProperty = SynchronousValue();
 
 public:
     VUMeterObject(void* ptr, Object* object)
@@ -19,9 +20,19 @@ public:
             constrainer->setMinimumSize(20, 20 * 2);
         };
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
         objectParameters.addParamSendSymbol(&iemHelper.sendSymbol, "nosndno");
         iemHelper.addIemParameters(objectParameters, false, false, -1);
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto iem = ptr.get<t_iemgui>()) {
+            setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
+        }
     }
 
     bool hideInlets() override
@@ -41,11 +52,31 @@ public:
 
     void valueChanged(Value& v) override
     {
-        iemHelper.valueChanged(v);
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto vu = ptr.get<t_vu>()) {
+                vu->x_gui.x_w = width;
+                vu->x_gui.x_h = height;
+            }
+
+            object->updateBounds();
+        } else {
+            iemHelper.valueChanged(v);
+        }
     }
 
     void update() override
     {
+        if (auto vu = ptr.get<t_vu>()) {
+            sizeProperty = Array<var> { var(vu->x_gui.x_w), var(vu->x_gui.x_h) };
+        }
+
         iemHelper.update();
     }
 
@@ -61,7 +92,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto values = std::vector<float> { static_cast<t_vu*>(ptr)->x_fp, static_cast<t_vu*>(ptr)->x_fr };
+        auto values = std::vector<float> { ptr.getRaw<t_vu>()->x_fp, ptr.getRaw<t_vu>()->x_fr };
 
         int height = getHeight();
         int width = getWidth();

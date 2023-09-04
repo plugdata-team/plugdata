@@ -12,7 +12,7 @@ arguments:
 
 inlets:
   1st:
-  - type: float/signal
+  - type: signal
     description: input sine function
 
 outlets:

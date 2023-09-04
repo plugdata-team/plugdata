@@ -10,15 +10,24 @@
 
 class PlugDataParameter : public RangedAudioParameter {
 public:
+    enum Mode {
+        Float = 1,
+        Integer,
+        Logarithmic,
+        Exponential
+    };
+
     PluginProcessor& processor;
 
-    PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled)
+    PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled, int idx, float minimum, float maximum)
         : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, defaultName)
-        , range(0.0f, 1.0f, 0.000001f)
+        , range(minimum, maximum, 0.000001f)
         , defaultValue(def)
         , processor(*p)
         , enabled(enabled)
         , name(defaultName)
+        , index(idx)
+        , mode(Float)
     {
         value = range.convertFrom0to1(getDefaultValue());
     }
@@ -30,9 +39,44 @@ public:
         return (static_cast<int>((range.end - range.start) / 0.000001f) + 1);
     }
 
+    void setInterval(float interval)
+    {
+        range.interval = interval;
+    }
+
     void setRange(float min, float max)
     {
-        range = NormalisableRange<float>(min, max, 0.000001f);
+        range.start = min;
+        range.end = max;
+    }
+
+    void setMode(Mode newMode)
+    {
+        mode = newMode;
+        if (newMode == Logarithmic) {
+            range.skew = 4.0f;
+            setInterval(0.000001f);
+        } else if (newMode == Exponential) {
+            range.skew = 0.25f;
+            setInterval(0.000001f);
+        } else if (newMode == Float) {
+            range.skew = 1.0f;
+            setInterval(0.000001f);
+        } else if (newMode == Integer) {
+            range.skew = 1.0f;
+            setRange(std::floor(range.start), std::floor(range.end));
+            setInterval(1.0f);
+            setValue(std::floor(getValue()));
+        }
+
+        notifyDAW();
+    }
+
+    // Reports whether the current DAW/format can deal with dynamic
+    static bool canDynamicallyAdjustParameters()
+    {
+        // We can add more DAWs or formats here if needed
+        return PluginHostType::getPluginLoadedAs() != AudioProcessor::wrapperType_LV2;
     }
 
     void setName(String const& newName)
@@ -42,7 +86,7 @@ public:
 
     String getName(int maximumStringLength) const override
     {
-        if (!isEnabled()) {
+        if (!isEnabled() && canDynamicallyAdjustParameters()) {
             return ("(DISABLED) " + name).substring(0, maximumStringLength - 1);
         }
 
@@ -56,6 +100,11 @@ public:
 
     void setEnabled(bool shouldBeEnabled)
     {
+        if (!enabled && shouldBeEnabled) {
+            range = NormalisableRange<float>(0.0f, 1.0f, 0.000001f);
+            mode = Float;
+        }
+
         enabled = shouldBeEnabled;
     }
 
@@ -112,7 +161,7 @@ public:
 
     bool isDiscrete() const override
     {
-        return false;
+        return mode.load() == Integer;
     }
 
     bool isOrientationInverted() const override
@@ -133,6 +182,11 @@ public:
     bool isMetaParameter() const override
     {
         return false;
+    }
+
+    std::atomic<float>* getValuePointer()
+    {
+        return &value;
     }
 
     static void saveStateInformation(XmlElement& xml, Array<AudioProcessorParameter*> const& parameters)
@@ -156,14 +210,11 @@ public:
             paramXml->setAttribute(String("enabled"), static_cast<int>(param->enabled));
 
             paramXml->setAttribute(String("value"), static_cast<double>(param->getValue()));
+            paramXml->setAttribute(String("index"), param->index);
+            paramXml->setAttribute(String("mode"), static_cast<int>(param->mode));
 
             xml.addChildElement(paramXml);
         }
-    }
-
-    std::atomic<float>* getValuePointer()
-    {
-        return &value;
     }
 
     static void loadStateInformation(XmlElement const& xml, Array<AudioProcessorParameter*> const& parameters)
@@ -190,6 +241,8 @@ public:
             String name = "param" + String(i);
             float min = 0.0f, max = 1.0f;
             bool enabled = true;
+            int index = i;
+            Mode mode;
 
             // Check for these values, they may not be there in legacy versions
             if (xmlParam->hasAttribute("name")) {
@@ -204,11 +257,19 @@ public:
             if (xmlParam->hasAttribute("enabled")) {
                 enabled = xmlParam->getIntAttribute("enabled");
             }
+            if (xmlParam->hasAttribute("index")) {
+                index = xmlParam->getIntAttribute("index");
+            }
+            if (xmlParam->hasAttribute("mode")) {
+                mode = static_cast<Mode>(xmlParam->getIntAttribute("mode"));
+            }
 
             param->setEnabled(enabled);
             param->setRange(min, max);
             param->setName(name);
             param->setValueNotifyingHost(navalue);
+            param->setIndex(index);
+            param->setMode(mode);
             param->notifyDAW();
         }
     }
@@ -228,6 +289,16 @@ public:
         return gestureState;
     }
 
+    void setIndex(int idx)
+    {
+        index = idx;
+    }
+
+    int getIndex()
+    {
+        return index;
+    }
+
     void setGestureState(float v)
     {
 
@@ -244,10 +315,13 @@ private:
     float gestureState = 0.0f;
     float const defaultValue;
 
+    std::atomic<int> index;
     std::atomic<float> value;
     NormalisableRange<float> range;
     String name;
     std::atomic<bool> enabled = false;
+
+    std::atomic<Mode> mode;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)
 };

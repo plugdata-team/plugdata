@@ -51,7 +51,8 @@ methods:
   - type: wclose
     description: closes buffer supbatch window
   - type: sr <float>
-    description: sets sample rate for writing a file (default: Patch's)
+    description: sets sample rate for writing a file
+    default: patch's
   - type: fill <any>
     description: see [pd function/generators] above
   - type: apply <any>

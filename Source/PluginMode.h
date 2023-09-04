@@ -1,6 +1,8 @@
 #pragma once
 
 #include "PluginEditor.h"
+#include "Canvas.h"
+#include "Tabbar.h"
 #include "Standalone/PlugDataWindow.h"
 
 class PluginMode : public Component {
@@ -31,7 +33,12 @@ public:
         cnv->zoomScale.setValue(1.0f);
         cnv->zoomScale.getValueSource().sendChangeMessage(true);
 
-        nativeTitleBarHeight = ProjectInfo::isStandalone ? desktopWindow->getFrameSize().getTop() : 0;
+        if (ProjectInfo::isStandalone) {
+            auto frameSize = desktopWindow->getFrameSizeIfPresent();
+            nativeTitleBarHeight = frameSize ? frameSize->getTop() : 0;
+        } else {
+            nativeTitleBarHeight = 0;
+        }
 
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
@@ -39,7 +46,7 @@ public:
 
         editorButton = std::make_unique<TextButton>(Icons::Edit);
         editorButton->getProperties().set("Style", "LargeIcon");
-        editorButton->setTooltip("Show Editor..");
+        editorButton->setTooltip("Show editor");
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         editorButton->onClick = [this]() {
             closePluginMode();
@@ -67,7 +74,7 @@ public:
         if (ProjectInfo::isStandalone) {
             fullscreenButton = std::make_unique<TextButton>(Icons::Fullscreen);
             fullscreenButton->getProperties().set("Style", "LargeIcon");
-            fullscreenButton->setTooltip("Kiosk Mode..");
+            fullscreenButton->setTooltip("Enter fullscreen kiosk mode");
             fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
             fullscreenButton->onClick = [this]() {
                 setKioskMode(true);
@@ -123,7 +130,9 @@ public:
             editor->setConstrainer(editor->defaultConstrainer);
             editor->setBoundsConstrained(bounds);
             editor->getParentComponent()->resized();
-            editor->getActiveTabbar()->resized();
+            if (auto* tabbar = editor->getActiveTabbar()) {
+                tabbar->resized();
+            }
         });
 
         // Destroy this view

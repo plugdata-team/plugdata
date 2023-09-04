@@ -15,6 +15,7 @@ extern "C" {
 
 #include "Utility/StringUtils.h"
 #include "Patch.h"
+#include "Ofelia.h"
 
 class ObjectImplementationManager;
 
@@ -134,7 +135,16 @@ class Instance {
     };
 
     struct dmessage {
-        void* object;
+
+        dmessage(pd::Instance* instance, void* ref, String dest, String sel, std::vector<pd::Atom> atoms)
+            : object(ref, instance)
+            , destination(dest)
+            , selector(sel)
+            , list(atoms)
+        {
+        }
+
+        WeakReference object;
         String destination;
         String selector;
         std::vector<pd::Atom> list;
@@ -156,7 +166,7 @@ class Instance {
     } midievent;
 
 public:
-    Instance(String const& symbol, CriticalSection const* lock);
+    Instance(String const& symbol);
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 
@@ -199,9 +209,7 @@ public:
     {
     }
 
-    virtual void updateDrawables() {};
-
-    virtual void createPanel(int type, char const* snd, char const* location);
+    virtual void createPanel(int type, char const* snd, char const* location, char const* callbackName, int openMode = -1);
 
     void sendBang(char const* receiver) const;
     void sendFloat(char const* receiver, float value) const;
@@ -209,6 +217,9 @@ public:
     void sendList(char const* receiver, std::vector<pd::Atom> const& list) const;
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
     void sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
+
+    virtual void addTextToTextEditor(unsigned long ptr, String text) {};
+    virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) {};
 
     virtual void receivePrint(String const& message) {};
 
@@ -232,6 +243,10 @@ public:
 
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(void* object, MessageListener* messageListener);
+
+    void registerWeakReference(void* ptr, pd_weak_reference* ref);
+    void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
+    void clearWeakReferences(void* ptr);
 
     virtual void receiveDSPState(bool dsp) {};
 
@@ -258,9 +273,10 @@ public:
     void logMessage(String const& message);
     void logError(String const& message);
     void logWarning(String const& message);
+    void muteConsole(bool shouldMute);
 
-    std::deque<std::tuple<String, int, int>>& getConsoleMessages();
-    std::deque<std::tuple<String, int, int>>& getConsoleHistory();
+    std::deque<std::tuple<void*, String, int, int>>& getConsoleMessages();
+    std::deque<std::tuple<void*, String, int, int>>& getConsoleHistory();
 
     virtual void messageEnqueued() {};
 
@@ -303,15 +319,16 @@ public:
 
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
-    std::atomic<bool> waitingForStateUpdate = false;
 
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
     bool isPerformingGlobalSync = false;
-    CriticalSection const* audioLock;
+    CriticalSection const audioLock;
 
 private:
-    std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;
+    std::mutex weakReferenceMutex;
+    std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
+    std::unordered_map<void*, std::vector<juce::WeakReference<MessageListener>>> messageListeners;
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
@@ -321,10 +338,7 @@ private:
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-
-    std::atomic<int> numLocksHeld = 0;
-
-    WaitableEvent updateWait;
+    std::atomic<bool> consoleMute;
 
 protected:
     struct internal;
@@ -340,12 +354,12 @@ protected:
 
         void timerCallback() override
         {
-            auto item = std::pair<String, bool>();
+            auto item = std::tuple<void*, String, bool>();
             bool receivedMessage = false;
 
             while (pendingMessages.try_dequeue(item)) {
-                auto& [message, type] = item;
-                consoleMessages.emplace_back(message, type, fastStringWidth.getStringWidth(message) + 8);
+                auto& [object, message, type] = item;
+                consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8);
 
                 if (consoleMessages.size() > 800)
                     consoleMessages.pop_front();
@@ -361,37 +375,37 @@ protected:
             stopTimer();
         }
 
-        void logMessage(String const& message)
+        void logMessage(void* object, String const& message)
         {
-            pendingMessages.enqueue({ message, false });
+            pendingMessages.enqueue({ object, message, false });
             startTimer(10);
         }
 
-        void logWarning(String const& warning)
+        void logWarning(void* object, String const& warning)
         {
-            pendingMessages.enqueue({ warning, 1 });
+            pendingMessages.enqueue({ object, warning, 1 });
             startTimer(10);
         }
 
-        void logError(String const& error)
+        void logError(void* object, String const& error)
         {
-            pendingMessages.enqueue({ error, 2 });
+            pendingMessages.enqueue({ object, error, 2 });
             startTimer(10);
         }
 
-        void processPrint(char const* message)
+        void processPrint(void* object, char const* message)
         {
             std::function<void(const String)> forwardMessage =
-                [this](String const& message) {
+                [this, object](String const& message) {
                     if (message.startsWith("error")) {
-                        logError(message.substring(7));
+                        logError(object, message.substring(7));
                     } else if (message.startsWith("verbose(0):") || message.startsWith("verbose(1):")) {
-                        logError(message.substring(12));
+                        logError(object, message.substring(12));
                     } else {
                         if (message.startsWith("verbose(")) {
-                            logMessage(message.substring(12));
+                            logMessage(object, message.substring(12));
                         } else {
-                            logMessage(message);
+                            logMessage(object, message);
                         }
                     }
                 };
@@ -426,15 +440,17 @@ protected:
             }
         }
 
-        std::deque<std::tuple<String, int, int>> consoleMessages;
-        std::deque<std::tuple<String, int, int>> consoleHistory;
+        std::deque<std::tuple<void*, String, int, int>> consoleMessages;
+        std::deque<std::tuple<void*, String, int, int>> consoleHistory;
 
         char printConcatBuffer[2048];
 
-        moodycamel::ConcurrentQueue<std::pair<String, bool>> pendingMessages;
+        moodycamel::ConcurrentQueue<std::tuple<void*, String, bool>> pendingMessages;
 
         StringUtils fastStringWidth; // For formatting console messages more quickly
     };
+
+    std::unique_ptr<Ofelia> ofelia;
 
     ConsoleHandler consoleHandler;
 };

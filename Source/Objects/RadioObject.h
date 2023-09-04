@@ -14,13 +14,15 @@ class RadioObject final : public ObjectBase {
 
     IEMHelper iemHelper;
 
-    Value max = Value(0.0f);
+    Value max = SynchronousValue(0.0f);
+    Value sizeProperty = SynchronousValue();
 
 public:
     RadioObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
+        objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamInt("Options", cGeneral, &max, 8);
         iemHelper.addIemParameters(objectParameters);
     }
@@ -33,7 +35,11 @@ public:
             selected = std::min<int>(::getValue<int>(max) - 1, selected);
         }
 
-        isVertical = static_cast<t_radio*>(ptr)->x_orientation;
+        if (auto radio = ptr.get<t_radio>()) {
+            isVertical = radio->x_orientation;
+            sizeProperty = isVertical ? radio->x_gui.x_w : radio->x_gui.x_h;
+        }
+
         numItems = getMaximum();
         max = numItems;
 
@@ -68,19 +74,20 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if (auto radio = ptr.get<t_radio>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, radio.get(), &x, &y, &w, &h);
+            auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
+            auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
 
-        pd->unlockAudioThread();
+            return { x, y, width, height };
+        }
 
-        auto* radio = static_cast<t_radio*>(ptr);
-
-        auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
-        auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
-
-        return { x, y, width, height };
+        return {};
     }
 
     void toggleObject(Point<int> position) override
@@ -106,6 +113,7 @@ public:
     {
         return {
             hash("float"),
+            hash("list"),
             hash("set"),
             hash("orientation"),
             hash("number"),
@@ -117,6 +125,7 @@ public:
     {
         switch (hash(symbol)) {
         case hash("float"):
+        case hash("list"):
         case hash("set"): {
             selected = std::clamp<float>(atoms[0].getFloat(), 0.0f, numItems - 1);
             repaint();
@@ -149,6 +158,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         float pos = isVertical ? e.y : e.x;
         float div = isVertical ? getHeight() : getWidth();
 
@@ -164,7 +176,7 @@ public:
 
     float getValue()
     {
-        return static_cast<t_radio*>(ptr)->x_on;
+        return ptr.get<t_radio>()->x_on;
     }
 
     void paint(Graphics& g) override
@@ -221,7 +233,23 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(max)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto size = std::max(::getValue<int>(sizeProperty), isVertical ? constrainer->getMinimumWidth() : constrainer->getMinimumHeight());
+            setParameterExcludingListener(sizeProperty, size);
+
+            if (auto radio = ptr.get<t_radio>()) {
+                if (isVertical) {
+                    radio->x_gui.x_w = size;
+                    radio->x_gui.x_h = size * numItems;
+                } else {
+                    radio->x_gui.x_h = size;
+                    radio->x_gui.x_w = size * numItems;
+                }
+            }
+
+            object->updateBounds();
+        } else if (value.refersToSameSourceAs(max)) {
             if (::getValue<int>(max) != numItems) {
                 limitValueMin(value, 1);
                 numItems = ::getValue<int>(max);
@@ -235,7 +263,7 @@ public:
 
     float getMaximum()
     {
-        return static_cast<t_radio*>(ptr)->x_number;
+        return ptr.get<t_radio>()->x_number;
     }
 
     void setMaximum(float maxValue)
@@ -244,8 +272,17 @@ public:
             selected = maxValue - 1;
         }
 
-        static_cast<t_radio*>(ptr)->x_number = maxValue;
+        ptr.get<t_radio>()->x_number = maxValue;
 
         resized();
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto radio = ptr.get<t_radio>()) {
+            setParameterExcludingListener(sizeProperty, isVertical ? var(radio->x_gui.x_w) : var(radio->x_gui.x_h));
+        }
     }
 };

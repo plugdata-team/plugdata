@@ -52,7 +52,8 @@ flags:
   - name: -env <any>
     description: 
   - name: -length <f>
-    description: delay length in ms (default 5000)
+    description: delay length in ms
+    default: 5000
   - name: -sync
     description: 
 

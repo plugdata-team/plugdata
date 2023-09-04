@@ -7,6 +7,10 @@
 #include "Canvas.h"
 #include "Object.h"
 #include "Utility/PluginParameter.h"
+#include "Utility/DraggableNumber.h"
+#include "Utility/OfflineObjectRenderer.h"
+#include "Utility/ReorderButton.h"
+#include "Utility/PropertiesPanel.h"
 
 class AutomationSlider : public Component
     , public Value::Listener {
@@ -25,117 +29,92 @@ class AutomationSlider : public Component
             p.lineTo(isOpen ? 1.0f : 0.0f, isOpen ? 0.0f : 1.0f);
 
             g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(mouseOver ? 0.7f : 1.0f));
-            g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(area.translated(3, 0).reduced(area.getWidth() / 4, area.getHeight() / 4), true));
+            g.strokePath(p, PathStrokeType(1.5f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(area.translated(3, 0).reduced(area.getWidth() / 4, area.getHeight() / 4), true));
         }
     };
 
     PluginProcessor* pd;
-    PlugDataParameter* param;
 
 public:
-    AutomationSlider(int idx, Component* parentComponent, PluginProcessor* processor)
-        : index(idx)
-        , pd(processor)
+    AutomationSlider(PlugDataParameter* parameter, Component* parentComponent, PluginProcessor* processor)
+        : pd(processor)
+        , rangeProperty("Range", range, false)
+        , modeProperty("Mode", mode, { "Float", "Integer", "Logarithmic", "Exponential" })
+        , param(parameter)
     {
-        param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[index + 1]);
+        addChildComponent(rangeProperty);
+        addChildComponent(modeProperty);
 
-        lastName = param->getTitle();
-        nameLabel.setText(lastName, dontSendNotification);
-
-        nameLabel.setFont(nameLabel.getFont().withHeight(14.0f));
-        valueLabel.setFont(valueLabel.getFont().withHeight(14.0f));
-        minLabel.setFont(minLabel.getFont().withHeight(14.0f));
-        maxLabel.setFont(maxLabel.getFont().withHeight(14.0f));
-        minValue.setFont(minValue.getFont().withHeight(14.0f));
-        maxValue.setFont(maxValue.getFont().withHeight(14.0f));
-
-        createButton.onClick = [this]() mutable {
-            if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
-                auto* cnv = editor->getCurrentCanvas();
-                if (cnv) {
-                    cnv->attachNextObjectToMouse = true;
-                    cnv->objects.add(new Object(cnv, "param " + param->getTitle()));
-                }
-            }
-        };
+        range.addListener(this);
+        mode.addListener(this);
 
         deleteButton.onClick = [this]() mutable {
             onDelete(this);
         };
 
+        nameLabel.setFont(Font(14));
+        nameLabel.addMouseListener(this, false);
+        deleteButton.addMouseListener(this, false);
+        reorderButton.addMouseListener(this, false);
+
+        nameLabel.setTooltip("Drag to add [param] to canvas");
         deleteButton.setTooltip("Remove parameter");
-        createButton.setTooltip("Create [param] object");
         settingsButton.setTooltip("Expand settings");
 
         settingsButton.onClick = [this, parentComponent]() mutable {
-            parentComponent->resized();
-
             bool toggleState = settingsButton.getToggleState();
 
-            minLabel.setVisible(toggleState);
-            minValue.setVisible(toggleState);
-            maxLabel.setVisible(toggleState);
-            maxValue.setVisible(toggleState);
+            rangeProperty.setVisible(toggleState);
+            modeProperty.setVisible(toggleState);
+
+            getParentComponent()->resized();
         };
 
-        minValue.dragEnd = [this]() {
-            auto minimum = minValue.getValue();
-            auto maximum = param->getNormalisableRange().end;
+        auto& minimumComponent = rangeProperty.getMinimumComponent();
+        auto& maximumComponent = rangeProperty.getMaximumComponent();
+
+        minimumComponent.dragEnd = [this, &maximumComponent]() {
+            double minimum = static_cast<int>((*range.getValue().getArray())[0]);
+            double maximum = param->getNormalisableRange().end;
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
             valueLabel.setValue(std::clamp(valueLabel.getValue(), minimum, maximum));
 
-            maxValue.setMinimum(minimum + 0.000001f);
+            maximumComponent.setMinimum(minimum + 0.000001);
 
             // make sure min is always smaller than max
-            minimum = std::min(minimum, maximum - 0.000001f);
+            minimum = std::min(minimum, maximum - 0.000001);
 
-            slider.setRange(minimum, maximum, 0.000001f);
             param->setRange(minimum, maximum);
             param->notifyDAW();
+            update();
         };
 
-        maxValue.dragEnd = [this]() {
-            auto minimum = param->getNormalisableRange().start;
-            auto maximum = maxValue.getValue();
+        maximumComponent.dragEnd = [this, &minimumComponent]() {
+            double minimum = param->getNormalisableRange().start;
+            double maximum = static_cast<int>((*range.getValue().getArray())[1]);
 
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
             valueLabel.setValue(std::clamp(valueLabel.getValue(), minimum, maximum));
 
-            minValue.setMaximum(maximum);
+            minimumComponent.setMaximum(maximum);
 
             // make sure max is always bigger than min
-            maximum = std::max(maximum, minimum + 0.000001f);
+            maximum = std::max(maximum, minimum + 0.000001);
 
-            slider.setRange(minimum, maximum, 0.000001f);
             param->setRange(minimum, maximum);
-
             param->notifyDAW();
+            update();
         };
 
         slider.setScrollWheelEnabled(false);
         slider.setTextBoxStyle(Slider::NoTextBox, false, 45, 13);
 
-        auto range = param->getNormalisableRange().getRange();
-
-        auto minimum = range.getStart();
-        auto maximum = range.getEnd();
-
-        valueLabel.setMinimum(minimum);
-        valueLabel.setMaximum(maximum);
-
-        minValue.setValue(minimum);
-        maxValue.setValue(maximum);
-
-        maxValue.setMinimum(minimum + 0.000001f);
-        minValue.setMaximum(maximum);
-
         if (ProjectInfo::isStandalone) {
-            slider.setValue(param->getUnscaledValue());
-            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
             valueLabel.setText(String(param->getUnscaledValue(), 2), dontSendNotification);
+            slider.setValue(param->getUnscaledValue(), dontSendNotification);
             slider.onValueChange = [this]() mutable {
                 float value = slider.getValue();
                 param->setUnscaledValueNotifyingHost(value);
@@ -146,13 +125,12 @@ public:
                 float value = slider.getValue();
                 valueLabel.setText(String(value, 2), dontSendNotification);
             };
-            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
 
             attachment = std::make_unique<SliderParameterAttachment>(*param, slider, nullptr);
             valueLabel.setText(String(param->getValue(), 2), dontSendNotification);
         }
 
-        valueLabel.valueChanged = [this](float newValue) mutable {
+        valueLabel.onValueChange = [this](float newValue) mutable {
             auto minimum = param->getNormalisableRange().start;
             auto maximum = param->getNormalisableRange().end;
 
@@ -173,12 +151,17 @@ public:
 
         settingsButton.setClickingTogglesState(true);
 
-        nameLabel.setEditable(true, true);
+        bool editable = PlugDataParameter::canDynamicallyAdjustParameters();
+        nameLabel.setEditable(editable, editable);
         nameLabel.onEditorShow = [this]() {
             if (auto* editor = nameLabel.getCurrentTextEditor()) {
                 editor->setInputRestrictions(32, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-");
             }
             lastName = nameLabel.getText(false);
+        };
+
+        nameLabel.onTextChange = [this]() {
+            dragImage.image = Image();
         };
 
         nameLabel.onEditorHide = [this]() {
@@ -202,36 +185,141 @@ public:
             }
         };
 
+        settingsButton.getProperties().set("Style", "SmallIcon");
+        deleteButton.getProperties().set("Style", "SmallIcon");
+
         addAndMakeVisible(nameLabel);
         addAndMakeVisible(slider);
         addAndMakeVisible(valueLabel);
 
-        createButton.getProperties().set("Style", "SmallIcon");
-        settingsButton.getProperties().set("Style", "SmallIcon");
-        deleteButton.getProperties().set("Style", "SmallIcon");
+        if (PlugDataParameter::canDynamicallyAdjustParameters()) {
+            addAndMakeVisible(settingsButton);
+        }
 
-        addAndMakeVisible(createButton);
-        addAndMakeVisible(settingsButton);
-        addAndMakeVisible(deleteButton);
+        addChildComponent(reorderButton);
+        addChildComponent(deleteButton);
 
-        addChildComponent(minLabel);
-        addChildComponent(minValue);
-        addChildComponent(maxLabel);
-        addChildComponent(maxValue);
+        update();
+    }
 
-        minValue.setEditable(true);
-        maxValue.setEditable(true);
+    void update()
+    {
+        lastName = param->getTitle();
+        nameLabel.setText(lastName, dontSendNotification);
+
+        auto normalisableRange = param->getNormalisableRange();
+
+        auto& min = normalisableRange.start;
+        auto& max = normalisableRange.end;
+
+        range = Array<var> { min, max };
+
+        if (normalisableRange.skew == 4.0f) {
+            mode = PlugDataParameter::Logarithmic;
+        } else if (normalisableRange.skew == 0.25f) {
+            mode = PlugDataParameter::Exponential;
+        } else {
+            mode = normalisableRange.interval == 1.0f ? PlugDataParameter::Integer : PlugDataParameter::Float;
+        }
+
+        if (mode == PlugDataParameter::Integer) {
+            valueLabel.setDragMode(DraggableNumber::Integer);
+            rangeProperty.getMinimumComponent().setDragMode(DraggableNumber::Integer);
+            rangeProperty.getMaximumComponent().setDragMode(DraggableNumber::Integer);
+        } else {
+            valueLabel.setDragMode(DraggableNumber::Regular);
+            rangeProperty.getMinimumComponent().setDragMode(DraggableNumber::Regular);
+            rangeProperty.getMaximumComponent().setDragMode(DraggableNumber::Regular);
+        }
+
+        valueLabel.setMinimum(min);
+        valueLabel.setMaximum(max);
+
+        rangeProperty.getMaximumComponent().setMinimum(min + 0.000001f);
+        rangeProperty.getMinimumComponent().setMaximum(max);
+
+        auto doubleRange = NormalisableRange<double>(normalisableRange.start, normalisableRange.end, normalisableRange.interval, normalisableRange.skew);
+
+        if (ProjectInfo::isStandalone) {
+            slider.setValue(param->getUnscaledValue());
+            slider.setNormalisableRange(doubleRange);
+            valueLabel.setText(String(param->getUnscaledValue(), 2), dontSendNotification);
+        } else {
+            slider.setNormalisableRange(doubleRange);
+        }
+    }
+
+    void lookAndFeelChanged() override
+    {
+        dragImage.image = Image();
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        return getLocalBounds().toFloat().reduced(4.5f, 3.0f).contains(x, y);
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        // Make sure this isn't coming from the listened object
+        deleteButton.setVisible(true);
+        reorderButton.setVisible(true);
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        deleteButton.setVisible(false);
+        reorderButton.setVisible(false);
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        isDragging = false;
+    }
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if (e.originalComponent == &reorderButton || e.getDistanceFromDragStart() < 5 || isDragging)
+            return;
+
+        isDragging = true;
+
+        auto formatedParam = "#X obj 0 0 param " + param->getTitle() + ";";
+
+        deleteButton.setVisible(false);
+        reorderButton.setVisible(false);
+
+        auto scale = 2.0f;
+        if (dragImage.image.isNull()) {
+            auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
+            dragImage = offlineObjectRenderer->patchToTempImage(formatedParam, scale);
+        }
+
+        auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
+        Array<var> paramObjectWithOffset;
+        paramObjectWithOffset.add(var(dragImage.offset.getX()));
+        paramObjectWithOffset.add(var(dragImage.offset.getY()));
+        paramObjectWithOffset.add(var(formatedParam));
+        dragContainer->startDragging(paramObjectWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
     }
 
     void valueChanged(Value& v) override
     {
-        createButton.setEnabled(!getValue<bool>(v));
+        if (v.refersToSameSourceAs(range)) {
+            auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
+            auto max = static_cast<float>(range.getValue().getArray()->getReference(1));
+            param->setRange(min, max);
+            update();
+        } else if (v.refersToSameSourceAs(mode)) {
+            param->setMode(static_cast<PlugDataParameter::Mode>(getValue<int>(mode)));
+            update();
+        }
     }
 
     int getItemHeight()
     {
         if (param->isEnabled()) {
-            return settingsButton.getToggleState() ? 70.0f : 50.0f;
+            return settingsButton.getToggleState() ? 110.0f : 56.0f;
         } else {
             return 0.0f;
         }
@@ -242,45 +330,35 @@ public:
         return param->isEnabled();
     }
 
-    void setEnabled(bool shouldBeEnabled)
-    {
-        param->setEnabled(shouldBeEnabled);
-        param->notifyDAW();
-    }
-
     void resized() override
     {
         bool settingsVisible = settingsButton.getToggleState();
 
         auto bounds = getLocalBounds().reduced(6, 2);
 
-        int rowHeight = 22;
+        int rowHeight = 26;
 
         auto firstRow = bounds.removeFromTop(rowHeight);
         auto secondRow = bounds.removeFromTop(rowHeight);
 
         if (settingsVisible) {
-            auto thirdRow = bounds;
 
-            auto oneThird = thirdRow.getWidth() / 3.0f;
-            auto oneSixth = thirdRow.getWidth() * (1.0f / 6.0f);
-
-            minLabel.setBounds(thirdRow.removeFromLeft(oneSixth));
-            minValue.setBounds(thirdRow.removeFromLeft(oneThird));
-
-            maxLabel.setBounds(thirdRow.removeFromLeft(oneSixth));
-            maxValue.setBounds(thirdRow.removeFromLeft(oneThird));
+            rangeProperty.setBounds(bounds.removeFromTop(rowHeight));
+            modeProperty.setBounds(bounds.removeFromTop(rowHeight));
         }
 
         auto buttonsBounds = firstRow.removeFromRight(50).withHeight(25);
 
-        nameLabel.setBounds(firstRow);
+        nameLabel.setBounds(firstRow.withTrimmedLeft(4));
 
-        settingsButton.setBounds(secondRow.removeFromLeft(25));
-        slider.setBounds(secondRow.removeFromLeft(getWidth() - 90));
-        valueLabel.setBounds(secondRow);
+        if (settingsButton.isVisible()) {
+            settingsButton.setBounds(secondRow.removeFromLeft(25));
+        }
 
-        createButton.setBounds(buttonsBounds.removeFromLeft(25));
+        slider.setBounds(secondRow.withTrimmedRight(55));
+        valueLabel.setBounds(secondRow.removeFromRight(55));
+
+        reorderButton.setBounds(buttonsBounds.removeFromLeft(25));
         deleteButton.setBounds(buttonsBounds.removeFromLeft(25));
     }
 
@@ -292,21 +370,21 @@ public:
         nameLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
 
-        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.5f));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f, 3.0f), Corners::defaultCornerRadius);
+        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+        PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(6.0f, 3.0f), Corners::defaultCornerRadius);
     }
 
     std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*) {};
 
-    TextButton createButton = TextButton(Icons::Add);
     TextButton deleteButton = TextButton(Icons::Clear);
     ExpandButton settingsButton;
 
-    Label minLabel = Label("", "Min:");
-    Label maxLabel = Label("", "Max:");
+    Value range = Value(var(Array<var> { var(0.0f), var(127.0f) }));
+    Value mode = Value(var(PlugDataParameter::Float));
 
-    DraggableNumber minValue = DraggableNumber(false);
-    DraggableNumber maxValue = DraggableNumber(false);
+    PropertiesPanel::RangeComponent rangeProperty;
+    PropertiesPanel::ComboComponent modeProperty;
+
     DraggableNumber valueLabel = DraggableNumber(false);
 
     Label nameLabel;
@@ -315,11 +393,117 @@ public:
 
     Slider slider;
 
-    int index;
+    ImageWithOffset dragImage;
+    ReorderButton reorderButton;
+
+    PlugDataParameter* param;
 
     std::unique_ptr<SliderParameterAttachment> attachment;
 
+    bool isDragging = false;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationSlider)
+};
+
+class AlphaAnimator : public Timer {
+public:
+    AlphaAnimator() { }
+
+    void fadeIn(Component* component, double duration)
+    {
+        animate(component, duration, 0.0f, 1.0f);
+    }
+
+    void fadeOut(Component* component, double duration)
+    {
+        animate(component, duration, 1.0f, 0.0f);
+    }
+
+private:
+    void animate(Component* component, double duration, float startAlpha, float endAlpha)
+    {
+        componentToAnimate = component;
+        animationDuration = duration;
+        animationSteps = static_cast<int>(duration / timerInterval);
+        currentStep = 0;
+        startAlphaValue = startAlpha;
+        endAlphaValue = endAlpha;
+
+        startTimer(timerInterval); // Start the timer
+    }
+
+    void timerCallback() override
+    {
+        ++currentStep;
+
+        if (currentStep >= animationSteps) {
+            componentToAnimate->setAlpha(endAlphaValue);
+            stopTimer();
+        } else {
+            float alpha = startAlphaValue + (endAlphaValue - startAlphaValue) * static_cast<float>(currentStep) / static_cast<float>(animationSteps);
+            componentToAnimate->setAlpha(alpha);
+        }
+    }
+
+    Component* componentToAnimate = nullptr;
+    double animationDuration = 0.0;
+    int animationSteps = 0;
+    int currentStep = 0;
+    float startAlphaValue = 0.0f;
+    float endAlphaValue = 0.0f;
+
+    int const timerInterval = 16; // 60 FPS timer interval
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AlphaAnimator)
+};
+
+class DraggedItemDropShadow : public Component
+    , public ComponentListener {
+public:
+    DraggedItemDropShadow()
+    {
+        setAlpha(0.0f);
+    }
+
+    void activate(AutomationSlider* item)
+    {
+        if (automationItem != item) {
+            if (automationItem)
+                automationItem->removeComponentListener(this);
+            automationItem = item;
+        }
+
+        toFront(false);
+        automationItem->addComponentListener(this);
+        setBounds(automationItem->getBounds().expanded(8, 4));
+        animator.fadeIn(this, 300);
+    }
+
+    void deActivate()
+    {
+        animator.fadeOut(this, 300);
+    }
+
+    void componentMovedOrResized(juce::Component& component, bool wasMoved, bool wasResized) override
+    {
+        if (&component == automationItem) {
+            setBounds(component.getBounds().expanded(8, 4));
+        }
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto rect = getLocalBounds().reduced(14, 7);
+        Path shadowPath;
+        shadowPath.addRoundedRectangle(rect, Corners::defaultCornerRadius);
+        StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.3f), 6);
+    }
+
+private:
+    SafePointer<AutomationSlider> automationItem = nullptr;
+    AlphaAnimator animator;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DraggedItemDropShadow)
 };
 
 class AutomationComponent : public Component {
@@ -340,7 +524,7 @@ class AutomationComponent : public Component {
             auto colour = findColour(PlugDataColour::sidebarTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
+                PlugDataLook::fillSmoothedRectangle(g, bounds.toFloat(), Corners::defaultCornerRadius);
 
                 colour = findColour(PlugDataColour::sidebarActiveTextColourId);
             }
@@ -383,77 +567,160 @@ public:
         updateSliders();
 
         addAndMakeVisible(addParameterButton);
+        addAndMakeVisible(draggedItemDropShadow);
 
         addParameterButton.onClick = [this, parent]() {
-            for (auto* row : rows) {
-                if (!row->isEnabled()) {
-                    row->setEnabled(true);
+            for (auto* param : getParameters()) {
+                if (!param->isEnabled()) {
+                    param->setEnabled(true);
+                    param->setName(getNewParameterName());
+                    param->setIndex(rows.size());
+                    param->notifyDAW();
                     break;
                 }
             }
 
             resized();
             parent->resized();
-
-            for (auto* row : rows) {
-                row->resized();
-                row->repaint();
-            }
-
-            checkMaxNumParameters();
+            updateSliders();
         };
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        accumulatedOffsetY = { 0, 0 };
+
+        if (auto* reorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
+            draggedItem = static_cast<AutomationSlider*>(reorderButton->getParentComponent());
+            draggedItemDropShadow.activate(draggedItem);
+            draggedItem->toFront(false);
+            mouseDownPos = draggedItem->getPosition();
+            draggedItem->deleteButton.setVisible(false);
+            draggedItem->reorderButton.setVisible(false);
+        }
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (draggedItem) {
+            for (int p = 0; p < rows.size(); p++) {
+                rows[p]->param->setIndex(p);
+            }
+            isDragging = false;
+            draggedItem = nullptr;
+            shouldAnimate = true;
+            draggedItemDropShadow.deActivate();
+            resized();
+        }
+    }
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if (!draggedItem || std::abs(e.getDistanceFromDragStart()) < 5)
+            return;
+
+        // autoscroll the viewport when we are close. to. the. edge.
+        auto viewport = findParentComponentOfClass<BouncingViewport>();
+        if (viewport->autoScroll(0, viewport->getLocalPoint(nullptr, e.getScreenPosition()).getY(), 0, 5)) {
+            beginDragAutoRepeat(20);
+        }
+
+        auto dragPos = mouseDownPos.translated(0, e.getDistanceFromDragStartY());
+        auto autoScrollOffset = Point<int>(0, viewportPosY - viewport->getViewPositionY());
+        accumulatedOffsetY += autoScrollOffset;
+        draggedItem->setTopLeftPosition(dragPos - accumulatedOffsetY);
+        viewportPosY -= autoScrollOffset.getY();
+
+        int idx = rows.indexOf(draggedItem);
+        if (idx > 0 && draggedItem->getBounds().getCentreY() < rows[idx - 1]->getBounds().getCentreY() && rows[idx - 1]->isEnabled()) {
+            rows.swap(idx, idx - 1);
+            shouldAnimate = true;
+            resized();
+        } else if (idx < rows.size() - 1 && draggedItem->getBounds().getCentreY() > rows[idx + 1]->getBounds().getCentreY() && rows[idx + 1]->isEnabled()) {
+            rows.swap(idx, idx + 1);
+            shouldAnimate = true;
+            resized();
+        }
+    }
+
+    String getNewParameterName()
+    {
+        StringArray takenNames;
+        for (auto* row : rows) {
+            if (row->isEnabled()) {
+                takenNames.add(row->param->getTitle());
+            }
+        }
+
+        auto newParamName = String("param");
+        int i = 1;
+        while (takenNames.contains(newParamName + String(i))) {
+            i++;
+        }
+
+        return newParamName + String(i);
+    }
+
+    Array<PlugDataParameter*> getParameters()
+    {
+        Array<PlugDataParameter*> params;
+        for (auto* param : pd->getParameters())
+            params.add(dynamic_cast<PlugDataParameter*>(param));
+
+        params.remove(0);
+
+        return params;
     }
 
     void updateSliders()
     {
-
         rows.clear();
 
-        for (int p = 0; p < PluginProcessor::numParameters; p++) {
-            auto* slider = rows.add(new AutomationSlider(p, parentComponent, pd));
-            addAndMakeVisible(slider);
+        for (auto* param : getParameters()) {
+            if (param->isEnabled()) {
+                auto* slider = rows.add(new AutomationSlider(param, parentComponent, pd));
+                addAndMakeVisible(slider);
 
-            slider->onDelete = [this](AutomationSlider* toDelete) {
-                std::vector<std::tuple<bool, String, float, float, float>> parameterValues;
+                slider->reorderButton.addMouseListener(this, false);
 
-                StringArray paramNames;
+                slider->onDelete = [this](AutomationSlider* toDelete) {
+                    StringArray paramNames;
 
-                for (int i = 0; i < rows.size(); i++) {
-                    auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[i + 1]);
+                    for (auto* param : getParameters()) {
+                        if (param != toDelete->param) {
+                            paramNames.add(param->getTitle());
+                        }
+                    }
 
-                    parameterValues.emplace_back(param->isEnabled(), param->getTitle(), param->getUnscaledValue(), param->getNormalisableRange().start, param->getNormalisableRange().end);
+                    auto toDeleteIdx = rows.indexOf(toDelete);
+                    for (int i = toDeleteIdx; i < rows.size(); i++) {
+                        rows[i]->param->setIndex(rows[i]->param->getIndex() - 1);
+                    }
 
-                    paramNames.add(param->getTitle());
-                }
+                    auto newParamName = String("param");
+                    int i = 1;
+                    while (paramNames.contains(newParamName + String(i))) {
+                        i++;
+                    }
+                    newParamName += String(i);
 
-                auto toDeleteIdx = rows.indexOf(toDelete);
+                    toDelete->param->setEnabled(false);
+                    toDelete->param->setName(newParamName);
+                    toDelete->param->setValue(0.0f);
+                    toDelete->param->setRange(0.0f, 1.0f);
+                    toDelete->param->setMode(PlugDataParameter::Float);
+                    toDelete->param->notifyDAW();
 
-                auto newParamName = String("param");
-                int i = 1;
-                while (paramNames.contains(newParamName + String(i))) {
-                    i++;
-                }
-                newParamName += String(i);
-
-                parameterValues.erase(parameterValues.begin() + toDeleteIdx);
-                parameterValues.emplace_back(false, newParamName, 0.0f, 0.0f, 1.0f);
-
-                for (int i = 0; i < rows.size(); i++) {
-                    auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[i + 1]);
-
-                    auto& [enabled, name, value, min, max] = parameterValues[i];
-
-                    param->setEnabled(enabled);
-                    param->setName(name);
-                    param->setRange(min, max);
-                    param->setUnscaledValueNotifyingHost(value);
-                }
-
-                dynamic_cast<PlugDataParameter*>(pd->getParameters()[0])->notifyDAW();
-
-                updateSliders();
-            };
+                    updateSliders();
+                };
+            }
         }
+
+        std::sort(rows.begin(), rows.end(), [](auto* a, auto* b) {
+            return a->param->getIndex() < b->param->getIndex();
+        });
+
+        addParameterButton.toFront(false);
 
         checkMaxNumParameters();
         parentComponent->resized();
@@ -462,42 +729,51 @@ public:
 
     void checkMaxNumParameters()
     {
-        addParameterButton.setVisible(getNumEnabled() < PluginProcessor::numParameters);
+        addParameterButton.setVisible(rows.size() < PluginProcessor::numParameters);
     }
 
     void resized() override
     {
+        auto& animator = Desktop::getInstance().getAnimator();
+
         int y = 2;
         int width = getWidth();
-        for (int p = 0; p < getNumEnabled(); p++) {
+        for (int p = 0; p < rows.size(); p++) {
             int height = rows[p]->getItemHeight();
-            rows[p]->setBounds(0, y, width, height);
+            if (rows[p] != draggedItem) {
+                auto bounds = Rectangle<int>(0, y, width, height);
+                if (shouldAnimate) {
+                    animator.animateComponent(rows[p], bounds, 1.0f, 200, false, 3.0f, 0.0f);
+                } else {
+                    animator.cancelAnimation(rows[p], false);
+                    rows[p]->setBounds(bounds);
+                }
+            }
             y += height;
         }
 
+        shouldAnimate = false;
         addParameterButton.setBounds(0, y, getWidth(), 28);
-    }
-
-    int getNumEnabled() const
-    {
-        int numEnabled = 0;
-
-        for (int p = 0; p < PluginProcessor::numParameters; p++) {
-            numEnabled += rows[p]->isEnabled();
-        }
-
-        return numEnabled;
     }
 
     int getTotalHeight() const
     {
-        int y = 28;
-        for (int p = 0; p < PluginProcessor::numParameters; p++) {
+        int y = 30;
+        for (int p = 0; p < rows.size(); p++) {
             y += rows[p]->getItemHeight();
         }
 
         return y;
     }
+
+    bool isDragging = false;
+    SafePointer<AutomationSlider> draggedItem;
+    DraggedItemDropShadow draggedItemDropShadow;
+    Point<int> mouseDownPos;
+    Point<int> accumulatedOffsetY = { 0, 0 };
+    int viewportPosY = 0;
+
+    bool shouldAnimate = false;
 
     PluginProcessor* pd;
     Component* parentComponent;
@@ -535,33 +811,31 @@ public:
     {
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(getLocalBounds());
-
-        // Background for statusbar part
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, Corners::defaultCornerRadius);
     }
 
     void resized() override
     {
-        viewport.setBounds(getLocalBounds().withTrimmedBottom(30));
+        viewport.setBounds(getLocalBounds());
 
-        sliders.setSize(getWidth(), sliders.getTotalHeight());
+        sliders.setSize(getWidth(), std::max(sliders.getTotalHeight(), viewport.getMaximumVisibleHeight()));
     }
 
     void updateParameters()
     {
         if (ProjectInfo::isStandalone) {
-            for (int p = 0; p < PluginProcessor::numParameters; p++) {
-                auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
 
+            sliders.updateSliders();
+
+            for (int p = 0; p < sliders.rows.size(); p++) {
+                auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
                 sliders.rows[p]->slider.setValue(param->getUnscaledValue());
             }
+
         } else {
             sliders.updateSliders();
         }
     }
-
-    Viewport viewport;
+    BouncingViewport viewport;
     AutomationComponent sliders;
     PluginProcessor* pd;
 

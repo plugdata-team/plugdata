@@ -18,60 +18,225 @@
 
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
+#include "Dialogs/AlignmentTools.h"
 
 #include "Utility/ArrowPopupMenu.h"
 
-VolumeSlider::VolumeSlider()
-    : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
-{
-    setSliderSnapsToMousePosition(false);
-}
+class OversampleSelector : public TextButton {
 
-void VolumeSlider::resized()
-{
-    setMouseDragSensitivity(getWidth() - (margin * 2));
-}
+    class OversampleSettingsPopup : public Component {
+    public:
+        std::function<void(int)> onChange = [](int) {};
+        std::function<void()> onClose = []() {};
 
-void VolumeSlider::paint(Graphics& g)
-{
-    auto backgroundColour = findColour(PlugDataColour::levelMeterThumbColourId);
+        OversampleSettingsPopup(int currentSelection)
+        {
+            title.setText("Oversampling factor", dontSendNotification);
+            title.setFont(Fonts::getBoldFont().withHeight(14.0f));
+            title.setJustificationType(Justification::centred);
+            addAndMakeVisible(title);
 
-    auto value = getValue();
-    auto thumbSize = getHeight() * 0.7f;
-    auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
-    auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
-    g.setColour(backgroundColour.withAlpha(0.8f));
-    g.fillEllipse(thumb);
-}
+            one.setConnectedEdges(ConnectedOnRight);
+            two.setConnectedEdges(ConnectedOnLeft | ConnectedOnRight);
+            four.setConnectedEdges(ConnectedOnLeft | ConnectedOnRight);
+            eight.setConnectedEdges(ConnectedOnLeft);
+
+            auto buttons = Array<TextButton*> { &one, &two, &four, &eight };
+
+            int i = 0;
+            for (auto* button : buttons) {
+                button->setRadioGroupId(hash("oversampling_selector"));
+                button->setClickingTogglesState(true);
+                button->onClick = [this, i]() {
+                    onChange(i);
+                };
+
+                button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+                button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
+                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+
+                addAndMakeVisible(button);
+                i++;
+            }
+
+            buttons[currentSelection]->setToggleState(true, dontSendNotification);
+
+            setSize(180, 50);
+        }
+
+        ~OversampleSettingsPopup()
+        {
+            onClose();
+        }
+
+    private:
+        void resized() override
+        {
+            auto b = getLocalBounds().reduced(4, 4);
+            auto titleBounds = b.removeFromTop(22);
+
+            title.setBounds(titleBounds.translated(0, -2));
+
+            auto buttonWidth = b.getWidth() / 4;
+
+            one.setBounds(b.removeFromLeft(buttonWidth));
+            two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+            four.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+            eight.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+        }
+
+        Label title;
+        TextButton one = TextButton("1x");
+        TextButton two = TextButton("2x");
+        TextButton four = TextButton("4x");
+        TextButton eight = TextButton("8x");
+    };
+
+public:
+    OversampleSelector(PluginProcessor* pd)
+    {
+        onClick = [this, pd]() {
+            auto selection = log2(getButtonText().upToLastOccurrenceOf("x", false, false).getIntValue());
+            auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+            auto oversampleSettings = std::make_unique<OversampleSettingsPopup>(selection);
+            auto bounds = editor->getLocalArea(this, getLocalBounds());
+
+            oversampleSettings->onChange = [this, pd](int result) {
+                setButtonText(String(1 << result) + "x");
+                pd->setOversampling(result);
+            };
+            oversampleSettings->onClose = [this]() {
+                repaint();
+            };
+
+            CallOutBox::launchAsynchronously(std::move(oversampleSettings), bounds, editor);
+        };
+    }
+
+private:
+    void paint(Graphics& g) override
+    {
+        auto buttonText = getButtonText();
+        if (buttonText == "1x") {
+            g.setColour(isMouseOverOrDragging() ? findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f) : findColour(PlugDataColour::toolbarTextColourId));
+        } else {
+            g.setColour(isMouseOverOrDragging() ? findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f) : findColour(PlugDataColour::toolbarActiveColourId));
+        }
+
+        g.setFont(14.0f);
+        g.drawText(buttonText, getLocalBounds(), Justification::centred);
+    }
+};
+
+class VolumeSlider : public Slider {
+public:
+    VolumeSlider()
+        : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
+    {
+        setSliderSnapsToMousePosition(false);
+    }
+
+    void resized() override
+    {
+        setMouseDragSensitivity(getWidth() - (margin * 2));
+    }
+
+    void mouseMove(MouseEvent const& e) override
+    {
+        repaint();
+        Slider::mouseMove(e);
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        repaint();
+        Slider::mouseUp(e);
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        repaint();
+        Slider::mouseDown(e);
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto backgroundColour = findColour(PlugDataColour::levelMeterThumbColourId);
+
+        auto value = getValue();
+        auto thumbSize = getHeight() * 0.7f;
+        auto position = Point<float>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
+        auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
+        thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 12, thumb.getHeight());
+        g.setColour(backgroundColour.darker(thumb.contains(getMouseXYRelative().toFloat()) ? 0.3f : 0.0f).withAlpha(0.8f));
+        PlugDataLook::fillSmoothedRectangle(g, thumb, Corners::defaultCornerRadius * 0.5f);
+    }
+
+private:
+    int margin = 18;
+};
 
 class LevelMeter : public Component
-    , public StatusbarSource::Listener {
+    , public StatusbarSource::Listener
+    , public MultiTimer {
     float audioLevel[2] = { 0.0f, 0.0f };
-    float peekLevel[2] = { 0.0f, 0.0f };
+    float peakLevel[2] = { 0.0f, 0.0f };
 
     int numChannels = 2;
 
     bool clipping[2] = { false, false };
 
+    bool peakBarsFade[2] = { true, true };
+
+    float fadeFactor = 0.98f;
+
+    float lastPeak[2] = { 0.0f };
+    float lastLevel[2] = { 0.0f };
+    float repaintTheshold = 0.01f;
+
 public:
     LevelMeter() = default;
 
-    void audioLevelChanged(float level[2], float peak[2]) override
+    void audioLevelChanged(Array<float> peak) override
     {
-        bool hasChanged = false;
+        bool needsRepaint = false;
         for (int i = 0; i < 2; i++) {
-            if (audioLevel[i] != level[i] || peekLevel[i] != peak[i]) {
-                hasChanged = true;
-                audioLevel[i] = level[i];
-                peekLevel[i] = peak[i];
-                if (level[i] >= 1.0f)
+            audioLevel[i] *= fadeFactor;
+            if (peakBarsFade[i])
+                peakLevel[i] *= fadeFactor;
+
+            if (peak[i] > audioLevel[i]) {
+                audioLevel[i] = peak[i];
+                if (peak[i] >= 1.0f)
                     clipping[i] = true;
                 else
                     clipping[i] = false;
             }
+            if (peak[i] > peakLevel[i]) {
+                peakLevel[i] = peak[i];
+                peakBarsFade[i] = false;
+                startTimer(i, 1700);
+            }
+
+            if (std::abs(peakLevel[i] - lastPeak[i]) > repaintTheshold
+                || std::abs(audioLevel[i] - lastLevel[i]) > repaintTheshold
+                || (peakLevel[i] == 0.0f && lastPeak[i] != 0.0f)
+                || (audioLevel[i] == 0.0f && lastLevel[i] != 0.0f)) {
+                lastPeak[i] = peakLevel[i];
+                lastLevel[i] = audioLevel[i];
+
+                needsRepaint = true;
+            }
         }
-        if (isShowing() && hasChanged)
+
+        if (needsRepaint)
             repaint();
+    }
+
+    void timerCallback(int timerID) override
+    {
+        peakBarsFade[timerID] = true;
     }
 
     void paint(Graphics& g) override
@@ -79,8 +244,8 @@ public:
         auto height = getHeight() / 4.0f;
         auto barHeight = height * 0.6f;
         auto halfBarHeight = barHeight * 0.5f;
-        auto width = getWidth() - 8.0f;
-        auto x = 4.0f;
+        auto width = getWidth() - 12.0f;
+        auto x = 6.0f;
 
         auto outerBorderWidth = 2.0f;
         auto spacingFraction = 0.08f;
@@ -92,17 +257,17 @@ public:
         auto leftOffset = x + (bgHeight * 0.5f);
 
         g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
-        g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth, bgWidth, bgHeight, bgHeight * 0.5f);
+        g.fillRoundedRectangle(x + outerBorderWidth + 4, outerBorderWidth, bgWidth - 8, bgHeight, Corners::defaultCornerRadius);
 
         for (int ch = 0; ch < numChannels; ch++) {
             auto barYPos = outerBorderWidth + ((ch + 1) * (bgHeight / 3.0f)) - halfBarHeight;
             auto barLength = jmin(audioLevel[ch] * barWidth, barWidth);
-            auto peekPos = jmin(peekLevel[ch] * barWidth, barWidth);
+            auto peekPos = jmin(peakLevel[ch] * barWidth, barWidth);
 
             if (peekPos > 1) {
                 g.setColour(clipping[ch] ? Colours::red : findColour(PlugDataColour::levelMeterActiveColourId));
                 g.fillRect(leftOffset, barYPos, barLength, barHeight);
-                g.fillRect(leftOffset + peekPos + 1, barYPos, 1.0f, barHeight);
+                g.fillRect(leftOffset + peekPos, barYPos, 1.0f, barHeight);
             }
         }
     }
@@ -116,10 +281,10 @@ class MidiBlinker : public Component
 public:
     void paint(Graphics& g) override
     {
-        Fonts::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), findColour(ComboBox::textColourId), 11, Justification::centredRight);
+        Fonts::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28).withTrimmedTop(1), findColour(ComboBox::textColourId), 11, Justification::centredRight);
 
-        auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
-        auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
+        auto midiInRect = Rectangle<float>(38.0f, 9.5f, 15.0f, 3.0f);
+        auto midiOutRect = Rectangle<float>(38.0f, 18.5f, 15.0f, 3.0f);
 
         g.setColour(blinkMidiIn ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(midiInRect, 1.0f);
@@ -147,42 +312,25 @@ public:
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
-    levelMeter = new LevelMeter();
-    midiBlinker = new MidiBlinker();
+    levelMeter = std::make_unique<LevelMeter>();
+    midiBlinker = std::make_unique<MidiBlinker>();
+    volumeSlider = std::make_unique<VolumeSlider>();
+    oversampleSelector = std::make_unique<OversampleSelector>(processor);
 
-    pd->statusbarSource->addListener(levelMeter);
-    pd->statusbarSource->addListener(midiBlinker);
+    pd->statusbarSource->addListener(levelMeter.get());
+    pd->statusbarSource->addListener(midiBlinker.get());
     pd->statusbarSource->addListener(this);
 
     setWantsKeyboardFocus(true);
 
-    oversampleSelector.setTooltip("Set oversampling");
-    oversampleSelector.getProperties().set("FontScale", 0.5f);
-    oversampleSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+    oversampleSelector->setTooltip("Set oversampling");
+    oversampleSelector->getProperties().set("FontScale", 0.5f);
+    oversampleSelector->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
-    oversampleSelector.setButtonText(String(1 << pd->oversampling) + "x");
-
-    oversampleSelector.onClick = [this]() {
-        PopupMenu menu;
-        menu.addItem(1, "1x");
-        menu.addItem(2, "2x");
-        menu.addItem(3, "4x");
-        menu.addItem(4, "8x");
-
-        auto* editor = pd->getActiveEditor();
-        ArrowPopupMenu::showMenuAsync(&menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&oversampleSelector).withParentComponent(editor),
-            [this](int result) {
-                if (result != 0) {
-                    oversampleSelector.setButtonText(String(1 << (result - 1)) + "x");
-                    pd->setOversampling(result - 1);
-                }
-            });
-    };
-    addAndMakeVisible(oversampleSelector);
+    oversampleSelector->setButtonText(String(1 << pd->oversampling) + "x");
+    addAndMakeVisible(*oversampleSelector);
 
     powerButton.setButtonText(Icons::Power);
-    connectionStyleButton.setButtonText(Icons::ConnectionStyle);
-    connectionPathfind.setButtonText(Icons::Wand);
     protectButton.setButtonText(Icons::Protection);
     centreButton.setButtonText(Icons::Centre);
     fitAllButton.setButtonText(Icons::FitAll);
@@ -218,30 +366,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     addAndMakeVisible(fitAllButton);
 
-    connectionStyleButton.setTooltip("Enable segmented connections");
-    connectionStyleButton.setClickingTogglesState(true);
-    connectionStyleButton.getProperties().set("Style", "SmallIcon");
-    connectionStyleButton.onClick = [this]() {
-        bool segmented = connectionStyleButton.getToggleState();
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-
-        auto* cnv = editor->getCurrentCanvas();
-
-        // cnv->patch.startUndoSequence("ChangeSegmentedPaths");
-
-        for (auto& connection : cnv->getSelectionOfType<Connection>()) {
-            connection->setSegmented(segmented);
-        }
-
-        // cnv->patch.endUndoSequence("ChangeSegmentedPaths");
-    };
-    addAndMakeVisible(connectionStyleButton);
-
-    connectionPathfind.setTooltip("Find best connection path");
-    connectionPathfind.getProperties().set("Style", "SmallIcon");
-    connectionPathfind.onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
-    addAndMakeVisible(connectionPathfind);
-
     protectButton.setTooltip("Clip output signal and filter non-finite values");
     protectButton.getProperties().set("Style", "SmallIcon");
     protectButton.setClickingTogglesState(true);
@@ -253,26 +377,30 @@ Statusbar::Statusbar(PluginProcessor* processor)
     };
     addAndMakeVisible(protectButton);
 
-    addAndMakeVisible(volumeSlider);
+    volumeSlider->setRange(0.0f, 1.0f);
+    volumeSlider->setValue(0.8f);
+    volumeSlider->setDoubleClickReturnValue(true, 0.8f);
+    addAndMakeVisible(*volumeSlider);
 
-    volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), volumeSlider, nullptr);
+    if (ProjectInfo::isStandalone) {
+        volumeSlider->onValueChange = [this]() {
+            pd->volume->store(volumeSlider->getValue());
+        };
+    } else {
+        volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), *volumeSlider, nullptr);
+    }
 
-    volumeSlider.setRange(0.0f, 1.0f);
-    volumeSlider.setValue(0.8f);
-    volumeSlider.setDoubleClickReturnValue(true, 0.8f);
+    addAndMakeVisible(*levelMeter);
+    addAndMakeVisible(*midiBlinker);
 
-    addAndMakeVisible(levelMeter);
-    addAndMakeVisible(midiBlinker);
-
-    levelMeter->toBehind(&volumeSlider);
+    levelMeter->toBehind(volumeSlider.get());
 
     overlayButton.setButtonText(Icons::Eye);
     overlaySettingsButton.setButtonText(Icons::ThinDown);
 
-    overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
     overlaySettingsButton.onClick = [this]() {
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        overlayDisplaySettings->show(editor, editor->getLocalArea(this, overlaySettingsButton.getBounds()));
+        OverlayDisplaySettings::show(editor, editor->getLocalArea(this, overlaySettingsButton.getBounds()));
     };
 
     snapEnableButton.setButtonText(Icons::Magnet);
@@ -280,11 +408,15 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 
-    snapSettings = std::make_unique<SnapSettings>();
-
     snapSettingsButton.onClick = [this]() {
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        snapSettings->show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
+        SnapSettings::show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
+    };
+
+    alignmentButton.setButtonText(Icons::AlignLeft);
+    alignmentButton.onClick = [this]() {
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        AlignmentTools::show(editor, editor->getLocalArea(this, alignmentButton.getBounds()));
     };
 
     // overlay button
@@ -320,17 +452,21 @@ Statusbar::Statusbar(PluginProcessor* processor)
     snapEnableButton.setTooltip(String("Enable snapping"));
     snapSettingsButton.setTooltip(String("Snap settings"));
 
+    // alignment button
+    alignmentButton.getProperties().set("Style", "SmallIcon");
+
+    addAndMakeVisible(alignmentButton);
+
+    alignmentButton.setTooltip(String("Alignment tools"));
+
     setSize(getWidth(), statusbarHeight);
 }
 
 Statusbar::~Statusbar()
 {
-    pd->statusbarSource->removeListener(levelMeter);
-    pd->statusbarSource->removeListener(midiBlinker);
+    pd->statusbarSource->removeListener(levelMeter.get());
+    pd->statusbarSource->removeListener(midiBlinker.get());
     pd->statusbarSource->removeListener(this);
-
-    delete midiBlinker;
-    delete levelMeter;
 }
 
 void Statusbar::propertyChanged(String const& name, var const& value)
@@ -341,49 +477,57 @@ void Statusbar::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawLine(0.0f, 0.5f, static_cast<float>(getWidth()), 0.5f);
+
+    g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
+    g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
+    g.drawLine(thirdSeparatorPosition, 6.0f, thirdSeparatorPosition, getHeight() - 6.0f);
 }
 
 void Statusbar::resized()
 {
-    int pos = 0;
+    int pos = 1;
     auto position = [this, &pos](int width, bool inverse = false) -> int {
         int result = 8 + pos;
         pos += width + 3;
         return inverse ? getWidth() - pos : result;
     };
 
-    connectionStyleButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    connectionPathfind.setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    auto spacing = getHeight() + 4;
 
-    position(5); // Seperator
+    centreButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    fitAllButton.setBounds(position(spacing), 0, getHeight(), getHeight());
 
-    centreButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    fitAllButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    position(7); // Seperator
+    firstSeparatorPosition = position(7) + 3.5f; // Second seperator
 
-    overlayButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(overlayButton.getWidth() - 1, 0).withTrimmedRight(8));
+    overlayButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    overlaySettingsButton.setBounds(overlayButton.getBounds().translated(getHeight() - 3, 0).withTrimmedRight(8));
+    position(10);
 
-    position(getHeight() - 8);
+    snapEnableButton.setBounds(position(spacing), 0, getHeight(), getHeight());
+    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(getHeight() - 3, 0).withTrimmedRight(8));
+    position(10);
 
-    snapEnableButton.setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    snapSettingsButton.setBounds(snapEnableButton.getBounds().translated(snapEnableButton.getWidth() - 1, 0).withTrimmedRight(8));
+    alignmentButton.setBounds(position(spacing), 0, getHeight(), getHeight());
 
-    pos = 5; // reset position for elements on the right
+    pos = 4; // reset position for elements on the right
 
     protectButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     powerButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     // TODO: combine these both into one
-    int levelMeterPosition = position(120, true);
+    int levelMeterPosition = position(110, true);
     levelMeter->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
-    volumeSlider.setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
+    volumeSlider->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
+
+    secondSeparatorPosition = position(5, true) + 5.0f; // Third seperator
 
     // Offset to make text look centred
-    oversampleSelector.setBounds(position(getHeight(), true) + 3, 1, getHeight() - 2, getHeight() - 2);
+    oversampleSelector->setBounds(position(spacing - 8, true), 1, getHeight() - 2, getHeight() - 2);
 
-    midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
+    thirdSeparatorPosition = position(5, true) + 2.5f; // Fourth seperator
+
+    midiBlinker->setBounds(position(55, true) - 8, 0, 55, getHeight());
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)
@@ -412,49 +556,18 @@ void StatusbarSource::setSampleRate(double const newSampleRate)
     sampleRate = static_cast<int>(newSampleRate);
 }
 
-void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
+void StatusbarSource::setBufferSize(int bufferSize)
+{
+    this->bufferSize = bufferSize;
+}
+
+void StatusbarSource::processBlock(MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
 {
     if (channels == 1) {
         level[1] = 0;
     } else if (channels == 0) {
         level[0] = 0;
         level[1] = 0;
-    }
-
-    int delay = sampleRate * 1.7;
-
-    for (int ch = 0; ch < 2; ch++) {
-        auto localLevel = level[ch].load();
-        auto localPeakHold = peakHold[ch].load();
-        float peak = buffer.getMagnitude(ch, 0, buffer.getNumSamples());
-
-        for (int n = 0; n < buffer.getNumSamples(); n++) {
-            float const decayFactor = 0.99996f;
-
-            if (peak > localLevel) {
-                localLevel = peak;
-            }
-
-            if (peak > localPeakHold) {
-                localPeakHold = peak;
-                peakHoldDelay[ch] = delay;
-            }
-
-            if (localLevel > 0.001f) {
-                localLevel *= decayFactor;
-            } else {
-                localLevel = 0;
-            }
-
-            if (peakHoldDelay[ch] >= 0) {
-                peakHoldDelay[ch]--;
-            } else {
-                localPeakHold *= decayFactor;
-            }
-        }
-
-        level[ch] = localLevel;
-        peakHold[ch] = localPeakHold;
     }
 
     auto nowInMs = Time::getCurrentTime().getMillisecondCounter();
@@ -472,6 +585,7 @@ void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer&
 void StatusbarSource::prepareToPlay(int nChannels)
 {
     numChannels = nChannels;
+    peakBuffer.reset(sampleRate, bufferSize, nChannels);
 }
 
 void StatusbarSource::timerCallback()
@@ -498,11 +612,10 @@ void StatusbarSource::timerCallback()
             listener->audioProcessedChanged(hasProcessedAudio);
     }
 
-    float currentLevel[2] = { level[0].load(), level[1].load() };
-    float currentPeak[2] = { peakHold[0].load(), peakHold[1].load() };
+    auto peak = peakBuffer.getPeak();
+
     for (auto* listener : listeners) {
-        listener->audioLevelChanged(currentLevel, currentPeak);
-        listener->timerCallback();
+        listener->audioLevelChanged(peak);
     }
 }
 

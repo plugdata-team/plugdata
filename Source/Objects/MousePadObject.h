@@ -9,6 +9,7 @@ class MousePadObject final : public ObjectBase {
     bool isPressed = false;
 
     Point<int> lastPosition;
+    Value sizeProperty = SynchronousValue();
 
 public:
     MousePadObject(void* ptr, Object* object)
@@ -21,18 +22,15 @@ public:
             if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !cnv->isShowing() || isPressed)
                 return;
 
-            pd->setThis();
-
-            auto* x = static_cast<t_fake_pad*>(this->ptr);
             t_atom at[3];
-
-            x->x_x = relativeEvent.getPosition().x;
-            x->x_y = getHeight() - relativeEvent.getPosition().y;
-
             SETFLOAT(at, 1.0f);
-            pd->lockAudioThread();
-            outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
-            pd->unlockAudioThread();
+
+            if (auto pad = this->ptr.get<t_fake_pad>()) {
+                pad->x_x = relativeEvent.getPosition().x;
+                pad->x_y = getHeight() - relativeEvent.getPosition().y;
+
+                outlet_anything(pad->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
+            }
 
             isPressed = true;
         };
@@ -40,18 +38,18 @@ public:
             if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed || !isLocked() || !cnv->isShowing())
                 return;
 
-            auto* x = static_cast<t_fake_pad*>(this->ptr);
-            t_atom at[1];
-            SETFLOAT(at, 0);
-            outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
+            if (auto pad = this->ptr.get<t_fake_pad>()) {
+                t_atom at[1];
+                SETFLOAT(at, 0);
+                outlet_anything(pad->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
+            }
+
             isPressed = false;
         };
 
         mouseListener.globalMouseMove = [this](MouseEvent const& e) {
             if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked() || !cnv->isShowing())
                 return;
-
-            auto* x = static_cast<t_fake_pad*>(this->ptr);
 
             auto relativeEvent = e.getEventRelativeTo(this);
 
@@ -64,19 +62,16 @@ public:
 
             lastPosition = relativeEvent.getPosition();
 
-            pd->setThis();
-            pd->lockAudioThread();
+            if (auto pad = this->ptr.get<t_fake_pad>()) {
+                pad->x_x = xPos;
+                pad->x_y = yPos;
 
-            x->x_x = xPos;
-            x->x_y = yPos;
+                t_atom at[3];
+                SETFLOAT(at, xPos);
+                SETFLOAT(at + 1, yPos);
 
-            t_atom at[3];
-            SETFLOAT(at, xPos);
-            SETFLOAT(at + 1, yPos);
-
-            outlet_anything(x->x_obj.ob_outlet, gensym("list"), 2, at);
-
-            pd->unlockAudioThread();
+                outlet_anything(pad->x_obj.ob_outlet, gensym("list"), 2, at);
+            }
         };
 
         mouseListener.globalMouseDrag = [this](MouseEvent const& e) {
@@ -84,13 +79,15 @@ public:
         };
 
         setInterceptsMouseClicks(false, false);
+
+        objectParameters.addParamSize(&sizeProperty);
     }
 
     ~MousePadObject() = default;
 
     void paint(Graphics& g) override
     {
-        auto* x = static_cast<t_fake_pad*>(ptr);
+        auto* x = ptr.getRaw<t_fake_pad>();
         auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
         g.setColour(fillColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
@@ -103,23 +100,66 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        if (auto pad = ptr.get<t_fake_pad>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-        auto* pad = static_cast<t_fake_pad*>(ptr);
-        pad->x_w = b.getWidth() - 1;
-        pad->x_h = b.getHeight() - 1;
+            libpd_moveobj(patch, pad.cast<t_gobj>(), b.getX(), b.getY());
+            pad->x_w = b.getWidth() - 1;
+            pad->x_h = b.getHeight() - 1;
+        }
     }
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
 
-        pd->unlockAudioThread();
+            return { x, y, w + 1, h + 1 };
+        }
 
-        return { x, y, w + 1, h + 1 };
+        return {};
+    }
+
+    void update() override
+    {
+        if (auto pad = ptr.get<t_fake_pad>()) {
+            sizeProperty = Array<var> { var(pad->x_w), var(pad->x_h) };
+        }
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto pad = ptr.get<t_fake_pad>()) {
+            setParameterExcludingListener(sizeProperty, Array<var> { var(pad->x_w), var(pad->x_h) });
+        }
+    }
+
+    void valueChanged(Value& value) override
+    {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto pad = ptr.get<t_fake_pad>()) {
+                pad->x_w = width;
+                pad->x_h = height;
+            }
+
+            object->updateBounds();
+        }
     }
 
     // Check if top-level canvas is locked to determine if we should respond to mouse events

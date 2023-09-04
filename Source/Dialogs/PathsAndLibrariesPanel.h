@@ -1,7 +1,5 @@
 #include <utility>
 
-#include <utility>
-
 /*
  // Copyright (c) 2021-2023 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -18,7 +16,7 @@ class ActionButton : public Component {
 
 public:
     ActionButton(String iconToShow, String textToShow, bool roundOnTop = false)
-        : icon(std::move(std::move(iconToShow)))
+        : icon(std::move(iconToShow))
         , text(std::move(textToShow))
         , roundTop(roundOnTop)
     {
@@ -171,7 +169,7 @@ public:
         p.addRoundedRectangle(resetButtonBounds.reduced(3.0f), Corners::largeCornerRadius);
         StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId).brighter(0.25f));
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
@@ -184,7 +182,7 @@ public:
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
         StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId).brighter(0.25f));
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
@@ -532,7 +530,7 @@ public:
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
         StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId).brighter(0.25f));
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
@@ -774,5 +772,5 @@ private:
     LibraryLoadPanel libraryLoadPanel;
 
     Component container;
-    Viewport viewport;
+    BouncingViewport viewport;
 };

@@ -10,15 +10,16 @@
 
 #include <utility>
 
-#include <utility>
 #include "DraggableNumber.h"
 #include "ColourPicker.h"
+#include "Utility/BouncingViewport.h"
 
-class PropertiesPanel : public Component
-    , public ScrollBar::Listener {
-
+class PropertiesPanel : public Component {
 public:
-    std::function<void()> onLayoutChange = []() {};
+    enum TitleAlignment {
+        AlignWithSection,
+        AlignWithPropertyName,
+    };
 
     class Property : public PropertyComponent {
 
@@ -92,22 +93,33 @@ private:
         {
             auto [x, width] = parent.getContentXAndWidth();
 
-            Fonts::drawStyledText(g, getName(), x, 0, width - 4, titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
+            auto titleX = x;
+            if (parent.titleAlignment == AlignWithPropertyName) {
+                titleX += 8;
+            }
 
-            auto propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
+            Fonts::drawStyledText(g, getName(), titleX, 0, width - 4, parent.titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 14.5f);
 
-            Path p;
-            p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+            auto propertyBounds = Rectangle<float>(x, parent.titleHeight + 8.0f, width, getHeight() - (parent.titleHeight + 16.0f));
 
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId).brighter(0.25f));
+            // Don't draw the shadow if the background colour has opacity
+            if (parent.drawShadowAndOutline) {
+                Path p;
+                p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
+                StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+            }
+
+            g.setColour(parent.panelColour);
             g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-            g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
+            // Don't draw the outline if the background colour has opacity
+            if (parent.drawShadowAndOutline) {
+                g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+                g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
+            }
 
             if (!propertyComps.isEmpty() && !extraHeaderNames.isEmpty()) {
-                auto propertyBounds = Rectangle<int>(x + width / 2, 0, width / 2, titleHeight);
+                auto propertyBounds = Rectangle<int>(x + width / 2, 0, width / 2, parent.titleHeight);
                 auto extraHeaderWidth = propertyBounds.getWidth() / static_cast<float>(extraHeaderNames.size());
 
                 for (auto& extraHeader : extraHeaderNames) {
@@ -127,7 +139,7 @@ private:
         {
             auto [x, width] = parent.getContentXAndWidth();
 
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
+            g.setColour(parent.separatorColour);
 
             for (int i = 0; i < propertyComps.size() - 1; i++) {
                 auto y = propertyComps[i]->getBottom() + padding;
@@ -137,7 +149,7 @@ private:
 
         void resized() override
         {
-            auto y = titleHeight + 8;
+            auto y = parent.titleHeight + 8;
             auto [x, width] = parent.getContentXAndWidth();
 
             for (auto* propertyComponent : propertyComps) {
@@ -148,14 +160,13 @@ private:
 
         void lookAndFeelChanged() override
         {
-            titleHeight = getLookAndFeel().getPropertyPanelSectionHeaderHeight(getName()) + 4;
             resized();
             repaint();
         }
 
         int getPreferredHeight() const
         {
-            auto y = titleHeight;
+            auto y = parent.titleHeight;
 
             auto numComponents = propertyComps.size();
 
@@ -177,8 +188,8 @@ private:
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (e.getMouseDownX() < titleHeight
-                && e.x < titleHeight
+            if (e.getMouseDownX() < parent.titleHeight
+                && e.x < parent.titleHeight
                 && e.getNumberOfClicks() != 2)
                 mouseDoubleClick(e);
         }
@@ -186,7 +197,6 @@ private:
         PropertiesPanel& parent;
         OwnedArray<Property> propertyComps;
         StringArray extraHeaderNames;
-        int titleHeight {};
         int padding;
 
         JUCE_DECLARE_NON_COPYABLE(SectionComponent)
@@ -197,7 +207,7 @@ private:
 
         void paint(Graphics&) override { }
 
-        void updateLayout(int width)
+        void updateLayout(int width, int viewHeight)
         {
             auto y = 4;
 
@@ -206,7 +216,7 @@ private:
                 y = section->getBottom();
             }
 
-            setSize(width, y);
+            setSize(width, std::max(viewHeight, y));
             repaint();
         }
 
@@ -263,7 +273,7 @@ public:
     struct FontEntry : public PopupMenu::CustomComponent {
         String fontName;
         explicit FontEntry(String name)
-            : fontName(std::move(std::move(name)))
+            : fontName(std::move(name))
         {
         }
 
@@ -395,6 +405,16 @@ public:
             toggleStateValue.addListener(this);
         }
 
+        // Allow creation without an attached juce::Value, but with an initial value
+        // We need this constructor sometimes to prevent feedback caused by the initial value being set after the listener is attached
+        BoolComponent(String const& propertyName, bool initialValue, StringArray options)
+            : Property(propertyName)
+            , textOptions(std::move(options))
+        {
+            toggleStateValue = initialValue;
+            toggleStateValue.addListener(this);
+        }
+
         ~BoolComponent()
         {
             toggleStateValue.removeListener(this);
@@ -402,6 +422,8 @@ public:
 
         bool hitTest(int x, int y) override
         {
+            if(!isEnabled()) return false;
+            
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
             return bounds.contains(x, y);
         }
@@ -423,6 +445,11 @@ public:
             }
 
             auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            
+            if(!isEnabled())
+            {
+                textColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f);
+            }
             Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
 
             // Paint label
@@ -441,7 +468,7 @@ public:
 
         void mouseUp(MouseEvent const& e) override
         {
-            toggleStateValue = !getValue<bool>(toggleStateValue);
+            toggleStateValue.setValue(!getValue<bool>(toggleStateValue));
             repaint();
         }
 
@@ -488,8 +515,8 @@ public:
 
             void mouseDown(MouseEvent const& e) override
             {
-                auto pickerBounds = getLocalBounds() + getScreenPosition();
-                ColourPicker::show(getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
+                auto pickerBounds = getScreenBounds().expanded(5);
+                ColourPicker::getInstance().show(getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
                     if (!_this)
                         return;
 
@@ -516,8 +543,8 @@ public:
             hexValueEditor.setInputRestrictions(7, "#0123456789ABCDEFabcdef");
             hexValueEditor.setColour(outlineColourId, Colour());
             hexValueEditor.setJustification(Justification::centred);
-            hexValueEditor.setFont(Fonts::getMonospaceFont().withPointHeight(13));
-            hexValueEditor.onTextChange = [this](){
+
+            hexValueEditor.onTextChange = [this]() {
                 currentColour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
             };
 
@@ -542,7 +569,7 @@ public:
             auto colourSwatchBounds = bounds.removeFromLeft(getHeight()).reduced(4).translated(12, 0);
 
             swatchComponent.setBounds(colourSwatchBounds);
-            hexValueEditor.setBounds(bounds.translated(0, -2));
+            hexValueEditor.setBounds(bounds.translated(0, -3));
         }
 
         void valueChanged(Value& v) override
@@ -567,11 +594,11 @@ public:
 
         float min, max;
 
-        RangeComponent(String const& propertyName, Value& value)
+        RangeComponent(String const& propertyName, Value& value, bool integerMode)
             : Property(propertyName)
             , property(value)
-            , minLabel(false)
-            , maxLabel(false)
+            , minLabel(integerMode)
+            , maxLabel(integerMode)
         {
             property.addListener(this);
 
@@ -602,12 +629,12 @@ public:
                 property = var(arr);
             };
 
-            minLabel.valueChanged = setMinimum;
+            minLabel.onValueChange = setMinimum;
             minLabel.onTextChange = [this, setMinimum]() {
                 setMinimum(minLabel.getText().getFloatValue());
             };
 
-            maxLabel.valueChanged = setMaximum;
+            maxLabel.onValueChange = setMaximum;
             maxLabel.onTextChange = [this, setMaximum]() {
                 setMaximum(maxLabel.getText().getFloatValue());
             };
@@ -616,6 +643,22 @@ public:
         ~RangeComponent() override
         {
             property.removeListener(this);
+        }
+
+        DraggableNumber& getMinimumComponent()
+        {
+            return minLabel;
+        }
+
+        DraggableNumber& getMaximumComponent()
+        {
+            return maxLabel;
+        }
+
+        void setIntegerMode(bool integerMode)
+        {
+            minLabel.setDragMode(integerMode ? DraggableNumber::Integer : DraggableNumber::Regular);
+            maxLabel.setDragMode(integerMode ? DraggableNumber::Integer : DraggableNumber::Regular);
         }
 
         void resized() override
@@ -649,10 +692,12 @@ public:
                 auto* draggableNumber = new DraggableNumber(std::is_integral<T>::value);
                 label = std::unique_ptr<DraggableNumber>(draggableNumber);
 
+                // By setting the text before attaching the value, we can prevent an unnesssary/harmful call to ValueChanged
+                draggableNumber->setText(property.toString(), dontSendNotification);
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
 
-                draggableNumber->valueChanged = [this](float value) {
+                draggableNumber->onValueChange = [this](float value) {
                     property = value;
                 };
 
@@ -781,7 +826,7 @@ public:
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
                 Path p;
-                p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, true);
+                p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, roundBottom);
                 g.fillPath(p);
 
                 colour = findColour(PlugDataColour::panelActiveTextColourId);
@@ -820,13 +865,16 @@ public:
         viewport.setViewedComponent(propertyHolderComponent = new PropertyHolderComponent());
         viewport.setFocusContainerType(FocusContainerType::focusContainer);
 
-        viewport.getVerticalScrollBar().addListener(this);
+        viewport.addMouseListener(this, true);
+
+        panelColour = findColour(PlugDataColour::panelForegroundColourId);
+        separatorColour = findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f);
     }
 
     /** Destructor. */
     ~PropertiesPanel() override
     {
-        viewport.getVerticalScrollBar().removeListener(this);
+        viewport.removeMouseListener(this);
         clear();
     }
 
@@ -864,6 +912,18 @@ public:
         repaint();
     }
 
+    Component* getSectionByName(String const& name) const noexcept
+    {
+        if (propertyHolderComponent) {
+            for (auto* section : propertyHolderComponent->sections) {
+                if (section->getName() == name)
+                    return section;
+            }
+        }
+
+        return nullptr;
+    }
+
     std::pair<int, int> getContentXAndWidth()
     {
         auto marginWidth = (getWidth() - contentWidth) / 2;
@@ -896,6 +956,31 @@ public:
         }
     }
 
+    void setTitleAlignment(TitleAlignment newTitleAlignment)
+    {
+        titleAlignment = newTitleAlignment;
+    }
+
+    void setPanelColour(Colour newPanelColour)
+    {
+        panelColour = newPanelColour;
+    }
+
+    void setSeparatorColour(Colour newSeparatorColour)
+    {
+        separatorColour = newSeparatorColour;
+    }
+
+    void setDrawShadowAndOutline(bool shouldDrawShadowAndOutline)
+    {
+        drawShadowAndOutline = shouldDrawShadowAndOutline;
+    }
+
+    void setTitleHeight(int newTitleHeight)
+    {
+        titleHeight = newTitleHeight;
+    }
+
     // Sets extra section header text
     // All lines passed in here will be divided equally across the non-label area of the property
     // Useful for naming rows when using a MultiPropertyComponent
@@ -915,24 +1000,23 @@ public:
     void updatePropHolderLayout() const
     {
         auto maxWidth = viewport.getMaximumVisibleWidth();
-        propertyHolderComponent->updateLayout(maxWidth);
+        auto maxHeight = viewport.getMaximumVisibleHeight();
+        propertyHolderComponent->updateLayout(maxWidth, maxHeight);
 
         auto newMaxWidth = viewport.getMaximumVisibleWidth();
         if (maxWidth != newMaxWidth) {
-            // need to do this twice because of scrollbars changing the size, etc.
-            propertyHolderComponent->updateLayout(newMaxWidth);
+            // need to do this twice because of vertical scrollbar changing the size, etc.
+            propertyHolderComponent->updateLayout(newMaxWidth, maxHeight);
         }
-
-        onLayoutChange();
     }
 
-    void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
-    {
-        onLayoutChange();
-    }
-
+    TitleAlignment titleAlignment = AlignWithSection;
+    Colour panelColour;
+    Colour separatorColour;
+    bool drawShadowAndOutline = true;
+    int titleHeight = 26;
     int contentWidth = 600;
-    Viewport viewport;
+    BouncingViewport viewport;
     PropertyHolderComponent* propertyHolderComponent;
     String messageWhenEmpty;
 };

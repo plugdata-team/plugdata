@@ -73,8 +73,11 @@ struct TextObjectHelper {
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto fontWidth = glist_fontwidth(object->cnv->patch.getPointer());
-                auto* patch = object->cnv->patch.getPointer();
+                auto* patch = object->cnv->patch.getPointer().get();
+                if (!patch)
+                    return;
+
+                auto fontWidth = glist_fontwidth(patch);
 
                 // Remove margin
                 auto newBounds = bounds.reduced(Object::margin);
@@ -193,6 +196,7 @@ protected:
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
 
+    Value sizeProperty = SynchronousValue();
     String objectText;
     int numLines = 1;
     bool isValid = true;
@@ -205,9 +209,18 @@ public:
     {
         objectText = getText();
         isLocked = getValue<bool>(cnv->locked);
+
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
     }
 
     ~TextBase() override = default;
+
+    void update() override
+    {
+        if (auto obj = ptr.get<t_text>()) {
+            sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
+        }
+    }
 
     void paint(Graphics& g) override
     {
@@ -265,9 +278,6 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
-
-        auto* cnvPtr = cnv->patch.getPointer();
 
         String objText;
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
@@ -278,30 +288,57 @@ public:
             objText = objectText;
         }
 
-        auto newNumLines = 0;
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
+        if (auto obj = ptr.get<void>()) {
+            auto* cnvPtr = cnv->patch.getPointer().get();
+            if (!cnvPtr)
+                return {};
 
-        numLines = newNumLines;
+            auto newNumLines = 0;
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.get(), objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
 
-        pd->unlockAudioThread();
+            numLines = newNumLines;
+            return newBounds;
+        }
 
-        return newBounds;
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-        if (TextObjectHelper::getWidthInChars(ptr)) {
-            TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
+            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+
+            if (TextObjectHelper::getWidthInChars(gobj.get())) {
+                TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
+            }
+
+            auto type = hash(getText().upToFirstOccurrenceOf(" ", false, false));
+
+            if (type == hash("inlet") || type == hash("inlet~")) {
+                canvas_resortinlets(patch);
+            } else if (type == hash("outlet") || type == hash("outlet~")) {
+                canvas_resortoutlets(patch);
+            }
         }
     }
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         if (isLocked) {
-            click();
+            click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown());
         }
+    }
+
+    bool showParametersWhenSelected() override
+    {
+        return false;
     }
 
     void hideEditor() override
@@ -372,6 +409,31 @@ public:
 
             resized();
             repaint();
+        }
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto text = ptr.get<t_text>()) {
+            setParameterExcludingListener(sizeProperty, TextObjectHelper::getWidthInChars(text.get()));
+        }
+    }
+
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+
+            setParameterExcludingListener(sizeProperty, width);
+
+            if (auto text = ptr.get<t_text>()) {
+                TextObjectHelper::setWidthInChars(text.get(), width);
+            }
+
+            object->updateBounds();
         }
     }
 

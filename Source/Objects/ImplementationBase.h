@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "Utility/HashUtils.h"
 #include "Pd/Instance.h"
 #include "Pd/MessageListener.h"
 #include "Constants.h"
@@ -32,17 +31,19 @@ public:
     Canvas* getMainCanvas(void* patchPtr) const;
 
     PluginProcessor* pd;
-    void* ptr;
+    pd::WeakReference ptr;
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(ImplementationBase);
 };
 
-class ObjectImplementationManager {
+class ObjectImplementationManager : public AsyncUpdater {
 public:
     explicit ObjectImplementationManager(pd::Instance* pd);
 
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(void* patch);
+
+    void handleAsyncUpdate();
 
 private:
     Array<void*> getImplementationsForPatch(void* patch);

@@ -12,12 +12,12 @@ public:
     SubpatchImpl(void* ptr, PluginProcessor* pd)
         : ImplementationBase(ptr, pd)
     {
-        pd->registerMessageListener(ptr, this);
+        pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
     ~SubpatchImpl() override
     {
-        pd->unregisterMessageListener(ptr, this);
+        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
         closeOpenedSubpatchers();
     }
 
@@ -113,7 +113,8 @@ public:
         if (type == Key) {
             t_symbol* dummy;
             parseKey(keyCode, dummy);
-            pd->sendDirectMessage(ptr, keyCode);
+            if (auto obj = ptr.get<t_pd>())
+                pd->sendDirectMessage(obj.get(), keyCode);
         } else if (type == KeyName) {
 
             String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
@@ -128,7 +129,8 @@ public:
             t_symbol* keysym = pd->generateSymbol(keyString);
             parseKey(keyCode, keysym);
 
-            pd->sendDirectMessage(ptr, { 1.0f, keysym });
+            if (auto obj = ptr.get<t_pd>())
+                pd->sendDirectMessage(obj.get(), { 1.0f, keysym });
         }
 
         // Never claim the keypress
@@ -189,7 +191,8 @@ public:
                     if (type == KeyUp) {
                         t_symbol* dummy;
                         parseKey(keyCode, dummy);
-                        pd->sendDirectMessage(ptr, keyCode);
+                        if (auto obj = ptr.get<t_pd>())
+                            pd->sendDirectMessage(obj.get(), keyCode);
                     } else if (type == KeyName) {
 
                         String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
@@ -203,7 +206,8 @@ public:
 
                         t_symbol* keysym = pd->generateSymbol(keyString);
                         parseKey(keyCode, keysym);
-                        pd->sendDirectMessage(ptr, { 0.0f, keysym });
+                        if (auto obj = ptr.get<t_pd>())
+                            pd->sendDirectMessage(obj.get(), { 0.0f, keysym });
                     }
 
                     keyPressTimes.remove(n);
@@ -337,7 +341,7 @@ public:
             return;
 
         void* patch;
-        sscanf(static_cast<t_fake_active*>(ptr)->x_cname->s_name, ".x%lx.c", (unsigned long*)&patch);
+        sscanf(ptr.get<t_fake_active>()->x_cname->s_name, ".x%lx.c", (unsigned long*)&patch);
 
         cnv = getMainCanvas(patch);
         if (!cnv)
@@ -346,11 +350,12 @@ public:
         lastFocus = cnv->hasKeyboardFocus(true);
         Desktop::getInstance().addFocusChangeListener(this);
 
-        auto* y = cnv->patch.getPointer();
-        char buf[MAXPDSTRING];
-        snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)y);
-        buf[MAXPDSTRING - 1] = 0;
-        canvasName = pd->generateSymbol(buf);
+        if (auto y = cnv->patch.getPointer()) {
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)y.get());
+            buf[MAXPDSTRING - 1] = 0;
+            canvasName = pd->generateSymbol(buf);
+        }
     };
 
     void globalFocusChanged(Component* focusedComponent) override
@@ -359,7 +364,10 @@ public:
             return;
 
         if (!focusedComponent) {
-            pd->sendTypedMessage(ptr, "_focus", { canvasName, 0.0f });
+            if (auto obj = ptr.get<void>()) {
+                pd->sendTypedMessage(obj.get(), "_focus", { canvasName, 0.0f });
+            }
+
             lastFocus = false;
             return;
         }
@@ -368,32 +376,32 @@ public:
 
         Canvas* focusedCanvas = nullptr;
 
-        auto* active = static_cast<t_fake_active*>(ptr);
+        if (auto active = ptr.get<t_fake_active>()) {
+            if (active->x_name) {
+                focusedCanvas = dynamic_cast<Canvas*>(focusedComponent);
+                if (!focusedCanvas) {
+                    focusedCanvas = focusedComponent->findParentComponentOfClass<Canvas>();
+                }
+                if (!focusedCanvas)
+                    return;
 
-        if (active->x_name) {
-            focusedCanvas = dynamic_cast<Canvas*>(focusedComponent);
-            if (!focusedCanvas) {
-                focusedCanvas = focusedComponent->findParentComponentOfClass<Canvas>();
-            }
-            if (!focusedCanvas)
+                char buf[MAXPDSTRING];
+                snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)focusedCanvas->patch.getPointer());
+                buf[MAXPDSTRING - 1] = 0;
+
+                auto* name = pd->generateSymbol(String::fromUTF8(buf));
+
+                if (lastFocussedName != name) {
+                    pd->sendTypedMessage(active.cast<t_pd>(), "_focus", { name, static_cast<float>(shouldHaveFocus) });
+                    lastFocussedName = name;
+                }
                 return;
-
-            char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)focusedCanvas->patch.getPointer());
-            buf[MAXPDSTRING - 1] = 0;
-
-            auto* name = pd->generateSymbol(String::fromUTF8(buf));
-
-            if (lastFocussedName != name) {
-                pd->sendTypedMessage(ptr, "_focus", { name, static_cast<float>(shouldHaveFocus) });
-                lastFocussedName = name;
             }
-            return;
-        }
 
-        if (shouldHaveFocus != lastFocus) {
-            pd->sendTypedMessage(ptr, "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
-            lastFocus = shouldHaveFocus;
+            if (shouldHaveFocus != lastFocus) {
+                pd->sendTypedMessage(active.cast<t_pd>(), "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
+                lastFocus = shouldHaveFocus;
+            }
         }
     }
 };
@@ -413,12 +421,12 @@ public:
     CanvasMouseObject(void* ptr, PluginProcessor* pd)
         : ImplementationBase(ptr, pd)
     {
-        pd->registerMessageListener(ptr, this);
+        pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
     ~CanvasMouseObject() override
     {
-        pd->unregisterMessageListener(ptr, this);
+        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
         if (!cnv)
             return;
 
@@ -438,23 +446,26 @@ public:
         char* text;
         int size;
 
-        auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
+        t_glist* canvasToFind;
+        if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
+            binbuf_gettext(mouse->x_obj.te_binbuf, &text, &size);
 
-        binbuf_gettext(mouse->x_obj.te_binbuf, &text, &size);
+            int depth = 0;
+            for (auto& arg : StringArray::fromTokens(String::fromUTF8(text, size), false)) {
+                if (arg.containsOnly("0123456789")) {
+                    depth = arg.getIntValue();
+                    break;
+                }
+            }
 
-        int depth = 0;
-        for (auto& arg : StringArray::fromTokens(String::fromUTF8(text, size), false)) {
-            if (arg.containsOnly("0123456789")) {
-                depth = arg.getIntValue();
-                break;
+            if (depth > 0) {
+                canvasToFind = mouse->x_canvas->gl_owner;
+            } else {
+                canvasToFind = mouse->x_canvas;
             }
         }
 
-        if (depth > 0) {
-            cnv = getMainCanvas(mouse->x_canvas->gl_owner);
-        } else {
-            cnv = getMainCanvas(mouse->x_canvas);
-        }
+        cnv = getMainCanvas(canvasToFind);
 
         freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
 
@@ -468,17 +479,16 @@ public:
     {
         auto relativeEvent = e.getEventRelativeTo(cnv);
 
-        auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
-        auto* x = mouse->x_canvas;
-
         pos = cnv->getLocalPoint(e.originalComponent, e.getPosition()) - cnv->canvasOrigin;
-
         bool positionChanged = lastPosition != pos;
-
         lastPosition = pos;
 
-        if (mouse->x_pos) {
-            pos -= Point<int>(x->gl_obj.te_xpix, x->gl_obj.te_ypix);
+        if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
+            auto* x = mouse->x_canvas;
+
+            if (mouse->x_pos) {
+                pos -= Point<int>(x->gl_obj.te_xpix, x->gl_obj.te_ypix);
+            }
         }
 
         return positionChanged;
@@ -486,24 +496,18 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         if (pd->isPerformingGlobalSync)
             return;
 
         if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
-        Point<int> pos;
-        getMousePos(e, pos);
-
-        pos -= zeroPosition;
-
-        auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
-
-        pd->lockAudioThread();
-        outlet_float(mouse->x_outlet_y, (float)pos.y);
-        outlet_float(mouse->x_outlet_x, (float)pos.x);
-        outlet_float(mouse->x_obj.ob_outlet, 1.0);
-        pd->unlockAudioThread();
+        if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
+            outlet_float(mouse->x_obj.ob_outlet, 1.0);
+        }
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -514,11 +518,9 @@ public:
         if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
-        auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
-
-        pd->lockAudioThread();
-        outlet_float(mouse->x_obj.ob_outlet, 0.0f);
-        pd->unlockAudioThread();
+        if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
+            outlet_float(mouse->x_obj.ob_outlet, 0.0f);
+        }
     }
 
     void mouseMove(MouseEvent const& e) override
@@ -540,12 +542,10 @@ public:
         pos -= zeroPosition;
 
         if (positionChanged) {
-            auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
-
-            pd->lockAudioThread();
-            outlet_float(mouse->x_outlet_y, (float)pos.y);
-            outlet_float(mouse->x_outlet_x, (float)pos.x);
-            pd->unlockAudioThread();
+            if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
+                outlet_float(mouse->x_outlet_y, (float)pos.y);
+                outlet_float(mouse->x_outlet_x, (float)pos.x);
+            }
         }
     }
 
@@ -585,7 +585,7 @@ public:
 
     void update() override
     {
-        cnv = getMainCanvas(static_cast<t_fake_canvas_vis*>(ptr)->x_canvas);
+        cnv = getMainCanvas(ptr.get<t_fake_canvas_vis>()->x_canvas);
 
         if (!cnv)
             return;
@@ -604,12 +604,12 @@ public:
             return;
 
         if (lastFocus != cnv->isShowing()) {
-            auto* vis = static_cast<t_fake_canvas_vis*>(ptr);
 
             lastFocus = cnv->isShowing();
-            pd->lockAudioThread();
-            outlet_float(vis->x_obj.ob_outlet, static_cast<int>(cnv->isShowing()));
-            pd->unlockAudioThread();
+
+            if (auto vis = ptr.get<t_fake_canvas_vis>()) {
+                outlet_float(vis->x_obj.ob_outlet, static_cast<int>(cnv->isShowing()));
+            }
         }
     }
 
@@ -633,7 +633,7 @@ class CanvasZoomObject final : public ImplementationBase
     , public Value::Listener {
 
     float lastScale;
-    Value zoomScaleValue;
+    Value zoomScaleValue = SynchronousValue();
 
     Component::SafePointer<Canvas> cnv;
 
@@ -649,7 +649,7 @@ public:
             cnv->locked.removeListener(this);
         }
 
-        cnv = getMainCanvas(static_cast<t_fake_zoom*>(ptr)->x_canvas);
+        cnv = getMainCanvas(ptr.get<t_fake_zoom>()->x_canvas);
         if (!cnv)
             return;
 
@@ -665,11 +665,9 @@ public:
 
         auto newScale = getValue<float>(zoomScaleValue);
         if (lastScale != newScale) {
-            auto* zoom = static_cast<t_fake_zoom*>(ptr);
-
-            pd->lockAudioThread();
-            outlet_float(zoom->x_obj.ob_outlet, newScale);
-            pd->unlockAudioThread();
+            if (auto zoom = ptr.get<t_fake_zoom>()) {
+                outlet_float(zoom->x_obj.ob_outlet, newScale);
+            }
 
             lastScale = newScale;
         }
@@ -694,7 +692,7 @@ public:
             cnv->locked.removeListener(this);
         }
 
-        cnv = getMainCanvas(static_cast<t_fake_edit*>(ptr)->x_canvas);
+        cnv = getMainCanvas(ptr.get<t_fake_edit>()->x_canvas);
         if (!cnv)
             return;
 
@@ -709,10 +707,10 @@ public:
 
         int editMode = getValue<bool>(v) ? 0 : 1;
         if (lastEditMode != editMode) {
-            auto* edit = static_cast<t_fake_edit*>(ptr);
-            pd->lockAudioThread();
-            outlet_float(edit->x_obj.ob_outlet, edit->x_edit = editMode);
-            pd->unlockAudioThread();
+            if (auto edit = ptr.get<t_fake_edit>()) {
+                outlet_float(edit->x_obj.ob_outlet, edit->x_edit = editMode);
+            }
+
             lastEditMode = editMode;
         }
     }
@@ -730,7 +728,7 @@ public:
         lastPosition = mouseSource.getScreenPosition();
         lastMouseDownTime = mouseSource.getLastMouseDownTime();
         startTimer(timerInterval);
-        canvas = static_cast<t_fake_mouse*>(ptr)->x_glist;
+        canvas = this->ptr.get<t_fake_mouse>()->x_glist;
     }
 
     void timerCallback() override
@@ -741,25 +739,32 @@ public:
         if (lastPosition != mouseSource.getScreenPosition()) {
 
             auto pos = mouseSource.getScreenPosition();
-
-            pd->sendDirectMessage(ptr, "_getscreen", { pos.x, pos.y });
+            if (auto obj = ptr.get<void>()) {
+                pd->sendDirectMessage(obj.get(), "_getscreen", { pos.x, pos.y });
+            }
 
             lastPosition = pos;
         }
         if (mouseSource.isDragging()) {
             if (!isDown) {
-                pd->sendDirectMessage(ptr, "_up", { 0.0f });
+                if (auto obj = ptr.get<void>()) {
+                    pd->sendDirectMessage(obj.get(), "_up", { 0.0f });
+                }
             }
             isDown = true;
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (mouseSource.getLastMouseDownTime() > lastMouseDownTime) {
             if (!isDown) {
-                pd->sendDirectMessage(ptr, "_up", { 0.0f });
+                if (auto obj = ptr.get<void>()) {
+                    pd->sendDirectMessage(obj.get(), "_up", { 0.0f });
+                }
             }
             isDown = true;
             lastMouseDownTime = mouseSource.getLastMouseDownTime();
         } else if (isDown) {
-            pd->sendDirectMessage(ptr, "_up", { 1.0f });
+            if (auto obj = ptr.get<void>()) {
+                pd->sendDirectMessage(obj.get(), "_up", { 1.0f });
+            }
             isDown = false;
         }
     }

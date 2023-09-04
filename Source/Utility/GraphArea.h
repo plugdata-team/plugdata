@@ -20,6 +20,7 @@ public:
         updateBounds();
         setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
 
+        resizer.addMouseListener(this, false);
         canvas->locked.addListener(this);
         valueChanged(canvas->locked);
     }
@@ -47,12 +48,16 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        startDraggingComponent(this, e);
+        if (e.originalComponent != &resizer) {
+            startDraggingComponent(this, e);
+        }
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        dragComponent(this, e, nullptr);
+        if (e.originalComponent != &resizer) {
+            dragComponent(this, e, nullptr);
+        }
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -74,17 +79,13 @@ public:
 
     void applyBounds()
     {
-        t_canvas* cnv = canvas->patch.getPointer();
+        if (auto cnv = canvas->patch.getPointer()) {
+            cnv->gl_pixwidth = getWidth();
+            cnv->gl_pixheight = getHeight();
 
-        canvas->pd->lockAudioThread();
-
-        cnv->gl_pixwidth = getWidth();
-        cnv->gl_pixheight = getHeight();
-
-        cnv->gl_xmargin = getX() - canvas->canvasOrigin.x;
-        cnv->gl_ymargin = getY() - canvas->canvasOrigin.y;
-
-        canvas->pd->unlockAudioThread();
+            cnv->gl_xmargin = getX() - canvas->canvasOrigin.x;
+            cnv->gl_ymargin = getY() - canvas->canvasOrigin.y;
+        }
     }
 
     void updateBounds()

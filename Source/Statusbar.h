@@ -9,24 +9,14 @@
 
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
+#include "Utility/AudioSampleRingBuffer.h"
 
 class Canvas;
 class LevelMeter;
 class MidiBlinker;
 class PluginProcessor;
-class OverlayDisplaySettings;
-class SnapSettings;
-
-class VolumeSlider : public Slider {
-public:
-    VolumeSlider();
-    ~VolumeSlider() override = default;
-    void paint(Graphics& g) override;
-    void resized() override;
-
-private:
-    int margin = 18;
-};
+class VolumeSlider;
+class OversampleSelector;
 
 class StatusbarSource : public Timer {
 
@@ -35,15 +25,17 @@ public:
         virtual void midiReceivedChanged(bool midiReceived) {};
         virtual void midiSentChanged(bool midiSent) {};
         virtual void audioProcessedChanged(bool audioProcessed) {};
-        virtual void audioLevelChanged(float newLevel[2], float newPeak[2]) {};
+        virtual void audioLevelChanged(Array<float> peak) {};
         virtual void timerCallback() {};
     };
 
     StatusbarSource();
 
-    void processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
+    void processBlock(MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
 
     void setSampleRate(double sampleRate);
+
+    void setBufferSize(int bufferSize);
 
     void prepareToPlay(int numChannels);
 
@@ -51,6 +43,8 @@ public:
 
     void addListener(Listener* l);
     void removeListener(Listener* l);
+
+    AudioSampleRingBuffer peakBuffer;
 
 private:
     std::atomic<int> lastMidiReceivedTime = 0;
@@ -62,6 +56,7 @@ private:
     int peakHoldDelay[2] = { 0 };
 
     int numChannels;
+    int bufferSize;
 
     double sampleRate = 44100;
 
@@ -71,6 +66,7 @@ private:
     std::vector<Listener*> listeners;
 };
 
+class VolumeSlider;
 class Statusbar : public Component
     , public SettingsFileListener
     , public StatusbarSource::Listener
@@ -91,22 +87,21 @@ public:
 
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
 
-    LevelMeter* levelMeter;
-    MidiBlinker* midiBlinker;
+    std::unique_ptr<LevelMeter> levelMeter;
+    std::unique_ptr<MidiBlinker> midiBlinker;
+    std::unique_ptr<VolumeSlider> volumeSlider;
 
-    TextButton powerButton, connectionStyleButton, connectionPathfind, centreButton, fitAllButton, protectButton;
+    TextButton powerButton, centreButton, fitAllButton, protectButton;
 
     TextButton overlayButton, overlaySettingsButton;
-    std::unique_ptr<OverlayDisplaySettings> overlayDisplaySettings;
 
     TextButton snapEnableButton, snapSettingsButton;
-    std::unique_ptr<SnapSettings> snapSettings;
 
-    TextButton oversampleSelector;
+    TextButton alignmentButton;
+
+    std::unique_ptr<OversampleSelector> oversampleSelector;
 
     Label zoomLabel;
-
-    VolumeSlider volumeSlider;
 
     Value showDirection;
 
@@ -114,6 +109,10 @@ public:
 
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
+
+    int firstSeparatorPosition;
+    int secondSeparatorPosition;
+    int thirdSeparatorPosition;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

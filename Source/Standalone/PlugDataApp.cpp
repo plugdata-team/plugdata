@@ -30,8 +30,6 @@
 
 #include "Dialogs/Dialogs.h"
 
-#include "Pd/OfeliaMessageManager.h"
-
 extern "C" {
 #include <x_libpd_multi.h>
 }
@@ -202,7 +200,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     /* open patches specifies with "-open" args */
     for (auto* nl = openlist; nl; nl = nl->nl_next) {
         auto toOpen = File(String(nl->nl_string).unquoted());
-        if (toOpen.existsAsFile() && toOpen.hasFileExtension(".pd")) {
+        if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
             if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
                 SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
@@ -221,7 +219,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
             continue;
 #    endif
         auto toOpen = File(arg);
-        if (toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
+        if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
             if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
                 SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
@@ -245,47 +243,4 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     return retval;
 }
 
-juce::JUCEApplicationBase* juce_CreateApplication();
-juce::JUCEApplicationBase* juce_CreateApplication() { return new PlugDataApp(); }
-
-#if JUCE_WINDOWS
-JUCE_BEGIN_IGNORE_WARNINGS_MSVC(28251)
-int __stdcall WinMain(struct HINSTANCE__*, struct HINSTANCE__*, char*, int)
-    JUCE_END_IGNORE_WARNINGS_MSVC
-#else
-int main(int argc, char* argv[])
-#endif
-{
-    juce::JUCEApplicationBase::createInstance = &juce_CreateApplication;
-
-    ScopedJuceInitialiser_GUI libraryInitialiser;
-    jassert(PlugDataApp::createInstance != nullptr);
-
-    const std::unique_ptr<JUCEApplicationBase> app(PlugDataApp::createInstance());
-    jassert(app != nullptr);
-
-    if (!app->initialiseApp())
-        return app->shutdownApp();
-
-    auto* messageManager = MessageManager::getInstance();
-
-    messageManager->setCurrentThreadAsMessageThread();
-
-    int loopRunTime = 800;
-
-    while (!messageManager->hasStopMessageBeenSent()) {
-        JUCE_TRY
-        {
-            // loop until a quit message is received..
-            messageManager->runDispatchLoopUntil(loopRunTime);
-
-            // Returns how long the openGL render took in ms, so we can adjust how long
-            // juce will run to hit 60fps
-            // If Ofelia is not running, it will return a high number to reduce overhead
-            loopRunTime = pd::OfeliaMessageManager::pollEvents();
-        }
-        JUCE_CATCH_EXCEPTION
-    }
-
-    return app->shutdownApp();
-}
+START_JUCE_APPLICATION(PlugDataApp)

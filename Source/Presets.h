@@ -95,7 +95,7 @@ struct Presets {
 
     static void createPreset(AudioProcessor* processor)
     {
-        File presetDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library").getChildFile("Extra").getChildFile("Presets");
+        File presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
 
         MemoryBlock data;
         processor->getStateInformation(data);

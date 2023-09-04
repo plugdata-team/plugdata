@@ -54,9 +54,11 @@ outlets:
 
 flags:
   - name: @carryflag
-    description: 0 for carryint (default) / 1 for carrybang
+    description: 0 for carryint / 1 for carrybang
+    default: 0
   - name: @compatmode
-    description: 0 for current (default) / 1 for ancient (see help)
+    description: 0 for current / 1 for ancient (see help)
+    default: 0
 
 methods:
   - type: carrybang

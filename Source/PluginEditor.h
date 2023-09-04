@@ -13,7 +13,9 @@
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/CheckedTooltip.h"
 #include "Utility/StackShadow.h" // TODO: move to impl
-#include "SplitView.h"           // TODO: move to impl
+#include "Utility/ZoomableDragAndDropContainer.h"
+#include "Utility/OfflineObjectRenderer.h"
+#include "SplitView.h" // TODO: move to impl
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
 
@@ -22,7 +24,6 @@ class Sidebar;
 class Statusbar;
 class ZoomLabel;
 class Dialog;
-class WelcomeButton;
 class Canvas;
 class TabComponent;
 class PluginProcessor;
@@ -34,7 +35,8 @@ class PluginEditor : public AudioProcessorEditor
     , public ApplicationCommandManager
     , public FileDragAndDropTarget
     , public ModifierKeyBroadcaster
-    , public ModifierKeyListener {
+    , public ModifierKeyListener
+    , public ZoomableDragAndDropContainer {
 public:
     enum ToolbarButtonType {
         Settings = 0,
@@ -64,13 +66,18 @@ public:
     void saveProject(std::function<void()> const& nestedCallback = []() {});
     void saveProjectAs(std::function<void()> const& nestedCallback = []() {});
 
-    void addTab(Canvas* cnv);
+    void addTab(Canvas* cnv, int splitIdx = -1);
     void closeTab(Canvas* cnv);
-    void closeAllTabs(bool quitAfterComplete = false);
+    void closeAllTabs(bool quitAfterComplete = false, Canvas* patchToExclude = nullptr);
 
     void quit(bool askToSave);
 
-    Canvas* getCurrentCanvas(bool canBePalette = false);
+    Canvas* getCurrentCanvas();
+
+    // Part of the ZoomableDragAndDropContainer, we give it the splitview
+    // so it can check if the drag image is over the entire splitview
+    // otherwise some objects inside the splitview will trigger a zoom
+    SplitView* getSplitView() override;
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
@@ -82,6 +89,8 @@ public:
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
     void fileDragExit(StringArray const&) override;
+
+    DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos) override;
 
     ApplicationCommandTarget* getNextCommandTarget() override;
     void getAllCommands(Array<CommandID>& commands) override;
@@ -101,6 +110,8 @@ public:
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;
+
+    std::unique_ptr<ConnectionMessageDisplay> connectionMessageDisplay;
 
     OwnedArray<Canvas, CriticalSection> canvases;
     std::unique_ptr<Sidebar> sidebar;
@@ -125,8 +136,7 @@ public:
     std::unique_ptr<ZoomLabel> zoomLabel;
 
     ComponentBoundsConstrainer* defaultConstrainer;
-
-    std::unique_ptr<ConnectionMessageDisplay> connectionMessageDisplay;
+    OfflineObjectRenderer offlineRenderer;
 
 private:
     // Used by standalone to handle dragging the window
@@ -137,7 +147,7 @@ private:
 
     int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
 
-    TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, hideSidebarButton;
+    TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, hideSidebarButton, pluginModeButton;
     TextButton editButton, runButton, presentButton;
 
     CheckedTooltip tooltipWindow;

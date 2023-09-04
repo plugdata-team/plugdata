@@ -12,15 +12,17 @@ enum ParameterType {
     tColour,
     tBool,
     tCombo,
-    tRange,
+    tRangeFloat,
+    tRangeInt,
     tFont
 };
 
 enum ParameterCategory {
+    cDimensions,
     cGeneral,
     cAppearance,
     cLabel,
-    cExtra
+    cExtra,
 };
 
 using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, StringArray, var>;
@@ -46,6 +48,8 @@ public:
             if (!defaultVal.isVoid()) {
                 if (type == tColour) {
                     value->setValue(lnf.findColour(defaultVal).toString());
+                } else if (defaultVal.isArray() && defaultVal.getArray()->isEmpty()) {
+                    return;
                 } else {
                     value->setValue(defaultVal);
                 }
@@ -112,12 +116,22 @@ public:
 
     void addParamRange(String const& pString, ParameterCategory pCat, Value* pVal, Array<var> const& pDefault = Array<var>())
     {
-        objectParameters.add(makeParam(pString, tRange, pCat, pVal, StringArray(), pDefault));
+        objectParameters.add(makeParam(pString, tRangeFloat, pCat, pVal, StringArray(), pDefault));
     }
 
     void addParamFont(String const& pString, ParameterCategory pCat, Value* pVal, String const& pDefault = String())
     {
         objectParameters.add(makeParam(pString, tFont, pCat, pVal, StringArray(), pDefault));
+    }
+
+    void addParamPosition(Value* positionValue)
+    {
+        objectParameters.add(makeParam("Position", tRangeInt, cDimensions, positionValue, StringArray(), var()));
+    }
+
+    void addParamSize(Value* sizeValue, bool singleDimension = false)
+    {
+        objectParameters.add(makeParam("Size", singleDimension ? tInt : tRangeInt, cDimensions, sizeValue, StringArray(), var()));
     }
 
 private:

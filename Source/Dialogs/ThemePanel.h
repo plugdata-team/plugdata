@@ -151,8 +151,6 @@ class ThemePanel : public Component
 
     Value fontValue;
 
-    ComboBox themeSelectors[2];
-
     std::map<String, std::map<String, Value>> swatches;
 
     PropertiesPanel::ActionComponent* newButton = nullptr;
@@ -246,9 +244,8 @@ public:
                 return;
 
             PlugDataLook::selectedThemes.set(themeSlot, newThemeName);
-            updateSwatches();
 
-            updateThemeNames(themeSelectors[0].getText(), themeSelectors[1].getText());
+            updateThemeNames(primaryThemeSelector->getText(), secondaryThemeSelector->getText());
 
             pd->setTheme(PlugDataLook::selectedThemes[themeIdx]);
             SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[themeIdx]);
@@ -256,6 +253,10 @@ public:
             getTopLevelComponent()->repaint();
 
             SettingsFile::getInstance()->saveSettings();
+
+            MessageManager::callAsync([_this = SafePointer(this)]() {
+                _this->updateSwatches();
+            });
         };
 
         auto* resetButton = new PropertiesPanel::ActionComponent([this]() {

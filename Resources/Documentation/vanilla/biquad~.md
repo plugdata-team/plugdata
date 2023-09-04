@@ -24,7 +24,7 @@ inlets:
   - type: signal
     description: input signal to be filtered
   - type: list
-    description: input signal to be filtered (fb1 fb2 ff1 ff2 ff3)
+    description: the five coefficients (fb1 fb2 ff1 ff2 ff3)
 outlets:
   1st:
   - type: signal

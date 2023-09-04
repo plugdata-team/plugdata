@@ -87,9 +87,9 @@ int libpd_ninlets(t_object const* x);
 int libpd_can_undo(t_canvas* cnv);
 int libpd_can_redo(t_canvas* cnv);
 
-int libpd_has_click_function(t_object const* x);
-
 void libpd_tofront(t_canvas* cnv, t_gobj* obj);
+void libpd_move_forward(t_canvas* cnv, t_gobj* obj);
+void libpd_move_backward(t_canvas* cnv, t_gobj* obj);
 void libpd_toback(t_canvas* cnv, t_gobj* obj);
 
 void libpd_undo_apply(t_canvas* cnv, t_gobj* obj);
@@ -103,6 +103,8 @@ void* libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, i
 int libpd_canconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
 
 void* libpd_get_class_methods(t_class* o);
+
+void set_class_prefix(t_symbol* dir);
 
 #ifdef __cplusplus
 }

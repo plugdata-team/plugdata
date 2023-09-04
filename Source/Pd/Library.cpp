@@ -6,6 +6,7 @@
 
 #include <juce_data_structures/juce_data_structures.h>
 #include <juce_events/juce_events.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Utility/Config.h"
 
@@ -24,6 +25,7 @@ extern "C" {
 
 #include <utility>
 #include "Library.h"
+#include "Instance.h"
 
 struct _canvasenvironment {
     t_symbol* ce_dir;    /* directory patch lives in */
@@ -37,8 +39,10 @@ namespace pd {
 
 void Library::updateLibrary()
 {
-    auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
+    auto settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile(".settings").loadFileAsString());
     auto pathTree = settingsTree.getChildWithName("Paths");
+
+    sys_lock();
 
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
@@ -68,7 +72,7 @@ void Library::updateLibrary()
             continue;
 
         for (auto const& file : OSUtils::iterateDirectory(file, false, true)) {
-            if (file.hasFileExtension(".pd")) {
+            if (file.hasFileExtension("pd")) {
                 auto filename = file.getFileNameWithoutExtension();
                 if (!filename.startsWith("help-") || filename.endsWith("-help")) {
                     allObjects.add(filename);
@@ -76,9 +80,11 @@ void Library::updateLibrary()
             }
         }
     }
+
+    sys_unlock();
 }
 
-Library::Library()
+Library::Library(pd::Instance* instance)
 {
     MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
     documentationTree = ValueTree::readFromStream(instream);
@@ -93,26 +99,36 @@ Library::Library()
         }
     }
 
-    watcher.addFolder(appDataDir);
+    watcher.addFolder(ProjectInfo::appDataDir);
     watcher.addListener(this);
 
     // Paths to search
     // First, only search vanilla, then search all documentation
     // Lastly, check the deken folder
-    helpPaths = { appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("5.reference"), appDataDir.getChildFile("Library").getChildFile("Documentation"),
-        appDataDir.getChildFile("Deken") };
+    helpPaths = { ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("5.reference"), ProjectInfo::appDataDir.getChildFile("Documentation"),
+        ProjectInfo::appDataDir.getChildFile("Externals") };
 
-    // TODO: This is unfortunately necessary to make Windows LV2 turtle dump work
+    // This is unfortunately necessary to make Windows LV2 turtle dump work
     // Let's hope its not harmful
-    MessageManager::callAsync([this](){
+    MessageManager::callAsync([this, instance]() {
+        instance->setThis();
         updateLibrary();
     });
 }
 
-StringArray Library::autocomplete(String const& query) const
+StringArray Library::autocomplete(String const& query, File const& patchDirectory) const
 {
     StringArray result;
     result.ensureStorageAllocated(20);
+
+    if (patchDirectory.isDirectory()) {
+        for (auto const& file : OSUtils::iterateDirectory(patchDirectory, false, true, 20)) {
+            auto filename = file.getFileNameWithoutExtension();
+            if (file.hasFileExtension("pd") && filename.startsWith(query) && !filename.startsWith("help-") && !filename.endsWith("-help")) {
+                result.add(filename);
+            }
+        }
+    }
 
     for (auto const& str : allObjects) {
         if (result.size() >= 20)
@@ -232,34 +248,6 @@ std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, 
     return result;
 }
 
-/*
-std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, int numIn, int numOut)
-{
-    auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
-
-    IODescriptionMap const* map = nullptr;
-    if (libraryLock.try_lock()) {
-        map = &ioletDescriptions;
-        libraryLock.unlock();
-    }
-
-    auto result = std::array<StringArray, 2>();
-
-    if (!map) {
-        return result;
-    }
-
-    // TODO: replace with map.contains once all compilers support this!
-    if (map->count(type)) {
-        auto const& ioletDescriptions = map->at(type);
-
-
-        }
-    }
-
-    return result;
-} */
-
 StringArray Library::getAllObjects()
 {
     return allObjects;
@@ -291,27 +279,35 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
             return {};
 
         atom_string(av, namebuf, MAXPDSTRING);
-        helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
+        helpName = String::fromUTF8(namebuf); //.fromLastOccurrenceOf("/", false, false);
     } else {
         helpDir = class_gethelpdir(pdclass);
         helpName = class_gethelpname(pdclass);
         helpName = helpName.upToLastOccurrenceOf(".pd", false, false);
     }
 
-    auto patchHelpPaths = helpPaths;
+    auto patchHelpPaths = Array<File>();
 
     // Add abstraction dir to search paths
     if (pd_class(reinterpret_cast<t_pd*>(obj)) == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         auto* cnv = reinterpret_cast<t_canvas*>(obj);
         patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)));
+        if (helpDir.isNotEmpty()) {
+            patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)).getChildFile(helpDir));
+        }
     }
 
     // Add parent patch dir to search paths
     if (parentPatchFile.existsAsFile()) {
         patchHelpPaths.add(parentPatchFile.getParentDirectory());
+        if (helpDir.isNotEmpty()) {
+            patchHelpPaths.add(parentPatchFile.getParentDirectory().getChildFile(helpDir));
+        }
     }
 
-    patchHelpPaths.add(helpDir);
+    for (auto path : helpPaths) {
+        patchHelpPaths.add(helpDir.isNotEmpty() ? path.getChildFile(helpDir) : path);
+    }
 
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";

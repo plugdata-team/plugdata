@@ -8,6 +8,7 @@ class MessageObject final : public ObjectBase
     , public KeyListener
     , public TextEditor::Listener {
 
+    Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
 
@@ -21,39 +22,61 @@ public:
     MessageObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
     }
 
     void update() override
     {
         objectText = getSymbol();
+
+        if (auto obj = ptr.get<t_text>()) {
+            sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
+        }
     }
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
-
-        auto* cnvPtr = cnv->patch.getPointer();
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
 
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines);
+        if (auto message = ptr.get<t_text>()) {
+            auto* cnvPtr = cnv->patch.getPointer().get();
+            if (!cnvPtr)
+                return {};
 
-        numLines = newNumLines;
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, message.get(), objText, 15, newNumLines);
 
-        // Create extra space for drawing the message box flag
-        newBounds.setWidth(newBounds.getWidth() + 5);
+            numLines = newNumLines;
 
-        pd->unlockAudioThread();
+            // Create extra space for drawing the message box flag
+            newBounds.setWidth(newBounds.getWidth() + 5);
+            return newBounds;
+        }
 
-        return newBounds;
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-        if (TextObjectHelper::getWidthInChars(ptr)) {
-            TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
+            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+
+            if (TextObjectHelper::getWidthInChars(gobj.get())) {
+                TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
+            }
+        }
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto text = ptr.get<t_text>()) {
+            setParameterExcludingListener(sizeProperty, TextObjectHelper::getWidthInChars(text.get()));
         }
     }
 
@@ -64,9 +87,25 @@ public:
 
     void paint(Graphics& g) override
     {
+        int const d = 6;
+        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+
         // Draw background
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
+
+        if (isDown) {
+            g.setColour(object->findColour(PlugDataColour::outlineColourId));
+            g.drawRect(getLocalBounds(), d);
+        }
+
+        g.restoreState();
 
         // Draw text
         if (!editor) {
@@ -79,27 +118,30 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(1);
+        auto b = getLocalBounds();
+        auto reducedBounds = b.toFloat().reduced(0.5f);
+
+        int const d = 6;
 
         Path flagPath;
-        flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - 4, b.getY() + 4, b.getRight() - 4, b.getBottom() - 4, b.getRight(), b.getBottom());
+        flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - d, b.getY() + d, b.getRight() - d, b.getBottom() - d, b.getRight(), b.getBottom());
 
-        if (isDown) {
-            g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(b.reduced(1).toFloat(), Corners::objectCornerRadius, 3.0f);
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
 
-            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.fillPath(flagPath);
-        } else {
-            g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            g.fillPath(flagPath);
-        }
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
+
+        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        g.fillPath(flagPath);
+
+        g.restoreState();
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(reducedBounds, Corners::objectCornerRadius, 1.0f);
     }
 
     std::vector<hash32> getAllMessages() override
@@ -151,6 +193,7 @@ public:
             editor->addListener(this);
             editor->addKeyListener(this);
             editor->selectAll();
+            editor->setReturnKeyStartsNewLine(false);
 
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
@@ -182,11 +225,7 @@ public:
 
             object->updateBounds(); // Recalculate bounds
 
-            cnv->pd->lockAudioThread();
-
             setPdBounds(object->getObjectBounds());
-
-            cnv->pd->unlockAudioThread();
 
             setSymbol(objectText);
 
@@ -196,6 +235,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         if (isLocked) {
             isDown = true;
             repaint();
@@ -208,7 +250,9 @@ public:
 
     void click()
     {
-        cnv->pd->sendDirectMessage(ptr, 0);
+        if (auto message = ptr.get<void>()) {
+            cnv->pd->sendDirectMessage(message.get(), 0);
+        }
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -219,22 +263,7 @@ public:
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        int caretPosition = ed.getCaretPosition();
-        auto text = ed.getText();
-
-        if (!ed.getHighlightedRegion().isEmpty())
-            return;
-
-        if (text[caretPosition - 1] == ';') {
-            text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
-            caretPosition += 1;
-        } else {
-            text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
-            caretPosition += 2;
-        }
-
-        ed.setText(text);
-        ed.setCaretPosition(caretPosition);
+        cnv->grabKeyboardFocus();
     }
 
     // For resize-while-typing behaviour
@@ -245,14 +274,14 @@ public:
 
     String getSymbol() const
     {
-        cnv->pd->setThis();
-
-        pd->lockAudioThread();
         char* text;
         int size;
 
-        binbuf_gettext(static_cast<t_text*>(ptr)->te_binbuf, &text, &size);
-        pd->unlockAudioThread();
+        if (auto messObj = ptr.get<t_text>()) {
+            binbuf_gettext(messObj->te_binbuf, &text, &size);
+        } else {
+            return {};
+        }
 
         auto result = String::fromUTF8(text, size);
         freebytes(text, size);
@@ -260,17 +289,32 @@ public:
         return result.trimEnd();
     }
 
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+
+            setParameterExcludingListener(sizeProperty, width);
+
+            if (auto text = ptr.get<t_text>()) {
+                TextObjectHelper::setWidthInChars(text.get(), width);
+            }
+
+            object->updateBounds();
+        }
+    }
+
     void setSymbol(String const& value)
     {
-        cnv->pd->lockAudioThread();
-
         auto* cstr = value.toRawUTF8();
-        auto* messobj = static_cast<t_text*>(ptr);
-        auto* canvas = cnv->patch.getPointer();
+        if (auto messobj = ptr.get<t_text>()) {
+            auto* canvas = cnv->patch.getPointer().get();
+            if (!canvas)
+                return;
 
-        libpd_renameobj(canvas, &messobj->te_g, cstr, value.getNumBytesAsUTF8());
-
-        cnv->pd->unlockAudioThread();
+            libpd_renameobj(canvas, messobj.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
+        }
     }
 
     bool keyPressed(KeyPress const& key, Component* component) override
@@ -283,6 +327,26 @@ public:
             editor->setCaretPosition(editor->getHighlightedRegion().getStart());
             return true;
         }
+        if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
+            int caretPosition = editor->getCaretPosition();
+            auto text = editor->getText();
+
+            if (!editor->getHighlightedRegion().isEmpty())
+                return false;
+            if (text[caretPosition - 1] == ';') {
+                text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
+                caretPosition += 1;
+            } else {
+                text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
+                caretPosition += 2;
+            }
+
+            editor->setText(text);
+            editor->setCaretPosition(caretPosition);
+
+            return true;
+        }
+
         return false;
     }
 

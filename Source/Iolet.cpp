@@ -52,8 +52,7 @@ Rectangle<int> Iolet::getCanvasBounds()
 bool Iolet::hitTest(int x, int y)
 {
     // If locked, don't intercept mouse clicks
-    // Make an exception for palette drag mode, so we'll still get tooltips there
-    if ((getValue<bool>(locked) || getValue<bool>(commandLocked)) && !getValue<bool>(cnv->paletteDragMode))
+    if ((getValue<bool>(locked) || getValue<bool>(commandLocked)))
         return false;
 
     Path smallBounds;
@@ -91,7 +90,7 @@ void Iolet::paint(Graphics& g)
     if ((down || over) && !isLocked)
         backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
-    if (isLocked && !getValue<bool>(cnv->paletteDragMode)) {
+    if (isLocked) {
         backgroundColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f);
     }
 

@@ -140,6 +140,24 @@ private:
 };
 
 class ColourPicker : public Component {
+    class SelectorHolder : public Component {
+    public:
+        SelectorHolder(ColourPicker* parent)
+            : colourPicker(parent)
+        {
+            addAndMakeVisible(parent);
+            setBounds(parent->getLocalBounds());
+        }
+
+        ~SelectorHolder()
+        {
+            colourPicker->runCallback();
+        }
+
+    private:
+        ColourPicker* colourPicker;
+    };
+
     struct ColourComponentSlider : public Slider {
         explicit ColourComponentSlider(String const& name)
             : Slider(name)
@@ -160,14 +178,12 @@ class ColourPicker : public Component {
     };
 
 public:
-    static void show(Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& callback)
+    void show(Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& colourCallback)
     {
-        if (isShowing)
-            return;
+        callback = colourCallback;
+        onlyCallBackOnClose = onlySendCallbackOnClose;
 
-        isShowing = true;
-
-        std::unique_ptr<ColourPicker> colourSelector = std::make_unique<ColourPicker>(topLevelComponent, onlySendCallbackOnClose, callback);
+        _topLevelComponent = topLevelComponent;
 
         Component* parent = nullptr;
         if (!ProjectInfo::canUseSemiTransparentWindows()) {
@@ -175,15 +191,17 @@ public:
             bounds = topLevelComponent->getLocalArea(nullptr, bounds);
         }
 
-        colourSelector->setCurrentColour(currentColour);
-        CallOutBox::launchAsynchronously(std::move(colourSelector), bounds, parent);
+        setCurrentColour(currentColour);
+
+        // we need to put the selector into a holder, as launchAsynchronously will delete the component when its done
+        auto selectorHolder = std::make_unique<SelectorHolder>(this);
+
+        CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, parent);
     }
 
-    ColourPicker(Component* topLevelComponent, bool noLiveChangeCallback, std::function<void(Colour)> cb)
+    ColourPicker()
         : colour(Colours::white)
         , edgeGap(2)
-        , callback(std::move(cb))
-        , onlyCallBackOnClose(noLiveChangeCallback)
         , colourSpace(*this, h, s, v)
         , brightnessSelector(*this, v)
     {
@@ -193,23 +211,11 @@ public:
         addAndMakeVisible(sliders[1]);
         addAndMakeVisible(sliders[2]);
 
-        for (auto* slider : sliders) {
-            slider->onValueChange = [this] { changeColour(); };
-            slider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
-            slider->setColour(Slider::textBoxBackgroundColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
-            slider->setColour(Slider::textBoxTextColourId, findColour(PlugDataColour::popupMenuTextColourId));
-        }
-
         addAndMakeVisible(colourSpace);
         addAndMakeVisible(brightnessSelector);
 
-        showRgb.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
-        showHex.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
-        showRgb.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        showHex.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-
-        showRgb.setRadioGroupId(8888);
-        showHex.setRadioGroupId(8888);
+        showRgb.setRadioGroupId(hash("colour_picker"));
+        showHex.setRadioGroupId(hash("colour_picker"));
 
         showRgb.setClickingTogglesState(true);
         showHex.setClickingTogglesState(true);
@@ -218,7 +224,6 @@ public:
         addAndMakeVisible(showHex);
         addAndMakeVisible(showEyedropper);
 
-        hexEditor.setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
         hexEditor.setJustificationType(Justification::centred);
         hexEditor.setEditable(true);
         hexEditor.onEditorShow = [this]() {
@@ -232,15 +237,17 @@ public:
         addChildComponent(hexEditor);
 
         showRgb.onClick = [this]() {
-            setMode(false);
+            updateMode();
         };
 
         showHex.onClick = [this]() {
-            setMode(true);
+            updateMode();
         };
 
-        showEyedropper.onClick = [this, topLevelComponent]() {
-            eyedropper.showEyedropper(topLevelComponent, [this](Colour pickedColour) {
+        _topLevelComponent = getTopLevelComponent();
+
+        showEyedropper.onClick = [this]() mutable {
+            eyedropper.showEyedropper(_topLevelComponent, [this](Colour pickedColour) {
                 setCurrentColour(pickedColour);
             });
         };
@@ -252,19 +259,45 @@ public:
 
         update(dontSendNotification);
 
-        setMode(false);
+        updateMode();
+
+        lookAndFeelChanged();
     }
 
-    ~ColourPicker() override
+    static ColourPicker& getInstance()
+    {
+        static ColourPicker instance;
+        return instance;
+    }
+
+    ~ColourPicker() override { }
+
+    void lookAndFeelChanged() override
+    {
+        for (auto* slider : sliders) {
+            slider->onValueChange = [this] { changeColour(); };
+            slider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
+            slider->setColour(Slider::textBoxBackgroundColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
+            slider->setColour(Slider::textBoxTextColourId, findColour(PlugDataColour::popupMenuTextColourId));
+        }
+
+        showRgb.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
+        showHex.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
+        showRgb.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+        showHex.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+
+        hexEditor.setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
+    }
+
+    void runCallback()
     {
         if (onlyCallBackOnClose)
             callback(getCurrentColour());
-
-        isShowing = false;
     }
 
-    void setMode(bool hex)
+    void updateMode()
     {
+        auto hex = showHex.getToggleState();
         for (auto& slider : sliders) {
             slider->setVisible(!hex);
         }
@@ -277,6 +310,10 @@ public:
             setSize(200, 256);
         } else {
             setSize(200, 300);
+        }
+
+        if (auto* parent = getParentComponent()) {
+            parent->setSize(getWidth(), getHeight()); // Set size of SelectorHolder
         }
     }
 
@@ -614,13 +651,13 @@ private:
             auto colour = Colour::fromHSV(hs.first, hs.second, 1.0f, 1.0f);
 
             auto bounds = getLocalBounds().toFloat().reduced(edge);
-            auto radius = jmin(Corners::smallCornerRadius, bounds.getWidth() / 2.0f);
+            auto radius = jmin(Corners::defaultCornerRadius, bounds.getWidth() / 2.0f);
 
             g.setGradientFill(ColourGradient(colour, 0.0f, 0.0f, Colours::black, bounds.getHeight() / 2, bounds.getHeight() / 2, false));
-            g.fillRoundedRectangle(bounds, radius);
+            PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(bounds, radius, 1.0f);
+            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::defaultCornerRadius);
         }
 
         void resized() override
@@ -698,9 +735,9 @@ private:
 
     Eyedropper eyedropper;
 
-    bool onlyCallBackOnClose;
+    Component* _topLevelComponent;
 
-    static inline bool isShowing = false;
+    bool onlyCallBackOnClose;
 
     std::function<void(Colour)> callback = [](Colour) {};
 

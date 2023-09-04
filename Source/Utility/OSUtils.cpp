@@ -282,23 +282,37 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 // On old versions of GCC and macos <10.15, std::filesystem is not available
 #if HAS_STD_FILESYSTEM
 
-juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles)
+juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
 {
     juce::Array<juce::File> result;
 
     if (recursive) {
-        for (auto const& dirEntry : std::filesystem::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
-            auto isDir = dirEntry.is_directory();
-            if ((isDir && !onlyFiles) || !isDir) {
-                result.add(juce::File(dirEntry.path().string()));
+        try {
+            for (auto const& dirEntry : std::filesystem::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
+                auto isDir = dirEntry.is_directory();
+                if ((isDir && !onlyFiles) || !isDir) {
+                    result.add(juce::File(dirEntry.path().string()));
+                }
+
+                if (maximum > 0 && result.size() >= maximum)
+                    break;
             }
+        } catch (std::filesystem::filesystem_error e) {
+            std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
         }
     } else {
-        for (auto const& dirEntry : std::filesystem::directory_iterator(directory.getFullPathName().toStdString())) {
-            auto isDir = dirEntry.is_directory();
-            if ((isDir && !onlyFiles) || !isDir) {
-                result.add(juce::File(dirEntry.path().string()));
+        try {
+            for (auto const& dirEntry : std::filesystem::directory_iterator(directory.getFullPathName().toStdString())) {
+                auto isDir = dirEntry.is_directory();
+                if ((isDir && !onlyFiles) || !isDir) {
+                    result.add(juce::File(dirEntry.path().string()));
+                }
+
+                if (maximum > 0 && result.size() >= maximum)
+                    break;
             }
+        } catch (std::filesystem::filesystem_error e) {
+            std::cerr << "Error while iterating over directory: " << e.path1() << std::endl;
         }
     }
 
@@ -308,7 +322,7 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
 // Otherwise use cpath
 #else
 
-static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool recursive, bool onlyFiles)
+static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool recursive, bool onlyFiles, int maximum)
 {
     juce::Array<juce::File> result;
 
@@ -316,11 +330,14 @@ static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool re
         auto isDir = file->IsDir();
 
         if (isDir && recursive && !file->IsSpecialHardLink()) {
-            result.addArray(iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles));
+            result.addArray(iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles, maximum));
         }
         if ((isDir && !onlyFiles) || !isDir) {
             result.add(juce::File(juce::String(file->GetPath().GetRawPath()->buf)));
         }
+
+        if (maximum > 0 && result.size() >= maximum)
+            break;
     }
 
     dir.Close();
@@ -328,11 +345,11 @@ static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool re
     return result;
 }
 
-juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles)
+juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
 {
     auto pathName = directory.getFullPathName();
     auto dir = cpath::Dir(pathName.toRawUTF8());
-    return iterateDirectoryRecurse(std::move(dir), recursive, onlyFiles);
+    return iterateDirectoryRecurse(std::move(dir), recursive, onlyFiles, maximum);
 }
 
 #endif

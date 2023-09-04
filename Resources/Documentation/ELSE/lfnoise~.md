@@ -31,7 +31,8 @@ outlets:
 
 flags:
   - name: -seed <float>
-    description: sets seed (default: unique internal)
+    description: sets seed
+    default: unique internal
 
 methods:
   - type: interp <float>

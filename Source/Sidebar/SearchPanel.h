@@ -18,6 +18,7 @@ class SearchPanel : public Component
 public:
     explicit SearchPanel(PluginEditor* pluginEditor)
         : editor(pluginEditor)
+        , bouncer(listBox.getViewport())
     {
         listBox.setModel(this);
         listBox.setRowHeight(26);
@@ -142,7 +143,7 @@ public:
             }
         }
 
-        if (auto* viewport = cnv->viewport) {
+        if (auto* viewport = cnv->viewport.get()) {
             auto scale = getValue<float>(cnv->zoomScale);
             auto pos = target->getBounds().reduced(Object::margin).getCentre() * scale;
 
@@ -239,7 +240,7 @@ public:
 
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5.5, 2, w - 9.5, h - 4), Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
@@ -406,5 +407,6 @@ private:
     TextEditor input;
     TextButton clearButton = TextButton(Icons::ClearText);
 
+    BouncingViewportAttachment bouncer;
     PluginEditor* editor;
 };

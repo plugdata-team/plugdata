@@ -18,6 +18,18 @@ bool ProjectInfo::isStandalone = true;
 bool ProjectInfo::isStandalone = false;
 #endif
 
+MidiDeviceManager* ProjectInfo::getMidiDeviceManager()
+{
+#if PLUGDATA_STANDALONE
+    if (auto* standalone = StandalonePluginHolder::getInstance())
+        return &standalone->player.midiDeviceManager;
+
+    return nullptr;
+#else
+    return nullptr;
+#endif
+}
+
 juce::AudioDeviceManager* ProjectInfo::getDeviceManager()
 {
 #if PLUGDATA_STANDALONE

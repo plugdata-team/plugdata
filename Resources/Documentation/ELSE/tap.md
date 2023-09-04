@@ -10,7 +10,8 @@ pdcategory: ELSE, Triggers and Clocks
 
 flags:
 - name: -ms
-  description: sets output to ms (default bpm)
+  description: sets output to ms
+  default: bpm
 
 inlets:
   1st:

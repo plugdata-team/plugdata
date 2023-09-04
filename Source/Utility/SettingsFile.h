@@ -83,15 +83,13 @@ private:
 
     Array<SettingsFileListener*> listeners;
 
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-
-    File settingsFile = homeDir.getChildFile("Settings.xml");
+    File settingsFile = ProjectInfo::appDataDir.getChildFile(".settings");
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
     bool settingsChangedExternally = false;
 
     std::vector<std::pair<String, var>> defaultSettings {
-        { "browser_path", var(homeDir.getChildFile("Library").getFullPathName()) },
+        { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },
         { "theme", var("light") },
         { "oversampling", var(0) },
         { "protected", var(1) },
@@ -112,6 +110,8 @@ private:
         { "direction", var(0) },
         { "global_scale", var(1.0f) },
         { "show_palettes", var(true) },
+        { "show_all_audio_device_rates", var(false) },
+        { "add_object_menu_pinned", var(false) },
         { "macos_buttons",
 #if JUCE_MAC
             var(true)
@@ -128,6 +128,7 @@ private:
         "SelectedThemes",
         "RecentlyOpened",
         "Libraries",
+        "EnabledMidiOutputPorts",
     };
 
 public:

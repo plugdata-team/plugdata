@@ -11,6 +11,8 @@
 #include "Utility/StackShadow.h"
 #include "Utility/SettingsFile.h"
 #include "Constants.h"
+#include "Utility/Fonts.h"
+#include "TabBarButtonComponent.h"
 
 inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDataColourNames = {
 
@@ -18,7 +20,7 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
     { toolbarHoverColourId, { "Toolbar hover", "toolbar_hover", "Toolbar" } },
     { toolbarActiveColourId, { "Toolbar active text", "toolbar_active", "Toolbar" } },
-    { toolbarOutlineColourId, { "Toolbar outline colour", "toolbar_outline_colour", "Toolbar" } },
+    { toolbarOutlineColourId, { "Toolbar outline", "toolbar_outline_colour", "Toolbar" } },
 
     { tabBackgroundColourId, { "Tab background", "tabbar_background", "Tabbar" } },
 
@@ -29,23 +31,23 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { canvasBackgroundColourId, { "Canvas background", "canvas_background", "Canvas" } },
     { canvasTextColourId, { "Canvas text", "canvas_text", "Canvas" } },
     { canvasDotsColourId, { "Canvas dots colour", "canvas_dots", "Canvas" } },
-    { outlineColourId, { "Outline colour", "outline_colour", "Canvas" } },
+    { outlineColourId, { "Outline", "outline_colour", "Canvas" } },
 
     { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
     { guiObjectInternalOutlineColour, { "GUI Object internal outline colour", "gui_internal_outline_colour", "Object" } },
-    { textObjectBackgroundColourId, { "Text object background", "text_object_background", "Object" } },
-    { commentTextColourId, { "Comment text colour", "comment_text_colour", "Object" } },
-    { objectOutlineColourId, { "Object outline colour", "object_outline_colour", "Object" } },
-    { objectSelectedOutlineColourId, { "Selected object outline colour", "selected_object_outline_colour", "Object" } },
+    { textObjectBackgroundColourId, { "Object background", "text_object_background", "Object" } },
+    { commentTextColourId, { "Comment text", "comment_text_colour", "Object" } },
+    { objectOutlineColourId, { "Object outline", "object_outline_colour", "Object" } },
+    { objectSelectedOutlineColourId, { "Selected object outline", "selected_object_outline_colour", "Object" } },
 
-    { ioletAreaColourId, { "Inlet/Outlet area colour", "iolet_area_colour", "Inlet/Outlet" } },
-    { ioletOutlineColourId, { "Inlet/Outlet outline colour", "iolet_outline_colour", "Inlet/Outlet" } },
+    { ioletAreaColourId, { "Inlet/Outlet area", "iolet_area_colour", "Inlet/Outlet" } },
+    { ioletOutlineColourId, { "Inlet/Outlet outline", "iolet_outline_colour", "Inlet/Outlet" } },
 
     { dataColourId, { "Data colour", "data_colour", "Canvas" } },
-    { connectionColourId, { "Connection colour", "connection_colour", "Canvas" } },
-    { signalColourId, { "Signal colour", "signal_colour", "Canvas" } },
+    { connectionColourId, { "Connection", "connection_colour", "Canvas" } },
+    { signalColourId, { "Signal", "signal_colour", "Canvas" } },
     { resizeableCornerColourId, { "Graph resizer", "graph_resizer", "Canvas" } },
-    { gridLineColourId, { "Grid line colour", "grid_colour", "Canvas" } },
+    { gridLineColourId, { "Grid line", "grid_colour", "Canvas" } },
 
     { popupMenuBackgroundColourId, { "Popup menu background", "popup_background", "Popup Menu" } },
     { popupMenuActiveBackgroundColourId, { "Popup menu background active", "popup_background_active", "Popup Menu" } },
@@ -62,11 +64,12 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { sliderThumbColourId, { "Slider thumb", "slider_thumb", "Other" } },
     { scrollbarThumbColourId, { "Scrollbar thumb", "scrollbar_thumb", "Other" } },
 
-    { panelBackgroundColourId, { "Panel background", "panel_colour", "Panel" } },
+    { panelBackgroundColourId, { "Panel background", "panel_background", "Panel" } },
+    { panelForegroundColourId, { "Panel foreground", "panel_foreground", "Panel" } },
     { panelTextColourId, { "Panel text", "panel_text", "Panel" } },
     { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Panel" } },
     { panelActiveTextColourId, { "Panel active text", "panel_active_text", "Panel" } },
-    { searchBarColourId, { "Searchbar colour", "searchbar_colour", "Panel" } },
+    { searchBarColourId, { "Searchbar", "searchbar_colour", "Panel" } },
 
     { sidebarBackgroundColourId, { "Sidebar background", "sidebar_colour", "Sidebar" } },
     { sidebarTextColourId, { "Sidebar text", "sidebar_text", "Sidebar" } },
@@ -245,7 +248,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
 
     private:
-        DocumentWindow* owner;
+        DocumentWindow* owner = nullptr;
         Colour bgColour;
         Colour buttonColour;
         Path shape, toggledShape;
@@ -344,7 +347,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             backgroundColour = backgroundColour.brighter(0.5f);
         auto cornerSize = Corners::defaultCornerRadius;
         g.setColour(backgroundColour);
-        g.fillRoundedRectangle(button.getLocalBounds().toFloat(), cornerSize);
+        fillSmoothedRectangle(g, button.getLocalBounds().toFloat(), cornerSize);
     }
 
     void drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
@@ -358,30 +361,25 @@ struct PlugDataLook : public LookAndFeel_V4 {
         auto flatOnBottom = button.isConnectedOnBottom();
 
         if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
-            auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId);
+
+            auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting((shouldDrawButtonAsHighlighted && !button.getToggleState()) ? 0.0f : 0.05f);
 
             auto bounds = button.getLocalBounds().toFloat();
             bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
 
-            backgroundColour = backgroundColour.contrasting(0.05f);
-
-            Path path;
-            path.addRoundedRectangle(bounds.getX(), bounds.getY(),
-                bounds.getWidth(), bounds.getHeight(),
-                cornerSize, cornerSize,
+            g.setColour(backgroundColour);
+            fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius,
                 !(flatOnLeft || flatOnTop),
                 !(flatOnRight || flatOnTop),
                 !(flatOnLeft || flatOnBottom),
                 !(flatOnRight || flatOnBottom));
-
-            g.setColour(backgroundColour);
-            g.fillPath(path);
         } else {
             auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
             auto bounds = button.getLocalBounds().toFloat().reduced(2.0f, 4.0f);
 
             g.setColour(backgroundColour);
-            g.fillRoundedRectangle(bounds, cornerSize);
+            fillSmoothedRectangle(g, bounds, cornerSize);
+            // g.fillRoundedRectangle(bounds, cornerSize);
         }
     }
 
@@ -397,10 +395,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.setColour(Colours::black);
         g.drawImageAt(cachedImage, 0, 0);
 
-        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.setColour(box.findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillPath(path);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(box.findColour(PlugDataColour::outlineColourId));
         g.strokePath(path, PathStrokeType(1.0f));
     }
 
@@ -463,6 +461,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                                                     : TextButton::textColourOffId)
                               .withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
 
+            if (!button.getClickingTogglesState() && button.isMouseOver()) {
+                colour = button.findColour(TextButton::textColourOnId);
+            }
             int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
             int const cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
 
@@ -521,24 +522,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
-    // TODO: do we use this??
-    void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, Image const* icon, bool drawTitleTextOnLeft) override
-    {
-        if (w * h == 0)
-            return;
-
-        g.setColour(findColour(ComboBox::backgroundColourId));
-        g.fillAll();
-
-        Fonts::drawText(g, window.getName(), 0, 0, w, h, getCurrentColourScheme().getUIColour(ColourScheme::defaultText), h * 0.65f);
-    }
-
     Button* createDocumentWindowButton(int buttonType) override
     {
-        // For dialogs
-        if (buttonType == 5)
-            return new PlugData_DocumentWindowButton(4);
-
         if (SettingsFile::getInstance()->getProperty<bool>("macos_buttons"))
             return new PlugData_DocumentWindowButton_macOS(buttonType);
         else
@@ -609,6 +594,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
+    // ==================== LookAndFeel TabBarButton ====================
+
     Rectangle<int> getTabButtonExtraComponentBounds(TabBarButton const& button, Rectangle<int>& textArea, Component& comp) override
     {
         Rectangle<int> extraComp;
@@ -657,7 +644,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
     {
         auto& buttonBar = button.getTabbedButtonBar();
-        return (buttonBar.getWidth() / buttonBar.getNumTabs()) + 1;
+        return std::max((buttonBar.getWidth() / buttonBar.getNumTabs()) + 1, 120);
     }
 
     int getTabButtonOverlap(int tabDepth) override
@@ -667,6 +654,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
+        drawTabButton(button, g, isMouseOver, isMouseDown, false);
+    }
+
+    void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown, bool isForceDrawn)
+    {
+        auto dragged = button.getProperties()["dragged"];
+        if (!isForceDrawn && !dragged.isVoid() && static_cast<bool>(dragged))
+            return;
+
         bool isActive = button.getToggleState();
 
         if (isActive) {
@@ -677,9 +673,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
         }
 
-        g.fillRoundedRectangle(button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
-
-        drawTabButtonText(button, g, false, false);
+        fillSmoothedRectangle(g, button.getLocalBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
+        drawTabButtonText(button, g, isMouseOver, isMouseDown);
     }
 
     void drawTabButtonText(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
@@ -688,24 +683,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         Font font(getTabButtonFont(button, area.getHeight()));
         font.setUnderline(button.hasKeyboardFocus(false));
-
-        AffineTransform t;
-
-        switch (button.getTabbedButtonBar().getOrientation()) {
-        case TabbedButtonBar::TabsAtLeft:
-            t = t.rotated(MathConstants<float>::pi * -0.5f).translated(area.getX(), area.getBottom());
-            break;
-        case TabbedButtonBar::TabsAtRight:
-            t = t.rotated(MathConstants<float>::pi * 0.5f).translated(area.getRight(), area.getY());
-            break;
-        case TabbedButtonBar::TabsAtTop:
-        case TabbedButtonBar::TabsAtBottom:
-            t = t.translated(area.getX(), area.getY());
-            break;
-        default:
-            jassertfalse;
-            break;
-        }
 
         Colour col;
 
@@ -717,28 +694,216 @@ struct PlugDataLook : public LookAndFeel_V4 {
         else
             col = button.getTabBackgroundColour().contrasting();
 
-        g.setColour(col);
+        // Use a gradient to make it fade out when it gets near to the close button
+        auto fadeX = (isMouseOver || button.getToggleState()) ? area.getRight() - 25 : area.getRight() - 8;
+        g.setGradientFill(ColourGradient(col, fadeX - 18, area.getY(), Colours::transparentBlack, fadeX, area.getY(), false));
+
         g.setFont(font);
-        g.addTransform(t);
 
-        auto buttonText = button.getButtonText().trim();
-        if (font.getStringWidthFloat(buttonText) > area.getWidth() * 0.4f) {
-            area = button.getTextArea().toFloat();
-        }
-
-        g.drawFittedText(buttonText,
-            area.getX(), area.getY(), (int)area.getWidth(), (int)area.getHeight(),
-            Justification::centred,
-            jmax(1, ((int)area.getHeight()) / 12));
+        g.drawText(button.getButtonText().trim(), area.reduced(4, 0), Justification::centred, false);
     }
 
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override
     {
     }
 
+    Button* createTabBarExtrasButton() override
+    {
+
+        class TabBarExtrasButton : public TextButton {
+        public:
+            TabBarExtrasButton()
+            {
+                setButtonText(Icons::ThinDown);
+                setTriggeredOnMouseDown(true);
+            }
+
+            void moved() override
+            {
+                static bool insideMove = false;
+                if (insideMove)
+                    return;
+
+                if (auto* parent = getParentComponent()) {
+                    insideMove = true;
+                    auto position = parent->getLocalBounds().getTopRight() - Point<int>(28, 0);
+                    setTopLeftPosition(position);
+                    insideMove = false;
+                }
+            }
+
+            void resized() override
+            {
+                // Try to force the size to 28x28, while also not allowing any recursion
+                // JUCE gives us very little control over the position/size otherwise...
+                static bool insideResize = false;
+                if (insideResize)
+                    return;
+                insideResize = true;
+                setSize(28, 28);
+                insideResize = false;
+            }
+
+            void paint(Graphics& g) override
+            {
+                bool hiddenTabSelected = false;
+                if (auto* tabbar = findParentComponentOfClass<TabbedButtonBar>()) {
+
+                    auto currentTabIndex = tabbar->getCurrentTabIndex();
+                    if (currentTabIndex >= 0) {
+                        auto* currentTab = tabbar->getTabButton(currentTabIndex);
+                        hiddenTabSelected = !currentTab->isVisible();
+                    }
+                }
+
+                if (isMouseOverOrDragging() || hiddenTabSelected) {
+                    g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
+                    fillSmoothedRectangle(g, getLocalBounds().reduced(3).toFloat(), Corners::defaultCornerRadius);
+                } else {
+                    g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
+                }
+
+                g.setFont(Fonts::getIconFont().withHeight(15));
+                g.setColour(findColour(PlugDataColour::tabTextColourId));
+
+                g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
+
+                return;
+            }
+
+            void mouseDown(MouseEvent const& e) override
+            {
+                class HiddenTabMenuItem : public PopupMenu::CustomComponent {
+
+                    String tabTitle;
+
+                public:
+                    int index;
+                    TabbedButtonBar& tabbar;
+
+                    HiddenTabMenuItem(String text, int idx, TabbedButtonBar& buttonBar)
+                        : tabTitle(text)
+                        , index(idx)
+                        , tabbar(buttonBar)
+                    {
+                        closeTabButton.setButtonText(Icons::Clear);
+                        closeTabButton.getProperties().set("Style", "Icon");
+                        closeTabButton.getProperties().set("FontScale", 0.44f);
+                        closeTabButton.setColour(TextButton::buttonColourId, Colour());
+                        closeTabButton.setColour(TextButton::buttonOnColourId, Colour());
+                        closeTabButton.setColour(ComboBox::outlineColourId, Colour());
+                        closeTabButton.setConnectedEdges(12);
+                        closeTabButton.setSize(26, 26);
+                        closeTabButton.addMouseListener(this, false);
+                        closeTabButton.onClick = [this]() mutable {
+                            dynamic_cast<TabBarButtonComponent*>(tabbar.getTabButton(index))->closeTab();
+                        };
+
+                        addChildComponent(closeTabButton);
+                    }
+
+                    void resized() override
+                    {
+                        closeTabButton.setTopLeftPosition(getWidth() - 26, -2);
+                    }
+
+                    void getIdealSize(int& idealWidth, int& idealHeight) override
+                    {
+                        idealWidth = 150;
+                        idealHeight = 24;
+                    }
+
+                    void mouseDown(MouseEvent const& e) override
+                    {
+                        if (e.originalComponent == &closeTabButton)
+                            return;
+
+                        tabbar.setCurrentTabIndex(index);
+                        triggerMenuItem();
+                    }
+
+                    void mouseEnter(MouseEvent const& e) override
+                    {
+                        closeTabButton.setVisible(true);
+                    }
+
+                    void mouseExit(MouseEvent const& e) override
+                    {
+                        closeTabButton.setVisible(false);
+                    }
+
+                    void paint(Graphics& g) override
+                    {
+                        bool isActive = tabbar.getCurrentTabIndex() == index;
+
+                        if (isActive) {
+                            g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+                        } else if (isItemHighlighted()) {
+                            g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId).interpolatedWith(findColour(PlugDataColour::popupMenuBackgroundColourId), 0.4f));
+                        } else {
+                            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+                        }
+
+                        fillSmoothedRectangle(g, getLocalBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
+
+                        auto area = getLocalBounds().reduced(4, 1).toFloat();
+
+                        Font font = Font(14);
+
+                        g.setColour(findColour(TabbedButtonBar::tabTextColourId));
+                        g.setFont(font);
+                        g.drawText(tabTitle.trim(), area.reduced(4, 0), Justification::centred, false);
+                    }
+
+                    TextButton closeTabButton;
+                };
+
+                if (auto* parent = findParentComponentOfClass<TabbedButtonBar>()) {
+                    PopupMenu m;
+
+                    auto tabNames = parent->getTabNames();
+                    for (int i = 0; i < parent->getNumTabs(); ++i) {
+                        auto* tab = parent->getTabButton(i);
+
+                        if (!tab->isVisible()) {
+                            m.addCustomItem(i + 1, std::make_unique<HiddenTabMenuItem>(tabNames[i], i, *parent), nullptr, tabNames[i]);
+                        }
+                        /*
+                         m.addItem (PopupMenu::Item (tabNames[i])
+                                      .setTicked (i == parent->getCurrentTabIndex())
+                                      .setAction ([this, i, parent] { parent->setCurrentTabIndex (i); })); */
+                    }
+
+                    m.showMenuAsync(PopupMenu::Options()
+                                        .withDeletionCheck(*this)
+                                        .withTargetComponent(this));
+                }
+            }
+        };
+
+        return new TabBarExtrasButton();
+    }
+
     Font getTabButtonFont(TabBarButton&, float height) override
     {
-        return Fonts::getCurrentFont().withHeight(height * 0.44f);
+        return Fonts::getCurrentFont().withHeight(13.0f);
+    }
+
+    void drawScrollbar(Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,
+        bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, [[maybe_unused]] bool isMouseDown) override
+    {
+        Rectangle<int> thumbBounds;
+
+        if (isScrollbarVertical)
+            thumbBounds = { x, thumbStartPosition, width, thumbSize };
+        else
+            thumbBounds = { thumbStartPosition, y, thumbSize, height };
+
+        auto c = scrollbar.findColour(ScrollBar::ColourIds::thumbColourId);
+        g.setColour(isMouseOver ? c.brighter(0.25f) : c);
+
+        auto thumbRadius = isScrollbarVertical ? (thumbBounds.getWidth() - 2.0f) / 2.0f : (thumbBounds.getHeight() - 2.0f) / 2.0f;
+        g.fillRoundedRectangle(thumbBounds.reduced(1).toFloat(), thumbRadius);
     }
 
     void getIdealPopupMenuItemSize(String const& text, bool const isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override
@@ -753,9 +918,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 font.setHeight((float)standardMenuItemHeight / 1.3f);
 
             idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
-            idealWidth = font.getStringWidth(text) + idealHeight * 2;
-
-            idealHeight += 1;
+            idealWidth = font.getStringWidth(text) + idealHeight;
         }
     }
 
@@ -769,17 +932,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
         if (Desktop::canUseSemiTransparentWindows()) {
             Path shadowPath;
             shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 2 });
-
-            // Add a bit of alpha to disable the opaque flag
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 1 });
 
             g.setColour(background);
 
-            auto bounds = Rectangle<float>(0, 0, width, height).reduced(7);
-            g.fillRoundedRectangle(bounds, Corners::largeCornerRadius);
+            auto bounds = Rectangle<float>(5, 6, width - 10, height - 12);
+            fillSmoothedRectangle(g, bounds, Corners::largeCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(bounds, Corners::largeCornerRadius, 1.0f);
+            drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::largeCornerRadius);
         } else {
             auto bounds = Rectangle<float>(0, 0, width, height);
 
@@ -791,6 +952,19 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
+    Path getTickShape(float height) override
+    {
+        Path path;
+        path.startNewSubPath(0.4f * height, 0.6f * height);
+        path.lineTo(0.475f * height, 0.7f * height);
+        path.lineTo(0.65f * height, 0.475f * height);
+
+        Path strokedPath;
+        PathStrokeType(height / 15.0f, PathStrokeType::curved, PathStrokeType::rounded).createStrokedPath(strokedPath, path, AffineTransform(), 5.0f);
+
+        return strokedPath;
+    }
+
     void drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
         bool const isSeparator, bool const isActive,
         bool const isHighlighted, bool const isTicked,
@@ -798,21 +972,22 @@ struct PlugDataLook : public LookAndFeel_V4 {
         String const& shortcutKeyText,
         Drawable const* icon, Colour const* const textColourToUse) override
     {
-        int margin = Desktop::canUseSemiTransparentWindows() ? 9 : 2;
+        int margin = Desktop::canUseSemiTransparentWindows() ? 7 : 2;
 
         if (isSeparator) {
-            auto r = area.reduced(margin + 5, 0);
+            auto r = area.reduced(margin + 8, 0);
             r.removeFromTop(roundToInt(((float)r.getHeight() * 0.5f) - 0.5f));
 
             g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(0.7f));
             g.fillRect(r.removeFromTop(1));
         } else {
-            auto r = area.reduced(margin, 1);
+            auto r = area.reduced(margin, 0);
 
             auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isHighlighted && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-                g.fillRoundedRectangle(r.toFloat().reduced(4, 0), Corners::smallCornerRadius);
+                fillSmoothedRectangle(g, r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
+                // g.fillRoundedRectangle(r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
                 colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
 
@@ -829,14 +1004,17 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
             g.setFont(font);
 
-            auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).toFloat();
-
             if (icon != nullptr) {
+                auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).toFloat();
+
                 icon->drawWithin(g, iconArea, RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize, 1.0f);
                 r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
             } else if (isTicked) {
+                auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).toFloat();
                 auto tick = getTickShape(1.0f);
                 g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.reduced(iconArea.getWidth() / 5, 0).toFloat(), true));
+            } else {
+                r.removeFromLeft(8);
             }
 
             if (hasSubMenu) {
@@ -847,23 +1025,18 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
                 Path path;
                 path.startNewSubPath(x, halfH - arrowH * 0.5f);
-                path.lineTo(x + arrowH * 0.6f, halfH);
+                path.lineTo(x + arrowH * 0.5f, halfH);
                 path.lineTo(x, halfH + arrowH * 0.5f);
 
-                g.strokePath(path, PathStrokeType(2.0f));
+                g.strokePath(path, PathStrokeType(1.5f));
             }
 
             r.removeFromRight(3);
             Fonts::drawFittedText(g, text, r, colour);
 
             if (shortcutKeyText.isNotEmpty()) {
-                auto f2 = font;
-                f2.setHeight(f2.getHeight() * 0.75f);
-                f2.setHorizontalScale(0.95f);
-                g.setFont(f2);
-
-                g.setColour(colour);
-                g.drawText(shortcutKeyText, r.translated(-2, 0), Justification::centredRight);
+                auto shortcutColour = findColour(PopupMenu::textColourId).withMultipliedAlpha(0.5f);
+                Fonts::drawFittedText(g, shortcutKeyText, r.translated(-4, 0), shortcutColour, 1, 1.0f, 14.0f, Justification::centredRight);
             }
         }
     }
@@ -876,9 +1049,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
     int getPopupMenuBorderSize() override
     {
         if (Desktop::canUseSemiTransparentWindows()) {
-            return 10;
+            return 12;
         } else {
-            return 2;
+            return 6;
         }
     };
 
@@ -917,6 +1090,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.setColour(object.findColour(ComboBox::arrowColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
 
         g.strokePath(path, PathStrokeType(2.0f));
+    }
+
+    PopupMenu::Options getOptionsForComboBoxPopupMenu(ComboBox& box, Label& label) override
+    {
+        return PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(22);
     }
 
     void drawResizableFrame(Graphics& g, int w, int h, BorderSize<int> const& border) override
@@ -969,10 +1147,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
             if (textEditor.isEnabled()) {
                 if (textEditor.hasKeyboardFocus(true) && !textEditor.isReadOnly()) {
                     g.setColour(textEditor.findColour(TextEditor::focusedOutlineColourId));
-                    g.drawRect(0, 0, width, height, 1);
+                    g.drawRoundedRectangle(2, 3, width - 4, height - 6, Corners::defaultCornerRadius, 2.0f);
                 } else {
                     g.setColour(textEditor.findColour(TextEditor::outlineColourId));
-                    g.drawRect(0, 0, width, height);
+                    g.drawRoundedRectangle(2, 3, width - 4, height - 6, Corners::defaultCornerRadius, 2.0f);
                 }
             }
         }
@@ -1038,7 +1216,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
             auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
 
-            // TODO: check if this is correct, can we get the correct numlines and scale?
             g.setFont(font);
             g.setColour(label.findColour(Label::textColourId));
 
@@ -1050,6 +1227,68 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
 
         g.drawRect(label.getLocalBounds());
+    }
+
+    static Path getSquircle(Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true)
+    {
+        Path path;
+
+        float x = bounds.getX();
+        float y = bounds.getY();
+        float width = bounds.getWidth();
+        float height = bounds.getHeight();
+
+        float radius = cornerRadius;
+        if (radius > width * 0.5f)
+            radius = width * 0.5f;
+        if (radius > height * 0.5f)
+            radius = height * 0.5f;
+
+        float controlOffset = radius * 0.45f;
+
+        path.startNewSubPath(x + radius, y);
+
+        if (curveTopRight) {
+            path.lineTo(x + width - radius, y);
+            path.cubicTo(x + width - radius + controlOffset, y, x + width, y + radius - controlOffset, x + width, y + radius);
+        } else {
+            path.lineTo(x + width, y);
+        }
+
+        if (curveBottomRight) {
+            path.lineTo(x + width, y + height - radius);
+            path.cubicTo(x + width, y + height - radius + controlOffset, x + width - radius + controlOffset, y + height, x + width - radius, y + height);
+        } else {
+            path.lineTo(x + width, y + height);
+        }
+
+        if (curveBottomLeft) {
+            path.lineTo(x + radius, y + height);
+            path.cubicTo(x + radius - controlOffset, y + height, x, y + height - radius + controlOffset, x, y + height - radius);
+        } else {
+            path.lineTo(x, y + height);
+        }
+
+        if (curveTopLeft) {
+            path.lineTo(x, y + radius);
+            path.cubicTo(x, y + radius - controlOffset, x + radius - controlOffset, y, x + radius, y);
+        } else {
+            path.lineTo(x, y);
+        }
+
+        path.closeSubPath();
+
+        return path;
+    }
+
+    static void fillSmoothedRectangle(Graphics& g, Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true)
+    {
+        g.fillPath(getSquircle(bounds, cornerRadius, curveTopLeft, curveTopRight, curveBottomLeft, curveBottomRight));
+    }
+
+    static void drawSmoothedRectangle(Graphics& g, PathStrokeType strokeType, Rectangle<float> const& bounds, float cornerRadius, bool const curveTopLeft = true, bool const curveTopRight = true, bool const curveBottomLeft = true, bool const curveBottomRight = true)
+    {
+        g.strokePath(getSquircle(bounds, cornerRadius, curveTopLeft, curveTopRight, curveBottomLeft, curveBottomRight), strokeType);
     }
 
     void drawPropertyComponentLabel(Graphics& g, int width, int height, PropertyComponent& component) override
@@ -1136,6 +1375,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setColour(DirectoryContentsDisplayComponent::highlightColourId,
             colours.at(PlugDataColour::panelActiveBackgroundColourId));
         setColour(CaretComponent::caretColourId,
+            colours.at(PlugDataColour::caretColourId));
+        setColour(TextEditor::focusedOutlineColourId,
             colours.at(PlugDataColour::caretColourId));
 
         setColour(TextButton::buttonColourId,
@@ -1255,19 +1496,19 @@ struct PlugDataLook : public LookAndFeel_V4 {
     }
 
     // clang-format off
-    static inline const String defaultThemesXml = "<ColourThemes>\n"
-    "    <Theme theme=\"max\" toolbar_background=\"ff333333\" toolbar_text=\"ffe4e4e4\"\n"
+    static inline const String defaultThemesXml = "<ColourThemes> "
+    "   <Theme theme=\"max\" toolbar_background=\"ff333333\" toolbar_text=\"ffe4e4e4\"\n"
     "           toolbar_active=\"ff72aedf\" toolbar_hover=\"ff72aedf\" tabbar_background=\"ff333333\"\n"
     "           tab_text=\"ffe4e4e4\" selected_tab_background=\"ff494949\" selected_tab_text=\"ff72aedf\"\n"
     "           canvas_background=\"ffe5e5e5\" canvas_text=\"ffeeeeee\" canvas_dots=\"ff7f7f7f\"\n"
     "           default_object_background=\"ff333333\" object_outline_colour=\"ff696969\"\n"
-    "           selected_object_outline_colour=\"ff72aedf\" gui_internal_outline_colour=\"ff696969\" toolbar_outline_colour=\"ff393939\" outline_colour=\"ff393939\"\n"
-    "           data_colour=\"ff72aedf\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffe1ef00\"\n"
-    "           dialog_background=\"ff333333\" sidebar_colour=\"ff3e3e3e\" sidebar_text=\"ffe4e4e4\"\n"
-    "           sidebar_background_active=\"ff72aedf\" sidebar_active_text=\"ffe4e4e4\"\n"
-    "           levelmeter_active=\"ff72aedf\" levelmeter_background=\"ff494949\"\n"
-    "           levelmeter_thumb=\"ffe4e4e4\" panel_colour=\"ff232323\" panel_text=\"ffe4e4e4\"\n"
-    "           panel_background_active=\"ff72aedf\" panel_active_text=\"ffe4e4e4\"\n"
+    "           selected_object_outline_colour=\"ff72aedf\" gui_internal_outline_colour=\"ff696969\"\n"
+    "           toolbar_outline_colour=\"ff393939\" outline_colour=\"ff393939\" data_colour=\"ff72aedf\"\n"
+    "           connection_colour=\"ffb3b3b3\" signal_colour=\"ffe1ef00\" dialog_background=\"ff333333\"\n"
+    "           sidebar_colour=\"ff3e3e3e\" sidebar_text=\"ffe4e4e4\" sidebar_background_active=\"ff72aedf\"\n"
+    "           sidebar_active_text=\"ffe4e4e4\" levelmeter_active=\"ff72aedf\" levelmeter_background=\"ff494949\"\n"
+    "           levelmeter_thumb=\"ffe4e4e4\" panel_background=\"ff4f4f4f\" panel_foreground=\"ff3f3f3f\"\n"
+    "           panel_text=\"ffe4e4e4\" panel_background_active=\"ff72aedf\" panel_active_text=\"ffe4e4e4\"\n"
     "           popup_background=\"ff333333\" popup_background_active=\"ff72aedf\"\n"
     "           popup_text=\"ffe4e4e4\" popup_active_text=\"ffe4e4e4\" slider_thumb=\"ff72aedf\"\n"
     "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff72aedf\" grid_colour=\"ff72aedf\"\n"
@@ -1281,31 +1522,32 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           canvas_background=\"ffffffff\" canvas_text=\"ff000000\" canvas_dots=\"ffffffff\"\n"
     "           default_object_background=\"ffffffff\" text_object_background=\"ffffffff\"\n"
     "           object_outline_colour=\"ff000000\" selected_object_outline_colour=\"ff000000\"\n"
-    "           gui_internal_outline_colour=\"ff000000\" toolbar_outline_colour=\"ff000000\" outline_colour=\"ff000000\" iolet_area_colour=\"ffffffff\" iolet_outline_colour=\"ff000000\"\n"
+    "           gui_internal_outline_colour=\"ff000000\" toolbar_outline_colour=\"ff000000\"\n"
+    "           outline_colour=\"ff000000\" iolet_area_colour=\"ffffffff\" iolet_outline_colour=\"ff000000\"\n"
     "           data_colour=\"ff000000\" connection_colour=\"ff000000\" signal_colour=\"ff000000\"\n"
-    "           dialog_background=\"ffffffff\" sidebar_colour=\"ffffffff\" sidebar_text=\"ff000000\"\n"
+    "           dialog_background=\"ffffffff\" sidebar_colour=\"ffefefef\" sidebar_text=\"ff000000\"\n"
     "           sidebar_background_active=\"ff000000\" sidebar_active_text=\"ffffffff\"\n"
     "           levelmeter_active=\"ff000000\" levelmeter_background=\"ffa0a0a0\"\n"
-    "           levelmeter_thumb=\"ff000000\" panel_colour=\"ffffffff\" panel_text=\"ff000000\"\n"
-    "           panel_background_active=\"ff000000\" panel_active_text=\"ffffffff\"\n"
+    "           levelmeter_thumb=\"ff000000\" panel_background=\"ffffffff\" panel_foreground=\"ffffffff\"\n"
+    "           panel_text=\"ff000000\" panel_background_active=\"ff000000\" panel_active_text=\"ffffffff\"\n"
     "           popup_background=\"ffffffff\" popup_background_active=\"ff000000\"\n"
     "           popup_text=\"ff000000\" popup_active_text=\"ffffffff\" slider_thumb=\"ff000000\"\n"
     "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff000000\" grid_colour=\"ff000000\"\n"
     "           caret_colour=\"ff000000\" comment_text_colour=\"ff000000\" searchbar_colour=\"ffffffff\"\n"
-    "           dashed_signal_connections=\"0\" straight_connections=\"1\"\n"
-    "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"1\"/>\n"
+    "           dashed_signal_connections=\"0\" straight_connections=\"1\" thin_connections=\"1\"\n"
+    "           square_iolets=\"1\" square_object_corners=\"1\"/>\n"
     "    <Theme theme=\"classic_dark\" toolbar_background=\"ff000000\" toolbar_text=\"ffffffff\"\n"
     "           toolbar_active=\"ff787878\" toolbar_hover=\"ff888888\" tabbar_background=\"ff000000\"\n"
     "           tab_text=\"ffffffff\" selected_tab_background=\"ff808080\" selected_tab_text=\"ffffffff\"\n"
     "           canvas_background=\"ff000000\" canvas_text=\"ffffffff\" canvas_dots=\"ff000000\"\n"
     "           default_object_background=\"ff000000\" object_outline_colour=\"ffffffff\"\n"
-    "           selected_object_outline_colour=\"ffffffff\" gui_internal_outline_colour=\"ffffffff\" toolbar_outline_colour=\"ffffffff\" outline_colour=\"ffffffff\"\n"
-    "           data_colour=\"ffffffff\" connection_colour=\"ffffffff\" signal_colour=\"ffffffff\"\n"
-    "           dialog_background=\"ff000000\" sidebar_colour=\"ff000000\" sidebar_text=\"ffffffff\"\n"
-    "           sidebar_background_active=\"ffffffff\" sidebar_active_text=\"ff000000\"\n"
-    "           levelmeter_active=\"ffffffff\" levelmeter_background=\"ff808080\"\n"
-    "           levelmeter_thumb=\"ffffffff\" panel_colour=\"ff000000\" panel_text=\"ffffffff\"\n"
-    "           panel_background_active=\"ffffffff\" panel_active_text=\"ff000000\"\n"
+    "           selected_object_outline_colour=\"ffffffff\" gui_internal_outline_colour=\"ffffffff\"\n"
+    "           toolbar_outline_colour=\"ffffffff\" outline_colour=\"ffffffff\" data_colour=\"ffffffff\"\n"
+    "           connection_colour=\"ffffffff\" signal_colour=\"ffffffff\" dialog_background=\"ff000000\"\n"
+    "           sidebar_colour=\"ff000000\" sidebar_text=\"ffffffff\" sidebar_background_active=\"ffffffff\"\n"
+    "           sidebar_active_text=\"ff000000\" levelmeter_active=\"ffffffff\" levelmeter_background=\"ff808080\"\n"
+    "           levelmeter_thumb=\"ffffffff\" panel_background=\"ff0e0e0e\" panel_foreground=\"ff000000\"\n"
+    "           panel_text=\"ffffffff\" panel_background_active=\"ffffffff\" panel_active_text=\"ff000000\"\n"
     "           popup_background=\"ff000000\" popup_background_active=\"ffffffff\"\n"
     "           popup_text=\"ffffffff\" popup_active_text=\"ff000000\" slider_thumb=\"ffffffff\"\n"
     "           scrollbar_thumb=\"ff7f7f7f\" graph_resizer=\"ffffffff\" grid_colour=\"ffffffff\"\n"
@@ -1318,13 +1560,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           tab_text=\"ffe1e1e1\" selected_tab_background=\"ff2e2e2e\" selected_tab_text=\"ffe1e1e1\"\n"
     "           canvas_background=\"ff232323\" canvas_text=\"ffe1e1e1\" canvas_dots=\"ff7f7f7f\"\n"
     "           default_object_background=\"ff191919\" object_outline_colour=\"ff696969\"\n"
-    "           selected_object_outline_colour=\"ff42a2c8\" gui_internal_outline_colour=\"ff696969\" toolbar_outline_colour=\"ff2f2f2f\" outline_colour=\"ff393939\"\n"
-    "           data_colour=\"ff42a2c8\" connection_colour=\"ffe1e1e1\" signal_colour=\"ffff8500\"\n"
-    "           dialog_background=\"ff191919\" sidebar_colour=\"ff191919\" sidebar_text=\"ffe1e1e1\"\n"
-    "           sidebar_background_active=\"ff282828\" sidebar_active_text=\"ffe1e1e1\"\n"
-    "           levelmeter_active=\"ff42a2c8\" levelmeter_background=\"ff2e2e2e\"\n"
-    "           levelmeter_thumb=\"ffe3e3e3\" panel_colour=\"ff232323\" panel_text=\"ffe1e1e1\"\n"
-    "           panel_background_active=\"ff373737\" panel_active_text=\"ffe1e1e1\"\n"
+    "           selected_object_outline_colour=\"ff42a2c8\" gui_internal_outline_colour=\"ff696969\"\n"
+    "           toolbar_outline_colour=\"ff2f2f2f\" outline_colour=\"ff393939\" data_colour=\"ff42a2c8\"\n"
+    "           connection_colour=\"ffe1e1e1\" signal_colour=\"ffff8500\" dialog_background=\"ff191919\"\n"
+    "           sidebar_colour=\"ff191919\" sidebar_text=\"ffe1e1e1\" sidebar_background_active=\"ff282828\"\n"
+    "           sidebar_active_text=\"ffe1e1e1\" levelmeter_active=\"ff42a2c8\" levelmeter_background=\"ff2e2e2e\"\n"
+    "           levelmeter_thumb=\"ffe3e3e3\" panel_background=\"ff2c2c2c\" panel_foreground=\"ff1f1f1f\"\n"
+    "           panel_text=\"ffe1e1e1\" panel_background_active=\"ff373737\" panel_active_text=\"ffe1e1e1\"\n"
     "           popup_background=\"ff191919\" popup_background_active=\"ff282828\"\n"
     "           popup_text=\"ffe1e1e1\" popup_active_text=\"ffe1e1e1\" slider_thumb=\"ff42a2c8\"\n"
     "           scrollbar_thumb=\"ff7f7f7f\" graph_resizer=\"ff42a2c8\" grid_colour=\"ff42a2c8\"\n"
@@ -1332,38 +1574,37 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           iolet_outline_colour=\"ff696969\" comment_text_colour=\"ffe1e1e1\"\n"
     "           searchbar_colour=\"ff232323\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
-    "    <Theme theme=\"light\" toolbar_background=\"ffebebeb\" toolbar_text=\"ff4d4d4d\"\n"
+    "    <Theme theme=\"light\" toolbar_background=\"ffebebeb\" toolbar_text=\"ff373737\"\n"
     "           toolbar_active=\"ff007aff\" toolbar_hover=\"ffd9d9d9\" tabbar_background=\"ffebebeb\"\n"
-    "           tab_text=\"ff4d4d4d\" selected_tab_background=\"ffdedede\" selected_tab_text=\"ff4d4d4d\"\n"
+    "           tab_text=\"ff373737\" selected_tab_background=\"ffdedede\" selected_tab_text=\"ff373737\"\n"
     "           canvas_background=\"fffafafa\" canvas_text=\"ff4d4d4d\" canvas_dots=\"ff909090\"\n"
     "           default_object_background=\"ffe4e4e4\" object_outline_colour=\"ffa8a8a8\"\n"
-    "           selected_object_outline_colour=\"ff007aff\" gui_internal_outline_colour=\"ffa8a8a8\" toolbar_outline_colour=\"ffdbdbdb\" outline_colour=\"ffc8c8c8\"\n"
-    "           data_colour=\"ff007aff\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\"\n"
-    "           dialog_background=\"ffe4e4e4\" sidebar_colour=\"ffefefef\" sidebar_text=\"ff4d4d4d\"\n"
-    "           sidebar_background_active=\"ffdfdfdf\" sidebar_active_text=\"ff4d4d4d\"\n"
-    "           levelmeter_active=\"ff007aff\" levelmeter_background=\"ffdedede\"\n"
-    "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"fffafafa\" panel_text=\"ff4d4d4d\"\n"
-    "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff4d4d4d\"\n"
+    "           selected_object_outline_colour=\"ff007aff\" gui_internal_outline_colour=\"ffa8a8a8\"\n"
+    "           toolbar_outline_colour=\"ffdbdbdb\" outline_colour=\"ffc8c8c8\" data_colour=\"ff007aff\"\n"
+    "           connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\" dialog_background=\"ffe4e4e4\"\n"
+    "           sidebar_colour=\"ffefefef\" sidebar_text=\"ff373737\" sidebar_background_active=\"ffe4e4e4\"\n"
+    "           sidebar_active_text=\"ff373737\" levelmeter_active=\"ff007aff\" levelmeter_background=\"ffdedede\"\n"
+    "           levelmeter_thumb=\"ff7a7a7a\" panel_background=\"fff7f7f7\" panel_foreground=\"fffdfdfd\"\n"
+    "           panel_text=\"ff373737\" panel_background_active=\"ffebebeb\" panel_active_text=\"ff373737\"\n"
     "           popup_background=\"ffe6e6e6\" popup_background_active=\"ffd5d5d5\"\n"
-    "           popup_text=\"ff4d4d4d\" popup_active_text=\"ff4d4d4d\" slider_thumb=\"ff007aff\"\n"
+    "           popup_text=\"ff373737\" popup_active_text=\"ff373737\" slider_thumb=\"ff007aff\"\n"
     "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff007aff\" grid_colour=\"ff007aff\"\n"
-    "           caret_colour=\"ff007aff\" square_object_corners=\"0\"\n"
-    "           text_object_background=\"fffafafa\" iolet_area_colour=\"fffafafa\"\n"
-    "           iolet_outline_colour=\"ffa8a8a8\" comment_text_colour=\"ff4d4d4d\"\n"
-    "           searchbar_colour=\"fffafafa\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
-    "           thin_connections=\"0\" square_iolets=\"0\"/>\n"
+    "           caret_colour=\"ff007aff\" square_object_corners=\"0\" text_object_background=\"fffafafa\"\n"
+    "           iolet_area_colour=\"fffafafa\" iolet_outline_colour=\"ffa8a8a8\"\n"
+    "           comment_text_colour=\"ff373737\" searchbar_colour=\"fffafafa\" dashed_signal_connections=\"1\"\n"
+    "           straight_connections=\"0\" thin_connections=\"0\" square_iolets=\"0\"/>\n"
     "    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
     "           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffc0bbb2\" tabbar_background=\"ffd2cdc4\"\n"
     "           tab_text=\"ff5a5a5a\" selected_tab_background=\"ffc0bbb2\" selected_tab_text=\"ff5a5a5a\"\n"
     "           canvas_background=\"ffe3dfd9\" canvas_text=\"ff5a5a5a\" canvas_dots=\"ff909090\"\n"
     "           default_object_background=\"ffe3dfd9\" object_outline_colour=\"ff968e82\"\n"
-    "           selected_object_outline_colour=\"ff5da0c4\" gui_internal_outline_colour=\"ff968e82\" toolbar_outline_colour=\"ffbdb3a4\" outline_colour=\"ff968e82\"\n"
-    "           data_colour=\"ff5da0c4\" connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8502\"\n"
-    "           dialog_background=\"ffd2cdc4\" sidebar_colour=\"ffdedad3\" sidebar_text=\"ff5a5a5a\"\n"
-    "           sidebar_background_active=\"ffefefef\" sidebar_active_text=\"ff5a5a5a\"\n"
-    "           levelmeter_active=\"ff5da0c4\" levelmeter_background=\"ffc0bbb2\"\n"
-    "           levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"ffe3dfd9\" panel_text=\"ff5a5a5a\"\n"
-    "           panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
+    "           selected_object_outline_colour=\"ff5da0c4\" gui_internal_outline_colour=\"ff968e82\"\n"
+    "           toolbar_outline_colour=\"ffbdb3a4\" outline_colour=\"ff968e82\" data_colour=\"ff5da0c4\"\n"
+    "           connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8502\" dialog_background=\"ffd2cdc4\"\n"
+    "           sidebar_colour=\"ffdedad3\" sidebar_text=\"ff5a5a5a\" sidebar_background_active=\"ffefefef\"\n"
+    "           sidebar_active_text=\"ff5a5a5a\" levelmeter_active=\"ff5da0c4\" levelmeter_background=\"ffc0bbb2\"\n"
+    "           levelmeter_thumb=\"ff7a7a7a\" panel_background=\"ffd2cdc4\" panel_foreground=\"ffe7e2d8\"\n"
+    "           panel_text=\"ff5a5a5a\" panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
     "           popup_background=\"ffd2cdc4\" popup_background_active=\"ffc0bbb2\"\n"
     "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" slider_thumb=\"ff5da0c4\"\n"
     "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff5da0c4\" grid_colour=\"ff5da0c4\"\n"
@@ -1376,20 +1617,20 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           tab_text=\"ffffffff\" selected_tab_background=\"ff3a3a3a\" selected_tab_text=\"ffffffff\"\n"
     "           canvas_background=\"ff383838\" canvas_text=\"ffffffff\" canvas_dots=\"ffa0a0a0\"\n"
     "           default_object_background=\"ff191919\" object_outline_colour=\"ff383838\"\n"
-    "           selected_object_outline_colour=\"ffffacab\" gui_internal_outline_colour=\"ff626262\" toolbar_outline_colour=\"ff343434\" outline_colour=\"ff383838\"\n"
-    "           data_colour=\"ff5bcefa\" connection_colour=\"ffa0a0a0\" signal_colour=\"ffffacab\"\n"
-    "           dialog_background=\"ff191919\" sidebar_colour=\"ff232323\" sidebar_text=\"ffffffff\"\n"
-    "           sidebar_background_active=\"ff383838\" sidebar_active_text=\"ffffffff\"\n"
-    "           levelmeter_active=\"ff5bcefa\" levelmeter_background=\"ff3a3a3a\"\n"
-    "           levelmeter_thumb=\"fff5f5f5\" panel_colour=\"ff383838\" panel_text=\"ffffffff\"\n"
-    "           panel_background_active=\"ff232323\" panel_active_text=\"ffffffff\"\n"
+    "           selected_object_outline_colour=\"ffffacab\" gui_internal_outline_colour=\"ff626262\"\n"
+    "           toolbar_outline_colour=\"ff343434\" outline_colour=\"ff383838\" data_colour=\"ff5bcefa\"\n"
+    "           connection_colour=\"ffa0a0a0\" signal_colour=\"ffffacab\" dialog_background=\"ff191919\"\n"
+    "           sidebar_colour=\"ff232323\" sidebar_text=\"ffffffff\" sidebar_background_active=\"ff383838\"\n"
+    "           sidebar_active_text=\"ffffffff\" levelmeter_active=\"ff5bcefa\" levelmeter_background=\"ff3a3a3a\"\n"
+    "           levelmeter_thumb=\"fff5f5f5\" panel_background=\"ff2c2c2c\" panel_foreground=\"ff1f1f1f\"\n"
+    "           panel_text=\"ffffffff\" panel_background_active=\"ff232323\" panel_active_text=\"ffffffff\"\n"
     "           popup_background=\"ff232323\" popup_background_active=\"ff383838\"\n"
     "           popup_text=\"ffffffff\" popup_active_text=\"ffffffff\" scrollbar_thumb=\"ff8e8e8e\"\n"
-    "           graph_resizer=\"ff5bcefa\" grid_colour=\"ff5bcefa\" caret_colour=\"ffffacab\" text_object_background=\"ff232323\"\n"
-    "           iolet_area_colour=\"ff232323\" iolet_outline_colour=\"ff696969\"\n"
-    "           slider_thumb=\"ff8e8e8e\" comment_text_colour=\"ffffffff\" searchbar_colour=\"ff383838\"\n"
-    "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"1\"\n"
-    "           square_iolets=\"1\" square_object_corners=\"0\"/>\n"
+    "           graph_resizer=\"ff5bcefa\" grid_colour=\"ff5bcefa\" caret_colour=\"ffffacab\"\n"
+    "           text_object_background=\"ff232323\" iolet_area_colour=\"ff232323\"\n"
+    "           iolet_outline_colour=\"ff696969\" slider_thumb=\"ff8e8e8e\" comment_text_colour=\"ffffffff\"\n"
+    "           searchbar_colour=\"ff383838\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+    "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"0\"/>\n"
     "  </ColourThemes>";
     // clang-format on
 

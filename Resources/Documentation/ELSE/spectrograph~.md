@@ -12,15 +12,20 @@ arguments:
 
 flags:
 - name: -size <f>
-  description: FFT size (default 1024, min 128)
+  description: FFT size (min 128)
+  default: 1024
 - name: -db <f>
-  description: non-0 sets to dB amp scale (default linear)
+  description: non-0 sets to dB amp scale
+  default: linear
 - name: -log <f>
-  description: non-0 sets to log frequency scale (default linear)
+  description: non-0 sets to log frequency scale
+  default: linear
 - name: -dim <f,f>
-  description: set horizontal/vertical dimensions (default 300 140)
+  description: set horizontal/vertical dimensions
+  default: 300 140
 - name: -rate <float>
-  description: sets graph rate in ms (default 100)
+  description: sets graph rate in ms
+  default: 100
 
 inlets:
   1st:

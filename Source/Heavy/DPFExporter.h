@@ -1,29 +1,37 @@
 /*
- // Copyright (c) 2022 Timothy Schoen and Wasted-Audio
+ // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
 class DPFExporter : public ExporterBase {
 public:
-    Value midiinEnableValue = Value(var(1));
-    Value midioutEnableValue = Value(var(1));
+    Value midiinEnableValue = Value(var(0));
+    Value midioutEnableValue = Value(var(0));
 
     Value lv2EnableValue = Value(var(1));
     Value vst2EnableValue = Value(var(1));
     Value vst3EnableValue = Value(var(1));
     Value clapEnableValue = Value(var(1));
-    Value jackEnableValue = Value(var(1));
+    Value jackEnableValue = Value(var(0));
 
     Value exportTypeValue = Value(var(2));
+    Value pluginTypeValue = Value(var(1));
+
+    PropertiesPanel::Property* midiinProperty;
+    PropertiesPanel::Property* midioutProperty;
 
     DPFExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
-        properties.add(new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" }));
-        properties.add(new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, { "No", "yes" }));
+        properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
+
+        midiinProperty = new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" });
+        properties.add(midiinProperty);
+        midioutProperty = new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, { "No", "yes" });
+        properties.add(midioutProperty);
 
         Array<PropertiesPanel::Property*> pluginFormats;
 
@@ -44,6 +52,7 @@ public:
             property->setPreferredHeight(28);
         }
 
+        pluginTypeValue.addListener(this);
         midiinEnableValue.addListener(this);
         midioutEnableValue.addListener(this);
 
@@ -53,12 +62,30 @@ public:
         panel.addSection("Plugin formats", pluginFormats);
     }
 
+    void valueChanged(Value& v) override
+    {
+        ExporterBase::valueChanged(v);
+
+        int pluginType = getValue<int>(pluginTypeValue);
+        midiinProperty->setEnabled(pluginType == 3);
+        midioutProperty->setEnabled(pluginType == 3);
+
+        if (pluginType == 1) {
+            midiinEnableValue.setValue(0);
+            midioutEnableValue.setValue(0);
+        } else if (pluginType == 2) {
+            midiinEnableValue.setValue(1);
+            midioutEnableValue.setValue(0);
+        }
+    }
+
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
         exportingView->showState(ExportingProgressView::Busy);
 
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
 
+        name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
@@ -161,7 +188,6 @@ public:
             Toolchain::startShellScript(path + cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + makefile.getFullPathName().replaceCharacter('\\', '/'), this);
 
 #else // Linux or BSD
-            auto bash = String("#!/bin/bash\n");
             auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
 
             auto buildScript = prepareEnvironmentScript

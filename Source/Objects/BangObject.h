@@ -7,8 +7,9 @@
 class BangObject final : public ObjectBase {
     uint32_t lastBang = 0;
 
-    Value bangInterrupt = Value(100.0f);
-    Value bangHold = Value(40.0f);
+    Value bangInterrupt = SynchronousValue(100.0f);
+    Value bangHold = SynchronousValue(40.0f);
+    Value sizeProperty = SynchronousValue();
 
     bool bangState = false;
     bool alreadyBanged = false;
@@ -24,16 +25,20 @@ public:
             constrainer->setFixedAspectRatio(1);
         };
 
+        objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamInt("Minimum flash time", cGeneral, &bangInterrupt, 50);
         objectParameters.addParamInt("Maximum flash time", cGeneral, &bangHold, 250);
+
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
 
     void update() override
     {
-        auto* bng = static_cast<t_bng*>(ptr);
-        bangInterrupt = bng->x_flashtime_break;
-        bangHold = bng->x_flashtime_hold;
+        if (auto bng = ptr.get<t_bng>()) {
+            sizeProperty = bng->x_gui.x_w;
+            bangInterrupt = bng->x_flashtime_break;
+            bangHold = bng->x_flashtime_hold;
+        }
 
         iemHelper.update();
     }
@@ -66,13 +71,11 @@ public:
     void toggleObject(Point<int> position) override
     {
         if (!alreadyBanged) {
-            pd->lockAudioThread();
 
             startEdition();
-            pd_bang(static_cast<t_pd*>(ptr));
+            if (auto bng = ptr.get<t_pd>())
+                pd_bang(bng.get());
             stopEdition();
-
-            pd->unlockAudioThread();
 
             trigger();
             alreadyBanged = true;
@@ -86,13 +89,13 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        pd->lockAudioThread();
+        if (!e.mods.isLeftButtonDown())
+            return;
 
         startEdition();
-        pd_bang(static_cast<t_pd*>(ptr));
+        if (auto bng = ptr.get<t_pd>())
+            pd_bang(bng.get());
         stopEdition();
-
-        pd->unlockAudioThread();
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
@@ -161,13 +164,32 @@ public:
             });
     }
 
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto iem = ptr.get<t_iemgui>()) {
+            setParameterExcludingListener(sizeProperty, var(iem->x_w));
+        }
+    }
+
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(bangInterrupt)) {
-            static_cast<t_bng*>(ptr)->x_flashtime_break = bangInterrupt.getValue();
-        }
-        if (value.refersToSameSourceAs(bangHold)) {
-            static_cast<t_bng*>(ptr)->x_flashtime_hold = bangHold.getValue();
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto size = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            setParameterExcludingListener(sizeProperty, size);
+            if (auto bng = ptr.get<t_bng>()) {
+                bng->x_gui.x_w = size;
+                bng->x_gui.x_h = size;
+            }
+            object->updateBounds();
+        } else if (value.refersToSameSourceAs(bangInterrupt)) {
+            if (auto bng = ptr.get<t_bng>())
+                bng->x_flashtime_break = bangInterrupt.getValue();
+        } else if (value.refersToSameSourceAs(bangHold)) {
+            if (auto bng = ptr.get<t_bng>())
+                bng->x_flashtime_hold = bangHold.getValue();
         } else {
             iemHelper.valueChanged(value);
         }

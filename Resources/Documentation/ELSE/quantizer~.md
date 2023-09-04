@@ -20,7 +20,7 @@ inlets:
   - type: signal
     description: a float to be quantized
   2nd:
-  - type: float/signal
+  - type: float
     description: step value to quantize to
 
 outlets:

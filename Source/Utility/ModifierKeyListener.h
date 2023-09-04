@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Config.h"
+
 /*
  // Copyright (c) 2023 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL

@@ -29,11 +29,14 @@ flags:
   - name: -max <float>
     description: sets max gain (needs to be > 0, default 1)
   - name: -mode <float>
-    description: sets scaling mode: 0 (quartic, default), 1 (dB) or 2 (linear)
+    description: sets scaling mode: 0 (quartic), 1 (dB) or 2 (linear)
+    default: quartic
   - name: -ramp <float>
-    description: sets ramp time (minimum 5, default 20)
+    description: sets ramp time (minimum 5)
+    default: 20
   - name: -init
-    description: sets to init mode (default no init)
+    description: sets to init mode
+    default: no init
 
 methods:
   - type: set <float>

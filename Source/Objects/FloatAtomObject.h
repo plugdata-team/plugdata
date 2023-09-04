@@ -11,8 +11,9 @@ class FloatAtomObject final : public ObjectBase {
     AtomHelper atomHelper;
     DraggableNumber input;
 
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
+    Value min = SynchronousValue(0.0f);
+    Value max = SynchronousValue(0.0f);
+    Value sizeProperty = SynchronousValue();
 
     float value = 0.0f;
 
@@ -36,7 +37,6 @@ public:
         };
 
         input.onEditorHide = [this]() {
-            sendFloatValue(input.getText().getFloatValue());
             stopEdition();
         };
 
@@ -48,7 +48,7 @@ public:
             startEdition();
         };
 
-        input.valueChanged = [this](float newValue) {
+        input.onValueChange = [this](float newValue) {
             sendFloatValue(newValue);
         };
 
@@ -56,9 +56,12 @@ public:
             stopEdition();
         };
 
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         objectParameters.addParamFloat("Minimum", cGeneral, &min);
         objectParameters.addParamFloat("Maximum", cGeneral, &max);
         atomHelper.addAtomParameters(objectParameters);
+
+        input.setResetValue(0.0f);
     }
 
     void update() override
@@ -68,12 +71,20 @@ public:
         min = atomHelper.getMinimum();
         max = atomHelper.getMaximum();
 
+        sizeProperty = atomHelper.getWidthInChars();
+
         input.setMinimum(::getValue<float>(min));
         input.setMaximum(::getValue<float>(max));
 
         input.setText(input.formatNumber(value), dontSendNotification);
 
         atomHelper.update();
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+        setParameterExcludingListener(sizeProperty, atomHelper.getWidthInChars());
     }
 
     void focusGained(FocusChangeType cause) override
@@ -120,8 +131,16 @@ public:
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-        triangle = triangle.createPathWithRoundedCorners(4.0f);
+
+        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
         g.fillPath(triangle);
+        g.restoreState();
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
@@ -166,11 +185,20 @@ public:
     void lock(bool isLocked) override
     {
         setInterceptsMouseClicks(isLocked, isLocked);
+        input.setResetEnabled(::getValue<bool>(cnv->locked));
     }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(min)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+
+            setParameterExcludingListener(sizeProperty, width);
+
+            atomHelper.setWidthInChars(width);
+            object->updateBounds();
+        } else if (value.refersToSameSourceAs(min)) {
             auto v = ::getValue<float>(min);
             input.setMinimum(v);
             atomHelper.setMinimum(v);
@@ -185,7 +213,11 @@ public:
 
     float getValue()
     {
-        return atom_getfloat(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)));
+        if (auto gatom = ptr.get<t_fake_gatom>()) {
+            return atom_getfloat(fake_gatom_getatom(gatom.get()));
+        }
+
+        return 0.0f;
     }
 
     std::vector<hash32> getAllMessages() override

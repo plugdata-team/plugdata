@@ -30,7 +30,7 @@ public:
         sizeProperty->setRangeMin(1);
 
         auto* drawModeProperty = new PropertiesPanel::ComboComponent("Draw mode", drawMode, { "Points", "Polygon", "Bezier Curve" });
-        auto* yRangeProperty = new PropertiesPanel::RangeComponent("Y range", yRange);
+        auto* yRangeProperty = new PropertiesPanel::RangeComponent("Y range", yRange, false);
         auto* saveContentsProperty = new PropertiesPanel::BoolComponent("Save contents", saveContents, { "No", "Yes" });
 
         arrayPropertiesPanel.setContentWidth(250);

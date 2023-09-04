@@ -28,6 +28,20 @@ struct t_fake_gatom {
     t_symbol* a_expanded_to;          /* a_symto after $0, $1, ...  expansion */
 };
 
+struct t_fake_garray {
+    t_gobj x_gobj;
+    t_scalar* x_scalar;             /* scalar "containing" the array */
+    t_glist* x_glist;               /* containing glist */
+    t_symbol* x_name;               /* unexpanded name (possibly with leading '$') */
+    t_symbol* x_realname;           /* expanded name (symbol we're bound to) */
+    unsigned int x_usedindsp : 1;   /* 1 if some DSP routine is using this */
+    unsigned int x_saveit : 1;      /* we should save this with parent */
+    unsigned int x_savesize : 1;    /* save size too */
+    unsigned int x_listviewing : 1; /* list view window is open */
+    unsigned int x_hidename : 1;    /* don't print name above graph */
+    unsigned int x_edit : 1;        /* we can edit the array */
+};
+
 // [else/button]
 struct t_fake_button {
     t_object x_obj;
@@ -48,43 +62,24 @@ struct t_fake_button {
     unsigned char x_fgcolor[3];
 };
 
-// for [clone]
-struct t_copy {
-    t_glist* c_gl;
-    int c_on; /* DSP running */
-};
-
-// for [clone]
-struct t_in {
-    t_class* i_pd;
-    struct _clone* i_owner;
-    int i_signal;
-    int i_n;
-};
-
-// for [clone]
-struct t_out {
-    t_class* o_pd;
-    t_outlet* o_outlet;
-    int o_signal;
-    int o_n;
-};
-
 // [clone]
 struct t_fake_clone {
     t_object x_obj;
-    int x_n;       /* number of copies */
-    t_copy* x_vec; /* the copies */
+    t_canvas* x_canvas; /* owning canvas */
+    int x_n;            /* number of copies */
+    void* x_vec;        /* the copies */
     int x_nin;
-    t_in* x_invec; /* inlet proxies */
+    void* x_invec; /* inlet proxies */
     int x_nout;
-    t_out** x_outvec; /* outlet proxies */
-    t_symbol* x_s;    /* name of abstraction */
-    int x_argc;       /* creation arguments for abstractions */
+    void* x_outvec; /* outlets */
+    t_symbol* x_s;  /* name of abstraction */
+    int x_argc;     /* creation arguments for abstractions */
     t_atom* x_argv;
-    int x_phase;
-    int x_startvoice;    /* number of first voice, 0 by default */
-    int x_suppressvoice; /* suppress voice number as $1 arg */
+    int x_phase;                      /* phase for round-robin input message forwarding */
+    int x_startvoice;                 /* number of first voice, 0 by default */
+    unsigned int x_suppressvoice : 1; /* suppress voice number as $1 arg */
+    unsigned int x_distributein : 1;  /* distribute input signals across clones */
+    unsigned int x_packout : 1;       /* pack output signals */
 };
 
 // [else/colors]
@@ -105,14 +100,17 @@ struct t_fake_comment {
     t_glist* x_glist;
     t_canvas* x_cv;
     t_binbuf* x_binbuf;
-    char const* x_buf; // text buf
-    int x_bufsize;     // text buf size
+    char* x_buf;   // text buf
+    int x_bufsize; // text buf size
     int x_keynum;
-    t_symbol* x_keysym;
     int x_init;
+    int x_resized;
     int x_changed;
     int x_edit;
     int x_max_pixwidth;
+    int x_text_width;
+    int x_width;
+    int x_height;
     int x_bbset;
     int x_bbpending;
     int x_x1;
@@ -123,17 +121,19 @@ struct t_fake_comment {
     int x_dragon;
     int x_select;
     int x_fontsize;
-    unsigned char x_red;
-    unsigned char x_green;
-    unsigned char x_blue;
-    char x_color[8];
-    char x_bgcolor[8];
     int x_shift;
     int x_selstart;
     int x_start_ndx;
     int x_end_ndx;
     int x_selend;
     int x_active;
+    unsigned char x_red;
+    unsigned char x_green;
+    unsigned char x_blue;
+    unsigned char x_bg[3]; // background color
+    char x_color[8];
+    char x_bgcolor[8];
+    t_symbol* x_keysym;
     t_symbol* x_bindsym;
     t_symbol* x_fontname;
     t_symbol* x_receive;
@@ -151,8 +151,8 @@ struct t_fake_comment {
     int x_italic;
     int x_underline;
     int x_bg_flag;
-    int x_textjust;       // 0: left, 1: center, 2: right
-    unsigned int x_bg[3]; // background color
+    int x_textjust; // 0: left, 1: center, 2: right
+    int x_outline;
     t_pd* x_handle;
 };
 
@@ -234,11 +234,12 @@ struct t_fake_knob {
     void* x_proxy;
     t_glist* x_glist;
     int x_size;
-    t_float x_pos; // 0-1 normalized position
+    double x_pos; // 0-1 normalized position
     t_float x_exp;
     int x_expmode;
     int x_log;
-    t_float x_init;
+    t_float x_load;  // value when loading patch
+    t_float x_start; // arc start value
     int x_start_angle;
     int x_end_angle;
     int x_range;
@@ -252,7 +253,7 @@ struct t_fake_knob {
     int x_shift;
     int x_edit;
     int x_jump;
-    t_float x_fval;
+    double x_fval;
     t_symbol* x_fg;
     t_symbol* x_mg;
     t_symbol* x_bg;
@@ -666,9 +667,23 @@ struct t_fake_text_define {
     unsigned char x_keep; /* whether to embed contents in patch on save */
 };
 
-// class for connections
-struct t_fake_outconnect {
-    void* oc_next;
-    t_pd* oc_to;
-    t_symbol* outconnect_path_data;
+struct t_fake_pd_tilde {
+    t_object x_obj;
+    t_clock* x_clock;
+    t_outlet* x_outlet1; /* for messages back from subproc */
+    t_canvas* x_canvas;
+    FILE* x_infd;
+    FILE* x_outfd;
+    t_binbuf* x_binbuf;
+    int x_childpid;
+    int x_ninsig;
+    int x_noutsig;
+    int x_fifo;
+    int x_binary;
+    t_float x_sr;
+    t_symbol* x_pddir;
+    t_symbol* x_schedlibdir;
+    float** x_insig;
+    float** x_outsig;
+    int x_blksize;
 };

@@ -42,9 +42,10 @@ flags:
   - name: -phase <list>
     description: sets list of phases for all oscillators
   - name: -ramp <list>
-    description: sets ramp time for all oscillators
+    description: sets ramp times for all oscillators
   - name: -rampall <float>
-    description: sets a ramp time for all oscillators (default all 10)
+    description: sets a ramp time for all oscillators
+    default: all 10
 
 methods:
   - type: freq <list>

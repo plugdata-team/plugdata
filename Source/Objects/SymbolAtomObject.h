@@ -10,6 +10,7 @@ class SymbolAtomObject final : public ObjectBase
     bool isDown = false;
     bool isLocked = false;
 
+    Value sizeProperty = SynchronousValue();
     AtomHelper atomHelper;
 
     String lastMessage;
@@ -22,6 +23,8 @@ public:
         , atomHelper(obj, parent, this)
     {
         addAndMakeVisible(input);
+
+        input.setText(getSymbol(), dontSendNotification);
 
         input.addMouseListener(this, false);
 
@@ -40,11 +43,21 @@ public:
         };
 
         input.setMinimumHorizontalScale(0.9f);
+
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
+        atomHelper.addAtomParameters(objectParameters);
     }
 
     void update() override
     {
+        sizeProperty = atomHelper.getWidthInChars();
         atomHelper.update();
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+        setParameterExcludingListener(sizeProperty, atomHelper.getWidthInChars());
     }
 
     void lock(bool locked) override
@@ -74,20 +87,20 @@ public:
         return atomHelper.createConstrainer(object);
     }
 
-    ObjectParameters getParameters() override
-    {
-        return atomHelper.objectParameters;
-    }
-
     void setSymbol(String const& value)
     {
-        cnv->pd->sendDirectMessage(ptr, value.toStdString());
+        if (auto gatom = ptr.get<t_fake_gatom>()) {
+            cnv->pd->sendDirectMessage(gatom.get(), value.toStdString());
+        }
     }
 
     String getSymbol()
     {
-        cnv->pd->setThis();
-        return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name);
+        if (auto gatom = ptr.get<t_fake_gatom>()) {
+            return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(gatom.get()))->s_name);
+        }
+
+        return {};
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -118,11 +131,19 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(object->findColour(PlugDataColour::outlineColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-        triangle = triangle.createPathWithRoundedCorners(4.0f);
+
+        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
+
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
         g.fillPath(triangle);
+        g.restoreState();
 
         bool selected = object->isSelected() && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
@@ -155,7 +176,17 @@ public:
 
     void valueChanged(Value& v) override
     {
-        atomHelper.valueChanged(v);
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+
+            setParameterExcludingListener(sizeProperty, width);
+
+            atomHelper.setWidthInChars(width);
+            object->updateBounds();
+        } else {
+            atomHelper.valueChanged(v);
+        }
     }
 
     bool keyPressed(KeyPress const& key, Component* originalComponent) override
@@ -174,6 +205,7 @@ public:
         return {
             hash("set"),
             hash("symbol"),
+            hash("list"),
             hash("send"),
             hash("receive")
         };
@@ -184,6 +216,7 @@ public:
         switch (hash(symbol)) {
 
         case hash("set"):
+        case hash("list"):
         case hash("symbol"): {
             input.setText(atoms[0].getSymbol(), dontSendNotification);
             break;

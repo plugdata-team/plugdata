@@ -174,7 +174,7 @@ struct Fonts {
         drawText(g, textToDraw, Rectangle<int>(x, y, w, h), colour, fontHeight, justification);
     }
 
-    static void drawFittedText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int numLines = 1, float minimumHoriontalScale = 1.0f, int fontHeight = 15, Justification justification = Justification::centredLeft, FontStyle style = FontStyle::Regular)
+    static void drawFittedText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int numLines = 1, float minimumHoriontalScale = 1.0f, float fontHeight = 15.0f, Justification justification = Justification::centredLeft, FontStyle style = FontStyle::Regular)
     {
         g.setFont(getFontFromStyle(style).withHeight(fontHeight));
         g.setColour(colour);

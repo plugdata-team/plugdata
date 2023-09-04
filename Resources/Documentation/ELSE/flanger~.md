@@ -40,7 +40,8 @@ outlets:
 
 flags:
   - name: -tri
-    description: sets waveform to triangular (default sine)
+    description: sets waveform to triangular
+    default: sine
 
 
 draft: false

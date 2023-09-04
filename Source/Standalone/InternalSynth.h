@@ -34,9 +34,7 @@ public:
     bool isReady();
 
 private:
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-
-    File soundFont = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("GeneralUser_GS.sf3");
+    File soundFont = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("GS").getChildFile("GeneralUser_GS.sf3");
 
     // Fluidsynth state
     FluidSynth* synth = nullptr;
@@ -45,9 +43,9 @@ private:
     std::atomic<bool> ready = false;
     std::mutex unprepareLock;
 
-    int lastSampleRate = 0;
-    int lastBlockSize = 0;
-    int lastNumChannels = 0;
+    std::atomic<int> lastSampleRate = 0;
+    std::atomic<int> lastBlockSize = 0;
+    std::atomic<int> lastNumChannels = 0;
 
     AudioBuffer<float> internalBuffer;
 };

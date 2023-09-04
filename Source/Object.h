@@ -8,6 +8,10 @@
 
 #include "Utility/ModifierKeyListener.h"
 #include <JuceHeader.h>
+#include "Utility/SettingsFile.h"
+#include "Utility/RateReducer.h"
+
+#define ACTIVITY_UPDATE_RATE 15
 
 class ObjectBase;
 class Iolet;
@@ -19,7 +23,7 @@ class ObjectBoundsConstrainer;
 class Object : public Component
     , public Value::Listener
     , public ChangeListener
-    , public Timer
+    , public MultiTimer
     , private TextEditor::Listener {
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
@@ -31,8 +35,7 @@ public:
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
-
-    void timerCallback() override;
+    void timerCallback(int timerID) override;
 
     void paint(Graphics&) override;
     void paintOverChildren(Graphics&) override;
@@ -73,6 +76,8 @@ public:
 
     bool hitTest(int x, int y) override;
 
+    void triggerOverlayActiveState();
+
     bool validResizeZone = false;
 
     Array<Rectangle<float>> getCorners() const;
@@ -84,7 +89,6 @@ public:
     Value commandLocked;
     Value presentationMode;
     Value hvccMode = Value(var(false));
-    Value paletteDragMode = Value(var(false));
 
     Canvas* cnv;
 
@@ -99,13 +103,7 @@ public:
 
     bool attachedToMouse = false;
     bool isSearchTarget = false;
-
-    static inline const StringArray hvccObjects = { "!=", "%", "&", "&&", "|", "||", "*", "+", "-", "/", "<", "<<", "<=", "==", ">", ">=", ">>", "abs", "atan", "atan2", "b", "bang", "bendin", "bendout", "bng", "change", "clip", "cnv", "cos", "ctlin", "ctlout", "dbtopow", "dbtorms", "declare", "del", "delay", "div", "exp", "f", "float", "floatatom", "ftom", "gatom", "hradio", "hsl", "i", "inlet", "int", "line", "loadbang", "log", "msg", "message", "makenote", "max", "metro", "min", "midiin", "midiout", "midirealtimein", "mod", "moses", "mtof", "nbx", "notein", "noteout", "outlet", "pack", "pgmin", "pgmout", "pipe", "poly", "polytouchin", "polytouchout", "pow", "powtodb", "print", "r", "random", "receive", "rmstodb", "route", "s", "sel", "select", "send", "sin", "spigot", "sqrt", "stripnote", "swap", "symbol", "symbolatom", "t", "table", "tabread", "tabwrite", "tan", "text", "tgl", "timer", "touchin", "touchout", "trigger", "unpack", "until", "vradio", "vsl", "wrap", "*~", "+~", "-~", "/~", "abs~", "adc~", "biquad~", "bp~", "catch~", "clip~", "cos~", "cpole~", "czero_rev~", "czero~", "dac~", "dbtopow~", "dbtorms~", "delread~", "delwrite~", "delread4~", "env~", "exp~", "ftom~", "hip~", "inlet~", "line~", "lop~", "max~", "min~", "mtof~", "noise~", "osc~", "outlet~", "phasor~", "powtodb~", "pow~", "q8_rsqrt~", "q8_sqrt~", "receive~", "rmstodb~", "rpole~", "rsqrt~", "rzero_rev~", "rzero~", "r~", "samphold~", "samplerate~", "send~", "sig~", "snapshot~", "sqrt~", "s~", "tabosc4~", "tabplay~", "tabread4~", "tabread~", "tabwrite~", "throw~", "vcf~", "vd~", "wrap~",
-
-        // Heavylib abstractions:
-        // These won't be used for the compatibility testing (it will recognise any abstractions as a canvas)
-        // These are only for the suggestions
-        "hv.comb~", "hv.compressor~", "hv.compressor2~", "hv.dispatch", "hv.drunk", "hv.envfollow~", "hv.eq~", "hv.exp~", "hv.filter.gain~", "hv.filter~", "hv.flanger~", "hv.flanger2~", "hv.freqshift~", "hv.gt~", "hv.gte~", "hv.log~", "hv.lt~", "hv.lte~", "hv.multiplex~", "hv.neq~", "hv.osc~", "hv.pinknoise~", "hv.pow~", "hv.reverb~", "hv.tanh~", "hv.vline~" };
+    static inline Object* consoleTarget = nullptr;
 
     Rectangle<int> originalBounds;
 
@@ -120,6 +118,8 @@ private:
 
     void openNewObjectEditor();
 
+    bool checkIfHvccCompatible();
+
     void setSelected(bool shouldBeSelected);
     bool selectedFlag = false;
     bool selectionStateChanged = false;
@@ -129,7 +129,14 @@ private:
     bool indexShown = false;
     bool isHvccCompatible = true;
 
+    bool showActiveState = false;
+    float activeStateAlpha = 0.0f;
+
+    Image activityOverlayImage;
+
     ObjectDragState& ds;
+
+    RateReducer rateReducer = RateReducer(ACTIVITY_UPDATE_RATE);
 
     std::unique_ptr<TextEditor> newObjectEditor;
 

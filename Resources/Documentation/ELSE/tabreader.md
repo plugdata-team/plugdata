@@ -38,7 +38,8 @@ flags:
   - name: -none
     description: sets interpolation type
   - name: -ch <float>
-    description: set initial loaded channel (default 1)
+    description: set initial loaded channel
+    default: 1
   - name: -index
     description: sets to indexed mode
   - name: -loop

@@ -31,7 +31,8 @@ outlets:
 
 flags:
 - name: -size <float>
-  description: sets analysis window size in samples (default 512)
+  description: sets analysis window size in samples
+  default: 512
 
 draft: false
 ---

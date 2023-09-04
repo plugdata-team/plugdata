@@ -9,6 +9,8 @@ extern "C" {
 #include "x_libpd_mod_utils.h" //  TODO: we only need t_object
 }
 
+#include "WeakReference.h"
+
 namespace pd {
 
 using Connections = std::vector<std::tuple<void*, int, t_object*, int, t_object*>>;
@@ -30,7 +32,7 @@ public:
     // The compare equal operator.
     bool operator==(Patch const& other) const
     {
-        return getPointer() == other.getPointer();
+        return getPointer().get() == other.getPointer().get();
     }
 
     // Gets the bounds of the patch.
@@ -45,6 +47,8 @@ public:
 
     void moveObjects(std::vector<void*> const&, int x, int y);
 
+    void moveObjectTo(void* object, int x, int y);
+
     void finishRemove();
     void removeSelection();
 
@@ -53,6 +57,8 @@ public:
 
     bool isSubpatch();
     bool isAbstraction();
+
+    void setVisible(bool shouldVis);
 
     static String translatePatchAsString(String const& clipboardContent, Point<int> position);
 
@@ -97,9 +103,9 @@ public:
 
     Connections getConnections() const;
 
-    t_canvas* getPointer() const
+    WeakReference::Ptr<t_canvas> getPointer() const
     {
-        return static_cast<t_canvas*>(ptr);
+        return ptr.get<t_canvas>();
     }
 
     // Gets the objects of the patch.
@@ -117,11 +123,14 @@ public:
     Instance* instance = nullptr;
     bool closePatchOnDelete;
     bool openInPluginMode = false;
+    int splitViewIndex = 0;
+
+    int untitledPatchNum = 0;
 
 private:
     File currentFile;
 
-    void* ptr = nullptr;
+    WeakReference ptr;
 
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters

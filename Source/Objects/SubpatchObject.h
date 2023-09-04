@@ -7,24 +7,31 @@
 class SubpatchObject final : public TextBase {
 
     pd::Patch::Ptr subpatch;
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
+    Value isGraphChild = SynchronousValue(var(false));
 
     bool locked = false;
 
 public:
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)
-        , subpatch(new pd::Patch(ptr, cnv->pd, false))
+        , subpatch(new pd::Patch(obj, cnv->pd, false))
     {
         object->hvccMode.addListener(this);
 
         if (getValue<bool>(object->hvccMode)) {
-            checkHvccCompatibility(subpatch.get());
+            checkHvccCompatibility(getText(), subpatch.get());
         }
 
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
-        objectParameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" });
+
+        // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
+        // By running another update call asynchrounously, we can still respond to the new state
+        MessageManager::callAsync([_this = SafePointer(this)]() {
+            if (_this) {
+                _this->update();
+                _this->valueChanged(_this->isGraphChild);
+            }
+        });
     }
 
     ~SubpatchObject() override
@@ -36,24 +43,24 @@ public:
     void update() override
     {
         isGraphChild = static_cast<bool>(subpatch->getPointer()->gl_isgraph);
-        hideNameAndArgs = static_cast<bool>(subpatch->getPointer()->gl_hidetext);
 
-        updateValue();
-    }
-
-    void updateValue()
-    {
         // Change from subpatch to graph
-        if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
-            cnv->setSelected(object, false);
-            object->cnv->editor->sidebar->hideParameters();
-            object->setType(objectText, ptr);
+        bool graph;
+        if (auto canvas = ptr.get<t_canvas>()) {
+            graph = canvas->gl_isgraph;
+        } else {
+            return;
         }
+
+        isGraphChild = graph;
     };
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (locked && click()) {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
+        if (locked && click(e.getPosition(), e.mods.isShiftDown(), e.mods.isAltDown())) {
             return;
         }
 
@@ -81,39 +88,55 @@ public:
 
     void checkGraphState()
     {
-        if (!ptr)
-            return;
-
-        pd->setThis();
-
-        int isGraph = getValue<bool>(isGraphChild);
-        int hideText = getValue<bool>(hideNameAndArgs);
-
-        canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
-        repaint();
-
-        MessageManager::callAsync([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
-
-            // Change from subpatch to graph
-            if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
-                cnv->setSelected(object, false);
-                object->cnv->editor->sidebar->hideParameters();
-                object->setType(getText(), ptr);
-                return;
-            }
-        });
     }
 
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
-            checkGraphState();
+        if (v.refersToSameSourceAs(isGraphChild)) {
+            int isGraph = getValue<bool>(isGraphChild);
+            if (auto glist = ptr.get<t_glist>()) {
+                canvas_setgraph(glist.get(), isGraph + 2 * glist->gl_hidetext, 0);
+            }
+
+            if (isGraph) {
+                MessageManager::callAsync([this, _this = SafePointer(this)]() {
+                    if (!_this)
+                        return;
+
+                    _this->cnv->setSelected(object, false);
+                    _this->object->cnv->editor->sidebar->hideParameters();
+                    _this->object->setType(_this->getText(), ptr.getRaw<void>());
+                });
+            }
+
         } else if (v.refersToSameSourceAs(object->hvccMode)) {
             if (getValue<bool>(v)) {
-                checkHvccCompatibility(subpatch.get());
+                checkHvccCompatibility(getText(), subpatch.get());
             }
+        }
+    }
+
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("coords"),
+            hash("donecanvasdialog")
+        };
+    }
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        switch (hash(symbol)) {
+        case hash("coords"): {
+            update();
+            break;
+        }
+        case hash("donecanvasdialog"): {
+            update();
+            break;
+        }
+        default:
+            break;
         }
     }
 
@@ -127,25 +150,35 @@ public:
         openSubpatch();
     }
 
-    static void checkHvccCompatibility(pd::Patch::Ptr patch, String const& prefix = "")
+    bool showParametersWhenSelected() override
+    {
+        return true;
+    }
+
+    static void checkHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "")
     {
         auto* instance = patch->instance;
 
-        for (auto* object : patch->getObjects()) {
-            const String name = libpd_get_object_class_name(object);
+        if (objectText.startsWith("pd @hv_obj")) {
+            return;
+        }
 
-            if (name == "canvas" || name == "graph") {
-                pd::Patch::Ptr patch = new pd::Patch(object, instance, false);
+        for (auto* object : patch->getObjects()) {
+            const String type = libpd_get_object_class_name(object);
+
+            if (type == "canvas" || type == "graph") {
+                pd::Patch::Ptr subpatch = new pd::Patch(object, instance, false);
 
                 char* text = nullptr;
                 int size = 0;
                 libpd_get_object_text(object, &text, &size);
+                auto objName = String::fromUTF8(text, size);
 
-                checkHvccCompatibility(patch, prefix + String::fromUTF8(text) + " -> ");
+                checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
                 freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-
-            } else if (!Object::hvccObjects.contains(name)) {
-                instance->logWarning(String("Warning: object \"" + prefix + name + "\" is not supported in Compiled Mode"));
+                
+            } else if (!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
+                instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
             }
         }
     }

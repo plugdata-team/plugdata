@@ -26,7 +26,7 @@ inlets:
 outlets:
   1st:
   - type: anything
-    description: symbol, float or list, depending on the given arguments - or bang if no arguments are given to the parent patch (as in the help patch)
+    description: arguments given in the parent patch (bang is empty list)
 
 draft: false
 ---

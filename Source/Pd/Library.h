@@ -7,14 +7,16 @@
 #pragma once
 
 #include <m_pd.h>
-#include "Utility/FileSystemWatcher.h"
+#include "../Utility/FileSystemWatcher.h"
+#include "../Utility/Config.h"
 
 namespace pd {
 
+class Instance;
 class Library : public FileSystemWatcher::Listener {
 
 public:
-    Library();
+    Library(pd::Instance* instance);
 
     ~Library() override
     {
@@ -24,7 +26,7 @@ public:
 
     void updateLibrary();
 
-    StringArray autocomplete(String const& query) const;
+    StringArray autocomplete(String const& query, File const& patchDirectory) const;
     void getExtraSuggestions(int currentNumSuggestions, String const& query, std::function<void(StringArray)> const& callback);
 
     static std::array<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
@@ -42,16 +44,14 @@ public:
 
     std::function<void()> appDirChanged;
 
-    static inline const File appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-
     static inline Array<File> const defaultPaths = {
-        appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else"),
-        appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("cyclone"),
-        appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("heavylib"),
-        appDataDir.getChildFile("Library").getChildFile("Abstractions"),
-        appDataDir.getChildFile("Library").getChildFile("Deken"),
-        appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("else"),
-        appDataDir.getChildFile("Library").getChildFile("Extra")
+        ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("else"),
+        ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("cyclone"),
+        ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("heavylib"),
+        ProjectInfo::appDataDir.getChildFile("Abstractions"),
+        ProjectInfo::appDataDir.getChildFile("Externals"),
+        ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("else"),
+        ProjectInfo::appDataDir.getChildFile("Extra")
     };
 
     static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "heavylib", "pdlua" };

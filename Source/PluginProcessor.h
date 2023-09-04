@@ -70,7 +70,8 @@ public:
     void receiveMidiByte(int port, int byte) override;
     void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
 
-    void updateDrawables() override;
+    void addTextToTextEditor(unsigned long ptr, String text) override;
+    void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
 
     void updateConsole() override;
 
@@ -108,8 +109,8 @@ public:
     void parseDataBuffer(XmlElement const& xml) override;
     XmlElement* m_temp_xml;
 
-    pd::Patch::Ptr loadPatch(String patch);
-    pd::Patch::Ptr loadPatch(File const& patch);
+    pd::Patch::Ptr loadPatch(String patch, int splitIdx = -1);
+    pd::Patch::Ptr loadPatch(File const& patch, int splitIdx = -1);
 
     void titleChanged() override;
 
@@ -132,12 +133,7 @@ public:
 
     std::unique_ptr<pd::Library> objectLibrary;
 
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-
-    static inline const String versionSuffix = "-0";
-    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + versionSuffix);
-
-    File abstractions = versionDataDir.getChildFile("Abstractions");
+    File abstractions = ProjectInfo::versionDataDir.getChildFile("Abstractions");
 
     Value commandLocked = Value(var(false));
 
@@ -160,8 +156,6 @@ public:
     int lastLeftTab = -1;
     int lastRightTab = -1;
 
-    // Only used by standalone!
-    OwnedArray<MidiOutput> midiOutputs;
     std::unique_ptr<InternalSynth> internalSynth;
     std::atomic<bool> enableInternalSynth = false;
 
@@ -178,6 +172,7 @@ private:
     MidiBuffer midiBufferOut;
     MidiBuffer midiBufferTemp;
     MidiBuffer midiBufferCopy;
+    MidiBuffer midiBufferInternalSynth;
 
     bool midiByteIsSysex = false;
     uint8 midiByteBuffer[512] = { 0 };
@@ -194,7 +189,9 @@ private:
     dsp::Limiter<float> limiter;
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
-    static inline const String else_version = "ELSE v1.0-rc8";
+    std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
+
+    static inline const String else_version = "ELSE v1.0-rc9";
     static inline const String cyclone_version = "cyclone v0.7-0";
     // this gets updated with live version data later
     static String pdlua_version;

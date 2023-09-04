@@ -121,7 +121,7 @@ public:
             auto nn = (static_cast<float>(x) / getWidth()) * 120.0f + 16.766f;
             auto freq = mtof(nn);
             auto result = calcMagnitudePhase((MathConstants<float>::pi * 2.0f * freq) / 44100.0f, a1, a2, b0, b1, b2);
-            
+
             if (!std::isfinite(result.first)) {
                 continue;
             }
@@ -146,6 +146,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         lastCentre = filterCentre;
         lastX1 = filterX1;
         lastX2 = filterX2;
@@ -503,6 +506,7 @@ public:
 class BicoeffObject : public ObjectBase {
 
     BicoeffGraph graph;
+    Value sizeProperty = SynchronousValue();
 
 public:
     BicoeffObject(void* obj, Object* parent)
@@ -512,8 +516,11 @@ public:
         addAndMakeVisible(graph);
 
         graph.graphChangeCallback = [this](float a1, float a2, float b0, float b1, float b2) {
-            pd->sendDirectMessage(ptr, "biquad", { a1, a2, b0, b1, b2 });
+            if (auto obj = ptr.get<void>())
+                pd->sendDirectMessage(obj.get(), "biquad", { a1, a2, b0, b1, b2 });
         };
+
+        objectParameters.addParamSize(&sizeProperty);
     }
 
     void resized() override
@@ -521,24 +528,85 @@ public:
         graph.setBounds(getLocalBounds());
     }
 
+    void update() override
+    {
+        if (auto gobj = ptr.get<t_gobj>()) {
+
+            auto* patch = object->cnv->patch.getPointer().get();
+            if (!patch)
+                return;
+
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+
+            sizeProperty = Array<var> { var(w), var(h) };
+        }
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = object->cnv->patch.getPointer().get();
+            if (!patch)
+                return;
+
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(w), var(h) });
+        }
+    }
+
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto gobj = ptr.get<t_gobj>()) {
+                auto* patch = object->cnv->patch.getPointer().get();
+                if (!patch)
+                    return;
+
+                pd->sendDirectMessage(gobj.get(), "dim", { (float)width, (float)height });
+            }
+
+            object->updateBounds();
+        }
+    }
+
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = object->cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            return { x, y, w + 1, h + 1 };
+        }
 
-        pd->unlockAudioThread();
-
-        return bounds;
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = object->cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-        pd->sendDirectMessage(ptr, "dim", { b.getWidth() - 1, b.getHeight() - 1 });
+            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd->sendDirectMessage(gobj.get(), "dim", { (float)b.getWidth() - 1, (float)b.getHeight() - 1 });
+        }
+
         graph.saveProperties();
     }
 

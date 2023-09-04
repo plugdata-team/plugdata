@@ -28,7 +28,8 @@ outlets:
 
 flags:
   - name: phase <float>
-    description: phase offset (default 0)
+    description: phase offset
+    default: 0
 
 methods:
   - type: phase <float>

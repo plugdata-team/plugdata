@@ -10,9 +10,10 @@ class MIDIKeyboard : public MidiKeyboardComponent {
     Object* object;
 
     bool toggleMode = false;
-    std::set<int> heldKeys;
+    int lastKey = -1;
 
 public:
+    std::set<int> heldKeys;
     std::function<void(int, int)> noteOn;
     std::function<void(int)> noteOff;
 
@@ -59,10 +60,12 @@ public:
                 noteOff(midiNoteNumber);
             } else {
                 heldKeys.insert(midiNoteNumber);
+                lastKey = midiNoteNumber;
                 noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
             }
         } else {
             heldKeys.insert(midiNoteNumber);
+            lastKey = midiNoteNumber;
             noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
         }
 
@@ -76,8 +79,11 @@ public:
             for (auto& note : heldKeys) {
                 noteOff(note);
             }
+            if (lastKey != midiNoteNumber) {
+                heldKeys.erase(lastKey);
+            }
 
-            heldKeys.clear();
+            lastKey = midiNoteNumber;
 
             heldKeys.insert(midiNoteNumber);
             noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
@@ -88,23 +94,18 @@ public:
         return true;
     }
 
-    void mouseUpOnKey(int midiNoteNumber, MouseEvent const& e) override
-    {
-        if (!toggleMode) {
-            heldKeys.erase(midiNoteNumber);
-            noteOff(midiNoteNumber);
-        }
-
-        repaint();
-    }
-
-    // Override to fix bug in JUCE
+    // When dragging over the keyboard, the cursor may leave the keyboard object.
+    // If the user ends the drag action (mouse up) when not over the keyboard object,
+    // the keyboard will not register the mouse up, and the key will be stuck on.
+    // This could possibly be a bug in juce.
+    // So we completely replace mouseUpOnKey functionality here, mouseUp() will stop mouseUpOnKey() being called.
     void mouseUp(MouseEvent const& e) override
     {
-        auto keys = heldKeys;
-        for (auto& key : keys) {
-            mouseUpOnKey(key, e);
+        if (!toggleMode) {
+            heldKeys.erase(lastKey);
+            noteOff(lastKey);
         }
+        repaint();
     }
 
     void setToggleMode(bool enableToggleMode)
@@ -114,9 +115,6 @@ public:
 
     void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
     {
-        // TODO: this should be a theme preference, or setting for keyboard
-        // yeah but we can set a less ugly default colour for now!
-
         isDown = heldKeys.count(midiNoteNumber);
 
         auto c = Colour(225, 225, 225);
@@ -173,7 +171,6 @@ public:
                 p.clear();
             }
 
-            // TODO: C octave number text colour should be a theme prefernece or setting
             g.setColour(Colour(90, 90, 90));
             g.fillPath(outline, outline.getTransformToScaleToFit(rectangle, true));
         }
@@ -181,7 +178,6 @@ public:
 
     void drawBlackNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour noteFillColour) override
     {
-        // TODO: this should be a theme preference, or setting for keyboard
         auto c = Colour(90, 90, 90);
 
         isDown = heldKeys.count(midiNoteNumber);
@@ -199,13 +195,14 @@ public:
 class KeyboardObject final : public ObjectBase
     , public Timer {
 
-    Value lowC;
-    Value octaves;
+    Value lowC = SynchronousValue();
+    Value octaves = SynchronousValue();
     int numWhiteKeys = 0;
 
-    Value sendSymbol;
-    Value receiveSymbol;
-    Value toggleMode;
+    Value sendSymbol = SynchronousValue();
+    Value receiveSymbol = SynchronousValue();
+    Value toggleMode = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
 
     MidiKeyboardState state;
     MIDIKeyboard keyboard;
@@ -220,41 +217,34 @@ public:
         keyboard.setScrollButtonsVisible(false);
 
         keyboard.noteOn = [this](int note, int velocity) {
-            auto* elseKeyboard = static_cast<t_fake_keyboard*>(this->ptr);
-
             int ac = 2;
             t_atom at[2];
             SETFLOAT(at, note);
             SETFLOAT(at + 1, velocity);
 
-            pd->lockAudioThread();
-
-            outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
-            if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
-                pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
-
-            pd->unlockAudioThread();
+            if (auto obj = this->ptr.get<t_fake_keyboard>()) {
+                outlet_list(obj->x_out, gensym("list"), ac, at);
+                if (obj->x_send != gensym("") && obj->x_send->s_thing)
+                    pd_list(obj->x_send->s_thing, gensym("list"), ac, at);
+            }
         };
 
         keyboard.noteOff = [this](int note) {
-            auto* elseKeyboard = static_cast<t_fake_keyboard*>(this->ptr);
+            if (auto obj = this->ptr.get<t_fake_keyboard>()) {
+                int ac = 2;
+                t_atom at[2];
+                SETFLOAT(at, note);
+                SETFLOAT(at + 1, 0);
 
-            pd->lockAudioThread();
-
-            int ac = 2;
-            t_atom at[2];
-            SETFLOAT(at, note);
-            SETFLOAT(at + 1, 0);
-
-            outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
-            if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
-                pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
-
-            pd->unlockAudioThread();
+                outlet_list(obj->x_out, gensym("list"), ac, at);
+                if (obj->x_send != gensym("") && obj->x_send->s_thing)
+                    pd_list(obj->x_send->s_thing, gensym("list"), ac, at);
+            }
         };
 
         addAndMakeVisible(keyboard);
 
+        objectParameters.addParamInt("Height", cDimensions, &sizeProperty);
         objectParameters.addParamInt("Start octave", cGeneral, &lowC, 2);
         objectParameters.addParamInt("Num. octaves", cGeneral, &octaves, 4);
         objectParameters.addParamBool("Toggle Mode", cGeneral, &toggleMode, { "Off", "On" }, 0);
@@ -266,46 +256,60 @@ public:
 
     void update() override
     {
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
-        lowC.setValue(elseKeyboard->x_low_c);
-        octaves.setValue(elseKeyboard->x_octaves);
-        toggleMode.setValue(elseKeyboard->x_toggle_mode);
+        if (auto obj = ptr.get<t_fake_keyboard>()) {
+            lowC.setValue(obj->x_low_c);
+            octaves.setValue(obj->x_octaves);
+            toggleMode.setValue(obj->x_toggle_mode);
+            sizeProperty.setValue(obj->x_height);
 
-        auto sndSym = String::fromUTF8(elseKeyboard->x_send->s_name);
-        auto rcvSym = String::fromUTF8(elseKeyboard->x_receive->s_name);
+            auto sndSym = String::fromUTF8(obj->x_send->s_name);
+            auto rcvSym = String::fromUTF8(obj->x_receive->s_name);
 
-        sendSymbol = sndSym != "empty" ? sndSym : "";
-        receiveSymbol = rcvSym != "empty" ? rcvSym : "";
+            sendSymbol = sndSym != "empty" ? sndSym : "";
+            receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
-        MessageManager::callAsync([this] {
-            updateAspectRatio();
+            MessageManager::callAsync([this] {
+                updateAspectRatio();
 
-            // Call async to make sure pd obj has updated
-            object->updateBounds();
-        });
+                // Call async to make sure pd obj has updated
+                object->updateBounds();
+            });
+        }
+    }
+
+    void updateSizeProperty() override
+    {
+        if (auto keyboard = ptr.get<t_fake_keyboard>()) {
+            setParameterExcludingListener(sizeProperty, object->getObjectBounds().getHeight());
+        }
     }
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if (auto obj = ptr.get<t_fake_keyboard>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
 
-        int x, y, w, h;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            int x, y, w, h;
+            libpd_get_object_bounds(patch, obj.get(), &x, &y, &w, &h);
 
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
-        auto bounds = Rectangle<int>(x, y, elseKeyboard->x_space * numWhiteKeys, elseKeyboard->x_height);
+            return Rectangle<int>(x, y, obj->x_space * numWhiteKeys, obj->x_height);
+        }
 
-        pd->unlockAudioThread();
-
-        return bounds;
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        if (auto gobj = ptr.get<t_fake_keyboard>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
-        elseKeyboard->x_height = b.getHeight();
+            libpd_moveobj(patch, gobj.cast<t_gobj>(), b.getX(), b.getY());
+            gobj->x_height = b.getHeight();
+        }
     }
 
     void resized() override
@@ -317,8 +321,9 @@ public:
 
         keyboard.setKeyWidth(keyWidth);
 
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
-        elseKeyboard->x_space = keyWidth;
+        if (auto obj = ptr.get<t_fake_keyboard>()) {
+            obj->x_space = keyWidth;
+        }
 
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
     }
@@ -342,39 +347,51 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
-
-        if (value.refersToSameSourceAs(lowC)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto height = std::max(getValue<int>(sizeProperty), constrainer->getMinimumHeight());
+            setParameterExcludingListener(sizeProperty, height);
+            if (auto keyboard = ptr.get<t_fake_keyboard>()) {
+                keyboard->x_height = height;
+            }
+            object->updateBounds();
+        } else if (value.refersToSameSourceAs(lowC)) {
             lowC = std::clamp<int>(getValue<int>(lowC), -1, 9);
-            elseKeyboard->x_low_c = getValue<int>(lowC);
+            if (auto obj = ptr.get<t_fake_keyboard>())
+                obj->x_low_c = getValue<int>(lowC);
             updateAspectRatio();
         } else if (value.refersToSameSourceAs(octaves)) {
             octaves = std::clamp<int>(getValue<int>(octaves), 1, 11);
-            elseKeyboard->x_octaves = getValue<int>(octaves);
+            if (auto obj = ptr.get<t_fake_keyboard>())
+                obj->x_octaves = getValue<int>(octaves);
             updateAspectRatio();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            pd->sendDirectMessage(ptr, "send", { symbol });
+            if (auto obj = ptr.get<void>())
+                pd->sendDirectMessage(obj.get(), "send", { symbol });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            pd->sendDirectMessage(ptr, "receive", { symbol });
+            if (auto obj = ptr.get<void>())
+                pd->sendDirectMessage(obj.get(), "receive", { symbol });
         } else if (value.refersToSameSourceAs(toggleMode)) {
             auto toggle = getValue<int>(toggleMode);
-            pd->sendDirectMessage(ptr, "toggle", { toggle });
+            if (auto obj = ptr.get<void>())
+                pd->sendDirectMessage(obj.get(), "toggle", { (float)toggle });
             keyboard.setToggleMode(toggle);
         }
     }
 
     void updateValue()
     {
-        auto* elseKeyboard = static_cast<t_fake_keyboard*>(ptr);
+        if (auto obj = ptr.get<t_fake_keyboard>()) {
 
-        for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
-            if (elseKeyboard->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
-                state.noteOn(2, i, 1.0f);
-            }
-            if (!elseKeyboard->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
-                state.noteOff(2, i, 1.0f);
+            for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
+                if (obj->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
+                    state.noteOn(2, i, 1.0f);
+                }
+                if (!obj->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
+                    state.noteOff(2, i, 1.0f);
+                }
             }
         }
     }
@@ -385,6 +402,8 @@ public:
             hash("float"),
             hash("list"),
             hash("set"),
+            hash("on"),
+            hash("off"),
             hash("lowc"),
             hash("oct"),
             hash("8ves"),
@@ -394,13 +413,52 @@ public:
         };
     }
 
+    void noteOn(int midiNoteNumber, bool isOn)
+    {
+        if (isOn)
+            keyboard.heldKeys.insert(midiNoteNumber);
+        else
+            keyboard.heldKeys.erase(midiNoteNumber);
+
+        keyboard.repaint();
+    }
+
+    void notesOn(std::vector<pd::Atom>& noteList, bool isOn)
+    {
+        for (auto note : noteList) {
+            if (isOn)
+                keyboard.heldKeys.insert(note.getFloat());
+            else
+                keyboard.heldKeys.erase(note.getFloat());
+        }
+        keyboard.repaint();
+    }
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        auto elseKeyboard = ptr.get<t_fake_keyboard>();
+
         switch (hash(symbol)) {
-        case hash("float"):
-        case hash("list"):
+        case hash("float"): {
+            noteOn(atoms[0].getFloat(), elseKeyboard->x_vel_in > 0);
+            break;
+        }
+        case hash("list"): {
+            if (atoms.size() == 2) {
+                noteOn(atoms[0].getFloat(), atoms[1].getFloat() > 0);
+            }
+            break;
+        }
         case hash("set"): {
-            updateValue();
+            // not implemented yet
+            break;
+        }
+        case hash("on"): {
+            notesOn(atoms, true);
+            break;
+        }
+        case hash("off"): {
+            notesOn(atoms, false);
             break;
         }
         case hash("lowc"): {

@@ -21,11 +21,14 @@ outlets:
 
 flags:
   - name: -rgb
-  description: sets to RGB list output (default hexadecimal)
+    description: sets to RGB list output
+    default: hexadecimal
   - name: -iemgui
-  description: sets to iemguis output (default hexadecimal)
+    description: sets to iemguis output
+    default: hexadecimal
   - name: -ds
-  description: sets to Data Structures output (default hexadecimal)
+    description: sets to Data Structures output
+    default: hexadecimal
 
 methods:
   - type: pick

@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "Utility/HashUtils.h"
 #include "Pd/Instance.h"
 #include "Pd/MessageListener.h"
 #include "Constants.h"
 #include "ObjectParameters.h"
+#include "Utility/SynchronousValue.h"
 
 class PluginProcessor;
 class Canvas;
@@ -22,16 +22,11 @@ class Patch;
 class Object;
 
 class ObjectLabel : public Label {
-    struct ObjectListener : public juce::ComponentListener {
-        void componentMovedOrResized(Component& component, bool moved, bool resized) override;
-    };
 
 public:
     explicit ObjectLabel(Component* parent)
         : object(parent)
     {
-        object->addComponentListener(&objListener);
-
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
         setMinimumHorizontalScale(1.f);
@@ -39,13 +34,7 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    ~ObjectLabel() override
-    {
-        object->removeComponentListener(&objListener);
-    }
-
 private:
-    ObjectListener objListener;
     Component* object;
 };
 
@@ -54,10 +43,33 @@ class ObjectBase : public Component
     , public Value::Listener
     , public SettableTooltipClient {
 
+    struct ObjectSizeListener : public juce::ComponentListener
+        , public Value::Listener {
+
+        ObjectSizeListener(Object* obj);
+
+        void componentMovedOrResized(Component& component, bool moved, bool resized) override;
+
+        void valueChanged(Value& v) override;
+
+        Object* object;
+    };
+
+    struct PropertyUndoListener : public Value::Listener {
+        PropertyUndoListener();
+
+        void valueChanged(Value& v) override;
+
+        uint32 lastChange;
+        std::function<void()> onChange = []() {};
+    };
+
 public:
     ObjectBase(void* obj, Object* parent);
 
     ~ObjectBase() override;
+
+    void initialise();
 
     void paint(Graphics& g) override;
 
@@ -109,6 +121,8 @@ public:
     String getType() const;
 
     void moveToFront();
+    void moveForward();
+    void moveBackward();
     void moveToBack();
 
     virtual Canvas* getCanvas();
@@ -125,7 +139,7 @@ public:
     void openSubpatch();
 
     // Attempt to send "click" message to object. Returns false if the object has no such method
-    bool click();
+    bool click(Point<int> position, bool shift, bool alt);
 
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
 
@@ -133,6 +147,10 @@ public:
 
     // Override this to return parameters that will be shown in the inspector
     virtual ObjectParameters getParameters();
+    virtual bool showParametersWhenSelected();
+
+    void objectMovedOrResized(bool resized);
+    virtual void updateSizeProperty() {};
 
     virtual void updateLabel() {};
 
@@ -157,6 +175,7 @@ public:
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var const& value);
+    void setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* listener);
 
     // Call when you start/stop editing a gui object
     void startEdition();
@@ -203,12 +222,14 @@ protected:
     }
 
 public:
-    void* ptr;
+    pd::WeakReference ptr;
     Object* object;
     Canvas* cnv;
     PluginProcessor* pd;
 
 protected:
+    PropertyUndoListener propertyUndoListener;
+
     std::function<void()> onConstrainerCreate = []() {};
 
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
@@ -217,6 +238,9 @@ protected:
     static inline constexpr int maxSize = 1000000;
     static inline std::atomic<bool> edited = false;
     std::unique_ptr<ComponentBoundsConstrainer> constrainer;
+
+    ObjectSizeListener objectSizeListener;
+    Value positionParameter = SynchronousValue();
 
     friend class IEMHelper;
     friend class AtomHelper;

@@ -18,7 +18,7 @@ inlets:
 outlets:
   1st:
   - type: list
-    description: list of args, dir symbol of visibility float
+    description: list of args, dir symbol, or visibility float
 draft: false
 ---
 pdcontrol lets you open a URL in a web browser or communicate with the patch to get its owning directory, arguments or its visible/invisible state.

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Constants.h"
+#include "Utility/SettingsFile.h"
 
 class PluginEditor;
 class Canvas;
@@ -16,11 +17,10 @@ using ArrayDialogCallback = std::function<void(int, String, int, int, bool, std:
 class Dialog : public Component {
 
 public:
-    Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton, int margin = 0)
+    Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0)
         : parentComponent(editor)
         , height(childHeight)
         , width(childWidth)
-        , y(yPosition)
         , owner(ownerPtr)
         , backgroundMargin(margin)
     {
@@ -33,7 +33,7 @@ public:
         grabKeyboardFocus();
 
         if (showCloseButton) {
-            closeButton.reset(getLookAndFeel().createDocumentWindowButton(5));
+            closeButton.reset(getLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
             addAndMakeVisible(closeButton.get());
             closeButton->onClick = [this]() {
                 closeDialog();
@@ -89,11 +89,13 @@ public:
     {
         if (viewedComponent) {
             viewedComponent->setSize(width, height);
-            viewedComponent->setCentrePosition({ getBounds().getCentreX(), y - (height / 2) });
+            viewedComponent->setCentrePosition({ getBounds().getCentreX(), getBounds().getCentreY() });
         }
 
         if (closeButton) {
-            closeButton->setBounds(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
+            auto macOSStyle = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
+            auto closeButtonBounds = Rectangle<int>(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
+            closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
         }
     }
 
@@ -117,7 +119,7 @@ public:
         owner->reset(nullptr);
     }
 
-    int height, width, y;
+    int height, width;
 
     Component* parentComponent;
 
@@ -130,8 +132,9 @@ public:
 
 struct Dialogs {
     static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback);
+    static void appendTextToTextEditorDialog(Component* dialog, String const& text);
 
-    static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0);
+    static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);
     static void showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, ArrayDialogCallback callback);
 
     static void showSettingsDialog(PluginEditor* editor);
@@ -152,6 +155,7 @@ struct Dialogs {
     static void showObjectMenu(PluginEditor* parent, Component* target);
 
     static void showDeken(PluginEditor* editor);
+    static void showPatchStorage(PluginEditor* editor);
 
     static PopupMenu createObjectMenu(PluginEditor* parent);
 };

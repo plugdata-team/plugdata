@@ -55,7 +55,8 @@ public:
         Point<int> mousePos = { 0, 0 },
         bool isHovering = false,
         int connections = 0,
-        int connectionNum = 0);
+        int connectionNum = 0,
+        int numSignalChannels = 0);
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
@@ -65,6 +66,8 @@ public:
     void setSegmented(bool segmented);
 
     void updatePath();
+
+    void forceUpdate();
 
     void lookAndFeelChanged() override;
 
@@ -116,6 +119,7 @@ private:
     void resizeToFit();
 
     int getMultiConnectNumber();
+    int getNumSignalChannels();
     int getNumberOfConnections();
 
     void valueChanged(Value& v) override;
@@ -135,6 +139,7 @@ private:
 
     bool showDirection = false;
     bool showConnectionOrder = false;
+    bool showActiveState = false;
 
     Canvas* cnv;
 
@@ -145,7 +150,7 @@ private:
     float mouseDownPosition = 0;
     bool isHovering = false;
 
-    t_fake_outconnect* ptr;
+    pd::WeakReference ptr;
 
     std::vector<pd::Atom> lastValue;
     String lastSelector;

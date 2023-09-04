@@ -31,9 +31,11 @@ outlets:
 
 flags:
   - name: -exp <float>
-    description: sets exponential factor (default 1 - linear)
+    description: sets exponential factor
+    default: 1 - linear
   - name: -rate <float>
-    description: sets refresh rate in ms (default 5, minimum 1)
+    description: sets refresh rate in ms (minimum 1)
+    default: 5
 
 methods:
   - type: reset

@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include <juce_audio_utils/juce_audio_utils.h>
+#include "Utility/MidiDeviceManager.h"
 
 class MidiSettingsToggle : public PropertiesPanel::BoolComponent {
 public:
@@ -14,39 +15,14 @@ public:
         , isInput(isMidiInput)
         , processor(pluginProcessor)
     {
-        if (isInput) {
-            toggleStateValue = deviceManager.isMidiInputDeviceEnabled(deviceInfo.identifier);
-        } else {
-            toggleStateValue = getMidiOutputIfEnabled() != nullptr;
-        }
+        toggleStateValue = ProjectInfo::getMidiDeviceManager()->isMidiDeviceEnabled(isInput, deviceInfo.identifier);
     }
 
 private:
     void valueChanged(Value& v) override
     {
         repaint();
-
-        if (isInput) {
-            deviceManager.setMidiInputDeviceEnabled(deviceInfo.identifier, getValue<bool>(toggleStateValue));
-        } else {
-            if (getValue<bool>(toggleStateValue)) {
-                auto* device = processor->midiOutputs.add(MidiOutput::openDevice(deviceInfo.identifier));
-                device->startBackgroundThread();
-            } else if (auto* midiOut = getMidiOutputIfEnabled()) {
-                processor->midiOutputs.removeObject(midiOut);
-            }
-        }
-    }
-
-    MidiOutput* getMidiOutputIfEnabled()
-    {
-        for (auto* midiOut : processor->midiOutputs) {
-            if (midiOut->getIdentifier() == deviceInfo.identifier) {
-                return midiOut;
-            }
-        }
-
-        return nullptr;
+        ProjectInfo::getMidiDeviceManager()->setMidiDeviceEnabled(isInput, deviceInfo.identifier, getValue<bool>(toggleStateValue));
     }
 
     bool isInput;
@@ -85,6 +61,7 @@ public:
         addAndMakeVisible(midiProperties);
 
         deviceManager.addChangeListener(this);
+        ProjectInfo::getMidiDeviceManager()->updateMidiDevices();
         updateDevices();
     }
 
@@ -103,24 +80,34 @@ private:
     {
         midiProperties.clear();
 
-        auto midiInputDevices = MidiInput::getAvailableDevices();
+        auto midiInputDevices = ProjectInfo::getMidiDeviceManager()->getInputDevicesUnfiltered();
         auto midiInputProperties = Array<PropertiesPanel::Property*>();
 
+        auto midiOutputDevices = ProjectInfo::getMidiDeviceManager()->getOutputDevicesUnfiltered();
+        auto midiOutputProperties = Array<PropertiesPanel::Property*>();
+
         for (auto& deviceInfo : midiInputDevices) {
+            // The internal plugdata ports should be viewed from our perspective instead of that of an external application
+            if (deviceInfo.name == "to plugdata") {
+                midiInputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo, deviceManager));
+                continue;
+            }
+
             midiInputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
         }
 
-        midiProperties.addSection("MIDI Inputs", midiInputProperties);
-
-        auto midiOutputDevices = MidiOutput::getAvailableDevices();
-        auto midiOutputProperties = Array<PropertiesPanel::Property*>();
-
         for (auto& deviceInfo : midiOutputDevices) {
+            if (deviceInfo.name == "from plugdata") {
+                midiOutputProperties.add(new MidiSettingsToggle(true, processor, deviceInfo, deviceManager));
+                continue;
+            }
+
             midiOutputProperties.add(new MidiSettingsToggle(false, processor, deviceInfo, deviceManager));
         }
 
         midiOutputProperties.add(new InternalSynthToggle(processor));
 
+        midiProperties.addSection("MIDI Inputs", midiInputProperties);
         midiProperties.addSection("MIDI Outputs", midiOutputProperties);
     }
 

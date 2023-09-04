@@ -26,12 +26,14 @@
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 #include <juce_audio_utils/juce_audio_utils.h>
+#include <juce_audio_devices/juce_audio_devices.h>
 
 #include "Constants.h"
 #include "Utility/StackShadow.h"
 #include "Utility/OSUtils.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
+#include "Utility/MidiDeviceManager.h"
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -49,6 +51,24 @@ static bool drawWindowShadow = true;
 
 namespace pd {
 class Patch;
+};
+
+class PlugDataProcessorPlayer : public AudioProcessorPlayer {
+public:
+    PlugDataProcessorPlayer()
+        : midiDeviceManager(this)
+    {
+    }
+
+    void handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message) override
+    {
+        auto deviceIndex = midiDeviceManager.getMidiInputDeviceIndex(input->getIdentifier());
+        if (deviceIndex >= 0) {
+            getMidiMessageCollector().addMessageToQueue(MidiDeviceManager::convertToSysExFormat(message, deviceIndex));
+        }
+    }
+
+    MidiDeviceManager midiDeviceManager;
 };
 
 class StandalonePluginHolder : private AudioIODeviceCallback
@@ -253,7 +273,7 @@ public:
     OptionalScopedPointer<PropertySet> settings;
     std::unique_ptr<AudioProcessor> processor;
     AudioDeviceManager deviceManager;
-    AudioProcessorPlayer player;
+    PlugDataProcessorPlayer player;
     Array<PluginInOuts> channelConfiguration;
 
     // avoid feedback loop by default
@@ -392,11 +412,6 @@ private:
         deviceManager.addAudioCallback(&maxSizeEnforcer);
         deviceManager.addMidiInputDeviceCallback({}, &player);
 
-#if !JUCE_WINDOWS
-        if (auto* newIn = MidiInput::createNewDevice("to plugdata", &player).release()) {
-            customMidiInputs.add(newIn);
-        }
-#endif
         reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
     }
 
@@ -605,9 +620,13 @@ public:
 #if JUCE_LINUX || JUCE_BSD
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
-                bool shouldBeMaximised = !OSUtils::isX11WindowMaximised(peer->getNativeHandle());
-                b->setToggleState(shouldBeMaximised, dontSendNotification);
-                OSUtils::maximiseX11Window(getPeer()->getNativeHandle(), shouldBeMaximised);
+                bool shouldBeMaximised = isFullScreen();
+                b->setToggleState(!shouldBeMaximised, dontSendNotification);
+
+                if (!isUsingNativeTitleBar()) {
+                    OSUtils::maximiseX11Window(getPeer()->getNativeHandle(), !shouldBeMaximised);
+                }
+                setFullScreen(!isFullScreen());
             } else {
                 b->setToggleState(false, dontSendNotification);
             }

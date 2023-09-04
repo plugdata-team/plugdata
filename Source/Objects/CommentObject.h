@@ -10,6 +10,7 @@ class CommentObject final : public ObjectBase
 
     bool locked;
 
+    Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     String objectText;
@@ -19,12 +20,17 @@ public:
     CommentObject(void* obj, Object* object)
         : ObjectBase(obj, object)
     {
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         locked = getValue<bool>(object->locked);
     }
 
     void update() override
     {
         objectText = getText().trimEnd();
+
+        if (auto obj = ptr.get<t_text>()) {
+            sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
+        }
     }
 
     void paint(Graphics& g) override
@@ -44,7 +50,7 @@ public:
         if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
             g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
 
-            g.drawRect(getLocalBounds().toFloat(), 0.5f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
         }
     }
 
@@ -115,19 +121,22 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if (auto obj = ptr.get<t_text>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
 
-        auto* cnvPtr = cnv->patch.getPointer();
-        auto objText = editor ? editor->getText() : objectText;
-        auto newNumLines = 0;
+            auto objText = editor ? editor->getText() : objectText;
+            auto newNumLines = 0;
 
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines);
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(patch, obj.get(), objText, 14, newNumLines);
 
-        numLines = newNumLines;
+            numLines = newNumLines;
 
-        pd->unlockAudioThread();
+            return newBounds.withTrimmedBottom(4);
+        }
 
-        return newBounds.withTrimmedBottom(4);
+        return {};
     }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
@@ -137,26 +146,54 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        pd->lockAudioThread();
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
 
-        if (TextObjectHelper::getWidthInChars(ptr)) {
-            TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
+            if (TextObjectHelper::getWidthInChars(gobj.get())) {
+                TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
+            }
         }
+    }
 
-        pd->unlockAudioThread();
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto text = ptr.get<t_text>()) {
+            setParameterExcludingListener(sizeProperty, TextObjectHelper::getWidthInChars(text.get()));
+        }
+    }
+
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+
+            setParameterExcludingListener(sizeProperty, width);
+
+            if (auto text = ptr.get<t_text>()) {
+                TextObjectHelper::setWidthInChars(text.get(), width);
+            }
+
+            object->updateBounds();
+        }
     }
 
     void setSymbol(String const& value)
     {
-        auto* cstr = value.toRawUTF8();
-        auto* commentObj = static_cast<t_text*>(ptr);
-        auto* canvas = cnv->patch.getPointer();
+        if (auto comment = ptr.get<t_text>()) {
+            auto* cstr = value.toRawUTF8();
+            auto* canvas = cnv->patch.getPointer().get();
+            if (!canvas)
+                return;
 
-        pd->lockAudioThread();
-        libpd_renameobj(canvas, &commentObj->te_g, cstr, value.getNumBytesAsUTF8());
-        pd->unlockAudioThread();
+            libpd_renameobj(canvas, comment.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
+        }
     }
 
     bool hideInGraph() override
@@ -185,6 +222,25 @@ public:
             editor->setCaretPosition(editor->getHighlightedRegion().getStart());
             return true;
         }
+        if (key.getKeyCode() == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
+            int caretPosition = editor->getCaretPosition();
+            auto text = editor->getText();
+
+            if (!editor->getHighlightedRegion().isEmpty())
+                return false;
+
+            if (text[caretPosition - 1] == ';') {
+                text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
+                caretPosition += 1;
+            } else {
+                text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
+                caretPosition += 2;
+            }
+
+            editor->setText(text);
+            editor->setCaretPosition(caretPosition);
+            return true;
+        }
         return false;
     }
 
@@ -197,22 +253,7 @@ public:
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        int caretPosition = ed.getCaretPosition();
-        auto text = ed.getText();
-
-        if (!ed.getHighlightedRegion().isEmpty())
-            return;
-
-        if (text[caretPosition - 1] == ';') {
-            text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
-            caretPosition += 1;
-        } else {
-            text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
-            caretPosition += 2;
-        }
-
-        ed.setText(text);
-        ed.setCaretPosition(caretPosition);
+        cnv->grabKeyboardFocus();
     }
 
     // For resize-while-typing behaviour

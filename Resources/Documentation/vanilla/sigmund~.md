@@ -36,21 +36,29 @@ flags:
 - name: -t
   description: analyzes waveforms stored in arrays
 - name: -npts <float>
-  description: set number of points in each analysis window (default 1024)
+  description: set number of points in each analysis window
+  default: 1024
 - name: -hop <float>
-  description: set number of points between each analysis (default 512)
+  description: set number of points between each analysis
+  default: 512
 - name: -npeak <float>
-  description: set number of sinusoidal peaks for 'peaks' output (default 20)
+  description: set number of sinusoidal peaks for 'peaks' output
+  default: 20
 - name: -maxfreq <float>
-  description: set maximum sinusoid frequency in Hz (default 1000000)
+  description: set maximum sinusoid frequency in Hz
+  default: 1000000
 - name: -vibrato <float>
-  description: set depth of vibrato to expect in semitones (default 1)
+  description: set depth of vibrato to expect in semitones
+  default: 1
 - name: -stabletime <float>
-  description: set time in msec to wait to report new notes (default 50)
+  description: set time in msec to wait to report new notes
+  default: 50
 - name: -minpower <float>
-  description: set minimum amplitude in dB to report a new note (default 50)
+  description: set minimum amplitude in dB to report a new note
+  default: 50
 - name: -growth <float>
-  description: set amplitude growth in dB to report a repeated note (default 7)
+  description: set amplitude growth in dB to report a repeated note
+  default: 7
 
 methods:
   - type: npts <float>

@@ -7,133 +7,30 @@
 extern "C" {
 #include "x_libpd_extra_utils.h"
 
-void garray_arraydialog(t_garray* x, t_symbol* name, t_floatarg fsize, t_floatarg fflags, t_floatarg deleteit);
+void garray_arraydialog(t_fake_garray* x, t_symbol* name, t_floatarg fsize, t_floatarg fflags, t_floatarg deleteit);
 }
 
-class PdArray {
+class GraphicalArray : public Component
+    , public pd::MessageListener {
 public:
+    Object* object;
+
     enum DrawType {
         Points,
         Polygon,
         Curve
     };
 
-    PdArray(void* arrayPtr, void* instancePtr)
-        : ptr(arrayPtr)
-        , instance(instancePtr)
-    {
-    }
-
-    // The default constructor.
-    PdArray() = default;
-
-    bool willSaveContent() const
-    {
-        return libpd_array_get_saveit(ptr);
-    }
-
-    // Gets the name of the array.
-    String getExpandedName() const
-    {
-        return String::fromUTF8(libpd_array_get_name(ptr));
-    }
-
-    // Gets the text label of the array.
-    String getUnexpandedName() const
-    {
-        libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        return String::fromUTF8(libpd_array_get_unexpanded_name(ptr));
-    }
-
-    PdArray::DrawType getDrawType() const
-    {
-        libpd_set_instance(static_cast<t_pdinstance*>(instance));
-
-        return static_cast<DrawType>(libpd_array_get_style(ptr));
-    }
-
-    // Gets the scale of the array.
-    std::array<float, 2> getScale() const
-    {
-        float min = -1, max = 1;
-        libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        libpd_array_get_scale(ptr, &min, &max);
-
-        if (min == max)
-            max += 1e-6;
-
-        return { min, max };
-    }
-
-    bool getEditMode() const
-    {
-        return libpd_array_get_editmode(ptr);
-    }
-
-    void setEditMode(bool editMode)
-    {
-        libpd_array_set_editmode(ptr, editMode);
-    }
-
-    // Gets the scale of the array.
-    int size() const
-    {
-        libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        return libpd_array_get_size(ptr);
-    }
-
-    void setScale(std::array<float, 2> scale)
-    {
-        auto& [min, max] = scale;
-        libpd_set_instance(static_cast<t_pdinstance*>(instance));
-
-        libpd_array_set_scale(ptr, min, max);
-    }
-
-    // Gets the values of the array.
-    void read(std::vector<float>& output) const
-    {
-        libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        int const size = libpd_array_get_size(ptr);
-        output.resize(static_cast<size_t>(size));
-        libpd_array_read(output.data(), ptr, 0, size);
-    }
-
-    // Writes the values of the array.
-    void write(std::vector<float> const& input)
-    {
-        libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        libpd_array_write(ptr, 0, input.data(), static_cast<int>(input.size()));
-    }
-
-    // Writes a value of the array.
-    void write(const size_t pos, float const input)
-    {
-        libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        libpd_array_write(ptr, static_cast<int>(pos), &input, 1);
-    }
-
-    void* ptr = nullptr;
-    void* instance = nullptr;
-};
-
-class GraphicalArray : public Component {
-public:
-    Object* object;
-
-    GraphicalArray(PluginProcessor* instance, PdArray& arr, Object* parent)
-        : array(arr)
+    GraphicalArray(PluginProcessor* instance, void* ptr, Object* parent)
+        : arr(ptr, instance)
         , edited(false)
         , pd(instance)
         , object(parent)
     {
-        if (!array.ptr)
-            return;
-
         vec.reserve(8192);
         temp.reserve(8192);
         try {
-            array.read(vec);
+            read(vec);
         } catch (...) {
             error = true;
         }
@@ -146,11 +43,18 @@ public:
         });
     }
 
-    void setArray(PdArray& graph)
+    void setArray(void* array)
     {
-        if (!array.ptr)
+        if (!array)
             return;
-        array = graph;
+
+        // TODO: Not great design
+
+        // Manually call destructor
+        arr.~WeakReference();
+
+        // Initialise new weakreference in place, to prevent calling copy constructor
+        new (&arr) pd::WeakReference(array, pd);
     }
 
     std::vector<float> rescale(std::vector<float> const& v, unsigned const newSize)
@@ -182,7 +86,7 @@ public:
         std::vector<float> points = vec;
 
         if (!points.empty()) {
-            std::array<float, 2> scale = array.getScale();
+            std::array<float, 2> scale = getScale();
             bool invert = false;
 
             if (scale[0] >= scale[1]) {
@@ -199,8 +103,8 @@ public:
             float const dh = h / (scale[1] - scale[0]);
             float const dw = w / static_cast<float>(points.size() - 1);
 
-            switch (array.getDrawType()) {
-            case PdArray::DrawType::Curve: {
+            switch (getDrawType()) {
+            case DrawType::Curve: {
 
                 Path p;
                 p.startNewSubPath(0, h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh);
@@ -215,11 +119,11 @@ public:
                 if (invert)
                     p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
-                g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
-                g.strokePath(p, PathStrokeType(1));
+                g.setColour(getContentColour());
+                g.strokePath(p, PathStrokeType(getLineWidth()));
                 break;
             }
-            case PdArray::DrawType::Polygon: {
+            case DrawType::Polygon: {
                 int startY = h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh;
                 Point<float> lastPoint = Point<float>(0, startY);
                 Point<float> newPoint;
@@ -229,19 +133,19 @@ public:
                     float const y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     newPoint = Point<float>(static_cast<float>(i) * dw, y);
 
-                    p.addLineSegment({ lastPoint, newPoint }, 1.0f);
+                    p.addLineSegment({ lastPoint, newPoint }, getLineWidth());
                     lastPoint = newPoint;
                 }
 
                 if (invert)
                     p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
-                g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+                g.setColour(getContentColour());
                 g.fillPath(p);
                 break;
             }
-            case PdArray::DrawType::Points: {
-                g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));
+            case DrawType::Points: {
+                g.setColour(getContentColour());
 
                 float const dw_points = w / static_cast<float>(points.size());
 
@@ -249,7 +153,7 @@ public:
                     float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     if (invert)
                         y = getHeight() - y;
-                    g.drawLine(static_cast<float>(i) * dw_points, y, static_cast<float>(i + 1) * dw_points, y, 2.0f);
+                    g.drawLine(static_cast<float>(i) * dw_points, y, static_cast<float>(i + 1) * dw_points, y, getLineWidth());
                 }
                 break;
             }
@@ -261,12 +165,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
         if (error) {
             // TODO: error colour
-            Fonts::drawText(g, "array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, "array " + getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
             error = false;
         } else {
             paintGraph(g);
@@ -275,7 +176,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (error || !array.getEditMode())
+        if (error || !getEditMode())
             return;
         edited = true;
 
@@ -290,7 +191,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (error || !array.getEditMode())
+        if (error || !getEditMode())
             return;
 
         auto const s = static_cast<float>(vec.size() - 1);
@@ -299,7 +200,7 @@ public:
         auto const x = static_cast<float>(e.x);
         auto const y = static_cast<float>(e.y);
 
-        std::array<float, 2> scale = array.getScale();
+        std::array<float, 2> scale = getScale();
 
         int const index = static_cast<int>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
 
@@ -320,31 +221,40 @@ public:
         // Don't want to touch vec on the other thread, so we copy the vector into the lambda
         auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
 
-        pd->lockAudioThread();
-        for (int n = 0; n < changed.size(); n++) {
-            array.write(interpStart + n, changed[n]);
-        }
-        pd->unlockAudioThread();
-
         lastIndex = index;
 
-        pd->sendDirectMessage(array.ptr, stringArray);
+        pd->lockAudioThread();
+        for (int n = 0; n < changed.size(); n++) {
+            write(interpStart + n, changed[n]);
+        }
+
+        if (auto ptr = arr.get<t_garray>()) {
+            pd->sendDirectMessage(ptr.get(), stringArray);
+        }
+
+        pd->unlockAudioThread();
         repaint();
     }
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (error || !array.getEditMode())
+        if (error || !getEditMode())
             return;
         edited = false;
     }
 
     void update()
     {
+        // Check if size has changed
+        int currentSize = size();
+        if (vec.size() != currentSize) {
+            vec.resize(currentSize);
+        }
+
         if (!edited) {
             error = false;
             try {
-                array.read(temp);
+                read(temp);
             } catch (...) {
                 error = true;
             }
@@ -355,7 +265,161 @@ public:
         }
     }
 
-    PdArray array;
+    bool willSaveContent() const
+    {
+        if (auto ptr = arr.get<t_garray>()) {
+            return libpd_array_get_saveit(ptr.get());
+        }
+
+        return false;
+    }
+
+    // Gets the name of the array
+    String getExpandedName() const
+    {
+        if (auto ptr = arr.get<t_garray>()) {
+            return String::fromUTF8(libpd_array_get_name(ptr.get()));
+        }
+
+        return {};
+    }
+
+    // Gets the text label of the array
+    String getUnexpandedName() const
+    {
+        if (auto ptr = arr.get<t_garray>()) {
+            return String::fromUTF8(libpd_array_get_unexpanded_name(ptr.get()));
+        }
+
+        return {};
+    }
+
+    int getLineWidth()
+    {
+        if (auto ptr = arr.get<t_garray>()) {
+            return libpd_array_get_linewidth(ptr.get());
+        }
+
+        return 1;
+    }
+    DrawType getDrawType() const
+    {
+        if (auto ptr = arr.get<t_garray>()) {
+            return static_cast<DrawType>(libpd_array_get_style(ptr.get()));
+        }
+
+        return DrawType::Points;
+    }
+
+    // Gets the scale of the array
+    std::array<float, 2> getScale() const
+    {
+        float min = -1, max = 1;
+        if (auto ptr = arr.get<t_garray>()) {
+            libpd_array_get_scale(ptr.get(), &min, &max);
+
+            if (min == max)
+                max += 1e-6;
+
+            return { min, max };
+        }
+
+        return { -1.0f, 1.0f };
+    }
+
+    bool getEditMode() const
+    {
+        if (auto ptr = arr.get<t_garray>()) {
+            return libpd_array_get_editmode(ptr.get());
+        }
+
+        return true;
+    }
+
+    void setEditMode(bool editMode)
+    {
+        if (auto ptr = arr.get<t_garray>()) {
+            libpd_array_set_editmode(ptr.get(), editMode);
+        }
+    }
+
+    // Gets the scale of the array.
+    int size() const
+    {
+        if (auto ptr = arr.get<t_garray>()) {
+            return libpd_array_get_size(ptr.get());
+        }
+
+        return 0;
+    }
+
+    Colour getContentColour()
+    {
+        if (auto garray = arr.get<t_fake_garray>()) {
+            auto* scalar = garray->x_scalar;
+            auto* templ = template_findbyname(scalar->sc_template);
+
+            int colour = template_getfloat(templ, gensym("color"), scalar->sc_vec, 1);
+
+            if (colour <= 0) {
+                return object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
+            }
+
+            auto rangecolor = [](int n) /* 0 to 9 in 5 steps */
+            {
+                int n2 = (n == 9 ? 8 : n); /* 0 to 8 */
+                int ret = (n2 << 5);       /* 0 to 256 in 9 steps */
+                if (ret > 255)
+                    ret = 255;
+                return (ret);
+            };
+
+            int red = rangecolor(colour / 100);
+            int green = rangecolor((colour / 10) % 10);
+            int blue = rangecolor(colour % 10);
+
+            return Colour(red, green, blue);
+        }
+
+        return object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
+    }
+
+    void setScale(std::array<float, 2> scale)
+    {
+        auto& [min, max] = scale;
+        if (auto ptr = arr.get<t_garray>()) {
+            libpd_array_set_scale(ptr.get(), min, max);
+        }
+    }
+
+    // Gets the values of the array.
+    void read(std::vector<float>& output) const
+    {
+        if (auto ptr = arr.get<t_garray>()) {
+            int const size = libpd_array_get_size(ptr.get());
+            output.resize(static_cast<size_t>(size));
+            libpd_array_read(output.data(), ptr.get(), 0, size);
+        }
+    }
+
+    // Writes the values of the array.
+    void write(std::vector<float> const& input)
+    {
+        if (auto ptr = arr.get<t_garray>()) {
+            libpd_array_write(ptr.get(), 0, input.data(), static_cast<int>(input.size()));
+        }
+    }
+
+    // Writes a value of the array.
+    void write(const size_t pos, float const input)
+    {
+        if (auto ptr = arr.get<t_garray>()) {
+            libpd_array_write(ptr.get(), static_cast<int>(pos), &input, 1);
+        }
+    }
+
+    pd::WeakReference arr;
+
     std::vector<float> vec;
     std::vector<float> temp;
     std::atomic<bool> edited;
@@ -376,16 +440,20 @@ class ArrayEditorDialog : public Component
 
 public:
     std::function<void()> onClose;
-    GraphicalArray graph;
+    OwnedArray<GraphicalArray> graphs;
     PluginProcessor* pd;
     String title;
 
-    ArrayEditorDialog(PluginProcessor* instance, PdArray& arr, Object* parent)
+    ArrayEditorDialog(PluginProcessor* instance, std::vector<void*> arrays, Object* parent)
         : resizer(this, &constrainer)
-        , title(arr.getExpandedName())
-        , graph(instance, arr, parent)
         , pd(instance)
     {
+        for (auto* arr : arrays) {
+            auto* graph = graphs.add(new GraphicalArray(pd, arr, parent));
+            addAndMakeVisible(graph);
+        }
+
+        title = graphs[0]->getExpandedName();
 
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
         addAndMakeVisible(closeButton.get());
@@ -404,7 +472,6 @@ public:
         // Position in centre of screen
         setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
 
-        addAndMakeVisible(graph);
         addAndMakeVisible(resizer);
 
         startTimer(40);
@@ -413,8 +480,14 @@ public:
     void resized() override
     {
         resizer.setBounds(getLocalBounds());
-        closeButton->setBounds(getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5));
-        graph.setBounds(getLocalBounds().withTrimmedTop(40));
+
+        auto macOSStyle = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
+        auto closeButtonBounds = getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5);
+        closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
+
+        for (auto* graph : graphs) {
+            graph->setBounds(getLocalBounds().withTrimmedTop(40));
+        }
     }
 
     void timerCallback() override
@@ -422,12 +495,9 @@ public:
         if (!pd->tryLockAudioThread())
             return;
 
-        int currentSize = graph.array.size();
-        if (graph.vec.size() != currentSize) {
-
-            graph.vec.resize(currentSize);
+        for (auto* graph : graphs) {
+            graph->update();
         }
-        graph.update();
 
         pd->unlockAudioThread();
     }
@@ -468,35 +538,51 @@ public:
     // Array component
     ArrayObject(void* obj, Object* object)
         : ObjectBase(obj, object)
-        , array(getArray())
-        , graph(cnv->pd, array, object)
     {
-        setInterceptsMouseClicks(false, true);
-        graph.setBounds(getLocalBounds());
-        addAndMakeVisible(&graph);
+        auto arrays = getArrays();
 
+        for (int i = 0; i < arrays.size(); i++) {
+            auto* graph = graphs.add(new GraphicalArray(cnv->pd, arrays[i], object));
+            graph->setBounds(getLocalBounds());
+
+            // Listen for messages on all children of the array
+            cnv->pd->registerMessageListener(arrays[i], this);
+
+            addAndMakeVisible(graph);
+        }
+
+        setInterceptsMouseClicks(false, true);
+
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamString("Name", cGeneral, &name);
         objectParameters.addParamInt("Size", cGeneral, &size);
-        objectParameters.addParamCombo("Draw mode", cGeneral, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2);
+
         objectParameters.addParamRange("Y range", cGeneral, &range, { -1.0f, 1.0f });
         objectParameters.addParamBool("Save contents", cGeneral, &saveContents, { "No", "Yes" }, 0);
 
+        objectParameters.addParamCombo("Draw mode", cAppearance, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2);
+
         startTimer(20);
+    }
+
+    ~ArrayObject()
+    {
+        for (auto* graph : graphs) {
+            cnv->pd->unregisterMessageListener(graph->arr.getRawUnchecked<void>(), this);
+        }
     }
 
     void timerCallback() override
     {
         pd->lockAudioThread();
-        // Check if size has changed
-        int currentSize = graph.array.size();
-        if (graph.vec.size() != currentSize) {
 
-            graph.vec.resize(currentSize);
-            size = currentSize;
+        for (auto* graph : graphs) {
+            // Update values
+            graph->update();
         }
 
-        // Update values
-        graph.update();
+        size = static_cast<int>(graphs[0]->vec.size());
+
         pd->unlockAudioThread();
     }
 
@@ -504,7 +590,7 @@ public:
     {
         int fontHeight = 14.0f;
 
-        const String text = array.getExpandedName();
+        const String text = graphs[0]->getExpandedName();
 
         if (text.isNotEmpty()) {
             if (!label) {
@@ -527,43 +613,64 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if (auto glist = ptr.get<_glist>()) {
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
 
-        auto* glist = static_cast<_glist*>(ptr);
-        auto bounds = Rectangle<int>(x, y, glist->gl_pixwidth, glist->gl_pixheight);
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, glist.get(), &x, &y, &w, &h);
 
-        pd->unlockAudioThread();
+            return { x, y, glist->gl_pixwidth, glist->gl_pixheight };
+        }
 
-        return bounds;
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        if (auto glist = ptr.get<t_glist>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-        auto* array = static_cast<_glist*>(ptr);
-        array->gl_pixwidth = b.getWidth();
-        array->gl_pixheight = b.getHeight();
+            libpd_moveobj(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
+
+            glist->gl_pixwidth = b.getWidth();
+            glist->gl_pixheight = b.getHeight();
+        }
     }
 
     void resized() override
     {
-        graph.setBounds(getLocalBounds());
+        for (auto* graph : graphs) {
+            graph->setBounds(getLocalBounds());
+        }
     }
 
     void update() override
     {
-        auto scale = array.getScale();
+        auto scale = graphs[0]->getScale();
         range = var(Array<var> { var(scale[0]), var(scale[1]) });
-        size = var(static_cast<int>(graph.array.size()));
-        saveContents = array.willSaveContent();
-        name = String(array.getUnexpandedName());
-        drawMode = static_cast<int>(array.getDrawType()) + 1;
+        size = var(static_cast<int>(graphs[0]->size()));
+        saveContents = graphs[0]->willSaveContent();
+        name = String(graphs[0]->getUnexpandedName());
+        drawMode = static_cast<int>(graphs[0]->getDrawType()) + 1;
+        if (auto glist = ptr.get<t_glist>()) {
+            sizeProperty = Array<var> { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
+        }
 
         labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto glist = ptr.get<t_glist>()) {
+            setParameterExcludingListener(sizeProperty, Array<var> { var(glist->gl_pixwidth), var(glist->gl_pixheight) });
+        }
     }
 
     void updateSettings()
@@ -587,32 +694,65 @@ public:
 
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
 
-        pd->lockAudioThread();
+        if (auto arrayCanvas = ptr.get<t_canvas>()) {
+            bool first = true;
+            for (auto* graph : graphs) {
+                t_symbol* name = first ? pd->generateSymbol(arrName) : pd->generateSymbol(graph->getUnexpandedName());
+                first = false;
 
-        auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
-        garray_arraydialog(garray, pd->generateSymbol(arrName), arrSize, static_cast<float>(flags), 0.0f);
+                if (auto garray = graph->arr.get<t_fake_garray>()) {
+                    garray_arraydialog(garray.get(), name, arrSize, static_cast<float>(flags), 0.0f);
+                }
+            }
+        }
 
-        pd->unlockAudioThread();
+        auto arrays = getArrays();
 
-        array = getArray();
-        graph.setArray(array);
+        for (int i = 0; i < arrays.size(); i++) {
+            graphs[i]->setArray(arrays[i]);
+        }
+
         updateLabel();
 
-        graph.repaint();
+        for (auto* graph : graphs) {
+            graph->repaint();
+        }
     }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto glist = ptr.get<t_glist>()) {
+                glist->gl_pixwidth = width;
+                glist->gl_pixheight = height;
+            }
+
+            object->updateBounds();
+        } else if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
             updateSettings();
         } else if (value.refersToSameSourceAs(range)) {
             auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
             auto max = static_cast<float>(range.getValue().getArray()->getReference(1));
-            graph.array.setScale({ min, max });
-            graph.repaint();
+            for (auto* graph : graphs) {
+                graph->setScale({ min, max });
+                graph->repaint();
+            }
         } else {
             ObjectBase::valueChanged(value);
         }
+    }
+
+    void paint(Graphics& g) override
+    {
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -624,12 +764,22 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
-    PdArray getArray() const
+    std::vector<void*> getArrays() const
     {
-        auto* c = static_cast<t_canvas*>(ptr);
-        auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
+        if (auto c = ptr.get<t_canvas>()) {
+            std::vector<void*> arrays;
 
-        return { glist, cnv->pd->m_instance };
+            t_gobj* x = reinterpret_cast<t_gobj*>(c->gl_list);
+            arrays.push_back(x);
+
+            while ((x = x->g_next)) {
+                arrays.push_back(x);
+            }
+
+            return arrays;
+        }
+
+        return {};
     }
 
     bool canOpenFromMenu() override
@@ -644,7 +794,7 @@ public:
             return;
         }
 
-        dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
+        dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, getArrays(), object);
         dialog->onClose = [this]() {
             dialog.reset(nullptr);
         };
@@ -656,7 +806,11 @@ public:
             hash("float"),
             hash("symbol"),
             hash("list"),
-            hash("edit")
+            hash("edit"),
+            hash("width"),
+            hash("rename"),
+            hash("color"),
+            hash("style"),
         };
     }
 
@@ -674,19 +828,50 @@ public:
                 setInterceptsMouseClicks(false, editable);
             }
         }
+        case hash("rename"): {
+            // When we receive a rename message, recreate the array object
+            MessageManager::callAsync([_this = SafePointer(this)]() {
+                if (!_this)
+                    return;
+
+                _this->cnv->setSelected(_this->object, false);
+                _this->object->cnv->editor->sidebar->hideParameters();
+
+                _this->object->setType(_this->getText(), _this->ptr.getRaw<void>());
+            });
+
+            break;
+        }
+        case hash("color"): {
+            repaint();
+            break;
+        }
+        case hash("width"): {
+            repaint();
+            break;
+        }
+        case hash("style"): {
+            drawMode = static_cast<int>(atoms[0].getFloat()) + 1;
+            updateSettings();
+            break;
+        }
         default:
             break;
         }
     }
 
 private:
-    Value name, size, drawMode, saveContents, range;
+    Value name = SynchronousValue();
+    Value size = SynchronousValue();
+    Value drawMode = SynchronousValue();
+    Value saveContents = SynchronousValue();
+    Value range = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
 
-    PdArray array;
-    GraphicalArray graph;
+    OwnedArray<GraphicalArray> graphs;
     std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
 
-    Value labelColour;
+    Value labelColour = SynchronousValue();
     bool editable = true;
 };
 
@@ -707,12 +892,19 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         openArrayEditor();
     }
 
     bool canOpenFromMenu() override
     {
-        return true;
+        if (auto c = ptr.get<t_canvas>()) {
+            return c->gl_list != nullptr;
+        }
+
+        return false;
     }
 
     void openArrayEditor()
@@ -722,14 +914,28 @@ public:
             return;
         }
 
-        auto* c = reinterpret_cast<t_canvas*>(static_cast<t_canvas*>(ptr)->gl_list);
-        auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
-        auto array = PdArray(glist, cnv->pd->m_instance);
+        if (auto c = ptr.get<t_canvas>()) {
+            std::vector<void*> arrays;
 
-        editor = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
-        editor->onClose = [this]() {
-            editor.reset(nullptr);
-        };
+            t_glist* x = c.get();
+            t_gobj* gl = (x->gl_list ? pd_checkglist(&x->gl_list->g_pd)->gl_list : 0);
+
+            if (gl) {
+                arrays.push_back(gl);
+                while ((gl = gl->g_next)) {
+                    arrays.push_back(x);
+                }
+            }
+
+            if (arrays.size() && arrays[0] != nullptr) {
+                editor = std::make_unique<ArrayEditorDialog>(cnv->pd, arrays, object);
+                editor->onClose = [this]() {
+                    editor.reset(nullptr);
+                };
+            } else {
+                pd->logWarning("array define: cannot open non-existent array");
+            }
+        }
     }
 
     void openFromMenu() override

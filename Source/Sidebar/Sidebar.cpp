@@ -24,19 +24,19 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     : pd(instance)
 {
     // Can't use RAII because unique pointer won't compile with forward declarations
-    console = new Console(pd);
-    inspector = new Inspector;
-    browser = new DocumentBrowser(pd);
-    automationPanel = new AutomationPanel(pd);
-    searchPanel = new SearchPanel(parent);
+    console = std::make_unique<Console>(pd);
+    inspector = std::make_unique<Inspector>();
+    browser = std::make_unique<DocumentBrowser>(pd);
+    automationPanel = std::make_unique<AutomationPanel>(pd);
+    searchPanel = std::make_unique<SearchPanel>(parent);
 
     inspector->setAlwaysOnTop(true);
 
-    addAndMakeVisible(console);
-    addAndMakeVisible(inspector);
-    addChildComponent(browser);
-    addChildComponent(automationPanel);
-    addChildComponent(searchPanel);
+    addAndMakeVisible(console.get());
+    addChildComponent(inspector.get());
+    addChildComponent(browser.get());
+    addChildComponent(automationPanel.get());
+    addChildComponent(searchPanel.get());
 
     browser->addMouseListener(this, true);
     console->addMouseListener(this, true);
@@ -79,22 +79,6 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     };
     addAndMakeVisible(searchButton);
 
-    panelSettingsButton.setTooltip("Show panel settings");
-    panelSettingsButton.setConnectedEdges(12);
-    panelSettingsButton.getProperties().set("Style", "SmallIcon");
-    panelSettingsButton.onClick = [this, parent]() {
-        auto bounds = parent->getLocalArea(this, panelSettingsButton.getBounds());
-        if (currentPanel == 0) {
-
-            console->showCalloutBox(bounds, parent);
-        }
-        if (currentPanel == 1) {
-            browser->showCalloutBox(bounds, parent);
-        }
-    };
-
-    addAndMakeVisible(panelSettingsButton);
-
     panelPinButton.setTooltip("Pin panel");
     panelPinButton.setConnectedEdges(12);
     panelPinButton.getProperties().set("Style", "SmallIcon");
@@ -104,10 +88,10 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     };
     addAndMakeVisible(panelPinButton);
 
-    browserButton.setRadioGroupId(1100);
-    automationButton.setRadioGroupId(1100);
-    consoleButton.setRadioGroupId(1100);
-    searchButton.setRadioGroupId(1100);
+    browserButton.setRadioGroupId(hash("sidebar_button"));
+    automationButton.setRadioGroupId(hash("sidebar_button"));
+    consoleButton.setRadioGroupId(hash("sidebar_button"));
+    searchButton.setRadioGroupId(hash("sidebar_button"));
 
     consoleButton.setToggleState(true, dontSendNotification);
 
@@ -120,11 +104,6 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
 Sidebar::~Sidebar()
 {
     browser->removeMouseListener(this);
-    delete console;
-    delete inspector;
-    delete browser;
-    delete automationPanel;
-    delete searchPanel;
 }
 
 void Sidebar::paint(Graphics& g)
@@ -138,7 +117,7 @@ void Sidebar::paint(Graphics& g)
     g.fillRect(0, 0, getWidth(), 30);
 
     if (inspector->isVisible()) {
-        Fonts::drawStyledText(g, "Inspector", Rectangle<int>(0, 30, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+        Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 30, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
     } else {
         Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 30, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
     }
@@ -169,7 +148,8 @@ void Sidebar::resized()
 
     auto panelTitleBarBounds = bounds.removeFromTop(30);
 
-    panelSettingsButton.setBounds(panelTitleBarBounds.removeFromRight(30));
+    if (extraSettingsButton)
+        extraSettingsButton->setBounds(panelTitleBarBounds.removeFromRight(30));
     panelPinButton.setBounds(panelTitleBarBounds.removeFromLeft(30));
 
     browser->setBounds(bounds);
@@ -251,7 +231,7 @@ void Sidebar::showPanel(int panelToShow)
 
     currentPanel = panelToShow;
 
-    panelSettingsButton.setVisible(currentPanel < 2);
+    updateExtraSettingsButton();
 
     repaint();
 }
@@ -282,6 +262,10 @@ void Sidebar::showSidebar(bool show)
     } else {
         int newWidth = lastWidth;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
+
+        if (inspector->isVisible()) {
+            inspector->showParameters();
+        }
     }
 }
 
@@ -306,11 +290,28 @@ void Sidebar::showParameters(String const& name, ObjectParameters& params)
     inspector->setTitle(name.upToFirstOccurrenceOf(" ", false, false));
 
     if (!pinned) {
-        panelSettingsButton.setVisible(false);
         inspector->setVisible(true);
     }
 
+    updateExtraSettingsButton();
     repaint();
+}
+
+void Sidebar::updateExtraSettingsButton()
+{
+    if (inspector->isVisible()) {
+        extraSettingsButton = inspector->getExtraSettingsComponent();
+    } else if (console->isVisible()) {
+        extraSettingsButton = console->getExtraSettingsComponent();
+    } else if (browser->isVisible()) {
+        extraSettingsButton = browser->getExtraSettingsComponent();
+    } else {
+        extraSettingsButton.reset(nullptr);
+        return;
+    }
+
+    addAndMakeVisible(*extraSettingsButton);
+    resized();
 }
 
 void Sidebar::showParameters()
@@ -318,7 +319,6 @@ void Sidebar::showParameters()
     inspector->loadParameters(lastParameters);
 
     if (!pinned) {
-        panelSettingsButton.setVisible(currentPanel < 2);
         inspector->setVisible(true);
         console->setVisible(false);
         browser->setVisible(false);
@@ -326,12 +326,12 @@ void Sidebar::showParameters()
         automationPanel->setVisible(false);
     }
 
+    updateExtraSettingsButton();
     repaint();
 }
 void Sidebar::hideParameters()
 {
     if (!pinned) {
-        panelSettingsButton.setVisible(currentPanel < 2);
         inspector->setVisible(false);
     }
 
@@ -341,6 +341,7 @@ void Sidebar::hideParameters()
     }
 
     console->deselect();
+    updateExtraSettingsButton();
 
     repaint();
 }

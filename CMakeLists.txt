@@ -7,12 +7,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFONT "" ON)
+option(ENABLE_SFIZZ "" ON)
 option(VERBOSE "" OFF)
 
 set (CMAKE_CXX_STANDARD 20)
 
-#set(CMAKE_CXX_VISIBILITY_PRESET visible)
-#set(CMAKE_C_VISIBILITY_PRESET visible)
+# Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems
+#set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+#set(CMAKE_C_VISIBILITY_PRESET hidden)
 
 function(message)
     if (NOT MESSAGE_QUIET)
@@ -52,6 +54,11 @@ add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+# Make sure missing return types will fail compilation with Clang
+if (CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
+endif()
+
 message(STATUS "Preparing documentation")
 execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
@@ -86,7 +93,7 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterVariable.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/GoNotoCurrent.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_large_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Documentation.bin
     )
@@ -160,21 +167,7 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_USE_COREIMAGE_LOADER=0
     PLUGDATA_VERSION="${PLUGDATA_VERSION}"
     PLUGDATA_GIT_HASH="${GIT_HASH}"
-)
-
-set(ENABLE_ALL_CANVAS_DEBUGGING 0)
-
-if (ENABLE_ALL_CANVAS_DEBUGGING)
-    set(ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT 1)
-    set(ENABLE_CONNECTION_GRAPHICS_DEBUGGING 1)
-else()
-    set(ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT 0)
-    set(ENABLE_CONNECTION_GRAPHICS_DEBUGGING 0)
-endif()
-
-list(APPEND PLUGDATA_COMPILE_DEFINITIONS
-     ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT=${ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT}
-     ENABLE_CONNECTION_GRAPHICS_DEBUGGING=${ENABLE_CONNECTION_GRAPHICS_DEBUGGING}
+    PD=1
 )
 
 set(LIBPD_MULTI_COMPILE_DEFINITIONS
@@ -209,7 +202,7 @@ list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
 add_library(plugdata_core STATIC ${plugdata_sources} ${plugdata_global_sources})
 target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS})
-target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source)
+target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 target_link_libraries(plugdata_core PUBLIC ${libs})
 target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 
@@ -398,6 +391,15 @@ set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DE
 set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+
+# To make sure externals work, we need to make the standalone have its symbols be visible
+set_target_properties(plugdata_standalone PROPERTIES CXX_VISIBILITY_PRESET default)
+
+set_target_properties(plugdata PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_target_properties(plugdata_fx PROPERTIES CXX_VISIBILITY_PRESET hidden)
+if(APPLE)
+set_target_properties(plugdata_midi PROPERTIES CXX_VISIBILITY_PRESET hidden)
+endif()
 
 
 set_target_properties(plugdata PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})

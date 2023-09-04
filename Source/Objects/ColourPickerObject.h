@@ -15,6 +15,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         if (getValue<bool>(object->locked)) {
             showColourPicker();
         }
@@ -23,19 +26,18 @@ public:
     void showColourPicker()
     {
         unsigned int red, green, blue;
-        auto x = static_cast<t_fake_colors*>(ptr);
-        sscanf(x->x_color, "#%02x%02x%02x", &red, &green, &blue);
+        if (auto colors = ptr.get<t_fake_colors>()) {
+            sscanf(colors->x_color, "#%02x%02x%02x", &red, &green, &blue);
+        }
 
-        ColourPicker::show(getTopLevelComponent(), true, Colour(red, green, blue), object->getScreenBounds(), [_this = SafePointer(this), x](Colour c) {
+        ColourPicker::getInstance().show(getTopLevelComponent(), true, Colour(red, green, blue), object->getScreenBounds(), [_this = SafePointer(this)](Colour c) {
             if (!_this)
                 return;
 
-            _this->pd->lockAudioThread();
-
-            outlet_symbol(x->x_obj.te_outlet, _this->pd->generateSymbol(String("#") + c.toString().substring(2)));
-            snprintf(x->x_color, 1000, "#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue());
-
-            _this->pd->unlockAudioThread();
+            if (auto colors = _this->ptr.get<t_fake_colors>()) {
+                outlet_symbol(colors->x_obj.te_outlet, _this->pd->generateSymbol(String("#") + c.toString().substring(2)));
+                snprintf(colors->x_color, 1000, "#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue());
+            }
         });
     }
 

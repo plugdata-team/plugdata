@@ -33,12 +33,32 @@ public:
             propertiesPanel.addSection("Window", windowProperties);
 
             otherProperties.add(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
+        } else {
+
+            if (!settingsTree.hasProperty("NativeDialog")) {
+                settingsTree.setProperty("NativeDialog", true, nullptr);
+            }
+
+            nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
+
+            otherProperties.add(new PropertiesPanel::BoolComponent("Use system file dialogs", nativeDialogValue, StringArray { "No", "Yes" }));
         }
+
+        showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
+        showPalettesValue.addListener(this);
+        otherProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
+
+        showAllAudioDeviceValues.referTo(settingsFile->getPropertyAsValue("show_all_audio_device_rates"));
+        showAllAudioDeviceValues.addListener(this);
+        otherProperties.add(new PropertiesPanel::BoolComponent("Show all audio device rates", showAllAudioDeviceValues, { "No", "Yes" }));
+
+        autoPatchingValue.referTo(settingsFile->getPropertyAsValue("autoconnect"));
+        otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
 
         scaleValue = settingsFile->getProperty<float>("global_scale");
         scaleValue.addListener(this);
-
         otherProperties.add(new PropertiesPanel::EditableComponent<float>("Global scale factor", scaleValue));
+
         propertiesPanel.addSection("Other", otherProperties);
 
         addAndMakeVisible(propertiesPanel);
@@ -57,6 +77,9 @@ public:
 
             editor->resized();
         }
+        if (v.refersToSameSourceAs(showPalettesValue)) {
+            editor->resized();
+        }
         if (v.refersToSameSourceAs(scaleValue)) {
             auto scale = std::clamp(getValue<float>(scaleValue), 0.5f, 2.5f);
             SettingsFile::getInstance()->setGlobalScale(scale);
@@ -71,6 +94,11 @@ public:
     Value macTitlebarButtons;
     Value reloadPatch;
     Value scaleValue;
+
+    Value showPalettesValue;
+    Value autoPatchingValue;
+    Value showAllAudioDeviceValues;
+    Value nativeDialogValue;
 
     PropertiesPanel propertiesPanel;
 };

@@ -13,10 +13,11 @@ class MessboxObject final : public ObjectBase
 
     int numLines = 1;
 
-    Value primaryColour;
-    Value secondaryColour;
-    Value fontSize;
-    Value bold;
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value fontSize = SynchronousValue();
+    Value bold = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
 
 public:
     MessboxObject(void* obj, Object* parent)
@@ -43,16 +44,13 @@ public:
 
         addAndMakeVisible(editor);
 
-        editor.onFocusLost = [this]() {
-            hideEditor();
-        };
-
         resized();
         repaint();
 
         bool isLocked = getValue<bool>(object->cnv->locked);
         editor.setReadOnly(!isLocked);
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamInt("Font size", cAppearance, &fontSize, 12);
@@ -61,36 +59,55 @@ public:
 
     void update() override
     {
-        auto* messbox = static_cast<t_fake_messbox*>(ptr);
+        if (auto messbox = ptr.get<t_fake_messbox>()) {
+            fontSize = messbox->x_font_size;
+            primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
+            secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
+            sizeProperty = Array<var> { var(messbox->x_width), var(messbox->x_height) };
+        }
 
-        fontSize = messbox->x_font_size;
-
-        primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
-        secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
+        editor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
+        editor.applyFontToAllText(editor.getFont().withHeight(getValue<int>(fontSize)));
 
         repaint();
     }
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if (auto messbox = ptr.get<t_fake_messbox>()) {
+            auto* patch = object->cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, messbox.get(), &x, &y, &w, &h);
+            return { x, y, w, h };
+        }
 
-        pd->unlockAudioThread();
-
-        return { x, y, w, h };
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        auto* messbox = static_cast<t_fake_messbox*>(ptr);
+        if (auto messbox = ptr.get<t_fake_messbox>()) {
+            auto* patch = object->cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-        libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+            libpd_moveobj(patch, messbox.cast<t_gobj>(), b.getX(), b.getY());
 
-        messbox->x_width = b.getWidth();
-        messbox->x_height = b.getHeight();
+            messbox->x_width = b.getWidth();
+            messbox->x_height = b.getHeight();
+        }
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto messbox = ptr.get<t_fake_messbox>()) {
+            setParameterExcludingListener(sizeProperty, Array<var> { var(messbox->x_width), var(messbox->x_height) });
+        }
     }
 
     void lock(bool locked) override
@@ -119,6 +136,10 @@ public:
     std::vector<hash32> getAllMessages() override
     {
         return {
+            hash("list"),
+            hash("float"),
+            hash("symbol"),
+            hash("bang"),
             hash("set"),
             hash("append"),
             hash("fgcolor"),
@@ -141,12 +162,15 @@ public:
             getSymbols(atoms);
             break;
         }
+        case hash("list"):
+        case hash("float"):
+        case hash("symbol"):
         case hash("bang"): {
-            setSymbols(editor.getText());
+            setSymbols(editor.getText(), atoms);
             break;
         }
         case hash("bold"): {
-            if (atoms.size() > 0 && atoms[0].isFloat())
+            if (atoms.size() >= 1 && atoms[0].isFloat())
                 bold = atoms[0].getFloat();
             break;
         }
@@ -179,12 +203,15 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         showEditor(); // TODO: Do we even need to?
     }
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        setSymbols(ed.getText());
+        setSymbols(ed.getText(), std::vector<pd::Atom> {});
     }
 
     // For resize-while-typing behaviour
@@ -193,25 +220,30 @@ public:
         object->updateBounds();
     }
 
-    void setSymbols(String const& symbols)
+    void setSymbols(String const& symbols, std::vector<pd::Atom> const& atoms)
     {
+        String text;
+        if (auto messObj = ptr.get<t_fake_messbox>()) {
+            text = symbols.replace("$0", String::fromUTF8(messObj->x_dollzero->s_name));
+        } else {
+            return;
+        }
 
-        std::vector<t_atom> atoms;
-        auto words = StringArray::fromTokens(symbols.trim(), true);
-        for (auto const& word : words) {
-            atoms.emplace_back();
-            if (word.containsOnly("0123456789e.-+e") && word != "-") {
-                SETFLOAT(&atoms.back(), word.getFloatValue());
+        t_binbuf* buf = binbuf_new();
+        binbuf_text(buf, text.toRawUTF8(), text.getNumBytesAsUTF8());
+
+        std::vector<t_atom> pd_atoms(atoms.size());
+        for (int i = 0; i < atoms.size(); i++) {
+            if (atoms[i].isFloat()) {
+                SETFLOAT(pd_atoms.data() + i, atoms[i].getFloat());
             } else {
-                SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
+                auto sym = atoms[i].getSymbol();
+                SETSYMBOL(pd_atoms.data() + i, gensym(sym.toRawUTF8()));
             }
         }
 
-        if (atoms.size()) {
-            auto* sym = atom_getsymbol(&atoms[0]);
-            atoms.erase(atoms.begin());
-
-            outlet_anything(static_cast<t_object*>(ptr)->ob_outlet, sym, atoms.size(), atoms.data());
+        if (auto messObj = ptr.get<t_fake_messbox>()) {
+            binbuf_eval(buf, static_cast<t_pd*>(messObj->x_proxy), pd_atoms.size(), pd_atoms.data());
         }
     }
 
@@ -293,35 +325,53 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* messbox = static_cast<t_fake_messbox*>(ptr);
-        if (value.refersToSameSourceAs(primaryColour)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto messbox = ptr.get<t_fake_messbox>()) {
+                messbox->x_width = width;
+                messbox->x_height = height;
+            }
+
+            object->updateBounds();
+        } else if (value.refersToSameSourceAs(primaryColour)) {
 
             auto col = Colour::fromString(primaryColour.toString());
             editor.applyColourToAllText(col);
 
-            colourToHexArray(col, messbox->x_fg);
+            if (auto messbox = ptr.get<t_fake_messbox>())
+                colourToHexArray(col, messbox->x_fg);
             repaint();
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
-            colourToHexArray(col, messbox->x_bg);
+            if (auto messbox = ptr.get<t_fake_messbox>())
+                colourToHexArray(col, messbox->x_bg);
             repaint();
         }
         if (value.refersToSameSourceAs(fontSize)) {
             auto size = getValue<int>(fontSize);
             editor.applyFontToAllText(editor.getFont().withHeight(size));
-            messbox->x_font_size = size;
+            if (auto messbox = ptr.get<t_fake_messbox>())
+                messbox->x_font_size = size;
         }
         if (value.refersToSameSourceAs(bold)) {
             auto size = getValue<int>(fontSize);
             if (getValue<bool>(bold)) {
                 auto boldFont = Fonts::getBoldFont();
                 editor.applyFontToAllText(boldFont.withHeight(size));
-                messbox->x_font_weight = pd->generateSymbol("normal");
+                if (auto messbox = ptr.get<t_fake_messbox>())
+                    messbox->x_font_weight = pd->generateSymbol("normal");
             } else {
                 auto defaultFont = Fonts::getCurrentFont();
                 editor.applyFontToAllText(defaultFont.withHeight(size));
-                messbox->x_font_weight = pd->generateSymbol("bold");
+                if (auto messbox = ptr.get<t_fake_messbox>())
+                    messbox->x_font_weight = pd->generateSymbol("bold");
             }
         }
     }

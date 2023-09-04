@@ -27,7 +27,8 @@ outlets:
 
 flags:
   - name: -pos
-    description: wrap to positive only (default: allow also negative)
+    description: wrap to positive only
+    default: allow also negative
 
 draft: false
 ---

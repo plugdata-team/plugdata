@@ -22,8 +22,8 @@ flags:
 - name: -retrig
   description: sets to retrigger mode <0, 1 or 2> 
   (default: 0)
-- name: -list <float>
-  description: sets to list mode
+- name: -split
+  description: split mode allocates outputs the given number of voices via separate outlets
   
 inlets:
   1st:

@@ -80,7 +80,7 @@ static int tosymbol_parse(t_symbol *s, int ac, t_atom *av, t_symbol *separator,
     bp += len;
     if (ac && nleft > 0)
     {
-	char *sepstring = (separator ?
+	const char *sepstring = (separator ?
 			   separator->s_name : tosymbol_defseparator);
 	while (ac--)
 	{

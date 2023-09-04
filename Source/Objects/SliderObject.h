@@ -46,6 +46,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         auto normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
         auto highSensitivity = normalSensitivity * 10;
 
@@ -87,15 +90,16 @@ public:
 
 class SliderObject : public ObjectBase {
     bool isVertical;
-    Value isLogarithmic = Value(var(false));
+    Value isLogarithmic = SynchronousValue(var(false));
 
     ReversibleSlider slider;
 
     IEMHelper iemHelper;
 
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
-    Value steadyOnClick = Value(false);
+    Value min = SynchronousValue(0.0f);
+    Value max = SynchronousValue(0.0f);
+    Value steadyOnClick = SynchronousValue(false);
+    Value sizeProperty = SynchronousValue();
 
     float value = 0.0f;
 
@@ -131,6 +135,7 @@ public:
             }
         };
 
+        objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
         objectParameters.addParamBool("Logarithmic", cGeneral, &isLogarithmic, { "Off", "On" }, 0);
@@ -140,13 +145,15 @@ public:
 
     void update() override
     {
-        isVertical = static_cast<t_slider*>(ptr)->x_orientation;
-
         auto steady = getSteadyOnClick();
         steadyOnClick = steady;
         slider.setSliderSnapsToMousePosition(!steady);
 
-        slider.setRangeFlipped((static_cast<t_slider*>(ptr)->x_min) > (static_cast<t_slider*>(ptr)->x_max));
+        if (auto obj = ptr.get<t_slider>()) {
+            isVertical = obj->x_orientation;
+            slider.setRangeFlipped(obj->x_min > obj->x_max);
+            sizeProperty = Array<var> { var(obj->x_gui.x_w), var(obj->x_gui.x_h) };
+        }
 
         min = getMinimum();
         max = getMaximum();
@@ -210,6 +217,7 @@ public:
     {
         return {
             hash("float"),
+            hash("list"),
             hash("set"),
             hash("lin"),
             hash("log"),
@@ -224,6 +232,7 @@ public:
     {
         switch (hash(symbol)) {
         case hash("float"):
+        case hash("list"):
         case hash("set"): {
             value = atoms[0].getFloat();
             slider.setValue(value, dontSendNotification);
@@ -304,57 +313,94 @@ public:
         slider.setBounds(getLocalBounds());
     }
 
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto iem = ptr.get<t_iemgui>()) {
+            setParameterExcludingListener(sizeProperty, Array<var> { var(iem->x_w), var(iem->x_h) });
+        }
+    }
+
     float getValue()
     {
-        auto* x = static_cast<t_slider*>(ptr);
+        if (auto slider = ptr.get<t_slider>()) {
+            t_float fval;
+            int rounded_val = (slider->x_gui.x_fsf.x_finemoved) ? slider->x_val : (slider->x_val / 100) * 100;
 
-        t_float fval;
-        int rounded_val = (x->x_gui.x_fsf.x_finemoved) ? x->x_val : (x->x_val / 100) * 100;
+            /* if rcv==snd, don't round the value to prevent bad dragging when zoomed-in */
+            if (slider->x_gui.x_fsf.x_snd_able && (slider->x_gui.x_snd == slider->x_gui.x_rcv))
+                rounded_val = slider->x_val;
 
-        /* if rcv==snd, don't round the value to prevent bad dragging when zoomed-in */
-        if (x->x_gui.x_fsf.x_snd_able && (x->x_gui.x_snd == x->x_gui.x_rcv))
-            rounded_val = x->x_val;
+            if (slider->x_lin0_log1)
+                fval = slider->x_min * exp(slider->x_k * (double)(rounded_val)*0.01);
+            else
+                fval = (double)(rounded_val)*0.01 * slider->x_k + slider->x_min;
+            if ((fval < 1.0e-10) && (fval > -1.0e-10))
+                fval = 0.0;
 
-        if (x->x_lin0_log1)
-            fval = x->x_min * exp(x->x_k * (double)(rounded_val)*0.01);
-        else
-            fval = (double)(rounded_val)*0.01 * x->x_k + x->x_min;
-        if ((fval < 1.0e-10) && (fval > -1.0e-10))
-            fval = 0.0;
+            return std::isfinite(fval) ? fval : 0.0f;
+        }
 
-        return std::isfinite(fval) ? fval : 0.0f;
+        return 0.0f;
     }
 
     float getMinimum()
     {
-        return static_cast<t_slider*>(ptr)->x_min;
+        if (auto slider = ptr.get<t_slider>()) {
+            return slider->x_min;
+        }
+
+        return 0.0f;
     }
 
     float getMaximum()
     {
-        return static_cast<t_slider*>(ptr)->x_max;
+        if (auto slider = ptr.get<t_slider>()) {
+            return slider->x_max;
+        }
+
+        return 127.0f;
     }
 
     void setMinimum(float value)
     {
-        static_cast<t_slider*>(ptr)->x_min = value;
-        slider.setRangeFlipped(static_cast<t_slider*>(ptr)->x_min > static_cast<t_slider*>(ptr)->x_max);
+        float min, max;
+        if (auto slider = ptr.get<t_slider>()) {
+            ptr.get<t_slider>()->x_min = value;
+            min = slider->x_min;
+            max = slider->x_max;
+        }
+
+        slider.setRangeFlipped(min > max);
     }
 
     void setMaximum(float value)
     {
-        static_cast<t_slider*>(ptr)->x_max = value;
-        slider.setRangeFlipped(static_cast<t_slider*>(ptr)->x_min > static_cast<t_slider*>(ptr)->x_max);
+        float min, max;
+        if (auto slider = ptr.get<t_slider>()) {
+            ptr.get<t_slider>()->x_max = value;
+            min = slider->x_min;
+            max = slider->x_max;
+        }
+
+        slider.setRangeFlipped(min > max);
     }
 
     void setSteadyOnClick(bool steady) const
     {
-        static_cast<t_slider*>(ptr)->x_steady = steady;
+        if (auto slider = ptr.get<t_slider>()) {
+            slider->x_steady = steady;
+        }
     }
 
     bool getSteadyOnClick() const
     {
-        return static_cast<t_slider*>(ptr)->x_steady;
+        if (auto slider = ptr.get<t_slider>()) {
+            return slider->x_steady;
+        }
+
+        return false;
     }
 
     void updateAspectRatio()
@@ -369,7 +415,21 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(min)) {
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto& arr = *sizeProperty.getValue().getArray();
+            auto* constrainer = getConstrainer();
+            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+
+            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+
+            if (auto obj = ptr.get<t_slider>()) {
+                obj->x_gui.x_w = width;
+                obj->x_gui.x_h = height;
+            }
+
+            object->updateBounds();
+        } else if (value.refersToSameSourceAs(min)) {
             setMinimum(::getValue<float>(min));
             updateRange();
         } else if (value.refersToSameSourceAs(max)) {
@@ -388,18 +448,21 @@ public:
 
     bool isLogScale() const
     {
-        return static_cast<t_slider*>(ptr)->x_lin0_log1;
+        if (auto slider = ptr.get<t_slider>()) {
+            return slider->x_lin0_log1;
+        }
+
+        return false;
     }
 
     void setLogScale(bool log)
     {
-        pd->lockAudioThread();
-
         auto* sym = pd->generateSymbol(log ? "log" : "lin");
-        pd_typedmess(static_cast<t_pd*>(ptr), sym, 0, nullptr);
-        update();
+        if (auto obj = ptr.get<t_pd>()) {
+            pd_typedmess(obj.get(), sym, 0, nullptr);
+        }
 
-        pd->unlockAudioThread();
+        update();
     }
 
     void setValue(float v)

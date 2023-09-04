@@ -7,14 +7,12 @@
 #pragma once
 
 #include <utility>
-
-#include <utility>
-
-#include <utility>
-
 #include "Utility/GlobalMouseListener.h"
+#include "Utility/BouncingViewport.h"
 #include "Constants.h"
 #include "Canvas.h"
+#include "PluginEditor.h"
+#include "Utility/ZoomableDragAndDropContainer.h"
 
 class WelcomePanel : public Component {
 
@@ -27,7 +25,7 @@ class WelcomePanel : public Component {
         std::function<void(void)> onClick = []() {};
 
         WelcomeButton(String icon, String mainText, String subText)
-            : iconText(std::move(std::move(std::move(icon))))
+            : iconText(std::move(icon))
             , topText(std::move(mainText))
             , bottomText(std::move(subText))
         {
@@ -40,7 +38,7 @@ class WelcomePanel : public Component {
             auto colour = findColour(PlugDataColour::panelTextColourId);
             if (isMouseOver()) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 6.0f);
+                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
                 colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
 
@@ -70,6 +68,7 @@ class WelcomePanel : public Component {
     public:
         RecentlyOpenedListBox()
         {
+            listBox.setRowHeight(26);
             listBox.setModel(this);
             listBox.setClickingTogglesRowSelection(true);
             update();
@@ -77,6 +76,8 @@ class WelcomePanel : public Component {
             listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
             addAndMakeVisible(listBox);
+
+            bouncer = std::make_unique<BouncingViewportAttachment>(listBox.getViewport());
         }
 
         void update()
@@ -113,7 +114,7 @@ class WelcomePanel : public Component {
         void paint(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(1, 36, getWidth() - 2, getHeight() - 37, Corners::defaultCornerRadius, 1.0f);
+            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), Rectangle<float>(1, 32, getWidth() - 2, getHeight() - 32), Corners::defaultCornerRadius);
 
             Fonts::drawStyledText(g, "Recently Opened", 0, 0, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
         }
@@ -125,16 +126,28 @@ class WelcomePanel : public Component {
 
         void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
         {
+            /*
             if (rowIsSelected) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
+                PlugDataLook::fillSmoothedRectangle(g, { 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
             }
 
             auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
 
-            Fonts::drawText(g, items[rowNumber].first, 12, 0, width - 9, height, colour, 15);
+            Fonts::drawText(g, items[rowNumber].first, 12, 0, width - 9, height, colour, 15); */
+
+            if (rowIsSelected) {
+                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(5.5, 1.5, width - 9, height - 4), Corners::defaultCornerRadius);
+            }
+
+            auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+
+            Fonts::drawText(g, items[rowNumber].first, height + 4, 0, width - 4, height, colour, 14);
+            Fonts::drawIcon(g, Icons::File, 12, 0, height, colour, 12, false);
         }
 
+        std::unique_ptr<BouncingViewportAttachment> bouncer;
         ListBox listBox;
         Array<std::pair<String, File>> items;
     };
@@ -156,7 +169,7 @@ public:
         openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -10));
 
         if (getHeight() > 400) {
-            recentlyOpened.setBounds(getLocalBounds().withSizeKeepingCentre(275, 160).translated(0, 110));
+            recentlyOpened.setBounds(getLocalBounds().withSizeKeepingCentre(275, 170).translated(0, 110));
             recentlyOpened.setVisible(true);
         } else {
             recentlyOpened.setVisible(false);
@@ -176,8 +189,6 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto styles = Font(32).getAvailableStyles();
-
         g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
 
         Fonts::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 195, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
@@ -191,208 +202,112 @@ public:
     RecentlyOpenedListBox recentlyOpened;
 };
 
-class Canvas;
-class TabComponent : public TabbedComponent
+class PluginEditor;
+
+class ButtonBar : public TabbedButtonBar
+    , public DragAndDropTarget
+    , public ChangeListener {
+public:
+    ButtonBar(TabComponent& tabComp, TabbedButtonBar::Orientation o);
+
+    bool isInterestedInDragSource(SourceDetails const& dragSourceDetails) override;
+    void itemDropped(SourceDetails const& dragSourceDetails) override;
+    void itemDragEnter(SourceDetails const& dragSourceDetails) override;
+    void itemDragExit(SourceDetails const& dragSourceDetails) override;
+    void itemDragMove(SourceDetails const& dragSourceDetails) override;
+
+    void currentTabChanged(int newCurrentTabIndex, String const& newTabName) override;
+
+    void changeListenerCallback(ChangeBroadcaster* source) override;
+
+    TabBarButton* createTabButton(String const& tabName, int tabIndex) override;
+
+    int getNumVisibleTabs();
+
+    ComponentAnimator ghostTabAnimator;
+
+private:
+    TabComponent& owner;
+
+    class GhostTab;
+    std::unique_ptr<GhostTab> ghostTab;
+    int ghostTabIdx = -1;
+    bool inOtherSplit = false;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ButtonBar)
+};
+
+class TabComponent : public Component
     , public AsyncUpdater {
 
-    TextButton newButton = TextButton(Icons::Add);
+    TextButton newButton;
     WelcomePanel welcomePanel;
+    PluginEditor* editor;
 
 public:
-    std::function<void()> onTabMoved = []() {};
-    std::function<void()> onFocusGrab = []() {};
-    std::function<void(int)> onTabChange = [](int) {};
-    std::function<void()> newTab = []() {};
-    std::function<void()> openProject = []() {};
-    std::function<void(File&)> openProjectFile = [](File&) {};
-    std::function<void(int tabIndex, String const& tabName)> rightClick = [](int tabIndex, String const& tabName) {};
+    TabComponent(PluginEditor* editor);
+    ~TabComponent();
 
-    TabComponent()
-        : TabbedComponent(TabbedButtonBar::TabsAtTop)
-    {
-        addAndMakeVisible(newButton);
-        newButton.getProperties().set("Style", "LargeIcon");
-        newButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-        newButton.setTooltip("New patch");
-        newButton.onClick = [this]() {
-            newTab();
-        };
+    void onTabMoved();
+    void onTabChange(int tabIndex);
+    void newTab();
+    void addTab(String const& tabName, Component* contentComponent, int insertIndex);
+    void moveTab(int oldIndex, int newIndex);
+    void clearTabs();
+    void setTabBarDepth(int newDepth);
+    Component* getTabContentComponent(int tabIndex) const noexcept;
+    Component* getCurrentContentComponent() const noexcept { return panelComponent.get(); }
+    int getCurrentTabIndex();
+    void setCurrentTabIndex(int idx);
+    int getNumTabs() const noexcept { return tabs->getNumTabs(); }
+    int getNumVisibleTabs();
+    void removeTab(int idx);
+    int getTabBarDepth() const noexcept { return tabDepth; };
+    void changeCallback(int newCurrentTabIndex, String const& newTabName);
 
-        addAndMakeVisible(welcomePanel);
+    void openProject();
+    void openProjectFile(File& patchFile);
 
-        welcomePanel.newButton.onClick = [this]() {
-            newTab();
-        };
+    void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName);
+    void handleAsyncUpdate() override;
+    void resized() override;
 
-        welcomePanel.openButton.onClick = [this]() {
-            openProject();
-        };
+    void paint(Graphics& g) override;
 
-        welcomePanel.recentlyOpened.onPatchOpen = [this](File patchFile) {
-            openProjectFile(patchFile);
-        };
+    void paintOverChildren(Graphics& g) override;
 
-        setVisible(false);
-        setTabBarDepth(0);
-        tabs->addMouseListener(this, true);
-    }
+    int getIndexOfCanvas(Canvas* cnv);
 
-    void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName) override
-    {
-        if (getNumTabs() == 0) {
-            setTabBarDepth(0);
-            getTabbedButtonBar().setVisible(false);
-            welcomePanel.show();
-        } else {
-            getTabbedButtonBar().setVisible(true);
-            welcomePanel.hide();
-            setTabBarDepth(30);
-        }
+    void setTabText(int tabIndex, String const& newName);
 
-        triggerAsyncUpdate();
-    }
+    Canvas* getCanvas(int idx);
 
-    void handleAsyncUpdate() override
-    {
-        onTabChange(getCurrentTabIndex());
-    }
+    Canvas* getCurrentCanvas();
 
-    void resized() override
-    {
-        int depth = getTabBarDepth();
-        auto content = getLocalBounds();
-
-        welcomePanel.setBounds(content);
-        newButton.setBounds(3, 0, depth, depth); // slighly offset to make it centred next to the tabs
-
-        auto tabBounds = content.removeFromTop(depth).withTrimmedLeft(depth);
-        tabs->setBounds(tabBounds);
-
-        for (int c = 0; c < getNumTabs(); c++) {
-            if (auto* comp = getTabContentComponent(c)) {
-                if (auto* positioner = comp->getPositioner()) {
-                    positioner->applyNewBounds(content);
-                } else {
-                    comp->setBounds(content);
-                }
-            }
-        }
-    }
-
-    void paint(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
-        g.fillRect(getLocalBounds().removeFromTop(30));
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0, getTabBarDepth(), getWidth(), getTabBarDepth());
-
-        g.drawLine(0, 0, getWidth(), 0);
-        g.drawLine(0, 0, 0, getBottom());
-    }
-
-    void popupMenuClickOnTab(int tabIndex, String const& tabName) override
-    {
-        rightClick(tabIndex, tabName);
-    }
-
-    int getIndexOfCanvas(Canvas* cnv)
-    {
-        if (!cnv->viewport || !cnv->editor)
-            return -1;
-
-        for (int i = 0; i < getNumTabs(); i++) {
-            if (getTabContentComponent(i) == cnv->viewport) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    Canvas* getCanvas(int idx)
-    {
-        auto* viewport = dynamic_cast<Viewport*>(getTabContentComponent(idx));
-
-        if (!viewport)
-            return nullptr;
-
-        return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
-    }
-
-    Canvas* getCurrentCanvas()
-    {
-        auto* viewport = dynamic_cast<Viewport*>(getCurrentContentComponent());
-
-        if (!viewport)
-            return nullptr;
-
-        return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
-    }
-
-    void mouseDown(MouseEvent const& e) override
-    {
-        tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
-        clickedTabIndex = getCurrentTabIndex();
-        onFocusGrab();
-    }
-
-    void mouseDrag(MouseEvent const& e) override
-    {
-        // Don't respond to clicks on close button
-        if (dynamic_cast<TextButton*>(e.originalComponent))
-            return;
-        // Drag tabs to move their index
-        int const dragPosition = e.getEventRelativeTo(tabs.get()).x;
-        int const newTabIndex = (dragPosition < clickedTabIndex * tabWidth) ? clickedTabIndex - 1
-            : (dragPosition >= (clickedTabIndex + 1) * tabWidth)            ? clickedTabIndex + 1
-                                                                            : clickedTabIndex;
-        int const dragDistance = std::abs(e.getDistanceFromDragStartX());
-
-        if (dragDistance > 5) {
-            if ((tabs->contains(e.getEventRelativeTo(tabs.get()).getPosition()) || e.getDistanceFromDragStartY() < 0) && newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
-                moveTab(clickedTabIndex, newTabIndex, true);
-                clickedTabIndex = newTabIndex;
-                onTabMoved();
-                tabs->getTabButton(clickedTabIndex)->setVisible(false);
-            }
-
-            if (tabSnapshot.isNull() && (getParentWidth() != getWidth() || getNumTabs() > 1)) {
-                // Create ghost tab & hide dragged tab
-                auto* tabButton = tabs->getTabButton(clickedTabIndex);
-                currentTabBounds = tabButton->getBounds().translated(getTabBarDepth(), 0);
-
-                tabSnapshot = Image(Image::PixelFormat::ARGB, tabButton->getWidth(), tabButton->getHeight(), true);
-
-                auto g = Graphics(tabSnapshot);
-                getLookAndFeel().drawTabButton(*tabButton, g, false, false);
-
-                tabSnapshotBounds = currentTabBounds;
-                tabs->getTabButton(clickedTabIndex)->setVisible(false);
-            }
-            // Keep ghost tab within view
-            auto newPosition = Point<int>(std::clamp(currentTabBounds.getX() + getX() + e.getDistanceFromDragStartX(), 0, getParentWidth() - tabWidth), std::clamp(currentTabBounds.getY() + e.getDistanceFromDragStartY(), 0, getHeight() - tabs->getHeight()));
-            tabSnapshotBounds.setPosition(newPosition);
-            getParentComponent()->repaint();
-        }
-    }
-
-    void mouseUp(MouseEvent const& e) override
-    {
-        tabSnapshot = Image();
-        if (clickedTabIndex >= 0)
-            tabs->getTabButton(clickedTabIndex)->setVisible(true);
-        getParentComponent()->repaint(tabSnapshotBounds);
-    }
+    PluginEditor* getEditor();
 
     Image tabSnapshot;
+    ScaledImage tabSnapshotScaled;
+
     Rectangle<int> tabSnapshotBounds;
     Rectangle<int> currentTabBounds;
 
 private:
     int clickedTabIndex;
     int tabWidth;
+
+    Point<int> scalePos;
+
+    int draggedTabIndex = -1;
+    Component* draggedTabComponent = nullptr;
+
+    int tabDepth = 30;
+
+    friend ButtonBar;
+
+    Array<WeakReference<Component>> contentComponents;
+    std::unique_ptr<TabbedButtonBar> tabs;
+    WeakReference<Component> panelComponent;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabComponent)
 };

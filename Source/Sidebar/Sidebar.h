@@ -61,6 +61,8 @@ public:
     static constexpr int dragbarWidth = 6;
 
 private:
+    void updateExtraSettingsButton();
+
     PluginProcessor* pd;
     ObjectParameters lastParameters;
 
@@ -69,14 +71,14 @@ private:
     TextButton automationButton = TextButton(Icons::Parameters);
     TextButton searchButton = TextButton(Icons::Search);
 
-    TextButton panelSettingsButton = TextButton(Icons::More);
+    std::unique_ptr<Component> extraSettingsButton;
     TextButton panelPinButton = TextButton(Icons::Pin);
 
-    Console* console;
-    Inspector* inspector;
-    DocumentBrowser* browser;
-    AutomationPanel* automationPanel;
-    SearchPanel* searchPanel;
+    std::unique_ptr<Console> console;
+    std::unique_ptr<Inspector> inspector;
+    std::unique_ptr<DocumentBrowser> browser;
+    std::unique_ptr<AutomationPanel> automationPanel;
+    std::unique_ptr<SearchPanel> searchPanel;
 
     StringArray panelNames = { "Console", "Documentation Browser", "Automation Parameters", "Search" };
     int currentPanel = 0;

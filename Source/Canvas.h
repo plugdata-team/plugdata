@@ -50,14 +50,12 @@ class Canvas : public Component
     , public pd::MessageListener
     , public AsyncUpdater {
 public:
-    Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr, bool isPalette = false);
+    Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
 
     ~Canvas() override;
 
     PluginEditor* editor;
     PluginProcessor* pd;
-
-    void recreateViewport();
 
     void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
@@ -66,6 +64,9 @@ public:
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
+
+    void focusGained(FocusChangeType type) override;
+    void focusLost(FocusChangeType type) override;
 
     void commandKeyChanged(bool isHeld) override;
     void spaceKeyChanged(bool isHeld) override;
@@ -101,6 +102,7 @@ public:
     void copySelection();
     void removeSelection();
     void removeSelectedConnections();
+    void dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight);
     void pasteSelection();
     void duplicateSelection();
 
@@ -110,6 +112,8 @@ public:
     bool connectSelectedObjects();
 
     void cancelConnectionCreation();
+
+    void alignObjects(Align alignment);
 
     void undo();
     void redo();
@@ -155,7 +159,7 @@ public:
         return result;
     }
 
-    Viewport* viewport = nullptr;
+    std::unique_ptr<Viewport> viewport = nullptr;
 
     bool connectingWithDrag = false;
     bool connectionCancelled = false;
@@ -175,7 +179,6 @@ public:
     Value commandLocked;
     Value presentationMode;
     Value showDirection;
-    Value paletteDragMode;
     Value altMode;
 
     bool showOrigin = false;
@@ -184,8 +187,6 @@ public:
     bool isGraph = false;
     bool hasParentCanvas = false;
     bool isDraggingLasso = false;
-    bool isPalette;
-    bool isShowingMenu = false;
 
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));

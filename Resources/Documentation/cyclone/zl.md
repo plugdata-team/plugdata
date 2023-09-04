@@ -36,7 +36,8 @@ outlets:
 
 flags:
   - name: @zlmaxsize <float>
-    description: max list size (1 - 32767, default 256)
+    description: max list size (1 - 32767)
+    default: 256
 
 methods:
   - type: mode <symbol>

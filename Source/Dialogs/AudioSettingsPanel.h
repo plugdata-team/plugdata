@@ -106,11 +106,11 @@ struct CallbackComboPropertyWithTestButton : public CallbackComboProperty {
 class ChannelToggleProperty : public PropertiesPanel::BoolComponent {
 public:
     ChannelToggleProperty(String const& channelName, bool isEnabled, std::function<void(bool)> onClick)
-        : PropertiesPanel::BoolComponent(channelName, { "Disabled", "Enabled" })
+        : PropertiesPanel::BoolComponent(channelName, isEnabled, { "Disabled", "Enabled" })
         , callback(std::move(onClick))
     {
-        toggleStateValue = isEnabled;
         setPreferredHeight(28);
+        repaint();
     }
 
     void valueChanged(Value& v) override
@@ -128,7 +128,7 @@ public:
         Path backgroundShape;
         backgroundShape.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTopCorner, roundTopCorner, roundBottomCorner, roundBottomCorner);
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId).darker(0.015f));
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId).darker(0.015f));
         g.fillPath(backgroundShape);
 
         auto buttonBounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
@@ -153,7 +153,8 @@ public:
 };
 
 class StandaloneAudioSettings : public Component
-    , private ChangeListener {
+    , private ChangeListener
+    , public Value::Listener {
 
 public:
     explicit StandaloneAudioSettings(AudioDeviceManager& audioDeviceManager)
@@ -171,12 +172,8 @@ public:
         showAllInputChannels = setup.inputChannels.getHighestBit() > 8;
         showAllOutputChannels = setup.outputChannels.getHighestBit() > 8;
 
-        addAndMakeVisible(inputLevelMeter);
-        addAndMakeVisible(outputLevelMeter);
-
-        audioPropertiesPanel.onLayoutChange = [this]() {
-            resized();
-        };
+        showAllAudioDeviceValues.addListener(this);
+        showAllAudioDeviceValues.referTo(SettingsFile::getInstance()->getPropertyAsValue("show_all_audio_device_rates"));
     }
 
     ~StandaloneAudioSettings() override
@@ -185,6 +182,12 @@ public:
     }
 
 private:
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(showAllAudioDeviceValues))
+            updateDevices();
+    }
+
     void updateDevices()
     {
         OwnedArray<AudioIODeviceType> const& types = deviceManager.getAvailableDeviceTypes();
@@ -222,17 +225,39 @@ private:
 
             StringArray sampleRateStrings;
             for (auto& rate : sampleRates) {
-                sampleRateStrings.add(String(rate));
+                auto rateAsString = String(rate);
+                if (::getValue<bool>(showAllAudioDeviceValues)) {
+                    sampleRateStrings.add(rateAsString);
+                } else if (standardSampleRates.contains(rateAsString)) {
+                    sampleRateStrings.add(rateAsString);
+                }
+            }
+
+            // if the audio device has no sample rates that are standard rates, list all rates (highly unlikely)
+            if (sampleRateStrings.size() == 0) {
+                for (auto& rate : sampleRates) {
+                    sampleRateStrings.add(String(rate));
+                }
+            }
+
+            // also make sure that setup.sampleRate is set to a supported rate
+            if (!sampleRates.contains(setup.sampleRate)) {
+                for (auto& rate : sampleRates) {
+                    setup.sampleRate = rate;
+                    break;
+                }
             }
 
             StringArray bufferSizeStrings;
             for (auto& size : bufferSizes) {
-                if ((size & (size - 1)) == 0) {
-                    // buffer size is a power of 2
-                    bufferSizeStrings.add(String(size));
+                auto sizeAsString = String(size);
+                if (::getValue<bool>(showAllAudioDeviceValues)) {
+                    bufferSizeStrings.add(sizeAsString);
+                } else if (standardBufferSizes.contains(sizeAsString)) {
+                    bufferSizeStrings.add(sizeAsString);
                 }
             }
-            // if the audio device has no buffer sizes that are powers of 2, list all the sizes (highly unlikely)
+            // if the audio device has no buffer sizes that are powers of 2 (standard sizes), list all the sizes (highly unlikely)
             if (bufferSizeStrings.size() == 0) {
                 for (auto& size : bufferSizes) {
                     bufferSizeStrings.add(String(size));
@@ -295,6 +320,7 @@ private:
                 inputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool isEnabled) {
                     setup.useDefaultInputChannels = false;
                     setup.inputChannels.setBit(idx, isEnabled);
+                    updateConfig();
                 }));
                 idx++;
             }
@@ -323,6 +349,7 @@ private:
                 outputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool isEnabled) {
                     setup.useDefaultOutputChannels = false;
                     setup.outputChannels.setBit(idx, isEnabled);
+                    updateConfig();
                 }));
                 idx++;
             }
@@ -338,6 +365,17 @@ private:
 
         audioPropertiesPanel.addSection("Audio Output", outputProperties);
         audioPropertiesPanel.addSection("Audio Input", inputProperties);
+
+        auto* outputSection = audioPropertiesPanel.getSectionByName("Audio Output");
+        auto* inputSection = audioPropertiesPanel.getSectionByName("Audio Input");
+
+        if (outputLevelMeter.getParentComponent()) {
+            outputLevelMeter.getParentComponent()->removeChildComponent(&outputLevelMeter);
+            inputLevelMeter.getParentComponent()->removeChildComponent(&inputLevelMeter);
+        }
+
+        outputSection->addAndMakeVisible(outputLevelMeter);
+        inputSection->addAndMakeVisible(inputLevelMeter);
 
         viewport.setViewPosition(0, viewY);
     }
@@ -375,13 +413,11 @@ private:
         auto [x, width] = audioPropertiesPanel.getContentXAndWidth();
 
         if (inputSelectorProperty) {
-            auto inputSelectorBounds = getLocalArea(nullptr, inputSelectorProperty->getScreenBounds());
-            inputLevelMeter.setBounds((x + width) - 60, inputSelectorBounds.getY() - 16, 60, 6);
+            inputLevelMeter.setBounds((x + width) - 60, 12, 60, 6);
         }
 
         if (outputSelectorProperty) {
-            auto outputSelectorBounds = getLocalArea(nullptr, outputSelectorProperty->getScreenBounds());
-            outputLevelMeter.setBounds((x + width) - 60, outputSelectorBounds.getY() - 16, 60, 6);
+            outputLevelMeter.setBounds((x + width) - 60, 12, 60, 6);
         }
     }
 
@@ -399,6 +435,11 @@ private:
 
     bool showAllInputChannels = false;
     bool showAllOutputChannels = false;
+
+    Value showAllAudioDeviceValues;
+
+    StringArray standardBufferSizes = { "16", "32", "64", "128", "256", "512", "1024", "2048" };
+    StringArray standardSampleRates = { "44100", "48000", "88200", "96000", "176400", "192000" };
 };
 
 class DAWAudioSettings : public Component
@@ -410,27 +451,17 @@ public:
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
-        if (!settingsTree.hasProperty("NativeDialog")) {
-            settingsTree.setProperty("NativeDialog", true, nullptr);
-        }
-
         auto* proc = dynamic_cast<PluginProcessor*>(processor);
-
-        nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
         tailLengthValue.referTo(proc->tailLength);
 
-        tailLengthValue.addListener(this);
         latencyValue.addListener(this);
-        nativeDialogValue.addListener(this);
 
         latencyValue = proc->getLatencySamples();
 
         latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
         tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
-        nativeDialogToggle = new PropertiesPanel::BoolComponent("Use system dialog", nativeDialogValue, StringArray { "No", "Yes" });
 
         dawSettingsPanel.addSection("Audio", { latencyNumberBox, tailLengthNumberBox });
-        dawSettingsPanel.addSection("Other", { nativeDialogToggle });
 
         addAndMakeVisible(dawSettingsPanel);
 
@@ -453,11 +484,9 @@ public:
 
     Value latencyValue;
     Value tailLengthValue;
-    Value nativeDialogValue;
 
     PropertiesPanel dawSettingsPanel;
 
     PropertiesPanel::EditableComponent<int>* latencyNumberBox;
     PropertiesPanel::EditableComponent<float>* tailLengthNumberBox;
-    PropertiesPanel::BoolComponent* nativeDialogToggle;
 };

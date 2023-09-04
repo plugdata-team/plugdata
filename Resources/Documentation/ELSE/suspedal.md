@@ -36,7 +36,8 @@ outlets:
 
 flags:
 - name: -retrig
-  description: sets retrigger mode <0, 1, 2 or 3> (default 0)
+  description: sets retrigger mode <0, 1, 2 or 3>
+  default: 0
 - name: -tonal
   description: sets sustain to "tonal" mode
 

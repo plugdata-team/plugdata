@@ -20,11 +20,11 @@
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     : cnv(parent)
+    , ptr(parent->pd)
     , outlet(s->isInlet ? e : s)
     , inlet(s->isInlet ? s : e)
     , outobj(outlet->object)
     , inobj(inlet->object)
-    , ptr(static_cast<t_fake_outconnect*>(oc))
 {
     cnv->selectedComponents.addChangeListener(this);
 
@@ -49,19 +49,9 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     // If it doesn't already exist in pd, create connection in pd
     if (!oc) {
         auto* oc = parent->patch.createAndReturnConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
-
-        ptr = static_cast<t_fake_outconnect*>(oc);
-
-        if (!ptr) {
-            outlet = nullptr;
-            inlet = nullptr;
-
-            // MessageManager::callAsync([this]() { cnv->connections.removeObject(this); });
-
-            return;
-        }
+        setPointer(oc);
     } else {
-
+        setPointer(oc);
         popPathState();
     }
 
@@ -85,13 +75,11 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     valueChanged(presentationMode);
 
     updateOverlays(cnv->getOverlays());
-
-    setPointer(ptr);
 }
 
 Connection::~Connection()
 {
-    cnv->pd->unregisterMessageListener(ptr, this);
+    cnv->pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     cnv->selectedComponents.removeChangeListener(this);
 
     if (outlet) {
@@ -133,6 +121,9 @@ void Connection::lookAndFeelChanged()
 
 void Connection::pushPathState()
 {
+    if (!inlet || !outlet)
+        return;
+
     t_symbol* newPathState;
     if (segmented) {
         MemoryOutputStream stream;
@@ -152,15 +143,15 @@ void Connection::pushPathState()
 
 void Connection::popPathState()
 {
-    if (!ptr || !ptr->outconnect_path_data || !ptr->outconnect_path_data->s_name)
+    if (!inlet || !outlet)
         return;
 
-    auto const state = String::fromUTF8(ptr->outconnect_path_data->s_name);
-
-    if (state == "empty") {
-        segmented = false;
-        updatePath();
-        return;
+    String state;
+    if (auto oc = ptr.get<t_outconnect>()) {
+        auto* pathData = outconnect_get_path_data(oc.get());
+        if (!pathData || !pathData->s_name)
+            return;
+        state = String::fromUTF8(pathData->s_name);
     }
 
     auto block = MemoryBlock();
@@ -188,23 +179,27 @@ void Connection::popPathState()
 
 void Connection::setPointer(void* newPtr)
 {
-    auto originalPointer = ptr;
-    ptr = static_cast<t_fake_outconnect*>(newPtr);
-    cnv->pd->registerMessageListener(ptr, this);
-    if (originalPointer != ptr) {
-        // do we even need to unregister, doesn't it get cleaned up automatically?
+    auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
+    if (originalPointer != newPtr) {
+        ptr = pd::WeakReference(newPtr, cnv->pd);
+
         cnv->pd->unregisterMessageListener(originalPointer, this);
+        cnv->pd->registerMessageListener(newPtr, this);
     }
 }
 
 void* Connection::getPointer()
 {
-    return ptr;
+    return ptr.getRaw<t_outconnect>();
 }
 
 t_symbol* Connection::getPathState()
 {
-    return ptr->outconnect_path_data;
+    if (auto oc = ptr.get<t_outconnect>()) {
+        return outconnect_get_path_data(oc.get());
+    }
+
+    return nullptr;
 }
 
 bool Connection::hitTest(int x, int y)
@@ -275,7 +270,8 @@ void Connection::renderConnectionPath(Graphics& g,
     Point<int> mousePos,
     bool isHovering,
     int connectionCount,
-    int multiConnectNumber)
+    int multiConnectNumber,
+    int numSignalChannels)
 {
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
@@ -304,7 +300,7 @@ void Connection::renderConnectionPath(Graphics& g,
 
     if (PlugDataLook::getUseDashedConnections() && isSignal) {
         PathStrokeType dashedStroke(useThinConnection ? 0.5f : 0.8f);
-        float dash[1] = { 5.0f };
+        float dash[1] = { numSignalChannels > 1 ? 2.5f : 5.0f };
         Path dashedPath;
         dashedStroke.createDashedStroke(dashedPath, connectionPath, dash, 1);
         innerPath = dashedPath;
@@ -390,6 +386,14 @@ void Connection::updateOverlays(int overlay)
 
     showDirection = overlay & Overlay::Direction;
     showConnectionOrder = overlay & Overlay::Order;
+    showActiveState = overlay & Overlay::ActivationState;
+    updatePath();
+    resizeToFit();
+    repaint();
+}
+
+void Connection::forceUpdate()
+{
     updatePath();
     resizeToFit();
     repaint();
@@ -408,27 +412,28 @@ void Connection::paint(Graphics& g)
         getMouseXYRelative(),
         isHovering,
         getNumberOfConnections(),
-        getMultiConnectNumber());
+        getMultiConnectNumber(),
+        getNumSignalChannels());
 
-#if (ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT)
-    static Random rng;
+    /* ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT
+        static Random rng;
 
-    g.fillAll(Colour((uint8)rng.nextInt(255),
-        (uint8)rng.nextInt(255),
-        (uint8)rng.nextInt(255),
-        (uint8)0x50));
-#endif
+        g.fillAll(Colour((uint8)rng.nextInt(255),
+            (uint8)rng.nextInt(255),
+            (uint8)rng.nextInt(255),
+            (uint8)0x50));
+    */
 
-#if (ENABLE_CONNECTION_GRAPHICS_DEBUGGING)
-    g.setColour(Colours::orange);
-    for (auto& point : currentPlan) {
-        auto local = getLocalPoint(cnv, point);
-        g.fillEllipse(local.x, local.y, 2, 2);
-    }
+    /* ENABLE_CONNECTION_GRAPHICS_DEBUGGING
+        g.setColour(Colours::orange);
+        for (auto& point : currentPlan) {
+            auto local = getLocalPoint(cnv, point);
+            g.fillEllipse(local.x, local.y, 2, 2);
+        }
 
-    g.setColour(Colours::red);
-    g.drawRect(getLocalBounds(), 1.0f);
-#endif
+        g.setColour(Colours::red);
+        g.drawRect(getLocalBounds(), 1.0f);
+    */
 }
 
 bool Connection::isSegmented() const
@@ -540,7 +545,7 @@ void Connection::mouseDown(MouseEvent const& e)
     cnv->editor->connectionMessageDisplay->setConnection(nullptr);
 
     // Deselect all other connection if shift or command is not down
-    if (!e.mods.isCommandDown() && !e.mods.isShiftDown()) {
+    if (!e.mods.isCommandDown() && !e.mods.isShiftDown() && !e.mods.isPopupMenu()) {
         cnv->deselectAll();
     }
 
@@ -846,6 +851,19 @@ int Connection::getMultiConnectNumber()
     return -1;
 }
 
+int Connection::getNumSignalChannels()
+{
+    if (auto oc = ptr.get<t_outconnect>()) {
+        return outconnect_get_num_channels(oc.get());
+    }
+
+    if (outlet) {
+        return outlet->isSignal ? 1 : 0;
+    }
+
+    return 0;
+}
+
 void Connection::updatePath()
 {
     if (!outlet || !inlet)
@@ -893,6 +911,7 @@ void Connection::updatePath()
 
 void Connection::applyBestPath()
 {
+    segmented = true;
     findPath();
     updatePath();
     resizeToFit();
@@ -1146,11 +1165,16 @@ void ConnectionPathUpdater::timerCallback()
         t_object* inObj;
         int inIdx;
 
+        auto* patch = connection->cnv->patch.getPointer().get();
+        if (!patch)
+            return;
+
         // Get connections from pd
-        linetraverser_start(&t, connection->cnv->patch.getPointer());
+        linetraverser_start(&t, patch);
 
         while (auto* oc = linetraverser_next(&t)) {
-            if (reinterpret_cast<t_fake_outconnect*>(oc) == connection->ptr) {
+
+            if (oc && oc == connection->ptr.getRaw<t_outconnect>()) {
 
                 outObj = t.tr_ob;
                 outIdx = t.tr_outno;
@@ -1165,15 +1189,11 @@ void ConnectionPathUpdater::timerCallback()
         if (!found)
             continue;
 
-        t_symbol* oldPathState = connection->ptr->outconnect_path_data;
-
-        // This will recreate the connection with the new connection path, and return the new pointer
-        // Since we mostly used indices and object pointers to differentiate connections, this is fine
-        // TODO: this sometimes causes a crash
-        // this is either a threading issue, or something else...
-        // I think we can solve it by not recreting the connection?
-        auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
-        connection->setPointer(newConnection);
+        if (auto oc = connection->ptr.get<t_outconnect>()) {
+            t_symbol* oldPathState = outconnect_get_path_data(oc.get());
+            auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
+            connection->setPointer(newConnection);
+        }
     }
 
     canvas->patch.endUndoSequence("SetConnectionPaths");
@@ -1185,6 +1205,8 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 {
     // TODO: indicator
     // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
+
+    outobj->triggerOverlayActiveState();
 
     auto& connectionMessageLock = cnv->editor->connectionMessageDisplay->getLock();
 

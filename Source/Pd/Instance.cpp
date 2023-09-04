@@ -16,8 +16,6 @@
 #include "Objects/ImplementationBase.h"
 #include "Utility/SettingsFile.h"
 
-#include "OfeliaMessageManager.h"
-
 extern "C" {
 
 #include <g_undo.h>
@@ -29,7 +27,6 @@ extern "C" {
 #include "z_print_util.h"
 
 int sys_load_lib(t_canvas* canvas, char const* classname);
-void set_class_prefix(t_symbol* dir);
 
 struct pd::Instance::internal {
 
@@ -108,18 +105,17 @@ struct pd::Instance::internal {
         ptr->enqueueFunctionAsync([ptr, port, byte]() mutable { ptr->processMidiEvent({ midievent::MIDIBYTE, port, byte, 0 }); });
     }
 
-    static void instance_multi_print(pd::Instance* ptr, char const* s)
+    static void instance_multi_print(pd::Instance* ptr, void* object, char const* s)
     {
-        ptr->consoleHandler.processPrint(s);
+        ptr->consoleHandler.processPrint(object, s);
     }
 };
 }
 
 namespace pd {
 
-Instance::Instance(String const& symbol, CriticalSection const* lock)
+Instance::Instance(String const& symbol)
     : consoleHandler(this)
-    , audioLock(lock)
 {
     libpd_multi_init();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
@@ -148,12 +144,15 @@ void Instance::initialisePd(String& pdlua_version)
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
     set_instance_lock(
-        static_cast<void const*>(audioLock),
+        static_cast<void const*>(&audioLock),
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->enter();
         },
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->exit();
+        },
+        [](void* instance, void* ref) {
+            static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
         });
 
     m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
@@ -177,16 +176,63 @@ void Instance::initialisePd(String& pdlua_version)
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
-    auto gui_trigger = [](void* instance, char const* name, t_atom* arg1, t_atom* arg2, t_atom* arg3) {
-        if (String::fromUTF8(name) == "openpanel") {
+    auto gui_trigger = [](void* instance, char const* name, int argc, t_atom* argv) {
+        switch (hash(name)) {
+        case hash("openpanel"): {
+            auto openMode = argc >= 4 ? static_cast<int>(atom_getfloat(argv + 3)) : -1;
+            static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback", openMode);
 
-            static_cast<Instance*>(instance)->createPanel(atom_getfloat(arg1), atom_getsymbol(arg3)->s_name, atom_getsymbol(arg2)->s_name);
+            break;
         }
-        if (String::fromUTF8(name) == "openfile") {
-            File(String::fromUTF8(atom_getsymbol(arg1)->s_name)).startAsProcess();
+        case hash("elsepanel"): {
+            static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "symbol");
+            break;
         }
-        if (String::fromUTF8(name) == "repaint") {
-            static_cast<Instance*>(instance)->updateDrawables();
+        case hash("openfile"):
+        case hash("openfile_open"): {
+            auto url = String::fromUTF8(atom_getsymbol(argv)->s_name);
+            if (URL::isProbablyAWebsiteURL(url)) {
+                URL(url).launchInDefaultBrowser();
+            } else {
+                if (File(url).exists()) {
+                    File(url).startAsProcess();
+                } else if (argc > 1) {
+                    auto fullPath = File(String::fromUTF8(atom_getsymbol(argv)->s_name)).getChildFile(url);
+                    if (fullPath.exists()) {
+                        fullPath.startAsProcess();
+                    }
+                }
+            }
+
+            break;
+        }
+        case hash("cyclone_editor"): {
+            auto ptr = (unsigned long)argv->a_w.w_gpointer;
+            auto width = atom_getfloat(argv + 1);
+            auto height = atom_getfloat(argv + 2);
+            String owner, title;
+            bool hasCallback;
+
+            if (argc > 5) {
+                owner = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
+                title = String::fromUTF8(atom_getsymbol(argv + 4)->s_name);
+                hasCallback = atom_getfloat(argv + 5);
+            } else {
+                title = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
+                hasCallback = atom_getfloat(argv + 4);
+            }
+
+            static_cast<Instance*>(instance)->showTextEditor(ptr, Rectangle<int>(width, height), title);
+
+            break;
+        }
+        case hash("cyclone_editor_append"): {
+            auto ptr = (unsigned long)argv->a_w.w_gpointer;
+            auto text = String::fromUTF8(atom_getsymbol(argv + 1)->s_name);
+
+            static_cast<Instance*>(instance)->addTextToTextEditor(ptr, text);
+            break;
+        }
         }
     };
 
@@ -200,7 +246,7 @@ void Instance::initialisePd(String& pdlua_version)
         auto sym = String::fromUTF8(symbol->s_name);
 
         // Create a new vector to hold the null listeners
-        std::vector<std::vector<WeakReference<pd::MessageListener>>::iterator> nullListeners;
+        std::vector<std::vector<juce::WeakReference<pd::MessageListener>>::iterator> nullListeners;
 
         for (auto it = listeners[target].begin(); it != listeners[target].end(); ++it) {
             auto listener = it->get();
@@ -224,15 +270,15 @@ void Instance::initialisePd(String& pdlua_version)
 
     static bool initialised = false;
     if (!initialised) {
-
-        File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-        auto library = homeDir.getChildFile("Library");
-        auto extra = library.getChildFile("Extra");
+        auto extra = ProjectInfo::appDataDir.getChildFile("Extra");
 
         set_class_prefix(gensym("else"));
+        class_set_extern_dir(gensym("9.else"));
         libpd_init_else();
         set_class_prefix(gensym("cyclone"));
+        class_set_extern_dir(gensym("10.cyclone"));
         libpd_init_cyclone();
+
         set_class_prefix(nullptr);
 
         // Class prefix doesn't seem to work for pdlua
@@ -244,6 +290,11 @@ void Instance::initialisePd(String& pdlua_version)
 
         initialised = true;
     }
+
+    // Hack to make sure ofelia doesn't get initialised during plugin validation, as this can cause problems
+    MessageManager::callAsync([this]() {
+        ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(m_instance));
+    });
 
     setThis();
 
@@ -468,9 +519,7 @@ void Instance::processMidiEvent(midievent event)
 
 void Instance::processSend(dmessage mess)
 {
-    setThis();
-
-    if (mess.object) {
+    if (auto obj = mess.object.get<t_pd>()) {
         if (mess.selector == "list") {
             auto* argv = static_cast<t_atom*>(m_atoms);
             for (size_t i = 0; i < mess.list.size(); ++i) {
@@ -481,19 +530,13 @@ void Instance::processSend(dmessage mess)
                 } else
                     SETFLOAT(argv + i, 0.0);
             }
-            lockAudioThread();
-            pd_list(static_cast<t_pd*>(mess.object), generateSymbol("list"), static_cast<int>(mess.list.size()), argv);
-            unlockAudioThread();
+            pd_list(obj.get(), generateSymbol("list"), static_cast<int>(mess.list.size()), argv);
         } else if (mess.selector == "float" && !mess.list.empty() && mess.list[0].isFloat()) {
-            lockAudioThread();
-            pd_float(static_cast<t_pd*>(mess.object), mess.list[0].getFloat());
-            unlockAudioThread();
+            pd_float(obj.get(), mess.list[0].getFloat());
         } else if (mess.selector == "symbol" && !mess.list.empty() && mess.list[0].isSymbol()) {
-            lockAudioThread();
-            pd_symbol(static_cast<t_pd*>(mess.object), generateSymbol(mess.list[0].getSymbol()));
-            unlockAudioThread();
+            pd_symbol(obj.get(), generateSymbol(mess.list[0].getSymbol()));
         } else {
-            sendTypedMessage(static_cast<t_pd*>(mess.object), mess.selector.toRawUTF8(), mess.list);
+            sendTypedMessage(obj.get(), mess.selector.toRawUTF8(), mess.list);
         }
     } else {
         sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);
@@ -513,10 +556,43 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
     if (messageListeners.count(object))
         return;
 
-    auto it = std::find(messageListeners[object].begin(), messageListeners[object].end(), messageListener);
+    auto& listeners = messageListeners[object];
+    auto it = std::find(listeners.begin(), listeners.end(), messageListener);
 
-    if (it != messageListeners[object].end())
-        messageListeners[object].erase(it);
+    if (it != listeners.end())
+        listeners.erase(it);
+}
+
+void Instance::registerWeakReference(void* ptr, pd_weak_reference* ref)
+{
+    weakReferenceMutex.lock();
+    pdWeakReferences[ptr].push_back(ref);
+    weakReferenceMutex.unlock();
+}
+
+void Instance::unregisterWeakReference(void* ptr, pd_weak_reference const* ref)
+{
+    weakReferenceMutex.lock();
+
+    auto& refs = pdWeakReferences[ptr];
+
+    auto it = std::find(refs.begin(), refs.end(), ref);
+
+    if (it != refs.end()) {
+        pdWeakReferences[ptr].erase(it);
+    }
+
+    weakReferenceMutex.unlock();
+}
+
+void Instance::clearWeakReferences(void* ptr)
+{
+    weakReferenceMutex.lock();
+    for (auto* ref : pdWeakReferences[ptr]) {
+        *ref = false;
+    }
+    pdWeakReferences.erase(ptr);
+    weakReferenceMutex.unlock();
 }
 
 void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
@@ -527,14 +603,14 @@ void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
 void Instance::sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list)
 {
     lockAudioThread();
-    processSend(dmessage { object, String(), msg, std::move(list) });
+    processSend(dmessage(this, object, String(), msg, std::move(list)));
     unlockAudioThread();
 }
 
 void Instance::sendDirectMessage(void* object, std::vector<Atom>&& list)
 {
     lockAudioThread();
-    processSend(dmessage { object, String(), "list", std::move(list) });
+    processSend(dmessage(this, object, String(), "list", std::move(list)));
     unlockAudioThread();
 }
 
@@ -542,14 +618,14 @@ void Instance::sendDirectMessage(void* object, String const& msg)
 {
 
     lockAudioThread();
-    processSend(dmessage { object, String(), "symbol", std::vector<Atom>(1, msg) });
+    processSend(dmessage(this, object, String(), "symbol", std::vector<Atom>(1, msg)));
     unlockAudioThread();
 }
 
 void Instance::sendDirectMessage(void* object, float const msg)
 {
     lockAudioThread();
-    processSend(dmessage { object, String(), "float", std::vector<Atom>(1, msg) });
+    processSend(dmessage(this, object, String(), "float", std::vector<Atom>(1, msg)));
     unlockAudioThread();
 }
 
@@ -608,67 +684,97 @@ t_symbol* Instance::generateSymbol(String const& symbol) const
 
 void Instance::logMessage(String const& message)
 {
-    consoleHandler.logMessage(message);
+    if (consoleMute)
+        return;
+    consoleHandler.logMessage(nullptr, message);
 }
 
 void Instance::logError(String const& error)
 {
-    consoleHandler.logError(error);
+    if (consoleMute)
+        return;
+    consoleHandler.logError(nullptr, error);
 }
 
 void Instance::logWarning(String const& warning)
 {
-    consoleHandler.logWarning(warning);
+    if (consoleMute)
+        return;
+    consoleHandler.logWarning(nullptr, warning);
 }
 
-std::deque<std::tuple<String, int, int>>& Instance::getConsoleMessages()
+void Instance::muteConsole(bool shouldMute)
+{
+    consoleMute = shouldMute;
+}
+
+std::deque<std::tuple<void*, String, int, int>>& Instance::getConsoleMessages()
 {
     return consoleHandler.consoleMessages;
 }
 
-std::deque<std::tuple<String, int, int>>& Instance::getConsoleHistory()
+std::deque<std::tuple<void*, String, int, int>>& Instance::getConsoleHistory()
 {
     return consoleHandler.consoleHistory;
 }
 
-void Instance::createPanel(int type, char const* snd, char const* location)
+void Instance::createPanel(int type, char const* snd, char const* location, char const* callbackName, int openMode)
 {
-
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);
 
+    if (!defaultFile.exists()) {
+        defaultFile = ProjectInfo::appDataDir;
+    }
+
     if (type) {
         MessageManager::callAsync(
-            [this, obj, defaultFile]() mutable {
-                auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
+            [this, obj, defaultFile, openMode, callback = String(callbackName)]() mutable {
+                FileBrowserComponent::FileChooserFlags folderChooserFlags;
+
+                if (openMode <= 0) {
+                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles);
+                } else if (openMode == 1) {
+                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories);
+                } else {
+                    folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectMultipleItems);
+                }
+
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
-                openChooser->launchAsync(folderChooserFlags, [this, obj](FileChooser const& fileChooser) {
-                    auto const file = fileChooser.getResult();
+                openChooser->launchAsync(folderChooserFlags, [this, obj, openMode, callback](FileChooser const& fileChooser) {
+                    auto const files = fileChooser.getResults();
+                    if (files.isEmpty())
+                        return;
 
                     lockAudioThread();
-                    String pathname = file.getFullPathName().toRawUTF8();
 
-                // Convert slashes to backslashes
+                    std::vector<t_atom> atoms(files.size());
+
+                    for (int i = 0; i < atoms.size(); i++) {
+                        String pathname = files[i].getFullPathName();
+
+                    // Convert slashes to backslashes
 #if JUCE_WINDOWS
-                    pathname = pathname.replaceCharacter('\\', '/');
+                        pathname = pathname.replaceCharacter('\\', '/');
 #endif
 
-                    t_atom argv[1];
-                    libpd_set_symbol(argv, pathname.toRawUTF8());
-                    pd_typedmess(obj, generateSymbol("callback"), 1, argv);
+                        libpd_set_symbol(atoms.data() + i, pathname.toRawUTF8());
+                    }
+
+                    pd_typedmess(obj, generateSymbol(callback), atoms.size(), atoms.data());
 
                     unlockAudioThread();
                 });
             });
     } else {
         MessageManager::callAsync(
-            [this, obj, defaultFile]() mutable {
+            [this, obj, defaultFile, callback = String(callbackName)]() mutable {
                 constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
                 saveChooser = std::make_unique<FileChooser>("Save...", defaultFile, "", true);
 
                 saveChooser->launchAsync(folderChooserFlags,
-                    [this, obj](FileChooser const& fileChooser) {
+                    [this, obj, callback](FileChooser const& fileChooser) {
                         const auto file = fileChooser.getResult();
 
                         const auto* path = file.getFullPathName().toRawUTF8();
@@ -677,7 +783,7 @@ void Instance::createPanel(int type, char const* snd, char const* location)
                         libpd_set_symbol(argv, path);
 
                         lockAudioThread();
-                        pd_typedmess(obj, generateSymbol("callback"), 1, argv);
+                        pd_typedmess(obj, generateSymbol(callback), 1, argv);
                         unlockAudioThread();
                     });
             });
@@ -691,17 +797,12 @@ bool Instance::loadLibrary(String const& libraryToLoad)
 
 void Instance::lockAudioThread()
 {
-    if (waitingForStateUpdate) // In this case, the message thread is waiting for the audio thread, so never lock in that case!
-        return;
-
-    numLocksHeld++;
-    audioLock->enter();
+    audioLock.enter();
 }
 
 bool Instance::tryLockAudioThread()
 {
-    if (audioLock->tryEnter()) {
-        numLocksHeld++;
+    if (audioLock.tryEnter()) {
         return true;
     }
 
@@ -710,8 +811,7 @@ bool Instance::tryLockAudioThread()
 
 void Instance::unlockAudioThread()
 {
-    numLocksHeld--;
-    audioLock->exit();
+    audioLock.exit();
 }
 
 void Instance::updateObjectImplementations()
@@ -721,7 +821,9 @@ void Instance::updateObjectImplementations()
 
 void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
 {
-    objectImplementations->clearObjectImplementationsForPatch(p->getPointer());
+    if (auto patch = p->getPointer()) {
+        objectImplementations->clearObjectImplementationsForPatch(patch.get());
+    }
 }
 
 } // namespace pd

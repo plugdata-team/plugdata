@@ -162,9 +162,7 @@ public:
         void finish(Result result)
         {
             MessageManager::callAsync(
-                [this, result]() mutable {
-                    // Make sure lambda still exists after deletion
-                    auto finishCopy = onFinish;
+                [this, result, finishCopy = onFinish]() mutable {
                     waitForThreadToExit(-1);
 
                     // Self-destruct
@@ -265,7 +263,24 @@ public:
                 break;
             }
         }
+        
 
+#if JUCE_MAC
+        packages.add(PackageInfo("plugdata-ofelia",
+            "cuinjune and timothyschoen",
+            "0",
+            "https://github.com/plugdata-team/plugdata-ofelia/releases/download/v0.4.0-test4/plugdata-ofelia-macos.zip",
+            "Ofelia graphics environment for plugdata",
+            "v4.0.0-test4", { "ofelia" }));
+#elif JUCE_WINDOWS
+        packages.add(PackageInfo("plugdata-ofelia",
+            "cuinjune and timothyschoen",
+            "0",
+            "https://github.com/plugdata-team/plugdata-ofelia/releases/download/v0.4.0-test4/plugdata-ofelia-windows.zip",
+            "Ofelia graphics environment for plugdata",
+            "v4.0.0-test4", { "ofelia" }));
+#endif
+        
         return packages;
     }
 
@@ -339,7 +354,7 @@ public:
 
     PackageList allPackages;
 
-    inline static File filesystem = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Deken");
+    static inline const File filesystem = ProjectInfo::appDataDir.getChildFile("Externals");
 
     // Package info file
     File pkgInfo = filesystem.getChildFile(".pkg_info");
@@ -407,7 +422,6 @@ JUCE_IMPLEMENT_SINGLETON(PackageManager)
 
 class Deken : public Component
     , public ListBoxModel
-    , public ScrollBar::Listener
     , public ActionListener {
 
 public:
@@ -416,13 +430,6 @@ public:
         setInterceptsMouseClicks(false, true);
 
         listBox.setModel(this);
-        listBox.setRowHeight(32);
-        listBox.setOutlineThickness(0);
-        listBox.deselectAllRows();
-        listBox.getViewport()->setScrollBarsShown(true, false, false, false);
-        listBox.addMouseListener(this, true);
-        listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
-        listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
@@ -445,7 +452,7 @@ public:
         updateSpinner.setAlwaysOnTop(true);
 
         addAndMakeVisible(clearButton);
-        addAndMakeVisible(listBox);
+        addAndMakeVisible(listBox.getViewport());
         addAndMakeVisible(input);
         addAndMakeVisible(updateSpinner);
 
@@ -515,11 +522,6 @@ public:
         }
     }
 
-    void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
-    {
-        repaint();
-    }
-
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
@@ -566,10 +568,12 @@ public:
     {
         delete existingComponentToUpdate;
 
+        bool isFirst = rowNumber == 0;
+        bool isLast = rowNumber == (packageManager->downloads.size() + searchResult.size()) - 1;
         if (isPositiveAndBelow(rowNumber, packageManager->downloads.size())) {
-            return new DekenRowComponent(*this, packageManager->downloads[rowNumber]->packageInfo);
+            return new DekenRowComponent(*this, packageManager->downloads[rowNumber]->packageInfo, isFirst, isLast);
         } else if (isPositiveAndBelow(rowNumber - packageManager->downloads.size(), searchResult.size())) {
-            return new DekenRowComponent(*this, searchResult.getReference(rowNumber - packageManager->downloads.size()));
+            return new DekenRowComponent(*this, searchResult.getReference(rowNumber - packageManager->downloads.size()), isFirst, isLast);
         }
 
         return nullptr;
@@ -667,16 +671,15 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().withTrimmedTop(40);
-        auto tableBounds = bounds.withTrimmedTop(1);
-        auto inputBounds = tableBounds.removeFromTop(28);
+        auto inputBounds = bounds.removeFromTop(28);
 
         input.setBounds(inputBounds);
 
         clearButton.setBounds(inputBounds.removeFromRight(32));
         updateSpinner.setBounds(inputBounds.removeFromRight(30));
 
-        tableBounds.removeFromLeft(Sidebar::dragbarWidth);
-        listBox.setBounds(tableBounds);
+        listBox.setBounds(getLocalBounds().withHeight(listBox.getHeight()));
+        listBox.getViewport()->setBounds(bounds);
 
         refreshButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40));
     }
@@ -689,8 +692,70 @@ public:
     }
 
 private:
+    struct DekenListBox : public Component {
+        DekenListBox()
+        {
+            viewport.setViewedComponent(this, false);
+
+            viewport.setScrollBarsShown(true, false, false, false);
+
+            listBox.setRowHeight(66);
+            listBox.setOutlineThickness(0);
+            listBox.deselectAllRows();
+            listBox.getViewport()->setScrollBarsShown(true, false, false, false);
+            listBox.addMouseListener(this, true);
+            listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
+            listBox.getViewport()->setScrollBarsShown(false, false, false, false);
+
+            setVisible(true);
+            addAndMakeVisible(listBox);
+        }
+
+        Viewport* getViewport()
+        {
+            return &viewport;
+        }
+
+        void updateContent()
+        {
+            listBox.updateContent();
+
+            auto* model = listBox.getModel();
+            auto height = model ? model->getNumRows() * listBox.getRowHeight() : viewport.getParentComponent()->getHeight();
+            listBox.setBounds(getLocalBounds().reduced(10, 18).withHeight(height));
+            setSize(getWidth(), height + 26);
+        }
+
+        void setModel(ListBoxModel* model)
+        {
+            listBox.setModel(model);
+        }
+
+        void paint(Graphics& g) override
+        {
+            auto* model = listBox.getModel();
+            if (!model || !model->getNumRows())
+                return;
+
+            auto bounds = getLocalBounds();
+            auto margin = 20;
+
+            auto shadowY = 20;
+            auto shadowX = bounds.getX() + margin;
+            auto shadowWidth = bounds.getWidth() - (margin * 2);
+            auto shadowHeight = (model->getNumRows() * listBox.getRowHeight()) - 5;
+
+            Path shadowPath;
+            shadowPath.addRoundedRectangle(shadowX, shadowY, shadowWidth, shadowHeight, Corners::largeCornerRadius);
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        }
+
+        ListBox listBox;
+        BouncingViewport viewport;
+    };
+
     // List component to list packages
-    ListBox listBox;
+    DekenListBox listBox;
 
     // Last error message
     String errorMessage;
@@ -714,44 +779,47 @@ private:
         Deken& deken;
         PackageInfo packageInfo;
 
-        TextButton installButton = TextButton(Icons::SaveAs);
+        TextButton installButton = TextButton("Install");
         TextButton reinstallButton = TextButton(Icons::Refresh);
-        TextButton uninstallButton = TextButton(Icons::Clear);
-        TextButton addToPathButton = TextButton(Icons::AddCircled);
+        TextButton uninstallButton = TextButton("Uninstall");
+        TextButton addToPathButton = TextButton("Add to path");
 
         float installProgress;
         ValueTree& packageState;
 
-        DekenRowComponent(Deken& parent, PackageInfo& info)
+        bool isFirst, isLast;
+
+        DekenRowComponent(Deken& parent, PackageInfo& info, bool first, bool last)
             : deken(parent)
+            , isFirst(first)
+            , isLast(last)
             , packageInfo(info)
             , packageState(deken.packageManager->packageState)
         {
             addChildComponent(installButton);
-            addChildComponent(reinstallButton);
             addChildComponent(uninstallButton);
             addChildComponent(addToPathButton);
 
-            // Use statusbar button style
-            installButton.getProperties().set("Style", "SmallIcon");
-            reinstallButton.getProperties().set("Style", "SmallIcon");
-            uninstallButton.getProperties().set("Style", "SmallIcon");
-            addToPathButton.getProperties().set("Style", "SmallIcon");
+            installButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
+            uninstallButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
+            addToPathButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
+
+            installButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
+            uninstallButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
+            addToPathButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
+
+            installButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
+            uninstallButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
+            addToPathButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
 
             installButton.setTooltip("Install package");
-            reinstallButton.setTooltip("Reinstall package");
             uninstallButton.setTooltip("Uninstall package");
-            addToPathButton.setTooltip("Add to path");
+            addToPathButton.setTooltip("Add to search path");
 
             uninstallButton.onClick = [this]() {
                 setInstalled(false);
                 deken.packageManager->uninstall(packageInfo);
                 deken.filterResults();
-            };
-
-            reinstallButton.onClick = [this]() {
-                auto* downloadTask = deken.packageManager->install(packageInfo);
-                attachToDownload(downloadTask);
             };
 
             installButton.onClick = [this]() {
@@ -802,7 +870,6 @@ private:
             };
 
             installButton.setVisible(false);
-            reinstallButton.setVisible(false);
             uninstallButton.setVisible(false);
             addToPathButton.setVisible(false);
         }
@@ -811,7 +878,6 @@ private:
         void setInstalled(bool installed)
         {
             installButton.setVisible(!installed);
-            reinstallButton.setVisible(installed);
             uninstallButton.setVisible(installed);
             addToPathButton.setVisible(installed);
             installProgress = 0.0f;
@@ -821,18 +887,32 @@ private:
 
         void paint(Graphics& g) override
         {
-            Fonts::drawFittedText(g, packageInfo.name, 5, 0, 200, getHeight(), findColour(ComboBox::textColourId));
+            auto b = getLocalBounds().toFloat().reduced(8.0f, 0.0f).withTrimmedBottom(-1.0f);
+
+            Path p;
+            p.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), isLast ? b.getHeight() - 2.0f : b.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, isFirst, isFirst, isLast, isLast);
+
+            g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+            g.fillPath(p);
+
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.strokePath(p, PathStrokeType(1.0f));
+
+            Fonts::drawStyledText(g, packageInfo.name, 64, 8, 200, 25, findColour(ComboBox::textColourId), Semibold, 15);
+            Fonts::drawIcon(g, Icons::Externals, Rectangle<int>(16, 14, 38, 38), findColour(ComboBox::textColourId));
+
+            Fonts::drawFittedText(g, "Uploaded " + getRelativeTimeDescription(packageInfo.timestamp) + " by " + packageInfo.author, getWidth() - 418, 8, 400, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 13.5f, Justification::centredRight);
 
             // draw progressbar
             if (deken.packageManager->getDownloadForPackage(packageInfo)) {
-                float width = getWidth() - 90.0f;
-                float right = jmap(installProgress, 90.f, width);
+                float width = getWidth() - 26.0f;
+                float right = jmap(installProgress, 70.0f, width);
 
                 Path downloadPath;
-                downloadPath.addLineSegment({ 90, 15, right, 15 }, 1.0f);
+                downloadPath.addLineSegment({ 70, 42, right, 42 }, 1.0f);
 
                 Path fullPath;
-                fullPath.addLineSegment({ 90, 15, width, 15 }, 1.0f);
+                fullPath.addLineSegment({ 70, 42, width, 42 }, 1.0f);
 
                 g.setColour(findColour(PlugDataColour::panelTextColourId));
                 g.strokePath(fullPath, PathStrokeType(11.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
@@ -840,18 +920,16 @@ private:
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             } else {
-                Fonts::drawFittedText(g, packageInfo.version, 150, 0, 150, getHeight(), findColour(PlugDataColour::panelTextColourId));
-                Fonts::drawFittedText(g, packageInfo.author, 330, 0, 110, getHeight(), findColour(PlugDataColour::panelTextColourId));
-                Fonts::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                Fonts::drawFittedText(g, packageInfo.version, 64, 31, 400, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 15);
+                // Fonts::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
             }
         }
 
         void resized() override
         {
-            installButton.setBounds(getWidth() - 40, 1, 30, 30);
-            uninstallButton.setBounds(getWidth() - 40, 1, 30, 30);
-            reinstallButton.setBounds(getWidth() - 70, 1, 30, 30);
-            addToPathButton.setBounds(getWidth() - 100, 1, 30, 30);
+            installButton.setBounds(getWidth() - 98, 35, 80, 22);
+            uninstallButton.setBounds(getWidth() - 98, 35, 80, 22);
+            addToPathButton.setBounds(getWidth() - 192, 35, 80, 22);
         }
     };
 };

@@ -35,7 +35,8 @@ outlets:
 
 flags:
   - name: -s
-  description: set to synced clock (default main)
+  description: set to synced clock
+  default: main
 
 methods:
   - type: beat <float>

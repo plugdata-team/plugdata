@@ -25,6 +25,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         openTextEditor();
     }
 
@@ -52,49 +55,61 @@ public:
                             textEditor.reset(nullptr);
                         }
                     },
-                    15);
+                    15, false);
             }));
     }
 
     void setText(String text)
     {
-        auto& textbuf = static_cast<t_fake_qlist*>(ptr)->x_textbuf;
-
-        text = text.removeCharacters("\r");
+        // remove repeating spaces
+        while (text.contains("  ")) {
+            text = text.replace("  ", " ");
+        }
+        text = text.replace("\r ", "\r");
+        text = text.replace(";\r", ";");
+        text = text.replace("\r;", ";");
+        text = text.replace(" ;", ";");
+        text = text.replace("; ", ";");
+        text = text.replaceCharacters("\r", " ");
+        text = text.trimStart();
         auto lines = StringArray::fromTokens(text, ";", "\"");
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
 
+        int count = 0;
         for (auto const& line : lines) {
-            if (line.isEmpty())
-                continue;
-
+            count++;
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
-                if (word.containsOnly("0123456789e.-+") && word != "-") {
+                // check if string is a valid number
+                auto charptr = word.getCharPointer();
+                auto ptr = charptr;
+                auto value = CharacterFunctions::readDoubleValue(ptr);
+                if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
                     SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
                 }
             }
 
-            atoms.emplace_back();
-            SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
+            if (count != lines.size()) {
+                atoms.emplace_back();
+                SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
+            }
         }
 
-        pd->lockAudioThread();
+        if (auto qlist = ptr.get<t_fake_qlist>()) {
 
-        pd->setThis();
+            auto& textbuf = qlist->x_textbuf;
 
-        binbuf_clear(textbuf.b_binbuf);
+            binbuf_clear(textbuf.b_binbuf);
 
-        t_binbuf* z = binbuf_new();
-        binbuf_restore(z, atoms.size(), atoms.data());
-        binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
-        binbuf_free(z);
-
-        pd->unlockAudioThread();
+            t_binbuf* z = binbuf_new();
+            binbuf_restore(z, atoms.size(), atoms.data());
+            binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
+            binbuf_free(z);
+        }
     }
 
     std::vector<hash32> getAllMessages() override
@@ -119,15 +134,19 @@ public:
 
     String getText() override
     {
-        auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
-        auto* binbuf = textbuf.b_binbuf;
+        if (auto textDefine = ptr.get<t_fake_text_define>()) {
+            auto& textbuf = textDefine->x_textbuf;
+            auto* binbuf = textbuf.b_binbuf;
 
-        char* bufp;
-        int lenp;
+            char* bufp;
+            int lenp;
 
-        binbuf_gettext(binbuf, &bufp, &lenp);
+            binbuf_gettext(binbuf, &bufp, &lenp);
 
-        return String::fromUTF8(bufp, lenp);
+            return String::fromUTF8(bufp, lenp);
+        }
+
+        return {};
     }
 
     bool canOpenFromMenu() override
@@ -161,6 +180,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         openTextEditor();
     }
 
@@ -171,7 +193,12 @@ public:
             return;
         }
 
-        auto name = String::fromUTF8(static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name);
+        String name;
+        if (auto textDefine = ptr.get<t_fake_text_define>()) {
+            name = String::fromUTF8(textDefine->x_bindsym->s_name);
+        } else {
+            return;
+        }
 
         textEditor.reset(
             Dialogs::showTextEditorDialog(getText(), name, [this](String const& lastText, bool hasChanged) {
@@ -187,56 +214,70 @@ public:
                             textEditor.reset(nullptr);
 
                             // enable notification on second outlet //
-                            const char* target = static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name;
-                            pd->sendMessage(target, "notify", {});
+                            if (auto textDefine = ptr.get<t_fake_text_define>()) {
+                                const char* target = textDefine->x_bindsym->s_name;
+                                pd->sendMessage(target, "notify", {});
+                            }
                         }
                         if (result == 1) {
                             textEditor.reset(nullptr);
                         }
                     },
-                    15);
+                    15, false);
             }));
     }
 
     void setText(String text)
     {
-        auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
 
-        text = text.removeCharacters("\r");
+        // remove repeating spaces
+        while (text.contains("  ")) {
+            text = text.replace("  ", " ");
+        }
+        text = text.replace("\r ", "\r");
+        text = text.replace(";\r", ";");
+        text = text.replace("\r;", ";");
+        text = text.replace(" ;", ";");
+        text = text.replace("; ", ";");
+        text = text.replaceCharacters("\r", " ");
+        text = text.trimStart();
         auto lines = StringArray::fromTokens(text, ";", "\"");
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
 
+        int count = 0;
         for (auto const& line : lines) {
-            if (line.isEmpty())
-                continue;
-
+            count++;
             auto words = StringArray::fromTokens(line, " ", "\"");
             for (auto const& word : words) {
                 atoms.emplace_back();
-                if (word.containsOnly("0123456789e.-+") && word != "-") {
+                // check if string is a valid number
+                auto charptr = word.getCharPointer();
+                auto ptr = charptr;
+                auto value = CharacterFunctions::readDoubleValue(ptr);
+                if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
                     SETSYMBOL(&atoms.back(), pd->generateSymbol(word));
                 }
             }
 
-            atoms.emplace_back();
-            SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
+            if (count != lines.size()) {
+                atoms.emplace_back();
+                SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
+            }
         }
 
-        pd->setThis();
+        if (auto textDefine = ptr.get<t_fake_text_define>()) {
+            auto& textbuf = textDefine->x_textbuf;
 
-        pd->lockAudioThread();
+            binbuf_clear(textbuf.b_binbuf);
 
-        binbuf_clear(textbuf.b_binbuf);
-
-        t_binbuf* z = binbuf_new();
-        binbuf_restore(z, atoms.size(), atoms.data());
-        binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
-        binbuf_free(z);
-
-        pd->unlockAudioThread();
+            t_binbuf* z = binbuf_new();
+            binbuf_restore(z, atoms.size(), atoms.data());
+            binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
+            binbuf_free(z);
+        }
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
@@ -253,15 +294,19 @@ public:
 
     String getText() override
     {
-        auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
-        auto* binbuf = textbuf.b_binbuf;
+        if (auto textDefine = ptr.get<t_fake_text_define>()) {
+            auto& textbuf = textDefine->x_textbuf;
+            auto* binbuf = textbuf.b_binbuf;
 
-        char* bufp;
-        int lenp;
+            char* bufp;
+            int lenp;
 
-        binbuf_gettext(binbuf, &bufp, &lenp);
+            binbuf_gettext(binbuf, &bufp, &lenp);
 
-        return String::fromUTF8(bufp, lenp);
+            return String::fromUTF8(bufp, lenp);
+        }
+
+        return {};
     }
 
     bool canOpenFromMenu() override

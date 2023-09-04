@@ -11,7 +11,7 @@ see_also:
 - receive~
 - tabsend~
 pdcategory: vanilla, UI, Mixing and Routing, Audio I/O
-last_update: '0.33'
+last_update: '0.54'
 inlets:
   1st:
   - type: signal
@@ -20,8 +20,13 @@ arguments:
 - type: symbol
   description: send symbol name 
   default: empty symbol
+- type: float
+  description: number of channels
+methods:
+- type: channels <float>
+  description: sets number of channels to send 
 draft: false
 ---
 A send~ object copies its input to a local buffer which all receive~ objects of the same name read from. They may be in different windows or even different patches. Any number of receives may be associated with one send~ but it is an error to have two send~s of the same name. Receive~ takes "set" messages to switch between send~s.
-
+Multi channel connections is supported.
 Send~/Receive~ only work for the default block size (64

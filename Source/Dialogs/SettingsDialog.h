@@ -34,7 +34,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(2);
+        auto b = getLocalBounds().reduced(2.0f, 4.0f);
 
         if (isMouseOver() || getToggleState()) {
             auto background = findColour(PlugDataColour::toolbarHoverColourId);
@@ -42,24 +42,21 @@ public:
                 background = background.darker(0.05f);
 
             g.setColour(background);
-            g.fillRoundedRectangle(b.toFloat().reduced(4.0f, 2.0f), Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
         }
 
-        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+        auto textColour = findColour(PlugDataColour::toolbarTextColourId);
+        auto boldFont = Fonts::getBoldFont().withHeight(13.5f);
+        auto iconFont = Fonts::getIconFont().withHeight(13.5f);
 
-        auto iconBounds = b.removeFromTop(b.getHeight() * 0.65f).withTrimmedTop(5);
-        auto textBounds = b.withTrimmedBottom(3);
+        auto textWidth = boldFont.getStringWidth(text);
+        auto iconWidth = iconFont.getStringWidth(icon);
 
-        auto font = Fonts::getIconFont().withHeight(iconBounds.getHeight() / 1.9f);
-        g.setFont(font);
-
-        g.drawFittedText(icon, iconBounds, Justification::centred, 1);
-
-        font = Fonts::getCurrentFont().withHeight(13.0f);
-        g.setFont(font);
-
-        // Draw bottom text
-        g.drawFittedText(text, textBounds, Justification::centred, 1);
+        AttributedString attrStr;
+        attrStr.setJustification(Justification::centred);
+        attrStr.append(icon, iconFont, textColour);
+        attrStr.append("  " + text, boldFont, textColour);
+        attrStr.draw(g, b.toFloat());
     }
 };
 
@@ -108,7 +105,7 @@ public:
 
         for (int i = 0; i < toolbarButtons.size(); i++) {
             toolbarButtons[i]->setClickingTogglesState(true);
-            toolbarButtons[i]->setRadioGroupId(0111);
+            toolbarButtons[i]->setRadioGroupId(hash("settings_toolbar_button"));
             toolbarButtons[i]->setConnectedEdges(12);
             toolbarButtons[i]->getProperties().set("Style", "LargeIcon");
             addAndMakeVisible(toolbarButtons[i]);
@@ -132,12 +129,11 @@ public:
     {
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight);
 
-        auto spacing = ((getWidth() - 80) / toolbarButtons.size());
-
-        int toolbarPosition = 40;
+        int toolbarPosition = 24;
+        auto spacing = (getWidth() - 72) / toolbarButtons.size();
 
         for (auto& button : toolbarButtons) {
-            button->setBounds(toolbarPosition, 1, 80, toolbarHeight - 2);
+            button->setBounds(toolbarPosition, 1, spacing, toolbarHeight - 2);
             toolbarPosition += spacing;
         }
 
@@ -172,12 +168,12 @@ public:
     AudioProcessor* processor;
     ComponentBoundsConstrainer constrainer;
 
-    static constexpr int toolbarHeight = 55;
+    static constexpr int toolbarHeight = 42;
 
     static inline std::atomic<int> lastPanel = 0;
     int currentPanel;
     OwnedArray<Component> panels;
     AudioDeviceManager* deviceManager = nullptr;
 
-    OwnedArray<TextButton> toolbarButtons;
+    OwnedArray<SettingsToolbarButton> toolbarButtons;
 };

@@ -17,10 +17,10 @@ inlets:
   - type: signal
     description: input values to be folded
   2nd:
-  - type: float/signal
+  - type: float
     description: lowest fold value
   3rd:
-  - type: float/signal
+  - type: float
     description: highest fold value
 outlets:
   1st:

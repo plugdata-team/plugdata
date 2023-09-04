@@ -9,8 +9,9 @@ class ButtonObject : public ObjectBase {
     bool state = false;
     bool alreadyTriggered = false;
 
-    Value primaryColour;
-    Value secondaryColour;
+    Value primaryColour = SynchronousValue();
+    Value secondaryColour = SynchronousValue();
+    Value sizeProperty = SynchronousValue();
 
 public:
     ButtonObject(void* obj, Object* parent)
@@ -20,27 +21,29 @@ public:
             constrainer->setFixedAspectRatio(1);
         };
 
+        objectParameters.addParamSize(&sizeProperty, true);
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
     }
 
     void update() override
     {
-        auto* button = static_cast<t_fake_button*>(ptr);
-
-        primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
-        secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
+        if (auto button = ptr.get<t_fake_button>()) {
+            primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
+            secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
+            sizeProperty = button->x_w;
+        }
 
         repaint();
     }
 
-    /*
+    /* TODO: finish this!
     void toggleObject(Point<int> position) override
     {
 
         if (!alreadyBanged) {
 
-            auto* button = static_cast<t_fake_button*>(ptr);
+            auto* button = ptr.get<t_fake_button>();
             outlet_float(button->x_obj.ob_outlet, 1);
             update();
             alreadyBanged = true;
@@ -51,7 +54,7 @@ public:
 
         if(alreadyBanged)
         {
-            auto* button = static_cast<t_fake_button*>(ptr);
+            auto* button = ptr.get<t_fake_button>();
             outlet_float(button->x_obj.ob_outlet, 0);
             update();
         }
@@ -60,30 +63,50 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        pd->lockAudioThread();
+        if (auto gobj = ptr.get<t_gobj>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return {};
 
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w + 1, h + 1);
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
 
-        pd->unlockAudioThread();
+            return Rectangle<int>(x, y, w + 1, h + 1);
+        }
 
-        return bounds;
+        return {};
     }
 
     void setPdBounds(Rectangle<int> b) override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        if (auto button = ptr.get<t_fake_button>()) {
+            auto* patch = cnv->patch.getPointer().get();
+            if (!patch)
+                return;
 
-        auto* button = static_cast<t_fake_button*>(ptr);
-        button->x_w = b.getWidth() - 1;
-        button->x_h = b.getHeight() - 1;
+            libpd_moveobj(patch, button.cast<t_gobj>(), b.getX(), b.getY());
+            button->x_w = b.getWidth() - 1;
+            button->x_h = b.getHeight() - 1;
+        }
+    }
+
+    void updateSizeProperty() override
+    {
+        setPdBounds(object->getObjectBounds());
+
+        if (auto button = ptr.get<t_fake_button>()) {
+            setParameterExcludingListener(sizeProperty, var(button->x_w));
+        }
     }
 
     void mouseDown(MouseEvent const& e) override
     {
-        auto* button = static_cast<t_fake_button*>(ptr);
-        outlet_float(button->x_obj.ob_outlet, 1);
+        if (!e.mods.isLeftButtonDown())
+            return;
+
+        if (auto button = ptr.get<t_fake_button>()) {
+            outlet_float(button->x_obj.ob_outlet, 1);
+        }
         state = true;
 
         // Make sure we don't re-click with an accidental drag
@@ -96,8 +119,10 @@ public:
     {
         alreadyTriggered = false;
         state = false;
-        auto* button = static_cast<t_fake_button*>(ptr);
-        outlet_float(button->x_obj.ob_outlet, 0);
+        if (auto button = ptr.get<t_fake_button>()) {
+            outlet_float(button->x_obj.ob_outlet, 0);
+        }
+
         repaint();
     }
 
@@ -124,19 +149,31 @@ public:
 
     void valueChanged(Value& value) override
     {
-        auto* button = static_cast<t_fake_button*>(ptr);
-        if (value.refersToSameSourceAs(primaryColour)) {
+
+        if (value.refersToSameSourceAs(sizeProperty)) {
+            auto* constrainer = getConstrainer();
+            auto size = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            setParameterExcludingListener(sizeProperty, size);
+            if (auto button = ptr.get<t_fake_button>()) {
+                button->x_w = size;
+                button->x_h = size;
+            }
+            object->updateBounds();
+        } else if (value.refersToSameSourceAs(primaryColour)) {
             auto col = Colour::fromString(primaryColour.toString());
-            button->x_fgcolor[0] = col.getRed();
-            button->x_fgcolor[1] = col.getGreen();
-            button->x_fgcolor[2] = col.getBlue();
+            if (auto button = ptr.get<t_fake_button>()) {
+                button->x_fgcolor[0] = col.getRed();
+                button->x_fgcolor[1] = col.getGreen();
+                button->x_fgcolor[2] = col.getBlue();
+            }
             repaint();
-        }
-        if (value.refersToSameSourceAs(secondaryColour)) {
+        } else if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
-            button->x_bgcolor[0] = col.getRed();
-            button->x_bgcolor[1] = col.getGreen();
-            button->x_bgcolor[2] = col.getBlue();
+            if (auto button = ptr.get<t_fake_button>()) {
+                button->x_bgcolor[0] = col.getRed();
+                button->x_bgcolor[1] = col.getGreen();
+                button->x_bgcolor[2] = col.getBlue();
+            }
             repaint();
         }
     }
