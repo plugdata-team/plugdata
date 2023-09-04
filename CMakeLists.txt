@@ -12,9 +12,9 @@ option(VERBOSE "" OFF)
 
 set (CMAKE_CXX_STANDARD 20)
 
-# Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems
-#set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-#set(CMAKE_C_VISIBILITY_PRESET hidden)
+# Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems. We later undo this for the standalone build, so that externals can load
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_C_VISIBILITY_PRESET hidden)
 
 function(message)
     if (NOT MESSAGE_QUIET)
