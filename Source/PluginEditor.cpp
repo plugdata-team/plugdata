@@ -670,7 +670,7 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude)
         return;
     }
 
-    auto* patch = &canvas->patch;
+    auto patch = canvas->refCountedPatch;
 
     auto deleteFunc = [this, canvas, quitAfterComplete, patchToExclude]() {
         if (canvas && !(patchToExclude && canvas == patchToExclude)) {
