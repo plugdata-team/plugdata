@@ -475,13 +475,7 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 }
 
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
-{
-    // It appears that the processBlock will still be called in the standalone when processing is suspended
-    if(isSuspended()) {
-        buffer.clear();
-        return;
-    }
-    
+{    
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -489,6 +483,12 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     setThis();
     sendPlayhead();
     sendParameters();
+
+    // Don't process if there are no samples, channels or we are suspended
+    if(isSuspended() || buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0) {
+        buffer.clear();
+        return;
+    }
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
