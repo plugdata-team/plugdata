@@ -394,6 +394,7 @@ if(MSVC)
 else()
     add_library(pd STATIC ${SOURCE_FILES})
     target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+    target_compile_options(pd PRIVATE -fvisibility=default)
 endif()
 
 add_library(pd-multi STATIC ${SOURCE_FILES})
@@ -402,6 +403,8 @@ target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTA
 if(MSVC)
     target_compile_definitions(pd-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
+
+set_target_properties(pd-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)

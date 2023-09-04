@@ -393,7 +393,7 @@ set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RE
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 
 # To make sure externals work, we need to make the standalone have its symbols be visible
-set_target_properties(plugdata_standalone PROPERTIES CXX_VISIBILITY_PRESET default)
+target_compile_options(plugdata_standalone PRIVATE -fvisibility=default)
 
 set_target_properties(plugdata PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(plugdata_fx PROPERTIES CXX_VISIBILITY_PRESET hidden)
