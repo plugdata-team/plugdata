@@ -47,8 +47,6 @@ private:
         auto ofeliaExecutable = findOfeliaExecutable();
         if (!ofeliaInitialised && ofeliaExecutable.existsAsFile()) {
             ofeliaInitialised = true;
-
-            libpd_set_instance(pdinstance);
             sys_lock();
             pd_globallock();
             set_class_prefix(gensym("ofelia"));
@@ -76,10 +74,12 @@ private:
 
             ofeliaExecutable.setExecutePermission(true);
 
+            libpd_set_instance(pdinstance);
+            
             setup();
 
             // Initialise threading system for ofelia
-            auto* messageManager = ofxOfeliaMessageManager::initialise(canvas_class);
+            auto* messageManager = ofxOfeliaMessageManager::initialise();
 
             int uniquePortNumber = Random().nextInt({ 20000, 50000 });
 
