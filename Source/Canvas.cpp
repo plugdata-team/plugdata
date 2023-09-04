@@ -1392,14 +1392,23 @@ void Canvas::alignObjects(Align alignment)
 
     auto sortByXPos = [](Array<Object *> &objects){
         std::sort(objects.begin(), objects.end(), [](const auto& a, const auto& b){
-            auto ret = a->getBounds().getX() < b->getBounds().getX();
-            return ret;
+            auto aX = a->getBounds().getX();
+            auto bX = b->getBounds().getX();
+            if (aX == bX) {
+                return a->getBounds().getY() < b->getBounds().getY();
+            }
+            return aX < bX;
         });
     };
 
     auto sortByYPos = [](Array<Object *> &objects){
         std::sort(objects.begin(), objects.end(), [](const auto& a, const auto& b){
-            return a->getBounds().getY() < b->getBounds().getY();
+            auto aY = a->getBounds().getY();
+            auto bY = b->getBounds().getY();
+            if (aY == bY)
+                return a->getBounds().getX() < b->getBounds().getX();
+
+            return aY < bY;
         });
     };
 
