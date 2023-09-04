@@ -217,8 +217,6 @@ public:
 
     void rebuildItemsFromContentList()
     {
-        std::unique_ptr<OpennessRestorer> opennessRestorer = getUniqueName().isNotEmpty() ? std::make_unique<OpennessRestorer>(*this) : nullptr;
-
         clearSubItems();
 
         if (isOpen() && subContentsList != nullptr) {
@@ -407,7 +405,7 @@ public:
 
         // Mouse events during update can cause a crash!
         setEnabled(false);
-
+        
         // Prevents crash!
         setRootItemVisible(false);
 
@@ -415,8 +413,11 @@ public:
 
         auto root = new DocumentBrowserItem(*this, nullptr, 0, 0, directoryContentsList.getDirectory());
 
+        
         root->setSubContentsList(&directoryContentsList, false);
         setRootItem(root);
+        
+        setRootItemVisible(true);
 
         setInterceptsMouseClicks(true, true);
         setEnabled(true);
@@ -472,6 +473,7 @@ public:
         } else if (file.existsAsFile() && file.hasFileExtension("pd")) {
             browser->pd->loadPatch(file);
             SettingsFile::getInstance()->addToRecentlyOpened(file);
+            lastUpdateTime = Time::getCurrentTime() + RelativeTime(2.0f);
         } else if (file.existsAsFile()) {
             auto* editor = dynamic_cast<PluginEditor*>(browser->pd->getActiveEditor());
             if (auto* cnv = editor->getCurrentCanvas()) {
@@ -557,7 +559,7 @@ public:
         repaint();
     }
 
-private:
+protected:
     DocumentBrowserBase* browser;
     bool isDraggingFile = false;
 
