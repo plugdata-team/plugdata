@@ -81,9 +81,9 @@ class OversampleSelector : public TextButton {
             auto buttonWidth = b.getWidth() / 4;
 
             one.setBounds(b.removeFromLeft(buttonWidth));
-            two.setBounds(b.removeFromLeft(buttonWidth).translated(-1, 0));
-            four.setBounds(b.removeFromLeft(buttonWidth).translated(-2, 0));
-            eight.setBounds(b.removeFromLeft(buttonWidth).translated(-3, 0));
+            two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+            four.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+            eight.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
         }
 
         Label title;
