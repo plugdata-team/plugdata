@@ -362,8 +362,8 @@ void PluginEditor::paintOverChildren(Graphics& g)
         return;
 
     if (isDraggingFile) {
-        g.setColour(findColour(PlugDataColour::scrollbarThumbColourId));
-        g.drawRect(getLocalBounds().reduced(1), 2.0f);
+        g.setColour(findColour(PlugDataColour::dataColourId));
+        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius, 2.0f);
     }
 }
 

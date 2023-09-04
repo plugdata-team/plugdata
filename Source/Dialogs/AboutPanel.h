@@ -17,7 +17,7 @@ class AboutPanel : public Component {
     TextButton reportIssue;
     TextButton sponsor;
 
-    Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
+    Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_large_logo_png, BinaryData::plugdata_large_logo_pngSize);
 
 public:
     AboutPanel()
