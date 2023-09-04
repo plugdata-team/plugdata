@@ -19,7 +19,7 @@ set(CMAKE_C_VISIBILITY_PRESET hidden)
 # Sfizz doesn't want to compile on aarch64 linux here...
 if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
   set(ENABLE_SFIZZ OFF)
-else()
+endif()
 
 function(message)
     if (NOT MESSAGE_QUIET)
