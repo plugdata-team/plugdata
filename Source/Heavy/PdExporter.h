@@ -9,7 +9,7 @@ public:
 
     Value exportTypeValue = Value(var(2));
     Value copyToPath = Value(var(0));
-    
+
     PropertiesPanel::BoolComponent* copyToPathProperty;
 
     PdExporter(PluginEditor* editor, ExportingProgressView* exportingView)
@@ -17,15 +17,15 @@ public:
     {
         Array<PropertiesPanel::Property*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
-        
+
         copyToPathProperty = new PropertiesPanel::BoolComponent("Copy to externals path", copyToPath, { "No", "Yes" });
         properties.add(copyToPathProperty);
-        
+
         panel.addSection("Pd", properties);
-        
+
         exportTypeValue.addListener(this);
     }
-    
+
     void valueChanged(Value& v) override
     {
         if(v.refersToSameSourceAs(exportTypeValue)) {
@@ -38,7 +38,7 @@ public:
         else {
             ExporterBase::valueChanged(v);
         }
-        
+
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
@@ -104,7 +104,7 @@ public:
             else {
                 pdDll = File::getSpecialLocation(File::globalApplicationsDirectory).getChildFile("plugdata");
             }
-            
+
             auto path = "export PATH=\"$PATH:" + Toolchain::dir.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + "\"\n";
             auto cc = "CC=" + Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
             auto cxx = "CXX=" + Toolchain::dir.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
@@ -121,7 +121,7 @@ public:
 
             Toolchain::startShellScript(buildScript, this);
 #endif
-            
+
             waitForProcessToFinish(-1);
             exportingView->flushConsole();
 
@@ -129,22 +129,21 @@ public:
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
             workingDir.setAsCurrentWorkingDirectory();
-            
+
 #if JUCE_MAC
                 auto external = outputFile.getChildFile(name + "~.pd_darwin");
 #elif JUCE_WINDOWS
-                auto external = outputFile.getChildFile(name + "~.pd_linux");
-#else
                 auto external = outputFile.getChildFile(name + "~.dll");
+#else
+                auto external = outputFile.getChildFile(name + "~.pd_linux");
 #endif
-            
-            if(getValue<bool>(copyToPath)) {
 
-                external.copyFileTo(ProjectInfo::appDataDir.getChildFile("Externals").getChildFile(external.getFileName()));
+            if(getValue<bool>(copyToPath)) {
+                exportingView->logToConsole("Copying to Externals folder...\n");
+                auto copy_location = ProjectInfo::appDataDir.getChildFile("Externals").getChildFile(external.getFileName()).getFullPathName();
+                external.copyFileTo(copy_location);
             }
-            
-            auto binLocation = outputFile.getChildFile(name + ".bin");
-            
+
             // Clean up
             outputFile.getChildFile("c").deleteRecursively();
             outputFile.getChildFile("pdext").deleteRecursively();
