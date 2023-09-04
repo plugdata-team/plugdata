@@ -397,16 +397,6 @@ set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_REL
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 
-# To make sure externals work, we need to make the standalone have its symbols be visible
-target_compile_options(plugdata_standalone PRIVATE -fvisibility=default)
-
-set_target_properties(plugdata PROPERTIES CXX_VISIBILITY_PRESET hidden)
-set_target_properties(plugdata_fx PROPERTIES CXX_VISIBILITY_PRESET hidden)
-if(APPLE)
-set_target_properties(plugdata_midi PROPERTIES CXX_VISIBILITY_PRESET hidden)
-endif()
-
-
 set_target_properties(plugdata PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(plugdata PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 

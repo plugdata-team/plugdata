@@ -394,6 +394,8 @@ if(MSVC)
 else()
     add_library(pd STATIC ${SOURCE_FILES})
     target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+
+    # To make sure externals work, we need to make single-instance pd have its symbols be visible
     target_compile_options(pd PRIVATE -fvisibility=default)
 endif()
 
