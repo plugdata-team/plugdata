@@ -140,8 +140,9 @@ public:
 
             if(getValue<bool>(copyToPath)) {
                 exportingView->logToConsole("Copying to Externals folder...\n");
-                auto copy_location = ProjectInfo::appDataDir.getChildFile("Externals").getChildFile(external.getFileName()).getFullPathName();
-                external.copyFileTo(copy_location);
+                auto copy_location = ProjectInfo::appDataDir.getChildFile("Externals").getChildFile(external.getFileName());
+                external.copyFileTo(copy_location.getFullPathName());
+                copy_location.setExecutePermission(1);
             }
 
             // Clean up
