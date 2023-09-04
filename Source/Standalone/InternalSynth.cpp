@@ -28,6 +28,7 @@ InternalSynth::InternalSynth()
 #endif
 }
 
+
 InternalSynth::~InternalSynth()
 {
 #ifdef PLUGDATA_STANDALONE
