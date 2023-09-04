@@ -371,6 +371,8 @@ void PluginProcessor::changeProgramName(int index, String const& newName)
 
 void PluginProcessor::setOversampling(int amount)
 {
+    if(oversampling == amount) return;
+    
     settingsFile->setProperty("Oversampling", var(amount));
     settingsFile->saveSettings(); // TODO: i think this is unnecessary?
 
@@ -474,6 +476,12 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
+    // It appears that the processBlock will still be called in the standalone when processing is suspended
+    if(isSuspended()) {
+        buffer.clear();
+        return;
+    }
+    
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -1006,7 +1014,8 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         });
     }
 
-    suspendProcessing(true);
+    lockAudioThread();
+    
     setThis();
     patches.clear();
 
@@ -1127,10 +1136,10 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         // JYG added this
         parseDataBuffer(*xmlState);
     }
+    
+    unlockAudioThread();
 
     delete[] xmlData;
-
-    suspendProcessing(false);
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
@@ -1173,11 +1182,9 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
     // Stop the audio callback when loading a new patch
     // TODO: why though?
     lockAudioThread();
-    suspendProcessing(true);
 
     auto newPatch = openPatch(patchFile);
 
-    suspendProcessing(false);
     unlockAudioThread();
 
     if (!newPatch->getPointer()) {
