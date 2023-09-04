@@ -7,7 +7,7 @@ project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
-    set(BUILD_SHARED_LIBS FALSE)
+    option(BUILD_SHARED_LIBS "" FALSE)
     add_subdirectory(pthread-win32)
     include_directories(pthread-win32)
 endif()

@@ -248,34 +248,6 @@ std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, 
     return result;
 }
 
-/*
-std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, int numIn, int numOut)
-{
-    auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
-
-    IODescriptionMap const* map = nullptr;
-    if (libraryLock.try_lock()) {
-        map = &ioletDescriptions;
-        libraryLock.unlock();
-    }
-
-    auto result = std::array<StringArray, 2>();
-
-    if (!map) {
-        return result;
-    }
-
-    // TODO: replace with map.contains once all compilers support this!
-    if (map->count(type)) {
-        auto const& ioletDescriptions = map->at(type);
-
-
-        }
-    }
-
-    return result;
-} */
-
 StringArray Library::getAllObjects()
 {
     return allObjects;

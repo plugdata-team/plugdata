@@ -14,6 +14,9 @@
     <a href="https://github.com/plugdata-team/plugdata/releases/latest"><img src="https://img.shields.io/github/release/plugdata-team/plugdata.svg?include_prereleases" alt="Release"></a>
     <a href="https://github.com/plugdata-team/plugdata/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--v3-blue.svg" alt="License"></a>
   </p>
+  <p align="center">
+    <a href="https://discord.gg/eT2RxdF9Nq"><img src="https://img.shields.io/discord/993531159956955256?label=discord&logo=discord" alt="Discord"></a>
+  </p>
 </p>
 
 <p align="middle">
@@ -63,10 +66,10 @@ cmake --build .
 ```
 
 **Important:**
-- plugdata requires cmake 3.21 or later
+- plugdata requires cmake 3.21 or later to build CLAP plugins. If you use an older version of cmake, CLAP plugin builds will be disabled.
 - Ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the plugdata repository .
 - On Linux, Juce framework requires to install dependencies, please refer to [Linux Dependencies.md](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md) and use the full command.
-- The CMake build system has been tested with *Unix Makefiles*, *XCode* and *Visual Studio 16 2019*.
+- The CMake build system has been tested with *Unix Makefiles*, *XCode*, *Visual Studio 17 2022* and *Visual Studio 16 2019*
 
 ## Adding your own externals
 You can use externals inside plugdata's plugin version by recompiling the externals along with plugdata. This can be achieved by making the following modification to plugdata:
