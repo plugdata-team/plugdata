@@ -137,6 +137,7 @@ private:
     ObjectDragState& ds;
 
     RateReducer rateReducer = RateReducer(ACTIVITY_UPDATE_RATE);
+    RateReducer dragRateReducer = RateReducer(60);
 
     std::unique_ptr<TextEditor> newObjectEditor;
 

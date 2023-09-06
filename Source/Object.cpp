@@ -947,6 +947,9 @@ void Object::mouseDrag(MouseEvent const& e)
     if (wasLockedOnMouseDown || (gui && gui->isEditorShown()))
         return;
 
+    if (dragRateReducer.tooFast())
+        return;
+
     cnv->cancelConnectionCreation();
 
     if (e.mods.isMiddleButtonDown())
@@ -1053,8 +1056,7 @@ void Object::mouseDrag(MouseEvent const& e)
             }
         }
 
-        // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
-        if (!cnv->objectRateReducer.tooFast() && ds.componentBeingDragged) {
+        if (ds.componentBeingDragged) {
             for (auto* object : selection) {
 
                 auto newPosition = object->originalBounds.getPosition() + dragDistance;
