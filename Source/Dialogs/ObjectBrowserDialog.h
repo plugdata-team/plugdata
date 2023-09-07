@@ -4,14 +4,14 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <JuceHeader.h>
 #include <utility>
-
-#include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Utility/BouncingViewport.h"
 #include "ObjectReferenceDialog.h"
 #include "Canvas.h"
 #include "ListBoxObjectItem.h"
+#include "Dialogs.h"
 
 class CategoriesListBox : public ListBox
     , public ListBoxModel {
@@ -75,10 +75,10 @@ class ObjectsListBox : public ListBox
     , public ListBoxModel {
 
     BouncingViewportAttachment bouncer;
-    std::function<void()> dismiss;
+    std::function<void(bool shouldFade)> dismiss;
 
 public:
-    explicit ObjectsListBox(pd::Library& library, std::function<void()> dismissMenu)
+    explicit ObjectsListBox(pd::Library& library, std::function<void(bool shouldFade)> dismissMenu)
         : bouncer(getViewport())
         , dismiss(dismissMenu)
     {
@@ -635,7 +635,7 @@ class ObjectBrowserDialog : public Component {
 public:
     ObjectBrowserDialog(Component* pluginEditor, Dialog* parent)
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
-        , objectsList(*editor->pd->objectLibrary, [this]() { dismiss(); })
+        , objectsList(*editor->pd->objectLibrary, [this](bool shouldFade) { dismiss(shouldFade); })
         , objectReference(editor, true)
         , objectViewer(editor, objectReference)
         , objectSearch(*editor->pd->objectLibrary)
@@ -723,21 +723,15 @@ public:
         categoriesList.initialise(categories);
     }
 
-    void dismiss()
+    void dismiss(bool shouldFade)
     {
-        /*
-        TIM: ERROR HERE: 
-        /usr/include/c++/13.2.1/bits/unique_ptr.h: In instantiation of ‘void std::default_delete<_Tp>::operator()(_Tp*) const [with _Tp = Dialog]’:
-        /usr/include/c++/13.2.1/bits/unique_ptr.h:211:16:   required from ‘void std::__uniq_ptr_impl<_Tp, _Dp>::reset(pointer) [with _Tp = Dialog; _Dp = std::default_delete<Dialog>; pointer = Dialog*]’
-        /usr/include/c++/13.2.1/bits/unique_ptr.h:509:12:   required from ‘void std::unique_ptr<_Tp, _Dp>::reset(pointer) [with _Tp = Dialog; _Dp = std::default_delete<Dialog>; pointer = Dialog*]’
-        /home/alexmitchell/Documents/github/plugdata/Source/Dialogs/ObjectBrowserDialog.h:726:46:   required from here
-        /usr/include/c++/13.2.1/bits/unique_ptr.h:97:23: error: invalid application of ‘sizeof’ to incomplete type ‘Dialog’
-        97 |         static_assert(sizeof(_Tp)>0,
-        */
-
-        MessageManager::callAsync([_this = SafePointer(this)]() {
-            _this->editor->openedDialog.reset(nullptr);
-        });
+        if (shouldFade)
+            animator.animateComponent(getParentComponent(), getParentComponent()->getBounds(), 0.0f, 300, false, 0.0f, 0.0f);
+        else {
+            MessageManager::callAsync([_this = SafePointer(this)]() {
+                _this->editor->openedDialog.reset(nullptr);
+            });
+        }
     }
 
     void resized() override
@@ -767,6 +761,8 @@ private:
     ObjectReferenceDialog objectReference;
     ObjectViewer objectViewer;
     ObjectSearchComponent objectSearch;
+
+    ComponentAnimator animator;
 
     std::unordered_map<String, StringArray> objectsByCategory;
 };

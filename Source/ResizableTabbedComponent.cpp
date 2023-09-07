@@ -9,12 +9,14 @@
 #include "SplitViewResizer.h"
 #include "PluginProcessor.h"
 #include "Dialogs/AddObjectMenu.h"
+#include "Dialogs/ListBoxObjectItem.h"
 #include "PaletteItem.h"
 #include "Palettes.h"
 #include "Sidebar/DocumentBrowser.h"
 #include "Sidebar/AutomationPanel.h"
 #include "Tabbar.h"
 #include "TabBarButtonComponent.h"
+
 
 #define ENABLE_SPLITS_DROPZONE_DEBUGGING 0
 
@@ -44,7 +46,8 @@ bool ResizableTabbedComponent::isInterestedInDragSource(SourceDetails const& dra
     auto objectItem = dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get());
     auto docBrowserItem = dynamic_cast<DocumentBrowserViewBase*>(dragSourceDetails.sourceComponent.get());
     auto automationSlider = dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get());
-    if (windowTab || paletteItem || docBrowserItem || automationSlider || objectItem)
+    auto objectBrowser = dynamic_cast<ListBoxObjectItem*>(dragSourceDetails.sourceComponent.get());
+    if (windowTab || paletteItem || docBrowserItem || automationSlider || objectItem || objectBrowser)
         return true;
     return false;
 }
@@ -79,7 +82,10 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
             moveTabToNewSplit(dragSourceDetails);
             break;
         }
-    } else if (dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get()) || dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get()) || dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get())) {
+    } else if (dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get()) ||
+               dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get()) ||
+               dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get()) ||
+               dynamic_cast<ListBoxObjectItem*>(dragSourceDetails.sourceComponent.get())){
         if (!tabComponent)
             return;
 
@@ -398,7 +404,8 @@ void ResizableTabbedComponent::itemDragMove(SourceDetails const& dragSourceDetai
     auto palette = dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get());
     auto automationSlider = dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get());
     auto objectItem = dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get());
-    if (palette || automationSlider || objectItem) {
+    auto objectBrowser = dynamic_cast<ListBoxObjectItem*>(dragSourceDetails.sourceComponent.get());
+    if (palette || automationSlider || objectItem || objectBrowser) {
         isDragAndDropOver = false;
         editor->splitView.setFocus(this);
     }

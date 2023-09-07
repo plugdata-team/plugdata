@@ -2,7 +2,7 @@
 #include "ListBoxObjectItem.h"
 #include "ObjectBrowserDialog.h"
 
-ListBoxObjectItem::ListBoxObjectItem(ObjectsListBox* parent, int rowNumber, bool isSelected, std::function<void()> dismissDialog)
+ListBoxObjectItem::ListBoxObjectItem(ObjectsListBox* parent, int rowNumber, bool isSelected, std::function<void(bool shouldFade)> dismissDialog)
     : row(rowNumber)
     , rowIsSelected(isSelected)
     , objectsListBox(parent)
@@ -56,6 +56,11 @@ void ListBoxObjectItem::mouseDown(MouseEvent const& e)
     objectsListBox->selectRow(row, true, true);
 }
 
+void ListBoxObjectItem::mouseUp(MouseEvent const& e)
+{
+    dismissMenu(false);
+}
+
 void ListBoxObjectItem::mouseDrag(MouseEvent const& e)
 {
     if (e.getDistanceFromDragStart() < 5)
@@ -76,7 +81,7 @@ void ListBoxObjectItem::mouseDrag(MouseEvent const& e)
         dragImage = offlineObjectRenderer->patchToTempImage(formatedObject, scale);
     }
 
-    dismissMenu();
+    dismissMenu(true);
 
     Array<var> palettePatchWithOffset;
     palettePatchWithOffset.add(var(dragImage.offset.getX()));

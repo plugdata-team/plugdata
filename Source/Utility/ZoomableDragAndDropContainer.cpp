@@ -39,6 +39,8 @@
 
 #include "../Dialogs/AddObjectMenu.h"
 
+#include "../Dialogs/ListBoxObjectItem.h"
+
 bool juce_performDragDropFiles(StringArray const&, bool const copyFiles, bool& shouldStop);
 bool juce_performDragDropText(String const&, bool& shouldStop);
 
@@ -62,7 +64,7 @@ public:
         , originalInputSourceType(draggingSource->getType())
         , isZoomable(canZoom)
     {
-        if (auto addObjectItem = dynamic_cast<ObjectItem*>(sourceComponent))
+        if (dynamic_cast<ObjectItem*>(sourceComponent) || dynamic_cast<ListBoxObjectItem*>(sourceComponent))
             isObjectItem = true;
 
         zoomImageComponent.setImage(im.getImage());
