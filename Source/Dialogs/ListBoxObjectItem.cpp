@@ -58,13 +58,16 @@ void ListBoxObjectItem::mouseDown(MouseEvent const& e)
 
 void ListBoxObjectItem::mouseUp(MouseEvent const& e)
 {
-    dismissMenu(false);
+    if (dragging)
+        dismissMenu(false);
 }
 
 void ListBoxObjectItem::mouseDrag(MouseEvent const& e)
 {
     if (e.getDistanceFromDragStart() < 5)
         return;
+
+    dragging = true;
 
     auto* dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 

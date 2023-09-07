@@ -32,5 +32,7 @@ private:
     ImageWithOffset dragImage;
     bool mouseHover = false;
 
+    bool dragging = false;
+
     std::function<void(bool shouldFade)> dismissMenu;
 };
