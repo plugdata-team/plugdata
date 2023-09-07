@@ -138,6 +138,8 @@ public:
         if (e.originalComponent != this && isOriginalInputSource(e.source)) {
             if (rateReducer.tooFast())
                 return;
+
+            beginDragAutoRepeat(16);
             currentScreenPos = e.getScreenPosition();
             updateLocation(true, currentScreenPos);
             Component* target = nullptr;
