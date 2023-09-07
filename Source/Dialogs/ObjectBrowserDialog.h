@@ -6,9 +6,12 @@
 
 #include <utility>
 
+#include <juce_gui_basics/juce_gui_basics.h>
+
 #include "Utility/BouncingViewport.h"
 #include "ObjectReferenceDialog.h"
 #include "Canvas.h"
+#include "ListBoxObjectItem.h"
 
 class CategoriesListBox : public ListBox
     , public ListBoxModel {
@@ -72,10 +75,12 @@ class ObjectsListBox : public ListBox
     , public ListBoxModel {
 
     BouncingViewportAttachment bouncer;
+    std::function<void()> dismiss;
 
 public:
-    explicit ObjectsListBox(pd::Library& library)
+    explicit ObjectsListBox(pd::Library& library, std::function<void()> dismissMenu)
         : bouncer(getViewport())
+        , dismiss(dismissMenu)
     {
         setOutlineThickness(0);
         setRowHeight(45);
@@ -95,31 +100,37 @@ public:
 
     int getNumRows() override
     {
+        auto size = objects.size();
+        std::cout << "num rows: " << size << std::endl;
         return objects.size();
-    }
-
-    void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
-    {
-        auto objectName = objects[rowNumber];
-        auto objectDescription = descriptions[objectName];
-
-        if (rowIsSelected) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
-        }
-
-        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-        auto textBounds = Rectangle<int>(0, 0, width, height).reduced(18, 6);
-
-        Fonts::drawStyledText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
-
-        Fonts::drawText(g, objectDescription, textBounds, colour, 14);
     }
 
     void selectedRowsChanged(int row) override
     {
         changeCallback(objects[row]);
+    }
+
+    virtual void paintListBoxItem (int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
+    {
+
+    }
+
+    Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
+    {
+        if (existingComponentToUpdate == nullptr)
+        {
+            return new ListBoxObjectItem(this, rowNumber, isRowSelected, dismiss);
+        }
+        else
+        {
+            auto* itemComponent = dynamic_cast<ListBoxObjectItem*>(existingComponentToUpdate);
+            if (itemComponent != nullptr) {
+                auto name = objects[rowNumber];
+                auto description = descriptions[name];
+                itemComponent->refresh(name, description, rowNumber, isRowSelected);
+            }
+            return itemComponent;
+        }
     }
 
     void showObjects(StringArray objectsToShow)
@@ -145,22 +156,6 @@ public:
     {
         addChildComponent(openHelp);
         addChildComponent(openReference);
-        addChildComponent(createObject);
-
-        createObject.onClick = [this, editor]() {
-            MessageManager::callAsync([_this = SafePointer(this), editor, cnv = SafePointer(editor->getCurrentCanvas())]() {
-                if (!cnv || !_this)
-                    return;
-
-                auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
-
-                cnv->attachNextObjectToMouse = true;
-                cnv->objects.add(new Object(cnv, _this->objectName, lastPosition));
-
-                // Closes this dialog
-                editor->openedDialog.reset(nullptr);
-            });
-        };
 
         openReference.onClick = [this]() {
             reference.showObject(objectName);
@@ -172,7 +167,7 @@ public:
 
         openHelp.setVisible(false);
 
-        Array<TextButton*> buttons = { &openHelp, &openReference, &createObject };
+        Array<TextButton*> buttons = { &openHelp, &openReference };
 
         for (auto* button : buttons) {
             button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
@@ -186,8 +181,6 @@ public:
     void resized() override
     {
         auto buttonBounds = getLocalBounds().removeFromBottom(60).reduced(30, 0).translated(0, -30);
-        createObject.setBounds(buttonBounds.removeFromTop(25));
-        buttonBounds.removeFromTop(5);
         openReference.setBounds(buttonBounds.removeFromTop(25));
         buttonBounds.removeFromTop(5);
         openHelp.setBounds(buttonBounds.removeFromTop(25));
@@ -310,7 +303,6 @@ public:
     void showObject(String const& name)
     {
         bool valid = name.isNotEmpty();
-        createObject.setVisible(valid);
         // openHelp.setVisible(valid);
         openReference.setVisible(valid);
 
@@ -394,7 +386,6 @@ public:
 
     TextButton openHelp = TextButton("Show Help");
     TextButton openReference = TextButton("Show Reference");
-    TextButton createObject = TextButton("Create Object");
 
     pd::Library& library;
     ObjectReferenceDialog& reference;
@@ -644,7 +635,7 @@ class ObjectBrowserDialog : public Component {
 public:
     ObjectBrowserDialog(Component* pluginEditor, Dialog* parent)
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
-        , objectsList(*editor->pd->objectLibrary)
+        , objectsList(*editor->pd->objectLibrary, [this]() { dismiss(); })
         , objectReference(editor, true)
         , objectViewer(editor, objectReference)
         , objectSearch(*editor->pd->objectLibrary)
@@ -730,6 +721,23 @@ public:
         };
 
         categoriesList.initialise(categories);
+    }
+
+    void dismiss()
+    {
+        /*
+        TIM: ERROR HERE: 
+        /usr/include/c++/13.2.1/bits/unique_ptr.h: In instantiation of ‘void std::default_delete<_Tp>::operator()(_Tp*) const [with _Tp = Dialog]’:
+        /usr/include/c++/13.2.1/bits/unique_ptr.h:211:16:   required from ‘void std::__uniq_ptr_impl<_Tp, _Dp>::reset(pointer) [with _Tp = Dialog; _Dp = std::default_delete<Dialog>; pointer = Dialog*]’
+        /usr/include/c++/13.2.1/bits/unique_ptr.h:509:12:   required from ‘void std::unique_ptr<_Tp, _Dp>::reset(pointer) [with _Tp = Dialog; _Dp = std::default_delete<Dialog>; pointer = Dialog*]’
+        /home/alexmitchell/Documents/github/plugdata/Source/Dialogs/ObjectBrowserDialog.h:726:46:   required from here
+        /usr/include/c++/13.2.1/bits/unique_ptr.h:97:23: error: invalid application of ‘sizeof’ to incomplete type ‘Dialog’
+        97 |         static_assert(sizeof(_Tp)>0,
+        */
+
+        MessageManager::callAsync([_this = SafePointer(this)]() {
+            _this->editor->openedDialog.reset(nullptr);
+        });
     }
 
     void resized() override
