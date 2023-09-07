@@ -100,8 +100,6 @@ public:
 
     int getNumRows() override
     {
-        auto size = objects.size();
-        std::cout << "num rows: " << size << std::endl;
         return objects.size();
     }
 
