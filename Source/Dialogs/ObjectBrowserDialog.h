@@ -145,15 +145,82 @@ public:
     std::function<void(String const&)> changeCallback;
 };
 
+class ObjectViewerDragArea : public ObjectDragAndDrop {
+public:
+    ObjectViewerDragArea(std::function<void(bool shouldFade)> dismissMenu)
+        : dismissMenu(dismissMenu)
+    {
+        setBufferedToImage(true);
+    }
+
+    ~ObjectViewerDragArea(){}
+
+    void setObjectName(String name)
+    {
+        objectName = name;
+    }
+
+    String getObjectString()
+    {
+        return "#X obj 0 0 " + objectName;
+    }
+
+    void dismiss(bool shouldFade) override
+    {
+        dismissMenu(shouldFade);
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        return getLocalBounds().contains(x, y);
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        isHovering = true;
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        isHovering = false;
+        repaint();
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (e.mouseWasDraggedSinceMouseDown())
+            dismissMenu(false);
+    }
+
+    void paint(Graphics& g) override
+    {
+        if (isHovering) {
+            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
+        }
+    }
+
+private:
+    std::function<void(bool shouldFade)> dismissMenu;
+    bool isHovering = false;
+    String objectName;
+};
+
+
 class ObjectViewer : public Component {
 
 public:
-    ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference)
+    ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference, std::function<void(bool shouldFade)> dismissMenu)
         : reference(objectReference)
         , library(*editor->pd->objectLibrary)
+        , objectDragArea(dismissMenu)
     {
+        setInterceptsMouseClicks(false, true);
+
         addChildComponent(openHelp);
         addChildComponent(openReference);
+        addChildComponent(objectDragArea);
 
         openReference.onClick = [this]() {
             reference.showObject(objectName);
@@ -178,13 +245,15 @@ public:
 
     void resized() override
     {
-        auto buttonBounds = getLocalBounds().removeFromBottom(60).reduced(30, 0).translated(0, -30);
+        auto buttonBounds = getLocalBounds().removeFromBottom(60).reduced(30, 0);
         openReference.setBounds(buttonBounds.removeFromTop(25));
         buttonBounds.removeFromTop(5);
         openHelp.setBounds(buttonBounds.removeFromTop(25));
+
+        objectDragArea.setBounds(getLocalBounds().reduced(20).withTrimmedTop(16).withTrimmedBottom(100));
     }
 
-    void paint(Graphics& g) override
+    void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(5, 0, 5, getHeight());
@@ -303,6 +372,7 @@ public:
         bool valid = name.isNotEmpty();
         // openHelp.setVisible(valid);
         openReference.setVisible(valid);
+        objectDragArea.setVisible(valid);
 
         inlets.clear();
         outlets.clear();
@@ -338,6 +408,7 @@ public:
         unknownOutletLayout = hasUnknownOutletLayout;
 
         objectName = name;
+        objectDragArea.setObjectName(name);
         categories = "";
         origin = "";
 
@@ -385,8 +456,12 @@ public:
     TextButton openHelp = TextButton("Show Help");
     TextButton openReference = TextButton("Show Reference");
 
+    ObjectViewerDragArea objectDragArea;
+
     pd::Library& library;
     ObjectReferenceDialog& reference;
+
+    bool isHovering = false;
 };
 
 class ObjectSearchComponent : public Component
@@ -635,7 +710,7 @@ public:
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
         , objectsList(*editor->pd->objectLibrary, [this](bool shouldFade) { dismiss(shouldFade); })
         , objectReference(editor, true)
-        , objectViewer(editor, objectReference)
+        , objectViewer(editor, objectReference, [this](bool shouldFade) { dismiss(shouldFade); })
         , objectSearch(*editor->pd->objectLibrary)
     {
         auto& library = *editor->pd->objectLibrary;
