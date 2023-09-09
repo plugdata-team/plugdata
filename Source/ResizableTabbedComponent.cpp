@@ -40,8 +40,10 @@ ResizableTabbedComponent::~ResizableTabbedComponent()
 bool ResizableTabbedComponent::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
 {
     auto windowTab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
-    auto docBrowserItem = dynamic_cast<DocumentBrowserViewBase*>(dragSourceDetails.sourceComponent.get());
     auto draggedObject = dynamic_cast<ObjectDragAndDrop*>(dragSourceDetails.sourceComponent.get());
+
+    // TODO: not implemented yet
+    auto docBrowserItem = dynamic_cast<DocumentBrowserViewBase*>(dragSourceDetails.sourceComponent.get());
 
     if (windowTab || docBrowserItem || draggedObject)
         return true;
