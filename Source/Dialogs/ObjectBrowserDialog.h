@@ -4,11 +4,14 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <JuceHeader.h>
 #include <utility>
 
 #include "Utility/BouncingViewport.h"
 #include "ObjectReferenceDialog.h"
 #include "Canvas.h"
+#include "ListBoxObjectItem.h"
+#include "Dialogs.h"
 
 class CategoriesListBox : public ListBox
     , public ListBoxModel {
@@ -72,10 +75,12 @@ class ObjectsListBox : public ListBox
     , public ListBoxModel {
 
     BouncingViewportAttachment bouncer;
+    std::function<void(bool shouldFade)> dismiss;
 
 public:
-    explicit ObjectsListBox(pd::Library& library)
+    explicit ObjectsListBox(pd::Library& library, std::function<void(bool shouldFade)> dismissMenu)
         : bouncer(getViewport())
+        , dismiss(dismissMenu)
     {
         setOutlineThickness(0);
         setRowHeight(45);
@@ -98,28 +103,32 @@ public:
         return objects.size();
     }
 
-    void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
-    {
-        auto objectName = objects[rowNumber];
-        auto objectDescription = descriptions[objectName];
-
-        if (rowIsSelected) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
-        }
-
-        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-        auto textBounds = Rectangle<int>(0, 0, width, height).reduced(18, 6);
-
-        Fonts::drawStyledText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
-
-        Fonts::drawText(g, objectDescription, textBounds, colour, 14);
-    }
-
     void selectedRowsChanged(int row) override
     {
         changeCallback(objects[row]);
+    }
+
+    virtual void paintListBoxItem (int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
+    {
+
+    }
+
+    Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
+    {
+        if (existingComponentToUpdate == nullptr)
+        {
+            return new ListBoxObjectItem(this, rowNumber, isRowSelected, dismiss);
+        }
+        else
+        {
+            auto* itemComponent = dynamic_cast<ListBoxObjectItem*>(existingComponentToUpdate);
+            if (itemComponent != nullptr) {
+                auto name = objects[rowNumber];
+                auto description = descriptions[name];
+                itemComponent->refresh(name, description, rowNumber, isRowSelected);
+            }
+            return itemComponent;
+        }
     }
 
     void showObjects(StringArray objectsToShow)
@@ -136,31 +145,82 @@ public:
     std::function<void(String const&)> changeCallback;
 };
 
+class ObjectViewerDragArea : public ObjectDragAndDrop {
+public:
+    ObjectViewerDragArea(std::function<void(bool shouldFade)> dismissMenu)
+        : dismissMenu(dismissMenu)
+    {
+        setBufferedToImage(true);
+    }
+
+    ~ObjectViewerDragArea(){}
+
+    void setObjectName(String name)
+    {
+        objectName = name;
+    }
+
+    String getObjectString()
+    {
+        return "#X obj 0 0 " + objectName;
+    }
+
+    void dismiss(bool shouldFade) override
+    {
+        dismissMenu(shouldFade);
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        return getLocalBounds().contains(x, y);
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        isHovering = true;
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        isHovering = false;
+        repaint();
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (e.mouseWasDraggedSinceMouseDown())
+            dismissMenu(false);
+    }
+
+    void paint(Graphics& g) override
+    {
+        if (isHovering) {
+            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
+        }
+    }
+
+private:
+    std::function<void(bool shouldFade)> dismissMenu;
+    bool isHovering = false;
+    String objectName;
+};
+
+
 class ObjectViewer : public Component {
 
 public:
-    ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference)
+    ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference, std::function<void(bool shouldFade)> dismissMenu)
         : reference(objectReference)
         , library(*editor->pd->objectLibrary)
+        , objectDragArea(dismissMenu)
     {
+        setInterceptsMouseClicks(false, true);
+
         addChildComponent(openHelp);
         addChildComponent(openReference);
-        addChildComponent(createObject);
-
-        createObject.onClick = [this, editor]() {
-            MessageManager::callAsync([_this = SafePointer(this), editor, cnv = SafePointer(editor->getCurrentCanvas())]() {
-                if (!cnv || !_this)
-                    return;
-
-                auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
-
-                cnv->attachNextObjectToMouse = true;
-                cnv->objects.add(new Object(cnv, _this->objectName, lastPosition));
-
-                // Closes this dialog
-                editor->openedDialog.reset(nullptr);
-            });
-        };
+        addChildComponent(objectDragArea);
 
         openReference.onClick = [this]() {
             reference.showObject(objectName);
@@ -172,7 +232,7 @@ public:
 
         openHelp.setVisible(false);
 
-        Array<TextButton*> buttons = { &openHelp, &openReference, &createObject };
+        Array<TextButton*> buttons = { &openHelp, &openReference };
 
         for (auto* button : buttons) {
             button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
@@ -185,15 +245,15 @@ public:
 
     void resized() override
     {
-        auto buttonBounds = getLocalBounds().removeFromBottom(60).reduced(30, 0).translated(0, -30);
-        createObject.setBounds(buttonBounds.removeFromTop(25));
-        buttonBounds.removeFromTop(5);
+        auto buttonBounds = getLocalBounds().removeFromBottom(60).reduced(30, 0);
         openReference.setBounds(buttonBounds.removeFromTop(25));
         buttonBounds.removeFromTop(5);
         openHelp.setBounds(buttonBounds.removeFromTop(25));
+
+        objectDragArea.setBounds(getLocalBounds().reduced(20).withTrimmedTop(16).withTrimmedBottom(100));
     }
 
-    void paint(Graphics& g) override
+    void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(5, 0, 5, getHeight());
@@ -310,9 +370,9 @@ public:
     void showObject(String const& name)
     {
         bool valid = name.isNotEmpty();
-        createObject.setVisible(valid);
         // openHelp.setVisible(valid);
         openReference.setVisible(valid);
+        objectDragArea.setVisible(valid);
 
         inlets.clear();
         outlets.clear();
@@ -348,6 +408,7 @@ public:
         unknownOutletLayout = hasUnknownOutletLayout;
 
         objectName = name;
+        objectDragArea.setObjectName(name);
         categories = "";
         origin = "";
 
@@ -394,10 +455,13 @@ public:
 
     TextButton openHelp = TextButton("Show Help");
     TextButton openReference = TextButton("Show Reference");
-    TextButton createObject = TextButton("Create Object");
+
+    ObjectViewerDragArea objectDragArea;
 
     pd::Library& library;
     ObjectReferenceDialog& reference;
+
+    bool isHovering = false;
 };
 
 class ObjectSearchComponent : public Component
@@ -644,9 +708,9 @@ class ObjectBrowserDialog : public Component {
 public:
     ObjectBrowserDialog(Component* pluginEditor, Dialog* parent)
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
-        , objectsList(*editor->pd->objectLibrary)
+        , objectsList(*editor->pd->objectLibrary, [this](bool shouldFade) { dismiss(shouldFade); })
         , objectReference(editor, true)
-        , objectViewer(editor, objectReference)
+        , objectViewer(editor, objectReference, [this](bool shouldFade) { dismiss(shouldFade); })
         , objectSearch(*editor->pd->objectLibrary)
     {
         auto& library = *editor->pd->objectLibrary;
@@ -732,6 +796,17 @@ public:
         categoriesList.initialise(categories);
     }
 
+    void dismiss(bool shouldFade)
+    {
+        if (shouldFade)
+            animator.animateComponent(getParentComponent(), getParentComponent()->getBounds(), 0.0f, 300, false, 0.0f, 0.0f);
+        else {
+            MessageManager::callAsync([_this = SafePointer(this)]() {
+                _this->editor->openedDialog.reset(nullptr);
+            });
+        }
+    }
+
     void resized() override
     {
         auto b = getLocalBounds().reduced(1);
@@ -759,6 +834,8 @@ private:
     ObjectReferenceDialog objectReference;
     ObjectViewer objectViewer;
     ObjectSearchComponent objectSearch;
+
+    ComponentAnimator animator;
 
     std::unordered_map<String, StringArray> objectsByCategory;
 };

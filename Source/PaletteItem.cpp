@@ -1,8 +1,6 @@
 #include "PaletteItem.h"
 #include "Palettes.h"
 #include "Constants.h"
-#include "Utility/ZoomableDragAndDropContainer.h"
-#include "Utility/OfflineObjectRenderer.h"
 #include "Utility/StackShadow.h"
 
 PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree)
@@ -220,10 +218,12 @@ void PaletteItem::paint(Graphics& g)
     }
 }
 
-void PaletteItem::lookAndFeelChanged()
+void PaletteItem::mouseDown(MouseEvent const& e)
 {
-    // reset the image to null so the next drag will change the colour
-    dragImage.image = Image();
+    if (reorderButton.get() == e.originalComponent)
+        setIsReordering(true);
+    else
+        setIsReordering(false);
 }
 
 void PaletteItem::mouseEnter(MouseEvent const& e)
@@ -246,33 +246,9 @@ void PaletteItem::resized()
     deleteButton.setCentrePosition(getLocalBounds().getRight() - 30, componentCentre);
 }
 
-void PaletteItem::mouseDrag(MouseEvent const& e)
+String PaletteItem::getObjectString()
 {
-    if (isItemDragged || e.getDistanceFromDragStart() < 5)
-        return;
-
-    auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
-
-    auto scale = 2.0f;
-    if (dragImage.image.isNull()) {
-        auto offlineObjectRenderer = editor->offlineRenderer;
-        dragImage = offlineObjectRenderer.patchToTempImage(palettePatch, scale);
-    }
-
-    if (auto* overReorderButton = dynamic_cast<ReorderButton*>(e.originalComponent)) {
-        return;
-    } else {
-        setIsItemDragged(true);
-
-        reorderButton->setVisible(false);
-        deleteButton.setVisible(false);
-
-        Array<var> palettePatchWithOffset;
-        palettePatchWithOffset.add(var(dragImage.offset.getX()));
-        palettePatchWithOffset.add(var(dragImage.offset.getY()));
-        palettePatchWithOffset.add(var(palettePatch));
-        dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
-    }
+    return palettePatch;
 }
 
 void PaletteItem::deleteItem()
