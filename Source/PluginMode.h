@@ -129,7 +129,6 @@ public:
                                       bounds = windowBounds]() {
             editor->setConstrainer(editor->defaultConstrainer);
             editor->setBoundsConstrained(bounds);
-            editor->getParentComponent()->resized();
             if (auto* tabbar = editor->getActiveTabbar()) {
                 tabbar->resized();
             }
