@@ -8,13 +8,13 @@
 #include "PluginEditor.h"
 #include "SplitViewResizer.h"
 #include "PluginProcessor.h"
-#include "Dialogs/AddObjectMenu.h"
-#include "PaletteItem.h"
 #include "Palettes.h"
 #include "Sidebar/DocumentBrowser.h"
-#include "Sidebar/AutomationPanel.h"
 #include "Tabbar.h"
 #include "TabBarButtonComponent.h"
+
+#include "Utility/ObjectDragAndDrop.h"
+
 
 #define ENABLE_SPLITS_DROPZONE_DEBUGGING 0
 
@@ -40,11 +40,12 @@ ResizableTabbedComponent::~ResizableTabbedComponent()
 bool ResizableTabbedComponent::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
 {
     auto windowTab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
-    auto paletteItem = dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get());
-    auto objectItem = dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get());
+    auto draggedObject = dynamic_cast<ObjectDragAndDrop*>(dragSourceDetails.sourceComponent.get());
+
+    // TODO: not implemented yet
     auto docBrowserItem = dynamic_cast<DocumentBrowserViewBase*>(dragSourceDetails.sourceComponent.get());
-    auto automationSlider = dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get());
-    if (windowTab || paletteItem || docBrowserItem || automationSlider || objectItem)
+
+    if (windowTab || docBrowserItem || draggedObject)
         return true;
     return false;
 }
@@ -79,7 +80,7 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
             moveTabToNewSplit(dragSourceDetails);
             break;
         }
-    } else if (dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get()) || dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get()) || dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get())) {
+    } else if (dynamic_cast<ObjectDragAndDrop*>(dragSourceDetails.sourceComponent.get())) {
         if (!tabComponent)
             return;
 
@@ -372,18 +373,13 @@ void ResizableTabbedComponent::paintOverChildren(Graphics& g)
 
 void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDetails)
 {
-    // if we are dragging from a palette or automation item,
-    // give the source the zoom scale of the target canvas
-    auto palette = dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get());
-    auto automationSlider = dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get());
-
-    if (palette || automationSlider) {
-        isDragAndDropOver = false;
-    } else {
+    // if we are dragging a tabbar, update the highlight split
+    if(dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         isDragAndDropOver = true;
         repaint();
     }
 }
+
 
 void ResizableTabbedComponent::itemDragExit(SourceDetails const& dragSourceDetails)
 {
@@ -395,10 +391,7 @@ void ResizableTabbedComponent::itemDragMove(SourceDetails const& dragSourceDetai
 {
     activeZone = DropZones::None;
     // if we are dragging from a palette or automation item, highlight the dragged over split
-    auto palette = dynamic_cast<PaletteItem*>(dragSourceDetails.sourceComponent.get());
-    auto automationSlider = dynamic_cast<AutomationSlider*>(dragSourceDetails.sourceComponent.get());
-    auto objectItem = dynamic_cast<ObjectItem*>(dragSourceDetails.sourceComponent.get());
-    if (palette || automationSlider || objectItem) {
+    if (dynamic_cast<ObjectDragAndDrop*>(dragSourceDetails.sourceComponent.get())) {
         isDragAndDropOver = false;
         editor->splitView.setFocus(this);
     }

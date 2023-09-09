@@ -12,9 +12,14 @@ option(VERBOSE "" OFF)
 
 set (CMAKE_CXX_STANDARD 20)
 
-# Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems
-#set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-#set(CMAKE_C_VISIBILITY_PRESET hidden)
+# Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems. We later undo this for the standalone build, so that externals can load
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+
+# Sfizz doesn't want to compile on aarch64 linux here...
+if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+  set(ENABLE_SFIZZ OFF)
+endif()
 
 # Sfizz doesn't want to compile on aarch64 linux here...
 if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
@@ -396,16 +401,6 @@ set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DE
 set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
-
-# To make sure externals work, we need to make the standalone have its symbols be visible
-set_target_properties(plugdata_standalone PROPERTIES CXX_VISIBILITY_PRESET default)
-
-set_target_properties(plugdata PROPERTIES CXX_VISIBILITY_PRESET hidden)
-set_target_properties(plugdata_fx PROPERTIES CXX_VISIBILITY_PRESET hidden)
-if(APPLE)
-set_target_properties(plugdata_midi PROPERTIES CXX_VISIBILITY_PRESET hidden)
-endif()
-
 
 set_target_properties(plugdata PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(plugdata PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})

@@ -947,10 +947,15 @@ void Object::mouseDrag(MouseEvent const& e)
     if (wasLockedOnMouseDown || (gui && gui->isEditorShown()))
         return;
 
+    if (cnv->objectRateReducer.tooFast())
+        return;
+
     cnv->cancelConnectionCreation();
 
     if (e.mods.isMiddleButtonDown())
         return;
+
+    beginDragAutoRepeat(25);
 
     if (validResizeZone && !originalBounds.isEmpty()) {
 
@@ -1054,7 +1059,7 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
-        if (!cnv->objectRateReducer.tooFast() && ds.componentBeingDragged) {
+        if (ds.componentBeingDragged) {
             for (auto* object : selection) {
 
                 auto newPosition = object->originalBounds.getPosition() + dragDistance;
@@ -1063,9 +1068,7 @@ void Object::mouseDrag(MouseEvent const& e)
                 object->setTopLeftPosition(newPosition);
             }
 
-            if (cnv->autoscroll(e.getEventRelativeTo(cnv->viewport.get()))) {
-                beginDragAutoRepeat(25);
-            }
+            cnv->autoscroll(e.getEventRelativeTo(cnv->viewport.get()));
         }
 
         // This handles the "unsnap" action when you shift-drag a connected object

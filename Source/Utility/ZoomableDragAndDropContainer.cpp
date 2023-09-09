@@ -37,7 +37,8 @@
 // if we are inside the splitview, don't reset the scale of the dragged image, regardless of what we are over
 #include "../SplitView.h"
 
-#include "../Dialogs/AddObjectMenu.h"
+// objects are only drag and dropped onto a canvas, so we dynamic cast straight away to see if the dragged object is from an object
+#include "ObjectDragAndDrop.h"
 
 bool juce_performDragDropFiles(StringArray const&, bool const copyFiles, bool& shouldStop);
 bool juce_performDragDropText(String const&, bool& shouldStop);
@@ -62,7 +63,7 @@ public:
         , originalInputSourceType(draggingSource->getType())
         , isZoomable(canZoom)
     {
-        if (auto addObjectItem = dynamic_cast<ObjectItem*>(sourceComponent))
+        if (dynamic_cast<ObjectDragAndDrop*>(sourceComponent))
             isObjectItem = true;
 
         zoomImageComponent.setImage(im.getImage());
@@ -136,6 +137,8 @@ public:
         if (e.originalComponent != this && isOriginalInputSource(e.source)) {
             if (rateReducer.tooFast())
                 return;
+
+            beginDragAutoRepeat(16);
             currentScreenPos = e.getScreenPosition();
             updateLocation(true, currentScreenPos);
             Component* target = nullptr;
