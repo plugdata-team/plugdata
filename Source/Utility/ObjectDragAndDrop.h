@@ -15,6 +15,11 @@ public:
 
     void lookAndFeelChanged() override
     {
+        resetDragAndDropImage();
+    }
+
+    void resetDragAndDropImage()
+    {
         dragImage.image = Image();
     }
 

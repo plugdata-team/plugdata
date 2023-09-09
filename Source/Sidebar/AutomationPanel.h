@@ -160,6 +160,10 @@ public:
             lastName = nameLabel.getText(false);
         };
 
+        nameLabel.onTextChange = [this]() {
+            resetDragAndDropImage();
+        };
+
         nameLabel.onEditorHide = [this]() {
             StringArray allNames;
             for (auto* param : pd->getParameters()) {
