@@ -58,39 +58,18 @@ void ListBoxObjectItem::mouseDown(MouseEvent const& e)
 
 void ListBoxObjectItem::mouseUp(MouseEvent const& e)
 {
-    if (dragging)
+    if (e.mouseWasDraggedSinceMouseDown())
         dismissMenu(false);
 }
 
-void ListBoxObjectItem::mouseDrag(MouseEvent const& e)
+void ListBoxObjectItem::dismiss(bool withAnimation)
 {
-    if (e.getDistanceFromDragStart() < 5)
-        return;
+    dismissMenu(withAnimation);
+}
 
-    dragging = true;
-
-    auto* dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
-
-    if (dragContainer->isDragAndDropActive())
-        return;
-
-    // auto patchWithTheme = substituteThemeColours(objectPatch);
-
-    auto formatedObject = "#X obj 0 0 " + objectName;
-
-    auto scale = 2.0f;
-    if (dragImage.image.isNull()) {
-        auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-        dragImage = offlineObjectRenderer->patchToTempImage(formatedObject, scale);
-    }
-
-    dismissMenu(true);
-
-    Array<var> palettePatchWithOffset;
-    palettePatchWithOffset.add(var(dragImage.offset.getX()));
-    palettePatchWithOffset.add(var(dragImage.offset.getY()));
-    palettePatchWithOffset.add(var(formatedObject));
-    dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
+String ListBoxObjectItem::getObjectString()
+{
+    return "#X obj 0 0 " + objectName;
 }
 
 String ListBoxObjectItem::getItemName() const

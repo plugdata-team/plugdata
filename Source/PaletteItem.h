@@ -3,12 +3,12 @@
 #include <JuceHeader.h>
 
 #include "Pd/Instance.h"
-#include "Utility/OfflineObjectRenderer.h"
+#include "Utility/ObjectDragAndDrop.h"
 
 class PluginEditor;
 class PaletteDraggableList;
 class ReorderButton;
-class PaletteItem : public Component {
+class PaletteItem : public ObjectDragAndDrop {
 public:
     PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree);
     ~PaletteItem();
@@ -16,10 +16,12 @@ public:
     void paint(Graphics& g) override;
     void resized() override;
 
-    void mouseDrag(MouseEvent const& e) override;
+    void mouseDown(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
+
+    String getObjectString() override;
 
     bool hitTest(int x, int y) override;
 
@@ -27,11 +29,7 @@ public:
 
     bool isSubpatchOrAbstraction(String const& patchAsString);
 
-    void lookAndFeelChanged() override;
-
     Image patchToTempImage(String const& patch);
-
-    ImageWithOffset dragImage;
 
     std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patchAsString);
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../Utility/OfflineObjectRenderer.h"
+#include "../Utility/ObjectDragAndDrop.h"
 
 class ObjectsListBox;
-class ListBoxObjectItem : public juce::Component
+class ListBoxObjectItem : public ObjectDragAndDrop
 {
 public:
     ListBoxObjectItem(ObjectsListBox* parent, int rowNumber, bool isSelected, std::function<void(bool shouldFade)> dismissDialog);
@@ -16,9 +16,11 @@ public:
     void mouseUp(MouseEvent const& e) override;
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
-    void mouseDrag(MouseEvent const& e) override;
 
     String getItemName() const;
+
+    String getObjectString() override;
+    void dismiss(bool withAnimation) override;
 
     void refresh(String objectName, String objectDescription, int rowNumber, bool isSelected);
 
@@ -29,10 +31,7 @@ private:
     bool rowIsSelected = false;
     ObjectsListBox* objectsListBox;
 
-    ImageWithOffset dragImage;
     bool mouseHover = false;
-
-    bool dragging = false;
 
     std::function<void(bool shouldFade)> dismissMenu;
 };

@@ -8,11 +8,11 @@
 #include "Object.h"
 #include "Utility/PluginParameter.h"
 #include "Utility/DraggableNumber.h"
-#include "Utility/OfflineObjectRenderer.h"
 #include "Utility/ReorderButton.h"
 #include "Utility/PropertiesPanel.h"
+#include "Utility/ObjectDragAndDrop.h"
 
-class AutomationSlider : public Component
+class AutomationSlider : public ObjectDragAndDrop
     , public Value::Listener {
 
     class ExpandButton : public TextButton {
@@ -160,10 +160,6 @@ public:
             lastName = nameLabel.getText(false);
         };
 
-        nameLabel.onTextChange = [this]() {
-            dragImage.image = Image();
-        };
-
         nameLabel.onEditorHide = [this]() {
             StringArray allNames;
             for (auto* param : pd->getParameters()) {
@@ -249,14 +245,17 @@ public:
         }
     }
 
-    void lookAndFeelChanged() override
-    {
-        dragImage.image = Image();
-    }
-
     bool hitTest(int x, int y) override
     {
         return getLocalBounds().toFloat().reduced(4.5f, 3.0f).contains(x, y);
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (&reorderButton == e.originalComponent)
+            setIsReordering(true);
+        else
+            setIsReordering(false);
     }
 
     void mouseEnter(MouseEvent const& e) override
@@ -272,35 +271,9 @@ public:
         reorderButton.setVisible(false);
     }
 
-    void mouseUp(MouseEvent const& e) override
+    String getObjectString() override
     {
-        isDragging = false;
-    }
-
-    void mouseDrag(MouseEvent const& e) override
-    {
-        if (e.originalComponent == &reorderButton || e.getDistanceFromDragStart() < 5 || isDragging)
-            return;
-
-        isDragging = true;
-
-        auto formatedParam = "#X obj 0 0 param " + param->getTitle() + ";";
-
-        deleteButton.setVisible(false);
-        reorderButton.setVisible(false);
-
-        auto scale = 2.0f;
-        if (dragImage.image.isNull()) {
-            auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            dragImage = offlineObjectRenderer->patchToTempImage(formatedParam, scale);
-        }
-
-        auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
-        Array<var> paramObjectWithOffset;
-        paramObjectWithOffset.add(var(dragImage.offset.getX()));
-        paramObjectWithOffset.add(var(dragImage.offset.getY()));
-        paramObjectWithOffset.add(var(formatedParam));
-        dragContainer->startDragging(paramObjectWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
+        return "#X obj 0 0 param " + param->getTitle() + ";";
     }
 
     void valueChanged(Value& v) override
@@ -393,14 +366,11 @@ public:
 
     Slider slider;
 
-    ImageWithOffset dragImage;
     ReorderButton reorderButton;
 
     PlugDataParameter* param;
 
     std::unique_ptr<SliderParameterAttachment> attachment;
-
-    bool isDragging = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationSlider)
 };
@@ -606,7 +576,6 @@ public:
             for (int p = 0; p < rows.size(); p++) {
                 rows[p]->param->setIndex(p);
             }
-            isDragging = false;
             draggedItem = nullptr;
             shouldAnimate = true;
             draggedItemDropShadow.deActivate();
@@ -642,6 +611,7 @@ public:
             resized();
         }
     }
+
 
     String getNewParameterName()
     {
@@ -766,7 +736,6 @@ public:
         return y;
     }
 
-    bool isDragging = false;
     SafePointer<AutomationSlider> draggedItem;
     DraggedItemDropShadow draggedItemDropShadow;
     Point<int> mouseDownPos;
