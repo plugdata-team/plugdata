@@ -165,6 +165,7 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         ghostTabAnimator.cancelAllAnimations(false);
+        owner.setFocused();
         // if this tabbar is DnD on itself, we don't need to add a new tab
         // we move the existing tab
         if (tab->getTabComponent() == &owner) {
@@ -291,6 +292,14 @@ TabComponent::~TabComponent()
     tabs->removeMouseListener(this);
     clearTabs();
     tabs.reset();
+}
+
+void TabComponent::setFocused()
+{
+    for (auto * split : editor->splitView.splits){
+        if (split->getTabComponent() == this)
+            editor->splitView.setFocus(split);
+    }
 }
 
 int TabComponent::getCurrentTabIndex()
