@@ -24,6 +24,8 @@ public:
 
     void setActive(ResizableTabbedComponent* tabComponent)
     {
+        setVisible(true);
+
         if (tabbedComponent != tabComponent) {
             if (tabbedComponent)
                 tabbedComponent->removeComponentListener(this);
@@ -155,11 +157,7 @@ void SplitView::setFocus(ResizableTabbedComponent* selectedTabComponent)
 {
     if (activeTabComponent != selectedTabComponent) {
         activeTabComponent = selectedTabComponent;
-        if (splits.size() > 1) {
-            focusOutline->setActive(activeTabComponent);
-            focusOutline->setVisible(true);
-        } else
-            focusOutline->setVisible(false);
+        focusOutline->setActive(activeTabComponent);
     }
 }
 
