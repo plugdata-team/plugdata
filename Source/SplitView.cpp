@@ -14,63 +14,45 @@
 #include "PluginProcessor.h"
 #include "Sidebar/Sidebar.h"
 
-class FadeAnimation : private Timer {
+class SplitViewFocusOutline : public Component
+    , public ComponentListener {
 public:
-    explicit FadeAnimation(SplitView* splitView)
-        : splitView(splitView)
+    SplitViewFocusOutline()
     {
+        setInterceptsMouseClicks(false, false);
     }
 
-    float fadeIn()
+    void setActive(ResizableTabbedComponent* tabComponent)
     {
-        targetAlpha = 0.3f;
-        if (!isTimerRunning() && currentAlpha < targetAlpha)
-            startTimerHz(60);
+        if (tabbedComponent != tabComponent) {
+            if (tabbedComponent)
+                tabbedComponent->removeComponentListener(this);
 
-        return currentAlpha;
-    }
-
-    float fadeOut()
-    {
-        targetAlpha = 0.0f;
-        if (!isTimerRunning() && currentAlpha > targetAlpha)
-            startTimerHz(60);
-
-        return currentAlpha;
-    }
-
-private:
-    void timerCallback() override
-    {
-        float const stepSize = 0.025f;
-        if (targetAlpha > currentAlpha) {
-            currentAlpha += stepSize;
-            if (currentAlpha >= targetAlpha) {
-                currentAlpha = targetAlpha;
-                stopTimer();
-            }
-        } else if (targetAlpha < currentAlpha) {
-            currentAlpha -= stepSize;
-            if (currentAlpha <= targetAlpha) {
-                currentAlpha = targetAlpha;
-                stopTimer();
-            }
+            tabComponent->addComponentListener(this);
+            setBounds(tabComponent->getBounds());
+            tabbedComponent = tabComponent;
         }
-        if (splitView != nullptr)
-            splitView->repaint();
+    }
+
+    void componentMovedOrResized(Component& component, bool moved, bool resized) override
+    {
+        if (&component == tabbedComponent) {
+            setBounds(component.getBounds());
+        }
+    }
+
+    void paint(Graphics& g)
+    {
+        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
+        g.drawRect(getLocalBounds(), 2.5f);
     }
 
 private:
-    SplitView* splitView;
-    float currentAlpha = 0.0f;
-    float targetAlpha = 0.0f;
+    SafePointer<ResizableTabbedComponent> tabbedComponent;
 };
 
 SplitView::SplitView(PluginEditor* parent)
     : editor(parent)
-    , fadeAnimation(new FadeAnimation(this))
-    , fadeAnimationLeft(new FadeAnimation(this))
-    , fadeAnimationRight(new FadeAnimation(this))
 {
     rootComponent = new ResizableTabbedComponent(editor);
     splits.add(rootComponent);
@@ -79,6 +61,10 @@ SplitView::SplitView(PluginEditor* parent)
     // which we don't want
     // either we check if the tabcomponent is welcome mode, or we check if it's nullptr down the line
     activeTabComponent = rootComponent;
+
+    focusOutline = std::make_unique<SplitViewFocusOutline>();
+    addChildComponent(focusOutline.get());
+    focusOutline->setAlwaysOnTop(true);
 
     addMouseListener(this, true);
 }
@@ -117,6 +103,9 @@ void SplitView::removeSplit(TabComponent* toRemove)
         }
     }
     delete toBeRemoved;
+
+    if (splits.size() == 1)
+        focusOutline->setVisible(false);
 }
 
 void SplitView::addSplit(ResizableTabbedComponent* split)
@@ -166,7 +155,11 @@ void SplitView::setFocus(ResizableTabbedComponent* selectedTabComponent)
 {
     if (activeTabComponent != selectedTabComponent) {
         activeTabComponent = selectedTabComponent;
-        repaint();
+        if (splits.size() > 1) {
+            focusOutline->setActive(activeTabComponent);
+            focusOutline->setVisible(true);
+        } else
+            focusOutline->setVisible(false);
     }
 }
 
@@ -194,16 +187,6 @@ void SplitView::closeEmptySplits()
         for (auto* split : splits) {
             split->setBoundsWithFactors(getLocalBounds());
         }
-    }
-}
-
-void SplitView::paintOverChildren(Graphics& g)
-{
-    if (splits.size() > 1) {
-        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
-        auto screenBounds = activeTabComponent->getScreenBounds();
-        auto b = getLocalArea(nullptr, screenBounds);
-        g.drawRect(b, 2.5f);
     }
 }
 
