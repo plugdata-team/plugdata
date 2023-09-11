@@ -767,6 +767,7 @@ void setup_ptouch0x2eout();
 void setup_spread0x2emc_tilde();
 void setup_rotate0x2emc_tilde();
 void pipe2_setup();
+void circuit_tilde_setup();
 
 #if ENABLE_SFIZZ
 void sfz_tilde_setup();
@@ -1085,6 +1086,7 @@ void libpd_init_else(void)
     setup_spread0x2emc_tilde();
     setup_rotate0x2emc_tilde();
     pipe2_setup();
+    circuit_tilde_setup();
 }
 
 void libpd_init_cyclone(void)

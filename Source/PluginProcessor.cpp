@@ -584,7 +584,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
 
 void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
 {
-    ScopedNoDenormals noDenormals;
     int const blockSize = Instance::getBlockSize();
     int const numSamples = static_cast<int>(buffer.getNumSamples());
     int const adv = audioAdvancement >= 64 ? 0 : audioAdvancement;

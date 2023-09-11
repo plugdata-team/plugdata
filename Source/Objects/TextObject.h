@@ -32,7 +32,7 @@ struct TextObjectHelper {
 
         numLines = getNumLines(currentText, w, fontHeight);
         // Calculate height so that height with 1 line is 21px, after that scale along with fontheight
-        h = numLines * fontHeight + (21 - fontHeight);
+        h = numLines * fontHeight + (21.f - fontHeight);
 
         return { x, y, w, h };
     }
@@ -150,7 +150,7 @@ struct TextObjectHelper {
         Array<float> xOffsets;
 
         auto font = Font(fontSize);
-        font.getGlyphPositions(text, glyphs, xOffsets);
+        font.getGlyphPositions(text.trimCharactersAtEnd(";\n"), glyphs, xOffsets);
 
         wchar_t lastChar;
         for (int i = 0; i < xOffsets.size(); i++) {
