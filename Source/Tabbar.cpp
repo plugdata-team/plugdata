@@ -188,7 +188,7 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
             // FIXME: This is a hack. When tab is added to tabbar right edge, and it goes into overflow
             //        we don't know when that will happen.
             //        So we force the right most tab to think it's always one less.
-            auto tabPos = jmin(dragSourceDetails.localPosition.getX() / targetTabPos, getNumVisibleTabs() - 1);
+            auto tabPos = jmin(dragSourceDetails.localPosition.getX() / targetTabPos, getNumVisibleTabs() - 2);
             inOtherSplit = true;
             auto unusedComponent = std::make_unique<Component>();
             owner.addTab(tab->getButtonText(), unusedComponent.get(), tabPos);
