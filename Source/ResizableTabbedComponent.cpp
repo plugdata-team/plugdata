@@ -15,7 +15,6 @@
 
 #include "Utility/ObjectDragAndDrop.h"
 
-
 #define ENABLE_SPLITS_DROPZONE_DEBUGGING 0
 
 ResizableTabbedComponent::ResizableTabbedComponent(PluginEditor* editor, TabComponent* mainTabComponent)
@@ -266,17 +265,9 @@ int ResizableTabbedComponent::findZoneFromSource(SourceDetails const& dragSource
     return -1;
 }
 
-void ResizableTabbedComponent::mouseDrag(MouseEvent const& e)
-{
-}
-
 void ResizableTabbedComponent::mouseDown(MouseEvent const& e)
 {
     editor->splitView.setFocus(this);
-}
-
-void ResizableTabbedComponent::mouseMove(MouseEvent const& e)
-{
 }
 
 void ResizableTabbedComponent::setBoundsWithFactors(Rectangle<int> bounds)
@@ -373,6 +364,7 @@ void ResizableTabbedComponent::paintOverChildren(Graphics& g)
 
 void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDetails)
 {
+    editor->splitView.setFocus(this);
     // if we are dragging a tabbar, update the highlight split
     if(dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         isDragAndDropOver = true;
@@ -383,26 +375,20 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
 
 void ResizableTabbedComponent::itemDragExit(SourceDetails const& dragSourceDetails)
 {
-    isDragAndDropOver = false;
-    repaint();
+    if(dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+        isDragAndDropOver = false;
+        repaint();
+    }
 }
 
 void ResizableTabbedComponent::itemDragMove(SourceDetails const& dragSourceDetails)
 {
-    activeZone = DropZones::None;
-    // if we are dragging from a palette or automation item, highlight the dragged over split
-    if (dynamic_cast<ObjectDragAndDrop*>(dragSourceDetails.sourceComponent.get())) {
-        isDragAndDropOver = false;
-        editor->splitView.setFocus(this);
-    }
     // if we are dragging a tabbed window or from the document browser
-    else if (auto sourceTabButton = static_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+    if (auto sourceTabButton = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         auto sourceTabContent = sourceTabButton->getTabComponent();
         int sourceNumTabs = sourceTabContent->getNumTabs();
 
         auto zone = findZoneFromSource(dragSourceDetails);
-
-        editor->splitView.setFocus(this);
 
         if (editor->splitView.canSplit() && sourceNumTabs > 1) {
             if (activeZone != zone) {
@@ -411,8 +397,16 @@ void ResizableTabbedComponent::itemDragMove(SourceDetails const& dragSourceDetai
                 // std::cout << "dragging over: " << getZoneName(zone) << std::endl;
             }
         } else if (sourceTabButton->getTabComponent() != tabComponent.get()) {
-            activeZone = zone == DropZones::TabBar ? DropZones::None : DropZones::Centre;
-            repaint();
+            auto foundZone = zone == DropZones::TabBar ? DropZones::None : DropZones::Centre;
+            if (activeZone != foundZone){
+                activeZone = foundZone;
+                repaint();
+            }
+        } else if (sourceTabButton->getTabComponent() == tabComponent.get()) {
+            if (activeZone != DropZones::None) {
+                activeZone = DropZones::None;
+                repaint();
+            }
         }
     }
 }

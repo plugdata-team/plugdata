@@ -46,6 +46,9 @@ class CanvasViewport : public Viewport {
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
             downCanvasOrigin = viewport->cnv->canvasOrigin;
+
+            for (auto* object : viewport->cnv->objects)
+                object->setBufferedToImage(true);
         }
 
         void mouseDrag(MouseEvent const& e) override
@@ -59,6 +62,9 @@ class CanvasViewport : public Viewport {
         void mouseUp(MouseEvent const& e) override
         {
             e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
+            for (auto* object : viewport->cnv->objects){
+                object->setBufferedToImage(false);
+            }
         }
 
     private:

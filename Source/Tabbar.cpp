@@ -25,8 +25,12 @@ public:
     void setTabButtonToGhost(TabBarButton* tabButton)
     {
         tab = tabButton;
-        setBounds(tab->getBounds());
-        repaint();
+        // this should never happen, if it does then the index for the tab is wrong ( getTab(idx) will return nullptr )
+        // which can happen if the tabbar goes into overflow, because we don't know exactly when that will happen
+        if (tab){
+            setBounds(tab->getBounds());
+            repaint();
+        }
     }
 
     int getIndex()
@@ -165,6 +169,7 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         ghostTabAnimator.cancelAllAnimations(false);
+        owner.setFocused();
         // if this tabbar is DnD on itself, we don't need to add a new tab
         // we move the existing tab
         if (tab->getTabComponent() == &owner) {
@@ -180,10 +185,16 @@ void ButtonBar::itemDragEnter(SourceDetails const& dragSourceDetails)
             // WARNING: because we are using the overflow (show extra items menu)
             // we need to find out how many tabs are visible, not how many there are all together
             auto targetTabPos = getWidth() / (getNumVisibleTabs() + 1);
-            auto tabPos = dragSourceDetails.localPosition.getX() / targetTabPos;
+            // FIXME: This is a hack. When tab is added to tabbar right edge, and it goes into overflow
+            //        we don't know when that will happen.
+            //        So we force the right most tab to think it's always two less when it gets added
+            auto tabPos = jmin(dragSourceDetails.localPosition.getX() / targetTabPos, getNumVisibleTabs() - 2);
+            tabPos = jmax(0, tabPos);
+
             inOtherSplit = true;
             auto unusedComponent = std::make_unique<Component>();
             owner.addTab(tab->getButtonText(), unusedComponent.get(), tabPos);
+
             auto* fakeTab = getTabButton(tabPos);
             tab->getProperties().set("dragged", var(true));
             ghostTab->setTabButtonToGhost(fakeTab);
@@ -291,6 +302,14 @@ TabComponent::~TabComponent()
     tabs->removeMouseListener(this);
     clearTabs();
     tabs.reset();
+}
+
+void TabComponent::setFocused()
+{
+    for (auto * split : editor->splitView.splits){
+        if (split->getTabComponent() == this)
+            editor->splitView.setFocus(split);
+    }
 }
 
 int TabComponent::getCurrentTabIndex()

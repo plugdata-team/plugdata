@@ -6,12 +6,14 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+
 #include "SplitViewResizer.h"
 #include "ResizableTabbedComponent.h"
 
 class PluginEditor;
 class Canvas;
-class FadeAnimation;
+class SplitViewFocusOutline;
 class SplitView : public Component {
 public:
     explicit SplitView(PluginEditor* parent);
@@ -30,8 +32,6 @@ public:
     void setFocus(ResizableTabbedComponent* selectedTabComponent);
 
     void closeEmptySplits();
-
-    void paintOverChildren(Graphics& g) override;
 
     int getTabComponentSplitIndex(TabComponent* tabComponent);
 
@@ -52,11 +52,9 @@ private:
     SafePointer<ResizableTabbedComponent> activeTabComponent = nullptr;
     ResizableTabbedComponent* rootComponent;
 
-    std::unique_ptr<FadeAnimation> fadeAnimation;
-    std::unique_ptr<FadeAnimation> fadeAnimationLeft;
-    std::unique_ptr<FadeAnimation> fadeAnimationRight;
-
     bool splitviewIndicator = false;
+
+    std::unique_ptr<SplitViewFocusOutline> focusOutline;
 
     PluginEditor* editor;
 
