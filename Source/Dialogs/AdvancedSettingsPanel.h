@@ -48,6 +48,10 @@ public:
         showPalettesValue.addListener(this);
         otherProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
 
+        infiniteDragValue.referTo(settingsFile->getPropertyAsValue("infinite_drag"));
+        infiniteDragValue.addListener(this);
+        otherProperties.add(new PropertiesPanel::BoolComponent("Infinite canvas drag", infiniteDragValue, { "No", "Yes" }));
+
         showAllAudioDeviceValues.referTo(settingsFile->getPropertyAsValue("show_all_audio_device_rates"));
         showAllAudioDeviceValues.addListener(this);
         otherProperties.add(new PropertiesPanel::BoolComponent("Show all audio device rates", showAllAudioDeviceValues, { "No", "Yes" }));
@@ -96,6 +100,7 @@ public:
     Value scaleValue;
 
     Value showPalettesValue;
+    Value infiniteDragValue;
     Value autoPatchingValue;
     Value showAllAudioDeviceValues;
     Value nativeDialogValue;

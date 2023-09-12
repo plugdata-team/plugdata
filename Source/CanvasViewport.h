@@ -46,17 +46,47 @@ class CanvasViewport : public Viewport {
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
             downCanvasOrigin = viewport->cnv->canvasOrigin;
+            mouseDelta = {0, 0};
+            previousMousePos = e.getScreenPosition();
 
             for (auto* object : viewport->cnv->objects)
                 object->setBufferedToImage(true);
+
+            withInfiniteDrag = SettingsFile::getInstance()->getProperty<bool>("infinite_drag");
         }
 
         void mouseDrag(MouseEvent const& e) override
         {
-            float scale = std::sqrt(std::abs(viewport->cnv->getTransform().getDeterminant()));
+            if (rateReducer.tooFast())
+                return;
 
+            auto pos = e.getScreenPosition();
+
+            auto newPos = pos;
+            mouseDelta += newPos - previousMousePos;
+            previousMousePos = newPos;
+
+            float scale = std::sqrt(std::abs(viewport->cnv->getTransform().getDeterminant()));
             auto infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
-            viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
+
+            auto newCanvasPos = infiniteCanvasOriginOffset + downPosition - mouseDelta;
+            viewport->setViewPosition(newCanvasPos);
+
+            auto vPos = viewport->getScreenPosition();
+            auto width = viewport->getWidth();
+            auto height = viewport->getHeight();
+            Point<int> wrappedPos;
+
+            // we need to calculate this last, otherwise the canvas flickers when jumping to new position
+            if (withInfiniteDrag && (pos.getX() < vPos.getX() || pos.getY() < vPos.getY() || pos.getX() > vPos.getX() + width || pos.getY() > vPos.getY() + height)) {
+                wrappedPos.x = (pos.getX() - vPos.getX() + width) % width;
+                wrappedPos.y = (pos.getY() - vPos.getY() + height) % height;
+
+                auto newCursorPos = vPos + wrappedPos;
+                auto mouseSource = e.source;
+                mouseSource.setScreenPosition(newCursorPos.toFloat());
+                previousMousePos = newCursorPos;
+            }
         }
 
         void mouseUp(MouseEvent const& e) override
@@ -71,6 +101,12 @@ class CanvasViewport : public Viewport {
         CanvasViewport* viewport;
         Point<int> downPosition;
         Point<int> downCanvasOrigin;
+        Point<int> mouseDelta;
+        Point<int> previousMousePos;
+
+        bool withInfiniteDrag = false;
+
+        RateReducer rateReducer = RateReducer(200);
     };
 
     class ViewportScrollBar : public Component {
