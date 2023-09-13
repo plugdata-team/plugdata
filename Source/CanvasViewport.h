@@ -60,32 +60,32 @@ class CanvasViewport : public Viewport {
             if (rateReducer.tooFast())
                 return;
 
-            auto pos = e.getScreenPosition();
+            auto const pos = e.getScreenPosition();
+            mouseDelta += pos - previousMousePos;
+            previousMousePos = pos;
 
-            auto newPos = pos;
-            mouseDelta += newPos - previousMousePos;
-            previousMousePos = newPos;
+            auto const scale = std::sqrt(std::abs(viewport->cnv->getTransform().getDeterminant()));
+            auto const infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
 
-            float scale = std::sqrt(std::abs(viewport->cnv->getTransform().getDeterminant()));
-            auto infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
-
-            auto newCanvasPos = infiniteCanvasOriginOffset + downPosition - mouseDelta;
+            auto const newCanvasPos = infiniteCanvasOriginOffset + downPosition - mouseDelta;
             viewport->setViewPosition(newCanvasPos);
 
-            auto vPos = viewport->getScreenPosition();
-            auto width = viewport->getWidth();
-            auto height = viewport->getHeight();
-            Point<int> wrappedPos;
-
+            auto const margin = 10;
+            auto const halfMargin = margin / 2;
+            auto const viewportBounds = viewport->getScreenBounds().reduced(margin).translated(-halfMargin, -halfMargin);
             // we need to calculate this last, otherwise the canvas flickers when jumping to new position
-            if (withInfiniteDrag && (pos.getX() < vPos.getX() || pos.getY() < vPos.getY() || pos.getX() > vPos.getX() + width || pos.getY() > vPos.getY() + height)) {
-                wrappedPos.x = (pos.getX() - vPos.getX() + width) % width;
-                wrappedPos.y = (pos.getY() - vPos.getY() + height) % height;
+            if (withInfiniteDrag && !viewportBounds.contains(pos)) {
+                auto const viewportPos = viewportBounds.getPosition();
+                auto const viewportWidth = viewportBounds.getWidth();
+                auto const viewportHeight = viewportBounds.getHeight();
+                Point<int> wrappedPos;
+                auto const localPos = pos - viewportPos;
+                wrappedPos.x = (localPos.getX() + viewportWidth) % viewportWidth;
+                wrappedPos.y = (localPos.getY() + viewportHeight) % viewportHeight;
 
-                auto newCursorPos = vPos + wrappedPos;
+                previousMousePos = viewportPos + wrappedPos;
                 auto mouseSource = e.source;
-                mouseSource.setScreenPosition(newCursorPos.toFloat());
-                previousMousePos = newCursorPos;
+                mouseSource.setScreenPosition(previousMousePos.toFloat());
             }
         }
 
@@ -106,7 +106,7 @@ class CanvasViewport : public Viewport {
 
         bool withInfiniteDrag = false;
 
-        RateReducer rateReducer = RateReducer(200);
+        RateReducer rateReducer = RateReducer(90);
     };
 
     class ViewportScrollBar : public Component {
