@@ -26,7 +26,7 @@ public:
 
     void update() override
     {
-        objectText = getText().trimEnd();
+        objectText = objectText.trimEnd();
 
         if (auto obj = ptr.get<t_text>()) {
             sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
