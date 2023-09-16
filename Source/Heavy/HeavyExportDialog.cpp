@@ -26,6 +26,7 @@
 #include "CppExporter.h"
 #include "DPFExporter.h"
 #include "DaisyExporter.h"
+#include "OWLExporter.h"
 #include "PdExporter.h"
 
 class ExporterSettingsPanel : public Component
@@ -44,6 +45,7 @@ public:
         "C++ Code",
         "Electro-Smith Daisy",
         "DPF Audio Plugin",
+        "OWL Platform",
         "Pd External"
     };
 
@@ -52,6 +54,7 @@ public:
         addChildComponent(views.add(new CppExporter(editor, exportingView)));
         addChildComponent(views.add(new DaisyExporter(editor, exportingView)));
         addChildComponent(views.add(new DPFExporter(editor, exportingView)));
+        addChildComponent(views.add(new OWLExporter(editor, exportingView)));
         addChildComponent(views.add(new PdExporter(editor, exportingView)));
 
         addAndMakeVisible(listBox);
