@@ -313,7 +313,10 @@ void Object::applyBounds()
 }
 void Object::updateBounds()
 {
-    if (gui) {
+    // only update if we have a gui and the object isn't been moved by the user
+    // otherwise PD hasn't been informed of the new position 'while' we are dragging
+    // so we don't need to update the bounds when an object is being interacted with
+    if (gui && !isObjectMouseActive) {
         // Get the bounds of the object in Pd
         auto newBounds = gui->getPdBounds();
 
@@ -863,6 +866,10 @@ void Object::mouseUp(MouseEvent const& e)
         openHelpPatch();
     }
 
+    auto objects = cnv->getSelectionOfType<Object>();
+    for (auto* obj : objects)
+        obj->isObjectMouseActive = false;
+
     if (ds.wasResized) {
 
         cnv->objectGrid.clearAll();
@@ -969,6 +976,8 @@ void Object::mouseDrag(MouseEvent const& e)
             if (!obj->gui)
                 continue;
 
+            obj->isObjectMouseActive = true;
+
             // Create undo step when we start resizing
             if (!ds.wasResized) {
                 auto* objPtr = static_cast<t_gobj*>(obj->getPointer());
@@ -1050,6 +1059,7 @@ void Object::mouseDrag(MouseEvent const& e)
             int i = 0;
             for (auto* selected : selection) {
                 selected->originalBounds = selected->getBounds().withPosition(mouseDownObjectPositions[i]);
+                selected->isObjectMouseActive = true;
                 i++;
             }
 
@@ -1061,7 +1071,7 @@ void Object::mouseDrag(MouseEvent const& e)
         // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
         if (ds.componentBeingDragged) {
             for (auto* object : selection) {
-
+                object->isObjectMouseActive = true;
                 auto newPosition = object->originalBounds.getPosition() + dragDistance;
 
                 object->setBufferedToImage(true);

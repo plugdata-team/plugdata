@@ -504,7 +504,7 @@ StringArray Connection::getMessageFormated()
         formatedMessage.add("symbol:");
         formatedMessage.add(String(args[0].getSymbol()));
     } else if (name == "list") {
-        formatedMessage.add("list:");
+        formatedMessage.add("list (" + String(args.size()) + "):");
         for (auto& arg : args) {
             if (arg.isFloat()) {
                 formatedMessage.add(String(arg.getFloat()));
