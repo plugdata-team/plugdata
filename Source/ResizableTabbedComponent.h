@@ -20,9 +20,7 @@ public:
 
     ~ResizableTabbedComponent();
 
-    void mouseDrag(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
-    void mouseMove(MouseEvent const& e) override;
 
     void resized() override;
     void paintOverChildren(Graphics& g) override;
