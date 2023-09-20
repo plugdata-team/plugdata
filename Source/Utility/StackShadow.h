@@ -16,6 +16,7 @@
 
 #include <JuceHeader.h>
 #include "Utility/HashUtils.h"
+#include "Utility/Config.h"
 
 #if JUCE_WINDOWS
 // Enable for JUCE >=7.0.6

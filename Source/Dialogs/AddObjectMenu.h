@@ -6,10 +6,11 @@
 
 #pragma once
 #include "Dialogs.h"
+#include "../Utility/ObjectDragAndDrop.h"
 
 #define DEBUG_PRINT_OBJECT_LIST 0
 
-class ObjectItem : public Component
+class ObjectItem : public ObjectDragAndDrop
     , public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
@@ -20,6 +21,11 @@ public:
         , editor(e)
     {
         setTooltip(tooltip.replace("(@keypress) ", getKeyboardShortcutDescription(objectID)));
+    }
+
+    void dismiss(bool withAnimation) override
+    {
+        dismissMenu(withAnimation);
     }
 
     String getKeyboardShortcutDescription(ObjectIDs objectID)
@@ -65,42 +71,15 @@ public:
         repaint();
     }
 
-    void mouseDrag(MouseEvent const& e) override
+    String getObjectString()
     {
-        if (e.getDistanceFromDragStart() < 5)
-            return;
-
-        auto* dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
-
-        if (dragContainer->isDragAndDropActive())
-            return;
-
-        auto patchWithTheme = substituteThemeColours(objectPatch);
-
-        auto scale = 2.0f;
-        if (dragImage.image.isNull()) {
-            auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            dragImage = offlineObjectRenderer->patchToTempImage(patchWithTheme, scale);
-        }
-
-        dismissMenu(true);
-
-        Array<var> palettePatchWithOffset;
-        palettePatchWithOffset.add(var(dragImage.offset.getX()));
-        palettePatchWithOffset.add(var(dragImage.offset.getY()));
-        palettePatchWithOffset.add(var(patchWithTheme));
-        dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
+        return substituteThemeColours(objectPatch);
     }
 
     void mouseUp(MouseEvent const& e) override
     {
         if (e.mouseWasDraggedSinceMouseDown())
             dismissMenu(false);
-    }
-
-    void lookAndFeelChanged() override
-    {
-        dragImage.image = Image();
     }
 
     String substituteThemeColours(String patch)
@@ -142,7 +121,6 @@ private:
     String titleText;
     String iconText;
     String objectPatch;
-    ImageWithOffset dragImage;
     bool isHovering = false;
     std::function<void(bool)> dismissMenu;
     PluginEditor* editor;

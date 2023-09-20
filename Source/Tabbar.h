@@ -284,6 +284,8 @@ public:
 
     Canvas* getCurrentCanvas();
 
+    void setFocused();
+
     PluginEditor* getEditor();
 
     Image tabSnapshot;

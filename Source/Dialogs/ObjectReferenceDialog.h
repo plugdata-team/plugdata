@@ -5,6 +5,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <JuceHeader.h>
+#include "../LookAndFeel.h"
+#include "../PluginEditor.h"
+#include "../PluginProcessor.h"
+
 class ObjectInfoPanel : public Component {
     struct CategoryPanel : public Component {
         CategoryPanel(String const& name, Array<std::pair<String, String>> const& content)
