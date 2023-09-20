@@ -280,8 +280,8 @@ public:
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
     {
         int fontHeight = getFontHeight();
+        const String text = labelText.toString();
 
-        const String text = getExpandedLabelText();
 
         if (text.isNotEmpty()) {
             if (!label) {
