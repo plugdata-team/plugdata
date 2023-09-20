@@ -279,27 +279,28 @@ public:
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
     {
-        int fontHeight = getFontHeight();
-
-        const String text = getExpandedLabelText();
+        const String text = ::getValue<String>(labelText);
 
         if (text.isNotEmpty()) {
             if (!label) {
                 label = std::make_unique<ObjectLabel>(object);
+                object->cnv->addChildComponent(label.get());
             }
 
             auto bounds = getLabelBounds();
 
-            bounds.translate(0, fontHeight / -2.0f);
+            bounds.translate(0, bounds.getHeight() / -2.0f);
 
-            label->setFont(Font(fontHeight));
+            label->setFont(Font(bounds.getHeight()));
             label->setBounds(bounds);
             label->setText(text, dontSendNotification);
 
             label->setColour(Label::textColourId, getLabelColour());
 
-            object->cnv->addAndMakeVisible(label.get());
+            label->setVisible(true);
         } else {
+            if (label)
+                label->setVisible(false);
             label.reset(nullptr);
         }
     }

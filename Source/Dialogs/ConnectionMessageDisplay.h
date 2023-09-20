@@ -76,7 +76,7 @@ private:
 
         auto halfEditorWidth = getParentComponent()->getWidth() / 2;
         auto fontStyle = haveMessage ? FontStyle::Semibold : FontStyle::Regular;
-        auto textFont = Font(haveMessage ? Fonts::getSemiBoldFont() : Fonts::getCurrentFont());
+        auto textFont = Font(haveMessage ? Fonts::getSemiBoldFont() : Fonts::getDefaultFont());
         textFont.setSizeAndStyle(14, FontStyle::Regular, 1.0f, 0.0f);
 
         int stringWidth;
@@ -103,10 +103,10 @@ private:
 
             messageItemsWithFormat.add(TextStringWithMetrics(stringItem, fontStyle, stringWidth));
 
-            if (fontStyle != FontStyle::Monospace) {
-                // set up font for next item/s - use monospace for values / lists etc
-                fontStyle = FontStyle::Monospace;
-                textFont = Font(Fonts::getMonospaceFont());
+            if (fontStyle != FontStyle::Regular) {
+                // set up font for next item/s -regular font to support extended character
+                fontStyle = FontStyle::Regular;
+                textFont = Font(Fonts::getDefaultFont());
             }
         }
 
