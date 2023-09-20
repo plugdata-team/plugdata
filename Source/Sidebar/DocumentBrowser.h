@@ -416,8 +416,6 @@ public:
         
         root->setSubContentsList(&directoryContentsList, false);
         setRootItem(root);
-        
-        setRootItemVisible(true);
 
         setInterceptsMouseClicks(true, true);
         setEnabled(true);
