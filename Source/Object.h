@@ -132,6 +132,8 @@ private:
     bool showActiveState = false;
     float activeStateAlpha = 0.0f;
 
+    bool isObjectMouseActive = false;
+
     Image activityOverlayImage;
 
     ObjectDragState& ds;
