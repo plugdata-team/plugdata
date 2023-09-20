@@ -475,10 +475,10 @@ public:
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
 
-            if (!knb->x_snd || !knb->x_snd->s_name)
+            if (!knb->x_snd_raw || !knb->x_snd_raw->s_name)
                 return "";
 
-            auto sym = String::fromUTF8(knb->x_snd->s_name);
+            auto sym = String::fromUTF8(knb->x_snd_raw->s_name);
             if (sym != "empty") {
                 return sym;
             }
@@ -490,10 +490,10 @@ public:
     String getReceiveSymbol()
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
-            if (!knb->x_rcv || !knb->x_rcv->s_name)
+            if (!knb->x_rcv_raw || !knb->x_rcv_raw->s_name)
                 return "";
 
-            auto sym = String::fromUTF8(knb->x_rcv->s_name);
+            auto sym = String::fromUTF8(knb->x_rcv_raw->s_name);
             if (sym != "empty") {
                 return sym;
             }
