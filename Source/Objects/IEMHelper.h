@@ -279,7 +279,7 @@ public:
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
     {
-        const String text = ::getValue<String>(labelText);
+        const String text = labelText.toString();
 
         if (text.isNotEmpty()) {
             if (!label) {
