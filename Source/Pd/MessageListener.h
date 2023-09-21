@@ -5,10 +5,12 @@
  */
 #pragma once
 
+#include "Instance.h"
+
 namespace pd {
 
 struct MessageListener {
-    virtual void receiveMessage(String const& name, int argc, t_atom* argv) {};
+    virtual void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) {};
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener);
 };

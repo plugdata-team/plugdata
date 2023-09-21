@@ -119,6 +119,7 @@ Instance::Instance(String const& symbol)
 {
     libpd_multi_init();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
+    messageArray.ensureStorageAllocated(10000);
 }
 
 Instance::~Instance()
@@ -237,29 +238,14 @@ void Instance::initialisePd(String& pdlua_version)
     };
 
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
-        ScopedLock lock(static_cast<Instance*>(instance)->messageListenerLock);
-
+        //ScopedLock lock(messageListenerLock); // <- this causes deadlock when flushMessages comes in???
         auto& listeners = static_cast<Instance*>(instance)->messageListeners;
+
         if (!symbol || !listeners.count(target))
             return;
 
-        auto sym = String::fromUTF8(symbol->s_name);
-
-        // Create a new vector to hold the null listeners
-        std::vector<std::vector<juce::WeakReference<pd::MessageListener>>::iterator> nullListeners;
-
-        for (auto it = listeners[target].begin(); it != listeners[target].end(); ++it) {
-            auto listener = it->get();
-            if (listener) {
-                listener->receiveMessage(sym, argc, argv);
-            } else
-                nullListeners.push_back(it);
-        }
-
-        // Remove all the null listeners from the original vector using the iterators in the nullListeners vector
-        for (int i = nullListeners.size() - 1; i >= 0; i--) {
-            listeners[target].erase(nullListeners[i]);
-        }
+        auto atom = Atom::fromAtoms(argc, argv);
+        static_cast<Instance*>(instance)->messageArray.add(std::make_tuple(std::make_pair(target, String::fromUTF8(symbol->s_name)), atom));
     };
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, message_trigger);
@@ -301,6 +287,51 @@ void Instance::initialisePd(String& pdlua_version)
     // ag: need to do this here to suppress noise from chatty externals
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
+}
+
+void Instance::flushMessages()
+{
+    MessageManager::callAsync([this, messages = std::move(messageArray)]() mutable {
+        ScopedLock lock(messageListenerLock);
+        // remove multiple messages to same target & symbol
+        std::set<std::pair<void*, String>> uniquePairs;
+
+        for (int i = messages.size() - 1; i >= 0; --i) {
+            const auto& item = messages[i];
+            const auto& pair = std::get<0>(item);
+
+            if (uniquePairs.find(pair) != uniquePairs.end()) {
+                messages.remove(messages.begin() + i);
+            } else {
+                uniquePairs.insert(pair);
+            }
+        }
+        std::vector<std::tuple<void*, String, std::vector<pd::Atom>>> finalMessageArray;
+
+        for (auto& [symbolTarget, atom] : messages) {
+            auto target = std::get<0>(symbolTarget);
+            auto sym = std::get<1>(symbolTarget);
+            finalMessageArray.push_back(std::make_tuple(target, sym, atom));
+        }
+
+        std::vector<std::vector<juce::WeakReference<pd::MessageListener>>::iterator> nullListeners;
+
+        for (auto& [target, symbol, atom] : finalMessageArray) {
+            for (auto it = messageListeners.at(target).begin(); it != messageListeners.at(target).end(); ++it) {
+                auto listenerWeak = *it;
+                auto listener = listenerWeak.get();
+                if (listener)
+                    listener->receiveMessage(symbol, atom);
+                else
+                    nullListeners.push_back(it);
+            }
+            // Remove all the null listeners from the original vector using the iterators in the nullListeners vector
+            for (int i = nullListeners.size() - 1; i >= 0; i--)
+                messageListeners[target].erase(nullListeners[i]);
+            }
+    });
+
+    messageArray.clearQuick();
 }
 
 int Instance::getBlockSize() const

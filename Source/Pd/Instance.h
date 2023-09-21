@@ -125,6 +125,7 @@ private:
     String symbol;
 };
 
+
 class MessageListener;
 class Patch;
 class Instance {
@@ -238,8 +239,10 @@ public:
     virtual void receiveMessage(String const& dest, String const& msg, std::vector<pd::Atom> const& list)
     {
     }
-
     virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) {};
+
+    void flushMessages();
+    Array<std::tuple<std::pair<void*, String>, std::vector<pd::Atom> >> messageArray;
 
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(void* object, MessageListener* messageListener);

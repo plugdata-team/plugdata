@@ -1793,9 +1793,8 @@ bool Canvas::panningModifierDown()
     return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }
 
-void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
+void Canvas::receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms)
 {
-    auto atoms = pd::Atom::fromAtoms(argc, argv);
     switch (hash(symbol)) {
     case hash("obj"):
     case hash("msg"):

@@ -132,7 +132,7 @@ public:
     virtual bool canReceiveMouseEvent(int x, int y);
 
     // Called whenever the object receives a pd message
-    virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
+    virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) {};
 
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
@@ -141,7 +141,7 @@ public:
     // Attempt to send "click" message to object. Returns false if the object has no such method
     bool click(Point<int> position, bool shift, bool alt);
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
+    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override;
 
     static ObjectBase* createGui(void* ptr, Object* parent);
 

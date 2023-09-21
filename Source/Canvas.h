@@ -143,7 +143,7 @@ public:
 
     ObjectParameters& getInspectorParameters();
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
+    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override;
 
     template<typename T>
     Array<T*> getSelectionOfType()

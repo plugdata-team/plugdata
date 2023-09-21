@@ -46,9 +46,9 @@ public:
         pd->unregisterMessageListener(ptr, this);
     }
 
-    void receiveMessage(String const& name, int argc, t_atom* argv)
+    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms)
     {
-        if (name == "redraw") {
+        if (symbol == "redraw") {
             triggerAsyncUpdate();
         }
     };

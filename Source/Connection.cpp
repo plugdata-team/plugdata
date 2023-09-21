@@ -1201,7 +1201,7 @@ void ConnectionPathUpdater::timerCallback()
     stopTimer();
 }
 
-void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
+void Connection::receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms)
 {
     // TODO: indicator
     // messageActivity = messageActivity >= 12 ? 0 : messageActivity + 1;
@@ -1214,8 +1214,8 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
     // The advantage of try-locking is that the audio thread will never have to wait for the message thread
     // The advantage of regular locking is that we ensure every single message arrives, even if we need to wait for it
     if (connectionMessageLock.tryEnter()) {
-        lastValue = pd::Atom::fromAtoms(argc, argv);
-        lastSelector = name;
+        lastValue = atoms;
+        lastSelector = symbol;
         connectionMessageLock.exit();
     }
 }

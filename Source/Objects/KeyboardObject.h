@@ -423,7 +423,7 @@ public:
         keyboard.repaint();
     }
 
-    void notesOn(std::vector<pd::Atom>& noteList, bool isOn)
+    void notesOn(std::vector<pd::Atom> const& noteList, bool isOn)
     {
         for (auto note : noteList) {
             if (isOn)
@@ -434,7 +434,7 @@ public:
         keyboard.repaint();
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 

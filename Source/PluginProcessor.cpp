@@ -577,7 +577,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
 
     if (protectedMode && buffer.getNumChannels() > 0) {
 
-        // Take out inf and NaN values
+        //Take out inf and NaN values
         auto* const* writePtr = buffer.getArrayOfWritePointers();
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             for (int n = 0; n < buffer.getNumSamples(); n++) {
@@ -880,13 +880,11 @@ void PluginProcessor::processInternal()
         midiBufferOut.clear();
     }
 
-    // Dequeue messages
-    sendMessagesFromQueue();
     sendMidiBuffer();
 
     // Process audio
-    FloatVectorOperations::copy(audioBufferIn.data() + (2 * 64), audioBufferOut.data() + (2 * 64), (minOut - 2) * 64);
     performDSP(audioBufferIn.data(), audioBufferOut.data());
+    flushMessages();
 }
 
 bool PluginProcessor::hasEditor() const

@@ -105,9 +105,9 @@ public:
             objectParams.addParam(param);
     }
 
-    bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
+    bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms)
     {
-        auto setColour = [this](Value& targetValue, pd::Atom& atom) {
+        auto setColour = [this](Value& targetValue, pd::Atom const& atom) {
             if (atom.isSymbol()) {
                 auto colour = "#FF" + atom.getSymbol().fromFirstOccurrenceOf("#", false, false);
                 gui->setParameterExcludingListener(targetValue, colour);
