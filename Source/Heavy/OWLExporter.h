@@ -90,7 +90,7 @@ public:
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
 
-        exportingView->logToConsole("Compiling...");
+        exportingView->logToConsole("Compiling...\n");
 
         if (shouldQuit)
             return true;
@@ -135,12 +135,13 @@ public:
             Toolchain::startShellScript(buildScript, this);
 #else
             String buildScript = make.getFullPathName()
-                + " -j4 -f " + OwlDir.getChildFile("Makefile").getFullPathName()
+                + " -j4"
                 + " TOOLROOT=" + gccPath + "/"
-                + " BUILD=../Source"
+                + " BUILD=../"
                 + " PATCHNAME=" + name
                 + " PATCHCLASS=HeavyPatch"
                 + " PATCHFILE=HeavyOWL_owl.hpp"
+                + " PLATFORM=OWL2"
                 + " load";
 
             Toolchain::startShellScript(buildScript, this);
