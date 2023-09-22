@@ -1508,7 +1508,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
         if (objectNames.count(ID)) {
             if (cnv->getSelectionOfType<Object>().size() == 1) {
                 // if 1 object is selected, create new object beneath selected
-                auto obj = cnv->lastSelectedObject = cnv->getSelectionOfType<Object>()[0];
+                auto obj = cnv->getSelectionOfType<Object>()[0];
+                obj->hideEditor(); // If it's still open, it might overwrite lastSelectedObject
+                cnv->lastSelectedObject = obj;
+                std::cout << "assigned last selection" << std::endl;
                 if (obj) {
                     cnv->objects.add(new Object(cnv, objectNames.at(ID),
                         Point<int>(

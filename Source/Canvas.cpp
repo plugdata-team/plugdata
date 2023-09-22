@@ -463,7 +463,9 @@ void Canvas::performSynchronise()
     // Remove deleted objects
     for (int n = objects.size() - 1; n >= 0; n--) {
         auto* object = objects[n];
-        if (!object->getPointer() || patch.objectWasDeleted(object->getPointer())) {
+        
+        // If the object is showing it's initial editor, meaning no object was assigned yet, allow it to exist without pointing to an object
+        if ((!object->getPointer()|| patch.objectWasDeleted(object->getPointer())) && !object->isInitialEditorShown()) {
             setSelected(object, false, false);
             objects.remove(n);
         }

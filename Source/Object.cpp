@@ -408,6 +408,7 @@ void Object::setType(String const& newType, void* existingObject)
         }
     }
     cnv->lastSelectedObject = nullptr;
+    
     cnv->lastSelectedConnection = nullptr;
 
     cnv->editor->updateCommandStatus();
@@ -1180,6 +1181,12 @@ void Object::mouseDrag(MouseEvent const& e)
     }
 }
 
+// Returns true is the object is showing its initial editor, and doesn't have a GUI yet
+bool Object::isInitialEditorShown()
+{
+    return newObjectEditor != nullptr;
+}
+
 void Object::showEditor()
 {
     if (!gui) {
@@ -1189,12 +1196,14 @@ void Object::showEditor()
     }
 }
 
+
+
 void Object::hideEditor()
 {
     if (gui) {
         gui->hideEditor();
     } else if (newObjectEditor) {
-        std::unique_ptr<TextEditor> outgoingEditor;
+        std::unique_ptr<TextEditor> outgoingEditor = nullptr;
         std::swap(outgoingEditor, newObjectEditor);
 
         cnv->hideSuggestions();
@@ -1258,6 +1267,7 @@ void Object::openNewObjectEditor()
                 cnv->hideSuggestions();
                 cnv->objects.removeObject(_this.getComponent());
                 cnv->lastSelectedObject = nullptr;
+                
                 cnv->lastSelectedConnection = nullptr;
             });
         };
