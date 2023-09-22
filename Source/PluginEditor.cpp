@@ -1511,7 +1511,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 auto obj = cnv->getSelectionOfType<Object>()[0];
                 obj->hideEditor(); // If it's still open, it might overwrite lastSelectedObject
                 cnv->lastSelectedObject = obj;
-                std::cout << "assigned last selection" << std::endl;
                 if (obj) {
                     cnv->objects.add(new Object(cnv, objectNames.at(ID),
                         Point<int>(
