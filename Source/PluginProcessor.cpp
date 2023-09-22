@@ -547,7 +547,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
             int device;
             auto message = MidiDeviceManager::convertFromSysExFormat(bufferIterator.getMessage(), device);
 
-            if (device > midiDeviceManager->getOutputDevices().size()) {
+            if (enableInternalSynth && (device > midiDeviceManager->getOutputDevices().size() || device == 0)) {
                 midiBufferInternalSynth.addEvent(message, 0);
             } else {
                 midiDeviceManager->sendMidiOutputMessage(device, message);
