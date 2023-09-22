@@ -645,10 +645,10 @@ private:
                 toFilter = hvccObjectsFound;
             }
             
-            // Remove blacklisted objects
+            // Remove unhelpful objects
             for(int i = toFilter.size() - 1; i >= 0; i--)
             {
-                if(_this->blackList.contains(toFilter[i]))
+                if(_this->excludeList.contains(toFilter[i]))
                 {
                     toFilter.remove(i);
                 }
@@ -776,7 +776,7 @@ private:
     SafePointer<TextEditor> openedEditor = nullptr;
     SafePointer<Object> currentObject = nullptr;
         
-    StringArray blackList = {
+    StringArray excludeList = {
         "number~", // appears before numbox~ alphabetically, but is worse in every way
         "allpass_unit",
         "echo_unit",
