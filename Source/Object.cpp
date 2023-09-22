@@ -380,7 +380,7 @@ void Object::setType(String const& newType, void* existingObject)
     resized(); // If bounds haven't changed, we'll still want to update gui and iolets bounds
 
     // Auto patching
-    if (!attachedToMouse && getValue<bool>(cnv->editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
+    if (!attachedToMouse && getValue<bool>(cnv->editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto inlet = iolets[0];
         if (outlet->isSignal == inlet->isSignal) {
