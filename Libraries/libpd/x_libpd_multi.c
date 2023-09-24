@@ -769,6 +769,11 @@ void setup_rotate0x2emc_tilde();
 void pipe2_setup();
 void circuit_tilde_setup();
 
+void op2_tilde_setup();
+void op4_tilde_setup();
+void op6_tilde_setup();
+
+
 #if ENABLE_SFIZZ
 void sfz_tilde_setup();
 #endif
@@ -1087,6 +1092,10 @@ void libpd_init_else(void)
     setup_rotate0x2emc_tilde();
     pipe2_setup();
     circuit_tilde_setup();
+    
+    op2_tilde_setup();
+    op4_tilde_setup();
+    op6_tilde_setup();
 }
 
 void libpd_init_cyclone(void)
