@@ -271,9 +271,30 @@ void Object::mouseMove(MouseEvent const& e)
         updateMouseCursor();
         return;
     }
+    
+    int zone = 0;
+    auto b = getLocalBounds().toFloat().reduced(margin - 2);
+    if (b.contains (e.position)
+         && !b.reduced(7).contains(e.position))
+    {
+        auto corners = getCorners();
+        bool done = false;
+        
+        auto minW = jmax(b.getWidth() / 10.0f, jmin (10.0f, b.getWidth() / 3.0f));
+        auto minH = jmax(b.getHeight() / 10.0f, jmin (10.0f, b.getHeight() / 3.0f));
+        
+        if (corners[0].contains(e.position) || corners[1].contains(e.position) || (e.position.x < jmax (7.0f, minW) && b.getX() > 0.0f))
+            zone |= ResizableBorderComponent::Zone::left;
+        else if (corners[2].contains(e.position) || corners[3].contains(e.position) || (e.position.x >= b.getWidth() - jmax (7.0f, minW)))
+            zone |= ResizableBorderComponent::Zone::right;
 
-    resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), Point<int>(e.x, e.y));
-
+        if (corners[0].contains(e.position) || corners[3].contains(e.position) || (e.position.y < jmax (7.0f, minH)))
+            zone |= ResizableBorderComponent::Zone::top;
+        else if (corners[1].contains(e.position) || corners[2].contains(e.position) || (e.position.y >= b.getHeight() - jmax (7.0f, minH)))
+            zone |= ResizableBorderComponent::Zone::bottom;
+    }
+    
+    resizeZone = static_cast<ResizableBorderComponent::Zone>(zone);
     validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre && e.originalComponent == this;
 
     setMouseCursor(validResizeZone ? resizeZone.getMouseCursor() : MouseCursor::NormalCursor);

@@ -166,6 +166,9 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
 
             cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
             okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+            
+            cancel.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+            okay.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
             cancel.onClick = [dialog, callback] {
                 callback(false);
