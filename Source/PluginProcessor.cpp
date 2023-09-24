@@ -220,6 +220,15 @@ void PluginProcessor::initialiseFilesystem()
     if (!patches.exists()) {
         patches.createDirectory();
     }
+    
+    auto testTonePatch = homeDir.getChildFile("testtone.pd");
+    auto cpuTestPatch = homeDir.getChildFile("load-meter.pd");
+    
+    if(testTonePatch.exists()) testTonePatch.deleteFile();
+    if(cpuTestPatch.exists()) cpuTestPatch.deleteFile();
+
+    File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/testtone.pd")).copyFileTo(testTonePatch);
+    File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/load-meter.pd")).copyFileTo(cpuTestPatch);
 
     // We want to recreate these symlinks so that they link to the abstractions/docs for the current plugdata version
     homeDir.getChildFile("Abstractions").deleteFile();
