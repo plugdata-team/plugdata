@@ -430,12 +430,16 @@ Array<Rectangle<float>> Object::getCorners() const
 
 void Object::paintOverChildren(Graphics& g)
 {
+    // If autoconnect is about to happen, draw a fake inlet with a dotted outline
     if(getValue<bool>(cnv->editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs)
     {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
+        auto fakeInletBounds = Rectangle<float>(16, 4, 8, 8);
+        g.setColour(findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter());
+        g.fillEllipse(fakeInletBounds);
         
-        g.setColour(findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId));
-        g.drawEllipse(Rectangle<float>{16, 4, 8, 8}, 1.0f);
+        g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+        g.drawEllipse(fakeInletBounds, 1.0f);
     }
     
     if (consoleTarget == this) {
