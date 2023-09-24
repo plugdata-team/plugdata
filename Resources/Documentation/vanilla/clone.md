@@ -6,7 +6,7 @@ categories:
 see_also: 
 - poly
 pdcategory: vanilla, UI, Data Management
-last_update: '0.47'
+last_update: '0.54'
 inlets:
   nth:
   - type: list
@@ -18,7 +18,7 @@ outlets:
   - type: data outlets
     description: output with a prepended instance number
   - type: signal outlets
-    description: output the sum of all instances' outputs
+    description: output from all instances either as multichannel signal or summed into mono signal
 
 flags:
   - name: -x
@@ -26,6 +26,12 @@ flags:
   - name: -s <float>
     description: sets starting voice number
     default: 0
+  - name: -di
+    description: distribute multichannel input signals across cloned patches
+  - name: -do
+    description: combine signal outputs to make a multichannel signal
+  - name: -d
+    description: set both -di and -do flags
 
 arguments:
   - type: symbol
@@ -36,6 +42,10 @@ arguments:
     description: optional arguments to the abstraction
 
 methods:
+  - type: resize <float>
+    description: resizes the number of copies
+  - type: vis <list>
+    description: opens a copy, takes copy number and visualization status (1 to open, 0 to close)
   - type: next <list>
     description: forwards a message to the next instance's inlet (incrementing and repeating circularly)
   - type: this <list>
