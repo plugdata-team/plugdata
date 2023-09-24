@@ -80,9 +80,13 @@ public:
             latch = pic->x_latch;
             outline = pic->x_outline;
             reportSize = pic->x_size;
-            sendSymbol = pic->x_snd_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_snd_raw->s_name);
-            receiveSymbol = pic->x_rcv_raw == pd->generateSymbol("empty") ? "" : String::fromUTF8(pic->x_rcv_raw->s_name);
+            
+            auto sndSym = pic->x_snd_set ? String::fromUTF8(pic->x_snd_raw->s_name) : getBinbufSymbol(3);
+            auto rcvSym = pic->x_rcv_set ? String::fromUTF8(pic->x_rcv_raw->s_name) : getBinbufSymbol(4);
 
+            sendSymbol = sndSym != "empty" ? sndSym : "";
+            receiveSymbol = rcvSym != "empty" ? rcvSym : "";
+            
             sizeProperty = Array<var> { var(pic->x_width), var(pic->x_height) };
         }
 

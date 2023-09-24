@@ -614,6 +614,22 @@ void ObjectBase::lock(bool isLocked)
     setInterceptsMouseClicks(isLocked, isLocked);
 }
 
+String ObjectBase::getBinbufSymbol(int argIndex)
+{
+    if(auto obj = ptr.get<t_object>())
+    {
+        auto* binbuf = obj->te_binbuf;
+        int numAtoms = binbuf_getnatom(binbuf);
+        if(argIndex < numAtoms) {
+            char buf[80];
+            atom_string(binbuf_getvec(binbuf) + argIndex, buf, 80);
+            return String::fromUTF8(buf);
+        }
+    }
+    
+    return {};
+}
+
 Canvas* ObjectBase::getCanvas()
 {
     return nullptr;
