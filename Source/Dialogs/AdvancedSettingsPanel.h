@@ -59,6 +59,10 @@ public:
         scaleValue.addListener(this);
         otherProperties.add(new PropertiesPanel::EditableComponent<float>("Global scale factor", scaleValue));
 
+        defaultZoom = settingsFile->getProperty<float>("default_zoom");
+        defaultZoom.addListener(this);
+        otherProperties.add(new PropertiesPanel::EditableComponent<float>("Default zoom %", defaultZoom));
+
         propertiesPanel.addSection("Other", otherProperties);
 
         addAndMakeVisible(propertiesPanel);
@@ -85,6 +89,11 @@ public:
             SettingsFile::getInstance()->setGlobalScale(scale);
             scaleValue = scale;
         }
+        if (v.refersToSameSourceAs(defaultZoom)) {
+            auto zoom = std::clamp(getValue<float>(defaultZoom), 20.0f, 300.0f);
+            SettingsFile::getInstance()->setProperty("default_zoom", zoom);
+            defaultZoom = zoom;
+        }
     }
     Component* editor;
 
@@ -94,6 +103,7 @@ public:
     Value macTitlebarButtons;
     Value reloadPatch;
     Value scaleValue;
+    Value defaultZoom;
 
     Value showPalettesValue;
     Value autoPatchingValue;

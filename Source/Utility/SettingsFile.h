@@ -109,6 +109,7 @@ private:
         { "order", var(0) },
         { "direction", var(0) },
         { "global_scale", var(1.0f) },
+        { "default_zoom", var(100.0f) },
         { "show_palettes", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },

@@ -108,8 +108,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
     setSize(infiniteCanvasSize, infiniteCanvasSize);
 
-    // initialize per canvas zoom to 100% when first creating canvas
-    zoomScale.setValue(1.0f);
+    // initialize to default zoom
+    auto defaultZoom = SettingsFile::getInstance()->getPropertyAsValue("default_zoom");
+    zoomScale.setValue(getValue<float>(defaultZoom)/100.0f);
     zoomScale.addListener(this);
 
     // Add lasso component
