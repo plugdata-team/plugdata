@@ -558,7 +558,8 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
 
             if (enableInternalSynth && (device > midiDeviceManager->getOutputDevices().size() || device == 0)) {
                 midiBufferInternalSynth.addEvent(message, 0);
-            } else {
+            } 
+            if(isPositiveAndBelow(device,  midiDeviceManager->getOutputDevices().size())) {
                 midiDeviceManager->sendMidiOutputMessage(device, message);
             }
         }
@@ -1351,11 +1352,14 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     } else if (midiByteIndex == 0 && byte == 0xf0) {
         midiByteIsSysex = true;
     } else {
+        
+        midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(static_cast<uint8>(byte)), port), audioAdvancement);
+        midiByteIndex = 0;
+        /*
         midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
         if (midiByteIndex >= 3) {
-            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(midiByteBuffer, 3), port), audioAdvancement);
-            midiByteIndex = 0;
-        }
+
+        } */
     }
 }
 

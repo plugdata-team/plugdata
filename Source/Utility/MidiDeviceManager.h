@@ -15,34 +15,34 @@ struct MidiDeviceManager : public ChangeListener
     // We still want to be able to use handy JUCE stuff for MIDI timing, so we treat every MIDI event as sysex
     static std::vector<uint16_t> encodeSysExData(std::vector<uint8_t> const& data)
     {
-        std::vector<uint16_t> encoded_data;
+        std::vector<uint16_t> encodedData;
         for (auto& value : data) {
             if (value == 0xF0 || value == 0xF7) {
-                // If the value is 0xF0 or 0xF7, encode them in the higher 8 bits
-                encoded_data.push_back(static_cast<uint16_t>(value) << 8);
+                // If the value is 0xF0 or 0xF7, encode them in the higher 8 bits. 0xF0 and 0xF8 are already at the top end, so we only need to shift them by 1 position to put it outside of MIDI range. We can't shift by 8, the sysex bytes could still be recognised as sysex bytes!
+                encodedData.push_back(static_cast<uint16_t>(value) << 1);
             } else {
                 // Otherwise, just cast the 8-bit value to a 16-bit value
-                encoded_data.push_back(static_cast<uint16_t>(value));
+                encodedData.push_back(static_cast<uint16_t>(value));
             }
         }
-        return encoded_data;
+        return encodedData;
     }
 
-    static std::vector<uint8_t> decodeSysExData(std::vector<uint16_t> const& encoded_data)
+    static std::vector<uint8_t> decodeSysExData(std::vector<uint16_t> const& encodedData)
     {
-        std::vector<uint8_t> decoded_data;
-        for (auto& value : encoded_data) {
-            auto upperByte = value >> 8;
+        std::vector<uint8_t> decodeData;
+        for (auto& value : encodedData) {
+            auto upperByte = value >> 1;
             if (upperByte == 0xF0 || upperByte == 0xF7) {
-                decoded_data.push_back(upperByte);
+                decodeData.push_back(upperByte);
             } else {
                 // Extract the lower 8 bits to obtain the original 8-bit data
-                decoded_data.push_back(static_cast<uint8_t>(value));
+                decodeData.push_back(static_cast<uint8_t>(value));
             }
         }
-        return decoded_data;
+        return decodeData;
     }
-
+        
     static MidiMessage convertToSysExFormat(MidiMessage m, int device)
     {
         if (ProjectInfo::isStandalone) {
@@ -68,6 +68,7 @@ struct MidiDeviceManager : public ChangeListener
 
             device = midiMessage.back();
             midiMessage.pop_back();
+            
             return MidiMessage(midiMessage.data(), midiMessage.size());
         }
 
@@ -348,6 +349,7 @@ public:
             for (auto* midiOutput : midiOutputs) {
                 midiOutput->sendMessageNow(message);
             }
+            fromPlugdata->sendMessageNow(message);
             return;
         }
 
