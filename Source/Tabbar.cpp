@@ -363,6 +363,8 @@ void TabComponent::addTab(String const& tabName, Component* contentComponent, in
     contentComponents.insert(insertIndex, WeakReference<Component>(contentComponent));
 
     tabs->addTab(tabName, findColour(ResizableWindow::backgroundColourId), insertIndex);
+    
+    setTabBarDepth(30); // Make sure tabbar isn't invisible
     resized();
 }
 

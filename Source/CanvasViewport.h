@@ -384,12 +384,12 @@ public:
             return getViewArea().withZeroOrigin().getCentre();
         };
 
-        auto currentCenter = getCentre(previousBounds);
+        auto currentCentre = getCentre(previousBounds);
         previousBounds = getBounds();
         Viewport::resized();
-        auto newCenter = getCentre(getBounds());
+        auto newCentre = getCentre(getBounds());
 
-        auto offset = currentCenter - newCenter;
+        auto offset = currentCentre - newCentre;
         setViewPosition(getViewPosition() + offset);
     }
 
