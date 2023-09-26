@@ -100,6 +100,7 @@ removeFile("./Documentation/Makefile.am")
 makeDir("Extra")
 makeDir("Extra/GS")
 copyDir("../../Libraries/pd-else/Documentation/extra_files", "Extra/else");
+copyFile("../../Libraries/pd-else/Documentation/README.pdf", "Extra/else");
 copyDir("../../Libraries/pd-else/Code_source/Compiled/audio/sfont~/sf", "Extra/else/sf");
 copyDir("../Patches/Presets", "./Extra/Presets")
 copyDir("../Patches/Palettes", "./Extra/palette")
