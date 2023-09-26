@@ -1093,9 +1093,10 @@ void libpd_init_else(void)
     pipe2_setup();
     circuit_tilde_setup();
     
+    /* Not yet!
     op2_tilde_setup();
     op4_tilde_setup();
-    op6_tilde_setup();
+    op6_tilde_setup(); */
 }
 
 void libpd_init_cyclone(void)

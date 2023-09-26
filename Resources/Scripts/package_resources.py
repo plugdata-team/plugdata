@@ -81,6 +81,7 @@ copyFile("../Patches/param.pd", "./Abstractions")
 
 globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
 copyDir("../../Libraries/pd-else/Documentation/Help-files/", "./Documentation/9.else")
+copyFile("../../Libraries/pd-else/Documentation/extra_files/f2s~-help.pd", "./Documentation/9.else")
 
 #copyFile("../Patches/beat-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/param-help.pd", "./Documentation/5.reference")
