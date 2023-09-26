@@ -1352,14 +1352,7 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     } else if (midiByteIndex == 0 && byte == 0xf0) {
         midiByteIsSysex = true;
     } else {
-        
         midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(static_cast<uint8>(byte)), port), audioAdvancement);
-        midiByteIndex = 0;
-        /*
-        midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
-        if (midiByteIndex >= 3) {
-
-        } */
     }
 }
 
