@@ -71,6 +71,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "NoteObject.h"
 #include "ColourPickerObject.h"
 #include "MidiObjects.h"
+#include "OpenFileObject.h"
 #include "PdTildeObject.h"
 
 // Class for non-patchable objects
@@ -564,7 +565,20 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new NoteObject(ptr, parent);
         case hash("knob"):
             return new KnobObject(ptr, parent);
-
+        case hash("openfile"): {
+            char* text;
+            int size;
+            libpd_get_object_text(ptr, &text, &size);
+            auto objText = String::fromUTF8(text, size);
+            bool hyperlink = objText.contains("openfile -h");
+            if(hyperlink)
+            {
+                return new OpenFileObject(ptr, parent);
+            }
+            else {
+                return new TextObject(ptr, parent);
+            }
+        }
         case hash("noteout"):
         case hash("pgmout"):
         case hash("bendout"): {
