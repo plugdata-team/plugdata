@@ -50,9 +50,6 @@ public:
 
         listLabel.addMouseListener(this, false);
 
-        listLabel.setText("0 0", dontSendNotification);
-        updateFromGui();
-
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         objectParameters.addParamFloat("Minimum", cGeneral, &min);
         objectParameters.addParamFloat("Maximum", cGeneral, &max);
