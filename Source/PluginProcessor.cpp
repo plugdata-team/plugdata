@@ -88,7 +88,7 @@ PluginProcessor::PluginProcessor()
 
     statusbarSource = std::make_unique<StatusbarSource>();
 
-    auto* volumeParameter = new PlugDataParameter(this, "volume", 1.0f, true, 0, 0.0f, 1.0f);
+    auto* volumeParameter = new PlugDataParameter(this, "volume", 0.8f, true, 0, 0.0f, 1.0f);
     addParameter(volumeParameter);
     volume = volumeParameter->getValuePointer();
 
