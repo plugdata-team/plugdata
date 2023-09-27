@@ -287,8 +287,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
 
     // This is necessary on Linux to make PluginEditor grab keyboard focus on startup
-    // Otherwise, keyboard shortcuts won't work directly after starting plugdata
-#if JUCE_LINUX
+    // It also appears to be necessary for some DAWs, like Logic
     ::Timer::callAfterDelay(100, [_this = SafePointer(this)]() {
         if (!_this)
             return;
@@ -298,7 +297,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
         _this->grabKeyboardFocus();
     });
-#endif
 }
 
 PluginEditor::~PluginEditor()
