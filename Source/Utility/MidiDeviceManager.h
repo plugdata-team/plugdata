@@ -349,14 +349,14 @@ public:
             for (auto* midiOutput : midiOutputs) {
                 midiOutput->sendMessageNow(message);
             }
-            fromPlugdata->sendMessageNow(message);
+            if(fromPlugdata) fromPlugdata->sendMessageNow(message);
             return;
         }
 
         auto idToFind = getOutputDevices()[device - 1].identifier;
         // The order of midiOutputs is not necessarily the same as that of lastMidiOutputs, that's why we need to check
 
-        if (idToFind == fromPlugdata->getIdentifier()) {
+        if (fromPlugdata && idToFind == fromPlugdata->getIdentifier()) {
             fromPlugdata->sendMessageNow(message);
             return;
         }
