@@ -416,6 +416,7 @@ public:
             hash("fgcolor"),
             hash("bgcolor"),
             hash("init"),
+            hash("set"),
         };
     }
 
@@ -449,7 +450,8 @@ public:
         }
         case hash("init"):
         case hash("fgcolor"):
-        case hash("bgcolor"): {
+        case hash("bgcolor"):
+        case hash("set"): {
             update();
             break;
         }
