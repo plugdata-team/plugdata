@@ -326,6 +326,11 @@ void PluginEditor::paint(Graphics& g)
 
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
+    if(!getTopLevelComponent()->hasKeyboardFocus(true))
+    {
+        baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
+    }
+    
     bool rounded = wantsRoundedCorners();
 
     if (rounded) {

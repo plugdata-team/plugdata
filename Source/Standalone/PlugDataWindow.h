@@ -643,18 +643,17 @@ public:
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 3 });
         }
     }
+#endif
 
     void activeWindowStatusChanged() override
     {
         repaint();
-    }
-#elif JUCE_WINDOWS
-    void activeWindowStatusChanged() override
-    {
+        
+#if JUCE_WINDOWS
         if (drawWindowShadow && !isUsingNativeTitleBar() && dropShadower)
             dropShadower->repaint();
-    }
 #endif
+    }
 
     void resized() override
     {
@@ -861,4 +860,5 @@ inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
     }
 
     return nullptr;
-}
+}
+

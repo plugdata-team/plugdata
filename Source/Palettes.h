@@ -327,7 +327,13 @@ public:
     void paint(Graphics& g) override
     {
         // toolbar bar
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
+        if(!getTopLevelComponent()->hasKeyboardFocus(true))
+        {
+            backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
+        }
+        
+        g.setColour(backgroundColour);
         g.fillRect(getLocalBounds().toFloat().removeFromTop(30).withTrimmedTop(0.5f));
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
@@ -391,7 +397,13 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
+        if(!getTopLevelComponent()->hasKeyboardFocus(true))
+        {
+            backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
+        }
+        
+        g.setColour(backgroundColour);
         g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
 
         if (getToggleState()) {
@@ -689,7 +701,12 @@ private:
             g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
         }
 
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
+        if(!getTopLevelComponent()->hasKeyboardFocus(true))
+        {
+            backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
+        }
+        g.setColour(backgroundColour);
         g.fillRect(getLocalBounds().toFloat().removeFromLeft(26).withTrimmedTop(0.5f));
     }
 

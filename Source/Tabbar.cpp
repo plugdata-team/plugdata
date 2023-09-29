@@ -497,7 +497,14 @@ Component* TabComponent::getTabContentComponent(int tabIndex) const noexcept
 
 void TabComponent::paint(Graphics& g)
 {
-    g.fillAll(findColour(PlugDataColour::tabBackgroundColourId));
+    auto backgroundColour = findColour(PlugDataColour::tabBackgroundColourId);
+
+    if(!getTopLevelComponent()->hasKeyboardFocus(true))
+    {
+        backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
+    }
+    
+    g.fillAll(backgroundColour);
 }
 
 void TabComponent::paintOverChildren(Graphics& g)
