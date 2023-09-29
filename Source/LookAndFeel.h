@@ -1594,8 +1594,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           iolet_area_colour=\"fffafafa\" iolet_outline_colour=\"ffc2c2c2\"\n"
     "           comment_text_colour=\"ff373737\" searchbar_colour=\"fffafafa\" dashed_signal_connections=\"1\"\n"
     "           straight_connections=\"0\" thin_connections=\"0\" square_iolets=\"0\"/>"
-    "           comment_text_colour=\"ff373737\" searchbar_colour=\"fffafafa\" dashed_signal_connections=\"1\"\n"
-    "           straight_connections=\"0\" thin_connections=\"0\" square_iolets=\"0\"/>\n"
     "    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
     "           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffc0bbb2\" tabbar_background=\"ffd2cdc4\"\n"
     "           tab_text=\"ff5a5a5a\" selected_tab_background=\"ffc0bbb2\" selected_tab_text=\"ff5a5a5a\"\n"
@@ -1717,4 +1715,5 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };
-};
+};
+
