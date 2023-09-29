@@ -381,7 +381,7 @@ const std::map<ObjectIDs, String> objectNames {
 };
 
 struct Corners {
-    inline static float const windowCornerRadius = 12.5f;
+    inline static float const windowCornerRadius = 12.0f;
     inline static float const largeCornerRadius = 8.0f;
     inline static float const defaultCornerRadius = 5.0f;
     inline static float objectCornerRadius = 2.75f;

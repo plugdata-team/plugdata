@@ -504,9 +504,7 @@ void TabComponent::paintOverChildren(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(0, tabDepth, getWidth(), tabDepth);
-
     g.drawLine(0, 0, getWidth(), 0);
-    g.drawLine(0, 0, 0, getBottom());
 }
 
 int TabComponent::getIndexOfCanvas(Canvas* cnv)

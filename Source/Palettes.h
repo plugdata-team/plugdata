@@ -696,10 +696,10 @@ private:
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawVerticalLine(25, 0, getHeight());
+        g.drawLine(25.5f, 0.0f, 25.5f, getHeight());
 
         if (view) {
-            g.drawLine(getWidth(), 0, getWidth(), getHeight());
+            g.drawLine(getWidth() - 0.5f, 0.0f, getWidth() - 0.5f, getHeight());
         }
     }
 

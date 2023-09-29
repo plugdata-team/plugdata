@@ -20,7 +20,6 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
     { toolbarHoverColourId, { "Toolbar hover", "toolbar_hover", "Toolbar" } },
     { toolbarActiveColourId, { "Toolbar active text", "toolbar_active", "Toolbar" } },
-    { toolbarOutlineColourId, { "Toolbar outline", "toolbar_outline_colour", "Toolbar" } },
 
     { tabBackgroundColourId, { "Tab background", "tabbar_background", "Tabbar" } },
 
@@ -31,7 +30,6 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { canvasBackgroundColourId, { "Canvas background", "canvas_background", "Canvas" } },
     { canvasTextColourId, { "Canvas text", "canvas_text", "Canvas" } },
     { canvasDotsColourId, { "Canvas dots colour", "canvas_dots", "Canvas" } },
-    { outlineColourId, { "Outline", "outline_colour", "Canvas" } },
 
     { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
     { guiObjectInternalOutlineColour, { "GUI Object internal outline colour", "gui_internal_outline_colour", "Object" } },
@@ -53,9 +51,11 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { popupMenuActiveBackgroundColourId, { "Popup menu background active", "popup_background_active", "Popup Menu" } },
     { popupMenuTextColourId, { "Popup menu text", "popup_text", "Popup Menu" } },
     { popupMenuActiveTextColourId, { "Popup menu active text", "popup_active_text", "Popup Menu" } },
+    { outlineColourId, { "Popup menu outline", "outline_colour", "Popup Menu" } },
 
     { dialogBackgroundColourId, { "Dialog background", "dialog_background", "Other" } },
     { caretColourId, { "Text editor caret", "caret_colour", "Other" } },
+    { toolbarOutlineColourId, { "Outline", "toolbar_outline_colour", "Other" } },
 
     { levelMeterActiveColourId, { "Level meter active", "levelmeter_active", "Level Meter" } },
     { levelMeterBackgroundColourId, { "Level meter track", "levelmeter_background", "Level Meter" } },
@@ -263,7 +263,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             : Button("")
             , buttonType(buttonType)
         {
-            auto crossThickness = 0.15f;
+            auto crossThickness = 0.2f;
             String name;
 
             switch (buttonType) {
@@ -301,17 +301,18 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
+            auto circleColour = findColour(PlugDataColour::toolbarHoverColourId);
+            if(shouldDrawButtonAsHighlighted) circleColour = circleColour.darker(0.025f);
+
+            g.setColour(circleColour);
+            g.fillEllipse(getLocalBounds().withSizeKeepingCentre(getWidth() - 8, getWidth() - 8).toFloat());
+
             auto colour = findColour(TextButton::textColourOffId);
-
             g.setColour((!isEnabled() || shouldDrawButtonAsDown) ? colour.withAlpha(0.6f) : colour);
-
-            if (shouldDrawButtonAsHighlighted) {
-                g.setColour(findColour(Slider::thumbColourId));
-            }
 
             auto& p = getToggleState() ? toggledShape : shape;
 
-            auto reducedRect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat().reduced(getHeight() * 0.3f);
+            auto reducedRect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat().reduced(getHeight() * 0.35f);
 
             g.fillPath(p, p.getTransformToScaleToFit(reducedRect, true));
         }

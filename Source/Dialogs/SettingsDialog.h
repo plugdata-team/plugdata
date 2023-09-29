@@ -39,7 +39,7 @@ public:
         if (isMouseOver() || getToggleState()) {
             auto background = findColour(PlugDataColour::toolbarHoverColourId);
             if (getToggleState())
-                background = background.darker(0.05f);
+                background = background.darker(0.025f);
 
             g.setColour(background);
             PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
