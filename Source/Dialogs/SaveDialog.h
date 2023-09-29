@@ -20,7 +20,7 @@ private:
         auto activeColour = findColour(PlugDataColour::toolbarActiveColourId);
 
         if (isMouseOver() || isMouseButtonDown()) {
-            backgroundColour = backgroundColour.contrasting(0.025f);
+            backgroundColour = backgroundColour.contrasting(0.05f);
         }
 
         g.setColour(backgroundColour);
