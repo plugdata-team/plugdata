@@ -373,6 +373,11 @@ public:
 
         adjustScrollbarBounds();
 
+        if (!SettingsFile::getInstance()->getProperty<bool>("center_resized_canvas")) {
+            Viewport::resized();
+            return;
+        }
+
         float scale = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
 
         // centre canvas when resizing viewport
