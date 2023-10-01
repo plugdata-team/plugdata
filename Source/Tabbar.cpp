@@ -499,7 +499,7 @@ void TabComponent::paint(Graphics& g)
 {
     auto backgroundColour = findColour(PlugDataColour::tabBackgroundColourId);
 
-    if(ProjectInfo::isStandalone() && !getTopLevelComponent()->hasKeyboardFocus(true))
+    if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
     {
         backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
     }
