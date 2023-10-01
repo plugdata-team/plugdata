@@ -27,78 +27,6 @@ For more information visit www.rabiensoftware.com
  #include <sys/time.h>
 #endif
 
-#if JUCE_MAC
-class FileSystemWatcher::Impl
-{
-public:
-    Impl (FileSystemWatcher& o, File f) : owner (o), folder (f)
-    {
-        NSString* newPath = [NSString stringWithUTF8String:folder.getFullPathName().toRawUTF8()];
-
-        paths = [[NSArray arrayWithObject:newPath] retain];
-        context.version         = 0L;
-        context.info            = this;
-        context.retain          = nil;
-        context.release         = nil;
-        context.copyDescription = nil;
-
-        stream = FSEventStreamCreate (kCFAllocatorDefault, callback, &context, (CFArrayRef)paths, kFSEventStreamEventIdSinceNow, 0.05,
-                                      kFSEventStreamCreateFlagNoDefer | kFSEventStreamCreateFlagFileEvents);
-        if (stream)
-        {
-            FSEventStreamScheduleWithRunLoop (stream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-            FSEventStreamStart (stream);
-        }
-
-    }
-
-    ~Impl()
-    {
-        if (stream)
-        {
-            FSEventStreamStop (stream);
-            FSEventStreamUnscheduleFromRunLoop (stream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-            FSEventStreamInvalidate (stream);
-            FSEventStreamRelease (stream);
-        }
-    }
-
-    static void callback (ConstFSEventStreamRef streamRef, void* clientCallBackInfo, size_t numEvents, void* eventPaths,
-                          const FSEventStreamEventFlags* eventFlags, const FSEventStreamEventId* eventIds)
-    {
-        ignoreUnused (streamRef, numEvents, eventIds, eventPaths, eventFlags);
-
-        Impl* impl = (Impl*)clientCallBackInfo;
-        impl->owner.folderChanged (impl->folder);
-
-        char** files = (char**)eventPaths;
-
-        for (int i = 0; i < int (numEvents); i++)
-        {
-            char* file = files[i];
-            FSEventStreamEventFlags evt = eventFlags[i];
-
-            File path = String::fromUTF8 (file);
-            if (evt & kFSEventStreamEventFlagItemModified)
-                impl->owner.fileChanged (path, FileSystemEvent::fileUpdated);
-            else if (evt & kFSEventStreamEventFlagItemRemoved)
-                impl->owner.fileChanged (path, FileSystemEvent::fileDeleted);
-            else if (evt & kFSEventStreamEventFlagItemRenamed)
-                impl->owner.fileChanged (path, path.exists() ? FileSystemEvent::fileRenamedNewName : FileSystemEvent::fileRenamedOldName);
-            else if (evt & kFSEventStreamEventFlagItemCreated)
-                impl->owner.fileChanged (path, FileSystemEvent::fileCreated);
-        }
-    }
-
-    FileSystemWatcher& owner;
-    const File folder;
-
-    NSArray* paths;
-    FSEventStreamRef stream;
-    struct FSEventStreamContext context;
-};
-#endif
-
 #ifdef JUCE_LINUX
 #define BUF_LEN (10 * (sizeof(struct inotify_event) + NAME_MAX + 1))
 
@@ -136,7 +64,6 @@ public:
 
     ~Impl()
     {
-        shouldQuit = true;
         signalThreadShouldExit();
         inotify_rm_watch (fd, wd);
         close (fd);
@@ -152,7 +79,7 @@ public:
         const struct inotify_event* iNotifyEvent;
         char* ptr;
 
-        while (!shouldQuit)
+        while (!threadShouldExit())
         {
             int numRead = read (fd, buf, BUF_LEN);
 
@@ -194,9 +121,8 @@ public:
 
     void handleAsyncUpdate() override
     {
-        if(shouldQuit) return;
-
         ScopedLock sl (lock);
+        if(threadShouldExit()) return;
 
         owner.folderChanged (folder);
 
@@ -206,7 +132,6 @@ public:
         events.clear();
     }
 
-    std::atomic<bool> shouldQuit = false;
     FileSystemWatcher& owner;
     File folder;
 
