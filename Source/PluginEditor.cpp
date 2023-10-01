@@ -326,7 +326,7 @@ void PluginEditor::paint(Graphics& g)
 
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
-    if(!getTopLevelComponent()->hasKeyboardFocus(true))
+    if(ProjectInfo::isStandalone() && !getTopLevelComponent()->hasKeyboardFocus(true))
     {
         baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
     }
