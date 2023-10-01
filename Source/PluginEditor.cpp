@@ -495,7 +495,7 @@ void PluginEditor::mouseDown(MouseEvent const& e)
     if (e.getPosition().getY() < toolbarHeight) {
         if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
             if (!window->isUsingNativeTitleBar())
-                windowDragger.startDraggingComponent(window, e.getEventRelativeTo(window));
+                windowDragger.startDraggingWindow(window, e.getEventRelativeTo(window));
         }
     }
 }
@@ -508,7 +508,7 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
     if (!isMaximised) {
         if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
             if (!window->isUsingNativeTitleBar())
-                windowDragger.dragComponent(window, e.getEventRelativeTo(window), nullptr);
+                windowDragger.dragWindow(window, e.getEventRelativeTo(window), nullptr);
         }
     }
 }
