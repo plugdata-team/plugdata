@@ -63,6 +63,10 @@ public:
         defaultZoom.addListener(this);
         otherProperties.add(new PropertiesPanel::EditableComponent<float>("Default zoom %", defaultZoom));
 
+        centerResized = settingsFile->getPropertyAsValue("center_resized_canvas");
+        centerResized.addListener(this);
+        otherProperties.add(new PropertiesPanel::BoolComponent("Center canvas when resized", centerResized, { "No", "Yes" }));
+
         propertiesPanel.addSection("Other", otherProperties);
 
         addAndMakeVisible(propertiesPanel);
@@ -104,6 +108,7 @@ public:
     Value reloadPatch;
     Value scaleValue;
     Value defaultZoom;
+    Value centerResized;
 
     Value showPalettesValue;
     Value autoPatchingValue;

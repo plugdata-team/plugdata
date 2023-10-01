@@ -136,6 +136,7 @@ public:
 
     ~Impl()
     {
+        shouldQuit = true;
         signalThreadShouldExit();
         inotify_rm_watch (fd, wd);
         close (fd);
@@ -151,7 +152,7 @@ public:
         const struct inotify_event* iNotifyEvent;
         char* ptr;
 
-        while (true)
+        while (!shouldQuit)
         {
             int numRead = read (fd, buf, BUF_LEN);
 
@@ -193,6 +194,8 @@ public:
 
     void handleAsyncUpdate() override
     {
+        if(shouldQuit) return;
+
         ScopedLock sl (lock);
 
         owner.folderChanged (folder);
@@ -203,6 +206,7 @@ public:
         events.clear();
     }
 
+    std::atomic<bool> shouldQuit = false;
     FileSystemWatcher& owner;
     File folder;
 

@@ -15,6 +15,8 @@
 #include "Utility/StackShadow.h" // TODO: move to impl
 #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
+#include "Utility/WindowDragger.h"
+
 #include "SplitView.h" // TODO: move to impl
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
@@ -140,7 +142,7 @@ public:
 
 private:
     // Used by standalone to handle dragging the window
-    ComponentDragger windowDragger;
+    WindowDragger windowDragger;
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
