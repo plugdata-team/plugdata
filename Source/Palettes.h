@@ -328,7 +328,7 @@ public:
     {
         // toolbar bar
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if(!getTopLevelComponent()->hasKeyboardFocus(true))
+        if(ProjectInfo::isStandalone() && !getTopLevelComponent()->hasKeyboardFocus(true))
         {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
@@ -398,7 +398,7 @@ public:
     void paint(Graphics& g) override
     {
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if(!getTopLevelComponent()->hasKeyboardFocus(true))
+        if(ProjectInfo::isStandalone() && !getTopLevelComponent()->hasKeyboardFocus(true))
         {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
@@ -702,7 +702,7 @@ private:
         }
 
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if(!getTopLevelComponent()->hasKeyboardFocus(true))
+        if(ProjectInfo::isStandalone() && !getTopLevelComponent()->hasKeyboardFocus(true))
         {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
