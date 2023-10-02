@@ -170,12 +170,13 @@ class CanvasViewport : public Viewport {
         {
             isMouseDragging = true;
             viewPosition = viewport->getViewPosition();
+            repaint();
         }
 
         void mouseUp(MouseEvent const& e) override
         {
+            isMouseDragging = false;
             if (e.mouseWasDraggedSinceMouseDown()) {
-                isMouseDragging = false;
                 if (!isMouseOver)
                     animator.shrink();
             }
@@ -222,12 +223,22 @@ class CanvasViewport : public Viewport {
 
             auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
             auto roundedCorner = growingBounds.getHeight() * 0.5f;
+            auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
+
             if (isVertical) {
                 growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
                 roundedCorner = growingBounds.getWidth() * 0.5f;
+                fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
             }
 
-            g.setColour(findColour(ScrollBar::ColourIds::thumbColourId));
+            auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
+            auto scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
+            auto activeScrollbarColour = scrollbarColour.interpolatedWith(canvasColour.contrasting(0.6f), 0.7f);
+            
+            g.setColour(scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f)));
+            g.fillRoundedRectangle(fullBounds, roundedCorner);
+    
+            g.setColour(isMouseDragging ? activeScrollbarColour : scrollbarColour);
             g.fillRoundedRectangle(growingBounds, roundedCorner);
         }
 
