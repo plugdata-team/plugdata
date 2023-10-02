@@ -371,7 +371,7 @@ static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool re
             result.addArray(iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles, maximum));
         }
         if ((isDir && !onlyFiles) || !isDir) {
-            result.add(juce::File(juce::String(file->GetPath().GetRawPath()->buf)));
+            result.add(juce::File(juce::String::fromUTF8(file->GetPath().GetRawPath()->buf)));
         }
 
         if (maximum > 0 && result.size() >= maximum)
