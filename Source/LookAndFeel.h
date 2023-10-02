@@ -302,7 +302,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
             auto circleColour = findColour(PlugDataColour::toolbarHoverColourId);
-            if(shouldDrawButtonAsHighlighted) circleColour = circleColour.darker(0.025f);
+            if(shouldDrawButtonAsHighlighted) circleColour = circleColour.darker(0.04f);
 
             g.setColour(circleColour);
             g.fillEllipse(getLocalBounds().withSizeKeepingCentre(getWidth() - 8, getWidth() - 8).toFloat());
@@ -920,6 +920,14 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
             idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
             idealWidth = font.getStringWidth(text) + idealHeight;
+
+            #if JUCE_LINUX || JUCE_WINDOWS
+            // Dumb check to see if there is a keyboard shortcut after the text.
+            // On Linux and Windows, it seems to reserve way to much space for those.
+            if(text.contains("  ")) {
+                idealWidth -= 25;
+            }
+            #endif
         }
     }
 
