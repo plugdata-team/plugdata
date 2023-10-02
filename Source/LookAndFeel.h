@@ -302,7 +302,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
             auto circleColour = findColour(PlugDataColour::toolbarHoverColourId);
-            if(shouldDrawButtonAsHighlighted) circleColour = circleColour.darker(0.04f);
+            if(shouldDrawButtonAsHighlighted) circleColour = circleColour.contrasting(0.04f);
 
             g.setColour(circleColour);
             g.fillEllipse(getLocalBounds().withSizeKeepingCentre(getWidth() - 8, getWidth() - 8).toFloat());
