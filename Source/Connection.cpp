@@ -444,10 +444,10 @@ bool Connection::isSegmented() const
 void Connection::setSegmented(bool isSegmented)
 {
     segmented = isSegmented;
-    pushPathState();
     updatePath();
     resizeToFit();
     repaint();
+    pushPathState();
 }
 
 void Connection::setSelected(bool shouldBeSelected)
