@@ -553,7 +553,7 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
 {
     ScopedLock lock(messageListenerLock);
 
-    if (messageListeners.count(object))
+    if (!messageListeners.count(object))
         return;
 
     auto& listeners = messageListeners[object];
@@ -561,6 +561,9 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
 
     if (it != listeners.end())
         listeners.erase(it);
+    
+    if(listeners.empty())
+        messageListeners.erase(object);
 }
 
 void Instance::registerWeakReference(void* ptr, pd_weak_reference* ref)
