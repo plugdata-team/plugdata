@@ -16,11 +16,6 @@ set (CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 
-# Sfizz doesn't want to compile on aarch64 linux here...
-if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
-  set(ENABLE_SFIZZ OFF)
-endif()
-
 function(message)
     if (NOT MESSAGE_QUIET)
         _message(${ARGN})
@@ -53,6 +48,13 @@ set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(plugdata VERSION 0.8.0 LANGUAGES C CXX)
+
+# Sfizz doesn't want to compile on aarch64 linux...
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+  message(STATUS "Disabled sfizz")
+  set(ENABLE_SFIZZ OFF)
+endif()
+
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
