@@ -180,8 +180,8 @@ void OSUtils::hostManagedX11WindowMove(juce::Component* component, const juce::R
         ev.xclient.window = window;
         ev.xclient.display = display;
         ev.xclient.format = 32;
-        
-        auto pos = peer->globalToLocal(component->localPointToGlobal(newBounds.getPosition()));
+
+        auto pos = component->localPointToGlobal(newBounds.getPosition());
         ev.xclient.data.l[0] = pos.getX();
         ev.xclient.data.l[1] = pos.getY();
         ev.xclient.data.l[2] = 8;
