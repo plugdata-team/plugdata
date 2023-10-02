@@ -66,6 +66,9 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
 endif()
 
+add_compile_options(-fsanitize=address)
+add_link_options(-fsanitize=address)
+
 message(STATUS "Preparing documentation")
 execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
