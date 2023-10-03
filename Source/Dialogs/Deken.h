@@ -681,7 +681,7 @@ public:
         listBox.setBounds(getLocalBounds().withHeight(listBox.getHeight()));
         listBox.getViewport()->setBounds(bounds);
 
-        refreshButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40));
+        refreshButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40).translated(2, 0));
     }
 
     // Show error message in statusbar

@@ -253,8 +253,9 @@ public:
         buttonBounds.removeFromTop(5);
         openHelp.setBounds(buttonBounds.removeFromTop(25));
 
-        objectDragArea.setBounds(getLocalBounds().withTrimmedTop(48).withTrimmedBottom(130).withTrimmedLeft(12).withTrimmedRight(6));
+        objectDragArea.setBounds(getLocalBounds().withTrimmedTop(48).withTrimmedBottom(120).withTrimmedLeft(12).withTrimmedRight(6));
     }
+
 
     void paintOverChildren(Graphics& g) override
     {
@@ -268,7 +269,7 @@ public:
         auto objectDisplayBounds = infoBounds.removeFromTop(100).reduced(60);
 
         auto colour = findColour(PlugDataColour::panelTextColourId);
-        Fonts::drawStyledText(g, objectName, getLocalBounds().removeFromTop(35).translated(0, 4), colour, Bold, 16.0f, Justification::centred);
+        Fonts::drawStyledText(g, objectName, getLocalBounds().removeFromTop(24).translated(0, 4), colour, Bold, 16.0f, Justification::centred);
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
@@ -688,7 +689,7 @@ public:
 
         input.setBounds(inputBounds);
 
-        clearButton.setBounds(inputBounds.removeFromRight(32));
+        clearButton.setBounds(inputBounds.removeFromRight(30).translated(4, 0));
 
         listBox.setBounds(tableBounds);
     }
@@ -812,7 +813,7 @@ public:
 
     void resized() override
     {
-        auto b = getLocalBounds().reduced(1);
+        auto b = getLocalBounds().withTrimmedTop(40).reduced(1);
         objectViewer.setBounds(b.removeFromRight(260));
         objectSearch.setBounds(b);
         b.removeFromTop(35);
@@ -827,6 +828,21 @@ public:
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
+        
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
+
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+
+        auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, 40);
+        g.fillRoundedRectangle(toolbarBounds, Corners::windowCornerRadius);
+        g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
+
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawHorizontalLine(40, 0.0f, getWidth());
+        g.drawHorizontalLine(70, 0.0f, getWidth());
+        
+        Fonts::drawStyledText(g, "Object Browser", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
     }
 
 private:
