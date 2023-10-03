@@ -203,7 +203,7 @@ public:
 
     void resized() override
     {
-        backButton.setBounds(8, 6, 42, 48);
+        backButton.setBounds(8, 6, 40, 40);
 
         auto buttonBounds = getLocalBounds().removeFromBottom(80).reduced(30, 0).translated(0, -30);
         buttonBounds.removeFromTop(10);
@@ -405,6 +405,7 @@ public:
         setVisible(true);
 
         objectInfoPanel.showObject(objectInfo);
+        objectInfoPanel.resized();
     }
 
     bool unknownInletLayout = false;

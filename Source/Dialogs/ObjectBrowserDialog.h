@@ -221,6 +221,9 @@ public:
         addChildComponent(openHelp);
         addChildComponent(openReference);
         addChildComponent(objectDragArea);
+        
+        openReference.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+        openHelp.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
         openReference.onClick = [this]() {
             reference.showObject(objectName);
@@ -250,7 +253,7 @@ public:
         buttonBounds.removeFromTop(5);
         openHelp.setBounds(buttonBounds.removeFromTop(25));
 
-        objectDragArea.setBounds(getLocalBounds().reduced(20).withTrimmedTop(16).withTrimmedBottom(100));
+        objectDragArea.setBounds(getLocalBounds().withTrimmedTop(48).withTrimmedBottom(130).withTrimmedLeft(12).withTrimmedRight(6));
     }
 
     void paintOverChildren(Graphics& g) override
