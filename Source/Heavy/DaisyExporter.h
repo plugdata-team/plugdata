@@ -37,6 +37,7 @@ public:
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
 
+        flashButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
         flashButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
         exportTypeValue.addListener(this);

@@ -832,11 +832,13 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        auto titlebarBounds = getLocalBounds().removeFromTop(40);
+        
+        Path p;
+        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
 
-        auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, 40);
-        g.fillRoundedRectangle(toolbarBounds, Corners::windowCornerRadius);
-        g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillPath(p);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(40, 0.0f, getWidth());

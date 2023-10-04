@@ -215,8 +215,8 @@ struct ToolchainInstaller : public Component
             float downloadBarBgHeight = 11.0f;
             float downloadBarHeight = downloadBarBgHeight - 3.0f;
 
-            auto downloadBarBg = Rectangle<float>(90.0f, 300.0f - (downloadBarBgHeight * 0.5), width, downloadBarBgHeight);
-            auto downloadBar = Rectangle<float>(91.5f, 300.0f - (downloadBarHeight * 0.5), progress, downloadBarHeight);
+            auto downloadBarBg = Rectangle<float>(90.0f, 250.0f - (downloadBarBgHeight * 0.5), width, downloadBarBgHeight);
+            auto downloadBar = Rectangle<float>(91.5f, 250.0f - (downloadBarHeight * 0.5), progress, downloadBarHeight);
 
             g.setColour(findColour(PlugDataColour::panelTextColourId));
             PlugDataLook::fillSmoothedRectangle(g, downloadBarBg, Corners::defaultCornerRadius);

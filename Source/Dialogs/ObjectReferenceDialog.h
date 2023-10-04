@@ -213,8 +213,6 @@ public:
             setVisible(false);
         };
 
-        backButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-        backButton.setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
         backButton.getProperties().set("Style", "LargeIcon");
 
         addAndMakeVisible(objectInfoPanel);
@@ -237,11 +235,13 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
 
-        auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, 40);
-        g.fillRoundedRectangle(toolbarBounds, Corners::windowCornerRadius);
-        g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
+        Path p;
+        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillPath(p);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(40, 0.0f, getWidth());

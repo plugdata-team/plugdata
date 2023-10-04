@@ -15,13 +15,15 @@ class HeavyExportDialog : public Component {
     std::unique_ptr<ExportingProgressView> exportingView;
     std::unique_ptr<ToolchainInstaller> installer;
     std::unique_ptr<ExporterSettingsPanel> exporterPanel;
-
+    std::unique_ptr<TextButton> infoButton;
+    
 public:
     explicit HeavyExportDialog(Dialog* dialog);
 
     ~HeavyExportDialog() override;
 
     void paint(Graphics& g) override;
+    void paintOverChildren(Graphics& g) override;
 
     void resized() override;
 };

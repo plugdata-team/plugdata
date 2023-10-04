@@ -527,10 +527,10 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
-        auto bounds = getLocalBounds().removeFromTop(40).toFloat();
+        auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
 
         Path p;
-        p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillPath(p);
@@ -550,7 +550,7 @@ public:
             Fonts::drawFittedText(g, "Type to search for objects or libraries", 30, 40, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
         }
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 40, getWidth(), 40);
         g.drawLine(0, 70, getWidth(), 70);
     }
