@@ -180,6 +180,8 @@ protected:
     // Call when you start/stop editing a gui object
     void startEdition();
     void stopEdition();
+        
+    String getBinbufSymbol(int argIndex);
 
     // Called whenever one of the inspector parameters changes
     void valueChanged(Value& value) override {};

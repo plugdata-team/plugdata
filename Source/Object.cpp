@@ -271,9 +271,30 @@ void Object::mouseMove(MouseEvent const& e)
         updateMouseCursor();
         return;
     }
+    
+    int zone = 0;
+    auto b = getLocalBounds().toFloat().reduced(margin - 2);
+    if (b.contains (e.position)
+         && !b.reduced(7).contains(e.position))
+    {
+        auto corners = getCorners();
+        bool done = false;
+        
+        auto minW = jmax(b.getWidth() / 10.0f, jmin (10.0f, b.getWidth() / 3.0f));
+        auto minH = jmax(b.getHeight() / 10.0f, jmin (10.0f, b.getHeight() / 3.0f));
+        
+        if (corners[0].contains(e.position) || corners[1].contains(e.position) || (e.position.x < jmax (7.0f, minW) && b.getX() > 0.0f))
+            zone |= ResizableBorderComponent::Zone::left;
+        else if (corners[2].contains(e.position) || corners[3].contains(e.position) || (e.position.x >= b.getWidth() - jmax (7.0f, minW)))
+            zone |= ResizableBorderComponent::Zone::right;
 
-    resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), Point<int>(e.x, e.y));
-
+        if (corners[0].contains(e.position) || corners[3].contains(e.position) || (e.position.y < jmax (7.0f, minH)))
+            zone |= ResizableBorderComponent::Zone::top;
+        else if (corners[1].contains(e.position) || corners[2].contains(e.position) || (e.position.y >= b.getHeight() - jmax (7.0f, minH)))
+            zone |= ResizableBorderComponent::Zone::bottom;
+    }
+    
+    resizeZone = static_cast<ResizableBorderComponent::Zone>(zone);
     validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre && e.originalComponent == this;
 
     setMouseCursor(validResizeZone ? resizeZone.getMouseCursor() : MouseCursor::NormalCursor);
@@ -380,7 +401,7 @@ void Object::setType(String const& newType, void* existingObject)
     resized(); // If bounds haven't changed, we'll still want to update gui and iolets bounds
 
     // Auto patching
-    if (!attachedToMouse && getValue<bool>(cnv->editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
+    if (!attachedToMouse && getValue<bool>(cnv->editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto inlet = iolets[0];
         if (outlet->isSignal == inlet->isSignal) {
@@ -408,6 +429,7 @@ void Object::setType(String const& newType, void* existingObject)
         }
     }
     cnv->lastSelectedObject = nullptr;
+    
     cnv->lastSelectedConnection = nullptr;
 
     cnv->editor->updateCommandStatus();
@@ -429,6 +451,18 @@ Array<Rectangle<float>> Object::getCorners() const
 
 void Object::paintOverChildren(Graphics& g)
 {
+    // If autoconnect is about to happen, draw a fake inlet with a dotted outline
+    if(getValue<bool>(cnv->editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs)
+    {
+        auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
+        auto fakeInletBounds = Rectangle<float>(16, 4, 8, 8);
+        g.setColour(findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter());
+        g.fillEllipse(fakeInletBounds);
+        
+        g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+        g.drawEllipse(fakeInletBounds, 1.0f);
+    }
+    
     if (consoleTarget == this) {
         g.saveState();
 
@@ -1180,6 +1214,12 @@ void Object::mouseDrag(MouseEvent const& e)
     }
 }
 
+// Returns true is the object is showing its initial editor, and doesn't have a GUI yet
+bool Object::isInitialEditorShown()
+{
+    return newObjectEditor != nullptr;
+}
+
 void Object::showEditor()
 {
     if (!gui) {
@@ -1189,12 +1229,14 @@ void Object::showEditor()
     }
 }
 
+
+
 void Object::hideEditor()
 {
     if (gui) {
         gui->hideEditor();
     } else if (newObjectEditor) {
-        std::unique_ptr<TextEditor> outgoingEditor;
+        std::unique_ptr<TextEditor> outgoingEditor = nullptr;
         std::swap(outgoingEditor, newObjectEditor);
 
         cnv->hideSuggestions();
@@ -1258,6 +1300,7 @@ void Object::openNewObjectEditor()
                 cnv->hideSuggestions();
                 cnv->objects.removeObject(_this.getComponent());
                 cnv->lastSelectedObject = nullptr;
+                
                 cnv->lastSelectedConnection = nullptr;
             });
         };

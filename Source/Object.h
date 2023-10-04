@@ -49,6 +49,7 @@ public:
 
     void showEditor();
     void hideEditor();
+    bool isInitialEditorShown();
 
     Rectangle<int> getSelectableBounds();
     Rectangle<int> getObjectBounds();

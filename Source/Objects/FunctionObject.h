@@ -43,9 +43,9 @@ public:
 
             Array<var> arr = { function->x_min, function->x_max };
             range = var(arr);
-
-            auto sndSym = String::fromUTF8(function->x_send->s_name);
-            auto rcvSym = String::fromUTF8(function->x_receive->s_name);
+            
+            auto sndSym = function->x_snd_set ? String::fromUTF8(function->x_snd_raw->s_name) : getBinbufSymbol(3);
+            auto rcvSym = function->x_rcv_set ? String::fromUTF8(function->x_rcv_raw->s_name) : getBinbufSymbol(4);
 
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
@@ -416,6 +416,7 @@ public:
             hash("fgcolor"),
             hash("bgcolor"),
             hash("init"),
+            hash("set"),
         };
     }
 
@@ -449,7 +450,8 @@ public:
         }
         case hash("init"):
         case hash("fgcolor"):
-        case hash("bgcolor"): {
+        case hash("bgcolor"):
+        case hash("set"): {
             update();
             break;
         }

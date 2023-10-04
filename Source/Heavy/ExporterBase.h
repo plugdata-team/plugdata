@@ -51,6 +51,8 @@ struct ExporterBase : public Component
         , editor(pluginEditor)
     {
         addAndMakeVisible(exportButton);
+        
+        exportButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
         exportButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         
         Array<PropertiesPanel::Property*> properties;

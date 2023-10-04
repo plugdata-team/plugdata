@@ -39,7 +39,7 @@ public:
         if (isMouseOver() || getToggleState()) {
             auto background = findColour(PlugDataColour::toolbarHoverColourId);
             if (getToggleState())
-                background = background.darker(0.05f);
+                background = background.darker(0.025f);
 
             g.setColour(background);
             PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
@@ -147,11 +147,13 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        auto titlebarBounds = getLocalBounds().removeFromTop(toolbarHeight).toFloat();
 
-        auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, toolbarHeight);
-        g.fillRoundedRectangle(toolbarBounds, Corners::windowCornerRadius);
-        g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
+        Path p;
+        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillPath(p);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(toolbarHeight, 0.0f, getWidth());
@@ -168,7 +170,7 @@ public:
     AudioProcessor* processor;
     ComponentBoundsConstrainer constrainer;
 
-    static constexpr int toolbarHeight = 42;
+    static constexpr int toolbarHeight = 40;
 
     static inline std::atomic<int> lastPanel = 0;
     int currentPanel;

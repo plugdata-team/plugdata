@@ -88,7 +88,7 @@ PluginProcessor::PluginProcessor()
 
     statusbarSource = std::make_unique<StatusbarSource>();
 
-    auto* volumeParameter = new PlugDataParameter(this, "volume", 1.0f, true, 0, 0.0f, 1.0f);
+    auto* volumeParameter = new PlugDataParameter(this, "volume", 0.8f, true, 0, 0.0f, 1.0f);
     addParameter(volumeParameter);
     volume = volumeParameter->getValuePointer();
 
@@ -220,6 +220,15 @@ void PluginProcessor::initialiseFilesystem()
     if (!patches.exists()) {
         patches.createDirectory();
     }
+    
+    auto testTonePatch = homeDir.getChildFile("testtone.pd");
+    auto cpuTestPatch = homeDir.getChildFile("load-meter.pd");
+    
+    if(testTonePatch.exists()) testTonePatch.deleteFile();
+    if(cpuTestPatch.exists()) cpuTestPatch.deleteFile();
+
+    File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/testtone.pd")).copyFileTo(testTonePatch);
+    File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/load-meter.pd")).copyFileTo(cpuTestPatch);
 
     // We want to recreate these symlinks so that they link to the abstractions/docs for the current plugdata version
     homeDir.getChildFile("Abstractions").deleteFile();
@@ -547,9 +556,10 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
             int device;
             auto message = MidiDeviceManager::convertFromSysExFormat(bufferIterator.getMessage(), device);
 
-            if (device > midiDeviceManager->getOutputDevices().size()) {
+            if (enableInternalSynth && (device > midiDeviceManager->getOutputDevices().size() || device == 0)) {
                 midiBufferInternalSynth.addEvent(message, 0);
-            } else {
+            } 
+            if(isPositiveAndBelow(device,  midiDeviceManager->getOutputDevices().size())) {
                 midiDeviceManager->sendMidiOutputMessage(device, message);
             }
         }
@@ -578,13 +588,12 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
         }
 
         auto block = dsp::AudioBlock<float>(buffer);
-        limiter.process(dsp::ProcessContextReplacing<float>(block));
+        limiter.process(block);
     }
 }
 
 void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
 {
-    ScopedNoDenormals noDenormals;
     int const blockSize = Instance::getBlockSize();
     int const numSamples = static_cast<int>(buffer.getNumSamples());
     int const adv = audioAdvancement >= 64 ? 0 : audioAdvancement;
@@ -1343,11 +1352,20 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     } else if (midiByteIndex == 0 && byte == 0xf0) {
         midiByteIsSysex = true;
     } else {
-        midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
-        if (midiByteIndex >= 3) {
-            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(midiByteBuffer, 3), port), audioAdvancement);
-            midiByteIndex = 0;
+        // Handle single-byte messages
+        if(midiByteIndex == 0 && byte >= 0xf8 && byte <= 0xff)
+        {
+            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(static_cast<uint8>(byte)), port), audioAdvancement);
         }
+        // Handle 3-byte messages
+        else {
+            midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
+            if (midiByteIndex >= 3) {
+                midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(midiByteBuffer, 3), port), audioAdvancement);
+                midiByteIndex = 0;
+            }
+        }
+
     }
 }
 

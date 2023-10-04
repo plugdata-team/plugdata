@@ -287,8 +287,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
 
     // This is necessary on Linux to make PluginEditor grab keyboard focus on startup
-    // Otherwise, keyboard shortcuts won't work directly after starting plugdata
-#if JUCE_LINUX
+    // It also appears to be necessary for some DAWs, like Logic
     ::Timer::callAfterDelay(100, [_this = SafePointer(this)]() {
         if (!_this)
             return;
@@ -298,7 +297,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
         _this->grabKeyboardFocus();
     });
-#endif
 }
 
 PluginEditor::~PluginEditor()
@@ -328,6 +326,11 @@ void PluginEditor::paint(Graphics& g)
 
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
+    if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
+    {
+        baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
+    }
+    
     bool rounded = wantsRoundedCorners();
 
     if (rounded) {
@@ -492,7 +495,7 @@ void PluginEditor::mouseDown(MouseEvent const& e)
     if (e.getPosition().getY() < toolbarHeight) {
         if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
             if (!window->isUsingNativeTitleBar())
-                windowDragger.startDraggingComponent(window, e.getEventRelativeTo(window));
+                windowDragger.startDraggingWindow(window, e.getEventRelativeTo(window));
         }
     }
 }
@@ -505,7 +508,7 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
     if (!isMaximised) {
         if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
             if (!window->isUsingNativeTitleBar())
-                windowDragger.dragComponent(window, e.getEventRelativeTo(window), nullptr);
+                windowDragger.dragWindow(window, e.getEventRelativeTo(window), nullptr);
         }
     }
 }
@@ -1508,7 +1511,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
         if (objectNames.count(ID)) {
             if (cnv->getSelectionOfType<Object>().size() == 1) {
                 // if 1 object is selected, create new object beneath selected
-                auto obj = cnv->lastSelectedObject = cnv->getSelectionOfType<Object>()[0];
+                auto obj = cnv->getSelectionOfType<Object>()[0];
+                obj->hideEditor(); // If it's still open, it might overwrite lastSelectedObject
+                cnv->lastSelectedObject = obj;
                 if (obj) {
                     cnv->objects.add(new Object(cnv, objectNames.at(ID),
                         Point<int>(

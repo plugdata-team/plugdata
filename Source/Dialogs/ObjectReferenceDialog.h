@@ -23,19 +23,21 @@ class ObjectInfoPanel : public Component {
             g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawLine(0, 1, getWidth(), 0);
 
-            Fonts::drawStyledText(g, categoryName, getLocalBounds().toFloat().removeFromTop(24), findColour(PlugDataColour::panelTextColourId), FontStyle::Bold, 14.0f);
+            Fonts::drawStyledText(g, categoryName, getLocalBounds().toFloat().removeFromTop(24).translated(2, 0), findColour(PlugDataColour::panelTextColourId), FontStyle::Bold, 14.0f);
 
             float totalHeight = 24;
             for (int i = 0; i < panelContent.size(); i++) {
                 auto textHeight = layouts[i].getHeight();
-                auto bounds = Rectangle<float>(24.0f, totalHeight + 6.0f, getWidth() - 48.0f, textHeight);
-
-                Fonts::drawStyledText(g, panelContent[i].first, bounds.removeFromLeft(128), findColour(PlugDataColour::panelTextColourId), FontStyle::Semibold, 13.5f);
+                
+                auto bounds = Rectangle<float>(36.0f, totalHeight + 6.0f, getWidth() - 48.0f, textHeight);
+                auto nameWidth = std::max(Fonts::getSemiBoldFont().getStringWidth(panelContent[i].first), 64);
+                
+                Fonts::drawStyledText(g, panelContent[i].first, bounds.removeFromLeft(nameWidth), findColour(PlugDataColour::panelTextColourId), FontStyle::Semibold, 13.5f);
 
                 layouts[i].draw(g, bounds);
 
                 g.setColour(findColour(PlugDataColour::outlineColourId));
-                g.drawLine(24.0f, totalHeight, getWidth() - 24.0f, totalHeight);
+                g.drawLine(36.0f, totalHeight, getWidth() - 24.0f, totalHeight);
 
                 totalHeight += textHeight + 12;
             }
@@ -47,10 +49,27 @@ class ObjectInfoPanel : public Component {
 
             int totalHeight = 24;
             for (auto const& [name, description] : panelContent) {
+                auto nameWidth = std::max(Fonts::getSemiBoldFont().getStringWidth(name), 64);
+                
                 AttributedString str;
-                str.append(description, Font(13.5f), findColour(PlugDataColour::panelTextColourId));
+                
+                auto lines = StringArray::fromLines(description);
+
+                // Draw anything between () as bold
+                for (auto const& line : lines) {
+                    if (line.contains("(") && line.contains(")")) {
+                        auto type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
+                        auto description = line.fromFirstOccurrenceOf(")", false, false);
+                        str.append(type + ":", Fonts::getSemiBoldFont().withHeight(13.5f), findColour(PlugDataColour::panelTextColourId));
+
+                        str.append(description + "\n", Font(13.5f), findColour(PlugDataColour::panelTextColourId));
+                    } else {
+                        str.append(line, Font(13.5f), findColour(PlugDataColour::panelTextColourId));
+                    }
+                }
+                
                 TextLayout layout;
-                layout.createLayout(str, width - 192.0f);
+                layout.createLayout(str, width - (nameWidth + 64.0f));
                 layouts.add(layout);
                 totalHeight += layout.getHeight() + 12;
             }
@@ -162,7 +181,7 @@ public:
     {
         categoriesViewport.setBounds(getLocalBounds());
 
-        int totalHeight = 0;
+        int totalHeight = 24;
         for (auto* category : categories) {
             category->recalculateLayout(getWidth());
             category->setTopLeftPosition(0, totalHeight);
@@ -194,8 +213,6 @@ public:
             setVisible(false);
         };
 
-        backButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-        backButton.setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
         backButton.getProperties().set("Style", "LargeIcon");
 
         addAndMakeVisible(objectInfoPanel);
@@ -203,12 +220,9 @@ public:
 
     void resized() override
     {
-        backButton.setBounds(8, 6, 42, 48);
+        backButton.setBounds(2, 0, 40, 40);
 
-        auto buttonBounds = getLocalBounds().removeFromBottom(80).reduced(30, 0).translated(0, -30);
-        buttonBounds.removeFromTop(10);
-
-        auto rightPanelBounds = getLocalBounds().removeFromRight(getLocalBounds().proportionOfWidth(0.7f)).reduced(20, 40);
+        auto rightPanelBounds = getLocalBounds().withTrimmedTop(40).removeFromRight(getLocalBounds().proportionOfWidth(0.65f)).reduced(20, 0);
 
         objectInfoPanel.setBounds(rightPanelBounds);
     }
@@ -217,16 +231,32 @@ public:
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
+        
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
+        auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
+
+        Path p;
+        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillPath(p);
+
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawHorizontalLine(40, 0.0f, getWidth());
+        
         if (objectName.isEmpty())
             return;
 
-        auto leftPanelBounds = getLocalBounds().withTrimmedRight(getLocalBounds().proportionOfWidth(0.7f));
+        auto leftPanelBounds = getLocalBounds().withTrimmedRight(getLocalBounds().proportionOfWidth(0.65f));
 
-        auto infoBounds = leftPanelBounds.withTrimmedBottom(100).withTrimmedTop(100).withTrimmedLeft(5).reduced(10);
+        g.drawVerticalLine(leftPanelBounds.getRight(), 40.0f, getHeight() - 40.0f);
+        
+        auto infoBounds = leftPanelBounds.withTrimmedBottom(100).withTrimmedTop(140).withTrimmedLeft(5).reduced(10);
         auto objectDisplayBounds = leftPanelBounds.removeFromTop(140);
 
-        Fonts::drawStyledText(g, "Reference: " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), findColour(PlugDataColour::panelTextColourId), Bold, 16, Justification::centred);
+        Fonts::drawStyledText(g, "Object Reference:  " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), findColour(PlugDataColour::panelTextColourId), Bold, 16, Justification::centred);
 
         auto colour = findColour(PlugDataColour::panelTextColourId);
 
@@ -405,6 +435,7 @@ public:
         setVisible(true);
 
         objectInfoPanel.showObject(objectInfo);
+        objectInfoPanel.resized();
     }
 
     bool unknownInletLayout = false;

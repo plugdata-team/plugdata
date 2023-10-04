@@ -274,7 +274,7 @@ public:
         return false;
     }
 
-    // Gets the name of the array
+    // Gets the name of the array. Currently not used anywhere
     String getExpandedName() const
     {
         if (auto ptr = arr.get<t_garray>()) {
@@ -453,7 +453,7 @@ public:
             addAndMakeVisible(graph);
         }
 
-        title = graphs[0]->getExpandedName();
+        title = graphs[0]->getUnexpandedName();
 
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
         addAndMakeVisible(closeButton.get());
@@ -590,7 +590,7 @@ public:
     {
         int fontHeight = 14.0f;
 
-        const String text = graphs[0]->getExpandedName();
+        const String text = graphs[0]->getUnexpandedName();
 
         if (text.isNotEmpty()) {
             if (!label) {

@@ -343,14 +343,10 @@ void Iolet::createConnection()
             // Check type for input and output
             bool sameDirection = isInlet == c->getIolet()->isInlet;
 
-            bool connectionAllowed = c->getIolet()->object != object && !sameDirection;
+            bool connectionAllowed = c->getIolet() != this && c->getIolet()->object != object && !sameDirection;
 
-            // Don't create if this is the same iolet
-            if (c->getIolet() == this) {
-                object->cnv->connectionsBeingCreated.removeObject(c);
-            }
             // Create new connection if allowed
-            else if (connectionAllowed) {
+            if (connectionAllowed) {
 
                 auto outlet = isInlet ? c->getIolet() : this;
                 auto inlet = isInlet ? this : c->getIolet();

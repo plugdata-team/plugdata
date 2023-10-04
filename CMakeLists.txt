@@ -8,6 +8,7 @@ option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFONT "" ON)
 option(ENABLE_SFIZZ "" ON)
+option(ENABLE_ASAN "" OFF)
 option(VERBOSE "" OFF)
 
 set (CMAKE_CXX_STANDARD 20)
@@ -15,16 +16,6 @@ set (CMAKE_CXX_STANDARD 20)
 # Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems. We later undo this for the standalone build, so that externals can load
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
-
-# Sfizz doesn't want to compile on aarch64 linux here...
-if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
-  set(ENABLE_SFIZZ OFF)
-endif()
-
-# Sfizz doesn't want to compile on aarch64 linux here...
-if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
-  set(ENABLE_SFIZZ OFF)
-endif()
 
 function(message)
     if (NOT MESSAGE_QUIET)
@@ -59,6 +50,13 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(plugdata VERSION 0.8.0 LANGUAGES C CXX)
 
+# Sfizz doesn't want to compile on aarch64 linux...
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+  message(STATUS "Disabled sfizz")
+  set(ENABLE_SFIZZ OFF)
+endif()
+
+
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
 cmake_policy(SET CMP0091 NEW)
@@ -67,6 +65,11 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 # Make sure missing return types will fail compilation with Clang
 if (CMAKE_C_COMPILER_ID MATCHES "Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
+endif()
+
+if(ENABLE_ASAN)
+  add_compile_options(-fsanitize=address)
+  add_link_options(-fsanitize=address)
 endif()
 
 message(STATUS "Preparing documentation")

@@ -166,6 +166,9 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
 
             cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
             okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+            
+            cancel.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+            okay.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
             cancel.onClick = [dialog, callback] {
                 callback(false);
@@ -215,7 +218,7 @@ void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* 
 void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent)
 {
 
-    auto* dialog = new Dialog(target, parent, 750, 450, true);
+    auto* dialog = new Dialog(target, parent, 750, 480, true);
     auto* dialogContent = new ObjectBrowserDialog(parent, dialog);
 
     dialog->setViewedComponent(dialogContent);
@@ -224,7 +227,7 @@ void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component
 
 void Dialogs::showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& objectName)
 {
-    auto* dialog = new Dialog(target, parent, 750, 450, true);
+    auto* dialog = new Dialog(target, parent, 750, 480, true);
     auto* dialogContent = new ObjectReferenceDialog(dynamic_cast<PluginEditor*>(parent), false);
 
     dialogContent->showObject(objectName);

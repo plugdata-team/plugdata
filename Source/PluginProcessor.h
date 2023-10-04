@@ -9,6 +9,7 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
 #include "Utility/Config.h"
+#include "Utility/Limiter.h"
 
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
@@ -186,7 +187,7 @@ private:
     int lastSplitIndex = -1;
     int lastSetProgram = 0;
 
-    dsp::Limiter<float> limiter;
+    Limiter limiter;
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;

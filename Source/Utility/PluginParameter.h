@@ -50,7 +50,7 @@ public:
         range.end = max;
     }
 
-    void setMode(Mode newMode)
+    void setMode(Mode newMode, bool notify = true)
     {
         mode = newMode;
         if (newMode == Logarithmic) {
@@ -69,7 +69,7 @@ public:
             setValue(std::floor(getValue()));
         }
 
-        notifyDAW();
+        if(notify) notifyDAW();
     }
 
     // Reports whether the current DAW/format can deal with dynamic
@@ -100,11 +100,6 @@ public:
 
     void setEnabled(bool shouldBeEnabled)
     {
-        if (!enabled && shouldBeEnabled) {
-            range = NormalisableRange<float>(0.0f, 1.0f, 0.000001f);
-            mode = Float;
-        }
-
         enabled = shouldBeEnabled;
     }
 
@@ -161,7 +156,7 @@ public:
 
     bool isDiscrete() const override
     {
-        return mode.load() == Integer;
+        return mode == Integer;
     }
 
     bool isOrientationInverted() const override
@@ -263,14 +258,13 @@ public:
             if (xmlParam->hasAttribute("mode")) {
                 mode = static_cast<Mode>(xmlParam->getIntAttribute("mode"));
             }
-
-            param->setEnabled(enabled);
+            
             param->setRange(min, max);
             param->setName(name);
-            param->setValueNotifyingHost(navalue);
             param->setIndex(index);
-            param->setMode(mode);
-            param->notifyDAW();
+            param->setMode(mode, false);
+            param->setValue(navalue);
+            param->setEnabled(enabled);
         }
     }
 
@@ -321,7 +315,7 @@ private:
     String name;
     std::atomic<bool> enabled = false;
 
-    std::atomic<Mode> mode;
+    Mode mode;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)
 };

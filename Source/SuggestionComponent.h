@@ -626,10 +626,12 @@ private:
             buttons[currentidx]->setToggleState(true, dontSendNotification);
         }
 
-        auto filterNonHvccObjectsIfNeeded = [_this = SafePointer(this)](StringArray& toFilter) {
+        auto filterObjects = [_this = SafePointer(this)](StringArray& toFilter) {
             if (!_this || !_this->currentObject)
                 return;
             
+            
+            // When hvcc mode is enabled, show only hvcc compatible objects
             if (getValue<bool>(_this->currentObject->cnv->editor->hvccMode)) {
 
                 StringArray hvccObjectsFound;
@@ -642,6 +644,16 @@ private:
 
                 toFilter = hvccObjectsFound;
             }
+            
+            // Remove unhelpful objects
+            for(int i = toFilter.size() - 1; i >= 0; i--)
+            {
+                if(_this->excludeList.contains(toFilter[i]))
+                {
+                    toFilter.remove(i);
+                }
+            }
+            
         };
         auto patchDir = currentObject->cnv->patch.getPatchFile().getParentDirectory();
         if (!patchDir.isDirectory() || patchDir == File::getSpecialLocation(File::tempDirectory))
@@ -650,8 +662,7 @@ private:
         // Update suggestions
         auto found = library->autocomplete(currentText, patchDir);
 
-        // When hvcc mode is enabled, show only hvcc compatible objects
-        filterNonHvccObjectsIfNeeded(found);
+        filterObjects(found);
 
         if (found.isEmpty()) {
             autoCompleteComponent->enableAutocomplete(false);
@@ -722,8 +733,8 @@ private:
             applySuggestionsToButtons(found, currentText);
         }
 
-        library->getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
-            filterNonHvccObjectsIfNeeded(s);
+        library->getExtraSuggestions(found.size(), currentText, [this, filterObjects, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
+            filterObjects(s);
 
             // This means the extra suggestions have returned too late to still be relevant
             if (!openedEditor || currentText != openedEditor->getText())
@@ -764,6 +775,33 @@ private:
 
     SafePointer<TextEditor> openedEditor = nullptr;
     SafePointer<Object> currentObject = nullptr;
+        
+    StringArray excludeList = {
+        "number~", // appears before numbox~ alphabetically, but is worse in every way
+        "allpass_unit",
+        "echo_unit",
+        "multi.vsl.unit",
+        "float2sig.unit",
+        "imp.mc-unit",
+        "multi.vsl.unit",
+        "multi.vsl.clone.ex",
+        "score-ex1",
+        "voice",
+        "args-example",
+        "dollsym-example",
+        "fontsize-example",
+        "oscbank.unit",
+        "oscbank2.unit",
+        "osc.mc-unit",
+        "All_objects",
+        "All_about_else",
+        "README.deken",
+        "else-meta",
+        "resonbank.unit",
+        "resonbank2.unit",
+        "stepnoise.mc-unit",
+        "rampnoise.mc-unit"
+    };
 
     int windowMargin;
 };

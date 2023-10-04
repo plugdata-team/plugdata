@@ -20,7 +20,6 @@ class ScopeBase : public ObjectBase
     Value signalRange = SynchronousValue();
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
-    Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
@@ -39,7 +38,6 @@ public:
         objectParameters.addParamInt("Buffer size", cGeneral, &bufferSize, 128);
         objectParameters.addParamInt("Delay", cGeneral, &delay, 0);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
-        objectParameters.addParamSendSymbol(&sendSymbol);
 
         startTimerHz(25);
     }
@@ -66,10 +64,8 @@ public:
             gridColour = colourFromHexArray(scope->x_gg).toString();
             sizeProperty = Array<var> { var(scope->x_width), var(scope->x_height) };
 
-            auto rcv = String::fromUTF8(scope->x_rcv_raw->s_name);
-            if (rcv == "empty")
-                rcv = "";
-            receiveSymbol = rcv;
+            auto rcvSym = scope->x_rcv_set ? String::fromUTF8(scope->x_rcv_raw->s_name) : getBinbufSymbol(22);
+            receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
             Array<var> arr = { scope->x_min, scope->x_max };
             signalRange = var(arr);
@@ -276,22 +272,15 @@ public:
                 scope->x_triglevel = getValue<int>(triggerValue);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto* rcv = pd->generateSymbol(receiveSymbol.toString());
-            if (auto scope = ptr.get<S>()) {
-                scope->x_receive = canvas_realizedollar(scope->x_glist, scope->x_rcv_raw = rcv);
-
-                if (scope->x_receive != gensym("")) {
-                    pd_bind(&scope->x_obj.ob_pd, scope->x_receive);
-                } else {
-                    scope->x_rcv_raw = pd->generateSymbol("empty");
-                }
-            }
+            auto symbol = receiveSymbol.toString();
+            if (auto scope = ptr.get<void>())
+                pd->sendDirectMessage(scope.get(), "receive", { symbol });
         }
     }
 
     std::vector<hash32> getAllMessages() override
     {
         return {
-            hash("send"),
             hash("receive"),
             hash("fgcolor"),
             hash("bgcolor"),
@@ -302,11 +291,6 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case hash("send"): {
-            if (atoms.size() >= 1)
-                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
-            break;
-        }
         case hash("receive"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());

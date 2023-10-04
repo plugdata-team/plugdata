@@ -112,8 +112,13 @@ void Sidebar::paint(Graphics& g)
     g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
     g.fillRect(0, 0, getWidth(), getHeight());
 
+    auto toolbarColour = findColour(PlugDataColour::toolbarBackgroundColourId);
+    if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
+    {
+        toolbarColour = toolbarColour.brighter(toolbarColour.getBrightness() / 2.5f);
+    }
     // Background for buttons
-    g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+    g.setColour(toolbarColour);
     g.fillRect(0, 0, getWidth(), 30);
 
     if (inspector->isVisible()) {

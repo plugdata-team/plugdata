@@ -210,7 +210,7 @@ bool Connection::hitTest(int x, int y)
     if (Canvas::panningModifierDown())
         return false;
 
-    if (locked == var(true) || !cnv->connectionsBeingCreated.isEmpty())
+    if (cnv->commandLocked == var(true) || locked == var(true) || !cnv->connectionsBeingCreated.isEmpty())
         return false;
 
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
@@ -444,10 +444,10 @@ bool Connection::isSegmented() const
 void Connection::setSegmented(bool isSegmented)
 {
     segmented = isSegmented;
-    pushPathState();
     updatePath();
     resizeToFit();
     repaint();
+    pushPathState();
 }
 
 void Connection::setSelected(bool shouldBeSelected)

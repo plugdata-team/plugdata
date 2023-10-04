@@ -191,11 +191,20 @@ file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/*.c
 )
 
+file(GLOB_RECURSE CIRCUIT_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Source/circuit~.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Source/Simulator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Libraries/**/*.c
+)
+
 file(GLOB_RECURSE PLAITS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/plaits~.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/*.cc
 )
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Libraries)
+
+list(APPEND ELSE_SOURCES ${CIRCUIT_SOURCES})
 list(APPEND ELSE_SOURCES ${PLAITS_SOURCES})
 
 if(ENABLE_SFIZZ)

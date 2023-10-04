@@ -223,13 +223,13 @@ public:
             int idx = 0;
             // Sort by folders first
             for (int i = 0; i < subContentsList->getNumFiles(); ++i) {
-                if (subContentsList->getFile(i).isDirectory()) {
+                if (subContentsList->getFile(i).isDirectory() && !subContentsList->getFile(i).getFileName().startsWithChar('.')) {
                     addSubItem(new DocumentBrowserItem(owner, subContentsList, i, idx, subContentsList->getFile(i)));
                     idx++;
                 }
             }
             for (int i = 0; i < subContentsList->getNumFiles(); ++i) {
-                if (subContentsList->getFile(i).existsAsFile()) {
+                if (subContentsList->getFile(i).existsAsFile() && !subContentsList->getFile(i).getFileName().startsWithChar('.')) {
                     addSubItem(new DocumentBrowserItem(owner, subContentsList, i, idx, subContentsList->getFile(i)));
                     idx++;
                 }
@@ -416,8 +416,6 @@ public:
         
         root->setSubContentsList(&directoryContentsList, false);
         setRootItem(root);
-        
-        setRootItemVisible(true);
 
         setInterceptsMouseClicks(true, true);
         setEnabled(true);

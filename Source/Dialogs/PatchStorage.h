@@ -664,11 +664,11 @@ public:
             if (input.getText().isEmpty()) {
                 Fonts::drawFittedText(g, "Type to search for patches", 30, 40, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
             }
-            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.drawLine(0, 70, getWidth(), 70);
         }
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 40, getWidth(), 40);
     }
 

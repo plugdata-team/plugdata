@@ -705,7 +705,8 @@ public:
 
                 draggableNumber->onEditorShow = [this, draggableNumber]() {
                     auto* editor = draggableNumber->getCurrentTextEditor();
-
+                    editor->setBorder(BorderSize<int>(2, 1, 4, 1));
+                    editor->setJustification(Justification::centredLeft);
                     if constexpr (std::is_floating_point<T>::value) {
                         editor->setInputRestrictions(0, "0123456789.-");
                     } else if constexpr (std::is_integral<T>::value) {

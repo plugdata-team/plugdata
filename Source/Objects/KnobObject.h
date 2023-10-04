@@ -7,6 +7,12 @@
 #include <JuceHeader.h>
 #include "TclColours.h"
 
+extern "C"
+{
+void knob_get_snd(void* x);
+void knob_get_rcv(void* x);
+}
+
 class Knob : public Slider {
 
     Colour fgColour;
@@ -474,11 +480,12 @@ public:
     String getSendSymbol()
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
-
-            if (!knb->x_snd || !knb->x_snd->s_name)
+            knob_get_snd(knb.get()); // get unexpanded send symbol from binbuf
+            
+            if (!knb->x_snd_raw || !knb->x_snd_raw->s_name)
                 return "";
 
-            auto sym = String::fromUTF8(knb->x_snd->s_name);
+            auto sym = String::fromUTF8(knb->x_snd_raw->s_name);
             if (sym != "empty") {
                 return sym;
             }
@@ -490,10 +497,12 @@ public:
     String getReceiveSymbol()
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
-            if (!knb->x_rcv || !knb->x_rcv->s_name)
+            knob_get_rcv(knb.get()); // get unexpanded receive symbol from binbuf
+            
+            if (!knb->x_rcv_raw || !knb->x_rcv_raw->s_name)
                 return "";
 
-            auto sym = String::fromUTF8(knb->x_rcv->s_name);
+            auto sym = String::fromUTF8(knb->x_rcv_raw->s_name);
             if (sym != "empty") {
                 return sym;
             }

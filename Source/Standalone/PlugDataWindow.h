@@ -511,6 +511,7 @@ public:
 
     void propertyChanged(String const& name, var const& value) override
     {
+
         if (name == "native_window") {
 
             bool nativeWindow = static_cast<bool>(value);
@@ -526,10 +527,9 @@ public:
                 setResizable(false, false);
 
                 if (drawWindowShadow) {
-
 #if JUCE_MAC
                     setDropShadowEnabled(true);
-#else
+#elif JUCE_WINDOWS
                     setDropShadowEnabled(false);
 #endif
 
@@ -571,12 +571,6 @@ public:
     {
         return pluginHolder->processor.get();
     }
-
-    /*
-    AudioDeviceManager& getDeviceManager() const noexcept
-    {
-        return pluginHolder->deviceManager;
-    } */
 
     /** Deletes and re-creates the plugin, resetting it to its default state. */
     void resetToDefaultState()
@@ -649,17 +643,17 @@ public:
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 3 });
         }
     }
+#endif
+
     void activeWindowStatusChanged() override
     {
         repaint();
-    }
-#elif JUCE_WINDOWS
-    void activeWindowStatusChanged() override
-    {
+        
+#if JUCE_WINDOWS
         if (drawWindowShadow && !isUsingNativeTitleBar() && dropShadower)
             dropShadower->repaint();
-    }
 #endif
+    }
 
     void resized() override
     {
@@ -724,30 +718,6 @@ private:
                 addAndMakeVisible(editor.get());
                 editor->setAlwaysOnTop(true);
             }
-        }
-
-        void paintOverChildren(Graphics& g) override
-        {
-#if JUCE_LINUX || JUCE_BSD
-            if (!owner.isUsingNativeTitleBar() && !owner.hasOpenedDialog()) {
-                g.setColour(findColour(PlugDataColour::outlineColourId));
-
-                if (!Desktop::canUseSemiTransparentWindows()) {
-                    g.drawRect(getLocalBounds().toFloat().reduced(getMargin()), 1.0f);
-                } else {
-                    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin()), Corners::windowCornerRadius, 1.0f);
-                }
-            }
-#elif JUCE_WINDOWS
-
-            g.setColour(findColour(PlugDataColour::outlineColourId));
-            if (owner.isUsingNativeTitleBar()) {
-                g.drawRect(getLocalBounds(), 1.0f);
-            } else {
-                g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
-            }
-
-#endif
         }
 
         AudioProcessorEditor* getEditor()
@@ -891,3 +861,4 @@ inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
 
     return nullptr;
 }
+

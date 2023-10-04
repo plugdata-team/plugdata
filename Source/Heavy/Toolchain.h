@@ -215,8 +215,8 @@ struct ToolchainInstaller : public Component
             float downloadBarBgHeight = 11.0f;
             float downloadBarHeight = downloadBarBgHeight - 3.0f;
 
-            auto downloadBarBg = Rectangle<float>(90.0f, 300.0f - (downloadBarBgHeight * 0.5), width, downloadBarBgHeight);
-            auto downloadBar = Rectangle<float>(91.5f, 300.0f - (downloadBarHeight * 0.5), progress, downloadBarHeight);
+            auto downloadBarBg = Rectangle<float>(90.0f, 250.0f - (downloadBarBgHeight * 0.5), width, downloadBarBgHeight);
+            auto downloadBar = Rectangle<float>(91.5f, 250.0f - (downloadBarHeight * 0.5), progress, downloadBarHeight);
 
             g.setColour(findColour(PlugDataColour::panelTextColourId));
             PlugDataLook::fillSmoothedRectangle(g, downloadBarBg, Corners::defaultCornerRadius);
@@ -308,7 +308,7 @@ struct ToolchainInstaller : public Component
             + "\nchmod +x " + tcPath + "/bin/*"
             + "\nchmod +x " + tcPath + "/lib/dpf/utils/generate-ttl.sh"
             + "\nchmod +x " + tcPath + "/arm-none-eabi/bin/*"
-            + "\nchmod +x " + tcPath + "/libexec/gcc/arm-none-eabi/*/*"
+            + "\nchmod +x " + tcPath + "/lib/gcc/arm-none-eabi/*/*"
 #    if JUCE_LINUX
             + "\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/bin/*"
             + "\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/sysroot/sbin/*"

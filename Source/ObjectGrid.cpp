@@ -172,11 +172,11 @@ Point<int> ObjectGrid::performFixedResize(Object* toDrag, Point<int> dragOffset,
         if (draggingWidth && !horizontal) {
             delta *= ratio;
         }
-        if (!draggingWidth && horizontal)
-
+        if (!draggingWidth && horizontal) {
             if (horizontal ^ draggingWidth) {
                 delta /= ratio;
             }
+        }
 
         snapTarget += delta;
 

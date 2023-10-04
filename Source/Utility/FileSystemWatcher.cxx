@@ -136,6 +136,7 @@ public:
 
     ~Impl()
     {
+        shouldQuit = true;
         signalThreadShouldExit();
         inotify_rm_watch (fd, wd);
         close (fd);
@@ -151,7 +152,7 @@ public:
         const struct inotify_event* iNotifyEvent;
         char* ptr;
 
-        while (true)
+        while (!shouldQuit)
         {
             int numRead = read (fd, buf, BUF_LEN);
 
@@ -171,7 +172,8 @@ public:
                 else if (iNotifyEvent->mask & IN_MOVED_TO)    e.fsEvent = FileSystemEvent::fileRenamedNewName;
                 else if (iNotifyEvent->mask & IN_DELETE)      e.fsEvent = FileSystemEvent::fileDeleted;
 
-
+                ScopedLock sl(lock);
+                
                 bool duplicateEvent = false;
                 for (auto existing : events)
                 {
@@ -186,6 +188,7 @@ public:
                     events.add (std::move (e));
             }
 
+            ScopedLock sl (lock);
             if (events.size() > 0)
                 triggerAsyncUpdate();
         }
@@ -193,6 +196,8 @@ public:
 
     void handleAsyncUpdate() override
     {
+        if(shouldQuit) return;
+
         ScopedLock sl (lock);
 
         owner.folderChanged (folder);
@@ -203,6 +208,7 @@ public:
         events.clear();
     }
 
+    std::atomic<bool> shouldQuit = false;
     FileSystemWatcher& owner;
     File folder;
 
@@ -234,7 +240,7 @@ public:
       : Thread ("FileSystemWatcher::Impl"), owner (o), folder (f)
     {
         WCHAR path[_MAX_PATH] = {0};
-        wcsncpy (path, folder.getFullPathName().toWideCharPointer(), _MAX_PATH - 1);
+        wcsncpy_s (path, folder.getFullPathName().toWideCharPointer(), _MAX_PATH - 1);
 
         folderHandle = CreateFileW (path, FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                                     NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);

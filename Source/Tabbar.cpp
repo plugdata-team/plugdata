@@ -363,6 +363,8 @@ void TabComponent::addTab(String const& tabName, Component* contentComponent, in
     contentComponents.insert(insertIndex, WeakReference<Component>(contentComponent));
 
     tabs->addTab(tabName, findColour(ResizableWindow::backgroundColourId), insertIndex);
+    
+    setTabBarDepth(30); // Make sure tabbar isn't invisible
     resized();
 }
 
@@ -495,16 +497,21 @@ Component* TabComponent::getTabContentComponent(int tabIndex) const noexcept
 
 void TabComponent::paint(Graphics& g)
 {
-    g.fillAll(findColour(PlugDataColour::tabBackgroundColourId));
+    auto backgroundColour = findColour(PlugDataColour::tabBackgroundColourId);
+
+    if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
+    {
+        backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
+    }
+    
+    g.fillAll(backgroundColour);
 }
 
 void TabComponent::paintOverChildren(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(0, tabDepth, getWidth(), tabDepth);
-
     g.drawLine(0, 0, getWidth(), 0);
-    g.drawLine(0, 0, 0, getBottom());
 }
 
 int TabComponent::getIndexOfCanvas(Canvas* cnv)

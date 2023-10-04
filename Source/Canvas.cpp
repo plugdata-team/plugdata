@@ -108,8 +108,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
     setSize(infiniteCanvasSize, infiniteCanvasSize);
 
-    // initialize per canvas zoom to 100% when first creating canvas
-    zoomScale.setValue(1.0f);
+    // initialize to default zoom
+    auto defaultZoom = SettingsFile::getInstance()->getPropertyAsValue("default_zoom");
+    zoomScale.setValue(getValue<float>(defaultZoom)/100.0f);
     zoomScale.addListener(this);
 
     // Add lasso component
@@ -275,7 +276,9 @@ void Canvas::zoomToFitAll()
 
 void Canvas::lookAndFeelChanged()
 {
-    lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
+    lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.125f));
+    
+    lasso.setColour(LassoComponent<Object>::lassoOutlineColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.8f));
 }
 
 void Canvas::paint(Graphics& g)
@@ -461,7 +464,9 @@ void Canvas::performSynchronise()
     // Remove deleted objects
     for (int n = objects.size() - 1; n >= 0; n--) {
         auto* object = objects[n];
-        if (!object->getPointer() || patch.objectWasDeleted(object->getPointer())) {
+        
+        // If the object is showing it's initial editor, meaning no object was assigned yet, allow it to exist without pointing to an object
+        if ((!object->getPointer()|| patch.objectWasDeleted(object->getPointer())) && !object->isInitialEditorShown()) {
             setSelected(object, false, false);
             objects.remove(n);
         }

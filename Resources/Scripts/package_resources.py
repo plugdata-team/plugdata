@@ -81,6 +81,7 @@ copyFile("../Patches/param.pd", "./Abstractions")
 
 globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
 copyDir("../../Libraries/pd-else/Documentation/Help-files/", "./Documentation/9.else")
+copyFile("../../Libraries/pd-else/Documentation/extra_files/f2s~-help.pd", "./Documentation/9.else")
 
 #copyFile("../Patches/beat-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/param-help.pd", "./Documentation/5.reference")
@@ -99,6 +100,7 @@ removeFile("./Documentation/Makefile.am")
 makeDir("Extra")
 makeDir("Extra/GS")
 copyDir("../../Libraries/pd-else/Documentation/extra_files", "Extra/else");
+copyFile("../../Libraries/pd-else/Documentation/README.pdf", "Extra/else");
 copyDir("../../Libraries/pd-else/Code_source/Compiled/audio/sfont~/sf", "Extra/else/sf");
 copyDir("../Patches/Presets", "./Extra/Presets")
 copyDir("../Patches/Palettes", "./Extra/palette")

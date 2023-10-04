@@ -20,7 +20,6 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
     { toolbarHoverColourId, { "Toolbar hover", "toolbar_hover", "Toolbar" } },
     { toolbarActiveColourId, { "Toolbar active text", "toolbar_active", "Toolbar" } },
-    { toolbarOutlineColourId, { "Toolbar outline", "toolbar_outline_colour", "Toolbar" } },
 
     { tabBackgroundColourId, { "Tab background", "tabbar_background", "Tabbar" } },
 
@@ -31,7 +30,6 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { canvasBackgroundColourId, { "Canvas background", "canvas_background", "Canvas" } },
     { canvasTextColourId, { "Canvas text", "canvas_text", "Canvas" } },
     { canvasDotsColourId, { "Canvas dots colour", "canvas_dots", "Canvas" } },
-    { outlineColourId, { "Outline", "outline_colour", "Canvas" } },
 
     { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
     { guiObjectInternalOutlineColour, { "GUI Object internal outline colour", "gui_internal_outline_colour", "Object" } },
@@ -53,9 +51,11 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { popupMenuActiveBackgroundColourId, { "Popup menu background active", "popup_background_active", "Popup Menu" } },
     { popupMenuTextColourId, { "Popup menu text", "popup_text", "Popup Menu" } },
     { popupMenuActiveTextColourId, { "Popup menu active text", "popup_active_text", "Popup Menu" } },
+    { outlineColourId, { "Popup menu outline", "outline_colour", "Popup Menu" } },
 
     { dialogBackgroundColourId, { "Dialog background", "dialog_background", "Other" } },
     { caretColourId, { "Text editor caret", "caret_colour", "Other" } },
+    { toolbarOutlineColourId, { "Outline", "toolbar_outline_colour", "Other" } },
 
     { levelMeterActiveColourId, { "Level meter active", "levelmeter_active", "Level Meter" } },
     { levelMeterBackgroundColourId, { "Level meter track", "levelmeter_background", "Level Meter" } },
@@ -263,7 +263,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             : Button("")
             , buttonType(buttonType)
         {
-            auto crossThickness = 0.15f;
+            auto crossThickness = 0.2f;
             String name;
 
             switch (buttonType) {
@@ -301,17 +301,18 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
+            auto circleColour = findColour(PlugDataColour::toolbarHoverColourId);
+            if(shouldDrawButtonAsHighlighted) circleColour = circleColour.contrasting(0.04f);
+
+            g.setColour(circleColour);
+            g.fillEllipse(getLocalBounds().withSizeKeepingCentre(getWidth() - 8, getWidth() - 8).toFloat());
+
             auto colour = findColour(TextButton::textColourOffId);
-
             g.setColour((!isEnabled() || shouldDrawButtonAsDown) ? colour.withAlpha(0.6f) : colour);
-
-            if (shouldDrawButtonAsHighlighted) {
-                g.setColour(findColour(Slider::thumbColourId));
-            }
 
             auto& p = getToggleState() ? toggledShape : shape;
 
-            auto reducedRect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat().reduced(getHeight() * 0.3f);
+            auto reducedRect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat().reduced(getHeight() * 0.35f);
 
             g.fillPath(p, p.getTransformToScaleToFit(reducedRect, true));
         }
@@ -919,6 +920,14 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
             idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
             idealWidth = font.getStringWidth(text) + idealHeight;
+
+            #if JUCE_LINUX || JUCE_WINDOWS
+            // Dumb check to see if there is a keyboard shortcut after the text.
+            // On Linux and Windows, it seems to reserve way to much space for those.
+            if(text.contains("  ")) {
+                idealWidth -= 25;
+            }
+            #endif
         }
     }
 
@@ -1575,24 +1584,24 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           searchbar_colour=\"ff232323\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
     "    <Theme theme=\"light\" toolbar_background=\"ffebebeb\" toolbar_text=\"ff373737\"\n"
-    "           toolbar_active=\"ff007aff\" toolbar_hover=\"ffd9d9d9\" tabbar_background=\"ffebebeb\"\n"
-    "           tab_text=\"ff373737\" selected_tab_background=\"ffdedede\" selected_tab_text=\"ff373737\"\n"
+    "           toolbar_active=\"ff007aff\" toolbar_hover=\"ffe0e0e0\" tabbar_background=\"ffebebeb\"\n"
+    "           tab_text=\"ff373737\" selected_tab_background=\"ffe0e0e0\" selected_tab_text=\"ff373737\"\n"
     "           canvas_background=\"fffafafa\" canvas_text=\"ff4d4d4d\" canvas_dots=\"ff909090\"\n"
-    "           default_object_background=\"ffe4e4e4\" object_outline_colour=\"ffa8a8a8\"\n"
-    "           selected_object_outline_colour=\"ff007aff\" gui_internal_outline_colour=\"ffa8a8a8\"\n"
-    "           toolbar_outline_colour=\"ffdbdbdb\" outline_colour=\"ffc8c8c8\" data_colour=\"ff007aff\"\n"
-    "           connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\" dialog_background=\"ffe4e4e4\"\n"
+    "           default_object_background=\"ffe4e4e4\" object_outline_colour=\"ffb7b7b7\"\n"
+    "           selected_object_outline_colour=\"ff007aff\" gui_internal_outline_colour=\"ffb7b7b7\"\n"
+    "           toolbar_outline_colour=\"ffdfdfdf\" outline_colour=\"ffd0d0d0\" data_colour=\"ff007aff\"\n"
+    "           connection_colour=\"ffb3b3b3\" signal_colour=\"ffff8500\" dialog_background=\"ffebebeb\"\n"
     "           sidebar_colour=\"ffefefef\" sidebar_text=\"ff373737\" sidebar_background_active=\"ffe4e4e4\"\n"
-    "           sidebar_active_text=\"ff373737\" levelmeter_active=\"ff007aff\" levelmeter_background=\"ffdedede\"\n"
-    "           levelmeter_thumb=\"ff7a7a7a\" panel_background=\"fff7f7f7\" panel_foreground=\"fffdfdfd\"\n"
-    "           panel_text=\"ff373737\" panel_background_active=\"ffebebeb\" panel_active_text=\"ff373737\"\n"
-    "           popup_background=\"ffe6e6e6\" popup_background_active=\"ffd5d5d5\"\n"
+    "           sidebar_active_text=\"ff373737\" levelmeter_active=\"ff007aff\" levelmeter_background=\"ffe1e1e1\"\n"
+    "           levelmeter_thumb=\"ff9a9a9a\" panel_background=\"fff7f7f7\" panel_foreground=\"fffdfdfd\"\n"
+    "           panel_text=\"ff373737\" panel_background_active=\"ffececec\" panel_active_text=\"ff373737\"\n"
+    "           popup_background=\"ffe8e8e8\" popup_background_active=\"ffdcdcdc\"\n"
     "           popup_text=\"ff373737\" popup_active_text=\"ff373737\" slider_thumb=\"ff007aff\"\n"
     "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff007aff\" grid_colour=\"ff007aff\"\n"
     "           caret_colour=\"ff007aff\" square_object_corners=\"0\" text_object_background=\"fffafafa\"\n"
-    "           iolet_area_colour=\"fffafafa\" iolet_outline_colour=\"ffa8a8a8\"\n"
+    "           iolet_area_colour=\"fffafafa\" iolet_outline_colour=\"ffc2c2c2\"\n"
     "           comment_text_colour=\"ff373737\" searchbar_colour=\"fffafafa\" dashed_signal_connections=\"1\"\n"
-    "           straight_connections=\"0\" thin_connections=\"0\" square_iolets=\"0\"/>\n"
+    "           straight_connections=\"0\" thin_connections=\"0\" square_iolets=\"0\"/>"
     "    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
     "           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffc0bbb2\" tabbar_background=\"ffd2cdc4\"\n"
     "           tab_text=\"ff5a5a5a\" selected_tab_background=\"ffc0bbb2\" selected_tab_text=\"ff5a5a5a\"\n"
@@ -1632,6 +1641,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           searchbar_colour=\"ff383838\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"0\"/>\n"
     "  </ColourThemes>";
+    
     // clang-format on
 
     static void resetColours(ValueTree themesTree)
@@ -1714,3 +1724,4 @@ struct PlugDataLook : public LookAndFeel_V4 {
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };
 };
+

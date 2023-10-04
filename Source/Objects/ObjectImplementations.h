@@ -678,7 +678,7 @@ class CanvasEditObject final : public ImplementationBase
     , public Value::Listener {
 
     bool lastEditMode;
-    Component::Component::SafePointer<Canvas> cnv;
+    Component::SafePointer<Canvas> cnv;
 
 public:
     using ImplementationBase::ImplementationBase;
@@ -692,10 +692,13 @@ public:
             cnv->locked.removeListener(this);
         }
 
-        cnv = getMainCanvas(ptr.get<t_fake_edit>()->x_canvas);
-        if (!cnv)
-            return;
-
+        if(auto edit = ptr.get<t_fake_edit>())
+        {
+            cnv = getMainCanvas(edit->x_canvas);
+        }
+        
+        if (!cnv) return;
+        
         // Don't use lock method, because that also responds to temporary lock
         lastEditMode = getValue<float>(cnv->locked);
         cnv->locked.addListener(this);
