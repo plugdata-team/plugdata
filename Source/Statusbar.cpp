@@ -475,7 +475,7 @@ void Statusbar::propertyChanged(String const& name, var const& value)
 
 void Statusbar::paint(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::outlineColourId));
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(0.0f, 0.5f, static_cast<float>(getWidth()), 0.5f);
 
     g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);

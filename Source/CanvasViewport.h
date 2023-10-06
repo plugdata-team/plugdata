@@ -348,7 +348,7 @@ public:
         float scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
         auto contentArea = getViewArea() * scale;
 
-        Rectangle<int> objectArea;
+        Rectangle<int> objectArea = contentArea.withPosition(cnv->canvasOrigin);
         for (auto object : cnv->objects) {
             objectArea = objectArea.getUnion(object->getBounds());
         }

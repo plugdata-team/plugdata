@@ -1612,10 +1612,10 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
     }
 }
 
-void PluginProcessor::updateConsole()
+void PluginProcessor::updateConsole(int numMessages, bool newWarning)
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        editor->sidebar->updateConsole();
+        editor->sidebar->updateConsole(numMessages, newWarning);
     }
 }
 

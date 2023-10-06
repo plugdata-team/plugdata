@@ -86,7 +86,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
-    hideSidebarButton.setButtonText(Icons::SidePanel);
     pluginModeButton.setButtonText(Icons::PluginMode);
 
     editButton.setButtonText(Icons::Edit);
@@ -162,7 +161,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
              &undoButton,
              &redoButton,
              &addObjectMenuButton,
-             &hideSidebarButton,
              &pluginModeButton,
          }) {
         button->getProperties().set("Style", "LargeIcon");
@@ -225,24 +223,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     runButton.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
     presentButton.setConnectedEdges(Button::ConnectedOnLeft);
 
-    // Hide sidebar
-    hideSidebarButton.setTooltip("Hide Sidebar");
-    hideSidebarButton.getProperties().set("Style", "LargeIcon");
-    hideSidebarButton.setClickingTogglesState(true);
-    hideSidebarButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-    hideSidebarButton.onClick = [this]() {
-        bool show = !hideSidebarButton.getToggleState();
-
-        sidebar->showSidebar(show);
-        hideSidebarButton.setButtonText(Icons::SidePanel);
-        hideSidebarButton.setTooltip(show ? "Hide Sidebar" : "Show Sidebar");
-
-        repaint();
-        resized();
-    };
-
-    addAndMakeVisible(hideSidebarButton);
-
     // Enter plugin mode
     pluginModeButton.setTooltip("Enter plugin mode");
     pluginModeButton.getProperties().set("Style", "LargeIcon");
@@ -264,7 +244,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     sidebar->toFront(false);
 
     // Make sure existing console messages are processed
-    sidebar->updateConsole();
+    sidebar->updateConsole(0, false);
     updateCommandStatus();
 
     addModifierKeyListener(statusbar.get());
@@ -380,7 +360,7 @@ void PluginEditor::resized()
     if (pd->isInPluginMode())
         return;
 
-    auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
+    auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 30;
     if (!palettes->isVisible())
         paletteWidth = 0;
 
@@ -422,10 +402,7 @@ void PluginEditor::resized()
             resizerSize, resizerSize);
     }
 
-    int hidePosition = getWidth() - windowControlsOffset;
-
-    hideSidebarButton.setBounds(hidePosition, 0, toolbarHeight, toolbarHeight);
-    pluginModeButton.setBounds(hidePosition - 60, 0, toolbarHeight, toolbarHeight);
+    pluginModeButton.setBounds(getWidth() - windowControlsOffset, 0, toolbarHeight, toolbarHeight);
 
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
@@ -1244,7 +1221,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ToggleSidebar: {
-        hideSidebarButton.triggerClick();
+        // TODO: implement
         return true;
     }
     case CommandIDs::TogglePalettes: {

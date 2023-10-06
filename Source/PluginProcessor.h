@@ -74,7 +74,7 @@ public:
     void addTextToTextEditor(unsigned long ptr, String text) override;
     void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
 
-    void updateConsole() override;
+    void updateConsole(int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 

@@ -422,7 +422,7 @@ public:
         auto transform = AffineTransform::rotation(-MathConstants<float>::halfPi, midX, midY);
         g.addTransform(transform);
 
-        Font font(getWidth() / 1.7f);
+        Font font(getWidth() / 2.0f);
 
         g.setFont(font);
         auto colour = findColour(getToggleState() ? TextButton::textColourOnId
@@ -564,7 +564,7 @@ private:
     bool hitTest(int x, int y) override
     {
         if (!isExpanded()) {
-            return x < 26;
+            return x < 30;
         }
 
         return true;
@@ -576,15 +576,15 @@ private:
 
         int totalHeight = 0;
         for (auto* button : paletteSelectors) {
-            totalHeight += Font(14).getStringWidth(button->getButtonText()) + 26;
+            totalHeight += Font(14).getStringWidth(button->getButtonText()) + 30;
         }
 
         totalHeight += 46;
 
         totalHeight = std::max(totalHeight, getHeight());
 
-        paletteBar.setBounds(0, 0, 26, totalHeight);
-        paletteViewport.setBounds(getLocalBounds().removeFromLeft(26));
+        paletteBar.setBounds(0, 0, 30, totalHeight);
+        paletteViewport.setBounds(getLocalBounds().removeFromLeft(30));
 
         int offset = totalHeight > paletteViewport.getMaximumVisibleHeight() ? -4 : 0;
 
@@ -594,10 +594,10 @@ private:
 
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
-            int height = Font(14).getStringWidth(buttonText) + 26;
+            int height = Font(14).getStringWidth(buttonText) + 30;
 
             if (button != draggedTab) {
-                auto bounds = Rectangle<int>(offset, totalHeight, 26, height);
+                auto bounds = Rectangle<int>(offset, totalHeight, 30, height);
                 if (shouldAnimate) {
                     animator.animateComponent(button, bounds, 1.0f, 200, false, 3.0f, 0.0f);
                 } else {
@@ -612,10 +612,10 @@ private:
         shouldAnimate = false;
 
         addButton.toFront(false);
-        addButton.setBounds(Rectangle<int>(offset, totalHeight, 26, 26));
+        addButton.setBounds(Rectangle<int>(offset, totalHeight, 30, 30));
 
         if (view)
-            view->setBounds(getLocalBounds().withTrimmedLeft(26));
+            view->setBounds(getLocalBounds().withTrimmedLeft(30));
 
         resizer.setBounds(getWidth() - 5, 0, 5, getHeight());
 
@@ -707,13 +707,13 @@ private:
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
         g.setColour(backgroundColour);
-        g.fillRect(getLocalBounds().toFloat().removeFromLeft(26).withTrimmedTop(0.5f));
+        g.fillRect(getLocalBounds().toFloat().removeFromLeft(30).withTrimmedTop(0.5f));
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(25.5f, 0.0f, 25.5f, getHeight());
+        g.drawLine(29.5f, 0.0f, 29.5f, getHeight());
 
         if (view) {
             g.drawLine(getWidth() - 0.5f, 0.0f, getWidth() - 0.5f, getHeight());

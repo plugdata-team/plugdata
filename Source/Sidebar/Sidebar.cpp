@@ -21,7 +21,7 @@
 #include "SearchPanel.h"
 
 Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
-    : pd(instance)
+    : pd(instance), editor(parent)
 {
     // Can't use RAII because unique pointer won't compile with forward declarations
     console = std::make_unique<Console>(pd);
@@ -98,7 +98,9 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     addAndMakeVisible(consoleButton);
 
     inspector->setVisible(false);
-    showPanel(0);
+    currentPanel = 0;
+    updateExtraSettingsButton();
+    resized();
 }
 
 Sidebar::~Sidebar()
@@ -110,21 +112,25 @@ void Sidebar::paint(Graphics& g)
 {
     // Sidebar
     g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-    g.fillRect(0, 0, getWidth(), getHeight());
+    g.fillRect(0, 30, getWidth(), getHeight());
 
     auto toolbarColour = findColour(PlugDataColour::toolbarBackgroundColourId);
     if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
     {
         toolbarColour = toolbarColour.brighter(toolbarColour.getBrightness() / 2.5f);
     }
+    
     // Background for buttons
     g.setColour(toolbarColour);
-    g.fillRect(0, 0, getWidth(), 30);
+    g.fillRect(getWidth() - 30, 0, 30, getHeight());
+    g.fillRect(0, 0, getWidth() - 30, 30);
 
-    if (inspector->isVisible()) {
-        Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 30, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
-    } else {
-        Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 30, getWidth(), 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+    if(!sidebarHidden) {
+        if (inspector->isVisible()) {
+            Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+        } else {
+            Fonts::drawStyledText(g, panelNames[currentPanel], Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
+        }
     }
 }
 
@@ -132,24 +138,26 @@ void Sidebar::paintOverChildren(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(0, 0, getWidth(), 0);
-    g.drawLine(0, 30, getWidth(), 30);
+    g.drawLine(getWidth() - 30, 0, getWidth() - 30, getHeight());
     g.drawLine(0.0f, getHeight() + 0.5f, static_cast<float>(getWidth()), getHeight() + 0.5f);
     g.drawLine(0.5f, 0, 0.5f, getHeight() + 0.5f);
 
-    g.drawLine(0, 60, getWidth(), 60);
+    g.drawLine(0, 30, getWidth() - 30, 30);
 }
 
 void Sidebar::resized()
 {
     auto bounds = getLocalBounds();
-    int buttonWidth = getWidth() / 4;
+    auto tabbarBounds = bounds.removeFromRight(30).reduced(0, 1);
 
-    auto tabbarBounds = bounds.removeFromTop(30).reduced(0, 1);
-
-    consoleButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
-    browserButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
-    automationButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
-    searchButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
+    tabbarBounds.removeFromTop(2);
+    consoleButton.setBounds(tabbarBounds.removeFromTop(30));
+    tabbarBounds.removeFromTop(8);
+    browserButton.setBounds(tabbarBounds.removeFromTop(30));
+    tabbarBounds.removeFromTop(8);
+    automationButton.setBounds(tabbarBounds.removeFromTop(30));
+    tabbarBounds.removeFromTop(8);
+    searchButton.setBounds(tabbarBounds.removeFromTop(30));
 
     auto panelTitleBarBounds = bounds.removeFromTop(30);
 
@@ -179,7 +187,7 @@ void Sidebar::mouseDrag(MouseEvent const& e)
 {
     if (draggingSidebar) {
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
-        newWidth = std::clamp(newWidth, 200, std::max(getParentWidth() / 2, 150));
+        newWidth = std::clamp(newWidth, 230, std::max(getParentWidth() / 2, 150));
 
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         getParentComponent()->resized();
@@ -211,9 +219,23 @@ void Sidebar::showPanel(int panelToShow)
     bool showBrowser = panelToShow == 1;
     bool showAutomation = panelToShow == 2;
     bool showSearch = panelToShow == 3;
+    
+    if(panelToShow == currentPanel && !sidebarHidden) {
+        
+        consoleButton.setToggleState(false, dontSendNotification);
+        browserButton.setToggleState(false, dontSendNotification);
+        automationButton.setToggleState(false, dontSendNotification);
+        searchButton.setToggleState(false, dontSendNotification);
+        
+        showSidebar(false);
+        return;
+    }
+    
+    showSidebar(true);
 
     console->setVisible(showConsole);
-
+    if(showConsole) console->resized();
+    
     browser->setVisible(showBrowser);
     browser->setInterceptsMouseClicks(showBrowser, showBrowser);
 
@@ -262,7 +284,7 @@ void Sidebar::showSidebar(bool show)
 
     if (!show) {
         lastWidth = getWidth();
-        int newWidth = 0;
+        int newWidth = 30;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
     } else {
         int newWidth = lastWidth;
@@ -272,6 +294,8 @@ void Sidebar::showSidebar(bool show)
             inspector->showParameters();
         }
     }
+    
+    editor->resized();
 }
 
 void Sidebar::pinSidebar(bool pin)
@@ -361,8 +385,13 @@ void Sidebar::clearConsole()
     console->clear();
 }
 
-void Sidebar::updateConsole()
+void Sidebar::updateConsole(int numMessages, bool newWarning)
 {
+    if(currentPanel != 0 || sidebarHidden) {
+        consoleButton.numNotifications += numMessages;
+        consoleButton.hasWarning = consoleButton.hasWarning || newWarning;
+        consoleButton.repaint();
+    }
     console->update();
 }
 

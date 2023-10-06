@@ -250,7 +250,7 @@ public:
 
     virtual void receiveDSPState(bool dsp) {};
 
-    virtual void updateConsole() {};
+    virtual void updateConsole(int numMessages, bool newWarning) {};
 
     virtual void titleChanged() {};
 
@@ -355,7 +355,8 @@ protected:
         void timerCallback() override
         {
             auto item = std::tuple<void*, String, bool>();
-            bool receivedMessage = false;
+            int numReceived = 0;
+            bool newWarning = false;
 
             while (pendingMessages.try_dequeue(item)) {
                 auto& [object, message, type] = item;
@@ -364,12 +365,13 @@ protected:
                 if (consoleMessages.size() > 800)
                     consoleMessages.pop_front();
 
-                receivedMessage = true;
+                numReceived++;
+                newWarning = newWarning || type;
             }
 
             // Check if any item got assigned
-            if (receivedMessage) {
-                instance->updateConsole();
+            if (numReceived) {
+                instance->updateConsole(numReceived, newWarning);
             }
 
             stopTimer();
