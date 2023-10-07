@@ -179,7 +179,10 @@ public:
         resetButton->setTooltip("Reset to default");
         resetButton->setSize(23, 23);
         resetButton->onClick = [this]() {
-            //properties.resetAll();
+            for(auto& propertiesList : properties)
+            {
+                propertiesList.resetAll();
+            }
         };
 
         return std::unique_ptr<TextButton>(resetButton);
