@@ -53,13 +53,14 @@ public:
         listBox.addMouseListener(this, true);
 
         input.setJustification(Justification::centredLeft);
-        input.setBorder({ 1, 23, 3, 1 });
+        input.setBorder({ 1, 23, 5, 1 });
 
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setWantsKeyboardFocus(false);
+        lookAndFeelChanged();
         repaint();
     }
 
@@ -184,30 +185,31 @@ public:
     {
         repaint();
     }
+        
+    void lookAndFeelChanged() override
+    {
+        input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        input.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+    }
 
     void paint(Graphics& g) override
     {
-        auto searchBarColour = findColour(PlugDataColour::searchBarColourId);
-        auto textColour = findColour(PlugDataColour::sidebarTextColourId);
-
-        input.setColour(TextEditor::backgroundColourId, searchBarColour);
-        input.setColour(TextEditor::textColourId, textColour);
-
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(getLocalBounds());
+        
+        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+        g.fillRoundedRectangle(input.getBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0, 29, getWidth(), 29);
-
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
-        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
+        Fonts::drawIcon(g, Icons::Search, 1, 0, 32, colour, 12);
 
         if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search in patch", 30, 0, getWidth() - 60, 30, colour.withAlpha(0.5f), 1, 0.9f, 14);
+            Fonts::drawFittedText(g, "Type to search in patch", 30, 0, getWidth() - 60, 32, colour.withAlpha(0.5f), 1, 0.9f, 14);
         }
     }
 
@@ -391,12 +393,12 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop(28);
+        auto inputBounds = tableBounds.removeFromTop(32);
 
         tableBounds.removeFromTop(4);
 
         input.setBounds(inputBounds);
-        clearButton.setBounds(inputBounds.removeFromRight(32));
+        clearButton.setBounds(inputBounds.removeFromRight(30));
         listBox.setBounds(tableBounds);
     }
 

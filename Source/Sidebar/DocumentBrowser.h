@@ -616,7 +616,7 @@ public:
         listBox.setVisible(false);
 
         input.setJustification(Justification::centredLeft);
-        input.setBorder({ 1, 23, 3, 1 });
+        input.setBorder({ 1, 23, 5, 1 });
 
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
@@ -660,23 +660,26 @@ public:
         if (listBox.isVisible()) {
             g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
         }
+        
+        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+        g.fillRoundedRectangle(input.getBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
     }
 
     void lookAndFeelChanged() override
     {
-        input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
+        input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+        input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
     }
 
     void paintOverChildren(Graphics& g) override
     {
-
         auto textColour = findColour(PlugDataColour::sidebarTextColourId);
 
-        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, textColour, 12);
+        Fonts::drawIcon(g, Icons::Search, 1, 0, 32, textColour, 12);
 
         if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search documentation", 30, 0, getWidth() - 60, 30, textColour.withAlpha(0.5f), 1, 0.9f, 14);
+            Fonts::drawFittedText(g, "Type to search documentation", 30, 0, getWidth() - 60, 32, textColour.withAlpha(0.5f), 1, 0.9f, 14);
         }
     }
 
@@ -770,13 +773,13 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop(28);
+        auto inputBounds = tableBounds.removeFromTop(32);
 
-        tableBounds.removeFromTop(4);
+        tableBounds.removeFromTop(2);
 
         input.setBounds(inputBounds);
 
-        clearButton.setBounds(inputBounds.removeFromRight(32));
+        clearButton.setBounds(inputBounds.removeFromRight(30));
 
         listBox.setBounds(tableBounds.withTrimmedTop(1));
     }
@@ -856,9 +859,6 @@ public:
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
-
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0, 29, getWidth(), 29);
     }
 
     std::unique_ptr<Component> getExtraSettingsComponent()
