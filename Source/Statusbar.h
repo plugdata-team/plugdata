@@ -13,10 +13,12 @@
 
 class Canvas;
 class LevelMeter;
-class MidiBlinker;
+class MIDIBlinker;
+class CPUMeter;
 class PluginProcessor;
 class VolumeSlider;
 class OversampleSelector;
+
 
 class StatusbarSource : public Timer {
 
@@ -26,6 +28,7 @@ public:
         virtual void midiSentChanged(bool midiSent) {};
         virtual void audioProcessedChanged(bool audioProcessed) {};
         virtual void audioLevelChanged(Array<float> peak) {};
+        virtual void cpuUsageChanged(float newCpuUsage) {};
         virtual void timerCallback() {};
     };
 
@@ -43,6 +46,8 @@ public:
 
     void addListener(Listener* l);
     void removeListener(Listener* l);
+    
+    void setCPUUsage(float cpuUsage);
 
     AudioSampleRingBuffer peakBuffer;
 
@@ -52,6 +57,7 @@ private:
     std::atomic<int> lastAudioProcessedTime = 0;
     std::atomic<float> level[2] = { 0 };
     std::atomic<float> peakHold[2] = { 0 };
+    std::atomic<float> cpuUsage;
 
     int peakHoldDelay[2] = { 0 };
 
@@ -88,8 +94,10 @@ public:
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
 
     std::unique_ptr<LevelMeter> levelMeter;
-    std::unique_ptr<MidiBlinker> midiBlinker;
     std::unique_ptr<VolumeSlider> volumeSlider;
+    std::unique_ptr<MIDIBlinker> midiBlinker;
+    std::unique_ptr<CPUMeter> cpuMeter;
+
 
     TextButton powerButton, centreButton, fitAllButton, protectButton;
 
@@ -113,6 +121,7 @@ public:
     int firstSeparatorPosition;
     int secondSeparatorPosition;
     int thirdSeparatorPosition;
+    int fourthSeparatorPosition;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

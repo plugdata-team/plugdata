@@ -581,10 +581,12 @@ private:
 
         totalHeight += 46;
 
-        totalHeight = std::max(totalHeight, getHeight());
-
+        
+        auto selectorBounds = getLocalBounds().removeFromLeft(30).withSizeKeepingCentre(30, totalHeight);
+        
         paletteBar.setBounds(0, 0, 30, totalHeight);
-        paletteViewport.setBounds(getLocalBounds().removeFromLeft(30));
+        
+        paletteViewport.setBounds(selectorBounds);
 
         int offset = totalHeight > paletteViewport.getMaximumVisibleHeight() ? -4 : 0;
 

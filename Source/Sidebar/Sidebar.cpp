@@ -148,16 +148,17 @@ void Sidebar::paintOverChildren(Graphics& g)
 void Sidebar::resized()
 {
     auto bounds = getLocalBounds();
-    auto tabbarBounds = bounds.removeFromRight(30).reduced(0, 1);
+    auto buttonBarBounds = bounds.removeFromRight(30).reduced(0, 1);
 
-    tabbarBounds.removeFromTop(2);
-    consoleButton.setBounds(tabbarBounds.removeFromTop(30));
-    tabbarBounds.removeFromTop(8);
-    browserButton.setBounds(tabbarBounds.removeFromTop(30));
-    tabbarBounds.removeFromTop(8);
-    automationButton.setBounds(tabbarBounds.removeFromTop(30));
-    tabbarBounds.removeFromTop(8);
-    searchButton.setBounds(tabbarBounds.removeFromTop(30));
+    buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144);
+    
+    consoleButton.setBounds(buttonBarBounds.removeFromTop(30));
+    buttonBarBounds.removeFromTop(8);
+    browserButton.setBounds(buttonBarBounds.removeFromTop(30));
+    buttonBarBounds.removeFromTop(8);
+    automationButton.setBounds(buttonBarBounds.removeFromTop(30));
+    buttonBarBounds.removeFromTop(8);
+    searchButton.setBounds(buttonBarBounds.removeFromTop(30));
 
     auto panelTitleBarBounds = bounds.removeFromTop(30);
 

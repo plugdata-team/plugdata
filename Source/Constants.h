@@ -18,8 +18,8 @@ struct Icons {
     inline static const String Add = "g";
     inline static const String AddObject = ";";
     inline static const String Settings = "h";
-    inline static const String SidePanel = "i";
-    inline static const String ShowSidePanel = "j";
+    //inline static const String MIDI = "i";
+    inline static const String CPU = "j";
     inline static const String Clear = "k";
     inline static const String ClearText = "l";
     inline static const String Lock = "m";

@@ -174,6 +174,8 @@ private:
     MidiBuffer midiBufferTemp;
     MidiBuffer midiBufferCopy;
     MidiBuffer midiBufferInternalSynth;
+        
+    AudioProcessLoadMeasurer cpuLoadMeasurer;
 
     bool midiByteIsSysex = false;
     uint8 midiByteBuffer[512] = { 0 };

@@ -431,6 +431,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     midiByteBuffer[1] = 0;
     midiByteBuffer[2] = 0;
 
+    cpuLoadMeasurer.reset(sampleRate, samplesPerBlock);
+    
     startDSP();
 
     statusbarSource->setSampleRate(sampleRate);
@@ -486,6 +488,8 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {    
     ScopedNoDenormals noDenormals;
+    AudioProcessLoadMeasurer::ScopedTimer cpuTimer(cpuLoadMeasurer, buffer.getNumSamples());
+    
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
@@ -547,6 +551,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
     statusbarSource->processBlock(midiBufferCopy, midiMessages, totalNumOutputChannels);
+    statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
     statusbarSource->peakBuffer.write(buffer);
 
     if (ProjectInfo::isStandalone) {

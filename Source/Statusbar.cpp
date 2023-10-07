@@ -275,16 +275,22 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
 
-class MidiBlinker : public Component
-    , public StatusbarSource::Listener {
+class MIDIBlinker : public Component
+    , public StatusbarSource::Listener, public SettableTooltipClient {
 
 public:
+        
+    MIDIBlinker()
+    {
+        setTooltip("MIDI activity");
+    }
+
     void paint(Graphics& g) override
     {
-        Fonts::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28).withTrimmedTop(1), findColour(ComboBox::textColourId), 11, Justification::centredRight);
+        Fonts::drawIcon(g, Icons::MIDI, getLocalBounds().removeFromLeft(20).withTrimmedTop(1), findColour(ComboBox::textColourId), 13);
 
-        auto midiInRect = Rectangle<float>(38.0f, 9.5f, 15.0f, 3.0f);
-        auto midiOutRect = Rectangle<float>(38.0f, 18.5f, 15.0f, 3.0f);
+        auto midiInRect = Rectangle<float>(27.5f, 9.5f, 15.0f, 3.0f);
+        auto midiOutRect = Rectangle<float>(27.5f, 18.5f, 15.0f, 3.0f);
 
         g.setColour(blinkMidiIn ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(midiInRect, 1.0f);
@@ -309,16 +315,49 @@ public:
     bool blinkMidiOut = false;
 };
 
+class CPUMeter : public Component
+    , public StatusbarSource::Listener, public Timer, public SettableTooltipClient {
+
+public:
+    
+    CPUMeter()
+    {
+        startTimer(1000);
+        setTooltip("CPU usage");
+    }
+        
+    void paint(Graphics& g) override
+    {
+        Fonts::drawIcon(g, Icons::CPU, getLocalBounds().removeFromLeft(20), findColour(ComboBox::textColourId), 14);
+        Fonts::drawText(g, String(cpuUsageToDraw) + "%", getLocalBounds().withTrimmedLeft(26).withTrimmedTop(1), findColour(ComboBox::textColourId), 13.5, Justification::centredLeft);
+    }
+        
+    void timerCallback() override
+    {
+        cpuUsageToDraw = round(cpuUsage);
+        repaint();
+    }
+
+    void cpuUsageChanged(float newCpuUsage) override {
+        cpuUsage = newCpuUsage;
+    };
+
+    float cpuUsage = 0.0f;
+    int cpuUsageToDraw = 0;
+};
+
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
     levelMeter = std::make_unique<LevelMeter>();
-    midiBlinker = std::make_unique<MidiBlinker>();
+    cpuMeter = std::make_unique<CPUMeter>();
+    midiBlinker = std::make_unique<MIDIBlinker>();
     volumeSlider = std::make_unique<VolumeSlider>();
     oversampleSelector = std::make_unique<OversampleSelector>(processor);
 
     pd->statusbarSource->addListener(levelMeter.get());
     pd->statusbarSource->addListener(midiBlinker.get());
+    pd->statusbarSource->addListener(cpuMeter.get());
     pd->statusbarSource->addListener(this);
 
     setWantsKeyboardFocus(true);
@@ -392,6 +431,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     addAndMakeVisible(*levelMeter);
     addAndMakeVisible(*midiBlinker);
+    addAndMakeVisible(*cpuMeter);
 
     levelMeter->toBehind(volumeSlider.get());
 
@@ -466,6 +506,7 @@ Statusbar::~Statusbar()
 {
     pd->statusbarSource->removeListener(levelMeter.get());
     pd->statusbarSource->removeListener(midiBlinker.get());
+    pd->statusbarSource->removeListener(cpuMeter.get());
     pd->statusbarSource->removeListener(this);
 }
 
@@ -481,6 +522,7 @@ void Statusbar::paint(Graphics& g)
     g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
     g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
     g.drawLine(thirdSeparatorPosition, 6.0f, thirdSeparatorPosition, getHeight() - 6.0f);
+    g.drawLine(fourthSeparatorPosition, 6.0f, fourthSeparatorPosition, getHeight() - 6.0f);
 }
 
 void Statusbar::resized()
@@ -527,7 +569,9 @@ void Statusbar::resized()
 
     thirdSeparatorPosition = position(5, true) + 2.5f; // Fourth seperator
 
-    midiBlinker->setBounds(position(55, true) - 8, 0, 55, getHeight());
+    midiBlinker->setBounds(position(40, true) - 8, 0, 55, getHeight());
+    fourthSeparatorPosition = position(10, true);
+    cpuMeter->setBounds(position(48, true), 0, 70, getHeight());
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)
@@ -611,11 +655,12 @@ void StatusbarSource::timerCallback()
         for (auto* listener : listeners)
             listener->audioProcessedChanged(hasProcessedAudio);
     }
-
+    
     auto peak = peakBuffer.getPeak();
 
     for (auto* listener : listeners) {
         listener->audioLevelChanged(peak);
+        listener->cpuUsageChanged(cpuUsage);
     }
 }
 
@@ -627,4 +672,9 @@ void StatusbarSource::addListener(Listener* l)
 void StatusbarSource::removeListener(Listener* l)
 {
     listeners.erase(std::remove(listeners.begin(), listeners.end(), l), listeners.end());
+}
+
+void StatusbarSource::setCPUUsage(float cpu)
+{
+    cpuUsage = cpu;
 }
