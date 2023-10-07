@@ -7,7 +7,7 @@
 
 #pragma once
 
-class AdvancedSettingsPanel : public Component
+class AdvancedSettingsPanel : public SettingsDialogPanel
     , public Value::Listener {
 
 public:
@@ -70,6 +70,11 @@ public:
         propertiesPanel.addSection("Other", otherProperties);
 
         addAndMakeVisible(propertiesPanel);
+    }
+        
+    PropertiesPanel* getPropertiesPanel() override
+    {
+        return &propertiesPanel;
     }
 
     void resized() override

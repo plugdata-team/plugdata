@@ -11,6 +11,11 @@
 
 #include "AboutPanel.h"
 
+
+struct SettingsDialogPanel : public Component {
+    virtual PropertiesPanel* getPropertiesPanel() { return nullptr; };
+};
+
 #include "AudioSettingsPanel.h"
 #include "MIDISettingsPanel.h"
 #include "ThemePanel.h"
@@ -89,6 +94,7 @@ public:
 
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
+        
         auto* processor = dynamic_cast<PluginProcessor*>(editor->getAudioProcessor());
 
         if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
@@ -115,7 +121,29 @@ public:
         }
 
         toolbarButtons[currentPanel]->setToggleState(true, sendNotification);
-
+        
+        Array<PropertiesPanel*> propertiesPanels;
+        for (int i = 0; i < panels.size(); i++) {
+            if(auto* panel = panels[i]->getPropertiesPanel())
+            {
+                propertiesPanels.add(panel);
+            }
+        }
+        searcher = std::make_unique<PropertiesSearchPanel>(propertiesPanels);
+        addChildComponent(searcher.get());
+        
+        searchButton.getProperties().set("Style", "LargeIcon");
+        searchButton.setClickingTogglesState(true);
+        searchButton.onClick = [this](){
+            if(searchButton.getToggleState()) {
+                searcher->startSearching();
+            }
+            else {
+                searcher->stopSearching();
+            }
+        };
+        addAndMakeVisible(searchButton);
+        
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
     }
 
@@ -129,9 +157,12 @@ public:
     {
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight);
 
-        int toolbarPosition = 24;
-        auto spacing = (getWidth() - 72) / toolbarButtons.size();
+        int toolbarPosition = 48;
+        auto spacing = (getWidth() - 96) / toolbarButtons.size();
 
+        searchButton.setBounds(4, 2, toolbarHeight - 2, toolbarHeight - 2);
+        searcher->setBounds(getLocalBounds());
+        
         for (auto& button : toolbarButtons) {
             button->setBounds(toolbarPosition, 1, spacing, toolbarHeight - 2);
             toolbarPosition += spacing;
@@ -169,12 +200,15 @@ public:
 
     AudioProcessor* processor;
     ComponentBoundsConstrainer constrainer;
+    
+    TextButton searchButton = TextButton(Icons::Search);
+    std::unique_ptr<PropertiesSearchPanel> searcher;
 
     static constexpr int toolbarHeight = 40;
 
     static inline std::atomic<int> lastPanel = 0;
     int currentPanel;
-    OwnedArray<Component> panels;
+    OwnedArray<SettingsDialogPanel> panels;
     AudioDeviceManager* deviceManager = nullptr;
 
     OwnedArray<SettingsToolbarButton> toolbarButtons;

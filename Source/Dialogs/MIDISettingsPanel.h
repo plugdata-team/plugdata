@@ -17,6 +17,11 @@ public:
     {
         toggleStateValue = ProjectInfo::getMidiDeviceManager()->isMidiDeviceEnabled(isInput, deviceInfo.identifier);
     }
+    
+    Property* createCopy() override
+    {
+        return new MidiSettingsToggle(isInput, processor, deviceInfo, deviceManager);
+    }
 
 private:
     void valueChanged(Value& v) override
@@ -51,7 +56,7 @@ public:
     PluginProcessor* processor;
 };
 
-class StandaloneMIDISettings : public Component
+class StandaloneMIDISettings : public SettingsDialogPanel
     , private ChangeListener {
 public:
     StandaloneMIDISettings(PluginProcessor* audioProcessor, AudioDeviceManager& audioDeviceManager)
@@ -70,6 +75,11 @@ public:
         deviceManager.removeChangeListener(this);
     }
 
+    PropertiesPanel* getPropertiesPanel() override
+    {
+        return &midiProperties;
+    }
+        
 private:
     void resized() override
     {

@@ -94,7 +94,7 @@ public:
     void mouseMove(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    void showParameters(String const& name, ObjectParameters& params);
+    void showParameters(String const& name, Array<ObjectParameters>& params);
     void showParameters();
     void hideParameters();
 
@@ -122,7 +122,7 @@ private:
 
     PluginProcessor* pd;
     PluginEditor* editor;
-    ObjectParameters lastParameters;
+    Array<ObjectParameters> lastParameters;
 
     SidebarSelectorButton consoleButton = SidebarSelectorButton(Icons::Console);
     SidebarSelectorButton browserButton = SidebarSelectorButton(Icons::Documentation);

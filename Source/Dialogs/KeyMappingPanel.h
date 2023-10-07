@@ -4,7 +4,7 @@
 
 // Keymapping object based on JUCE's KeyMappingEditorComponent
 
-class KeyMappingComponent : public Component
+class KeyMappingComponent : public SettingsDialogPanel
     , public ChangeListener {
 public:
     explicit KeyMappingComponent(KeyPressMappingSet& mappingSet)
@@ -17,6 +17,11 @@ public:
         propertiesPanel.setColour(TreeView::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
         updateMappings();
+    }
+        
+    PropertiesPanel* getPropertiesPanel() override
+    {
+        return &propertiesPanel;
     }
 
     /** Destructor. */
@@ -47,7 +52,7 @@ public:
         auto* resetMaxButton = new PropertiesPanel::ActionComponent(resetPdDefaults, Icons::Reset, "Reset to Pd defaults", true, false);
         auto* resetPdButton = new PropertiesPanel::ActionComponent(resetMaxDefaults, Icons::Reset, "Reset to Max defaults", false, true);
 
-        propertiesPanel.addSection("Reset", { resetMaxButton, resetPdButton });
+        propertiesPanel.addSection("Reset shortcuts", { resetMaxButton, resetPdButton });
 
         for (auto const& category : mappings.getCommandManager().getCommandCategories()) {
             Array<PropertiesPanel::Property*> properties;

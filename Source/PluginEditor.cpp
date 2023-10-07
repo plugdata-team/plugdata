@@ -239,7 +239,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     setSize(pd->lastUIWidth, pd->lastUIHeight);
 
     // Set minimum bounds
-    setResizeLimits(835, 450, 999999, 999999);
+    setResizeLimits(850, 550, 999999, 999999);
 
     sidebar->toFront(false);
 

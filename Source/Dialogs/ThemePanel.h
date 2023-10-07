@@ -145,7 +145,7 @@ struct ThemeSelectorProperty : public PropertiesPanel::Property {
     ComboBox comboBox;
 };
 
-class ThemePanel : public Component
+class ThemePanel : public SettingsDialogPanel
     , public Value::Listener
     , public SettingsFileListener {
 
@@ -185,6 +185,11 @@ public:
         fontValue.addListener(this);
 
         updateSwatches();
+    }
+        
+    PropertiesPanel* getPropertiesPanel() override
+    {
+        return &panel;
     }
 
     void updateThemeNames(String const& firstTheme, String const& secondTheme)

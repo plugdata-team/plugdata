@@ -487,24 +487,14 @@ public:
         input.getProperties().set("NoOutline", true);
         input.addKeyListener(this);
         input.onTextChange = [this]() {
-            bool notEmpty = input.getText().isNotEmpty();
-            if (listBox.isVisible() != notEmpty) {
-                listBox.setVisible(notEmpty);
-                getParentComponent()->repaint();
-            }
-
-            setInterceptsMouseClicks(notEmpty, true);
             updateResults(input.getText());
         };
 
         clearButton.getProperties().set("Style", "SmallIcon");
         clearButton.onClick = [this]() {
             input.clear();
-            grabKeyboardFocus(); // steal focus from text editor
-            listBox.setVisible(false);
-            setInterceptsMouseClicks(false, true);
-            input.repaint();
-            changeCallback("");
+            input.grabKeyboardFocus();
+            clearSearchResults();
         };
 
         input.setInterceptsMouseClicks(true, true);
@@ -515,10 +505,9 @@ public:
         addAndMakeVisible(input);
 
         listBox.addMouseListener(this, true);
-        listBox.setVisible(false);
 
         input.setJustification(Justification::centredLeft);
-        input.setBorder({ 1, 23, 3, 1 });
+        input.setBorder({ 1, 3, 4, 1 });
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
 
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
@@ -562,19 +551,30 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (listBox.isVisible()) {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
-        }
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().withTrimmedTop(42).removeFromLeft(getWidth() - 260).toFloat(), Corners::windowCornerRadius);
+        
+        g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
+        g.fillRoundedRectangle(input.getBounds().toFloat(), Corners::defaultCornerRadius);
+    }
+        
+    void startSearching()
+    {
+        setVisible(true);
+        input.grabKeyboardFocus();
+    }
+    
+    void stopSearching()
+    {
+        input.clear();
+        clearSearchResults();
+        setVisible(false);
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        auto colour = findColour(PlugDataColour::sidebarTextColourId);
-        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
-
         if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search for objects", 30, 0, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
+            Fonts::drawFittedText(g, "Type to search for objects", 52, 6, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
         }
     }
 
@@ -642,6 +642,7 @@ public:
     void clearSearchResults()
     {
         searchResult.clear();
+        listBox.updateContent();
     }
 
     void updateResults(String const& query)
@@ -683,7 +684,7 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop(28);
+        auto inputBounds = tableBounds.removeFromTop(40).reduced(42, 5);
 
         tableBounds.removeFromTop(4);
 
@@ -691,7 +692,7 @@ public:
 
         clearButton.setBounds(inputBounds.removeFromRight(30).translated(4, 0));
 
-        listBox.setBounds(tableBounds);
+        listBox.setBounds(tableBounds.removeFromLeft(getWidth() - 260));
     }
 
     std::function<void(String const&)> changeCallback;
@@ -727,12 +728,23 @@ public:
                 objectsByCategory[cat].add(object);
             }
         }
+        
+        searchButton.getProperties().set("Style", "LargeIcon");
+        searchButton.setClickingTogglesState(true);
+        searchButton.onClick = [this](){
+            if(searchButton.getToggleState()) {
+                objectSearch.startSearching();
+            }
+            else {
+                objectSearch.stopSearching();
+            }
+        };
 
         addAndMakeVisible(categoriesList);
         addAndMakeVisible(objectsList);
         addAndMakeVisible(objectViewer);
-        addAndMakeVisible(objectSearch);
-
+        addChildComponent(objectSearch);
+        addAndMakeVisible(searchButton);
         addChildComponent(objectReference);
 
         objectsByCategory["All"] = StringArray();
@@ -813,11 +825,12 @@ public:
 
     void resized() override
     {
-        auto b = getLocalBounds().withTrimmedTop(40).reduced(1);
+        objectSearch.setBounds(getLocalBounds());
+        searchButton.setBounds(2, 1, 38, 38);
+        
+        auto b = getLocalBounds().withTrimmedTop(42).reduced(1);
         objectViewer.setBounds(b.removeFromRight(260));
-        objectSearch.setBounds(b);
-        b.removeFromTop(35);
-
+        
         categoriesList.setBounds(b.removeFromLeft(170));
         objectsList.setBounds(b);
 
@@ -842,7 +855,6 @@ public:
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(40, 0.0f, getWidth());
-        g.drawHorizontalLine(70, 0.0f, getWidth());
         
         Fonts::drawStyledText(g, "Object Browser", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
     }
@@ -856,6 +868,8 @@ private:
     ObjectViewer objectViewer;
     ObjectSearchComponent objectSearch;
 
+    TextButton searchButton = TextButton(Icons::Search);
+    
     ComponentAnimator animator;
 
     std::unordered_map<String, StringArray> objectsByCategory;

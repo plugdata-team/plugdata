@@ -728,7 +728,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LibraryLoadPanel)
 };
 
-class PathsAndLibrariesPanel : public Component
+class PathsAndLibrariesPanel : public SettingsDialogPanel
     , public ComponentListener {
 public:
     PathsAndLibrariesPanel()

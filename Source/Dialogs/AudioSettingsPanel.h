@@ -51,8 +51,8 @@ public:
 };
 
 struct CallbackComboProperty : public PropertiesPanel::Property {
-    CallbackComboProperty(String const& propertyName, StringArray const& options, String const& currentOption, std::function<void(String)> const& onChange)
-        : Property(propertyName)
+    CallbackComboProperty(String const& propertyName, StringArray const& comboOptions, String const& currentOption, std::function<void(String)> const& onChange)
+        : Property(propertyName), changeCallback(onChange), options(comboOptions)
     {
         lastValue = currentOption;
         comboBox.addItemList(options, 1);
@@ -67,6 +67,11 @@ struct CallbackComboProperty : public PropertiesPanel::Property {
         };
         addAndMakeVisible(comboBox);
     }
+    
+    Property* createCopy() override
+    {
+        return new CallbackComboProperty(getName(), options, lastValue, changeCallback);
+    }
 
     void resized() override
     {
@@ -74,6 +79,8 @@ struct CallbackComboProperty : public PropertiesPanel::Property {
         comboBox.setBounds(bounds);
     }
 
+    std::function<void(String)> changeCallback;
+    StringArray options;
     String lastValue;
     ComboBox comboBox;
 };
@@ -153,7 +160,7 @@ public:
     std::function<void(bool)> callback;
 };
 
-class StandaloneAudioSettings : public Component
+class StandaloneAudioSettings : public SettingsDialogPanel
     , private ChangeListener
     , public Value::Listener {
 
@@ -180,6 +187,11 @@ public:
     ~StandaloneAudioSettings() override
     {
         deviceManager.removeChangeListener(this);
+    }
+        
+    PropertiesPanel* getPropertiesPanel() override
+    {
+        return &audioPropertiesPanel;
     }
 
 private:
@@ -443,7 +455,7 @@ private:
     StringArray standardSampleRates = { "44100", "48000", "88200", "96000", "176400", "192000" };
 };
 
-class DAWAudioSettings : public Component
+class DAWAudioSettings : public SettingsDialogPanel
     , public Value::Listener {
 
 public:
@@ -468,6 +480,12 @@ public:
 
         latencyNumberBox->setRangeMin(64);
     }
+        
+    PropertiesPanel* getPropertiesPanel() override
+    {
+        return &dawSettingsPanel;
+    }
+
 
     void resized() override
     {

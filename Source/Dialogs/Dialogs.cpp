@@ -79,7 +79,7 @@ void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre
 
 void Dialogs::showSettingsDialog(PluginEditor* editor)
 {
-    auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, true);
+    auto* dialog = new Dialog(&editor->openedDialog, editor, 690, 500, true);
     auto* settingsDialog = new SettingsDialog(editor);
     dialog->setViewedComponent(settingsDialog);
     editor->openedDialog.reset(dialog);
@@ -563,7 +563,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
         if (result == Properties) {
             if (originalComponent == cnv) {
-                editor->sidebar->showParameters("canvas", cnv->getInspectorParameters());
+                Array<ObjectParameters> parameters = {cnv->getInspectorParameters()};
+                editor->sidebar->showParameters("canvas", parameters);
             } else if (object && object->gui) {
 
                 cnv->pd->lockAudioThread();
@@ -575,7 +576,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     propertiesFn(static_cast<t_gobj*>(object->getPointer()), cnv->patch.getPointer().get());
                 cnv->pd->unlockAudioThread();
 
-                editor->sidebar->showParameters(object->gui->getText(), params);
+                Array<ObjectParameters> parameters = {};
+                editor->sidebar->showParameters(object->gui->getText(), parameters);
             }
 
             return;

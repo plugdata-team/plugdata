@@ -33,6 +33,8 @@ public:
             : PropertyComponent(propertyName, 32)
         {
         }
+        
+        virtual Property* createCopy() { return nullptr; };
 
         void setHideLabel(bool labelHidden)
         {
@@ -69,24 +71,24 @@ private:
         {
             lookAndFeelChanged();
 
-            propertyComps.addArray(newProperties);
+            propertyComponents.addArray(newProperties);
 
-            for (auto* propertyComponent : propertyComps) {
+            for (auto* propertyComponent : propertyComponents) {
                 addAndMakeVisible(propertyComponent);
                 propertyComponent->refresh();
             }
 
-            if (propertyComps.size() == 1) {
-                propertyComps[0]->setRoundedCorners(true, true);
-            } else if (propertyComps.size() > 1) {
-                propertyComps.getFirst()->setRoundedCorners(true, false);
-                propertyComps.getLast()->setRoundedCorners(false, true);
+            if (propertyComponents.size() == 1) {
+                propertyComponents[0]->setRoundedCorners(true, true);
+            } else if (propertyComponents.size() > 1) {
+                propertyComponents.getFirst()->setRoundedCorners(true, false);
+                propertyComponents.getLast()->setRoundedCorners(false, true);
             }
         }
 
         ~SectionComponent() override
         {
-            propertyComps.clear();
+            propertyComponents.clear();
         }
 
         void paint(Graphics& g) override
@@ -118,7 +120,7 @@ private:
                 g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
             }
 
-            if (!propertyComps.isEmpty() && !extraHeaderNames.isEmpty()) {
+            if (!propertyComponents.isEmpty() && !extraHeaderNames.isEmpty()) {
                 auto propertyBounds = Rectangle<int>(x + width / 2, 0, width / 2, parent.titleHeight);
                 auto extraHeaderWidth = propertyBounds.getWidth() / static_cast<float>(extraHeaderNames.size());
 
@@ -141,8 +143,8 @@ private:
 
             g.setColour(parent.separatorColour);
 
-            for (int i = 0; i < propertyComps.size() - 1; i++) {
-                auto y = propertyComps[i]->getBottom() + padding;
+            for (int i = 0; i < propertyComponents.size() - 1; i++) {
+                auto y = propertyComponents[i]->getBottom() + padding;
                 g.drawHorizontalLine(y, x, x + width);
             }
         }
@@ -152,7 +154,7 @@ private:
             auto y = parent.titleHeight + 8;
             auto [x, width] = parent.getContentXAndWidth();
 
-            for (auto* propertyComponent : propertyComps) {
+            for (auto* propertyComponent : propertyComponents) {
                 propertyComponent->setBounds(x, y, width, propertyComponent->getPreferredHeight());
                 y = propertyComponent->getBottom() + padding;
             }
@@ -168,10 +170,10 @@ private:
         {
             auto y = parent.titleHeight;
 
-            auto numComponents = propertyComps.size();
+            auto numComponents = propertyComponents.size();
 
             if (numComponents > 0) {
-                for (auto* propertyComponent : propertyComps)
+                for (auto* propertyComponent : propertyComponents)
                     y += propertyComponent->getPreferredHeight();
 
                 y += (numComponents - 1) * padding;
@@ -182,7 +184,7 @@ private:
 
         void refreshAll() const
         {
-            for (auto* propertyComponent : propertyComps)
+            for (auto* propertyComponent : propertyComponents)
                 propertyComponent->refresh();
         }
 
@@ -195,7 +197,7 @@ private:
         }
 
         PropertiesPanel& parent;
-        OwnedArray<Property> propertyComps;
+        OwnedArray<Property> propertyComponents;
         StringArray extraHeaderNames;
         int padding;
 
@@ -252,7 +254,7 @@ private:
 public:
     struct ComboComponent : public Property {
         ComboComponent(String const& propertyName, Value& value, StringArray const& options)
-            : Property(propertyName)
+            : Property(propertyName), items(options)
         {
             comboBox.addItemList(options, 1);
             comboBox.getProperties().set("Style", "Inspector");
@@ -265,7 +267,13 @@ public:
         {
             comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
+        
+        Property* createCopy() override
+        {
+            return new ComboComponent(getName(), comboBox.getSelectedIdAsValue(), items);
+        }
 
+        StringArray items;
         ComboBox comboBox;
     };
 
@@ -284,7 +292,7 @@ public:
             g.setColour(findColour(PlugDataColour::panelTextColourId));
             g.drawText(fontName, getLocalBounds().reduced(2), Justification::centredLeft);
         }
-
+        
         void getIdealSize(int& idealWidth, int& idealHeight) override
         {
             idealWidth = 150;
@@ -316,6 +324,11 @@ public:
             addAndMakeVisible(comboBox);
         }
 
+        Property* createCopy() override
+        {
+            return new FontComponent(getName(), fontValue);
+        }
+        
         void setFont(String const& fontName)
         {
             fontValue.setValue(fontValue);
@@ -335,13 +348,13 @@ public:
     struct MultiPropertyComponent : public Property {
 
         OwnedArray<T> properties;
-        int numProperties;
+        Array<Value*> propertyValues;
 
         MultiPropertyComponent(String const& propertyName, Array<Value*> values)
             : Property(propertyName)
-            , numProperties(values.size())
+            , propertyValues(values)
         {
-            for (int i = 0; i < numProperties; i++) {
+            for (int i = 0; i < propertyValues.size(); i++) {
                 auto* property = properties.add(new T(propertyName, *values[i]));
                 property->setHideLabel(true);
                 addAndMakeVisible(property);
@@ -350,14 +363,20 @@ public:
 
         MultiPropertyComponent(String const& propertyName, Array<Value*> values, StringArray options)
             : Property(propertyName)
-            , numProperties(values.size())
+            , propertyValues(values)
         {
-            for (int i = 0; i < numProperties; i++) {
+            for (int i = 0; i < propertyValues.size(); i++) {
                 auto* property = properties.add(new T(propertyName, *values[i], options));
                 property->setHideLabel(true);
                 addAndMakeVisible(property);
             }
         }
+        
+        /*
+        Property* createCopy() override
+        {
+            return new MultiPropertyComponent<T>(getName(), propertyValues);
+        } */
 
         void setRoundedCorners(bool roundTop, bool roundBottom) override
         {
@@ -368,8 +387,8 @@ public:
         {
             auto b = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
 
-            int itemWidth = b.getWidth() / numProperties;
-            for (int i = 0; i < numProperties; i++) {
+            int itemWidth = b.getWidth() / propertyValues.size();
+            for (int i = 0; i < propertyValues.size(); i++) {
                 properties[i]->setBounds(b.removeFromLeft(itemWidth));
             }
         }
@@ -377,9 +396,9 @@ public:
         void paintOverChildren(Graphics& g) override
         {
             auto b = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-            int itemWidth = b.getWidth() / numProperties;
+            int itemWidth = b.getWidth() / propertyValues.size();
 
-            for (int i = 0; i < numProperties; i++) {
+            for (int i = 0; i < propertyValues.size(); i++) {
                 auto propertyBounds = b.removeFromLeft(itemWidth);
                 g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
                 g.drawVerticalLine(propertyBounds.getX(), 0, getHeight());
@@ -418,6 +437,11 @@ public:
         ~BoolComponent()
         {
             toggleStateValue.removeListener(this);
+        }
+            
+        Property* createCopy() override
+        {
+            return new BoolComponent(getName(), toggleStateValue, textOptions);
         }
 
         bool hitTest(int x, int y) override
@@ -558,6 +582,11 @@ public:
             currentColour.removeListener(this);
         }
 
+        Property* createCopy() override
+        {
+            return new ColourComponent(getName(), currentColour);
+        }
+            
         void updateHexValue()
         {
             hexValueEditor.setText(String("#") + currentColour.toString().substring(2).toUpperCase());
@@ -644,6 +673,11 @@ public:
         {
             property.removeListener(this);
         }
+            
+        Property* createCopy() override
+        {
+            return new RangeComponent(getName(), property, false);
+        }
 
         DraggableNumber& getMinimumComponent()
         {
@@ -724,6 +758,11 @@ public:
 
             label->addMouseListener(this, true);
         }
+        
+        Property* createCopy() override
+        {
+            return new EditableComponent<T>(getName(), property);
+        }
 
         void setRangeMin(float minimum)
         {
@@ -783,6 +822,11 @@ public:
             };
         }
 
+        Property* createCopy() override
+        {
+            return new FilePathComponent(getName(), property);
+        }
+        
         void paint(Graphics& g) override
         {
 
@@ -814,6 +858,11 @@ public:
             , onClick(std::move(callback))
         {
             setHideLabel(true);
+        }
+        
+        Property* createCopy() override
+        {
+            return new ActionComponent(onClick, icon, getName(), roundTop, roundBottom);
         }
 
         void paint(Graphics& g) override
@@ -1020,4 +1069,113 @@ public:
     BouncingViewport viewport;
     PropertyHolderComponent* propertyHolderComponent;
     String messageWhenEmpty;
+    
+    friend class PropertiesSearchPanel;
+};
+
+class PropertiesSearchPanel : public Component {
+    
+public:
+    PropertiesSearchPanel(Array<PropertiesPanel*> searchedPanels) : panelsToSearch(searchedPanels)
+    {
+        addAndMakeVisible(resultsPanel);
+        resultsPanel.messageWhenEmpty = "";
+        
+
+        addAndMakeVisible(input);
+        input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        input.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+        input.setJustification(Justification::centredLeft);
+        input.setBorder({1, 1, 4, 1});
+        input.onTextChange = [this](){
+            updateResults();
+        };
+        
+        clearButton.setAlwaysOnTop(true);
+        clearButton.getProperties().set("Style", "SmallIcon");
+        clearButton.onClick = [this]() {
+            input.clear();
+            input.grabKeyboardFocus();
+        };
+
+        addAndMakeVisible(clearButton);
+    }
+    
+    void resized() override
+    {
+        input.setBounds(getLocalBounds().removeFromTop(42).reduced(54, 6));
+        clearButton.setBounds(input.getBounds().removeFromRight(30).reduced(0, 2));
+        resultsPanel.setBounds(getLocalBounds().withTrimmedTop(40));
+    }
+    
+    void updateResults()
+    {
+        resultsPanel.clear();
+        
+        auto query = input.getText().toLowerCase();
+        if(query.isEmpty()) return;
+        
+        for(auto* propertiesPanel : panelsToSearch) {
+            for (auto* section : propertiesPanel->propertyHolderComponent->sections) {
+                Array<PropertiesPanel::Property*> properties;
+                auto sectionTitle = section->getName();
+                
+                for (auto* property : section->propertyComponents) {
+                    if(property->getName().toLowerCase().contains(query) || sectionTitle.toLowerCase().contains(query))
+                    {
+                        auto* propertyCopy = property->createCopy();
+                        if(propertyCopy) properties.add(propertyCopy);
+                    }
+                }
+                if(!properties.isEmpty()) {
+                    resultsPanel.addSection(sectionTitle, properties);
+                }
+            }
+        }
+    }
+    
+    void paint(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
+
+        auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
+
+        Path p;
+        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillPath(p);
+
+        g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
+        g.fillRoundedRectangle(input.getBounds().expanded(4, 0).toFloat(), Corners::defaultCornerRadius);
+        
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawHorizontalLine(40, 0.0f, getWidth());
+    }
+    
+    void paintOverChildren(Graphics& g) override
+    {
+        if (input.getText().isEmpty()) {
+            Fonts::drawFittedText(g, "Type to search for settings", 56, 6, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
+        }
+    }
+    
+    void startSearching()
+    {
+        setVisible(true);
+        input.grabKeyboardFocus();
+    }
+    
+    void stopSearching()
+    {
+        setVisible(false);
+        input.setText("");
+    }
+    
+    TextEditor input;
+    TextButton clearButton = TextButton(Icons::ClearText);
+    PropertiesPanel resultsPanel;
+    Array<PropertiesPanel*> panelsToSearch;
 };

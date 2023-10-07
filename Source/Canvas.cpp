@@ -797,18 +797,26 @@ void Canvas::updateSidebarSelection()
 {
     auto lassoSelection = getSelectionOfType<Object>();
 
-    if (lassoSelection.size() == 1) {
-        auto* object = lassoSelection.getFirst();
-        auto params = object->gui ? object->gui->getParameters() : ObjectParameters();
-        auto showOnSelect = object->gui ? object->gui->showParametersWhenSelected() : false;
-
-        if (!object->gui) {
-            editor->sidebar->hideParameters();
-            return;
+    if (lassoSelection.size() >= 1) {
+        Array<ObjectParameters> allParameters;
+        for(auto* object : lassoSelection) {
+            if(!object->gui) continue;
+            auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
+            auto showOnSelect = object->gui ? object->gui->showParametersWhenSelected() : false;
+            if(showOnSelect)
+            {
+                allParameters.add(parameters);
+            }
         }
 
-        if ((showOnSelect && !params.getParameters().isEmpty()) || editor->sidebar->isPinned()) {
-            editor->sidebar->showParameters(object->gui->getText(), params);
+        if (!allParameters.isEmpty() || editor->sidebar->isPinned()) {
+            String objectName = "(multiple)";
+            if(lassoSelection.size() == 1)
+            {
+                objectName = lassoSelection.getFirst()->gui->getText();
+            }
+            
+            editor->sidebar->showParameters(objectName, allParameters);
         } else {
             editor->sidebar->hideParameters();
         }
