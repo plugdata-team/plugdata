@@ -690,7 +690,7 @@ public:
 
         input.setBounds(inputBounds);
 
-        clearButton.setBounds(inputBounds.removeFromRight(30).translated(4, 0));
+        clearButton.setBounds(inputBounds.removeFromRight(30));
 
         listBox.setBounds(tableBounds.removeFromLeft(getWidth() - 260));
     }

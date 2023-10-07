@@ -1105,7 +1105,7 @@ public:
     void resized() override
     {
         input.setBounds(getLocalBounds().removeFromTop(42).reduced(54, 6));
-        clearButton.setBounds(input.getBounds().removeFromRight(30).reduced(0, 2));
+        clearButton.setBounds(input.getBounds().removeFromRight(30));
         resultsPanel.setBounds(getLocalBounds().withTrimmedTop(40));
     }
     
