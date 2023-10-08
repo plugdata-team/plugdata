@@ -25,7 +25,14 @@ public:
         , owner(ownerPtr)
         , backgroundMargin(margin)
     {
-        parentComponent->getTopLevelComponent()->addAndMakeVisible(this);
+        if(auto* editor = dynamic_cast<PluginEditor*>(parentComponent))
+        {
+            editor->getTopLevelComponent()->addAndMakeVisible(this);
+        }
+        else {
+            parentComponent->getTopLevelComponent()->addAndMakeVisible(this);
+        }
+        
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 
         setAlwaysOnTop(true);
