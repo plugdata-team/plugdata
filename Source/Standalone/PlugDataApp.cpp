@@ -135,7 +135,32 @@ public:
         mainWindow = new PlugDataWindow(pluginHolder->processor->createEditorIfNeeded());
         
         mainWindow->setVisible(true);
-        mainWindow->parseSystemArguments(arguments);
+        parseSystemArguments(arguments);
+        
+        auto const getWindowScreenBounds = [this]() -> Rectangle<int> {
+            const auto width = mainWindow->getWidth();
+            const auto height = mainWindow->getHeight();
+
+            const auto& displays = Desktop::getInstance().getDisplays();
+
+            if (auto* props = pluginHolder->settings.get()) {
+                constexpr int defaultValue = -100;
+
+                const auto x = props->getIntValue("windowX", defaultValue);
+                const auto y = props->getIntValue("windowY", defaultValue);
+
+                if (x != defaultValue && y != defaultValue) {
+                    const auto screenLimits = displays.getDisplayForRect({ x, y, width, height })->userArea;
+
+                    return { jlimit(screenLimits.getX(), jmax(screenLimits.getX(), screenLimits.getRight() - width), x), jlimit(screenLimits.getY(), jmax(screenLimits.getY(), screenLimits.getBottom() - height), y), width, height };
+                }
+            }
+
+            const auto displayArea = displays.getPrimaryDisplay()->userArea;
+
+            return { displayArea.getCentreX() - width / 2, displayArea.getCentreY() - height / 2, width, height };
+        };
+        mainWindow->setBoundsConstrained(getWindowScreenBounds());
     }
 
     void shutdown() override
@@ -146,6 +171,79 @@ public:
         appProperties.saveIfNeeded();
     }
 
+    int parseSystemArguments(String const& arguments)
+    {
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
+        
+        // When starting with any sysargs, assume we don't want the last patch to open
+        // Prevents a possible crash and generally kinda makes sense
+        if (arguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
+            pluginHolder->reloadPluginState();
+        }
+        
+        auto args = StringArray::fromTokens(arguments, true);
+        size_t argc = args.size();
+
+        auto argv = std::vector<char const*>(argc);
+
+        for (int i = 0; i < args.size(); i++) {
+            argv[i] = args.getReference(i).toRawUTF8();
+        }
+
+        t_namelist* openlist = nullptr;
+        t_namelist* messagelist = nullptr;
+
+        int retval = parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
+
+        StringArray openedPatches;
+        // open patches specifies with "-open" args
+        for (auto* nl = openlist; nl; nl = nl->nl_next) {
+            auto toOpen = File(String(nl->nl_string).unquoted());
+            if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
+                
+                if (auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get())) {
+                    pd->loadPatch(toOpen);
+                    SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
+                    openedPatches.add(toOpen.getFullPathName());
+                }
+            }
+        }
+
+    #if JUCE_LINUX || JUCE_WINDOWS
+        for (auto arg : args) {
+            arg = arg.trim().unquoted().trim();
+
+            // Would be best to enable this on Linux, but some distros use ancient gcc which doesn't have std::filesystem
+    #    if JUCE_WINDOWS
+            if (!std::filesystem::exists(arg.toStdString()))
+                continue;
+    #    endif
+            auto toOpen = File(arg);
+            if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
+                if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
+                    pd->loadPatch(toOpen);
+                    SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
+                }
+            }
+        }
+    #endif
+
+        /* send messages specified with "-send" args */
+        for (auto* nl = messagelist; nl; nl = nl->nl_next) {
+            t_binbuf* b = binbuf_new();
+            binbuf_text(b, nl->nl_string, strlen(nl->nl_string));
+            binbuf_eval(b, nullptr, 0, nullptr);
+            binbuf_free(b);
+        }
+
+        namelist_free(openlist);
+        namelist_free(messagelist);
+        messagelist = nullptr;
+
+        return retval;
+    }
+    
     void systemRequestedQuit() override
     {
         if (ModalComponentManager::getInstance()->cancelAllModalComponents()) {
@@ -185,105 +283,6 @@ void PlugDataWindow::closeAllPatches()
         openedEditors.removeFirstMatchingValue(editor);
         delete this;
     }
-}
-
-int PlugDataWindow::parseSystemArguments(String const& arguments)
-{
-    auto settingsTree = SettingsFile::getInstance()->getValueTree();
-    bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
-    
-    // When starting with any sysargs, assume we don't want the last patch to open
-    // Prevents a possible crash and generally kinda makes sense
-    if (arguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
-        pluginHolder->reloadPluginState();
-    }
-    
-    auto args = StringArray::fromTokens(arguments, true);
-    size_t argc = args.size();
-
-    auto argv = std::vector<char const*>(argc);
-
-    for (int i = 0; i < args.size(); i++) {
-        argv[i] = args.getReference(i).toRawUTF8();
-    }
-
-    t_namelist* openlist = nullptr;
-    t_namelist* messagelist = nullptr;
-
-    int retval = parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
-
-    StringArray openedPatches;
-    // open patches specifies with "-open" args
-    for (auto* nl = openlist; nl; nl = nl->nl_next) {
-        auto toOpen = File(String(nl->nl_string).unquoted());
-        if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
-            
-            if (auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get())) {
-                pd->loadPatch(toOpen);
-                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
-                openedPatches.add(toOpen.getFullPathName());
-            }
-        }
-    }
-
-#if JUCE_LINUX || JUCE_WINDOWS
-    for (auto arg : args) {
-        arg = arg.trim().unquoted().trim();
-
-        // Would be best to enable this on Linux, but some distros use ancient gcc which doesn't have std::filesystem
-#    if JUCE_WINDOWS
-        if (!std::filesystem::exists(arg.toStdString()))
-            continue;
-#    endif
-        auto toOpen = File(arg);
-        if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
-            if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
-                pd->loadPatch(toOpen);
-                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
-            }
-        }
-    }
-#endif
-
-    /* send messages specified with "-send" args */
-    for (auto* nl = messagelist; nl; nl = nl->nl_next) {
-        t_binbuf* b = binbuf_new();
-        binbuf_text(b, nl->nl_string, strlen(nl->nl_string));
-        binbuf_eval(b, nullptr, 0, nullptr);
-        binbuf_free(b);
-    }
-
-    namelist_free(openlist);
-    namelist_free(messagelist);
-    messagelist = nullptr;
-    
-    auto const getWindowScreenBounds = [this]() -> Rectangle<int> {
-        const auto width = getWidth();
-        const auto height = getHeight();
-
-        const auto& displays = Desktop::getInstance().getDisplays();
-
-        if (auto* props = pluginHolder->settings.get()) {
-            constexpr int defaultValue = -100;
-
-            const auto x = props->getIntValue("windowX", defaultValue);
-            const auto y = props->getIntValue("windowY", defaultValue);
-
-            if (x != defaultValue && y != defaultValue) {
-                const auto screenLimits = displays.getDisplayForRect({ x, y, width, height })->userArea;
-
-                return { jlimit(screenLimits.getX(), jmax(screenLimits.getX(), screenLimits.getRight() - width), x), jlimit(screenLimits.getY(), jmax(screenLimits.getY(), screenLimits.getBottom() - height), y), width, height };
-            }
-        }
-
-        const auto displayArea = displays.getPrimaryDisplay()->userArea;
-
-        return { displayArea.getCentreX() - width / 2, displayArea.getCentreY() - height / 2, width, height };
-    };
-
-    setBoundsConstrained(getWindowScreenBounds());
-
-    return retval;
 }
 
 inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
