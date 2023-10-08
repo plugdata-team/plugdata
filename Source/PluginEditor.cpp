@@ -552,9 +552,7 @@ void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
     splitView.splits[originalSplitIndex]->moveToSplit(targetSplit, originalCanvas);
     originalCanvas->moveToWindow(newEditor);
     
-    MessageManager::callAsync([_window = Component::SafePointer(newWindow)](){
-        _window->setTopLeftPosition(Desktop::getInstance().getMousePosition() - Point<int>(500, 60));
-    });
+    newWindow->setTopLeftPosition(Desktop::getInstance().getMousePosition() - Point<int>(500, 60));
 }
 
 bool PluginEditor::isActiveWindow()
