@@ -221,10 +221,9 @@ public:
     #    endif
             auto toOpen = File(arg);
             if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
-                if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
-                    pd->loadPatch(toOpen);
-                    SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
-                }
+                auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
+                pd->loadPatch(toOpen);
+                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
             }
         }
     #endif
