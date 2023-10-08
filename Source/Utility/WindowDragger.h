@@ -5,6 +5,7 @@
  */
 
 #pragma once
+#include "Utility/OSUtils.h"
 
 class WindowDragger
 {
