@@ -72,7 +72,7 @@ public:
 };
 
 class StandalonePluginHolder : private AudioIODeviceCallback
-    , private Value::Listener {
+{
 public:
     /** Structure used for the number of inputs and outputs. */
     struct PluginInOuts {
@@ -98,8 +98,6 @@ public:
         : settings(settingsToUse, takeOwnershipOfSettings)
         , channelConfiguration(channels)
     {
-        shouldMuteInput.addListener(this);
-        shouldMuteInput = !isInterAppAudioConnected();
 
         createPlugin();
 
@@ -123,13 +121,11 @@ public:
     void init(bool enableAudioInput, String const& preferredDefaultDeviceName)
     {
         setupAudioDevices(enableAudioInput, preferredDefaultDeviceName, options.get());
-        
         startPlaying();
     }
 
     ~StandalonePluginHolder() override
     {
-
         deletePlugin();
         shutDownAudioDevices();
     }
@@ -137,11 +133,8 @@ public:
     virtual void createPlugin()
     {
         processor = createPluginFilterOfType(AudioProcessor::wrapperType_Standalone);
-
         processor->disableNonMainBuses();
         processor->setRateAndBufferSizeDetails(44100, 512);
-
-        processorHasPotentialFeedbackLoop = (getNumInputChannels() > 0 && getNumOutputChannels() > 0);
     }
 
     virtual void deletePlugin()
@@ -174,19 +167,6 @@ public:
         return (fileSuffix.startsWithChar('.') ? "*" : "*.") + fileSuffix;
     }
 
-    Value& getMuteInputValue()
-    {
-        return shouldMuteInput;
-    }
-    bool getProcessorHasPotentialFeedbackLoop() const
-    {
-        return processorHasPotentialFeedbackLoop;
-    }
-    void valueChanged(Value& value) override
-    {
-        muteInput = getValue<bool>(value);
-    }
-
     void startPlaying()
     {
         player.setProcessor(processor.get());
@@ -203,10 +183,6 @@ public:
             auto xml = deviceManager.createStateXml();
 
             settings->setValue("audioSetup", xml.get());
-
-#if !(JUCE_IOS || JUCE_ANDROID)
-            settings->setValue("shouldMuteInput", getValue<bool>(shouldMuteInput));
-#endif
         }
     }
 
@@ -216,10 +192,6 @@ public:
 
         if (settings != nullptr) {
             savedState = settings->getXmlValue("audioSetup");
-
-#if !(JUCE_IOS || JUCE_ANDROID)
-            shouldMuteInput.setValue(false);
-#endif
         }
 
         auto inputChannels = getNumInputChannels();
@@ -275,12 +247,6 @@ public:
     AudioDeviceManager deviceManager;
     PlugDataProcessorPlayer player;
     Array<PluginInOuts> channelConfiguration;
-
-    // avoid feedback loop by default
-    bool processorHasPotentialFeedbackLoop = true;
-    std::atomic<bool> muteInput { true };
-    Value shouldMuteInput;
-    AudioBuffer<float> emptyBuffer;
 
     std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> options;
     Array<MidiDeviceInfo> lastMidiDevices;
@@ -380,11 +346,6 @@ private:
         int numSamples,
         AudioIODeviceCallbackContext const& context) override
     {
-        if (muteInput) {
-            emptyBuffer.clear();
-            inputChannelData = emptyBuffer.getArrayOfReadPointers();
-        }
-
         player.audioDeviceIOCallbackWithContext(inputChannelData,
             numInputChannels,
             outputChannelData,
@@ -395,16 +356,12 @@ private:
 
     void audioDeviceAboutToStart(AudioIODevice* device) override
     {
-        emptyBuffer.setSize(device->getActiveInputChannels().countNumberOfSetBits(), device->getCurrentBufferSizeSamples());
-        emptyBuffer.clear();
-
         player.audioDeviceAboutToStart(device);
     }
 
     void audioDeviceStopped() override
     {
         player.audioDeviceStopped();
-        emptyBuffer.setSize(0, 0);
     }
 
     void setupAudioDevices(bool enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions)
@@ -643,8 +600,6 @@ private:
             : owner(filterWindow)
             , editor(pluginEditor)
         {
-            inputMutedValue.referTo(owner.pluginHolder->getMuteInputValue());
-
             if (editor != nullptr) {
 
                 auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.get());
@@ -781,7 +736,6 @@ private:
 
         PlugDataWindow& owner;
         std::unique_ptr<AudioProcessorEditor> editor;
-        Value inputMutedValue;
         bool preventResizingEditor = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)

@@ -284,7 +284,7 @@ void PlugDataWindow::closeAllPatches()
     }
 }
 
-inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
+StandalonePluginHolder* StandalonePluginHolder::getInstance()
 {
     if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone) {
         return dynamic_cast<PlugDataApp*>(JUCEApplicationBase::getInstance())->pluginHolder.get();
