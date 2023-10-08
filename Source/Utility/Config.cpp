@@ -21,7 +21,7 @@ bool ProjectInfo::isStandalone = false;
 MidiDeviceManager* ProjectInfo::getMidiDeviceManager()
 {
 #if PLUGDATA_STANDALONE
-    if (auto* standalone = StandalonePluginHolder::getInstance())
+    if (auto* standalone = getStandalonePluginHolder())
         return &standalone->player.midiDeviceManager;
 
     return nullptr;
@@ -33,7 +33,7 @@ MidiDeviceManager* ProjectInfo::getMidiDeviceManager()
 juce::AudioDeviceManager* ProjectInfo::getDeviceManager()
 {
 #if PLUGDATA_STANDALONE
-    if (auto* standalone = StandalonePluginHolder::getInstance())
+    if (auto* standalone = getStandalonePluginHolder())
         return &standalone->deviceManager;
 
     return nullptr;
@@ -66,5 +66,14 @@ bool ProjectInfo::canUseSemiTransparentWindows()
     }
 
     return Desktop::canUseSemiTransparentWindows();
+#endif
+}
+
+StandalonePluginHolder* ProjectInfo::getStandalonePluginHolder()
+{
+#if PLUGDATA_STANDALONE
+    return StandalonePluginHolder::getInstance();
+#else
+    return nullptr;
 #endif
 }

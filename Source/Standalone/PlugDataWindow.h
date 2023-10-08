@@ -123,7 +123,7 @@ public:
     void init(bool enableAudioInput, String const& preferredDefaultDeviceName)
     {
         setupAudioDevices(enableAudioInput, preferredDefaultDeviceName, options.get());
-
+        
         startPlaying();
     }
 
@@ -269,7 +269,7 @@ public:
     }
 
     static StandalonePluginHolder* getInstance();
-
+        
     OptionalScopedPointer<PropertySet> settings;
     std::unique_ptr<AudioProcessor> processor;
     AudioDeviceManager deviceManager;
@@ -457,8 +457,8 @@ public:
         : DocumentWindow("plugdata", LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton), editor(pluginEditor)
     {
         setTitleBarHeight(0);
-        pluginHolder = StandalonePluginHolder::getInstance();
-
+        pluginHolder = ProjectInfo::getStandalonePluginHolder();
+        
         drawWindowShadow = Desktop::canUseSemiTransparentWindows();
 
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
