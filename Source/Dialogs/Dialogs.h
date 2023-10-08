@@ -30,7 +30,7 @@ public:
             editor->getTopLevelComponent()->addAndMakeVisible(this);
         }
         else {
-            parentComponent->getTopLevelComponent()->addAndMakeVisible(this);
+            parentComponent->addAndMakeVisible(this);
         }
         
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
