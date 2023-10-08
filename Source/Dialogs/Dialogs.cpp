@@ -18,6 +18,7 @@
 #include "PluginProcessor.h"
 
 #include "Utility/ArrowPopupMenu.h"
+#include "Utility/Buttons.h"
 
 #include "Sidebar/Sidebar.h"
 #include "Object.h"

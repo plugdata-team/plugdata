@@ -349,6 +349,7 @@ public:
 
         OwnedArray<T> properties;
         Array<Value*> propertyValues;
+        StringArray propertyOptions;
 
         MultiPropertyComponent(String const& propertyName, Array<Value*> values)
             : Property(propertyName)
@@ -364,6 +365,7 @@ public:
         MultiPropertyComponent(String const& propertyName, Array<Value*> values, StringArray options)
             : Property(propertyName)
             , propertyValues(values)
+            , propertyOptions(options)
         {
             for (int i = 0; i < propertyValues.size(); i++) {
                 auto* property = properties.add(new T(propertyName, *values[i], options));
@@ -372,11 +374,16 @@ public:
             }
         }
         
-        /*
         Property* createCopy() override
         {
-            return new MultiPropertyComponent<T>(getName(), propertyValues);
-        } */
+            if constexpr(std::is_same_v<T, BoolComponent> || std::is_same_v<T, ComboComponent>)
+            {
+                return new MultiPropertyComponent<T>(getName(), propertyValues, propertyOptions);
+            }
+            else {
+                return new MultiPropertyComponent<T>(getName(), propertyValues);
+            }            
+        }
 
         void setRoundedCorners(bool roundTop, bool roundBottom) override
         {

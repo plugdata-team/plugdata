@@ -89,58 +89,6 @@ private:
 struct ToolchainInstaller : public Component
     , public Thread
     , public Timer {
-    struct InstallButton : public Component {
-
-#if JUCE_WINDOWS
-        String downloadSize = "720 MB";
-#elif JUCE_MAC
-        String downloadSize = "650 MB";
-#else
-        String downloadSize = "1.45 GB";
-#endif
-        String iconText = Icons::SaveAs;
-        String topText = "Download Toolchain";
-        String bottomText = "Download compilation utilities (" + downloadSize + ")";
-
-        std::function<void(void)> onClick = []() {};
-
-        InstallButton()
-        {
-            setInterceptsMouseClicks(true, false);
-        }
-
-        void paint(Graphics& g) override
-        {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-
-            if (isMouseOver()) {
-                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::defaultCornerRadius);
-            }
-
-            auto colour = findColour(PlugDataColour::panelTextColourId);
-
-            Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24);
-
-            Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
-
-            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
-        }
-
-        void mouseUp(MouseEvent const& e) override
-        {
-            onClick();
-        }
-
-        void mouseEnter(MouseEvent const& e) override
-        {
-            repaint();
-        }
-
-        void mouseExit(MouseEvent const& e) override
-        {
-            repaint();
-        }
-    };
 
     void timerCallback() override
     {
@@ -360,7 +308,17 @@ struct ToolchainInstaller : public Component
     bool needsUpdate = false;
     int statusCode;
 
-    InstallButton installButton;
+        
+#if JUCE_WINDOWS
+        String downloadSize = "720 MB";
+#elif JUCE_MAC
+        String downloadSize = "650 MB";
+#else
+        String downloadSize = "1.45 GB";
+#endif
+        
+    WelcomePanelButton installButton = WelcomePanelButton(Icons::SaveAs, "Download Toolchain", "Download compilation utilities (" + downloadSize + ")");
+        
     std::function<void()> toolchainInstalledCallback;
 
     String errorMessage;

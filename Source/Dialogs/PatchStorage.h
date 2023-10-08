@@ -622,7 +622,7 @@ public:
             });
         };
 
-        input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
+        //input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 1, 23, 3, 1 });

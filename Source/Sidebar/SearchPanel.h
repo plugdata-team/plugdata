@@ -199,7 +199,7 @@ public:
         g.fillRect(getLocalBounds());
         
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-        g.fillRoundedRectangle(input.getBounds().reduced(4).toFloat(), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(input.getBounds().reduced(6, 4).toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override

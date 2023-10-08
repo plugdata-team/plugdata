@@ -18,7 +18,7 @@ struct Icons {
     inline static const String Add = "g";
     inline static const String AddObject = ";";
     inline static const String Settings = "h";
-    //inline static const String MIDI = "i";
+    inline static const String Sparkle = "i";
     inline static const String CPU = "j";
     inline static const String Clear = "k";
     inline static const String ClearText = "l";
@@ -64,6 +64,7 @@ struct Icons {
     inline static const String Protection = "Y";
     inline static const String DevTools = "{";
     inline static const String Help = "\\";
+    inline static const String Checkmark = "_";
 
     inline static const String SavePatch = "Z";
     inline static const String ClosePatch = "[";
@@ -282,7 +283,6 @@ enum PlugDataColour {
     panelTextColourId,
     panelActiveBackgroundColourId,
     panelActiveTextColourId,
-    searchBarColourId,
 
     popupMenuBackgroundColourId,
     popupMenuActiveBackgroundColourId,

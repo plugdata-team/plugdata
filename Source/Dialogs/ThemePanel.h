@@ -106,12 +106,12 @@ private:
 };
 
 struct ThemeSelectorProperty : public PropertiesPanel::Property {
-    ThemeSelectorProperty(String const& propertyName, std::function<void()> const& callback)
-        : Property(propertyName)
+    ThemeSelectorProperty(String const& propertyName, std::function<void(const String&)> const& callback)
+        : Property(propertyName), cb(callback)
     {
         comboBox.getProperties().set("Style", "Inspector");
-        comboBox.onChange = [callback]() {
-            callback();
+        comboBox.onChange = [this, callback]() {
+            callback(comboBox.getText());
         };
 
         comboBox.setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
@@ -119,6 +119,14 @@ struct ThemeSelectorProperty : public PropertiesPanel::Property {
         comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
 
         addAndMakeVisible(comboBox);
+    }
+    
+    PropertiesPanel::Property* createCopy() override
+    {
+        auto* themeSelector = new ThemeSelectorProperty(getName(), cb);
+        themeSelector->setOptions(items);
+        themeSelector->setSelectedItem(comboBox.getSelectedItemIndex());
+        return themeSelector;
     }
 
     String getText() const
@@ -133,6 +141,7 @@ struct ThemeSelectorProperty : public PropertiesPanel::Property {
 
     void setOptions(StringArray const& options)
     {
+        items = options;
         comboBox.clear();
         comboBox.addItemList(options, 1);
     }
@@ -142,6 +151,8 @@ struct ThemeSelectorProperty : public PropertiesPanel::Property {
         comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
     }
 
+    StringArray items;
+    std::function<void(const String&)> cb;
     ComboBox comboBox;
 };
 
@@ -400,12 +411,12 @@ public:
 
         panel.addSection("Manage themes", { resetButton, newButton, loadButton, saveButton, deleteButton });
 
-        primaryThemeSelector = new ThemeSelectorProperty("Primary Theme", [this, onThemeChange]() {
-            onThemeChange(0, primaryThemeSelector->getText());
+        primaryThemeSelector = new ThemeSelectorProperty("Primary Theme", [this, onThemeChange](const String& selectedThemeName) {
+            onThemeChange(0, selectedThemeName);
         });
 
-        secondaryThemeSelector = new ThemeSelectorProperty("Secondary Theme", [this, onThemeChange]() {
-            onThemeChange(1, secondaryThemeSelector->getText());
+        secondaryThemeSelector = new ThemeSelectorProperty("Secondary Theme", [this, onThemeChange](const String& selectedThemeName) {
+            onThemeChange(1, selectedThemeName);
         });
 
         auto allThemes = PlugDataLook::getAllThemes();

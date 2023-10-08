@@ -25,6 +25,9 @@
 #include "ZoomableDragAndDropContainer.h"
 #include "RateReducer.h"
 
+#include "../Constants.h"
+#include "../LookAndFeel.h"
+
 // this is to find if we are over a split, and if so, we zoom the dragged image to the canvas zoom value
 #include "../ResizableTabbedComponent.h"
 

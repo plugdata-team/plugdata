@@ -7,61 +7,18 @@
 #pragma once
 
 #include <utility>
+#include "Constants.h"
+#include "LookAndFeel.h"
+
 #include "Utility/GlobalMouseListener.h"
 #include "Utility/BouncingViewport.h"
-#include "Constants.h"
+#include "Utility/Buttons.h"
 #include "Canvas.h"
 #include "PluginEditor.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
 
 class WelcomePanel : public Component {
 
-    class WelcomeButton : public Component {
-        String iconText;
-        String topText;
-        String bottomText;
-
-    public:
-        std::function<void(void)> onClick = []() {};
-
-        WelcomeButton(String icon, String mainText, String subText)
-            : iconText(std::move(icon))
-            , topText(std::move(mainText))
-            , bottomText(std::move(subText))
-        {
-            setInterceptsMouseClicks(true, false);
-            setAlwaysOnTop(true);
-        }
-
-        void paint(Graphics& g) override
-        {
-            auto colour = findColour(PlugDataColour::panelTextColourId);
-            if (isMouseOver()) {
-                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
-                colour = findColour(PlugDataColour::panelActiveTextColourId);
-            }
-
-            Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
-            Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
-            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
-        }
-
-        void mouseUp(MouseEvent const& e) override
-        {
-            onClick();
-        }
-
-        void mouseEnter(MouseEvent const& e) override
-        {
-            repaint();
-        }
-
-        void mouseExit(MouseEvent const& e) override
-        {
-            repaint();
-        }
-    };
 
     class RecentlyOpenedListBox : public Component
         , public ListBoxModel {
@@ -196,8 +153,8 @@ public:
         Fonts::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 160, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
     }
 
-    WelcomeButton newButton;
-    WelcomeButton openButton;
+    WelcomePanelButton newButton;
+    WelcomePanelButton openButton;
 
     RecentlyOpenedListBox recentlyOpened;
 };

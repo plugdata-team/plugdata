@@ -69,7 +69,6 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { panelTextColourId, { "Panel text", "panel_text", "Panel" } },
     { panelActiveBackgroundColourId, { "Panel background active", "panel_background_active", "Panel" } },
     { panelActiveTextColourId, { "Panel active text", "panel_active_text", "Panel" } },
-    { searchBarColourId, { "Searchbar", "searchbar_colour", "Panel" } },
 
     { sidebarBackgroundColourId, { "Sidebar background", "sidebar_colour", "Sidebar" } },
     { sidebarTextColourId, { "Sidebar text", "sidebar_text", "Sidebar" } },
@@ -1523,7 +1522,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff72aedf\" grid_colour=\"ff72aedf\"\n"
     "           caret_colour=\"ff72aedf\" iolet_area_colour=\"ff808080\" iolet_outline_colour=\"ff696969\"\n"
     "           text_object_background=\"ff333333\" comment_text_colour=\"ff111111\"\n"
-    "           searchbar_colour=\"ff3e3e3e\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+    "           dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"1\"/>\n"
     "    <Theme theme=\"classic\" toolbar_background=\"ffffffff\" toolbar_text=\"ff000000\"\n"
     "           toolbar_active=\"ff787878\" toolbar_hover=\"ffaaaaaa\" tabbar_background=\"ffffffff\"\n"
@@ -1542,7 +1541,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           popup_background=\"ffffffff\" popup_background_active=\"ff000000\"\n"
     "           popup_text=\"ff000000\" popup_active_text=\"ffffffff\" slider_thumb=\"ff000000\"\n"
     "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff000000\" grid_colour=\"ff000000\"\n"
-    "           caret_colour=\"ff000000\" comment_text_colour=\"ff000000\" searchbar_colour=\"ffffffff\"\n"
+    "           caret_colour=\"ff000000\" comment_text_colour=\"ff000000\"\n"
     "           dashed_signal_connections=\"0\" straight_connections=\"1\" thin_connections=\"1\"\n"
     "           square_iolets=\"1\" square_object_corners=\"1\"/>\n"
     "    <Theme theme=\"classic_dark\" toolbar_background=\"ff000000\" toolbar_text=\"ffffffff\"\n"
@@ -1562,7 +1561,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           scrollbar_thumb=\"ff7f7f7f\" graph_resizer=\"ffffffff\" grid_colour=\"ffffffff\"\n"
     "           caret_colour=\"ffffffff\" iolet_area_colour=\"ff000000\" iolet_outline_colour=\"ffffffff\"\n"
     "           text_object_background=\"ff000000\" comment_text_colour=\"ffffffff\"\n"
-    "           searchbar_colour=\"ff000000\" dashed_signal_connections=\"0\" straight_connections=\"1\"\n"
+    "           dashed_signal_connections=\"0\" straight_connections=\"1\"\n"
     "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"1\"/>\n"
     "    <Theme theme=\"dark\" toolbar_background=\"ff191919\" toolbar_text=\"ffe1e1e1\"\n"
     "           toolbar_active=\"ff42a2c8\" toolbar_hover=\"ff282828\" tabbar_background=\"ff191919\"\n"
@@ -1581,7 +1580,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           scrollbar_thumb=\"ff7f7f7f\" graph_resizer=\"ff42a2c8\" grid_colour=\"ff42a2c8\"\n"
     "           caret_colour=\"ff42a2c8\" text_object_background=\"ff232323\" iolet_area_colour=\"ff232323\"\n"
     "           iolet_outline_colour=\"ff696969\" comment_text_colour=\"ffe1e1e1\"\n"
-    "           searchbar_colour=\"ff232323\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+    "           dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
     "    <Theme theme=\"light\" toolbar_background=\"ffebebeb\" toolbar_text=\"ff373737\"\n"
     "           toolbar_active=\"ff007aff\" toolbar_hover=\"ffe0e0e0\" tabbar_background=\"ffebebeb\"\n"
@@ -1600,7 +1599,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff007aff\" grid_colour=\"ff007aff\"\n"
     "           caret_colour=\"ff007aff\" square_object_corners=\"0\" text_object_background=\"fffafafa\"\n"
     "           iolet_area_colour=\"fffafafa\" iolet_outline_colour=\"ffc2c2c2\"\n"
-    "           comment_text_colour=\"ff373737\" searchbar_colour=\"fffafafa\" dashed_signal_connections=\"1\"\n"
+    "           comment_text_colour=\"ff373737\" dashed_signal_connections=\"1\"\n"
     "           straight_connections=\"0\" thin_connections=\"0\" square_iolets=\"0\"/>"
     "    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
     "           toolbar_active=\"ff5da0c4\" toolbar_hover=\"ffc0bbb2\" tabbar_background=\"ffd2cdc4\"\n"
@@ -1619,7 +1618,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           scrollbar_thumb=\"ffa9a9a9\" graph_resizer=\"ff5da0c4\" grid_colour=\"ff5da0c4\"\n"
     "           caret_colour=\"ff5da0c4\" iolet_area_colour=\"ffe3dfd9\" iolet_outline_colour=\"ff968e82\"\n"
     "           text_object_background=\"ffe3dfd9\" comment_text_colour=\"ff5a5a5a\"\n"
-    "           searchbar_colour=\"ffe3dfd9\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+    "           dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"0\" square_iolets=\"0\" square_object_corners=\"0\"/>\n"
     "    <Theme theme=\"fangs\" toolbar_background=\"ff232323\" toolbar_text=\"ffffffff\"\n"
     "           toolbar_active=\"ff5bcefa\" toolbar_hover=\"ff383838\" tabbar_background=\"ff232323\"\n"
@@ -1638,7 +1637,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           graph_resizer=\"ff5bcefa\" grid_colour=\"ff5bcefa\" caret_colour=\"ffffacab\"\n"
     "           text_object_background=\"ff232323\" iolet_area_colour=\"ff232323\"\n"
     "           iolet_outline_colour=\"ff696969\" slider_thumb=\"ff8e8e8e\" comment_text_colour=\"ffffffff\"\n"
-    "           searchbar_colour=\"ff383838\" dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
+    "           dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"0\"/>\n"
     "  </ColourThemes>";
     
