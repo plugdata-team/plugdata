@@ -9,8 +9,8 @@
 #include "Constants.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/WindowDragger.h"
+#include "PluginEditor.h"
 
-class PluginEditor;
 class Canvas;
 
 using ArrayDialogCallback = std::function<void(int, String, int, int, bool, std::pair<float, float>)>;
