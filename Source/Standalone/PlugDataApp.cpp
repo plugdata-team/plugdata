@@ -168,7 +168,6 @@ protected:
     PlugDataWindow* mainWindow;
 };
 
-
 void PlugDataWindow::closeAllPatches()
 {
     // Show an ask to save dialog for each patch that is dirty

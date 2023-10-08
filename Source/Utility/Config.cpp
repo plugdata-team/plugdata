@@ -45,7 +45,7 @@ juce::AudioDeviceManager* ProjectInfo::getDeviceManager()
 PlugDataWindow* ProjectInfo::createNewWindow(PluginEditor* editor)
 {
 #if PLUGDATA_STANDALONE
-    return new PlugDataWindow(editor);
+    return new PlugDataWindow(reinterpret_cast<AudioProcessorEditor*>(editor));
 #else
     return nullptr;
 #endif
