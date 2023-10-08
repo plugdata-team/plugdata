@@ -8,6 +8,7 @@
 
 #include "Constants.h"
 #include "Utility/SettingsFile.h"
+#include "Utility/WindowDragger.h"
 
 class PluginEditor;
 class Canvas;
@@ -24,14 +25,12 @@ public:
         , owner(ownerPtr)
         , backgroundMargin(margin)
     {
-        parentComponent->addAndMakeVisible(this);
+        parentComponent->getTopLevelComponent()->addAndMakeVisible(this);
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
-
-        grabKeyboardFocus();
-
+        
         if (showCloseButton) {
             closeButton.reset(getLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
             addAndMakeVisible(closeButton.get());
@@ -45,9 +44,11 @@ public:
         getTopLevelComponent()->repaint();
     }
 
+
     void setViewedComponent(Component* child)
     {
         viewedComponent.reset(child);
+        viewedComponent->addMouseListener(this, false);
         addAndMakeVisible(child);
         resized();
     }
@@ -98,6 +99,23 @@ public:
             closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
         }
     }
+    
+    void mouseDown(const MouseEvent& e) override
+    {
+        if(e.getMouseDownY() < 40) {
+            dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
+        }
+        else if(!viewedComponent->getBounds().contains(e.getPosition())){
+            closeDialog();
+        }
+    }
+    
+    void mouseDrag(const MouseEvent& e) override
+    {
+        if(e.getMouseDownY() < 40) {
+            dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
+        }
+    }
 
     bool keyPressed(KeyPress const& key) override
     {
@@ -109,11 +127,6 @@ public:
         return false;
     }
 
-    void mouseDown(MouseEvent const& e) override
-    {
-        closeDialog();
-    }
-
     void closeDialog()
     {
         owner->reset(nullptr);
@@ -122,6 +135,7 @@ public:
     int height, width;
 
     Component* parentComponent;
+    WindowDragger dragger;
 
     std::unique_ptr<Component> viewedComponent = nullptr;
     std::unique_ptr<Button> closeButton = nullptr;

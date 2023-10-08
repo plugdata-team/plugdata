@@ -210,12 +210,14 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         tabMenu.addItem("Split left", canSplitTab, false, [this, cnv, splitIndex]() {
             auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
             auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
-            currentSplit->moveToSplit(0, cnv);
+            auto* targetSplit = cnv->editor->splitView.splits[0];
+            currentSplit->moveToSplit(targetSplit, cnv);
         });
         tabMenu.addItem("Split right", canSplitTab, false, [this, cnv, splitIndex]() {
             auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
             auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
-            currentSplit->moveToSplit(1, cnv);
+            auto* targetSplit = cnv->editor->splitView.splits.size() > 1 ? cnv->editor->splitView.splits[1] : nullptr;
+            currentSplit->moveToSplit(targetSplit, cnv);
         });
 
         tabMenu.addSeparator();

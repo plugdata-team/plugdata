@@ -67,6 +67,7 @@ public:
         KeyName
     };
     KeyObjectType type;
+    Component::SafePointer<PluginEditor> attachedEditor = nullptr;
 
     KeyObject(void* ptr, PluginProcessor* pd, KeyObjectType keyObjectType)
         : ImplementationBase(ptr, pd)
@@ -76,18 +77,20 @@ public:
 
     ~KeyObject() override
     {
-        if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
-            editor->removeModifierKeyListener(this);
-            editor->removeKeyListener(this);
+        if(attachedEditor) {
+            attachedEditor->removeModifierKeyListener(this);
+            attachedEditor->removeKeyListener(this);
         }
     }
 
     void update() override
     {
-        if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
-            // Capture key events for whole window
-            editor->addKeyListener(this);
-            editor->addModifierKeyListener(this);
+        auto* cnv = getMainCanvasForObject(ptr.getRawUnchecked<void>());
+        if(cnv)
+        {
+            attachedEditor = cnv->editor;
+            attachedEditor->addModifierKeyListener(this);
+            attachedEditor->addKeyListener(this);
         }
     }
 

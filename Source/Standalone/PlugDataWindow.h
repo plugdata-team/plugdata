@@ -437,12 +437,14 @@ private:
 
  @tags{Audio}
  */
+
 class PlugDataWindow : public DocumentWindow
     , public SettingsFileListener {
 
     Image shadowImage;
     std::unique_ptr<StackDropShadower> dropShadower;
-
+    AudioProcessorEditor* editor;
+    StandalonePluginHolder* pluginHolder;
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
@@ -451,89 +453,46 @@ public:
      store its settings (it can also be null). If takeOwnershipOfSettings is
      true, then the settings object will be owned and deleted by this object.
      */
-    PlugDataWindow(String const& systemArguments, String const& title, Colour backgroundColour, PropertySet* settingsToUse, bool takeOwnershipOfSettings, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr,
-        Array<PluginInOuts> const& constrainToConfiguration = {})
-        : DocumentWindow(title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
+    PlugDataWindow(AudioProcessorEditor* pluginEditor)
+        : DocumentWindow("plugdata", LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton), editor(pluginEditor)
     {
-
         setTitleBarHeight(0);
+        pluginHolder = StandalonePluginHolder::getInstance();
 
         drawWindowShadow = Desktop::canUseSemiTransparentWindows();
 
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
-
-        pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration);
-
-        parseSystemArguments(systemArguments);
-
-        mainComponent = new MainContentComponent(*this);
+        setOpaque(false);
+        
+        mainComponent = new MainContentComponent(*this, editor);
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
-        bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
-
-        // When starting with any sysargs, assume we don't want the last patch to open
-        // Prevents a possible crash and generally kinda makes sense
-        if (systemArguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
-            pluginHolder->reloadPluginState();
-        }
 
         setContentOwned(mainComponent, true);
 
         // Make sure it gets updated on init
         propertyChanged("native_window", settingsTree.getProperty("native_window"));
-
-        auto const getWindowScreenBounds = [this]() -> Rectangle<int> {
-            const auto width = getWidth();
-            const auto height = getHeight();
-
-            const auto& displays = Desktop::getInstance().getDisplays();
-
-            if (auto* props = pluginHolder->settings.get()) {
-                constexpr int defaultValue = -100;
-
-                const auto x = props->getIntValue("windowX", defaultValue);
-                const auto y = props->getIntValue("windowY", defaultValue);
-
-                if (x != defaultValue && y != defaultValue) {
-                    const auto screenLimits = displays.getDisplayForRect({ x, y, width, height })->userArea;
-
-                    return { jlimit(screenLimits.getX(), jmax(screenLimits.getX(), screenLimits.getRight() - width), x), jlimit(screenLimits.getY(), jmax(screenLimits.getY(), screenLimits.getBottom() - height), y), width, height };
-                }
-            }
-
-            const auto displayArea = displays.getPrimaryDisplay()->userArea;
-
-            return { displayArea.getCentreX() - width / 2, displayArea.getCentreY() - height / 2, width, height };
-        };
-
-        setBoundsConstrained(getWindowScreenBounds());
     }
-
+        
     void propertyChanged(String const& name, var const& value) override
     {
-
         if (name == "native_window") {
-
-            bool nativeWindow = static_cast<bool>(value);
-
-            auto* editor = getAudioProcessor()->getActiveEditor();
-
+            auto nativeWindow = static_cast<bool>(value);
+            
+            auto* editor = mainComponent->getEditor();
             setUsingNativeTitleBar(nativeWindow);
-
+            
             if (!nativeWindow) {
-
+                
                 setOpaque(false);
-
+                
                 setResizable(false, false);
-
+                
                 if (drawWindowShadow) {
 #if JUCE_MAC
                     setDropShadowEnabled(true);
 #elif JUCE_WINDOWS
                     setDropShadowEnabled(false);
-#endif
-
-#if JUCE_WINDOWS
                     dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 22, { 0, 3 }));
                     dropShadower->setOwner(this);
 #endif
@@ -546,7 +505,7 @@ public:
                 setDropShadowEnabled(true);
                 setResizable(true, false);
             }
-
+            
             editor->resized();
             resized();
             repaint();
@@ -557,19 +516,12 @@ public:
 
     ~PlugDataWindow() override
     {
-        pluginHolder->stopPlaying();
         clearContentComponent();
-        pluginHolder = nullptr;
     }
 
     BorderSize<int> getBorderThickness() override
     {
         return BorderSize<int>(0);
-    }
-
-    AudioProcessor* getAudioProcessor() const noexcept
-    {
-        return pluginHolder->processor.get();
     }
 
     /** Deletes and re-creates the plugin, resetting it to its default state. */
@@ -583,7 +535,7 @@ public:
             props->removeValue("filterState");
 
         pluginHolder->createPlugin();
-        setContentOwned(new MainContentComponent(*this), true);
+        setContentOwned(new MainContentComponent(*this, pluginHolder->processor->createEditorIfNeeded()), true);
         pluginHolder->startPlaying();
     }
 
@@ -607,7 +559,8 @@ public:
         closeAllPatches();
     }
 
-    void closeAllPatches(); // implemented in PlugDataApp.cpp
+    // implemented in PlugDataApp.cpp
+    void closeAllPatches();
 
     void maximiseButtonPressed() override
     {
@@ -680,24 +633,15 @@ public:
         }
     }
 
-    virtual StandalonePluginHolder* getPluginHolder()
-    {
-        return pluginHolder.get();
-    }
-
-    bool hasOpenedDialog();
-
-    std::unique_ptr<StandalonePluginHolder> pluginHolder;
-
 private:
     class MainContentComponent : public Component
         , private ComponentListener
         , public MenuBarModel {
 
     public:
-        MainContentComponent(PlugDataWindow& filterWindow)
+        MainContentComponent(PlugDataWindow& filterWindow, AudioProcessorEditor* pluginEditor)
             : owner(filterWindow)
-            , editor(owner.getAudioProcessor()->hasEditor() ? owner.getAudioProcessor()->createEditorIfNeeded() : new GenericAudioProcessorEditor(*owner.getAudioProcessor()))
+            , editor(pluginEditor)
         {
             inputMutedValue.referTo(owner.pluginHolder->getMuteInputValue());
 
@@ -848,17 +792,5 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)
 };
 
-inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
-{
-    if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone) {
-        auto& desktop = Desktop::getInstance();
-        int const numTopLevelWindows = desktop.getNumComponents();
 
-        for (int i = 0; i < numTopLevelWindows; ++i)
-            if (auto window = dynamic_cast<PlugDataWindow*>(desktop.getComponent(i)))
-                return window->getPluginHolder();
-    }
-
-    return nullptr;
-}
 

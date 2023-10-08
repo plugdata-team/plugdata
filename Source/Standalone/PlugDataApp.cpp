@@ -116,7 +116,8 @@ public:
         auto tokens = StringArray::fromTokens(commandLine, " ", "\"");
         auto file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
-            auto* pd = dynamic_cast<PluginProcessor*>(mainWindow->getAudioProcessor());
+            auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());;
+
 
             if (pd && file.existsAsFile()) {
                 pd->loadPatch(file);
@@ -125,23 +126,23 @@ public:
         }
     }
 
-    PlugDataWindow* createWindow(String const& systemArgs)
-    {
-        return new PlugDataWindow(systemArgs, getApplicationName(), LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), appProperties.getUserSettings(), false, {}, nullptr, {});
-    }
-
     void initialise(String const& arguments) override
     {
         LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colours::transparentBlack);
 
-        mainWindow.reset(createWindow(arguments));
-
+        pluginHolder = std::make_unique<StandalonePluginHolder>(appProperties.getUserSettings(), false, "");
+        
+        mainWindow = new PlugDataWindow(pluginHolder->processor->createEditorIfNeeded());
+        
         mainWindow->setVisible(true);
+        mainWindow->parseSystemArguments(arguments);
     }
 
     void shutdown() override
     {
         mainWindow = nullptr;
+        pluginHolder->stopPlaying();
+        pluginHolder = nullptr;
         appProperties.saveIfNeeded();
     }
 
@@ -160,28 +161,44 @@ public:
         }
     }
 
+    std::unique_ptr<StandalonePluginHolder> pluginHolder;
+    
 protected:
     ApplicationProperties appProperties;
-    std::unique_ptr<PlugDataWindow> mainWindow;
+    PlugDataWindow* mainWindow;
 };
 
-bool PlugDataWindow::hasOpenedDialog()
-{
-    auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
-    return editor->openedDialog != nullptr;
-}
 
 void PlugDataWindow::closeAllPatches()
 {
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor());
-
-    editor->closeAllTabs(true);
+    auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
+    auto& openedEditors = editor->pd->openedEditors;
+    
+    if(openedEditors.size() == 1) {
+        delete this;
+        editor->closeAllTabs(true);
+    }
+    else {
+        editor->closeAllTabs(false);
+        removeFromDesktop();
+        openedEditors.removeFirstMatchingValue(editor);
+        delete this;
+    }
 }
 
 int PlugDataWindow::parseSystemArguments(String const& arguments)
 {
+    auto settingsTree = SettingsFile::getInstance()->getValueTree();
+    bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
+    
+    // When starting with any sysargs, assume we don't want the last patch to open
+    // Prevents a possible crash and generally kinda makes sense
+    if (arguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
+        pluginHolder->reloadPluginState();
+    }
+    
     auto args = StringArray::fromTokens(arguments, true);
     size_t argc = args.size();
 
@@ -197,11 +214,12 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     int retval = parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
 
     StringArray openedPatches;
-    /* open patches specifies with "-open" args */
+    // open patches specifies with "-open" args
     for (auto* nl = openlist; nl; nl = nl->nl_next) {
         auto toOpen = File(String(nl->nl_string).unquoted());
         if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
-            if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
+            
+            if (auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get())) {
                 pd->loadPatch(toOpen);
                 SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
                 openedPatches.add(toOpen.getFullPathName());
@@ -239,8 +257,43 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     namelist_free(openlist);
     namelist_free(messagelist);
     messagelist = nullptr;
+    
+    auto const getWindowScreenBounds = [this]() -> Rectangle<int> {
+        const auto width = getWidth();
+        const auto height = getHeight();
+
+        const auto& displays = Desktop::getInstance().getDisplays();
+
+        if (auto* props = pluginHolder->settings.get()) {
+            constexpr int defaultValue = -100;
+
+            const auto x = props->getIntValue("windowX", defaultValue);
+            const auto y = props->getIntValue("windowY", defaultValue);
+
+            if (x != defaultValue && y != defaultValue) {
+                const auto screenLimits = displays.getDisplayForRect({ x, y, width, height })->userArea;
+
+                return { jlimit(screenLimits.getX(), jmax(screenLimits.getX(), screenLimits.getRight() - width), x), jlimit(screenLimits.getY(), jmax(screenLimits.getY(), screenLimits.getBottom() - height), y), width, height };
+            }
+        }
+
+        const auto displayArea = displays.getPrimaryDisplay()->userArea;
+
+        return { displayArea.getCentreX() - width / 2, displayArea.getCentreY() - height / 2, width, height };
+    };
+
+    setBoundsConstrained(getWindowScreenBounds());
 
     return retval;
+}
+
+inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
+{
+    if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone) {
+        return dynamic_cast<PlugDataApp*>(JUCEApplicationBase::getInstance())->pluginHolder.get();
+    }
+
+    return nullptr;
 }
 
 START_JUCE_APPLICATION(PlugDataApp)

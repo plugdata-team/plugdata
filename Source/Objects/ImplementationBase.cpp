@@ -38,9 +38,25 @@ ImplementationBase::ImplementationBase(void* obj, PluginProcessor* processor)
 
 ImplementationBase::~ImplementationBase() = default;
 
+Canvas* ImplementationBase::getMainCanvasForObject(void* objectPtr) const
+{
+    for(auto* editor : pd->openedEditors) {
+        for (auto* cnv : editor->canvases) {
+            for (auto* object : cnv->objects) {
+                if(object->getPointer() == objectPtr)
+                {
+                    return cnv;
+                }
+            }
+        }
+    }
+
+    return nullptr;
+}
+
 Canvas* ImplementationBase::getMainCanvas(void* patchPtr) const
 {
-    if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
+    for(auto* editor : pd->openedEditors) {
         for (auto* cnv : editor->canvases) {
             auto glist = cnv->patch.getPointer();
             if (glist && glist.get() == patchPtr) {
@@ -125,7 +141,9 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
 
     subpatch->setCurrentFile(path);
 
-    if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
+    for(auto* editor : pd->openedEditors) {
+        if(!editor->isActiveWindow()) continue;
+        
         // Check if subpatch is already opened
         for (auto* cnv : editor->canvases) {
             if (cnv->patch == *subpatch) {
@@ -142,11 +160,11 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
 
 void ImplementationBase::closeOpenedSubpatchers()
 {
-    if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
-        auto glist = ptr.get<t_glist>();
-        if (!glist)
-            return;
-
+    auto glist = ptr.get<t_glist>();
+    if (!glist)
+        return;
+    
+    for(auto* editor : pd->openedEditors) {
         for (auto* canvas : editor->canvases) {
             auto canvasPtr = canvas->patch.getPointer();
             if (canvasPtr && canvasPtr.get() == glist.get()) {

@@ -21,6 +21,11 @@ public:
     {
         setInterceptsMouseClicks(false, false);
     }
+    
+    ~SplitViewFocusOutline()
+    {
+        if(tabbedComponent) tabbedComponent->removeComponentListener(this);
+    }
 
     void setActive(ResizableTabbedComponent* tabComponent)
     {
@@ -43,14 +48,14 @@ public:
         }
     }
 
-    void paint(Graphics& g)
+    void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
         g.drawRect(getLocalBounds(), 2.5f);
     }
 
 private:
-    SafePointer<ResizableTabbedComponent> tabbedComponent;
+    SafePointer<ResizableTabbedComponent> tabbedComponent = nullptr;
 };
 
 SplitView::SplitView(PluginEditor* parent)
@@ -80,7 +85,7 @@ bool SplitView::canSplit()
 
 void SplitView::removeSplit(TabComponent* toRemove)
 {
-    ResizableTabbedComponent* toBeRemoved;
+    ResizableTabbedComponent* toBeRemoved = nullptr;
     for (auto* split : splits) {
         if (split->getTabComponent() == toRemove) {
             toBeRemoved = split;
@@ -137,8 +142,7 @@ int SplitView::getTabComponentSplitIndex(TabComponent* tabComponent)
         }
     }
 
-    // This should never happen, but if we ever get here, pretend we're in the first split
-    jassertfalse;
+    // This might happen when running multiple window
     return 0;
 }
 

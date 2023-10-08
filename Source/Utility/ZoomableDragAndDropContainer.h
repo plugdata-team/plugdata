@@ -48,10 +48,10 @@
 
     @tags{GUI}
 */
+class TabBarButtonComponent;
 class SplitView;
 class ZoomableDragAndDropContainer {
 public:
-    //==============================================================================
     /** Creates a ZoomableDragAndDropContainer.
 
         The object that derives from this class must also be a Component.
@@ -60,8 +60,6 @@ public:
 
     /** Destructor. */
     virtual ~ZoomableDragAndDropContainer();
-
-    //==============================================================================
     /** Begins a drag-and-drop operation.
 
         This starts a drag-and-drop operation - call it when the user drags the
@@ -173,9 +171,9 @@ public:
     */
     static ZoomableDragAndDropContainer* findParentDragContainerFor(Component* childComponent);
 
+    virtual void createNewWindow(TabBarButtonComponent* tabButton) {};
+    
     virtual SplitView* getSplitView() { return nullptr; };
-
-    //==============================================================================
     /** This performs an asynchronous drag-and-drop of a set of files to some external
         application.
 
@@ -257,7 +255,7 @@ protected:
     virtual DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos);
 
 private:
-    //==============================================================================
+
     class DragImageComponent;
     OwnedArray<DragImageComponent> dragImageComponents;
 

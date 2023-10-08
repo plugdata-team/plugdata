@@ -160,6 +160,8 @@ public:
     std::unique_ptr<InternalSynth> internalSynth;
     std::atomic<bool> enableInternalSynth = false;
 
+    Array<PluginEditor*> openedEditors;
+        
 private:
     void processInternal();
 

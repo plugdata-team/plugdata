@@ -496,7 +496,7 @@ private:
                 return false;
             }
         }
-        if (state != ShowingObjects)
+        if (state != ShowingObjects || !isVisible())
             return false;
 
         if (key == KeyPress::upKey || key == KeyPress::downKey) {

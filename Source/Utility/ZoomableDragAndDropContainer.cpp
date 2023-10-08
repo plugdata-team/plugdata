@@ -131,6 +131,9 @@ public:
                 currentlyOverComp = nullptr;
                 finalTarget->itemDropped(details);
             }
+            else if(auto* tab = dynamic_cast<TabBarButtonComponent*>(details.sourceComponent.get())){
+                owner.createNewWindow(tab);
+            }
             // careful - this object could now be deleted..
         }
     }

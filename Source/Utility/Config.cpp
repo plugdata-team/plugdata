@@ -42,6 +42,15 @@ juce::AudioDeviceManager* ProjectInfo::getDeviceManager()
 #endif
 }
 
+PlugDataWindow* ProjectInfo::createNewWindow(PluginEditor* editor)
+{
+#if PLUGDATA_STANDALONE
+    return new PlugDataWindow(editor);
+#else
+    return nullptr;
+#endif
+}
+
 bool ProjectInfo::canUseSemiTransparentWindows()
 {
 #if !JUCE_MAC || PLUGDATA_STANDALONE

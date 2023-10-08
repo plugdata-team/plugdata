@@ -617,6 +617,15 @@ void Canvas::altKeyChanged(bool isHeld)
     SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", isHeld, nullptr);
 }
 
+void Canvas::moveToWindow(PluginEditor* newEditor)
+{
+    if(newEditor != editor) {
+        editor->canvases.removeAndReturn(editor->canvases.indexOf(this));
+        newEditor->canvases.add(this);
+        editor = newEditor;
+    }
+}
+
 void Canvas::focusGained(FocusChangeType type)
 {
     // std::cout << "focus on canvas: " << this << std::endl;

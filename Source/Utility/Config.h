@@ -7,6 +7,8 @@ namespace juce {
 class AudioDeviceManager;
 }
 class MidiDeviceManager;
+class PlugDataWindow;
+class PluginEditor;
 
 using namespace juce;
 
@@ -21,6 +23,8 @@ struct ProjectInfo {
 
     static MidiDeviceManager* getMidiDeviceManager();
     static AudioDeviceManager* getDeviceManager();
+    
+    static PlugDataWindow* createNewWindow(PluginEditor* editor);
 
     static bool canUseSemiTransparentWindows();
 

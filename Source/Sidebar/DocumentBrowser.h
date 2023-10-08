@@ -473,7 +473,7 @@ public:
             SettingsFile::getInstance()->addToRecentlyOpened(file);
             lastUpdateTime = Time::getCurrentTime() + RelativeTime(2.0f);
         } else if (file.existsAsFile()) {
-            auto* editor = dynamic_cast<PluginEditor*>(browser->pd->getActiveEditor());
+            auto* editor = findParentComponentOfClass<PluginEditor>();
             if (auto* cnv = editor->getCurrentCanvas()) {
                 cnv->attachNextObjectToMouse = true;
 
@@ -868,7 +868,7 @@ public:
         settingsCalloutButton->setConnectedEdges(12);
         settingsCalloutButton->getProperties().set("Style", "SmallIcon");
         settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
-            auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+            auto* editor = findParentComponentOfClass<PluginEditor>();
             auto* sidebar = getParentComponent();
             auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
             auto openFolderCallback = [this]() {

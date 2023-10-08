@@ -68,7 +68,7 @@ public:
             g.fillEllipse(notificationBounds.toFloat());
             g.setFont(Font(numNotifications >= 100 ? 8 : 12));
             g.setColour(bubbleColour.darker(0.6f).contrasting());
-            g.drawText(String(numNotifications), notificationBounds, Justification::centred);
+            g.drawText(numNotifications > 99 ? String("99+") : String(numNotifications), notificationBounds, Justification::centred);
         }
     }
     

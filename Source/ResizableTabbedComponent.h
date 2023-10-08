@@ -52,7 +52,7 @@ public:
 
     void updateDropZones();
 
-    void moveToSplit(int splitIdx, Canvas* canvas);
+    void moveToSplit(ResizableTabbedComponent* targetSplit, Canvas* canvas);
     void createNewSplit(DropZones activeZone, Canvas* canvas);
 
 private:

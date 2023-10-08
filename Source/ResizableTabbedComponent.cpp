@@ -104,9 +104,9 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
     }
 }
 
-void ResizableTabbedComponent::moveToSplit(int splitIdx, Canvas* canvas)
+void ResizableTabbedComponent::moveToSplit(ResizableTabbedComponent* targetSplit, Canvas* canvas)
 {
-    if (splitIdx >= editor->splitView.splits.size()) {
+    if (!targetSplit) {
         createNewSplit(DropZones::Right, canvas);
     } else {
         if (auto* sourceTabBar = canvas->getTabbar()) {
@@ -115,7 +115,6 @@ void ResizableTabbedComponent::moveToSplit(int splitIdx, Canvas* canvas)
             sourceTabBar->setCurrentTabIndex(sourceTabIndex > (sourceTabBar->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex);
         }
 
-        auto* targetSplit = editor->splitView.splits[splitIdx];
         auto tabTitle = canvas->patch.getTitle();
         targetSplit->getTabComponent()->addTab(tabTitle, canvas->viewport.get(), 0);
         canvas->viewport->setVisible(true);
@@ -170,7 +169,8 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
     auto tabTitle = canvas->patch.getTitle();
     newSplit->getTabComponent()->addTab(tabTitle, canvas->viewport.get(), 0);
     canvas->viewport->setVisible(true);
-
+    canvas->moveToWindow(editor);
+    
     newSplit->resized();
     newSplit->getTabComponent()->resized();
 }
@@ -193,6 +193,7 @@ void ResizableTabbedComponent::moveTabToNewSplit(SourceDetails const& dragSource
         tabComponent->setCurrentTabIndex(newTabIdx);
 
         editor->splitView.setFocus(this);
+        tabCanvas->moveToWindow(editor);
         sourceTabContent->removeTab(sourceTabIndex);
         sourceTabContent->setCurrentTabIndex(sourceTabIndex > (sourceTabContent->getNumTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex);
         for (auto* split : editor->splitView.splits) {

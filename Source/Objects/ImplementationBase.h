@@ -29,6 +29,7 @@ public:
     void closeOpenedSubpatchers();
 
     Canvas* getMainCanvas(void* patchPtr) const;
+    Canvas* getMainCanvasForObject(void* objectPtr) const;
 
     PluginProcessor* pd;
     pd::WeakReference ptr;

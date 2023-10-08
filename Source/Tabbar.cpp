@@ -121,7 +121,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         inOtherSplit = false;
         // we remove the ghost tab, which is NOT a proper tab, (it only a tab, and doesn't have a viewport)
         owner.removeTab(ghostTabIdx);
-        auto tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
+        auto* tabCanvas = sourceTabContent->getCanvas(sourceTabIndex);
         auto tabTitle = tabCanvas->patch.getTitle();
         // we then re-add the ghost tab, but this time we add it from the owner (tabComponent)
         // which allows us to inject the viewport
@@ -134,6 +134,8 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         auto newTab = owner.tabs->getTabButton(ghostTabIdx);
         newTab->setBounds(ghostTabBounds);
         ghostTab->setTabButtonToGhost(newTab);
+        
+        tabCanvas->moveToWindow(owner.getEditor()); // In case it got dragged into a new window
 
         sourceTabContent->removeTab(sourceTabIndex);
         auto sourceCurrentIndex = sourceTabIndex > (sourceTabContent->getNumVisibleTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex;

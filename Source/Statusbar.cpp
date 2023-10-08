@@ -98,7 +98,8 @@ public:
     {
         onClick = [this, pd]() {
             auto selection = log2(getButtonText().upToLastOccurrenceOf("x", false, false).getIntValue());
-            auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+            auto* editor = findParentComponentOfClass<PluginEditor>();
+            
             auto oversampleSettings = std::make_unique<OversampleSettingsPopup>(selection);
             auto bounds = editor->getLocalArea(this, getLocalBounds());
 
@@ -386,7 +387,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     centreButton.setTooltip("Move view to origin");
     centreButton.getProperties().set("Style", "SmallIcon");
     centreButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
             cnv->jumpToOrigin();
         }
@@ -397,7 +398,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     fitAllButton.setTooltip("Zoom to fit all");
     fitAllButton.getProperties().set("Style", "SmallIcon");
     fitAllButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
             cnv->zoomToFitAll();
         }
@@ -439,7 +440,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     overlaySettingsButton.setButtonText(Icons::ThinDown);
 
     overlaySettingsButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        auto* editor = findParentComponentOfClass<PluginEditor>();
         OverlayDisplaySettings::show(editor, editor->getLocalArea(this, overlaySettingsButton.getBounds()));
     };
 
@@ -449,13 +450,13 @@ Statusbar::Statusbar(PluginProcessor* processor)
     snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 
     snapSettingsButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        auto* editor = findParentComponentOfClass<PluginEditor>();
         SnapSettings::show(editor, editor->getLocalArea(this, snapSettingsButton.getBounds()));
     };
 
     alignmentButton.setButtonText(Icons::AlignLeft);
     alignmentButton.onClick = [this]() {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        auto* editor = findParentComponentOfClass<PluginEditor>();
         AlignmentTools::show(editor, editor->getLocalArea(this, alignmentButton.getBounds()));
     };
 

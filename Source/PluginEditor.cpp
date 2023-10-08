@@ -530,6 +530,38 @@ void PluginEditor::fileDragExit(StringArray const&)
     repaint();
 }
 
+void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
+{
+    if(!ProjectInfo::isStandalone) return;
+    
+    auto* newEditor = new PluginEditor(*pd);
+    auto* newWindow = ProjectInfo::createNewWindow(newEditor);
+    
+    auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
+    
+    pd->openedEditors.add(newEditor);
+    
+    newWindow->addToDesktop(window->getDesktopWindowStyleFlags());
+    newWindow->setVisible(true);
+    
+    auto* targetSplit = newEditor->getSplitView()->splits[0];
+    auto* originalTabComponent = tabButton->getTabComponent();
+    auto* originalCanvas = originalTabComponent->getCanvas(tabButton->getIndex());
+    auto originalSplitIndex = splitView.getTabComponentSplitIndex(originalTabComponent);
+
+    splitView.splits[originalSplitIndex]->moveToSplit(targetSplit, originalCanvas);
+    originalCanvas->moveToWindow(newEditor);
+    
+    MessageManager::callAsync([_window = Component::SafePointer(newWindow)](){
+        _window->setTopLeftPosition(Desktop::getInstance().getMousePosition() - Point<int>(500, 60));
+    });
+}
+
+bool PluginEditor::isActiveWindow()
+{
+    return TopLevelWindow::getActiveTopLevelWindow() == getTopLevelComponent();
+}
+
 void PluginEditor::newProject()
 {
     // find the lowest `Untitled-N` number, for the new patch title

@@ -56,6 +56,8 @@ public:
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
 
+    bool isActiveWindow() override;
+        
     void resized() override;
     void parentSizeChanged() override;
 
@@ -91,6 +93,8 @@ public:
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
     void fileDragExit(StringArray const&) override;
+        
+    void createNewWindow(TabBarButtonComponent* tabButton) override;
 
     DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos) override;
 

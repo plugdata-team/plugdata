@@ -903,14 +903,14 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 {
     auto* editor = new PluginEditor(*this);
     setThis();
-
+    openedEditors.add(editor);
+    
     for (auto const& patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
         editor->addTab(cnv, patch->splitViewIndex);
     }
 
     editor->resized();
-
     return editor;
 }
 
@@ -977,6 +977,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     xml.setAttribute("TailLength", getValue<float>(tailLength));
     xml.setAttribute("Legacy", false);
 
+    //TODO: make multi-window friendly
     if (auto* editor = getActiveEditor()) {
         xml.setAttribute("Width", editor->getWidth());
         xml.setAttribute("Height", editor->getHeight());
@@ -1016,17 +1017,14 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     MemoryInputStream istream(data, sizeInBytes, false);
 
     // Close any opened patches
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
-            if (!editor)
-                return;
-
+    MessageManager::callAsync([this]() {
+        for(auto* editor : openedEditors) {
             for (auto split : editor->splitView.splits) {
                 split->getTabComponent()->clearTabs();
             }
             editor->canvases.clear();
-        });
-    }
+        }
+    });
 
     lockAudioThread();
     
@@ -1138,6 +1136,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             int windowHeight = xmlState->getIntAttribute("Height", 650);
             lastUIWidth = windowWidth;
             lastUIHeight = windowHeight;
+            //TODO: make multi-window friendly
             if (auto* editor = getActiveEditor()) {
                 MessageManager::callAsync([editor = Component::SafePointer(editor), windowWidth, windowHeight]() {
                     if (!editor)
@@ -1155,17 +1154,16 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     delete[] xmlData;
 
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
-            if (!editor)
-                return;
+
+    MessageManager::callAsync([this]() {
+        for(auto* editor : openedEditors) {
             editor->sidebar->updateAutomationParameters();
 
             if (editor->pluginMode && !editor->pd->isInPluginMode()) {
                 editor->pluginMode->closePluginMode();
             }
-        });
-    }
+        }
+    });
 }
 
 pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
@@ -1173,20 +1171,18 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
     // First, check if patch is already opened
     for (auto const& patch : patches) {
         if (patch->getCurrentFile() == patchFile) {
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
-                    if (!_editor)
-                        return;
-
-                    for (auto* cnv : _editor->canvases) {
-                        if (cnv->patch == *patch) {
-                            cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
+           
+                MessageManager::callAsync([this, patch]() mutable {
+                    for(auto* editor : openedEditors) {
+                        for (auto* cnv : editor->canvases) {
+                            if (cnv->patch == *patch) {
+                                cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
+                            }
                         }
+                        editor->pd->logError("Patch is already open");
                     }
-
-                    _editor->pd->logError("Patch is already open");
                 });
-            }
+
 
             // Patch is already opened
             return nullptr;
@@ -1209,22 +1205,22 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
     patches.add(newPatch);
     auto* patch = patches.getLast().get();
 
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([this, patch, splitIdx, _editor = Component::SafePointer(editor)]() mutable {
-            if (!_editor)
-                return;
+    MessageManager::callAsync([this, patch, splitIdx]() mutable {
+    for(auto* editor : openedEditors) {
+            if (!editor || !editor->hasKeyboardFocus(true))
+                continue;
 
             // There are some subroutines that get called when we create a canvas, that will lock the audio thread
             // By locking it around this whole function, we can prevent slowdowns from constantly locking/unlocking the audio thread
             lockAudioThread();
 
-            auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr));
+            auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
 
             unlockAudioThread();
 
-            _editor->addTab(cnv, splitIdx);
-        });
-    }
+            editor->addTab(cnv, splitIdx);
+        }
+    });
 
     patch->setCurrentFile(patchFile);
 
@@ -1262,7 +1258,7 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
 
     lnf->setTheme(themeTree);
 
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+    for(auto* editor : openedEditors) {
         editor->sendLookAndFeelChange();
         editor->getTopLevelComponent()->repaint();
         editor->repaint();
@@ -1402,7 +1398,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
         bool dsp = list[0].getFloat();
         MessageManager::callAsync(
             [this, dsp]() mutable {
-                if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                for(auto* editor : openedEditors) {
                     editor->statusbar->powerButton.setToggleState(dsp, dontSendNotification);
                 }
             });
@@ -1414,6 +1410,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             bool askToSave = hash(selector) == hash("verifyquit");
             MessageManager::callAsync(
                 [this, askToSave]() mutable {
+                    // TODO: make multi-window friendly
                     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                         editor->quit(askToSave);
                     }
@@ -1540,7 +1537,7 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
             pldParam->setUnscaledValueNotifyingHost(value);
 
             if (ProjectInfo::isStandalone) {
-                if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                for(auto* editor : openedEditors) {
                     editor->sidebar->updateAutomationParameters();
                 }
             }
@@ -1619,50 +1616,47 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 
 void PluginProcessor::updateConsole(int numMessages, bool newWarning)
 {
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+    for(auto* editor : openedEditors) {
         editor->sidebar->updateConsole(numMessages, newWarning);
     }
 }
 
 void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 {
-    auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor());
-
     setThis();
-
+    
     // Ensure that all messages are dequeued before we start deleting objects
     sendMessagesFromQueue();
-
+    
     isPerformingGlobalSync = true;
-
+    
     pd::Patch::reloadPatch(changedPatch, except);
-
-    // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
-    Array<Component::SafePointer<Canvas>> canvases;
-
-    if (editor) {
+    
+    for(auto* editor : openedEditors) {
+        
+        // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
+        Array<Component::SafePointer<Canvas>> canvases;
+        
         for (auto* canvas : editor->canvases) {
             canvases.add(canvas);
         }
-    }
-
-    for (auto& cnv : canvases) {
-        if (cnv.getComponent()) {
-            cnv->synchronise();
-            cnv->handleUpdateNowIfNeeded();
+        
+        for (auto& cnv : canvases) {
+            if (cnv.getComponent()) {
+                cnv->synchronise();
+                cnv->handleUpdateNowIfNeeded();
+            }
         }
-    }
-
-    isPerformingGlobalSync = false;
-
-    if (editor) {
+        
         editor->updateCommandStatus();
     }
+    
+    isPerformingGlobalSync = false;
 }
 
 void PluginProcessor::titleChanged()
 {
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+    for(auto* editor : openedEditors) {
         for (auto split : editor->splitView.splits) {
             auto tabbar = split->getTabComponent();
             for (int n = 0; n < tabbar->getNumTabs(); n++) {
@@ -1679,6 +1673,7 @@ void PluginProcessor::titleChanged()
 void PluginProcessor::savePatchTabPositions()
 {
     Array<std::tuple<pd::Patch*, int>> sortedPatches;
+    // TODO: make multi-window friendly
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         for (auto* cnv : editor->canvases) {
             cnv->patch.splitViewIndex = editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
