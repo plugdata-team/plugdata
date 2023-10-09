@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(pure-data VERSION 1.0.0 LANGUAGES C CXX)
+# ------------------------------------------------------------------------------#
+# LIBPD PROJECT IN C
+# ------------------------------------------------------------------------------#
+project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
@@ -26,7 +29,15 @@ set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(PD_PATH "pure-data/")
+set(LIBPD_PATH "libpd/")
+set(LIBPD_OUTPUT_DIRECTORY "./..")
 
+# ------------------------------------------------------------------------------#
+# OPTIONS
+# ------------------------------------------------------------------------------#
+option(PD_UTILS "Compile libpd utilities" OFF)
+option(PD_EXTRA "Compile extras" ON)
+option(PD_LOCALE "Set the LC_NUMERIC number format to the default C locale" ON)
         
 # ------------------------------------------------------------------------------#
 # SOURCES
@@ -124,11 +135,10 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/x_vexp.c
     ${PD_PATH}/src/x_vexp_fun.c
     ${PD_PATH}/src/x_vexp_if.c
-    ${PD_PATH}/src/x_libpdreceive.c
     ${PD_PATH}/src/z_hooks.c
     ${PD_PATH}/src/z_libpd.c
+    ${PD_PATH}/src/x_libpdreceive.c
     ${PD_PATH}/src/z_print_util.c
-
 )
 include_directories(${PD_PATH}/src)
 source_group(pd FILES ${PD_SOURCES})
@@ -136,23 +146,24 @@ list(APPEND SOURCE_FILES ${PD_SOURCES})
 
 # PURE DATA EXTRA SOURCES
 # ------------------------------------------------------------------------------#
-file(GLOB PD_EXTRA_SOURCES
-    ${PD_PATH}/extra/bob~/bob~.c
-    ${PD_PATH}/extra/bonk~/bonk~.c
-    ${PD_PATH}/extra/choice/choice.c
-    ${PD_PATH}/extra/fiddle~/fiddle~.c
-    ${PD_PATH}/extra/loop~/loop~.c
-    ${PD_PATH}/extra/lrshift~/lrshift~.c
-    ${PD_PATH}/extra/pd~/pd~.c
-    ${PD_PATH}/extra/pd~/pdsched.c
-    ${PD_PATH}/extra/pique/pique.c
-    ${PD_PATH}/extra/sigmund~/sigmund~.c
-    ${PD_PATH}/extra/stdout/stdout.c
-)
-include_directories(${PD_PATH}/pure-data/extra)
-source_group(pd\\extra FILES ${PD_EXTRA_SOURCES})
-list(APPEND SOURCE_FILES ${PD_EXTRA_SOURCES})
-
+if(PD_EXTRA)
+    file(GLOB PD_EXTRA_SOURCES
+        ${PD_PATH}/extra/bob~/bob~.c
+        ${PD_PATH}/extra/bonk~/bonk~.c
+        ${PD_PATH}/extra/choice/choice.c
+        ${PD_PATH}/extra/fiddle~/fiddle~.c
+        ${PD_PATH}/extra/loop~/loop~.c
+        ${PD_PATH}/extra/lrshift~/lrshift~.c
+        ${PD_PATH}/extra/pd~/pd~.c
+        ${PD_PATH}/extra/pd~/pdsched.c
+        ${PD_PATH}/extra/pique/pique.c
+        ${PD_PATH}/extra/sigmund~/sigmund~.c
+        ${PD_PATH}/extra/stdout/stdout.c
+    )
+    include_directories(${PD_PATH}/pure-data/extra)
+    source_group(pd\\extra FILES ${PD_EXTRA_SOURCES})
+    list(APPEND SOURCE_FILES ${PD_EXTRA_SOURCES})
+endif()
 
 # ELSE SOURCES
 # ------------------------------------------------------------------------------#
@@ -238,28 +249,37 @@ source_group(pdlua FILES ${PDLUA_SOURCES})
 # ------------------------------------------------------------------------------#
 # COMPILE DEFINITIONS
 # ------------------------------------------------------------------------------#
-set(PD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1 PLUGDATA=1)
+set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 
 
 if(ENABLE_SFIZZ)
-list(APPEND PD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
+list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
 endif()
 
+# COMPILE DEFINITIONS OPTIONS
+# ------------------------------------------------------------------------------#
+if(PD_EXTRA)
+    list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_EXTRA=1)
+endif()
+
+if(NOT PD_LOCALE)
+    list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_NO_NUMERIC=1)
+endif()
 
 # COMPILE DEFINITIONS OS
 # ------------------------------------------------------------------------------#
 if(WIN32)
-    list(APPEND PD_COMPILE_DEFINITIONS WINVER=0x502 WIN32=1 _WIN32=1)
+    list(APPEND LIBPD_COMPILE_DEFINITIONS WINVER=0x502 WIN32=1 _WIN32=1)
 
     if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
-        list(APPEND PD_COMPILE_DEFINITIONS "PD_LONGINTTYPE=long long")
+        list(APPEND LIBPD_COMPILE_DEFINITIONS "PD_LONGINTTYPE=long long")
     endif()
 
     if(MSVC)
-        list(APPEND PD_COMPILE_DEFINITIONS HAVE_STRUCT_TIMESPEC=1 _CRT_SECURE_NO_WARNINGS=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
+        list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_STRUCT_TIMESPEC=1 _CRT_SECURE_NO_WARNINGS=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
     endif()
 elseif(UNIX)
-    list(APPEND PD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
+    list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
 endif()
 
 # ------------------------------------------------------------------------------#
@@ -268,7 +288,7 @@ endif()
 
 if(ENABLE_SFONT)
 
-    list(APPEND PD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
+    list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
 
     set(SFONT_DIR pd-else/Code_source/Compiled/audio/sfont~)
     set(FLUIDLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
@@ -353,21 +373,26 @@ source_group(ofelia FILES ${OFELIA_SOURCES})
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-list(APPEND SOURCE_FILES ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
+
+# ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
+target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
+target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
 
 if(MSVC)
     add_library(pd SHARED ${SOURCE_FILES})
-    target_compile_definitions(pd PRIVATE ${PD_COMPILE_DEFINITIONS})
+    target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 else()
     add_library(pd STATIC ${SOURCE_FILES})
-    target_compile_definitions(pd PRIVATE ${PD_COMPILE_DEFINITIONS})
+    target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 
     # To make sure externals work, we need to make single-instance pd have its symbols be visible
     target_compile_options(pd PRIVATE -fvisibility=default)
 endif()
 
 add_library(pd-multi STATIC ${SOURCE_FILES})
-target_compile_definitions(pd-multi PRIVATE ${PD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
+target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
 
 if(MSVC)
     target_compile_definitions(pd-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
@@ -378,14 +403,23 @@ set_target_properties(pd-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_include_directories(pd PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
-target_include_directories(pd-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
+set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-set(EXTERNALS_DEPENDENCIES fluidlite lua)
+target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
+target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
+
 if(ENABLE_SFIZZ)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
-list(APPEND EXTERNALS_DEPENDENCIES sfizz)
+
+add_dependencies(externals sfizz)
+add_dependencies(externals-multi sfizz)
+target_link_libraries(externals sfizz)
+target_link_libraries(externals-multi sfizz)
 endif()
+
+target_link_libraries(externals fluidlite lua)
+target_link_libraries(externals-multi fluidlite lua)
 
 # ------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
@@ -403,9 +437,6 @@ if(CMAKE_GENERATOR STREQUAL Xcode)
     set_target_properties(pd-multi PROPERTIES GCC_FAST_MATH[variant=Release] True)
 endif()
 
-target_link_options(pd PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:MULTIPLE>)
-target_link_options(pd-multi PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:MULTIPLE>)
-
 # ------------------------------------------------------------------------------#
 # LINK
 # ------------------------------------------------------------------------------#
@@ -415,12 +446,12 @@ target_link_options(pd-multi PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:MULTIPLE>)
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     find_library(MATH_LIB m)
 
-    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} ${EXTERNALS_DEPENDENCIES})
-    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} ${EXTERNALS_DEPENDENCIES})
+    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals)
+    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi)
 
 elseif(MSVC)
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${EXTERNALS_DEPENDENCIES})
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${EXTERNALS_DEPENDENCIES})
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 externals)
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 externals-multi)
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
@@ -432,8 +463,8 @@ elseif(MSVC)
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
 elseif(APPLE)
-    target_link_libraries(pd PUBLIC ${EXTERNALS_DEPENDENCIES})
-    target_link_libraries(pd-multi PUBLIC ${EXTERNALS_DEPENDENCIES})
+    target_link_libraries(pd PUBLIC externals)
+    target_link_libraries(pd-multi PUBLIC externals-multi)
 endif()
 
 # LINK PTHREAD
