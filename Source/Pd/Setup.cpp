@@ -1134,20 +1134,9 @@ void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_open
         usage:
             // sys_printusage();
             sys_unlock();
-            return (1);
+            return;
         }
     }
-    /*
-    if (sys_batch)
-        sys_dontstartgui = 1;
-    if (sys_dontstartgui)
-        sys_printtostderr = 1; */
-#ifdef _WIN32
-    if (sys_printtostderr) /* we need to tell Windows to output UTF-8 */
-        SetConsoleOutputCP(CP_UTF8);
-#endif
-    // if (!sys_defaultfont)
-    //     sys_defaultfont = DEFAULTFONT;
 
     sys_set_audio_settings(&as);
     sys_unlock();
@@ -1158,7 +1147,7 @@ void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_open
         if (!sys_load_lib(NULL, nl->nl_string))
             post("%s: can't load library", nl->nl_string);
 
-    return (0);
+    return;
 }
 
 void Setup::initialisePdLua(const char *datadir, char *vers, int vers_len)
