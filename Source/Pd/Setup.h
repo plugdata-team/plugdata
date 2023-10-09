@@ -10,46 +10,54 @@ extern "C"
 {
 #include <z_libpd.h>
 #include <s_stuff.h>
+}
 
-int libpd_multi_init();
-void libpd_init_else();
-void libpd_init_cyclone();
-void libpd_init_pdlua(const char *datadir, char *vers, int vers_len);
 
-typedef void (*t_libpd_multi_banghook)(void* ptr, char const* recv);
-typedef void (*t_libpd_multi_floathook)(void* ptr, char const* recv, float f);
-typedef void (*t_libpd_multi_symbolhook)(void* ptr, char const* recv, char const* s);
-typedef void (*t_libpd_multi_listhook)(void* ptr, char const* recv, int argc, t_atom* argv);
-typedef void (*t_libpd_multi_messagehook)(void* ptr, char const* recv, char const* msg, int argc, t_atom* argv);
+typedef void (*t_plugdata_banghook)(void* ptr, char const* recv);
+typedef void (*t_plugdata_floathook)(void* ptr, char const* recv, float f);
+typedef void (*t_plugdata_symbolhook)(void* ptr, char const* recv, char const* s);
+typedef void (*t_plugdata_listhook)(void* ptr, char const* recv, int argc, t_atom* argv);
+typedef void (*t_plugdata_messagehook)(void* ptr, char const* recv, char const* msg, int argc, t_atom* argv);
+typedef void (*t_plugdata_noteonhook)(void* ptr, int channel, int pitch, int velocity);
+typedef void (*t_plugdata_controlchangehook)(void* ptr, int channel, int controller, int value);
+typedef void (*t_plugdata_programchangehook)(void* ptr, int channel, int value);
+typedef void (*t_plugdata_pitchbendhook)(void* ptr, int channel, int value);
+typedef void (*t_plugdata_aftertouchhook)(void* ptr, int channel, int value);
+typedef void (*t_plugdata_polyaftertouchhook)(void* ptr, int channel, int pitch, int value);
+typedef void (*t_plugdata_midibytehook)(void* ptr, int port, int byte);
+typedef void (*t_plugdata_printhook)(void* ptr, void* obj, char const* recv);
 
-void* libpd_multi_receiver_new(void* ptr, char const* s,
-                               t_libpd_multi_banghook hook_bang,
-                               t_libpd_multi_floathook hook_float,
-                               t_libpd_multi_symbolhook hook_symbol,
-                               t_libpd_multi_listhook hook_list,
-                               t_libpd_multi_messagehook hook_message);
+namespace pd
+{
 
-typedef void (*t_libpd_multi_noteonhook)(void* ptr, int channel, int pitch, int velocity);
-typedef void (*t_libpd_multi_controlchangehook)(void* ptr, int channel, int controller, int value);
-typedef void (*t_libpd_multi_programchangehook)(void* ptr, int channel, int value);
-typedef void (*t_libpd_multi_pitchbendhook)(void* ptr, int channel, int value);
-typedef void (*t_libpd_multi_aftertouchhook)(void* ptr, int channel, int value);
-typedef void (*t_libpd_multi_polyaftertouchhook)(void* ptr, int channel, int pitch, int value);
-typedef void (*t_libpd_multi_midibytehook)(void* ptr, int port, int byte);
+struct Setup
+{
+    static int initialisePd();
+    
+    void parseArguments(char const** args, size_t argc, t_namelist** sys_openlist, t_namelist** sys_messagelist);
+    
+    static void initialisePdLua(const char *datadir, char *vers, int vers_len);
+    static void initialiseELSE();
+    static void initialiseCyclone();
+    
+    static void* createMIDIHook(void* ptr,
+        t_plugdata_noteonhook hook_noteon,
+        t_plugdata_controlchangehook hook_controlchange,
+        t_plugdata_programchangehook hook_programchange,
+        t_plugdata_pitchbendhook hook_pitchbend,
+        t_plugdata_aftertouchhook hook_aftertouch,
+        t_plugdata_polyaftertouchhook hook_polyaftertouch,
+                            t_plugdata_midibytehook hook_midibyte);
 
-void* libpd_multi_midi_new(void* ptr,
-                           t_libpd_multi_noteonhook hook_noteon,
-                           t_libpd_multi_controlchangehook hook_controlchange,
-                           t_libpd_multi_programchangehook hook_programchange,
-                           t_libpd_multi_pitchbendhook hook_pitchbend,
-                           t_libpd_multi_aftertouchhook hook_aftertouch,
-                           t_libpd_multi_polyaftertouchhook hook_polyaftertouch,
-                           t_libpd_multi_midibytehook hook_midibyte);
+    static void* createReceiver(void* ptr, char const* s,
+        t_plugdata_banghook hook_bang,
+        t_plugdata_floathook hook_float,
+        t_plugdata_symbolhook hook_symbol,
+        t_plugdata_listhook hook_list,
+        t_plugdata_messagehook hook_message);
 
-typedef void (*t_libpd_multi_printhook)(void* ptr, void* obj, char const* recv);
+    static void* createPrintHook(void* ptr, t_plugdata_printhook hook_print);
 
-void* libpd_multi_print_new(void* ptr, t_libpd_multi_printhook hook_print);
-
-int parse_startup_arguments(char const** args, size_t argc, t_namelist** sys_openlist, t_namelist** sys_messagelist);
+};
 
 }

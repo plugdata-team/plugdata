@@ -48,6 +48,7 @@ extern void set_class_prefix(t_symbol*);
 
 namespace pd {
 
+// TODO: clean up more, make the interface less C-like and more JUCE based
 struct Interface {
     
     static void* createCanvas(char const* name, char const* path)

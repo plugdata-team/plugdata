@@ -305,17 +305,17 @@ public:
 
     bool loadLibrary(String const& library);
 
-    void* m_instance = nullptr;
-    void* m_patch = nullptr;
-    void* m_atoms = nullptr;
-    void* m_message_receiver = nullptr;
-    void* m_parameter_receiver = nullptr;
-    void* m_parameter_change_receiver = nullptr;
-    void* m_midi_receiver = nullptr;
-    void* m_print_receiver = nullptr;
+    void* instance = nullptr;
+    void* patch = nullptr;
+    void* atoms = nullptr;
+    void* messageReceiver = nullptr;
+    void* parameterReceiver = nullptr;
+    void* parameterChangeReceiver = nullptr;
+    void* midiReceiver = nullptr;
+    void* printReceiver = nullptr;
 
     // JYG added this
-    void* m_databuffer_receiver = nullptr;
+    void* dataBufferReceiver = nullptr;
 
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
@@ -334,7 +334,7 @@ private:
 
     CriticalSection messageListenerLock;
 
-    moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
+    moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;

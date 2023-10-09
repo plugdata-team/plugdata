@@ -116,31 +116,31 @@ namespace pd {
 Instance::Instance(String const& symbol)
     : consoleHandler(this)
 {
-    libpd_multi_init();
+    pd::Setup::initialisePd();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
 }
 
 Instance::~Instance()
 {
-    pd_free(static_cast<t_pd*>(m_message_receiver));
-    pd_free(static_cast<t_pd*>(m_midi_receiver));
-    pd_free(static_cast<t_pd*>(m_print_receiver));
-    pd_free(static_cast<t_pd*>(m_parameter_receiver));
-    pd_free(static_cast<t_pd*>(m_parameter_change_receiver));
+    pd_free(static_cast<t_pd*>(messageReceiver));
+    pd_free(static_cast<t_pd*>(midiReceiver));
+    pd_free(static_cast<t_pd*>(printReceiver));
+    pd_free(static_cast<t_pd*>(parameterReceiver));
+    pd_free(static_cast<t_pd*>(parameterChangeReceiver));
 
     // JYG added this
-    pd_free(static_cast<t_pd*>(m_databuffer_receiver));
+    pd_free(static_cast<t_pd*>(dataBufferReceiver));
 
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-    libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
+    libpd_free_instance(static_cast<t_pdinstance*>(instance));
 }
 
 // ag: Stuff to be done after unpacking the library data on first launch.
 void Instance::initialisePd(String& pdlua_version)
 {
-    m_instance = libpd_new_instance();
+   instance = libpd_new_instance();
 
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
     set_instance_lock(
         static_cast<void const*>(&audioLock),
@@ -154,24 +154,24 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
         });
 
-    m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
-        reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
-        reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
+   midiReceiver = pd::Setup::createMIDIHook(this, reinterpret_cast<t_plugdata_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_plugdata_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_plugdata_programchangehook>(internal::instance_multi_programchange),
+        reinterpret_cast<t_plugdata_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_plugdata_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_plugdata_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
+        reinterpret_cast<t_plugdata_midibytehook>(internal::instance_multi_midibyte));
 
-    m_message_receiver = libpd_multi_receiver_new(this, "pd", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+   messageReceiver = pd::Setup::createReceiver(this, "pd", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-    m_parameter_receiver = libpd_multi_receiver_new(this, "param", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+   parameterReceiver = pd::Setup::createReceiver(this, "param", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     // JYG added This
-    m_databuffer_receiver = libpd_multi_receiver_new(this, "databuffer", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+   dataBufferReceiver = pd::Setup::createReceiver(this, "databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-    m_parameter_change_receiver = libpd_multi_receiver_new(this, "param_change", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+   parameterChangeReceiver = pd::Setup::createReceiver(this, "param_change", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-    m_atoms = malloc(sizeof(t_atom) * 512);
+   atoms = malloc(sizeof(t_atom) * 512);
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
@@ -261,7 +261,7 @@ void Instance::initialisePd(String& pdlua_version)
         }
     };
 
-    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, message_trigger);
+    register_gui_triggers(static_cast<t_pdinstance*>(instance), this, gui_trigger, message_trigger);
 
     // Make sure we set the maininstance when initialising objects
     // Whenever a new instance is created, the functions will be copied from this one
@@ -273,17 +273,17 @@ void Instance::initialisePd(String& pdlua_version)
 
         set_class_prefix(gensym("else"));
         class_set_extern_dir(gensym("9.else"));
-        libpd_init_else();
+        pd::Setup::initialiseELSE();
         set_class_prefix(gensym("cyclone"));
         class_set_extern_dir(gensym("10.cyclone"));
-        libpd_init_cyclone();
+        pd::Setup::initialiseCyclone();
 
         set_class_prefix(nullptr);
 
         // Class prefix doesn't seem to work for pdlua
         char vers[1000];
         *vers = 0;
-        libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
+        pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers, 1000);
         if (*vers)
             pdlua_version = vers;
 
@@ -292,13 +292,13 @@ void Instance::initialisePd(String& pdlua_version)
 
     // Hack to make sure ofelia doesn't get initialised during plugin validation, as this can cause problems
     MessageManager::callAsync([this]() {
-        ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(m_instance));
+        ofelia = std::make_unique<Ofelia>(static_cast<t_pdinstance*>(instance));
     });
 
     setThis();
 
     // ag: need to do this here to suppress noise from chatty externals
-    m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
+   printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
 }
 
@@ -309,7 +309,7 @@ int Instance::getBlockSize() const
 
 void Instance::prepareDSP(int const nins, int const nouts, double const samplerate, int const blockSize)
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_init_audio(nins, nouts, static_cast<int>(samplerate));
 }
 
@@ -323,103 +323,103 @@ void Instance::startDSP()
 void Instance::releaseDSP()
 {
     t_atom av;
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_set_float(&av, 0.f);
     libpd_message("pd", "dsp", 1, &av);
 }
 
 void Instance::performDSP(float const* inputs, float* outputs)
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_process_raw(inputs, outputs);
 }
 
 void Instance::sendNoteOn(int const channel, int const pitch, int const velocity) const
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_noteon(channel - 1, pitch, velocity);
 }
 
 void Instance::sendControlChange(int const channel, int const controller, int const value) const
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_controlchange(channel - 1, controller, value);
 }
 
 void Instance::sendProgramChange(int const channel, int const value) const
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_programchange(channel - 1, value);
 }
 
 void Instance::sendPitchBend(int const channel, int const value) const
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_pitchbend(channel - 1, value);
 }
 
 void Instance::sendAfterTouch(int const channel, int const value) const
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_aftertouch(channel - 1, value);
 }
 
 void Instance::sendPolyAfterTouch(int const channel, int const pitch, int const value) const
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_polyaftertouch(channel - 1, pitch, value);
 }
 
 void Instance::sendSysEx(int const port, int const byte) const
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_sysex(port, byte);
 }
 
 void Instance::sendSysRealTime(int const port, int const byte) const
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_sysrealtime(port, byte);
 }
 
 void Instance::sendMidiByte(int const port, int const byte) const
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_midibyte(port, byte);
 }
 
 void Instance::sendBang(char const* receiver) const
 {
-    if (!ProjectInfo::isStandalone && !m_instance)
+    if (!ProjectInfo::isStandalone && !instance)
         return;
 
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_bang(receiver);
 }
 
 void Instance::sendFloat(char const* receiver, float const value) const
 {
-    if (!ProjectInfo::isStandalone && !m_instance)
+    if (!ProjectInfo::isStandalone && !instance)
         return;
 
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
     libpd_float(receiver, value);
 }
 
 void Instance::sendSymbol(char const* receiver, char const* symbol) const
 {
-    if (!ProjectInfo::isStandalone && !m_instance)
+    if (!ProjectInfo::isStandalone && !instance)
         return;
 
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_symbol(receiver, symbol);
 }
 
 void Instance::sendList(char const* receiver, std::vector<Atom> const& list) const
 {
-    auto* argv = static_cast<t_atom*>(m_atoms);
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    auto* argv = static_cast<t_atom*>(atoms);
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     for (size_t i = 0; i < list.size(); ++i) {
         if (list[i].isFloat())
             libpd_set_float(argv + i, list[i].getFloat());
@@ -434,9 +434,9 @@ void Instance::sendTypedMessage(void* object, char const* msg, std::vector<Atom>
     if (!object)
         return;
 
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
-    auto* argv = static_cast<t_atom*>(m_atoms);
+    auto* argv = static_cast<t_atom*>(atoms);
 
     for (size_t i = 0; i < list.size(); ++i) {
         if (list[i].isFloat())
@@ -520,7 +520,7 @@ void Instance::processSend(dmessage mess)
 {
     if (auto obj = mess.object.get<t_pd>()) {
         if (mess.selector == "list") {
-            auto* argv = static_cast<t_atom*>(m_atoms);
+            auto* argv = static_cast<t_atom*>(atoms);
             for (size_t i = 0; i < mess.list.size(); ++i) {
                 if (mess.list[i].isFloat())
                     SETFLOAT(argv + i, mess.list[i].getFloat());
@@ -599,7 +599,7 @@ void Instance::clearWeakReferences(void* ptr)
 
 void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
 {
-    m_function_queue.enqueue(fn);
+   functionQueue.enqueue(fn);
 }
 
 void Instance::sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list)
@@ -633,10 +633,10 @@ void Instance::sendDirectMessage(void* object, float const msg)
 
 void Instance::sendMessagesFromQueue()
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
     std::function<void(void)> callback;
-    while (m_function_queue.try_dequeue(callback)) {
+    while (functionQueue.try_dequeue(callback)) {
         callback();
     }
 }
@@ -670,7 +670,7 @@ Patch::Ptr Instance::openPatch(File const& toOpen)
 
 void Instance::setThis() const
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
 }
 
 t_symbol* Instance::generateSymbol(char const* symbol) const

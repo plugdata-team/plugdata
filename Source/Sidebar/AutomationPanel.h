@@ -8,7 +8,7 @@
 #include "Object.h"
 #include "Utility/PluginParameter.h"
 #include "Utility/DraggableNumber.h"
-#include "Utility/ReorderButton.h"
+#include "Utility/Buttons.h"
 #include "Utility/PropertiesPanel.h"
 #include "Utility/ObjectDragAndDrop.h"
 

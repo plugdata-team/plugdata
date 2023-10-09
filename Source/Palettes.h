@@ -20,7 +20,7 @@
 #include "PaletteItem.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
-#include "Utility/ReorderButton.h"
+#include "Utility/Buttons.h"
 
 class AddItemButton : public Component {
 
