@@ -4,8 +4,14 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+
+
+extern "C"
+{
 #include <m_pd.h>
 #include <z_hooks.h>
+}
+
 #include <clocale>
 #include <string>
 #include <cstring>
