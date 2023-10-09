@@ -134,24 +134,22 @@ list(APPEND SOURCE_FILES ${PD_SOURCES})
 
 # PURE DATA EXTRA SOURCES
 # ------------------------------------------------------------------------------#
-if(PD_EXTRA)
-    file(GLOB PD_EXTRA_SOURCES
-        ${PD_PATH}/extra/bob~/bob~.c
-        ${PD_PATH}/extra/bonk~/bonk~.c
-        ${PD_PATH}/extra/choice/choice.c
-        ${PD_PATH}/extra/fiddle~/fiddle~.c
-        ${PD_PATH}/extra/loop~/loop~.c
-        ${PD_PATH}/extra/lrshift~/lrshift~.c
-        ${PD_PATH}/extra/pd~/pd~.c
-        ${PD_PATH}/extra/pd~/pdsched.c
-        ${PD_PATH}/extra/pique/pique.c
-        ${PD_PATH}/extra/sigmund~/sigmund~.c
-        ${PD_PATH}/extra/stdout/stdout.c
-    )
-    include_directories(${PD_PATH}/pure-data/extra)
-    source_group(pd\\extra FILES ${PD_EXTRA_SOURCES})
-    list(APPEND SOURCE_FILES ${PD_EXTRA_SOURCES})
-endif()
+file(GLOB PD_EXTRA_SOURCES
+    ${PD_PATH}/extra/bob~/bob~.c
+    ${PD_PATH}/extra/bonk~/bonk~.c
+    ${PD_PATH}/extra/choice/choice.c
+    ${PD_PATH}/extra/fiddle~/fiddle~.c
+    ${PD_PATH}/extra/loop~/loop~.c
+    ${PD_PATH}/extra/lrshift~/lrshift~.c
+    ${PD_PATH}/extra/pd~/pd~.c
+    ${PD_PATH}/extra/pd~/pdsched.c
+    ${PD_PATH}/extra/pique/pique.c
+    ${PD_PATH}/extra/sigmund~/sigmund~.c
+    ${PD_PATH}/extra/stdout/stdout.c
+)
+include_directories(${PD_PATH}/pure-data/extra)
+source_group(pd\\extra FILES ${PD_EXTRA_SOURCES})
+list(APPEND SOURCE_FILES ${PD_EXTRA_SOURCES})
 
 
 # ELSE SOURCES
