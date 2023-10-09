@@ -25,7 +25,13 @@ public:
     {
         if(auto* editor = dynamic_cast<PluginEditor*>(parentComponent))
         {
-            editor->getTopLevelComponent()->addAndMakeVisible(this);
+            if(ProjectInfo::isStandalone) {
+                auto* mainContentComponent = editor->getTopLevelComponent()->getChildComponent(0);
+                mainContentComponent->addAndMakeVisible(this);
+            }
+            else {
+                parentComponent->addAndMakeVisible(this);
+            }
         }
         else {
             parentComponent->addAndMakeVisible(this);

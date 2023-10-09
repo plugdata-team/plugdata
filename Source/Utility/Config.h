@@ -26,6 +26,7 @@ struct ProjectInfo {
     static AudioDeviceManager* getDeviceManager();
     
     static PlugDataWindow* createNewWindow(PluginEditor* editor);
+    static void closeWindow(PlugDataWindow* window);
     
     static StandalonePluginHolder* getStandalonePluginHolder();
 

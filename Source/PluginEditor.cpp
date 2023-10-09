@@ -283,15 +283,11 @@ PluginEditor::~PluginEditor()
 {
     pd->savePatchTabPositions();
 
-    setVisible(false); // We can check the visible flag to detect if the pluginEditor is closing
     setConstrainer(nullptr);
-
     theme.removeListener(this);
-
-    // Kind of hacky, but oh well
-    if(auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent()))
-    {
-        delete window;
+    
+    if(auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
+        ProjectInfo::closeWindow(window); // Make sure plugdatawindow gets cleaned up
     }
 }
 

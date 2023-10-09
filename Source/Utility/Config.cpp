@@ -51,6 +51,13 @@ PlugDataWindow* ProjectInfo::createNewWindow(PluginEditor* editor)
 #endif
 }
 
+void ProjectInfo::closeWindow(PlugDataWindow* window)
+{
+#if PLUGDATA_STANDALONE
+    delete window;
+#endif
+}
+
 bool ProjectInfo::canUseSemiTransparentWindows()
 {
 #if !JUCE_MAC || PLUGDATA_STANDALONE

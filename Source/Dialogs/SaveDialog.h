@@ -56,23 +56,23 @@ public:
 
         cancel.onClick = [parent] {
             MessageManager::callAsync(
-                [parent]() {
-                    cb(0);
+                [parent, callback = cb]() {
                     parent->closeDialog();
+                    callback(0);
                 });
         };
         save.onClick = [parent] {
             MessageManager::callAsync(
-                [parent]() {
-                    cb(2);
+                [parent, callback = cb]() {
                     parent->closeDialog();
+                    callback(2);
                 });
         };
         dontsave.onClick = [parent] {
             MessageManager::callAsync(
-                [parent]() {
-                    cb(1);
+                [parent, callback = cb]() {
                     parent->closeDialog();
+                    callback(1);
                 });
         };
 
