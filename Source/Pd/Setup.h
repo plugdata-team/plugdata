@@ -11,7 +11,7 @@ extern "C"
 #include <z_libpd.h>
 #include <s_stuff.h>
 
-void libpd_multi_init();
+int libpd_multi_init();
 void libpd_init_else();
 void libpd_init_cyclone();
 void libpd_init_pdlua(const char *datadir, char *vers, int vers_len);

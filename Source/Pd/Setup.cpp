@@ -8,6 +8,7 @@
 #include <z_hooks.h>
 #include <clocale>
 #include <string>
+#include <cstring>
 #include "Setup.h"
 
 static t_class* libpd_multi_receiver_class;
@@ -1337,7 +1338,7 @@ void libpd_init_cyclone()
     zerox_tilde_setup();
 }
 
-void libpd_multi_init()
+int libpd_multi_init()
 {
     static int initialized = 0;
     if (!initialized) {

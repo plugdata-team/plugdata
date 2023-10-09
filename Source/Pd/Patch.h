@@ -50,7 +50,7 @@ public:
     void moveObjectTo(void* object, int x, int y);
 
     void finishRemove();
-    void removeSelection();
+    void removeObjects(std::vector<void*> const& objects);
 
     void selectObject(void*);
     void deselectAll();
@@ -64,9 +64,9 @@ public:
 
     t_glist* getRoot();
 
-    void copy();
+    void copy(std::vector<void*> const& objects);
     void paste(Point<int> position);
-    void duplicate();
+    void duplicate(std::vector<void*> const& objects);
 
     void startUndoSequence(String const& name);
     void endUndoSequence(String const& name);
@@ -114,8 +114,6 @@ public:
     String getCanvasContent();
 
     static void reloadPatch(File const& changedPatch, t_glist* except);
-
-    static t_object* checkObject(void* obj);
 
     String getTitle() const;
     void setTitle(String const& title);

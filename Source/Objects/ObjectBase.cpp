@@ -203,7 +203,8 @@ String ObjectBase::getText()
     int size = 0;
 
     if (auto obj = ptr.get<t_gobj>()) {
-        if (!cnv->patch.checkObject(obj.get()))
+        
+        if (!pd::Interface::checkObject(obj.get()))
             return "";
 
         pd::Interface::getObjectText(obj.get(), &text, &size);
@@ -454,7 +455,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
     auto const name = hash(pd::Interface::getObjectClassName(ptr));
 
     // check if object is a patcher object, or something else
-    if (!pd_checkobject(static_cast<t_pd*>(ptr)) && name != hash("scalar")) {
+    if (!pd::Interface::checkObject(static_cast<t_pd*>(ptr)) && name != hash("scalar")) {
         return new NonPatchable(ptr, parent);
     } else {
         switch (name) {

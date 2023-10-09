@@ -115,10 +115,21 @@ struct Interface {
             pathList = pathList->nl_next;
         }
     }
+    
+    static t_object* checkObject(void* obj)
+    {
+        return pd_checkobject(static_cast<t_pd*>(obj));
+    }
 
     /* displace the selection by (dx, dy) pixels */
-    static void moveSelection(t_canvas* cnv, int dx, int dy)
+    static void moveObjects(t_canvas* cnv, int dx, int dy, std::vector<void*> const& objects)
     {
+        glist_noselect(cnv);
+        
+        for (auto* obj : objects) {
+            glist_select(cnv, &pd::Interface::checkObject(obj)->te_g);
+        }
+        
         EDITOR->canvas_undo_already_set_move = 0;
 
         t_selection* y;
@@ -144,6 +155,10 @@ struct Interface {
 
         if (cnv->gl_editor->e_selection)
             canvas_dirty(cnv, 1);
+        
+        glist_noselect(cnv);
+        
+        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
     }
 
     static t_pd* getNewest(t_canvas* cnv)
@@ -166,17 +181,23 @@ struct Interface {
     {
         canvas_undo_add(cnv, UNDO_SEQUENCE_END, "clear", 0);
     }
-    static void removeSelection(t_canvas* cnv)
+    
+    static void removeObjects(t_canvas* cnv, std::vector<void*> const& objects)
     {
-        sys_lock();
         canvas_undo_add(cnv, UNDO_SEQUENCE_START, "clear", 0);
 
         canvas_undo_add(cnv, UNDO_CUT, "clear",
             canvas_undo_set_cut(cnv, 2));
+        
+        glist_noselect(cnv);
+        
+        for (auto* obj : objects) {
+            glist_select(cnv, &pd::Interface::checkObject(obj)->te_g);
+        }
 
         doRemoveSelection(cnv);
         
-        sys_unlock();
+        glist_noselect(cnv);
     }
 
     static void* setConnectionPath(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* old_connection_path, t_symbol* new_connection_path)
@@ -199,8 +220,14 @@ struct Interface {
         return oc;
     }
     
-    static char const* copy(t_canvas* cnv, int* size)
+    static char const* copy(t_canvas* cnv, int* size, std::vector<void*> const& objects)
     {
+        glist_noselect(cnv);
+        
+        for (auto* obj : objects) {
+            glist_select(cnv, &pd::Interface::checkObject(obj)->te_g);
+        }
+
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("copy"), 0, NULL);
         canvas_unsetcurrent(cnv);
@@ -209,6 +236,9 @@ struct Interface {
         int len;
         binbuf_gettext(pd_this->pd_gui->i_editor->copy_binbuf, &text, &len);
         *size = len;
+        
+        glist_noselect(cnv);
+        
         return text;
     }
 
@@ -217,21 +247,17 @@ struct Interface {
         size_t len = strlen(buf);
         binbuf_text(pd_this->pd_gui->i_editor->copy_binbuf, buf, len);
         
-        sys_lock();
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("paste"), 0, NULL);
         canvas_unsetcurrent(cnv);
-        sys_unlock();
     }
 
     static void undo(t_canvas* cnv)
     {
-        sys_lock();
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("undo"), 0, NULL);
         glist_noselect(cnv);
         canvas_unsetcurrent(cnv);
-        sys_unlock();
     }
 
     static void redo(t_canvas* cnv)
@@ -241,12 +267,10 @@ struct Interface {
         if (!cnv->gl_editor)
             return;
         
-        sys_lock();
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("redo"), 0, NULL);
         glist_noselect(cnv);
         canvas_unsetcurrent(cnv);
-        sys_unlock();
     }
 
     static void toFront(t_canvas* cnv, t_gobj* obj)
@@ -269,13 +293,19 @@ struct Interface {
         arrangeObject(cnv, obj, 0);
     }
 
-    static void duplicateSelection(t_canvas* cnv)
+    static void duplicateSelection(t_canvas* cnv, std::vector<void*> const& objects)
     {
-        sys_lock();
+        glist_noselect(cnv);
+        
+        for (auto* obj : objects) {
+            glist_select(cnv, &pd::Interface::checkObject(obj)->te_g);
+        }
+        
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, NULL);
         canvas_unsetcurrent(cnv);
-        sys_unlock();
+        
+        glist_noselect(cnv);
     }
 
     /* save a "root" canvas to a file; cf. canvas_saveto() which saves the
@@ -304,86 +334,8 @@ struct Interface {
         binbuf_free(b);
     }
 
-    static t_pd* createGraphonparent(t_canvas* cnv, int x, int y)
-    {
-        int argc = 9;
-
-        t_atom argv[9];
-
-        t_float x1 = 0.0f;
-        t_float y1 = 0.0f;
-        t_float x2 = 0;
-        t_float y2 = 0;
-        t_float px1 = x;
-        t_float py1 = y;
-        t_float px2 = x + 200.0f;
-        t_float py2 = y + 140.0f;
-
-        t_symbol* sym = gensym("graph");
-
-        SETSYMBOL(argv, sym);
-        SETFLOAT(argv + 1, x1);
-        SETFLOAT(argv + 2, y1);
-        SETFLOAT(argv + 3, x2);
-        SETFLOAT(argv + 4, y2);
-
-        SETFLOAT(argv + 5, px1);
-        SETFLOAT(argv + 6, py1);
-
-        SETFLOAT(argv + 7, px2);
-        SETFLOAT(argv + 8, py2);
-
-        sys_lock();
-        canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("graph"), argc, argv);
-        pd_popsym(gensym("#X")->s_thing);
-        canvas_unsetcurrent(cnv);
-        sys_unlock();
-
-        glist_noselect(cnv);
-
-        t_pd* result = getNewest(cnv);
-        ((t_glist*)result)->gl_hidetext = 1;
-        ((t_glist*)result)->gl_loading = 0;
-
-        canvas_dirty(cnv, 1);
-        
-        return result;
-    }
-
-    static t_pd* createGraph(t_canvas* cnv, char const* name, int size, int x, int y, int drawMode, int saveContent, float minimum, float maximum)
-    {
-        int flags = saveContent + 2 * drawMode;
-
-        t_atom argv[4];
-        SETSYMBOL(argv, gensym(name));
-        SETFLOAT(argv + 1, size);
-        SETFLOAT(argv + 2, flags);
-        SETFLOAT(argv + 3, 0);
-        
-        sys_lock();
-        canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("arraydialog"), 4, argv);
-        canvas_unsetcurrent(cnv);
-        sys_unlock();
-
-        glist_noselect(cnv);
-
-        t_pd* arr = getNewest(cnv);
-
-        moveObject(cnv, reinterpret_cast<t_gobj*>(pd_checkobject(arr)), x, y);
-        
-        t_garray* garray = (t_garray*)(((t_canvas*)arr)->gl_list);
-        
-        canvas_dirty(cnv, 1);
-        
-        
-        return arr;
-    }
-
     static t_pd* createObject(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv)
     {
-        sys_lock();
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, s, argc, argv);
         
@@ -398,7 +350,6 @@ struct Interface {
             else if (zgetfn(new_object, gensym("loadbang")))
                 vmess(new_object, gensym("loadbang"), "f", LB_LOAD);
         }
-        sys_unlock();
         
         canvas_unsetcurrent(cnv);
         
@@ -411,13 +362,11 @@ struct Interface {
     static void removeObject(t_canvas* cnv, t_gobj* obj)
     {
         
-        sys_lock();
         glist_noselect(cnv);
         glist_select(cnv, obj);
         doRemoveSelection(cnv);
 
         glist_noselect(cnv);
-        sys_unlock();
     }
 
     static void renameObject(t_canvas* cnv, t_gobj* obj, char const* buf, size_t bufsize)
@@ -438,7 +387,6 @@ struct Interface {
             struct _rtext* x_next;
         };
         
-        sys_lock();
         canvas_editmode(cnv, 1);
 
         glist_noselect(cnv);
@@ -462,12 +410,10 @@ struct Interface {
         canvas_editmode(cnv, 0);
         
         canvas_dirty(cnv, 1);
-        sys_unlock();
     }
 
     static int canUndo(t_canvas* cnv)
     {
-
         t_undo* udo = canvas_undo_get(cnv);
 
         if (udo && udo->u_last) {
@@ -479,7 +425,6 @@ struct Interface {
 
     static int canRedo(t_canvas* cnv)
     {
-
         t_undo* udo = canvas_undo_get(cnv);
 
         if (udo && udo->u_last && udo->u_last->next) {
@@ -534,7 +479,6 @@ struct Interface {
 
     static void removeConnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* connection_path)
     {
-
         if (!pd::Interface::hasConnection(cnv, src, nout, sink, nin)) {
             bug("non-existent connection");
             return;
@@ -813,7 +757,6 @@ private:
     
     static void doRemoveSelection(t_canvas* cnv)
     {
-
         t_gobj *y, *y2;
         int dspstate;
 

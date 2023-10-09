@@ -941,14 +941,15 @@ void Canvas::hideAllActiveEditors()
 void Canvas::copySelection()
 {
     // Tell pd to select all objects that are currently selected
+    std::vector<void*> objects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
-            patch.selectObject(ptr);
+            objects.push_back(ptr);
         }
     }
 
     // Tell pd to copy
-    patch.copy();
+    patch.copy(objects);
     patch.deselectAll();
 }
 
@@ -1057,36 +1058,27 @@ void Canvas::duplicateSelection()
 
     patch.startUndoSequence("Duplicate");
 
-    // clear all previous selections from pd
-    patch.deselectAll();
-
+    std::vector<void*> objectsToDuplicate;
     for (auto* object : selection) {
-
-        auto* ptr = object->getPointer();
-        // Check if object exists in pd and is not attached to mouse
-        if (!ptr || object->attachedToMouse)
-            return;
-
-        // Tell pd to select all objects that are currently selected
-        patch.selectObject(ptr);
-
-        if (!dragState.wasDragDuplicated && editor->autoconnect.getValue()) {
-            // Store connections for auto patching
-            for (auto* connection : connections) {
-                if (connection->inlet == object->iolets[0]) {
-                    conInlets.add(connection);
-                }
-                if (connection->outlet == object->iolets[object->numInputs]) {
-                    conOutlets.add(connection);
+        if (auto* ptr = object->getPointer()) {
+            objectsToDuplicate.push_back(ptr);
+            
+            if (!dragState.wasDragDuplicated && editor->autoconnect.getValue()) {
+                // Store connections for auto patching
+                for (auto* connection : connections) {
+                    if (connection->inlet == object->iolets[0]) {
+                        conInlets.add(connection);
+                    }
+                    if (connection->outlet == object->iolets[object->numInputs]) {
+                        conOutlets.add(connection);
+                    }
                 }
             }
         }
     }
 
     // Tell pd to duplicate
-    patch.duplicate();
-
-    deselectAll();
+    patch.duplicate(objectsToDuplicate);
 
     // Load state from pd immediately
     performSynchronise();
@@ -1163,27 +1155,27 @@ void Canvas::removeSelection()
     // Make sure object isn't selected and stop updating gui
     editor->sidebar->hideParameters();
 
-    // Make sure nothing is selected
-    patch.deselectAll();
-
     // Find selected objects and make them selected in pd
-    Array<void*> objects;
+    std::vector<void*> objects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
-            patch.selectObject(ptr);
-            objects.add(ptr);
+            objects.push_back(ptr);
         }
     }
+    
+    auto wasDeleted = [&objects](void* ptr){
+        return std::find(objects.begin(), objects.end(), ptr) != objects.end();
+    };
 
     // remove selection
-    patch.removeSelection();
+    patch.removeObjects(objects);
 
     // Remove connection afterwards and make sure they aren't already deleted
     for (auto* con : connections) {
         if (con->isSelected()) {
             auto* outPtr = con->outobj->getPointer();
             auto* inPtr = con->inobj->getPointer();
-            if (outPtr && inPtr && (!(objects.contains(outPtr) || objects.contains(inPtr)))) {
+            if (outPtr && inPtr && (!(wasDeleted(outPtr) || wasDeleted(inPtr)))) {
                 patch.removeConnection(outPtr, con->outIdx, inPtr, con->inIdx, con->getPathState());
             }
         }
@@ -1301,10 +1293,11 @@ void Canvas::encapsulateSelection()
     patch.deselectAll();
 
     auto bounds = Rectangle<int>();
+    std::vector<void*> objects;
     for (auto* object : selectedBoxes) {
         if (auto* ptr = object->getPointer()) {
             bounds = bounds.getUnion(object->getBounds());
-            patch.selectObject(ptr);
+            objects.push_back(ptr);
         }
     }
     auto centre = bounds.getCentre() - canvasOrigin;
@@ -1319,13 +1312,13 @@ void Canvas::encapsulateSelection()
         return;
 
     int size;
-    char const* text = pd::Interface::copy(patchPtr, &size);
+    char const* text = pd::Interface::copy(patchPtr, &size, objects);
     auto copied = String::fromUTF8(text, size);
 
     // Wrap it in an undo sequence, to allow undoing everything in 1 step
     patch.startUndoSequence("encapsulate");
 
-    pd::Interface::removeSelection(patchPtr);
+    pd::Interface::removeObjects(patchPtr, objects);
 
     auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
 
@@ -1451,7 +1444,7 @@ void Canvas::alignObjects(Align alignment)
     canvas_dirty(patch.getPointer().get(), 1);
     for (auto object : objects) {
         if (auto* ptr = object->getPointer())
-            pd::Interface::undoApply(patchPtr, &patch.checkObject(ptr)->te_g);
+            pd::Interface::undoApply(patchPtr, &pd::Interface::checkObject(ptr)->te_g);
     }
 
     // get the bounding box of all selected objects

@@ -345,18 +345,18 @@ void* Patch::renameObject(void* obj, String const& name)
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::renameObject(patch.get(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
+        pd::Interface::renameObject(patch.get(), &pd::Interface::checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
         return pd::Interface::getNewest(patch.get());
     }
 
     return nullptr;
 }
 
-void Patch::copy()
+void Patch::copy(std::vector<void*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
         int size;
-        char const* text = pd::Interface::copy(patch.get(), &size);
+        char const* text = pd::Interface::copy(patch.get(), &size, objects);
         auto copied = String::fromUTF8(text, size);
         MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
     }
@@ -466,11 +466,11 @@ void Patch::paste(Point<int> position)
     }
 }
 
-void Patch::duplicate()
+void Patch::duplicate(std::vector<void*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::duplicateSelection(patch.get());
+        pd::Interface::duplicateSelection(patch.get(), objects);
     }
 }
 
@@ -478,7 +478,7 @@ void Patch::selectObject(void* obj)
 {
 
     if (auto patch = ptr.get<t_glist>()) {
-        auto* checked = &checkObject(obj)->te_g;
+        auto* checked = &pd::Interface::checkObject(obj)->te_g;
         if (!glist_isselected(patch.get(), checked)) {
             glist_select(patch.get(), checked);
         }
@@ -499,14 +499,14 @@ void Patch::removeObject(void* obj)
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::removeObject(patch.get(), &checkObject(obj)->te_g);
+        pd::Interface::removeObject(patch.get(), &pd::Interface::checkObject(obj)->te_g);
     }
 }
 
 bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        return pd::Interface::hasConnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
+        return pd::Interface::hasConnection(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin);
     }
 
     return false;
@@ -516,7 +516,7 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
         
-        return pd::Interface::canConnect(patch.get(), checkObject(src), nout, checkObject(sink), nin);
+        return pd::Interface::canConnect(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin);
     }
 
     return false;
@@ -526,7 +526,7 @@ void Patch::createConnection(void* src, int nout, void* sink, int nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::createConnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
+        pd::Interface::createConnection(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin);
     }
 }
 
@@ -536,7 +536,7 @@ void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        return pd::Interface::createConnection(patch.get(), checkObject(src), nout, checkObject(sink), nin);
+        return pd::Interface::createConnection(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin);
     }
 
     return nullptr;
@@ -546,7 +546,7 @@ void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol*
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::removeConnection(patch.get(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
+        pd::Interface::removeConnection(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin, connectionPath);
     }
 }
 
@@ -554,7 +554,7 @@ void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        return pd::Interface::setConnectionPath(patch.get(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
+        return pd::Interface::setConnectionPath(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin, oldConnectionPath, newConnectionPath);
     }
 
     return nullptr;
@@ -564,26 +564,14 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-
-        glist_noselect(patch.get());
-
-        for (auto* obj : objects) {
-            glist_select(patch.get(), &checkObject(obj)->te_g);
-        }
-
-        pd::Interface::moveSelection(patch.get(), dx, dy);
-
-        glist_noselect(patch.get());
-
-        libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-        setCurrent();
+        pd::Interface::moveObjects(patch.get(), dx, dy, objects);
     }
 }
 
 void Patch::moveObjectTo(void* object, int x, int y)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        pd::Interface::moveObject(patch.get(), &checkObject(object)->te_g, x + 1544, y + 1544); // FIXME: why do we have to offset by 1544?
+        pd::Interface::moveObject(patch.get(), &pd::Interface::checkObject(object)->te_g, x + 1544, y + 1544); // FIXME: why do we have to offset by 1544?
     }
 }
 
@@ -595,11 +583,11 @@ void Patch::finishRemove()
     }
 }
 
-void Patch::removeSelection()
+void Patch::removeObjects(std::vector<void*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::removeSelection(patch.get());
+        pd::Interface::removeObjects(patch.get(), objects);
     }
 }
 
@@ -638,10 +626,6 @@ void Patch::redo()
     }
 }
 
-t_object* Patch::checkObject(void* obj)
-{
-    return pd_checkobject(static_cast<t_pd*>(obj));
-}
 
 String Patch::getTitle() const
 {

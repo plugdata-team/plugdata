@@ -777,7 +777,7 @@ void Object::updateIolets()
         return;
     }
 
-    if (auto* ptr = pd::Patch::checkObject(getPointer())) {
+    if (auto* ptr = pd::Interface::checkObject(getPointer())) {
         numInputs = pd::Interface::numInlets(ptr);
         numOutputs = pd::Interface::numOutlets(ptr);
     }
@@ -808,9 +808,9 @@ void Object::updateIolets()
 
         bool isSignal;
         if (i < numInputs) {
-            isSignal = pd::Interface::isSignalInlet(pd::Patch::checkObject(getPointer()), i);
+            isSignal = pd::Interface::isSignalInlet(pd::Interface::checkObject(getPointer()), i);
         } else {
-            isSignal = pd::Interface::isSignalOutlet(pd::Patch::checkObject(getPointer()), i - numInputs);
+            isSignal = pd::Interface::isSignalOutlet(pd::Interface::checkObject(getPointer()), i - numInputs);
         }
 
         iolet->ioletIdx = input ? numIn : numOut;

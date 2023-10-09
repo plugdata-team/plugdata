@@ -38,7 +38,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::resizeableCornerColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), Corners::objectCornerRadius, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 2.0f);
     }
 
     bool hitTest(int x, int y) override
@@ -80,16 +80,16 @@ public:
     void applyBounds()
     {
         if (auto cnv = canvas->patch.getPointer()) {
-            cnv->gl_pixwidth = getWidth();
-            cnv->gl_pixheight = getHeight();
+            cnv->gl_pixwidth = getWidth() - 2;
+            cnv->gl_pixheight = getHeight() - 2;
 
-            cnv->gl_xmargin = getX() - canvas->canvasOrigin.x;
-            cnv->gl_ymargin = getY() - canvas->canvasOrigin.y;
+            cnv->gl_xmargin = getX() - canvas->canvasOrigin.x - 1;
+            cnv->gl_ymargin = getY() - canvas->canvasOrigin.y - 1;
         }
     }
 
     void updateBounds()
     {
-        setBounds(canvas->patch.getBounds().translated(canvas->canvasOrigin.x, canvas->canvasOrigin.y));
+        setBounds(canvas->patch.getBounds().expanded(1).translated(canvas->canvasOrigin.x, canvas->canvasOrigin.y));
     }
 };
