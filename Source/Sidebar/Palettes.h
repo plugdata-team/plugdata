@@ -370,7 +370,6 @@ public:
     {
         setRadioGroupId(hash("palette"));
         setButtonText(textToShow);
-        setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         // setClickingTogglesState(true);
     }
 
@@ -383,11 +382,6 @@ public:
         }
 
         TextButton::mouseDown(e);
-    }
-
-    void lookAndFeelChanged() override
-    {
-        setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
     }
 
     void setTextToShow(String const& text)

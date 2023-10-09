@@ -80,10 +80,6 @@ public:
         dontsave.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         save.setColour(TextButton::buttonColourId, Colours::transparentBlack);
 
-        cancel.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        dontsave.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        save.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-
         setOpaque(false);
 
         MessageManager::callAsync([_this = SafePointer(this)]() {

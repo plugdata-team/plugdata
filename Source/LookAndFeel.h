@@ -1301,7 +1301,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setColour(PopupMenu::highlightedBackgroundColourId,
             colours.at(PlugDataColour::panelActiveBackgroundColourId));
         setColour(TextButton::textColourOnId,
-            colours.at(PlugDataColour::toolbarHoverColourId));
+            colours.at(PlugDataColour::toolbarTextColourId));
         setColour(Slider::thumbColourId,
             colours.at(PlugDataColour::sliderThumbColourId));
         setColour(ScrollBar::thumbColourId,

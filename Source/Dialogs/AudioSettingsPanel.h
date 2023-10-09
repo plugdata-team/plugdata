@@ -91,7 +91,6 @@ struct CallbackComboPropertyWithTestButton : public CallbackComboProperty {
         : CallbackComboProperty(propertyName, options, currentOption, onChange)
     {
         testButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        testButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         testButton.onClick = [&deviceManager]() mutable {
             deviceManager.playTestSound();
         };

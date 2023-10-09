@@ -34,10 +34,6 @@ public:
         reportIssue.setButtonText("Report issue");
         sponsor.setButtonText("Become a sponsor");
         
-        viewOnGithub.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        reportIssue.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        sponsor.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-
         addAndMakeVisible(viewOnGithub);
         addAndMakeVisible(reportIssue);
         addAndMakeVisible(sponsor);

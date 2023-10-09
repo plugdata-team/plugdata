@@ -58,8 +58,6 @@ public:
             showState(Busy);
             userInteractionWait.signal();
         };
-        
-        continueButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
         console.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         console.setColour(TextEditor::outlineColourId, Colours::transparentBlack);

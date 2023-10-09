@@ -846,10 +846,6 @@ private:
             uninstallButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
             addToPathButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
 
-            installButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
-            uninstallButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
-            addToPathButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
-
             installButton.setTooltip("Install package");
             uninstallButton.setTooltip("Uninstall package");
             addToPathButton.setTooltip("Add to search path");

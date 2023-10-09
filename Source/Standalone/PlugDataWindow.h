@@ -126,7 +126,10 @@ public:
 
     ~StandalonePluginHolder() override
     {
-        deletePlugin();
+        savePluginState();
+        processor->suspendProcessing(true);
+        stopPlaying();
+        processor = nullptr;
         shutDownAudioDevices();
     }
 
@@ -135,12 +138,6 @@ public:
         processor = createPluginFilterOfType(AudioProcessor::wrapperType_Standalone);
         processor->disableNonMainBuses();
         processor->setRateAndBufferSizeDetails(44100, 512);
-    }
-
-    virtual void deletePlugin()
-    {
-        stopPlaying();
-        processor = nullptr;
     }
 
     int getNumInputChannels() const
@@ -486,7 +483,6 @@ public:
     {
         pluginHolder->stopPlaying();
         clearContentComponent();
-        pluginHolder->deletePlugin();
 
         if (auto* props = pluginHolder->settings.get())
             props->removeValue("filterState");
@@ -507,11 +503,6 @@ public:
 
     void closeButtonPressed() override
     {
-        // Save plugin state to allow reloading
-        pluginHolder->savePluginState();
-
-        pluginHolder->processor->suspendProcessing(true);
-
         // Close all patches, allowing them to save first
         closeAllPatches();
     }

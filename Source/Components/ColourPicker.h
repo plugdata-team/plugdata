@@ -283,8 +283,6 @@ public:
 
         showRgb.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
         showHex.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
-        showRgb.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        showHex.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
         hexEditor.setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
     }

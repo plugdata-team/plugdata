@@ -222,9 +222,6 @@ public:
         addChildComponent(openReference);
         addChildComponent(objectDragArea);
         
-        openReference.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        openHelp.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-
         openReference.onClick = [this]() {
             reference.showObject(objectName);
         };
