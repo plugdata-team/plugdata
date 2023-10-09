@@ -7,7 +7,7 @@
 
 #include <utility>
 
-#include "Utility/PropertiesPanel.h"
+#include "Components/PropertiesPanel.h"
 
 #include "AboutPanel.h"
 

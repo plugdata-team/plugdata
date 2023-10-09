@@ -22,7 +22,7 @@ int clone_get_n(t_gobj*);
 #include "PluginEditor.h"
 #include "Canvas.h"
 #include "Object.h"
-#include "Palettes.h"
+#include "Sidebar/Palettes.h"
 #include "ObjectBase.h"
 
 #include "ImplementationBase.h"

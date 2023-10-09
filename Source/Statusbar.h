@@ -11,7 +11,7 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/AudioSampleRingBuffer.h"
-#include "Utility/Buttons.h"
+#include "Components/Buttons.h"
 
 class Canvas;
 class LevelMeter;

@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "ZoomableDragAndDropContainer.h"
-#include "OfflineObjectRenderer.h"
+#include "Utility/OfflineObjectRenderer.h"
 
 class ObjectDragAndDrop : public Component
 {

@@ -7,10 +7,10 @@
 #include "Canvas.h"
 #include "Object.h"
 #include "Utility/PluginParameter.h"
-#include "Utility/DraggableNumber.h"
-#include "Utility/Buttons.h"
-#include "Utility/PropertiesPanel.h"
-#include "Utility/ObjectDragAndDrop.h"
+#include "Components/DraggableNumber.h"
+#include "Components/Buttons.h"
+#include "Components/PropertiesPanel.h"
+#include "Components/ObjectDragAndDrop.h"
 
 class AutomationSlider : public ObjectDragAndDrop
     , public Value::Listener {

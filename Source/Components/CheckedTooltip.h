@@ -8,8 +8,8 @@
 
 #include <utility>
 
-#include "StackShadow.h"
-#include "../Constants.h"
+#include "Utility/StackShadow.h"
+#include "Constants.h"
 
 class CheckedTooltip : public TooltipWindow {
 

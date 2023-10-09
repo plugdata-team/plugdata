@@ -16,7 +16,7 @@
 #include "Pd/Patch.h"
 
 #include "LookAndFeel.h"
-#include "Palettes.h"
+#include "Sidebar/Palettes.h"
 
 #include "Canvas.h"
 #include "Connection.h"
@@ -82,7 +82,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         return true;
     })
 {
-
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);

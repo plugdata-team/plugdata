@@ -12,7 +12,7 @@
 #include "Utility/SettingsFile.h"
 #include "Constants.h"
 #include "Utility/Fonts.h"
-#include "TabBarButtonComponent.h"
+#include "Tabbar/TabBarButtonComponent.h"
 
 inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDataColourNames = {
 

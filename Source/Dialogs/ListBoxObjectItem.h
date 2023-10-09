@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Utility/ObjectDragAndDrop.h"
+#include "Components/ObjectDragAndDrop.h"
 
 class ObjectsListBox;
 class ListBoxObjectItem : public ObjectDragAndDrop
@@ -10,7 +10,7 @@ public:
 
     void paint(juce::Graphics& g) override;
 
-    bool hitTest(int x, int y);
+    bool hitTest(int x, int y) override;
 
     void mouseDown(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;

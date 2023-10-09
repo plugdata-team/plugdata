@@ -7,7 +7,7 @@
 #include <JuceHeader.h>
 #include <utility>
 
-#include "Utility/BouncingViewport.h"
+#include "Components/BouncingViewport.h"
 #include "ObjectReferenceDialog.h"
 #include "Canvas.h"
 #include "ListBoxObjectItem.h"

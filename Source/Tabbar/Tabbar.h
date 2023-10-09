@@ -11,11 +11,11 @@
 #include "LookAndFeel.h"
 
 #include "Utility/GlobalMouseListener.h"
-#include "Utility/BouncingViewport.h"
-#include "Utility/Buttons.h"
+#include "Components/BouncingViewport.h"
+#include "Components/Buttons.h"
 #include "Canvas.h"
 #include "PluginEditor.h"
-#include "Utility/ZoomableDragAndDropContainer.h"
+#include "Components/ZoomableDragAndDropContainer.h"
 
 class WelcomePanel : public Component {
 

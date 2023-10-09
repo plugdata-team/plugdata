@@ -21,12 +21,12 @@
 #include "Utility/AudioSampleRingBuffer.h"
 #include "Utility/MidiDeviceManager.h"
 
-#include "Presets.h"
+#include "Utility/Presets.h"
 #include "Canvas.h"
 #include "PluginMode.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
-#include "Tabbar.h"
+#include "Tabbar/Tabbar.h"
 #include "Object.h"
 #include "Statusbar.h"
 

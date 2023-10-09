@@ -6,7 +6,7 @@
 
 #pragma once
 #include <utility>
-#include "Utility/BouncingViewport.h"
+#include "Components/BouncingViewport.h"
 #include "Object.h"
 
 class ConsoleSettings : public Component {

@@ -5,7 +5,7 @@
  */
 
 #include "Object.h"
-#include "../Objects/ObjectBase.h"
+#include "Objects/ObjectBase.h"
 
 #include <m_pd.h>
 #include <m_imp.h>

@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Utility/ColourPicker.h"
+#include "Components/ColourPicker.h"
 
 class ColourPickerObject final : public TextBase {
 public:

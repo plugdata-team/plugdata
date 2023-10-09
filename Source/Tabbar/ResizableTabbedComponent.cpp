@@ -8,12 +8,12 @@
 #include "PluginEditor.h"
 #include "SplitViewResizer.h"
 #include "PluginProcessor.h"
-#include "Palettes.h"
+#include "Sidebar/Palettes.h"
 #include "Sidebar/DocumentBrowser.h"
 #include "Tabbar.h"
 #include "TabBarButtonComponent.h"
 
-#include "Utility/ObjectDragAndDrop.h"
+#include "Components/ObjectDragAndDrop.h"
 
 #define ENABLE_SPLITS_DROPZONE_DEBUGGING 0
 

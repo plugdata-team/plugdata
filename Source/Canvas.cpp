@@ -15,14 +15,14 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
-#include "SuggestionComponent.h"
+#include "Components/SuggestionComponent.h"
 #include "CanvasViewport.h"
-#include "SplitView.h"
+#include "Tabbar/SplitView.h"
 
 #include "Objects/ObjectBase.h"
 
 #include "Dialogs/Dialogs.h"
-#include "Utility/GraphArea.h"
+#include "Components/GraphArea.h"
 #include "Utility/RateReducer.h"
 
 extern "C" {

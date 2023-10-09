@@ -4,8 +4,8 @@
 
 #include "LookAndFeel.h"
 #include "Pd/Instance.h"
-#include "Utility/ObjectDragAndDrop.h"
-#include "Utility/Buttons.h"
+#include "Components/ObjectDragAndDrop.h"
+#include "Components/Buttons.h"
 
 
 

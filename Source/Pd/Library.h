@@ -7,8 +7,8 @@
 #pragma once
 
 #include <m_pd.h>
-#include "../Utility/FileSystemWatcher.h"
-#include "../Utility/Config.h"
+#include "Utility/FileSystemWatcher.h"
+#include "Utility/Config.h"
 
 namespace pd {
 

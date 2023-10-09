@@ -12,7 +12,7 @@
 
 #include "DraggableNumber.h"
 #include "ColourPicker.h"
-#include "Utility/BouncingViewport.h"
+#include "BouncingViewport.h"
 
 class PropertiesPanel : public Component {
 public:

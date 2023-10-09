@@ -12,7 +12,7 @@
 #include "Object.h"
 
 #include "Canvas.h"
-#include "SuggestionComponent.h"
+#include "Components/SuggestionComponent.h"
 #include "Connection.h"
 #include "Iolet.h"
 #include "Constants.h"

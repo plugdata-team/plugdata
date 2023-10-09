@@ -6,7 +6,7 @@
 
 #pragma once
 #include "LookAndFeel.h"
-#include "Utility/Buttons.h"
+#include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 
 struct Console;

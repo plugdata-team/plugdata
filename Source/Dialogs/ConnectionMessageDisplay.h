@@ -11,9 +11,9 @@
 #include <utility>
 #include "Constants.h"
 #include "LookAndFeel.h"
-#include "../Connection.h"
-#include "../PluginEditor.h"
-#include "../CanvasViewport.h"
+#include "Connection.h"
+#include "PluginEditor.h"
+#include "CanvasViewport.h"
 
 class ConnectionMessageDisplay
     : public Component

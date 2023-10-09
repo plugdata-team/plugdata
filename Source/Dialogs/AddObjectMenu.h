@@ -6,7 +6,7 @@
 
 #pragma once
 #include "Dialogs.h"
-#include "../Utility/ObjectDragAndDrop.h"
+#include "Components/ObjectDragAndDrop.h"
 
 #define DEBUG_PRINT_OBJECT_LIST 0
 

@@ -23,22 +23,22 @@
   ==============================================================================
 */
 #include "ZoomableDragAndDropContainer.h"
-#include "RateReducer.h"
+#include "Utility/RateReducer.h"
 
-#include "../Constants.h"
-#include "../LookAndFeel.h"
+#include "Constants.h"
+#include "LookAndFeel.h"
 
 // this is to find if we are over a split, and if so, we zoom the dragged image to the canvas zoom value
-#include "../ResizableTabbedComponent.h"
+#include "Tabbar/ResizableTabbedComponent.h"
 
 // if the drag is over a tab bar, then we don't show the drag image
-#include "../Tabbar.h"
+#include "Tabbar/Tabbar.h"
 
 // to reset the active split to what it was originally
-#include "../TabBarButtonComponent.h"
+#include "Tabbar/TabBarButtonComponent.h"
 
 // if we are inside the splitview, don't reset the scale of the dragged image, regardless of what we are over
-#include "../SplitView.h"
+#include "Tabbar/SplitView.h"
 
 // objects are only drag and dropped onto a canvas, so we dynamic cast straight away to see if the dragged object is from an object
 #include "ObjectDragAndDrop.h"

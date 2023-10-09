@@ -11,13 +11,13 @@
 #include "Utility/Fonts.h"
 #include "Utility/RateReducer.h" // TODO: move to impl
 #include "Utility/ModifierKeyListener.h"
-#include "Utility/CheckedTooltip.h"
+#include "Components/CheckedTooltip.h"
 #include "Utility/StackShadow.h" // TODO: move to impl
-#include "Utility/ZoomableDragAndDropContainer.h"
+#include "Components/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/WindowDragger.h"
 
-#include "SplitView.h" // TODO: move to impl
+#include "Tabbar/SplitView.h" // TODO: move to impl
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
 

@@ -20,7 +20,7 @@
 #include "Dialogs/SnapSettings.h"
 #include "Dialogs/AlignmentTools.h"
 
-#include "Utility/ArrowPopupMenu.h"
+#include "Components/ArrowPopupMenu.h"
 
 class OversampleSelector : public TextButton {
 

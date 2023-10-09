@@ -6,9 +6,9 @@
  */
 
 #include <JuceHeader.h>
-#include "../LookAndFeel.h"
-#include "../PluginEditor.h"
-#include "../PluginProcessor.h"
+#include "LookAndFeel.h"
+#include "PluginEditor.h"
+#include "PluginProcessor.h"
 
 class ObjectInfoPanel : public Component {
     struct CategoryPanel : public Component {

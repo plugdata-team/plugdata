@@ -14,13 +14,13 @@
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
 
-#include "Utility/BouncingViewport.h"
+#include "Components/BouncingViewport.h"
 
 #include "PluginEditor.h"
-#include "PaletteItem.h"
+#include "Sidebar/PaletteItem.h"
 #include "Utility/OfflineObjectRenderer.h"
-#include "Utility/ZoomableDragAndDropContainer.h"
-#include "Utility/Buttons.h"
+#include "Components/ZoomableDragAndDropContainer.h"
+#include "Components/Buttons.h"
 
 class AddItemButton : public Component {
 

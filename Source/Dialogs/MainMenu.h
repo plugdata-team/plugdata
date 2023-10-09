@@ -6,7 +6,7 @@
 
 #include <utility>
 
-#include "../PluginEditor.h"
+#include "PluginEditor.h"
 
 class MainMenu : public PopupMenu {
 

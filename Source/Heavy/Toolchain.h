@@ -7,7 +7,7 @@
  */
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "../Constants.h"
+#include "Constants.h"
 
 struct Toolchain {
 #if JUCE_WINDOWS

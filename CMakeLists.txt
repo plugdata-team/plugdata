@@ -130,6 +130,10 @@ file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/*.cpp
     ${SOURCES_DIRECTORY}/Utility/*.h
     ${SOURCES_DIRECTORY}/Utility/*.cpp
+    ${SOURCES_DIRECTORY}/Tabbar/*.h
+    ${SOURCES_DIRECTORY}/Tabbar/*.cpp
+    ${SOURCES_DIRECTORY}/Components/*.h
+    ${SOURCES_DIRECTORY}/Components/*.cpp
     ${SOURCES_DIRECTORY}/Objects/*.h
     ${SOURCES_DIRECTORY}/Objects/*.cpp
     ${SOURCES_DIRECTORY}/Sidebar/*.h

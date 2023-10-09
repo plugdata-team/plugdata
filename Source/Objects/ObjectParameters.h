@@ -3,7 +3,7 @@
 #include <juce_data_structures/juce_data_structures.h>
 
 #include <utility>
-#include "../LookAndFeel.h"
+#include "LookAndFeel.h"
 
 enum ParameterType {
     tString,

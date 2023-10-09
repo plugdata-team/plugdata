@@ -10,7 +10,7 @@
 #include <utility>
 #include "Constants.h"
 #include "LookAndFeel.h"
-#include "../PluginEditor.h"
+#include "PluginEditor.h"
 
 class AlignmentButton : public TextButton
 {

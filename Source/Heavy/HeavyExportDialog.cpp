@@ -11,7 +11,7 @@
 #include "HeavyExportDialog.h"
 
 #include "PluginEditor.h"
-#include "Utility/PropertiesPanel.h"
+#include "Components/PropertiesPanel.h"
 #include "Utility/OSUtils.h"
 
 #if JUCE_LINUX
