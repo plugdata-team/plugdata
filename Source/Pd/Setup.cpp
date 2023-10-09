@@ -759,6 +759,12 @@ void pdlua_setup(const char *datadir, char *vers, int vers_len);
 namespace pd
 {
 
+static int defaultfontshit[] = {
+    8, 5, 11, 10, 6, 13, 12, 7, 16, 16, 10, 19, 24, 14, 29, 36, 22, 44,
+    16, 10, 22, 20, 12, 26, 24, 14, 32, 32, 20, 38, 48, 28, 58, 72, 44, 88
+}; // normal & zoomed (2x)
+constexpr int ndefaultfont = int(sizeof(defaultfontshit) / sizeof(*defaultfontshit));
+
 int Setup::initialisePd()
 {
     static int initialized = 0;
@@ -828,12 +834,6 @@ int Setup::initialisePd()
         
         plugdata_print_class = class_new(gensym("plugdata_print"), (t_newmethod)NULL, (t_method)NULL,
                                             sizeof(t_plugdata_print), CLASS_DEFAULT, A_NULL, 0);
-        
-        static int defaultfontshit[] = {
-            8, 5, 11, 10, 6, 13, 12, 7, 16, 16, 10, 19, 24, 14, 29, 36, 22, 44,
-            16, 10, 22, 20, 12, 26, 24, 14, 32, 32, 20, 38, 48, 28, 58, 72, 44, 88
-        }; // normal & zoomed (2x)
-        int ndefaultfont = int(sizeof(defaultfontshit) / sizeof(*defaultfontshit));
         
         int i;
         t_atom zz[ndefaultfont + 2];

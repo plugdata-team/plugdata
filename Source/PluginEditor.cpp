@@ -287,6 +287,12 @@ PluginEditor::~PluginEditor()
     setConstrainer(nullptr);
 
     theme.removeListener(this);
+
+    // Kind of hacky, but oh well
+    if(auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent()))
+    {
+        delete window;
+    }
 }
 
 SplitView* PluginEditor::getSplitView()
@@ -667,27 +673,30 @@ Canvas* PluginEditor::getCurrentCanvas()
     return nullptr;
 }
 
-void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude)
+void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, std::function<void()> afterComplete)
 {
-    auto* canvas = canvases.getLast();
-    if (!canvas) {
+    if (!canvases.size()) {
+        afterComplete();
         if (quitAfterComplete) {
             JUCEApplication::quit();
         }
         return;
     }
     if (patchToExclude && canvases.size() == 1) {
+        afterComplete();
         return;
     }
 
+    auto canvas = SafePointer<Canvas>(canvases.getLast());
+
     auto patch = canvas->refCountedPatch;
 
-    auto deleteFunc = [this, canvas, quitAfterComplete, patchToExclude]() {
+    auto deleteFunc = [this, canvas, quitAfterComplete, patchToExclude, afterComplete]() {
         if (canvas && !(patchToExclude && canvas == patchToExclude)) {
             closeTab(canvas);
         }
 
-        closeAllTabs(quitAfterComplete, patchToExclude);
+        closeAllTabs(quitAfterComplete, patchToExclude, afterComplete);
     };
 
     if (canvas) {

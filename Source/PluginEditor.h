@@ -72,7 +72,7 @@ public:
 
     void addTab(Canvas* cnv, int splitIdx = -1);
     void closeTab(Canvas* cnv);
-    void closeAllTabs(bool quitAfterComplete = false, Canvas* patchToExclude = nullptr);
+    void closeAllTabs(bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = [](){});
 
     void quit(bool askToSave);
 

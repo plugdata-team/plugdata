@@ -602,7 +602,7 @@ private:
         {
             if (editor != nullptr) {
 
-                auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.get());
+                auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.getComponent());
 
                 // Menubar, only for standalone on mac
                 // Doesn't add any new features, but was easy to implement because we already have a command manager
@@ -614,14 +614,14 @@ private:
                 editor->addComponentListener(this);
                 componentMovedOrResized(*editor, false, true);
 
-                addAndMakeVisible(editor.get());
+                addAndMakeVisible(editor.getComponent());
                 editor->setAlwaysOnTop(true);
             }
         }
 
         AudioProcessorEditor* getEditor()
         {
-            return editor.get();
+            return editor;
         }
 
         StringArray getMenuBarNames() override
@@ -655,7 +655,7 @@ private:
         {
             PopupMenu menu;
 
-            auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.get());
+            auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.getComponent());
 
             if (topLevelMenuIndex == 0) {
                 menu.addCommandItem(commandManager, CommandIDs::NewProject);
@@ -688,8 +688,6 @@ private:
 #endif
             if (editor != nullptr) {
                 editor->removeComponentListener(this);
-                owner.pluginHolder->processor->editorBeingDeleted(editor.get());
-                editor = nullptr;
             }
         }
 
@@ -729,13 +727,13 @@ private:
         Rectangle<int> getSizeToContainEditor() const
         {
             if (editor != nullptr)
-                return getLocalArea(editor.get(), editor->getLocalBounds()).expanded(getMargin());
+                return getLocalArea(editor.getComponent(), editor->getLocalBounds()).expanded(getMargin());
 
             return {};
         }
 
         PlugDataWindow& owner;
-        std::unique_ptr<AudioProcessorEditor> editor;
+        SafePointer<AudioProcessorEditor> editor;
         bool preventResizingEditor = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
