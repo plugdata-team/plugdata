@@ -8,6 +8,7 @@
 
 #include <JuceHeader.h>
 
+class CloseTabButton;
 class TabComponent;
 class TabBarButtonComponent : public TabBarButton
     , public ChangeListener {
@@ -49,7 +50,7 @@ public:
 private:
     TabComponent* tabComponent;
     ComponentAnimator* ghostTabAnimator;
-    TextButton closeTabButton;
+    std::unique_ptr<CloseTabButton> closeTabButton;
     ScaledImage tabImage;
     bool isDragging = false;
     bool closeButtonUpdatePending = false;

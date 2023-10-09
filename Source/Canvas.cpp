@@ -137,8 +137,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     locked.addListener(this);
 
     editor->addModifierKeyListener(this);
-    Desktop::getInstance().addFocusChangeListener(this);
-
     parameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" }, 0);
     parameters.addParamBool("Hide name and arguments", cGeneral, &hideNameAndArgs, { "No", "Yes" }, 0);
     parameters.addParamRange("X range", cGeneral, &xRange, { 0.0f, 1.0f });
@@ -152,8 +150,6 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer().get(), this);
-
-    Desktop::getInstance().removeFocusChangeListener(this);
 
     delete suggestor;
 }
@@ -201,14 +197,6 @@ int Canvas::getOverlays() const
     }
 
     return overlayState;
-}
-
-void Canvas::moved()
-{
-}
-
-void Canvas::resized()
-{
 }
 
 void Canvas::updateOverlays()
@@ -386,17 +374,6 @@ TabComponent* Canvas::getTabbar()
     }
 
     return nullptr;
-}
-
-void Canvas::globalFocusChanged(Component* focusedComponent)
-{
-    // ALEX do we need any of this?
-    // if (!focusedComponent || !editor->splitView.isSplitEnabled() || editor->splitView.hasFocus(this))
-    //    return;
-    //
-    // if (focusedComponent == this || focusedComponent->findParentComponentOfClass<Canvas>() == this) {
-    //    editor->splitView.setFocus(this);
-    //}
 }
 
 void Canvas::tabChanged()
@@ -626,16 +603,6 @@ void Canvas::moveToWindow(PluginEditor* newEditor)
     }
 }
 
-void Canvas::focusGained(FocusChangeType type)
-{
-    // std::cout << "focus on canvas: " << this << std::endl;
-}
-
-void Canvas::focusLost(FocusChangeType type)
-{
-    // std::cout << "focus lost on canvas: " << this << std::endl;
-}
-
 void Canvas::mouseDown(MouseEvent const& e)
 {
     PopupMenu::dismissAllActiveMenus();
@@ -775,7 +742,7 @@ void Canvas::mouseUp(MouseEvent const& e)
 
     // Double-click canvas to create new object
     if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph && !getValue<bool>(locked)) {
-        objects.add(new Object(this, "", lastMousePosition));
+        objects.add(new Object(this, "", e.getPosition()));
         deselectAll();
         setSelected(objects[objects.size() - 1], true); // Select newly created object
     }
@@ -832,12 +799,6 @@ void Canvas::updateSidebarSelection()
     } else {
         editor->sidebar->hideParameters();
     }
-}
-
-void Canvas::mouseMove(MouseEvent const& e)
-{
-    // TODO: can we get rid of this?
-    lastMousePosition = getMouseXYRelative();
 }
 
 bool Canvas::keyPressed(KeyPress const& key)
@@ -1011,12 +972,13 @@ void Canvas::pasteSelection()
     patch.startUndoSequence("Paste");
 
     // Paste at mousePos, adds padding if pasted the same place
-    if (lastMousePosition == pastedPosition) {
+    auto mousePosition = getMouseXYRelative();
+    if (mousePosition == pastedPosition) {
         pastedPadding.addXY(10, 10);
     } else {
         pastedPadding.setXY(-10, -10);
     }
-    pastedPosition = lastMousePosition;
+    pastedPosition = mousePosition;
 
     // Tell pd to paste with offset applied to the clipboard string
     patch.paste(Point<int>(pastedPosition.x + pastedPadding.x, pastedPosition.y + pastedPadding.y));

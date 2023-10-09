@@ -37,7 +37,7 @@ public:
             , group(groupType)
         {
             auto controlVisibility = [this](String const& mode) {
-                if (settingName == "origin" || settingName == "border" || mode == "edit" || mode == "lock" || mode == "alt") {
+                if (settingName == "origin" || settingName == "border" || mode == Icons::Edit || mode == Icons::Presentation || mode == Icons::Eye) {
                     return true;
                 } else {
                     return false;

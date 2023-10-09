@@ -364,7 +364,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     setWantsKeyboardFocus(true);
 
     oversampleSelector->setTooltip("Set oversampling");
-    oversampleSelector->getProperties().set("FontScale", 0.5f);
     oversampleSelector->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
     oversampleSelector->setButtonText(String(1 << pd->oversampling) + "x");

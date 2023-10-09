@@ -546,11 +546,6 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 reinterpret_cast<Component*>(iolet)->repaint();
         }
 
-        // Set position where new objet will be created
-        if (result > 100) {
-            cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
-        }
-
         if (result == Properties) {
             if (originalComponent == cnv) {
                 Array<ObjectParameters> parameters = {cnv->getInspectorParameters()};

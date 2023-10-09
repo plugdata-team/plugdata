@@ -1499,7 +1499,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
         // Get viewport area, compensate for zooming
         auto viewArea = cnv->viewport->getViewArea() / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-        auto lastPosition = viewArea.getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
+        auto lastPosition = viewArea.getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Object::margin, Object::margin));
 
         auto ID = static_cast<ObjectIDs>(info.commandID);
 

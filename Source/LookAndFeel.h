@@ -436,17 +436,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Font getTextButtonFont(TextButton& but, int buttonHeight) override
     {
-
-        if (!but.getProperties()["FontScale"].isVoid()) {
-            float scale = static_cast<float>(but.getProperties()["FontScale"]);
-            if (but.getProperties()["Style"] == "Icon") {
-
-                return Fonts::getIconFont().withHeight(buttonHeight * scale);
-            } else {
-                return Font(buttonHeight * scale);
-            }
-        }
-
         return { buttonHeight / 1.7f };
     }
 

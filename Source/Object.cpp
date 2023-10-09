@@ -827,10 +827,6 @@ void Object::updateIolets()
 
 void Object::mouseDown(MouseEvent const& e)
 {
-    // TODO: why would this ever happen??
-    if (!getLocalBounds().contains(e.getPosition()))
-        return;
-
     if (attachedToMouse) {
         attachedToMouse = false;
         stopTimer(1);
@@ -1037,8 +1033,10 @@ void Object::mouseDrag(MouseEvent const& e)
 
         ds.wasResized = true;
     } else if (!cnv->isGraph) {
+        int const minimumMovementToStartDrag = 5;
+
         // Ensure tiny movements don't start a drag.
-        if (!ds.didStartDragging && e.getDistanceFromDragStart() < cnv->minimumMovementToStartDrag)
+        if (!ds.didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag)
             return;
 
         if (!ds.didStartDragging) {

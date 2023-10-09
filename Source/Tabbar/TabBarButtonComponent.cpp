@@ -12,6 +12,38 @@
 
 // #define ENABLE_TABBAR_DEBUGGING 1
 
+class CloseTabButton : public SmallIconButton {
+    
+    using SmallIconButton::SmallIconButton;
+    
+    void paint(Graphics& g) override
+    {
+        auto font = Fonts::getIconFont().withHeight(12);
+        g.setFont(font);
+
+        if (!isEnabled()) {
+            g.setColour(Colours::grey);
+        } else if (getToggleState()) {
+            g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
+        } else if (isMouseOver()) {
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f));
+        } else {
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+        }
+
+        int const yIndent = jmin(4, proportionOfHeight(0.3f));
+        int const cornerSize = jmin(getHeight(), getWidth()) / 2;
+
+        int const fontHeight = roundToInt(font.getHeight() * 0.6f);
+        int const leftIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnLeft() ? 4 : 2));
+        int const rightIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
+        int const textWidth = getWidth() - leftIndent - rightIndent;
+
+        if (textWidth > 0)
+            g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
+    }
+};
+
 TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabbar, String const& name, TabbedButtonBar& bar)
     : TabBarButton(name, bar)
     , tabComponent(tabbar)
@@ -21,28 +53,26 @@ TabBarButtonComponent::TabBarButtonComponent(TabComponent* tabbar, String const&
 
     setTooltip(name);
 
-    closeTabButton.setButtonText(Icons::Clear);
-    closeTabButton.getProperties().set("Style", "Icon");
-    closeTabButton.getProperties().set("FontScale", 0.44f);
-    closeTabButton.setColour(TextButton::buttonColourId, Colour());
-    closeTabButton.setColour(TextButton::buttonOnColourId, Colour());
-    closeTabButton.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
-    closeTabButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
-    closeTabButton.setColour(ComboBox::outlineColourId, Colour());
-    closeTabButton.setConnectedEdges(12);
-    closeTabButton.setSize(28, 28);
-    closeTabButton.addMouseListener(this, false);
-    closeTabButton.onClick = [this]() mutable {
+    closeTabButton = std::make_unique<CloseTabButton>(Icons::Clear);
+    closeTabButton->setColour(TextButton::buttonColourId, Colour());
+    closeTabButton->setColour(TextButton::buttonOnColourId, Colour());
+    closeTabButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+    closeTabButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
+    closeTabButton->setColour(ComboBox::outlineColourId, Colour());
+    closeTabButton->setConnectedEdges(12);
+    closeTabButton->setSize(28, 28);
+    closeTabButton->addMouseListener(this, false);
+    closeTabButton->onClick = [this]() mutable {
         closeTab();
     };
 
-    addChildComponent(closeTabButton);
+    addChildComponent(closeTabButton.get());
     updateCloseButtonState();
 }
 
 TabBarButtonComponent::~TabBarButtonComponent()
 {
-    closeTabButton.removeMouseListener(this);
+    closeTabButton->removeMouseListener(this);
     ghostTabAnimator->removeChangeListener(this);
 }
 
@@ -50,7 +80,7 @@ void TabBarButtonComponent::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (source == ghostTabAnimator) {
         if (!ghostTabAnimator->isAnimating() && closeButtonUpdatePending) {
-            closeTabButton.setVisible(isMouseOver(true) || getToggleState());
+            closeTabButton->setVisible(isMouseOver(true) || getToggleState());
             closeButtonUpdatePending = false;
         }
     }
@@ -59,7 +89,7 @@ void TabBarButtonComponent::changeListenerCallback(ChangeBroadcaster* source)
 void TabBarButtonComponent::updateCloseButtonState()
 {
     if (!ghostTabAnimator->isAnimating()) {
-        closeTabButton.setVisible(isMouseOver(true) || getToggleState());
+        closeTabButton->setVisible(isMouseOver(true) || getToggleState());
     } else {
         closeButtonUpdatePending = true;
     }
@@ -133,13 +163,13 @@ void TabBarButtonComponent::tabTextChanged(String const& newCurrentTabName)
 
 void TabBarButtonComponent::lookAndFeelChanged()
 {
-    closeTabButton.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
-    closeTabButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
+    closeTabButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+    closeTabButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
 }
 
 void TabBarButtonComponent::resized()
 {
-    closeTabButton.setCentrePosition(getBounds().getCentre().withX(getBounds().getWidth() - 15).translated(0, -1));
+    closeTabButton->setCentrePosition(getBounds().getCentre().withX(getBounds().getWidth() - 15).translated(0, -1));
 }
 
 ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
@@ -245,7 +275,7 @@ void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
 {
     if (e.getDistanceFromDragStart() > 10 && !isDragging) {
         isDragging = true;
-        closeTabButton.setVisible(false);
+        closeTabButton->setVisible(false);
         var tabIndex = getIndex();
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 

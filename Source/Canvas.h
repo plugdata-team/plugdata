@@ -46,7 +46,6 @@ class Canvas : public Component
     , public SettingsFileListener
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
-    , public FocusChangeListener
     , public pd::MessageListener
     , public AsyncUpdater {
 public:
@@ -63,10 +62,6 @@ public:
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
-    void mouseMove(MouseEvent const& e) override;
-
-    void focusGained(FocusChangeType type) override;
-    void focusLost(FocusChangeType type) override;
 
     void commandKeyChanged(bool isHeld) override;
     void spaceKeyChanged(bool isHeld) override;
@@ -74,9 +69,6 @@ public:
     void altKeyChanged(bool isHeld) override;
 
     void propertyChanged(String const& name, var const& value) override;
-
-    void moved() override;
-    void resized() override;
 
     int getOverlays() const;
     void updateOverlays();
@@ -96,8 +88,6 @@ public:
     TabComponent* getTabbar();
     int getTabIndex();
     void tabChanged();
-
-    void globalFocusChanged(Component* focusedComponent) override;
 
     void hideAllActiveEditors();
 
@@ -210,9 +200,6 @@ public:
     SafePointer<Object> lastSelectedObject;         // For auto patching
     SafePointer<Connection> lastSelectedConnection; // For auto patching
 
-    int const minimumMovementToStartDrag = 5;
-
-    Point<int> lastMousePosition;
     Point<int> pastedPosition;
     Point<int> pastedPadding;
 
