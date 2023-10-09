@@ -903,6 +903,8 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     auto* editor = new PluginEditor(*this);
     setThis();
     
+    // If standalone, add to ownedArray of opened editor
+    // In plugin, the deletion of PluginEditor is handled automatically
     if(ProjectInfo::isStandalone) {
         openedEditors.add(editor);
     }
