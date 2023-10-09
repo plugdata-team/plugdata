@@ -739,8 +739,6 @@ int Setup::initialisePd()
         pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + ndefaultfont, zz);
         sys_unlock();
         
-        sys_defaultfont = 12;
-        sys_verbose = 0;
         initialized = 1;
     }
 
