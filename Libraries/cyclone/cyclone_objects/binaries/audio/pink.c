@@ -7,6 +7,7 @@
 
 #define PINK_MAX_OCT 40
 
+/* not enabled, we favour else/pink~
 static t_class *pink_class;
 
 typedef struct _pink{
@@ -112,3 +113,4 @@ CYCLONE_OBJ_API void pink_tilde_setup(void){
     class_addmethod(pink_class, (t_method)pink_dsp, gensym("dsp"), A_CANT, 0);
     class_addmethod(pink_class, (t_method)pink_seed, gensym("seed"), A_GIMME, 0);
 }
+*/

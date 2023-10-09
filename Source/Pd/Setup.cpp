@@ -336,7 +336,6 @@ void peakamp_tilde_setup();
 void peek_tilde_setup();
 void phaseshift_tilde_setup();
 void phasewrap_tilde_setup();
-void pink_tilde_setup();
 void play_tilde_setup();
 void plusequals_tilde_setup();
 void poke_tilde_setup();
@@ -1259,7 +1258,6 @@ void Setup::initialiseELSE()
     pic_setup();
     pimp_tilde_setup();
     pimpmul_tilde_setup();
-    pink_tilde_setup();
     plaits_tilde_setup();
     pluck_tilde_setup();
     pmosc_tilde_setup();
