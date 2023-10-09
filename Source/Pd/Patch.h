@@ -52,7 +52,6 @@ public:
     void finishRemove();
     void removeObjects(std::vector<void*> const& objects);
 
-    void selectObject(void*);
     void deselectAll();
 
     bool isSubpatch();

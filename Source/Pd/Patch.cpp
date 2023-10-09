@@ -474,16 +474,6 @@ void Patch::duplicate(std::vector<void*> const& objects)
     }
 }
 
-void Patch::selectObject(void* obj)
-{
-
-    if (auto patch = ptr.get<t_glist>()) {
-        auto* checked = &pd::Interface::checkObject(obj)->te_g;
-        if (!glist_isselected(patch.get(), checked)) {
-            glist_select(patch.get(), checked);
-        }
-    }
-}
 
 void Patch::deselectAll()
 {
