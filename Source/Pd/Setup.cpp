@@ -628,7 +628,6 @@ void setup_trig0x2edelay_tilde();
 void setup_trig0x2edelay2_tilde();
 void trighold_tilde_setup();
 void trunc_setup();
-void trunc_tilde_setup();
 void unmerge_setup();
 void voices_setup();
 void vsaw_tilde_setup();
@@ -1590,7 +1589,6 @@ void Setup::initialiseCyclone()
     train_tilde_setup();
     trapezoid_tilde_setup();
     triangle_tilde_setup();
-    trunc_tilde_setup();
     typeroute_tilde_setup();
     vectral_tilde_setup();
     wave_tilde_setup();
