@@ -95,7 +95,6 @@ struct Interface {
         return ((t_gobj*)obj)->g_pd->c_wb == &text_widgetbehavior;
     }
     
-    
     static void getSearchPaths(char** paths, int* numItems) {
 
         t_namelist* pathList = STUFF->st_searchpath;

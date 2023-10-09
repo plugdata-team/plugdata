@@ -698,55 +698,19 @@ int Setup::initialisePd()
 {
     static int initialized = 0;
     if (!initialized) {
-        libpd_noteonhook = reinterpret_cast<t_libpd_noteonhook>(plugdata_noteon);
-        libpd_controlchangehook = reinterpret_cast<t_libpd_controlchangehook>(plugdata_controlchange);
-        libpd_programchangehook = reinterpret_cast<t_libpd_programchangehook>(plugdata_programchange);
-        libpd_pitchbendhook = reinterpret_cast<t_libpd_pitchbendhook>(plugdata_pitchbend);
-        libpd_aftertouchhook = reinterpret_cast<t_libpd_aftertouchhook>(plugdata_aftertouch);
-        libpd_polyaftertouchhook = reinterpret_cast<t_libpd_polyaftertouchhook>(plugdata_polyaftertouch);
-        libpd_midibytehook = reinterpret_cast<t_libpd_midibytehook>(plugdata_midibyte);
-        sys_printhook = reinterpret_cast<t_printhook>(plugdata_print);
+        libpd_set_noteonhook(plugdata_noteon);
+        libpd_set_controlchangehook(plugdata_controlchange);
+        libpd_set_programchangehook(plugdata_programchange);
+        libpd_set_pitchbendhook(plugdata_pitchbend);
+        libpd_set_aftertouchhook(plugdata_aftertouch);
+        libpd_set_polyaftertouchhook(plugdata_polyaftertouch);
+        libpd_set_midibytehook(plugdata_midibyte);
+        libpd_set_printhook(plugdata_print);
         
         sys_verbose = 0;
         
-        // Initialise Pd
-        static int s_initialized = 0;
-        if (s_initialized) return -1; // only allow init once (for now)
-        s_initialized = 1;
-        libpd_start_message(32); // allocate array for message assembly
-        sys_externalschedlib = 0;
-        sys_printtostderr = 0;
-        sys_usestdpath = 0; // don't use pd_extrapath, only sys_searchpath
-        sys_debuglevel = 0;
-        sys_noloadbang = 0;
-        sys_hipriority = 0;
-        sys_nmidiin = 0;
-        sys_nmidiout = 0;
-#ifdef HAVE_SCHED_TICK_ARG
-        sys_time = 0;
-#endif
-        pd_init();
-        STUFF->st_soundin = NULL;
-        STUFF->st_soundout = NULL;
-        STUFF->st_schedblocksize = DEFDACBLKSIZE;
-        sys_init_fdpoll();
-        
-        STUFF->st_searchpath = NULL;
-        sys_libdir = gensym("");
-        post("pd %d.%d.%d%s", PD_MAJOR_VERSION, PD_MINOR_VERSION,
-             PD_BUGFIX_VERSION, PD_TEST_VERSION);
-        
-        bob_tilde_setup();
-        bonk_tilde_setup();
-        choice_setup();
-        fiddle_tilde_setup();
-        loop_tilde_setup();
-        lrshift_tilde_setup();
-        pd_tilde_setup();
-        pique_setup();
-        sigmund_tilde_setup();
-        stdout_setup();
-        setlocale(LC_NUMERIC, "C");
+        // Initialise pd
+        libpd_init();
         
         sys_lock();
         

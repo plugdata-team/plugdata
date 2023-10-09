@@ -124,9 +124,11 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/x_vexp.c
     ${PD_PATH}/src/x_vexp_fun.c
     ${PD_PATH}/src/x_vexp_if.c
+    ${PD_PATH}/src/x_libpdreceive.c
     ${PD_PATH}/src/z_hooks.c
     ${PD_PATH}/src/z_libpd.c
     ${PD_PATH}/src/z_print_util.c
+
 )
 include_directories(${PD_PATH}/src)
 source_group(pd FILES ${PD_SOURCES})
