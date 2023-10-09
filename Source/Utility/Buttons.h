@@ -47,7 +47,7 @@ public:
         auto flatOnTop = isConnectedOnTop();
         auto flatOnBottom = isConnectedOnBottom();
 
-        auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting((mouseOver && !getToggleState()) ? 0.0f : 0.05f);
+        auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting((mouseOver && !getToggleState()) ? 0.0f : 0.025f);
 
         
         auto bounds = getLocalBounds().toFloat();
