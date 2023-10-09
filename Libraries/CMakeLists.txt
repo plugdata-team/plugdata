@@ -403,6 +403,9 @@ if(CMAKE_GENERATOR STREQUAL Xcode)
     set_target_properties(pd-multi PROPERTIES GCC_FAST_MATH[variant=Release] True)
 endif()
 
+target_link_options(pd PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:MULTIPLE>)
+target_link_options(pd-multi PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:MULTIPLE>)
+
 # ------------------------------------------------------------------------------#
 # LINK
 # ------------------------------------------------------------------------------#
