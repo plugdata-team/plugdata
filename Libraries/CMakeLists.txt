@@ -236,7 +236,7 @@ source_group(pdlua FILES ${PDLUA_SOURCES})
 # ------------------------------------------------------------------------------#
 # COMPILE DEFINITIONS
 # ------------------------------------------------------------------------------#
-set(PD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
+set(PD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1 PLUGDATA=1)
 
 
 if(ENABLE_SFIZZ)
@@ -351,12 +351,7 @@ source_group(ofelia FILES ${OFELIA_SOURCES})
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
-
-# ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
-target_compile_definitions(externals PRIVATE ${PD_COMPILE_DEFINITIONS} PLUGDATA=1)
-target_compile_definitions(externals-multi PRIVATE ${PD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
+list(APPEND SOURCE_FILES ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
 
 if(MSVC)
     add_library(pd SHARED ${SOURCE_FILES})
@@ -381,23 +376,14 @@ set_target_properties(pd-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
-set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(pd PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
+target_include_directories(pd-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
-target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
-target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
-
+set(EXTERNALS_DEPENDENCIES fluidlite lua)
 if(ENABLE_SFIZZ)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
-
-add_dependencies(externals sfizz)
-add_dependencies(externals-multi sfizz)
-target_link_libraries(externals sfizz)
-target_link_libraries(externals-multi sfizz)
+list(APPEND EXTERNALS_DEPENDENCIES sfizz)
 endif()
-
-target_link_libraries(externals fluidlite lua)
-target_link_libraries(externals-multi fluidlite lua)
 
 # ------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
@@ -424,12 +410,12 @@ endif()
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     find_library(MATH_LIB m)
 
-    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals)
-    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi)
+    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} ${EXTERNALS_DEPENDENCIES})
+    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} ${EXTERNALS_DEPENDENCIES})
 
 elseif(MSVC)
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 externals)
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 externals-multi)
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${EXTERNALS_DEPENDENCIES})
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${EXTERNALS_DEPENDENCIES})
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
@@ -441,8 +427,8 @@ elseif(MSVC)
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
 elseif(APPLE)
-    target_link_libraries(pd PUBLIC externals)
-    target_link_libraries(pd-multi PUBLIC externals-multi)
+    target_link_libraries(pd PUBLIC ${EXTERNALS_DEPENDENCIES})
+    target_link_libraries(pd-multi PUBLIC ${EXTERNALS_DEPENDENCIES})
 endif()
 
 # LINK PTHREAD
