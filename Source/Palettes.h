@@ -479,7 +479,6 @@ public:
 
         palettesTree.addListener(this);
 
-        addButton.getProperties().set("Style", "SmallIcon");
         addButton.onClick = [this, e]() {
             PopupMenu menu;
             menu.addItem(1, "New palette");
@@ -826,7 +825,7 @@ private:
     Viewport paletteViewport;
     Component paletteBar;
 
-    TextButton addButton = TextButton(Icons::Add);
+    SmallIconButton addButton = SmallIconButton(Icons::Add);
 
     OwnedArray<PaletteSelector> paletteSelectors;
 

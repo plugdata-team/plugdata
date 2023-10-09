@@ -41,7 +41,6 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
     deleteButton.setButtonText(Icons::Clear);
     deleteButton.setTooltip("Delete item");
     deleteButton.setSize(25, 25);
-    deleteButton.getProperties().set("Style", "SmallIcon");
     deleteButton.onClick = [this]() {
         deleteItem();
     };

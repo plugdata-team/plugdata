@@ -44,8 +44,7 @@ public:
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);
 
-        editorButton = std::make_unique<TextButton>(Icons::Edit);
-        editorButton->getProperties().set("Style", "LargeIcon");
+        editorButton = std::make_unique<MainToolbarButton>(Icons::Edit);
         editorButton->setTooltip("Show editor");
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         editorButton->onClick = [this]() {
@@ -72,8 +71,7 @@ public:
         }
 
         if (ProjectInfo::isStandalone) {
-            fullscreenButton = std::make_unique<TextButton>(Icons::Fullscreen);
-            fullscreenButton->getProperties().set("Style", "LargeIcon");
+            fullscreenButton = std::make_unique<MainToolbarButton>(Icons::Fullscreen);
             fullscreenButton->setTooltip("Enter fullscreen kiosk mode");
             fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
             fullscreenButton->onClick = [this]() {
@@ -348,8 +346,8 @@ private:
     Component titleBar;
     int const titlebarHeight = 40;
     int nativeTitleBarHeight;
-    std::unique_ptr<TextButton> editorButton;
-    std::unique_ptr<TextButton> fullscreenButton;
+    std::unique_ptr<MainToolbarButton> editorButton;
+    std::unique_ptr<MainToolbarButton> fullscreenButton;
 
     Component content;
 

@@ -58,8 +58,6 @@ public:
             toolbarButtons[i]->onClick = [this, i]() mutable { showPanel(i); };
         }
 
-        
-        searchButton.getProperties().set("Style", "LargeIcon");
         searchButton.setClickingTogglesState(true);
         searchButton.onClick = [this](){
             if(searchButton.getToggleState()) {
@@ -165,7 +163,7 @@ public:
     PluginEditor* editor;
     ComponentBoundsConstrainer constrainer;
     
-    TextButton searchButton = TextButton(Icons::Search);
+    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
     std::unique_ptr<PropertiesSearchPanel> searcher;
 
     static constexpr int toolbarHeight = 40;

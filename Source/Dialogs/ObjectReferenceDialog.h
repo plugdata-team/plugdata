@@ -213,8 +213,6 @@ public:
             setVisible(false);
         };
 
-        backButton.getProperties().set("Style", "LargeIcon");
-
         addAndMakeVisible(objectInfoPanel);
     }
 
@@ -447,7 +445,7 @@ public:
 
     ObjectInfoPanel objectInfoPanel;
 
-    TextButton backButton = TextButton(Icons::Back);
+    MainToolbarButton backButton = MainToolbarButton(Icons::Back);
 
     String categories;
     String origin;

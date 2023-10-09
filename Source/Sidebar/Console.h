@@ -418,10 +418,9 @@ public:
 
     std::unique_ptr<Component> getExtraSettingsComponent()
     {
-        auto* settingsCalloutButton = new TextButton(Icons::More);
+        auto* settingsCalloutButton = new SmallIconButton(Icons::More);
         settingsCalloutButton->setTooltip("Show console settings");
         settingsCalloutButton->setConnectedEdges(12);
-        settingsCalloutButton->getProperties().set("Style", "SmallIcon");
         settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
             auto* editor = findParentComponentOfClass<PluginEditor>();
             auto* sidebar = findParentComponentOfClass<Sidebar>();

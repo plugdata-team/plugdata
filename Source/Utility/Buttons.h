@@ -1,5 +1,116 @@
 #pragma once
 
+class MainToolbarButton : public TextButton {
+    
+public:
+
+    using TextButton::TextButton;
+    
+    void paint(Graphics& g) override
+    {
+        bool active = isOver() || isDown() || getToggleState();
+
+        auto cornerSize = Corners::defaultCornerRadius;
+        auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+        auto bounds = getLocalBounds().reduced(3, 4).toFloat();
+
+        g.setColour(backgroundColour);
+        PlugDataLook::fillSmoothedRectangle(g, bounds, cornerSize);
+        
+        auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha (isEnabled() ? 1.0f : 0.5f);
+        
+        AttributedString attributedIcon;
+        attributedIcon.append(getButtonText(), Fonts::getIconFont().withHeight(getHeight() / 2.7), textColour);
+        attributedIcon.setJustification(Justification::centred);
+        
+#if JUCE_MAC
+        bounds = bounds.withTrimmedBottom(2);
+#endif
+        attributedIcon.draw(g, bounds);
+    }
+};
+
+class ToolbarRadioButton : public TextButton {
+
+public:
+    
+    using TextButton::TextButton;
+    
+    void paint(Graphics& g) override
+    {
+        bool mouseOver = isOver();
+        bool active = mouseOver || isDown() || getToggleState();
+
+        auto cornerSize = Corners::defaultCornerRadius;
+        auto flatOnLeft = isConnectedOnLeft();
+        auto flatOnRight = isConnectedOnRight();
+        auto flatOnTop = isConnectedOnTop();
+        auto flatOnBottom = isConnectedOnBottom();
+
+        auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting((mouseOver && !getToggleState()) ? 0.0f : 0.05f);
+
+        
+        auto bounds = getLocalBounds().toFloat();
+        bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
+
+        g.setColour(backgroundColour);
+        PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius,
+            !(flatOnLeft || flatOnTop),
+            !(flatOnRight || flatOnTop),
+            !(flatOnLeft || flatOnBottom),
+            !(flatOnRight || flatOnBottom));
+        
+        auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha (isEnabled() ? 1.0f : 0.5f);
+        
+        AttributedString attributedIcon;
+        attributedIcon.append(getButtonText(), Fonts::getIconFont().withHeight(getHeight() / 2.8), textColour);
+        attributedIcon.setJustification(Justification::centred);
+        attributedIcon.draw(g, getLocalBounds().toFloat());
+    }
+};
+
+class SmallIconButton : public TextButton {
+    using TextButton::TextButton;
+    
+    void mouseEnter(const MouseEvent& e) override
+    {
+        repaint();
+    }
+    
+    void mouseExit(const MouseEvent& e) override
+    {
+        repaint();
+    }
+    
+    void paint(Graphics& g) override
+    {
+        auto font = Fonts::getIconFont().withHeight(13.5);
+        g.setFont(font);
+
+        if (!isEnabled()) {
+            g.setColour(Colours::grey);
+        } else if (getToggleState()) {
+            g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
+        } else if (isMouseOver()) {
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f));
+        } else {
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+        }
+
+        int const yIndent = jmin(4, proportionOfHeight(0.3f));
+        int const cornerSize = jmin(getHeight(), getWidth()) / 2;
+
+        int const fontHeight = roundToInt(font.getHeight() * 0.6f);
+        int const leftIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnLeft() ? 4 : 2));
+        int const rightIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
+        int const textWidth = getWidth() - leftIndent - rightIndent;
+
+        if (textWidth > 0)
+            g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
+    }
+    
+};
+
 // Toolbar button for settings panel, with both icon and text
 class SettingsToolbarButton : public TextButton {
 
@@ -13,7 +124,6 @@ public:
     {
         setClickingTogglesState(true);
         setConnectedEdges(12);
-        getProperties().set("Style", "LargeIcon");
     }
 
     void paint(Graphics& g) override
@@ -92,14 +202,13 @@ public:
     }
 };
 
-class ReorderButton : public TextButton {
+class ReorderButton : public SmallIconButton {
 public:
     ReorderButton()
-        : TextButton()
+        : SmallIconButton()
     {
         setButtonText(Icons::Reorder);
         setSize(25, 25);
-        getProperties().set("Style", "SmallIcon");
     }
 
     MouseCursor getMouseCursor() override

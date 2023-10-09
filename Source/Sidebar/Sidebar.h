@@ -5,7 +5,8 @@
  */
 
 #pragma once
-#include "Constants.h"
+#include "LookAndFeel.h"
+#include "Utility/Buttons.h"
 #include "Objects/ObjectParameters.h"
 
 struct Console;
@@ -130,7 +131,7 @@ private:
     SidebarSelectorButton searchButton = SidebarSelectorButton(Icons::Search);
 
     std::unique_ptr<Component> extraSettingsButton;
-    TextButton panelPinButton = TextButton(Icons::Pin);
+    SmallIconButton panelPinButton = SmallIconButton(Icons::Pin);
 
     std::unique_ptr<Console> console;
     std::unique_ptr<Inspector> inspector;

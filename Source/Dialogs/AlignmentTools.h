@@ -91,7 +91,6 @@ public:
 
         auto buttonNum = 0;
         for (auto* button : alignButtons) {
-            button->getProperties().set("Style", "SmallIcon");
             button->setClickingTogglesState(true);
             button->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
             button->setRadioGroupId(hash("alignment_tools"));

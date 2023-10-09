@@ -7,9 +7,11 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "LookAndFeel.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/AudioSampleRingBuffer.h"
+#include "Utility/Buttons.h"
 
 class Canvas;
 class LevelMeter;
@@ -99,13 +101,13 @@ public:
     std::unique_ptr<CPUMeter> cpuMeter;
 
 
-    TextButton powerButton, centreButton, fitAllButton, protectButton;
+    SmallIconButton powerButton, centreButton, fitAllButton, protectButton;
 
-    TextButton overlayButton, overlaySettingsButton;
+    SmallIconButton overlayButton, overlaySettingsButton;
 
-    TextButton snapEnableButton, snapSettingsButton;
+    SmallIconButton snapEnableButton, snapSettingsButton;
 
-    TextButton alignmentButton;
+    SmallIconButton alignmentButton;
 
     std::unique_ptr<OversampleSelector> oversampleSelector;
 

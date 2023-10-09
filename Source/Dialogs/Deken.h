@@ -442,7 +442,6 @@ public:
             repaint();
         };
 
-        clearButton.getProperties().set("Style", "SmallIcon");
         clearButton.setAlwaysOnTop(true);
         clearButton.onClick = [this]() {
             input.clear();
@@ -459,7 +458,6 @@ public:
         addAndMakeVisible(updateSpinner);
 
         refreshButton.setTooltip("Refresh packages");
-        refreshButton.getProperties().set("Style", "LargeIcon");
         addAndMakeVisible(refreshButton);
         refreshButton.onClick = [this]() {
             packageManager->startThread();
@@ -477,7 +475,6 @@ public:
             packageManager->startThread();
         }
         
-        searchButton.getProperties().set("Style", "LargeIcon");
         searchButton.setClickingTogglesState(true);
         searchButton.onClick = [this](){
             auto isSearching = searchButton.getToggleState();
@@ -798,8 +795,8 @@ private:
     // Current search result
     PackageList searchResult;
 
-    TextButton searchButton = TextButton(Icons::Search);
-    TextButton refreshButton = TextButton(Icons::Refresh);
+    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
+    MainToolbarButton refreshButton = MainToolbarButton(Icons::Refresh);
         
     SettingsToolbarButton installedButton = SettingsToolbarButton(Icons::Checkmark, "Installed");
     SettingsToolbarButton exploreButton = SettingsToolbarButton(Icons::Sparkle, "Explore");
@@ -809,7 +806,7 @@ private:
     PackageManager* packageManager = PackageManager::getInstance();
 
     TextEditor input;
-    TextButton clearButton = TextButton(Icons::ClearText);
+    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
 
     Spinner updateSpinner;
 

@@ -93,22 +93,18 @@ public:
         addAndMakeVisible(removeButton);
         removeButton.onClick = [this] { deleteSelected(); };
         removeButton.setConnectedEdges(12);
-        removeButton.getProperties().set("Style", "SmallIcon");
 
         changeButton.setTooltip("Edit search path");
-        changeButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
         changeButton.onClick = [this] { editSelected(); };
 
         upButton.setTooltip("Move selection up");
-        upButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(upButton);
         upButton.setConnectedEdges(12);
         upButton.onClick = [this] { moveSelection(-1); };
 
         upButton.setTooltip("Move selection down");
-        downButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(downButton);
         downButton.setConnectedEdges(12);
         downButton.onClick = [this] { moveSelection(1); };
@@ -442,13 +438,13 @@ private:
 
     ListBox listBox;
 
-    TextButton upButton = TextButton(Icons::Up);
-    TextButton downButton = TextButton(Icons::Down);
+    SmallIconButton upButton = SmallIconButton(Icons::Up);
+    SmallIconButton downButton = SmallIconButton(Icons::Down);
 
     ActionButton addButton = ActionButton(Icons::Add, "Add search path");
     ActionButton resetButton = ActionButton(Icons::Reset, "Reset to default search paths", true);
-    TextButton removeButton = TextButton(Icons::Clear);
-    TextButton changeButton = TextButton(Icons::Edit);
+    SmallIconButton removeButton = SmallIconButton(Icons::Clear);
+    SmallIconButton changeButton = SmallIconButton(Icons::Edit);
 
     ValueTree tree;
 
@@ -480,10 +476,8 @@ public:
         addAndMakeVisible(removeButton);
         removeButton.onClick = [this] { deleteSelected(); };
         removeButton.setConnectedEdges(12);
-        removeButton.getProperties().set("Style", "SmallIcon");
 
         changeButton.setTooltip("Edit library");
-        changeButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
         changeButton.onClick = [this] { editSelected(); };
@@ -717,8 +711,8 @@ private:
     ListBox listBox;
 
     ActionButton addButton = ActionButton(Icons::Add, "Add library to load on startup");
-    TextButton removeButton = TextButton(Icons::Clear);
-    TextButton changeButton = TextButton(Icons::Edit);
+    SmallIconButton removeButton = SmallIconButton(Icons::Clear);
+    SmallIconButton changeButton = SmallIconButton(Icons::Edit);
 
     ValueTree tree;
 

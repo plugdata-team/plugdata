@@ -18,7 +18,6 @@ class AutomationSlider : public ObjectDragAndDrop
     class ExpandButton : public TextButton {
         void paint(Graphics& g) override
         {
-
             auto isOpen = getToggleState();
             auto mouseOver = isMouseOver();
             auto area = getLocalBounds().reduced(5).toFloat();
@@ -185,9 +184,6 @@ public:
             }
         };
 
-        settingsButton.getProperties().set("Style", "SmallIcon");
-        deleteButton.getProperties().set("Style", "SmallIcon");
-
         addAndMakeVisible(nameLabel);
         addAndMakeVisible(slider);
         addAndMakeVisible(valueLabel);
@@ -353,7 +349,7 @@ public:
 
     std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*) {};
 
-    TextButton deleteButton = TextButton(Icons::Clear);
+    SmallIconButton deleteButton = SmallIconButton(Icons::Clear);
     ExpandButton settingsButton;
 
     Value range = Value(var(Array<var> { var(0.0f), var(127.0f) }));

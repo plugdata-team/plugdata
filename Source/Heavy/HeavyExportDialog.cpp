@@ -145,7 +145,7 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     : exportingView(new ExportingProgressView())
     , exporterPanel(new ExporterSettingsPanel(dynamic_cast<PluginEditor*>(dialog->parentComponent), exportingView.get()))
     , installer(new ToolchainInstaller(dynamic_cast<PluginEditor*>(dialog->parentComponent)))
-    , infoButton(new TextButton(Icons::Help))
+    , infoButton(new MainToolbarButton(Icons::Help))
 {
     hasToolchain = Toolchain::dir.exists();
     
@@ -186,7 +186,6 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
     exportingView->setAlwaysOnTop(true);
 
-    infoButton->getProperties().set("Style", "LargeIcon");
     infoButton->onClick = [](){
         URL("https://wasted-audio.github.io/hvcc/docs/01.introduction.html#what-is-heavy").launchInDefaultBrowser();
     };

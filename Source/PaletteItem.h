@@ -2,8 +2,12 @@
 
 #include <JuceHeader.h>
 
+#include "LookAndFeel.h"
 #include "Pd/Instance.h"
 #include "Utility/ObjectDragAndDrop.h"
+#include "Utility/Buttons.h"
+
+
 
 class PluginEditor;
 class PaletteDraggableList;
@@ -36,7 +40,7 @@ public:
     ValueTree itemTree;
 
     Label nameLabel;
-    TextButton deleteButton;
+    SmallIconButton deleteButton;
 
     std::unique_ptr<ReorderButton> reorderButton;
 

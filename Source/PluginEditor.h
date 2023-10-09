@@ -40,14 +40,6 @@ class PluginEditor : public AudioProcessorEditor
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer {
 public:
-    enum ToolbarButtonType {
-        Settings = 0,
-        Undo,
-        Redo,
-        Add,
-        Hide,
-        Pin
-    };
 
     explicit PluginEditor(PluginProcessor&);
 
@@ -153,8 +145,8 @@ private:
 
     int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
 
-    TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
-    TextButton editButton, runButton, presentButton;
+    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
+    ToolbarRadioButton editButton, runButton, presentButton;
 
     CheckedTooltip tooltipWindow;
 

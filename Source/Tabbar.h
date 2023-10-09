@@ -111,7 +111,7 @@ class WelcomePanel : public Component {
 
 public:
     WelcomePanel()
-        : newButton(Icons::New, "New patch", "Create a new empty patch")
+        : newButton(Icons::Add, "New patch", "Create a new empty patch")
         , openButton(Icons::Open, "Open patch...", "Open a saved patch")
 
     {
@@ -197,7 +197,7 @@ private:
 class TabComponent : public Component
     , public AsyncUpdater {
 
-    TextButton newButton;
+    MainToolbarButton newButton = MainToolbarButton(Icons::Add);
     WelcomePanel welcomePanel;
     PluginEditor* editor;
 

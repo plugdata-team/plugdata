@@ -35,7 +35,6 @@ public:
         input.addKeyListener(this);
         listBox.addKeyListener(this);
 
-        clearButton.getProperties().set("Style", "SmallIcon");
         clearButton.onClick = [this]() {
             clearSearchTargets();
             input.clear();
@@ -406,7 +405,7 @@ private:
 
     Array<std::tuple<String, String, SafePointer<Object>, void*>> searchResult;
     TextEditor input;
-    TextButton clearButton = TextButton(Icons::ClearText);
+    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
 
     BouncingViewportAttachment bouncer;
     PluginEditor* editor;

@@ -272,8 +272,6 @@ TabComponent::TabComponent(PluginEditor* parent)
     addAndMakeVisible(tabs.get());
 
     addAndMakeVisible(newButton);
-    newButton.getProperties().set("Style", "LargeIcon");
-    newButton.setButtonText(Icons::Add);
     newButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
     newButton.setTooltip("New patch");
     newButton.onClick = [this]() {

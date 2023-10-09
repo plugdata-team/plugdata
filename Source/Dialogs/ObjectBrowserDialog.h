@@ -490,7 +490,6 @@ public:
             updateResults(input.getText());
         };
 
-        clearButton.getProperties().set("Style", "SmallIcon");
         clearButton.onClick = [this]() {
             input.clear();
             input.grabKeyboardFocus();
@@ -703,7 +702,7 @@ private:
 
     Array<String> searchResult;
     TextEditor input;
-    TextButton clearButton = TextButton(Icons::ClearText);
+    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
 
     std::unordered_map<String, String> objectDescriptions;
 };
@@ -728,8 +727,7 @@ public:
                 objectsByCategory[cat].add(object);
             }
         }
-        
-        searchButton.getProperties().set("Style", "LargeIcon");
+
         searchButton.setClickingTogglesState(true);
         searchButton.onClick = [this](){
             if(searchButton.getToggleState()) {
@@ -868,7 +866,7 @@ private:
     ObjectViewer objectViewer;
     ObjectSearchComponent objectSearch;
 
-    TextButton searchButton = TextButton(Icons::Search);
+    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
     
     ComponentAnimator animator;
 

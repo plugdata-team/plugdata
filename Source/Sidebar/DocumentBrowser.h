@@ -596,7 +596,6 @@ public:
             updateResults(input.getText());
         };
 
-        clearButton.getProperties().set("Style", "SmallIcon");
         clearButton.onClick = [this]() {
             input.clear();
             grabKeyboardFocus(); // steal focus from text editor
@@ -792,7 +791,7 @@ private:
     DirectoryContentsList& searchPath;
     Array<File> searchResult;
     TextEditor input;
-    TextButton clearButton = TextButton(Icons::ClearText);
+    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
 };
 
 class DocumentBrowser : public DocumentBrowserBase {
@@ -863,10 +862,9 @@ public:
 
     std::unique_ptr<Component> getExtraSettingsComponent()
     {
-        auto* settingsCalloutButton = new TextButton(Icons::More);
+        auto* settingsCalloutButton = new SmallIconButton(Icons::More);
         settingsCalloutButton->setTooltip("Show browser settings");
         settingsCalloutButton->setConnectedEdges(12);
-        settingsCalloutButton->getProperties().set("Style", "SmallIcon");
         settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
             auto* editor = findParentComponentOfClass<PluginEditor>();
             auto* sidebar = getParentComponent();

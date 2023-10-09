@@ -174,8 +174,7 @@ public:
 
     std::unique_ptr<Component> getExtraSettingsComponent()
     {
-        auto* resetButton = new TextButton(Icons::Reset);
-        resetButton->getProperties().set("Style", "SmallIcon");
+        auto* resetButton = new SmallIconButton(Icons::Reset);
         resetButton->setTooltip("Reset to default");
         resetButton->setSize(23, 23);
         resetButton->onClick = [this]() {

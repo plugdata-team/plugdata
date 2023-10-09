@@ -565,10 +565,10 @@ struct PatchStorage : public Component
     BouncingViewport contentViewport;
     PatchFullDisplay patchFullDisplay;
 
-    TextButton backButton = TextButton(Icons::Back);
-    TextButton refreshButton = TextButton(Icons::Refresh);
+    MainToolbarButton backButton = MainToolbarButton(Icons::Back);
+    MainToolbarButton refreshButton = MainToolbarButton(Icons::Refresh);
 
-    TextButton clearButton = TextButton(Icons::ClearText);
+    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
     TextEditor input;
 
     Spinner spinner;
@@ -608,10 +608,8 @@ public:
 
         backButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         backButton.setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
-        backButton.getProperties().set("Style", "LargeIcon");
 
         refreshButton.setTooltip("Refresh packages");
-        refreshButton.getProperties().set("Style", "LargeIcon");
         refreshButton.setEnabled(false);
         addAndMakeVisible(refreshButton);
         refreshButton.onClick = [this]() {
@@ -632,7 +630,6 @@ public:
         };
         addAndMakeVisible(input);
 
-        clearButton.getProperties().set("Style", "SmallIcon");
         clearButton.setAlwaysOnTop(true);
         clearButton.onClick = [this]() {
             input.clear();

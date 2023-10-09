@@ -19,7 +19,7 @@ public:
             Run,
             Alt
         };
-        OwnedArray<TextButton> buttons { new TextButton("edit"), new TextButton("lock"), new TextButton("run"), new TextButton("alt") };
+        OwnedArray<SmallIconButton> buttons { new SmallIconButton(Icons::Edit), new SmallIconButton(Icons::Lock), new SmallIconButton(Icons::Presentation), new SmallIconButton(Icons::Eye) };
 
         Label textLabel;
         String groupName;
@@ -45,16 +45,10 @@ public:
             };
 
             for (auto* button : buttons) {
-                button->getProperties().set("Style", "SmallIcon");
                 addAndMakeVisible(button);
                 button->setVisible(controlVisibility(button->getName()));
                 button->addListener(this);
             }
-
-            buttons[Edit]->setButtonText(Icons::Edit);
-            buttons[Lock]->setButtonText(Icons::Lock);
-            buttons[Run]->setButtonText(Icons::Presentation);
-            buttons[Alt]->setButtonText(Icons::Eye);
 
             buttons[Edit]->setTooltip("Show " + groupName.toLowerCase() + " in edit mode");
             buttons[Lock]->setTooltip("Show " + groupName.toLowerCase() + " in run mode");

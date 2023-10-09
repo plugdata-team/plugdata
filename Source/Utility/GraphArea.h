@@ -83,8 +83,8 @@ public:
             cnv->gl_pixwidth = getWidth() - 2;
             cnv->gl_pixheight = getHeight() - 2;
 
-            cnv->gl_xmargin = getX() - canvas->canvasOrigin.x - 1;
-            cnv->gl_ymargin = getY() - canvas->canvasOrigin.y - 1;
+            cnv->gl_xmargin = getX() - canvas->canvasOrigin.x + 1;
+            cnv->gl_ymargin = getY() - canvas->canvasOrigin.y + 1;
         }
     }
 

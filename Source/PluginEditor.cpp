@@ -156,14 +156,13 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(splitView);
     addAndMakeVisible(*sidebar);
 
-    for (auto* button : std::vector<TextButton*> {
+    for (auto* button : std::vector<MainToolbarButton*> {
              &mainMenuButton,
              &undoButton,
              &redoButton,
              &addObjectMenuButton,
              &pluginModeButton,
          }) {
-        button->getProperties().set("Style", "LargeIcon");
         addAndMakeVisible(button);
     }
 
@@ -192,7 +191,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(addObjectMenuButton);
 
     // Edit, run and presentation mode buttons
-    for (auto* button : std::vector<TextButton*> { &editButton, &runButton, &presentButton }) {
+    for (auto* button : std::vector<ToolbarRadioButton*> { &editButton, &runButton, &presentButton }) {
         button->onClick = [this]() {
             if (auto* cnv = getCurrentCanvas()) {
                 if (editButton.getToggleState()) {
@@ -208,7 +207,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             }
         };
 
-        button->getProperties().set("Style", "LargeIcon");
         button->setClickingTogglesState(true);
         button->setRadioGroupId(hash("edit_run_present"));
         addAndMakeVisible(button);
@@ -225,7 +223,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     // Enter plugin mode
     pluginModeButton.setTooltip("Enter plugin mode");
-    pluginModeButton.getProperties().set("Style", "LargeIcon");
     pluginModeButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     pluginModeButton.onClick = [this]() {
         if (auto* cnv = getCurrentCanvas()) {
@@ -382,10 +379,11 @@ void PluginEditor::resized()
 
     zoomLabel->setBounds(paletteWidth + 5, getHeight() - Statusbar::statusbarHeight - 36, 55, 23);
 
+    int buttonDisctance = 56;
     mainMenuButton.setBounds(offset, 0, toolbarHeight, toolbarHeight);
-    undoButton.setBounds(60 + offset, 0, toolbarHeight, toolbarHeight);
-    redoButton.setBounds(120 + offset, 0, toolbarHeight, toolbarHeight);
-    addObjectMenuButton.setBounds(180 + offset, 0, toolbarHeight, toolbarHeight);
+    undoButton.setBounds(buttonDisctance + offset, 0, toolbarHeight, toolbarHeight);
+    redoButton.setBounds((2 * buttonDisctance) + offset, 0, toolbarHeight, toolbarHeight);
+    addObjectMenuButton.setBounds((3 * buttonDisctance) + offset, 0, toolbarHeight, toolbarHeight);
 
     auto startX = (getWidth() / 2) - (toolbarHeight * 1.5);
 

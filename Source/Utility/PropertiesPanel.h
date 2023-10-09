@@ -793,7 +793,7 @@ public:
 
     struct FilePathComponent : public Property {
         Label label;
-        TextButton browseButton = TextButton(Icons::File);
+        SmallIconButton browseButton = SmallIconButton(Icons::File);
         Value property;
 
         std::unique_ptr<FileChooser> saveChooser;
@@ -807,8 +807,6 @@ public:
             label.getTextValue().referTo(property);
             label.addMouseListener(this, true);
             label.setFont(Font(14));
-
-            browseButton.getProperties().set("Style", "SmallIcon");
 
             addAndMakeVisible(label);
             addAndMakeVisible(browseButton);
@@ -1100,7 +1098,6 @@ public:
         };
         
         clearButton.setAlwaysOnTop(true);
-        clearButton.getProperties().set("Style", "SmallIcon");
         clearButton.onClick = [this]() {
             input.clear();
             input.grabKeyboardFocus();
@@ -1182,7 +1179,7 @@ public:
     }
     
     TextEditor input;
-    TextButton clearButton = TextButton(Icons::ClearText);
+    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
     PropertiesPanel resultsPanel;
     Array<PropertiesPanel*> panelsToSearch;
 };

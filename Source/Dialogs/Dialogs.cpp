@@ -378,9 +378,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         {
             auto commandIds = Array<CommandID> { CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete };
 
-            for (auto* button : Array<TextButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
+            for (auto* button : Array<QuickActionButton*> { &cut, &copy, &paste, &duplicate, &remove }) {
                 addAndMakeVisible(button);
-                button->getProperties().set("Style", "LargeIcon");
                 auto id = commandIds.removeAndReturn(0);
 
                 button->onClick = [commandManager, id]() {

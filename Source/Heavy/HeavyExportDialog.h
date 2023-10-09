@@ -15,7 +15,7 @@ class HeavyExportDialog : public Component {
     std::unique_ptr<ExportingProgressView> exportingView;
     std::unique_ptr<ToolchainInstaller> installer;
     std::unique_ptr<ExporterSettingsPanel> exporterPanel;
-    std::unique_ptr<TextButton> infoButton;
+    std::unique_ptr<MainToolbarButton> infoButton;
     
 public:
     explicit HeavyExportDialog(Dialog* dialog);

@@ -46,7 +46,6 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
 
     consoleButton.setTooltip("Open console panel");
     consoleButton.setConnectedEdges(12);
-    consoleButton.getProperties().set("Style", "SmallIcon");
     consoleButton.setClickingTogglesState(true);
     consoleButton.onClick = [this]() {
         showPanel(0);
@@ -54,7 +53,6 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
 
     browserButton.setTooltip("Open documentation browser");
     browserButton.setConnectedEdges(12);
-    browserButton.getProperties().set("Style", "SmallIcon");
     browserButton.onClick = [this]() {
         showPanel(1);
     };
@@ -63,7 +61,6 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
 
     automationButton.setTooltip("Open automation panel");
     automationButton.setConnectedEdges(12);
-    automationButton.getProperties().set("Style", "SmallIcon");
     automationButton.setClickingTogglesState(true);
     automationButton.onClick = [this]() {
         showPanel(2);
@@ -72,7 +69,6 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
 
     searchButton.setTooltip("Open search panel");
     searchButton.setConnectedEdges(12);
-    searchButton.getProperties().set("Style", "SmallIcon");
     searchButton.setClickingTogglesState(true);
     searchButton.onClick = [this]() {
         showPanel(3);
@@ -81,7 +77,6 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
 
     panelPinButton.setTooltip("Pin panel");
     panelPinButton.setConnectedEdges(12);
-    panelPinButton.getProperties().set("Style", "SmallIcon");
     panelPinButton.setClickingTogglesState(true);
     panelPinButton.onClick = [this]() {
         pinSidebar(panelPinButton.getToggleState());

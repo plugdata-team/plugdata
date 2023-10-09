@@ -407,76 +407,30 @@ struct PlugDataLook : public LookAndFeel_V4 {
         return 20;
     }
 
-    void drawButtonBackground(Graphics& g, Button& button, Colour const& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
-    {
-        if (button.getProperties()["Style"] == "LargeIcon") {
-            drawToolbarButtonBackground(g, button, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
-            return;
-        }
-        if (button.getProperties()["Style"].toString().contains("Icon")) {
-            return;
-        } else {
-            LookAndFeel_V4::drawButtonBackground(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
-        }
-    }
 
     void drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown) override
     {
-        if (button.getProperties()["Style"] == "LargeIcon") {
-            button.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarTextColourId));
-            button.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+        Font font(getTextButtonFont(button, button.getHeight()));
+        g.setFont(font);
+        auto colour = button.findColour(button.getToggleState() ? TextButton::textColourOnId
+                                                                : TextButton::textColourOffId)
+                          .withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
 
-            g.saveState();
-            g.addTransform(AffineTransform::translation(0.25f, 0.0f)); // This heuristic makes sure the icon appears exactly centred
-            LookAndFeel_V4::drawButtonText(g, button, isMouseOverButton, isButtonDown);
-            g.restoreState();
-        } else if (button.getProperties()["Style"] == "SmallIcon") {
-            Font font(getTextButtonFont(button, button.getHeight()));
-            g.setFont(font);
+        if (!button.getClickingTogglesState() && button.isMouseOver()) {
+            colour = button.findColour(TextButton::textColourOnId);
+        }
+        int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
+        int const cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
 
-            if (!button.isEnabled()) {
-                g.setColour(Colours::grey);
-            } else if (button.getToggleState()) {
-                g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId));
-            } else if (isMouseOverButton) {
-                g.setColour(button.findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f));
-            } else {
-                g.setColour(button.findColour(PlugDataColour::toolbarTextColourId));
-            }
+        int const fontHeight = roundToInt(font.getHeight() * 0.6f);
+        int const leftIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
+        int const rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
+        int const textWidth = button.getWidth() - leftIndent - rightIndent;
 
-            int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
-            int const cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
+        g.setColour(colour);
 
-            int const fontHeight = roundToInt(font.getHeight() * 0.6f);
-            int const leftIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
-            int const rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
-            int const textWidth = button.getWidth() - leftIndent - rightIndent;
-
-            if (textWidth > 0)
-                g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 2);
-        } else {
-            Font font(getTextButtonFont(button, button.getHeight()));
-            g.setFont(font);
-            auto colour = button.findColour(button.getToggleState() ? TextButton::textColourOnId
-                                                                    : TextButton::textColourOffId)
-                              .withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
-
-            if (!button.getClickingTogglesState() && button.isMouseOver()) {
-                colour = button.findColour(TextButton::textColourOnId);
-            }
-            int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
-            int const cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
-
-            int const fontHeight = roundToInt(font.getHeight() * 0.6f);
-            int const leftIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
-            int const rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
-            int const textWidth = button.getWidth() - leftIndent - rightIndent;
-
-            g.setColour(colour);
-
-            if (textWidth > 0) {
-                g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 1);
-            }
+        if (textWidth > 0) {
+            g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 1);
         }
     }
 
@@ -491,23 +445,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
             } else {
                 return Font(buttonHeight * scale);
             }
-        }
-        if (but.getProperties()["Style"] == "SmallIcon") {
-            return Fonts::getIconFont().withHeight(buttonHeight * 0.44f);
-        }
-        // For large buttons, the icon should actually be smaller
-        if (but.getProperties()["Style"] == "LargeIcon") {
-
-            auto flatOnLeft = but.isConnectedOnLeft();
-            auto flatOnRight = but.isConnectedOnRight();
-            auto flatOnTop = but.isConnectedOnTop();
-            auto flatOnBottom = but.isConnectedOnBottom();
-
-            if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
-                return Fonts::getIconFont().withHeight(buttonHeight * 0.345f);
-            }
-
-            return Fonts::getIconFont().withHeight(buttonHeight * 0.375f);
         }
 
         return { buttonHeight / 1.7f };

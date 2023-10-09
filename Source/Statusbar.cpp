@@ -377,7 +377,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     powerButton.setTooltip("Enable/disable DSP");
     powerButton.setClickingTogglesState(true);
-    powerButton.getProperties().set("Style", "SmallIcon");
     addAndMakeVisible(powerButton);
 
     powerButton.onClick = [this]() { powerButton.getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
@@ -385,7 +384,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     powerButton.setToggleState(pd_getdspstate(), dontSendNotification);
 
     centreButton.setTooltip("Move view to origin");
-    centreButton.getProperties().set("Style", "SmallIcon");
     centreButton.onClick = [this]() {
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
@@ -396,7 +394,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(centreButton);
 
     fitAllButton.setTooltip("Zoom to fit all");
-    fitAllButton.getProperties().set("Style", "SmallIcon");
     fitAllButton.onClick = [this]() {
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
@@ -407,7 +404,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(fitAllButton);
 
     protectButton.setTooltip("Clip output signal and filter non-finite values");
-    protectButton.getProperties().set("Style", "SmallIcon");
     protectButton.setClickingTogglesState(true);
     protectButton.setToggleState(SettingsFile::getInstance()->getProperty<int>("protected"), dontSendNotification);
     protectButton.onClick = [this]() {
@@ -460,10 +456,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
         AlignmentTools::show(editor, editor->getLocalArea(this, alignmentButton.getBounds()));
     };
 
-    // overlay button
-    overlayButton.getProperties().set("Style", "SmallIcon");
-    overlaySettingsButton.getProperties().set("Style", "SmallIcon");
-
     overlayButton.setClickingTogglesState(true);
     overlaySettingsButton.setClickingTogglesState(false);
 
@@ -477,10 +469,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     overlayButton.setTooltip(String("Show overlays"));
     overlaySettingsButton.setTooltip(String("Overlay settings"));
 
-    // snapping button
-    snapEnableButton.getProperties().set("Style", "SmallIcon");
-    snapSettingsButton.getProperties().set("Style", "SmallIcon");
-
     snapEnableButton.setClickingTogglesState(true);
     snapSettingsButton.setClickingTogglesState(false);
 
@@ -492,9 +480,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     snapEnableButton.setTooltip(String("Enable snapping"));
     snapSettingsButton.setTooltip(String("Snap settings"));
-
-    // alignment button
-    alignmentButton.getProperties().set("Style", "SmallIcon");
 
     addAndMakeVisible(alignmentButton);
 
