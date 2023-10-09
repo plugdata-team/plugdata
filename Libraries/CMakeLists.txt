@@ -409,6 +409,9 @@ set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
+target_link_options(externals PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
+target_link_options(externals-multi PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
+
 if(ENABLE_SFIZZ)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
 

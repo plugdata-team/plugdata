@@ -111,7 +111,7 @@ class WelcomePanel : public Component {
 
 public:
     WelcomePanel()
-        : newButton(Icons::Add, "New patch", "Create a new empty patch")
+        : newButton(Icons::New, "New patch", "Create a new empty patch")
         , openButton(Icons::Open, "Open patch...", "Open a saved patch")
 
     {
