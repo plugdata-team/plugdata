@@ -706,9 +706,7 @@ int Setup::initialisePd()
         libpd_set_polyaftertouchhook(plugdata_polyaftertouch);
         libpd_set_midibytehook(plugdata_midibyte);
         libpd_set_printhook(plugdata_print);
-        
-        sys_verbose = 0;
-        
+                
         // Initialise pd
         libpd_init();
         
