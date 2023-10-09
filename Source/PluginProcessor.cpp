@@ -902,7 +902,10 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 {
     auto* editor = new PluginEditor(*this);
     setThis();
-    openedEditors.add(editor);
+    
+    if(ProjectInfo::isStandalone) {
+        openedEditors.add(editor);
+    }
     
     for (auto const& patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
