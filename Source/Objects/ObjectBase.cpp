@@ -108,7 +108,7 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
         auto x = static_cast<float>(v.getValue().getArray()->getReference(0));
         auto y = static_cast<float>(v.getValue().getArray()->getReference(1));
 
-        libpd_moveobj(patch, obj.get(), x, y);
+        pd::Interface::moveObject(patch, obj.get(), x, y);
         object->updateBounds();
     }
 }
@@ -155,7 +155,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
             if (!canvas)
                 return;
 
-            libpd_undo_apply(canvas, obj.get());
+            pd::Interface::undoApply(canvas, obj.get());
         }
     };
 }
@@ -206,7 +206,7 @@ String ObjectBase::getText()
         if (!cnv->patch.checkObject(obj.get()))
             return "";
 
-        libpd_get_object_text(obj.get(), &text, &size);
+        pd::Interface::getObjectText(obj.get(), &text, &size);
     }
 
     if (text && size) {
@@ -235,7 +235,7 @@ String ObjectBase::getType() const
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
 
-        auto* className = libpd_get_object_class_name(obj.get());
+        auto* className = pd::Interface::getObjectClassName(obj.get());
         if (!className)
             return {};
 
@@ -358,7 +358,7 @@ void ObjectBase::moveToFront()
         if (!patch)
             return;
 
-        libpd_tofront(patch, obj.get());
+        pd::Interface::toFront(patch, obj.get());
     }
 }
 
@@ -369,7 +369,7 @@ void ObjectBase::moveForward()
         if (!patch)
             return;
 
-        libpd_move_forward(patch, obj.get());
+        pd::Interface::moveForward(patch, obj.get());
     }
 }
 
@@ -380,7 +380,7 @@ void ObjectBase::moveBackward()
         if (!patch)
             return;
 
-        libpd_move_backward(patch, obj.get());
+        pd::Interface::moveBackward(patch, obj.get());
     }
 }
 
@@ -391,7 +391,7 @@ void ObjectBase::moveToBack()
         if (!patch)
             return;
 
-        libpd_toback(patch, obj.get());
+        pd::Interface::toBack(patch, obj.get());
     }
 }
 
@@ -451,7 +451,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
     parent->cnv->pd->setThis();
     ScopedLock(parent->cnv->pd->audioLock);
 
-    auto const name = hash(libpd_get_object_class_name(ptr));
+    auto const name = hash(pd::Interface::getObjectClassName(ptr));
 
     // check if object is a patcher object, or something else
     if (!pd_checkobject(static_cast<t_pd*>(ptr)) && name != hash("scalar")) {
@@ -491,7 +491,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new CycloneCommentObject(ptr, parent);
         // Check if message type text object to prevent confusing it with else/message
         case hash("message"): {
-            if (libpd_is_text_object(ptr) && static_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
+            if (pd::Interface::isTextObject(ptr) && static_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
                 return new MessageObject(ptr, parent);
             }
             break;
@@ -568,7 +568,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         case hash("openfile"): {
             char* text;
             int size;
-            libpd_get_object_text(ptr, &text, &size);
+            pd::Interface::getObjectText(ptr, &text, &size);
             auto objText = String::fromUTF8(text, size);
             bool hyperlink = objText.contains("openfile -h");
             if(hyperlink)

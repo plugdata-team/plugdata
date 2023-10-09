@@ -356,7 +356,7 @@ enum ObjectIDs {
     NewArray,
     NewGraphOnParent,
     NewCanvas,
-    NewVUMeterObject,
+    NewVUMeter,
     NumObjects,
     OtherObject
 };
@@ -375,10 +375,10 @@ const std::map<ObjectIDs, String> objectNames {
     { NewFloatAtom, "floatatom" },
     { NewSymbolAtom, "symbolatom" },
     { NewListAtom, "listbox" },
-    { NewArray, "array" },
     { NewGraphOnParent, "graph" },
     { NewCanvas, "cnv" },
-    { NewVUMeterObject, "vu" },
+    { NewVUMeter, "vu" },
+    { NewArray, "garray" },
 };
 
 struct Corners {

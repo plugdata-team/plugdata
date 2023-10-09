@@ -4,8 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "x_libpd_extra_utils.h"
-
 static int srl_is_valid(t_symbol const* s)
 {
     return (s != nullptr && s != gensym(""));
@@ -125,8 +123,8 @@ public:
                 } else
                     iemcolor = ((-1 - iemcolor) & 0xffffff);
 
-                auto colour = Colour(static_cast<uint32>(convert_from_iem_color(iemcolor)));
-
+                
+                auto colour = convertFromIEMColour(iemcolor);
                 gui->setParameterExcludingListener(targetValue, colour.toString());
             }
         };
@@ -390,51 +388,45 @@ public:
     Colour getBackgroundColour() const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            return Colour(static_cast<uint32>(libpd_iemgui_get_background_color(iemgui.get())));
+            return convertFromIEMColour(iemgui->x_bcol);
         }
-
         return Colour();
     }
 
     Colour getForegroundColour() const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            return Colour(static_cast<uint32>(libpd_iemgui_get_foreground_color(iemgui.get())));
+            return convertFromIEMColour(iemgui->x_fcol);
         }
-
         return Colour();
     }
 
     Colour getLabelColour() const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            return Colour(static_cast<uint32>(libpd_iemgui_get_label_color(iemgui.get())));
+            return convertFromIEMColour(iemgui->x_lcol);
         }
-
         return Colour();
     }
 
     void setBackgroundColour(Colour colour) const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            String colourStr = colour.toString();
-            libpd_iemgui_set_background_color(iemgui.get(), colourStr.toRawUTF8());
+            iemgui->x_bcol = convertToIEMColour(colour);
         }
     }
 
     void setForegroundColour(Colour colour) const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            String colourStr = colour.toString();
-            libpd_iemgui_set_foreground_color(iemgui.get(), colourStr.toRawUTF8());
+            iemgui->x_fcol = convertToIEMColour(colour);
         }
     }
 
     void setLabelColour(Colour colour) const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            String colourStr = colour.toString();
-            libpd_iemgui_set_label_color(iemgui.get(), colourStr.toRawUTF8());
+            iemgui->x_lcol = convertToIEMColour(colour);
         }
     }
 
@@ -482,6 +474,20 @@ public:
         }
 
         return "";
+    }
+    
+    static Colour convertFromIEMColour(const int color)
+    {
+        const uint32 c = (uint32)(color << 8 | 0xFF);
+        return Colour(static_cast<uint32>((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8)));
+    }
+
+    static uint32 convertToIEMColour(Colour colour)
+    {
+        auto colourString = colour.toString();
+        char const* hex = colourString.toRawUTF8() + 2; // Remove alpha channel
+        uint32 col = static_cast<uint32>(strtol(hex, 0, 16));
+        return col & 0xFFFFFF;
     }
 
     void setLabelText(String newText)

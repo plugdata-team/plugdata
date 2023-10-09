@@ -13,7 +13,7 @@
 extern "C" {
 #include <m_pd.h>
 #include <m_imp.h>
-#include <x_libpd_mod_utils.h>
+#include "Pd/Interface.h"
 
 void ofelia_setup();
 }
@@ -119,7 +119,7 @@ private:
 
         char* p[1024];
         int numItems;
-        libpd_get_search_paths(p, &numItems);
+        pd::Interface::getSearchPaths(p, &numItems);
         auto paths = StringArray(p, numItems);
 
         for (auto& dir : paths) {

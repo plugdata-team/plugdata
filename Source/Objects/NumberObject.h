@@ -119,7 +119,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
             return { x, y, w + 1, h + 1 };
         }
 
@@ -139,7 +139,7 @@ public:
             auto fontsize = nbx->x_gui.x_fontsize * 31;
             nbx->x_numwidth = (((nbx->x_gui.x_w - 4.0 - (nbx->x_gui.x_h / 2.0)) * 36.0) / fontsize) + 0.5;
 
-            libpd_moveobj(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
 

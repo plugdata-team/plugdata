@@ -296,7 +296,7 @@ public:
 
             note->x_max_pixwidth = b.getWidth();
             note->x_height = b.getHeight();
-            libpd_moveobj(patch, note.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, note.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
 

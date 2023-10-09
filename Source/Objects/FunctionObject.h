@@ -61,7 +61,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, function.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, function.cast<t_gobj>(), b.getX(), b.getY());
             function->x_width = b.getWidth() - 1;
             function->x_height = b.getHeight() - 1;
         }
@@ -75,7 +75,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
             return { x, y, w + 1, h + 1 };
         }
 

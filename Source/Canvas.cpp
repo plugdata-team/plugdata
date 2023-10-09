@@ -972,7 +972,7 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
     String translatedObjects = pd::Patch::translatePatchAsString(patchString, mousePos - (patchSize / 2.0f));
 
     if (auto patchPtr = patch.getPointer()) {
-        libpd_paste(patchPtr.get(), translatedObjects.toRawUTF8());
+        pd::Interface::paste(patchPtr.get(), translatedObjects.toRawUTF8());
     }
 
     deselectAll();
@@ -1319,26 +1319,26 @@ void Canvas::encapsulateSelection()
         return;
 
     int size;
-    char const* text = libpd_copy(patchPtr, &size);
+    char const* text = pd::Interface::copy(patchPtr, &size);
     auto copied = String::fromUTF8(text, size);
 
     // Wrap it in an undo sequence, to allow undoing everything in 1 step
     patch.startUndoSequence("encapsulate");
 
-    libpd_removeselection(patchPtr);
+    pd::Interface::removeSelection(patchPtr);
 
     auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
 
-    libpd_paste(patchPtr, replacement.toRawUTF8());
+    pd::Interface::paste(patchPtr, replacement.toRawUTF8());
     auto* newObject = static_cast<t_object*>(patch.getObjects().back());
 
     for (auto& [idx, iolets] : newExternalConnections) {
         for (auto* iolet : iolets) {
             if (auto* externalObject = static_cast<t_object*>(iolet->object->getPointer())) {
                 if (iolet->isInlet) {
-                    libpd_createconnection(patchPtr, newObject, idx - numIn, externalObject, iolet->ioletIdx);
+                    pd::Interface::createConnection(patchPtr, newObject, idx - numIn, externalObject, iolet->ioletIdx);
                 } else {
-                    libpd_createconnection(patchPtr, externalObject, iolet->ioletIdx, newObject, idx);
+                    pd::Interface::createConnection(patchPtr, externalObject, iolet->ioletIdx, newObject, idx);
                 }
             }
         }
@@ -1451,7 +1451,7 @@ void Canvas::alignObjects(Align alignment)
     canvas_dirty(patch.getPointer().get(), 1);
     for (auto object : objects) {
         if (auto* ptr = object->getPointer())
-            libpd_undo_apply(patchPtr, &patch.checkObject(ptr)->te_g);
+            pd::Interface::undoApply(patchPtr, &patch.checkObject(ptr)->te_g);
     }
 
     // get the bounding box of all selected objects

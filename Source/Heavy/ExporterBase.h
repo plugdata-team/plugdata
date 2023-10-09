@@ -138,7 +138,7 @@ struct ExporterBase : public Component
         // Get pd's search paths
         char* paths[1024];
         int numItems;
-        libpd_get_search_paths(paths, &numItems);
+        pd::Interface::getSearchPaths(paths, &numItems);
 
         if (realPatchFile.existsAsFile()) {
             searchPaths.add(realPatchFile.getParentDirectory().getFullPathName());

@@ -29,7 +29,6 @@
 extern "C" {
 #include <m_pd.h>
 #include <m_imp.h>
-#include <x_libpd_extra_utils.h>
 }
 
 Object::Object(Canvas* parent, String const& name, Point<int> position)
@@ -700,15 +699,15 @@ void Object::updateTooltips()
         // Check child objects of subpatch for inlet/outlet messages
         for (auto* obj : subpatch->getObjects()) {
 
-            const String name = libpd_get_object_class_name(obj);
+            const String name = pd::Interface::getObjectClassName(obj);
             if (name == "inlet" || name == "inlet~") {
 
                 int size;
                 char* str_ptr;
-                libpd_get_object_text(obj, &str_ptr, &size);
+                pd::Interface::getObjectText(obj, &str_ptr, &size);
 
                 int x, y, w, h;
-                libpd_get_object_bounds(subpatchPtr, obj, &x, &y, &w, &h);
+                pd::Interface::getObjectBounds(subpatchPtr, obj, &x, &y, &w, &h);
 
                 // Anything after the first space will be the comment
                 auto const text = String::fromUTF8(str_ptr, size);
@@ -718,10 +717,10 @@ void Object::updateTooltips()
             if (name == "outlet" || name == "outlet~") {
                 int size;
                 char* str_ptr;
-                libpd_get_object_text(obj, &str_ptr, &size);
+                pd::Interface::getObjectText(obj, &str_ptr, &size);
 
                 int x, y, w, h;
-                libpd_get_object_bounds(subpatchPtr, obj, &x, &y, &w, &h);
+                pd::Interface::getObjectBounds(subpatchPtr, obj, &x, &y, &w, &h);
 
                 auto const text = String::fromUTF8(str_ptr, size);
                 outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
@@ -779,8 +778,8 @@ void Object::updateIolets()
     }
 
     if (auto* ptr = pd::Patch::checkObject(getPointer())) {
-        numInputs = libpd_ninlets(ptr);
-        numOutputs = libpd_noutlets(ptr);
+        numInputs = pd::Interface::numInlets(ptr);
+        numOutputs = pd::Interface::numOutlets(ptr);
     }
 
     for (auto* iolet : iolets) {
@@ -809,9 +808,9 @@ void Object::updateIolets()
 
         bool isSignal;
         if (i < numInputs) {
-            isSignal = libpd_issignalinlet(pd::Patch::checkObject(getPointer()), i);
+            isSignal = pd::Interface::isSignalInlet(pd::Patch::checkObject(getPointer()), i);
         } else {
-            isSignal = libpd_issignaloutlet(pd::Patch::checkObject(getPointer()), i - numInputs);
+            isSignal = pd::Interface::isSignalOutlet(pd::Patch::checkObject(getPointer()), i - numInputs);
         }
 
         iolet->ioletIdx = input ? numIn : numOut;
@@ -1022,7 +1021,7 @@ void Object::mouseDrag(MouseEvent const& e)
                     continue;
 
                 // Used for size changes, could also be used for properties
-                libpd_undo_apply(patchPtr, objPtr);
+                pd::Interface::undoApply(patchPtr, objPtr);
             }
 
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);

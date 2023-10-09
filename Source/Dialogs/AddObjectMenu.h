@@ -211,7 +211,7 @@ public:
                 { Icons::GlyphListBox, "#X listbox 0 0 20 0 0 0 - - - 0", "(@keypress) List box", "List", NewListAtom },
                 { Icons::GlyphComment, "#X text 0 0 comment", "(@keypress) Comment", "Comment", NewComment },
                 { Icons::GlyphArray, "#N canvas 0 0 450 250 (subpatch) 0;\n#X array array1 100 float 2;\n#X coords 0 1 100 -1 200 140 1;\n#X restore 0 0 graph;", "(@keypress) Array", "Array", NewArray },
-                { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 226 1 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
+                { Icons::GlyphGOP, "#N canvas 0 0 450 250 (subpatch) 1;\n#X coords 0 1 100 -1 200 140 1 0 0;\n#X restore 0 0 graph;", "(@keypress) Graph on parent", "Graph", NewGraphOnParent },
             } },
         { "UI",
             {
@@ -230,7 +230,7 @@ public:
                 { Icons::GlyphKeyboard, "#X obj 0 0 keyboard 16 80 4 2 0 0 empty empty", "Piano keyboard", "Keyboard", OtherObject },
                 { Icons::GlyphMessbox, "#X obj -0 0 messbox 180 60 @iemBgColour @iemFgColour 0 12", "ELSE Message box", "Messbox", OtherObject },
                 { Icons::GlyphBicoeff, "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff", OtherObject },
-                { Icons::GlyphVUMeter, "#X obj 0 0 vu 20 120 empty empty -1 -8 0 10 #191919 @labelColour 1 0", "(@keypress) VU meter", "VU Meter", NewVUMeterObject },
+                { Icons::GlyphVUMeter, "#X obj 0 0 vu 20 120 empty empty -1 -8 0 10 #191919 @labelColour 1 0", "(@keypress) VU meter", "VU Meter", NewVUMeter },
             } },
         { "General",
             {

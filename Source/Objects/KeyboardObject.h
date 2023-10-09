@@ -292,7 +292,7 @@ public:
                 return {};
 
             int x, y, w, h;
-            libpd_get_object_bounds(patch, obj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, obj.get(), &x, &y, &w, &h);
 
             return Rectangle<int>(x, y, obj->x_space * numWhiteKeys, obj->x_height);
         }
@@ -307,7 +307,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.cast<t_gobj>(), b.getX(), b.getY());
             gobj->x_height = b.getHeight();
         }
     }

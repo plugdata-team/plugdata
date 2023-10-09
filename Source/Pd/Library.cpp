@@ -20,12 +20,12 @@ extern "C" {
 #include <m_imp.h>
 #include <s_stuff.h>
 #include <z_libpd.h>
-#include <x_libpd_mod_utils.h>
 }
 
 #include <utility>
 #include "Library.h"
 #include "Instance.h"
+#include "Pd/Interface.h"
 
 struct _canvasenvironment {
     t_symbol* ce_dir;    /* directory patch lives in */
@@ -46,7 +46,8 @@ void Library::updateLibrary()
 
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
-
+    
+    
     auto* mlist = static_cast<t_methodentry*>(libpd_get_class_methods(o));
     t_methodentry* m;
 
@@ -81,6 +82,9 @@ void Library::updateLibrary()
         }
     }
 
+    allObjects.add("graph");
+    allObjects.add("garray");
+    
     sys_unlock();
 }
 

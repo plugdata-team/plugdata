@@ -5,8 +5,6 @@
  */
 
 extern "C" {
-#include "x_libpd_extra_utils.h"
-
 void garray_arraydialog(t_fake_garray* x, t_symbol* name, t_floatarg fsize, t_floatarg fflags, t_floatarg deleteit);
 }
 
@@ -267,8 +265,8 @@ public:
 
     bool willSaveContent() const
     {
-        if (auto ptr = arr.get<t_garray>()) {
-            return libpd_array_get_saveit(ptr.get());
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            return ptr->x_saveit;
         }
 
         return false;
@@ -277,8 +275,8 @@ public:
     // Gets the name of the array. Currently not used anywhere
     String getExpandedName() const
     {
-        if (auto ptr = arr.get<t_garray>()) {
-            return String::fromUTF8(libpd_array_get_name(ptr.get()));
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            return String::fromUTF8(ptr->x_realname->s_name);
         }
 
         return {};
@@ -287,8 +285,8 @@ public:
     // Gets the text label of the array
     String getUnexpandedName() const
     {
-        if (auto ptr = arr.get<t_garray>()) {
-            return String::fromUTF8(libpd_array_get_unexpanded_name(ptr.get()));
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            return String::fromUTF8(ptr->x_name->s_name);
         }
 
         return {};
@@ -296,16 +294,30 @@ public:
 
     int getLineWidth()
     {
-        if (auto ptr = arr.get<t_garray>()) {
-            return libpd_array_get_linewidth(ptr.get());
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            if (ptr->x_scalar) {
+                t_scalar* scalar = ptr->x_scalar;
+                t_template* scalartplte = template_findbyname(scalar->sc_template);
+                if (scalartplte) {
+                    int result = (int)template_getfloat(scalartplte, gensym("linewidth"), scalar->sc_vec, 1);
+                    return result;
+                }
+            }
         }
 
         return 1;
     }
     DrawType getDrawType() const
     {
-        if (auto ptr = arr.get<t_garray>()) {
-            return static_cast<DrawType>(libpd_array_get_style(ptr.get()));
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            if (ptr->x_scalar) {
+                t_scalar* scalar = ptr->x_scalar;
+                t_template* scalartplte = template_findbyname(scalar->sc_template);
+                if (scalartplte) {
+                    int result = (int)template_getfloat(scalartplte, gensym("style"), scalar->sc_vec, 0);
+                    return static_cast<DrawType>(result);
+                }
+            }
         }
 
         return DrawType::Points;
@@ -314,14 +326,17 @@ public:
     // Gets the scale of the array
     std::array<float, 2> getScale() const
     {
-        float min = -1, max = 1;
-        if (auto ptr = arr.get<t_garray>()) {
-            libpd_array_get_scale(ptr.get(), &min, &max);
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            t_canvas const* cnv = ptr->x_glist;
+            if (cnv) {
+                float min = cnv->gl_y2;
+                float max = cnv->gl_y1;
+                
+                if (min == max)
+                    max += 1e-6;
 
-            if (min == max)
-                max += 1e-6;
-
-            return { min, max };
+                return {min, max};
+            }
         }
 
         return { -1.0f, 1.0f };
@@ -329,8 +344,8 @@ public:
 
     bool getEditMode() const
     {
-        if (auto ptr = arr.get<t_garray>()) {
-            return libpd_array_get_editmode(ptr.get());
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            return ptr->x_edit;
         }
 
         return true;
@@ -338,8 +353,8 @@ public:
 
     void setEditMode(bool editMode)
     {
-        if (auto ptr = arr.get<t_garray>()) {
-            libpd_array_set_editmode(ptr.get(), editMode);
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            ptr->x_edit = editMode;
         }
     }
 
@@ -347,7 +362,7 @@ public:
     int size() const
     {
         if (auto ptr = arr.get<t_garray>()) {
-            return libpd_array_get_size(ptr.get());
+            return garray_getarray(ptr.get())->a_n;
         }
 
         return 0;
@@ -387,34 +402,34 @@ public:
     void setScale(std::array<float, 2> scale)
     {
         auto& [min, max] = scale;
-        if (auto ptr = arr.get<t_garray>()) {
-            libpd_array_set_scale(ptr.get(), min, max);
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            t_canvas* cnv = ptr->x_glist;
+            if (cnv) {
+                cnv->gl_y2 = min;
+                cnv->gl_y1 = max;
+                return;
+            }
         }
     }
 
-    // Gets the values of the array.
+    // Gets the values from the array.
     void read(std::vector<float>& output) const
     {
         if (auto ptr = arr.get<t_garray>()) {
-            int const size = libpd_array_get_size(ptr.get());
+            int const size = garray_getarray(ptr.get())->a_n;
             output.resize(static_cast<size_t>(size));
-            libpd_array_read(output.data(), ptr.get(), 0, size);
+            
+            t_word* vec = ((t_word*)garray_vec(ptr.get()));
+            for (int i = 0; i < size; i++) output[i] = vec[i].w_float;
         }
     }
 
-    // Writes the values of the array.
-    void write(std::vector<float> const& input)
-    {
-        if (auto ptr = arr.get<t_garray>()) {
-            libpd_array_write(ptr.get(), 0, input.data(), static_cast<int>(input.size()));
-        }
-    }
-
-    // Writes a value of the array.
+    // Writes a value to the array.
     void write(const size_t pos, float const input)
     {
         if (auto ptr = arr.get<t_garray>()) {
-            libpd_array_write(ptr.get(), static_cast<int>(pos), &input, 1);
+            t_word* vec = ((t_word*)garray_vec(ptr.get()));
+            vec[pos].w_float = input;
         }
     }
 
@@ -620,7 +635,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, glist.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, glist.get(), &x, &y, &w, &h);
 
             return { x, y, glist->gl_pixwidth, glist->gl_pixheight };
         }
@@ -635,7 +650,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
 
             glist->gl_pixwidth = b.getWidth();
             glist->gl_pixheight = b.getHeight();

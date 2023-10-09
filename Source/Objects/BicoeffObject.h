@@ -537,7 +537,7 @@ public:
                 return;
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
 
             sizeProperty = Array<var> { var(w), var(h) };
         }
@@ -553,7 +553,7 @@ public:
                 return;
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
 
             setParameterExcludingListener(sizeProperty, Array<var> { var(w), var(h) });
         }
@@ -589,7 +589,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
             return { x, y, w + 1, h + 1 };
         }
 
@@ -603,7 +603,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
             pd->sendDirectMessage(gobj.get(), "dim", { (float)b.getWidth() - 1, (float)b.getHeight() - 1 });
         }
 

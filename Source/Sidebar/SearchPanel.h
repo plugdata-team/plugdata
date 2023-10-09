@@ -9,7 +9,6 @@
 
 #include <m_pd.h>
 #include <m_imp.h>
-#include <x_libpd_extra_utils.h>
 
 class SearchPanel : public Component
     , public ListBoxModel
@@ -337,14 +336,14 @@ public:
                 }
             }
 
-            auto className = String::fromUTF8(libpd_get_object_class_name(object));
+            auto className = String::fromUTF8(pd::Interface::getObjectClassName(object));
 
             if (className == "canvas" || className == "graph") {
                 // Save them for later, so we can put them at the end of the result
                 subpatches.add({ object, topLevel });
             } else {
 
-                bool isGui = !libpd_is_text_object(object);
+                bool isGui = !pd::Interface::isTextObject(object);
 
                 // If it's a gui add the class name
                 if (isGui) {
@@ -355,7 +354,7 @@ public:
                 else {
                     char* objectText;
                     int len;
-                    libpd_get_object_text(object, &objectText, &len);
+                    pd::Interface::getObjectText(object, &objectText, &len);
                     addObject(String::fromUTF8(objectText, len), topLevel, object);
                     freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
                 }
@@ -368,7 +367,7 @@ public:
 
             char* objectText;
             int len;
-            libpd_get_object_text(object, &objectText, &len);
+            pd::Interface::getObjectText(object, &objectText, &len);
 
             auto objTextStr = String::fromUTF8(objectText, len);
 

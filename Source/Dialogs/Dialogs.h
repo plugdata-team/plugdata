@@ -13,8 +13,6 @@
 
 class Canvas;
 
-using ArrayDialogCallback = std::function<void(int, String, int, int, bool, std::pair<float, float>)>;
-
 class Dialog : public Component {
 
 public:
@@ -156,7 +154,6 @@ struct Dialogs {
     static void appendTextToTextEditorDialog(Component* dialog, String const& text);
 
     static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);
-    static void showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, ArrayDialogCallback callback);
 
     static void showSettingsDialog(PluginEditor* editor);
 

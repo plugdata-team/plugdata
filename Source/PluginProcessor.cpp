@@ -35,7 +35,6 @@
 
 extern "C" {
 #include "../Libraries/cyclone/shared/common/file.h"
-#include "x_libpd_extra_utils.h"
 EXTERN char* pd_version;
 }
 
@@ -268,7 +267,7 @@ void PluginProcessor::updateSearchPaths()
     // Get pd's search paths
     char* p[1024];
     int numItems;
-    libpd_get_search_paths(p, &numItems);
+    pd::Interface::getSearchPaths(p, &numItems);
     auto currentPaths = StringArray(p, numItems);
 
     auto paths = pd::Library::defaultPaths;

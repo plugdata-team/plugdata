@@ -34,7 +34,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
         }
     }
 
@@ -365,7 +365,7 @@ public:
                 return;
 
             comment->x_max_pixwidth = b.getWidth();
-            libpd_moveobj(patch, comment.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, comment.cast<t_gobj>(), b.getX(), b.getY());
         }
     }
 

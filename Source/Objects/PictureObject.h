@@ -186,7 +186,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, pic.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, pic.cast<t_gobj>(), b.getX(), b.getY());
 
             pic->x_width = b.getWidth();
             pic->x_height = b.getHeight();
@@ -201,7 +201,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, pic.cast<t_gobj>(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, pic.cast<t_gobj>(), &x, &y, &w, &h);
             return { x, y, w, h };
         }
 
@@ -238,7 +238,7 @@ public:
             // Get pd's search paths
             char* paths[1024];
             int numItems;
-            libpd_get_search_paths(paths, &numItems);
+            pd::Interface::getSearchPaths(paths, &numItems);
 
             for (int i = 0; i < numItems; i++) {
                 auto file = File(String::fromUTF8(paths[i])).getChildFile(name);

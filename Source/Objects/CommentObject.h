@@ -151,7 +151,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
@@ -192,7 +192,7 @@ public:
             if (!canvas)
                 return;
 
-            libpd_renameobj(canvas, comment.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
+            pd::Interface::renameObject(canvas, comment.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
         }
     }
 

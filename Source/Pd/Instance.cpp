@@ -21,9 +21,8 @@ extern "C" {
 #include <g_undo.h>
 #include <m_imp.h>
 
-#include "x_libpd_extra_utils.h"
-#include "x_libpd_mod_utils.h"
-#include "x_libpd_multi.h"
+#include "Pd/Interface.h"
+#include "Setup.h"
 #include "z_print_util.h"
 
 int sys_load_lib(t_canvas* canvas, char const* classname);
@@ -664,7 +663,7 @@ Patch::Ptr Instance::openPatch(File const& toOpen)
 
     setThis();
 
-    cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
+    cnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
 
     return new Patch(cnv, this, true, toOpen);
 }

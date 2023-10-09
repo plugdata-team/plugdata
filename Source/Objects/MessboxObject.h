@@ -80,7 +80,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, messbox.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, messbox.get(), &x, &y, &w, &h);
             return { x, y, w, h };
         }
 
@@ -94,7 +94,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, messbox.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, messbox.cast<t_gobj>(), b.getX(), b.getY());
 
             messbox->x_width = b.getWidth();
             messbox->x_height = b.getHeight();

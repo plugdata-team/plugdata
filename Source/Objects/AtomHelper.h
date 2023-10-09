@@ -99,7 +99,7 @@ public:
                 return {};
 
             int x, y, w, h;
-            libpd_get_object_bounds(patchPtr, atom.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patchPtr, atom.get(), &x, &y, &w, &h);
 
             w = (std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(patchPtr)) + 3;
 
@@ -116,7 +116,7 @@ public:
             if (!patchPtr)
                 return;
 
-            libpd_moveobj(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
 
             auto fontWidth = glist_fontwidth(patchPtr);
             atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
@@ -174,7 +174,7 @@ public:
                     auto y = oldBounds.getY();
 
                     if (auto atom = helper->ptr.get<t_gobj>()) {
-                        libpd_moveobj(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                        pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                     }
                 }
 

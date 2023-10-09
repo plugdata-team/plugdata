@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-# ------------------------------------------------------------------------------#
-# LIBPD PROJECT IN C
-# ------------------------------------------------------------------------------#
-project(libpd VERSION 1.0.0 LANGUAGES C CXX)
+project(pure-data VERSION 1.0.0 LANGUAGES C CXX)
 
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
@@ -29,15 +26,7 @@ set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(PD_PATH "pure-data/")
-set(LIBPD_PATH "libpd/")
-set(LIBPD_OUTPUT_DIRECTORY "./..")
 
-# ------------------------------------------------------------------------------#
-# OPTIONS
-# ------------------------------------------------------------------------------#
-option(PD_UTILS "Compile libpd utilities" OFF)
-option(PD_EXTRA "Compile extras" ON)
-option(PD_LOCALE "Set the LC_NUMERIC number format to the default C locale" ON)
         
 # ------------------------------------------------------------------------------#
 # SOURCES
@@ -164,23 +153,6 @@ if(PD_EXTRA)
     list(APPEND SOURCE_FILES ${PD_EXTRA_SOURCES})
 endif()
 
-# LIBPD SOURCES
-# ------------------------------------------------------------------------------#
-set(LIBPD_SOURCES
-    ${LIBPD_PATH}/s_libpd_midi.c
-    ${LIBPD_PATH}/x_libpd_receive.c
-    ${LIBPD_PATH}/x_libpd_receive.h
-    ${LIBPD_PATH}/x_libpd_extra_utils.c
-    ${LIBPD_PATH}/x_libpd_extra_utils.h
-    ${LIBPD_PATH}/x_libpd_mod_utils.c
-    ${LIBPD_PATH}/x_libpd_mod_utils.h
-    ${LIBPD_PATH}/x_libpd_multi.c
-    ${LIBPD_PATH}/x_libpd_multi.h
-)
-
-include_directories(${LIBPD_PATH})
-source_group(libpd FILES ${LIBPD_SOURCES})
-list(APPEND SOURCE_FILES ${LIBPD_SOURCES})
 
 # ELSE SOURCES
 # ------------------------------------------------------------------------------#
@@ -266,37 +238,28 @@ source_group(pdlua FILES ${PDLUA_SOURCES})
 # ------------------------------------------------------------------------------#
 # COMPILE DEFINITIONS
 # ------------------------------------------------------------------------------#
-set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
+set(PD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 
 
 if(ENABLE_SFIZZ)
-list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
+list(APPEND PD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
 endif()
 
-# COMPILE DEFINITIONS OPTIONS
-# ------------------------------------------------------------------------------#
-if(PD_EXTRA)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_EXTRA=1)
-endif()
-
-if(NOT PD_LOCALE)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_NO_NUMERIC=1)
-endif()
 
 # COMPILE DEFINITIONS OS
 # ------------------------------------------------------------------------------#
 if(WIN32)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS WINVER=0x502 WIN32=1 _WIN32=1)
+    list(APPEND PD_COMPILE_DEFINITIONS WINVER=0x502 WIN32=1 _WIN32=1)
 
     if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
-        list(APPEND LIBPD_COMPILE_DEFINITIONS "PD_LONGINTTYPE=long long")
+        list(APPEND PD_COMPILE_DEFINITIONS "PD_LONGINTTYPE=long long")
     endif()
 
     if(MSVC)
-        list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_STRUCT_TIMESPEC=1 _CRT_SECURE_NO_WARNINGS=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
+        list(APPEND PD_COMPILE_DEFINITIONS HAVE_STRUCT_TIMESPEC=1 _CRT_SECURE_NO_WARNINGS=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
     endif()
 elseif(UNIX)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
+    list(APPEND PD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
 endif()
 
 # ------------------------------------------------------------------------------#
@@ -305,7 +268,7 @@ endif()
 
 if(ENABLE_SFONT)
 
-    list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
+    list(APPEND PD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
 
     set(SFONT_DIR pd-else/Code_source/Compiled/audio/sfont~)
     set(FLUIDLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
@@ -394,22 +357,22 @@ add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES}
 add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
 
 # ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
-target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
-target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
+target_compile_definitions(externals PRIVATE ${PD_COMPILE_DEFINITIONS} PLUGDATA=1)
+target_compile_definitions(externals-multi PRIVATE ${PD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
 
 if(MSVC)
     add_library(pd SHARED ${SOURCE_FILES})
-    target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+    target_compile_definitions(pd PRIVATE ${PD_COMPILE_DEFINITIONS})
 else()
     add_library(pd STATIC ${SOURCE_FILES})
-    target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+    target_compile_definitions(pd PRIVATE ${PD_COMPILE_DEFINITIONS})
 
     # To make sure externals work, we need to make single-instance pd have its symbols be visible
     target_compile_options(pd PRIVATE -fvisibility=default)
 endif()
 
 add_library(pd-multi STATIC ${SOURCE_FILES})
-target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
+target_compile_definitions(pd-multi PRIVATE ${PD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
 
 if(MSVC)
     target_compile_definitions(pd-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")

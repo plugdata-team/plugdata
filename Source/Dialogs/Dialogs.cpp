@@ -24,7 +24,6 @@
 #include "Object.h"
 #include "Objects/ObjectBase.h"
 #include "SaveDialog.h"
-#include "ArrayDialog.h"
 #include "SettingsDialog.h"
 #include "TextEditorDialog.h"
 #include "ObjectBrowserDialog.h"
@@ -67,16 +66,7 @@ void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre,
 
     centre->getTopLevelComponent()->toFront(true);
 }
-void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, ArrayDialogCallback callback)
-{
-    if (*target)
-        return;
 
-    auto* dialog = new Dialog(target, centre, 300, 270, false);
-    auto* arrayDialog = new ArrayDialog(dialog, std::move(callback));
-    dialog->setViewedComponent(arrayDialog);
-    target->reset(dialog);
-}
 
 void Dialogs::showSettingsDialog(PluginEditor* editor)
 {

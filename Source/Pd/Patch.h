@@ -6,7 +6,7 @@
 #pragma once
 
 extern "C" {
-#include "x_libpd_mod_utils.h" //  TODO: we only need t_object
+#include "Pd/Interface.h" //  TODO: we only need t_object
 }
 
 #include "WeakReference.h"

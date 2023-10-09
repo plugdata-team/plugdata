@@ -22,6 +22,7 @@
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Pd/Setup.h"
 
 #include "PlugDataWindow.h"
 #include "Canvas.h"
@@ -30,9 +31,6 @@
 
 #include "Dialogs/Dialogs.h"
 
-extern "C" {
-#include <x_libpd_multi.h>
-}
 
 #if JUCE_WINDOWS
 #    include <filesystem>
@@ -47,21 +45,6 @@ extern "C" {
 #    define snprintf _snprintf
 #endif
 
-struct t_namelist /* element in a linked list of stored strings */
-{
-    struct t_namelist* nl_next; /* next in list */
-    char* nl_string;            /* the string */
-};
-
-static void namelist_free(t_namelist* listwas)
-{
-    t_namelist *nl, *nl2;
-    for (nl = listwas; nl; nl = nl2) {
-        nl2 = nl->nl_next;
-        t_freebytes(nl->nl_string, strlen(nl->nl_string) + 1);
-        t_freebytes(nl, sizeof(*nl));
-    }
-}
 static char const* strtokcpy(char* to, size_t to_len, char const* from, char delim)
 {
     unsigned int i = 0;
@@ -137,7 +120,7 @@ public:
         mainWindow->setVisible(true);
         parseSystemArguments(arguments);
         
-        auto const getWindowScreenBounds = [this]() -> Rectangle<int> {
+        auto getWindowScreenBounds = [this]() -> juce::Rectangle<int> {
             const auto width = mainWindow->getWidth();
             const auto height = mainWindow->getHeight();
 
@@ -194,7 +177,7 @@ public:
         t_namelist* openlist = nullptr;
         t_namelist* messagelist = nullptr;
 
-        int retval = parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
+        int retval = 0;//parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
 
         StringArray openedPatches;
         // open patches specifies with "-open" args

@@ -833,8 +833,8 @@ void PluginEditor::updateCommandStatus()
             return;
 
         pd->lockAudioThread();
-        canUndo = libpd_can_undo(patchPtr.get()) && !isDragging && !locked;
-        canRedo = libpd_can_redo(patchPtr.get()) && !isDragging && !locked;
+        canUndo = pd::Interface::canUndo(patchPtr.get()) && !isDragging && !locked;
+        canRedo = pd::Interface::canRedo(patchPtr.get()) && !isDragging && !locked;
         pd->unlockAudioThread();
 
         undoButton.setEnabled(canUndo);
@@ -1183,7 +1183,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
             { NewArray, { 65, cmdMod | shiftMod } },
             { NewGraphOnParent, { 71, cmdMod | shiftMod } },
             { NewCanvas, { 67, cmdMod | shiftMod } },
-            { NewVUMeterObject, { 85, cmdMod | shiftMod } }
+            { NewVUMeter, { 85, cmdMod | shiftMod } }
         };
         break;
     case OSUtils::KeyboardLayout::AZERTY:
@@ -1203,7 +1203,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
             { NewArray, { 65, cmdMod | shiftMod } },
             { NewGraphOnParent, { 71, cmdMod | shiftMod } },
             { NewCanvas, { 67, cmdMod | shiftMod } },
-            { NewVUMeterObject, { 85, cmdMod | shiftMod } }
+            { NewVUMeter, { 85, cmdMod | shiftMod } }
         };
         break;
 
@@ -1488,20 +1488,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
         Dialogs::showObjectBrowserDialog(&openedDialog, this);
         return true;
     }
-    case ObjectIDs::NewArray: {
-
-        Dialogs::showArrayDialog(&openedDialog, this,
-            [this](int result, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range) {
-                if (result) {
-                    auto* cnv = getCurrentCanvas();
-                    auto initialiser = StringArray { "garray", name, String(size), String(drawMode), String(static_cast<int>(saveContents)), String(range.first), String(range.second) }.joinIntoString(" ");
-                    auto* object = new Object(cnv, initialiser, cnv->viewport->getViewArea().getCentre());
-                    cnv->objects.add(object);
-                }
-            });
-        return true;
-    }
-
     default: {
 
         cnv = getCurrentCanvas();

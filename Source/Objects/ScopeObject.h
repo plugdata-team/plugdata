@@ -85,7 +85,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, scope.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, scope.get(), &x, &y, &w, &h);
 
             return { x, y, w + 1, h + 1 };
         }
@@ -100,7 +100,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, scope.template cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, scope.template cast<t_gobj>(), b.getX(), b.getY());
 
             scope->x_width = getWidth() - 1;
             scope->x_height = getHeight() - 1;

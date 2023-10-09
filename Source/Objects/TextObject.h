@@ -11,7 +11,7 @@ struct TextObjectHelper {
     static Rectangle<int> recalculateTextObjectBounds(void* patch, void* obj, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
     {
         int x, y, w, h;
-        libpd_get_object_bounds(patch, obj, &x, &y, &w, &h);
+        pd::Interface::getObjectBounds(patch, obj, &x, &y, &w, &h);
 
         auto fontWidth = glist_fontwidth(static_cast<t_glist*>(patch));
         int idealTextWidth = getIdealWidthForText(currentText, fontHeight);
@@ -97,7 +97,7 @@ struct TextObjectHelper {
                     auto x = oldBounds.getX() - widthDiff;
                     auto y = oldBounds.getY(); // don't allow y resize
 
-                    libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                    pd::Interface::moveObject(static_cast<t_glist*>(patch), static_cast<t_gobj*>(object->getPointer()), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                 }
 
                 // Set new width
@@ -311,7 +311,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));

@@ -183,12 +183,6 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     PD=1
 )
 
-set(LIBPD_MULTI_COMPILE_DEFINITIONS
-    PDINSTANCE=1
-    PDTHREADS=1
-)
-
-
 set(libs
   PlugDataBinaryData
   juce::juce_audio_utils
@@ -208,13 +202,12 @@ list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
 
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
-list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
 add_library(plugdata_core STATIC ${plugdata_sources} ${plugdata_global_sources})
-target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS})
+target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 target_link_libraries(plugdata_core PUBLIC ${libs})
 target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
@@ -359,11 +352,11 @@ target_sources(plugdata_midi PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SO
 endif()
 
 target_compile_definitions(plugdata_standalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1 PLUGDATA_STANDALONE=1)
-target_compile_definitions(plugdata PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS})
-target_compile_definitions(plugdata_fx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS} PLUGDATA_FX=1)
+target_compile_definitions(plugdata PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
+target_compile_definitions(plugdata_fx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} PLUGDATA_FX=1)
 
 if(APPLE)
-target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS} PLUGDATA_MIDI=1)
+target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} PLUGDATA_MIDI=1)
 endif()
 
 target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")

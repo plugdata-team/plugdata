@@ -80,7 +80,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, radio.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, radio.get(), &x, &y, &w, &h);
             auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
             auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
 

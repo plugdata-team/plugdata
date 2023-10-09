@@ -8,9 +8,7 @@
 #include "Constants.h"
 #include "PluginEditor.h"
 
-#include "x_libpd_extra_utils.h"
-#include "x_libpd_mod_utils.h"
-
+#include "Pd/Interface.h"
 #include "Pd/Patch.h"
 
 OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* instance)
@@ -26,7 +24,7 @@ OfflineObjectRenderer::OfflineObjectRenderer(pd::Instance* instance)
     String filename = patchFile.getFileName();
     auto const* file = filename.toRawUTF8();
 
-    offlineCnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
+    offlineCnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
 }
 
 OfflineObjectRenderer::~OfflineObjectRenderer() = default;
@@ -47,14 +45,14 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     totalSize.setBounds(0, 0, 0, 0);
     int obj_x, obj_y, obj_w, obj_h;
     auto rect = Rectangle<int>();
-    libpd_paste(offlineCnv, stripConnections(patch).toRawUTF8());
+    pd::Interface::paste(offlineCnv, stripConnections(patch).toRawUTF8());
 
     // traverse the linked list of objects, asking PD the object size each time
     auto object = offlineCnv->gl_list;
     while (object) {
-        libpd_get_object_bounds(offlineCnv, object, &obj_x, &obj_y, &obj_w, &obj_h);
+        pd::Interface::getObjectBounds(offlineCnv, object, &obj_x, &obj_y, &obj_w, &obj_h);
         auto objectData = static_cast<t_object*>(static_cast<void*>(object));
-        auto maxIolets = jmax<int>(libpd_noutlets(objectData), libpd_ninlets(objectData));
+        auto maxIolets = jmax<int>(pd::Interface::numOutlets(objectData), pd::Interface::numInlets(objectData));
         // ALEX TODO: fix this heuristic, it doesn't work well for everything
         auto maxSize = jmax<int>(maxIolets * 18, obj_w);
         rect.setBounds(obj_x, obj_y, maxSize, obj_h);
@@ -66,7 +64,7 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
         // save the pointer to the next object
         auto nextObject = object->g_next;
         // delete the current object from the canvas after we have read its dimensions
-        libpd_removeobj(offlineCnv, object);
+        pd::Interface::removeObject(offlineCnv, object);
         // move to the next object in the linked list
         object = nextObject;
     }
@@ -100,7 +98,7 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
     pd->muteConsole(true);
 
     bool isValid = false;
-    libpd_paste(offlineCnv, stripConnections(patch).toRawUTF8());
+    pd::Interface::paste(offlineCnv, stripConnections(patch).toRawUTF8());
 
     // if we can create more than 1 valid object, assume the patch is valid
     auto object = offlineCnv->gl_list;
@@ -108,7 +106,7 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
         isValid = true;
 
         auto nextObject = object->g_next;
-        libpd_removeobj(offlineCnv, object);
+        pd::Interface::removeObject(offlineCnv, object);
         object = nextObject;
     }
 
@@ -145,16 +143,16 @@ std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIole
 
     sys_lock();
     pd->muteConsole(true);
-    libpd_paste(offlineCnv, stripConnections(patch).toRawUTF8());
+    pd::Interface::paste(offlineCnv, stripConnections(patch).toRawUTF8());
 
     if (auto* object = reinterpret_cast<t_object*>(offlineCnv->gl_list)) {
-        int numIn = libpd_ninlets(object);
-        int numOut = libpd_noutlets(object);
+        int numIn = pd::Interface::numInlets(object);
+        int numOut = pd::Interface::numOutlets(object);
         for (int i = 0; i < numIn; i++) {
-            inlets.push_back(libpd_issignalinlet(object, i));
+            inlets.push_back(pd::Interface::isSignalInlet(object, i));
         }
         for (int i = 0; i < numOut; i++) {
-            outlets.push_back(libpd_issignaloutlet(object, i));
+            outlets.push_back(pd::Interface::isSignalOutlet(object, i));
         }
     }
 

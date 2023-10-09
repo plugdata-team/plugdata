@@ -164,14 +164,14 @@ public:
         }
 
         for (auto* object : patch->getObjects()) {
-            const String type = libpd_get_object_class_name(object);
+            const String type = pd::Interface::getObjectClassName(object);
 
             if (type == "canvas" || type == "graph") {
                 pd::Patch::Ptr subpatch = new pd::Patch(object, instance, false);
 
                 char* text = nullptr;
                 int size = 0;
-                libpd_get_object_text(object, &text, &size);
+                pd::Interface::getObjectText(object, &text, &size);
                 auto objName = String::fromUTF8(text, size);
 
                 checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");

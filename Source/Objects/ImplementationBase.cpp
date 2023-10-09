@@ -10,7 +10,6 @@
 extern "C" {
 
 #include <m_pd.h>
-#include <x_libpd_extra_utils.h>
 
 t_glist* clone_get_instance(t_gobj*, int);
 int clone_get_n(t_gobj*);
@@ -208,7 +207,7 @@ void ObjectImplementationManager::handleAsyncUpdate()
     for (auto* ptr : allImplementations) {
         if (!objectImplementations.count(ptr)) {
 
-            auto const name = String::fromUTF8(libpd_get_object_class_name(ptr));
+            auto const name = String::fromUTF8(pd::Interface::getObjectClassName(ptr));
 
             objectImplementations[ptr] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, ptr, pd));
         }
@@ -229,7 +228,7 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
     auto* glist = static_cast<t_glist*>(patch);
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
 
-        auto const* name = libpd_get_object_class_name(y);
+        auto const* name = pd::Interface::getObjectClassName(y);
 
         if (pd_class(&y->g_pd) == canvas_class) {
             implementations.addArray(getImplementationsForPatch(y));
@@ -254,7 +253,7 @@ void ObjectImplementationManager::clearObjectImplementationsForPatch(void* patch
     auto* glist = static_cast<t_glist*>(patch);
 
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
-        auto const name = String::fromUTF8(libpd_get_object_class_name(y));
+        auto const name = String::fromUTF8(pd::Interface::getObjectClassName(y));
 
         if (pd_class(&y->g_pd) == canvas_class) {
             clearObjectImplementationsForPatch(y);
