@@ -850,6 +850,7 @@ int Setup::initialisePd()
         sys_verbose = 0;
         initialized = 1;
     }
+    return 0;
 }
 
 void* Setup::createReceiver(void* ptr, char const* s,
