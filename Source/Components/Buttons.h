@@ -238,7 +238,6 @@ public:
         clearButton.setBounds(getLocalBounds().removeFromRight(30));
     }
 
-    
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
@@ -257,7 +256,7 @@ public:
             && getTotalNumChars() == 0)
         {
             g.setColour(findColour(TextEditor::textColourId).withAlpha(0.5f));
-            g.setFont (getFont());
+            g.setFont (getFont().withHeight(13.f));
 
             g.drawText (textToShowWhenEmpty, getBorder().subtractedFrom(getLocalBounds()).toFloat().translated(4, 2), Justification::centredLeft, true);
             

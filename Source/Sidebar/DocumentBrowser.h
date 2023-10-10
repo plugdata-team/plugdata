@@ -757,11 +757,11 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop(32);
+        auto inputBounds = tableBounds.removeFromTop(34);
 
         tableBounds.removeFromTop(2);
 
-        input.setBounds(inputBounds);
+        input.setBounds(inputBounds.reduced(5, 4));
         listBox.setBounds(tableBounds.withTrimmedTop(1));
     }
 
