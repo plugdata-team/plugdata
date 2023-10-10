@@ -324,11 +324,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugData_DocumentWindowButton)
     };
 
-    int getSliderThumbRadius(Slider& s) override
-    {
-        return LookAndFeel_V4::getSliderThumbRadius(s);
-    }
-
     void fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window) override
     {
         if (auto* dialog = dynamic_cast<FileChooserDialogBox*>(&window)) {
@@ -406,7 +401,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         return 20;
     }
-
 
     void drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown) override
     {
@@ -1092,16 +1086,18 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override
     {
-        Path corner;
+        
+        Path triangle;
+        triangle.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
+        
+        Path roundEdgeClipping;
+        roundEdgeClipping.addRoundedRectangle(Rectangle<int>(0, 0, w, h), Corners::objectCornerRadius);
 
-        corner.startNewSubPath(0, h);
-        corner.lineTo(w, h);
-        corner.lineTo(w, 0);
-        corner = corner.createPathWithRoundedCorners(Corners::windowCornerRadius);
-        corner.lineTo(0, h);
-
+        g.saveState();
+        g.reduceClipRegion(roundEdgeClipping);
         g.setColour(findColour(PlugDataColour::resizeableCornerColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));
-        g.fillPath(corner);
+        g.fillPath(triangle);
+        g.restoreState();
     }
 
     void drawTooltip(Graphics& g, String const& text, int width, int height) override

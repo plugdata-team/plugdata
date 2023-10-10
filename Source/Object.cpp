@@ -38,12 +38,6 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
 
-    if (cnv->attachNextObjectToMouse) {
-        cnv->attachNextObjectToMouse = false;
-        attachedToMouse = true;
-        startTimer(1, 16);
-    }
-
     initialise();
 
     // Open editor for undefined objects
@@ -53,13 +47,8 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     } else {
         setType(name);
     }
-
-    // Open the text editor of a new object if it has one
-    // Don't do this if the object is attached to the mouse
-    // Param objects are an exception where we don't want to open on mouse-down
-    if (attachedToMouse && !name.startsWith("param") && !getValue<bool>(locked)) {
-        createEditorOnMouseDown = true;
-    } else if (!attachedToMouse && !getValue<bool>(locked)) {
+    
+    if (!getValue<bool>(locked)) {
         showEditor();
     }
 }
@@ -77,10 +66,6 @@ Object::Object(t_gobj* object, Canvas* parent)
 
 Object::~Object()
 {
-    if (attachedToMouse) {
-        stopTimer(1);
-    }
-
     cnv->selectedComponents.removeChangeListener(this);
 }
 
@@ -126,28 +111,13 @@ void Object::initialise()
     updateOverlays(cnv->getOverlays());
 }
 
-void Object::timerCallback(int timerID)
+void Object::timerCallback()
 {
-    switch (timerID) {
-    case 1: {
-        auto pos = cnv->getMouseXYRelative();
-        if (pos != getBounds().getCentre()) {
-            auto viewArea = cnv->viewport->getViewArea() / getValue<float>(cnv->zoomScale);
-            setCentrePosition(viewArea.getConstrainedPoint(pos));
-        }
-        break;
-    }
-    case 2: {
-        activeStateAlpha -= 0.16f;
-        repaint();
-        if (activeStateAlpha <= 0.0f) {
-            activeStateAlpha = 0.0f;
-            stopTimer(2);
-        }
-        break;
-    }
-    default:
-        break;
+    activeStateAlpha -= 0.16f;
+    repaint();
+    if (activeStateAlpha <= 0.0f) {
+        activeStateAlpha = 0.0f;
+        stopTimer();
     }
 }
 
@@ -402,7 +372,7 @@ void Object::setType(String const& newType, t_gobj* existingObject)
     resized(); // If bounds haven't changed, we'll still want to update gui and iolets bounds
 
     // Auto patching
-    if (!attachedToMouse && getValue<bool>(cnv->editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
+    if (getValue<bool>(cnv->editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto inlet = iolets[0];
         if (outlet->isSignal == inlet->isSignal) {
@@ -507,18 +477,6 @@ void Object::paintOverChildren(Graphics& g)
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
 
         g.restoreState();
-    } else if (attachedToMouse) {
-        g.saveState();
-
-        // Don't draw line over iolets!
-        for (auto& iolet : iolets) {
-            g.excludeClipRegion(iolet->getBounds().reduced(2));
-        }
-
-        g.setColour(Colours::lightgreen);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
-
-        g.restoreState();
     } else if (indexShown) {
         int halfHeight = 5;
 
@@ -544,19 +502,19 @@ void Object::triggerOverlayActiveState()
         return;
 
     activeStateAlpha = 1.0f;
-    startTimer(2, 1000 / ACTIVITY_UPDATE_RATE);
+    startTimer(1000 / ACTIVITY_UPDATE_RATE);
 
     // Because the timer is being reset when new messages come in
     // it will not trigger it's callback until it's free-running
     // so we manually call the repaint here if this happens
-    MessageManager::callAsync([this]() {
-        repaint();
+    MessageManager::callAsync([_this = SafePointer(this)]() {
+        if(_this) _this->repaint();
     });
 }
 
 void Object::paint(Graphics& g)
 {
-    if ((showActiveState || isTimerRunning(2))) {
+    if ((showActiveState || isTimerRunning())) {
         g.setOpacity(activeStateAlpha);
         // show activation state glow
         g.drawImage(activityOverlayImage, getLocalBounds().toFloat());
@@ -836,21 +794,6 @@ void Object::updateIolets()
 
 void Object::mouseDown(MouseEvent const& e)
 {
-    if (attachedToMouse) {
-        attachedToMouse = false;
-        stopTimer(1);
-        repaint();
-
-        if (createEditorOnMouseDown) {
-            createEditorOnMouseDown = false;
-
-            // Prevent losing focus because of click event
-            MessageManager::callAsync([_this = SafePointer(this)]() { _this->showEditor(); });
-        }
-
-        return;
-    }
-
     // Only show right-click menu in locked mode if the object can be opened
     // We don't allow alt+click for popupmenus here, as that will conflict with some object behaviour, like for [range.hsl]
     if (e.mods.isRightButtonDown() && !cnv->editor->pluginMode) {

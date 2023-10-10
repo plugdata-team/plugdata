@@ -47,6 +47,7 @@ public:
         range.addListener(this);
         mode.addListener(this);
 
+        deleteButton.setButtonText(Icons::Clear);
         deleteButton.onClick = [this]() mutable {
             onDelete(this);
         };
@@ -349,7 +350,7 @@ public:
 
     std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*) {};
 
-    SmallIconButton deleteButton = SmallIconButton(Icons::Clear);
+    SmallIconButton deleteButton;
     ExpandButton settingsButton;
 
     Value range = Value(var(Array<var> { var(0.0f), var(127.0f) }));

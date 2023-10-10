@@ -23,7 +23,7 @@ class ObjectBoundsConstrainer;
 class Object : public Component
     , public Value::Listener
     , public ChangeListener
-    , public MultiTimer
+    , public Timer
     , private TextEditor::Listener {
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
@@ -35,7 +35,7 @@ public:
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
-    void timerCallback(int timerID) override;
+    void timerCallback() override;
 
     void paint(Graphics&) override;
     void paintOverChildren(Graphics&) override;
@@ -102,7 +102,6 @@ public:
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
 
-    bool attachedToMouse = false;
     bool isSearchTarget = false;
     static inline Object* consoleTarget = nullptr;
 

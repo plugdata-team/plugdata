@@ -195,8 +195,6 @@ public:
     std::unique_ptr<GraphArea> graphArea;
     SuggestionComponent* suggestor = nullptr;
 
-    bool attachNextObjectToMouse = false;
-    // TODO: Move to drag state!
     SafePointer<Object> lastSelectedObject;         // For auto patching
     SafePointer<Connection> lastSelectedConnection; // For auto patching
 

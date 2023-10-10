@@ -28,7 +28,6 @@ public:
 
         
         input.setTextToShowWhenEmpty("Type to search in patch", findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
-        input.getProperties().set("NoOutline", true);
 
         input.onTextChange = [this]() {
             updateResults();

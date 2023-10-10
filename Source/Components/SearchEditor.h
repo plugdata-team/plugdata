@@ -22,7 +22,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
+        g.setColour(findColour(backgroundColour));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
         
         if(hasKeyboardFocus(false)) {
@@ -45,5 +45,13 @@ public:
         }
     }
     
+    void setBackgroundColour(PlugDataColour newBackgroundColour)
+    {
+        backgroundColour = newBackgroundColour;
+    }
+    
+private:
+    
+    PlugDataColour backgroundColour = PlugDataColour::toolbarHoverColourId;
     SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
 };

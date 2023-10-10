@@ -108,7 +108,8 @@ public:
 
 class DocumentBrowserItem : public TreeViewItem
     , private AsyncUpdater
-    , private ChangeListener {
+    , private ChangeListener
+{
 public:
     DocumentBrowserItem(DocumentBrowserViewBase& treeComp, DirectoryContentsList* parentContents, int indexInContents, int indexInParent, File f)
         : file(std::move(f))
@@ -475,8 +476,6 @@ public:
         } else if (file.existsAsFile()) {
             auto* editor = findParentComponentOfClass<PluginEditor>();
             if (auto* cnv = editor->getCurrentCanvas()) {
-                cnv->attachNextObjectToMouse = true;
-
                 auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Object::margin, Object::margin));
                 auto filePath = file.getFullPathName().replaceCharacter('\\', '/');
                 cnv->objects.add(new Object(cnv, "msg " + filePath, lastPosition));
@@ -583,7 +582,7 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
-        input.getProperties().set("NoOutline", true);
+        input.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
         input.addKeyListener(this);
         input.onTextChange = [this]() {
             bool notEmpty = input.getText().isNotEmpty();

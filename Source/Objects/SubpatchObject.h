@@ -65,9 +65,8 @@ public:
         }
 
         //  If locked and it's a left click
-        if (locked && !e.mods.isRightButtonDown() && !object->attachedToMouse) {
+        if (locked && !e.mods.isRightButtonDown()) {
             openSubpatch();
-
             return;
         } else {
             TextBase::mouseDown(e);

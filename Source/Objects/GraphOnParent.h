@@ -197,7 +197,8 @@ public:
             cnv->editor->updateCommandStatus();
         }
 
-        auto b = getPatch()->getBounds() + canvas->canvasOrigin;
+        
+        auto b = getPatch()->getBounds().expanded(1) + canvas->canvasOrigin;
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         canvas->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
         canvas->locked.referTo(cnv->locked);

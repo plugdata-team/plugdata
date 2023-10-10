@@ -195,7 +195,7 @@ class TextBase : public ObjectBase
 
 protected:
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
+    BorderSize<int> border = BorderSize<int>(1, 7, 2, 2);
 
     Value sizeProperty = SynchronousValue();
     String objectText;
@@ -233,8 +233,8 @@ public:
 
         if (ioletAreaColour != backgroundColour) {
             g.setColour(ioletAreaColour);
-            g.fillRect(getLocalBounds().removeFromTop(3));
-            g.fillRect(getLocalBounds().removeFromBottom(3));
+            g.fillRect(getLocalBounds().toFloat().removeFromTop(3.5f));
+            g.fillRect(getLocalBounds().toFloat().removeFromBottom(3.5f));
         }
 
         if (!editor) {

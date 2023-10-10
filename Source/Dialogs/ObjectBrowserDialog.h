@@ -582,7 +582,6 @@ public:
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
         input.setTextToShowWhenEmpty("Type to search for objects", findColour(TextEditor::textColourId).withAlpha(0.5f));
-        input.getProperties().set("NoOutline", true);
         input.addKeyListener(this);
         input.onTextChange = [this]() {
             updateResults(input.getText());

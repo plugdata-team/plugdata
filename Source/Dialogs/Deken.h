@@ -436,7 +436,6 @@ public:
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 0, 3, 5, 1 });
-        input.getProperties().set("NoOutline", true);
         input.setEnabled(false);
         input.onTextChange = [this]() {
             filterResults();
