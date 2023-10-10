@@ -664,7 +664,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        Fonts::drawIcon(g, Icons::Search, 1, 0, 32, findColour(PlugDataColour::sidebarTextColourId), 12);
+        Fonts::drawIcon(g, Icons::Search, 2, 1, 32, findColour(PlugDataColour::sidebarTextColourId), 12);
     }
 
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override

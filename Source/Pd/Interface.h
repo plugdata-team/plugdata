@@ -304,8 +304,6 @@ struct Interface {
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, NULL);
         canvas_unsetcurrent(cnv);
-        
-        glist_noselect(cnv);
     }
 
     /* save a "root" canvas to a file; cf. canvas_saveto() which saves the

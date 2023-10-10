@@ -8,9 +8,9 @@
 #include <utility>
 
 #include "Components/BouncingViewport.h"
+#include "Components/ObjectDragAndDrop.h"
 #include "ObjectReferenceDialog.h"
 #include "Canvas.h"
-#include "ListBoxObjectItem.h"
 #include "Dialogs.h"
 
 class CategoriesListBox : public ListBox
@@ -73,6 +73,104 @@ public:
 
 class ObjectsListBox : public ListBox
     , public ListBoxModel {
+        
+        class ObjectListBoxItem : public ObjectDragAndDrop
+        {
+        public:
+            ObjectListBoxItem(ListBox* parent, const String& name, const String& description, bool isSelected, std::function<void(bool shouldFade)> dismissDialog)
+                : rowIsSelected(isSelected)
+                , objectsListBox(parent)
+                , dismissMenu(dismissDialog)
+                , objectName(name)
+                , objectDescription(description)
+            {
+            }
+
+            void paint(juce::Graphics& g) override
+            {
+                if (rowIsSelected || mouseHover) {
+                    auto colour = findColour(PlugDataColour::panelActiveBackgroundColourId);
+                    if (mouseHover && !rowIsSelected)
+                        colour = colour.withAlpha(0.5f);
+
+                    g.setColour(colour);
+                    g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), Corners::defaultCornerRadius);
+                }
+
+                auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+
+                auto textBounds = Rectangle<int>(0, 0, getWidth(), getHeight()).reduced(18, 6);
+
+                Fonts::drawStyledText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
+
+                Fonts::drawText(g, objectDescription, textBounds, colour, 14);
+            }
+
+            bool hitTest(int x, int y) override
+            {
+                auto bounds = getLocalBounds().reduced(4, 2);
+                return bounds.contains(x, y);
+            }
+
+            void mouseEnter(MouseEvent const& e) override
+            {
+                mouseHover = true;
+                repaint();
+            }
+
+            void mouseExit(MouseEvent const& e) override
+            {
+                mouseHover = false;
+                repaint();
+            }
+
+            void mouseDown(MouseEvent const& e) override
+            {
+                objectsListBox->selectRow(row, true, true);
+            }
+
+            void mouseUp(MouseEvent const& e) override
+            {
+                if (e.mouseWasDraggedSinceMouseDown())
+                    dismissMenu(false);
+            }
+
+            void dismiss(bool withAnimation)
+            {
+                dismissMenu(withAnimation);
+            }
+
+            String getObjectString()
+            {
+                return "#X obj 0 0 " + objectName;
+            }
+
+            String getItemName() const
+            {
+                return objectName;
+            }
+
+            void refresh(String name, String description, int rowNumber, bool isSelected)
+            {
+                objectName = name;
+                objectDescription = description;
+                row = rowNumber;
+                rowIsSelected = isSelected;
+                repaint();
+            }
+
+        private:
+            int row;
+            String objectName;
+            String objectDescription;
+            bool rowIsSelected = false;
+            ListBox* objectsListBox;
+
+            bool mouseHover = false;
+
+            std::function<void(bool shouldFade)> dismissMenu;
+        };
+
 
     BouncingViewportAttachment bouncer;
     std::function<void(bool shouldFade)> dismiss;
@@ -117,11 +215,13 @@ public:
     {
         if (existingComponentToUpdate == nullptr)
         {
-            return new ListBoxObjectItem(this, rowNumber, isRowSelected, dismiss);
+            auto name = objects[rowNumber];
+            auto description = descriptions[name];
+            return new ObjectListBoxItem(this, name, description, isRowSelected, dismiss);
         }
         else
         {
-            auto* itemComponent = dynamic_cast<ListBoxObjectItem*>(existingComponentToUpdate);
+            auto* itemComponent = dynamic_cast<ObjectListBoxItem*>(existingComponentToUpdate);
             if (itemComponent != nullptr) {
                 auto name = objects[rowNumber];
                 auto description = descriptions[name];

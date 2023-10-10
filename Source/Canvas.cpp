@@ -1042,6 +1042,8 @@ void Canvas::duplicateSelection()
     // Tell pd to duplicate
     patch.duplicate(objectsToDuplicate);
 
+    deselectAll();
+    
     // Load state from pd immediately
     performSynchronise();
 

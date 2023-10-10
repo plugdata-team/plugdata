@@ -23,19 +23,7 @@ public:
         , owner(ownerPtr)
         , backgroundMargin(margin)
     {
-        if(auto* editor = dynamic_cast<PluginEditor*>(parentComponent))
-        {
-            if(ProjectInfo::isStandalone) {
-                auto* mainContentComponent = editor->getTopLevelComponent()->getChildComponent(0);
-                mainContentComponent->addAndMakeVisible(this);
-            }
-            else {
-                parentComponent->addAndMakeVisible(this);
-            }
-        }
-        else {
-            parentComponent->addAndMakeVisible(this);
-        }
+        parentComponent->addAndMakeVisible(this);
         
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 

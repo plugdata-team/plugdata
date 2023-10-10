@@ -8,6 +8,7 @@
 #include "PluginEditor.h"
 #include "SplitViewResizer.h"
 #include "PluginProcessor.h"
+#include "Components/SearchEditor.h"
 #include "Sidebar/Palettes.h"
 #include "Sidebar/DocumentBrowser.h"
 #include "Tabbar.h"

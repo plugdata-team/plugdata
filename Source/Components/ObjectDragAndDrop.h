@@ -35,7 +35,7 @@ public:
 
         auto* dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
-        if (dragContainer->isDragAndDropActive())
+        if (!dragContainer || dragContainer->isDragAndDropActive())
             return;
 
         auto scale = 2.0f;

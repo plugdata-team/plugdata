@@ -196,7 +196,7 @@ public:
     {
 
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
-        Fonts::drawIcon(g, Icons::Search, 1, 0, 32, colour, 12);
+        Fonts::drawIcon(g, Icons::Search, 2, 1, 32, colour, 12);
     }
 
     std::pair<String, String> formatSearchResultString(String const& name, String prefix, Rectangle<int> bounds)

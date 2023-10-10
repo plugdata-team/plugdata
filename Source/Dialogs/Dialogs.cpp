@@ -19,6 +19,7 @@
 
 #include "Components/ArrowPopupMenu.h"
 #include "Components/Buttons.h"
+#include "Components/SearchEditor.h"
 
 #include "Sidebar/Sidebar.h"
 #include "Object.h"

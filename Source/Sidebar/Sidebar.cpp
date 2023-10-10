@@ -13,6 +13,7 @@
 #include "PluginEditor.h"
 #include "Canvas.h"
 
+#include "Components/SearchEditor.h"
 #include "Sidebar.h"
 #include "Console.h"
 #include "Inspector.h"
