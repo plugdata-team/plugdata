@@ -14,7 +14,7 @@ class ButtonObject : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    ButtonObject(void* obj, Object* parent)
+    ButtonObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         onConstrainerCreate = [this]() {

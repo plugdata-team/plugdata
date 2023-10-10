@@ -288,16 +288,16 @@ public:
         input.grabKeyboardFocus();
     }
 
-    static Array<std::tuple<String, String, SafePointer<Object>, void*>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, String const& query, Object* topLevelObject = nullptr, String prefix = "")
+    static Array<std::tuple<String, String, SafePointer<Object>, t_gobj*>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, String const& query, Object* topLevelObject = nullptr, String prefix = "")
     {
 
         auto* instance = patch.instance;
 
-        Array<std::tuple<String, String, SafePointer<Object>, void*>> result;
+        Array<std::tuple<String, String, SafePointer<Object>, t_gobj*>> result;
 
-        Array<std::pair<void*, Object*>> subpatches;
+        Array<std::pair<t_canvas*, Object*>> subpatches;
 
-        auto addObject = [&query, &result, &prefix](String const& text, Object* object, void* ptr) {
+        auto addObject = [&query, &result, &prefix](String const& text, Object* object, t_gobj* ptr) {
             // Insert in front if the query matches a whole word
             if (text.containsWholeWordIgnoreCase(query)) {
                 result.insert(0, { text, prefix, object, ptr });
@@ -323,11 +323,11 @@ public:
                 }
             }
 
-            auto className = String::fromUTF8(pd::Interface::getObjectClassName(object));
+            auto className = String::fromUTF8(pd::Interface::getObjectClassName(&object->g_pd));
 
             if (className == "canvas" || className == "graph") {
                 // Save them for later, so we can put them at the end of the result
-                subpatches.add({ object, topLevel });
+                subpatches.add({ reinterpret_cast<t_canvas*>(object), topLevel });
             } else {
 
                 bool isGui = !pd::Interface::isTextObject(object);
@@ -338,10 +338,10 @@ public:
 
                 }
                 // If it's a text object, message or comment, add the text
-                else {
+                else if(auto* checkedObject = pd::Interface::checkObject(&object->g_pd)){
                     char* objectText;
                     int len;
-                    pd::Interface::getObjectText(object, &objectText, &len);
+                    pd::Interface::getObjectText(checkedObject, &objectText, &len);
                     addObject(String::fromUTF8(objectText, len), topLevel, object);
                     freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
                 }
@@ -354,11 +354,11 @@ public:
 
             char* objectText;
             int len;
-            pd::Interface::getObjectText(object, &objectText, &len);
+            pd::Interface::getObjectText(&object->gl_obj, &objectText, &len);
 
             auto objTextStr = String::fromUTF8(objectText, len);
 
-            addObject(objTextStr, topLevel, object);
+            addObject(objTextStr, topLevel, &object->gl_obj.te_g);
 
             freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
 
@@ -390,7 +390,7 @@ public:
 private:
     ListBox listBox;
 
-    Array<std::tuple<String, String, SafePointer<Object>, void*>> searchResult;
+    Array<std::tuple<String, String, SafePointer<Object>, t_gobj*>> searchResult;
     SearchEditor input;
 
     BouncingViewportAttachment bouncer;

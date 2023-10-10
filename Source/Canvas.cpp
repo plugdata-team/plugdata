@@ -504,7 +504,7 @@ void Canvas::performSynchronise()
 
         // Find the objects that this connection is connected to
         for (auto* obj : objects) {
-            if (outobj && outobj == obj->getPointer()) {
+            if (outobj && &outobj->te_g == obj->getPointer()) {
 
                 // Check if we have enough outlets, should never return false
                 if (isPositiveAndBelow(obj->numInputs + outno, obj->iolets.size())) {
@@ -513,7 +513,7 @@ void Canvas::performSynchronise()
                     break;
                 }
             }
-            if (inobj && inobj == obj->getPointer()) {
+            if (inobj && &inobj->te_g == obj->getPointer()) {
 
                 // Check if we have enough inlets, should never return false
                 if (isPositiveAndBelow(inno, obj->iolets.size())) {
@@ -812,7 +812,7 @@ bool Canvas::keyPressed(KeyPress const& key)
         auto objects = getSelectionOfType<Object>();
         if(objects.isEmpty()) return;
         
-        std::vector<void*> pdObjects;
+        std::vector<t_gobj*> pdObjects;
 
         for (auto* object : objects) {
             if (auto* ptr = object->getPointer()) {
@@ -902,7 +902,7 @@ void Canvas::hideAllActiveEditors()
 void Canvas::copySelection()
 {
     // Tell pd to select all objects that are currently selected
-    std::vector<void*> objects;
+    std::vector<t_gobj*> objects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
             objects.push_back(ptr);
@@ -944,7 +944,7 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
 
     patch.setCurrent();
 
-    std::vector<void*> pastedObjects;
+    std::vector<t_gobj*> pastedObjects;
 
     auto* patchPtr = patch.getPointer().get();
     if (!patchPtr)
@@ -990,7 +990,7 @@ void Canvas::pasteSelection()
 
     patch.setCurrent();
 
-    std::vector<void*> pastedObjects;
+    std::vector<t_gobj*> pastedObjects;
 
     auto* patchPtr = patch.getPointer().get();
     if (!patchPtr)
@@ -1020,7 +1020,7 @@ void Canvas::duplicateSelection()
 
     patch.startUndoSequence("Duplicate");
 
-    std::vector<void*> objectsToDuplicate;
+    std::vector<t_gobj*> objectsToDuplicate;
     for (auto* object : selection) {
         if (auto* ptr = object->getPointer()) {
             objectsToDuplicate.push_back(ptr);
@@ -1062,7 +1062,7 @@ void Canvas::duplicateSelection()
 
     // Auto patching
     if (!dragState.wasDragDuplicated && editor->autoconnect.getValue()) {
-        std::vector<void*> moveObjects;
+        std::vector<t_gobj*> moveObjects;
         for (auto* object : objects) {
             int iolet = 1;
             for (auto* objIolet : object->iolets) {
@@ -1120,14 +1120,14 @@ void Canvas::removeSelection()
     editor->sidebar->hideParameters();
 
     // Find selected objects and make them selected in pd
-    std::vector<void*> objects;
+    std::vector<t_gobj*> objects;
     for (auto* object : getSelectionOfType<Object>()) {
         if (auto* ptr = object->getPointer()) {
             objects.push_back(ptr);
         }
     }
     
-    auto wasDeleted = [&objects](void* ptr){
+    auto wasDeleted = [&objects](t_gobj* ptr){
         return std::find(objects.begin(), objects.end(), ptr) != objects.end();
     };
 
@@ -1139,8 +1139,10 @@ void Canvas::removeSelection()
         if (con->isSelected()) {
             auto* outPtr = con->outobj->getPointer();
             auto* inPtr = con->inobj->getPointer();
-            if (outPtr && inPtr && (!(wasDeleted(outPtr) || wasDeleted(inPtr)))) {
-                patch.removeConnection(outPtr, con->outIdx, inPtr, con->inIdx, con->getPathState());
+            auto* checkedOutPtr = pd::Interface::checkObject(outPtr);
+            auto* checkedInPtr = pd::Interface::checkObject(inPtr);
+            if (checkedOutPtr && checkedInPtr && (!(wasDeleted(outPtr) || wasDeleted(inPtr)))) {
+                patch.removeConnection(checkedOutPtr, con->outIdx, checkedInPtr, con->inIdx, con->getPathState());
             }
         }
     }
@@ -1164,7 +1166,11 @@ void Canvas::removeSelectedConnections()
 
     for (auto* con : connections) {
         if (con->isSelected()) {
-            patch.removeConnection(con->outobj->getPointer(), con->outIdx, con->inobj->getPointer(), con->inIdx, con->getPathState());
+            auto* checkedOutPtr = pd::Interface::checkObject(con->outobj->getPointer());
+            auto* checkedInPtr = pd::Interface::checkObject(con->inobj->getPointer());
+            if(!checkedInPtr || !checkedOutPtr) continue;
+            
+            patch.removeConnection(checkedOutPtr, con->outIdx, checkedInPtr, con->inIdx, con->getPathState());
         }
     }
 
@@ -1257,7 +1263,7 @@ void Canvas::encapsulateSelection()
     patch.deselectAll();
 
     auto bounds = Rectangle<int>();
-    std::vector<void*> objects;
+    std::vector<t_gobj*> objects;
     for (auto* object : selectedBoxes) {
         if (auto* ptr = object->getPointer()) {
             bounds = bounds.getUnion(object->getBounds());
@@ -1268,13 +1274,13 @@ void Canvas::encapsulateSelection()
 
     auto copypasta = String("#N canvas 733 172 450 300 0 1;\n") + "$$_COPY_HERE_$$" + newEdgeObjects + newInternalConnections + "#X restore " + String(centre.x) + " " + String(centre.y) + " pd;\n";
 
-    // Apply the changed on Pd's thread
-    pd->lockAudioThread();
-
     auto* patchPtr = patch.getPointer().get();
     if (!patchPtr)
         return;
 
+    // Apply the changed on Pd's thread
+    pd->lockAudioThread();
+    
     int size;
     char const* text = pd::Interface::copy(patchPtr, &size, objects);
     auto copied = String::fromUTF8(text, size);
@@ -1287,11 +1293,16 @@ void Canvas::encapsulateSelection()
     auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
 
     pd::Interface::paste(patchPtr, replacement.toRawUTF8());
-    auto* newObject = static_cast<t_object*>(patch.getObjects().back());
-
+    auto* newObject = pd::Interface::checkObject(patch.getObjects().back());
+    if (!newObject) {
+        patch.endUndoSequence("encapsulate");
+        pd->unlockAudioThread();
+        return;
+    }
+    
     for (auto& [idx, iolets] : newExternalConnections) {
         for (auto* iolet : iolets) {
-            if (auto* externalObject = static_cast<t_object*>(iolet->object->getPointer())) {
+            if (auto* externalObject = reinterpret_cast<t_object*>(iolet->object->getPointer())) {
                 if (iolet->isInlet) {
                     pd::Interface::createConnection(patchPtr, newObject, idx - numIn, externalObject, iolet->ioletIdx);
                 } else {
@@ -1336,11 +1347,14 @@ bool Canvas::connectSelectedObjects()
     if (!rightSize)
         return false;
 
-    void* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1]->getPointer() : selection[0]->getPointer();
-    void* bottomObject = selection[0] == topObject ? selection[1]->getPointer() : selection[0]->getPointer();
+    auto* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1]->getPointer() : selection[0]->getPointer();
+    auto* bottomObject = selection[0]->getPointer() == topObject ? selection[1]->getPointer() : selection[0]->getPointer();
 
-    if (topObject && bottomObject) {
-        patch.createConnection(topObject, 0, bottomObject, 0);
+    auto* checkedTopObject = pd::Interface::checkObject(topObject);
+    auto* checkedBottomObject = pd::Interface::checkObject(bottomObject);
+    
+    if (checkedTopObject && checkedBottomObject) {
+        patch.createConnection(checkedTopObject, 0, checkedBottomObject, 0);
     }
 
     synchronise();
@@ -1408,7 +1422,7 @@ void Canvas::alignObjects(Align alignment)
     canvas_dirty(patch.getPointer().get(), 1);
     for (auto object : objects) {
         if (auto* ptr = object->getPointer())
-            pd::Interface::undoApply(patchPtr, &pd::Interface::checkObject(ptr)->te_g);
+            pd::Interface::undoApply(patchPtr, ptr);
     }
 
     // get the bounding box of all selected objects

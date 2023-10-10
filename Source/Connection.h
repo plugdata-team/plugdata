@@ -39,7 +39,7 @@ public:
 
     std::atomic<int> messageActivity;
 
-    Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
+    Connection(Canvas* parent, Iolet* start, Iolet* end, t_outconnect* oc);
     ~Connection() override;
 
     void updateOverlays(int overlay);
@@ -90,8 +90,8 @@ public:
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
     int getClosestLineIdx(Point<float> const& position, PathPlan const& plan);
 
-    void setPointer(void* ptr);
-    void* getPointer();
+    void setPointer(t_outconnect* ptr);
+    t_outconnect* getPointer();
 
     t_symbol* getPathState();
     void pushPathState();

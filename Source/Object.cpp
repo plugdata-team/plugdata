@@ -64,7 +64,7 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     }
 }
 
-Object::Object(void* object, Canvas* parent)
+Object::Object(t_gobj* object, Canvas* parent)
     : ds(parent->dragState)
     , gui(nullptr)
 {
@@ -350,12 +350,12 @@ void Object::updateBounds()
     }
 }
 
-void Object::setType(String const& newType, void* existingObject)
+void Object::setType(String const& newType, t_gobj* existingObject)
 {
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
-    void* objectPtr;
+    t_gobj* objectPtr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
     if (!existingObject) {
@@ -366,7 +366,9 @@ void Object::setType(String const& newType, void* existingObject)
             for (auto* connection : getConnections())
                 cnv->connections.removeObject(connection);
 
-            objectPtr = patch->renameObject(getPointer(), newType);
+            if(auto* checkedObject = pd::Interface::checkObject(getPointer())) {
+                objectPtr = patch->renameObject(checkedObject, newType);
+            }
 
             // Synchronise to make sure connections are preserved correctly
             cnv->synchronise();
@@ -410,20 +412,26 @@ void Object::setType(String const& newType, void* existingObject)
             });
         }
     }
+    
+
     if (cnv->lastSelectedConnection && numInputs && numOutputs) {
         // if 1 connection is selected, connect the new object in middle of connection
         auto outobj = cnv->lastSelectedConnection->outobj;
         auto inobj = cnv->lastSelectedConnection->inobj;
         auto outlet = outobj->iolets[outobj->numInputs + cnv->lastSelectedConnection->outIdx];
         auto inlet = inobj->iolets[cnv->lastSelectedConnection->inIdx];
-        if ((outlet->isSignal == iolets[0]->isSignal) && (inlet->isSignal == iolets[this->numInputs]->isSignal)) {
+        
+        auto* checkedOut = pd::Interface::checkObject(outobj->getPointer());
+        auto* checkedIn = pd::Interface::checkObject(inobj->getPointer());
+        
+        if (checkedOut && checkedIn && (outlet->isSignal == iolets[0]->isSignal) && (inlet->isSignal == iolets[this->numInputs]->isSignal)) {
             // Call async to make sure the object is created before the connection
             MessageManager::callAsync([this, outlet, inlet]() {
                 cnv->connections.add(new Connection(cnv, outlet, iolets[0], nullptr));
                 cnv->connections.add(new Connection(cnv, iolets[this->numInputs], inlet, nullptr));
             });
             // remove the previous connection
-            cnv->patch.removeConnection(outobj->getPointer(), cnv->lastSelectedConnection->outIdx, inobj->getPointer(), cnv->lastSelectedConnection->inIdx, cnv->lastSelectedConnection->getPathState());
+            cnv->patch.removeConnection(checkedOut, cnv->lastSelectedConnection->outIdx, checkedIn, cnv->lastSelectedConnection->inIdx, cnv->lastSelectedConnection->getPathState());
             cnv->connections.removeObject(cnv->lastSelectedConnection);
         }
     }
@@ -699,12 +707,12 @@ void Object::updateTooltips()
         // Check child objects of subpatch for inlet/outlet messages
         for (auto* obj : subpatch->getObjects()) {
 
-            const String name = pd::Interface::getObjectClassName(obj);
+            const String name = pd::Interface::getObjectClassName(&obj->g_pd);
+            auto* checkedObject = pd::Interface::checkObject(getPointer());
             if (name == "inlet" || name == "inlet~") {
-
                 int size;
                 char* str_ptr;
-                pd::Interface::getObjectText(obj, &str_ptr, &size);
+                pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
 
                 int x, y, w, h;
                 pd::Interface::getObjectBounds(subpatchPtr, obj, &x, &y, &w, &h);
@@ -717,7 +725,7 @@ void Object::updateTooltips()
             if (name == "outlet" || name == "outlet~") {
                 int size;
                 char* str_ptr;
-                pd::Interface::getObjectText(obj, &str_ptr, &size);
+                pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
 
                 int x, y, w, h;
                 pd::Interface::getObjectBounds(subpatchPtr, obj, &x, &y, &w, &h);
@@ -807,10 +815,11 @@ void Object::updateIolets()
         bool input = iolet->isInlet;
 
         bool isSignal;
-        if (i < numInputs) {
-            isSignal = pd::Interface::isSignalInlet(pd::Interface::checkObject(getPointer()), i);
-        } else {
-            isSignal = pd::Interface::isSignalOutlet(pd::Interface::checkObject(getPointer()), i - numInputs);
+        auto* patchableObject = pd::Interface::checkObject(getPointer());
+        if (patchableObject && i < numInputs) {
+            isSignal = pd::Interface::isSignalInlet(patchableObject, i);
+        } else if(patchableObject) {
+            isSignal = pd::Interface::isSignalOutlet(patchableObject, i - numInputs);
         }
 
         iolet->ioletIdx = input ? numIn : numOut;
@@ -937,10 +946,16 @@ void Object::mouseUp(MouseEvent const& e)
 
             cnv->patch.startUndoSequence("SnapInbetween");
 
-            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
-
-            cnv->patch.createConnection(c->outobj->getPointer(), c->outIdx, ds.objectSnappingInbetween->getPointer(), 0);
-            cnv->patch.createConnection(ds.objectSnappingInbetween->getPointer(), 0, c->inobj->getPointer(), c->inIdx);
+            auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
+            auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
+            auto* checkedSnapped = pd::Interface::checkObject(ds.objectSnappingInbetween->getPointer());
+            
+            if(checkedOut && checkedIn && checkedSnapped) {
+                cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
+                
+                cnv->patch.createConnection(checkedOut, c->outIdx, checkedSnapped, 0);
+                cnv->patch.createConnection(checkedSnapped, 0, checkedIn, c->inIdx);
+            }
 
             cnv->patch.endUndoSequence("SnapInbetween");
 
@@ -1132,14 +1147,24 @@ void Object::mouseDrag(MouseEvent const& e)
                 auto* outlet = inputs[0]->outlet.get();
 
                 for (auto* c : outputs) {
-                    cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
-
-                    cnv->connections.add(new Connection(cnv, outlet, c->inlet, nullptr));
-                    cnv->connections.removeObject(c);
+                    auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
+                    auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
+                    
+                    if(checkedOut && checkedIn) {
+                        cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
+                        
+                        cnv->connections.add(new Connection(cnv, outlet, c->inlet, nullptr));
+                        cnv->connections.removeObject(c);
+                    }
                 }
 
                 auto* c = inputs[0];
-                cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
+                auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
+                auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
+                
+                if(checkedOut && checkedIn) {
+                    cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
+                }
                 cnv->connections.removeObject(c);
 
                 object->iolets[0]->isTargeted = false;
@@ -1152,14 +1177,23 @@ void Object::mouseDrag(MouseEvent const& e)
                 auto* inlet = outputs[0]->inlet.get();
 
                 for (auto* c : inputs) {
-                    cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
+                    auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
+                    auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
+                    if(checkedOut && checkedIn) {
+                        cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
+                    }
 
                     cnv->connections.add(new Connection(cnv, c->outlet, inlet, nullptr));
                     cnv->connections.removeObject(c);
                 }
 
                 auto* c = outputs[0];
-                cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
+                auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
+                auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
+                
+                if(checkedOut && checkedIn) {
+                    cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
+                }
                 cnv->connections.removeObject(c);
 
                 object->iolets[0]->isTargeted = false;
@@ -1259,9 +1293,9 @@ Array<Connection*> Object::getConnections() const
     return result;
 }
 
-void* Object::getPointer() const
+t_gobj* Object::getPointer() const
 {
-    return gui ? gui->ptr.getRaw<void>() : nullptr;
+    return gui ? gui->ptr.getRaw<t_gobj>() : nullptr;
 }
 
 void Object::openNewObjectEditor()
@@ -1373,7 +1407,7 @@ void Object::openHelpPatch() const
 {
     cnv->pd->setThis();
 
-    if (auto* ptr = static_cast<t_object*>(getPointer())) {
+    if (auto* ptr = getPointer()) {
 
         auto file = cnv->pd->objectLibrary->findHelpfile(ptr, cnv->patch.getCurrentFile());
 

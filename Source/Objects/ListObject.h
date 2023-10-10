@@ -14,7 +14,7 @@ class ListObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    ListObject(void* obj, Object* parent)
+    ListObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
     {

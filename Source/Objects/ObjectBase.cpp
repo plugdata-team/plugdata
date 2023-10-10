@@ -78,7 +78,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 class NonPatchable : public ObjectBase {
 
 public:
-    NonPatchable(void* obj, Object* parent)
+    NonPatchable(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         parent->setVisible(false);
@@ -127,7 +127,7 @@ void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
     lastChange = Time::getMillisecondCounter();
 }
 
-ObjectBase::ObjectBase(void* obj, Object* parent)
+ObjectBase::ObjectBase(t_gobj* obj, Object* parent)
     : ptr(obj, parent->cnv->pd)
     , object(parent)
     , cnv(parent->cnv)
@@ -207,7 +207,7 @@ String ObjectBase::getText()
         if (!pd::Interface::checkObject(obj.get()))
             return "";
 
-        pd::Interface::getObjectText(obj.get(), &text, &size);
+        pd::Interface::getObjectText(obj.cast<t_object>(), &text, &size);
     }
 
     if (text && size) {
@@ -447,15 +447,15 @@ void ObjectBase::sendFloatValue(float newValue)
     }
 }
 
-ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
+ObjectBase* ObjectBase::createGui(t_gobj* ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
     ScopedLock(parent->cnv->pd->audioLock);
 
-    auto const name = hash(pd::Interface::getObjectClassName(ptr));
+    auto const name = hash(pd::Interface::getObjectClassName(&ptr->g_pd));
 
     // check if object is a patcher object, or something else
-    if (!pd::Interface::checkObject(static_cast<t_pd*>(ptr)) && name != hash("scalar")) {
+    if (!pd::Interface::checkObject(ptr) && name != hash("scalar")) {
         return new NonPatchable(ptr, parent);
     } else {
         switch (name) {
@@ -481,7 +481,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         case hash("vu"):
             return new VUMeterObject(ptr, parent);
         case hash("text"): {
-            auto* textObj = static_cast<t_text*>(ptr);
+            auto* textObj = reinterpret_cast<t_text*>(ptr);
             if (textObj->te_type == T_OBJECT) {
                 return new TextObject(ptr, parent, false);
             } else {
@@ -492,7 +492,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new CycloneCommentObject(ptr, parent);
         // Check if message type text object to prevent confusing it with else/message
         case hash("message"): {
-            if (pd::Interface::isTextObject(ptr) && static_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
+            if (pd::Interface::isTextObject(ptr) && reinterpret_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
                 return new MessageObject(ptr, parent);
             }
             break;
@@ -509,27 +509,27 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         case hash("qlist"):
             return new TextFileObject(ptr, parent);
         case hash("gatom"): {
-            if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT) {
+            if (reinterpret_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT) {
                 return new FloatAtomObject(ptr, parent);
-            } else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL) {
+            } else if (reinterpret_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL) {
                 return new SymbolAtomObject(ptr, parent);
-            } else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL) {
+            } else if (reinterpret_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL) {
                 return new ListObject(ptr, parent);
             }
             break;
         }
         case hash("canvas"):
         case hash("graph"): {
-            if (static_cast<t_canvas*>(ptr)->gl_list) {
-                t_class* c = static_cast<t_canvas*>(ptr)->gl_list->g_pd;
+            if (reinterpret_cast<t_canvas*>(ptr)->gl_list) {
+                t_class* c = reinterpret_cast<t_canvas*>(ptr)->gl_list->g_pd;
                 if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
                     return new ArrayObject(ptr, parent);
-                } else if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
+                } else if (reinterpret_cast<t_canvas*>(ptr)->gl_isgraph) {
                     return new GraphOnParent(ptr, parent);
                 } else { // abstraction or subpatch
                     return new SubpatchObject(ptr, parent);
                 }
-            } else if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
+            } else if (reinterpret_cast<t_canvas*>(ptr)->gl_isgraph) {
                 return new GraphOnParent(ptr, parent);
             } else {
                 return new SubpatchObject(ptr, parent);
@@ -569,7 +569,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         case hash("openfile"): {
             char* text;
             int size;
-            pd::Interface::getObjectText(ptr, &text, &size);
+            pd::Interface::getObjectText(reinterpret_cast<t_object*>(ptr), &text, &size);
             auto objText = String::fromUTF8(text, size);
             bool hyperlink = objText.contains("openfile -h");
             if(hyperlink)

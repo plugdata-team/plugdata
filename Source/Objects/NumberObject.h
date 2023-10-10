@@ -23,7 +23,7 @@ class NumberObject final : public ObjectBase {
     float value = 0.0f;
 
 public:
-    NumberObject(void* ptr, Object* object)
+    NumberObject(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
         , input(false)

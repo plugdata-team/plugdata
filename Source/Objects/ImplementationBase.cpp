@@ -28,7 +28,7 @@ int clone_get_n(t_gobj*);
 #include "ImplementationBase.h"
 #include "ObjectImplementations.h"
 
-ImplementationBase::ImplementationBase(void* obj, PluginProcessor* processor)
+ImplementationBase::ImplementationBase(t_gobj* obj, PluginProcessor* processor)
     : pd(processor)
     , ptr(obj, processor)
 {
@@ -37,7 +37,7 @@ ImplementationBase::ImplementationBase(void* obj, PluginProcessor* processor)
 
 ImplementationBase::~ImplementationBase() = default;
 
-Canvas* ImplementationBase::getMainCanvasForObject(void* objectPtr) const
+Canvas* ImplementationBase::getMainCanvasForObject(t_gobj* objectPtr) const
 {
     for(auto* editor : pd->openedEditors) {
         for (auto* cnv : editor->canvases) {
@@ -53,7 +53,7 @@ Canvas* ImplementationBase::getMainCanvasForObject(void* objectPtr) const
     return nullptr;
 }
 
-Canvas* ImplementationBase::getMainCanvas(void* patchPtr) const
+Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr) const
 {
     for(auto* editor : pd->openedEditors) {
         for (auto* cnv : editor->canvases) {
@@ -87,7 +87,7 @@ bool ImplementationBase::hasImplementation(char const* type)
         return false;
     }
 }
-ImplementationBase* ImplementationBase::createImplementation(String const& type, void* ptr, PluginProcessor* pd)
+ImplementationBase* ImplementationBase::createImplementation(String const& type, t_gobj* ptr, PluginProcessor* pd)
 {
     switch (hash(type)) {
     case hash("canvas"):
@@ -181,7 +181,7 @@ ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor
 
 void ObjectImplementationManager::handleAsyncUpdate()
 {
-    Array<void*> allImplementations;
+    Array<t_gobj*> allImplementations;
 
     pd->setThis();
 
@@ -207,7 +207,7 @@ void ObjectImplementationManager::handleAsyncUpdate()
     for (auto* ptr : allImplementations) {
         if (!objectImplementations.count(ptr)) {
 
-            auto const name = String::fromUTF8(pd::Interface::getObjectClassName(ptr));
+            auto const name = String::fromUTF8(pd::Interface::getObjectClassName(&ptr->g_pd));
 
             objectImplementations[ptr] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, ptr, pd));
         }
@@ -221,23 +221,23 @@ void ObjectImplementationManager::updateObjectImplementations()
     triggerAsyncUpdate();
 }
 
-Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch)
+Array<t_gobj*> ObjectImplementationManager::getImplementationsForPatch(t_canvas* patch)
 {
-    Array<void*> implementations;
+    Array<t_gobj*> implementations;
 
     auto* glist = static_cast<t_glist*>(patch);
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
 
-        auto const* name = pd::Interface::getObjectClassName(y);
+        auto const* name = pd::Interface::getObjectClassName(&y->g_pd);
 
         if (pd_class(&y->g_pd) == canvas_class) {
-            implementations.addArray(getImplementationsForPatch(y));
+            implementations.addArray(getImplementationsForPatch(reinterpret_cast<t_canvas*>(y)));
         }
         if (pd_class(&y->g_pd) == clone_class) {
             for (int i = 0; i < clone_get_n(y); i++) {
                 auto* clone = clone_get_instance(y, i);
                 implementations.addArray(getImplementationsForPatch(clone));
-                implementations.add(clone);
+                implementations.add(&clone->gl_obj.te_g);
             }
         }
         if (ImplementationBase::hasImplementation(name)) {
@@ -248,15 +248,13 @@ Array<void*> ObjectImplementationManager::getImplementationsForPatch(void* patch
     return implementations;
 }
 
-void ObjectImplementationManager::clearObjectImplementationsForPatch(void* patch)
+void ObjectImplementationManager::clearObjectImplementationsForPatch(t_canvas* patch)
 {
     auto* glist = static_cast<t_glist*>(patch);
 
     for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
-        auto const name = String::fromUTF8(pd::Interface::getObjectClassName(y));
-
         if (pd_class(&y->g_pd) == canvas_class) {
-            clearObjectImplementationsForPatch(y);
+            clearObjectImplementationsForPatch(reinterpret_cast<t_canvas*>(y));
         }
         if (pd_class(&y->g_pd) == clone_class) {
             for (int i = 0; i < clone_get_n(y); i++) {

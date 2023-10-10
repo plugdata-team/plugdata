@@ -12,7 +12,7 @@ class TextFileObject final : public TextBase {
     std::unique_ptr<Dialog> saveDialog;
 
 public:
-    TextFileObject(void* obj, Object* parent, bool isValid = true)
+    TextFileObject(t_gobj* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
         , textEditor(nullptr)
     {
@@ -167,7 +167,7 @@ class TextDefineObject final : public TextBase {
     std::unique_ptr<Dialog> saveDialog;
 
 public:
-    TextDefineObject(void* obj, Object* parent, bool isValid = true)
+    TextDefineObject(t_gobj* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
         , textEditor(nullptr)
     {

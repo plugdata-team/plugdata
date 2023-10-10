@@ -12,7 +12,7 @@ class MousePadObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    MousePadObject(void* ptr, Object* object)
+    MousePadObject(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
         , mouseListener(this)
     {

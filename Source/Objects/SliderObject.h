@@ -104,7 +104,7 @@ class SliderObject : public ObjectBase {
     float value = 0.0f;
 
 public:
-    SliderObject(void* obj, Object* object)
+    SliderObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
         , iemHelper(obj, object, this)
     {

@@ -20,9 +20,9 @@ class GraphOnParent final : public ObjectBase {
 
 public:
     // Graph On Parent
-    GraphOnParent(void* obj, Object* object)
+    GraphOnParent(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
-        , subpatch(new pd::Patch(obj, cnv->pd, false))
+        , subpatch(new pd::Patch(reinterpret_cast<t_canvas*>(obj), cnv->pd, false))
     {
         resized();
 
@@ -291,7 +291,7 @@ public:
                     _this->cnv->setSelected(_this->object, false);
                     _this->object->cnv->editor->sidebar->hideParameters();
 
-                    _this->object->setType(_this->getText(), _this->ptr.getRaw<void>());
+                    _this->object->setType(_this->getText(), _this->ptr.getRaw<t_gobj>());
                 });
             } else {
                 updateCanvas();

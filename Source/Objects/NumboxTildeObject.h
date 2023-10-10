@@ -26,7 +26,7 @@ class NumboxTildeObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    NumboxTildeObject(void* obj, Object* parent)
+    NumboxTildeObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
         , input(false)
     {
@@ -139,7 +139,7 @@ public:
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto* nbx = static_cast<t_fake_numbox*>(object->getPointer());
+                auto* nbx = reinterpret_cast<t_fake_numbox*>(object->getPointer());
 
                 nbx->x_fontsize = object->gui->getHeight() - 4;
 

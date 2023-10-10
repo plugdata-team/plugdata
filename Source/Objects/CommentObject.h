@@ -17,7 +17,7 @@ class CommentObject final : public ObjectBase
     int numLines = 1;
 
 public:
-    CommentObject(void* obj, Object* object)
+    CommentObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
@@ -129,7 +129,7 @@ public:
             auto objText = editor ? editor->getText() : objectText;
             auto newNumLines = 0;
 
-            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(patch, obj.get(), objText, 14, newNumLines);
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(patch, obj.cast<t_gobj>(), objText, 14, newNumLines);
 
             numLines = newNumLines;
 

@@ -553,6 +553,11 @@ public:
         if (errorMessage.isNotEmpty()) {
             Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
         }
+        
+        if (searchResult.isEmpty()) {
+            auto message = installedButton.getToggleState() ? "No externals installed" : "Couldn't find any externals";
+            Fonts::drawText(g, message, getLocalBounds().withTrimmedTop(40).removeFromTop(32), findColour(PlugDataColour::panelTextColourId), 14, Justification::centred);
+        }
     }
 
     void paintOverChildren(Graphics& g) override

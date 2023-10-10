@@ -51,7 +51,7 @@ namespace pd {
 // TODO: clean up more, make the interface less C-like and more JUCE based
 struct Interface {
     
-    static void* createCanvas(char const* name, char const* path)
+    static t_canvas* createCanvas(char const* name, char const* path)
     {
         t_canvas* cnv = (t_canvas*)libpd_openfile(name, path);
         if (cnv) {
@@ -61,21 +61,20 @@ struct Interface {
         return cnv;
     }
 
-    static char const* getObjectClassName(void* ptr)
+    static char const* getObjectClassName(t_pd* ptr)
     {
-        return class_getname(pd_class((t_pd*)ptr));
+        return class_getname(pd_class(ptr));
     }
 
-    static void getObjectText(void* ptr, char** text, int* size)
+    static void getObjectText(t_object* ptr, char** text, int* size)
     {
         *text = NULL;
         *size = 0;
-        binbuf_gettext(((t_text*)ptr)->te_binbuf, text, size);
+        binbuf_gettext(ptr->te_binbuf, text, size);
     }
 
-    static void getObjectBounds(void* patch, void* ptr, int* x, int* y, int* w, int* h)
+    static void getObjectBounds(t_canvas* cnv, t_gobj* ptr, int* x, int* y, int* w, int* h)
     {
-        t_canvas* cnv = static_cast<t_canvas*>(patch);
         while (cnv->gl_owner && !cnv->gl_havewindow && cnv->gl_isgraph)
             cnv = cnv->gl_owner;
 
@@ -84,15 +83,15 @@ struct Interface {
         *w = 0;
         *h = 0;
 
-        gobj_getrect((t_gobj*)ptr, cnv, x, y, w, h);
+        gobj_getrect(ptr, cnv, x, y, w, h);
 
         *w -= *x;
         *h -= *y;
     }
 
-    static int isTextObject(void* obj)
+    static int isTextObject(t_gobj* obj)
     {
-        return ((t_gobj*)obj)->g_pd->c_wb == &text_widgetbehavior;
+        return obj->g_pd->c_wb == &text_widgetbehavior;
     }
     
     static void getSearchPaths(char** paths, int* numItems) {
@@ -116,18 +115,25 @@ struct Interface {
         }
     }
     
-    static t_object* checkObject(void* obj)
+    static t_object* checkObject(t_pd* obj)
     {
-        return pd_checkobject(static_cast<t_pd*>(obj));
+        if(!obj) return nullptr;
+        return pd_checkobject(obj);
+    }
+    
+    static t_object* checkObject(t_gobj* obj)
+    {
+        if(!obj) return nullptr;
+        return pd_checkobject(&obj->g_pd);
     }
 
     /* displace the selection by (dx, dy) pixels */
-    static void moveObjects(t_canvas* cnv, int dx, int dy, std::vector<void*> const& objects)
+    static void moveObjects(t_canvas* cnv, int dx, int dy, std::vector<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
         
         for (auto* obj : objects) {
-            glist_select(cnv, &pd::Interface::checkObject(obj)->te_g);
+            glist_select(cnv, obj);
         }
         
         EDITOR->canvas_undo_already_set_move = 0;
@@ -161,7 +167,7 @@ struct Interface {
         libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
     }
 
-    static t_pd* getNewest(t_canvas* cnv)
+    static t_gobj* getNewest(t_canvas* cnv)
     {
         // Regular pd_newest won't work because it doesn't get assigned for some gui components
         t_gobj* y;
@@ -170,11 +176,7 @@ struct Interface {
         for (y = cnv->gl_list; y && y->g_next; y = y->g_next) {
         }
 
-        if (y) {
-            return &y->g_pd;
-        }
-
-        return 0;
+        return y;
     }
 
     static void finishRemove(t_canvas* cnv)
@@ -182,7 +184,7 @@ struct Interface {
         canvas_undo_add(cnv, UNDO_SEQUENCE_END, "clear", 0);
     }
     
-    static void removeObjects(t_canvas* cnv, std::vector<void*> const& objects)
+    static void removeObjects(t_canvas* cnv, std::vector<t_gobj*> const& objects)
     {
         canvas_undo_add(cnv, UNDO_SEQUENCE_START, "clear", 0);
 
@@ -192,7 +194,7 @@ struct Interface {
         glist_noselect(cnv);
         
         for (auto* obj : objects) {
-            glist_select(cnv, &pd::Interface::checkObject(obj)->te_g);
+            glist_select(cnv, obj);
         }
 
         doRemoveSelection(cnv);
@@ -200,7 +202,7 @@ struct Interface {
         glist_noselect(cnv);
     }
 
-    static void* setConnectionPath(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* old_connection_path, t_symbol* new_connection_path)
+    static t_outconnect* setConnectionPath(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* old_connection_path, t_symbol* new_connection_path)
     {
         canvas_undo_add(cnv, UNDO_SEQUENCE_START, "ConnectionPath", 0);
         
@@ -220,12 +222,12 @@ struct Interface {
         return oc;
     }
     
-    static char const* copy(t_canvas* cnv, int* size, std::vector<void*> const& objects)
+    static char const* copy(t_canvas* cnv, int* size, std::vector<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
         
         for (auto* obj : objects) {
-            glist_select(cnv, &pd::Interface::checkObject(obj)->te_g);
+            glist_select(cnv, obj);
         }
 
         canvas_setcurrent(cnv);
@@ -293,12 +295,12 @@ struct Interface {
         arrangeObject(cnv, obj, 0);
     }
 
-    static void duplicateSelection(t_canvas* cnv, std::vector<void*> const& objects)
+    static void duplicateSelection(t_canvas* cnv, std::vector<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
         
         for (auto* obj : objects) {
-            glist_select(cnv, &pd::Interface::checkObject(obj)->te_g);
+            glist_select(cnv, obj);
         }
         
         canvas_setcurrent(cnv);
@@ -332,7 +334,7 @@ struct Interface {
         binbuf_free(b);
     }
 
-    static t_pd* createObject(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv)
+    static t_gobj* createObject(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv)
     {
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, s, argc, argv);
@@ -340,13 +342,13 @@ struct Interface {
         canvas_undo_add(cnv, UNDO_CREATE, "create",
             (void*)canvas_undo_set_create(cnv));
         
-        t_pd* new_object = getNewest(cnv);
+        t_gobj* new_object = getNewest(cnv);
 
         if (new_object) {
-            if (pd_class(new_object) == canvas_class)
+            if (pd_class(&new_object->g_pd) == canvas_class)
                 canvas_loadbang(reinterpret_cast<t_canvas*>(new_object));
-            else if (zgetfn(new_object, gensym("loadbang")))
-                vmess(new_object, gensym("loadbang"), "f", LB_LOAD);
+            else if (zgetfn(&new_object->g_pd, gensym("loadbang")))
+                vmess(&new_object->g_pd, gensym("loadbang"), "f", LB_LOAD);
         }
         
         canvas_unsetcurrent(cnv);
@@ -463,9 +465,9 @@ struct Interface {
         return (!obj_issignaloutlet(src, nout) || obj_issignalinlet(sink, nin));  /* are the iolets compatible? */
     }
 
-    static void* createConnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
+    static t_outconnect* createConnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
     {
-        void* oc = tryConnect(cnv, src, nout, sink, nin);
+        t_outconnect* oc = tryConnect(cnv, src, nout, sink, nin);
         glist_noselect(cnv);
         return oc;
     }
@@ -738,7 +740,7 @@ private:
         canvas_dirty(cnv, 1);
     }
     
-    static void* tryConnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
+    static t_outconnect* tryConnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
     {
         if (canConnect(cnv, src, nout, sink, nin)) {
             t_outconnect* oc = obj_connect(src, nout, sink, nin);

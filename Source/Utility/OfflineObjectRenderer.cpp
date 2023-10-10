@@ -51,8 +51,8 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     auto object = offlineCnv->gl_list;
     while (object) {
         pd::Interface::getObjectBounds(offlineCnv, object, &obj_x, &obj_y, &obj_w, &obj_h);
-        auto objectData = static_cast<t_object*>(static_cast<void*>(object));
-        auto maxIolets = jmax<int>(pd::Interface::numOutlets(objectData), pd::Interface::numInlets(objectData));
+        auto* objectPtr = pd::Interface::checkObject(object);
+        auto maxIolets = jmax<int>(pd::Interface::numOutlets(objectPtr), pd::Interface::numInlets(objectPtr));
         // ALEX TODO: fix this heuristic, it doesn't work well for everything
         auto maxSize = jmax<int>(maxIolets * 18, obj_w);
         rect.setBounds(obj_x, obj_y, maxSize, obj_h);

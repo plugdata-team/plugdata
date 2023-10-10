@@ -14,7 +14,7 @@ class CloneObject final : public TextBase {
     pd::Patch::Ptr subpatch;
 
 public:
-    CloneObject(void* obj, Object* object)
+    CloneObject(t_gobj* obj, Object* object)
         : TextBase(obj, object)
     {
         if (auto gobj = ptr.get<t_gobj>()) {

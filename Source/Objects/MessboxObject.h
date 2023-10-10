@@ -20,7 +20,7 @@ class MessboxObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    MessboxObject(void* obj, Object* parent)
+    MessboxObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
@@ -80,7 +80,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            pd::Interface::getObjectBounds(patch, messbox.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, messbox.cast<t_gobj>(), &x, &y, &w, &h);
             return { x, y, w, h };
         }
 

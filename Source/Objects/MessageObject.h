@@ -19,7 +19,7 @@ class MessageObject final : public ObjectBase
     bool isLocked = false;
 
 public:
-    MessageObject(void* obj, Object* parent)
+    MessageObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
@@ -44,7 +44,7 @@ public:
             if (!cnvPtr)
                 return {};
 
-            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, message.get(), objText, 15, newNumLines);
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, message.cast<t_gobj>(), objText, 15, newNumLines);
 
             numLines = newNumLines;
 

@@ -379,7 +379,7 @@ public:
 struct ScalarObject final : public ObjectBase {
     OwnedArray<Component> templates;
 
-    ScalarObject(void* obj, Object* object)
+    ScalarObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
         cnv->pd->setThis();

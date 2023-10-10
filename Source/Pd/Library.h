@@ -33,7 +33,7 @@ public:
 
     void fsChangeCallback() override;
 
-    File findHelpfile(t_object* obj, File const& parentPatchFile) const;
+    File findHelpfile(t_gobj* obj, File const& parentPatchFile) const;
 
     ValueTree getObjectInfo(String const& name);
 

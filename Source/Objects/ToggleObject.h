@@ -15,7 +15,7 @@ class ToggleObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    ToggleObject(void* ptr, Object* object)
+    ToggleObject(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {

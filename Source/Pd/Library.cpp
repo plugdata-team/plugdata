@@ -267,7 +267,7 @@ void Library::fsChangeCallback()
     appDirChanged();
 }
 
-File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
+File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
 {
     String helpName;
     String helpDir;
@@ -276,7 +276,7 @@ File Library::findHelpfile(t_object* obj, File const& parentPatchFile) const
 
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         char namebuf[MAXPDSTRING];
-        t_object* ob = obj;
+        t_object* ob = pd::Interface::checkObject(obj);
         int ac = binbuf_getnatom(ob->te_binbuf);
         t_atom* av = binbuf_getvec(ob->te_binbuf);
         if (ac < 1)

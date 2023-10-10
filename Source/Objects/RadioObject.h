@@ -18,7 +18,7 @@ class RadioObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    RadioObject(void* ptr, Object* object)
+    RadioObject(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
@@ -80,7 +80,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            pd::Interface::getObjectBounds(patch, radio.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, radio.cast<t_gobj>(), &x, &y, &w, &h);
             auto width = !isVertical ? (radio->x_gui.x_h + 1) * numItems : (radio->x_gui.x_w + 1);
             auto height = isVertical ? (radio->x_gui.x_w + 1) * numItems : (radio->x_gui.x_h + 1);
 

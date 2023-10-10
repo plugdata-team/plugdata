@@ -151,7 +151,7 @@ class KnobObject : public ObjectBase {
     float value = 0.0f;
 
 public:
-    KnobObject(void* obj, Object* object)
+    KnobObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
         addAndMakeVisible(knob);

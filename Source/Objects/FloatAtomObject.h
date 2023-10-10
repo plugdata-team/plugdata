@@ -18,7 +18,7 @@ class FloatAtomObject final : public ObjectBase {
     float value = 0.0f;
 
 public:
-    FloatAtomObject(void* obj, Object* parent)
+    FloatAtomObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
         , input(false)

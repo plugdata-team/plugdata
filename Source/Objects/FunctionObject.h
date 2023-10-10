@@ -21,7 +21,7 @@ class FunctionObject final : public ObjectBase {
     Array<Point<float>> points;
 
 public:
-    FunctionObject(void* ptr, Object* object)
+    FunctionObject(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         objectParameters.addParamSize(&sizeProperty);

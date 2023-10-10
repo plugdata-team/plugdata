@@ -18,7 +18,7 @@
 #include "Pd/Patch.h"
 #include "Dialogs/ConnectionMessageDisplay.h"
 
-Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
+Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     : cnv(parent)
     , ptr(parent->pd)
     , outlet(s->isInlet ? e : s)
@@ -48,8 +48,16 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
     // If it doesn't already exist in pd, create connection in pd
     if (!oc) {
-        auto* oc = parent->patch.createAndReturnConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
-        setPointer(oc);
+        auto* checkedOut = pd::Interface::checkObject(outobj->getPointer());
+        auto* checkedIn = pd::Interface::checkObject(inobj->getPointer());
+        if(checkedOut && checkedIn) {
+            oc = parent->patch.createAndReturnConnection(checkedOut, outIdx, checkedIn, inIdx);
+            setPointer(oc);
+        }
+        else {
+            jassertfalse;
+            return;
+        }
     } else {
         setPointer(oc);
         popPathState();
@@ -177,7 +185,7 @@ void Connection::popPathState()
     updatePath();
 }
 
-void Connection::setPointer(void* newPtr)
+void Connection::setPointer(t_outconnect* newPtr)
 {
     auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
     if (originalPointer != newPtr) {
@@ -188,7 +196,7 @@ void Connection::setPointer(void* newPtr)
     }
 }
 
-void* Connection::getPointer()
+t_outconnect* Connection::getPointer()
 {
     return ptr.getRaw<t_outconnect>();
 }
@@ -669,9 +677,12 @@ void Connection::reconnect(Iolet* target)
 
     for (auto* c : connections) {
 
-        if (cnv->patch.hasConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx)) {
+        auto* checkedOut = pd::Interface::checkObject(outobj->getPointer());
+        auto* checkedIn = pd::Interface::checkObject(inobj->getPointer());
+        
+        if (checkedOut && checkedIn && cnv->patch.hasConnection(checkedOut, c->outIdx, checkedIn, c->inIdx)) {
             // Delete connection from pd if we haven't done that yet
-            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
+            cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
         }
 
         // Create new connection

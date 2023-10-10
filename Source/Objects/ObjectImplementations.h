@@ -9,7 +9,7 @@
 class SubpatchImpl : public ImplementationBase
     , public pd::MessageListener {
 public:
-    SubpatchImpl(void* ptr, PluginProcessor* pd)
+    SubpatchImpl(t_gobj* ptr, PluginProcessor* pd)
         : ImplementationBase(ptr, pd)
     {
         pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
@@ -69,7 +69,7 @@ public:
     KeyObjectType type;
     Component::SafePointer<PluginEditor> attachedEditor = nullptr;
 
-    KeyObject(void* ptr, PluginProcessor* pd, KeyObjectType keyObjectType)
+    KeyObject(t_gobj* ptr, PluginProcessor* pd, KeyObjectType keyObjectType)
         : ImplementationBase(ptr, pd)
         , type(keyObjectType)
     {
@@ -85,7 +85,7 @@ public:
 
     void update() override
     {
-        auto* cnv = getMainCanvasForObject(ptr.getRawUnchecked<void>());
+        auto* cnv = getMainCanvasForObject(ptr.getRawUnchecked<t_gobj>());
         if(cnv)
         {
             attachedEditor = cnv->editor;
@@ -343,7 +343,7 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
-        void* patch;
+        t_canvas* patch;
         sscanf(ptr.get<t_fake_active>()->x_cname->s_name, ".x%lx.c", (unsigned long*)&patch);
 
         cnv = getMainCanvas(patch);
@@ -421,7 +421,7 @@ class CanvasMouseObject final : public ImplementationBase
 
 public:
     using ImplementationBase::ImplementationBase;
-    CanvasMouseObject(void* ptr, PluginProcessor* pd)
+    CanvasMouseObject(t_gobj* ptr, PluginProcessor* pd)
         : ImplementationBase(ptr, pd)
     {
         pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
@@ -727,7 +727,7 @@ class MouseObject final : public ImplementationBase
     , public Timer {
 
 public:
-    MouseObject(void* ptr, PluginProcessor* pd)
+    MouseObject(t_gobj* ptr, PluginProcessor* pd)
         : ImplementationBase(ptr, pd)
         , mouseSource(Desktop::getInstance().getMainMouseSource())
     {

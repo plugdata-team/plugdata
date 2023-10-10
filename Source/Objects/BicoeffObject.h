@@ -63,7 +63,7 @@ public:
         auto dim = String(" -dim ") + String(b.getWidth()) + " " + String(b.getHeight());
         auto type = String(" -type ") + String(filterTypeNames[static_cast<int>(filterType)]);
         auto buftext = String("bicoeff") + dim + type;
-        auto* ptr = static_cast<t_object*>(object->getPointer());
+        auto* ptr = pd::Interface::checkObject(object->getPointer());
         binbuf_text(ptr->te_binbuf, buftext.toRawUTF8(), buftext.getNumBytesAsUTF8());
     }
 
@@ -509,7 +509,7 @@ class BicoeffObject : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    BicoeffObject(void* obj, Object* parent)
+    BicoeffObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
         , graph(parent)
     {

@@ -17,7 +17,7 @@ class BangObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    BangObject(void* obj, Object* parent)
+    BangObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {

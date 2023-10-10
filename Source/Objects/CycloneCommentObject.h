@@ -139,7 +139,7 @@ class CycloneCommentObject final : public ObjectBase {
     bool wasSelectedOnMouseDown = false;
 
 public:
-    CycloneCommentObject(void* obj, Object* object)
+    CycloneCommentObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
         locked = getValue<bool>(object->locked);
@@ -345,7 +345,7 @@ public:
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto* comment = static_cast<t_fake_comment*>(object->getPointer());
+                auto* comment = reinterpret_cast<t_fake_comment*>(object->getPointer());
                 comment->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
 
                 // Set editor size first, so getTextHeight will return a correct result

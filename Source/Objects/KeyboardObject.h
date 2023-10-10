@@ -209,7 +209,7 @@ class KeyboardObject final : public ObjectBase
     int keyRatio = 5;
 
 public:
-    KeyboardObject(void* ptr, Object* object)
+    KeyboardObject(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
         , keyboard(object, state, MidiKeyboardComponent::horizontalKeyboard)
     {
@@ -292,7 +292,7 @@ public:
                 return {};
 
             int x, y, w, h;
-            pd::Interface::getObjectBounds(patch, obj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, obj.cast<t_gobj>(), &x, &y, &w, &h);
 
             return Rectangle<int>(x, y, obj->x_space * numWhiteKeys, obj->x_height);
         }

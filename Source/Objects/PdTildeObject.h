@@ -11,7 +11,7 @@ public:
     static inline File pdLocation = File();
     std::unique_ptr<FileChooser> openChooser;
 
-    PdTildeObject(void* ptr, Object* object)
+    PdTildeObject(t_gobj* ptr, Object* object)
         : TextBase(ptr, object)
     {
     }

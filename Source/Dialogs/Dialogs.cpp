@@ -552,7 +552,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
                 cnv->pd->lockAudioThread();
                 // this makes sure that objects can handle the "properties" message as well if they like, for example for [else/properties]
-                auto* pdClass = pd_class(&static_cast<t_gobj*>(object->getPointer())->g_pd);
+                auto* pdClass = pd_class(&object->getPointer()->g_pd);
                 auto propertiesFn = class_getpropertiesfn(pdClass);
 
                 if (propertiesFn)

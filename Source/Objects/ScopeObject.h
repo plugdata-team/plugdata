@@ -24,7 +24,7 @@ class ScopeBase : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    ScopeBase(void* ptr, Object* object)
+    ScopeBase(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
 
@@ -85,7 +85,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            pd::Interface::getObjectBounds(patch, scope.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, scope.template cast<t_gobj>(), &x, &y, &w, &h);
 
             return { x, y, w + 1, h + 1 };
         }
@@ -320,7 +320,7 @@ public:
 // Hilarious use of templates to support both cyclone/scope and else/oscope in the same code
 class ScopeObject final : public ScopeBase<t_fake_scope> {
 public:
-    ScopeObject(void* ptr, Object* object)
+    ScopeObject(t_gobj* ptr, Object* object)
         : ScopeBase<t_fake_scope>(ptr, object)
     {
     }
@@ -328,7 +328,7 @@ public:
 
 class OscopeObject final : public ScopeBase<t_fake_oscope> {
 public:
-    OscopeObject(void* ptr, Object* object)
+    OscopeObject(t_gobj* ptr, Object* object)
         : ScopeBase<t_fake_oscope>(ptr, object)
     {
     }

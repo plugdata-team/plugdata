@@ -13,7 +13,7 @@ extern "C" {
 
 namespace pd {
 
-using Connections = std::vector<std::tuple<void*, int, t_object*, int, t_object*>>;
+using Connections = std::vector<std::tuple<t_outconnect*, int, t_object*, int, t_object*>>;
 class Instance;
 
 // The Pd patch.
@@ -25,7 +25,7 @@ class Patch : public ReferenceCountedObject {
 public:
     using Ptr = ReferenceCountedObjectPtr<Patch>;
 
-    Patch(void* ptr, Instance* instance, bool ownsPatch, File currentFile = File());
+    Patch(t_canvas* ptr, Instance* instance, bool ownsPatch, File currentFile = File());
 
     ~Patch();
 
@@ -38,19 +38,16 @@ public:
     // Gets the bounds of the patch.
     Rectangle<int> getBounds() const;
 
-    void* createGraph(int x, int y, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range);
-    void* createGraphOnParent(int x, int y);
+    t_gobj* createObject(int x, int y, String const& name);
+    void removeObject(t_gobj* obj);
+    t_gobj* renameObject(t_object* obj, String const& name);
 
-    void* createObject(int x, int y, String const& name);
-    void removeObject(void* obj);
-    void* renameObject(void* obj, String const& name);
+    void moveObjects(std::vector<t_gobj*> const&, int x, int y);
 
-    void moveObjects(std::vector<void*> const&, int x, int y);
-
-    void moveObjectTo(void* object, int x, int y);
+    void moveObjectTo(t_gobj* object, int x, int y);
 
     void finishRemove();
-    void removeObjects(std::vector<void*> const& objects);
+    void removeObjects(std::vector<t_gobj*> const& objects);
 
     void deselectAll();
 
@@ -63,9 +60,9 @@ public:
 
     t_glist* getRoot();
 
-    void copy(std::vector<void*> const& objects);
+    void copy(std::vector<t_gobj*> const& objects);
     void paste(Point<int> position);
-    void duplicate(std::vector<void*> const& objects);
+    void duplicate(std::vector<t_gobj*> const& objects);
 
     void startUndoSequence(String const& name);
     void endUndoSequence(String const& name);
@@ -90,15 +87,15 @@ public:
 
     void setCurrentFile(File newFile);
 
-    bool objectWasDeleted(void* ptr) const;
-    bool connectionWasDeleted(void* ptr) const;
+    bool objectWasDeleted(t_gobj* ptr) const;
+    bool connectionWasDeleted(t_outconnect* ptr) const;
 
-    bool hasConnection(void* src, int nout, void* sink, int nin);
-    bool canConnect(void* src, int nout, void* sink, int nin);
-    void createConnection(void* src, int nout, void* sink, int nin);
-    void* createAndReturnConnection(void* src, int nout, void* sink, int nin);
-    void removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath);
-    void* setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath);
+    bool hasConnection(t_object* src, int nout, t_object* sink, int nin);
+    bool canConnect(t_object* src, int nout, t_object* sink, int nin);
+    void createConnection(t_object* src, int nout, t_object* sink, int nin);
+    t_outconnect* createAndReturnConnection(t_object* src, int nout, t_object* sink, int nin);
+    void removeConnection(t_object* src, int nout, t_object* sink, int nin, t_symbol* connectionPath);
+    t_outconnect* setConnctionPath(t_object* src, int nout, t_object* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath);
 
     Connections getConnections() const;
 
@@ -108,7 +105,7 @@ public:
     }
 
     // Gets the objects of the patch.
-    std::vector<void*> getObjects();
+    std::vector<t_gobj*> getObjects();
 
     String getCanvasContent();
 

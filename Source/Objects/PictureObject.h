@@ -19,7 +19,7 @@ class PictureObject final : public ObjectBase {
     Image img;
 
 public:
-    PictureObject(void* ptr, Object* object)
+    PictureObject(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         if (auto pic = this->ptr.get<t_fake_pic>()) {

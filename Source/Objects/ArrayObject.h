@@ -551,7 +551,7 @@ class ArrayObject final : public ObjectBase
     , public Timer {
 public:
     // Array component
-    ArrayObject(void* obj, Object* object)
+    ArrayObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
         auto arrays = getArrays();
@@ -635,7 +635,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            pd::Interface::getObjectBounds(patch, glist.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, &glist->gl_obj.te_g, &x, &y, &w, &h);
 
             return { x, y, glist->gl_pixwidth, glist->gl_pixheight };
         }
@@ -852,7 +852,7 @@ public:
                 _this->cnv->setSelected(_this->object, false);
                 _this->object->cnv->editor->sidebar->hideParameters();
 
-                _this->object->setType(_this->getText(), _this->ptr.getRaw<void>());
+                _this->object->setType(_this->getText(), _this->ptr.getRaw<t_gobj>());
             });
 
             break;
@@ -895,7 +895,7 @@ class ArrayDefineObject final : public TextBase {
     std::unique_ptr<ArrayEditorDialog> editor = nullptr;
 
 public:
-    ArrayDefineObject(void* obj, Object* parent, bool isValid = true)
+    ArrayDefineObject(t_gobj* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
     {
     }

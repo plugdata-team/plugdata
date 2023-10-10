@@ -11,7 +11,7 @@ public:
     bool midiInput;
     bool isCtl;
 
-    MidiObject(void* ptr, Object* object, bool isInput, bool isCC)
+    MidiObject(t_gobj* ptr, Object* object, bool isInput, bool isCC)
         : TextBase(ptr, object)
         , midiInput(isInput)
         , isCtl(isCC)

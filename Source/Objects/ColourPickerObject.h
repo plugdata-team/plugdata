@@ -8,7 +8,7 @@
 
 class ColourPickerObject final : public TextBase {
 public:
-    ColourPickerObject(void* ptr, Object* object)
+    ColourPickerObject(t_gobj* ptr, Object* object)
         : TextBase(ptr, object)
     {
     }

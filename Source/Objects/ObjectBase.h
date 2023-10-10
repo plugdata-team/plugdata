@@ -65,7 +65,7 @@ class ObjectBase : public Component
     };
 
 public:
-    ObjectBase(void* obj, Object* parent);
+    ObjectBase(t_gobj* obj, Object* parent);
 
     ~ObjectBase() override;
 
@@ -143,7 +143,7 @@ public:
 
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
 
-    static ObjectBase* createGui(void* ptr, Object* parent);
+    static ObjectBase* createGui(t_gobj* ptr, Object* parent);
 
     // Override this to return parameters that will be shown in the inspector
     virtual ObjectParameters getParameters();

@@ -18,7 +18,7 @@ class SymbolAtomObject final : public ObjectBase
     Label input;
 
 public:
-    SymbolAtomObject(void* obj, Object* parent)
+    SymbolAtomObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
     {

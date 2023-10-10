@@ -101,7 +101,7 @@ public:
     
     void mouseDown(const MouseEvent& e) override
     {
-        if(e.getMouseDownY() < 40) {
+        if(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY() < 40) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
         }
         else if(!viewedComponent->getBounds().contains(e.getPosition())){
@@ -111,7 +111,7 @@ public:
     
     void mouseDrag(const MouseEvent& e) override
     {
-        if(e.getMouseDownY() < 40) {
+        if(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY() < 40) {
             dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
         }
     }

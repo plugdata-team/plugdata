@@ -27,7 +27,7 @@ extern void canvas_reload(t_symbol* name, t_symbol* dir, t_glist* except);
 
 namespace pd {
 
-Patch::Patch(void* patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
+Patch::Patch(t_canvas* patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
     : ptr(patchPtr, parentInstance)
     , instance(parentInstance)
     , currentFile(std::move(patchFile))
@@ -186,21 +186,21 @@ Connections Patch::getConnections() const
     return connections;
 }
 
-std::vector<void*> Patch::getObjects()
+std::vector<t_gobj*> Patch::getObjects()
 {
     setCurrent();
 
-    std::vector<void*> objects;
+    std::vector<t_gobj*> objects;
     if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
-            objects.push_back(static_cast<void*>(y));
+            objects.push_back(y);
         }
     }
 
     return objects;
 }
 
-void* Patch::createObject(int x, int y, String const& name)
+t_gobj* Patch::createObject(int x, int y, String const& name)
 {
 
     instance->setThis();
@@ -308,7 +308,7 @@ void* Patch::createObject(int x, int y, String const& name)
     return nullptr;
 }
 
-void* Patch::renameObject(void* obj, String const& name)
+t_gobj* Patch::renameObject(t_object* obj, String const& name)
 {
     StringArray tokens;
     tokens.addTokens(name, false);
@@ -345,14 +345,15 @@ void* Patch::renameObject(void* obj, String const& name)
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::renameObject(patch.get(), &pd::Interface::checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
+
+        pd::Interface::renameObject(patch.get(),&obj->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
         return pd::Interface::getNewest(patch.get());
     }
 
     return nullptr;
 }
 
-void Patch::copy(std::vector<void*> const& objects)
+void Patch::copy(std::vector<t_gobj*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
         int size;
@@ -466,7 +467,7 @@ void Patch::paste(Point<int> position)
     }
 }
 
-void Patch::duplicate(std::vector<void*> const& objects)
+void Patch::duplicate(std::vector<t_gobj*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
@@ -483,74 +484,74 @@ void Patch::deselectAll()
     }
 }
 
-void Patch::removeObject(void* obj)
+void Patch::removeObject(t_gobj* obj)
 {
     instance->lockAudioThread();
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::removeObject(patch.get(), &pd::Interface::checkObject(obj)->te_g);
+        pd::Interface::removeObject(patch.get(), obj);
     }
 }
 
-bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
+bool Patch::hasConnection(t_object* src, int nout, t_object* sink, int nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        return pd::Interface::hasConnection(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin);
+        return pd::Interface::hasConnection(patch.get(), src, nout, sink, nin);
     }
 
     return false;
 }
 
-bool Patch::canConnect(void* src, int nout, void* sink, int nin)
+bool Patch::canConnect(t_object* src, int nout, t_object* sink, int nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
         
-        return pd::Interface::canConnect(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin);
+        return pd::Interface::canConnect(patch.get(), src, nout, sink, nin);
     }
 
     return false;
 }
 
-void Patch::createConnection(void* src, int nout, void* sink, int nin)
+void Patch::createConnection(t_object* src, int nout, t_object* sink, int nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        pd::Interface::createConnection(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin);
+        pd::Interface::createConnection(patch.get(), src, nout, sink, nin);
     }
 }
 
-void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
+t_outconnect* Patch::createAndReturnConnection(t_object* src, int nout, t_object* sink, int nin)
 {
-    void* outconnect = nullptr;
+    t_outconnect* outconnect = nullptr;
 
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
-        return pd::Interface::createConnection(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin);
-    }
-
-    return nullptr;
-}
-
-void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath)
-{
-    if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
-        pd::Interface::removeConnection(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin, connectionPath);
-    }
-}
-
-void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
-{
-    if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
-        return pd::Interface::setConnectionPath(patch.get(), pd::Interface::checkObject(src), nout, pd::Interface::checkObject(sink), nin, oldConnectionPath, newConnectionPath);
+        return pd::Interface::createConnection(patch.get(), src, nout, sink, nin);
     }
 
     return nullptr;
 }
 
-void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
+void Patch::removeConnection(t_object* src, int nout, t_object* sink, int nin, t_symbol* connectionPath)
+{
+    if (auto patch = ptr.get<t_glist>()) {
+        setCurrent();
+        pd::Interface::removeConnection(patch.get(), src, nout, sink, nin, connectionPath);
+    }
+}
+
+t_outconnect* Patch::setConnctionPath(t_object* src, int nout, t_object* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
+{
+    if (auto patch = ptr.get<t_glist>()) {
+        setCurrent();
+        return pd::Interface::setConnectionPath(patch.get(), src, nout, sink, nin, oldConnectionPath, newConnectionPath);
+    }
+
+    return nullptr;
+}
+
+void Patch::moveObjects(std::vector<t_gobj*> const& objects, int dx, int dy)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
@@ -558,10 +559,10 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
     }
 }
 
-void Patch::moveObjectTo(void* object, int x, int y)
+void Patch::moveObjectTo(t_gobj* object, int x, int y)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        pd::Interface::moveObject(patch.get(), &pd::Interface::checkObject(object)->te_g, x + 1544, y + 1544); // FIXME: why do we have to offset by 1544?
+        pd::Interface::moveObject(patch.get(), object, x + 1544, y + 1544); // FIXME: why do we have to offset by 1544?
     }
 }
 
@@ -573,7 +574,7 @@ void Patch::finishRemove()
     }
 }
 
-void Patch::removeObjects(std::vector<void*> const& objects)
+void Patch::removeObjects(std::vector<t_gobj*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
@@ -713,7 +714,7 @@ void Patch::reloadPatch(File const& changedPatch, t_glist* except)
     canvas_reload(file, dir, except);
 }
 
-bool Patch::objectWasDeleted(void* objectPtr) const
+bool Patch::objectWasDeleted(t_gobj* objectPtr) const
 {
     if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
@@ -724,7 +725,7 @@ bool Patch::objectWasDeleted(void* objectPtr) const
 
     return true;
 }
-bool Patch::connectionWasDeleted(void* connectionPtr) const
+bool Patch::connectionWasDeleted(t_outconnect* connectionPtr) const
 {
     t_outconnect* oc;
     t_linetraverser t;

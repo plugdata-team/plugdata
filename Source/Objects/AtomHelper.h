@@ -41,7 +41,7 @@ public:
 
     ObjectParameters objectParameters;
 
-    AtomHelper(void* pointer, Object* parent, ObjectBase* base)
+    AtomHelper(t_gobj* pointer, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
         , cnv(parent->cnv)
@@ -99,7 +99,7 @@ public:
                 return {};
 
             int x, y, w, h;
-            pd::Interface::getObjectBounds(patchPtr, atom.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patchPtr, atom.cast<t_gobj>(), &x, &y, &w, &h);
 
             w = (std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(patchPtr)) + 3;
 
@@ -155,7 +155,7 @@ public:
                 auto oldBounds = old.reduced(Object::margin);
                 auto newBounds = bounds.reduced(Object::margin);
 
-                auto* atom = static_cast<t_fake_gatom*>(object->getPointer());
+                auto* atom = reinterpret_cast<t_fake_gatom*>(object->getPointer());
                 auto* patch = object->cnv->patch.getPointer().get();
 
                 if (!atom || !patch)

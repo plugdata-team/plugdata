@@ -28,7 +28,7 @@ class NoteObject final : public ObjectBase {
     bool wasSelectedOnMouseDown = false;
 
 public:
-    NoteObject(void* obj, Object* object)
+    NoteObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
         locked = getValue<bool>(object->locked);
@@ -274,7 +274,7 @@ public:
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto* note = static_cast<t_fake_note*>(object->getPointer());
+                auto* note = reinterpret_cast<t_fake_note*>(object->getPointer());
                 note->x_resized = 1;
                 note->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
 

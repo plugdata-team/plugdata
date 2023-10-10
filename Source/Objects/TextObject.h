@@ -8,7 +8,7 @@ struct TextObjectHelper {
 
     inline static int minWidth = 3;
 
-    static Rectangle<int> recalculateTextObjectBounds(void* patch, void* obj, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
+    static Rectangle<int> recalculateTextObjectBounds(t_canvas* patch, t_gobj* obj, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
     {
         int x, y, w, h;
         pd::Interface::getObjectBounds(patch, obj, &x, &y, &w, &h);
@@ -204,7 +204,7 @@ protected:
     bool isLocked;
 
 public:
-    TextBase(void* obj, Object* parent, bool valid = true)
+    TextBase(t_gobj* obj, Object* parent, bool valid = true)
         : ObjectBase(obj, parent)
         , isValid(valid)
     {
@@ -295,7 +295,7 @@ public:
                 return {};
 
             auto newNumLines = 0;
-            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.get(), objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.cast<t_gobj>(), objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
 
             numLines = newNumLines;
             return newBounds;
@@ -466,7 +466,7 @@ public:
 class TextObject final : public TextBase {
 
 public:
-    TextObject(void* obj, Object* parent, bool isValid = true)
+    TextObject(t_gobj* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
     {
     }

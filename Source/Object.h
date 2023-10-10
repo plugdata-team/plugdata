@@ -28,7 +28,7 @@ class Object : public Component
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
-    Object(void* object, Canvas* parent);
+    Object(t_gobj* object, Canvas* parent);
 
     ~Object() override;
 
@@ -43,7 +43,7 @@ public:
 
     void updateIolets();
 
-    void setType(String const& newType, void* existingObject = nullptr);
+    void setType(String const& newType, t_gobj* existingObject = nullptr);
     void updateBounds();
     void applyBounds();
 
@@ -58,7 +58,7 @@ public:
     ComponentBoundsConstrainer* getConstrainer() const;
 
     void openHelpPatch() const;
-    void* getPointer() const;
+    t_gobj* getPointer() const;
 
     Array<Connection*> getConnections() const;
 
