@@ -118,10 +118,10 @@ public:
     {
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight);
 
-        int toolbarPosition = 48;
+        int toolbarPosition = 44;
         auto spacing = (getWidth() - 96) / toolbarButtons.size();
 
-        searchButton.setBounds(4, 2, toolbarHeight - 2, toolbarHeight - 2);
+        searchButton.setBounds(4, 1, toolbarHeight - 2, toolbarHeight - 2);
         searcher->setBounds(getLocalBounds());
         
         for (auto& button : toolbarButtons) {

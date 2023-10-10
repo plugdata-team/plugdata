@@ -431,10 +431,11 @@ public:
 
         listBox.setModel(this);
 
+        input.setTextToShowWhenEmpty("Type to search for objects or libraries", findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
         input.setJustification(Justification::centredLeft);
-        input.setBorder({ 1, 4, 6, 1 });
+        input.setBorder({ 0, 3, 5, 1 });
         input.getProperties().set("NoOutline", true);
         input.setEnabled(false);
         input.onTextChange = [this]() {
@@ -442,17 +443,8 @@ public:
             repaint();
         };
 
-        clearButton.setAlwaysOnTop(true);
-        clearButton.onClick = [this]() {
-            input.clear();
-            grabKeyboardFocus(); // steal focus from text editor
-            input.repaint();
-            filterResults();
-        };
-
         updateSpinner.setAlwaysOnTop(true);
 
-        addChildComponent(clearButton);
         addAndMakeVisible(listBox.getViewport());
         addChildComponent(input);
         addAndMakeVisible(updateSpinner);
@@ -467,7 +459,6 @@ public:
         packageManager->addActionListener(this);
 
         refreshButton.setEnabled(false);
-        clearButton.setEnabled(false);
         input.setText("Updating Packages...");
         updateSpinner.startSpinning();
 
@@ -481,7 +472,6 @@ public:
             input.setVisible(isSearching);
             if(isSearching) input.grabKeyboardFocus();
             
-            clearButton.setVisible(isSearching);
             installedButton.setVisible(!isSearching);
             exploreButton.setVisible(!isSearching);
             repaint();
@@ -533,7 +523,6 @@ public:
             input.setText("Updating packages...");
             input.setEnabled(false);
             refreshButton.setEnabled(false);
-            clearButton.setEnabled(false);
             updateSpinner.startSpinning();
         } else {
             // Clear text if it was previously disabled
@@ -543,7 +532,6 @@ public:
             }
 
             refreshButton.setEnabled(true);
-            clearButton.setEnabled(true);
             input.setEnabled(true);
             updateSpinner.stopSpinning();
         }
@@ -561,12 +549,6 @@ public:
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillPath(p);
-   
-        if(searchButton.getToggleState())
-        {
-            g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-            g.fillRoundedRectangle(input.getBounds().toFloat(), Corners::defaultCornerRadius);
-        }
 
         if (errorMessage.isNotEmpty()) {
             Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
@@ -575,10 +557,6 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        if (input.getText().isEmpty() && searchButton.getToggleState()) {
-            Fonts::drawFittedText(g, "Type to search for objects or libraries", 100, 0, getWidth() - 60, 40, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
-        }
-
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 40, getWidth(), 40);
     }
@@ -699,21 +677,20 @@ public:
 
     void resized() override
     {
-        input.setBounds(getLocalBounds().removeFromTop(40).withTrimmedLeft(48).reduced(42, 5));
+        input.setBounds(getLocalBounds().removeFromTop(40).withTrimmedLeft(46).reduced(42, 5));
         
         auto bounds = getLocalBounds().withTrimmedTop(40);
 
-        clearButton.setBounds(input.getBounds().removeFromRight(32));
         updateSpinner.setBounds(input.getBounds().removeFromRight(30));
 
         listBox.setBounds(getLocalBounds().withHeight(listBox.getHeight()));
         listBox.getViewport()->setBounds(bounds);
 
-        refreshButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40).translated(2, 0));
-        searchButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40).translated(42, 0));
+        refreshButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40).translated(2, 0).reduced(1));
+        searchButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40).translated(42, 0).reduced(1));
         
-        installedButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(100, 40).translated(-52, 0));
-        exploreButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(100, 40).translated(52, 0));
+        installedButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(105, 36).translated(-54, 0));
+        exploreButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(105, 36).translated(54, 0));
     }
 
     // Show error message in statusbar
@@ -805,8 +782,7 @@ private:
 
     PackageManager* packageManager = PackageManager::getInstance();
 
-    TextEditor input;
-    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
+    SearchEditor input;
 
     Spinner updateSpinner;
 

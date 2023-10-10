@@ -331,8 +331,8 @@ public:
         slider.setBounds(secondRow.withTrimmedRight(55));
         valueLabel.setBounds(secondRow.removeFromRight(55));
 
-        reorderButton.setBounds(buttonsBounds.removeFromLeft(25));
-        deleteButton.setBounds(buttonsBounds.removeFromLeft(25));
+        reorderButton.setBounds(buttonsBounds.removeFromLeft(28));
+        deleteButton.setBounds(buttonsBounds.removeFromLeft(28));
     }
 
     void paint(Graphics& g) override

@@ -481,29 +481,20 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
+        input.setTextToShowWhenEmpty("Type to search for objects", findColour(TextEditor::textColourId).withAlpha(0.5f));
         input.getProperties().set("NoOutline", true);
         input.addKeyListener(this);
         input.onTextChange = [this]() {
             updateResults(input.getText());
         };
 
-        clearButton.onClick = [this]() {
-            input.clear();
-            input.grabKeyboardFocus();
-            clearSearchResults();
-        };
-
-        input.setInterceptsMouseClicks(true, true);
-        clearButton.setAlwaysOnTop(true);
-
-        addAndMakeVisible(clearButton);
         addAndMakeVisible(listBox);
         addAndMakeVisible(input);
 
         listBox.addMouseListener(this, true);
 
         input.setJustification(Justification::centredLeft);
-        input.setBorder({ 1, 3, 4, 1 });
+        input.setBorder({ 0, 3, 5, 1 });
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
 
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
@@ -549,9 +540,6 @@ public:
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().withTrimmedTop(42).removeFromLeft(getWidth() - 260).toFloat(), Corners::windowCornerRadius);
-        
-        g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-        g.fillRoundedRectangle(input.getBounds().toFloat(), Corners::defaultCornerRadius);
     }
         
     void startSearching()
@@ -565,13 +553,6 @@ public:
         input.clear();
         clearSearchResults();
         setVisible(false);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search for objects", 52, 6, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
-        }
     }
 
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
@@ -686,8 +667,6 @@ public:
 
         input.setBounds(inputBounds);
 
-        clearButton.setBounds(inputBounds.removeFromRight(30));
-
         listBox.setBounds(tableBounds.removeFromLeft(getWidth() - 260));
     }
 
@@ -698,9 +677,8 @@ private:
     BouncingViewportAttachment bouncer;
 
     Array<String> searchResult;
-    TextEditor input;
-    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
-
+    SearchEditor input;
+        
     std::unordered_map<String, String> objectDescriptions;
 };
 

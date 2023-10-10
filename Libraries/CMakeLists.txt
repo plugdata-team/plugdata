@@ -409,6 +409,8 @@ set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
+# Static libraries for externals contain unresolved symbols from the pd target
+# MSVC doesn't like that, but it's fine
 target_link_options(externals PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
 target_link_options(externals-multi PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
 

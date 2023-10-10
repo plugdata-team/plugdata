@@ -596,18 +596,9 @@ public:
             updateResults(input.getText());
         };
 
-        clearButton.onClick = [this]() {
-            input.clear();
-            grabKeyboardFocus(); // steal focus from text editor
-            listBox.setVisible(false);
-            setInterceptsMouseClicks(false, true);
-            input.repaint();
-        };
-
+        input.setTextToShowWhenEmpty("Type to search documentation", findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
         input.setInterceptsMouseClicks(true, true);
-        clearButton.setAlwaysOnTop(true);
-
-        addAndMakeVisible(clearButton);
+        
         addAndMakeVisible(listBox);
         addAndMakeVisible(input);
 
@@ -673,13 +664,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto textColour = findColour(PlugDataColour::sidebarTextColourId);
-
-        Fonts::drawIcon(g, Icons::Search, 1, 0, 32, textColour, 12);
-
-        if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search documentation", 30, 0, getWidth() - 60, 32, textColour.withAlpha(0.5f), 1, 0.9f, 14);
-        }
+        Fonts::drawIcon(g, Icons::Search, 1, 0, 32, findColour(PlugDataColour::sidebarTextColourId), 12);
     }
 
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
@@ -777,9 +762,6 @@ public:
         tableBounds.removeFromTop(2);
 
         input.setBounds(inputBounds);
-
-        clearButton.setBounds(inputBounds.removeFromRight(30));
-
         listBox.setBounds(tableBounds.withTrimmedTop(1));
     }
 
@@ -790,8 +772,7 @@ private:
     BouncingViewportAttachment bouncer;
     DirectoryContentsList& searchPath;
     Array<File> searchResult;
-    TextEditor input;
-    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
+    SearchEditor input;
 };
 
 class DocumentBrowser : public DocumentBrowserBase {

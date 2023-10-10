@@ -568,8 +568,7 @@ struct PatchStorage : public Component
     MainToolbarButton backButton = MainToolbarButton(Icons::Back);
     MainToolbarButton refreshButton = MainToolbarButton(Icons::Refresh);
 
-    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
-    TextEditor input;
+    SearchEditor input;
 
     Spinner spinner;
 
@@ -593,7 +592,6 @@ public:
             backButton.setVisible(true);
             refreshButton.setVisible(false);
             input.setVisible(false);
-            clearButton.setVisible(false);
         };
 
         addChildComponent(backButton);
@@ -603,7 +601,6 @@ public:
             backButton.setVisible(false);
             refreshButton.setVisible(true);
             input.setVisible(true);
-            clearButton.setVisible(true);
         };
 
         backButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
@@ -620,7 +617,7 @@ public:
             });
         };
 
-        //input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
+        input.setTextToShowWhenEmpty("Type to search for patches", findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 1, 23, 3, 1 });
@@ -629,15 +626,6 @@ public:
             patchContainer.filterPatches(input.getText());
         };
         addAndMakeVisible(input);
-
-        clearButton.setAlwaysOnTop(true);
-        clearButton.onClick = [this]() {
-            input.clear();
-            grabKeyboardFocus(); // steal focus from text editor
-            input.repaint();
-            patchContainer.filterPatches("");
-        };
-        addAndMakeVisible(clearButton);
         addChildComponent(spinner);
     }
 
@@ -658,9 +646,7 @@ public:
         if (input.isVisible()) {
             Fonts::drawIcon(g, Icons::Search, 0, 40, 30, findColour(PlugDataColour::panelTextColourId), 12);
 
-            if (input.getText().isEmpty()) {
-                Fonts::drawFittedText(g, "Type to search for patches", 30, 40, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
-            }
+
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.drawLine(0, 70, getWidth(), 70);
         }
@@ -691,7 +677,6 @@ public:
 
         auto inputBounds = b.removeFromTop(28);
         input.setBounds(inputBounds);
-        clearButton.setBounds(inputBounds.removeFromRight(32));
 
         contentViewport.setBounds(b);
 

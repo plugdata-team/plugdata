@@ -26,6 +26,8 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
+        
+        input.setTextToShowWhenEmpty("Type to search in patch", findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
         input.getProperties().set("NoOutline", true);
 
         input.onTextChange = [this]() {
@@ -35,16 +37,6 @@ public:
         input.addKeyListener(this);
         listBox.addKeyListener(this);
 
-        clearButton.onClick = [this]() {
-            clearSearchTargets();
-            input.clear();
-            grabKeyboardFocus(); // steal focus from text editor
-            input.repaint();
-        };
-
-        clearButton.setAlwaysOnTop(true);
-
-        addAndMakeVisible(clearButton);
         addAndMakeVisible(listBox);
         addAndMakeVisible(input);
 
@@ -205,10 +197,6 @@ public:
 
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
         Fonts::drawIcon(g, Icons::Search, 1, 0, 32, colour, 12);
-
-        if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search in patch", 30, 0, getWidth() - 60, 32, colour.withAlpha(0.5f), 1, 0.9f, 14);
-        }
     }
 
     std::pair<String, String> formatSearchResultString(String const& name, String prefix, Rectangle<int> bounds)
@@ -396,7 +384,6 @@ public:
         tableBounds.removeFromTop(4);
 
         input.setBounds(inputBounds);
-        clearButton.setBounds(inputBounds.removeFromRight(30));
         listBox.setBounds(tableBounds);
     }
 
@@ -404,8 +391,7 @@ private:
     ListBox listBox;
 
     Array<std::tuple<String, String, SafePointer<Object>, void*>> searchResult;
-    TextEditor input;
-    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
+    SearchEditor input;
 
     BouncingViewportAttachment bouncer;
     PluginEditor* editor;

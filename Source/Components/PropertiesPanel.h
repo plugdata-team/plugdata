@@ -1088,28 +1088,20 @@ public:
         
 
         addAndMakeVisible(input);
+        input.setTextToShowWhenEmpty("Type to search for settings", findColour(TextEditor::textColourId).withAlpha(0.5f));
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         input.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         input.setJustification(Justification::centredLeft);
-        input.setBorder({1, 1, 4, 1});
+        input.setBorder({0, 3, 5, 1});
         input.onTextChange = [this](){
             updateResults();
         };
-        
-        clearButton.setAlwaysOnTop(true);
-        clearButton.onClick = [this]() {
-            input.clear();
-            input.grabKeyboardFocus();
-        };
-
-        addAndMakeVisible(clearButton);
     }
     
     void resized() override
     {
-        input.setBounds(getLocalBounds().removeFromTop(42).reduced(54, 6));
-        clearButton.setBounds(input.getBounds().removeFromRight(30));
+        input.setBounds(getLocalBounds().removeFromTop(42).reduced(48, 6).translated(-2, -1));
         resultsPanel.setBounds(getLocalBounds().withTrimmedTop(40));
     }
     
@@ -1152,18 +1144,8 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillPath(p);
 
-        g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-        g.fillRoundedRectangle(input.getBounds().expanded(4, 0).toFloat(), Corners::defaultCornerRadius);
-        
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(40, 0.0f, getWidth());
-    }
-    
-    void paintOverChildren(Graphics& g) override
-    {
-        if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search for settings", 56, 6, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
-        }
     }
     
     void startSearching()
@@ -1178,8 +1160,7 @@ public:
         input.setText("");
     }
     
-    TextEditor input;
-    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
+    SearchEditor input;
     PropertiesPanel resultsPanel;
     Array<PropertiesPanel*> panelsToSearch;
 };
