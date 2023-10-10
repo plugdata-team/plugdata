@@ -593,11 +593,9 @@ public:
         PackageList newResult;
 
         searchResult.clear();
-        
-        PackageList allPackages;
 
-        // Show installed packages when query is empty
-        if (installedButton.getToggleState()) {
+        if (installedButton.getToggleState() && !isSearching) {
+            
             // make sure installed packages are sorted alphabetically
             PackageSorter::sort(packageManager->packageState);
 
@@ -612,12 +610,14 @@ public:
                 
                 auto info = PackageInfo(name, author, timestamp, url, description, version, objects);
                 
-                allPackages.addIfNotAlreadyThere(info);
+                searchResult.addIfNotAlreadyThere(info);
             }
+
+            listBox.updateContent();
+            return;
         }
-        else {
-            allPackages = packageManager->allPackages;
-        }
+
+        PackageList allPackages = packageManager->allPackages;
 
         if(isSearching && !query.isEmpty()) {
             // First check for name match
