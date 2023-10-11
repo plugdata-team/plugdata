@@ -317,26 +317,26 @@ public:
             auto firstThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[0]);
             auto secondThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[1]);
 
-            g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId));
+            g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::toolbarBackgroundColourId));
             g.fillEllipse(firstBounds.toFloat());
 
-            g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasBackgroundColourId));
+            g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::toolbarBackgroundColourId));
             g.fillEllipse(secondBounds.toFloat());
 
-            g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::objectOutlineColourId));
+            g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::toolbarOutlineColourId));
             g.drawEllipse(firstBounds.toFloat(), 1.0f);
 
-            g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::objectOutlineColourId));
+            g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::toolbarOutlineColourId));
             g.drawEllipse(secondBounds.toFloat(), 1.0f);
 
             auto tick = getLookAndFeel().getTickShape(0.6f);
             auto tickBounds = Rectangle<int>();
 
             if (theme.toString() == firstThemeTree.getProperty("theme").toString()) {
-                g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasTextColourId));
+                g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::toolbarTextColourId));
                 tickBounds = firstBounds;
             } else {
-                g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasTextColourId));
+                g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::toolbarTextColourId));
                 tickBounds = secondBounds;
             }
 

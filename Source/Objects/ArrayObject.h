@@ -41,6 +41,10 @@ public:
         });
     }
 
+    void receiveMessage(String const& name, int argc, t_atom* argv) override {
+        std::cout << name << std::endl;
+    };
+        
     void setArray(void* array)
     {
         if (!array)
@@ -447,7 +451,7 @@ public:
 };
 
 class ArrayEditorDialog : public Component
-    , public Timer {
+{
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
@@ -488,8 +492,6 @@ public:
         setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
 
         addAndMakeVisible(resizer);
-
-        startTimer(40);
     }
 
     void resized() override
@@ -505,7 +507,7 @@ public:
         }
     }
 
-    void timerCallback() override
+    void updateGraphs()
     {
         if (!pd->tryLockAudioThread())
             return;
@@ -548,7 +550,7 @@ public:
 };
 
 class ArrayObject final : public ObjectBase
-    , public Timer {
+{
 public:
     // Array component
     ArrayObject(t_gobj* obj, Object* object)
@@ -559,10 +561,6 @@ public:
         for (int i = 0; i < arrays.size(); i++) {
             auto* graph = graphs.add(new GraphicalArray(cnv->pd, arrays[i], object));
             graph->setBounds(getLocalBounds());
-
-            // Listen for messages on all children of the array
-            cnv->pd->registerMessageListener(arrays[i], this);
-
             addAndMakeVisible(graph);
         }
 
@@ -576,18 +574,9 @@ public:
         objectParameters.addParamBool("Save contents", cGeneral, &saveContents, { "No", "Yes" }, 0);
 
         objectParameters.addParamCombo("Draw mode", cAppearance, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2);
-
-        startTimer(20);
     }
 
-    ~ArrayObject()
-    {
-        for (auto* graph : graphs) {
-            cnv->pd->unregisterMessageListener(graph->arr.getRawUnchecked<void>(), this);
-        }
-    }
-
-    void timerCallback() override
+    void updateGraphs()
     {
         pd->lockAudioThread();
 
@@ -826,6 +815,7 @@ public:
             hash("rename"),
             hash("color"),
             hash("style"),
+            hash("redraw"),
         };
     }
 
@@ -835,6 +825,15 @@ public:
         case hash("float"):
         case hash("symbol"):
         case hash("list"): {
+            break;
+        }
+        case hash("redraw"):
+        {
+            updateGraphs();
+            if(dialog)
+            {
+                dialog->updateGraphs();
+            }
             break;
         }
         case hash("edit"): {
@@ -952,7 +951,20 @@ public:
             }
         }
     }
+    std::vector<hash32> getAllMessages() override
+    {
+        return {
+            hash("redraw"),
+        };
+    }
 
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if(editor)
+        {
+            editor->updateGraphs();
+        }
+    }
     void openFromMenu() override
     {
         openArrayEditor();
