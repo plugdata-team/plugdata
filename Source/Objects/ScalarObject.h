@@ -12,7 +12,17 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
     t_array* ap, struct _glist* owner,
     t_float xloc, t_float yloc, int xpix, int ypix,
     int shift, int alt, int dbl, int doit);
+
+void drawnumber_motionfn(void *z, t_floatarg dx, t_floatarg dy,
+                         t_floatarg up);
+
+int drawnumber_click(t_gobj *z, t_glist *glist,
+    t_word *data, t_template *templ, t_scalar *sc, t_array *ap,
+    t_float basex, t_float basey,
+                     int xpix, int ypix, int shift, int alt, int dbl, int doit);
 }
+
+
 
 #define CLOSED 1      /* polygon */
 #define BEZ 2         /* bezier shape */
@@ -32,15 +42,15 @@ class DrawableTemplate : public pd::MessageListener
     , public AsyncUpdater {
 
 public:
-    void* ptr;
     pd::Instance* pd;
     Canvas* canvas;
     int baseX, baseY;
     t_word* data;
     t_template* templ;
+    pd::WeakReference scalar;
 
-    DrawableTemplate(void* object, t_word* scalarData, t_template* scalarTemplate, Canvas* cnv, int x, int y)
-        : ptr(object)
+    DrawableTemplate(t_scalar* object, t_word* scalarData, t_template* scalarTemplate, Canvas* cnv, int x, int y)
+        : scalar(object, cnv->pd)
         , canvas(cnv)
         , pd(cnv->pd)
         , baseX(x)
@@ -48,13 +58,13 @@ public:
         , data(scalarData)
         , templ(scalarTemplate)
     {
-        pd->registerMessageListener(ptr, this);
+        pd->registerMessageListener(scalar.getRawUnchecked<void>(), this);
         triggerAsyncUpdate();
     }
 
     ~DrawableTemplate()
     {
-        pd->unregisterMessageListener(ptr, this);
+        pd->unregisterMessageListener(scalar.getRawUnchecked<void>(), this);
     }
 
     void receiveMessage(String const& name, int argc, t_atom* argv)
@@ -153,14 +163,12 @@ public:
 class DrawableCurve final : public DrawableTemplate
     , public DrawablePath {
 
-    pd::WeakReference scalar;
     t_fake_curve* object;
     GlobalMouseListener mouseListener;
 
 public:
     DrawableCurve(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y)
-        : DrawableTemplate(static_cast<void*>(s), data, templ, cnv, x, y)
-        , scalar(s, cnv->pd)
+        : DrawableTemplate(s, data, templ, cnv, x, y)
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , mouseListener(this)
     {
@@ -285,24 +293,78 @@ public:
 
 class DrawableSymbol final : public DrawableTemplate
     , public DrawableText {
-        
-    pd::WeakReference scalar;
-        
-    // TODO: use weakreference!
-    t_fake_drawnumber* object;
 
+    t_fake_drawnumber* object;
+    GlobalMouseListener mouseListener;
+        
 public:
     DrawableSymbol(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y)
-        : DrawableTemplate(static_cast<void*>(s), data, templ, cnv, x, y)
-        , scalar(s, cnv->pd)
+        : DrawableTemplate(s, data, templ, cnv, x, y)
         , object(reinterpret_cast<t_fake_drawnumber*>(obj))
     {
+        mouseListener.globalMouseDown = [this](MouseEvent const& e) {
+            handleMouseDown(e);
+        };
+        mouseListener.globalMouseDrag = [this](MouseEvent const& e) {
+            handleMouseDrag(e);
+        };
     }
 
-    // TODO: implement number dragging
-    void mouseDown(MouseEvent const& e) override
+    void handleMouseDown(MouseEvent const& e)
     {
+        auto* s = scalar.getRaw<t_scalar>();
+
+        //if (!s || !getLocalBounds().contains(e.getPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing() || !s->sc_template)
+         //   return;
+
+        auto shift = e.mods.isShiftDown();
+        auto alt = e.mods.isAltDown();
+        auto dbl = 0;
+        int arrayonset, type;
+        t_symbol* elemtemplatesym;
+        
+        auto* array = *(t_array **)(((char *)data) + arrayonset);
+        
+        auto* patch = canvas->patch.getPointer().get();
+        if (!patch)
+            return;
+
+        /*
+        if (!template_find_field(templ, object->x_data.fd_un.fd_varsym,
+            &arrayonset, &type, &elemtemplatesym))
+        {
+            pd_error(0, "plot: %s: no such field", x->x_data.fd_un.fd_varsym->s_name);
+            return (-1);
+        }
+        
+        drawnumber_click(object, patch, data, templ, s, array, e.x, e.y, false, false, false, true);
+         */
+        /*
+        int drawnumber_click(t_gobj *z, t_glist *glist,
+            t_word *data, t_template *templ, t_scalar *sc, t_array *ap,
+            t_float basex, t_float basey,
+            int xpix, int ypix, int shift, int alt, int dbl, int doitv
+         
+         */
+                             
+        // Update all drawables
+        for (auto* object : canvas->objects) {
+            if (!object->gui)
+                continue;
+            object->gui->updateDrawables();
+        }
     }
+      
+    void handleMouseDrag(MouseEvent const& e)
+    {
+        pd->setThis();
+        
+        //void *z, t_floatarg dx, t_floatarg dy,
+         //                        t_floatarg up
+        
+        drawnumber_motionfn(object, e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY(), 0);
+    }
+      
 
     void update() override
     {
@@ -369,13 +431,11 @@ public:
 class DrawablePlot final : public DrawableTemplate
 , public DrawablePath {
     
-    pd::WeakReference scalar;
     t_fake_curve* object;
     
 public:
     DrawablePlot(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y)
-        : DrawableTemplate(static_cast<void*>(s), data, templ, cnv, x, y)
-        , scalar(s, cnv->pd)
+        : DrawableTemplate(s, data, templ, cnv, x, y)
         , object(reinterpret_cast<t_fake_curve*>(obj))
     {
     }
@@ -453,7 +513,7 @@ public:
          || array_getfields(elemtemplatesym, &elemtemplatecanvas,
          &elemtemplate, &elemsize, (t_fielddesc*)xfielddesc, (t_fielddesc*)yfielddesc, (t_fielddesc*)wfielddesc,
          &xonset, &yonset, &wonset))
-         return;
+             return {};
         
         int nelem = array->a_n;
         auto* elem = (char *)array->a_vec;
