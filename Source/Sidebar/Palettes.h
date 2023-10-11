@@ -565,8 +565,6 @@ private:
 
     void resized() override
     {
-        paletteViewport.setBounds(getLocalBounds());
-
         int totalHeight = 0;
         for (auto* button : paletteSelectors) {
             totalHeight += Font(14).getStringWidth(button->getButtonText()) + 30;
@@ -579,13 +577,13 @@ private:
         
         paletteBar.setBounds(0, 0, 30, totalHeight);
         
-        paletteViewport.setBounds(selectorBounds);
+        paletteViewport.setBounds(getLocalBounds().removeFromLeft(30));
 
         int offset = totalHeight > paletteViewport.getMaximumVisibleHeight() ? -4 : 0;
 
         auto& animator = Desktop::getInstance().getAnimator();
 
-        totalHeight = 0;
+        totalHeight = selectorBounds.getY();
 
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
