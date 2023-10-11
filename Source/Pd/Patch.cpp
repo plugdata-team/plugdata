@@ -484,15 +484,6 @@ void Patch::deselectAll()
     }
 }
 
-void Patch::removeObject(t_gobj* obj)
-{
-    instance->lockAudioThread();
-
-    if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
-        pd::Interface::removeObject(patch.get(), obj);
-    }
-}
 
 bool Patch::hasConnection(t_object* src, int nout, t_object* sink, int nin)
 {

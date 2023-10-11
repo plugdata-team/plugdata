@@ -39,7 +39,6 @@ public:
     Rectangle<int> getBounds() const;
 
     t_gobj* createObject(int x, int y, String const& name);
-    void removeObject(t_gobj* obj);
     t_gobj* renameObject(t_object* obj, String const& name);
 
     void moveObjects(std::vector<t_gobj*> const&, int x, int y);

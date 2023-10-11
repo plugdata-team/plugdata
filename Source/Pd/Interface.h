@@ -181,24 +181,23 @@ struct Interface {
     static void finishRemove(t_canvas* cnv)
     {
         canvas_undo_add(cnv, UNDO_SEQUENCE_END, "clear", 0);
+        glist_noselect(cnv);
     }
     
     static void removeObjects(t_canvas* cnv, std::vector<t_gobj*> const& objects)
     {
         canvas_undo_add(cnv, UNDO_SEQUENCE_START, "clear", 0);
 
-        canvas_undo_add(cnv, UNDO_CUT, "clear",
-            canvas_undo_set_cut(cnv, 2));
-        
         glist_noselect(cnv);
         
         for (auto* obj : objects) {
             glist_select(cnv, obj);
         }
-
-        doRemoveSelection(cnv);
         
-        glist_noselect(cnv);
+        canvas_undo_add(cnv, UNDO_CUT, "clear",
+            canvas_undo_set_cut(cnv, 2));
+        
+        doRemoveSelection(cnv);
     }
 
     static t_outconnect* setConnectionPath(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* old_connection_path, t_symbol* new_connection_path)
@@ -357,17 +356,7 @@ struct Interface {
         
         return new_object;
     }
-
-    static void removeObject(t_canvas* cnv, t_gobj* obj)
-    {
-        
-        glist_noselect(cnv);
-        glist_select(cnv, obj);
-        doRemoveSelection(cnv);
-
-        glist_noselect(cnv);
-    }
-
+    
     static void renameObject(t_canvas* cnv, t_gobj* obj, char const* buf, size_t bufsize)
     {
         struct _fake_rtext {
