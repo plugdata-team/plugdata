@@ -544,7 +544,6 @@ struct t_fake_curve {
     t_canvas* x_canvas;
 };
 
-// for template drawing
 struct t_fake_drawnumber {
     t_object x_obj;
     t_symbol* x_fieldname;
@@ -554,6 +553,25 @@ struct t_fake_drawnumber {
     t_fake_fielddesc x_vis;
     t_symbol* x_label;
     t_canvas* x_canvas;
+};
+
+struct t_fake_plot
+{
+    t_object x_obj;
+    t_canvas *x_canvas;
+    t_fake_fielddesc x_outlinecolor;
+    t_fake_fielddesc x_width;
+    t_fake_fielddesc x_xloc;
+    t_fake_fielddesc x_yloc;
+    t_fake_fielddesc x_xinc;
+    t_fake_fielddesc x_style;
+    t_fake_fielddesc x_data;
+    t_fake_fielddesc x_xpoints;
+    t_fake_fielddesc x_ypoints;
+    t_fake_fielddesc x_wpoints;
+    t_fake_fielddesc x_vis;          /* visible */
+    t_fake_fielddesc x_scalarvis;    /* true if drawing the scalar at each point */
+    t_fake_fielddesc x_edit;         /* enable/disable mouse editing */
 };
 
 #define SCOPE_MAXBUFSIZE 256
