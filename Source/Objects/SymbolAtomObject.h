@@ -40,6 +40,13 @@ public:
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->addKeyListener(this);
+            editor->onTextChange = [this](){
+                // To resize while typing
+                if(atomHelper.getWidthInChars() == 0)
+                {
+                    object->updateBounds();
+                }
+            };
         };
 
         input.setMinimumHorizontalScale(0.9f);
@@ -47,7 +54,7 @@ public:
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         atomHelper.addAtomParameters(objectParameters);
     }
-
+        
     void update() override
     {
         sizeProperty = atomHelper.getWidthInChars();
@@ -74,7 +81,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds();
+        return atomHelper.getPdBounds(input.getFont().getStringWidth(input.getText(true)));
     }
 
     void setPdBounds(Rectangle<int> b) override

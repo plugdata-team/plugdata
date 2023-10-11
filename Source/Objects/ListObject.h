@@ -28,6 +28,14 @@ public:
         listLabel.onEditorHide = [this]() {
             stopEdition();
         };
+        
+        listLabel.onTextChange = [this]() {
+            // To resize while typing
+            if(atomHelper.getWidthInChars() == 0)
+            {
+                object->updateBounds();
+            }
+        };
 
         listLabel.onEditorShow = [this]() {
             startEdition();
@@ -130,7 +138,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds();
+        return atomHelper.getPdBounds(listLabel.getFont().getStringWidth(listLabel.getText(true)));
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -157,7 +165,7 @@ public:
     {
         return atomHelper.hasSendSymbol();
     }
-
+    
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));

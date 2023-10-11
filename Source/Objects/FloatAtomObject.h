@@ -48,8 +48,21 @@ public:
             startEdition();
         };
 
+        input.onTextChange = [this]() {
+            // To resize while typing
+            if(atomHelper.getWidthInChars() == 0)
+            {
+                object->updateBounds();
+            }
+        };
+        
         input.onValueChange = [this](float newValue) {
             sendFloatValue(newValue);
+            
+            if(atomHelper.getWidthInChars() == 0)
+            {
+                object->updateBounds();
+            }
         };
 
         input.dragEnd = [this]() {
@@ -155,7 +168,7 @@ public:
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
         }
     }
-
+    
     void updateLabel() override
     {
         atomHelper.updateLabel(label);
@@ -163,7 +176,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds();
+        return atomHelper.getPdBounds(input.getFont().getStringWidth(DraggableNumber::formatNumber(input.getText(true).getDoubleValue())));
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -192,7 +205,7 @@ public:
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
-            auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto width = ::getValue<int>(sizeProperty);
 
             setParameterExcludingListener(sizeProperty, width);
 

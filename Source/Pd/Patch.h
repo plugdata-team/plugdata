@@ -141,6 +141,7 @@ private:
         { "cnv", "15 100 60 empty empty empty 20 12 0 14 lnColour lblColour" },
         { "vu", "20 120 empty empty -1 -8 0 10 bgColour lblColour 1 0" },
         { "floatatom", "5 0 0 0 empty - - 12" },
+        { "symbolatom", "5 0 0 0 empty - - 12" },
         { "listbox", "9 0 0 0 empty - - 0" },
         { "numbox~", "4 15 100 bgColour fgColour 10 0 0 0" },
         { "button", "25 25 bgColour_rgb fgColour_rgb" },

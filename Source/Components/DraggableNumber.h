@@ -14,10 +14,10 @@ public:
         Integer,
         Logarithmic
     };
-
+        
 protected:
-    double dragValue = 0.0;
     int decimalDrag = 0;
+    double dragValue = 0.0;
     int hoveredDecimal = -1;
     Rectangle<float> hoveredDecimalPosition;
 
@@ -37,7 +37,7 @@ protected:
     GlyphArrangement currentGlyphs;
 
 public:
-    std::function<void(double)> onValueChange = [](double) {};
+    std::function<void(double)> onValueChange = [](double){};
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
 
@@ -55,6 +55,10 @@ public:
     void editorShown(Label* l, TextEditor& editor) override
     {
         dragStart();
+        editor.onTextChange = [this](){
+            if(onTextChange)
+                onTextChange();
+        };
     }
 
     void editorHidden(Label* l, TextEditor& editor) override
@@ -414,6 +418,8 @@ public:
         if (!text.containsChar('.'))
             text << '.';
 
+        text = text.trimCharactersAtEnd("0");
+        
         return text;
     }
 };

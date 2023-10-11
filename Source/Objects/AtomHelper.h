@@ -29,8 +29,6 @@ class AtomHelper {
 
     pd::WeakReference ptr;
 
-    inline static int minWidth = 3;
-
 public:
     Value labelColour = SynchronousValue();
     Value labelPosition = SynchronousValue(0.0f);
@@ -91,7 +89,7 @@ public:
         }
     }
 
-    Rectangle<int> getPdBounds()
+    Rectangle<int> getPdBounds(int textLength)
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
             auto* patchPtr = cnv->patch.getPointer().get();
@@ -101,7 +99,12 @@ public:
             int x, y, w, h;
             pd::Interface::getObjectBounds(patchPtr, atom.cast<t_gobj>(), &x, &y, &w, &h);
 
-            w = (std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(patchPtr)) + 3;
+            if(atom->a_text.te_width == 0) {
+                w = textLength + 10;
+            }
+            else {
+                w = (atom->a_text.te_width * glist_fontwidth(patchPtr)) + 3;
+            }
 
             return { x, y, w, getAtomHeight() };
         }
@@ -119,7 +122,9 @@ public:
             pd::Interface::moveObject(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
 
             auto fontWidth = glist_fontwidth(patchPtr);
-            atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
+            if(atom->a_text.te_width != 0) {
+                atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
+            }
         }
     }
 
@@ -165,7 +170,7 @@ public:
 
                 // Calculate the width in text characters for both
                 auto oldCharWidth = (oldBounds.getWidth() - 3) / fontWidth;
-                auto newCharWidth = std::max(minWidth, (newBounds.getWidth() - 3) / fontWidth);
+                auto newCharWidth = (newBounds.getWidth() - 3) / fontWidth;
 
                 // If we're resizing the left edge, move the object left
                 if (isStretchingLeft) {
@@ -189,7 +194,7 @@ public:
                 helper->setFontHeight(atomSizes[heightIdx]);
                 object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
 
-                bounds = helper->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                bounds = helper->getPdBounds(0).expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };
 

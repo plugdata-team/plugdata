@@ -492,6 +492,7 @@ public:
         setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
 
         addAndMakeVisible(resizer);
+        updateGraphs();
     }
 
     void resized() override
@@ -574,6 +575,8 @@ public:
         objectParameters.addParamBool("Save contents", cGeneral, &saveContents, { "No", "Yes" }, 0);
 
         objectParameters.addParamCombo("Draw mode", cAppearance, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2);
+        
+        updateGraphs();
     }
 
     void updateGraphs()
@@ -960,10 +963,6 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(editor)
-        {
-            editor->updateGraphs();
-        }
     }
     void openFromMenu() override
     {
