@@ -101,7 +101,7 @@ public:
     // So we completely replace mouseUpOnKey functionality here, mouseUp() will stop mouseUpOnKey() being called.
     void mouseUp(MouseEvent const& e) override
     {
-        if (!toggleMode) {
+        if (!toggleMode && !e.mods.isShiftDown()) {
             heldKeys.erase(lastKey);
             noteOff(lastKey);
         }
