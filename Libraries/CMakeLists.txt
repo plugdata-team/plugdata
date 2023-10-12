@@ -450,9 +450,6 @@ elseif(MSVC)
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.dll"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll)
 
-    add_custom_command(TARGET pd POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib")
 elseif(APPLE)
     add_library(pd STATIC $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     target_link_libraries(pd sfizz fluidlite lua)
