@@ -72,6 +72,10 @@ if(ENABLE_ASAN)
   add_link_options(-fsanitize=address)
 endif()
 
+if(MSVC)
+add_compile_options("/MP")
+endif()
+
 message(STATUS "Preparing documentation")
 execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 

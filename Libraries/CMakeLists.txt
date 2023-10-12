@@ -354,6 +354,9 @@ if(ENABLE_SFONT)
     )
 
 endif()
+if(ENABLE_SFIZZ)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
+endif()
 
 # ------------------------------------------------------------------------------#
 # C FLAGS
@@ -380,28 +383,24 @@ add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SO
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
 target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
 
-if(MSVC)
-    add_library(pd SHARED ${SOURCE_FILES})
-    target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
-else()
-    add_library(pd STATIC ${SOURCE_FILES})
-    target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+add_library(pd-src STATIC ${SOURCE_FILES})
+target_compile_definitions(pd-src PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 
-    # To make sure externals work, we need to make single-instance pd have its symbols be visible
-    target_compile_options(pd PRIVATE -fvisibility=default)
+if(UNIX)
+    target_compile_options(pd-src PRIVATE -fvisibility=default)
 endif()
 
-add_library(pd-multi STATIC ${SOURCE_FILES})
-target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
+add_library(pd-src-multi STATIC ${SOURCE_FILES})
+target_compile_definitions(pd-src-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
 
 if(MSVC)
-    target_compile_definitions(pd-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
+    target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
 
-set_target_properties(pd-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_target_properties(pd-src-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
-set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
-set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(pd-src PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(pd-src-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -409,37 +408,22 @@ set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
-# Static libraries for externals contain unresolved symbols from the pd target
-# MSVC doesn't like that, but it's fine
-target_link_options(externals PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
-target_link_options(externals-multi PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
 
-if(ENABLE_SFIZZ)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
-
-add_dependencies(externals sfizz)
-add_dependencies(externals-multi sfizz)
-target_link_libraries(externals sfizz)
-target_link_libraries(externals-multi sfizz)
-endif()
-
-target_link_libraries(externals fluidlite lua)
-target_link_libraries(externals-multi fluidlite lua)
 
 # ------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
 # ------------------------------------------------------------------------------#
 if(CMAKE_GENERATOR STREQUAL Xcode)
-    set_target_properties(pd PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
-    set_target_properties(pd PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
-    set_target_properties(pd PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
-    set_target_properties(pd PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
-    set_target_properties(pd PROPERTIES GCC_FAST_MATH[variant=Release] True)
-    set_target_properties(pd-multi PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
-    set_target_properties(pd-multi PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
-    set_target_properties(pd-multi PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
-    set_target_properties(pd-multi PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
-    set_target_properties(pd-multi PROPERTIES GCC_FAST_MATH[variant=Release] True)
+    set_target_properties(pd-src PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
+    set_target_properties(pd-src PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
+    set_target_properties(pd-src PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
+    set_target_properties(pd-src PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
+    set_target_properties(pd-src PROPERTIES GCC_FAST_MATH[variant=Release] True)
+    set_target_properties(pd-src-multi PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
+    set_target_properties(pd-src-multi PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
+    set_target_properties(pd-src-multi PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
+    set_target_properties(pd-src-multi PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
+    set_target_properties(pd-src-multi PROPERTIES GCC_FAST_MATH[variant=Release] True)
 endif()
 
 # ------------------------------------------------------------------------------#
@@ -448,15 +432,17 @@ endif()
 
 # LINK OS
 # ------------------------------------------------------------------------------#
+add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
+add_library(pd-multi SHARED $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
+
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     find_library(MATH_LIB m)
-
-    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals)
-    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi)
+    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS})
+    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS})
 
 elseif(MSVC)
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 externals)
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 externals-multi)
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 sfizz fluidlite lua)
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 sfizz fluidlite lua)
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
@@ -467,9 +453,6 @@ elseif(MSVC)
         COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
-elseif(APPLE)
-    target_link_libraries(pd PUBLIC externals)
-    target_link_libraries(pd-multi PUBLIC externals-multi)
 endif()
 
 # LINK PTHREAD
