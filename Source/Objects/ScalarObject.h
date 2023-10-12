@@ -12,14 +12,6 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
     t_array* ap, struct _glist* owner,
     t_float xloc, t_float yloc, int xpix, int ypix,
     int shift, int alt, int dbl, int doit);
-
-void drawnumber_motionfn(void *z, t_floatarg dx, t_floatarg dy,
-                         t_floatarg up);
-
-int drawnumber_click(t_gobj *z, t_glist *glist,
-    t_word *data, t_template *templ, t_scalar *sc, t_array *ap,
-    t_float basex, t_float basey,
-                     int xpix, int ypix, int shift, int alt, int dbl, int doit);
 }
 
 
@@ -47,9 +39,10 @@ public:
     int baseX, baseY;
     t_word* data;
     t_template* templ;
+    t_template* parentTempl;
     pd::WeakReference scalar;
 
-    DrawableTemplate(t_scalar* object, t_word* scalarData, t_template* scalarTemplate, Canvas* cnv, int x, int y)
+    DrawableTemplate(t_scalar* object, t_word* scalarData, t_template* scalarTemplate, t_template* parentTemplate, Canvas* cnv, int x, int y)
         : scalar(object, cnv->pd)
         , canvas(cnv)
         , pd(cnv->pd)
@@ -57,6 +50,7 @@ public:
         , baseY(y)
         , data(scalarData)
         , templ(scalarTemplate)
+        , parentTempl(parentTemplate ? parentTemplate : scalarTemplate)
     {
         pd->registerMessageListener(scalar.getRawUnchecked<void>(), this);
         triggerAsyncUpdate();
@@ -165,10 +159,12 @@ class DrawableCurve final : public DrawableTemplate
 
     t_fake_curve* object;
     GlobalMouseListener mouseListener;
-
+    Point<int> dragPosition;
+    t_fake_fielddesc* motionField = nullptr;
+        
 public:
-    DrawableCurve(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y)
-        : DrawableTemplate(s, data, templ, cnv, x, y)
+    DrawableCurve(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
+        : DrawableTemplate(s, data, templ, parent, cnv, x, y)
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , mouseListener(this)
     {
@@ -176,13 +172,16 @@ public:
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             handleMouseDown(e);
         };
+        mouseListener.globalMouseDrag = [this](MouseEvent const& e) {
+            handleMouseDrag(e);
+        };
     }
 
     void handleMouseDown(MouseEvent const& e)
     {
         auto* s = scalar.getRaw<t_scalar>();
 
-        if (!s || !getLocalBounds().contains(e.getPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing() || !s->sc_template)
+        if (!s || !getLocalBounds().contains(e .getPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing() || !s->sc_template)
             return;
 
         auto shift = e.mods.isShiftDown();
@@ -193,9 +192,43 @@ public:
         if (!patch)
             return;
 
-        t_template* t = template_findbyname(s->sc_template);
-        scalar_doclick(s->sc_vec, t, s, nullptr, patch, 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
+        scalar_doclick(s->sc_vec, parentTempl, s, nullptr, patch, 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
 
+        
+        int i, n = object->x_npoints;
+        int bestn = -1;
+        int besterror = 0x7fffffff;
+        t_fake_fielddesc *f;
+        if ((object->x_flags & NOMOUSERUN) || (object->x_flags & NOVERTICES) ||
+            !fielddesc_getfloat(&object->x_vis, templ, data, 0))
+                return (0);
+        
+        for (i = 0, f = object->x_vec; i < n; i++, f += 2)
+        {
+            int xval = fielddesc_getcoord((t_fielddesc*)f, parentTempl, data, 0),
+                xloc = xToPixels(baseX + xval);
+            int yval = fielddesc_getcoord((t_fielddesc*)(f+1), parentTempl, data, 0),
+                yloc = yToPixels(baseY + yval);
+            int xerr = xloc - e.x, yerr = yloc - e.y;
+            if (!f->fd_var && !(f+1)->fd_var)
+                continue;
+            
+            if (xerr < 0)
+                xerr = -xerr;
+            if (yerr < 0)
+                yerr = -yerr;
+            if (yerr > xerr)
+                xerr = yerr;
+            if (xerr < besterror)
+            {
+                dragPosition = Point<int>{xval, yval};
+                besterror = xerr;
+                bestn = i;
+            }
+            
+            motionField = object->x_vec + 2*bestn;
+        }
+    
         // Update all drawables
         for (auto* object : canvas->objects) {
             if (!object->gui)
@@ -203,6 +236,28 @@ public:
             object->gui->updateDrawables();
         }
     }
+        
+    void handleMouseDrag(MouseEvent const& e)
+    {
+        if (!getLocalBounds().contains(e.getMouseDownPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing()) return;
+        
+        if(auto s = scalar.get<t_scalar>())
+        {
+            if (!motionField || !s->sc_template) {
+                return;
+            }
+            
+            
+            fielddesc_setcoord((t_fielddesc*)motionField, parentTempl, data, dragPosition.x + e.getDistanceFromDragStartX(), 1);
+            fielddesc_setcoord((t_fielddesc*)(motionField+1), parentTempl, data, dragPosition.y + e.getDistanceFromDragStartY(), 1);
+            
+            //((t_word*)((char*)data + onset))->w_float = mouseDownValue - e.getDistanceFromDragStartY() / 6;
+        }
+        
+        canvas->updateDrawables();
+    }
+        
+
         
     void update() override
     {
@@ -297,72 +352,54 @@ class DrawableSymbol final : public DrawableTemplate
     t_fake_drawnumber* object;
     GlobalMouseListener mouseListener;
         
+    float mouseDownValue;
 public:
-    DrawableSymbol(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y)
-        : DrawableTemplate(s, data, templ, cnv, x, y)
+    DrawableSymbol(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
+        : DrawableTemplate(s, data, templ, parent, cnv, x, y)
         , object(reinterpret_cast<t_fake_drawnumber*>(obj))
     {
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
-            handleMouseDown(e);
+            handleMouseDown(e.getEventRelativeTo(this));
         };
         mouseListener.globalMouseDrag = [this](MouseEvent const& e) {
-            handleMouseDrag(e);
+            handleMouseDrag(e.getEventRelativeTo(this));
         };
     }
 
     void handleMouseDown(MouseEvent const& e)
     {
-        auto* s = scalar.getRaw<t_scalar>();
-
-        //if (!s || !getLocalBounds().contains(e.getPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing() || !s->sc_template)
-         //   return;
-
-        auto shift = e.mods.isShiftDown();
-        auto alt = e.mods.isAltDown();
-        auto dbl = 0;
-        int arrayonset, type;
-        t_symbol* elemtemplatesym;
+        if (!getLocalBounds().contains(e.getMouseDownPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing()) return;
         
-        auto* array = *(t_array **)(((char *)data) + arrayonset);
-        
-        auto* patch = canvas->patch.getPointer().get();
-        if (!patch)
-            return;
-
-        /*
-        if (!template_find_field(templ, object->x_data.fd_un.fd_varsym,
-            &arrayonset, &type, &elemtemplatesym))
+        if(auto s = scalar.get<t_scalar>())
         {
-            pd_error(0, "plot: %s: no such field", x->x_data.fd_un.fd_varsym->s_name);
-            return (-1);
-        }
-        
-        drawnumber_click(object, patch, data, templ, s, array, e.x, e.y, false, false, false, true);
-         */
-        /*
-        int drawnumber_click(t_gobj *z, t_glist *glist,
-            t_word *data, t_template *templ, t_scalar *sc, t_array *ap,
-            t_float basex, t_float basey,
-            int xpix, int ypix, int shift, int alt, int dbl, int doitv
-         
-         */
-                             
-        // Update all drawables
-        for (auto* object : canvas->objects) {
-            if (!object->gui)
-                continue;
-            object->gui->updateDrawables();
+            int type, onset;
+            t_symbol* arraytype;
+
+            if (!s->sc_template || !template_find_field(templ, object->x_fieldname, &onset, &type, &arraytype) || type != DT_FLOAT) {
+                return;
+            }
+            
+            mouseDownValue = ((t_word*)((char*)data + onset))->w_float;
         }
     }
       
     void handleMouseDrag(MouseEvent const& e)
     {
-        pd->setThis();
+        if (!getLocalBounds().contains(e.getMouseDownPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing()) return;
         
-        //void *z, t_floatarg dx, t_floatarg dy,
-         //                        t_floatarg up
+        if(auto s = scalar.get<t_scalar>())
+        {
+            int type, onset;
+            t_symbol* arraytype;
+
+            if (!s->sc_template || !template_find_field(templ, object->x_fieldname, &onset, &type, &arraytype) || type != DT_FLOAT) {
+                return;
+            }
+            
+            ((t_word*)((char*)data + onset))->w_float = mouseDownValue - e.getDistanceFromDragStartY() / 6;
+        }
         
-        drawnumber_motionfn(object, e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY(), 0);
+        canvas->updateDrawables();
     }
       
 
@@ -419,12 +456,15 @@ public:
 
         auto symbolColour = numberToColour(fielddesc_getfloat(&x->x_color, templ, data, 1));
         setColour(symbolColour);
-        setBoundingBox(Parallelogram<float>(Rectangle<float>(xloc, yloc, 200, 100)));
+        auto text = String::fromUTF8(buf);
+        auto font = getFont();
+        
+        setBoundingBox(Parallelogram<float>(Rectangle<float>(xloc, yloc, font.getStringWidthFloat(text) + 4.0f, font.getHeight() + 4.0f)));
         if (auto glist = canvas->patch.getPointer()) {
             setFontHeight(sys_hostfontsize(glist_getfont(glist.get()), glist_getzoom(glist.get())));
         }
         setJustification(Justification::topLeft);
-        setText(String::fromUTF8(buf));
+        setText(text);
     }
 };
 
@@ -434,8 +474,8 @@ class DrawablePlot final : public DrawableTemplate
     t_fake_curve* object;
     
 public:
-    DrawablePlot(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y)
-        : DrawableTemplate(s, data, templ, cnv, x, y)
+    DrawablePlot(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
+        : DrawableTemplate(s, data, templ, parent, cnv, x, y)
         , object(reinterpret_cast<t_fake_curve*>(obj))
     {
     }
@@ -545,11 +585,11 @@ public:
                 Component* drawable = nullptr;
                 auto name = String::fromUTF8(y->g_pd->c_name->s_name);
                 if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
-                    drawables.add(new DrawableSymbol(s, y, subData, elemtemplate, canvas, static_cast<int>(usexloc), static_cast<int>(useyloc)));
+                    drawables.add(new DrawableSymbol(s, y, subData, elemtemplate, canvas, static_cast<int>(usexloc), static_cast<int>(useyloc), templ));
                 } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
-                    drawables.add(new DrawableCurve(s, y, subData, elemtemplate, canvas, static_cast<int>(usexloc), static_cast<int>(useyloc)));
+                    drawables.add(new DrawableCurve(s, y, subData, elemtemplate, canvas, static_cast<int>(usexloc), static_cast<int>(useyloc), templ));
                 } else if (name == "plot") {
-                    drawables.add(new DrawablePlot(s, y, subData, elemtemplate, canvas, static_cast<int>(usexloc), static_cast<int>(useyloc)));
+                    drawables.add(new DrawablePlot(s, y, subData, elemtemplate, canvas, static_cast<int>(usexloc), static_cast<int>(useyloc), templ));
                 }
             }
         }
@@ -597,8 +637,7 @@ public:
          &vis, &scalarvis, &edit, &xfielddesc, &yfielddesc, &wfielddesc)
          || array_getfields(elemtemplatesym, &elemtemplatecanvas,
          &elemtemplate, &elemsize, (t_fielddesc*)xfielddesc, (t_fielddesc*)yfielddesc, (t_fielddesc*)wfielddesc,
-         &xonset, &yonset, &wonset))
-         return;
+         &xonset, &yonset, &wonset)) return;
         
         nelem = array->a_n;
         elem = (char *)array->a_vec;
@@ -905,7 +944,7 @@ struct ScalarObject final : public ObjectBase {
                 cnv->addAndMakeVisible(templates.add(new DrawableCurve(x, y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
             } else if (name == "plot") {
                 auto* plot = new DrawablePlot(x, y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY));
-                cnv->addAndMakeVisible(plot);
+                cnv->addAndMakeVisible(templates.add(plot));
                 
                 for(auto* subplot : plot->getSubPlots())
                 {
@@ -929,7 +968,7 @@ struct ScalarObject final : public ObjectBase {
         pd->setThis();
 
         for (auto* drawable : templates) {
-            dynamic_cast<DrawableTemplate*>(drawable)->update();
+            dynamic_cast<DrawableTemplate*>(drawable)->triggerAsyncUpdate();
         }
     }
 
