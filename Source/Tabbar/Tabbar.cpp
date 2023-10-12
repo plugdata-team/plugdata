@@ -115,7 +115,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         int sourceTabIndex = sourceTabButton->getIndex();
         auto sourceTabContent = sourceTabButton->getTabComponent();
         int sourceNumTabs = sourceTabContent->getNumVisibleTabs();
-
+        bool otherWindow = sourceTabContent->getTopLevelComponent() != getTopLevelComponent();
         auto ghostTabBounds = ghostTab->getBounds();
 
         inOtherSplit = false;
@@ -141,7 +141,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         auto sourceCurrentIndex = sourceTabIndex > (sourceTabContent->getNumVisibleTabs() - 1) ? sourceTabIndex - 1 : sourceTabIndex;
         sourceTabContent->setCurrentTabIndex(sourceCurrentIndex);
 
-        if (sourceNumTabs < 2) {
+        if (sourceNumTabs < 2 && !otherWindow) {
             // we don't animate the ghostTab moving into position, as the geometry of the splits is changing
             ghostTab->setVisible(false);
             ghostTabAnimator.cancelAllAnimations(true);
