@@ -677,8 +677,8 @@ void Connection::reconnect(Iolet* target)
 
     for (auto* c : connections) {
 
-        auto* checkedOut = pd::Interface::checkObject(outobj->getPointer());
-        auto* checkedIn = pd::Interface::checkObject(inobj->getPointer());
+        auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
+        auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
         
         if (checkedOut && checkedIn && cnv->patch.hasConnection(checkedOut, c->outIdx, checkedIn, c->inIdx)) {
             // Delete connection from pd if we haven't done that yet

@@ -552,6 +552,7 @@ void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
     originalCanvas->moveToWindow(newEditor);
     
     newWindow->setTopLeftPosition(Desktop::getInstance().getMousePosition() - Point<int>(500, 60));
+    newWindow->toFront(true);
 }
 
 bool PluginEditor::isActiveWindow()
