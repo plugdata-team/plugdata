@@ -254,9 +254,7 @@ public:
         
         canvas->updateDrawables();
     }
-        
-
-        
+    
     void update() override
     {
         auto* s = scalar.getRaw<t_scalar>();

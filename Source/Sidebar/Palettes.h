@@ -575,7 +575,7 @@ private:
         
         auto selectorBounds = getLocalBounds().removeFromLeft(30).withSizeKeepingCentre(30, totalHeight);
         
-        paletteBar.setBounds(0, 0, 30, totalHeight);
+        paletteBar.setBounds(0, 0, 30, std::max(totalHeight, getHeight()));
         
         paletteViewport.setBounds(getLocalBounds().removeFromLeft(30));
 
