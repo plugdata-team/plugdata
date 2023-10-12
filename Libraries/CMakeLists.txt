@@ -376,7 +376,7 @@ source_group(ofelia FILES ${OFELIA_SOURCES})
 add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
 add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
 
-# ag: pdlua needs PLUGDATA symbol at compile time for plugdata integration.
+# ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
 target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
 
@@ -411,8 +411,8 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 
 # Static libraries for externals contain unresolved symbols from the pd target
 # MSVC doesn't like that, but it's fine
-#target_link_options(externals PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
-#target_link_options(externals-multi PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
+target_link_options(externals PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
+target_link_options(externals-multi PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
 
 if(ENABLE_SFIZZ)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
@@ -451,12 +451,12 @@ endif()
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     find_library(MATH_LIB m)
 
-    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS})
-    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS})
+    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals)
+    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi)
 
 elseif(MSVC)
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32)
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_3)
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 externals)
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 externals-multi)
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
@@ -467,6 +467,9 @@ elseif(MSVC)
         COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
+elseif(APPLE)
+    target_link_libraries(pd PUBLIC externals)
+    target_link_libraries(pd-multi PUBLIC externals-multi)
 endif()
 
 # LINK PTHREAD
