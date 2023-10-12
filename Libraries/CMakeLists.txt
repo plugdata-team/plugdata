@@ -449,7 +449,7 @@ elseif(MSVC)
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
+        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib")
 elseif(APPLE)
     target_link_libraries(pd sfizz fluidlite lua)
     target_link_libraries(pd-multi sfizz fluidlite lua)
