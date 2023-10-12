@@ -205,6 +205,7 @@ include_directories(pd-else/Code_source/Compiled/audio/)
 include_directories(pd-else/Code_source/shared/)
 include_directories(pd-else/Code_source/shared/aubio/src)
 include_directories(pd-else/Code_source/Compiled/audio/plaits~)
+include_directories(pd-else/Code_source/Compiled/audio/sfz~/sfizz/library/src)
 
 source_group(ELSE FILES ${ELSE_SOURCES})
 
