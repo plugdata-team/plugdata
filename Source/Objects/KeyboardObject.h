@@ -14,6 +14,7 @@ class MIDIKeyboard : public MidiKeyboardComponent {
 
 public:
     std::set<int> heldKeys;
+    std::set<int> toggledKeys;
     std::function<void(int, int)> noteOn;
     std::function<void(int)> noteOff;
 
@@ -54,7 +55,17 @@ public:
 
     bool mouseDownOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
-        if (toggleMode) {
+        if(e.mods.isShiftDown())
+        {
+            if (toggledKeys.count(midiNoteNumber)) {
+                toggledKeys.erase(midiNoteNumber);
+                noteOff(midiNoteNumber);
+            } else {
+                toggledKeys.insert(midiNoteNumber);
+                noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
+            }
+        }
+        else if (toggleMode) {
             if (heldKeys.count(midiNoteNumber)) {
                 heldKeys.erase(midiNoteNumber);
                 noteOff(midiNoteNumber);
@@ -75,7 +86,7 @@ public:
 
     bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
     {
-        if (!toggleMode && !heldKeys.count(midiNoteNumber)) {
+        if (!toggleMode && !e.mods.isShiftDown() && !heldKeys.count(midiNoteNumber)) {
             for (auto& note : heldKeys) {
                 noteOff(note);
             }
@@ -115,7 +126,7 @@ public:
 
     void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
     {
-        isDown = heldKeys.count(midiNoteNumber);
+        isDown = heldKeys.count(midiNoteNumber) || toggledKeys.count(midiNoteNumber);
 
         auto c = Colour(225, 225, 225);
         if (isOver)
@@ -180,7 +191,7 @@ public:
     {
         auto c = Colour(90, 90, 90);
 
-        isDown = heldKeys.count(midiNoteNumber);
+        isDown = heldKeys.count(midiNoteNumber) || toggledKeys.count(midiNoteNumber);
 
         if (isOver)
             c = Colour(101, 101, 101);
