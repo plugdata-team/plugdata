@@ -451,12 +451,12 @@ endif()
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     find_library(MATH_LIB m)
 
-    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals)
-    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi)
+    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS})
+    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS})
 
 elseif(MSVC)
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 externals)
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 externals-multi)
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32)
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_3)
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
@@ -467,9 +467,6 @@ elseif(MSVC)
         COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
-elseif(APPLE)
-    target_link_libraries(pd PUBLIC externals)
-    target_link_libraries(pd-multi PUBLIC externals-multi)
 endif()
 
 # LINK PTHREAD

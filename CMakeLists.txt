@@ -379,18 +379,18 @@ endif()
 
 
 if(UNIX AND NOT APPLE)
-    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-Wl,-export-dynamic")
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core externals pd StandaloneBinaryData "-Wl,-export-dynamic")
 elseif(APPLE)
   target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-framework Carbon")
   target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi  "-framework Carbon")
   target_link_libraries(plugdata PRIVATE "-framework Carbon")
   target_link_libraries(plugdata_fx PRIVATE "-framework Carbon")
 else()
- target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib StandaloneBinaryData)
+ target_link_libraries(plugdata_standalone PRIVATE plugdata_core externals pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib StandaloneBinaryData)
 endif()
 
-target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
-target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)
+target_link_libraries(plugdata PRIVATE plugdata_core externals-multi pd-multi)
+target_link_libraries(plugdata_fx PRIVATE plugdata_core externals-multi pd-multi)
 
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
