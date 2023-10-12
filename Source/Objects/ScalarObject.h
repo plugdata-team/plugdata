@@ -168,7 +168,6 @@ public:
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , mouseListener(this)
     {
-
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             handleMouseDown(e);
         };
@@ -194,7 +193,7 @@ public:
 
         scalar_doclick(s->sc_vec, parentTempl, s, nullptr, patch, 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
 
-        
+        /*  Not working yet...
         int i, n = object->x_npoints;
         int bestn = -1;
         int besterror = 0x7fffffff;
@@ -227,7 +226,7 @@ public:
             }
             
             motionField = object->x_vec + 2*bestn;
-        }
+        } */
     
         // Update all drawables
         for (auto* object : canvas->objects) {
@@ -246,7 +245,6 @@ public:
             if (!motionField || !s->sc_template) {
                 return;
             }
-            
             
             fielddesc_setcoord((t_fielddesc*)motionField, parentTempl, data, dragPosition.x + e.getDistanceFromDragStartX(), 1);
             fielddesc_setcoord((t_fielddesc*)(motionField+1), parentTempl, data, dragPosition.y + e.getDistanceFromDragStartY(), 1);

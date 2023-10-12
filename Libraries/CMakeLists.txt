@@ -376,7 +376,7 @@ source_group(ofelia FILES ${OFELIA_SOURCES})
 add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
 add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES} ${OFELIA_SOURCES})
 
-# ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
+# ag: pdlua needs PLUGDATA symbol at compile time for plugdata integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
 target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
 
@@ -411,8 +411,8 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 
 # Static libraries for externals contain unresolved symbols from the pd target
 # MSVC doesn't like that, but it's fine
-target_link_options(externals PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
-target_link_options(externals-multi PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
+#target_link_options(externals PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
+#target_link_options(externals-multi PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/FORCE:UNRESOLVED>)
 
 if(ENABLE_SFIZZ)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
