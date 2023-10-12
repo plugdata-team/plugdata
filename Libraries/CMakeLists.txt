@@ -254,6 +254,7 @@ set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 
 if(ENABLE_SFIZZ)
 list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
 endif()
 
 # COMPILE DEFINITIONS OPTIONS
@@ -353,9 +354,6 @@ if(ENABLE_SFONT)
         ${SFONT_DIR}/sfont~.c
     )
 
-endif()
-if(ENABLE_SFIZZ)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
 endif()
 
 # ------------------------------------------------------------------------------#
