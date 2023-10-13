@@ -19,7 +19,7 @@ public:
             Run,
             Alt
         };
-        OwnedArray<SmallIconButton> buttons { new SmallIconButton(Icons::Edit), new SmallIconButton(Icons::Lock), new SmallIconButton(Icons::Presentation), new SmallIconButton(Icons::Eye) };
+        OwnedArray<SmallIconButton> buttons { new SmallIconButton("edit"), new SmallIconButton("lock"), new SmallIconButton("run"), new SmallIconButton("alt") };
 
         Label textLabel;
         String groupName;
@@ -37,7 +37,7 @@ public:
             , group(groupType)
         {
             auto controlVisibility = [this](String const& mode) {
-                if (settingName == "origin" || settingName == "border" || mode == Icons::Edit || mode == Icons::Presentation || mode == Icons::Eye) {
+                if (settingName == "origin" || settingName == "border" || mode == "edit" || mode == "lock" || mode == "alt") {
                     return true;
                 } else {
                     return false;
@@ -49,6 +49,11 @@ public:
                 button->setVisible(controlVisibility(button->getName()));
                 button->addListener(this);
             }
+            
+            buttons[Edit]->setButtonText(Icons::Edit);
+            buttons[Lock]->setButtonText(Icons::Lock);
+            buttons[Run]->setButtonText(Icons::Presentation);
+            buttons[Alt]->setButtonText(Icons::Eye);
 
             buttons[Edit]->setTooltip("Show " + groupName.toLowerCase() + " in edit mode");
             buttons[Lock]->setTooltip("Show " + groupName.toLowerCase() + " in run mode");
