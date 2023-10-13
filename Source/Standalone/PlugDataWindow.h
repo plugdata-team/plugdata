@@ -435,7 +435,6 @@ public:
             
             auto* editor = mainComponent->getEditor();
             setUsingNativeTitleBar(nativeWindow);
-            lookAndFeelChanged();
             
             if (!nativeWindow) {
                 
@@ -460,20 +459,18 @@ public:
                 setDropShadowEnabled(true);
                 setResizable(true, false);
             }
-            
-            if(auto* closeButton = getCloseButton()) closeButton->setEnabled(false);
-            if(auto* minimiseButton = getMinimiseButton()) minimiseButton->setEnabled(false);
-            if(auto* maximiseButton = getMaximiseButton()) maximiseButton->setEnabled(false);
-            
+
             editor->resized();
             resized();
             repaint();
         }
         if (name == "macos_buttons") {
+            bool isEnabled = true;
+            if(auto* closeButton = getCloseButton()) isEnabled = closeButton->isEnabled();
             lookAndFeelChanged();
-            if(auto* closeButton = getCloseButton()) closeButton->setEnabled(false);
-            if(auto* minimiseButton = getMinimiseButton()) minimiseButton->setEnabled(false);
-            if(auto* maximiseButton = getMaximiseButton()) maximiseButton->setEnabled(false);
+            if(auto* closeButton = getCloseButton()) closeButton->setEnabled(isEnabled);
+            if(auto* minimiseButton = getMinimiseButton()) minimiseButton->setEnabled(isEnabled);
+            if(auto* maximiseButton = getMaximiseButton()) maximiseButton->setEnabled(isEnabled);
             
         }
     }
