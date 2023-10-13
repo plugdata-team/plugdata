@@ -19,6 +19,20 @@ public:
         TextEditor::resized();
         clearButton.setBounds(getLocalBounds().removeFromRight(30));
     }
+    
+    bool keyPressed (const KeyPress &key)
+    {
+        if(key.getKeyCode() == KeyPress::escapeKey)
+        {
+            if(auto* parentComponent = getParentComponent())
+            {
+                parentComponent->grabKeyboardFocus();
+            }
+            return false;
+        }
+        
+        return false;
+    }
 
     void paint(Graphics& g) override
     {
