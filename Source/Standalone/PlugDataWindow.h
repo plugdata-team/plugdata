@@ -435,6 +435,7 @@ public:
             
             auto* editor = mainComponent->getEditor();
             setUsingNativeTitleBar(nativeWindow);
+            lookAndFeelChanged();
             
             if (!nativeWindow) {
                 
@@ -460,9 +461,20 @@ public:
                 setResizable(true, false);
             }
             
+            if(auto* closeButton = getCloseButton()) closeButton->setEnabled(false);
+            if(auto* minimiseButton = getMinimiseButton()) minimiseButton->setEnabled(false);
+            if(auto* maximiseButton = getMaximiseButton()) maximiseButton->setEnabled(false);
+            
             editor->resized();
             resized();
             repaint();
+        }
+        if (name == "macos_buttons") {
+            lookAndFeelChanged();
+            if(auto* closeButton = getCloseButton()) closeButton->setEnabled(false);
+            if(auto* minimiseButton = getMinimiseButton()) minimiseButton->setEnabled(false);
+            if(auto* maximiseButton = getMaximiseButton()) maximiseButton->setEnabled(false);
+            
         }
     }
 
