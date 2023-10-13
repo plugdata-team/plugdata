@@ -126,6 +126,10 @@ public:
             
             auto& [name1, type1, category1, value1, options1, defaultVal1] = param;
             
+            if(objectParameters.size() > 1 && (name1 == "Size" || name1 == "Position" || name1 == "Height")) {
+                return false;
+            }
+            
             bool isInAllObjects = true;
             for(auto& parameters : objectParameters)
             {

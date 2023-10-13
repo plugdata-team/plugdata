@@ -137,16 +137,15 @@ struct Interface {
         
         EDITOR->canvas_undo_already_set_move = 0;
 
-        t_selection* y;
         int resortin = 0, resortout = 0;
         if (!EDITOR->canvas_undo_already_set_move) {
             canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
             // EDITOR->canvas_undo_already_set_move = 1;
         }
-        for (y = cnv->gl_editor->e_selection; y; y = y->sel_next) {
-
-            t_class* cl = pd_class(&y->sel_what->g_pd);
-            gobj_displace(y->sel_what, cnv, dx, dy);
+        for (auto* obj : objects) {
+            gobj_displace(obj, cnv, dx, dy);
+            
+            t_class* cl = pd_class(&obj->g_pd);
             if (cl == vinlet_class)
                 resortin = 1;
             else if (cl == voutlet_class)
