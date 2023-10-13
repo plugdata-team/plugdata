@@ -6,7 +6,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
-option(ENABLE_SFONT "" ON)
 option(ENABLE_SFIZZ "" ON)
 option(ENABLE_ASAN "" OFF)
 option(VERBOSE "" OFF)

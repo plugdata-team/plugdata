@@ -288,74 +288,68 @@ endif()
 # SFONT~
 # ------------------------------------------------------------------------------#
 
-if(ENABLE_SFONT)
+set(SFONT_DIR pd-else/Code_source/Compiled/audio/sfont~)
+set(FLUIDLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
 
-    list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
+list(APPEND SFONT_SOURCES
+    ${FLUIDLITE_DIR}/src/fluid_init.c
+    ${FLUIDLITE_DIR}/src/fluid_chan.c
+    ${FLUIDLITE_DIR}/src/fluid_chorus.c
+    ${FLUIDLITE_DIR}/src/fluid_conv.c
+    ${FLUIDLITE_DIR}/src/fluid_defsfont.c
+    ${FLUIDLITE_DIR}/src/fluid_dsp_float.c
+    ${FLUIDLITE_DIR}/src/fluid_gen.c
+    ${FLUIDLITE_DIR}/src/fluid_hash.c
+    ${FLUIDLITE_DIR}/src/fluid_list.c
+    ${FLUIDLITE_DIR}/src/fluid_mod.c
+    ${FLUIDLITE_DIR}/src/fluid_ramsfont.c
+    ${FLUIDLITE_DIR}/src/fluid_rev.c
+    ${FLUIDLITE_DIR}/src/fluid_settings.c
+    ${FLUIDLITE_DIR}/src/fluid_synth.c
+    ${FLUIDLITE_DIR}/src/fluid_sys.c
+    ${FLUIDLITE_DIR}/src/fluid_tuning.c
+    ${FLUIDLITE_DIR}/src/fluid_voice.c
 
-    set(SFONT_DIR pd-else/Code_source/Compiled/audio/sfont~)
-    set(FLUIDLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisenc.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/info.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/analysis.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/bitrate.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/block.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/codebook.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/envelope.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/floor0.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/floor1.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lookup.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lpc.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lsp.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/mapping0.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/mdct.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/psy.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/registry.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/res0.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/sharedbook.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/smallft.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisfile.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/window.c
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/synthesis.c
 
-    list(APPEND SFONT_SOURCES
-        ${FLUIDLITE_DIR}/src/fluid_init.c
-        ${FLUIDLITE_DIR}/src/fluid_chan.c
-        ${FLUIDLITE_DIR}/src/fluid_chorus.c
-        ${FLUIDLITE_DIR}/src/fluid_conv.c
-        ${FLUIDLITE_DIR}/src/fluid_defsfont.c
-        ${FLUIDLITE_DIR}/src/fluid_dsp_float.c
-        ${FLUIDLITE_DIR}/src/fluid_gen.c
-        ${FLUIDLITE_DIR}/src/fluid_hash.c
-        ${FLUIDLITE_DIR}/src/fluid_list.c
-        ${FLUIDLITE_DIR}/src/fluid_mod.c
-        ${FLUIDLITE_DIR}/src/fluid_ramsfont.c
-        ${FLUIDLITE_DIR}/src/fluid_rev.c
-        ${FLUIDLITE_DIR}/src/fluid_settings.c
-        ${FLUIDLITE_DIR}/src/fluid_synth.c
-        ${FLUIDLITE_DIR}/src/fluid_sys.c
-        ${FLUIDLITE_DIR}/src/fluid_tuning.c
-        ${FLUIDLITE_DIR}/src/fluid_voice.c
+    ${FLUIDLITE_DIR}/libogg-1.3.2/src/bitwise.c
+    ${FLUIDLITE_DIR}/libogg-1.3.2/src/framing.c
+)
 
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisenc.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/info.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/analysis.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/bitrate.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/block.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/codebook.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/envelope.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/floor0.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/floor1.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lookup.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lpc.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/lsp.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/mapping0.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/mdct.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/psy.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/registry.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/res0.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/sharedbook.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/smallft.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisfile.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/window.c
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/synthesis.c
+list(APPEND SFONT_INCLUDES
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/include
+    ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib
+    ${FLUIDLITE_DIR}/libogg-1.3.2/include
+    ${FLUIDLITE_DIR}/include
+)
 
-        ${FLUIDLITE_DIR}/libogg-1.3.2/src/bitwise.c
-        ${FLUIDLITE_DIR}/libogg-1.3.2/src/framing.c
-    )
+add_library(fluidlite STATIC ${SFONT_SOURCES})
+target_include_directories(fluidlite PRIVATE ${SFONT_INCLUDES})
 
-    list(APPEND SFONT_INCLUDES
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/include
-        ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib
-        ${FLUIDLITE_DIR}/libogg-1.3.2/include
-        ${FLUIDLITE_DIR}/include
-    )
-
-    add_library(fluidlite STATIC ${SFONT_SOURCES})
-    target_include_directories(fluidlite PRIVATE ${SFONT_INCLUDES})
-
-    list(APPEND ELSE_SOURCES
-        ${SFONT_DIR}/sfont~.c
-    )
-
-endif()
+list(APPEND ELSE_SOURCES
+    ${SFONT_DIR}/sfont~.c
+)
 
 # ------------------------------------------------------------------------------#
 # C FLAGS

@@ -562,9 +562,7 @@ void setup_rand0x2ef_tilde();
 void setup_rand0x2ei();
 void setup_rand0x2ei_tilde();
 void setup_rand0x2eu();
-#if ENABLE_SFONT
 void sfont_tilde_setup();
-#endif
 void route2_setup();
 void randpulse_tilde_setup();
 void randpulse2_tilde_setup();
@@ -1020,9 +1018,7 @@ void Setup::initialiseELSE()
     setup_rand0x2ef_tilde();
     setup_rand0x2ehist();
     s2f_tilde_setup();
-#if ENABLE_SFONT
     sfont_tilde_setup();
-#endif
     setup_rand0x2ei();
     setup_rand0x2ei_tilde();
     numbox_tilde_setup();
