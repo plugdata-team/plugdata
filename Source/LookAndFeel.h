@@ -173,7 +173,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
             }
 
             auto finalColour = shouldDrawButtonAsDown ? buttonColour.darker(0.4f) : buttonColour;
-
+            if(!isEnabled())
+            {
+                finalColour = finalColour.interpolatedWith(Colours::black, 0.5f);
+            }
+            
             // draw macOS filled background circle
             g.setColour(finalColour);
             g.fillEllipse(reducedRect);
@@ -303,6 +307,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
             auto circleColour = findColour(PlugDataColour::toolbarHoverColourId);
             if(shouldDrawButtonAsHighlighted) circleColour = circleColour.contrasting(0.04f);
 
+            if(!isEnabled())
+            {
+                circleColour = circleColour.interpolatedWith(Colours::black, 0.5f);
+            }
+            
             g.setColour(circleColour);
             g.fillEllipse(getLocalBounds().withSizeKeepingCentre(getWidth() - 8, getWidth() - 8).toFloat());
 

@@ -39,8 +39,28 @@ public:
             closeButton->setAlwaysOnTop(true);
         }
 
-        // Some parts of the code check for an active dialog to decide if it needs to paint an outline
-        getTopLevelComponent()->repaint();
+        // Make sure titlebar buttons are greyed out when a dialog is showing
+        if(auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent()))
+        {
+            if(ProjectInfo::isStandalone) {
+                if(auto* closeButton = window->getCloseButton()) closeButton->setEnabled(false);
+                if(auto* minimiseButton = window->getMinimiseButton()) minimiseButton->setEnabled(false);
+                if(auto* maximiseButton = window->getMaximiseButton()) maximiseButton->setEnabled(false);
+            }
+            window->repaint();
+        }
+    }
+    
+    ~Dialog()
+    {
+        if(auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent()))
+        {
+            if(ProjectInfo::isStandalone) {
+                if(auto* closeButton = window->getCloseButton()) closeButton->setEnabled(true);
+                if(auto* minimiseButton = window->getMinimiseButton()) minimiseButton->setEnabled(true);
+                if(auto* maximiseButton = window->getMaximiseButton()) maximiseButton->setEnabled(true);
+            }
+        }
     }
 
 

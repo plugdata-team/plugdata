@@ -24,6 +24,7 @@ public:
             reloadPatch.referTo(settingsFile->getPropertyAsValue("reload_last_state"));
 
             macTitlebarButtons.addListener(this);
+            nativeTitlebar.addListener(this);
 
             Array<PropertiesPanel::Property*> windowProperties;
 
@@ -85,10 +86,26 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(macTitlebarButtons)) {
-            auto window = Desktop::getInstance().getComponent(0);
-            window->sendLookAndFeelChange();
-
+            // Make sure titlebar buttons are greyed out because a dialog is still showing
+            if(auto* window = getTopLevelComponent())
+            {
+                window->sendLookAndFeelChange();
+            }
+            
             editor->resized();
+        }
+        if(v.refersToSameSoruceAs(nativeTitlebar))
+        {
+            if(auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent()))
+            {
+                if(ProjectInfo::isStandalone) {
+                    if(auto* closeButton = window->getCloseButton()) closeButton->setEnabled(false);
+                    if(auto* minimiseButton = window->getMinimiseButton()) minimiseButton->setEnabled(false);
+                    if(auto* maximiseButton = window->getMaximiseButton()) maximiseButton->setEnabled(false);
+                }
+                window->repaint();
+                window->sendLookAndFeelChange();
+            }
         }
         if (v.refersToSameSourceAs(showPalettesValue)) {
             editor->resized();
