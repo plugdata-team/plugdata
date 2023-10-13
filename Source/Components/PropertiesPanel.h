@@ -739,9 +739,10 @@ public:
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
 
+                /* I think we don't need this?
                 draggableNumber->onValueChange = [this](float value) {
-                    property = value;
-                };
+                    property = String(value, 8);
+                }; */
 
                 draggableNumber->setEditableOnClick(true);
 
