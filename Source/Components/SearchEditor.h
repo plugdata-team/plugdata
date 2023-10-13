@@ -20,18 +20,21 @@ public:
         clearButton.setBounds(getLocalBounds().removeFromRight(30));
     }
     
-    bool keyPressed (const KeyPress &key)
+    bool keyPressed (const KeyPress &key) override
     {
+        // Make sure that the dialog above this can still receive escape event
         if(key.getKeyCode() == KeyPress::escapeKey)
         {
             if(auto* parentComponent = getParentComponent())
             {
                 parentComponent->grabKeyboardFocus();
             }
+            
+            // Don't claim this keypress
             return false;
         }
         
-        return false;
+        return TextEditor::keyPressed(key);
     }
 
     void paint(Graphics& g) override
