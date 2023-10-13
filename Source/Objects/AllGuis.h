@@ -712,3 +712,23 @@ struct t_fake_bounds
     void *x_proxy;
     t_canvas       *x_canvas;
 };
+
+struct t_fake_mousestate
+{
+    t_object   x_ob;
+    int        x_ispolling;
+    int        x_bang;
+    int        x_hlast;
+    int        x_vlast;
+    int        x_hzero;
+    int        x_vzero;
+    int        x_mode; //0-screen, 1-object window, 2-active window
+    int        x_zero; //if we are requesting to zero
+    int         x_wx;
+    int         x_wy;
+    t_glist   *x_glist;
+    t_outlet  *x_hposout;
+    t_outlet  *x_vposout;
+    t_outlet  *x_hdiffout;
+    t_outlet  *x_vdiffout;
+};

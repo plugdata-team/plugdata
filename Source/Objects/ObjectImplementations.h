@@ -787,9 +787,7 @@ public:
 class CanvasBoundsObject final : public ImplementationBase
     , public MouseListener
     , public pd::MessageListener
-    //, public Value::Listener
 {
-    
     t_canvas* targetCanvas;
     Component::SafePointer<Canvas> mainCanvas;
     
@@ -827,5 +825,69 @@ public:
             }
         }
     }
+};
+
+class MouseStateObject final : public ImplementationBase
+    , public MouseListener
+    , public pd::MessageListener
+{
     
+    Point<int> lastPosition;
+    Point<int> currentPosition;
+
+    GlobalMouseListener mouseListener;
+    
+public:
+    MouseStateObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd)
+    : ImplementationBase(object, parent, pd)
+    {
+        pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
+        
+        mouseListener.globalMouseDown = [this, pd](const MouseEvent& e){
+            if(auto obj = this->ptr.get<t_object>())
+            {
+                outlet_float(obj->ob_outlet, 1.0f);
+            }
+        };
+        mouseListener.globalMouseUp = [this, pd](const MouseEvent& e){
+            if(auto obj = this->ptr.get<t_object>())
+            {
+                outlet_float(obj->ob_outlet, 0.0f);
+            }
+        };
+    }
+    
+    ~MouseStateObject()
+    {
+        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+    }
+    
+    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    {
+        if (pd->isPerformingGlobalSync)
+            return;
+        
+        bool isBang = symbol == "bang";
+        if(isBang)
+        {
+            MessageManager::callAsync([_base = WeakReference<ImplementationBase>(this)](){
+                
+                if(!_base) return;
+                auto* _this = dynamic_cast<MouseStateObject*>(_base.get());
+                
+                auto currentPosition = Desktop::getMousePosition();
+                
+                if(auto obj = _this->ptr.get<t_fake_mousestate>())
+                {
+                    outlet_float(obj->x_hposout,  currentPosition.x);
+                    outlet_float(obj->x_vposout,  currentPosition.y);
+                    outlet_float(obj->x_hdiffout, currentPosition.x - _this->lastPosition.x);
+                    outlet_float(obj->x_vdiffout, currentPosition.y - _this->lastPosition.y);
+                    
+                    _this->lastPosition = currentPosition;
+                }
+            });
+
+        }
+    }
 };
