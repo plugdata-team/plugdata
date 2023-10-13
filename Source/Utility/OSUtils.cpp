@@ -4,10 +4,12 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#if !defined(__APPLE__)
+#include <raw_keyboard_input/raw_keyboard_input.cpp>
+#endif
+
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #include <juce_gui_basics/juce_gui_basics.h>
-
-#include <juce_core/juce_core.h>
 #include "OSUtils.h"
 
 #if defined(__APPLE__)
@@ -22,9 +24,7 @@
 #    define HAS_STD_FILESYSTEM 1
 #endif
 
-#if !defined(__APPLE__)
-#include <raw_keyboard_input/raw_keyboard_input.cpp>
-#endif
+
 
 #if HAS_STD_FILESYSTEM
 #    if defined(__cpp_lib_filesystem)
@@ -267,7 +267,7 @@ bool OSUtils::isX11WindowMaximised(void* handle)
     Atom* states = nullptr;
     window_state_t state = WINDOW_STATE_NONE;
 
-    if (XGetWindowProperty(display, window, net_wm_state, 0l, max_length, False, XA_ATOM,
+    if (XGetWindowProperty(display, window, net_wm_state, 0l, max_length, False, 4,
             &actual_type, &actual_format, &num_states, &bytes_after, (unsigned char**)&states)
         == Success) {
 

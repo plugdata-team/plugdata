@@ -427,19 +427,25 @@ endif()
 # ------------------------------------------------------------------------------#
 
 
+set(externals_libs fluidlite lua)
+if(ENABLE_SFIZZ)
+list(APPEND externals_libs sfizz)
+endif()
+
+
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
     add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
-    target_link_libraries(pd INTERFACE ${MATH_LIB} ${CMAKE_DL_LIBS} externals pd-src sfizz fluidlite lua)
-    target_link_libraries(pd-multi INTERFACE ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi pd-src-multi sfizz fluidlite lua)
+    target_link_libraries(pd INTERFACE ${MATH_LIB} ${CMAKE_DL_LIBS} externals pd-src ${externals_libs})
+    target_link_libraries(pd-multi INTERFACE ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi pd-src-multi ${externals_libs})
 
 elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
 
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 sfizz fluidlite lua)
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 sfizz fluidlite lua)
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs})
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs})
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
@@ -448,8 +454,8 @@ elseif(MSVC)
 elseif(APPLE)
     add_library(pd INTERFACE)
     add_library(pd-multi INTERFACE)
-    target_link_libraries(pd INTERFACE externals pd-src sfizz fluidlite lua)
-    target_link_libraries(pd-multi INTERFACE externals-multi pd-src-multi sfizz fluidlite lua)
+    target_link_libraries(pd INTERFACE externals pd-src ${externals_libs})
+    target_link_libraries(pd-multi INTERFACE externals-multi pd-src-multi ${externals_libs})
 endif()
 
 # LINK PTHREAD
