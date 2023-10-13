@@ -20,7 +20,7 @@ public:
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
 
             auto font = editor->getFont();
-            auto textWidth = font.getStringWidth(objectText) + 10;
+            auto textWidth = font.getStringWidth(objectText) + 20;
             editor->setBorder(border);
             editor->setBounds(getLocalBounds().withWidth(textWidth));
             object->setSize(textWidth + Object::doubleMargin, getHeight() + Object::doubleMargin);
@@ -34,6 +34,7 @@ public:
             editor->grabKeyboardFocus();
         
             editor->onFocusLost = [this]() {
+                object->updateBounds();
                 hideEditor();
             };
 
