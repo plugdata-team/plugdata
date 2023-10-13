@@ -7,6 +7,8 @@
 #include <juce_core/juce_core.h>
 #include "OSUtils.h"
 
+#include <raw_keyboard_input/raw_keyboard_input.mm>
+
 int getStyleMask(bool nativeTitlebar) {
     
     unsigned int style = NSWindowStyleMaskTitled;

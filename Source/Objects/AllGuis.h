@@ -732,3 +732,10 @@ struct t_fake_mousestate
     t_outlet  *x_hdiffout;
     t_outlet  *x_vdiffout;
 };
+
+struct t_fake_keycode
+{
+    t_object x_obj;
+    t_outlet *x_outlet1;
+    t_outlet *x_outlet2;
+};

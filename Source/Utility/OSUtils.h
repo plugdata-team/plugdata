@@ -14,6 +14,8 @@ struct OSUtils {
         AZERTY
         /* QWERTZ */
     };
+    
+    static unsigned int keycodeToHID(unsigned int scancode);
 
 #if defined(_WIN32) || defined(_WIN64)
     static void createJunction(std::string from, std::string to);

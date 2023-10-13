@@ -5,6 +5,7 @@
  */
 
 #include "Utility/GlobalMouseListener.h"
+#include <raw_keyboard_input/raw_keyboard_input.h>
 
 class SubpatchImpl : public ImplementationBase
     , public pd::MessageListener {
@@ -890,4 +891,68 @@ public:
 
         }
     }
+};
+
+
+class KeycodeObject final : public ImplementationBase
+    //, public KeyListener
+, public ModifierKeyListener {
+    
+    int const shiftKey = -1;
+    int const commandKey = -2;
+    int const altKey = -3;
+    int const ctrlKey = -4;
+    
+public:
+    
+    std::unique_ptr<Keyboard> keyboard;
+    Component::SafePointer<PluginEditor> attachedEditor = nullptr;
+    
+    KeycodeObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+    : ImplementationBase(ptr, parent, pd)
+    {
+        
+    }
+    
+    ~KeycodeObject() override
+    {
+        if(attachedEditor) {
+            attachedEditor->removeModifierKeyListener(this);
+            //attachedEditor->removeKeyListener(this);
+        }
+    }
+    
+    void update() override
+    {
+        auto* canvas = getMainCanvas(cnv, true);
+        if(canvas)
+        {
+            attachedEditor = canvas->editor;
+            attachedEditor->addModifierKeyListener(this);
+            //attachedEditor->addKeyListener(this);
+            keyboard.reset(nullptr);
+            keyboard = std::unique_ptr<Keyboard>(KeyboardFactory::instance(attachedEditor));
+            
+            // Install callbacks
+            keyboard->onKeyDownFn = [&](int keynum){
+                auto hid = OSUtils::keycodeToHID(keynum);
+                
+                if(auto obj = ptr.get<t_fake_keycode>())
+                {
+                    outlet_float(obj->x_outlet2, hid);
+                    outlet_float(obj->x_outlet1, 1.0f);
+                }
+            };
+            keyboard->onKeyUpFn = [&](int keynum){
+                auto hid = OSUtils::keycodeToHID(keynum);
+                
+                if(auto obj = ptr.get<t_fake_keycode>())
+                {
+                    outlet_float(obj->x_outlet2, hid);
+                    outlet_float(obj->x_outlet1, 0.0f);
+                }
+            };
+        }
+    }
+
 };

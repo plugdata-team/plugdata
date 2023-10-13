@@ -73,6 +73,7 @@ bool ImplementationBase::hasImplementation(char const* type)
     case hash("key"):
     case hash("keyname"):
     case hash("keyup"):
+    case hash("keycode"):
     case hash("canvas.active"):
     case hash("canvas.mouse"):
     case hash("canvas.bounds"):
@@ -111,6 +112,8 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
         return new KeyObject(ptr, cnv, pd, KeyObject::KeyName);
     case hash("keyup"):
         return new KeyObject(ptr, cnv, pd, KeyObject::KeyUp);
+    case hash("keycode"):
+        return new KeycodeObject(ptr, cnv, pd);
     case hash("mouse"):
         return new MouseObject(ptr, cnv, pd);
     case hash("mousestate"):
