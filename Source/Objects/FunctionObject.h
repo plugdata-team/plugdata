@@ -255,8 +255,10 @@ public:
         arr[1] = newRange.second;
 
         if (auto function = ptr.get<t_fake_function>()) {
-            function->x_min = newRange.first;
-            function->x_max = newRange.second;
+            if (newRange.first <= function->x_min_point)
+                function->x_min = newRange.first;
+            if (newRange.second >= function->x_max_point)
+                function->x_max = newRange.second;
         }
     }
 
