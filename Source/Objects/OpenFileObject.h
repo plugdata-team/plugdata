@@ -13,6 +13,85 @@ public:
         : TextBase(ptr, object)
     {
     }
+    
+    void showEditor() override
+    {
+        if (editor == nullptr) {
+            editor.reset(TextObjectHelper::createTextEditor(object, 15));
+
+            auto font = editor->getFont();
+            auto textWidth = font.getStringWidth(objectText) + 10;
+            editor->setBorder(border);
+            editor->setBounds(getLocalBounds().withWidth(textWidth));
+            object->setSize(textWidth + Object::doubleMargin, getHeight() + Object::doubleMargin);
+            setSize(textWidth, getHeight());
+            
+            editor->setText(objectText, false);
+            editor->addListener(this);
+            editor->selectAll();
+
+            addAndMakeVisible(editor.get());
+            editor->grabKeyboardFocus();
+        
+            editor->onFocusLost = [this]() {
+                hideEditor();
+            };
+
+            resized();
+            repaint();
+        }
+    }
+    
+    
+    Rectangle<int> getPdBounds() override
+    {
+        auto tokens = StringArray::fromTokens(objectText, true);
+        tokens.removeRange(0, tokens.indexOf("-h") + 2);
+        auto linkText = tokens.joinIntoString(" ");
+        
+        if (auto obj = ptr.get<void>()) {
+            auto* cnvPtr = cnv->patch.getPointer().get();
+            if (!cnvPtr)
+                return {};
+
+            auto newNumLines = 0;
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, obj.cast<t_gobj>(), linkText, 15, newNumLines);
+
+            return newBounds;
+        }
+
+        return {};
+    }
+    
+    void setPdBounds(Rectangle<int> b) override
+    {
+    }
+    
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+    {
+        class LinkObjectBoundsConstrainer : public ComponentBoundsConstrainer {
+        public:
+            Object* object;
+
+            explicit LinkObjectBoundsConstrainer(Object* parent)
+                : object(parent)
+            {
+            }
+
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool isStretchingTop,
+                bool isStretchingLeft,
+                bool isStretchingBottom,
+                bool isStretchingRight) override
+            {
+                bounds = old;
+            }
+        };
+        
+        return std::make_unique<LinkObjectBoundsConstrainer>(object);
+    }
 
     void paint(Graphics& g) override
     {
@@ -23,7 +102,7 @@ public:
         auto linkText = tokens.joinIntoString(" ");
         
         g.setColour(backgroundColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().withWidth(Font().getStringWidth(linkText)).reduced(0.5f), Corners::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
         
         auto ioletAreaColour = object->findColour(PlugDataColour::ioletAreaColourId);
         
