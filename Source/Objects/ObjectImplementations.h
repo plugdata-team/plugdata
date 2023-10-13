@@ -787,36 +787,45 @@ public:
 class CanvasBoundsObject final : public ImplementationBase
     , public MouseListener
     , public pd::MessageListener
+    //, public Value::Listener
 {
     
-    Component::SafePointer<Canvas> cnv;
-    Component::SafePointer<Canvas> parentCanvas;
+    t_canvas* targetCanvas;
+    Component::SafePointer<Canvas> mainCanvas;
     
 public:
     
     CanvasBoundsObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
     : ImplementationBase(ptr, parent, pd)
     {
-        pd->registerMessageListener(cnv, this);
+        targetCanvas = reinterpret_cast<t_fake_bounds*>(ptr)->x_canvas;
+        pd->registerMessageListener(targetCanvas, this);
     }
     
     ~CanvasBoundsObject()
     {
-        pd->unregisterMessageListener(cnv, this);
+        pd->unregisterMessageListener(targetCanvas, this);
     }
+    
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override
     {
         if (pd->isPerformingGlobalSync)
             return;
         
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
-        
-        /*
         bool isBoundsMessage = symbol == "setbounds";
         if(isBoundsMessage)
         {
+            auto atoms = pd::Atom::fromAtoms(argc, argv);
             
-        } */
+            if(auto* object = ptr.getRaw<t_object>())
+            {
+                t_outlet* outlet;
+                obj_starttraverseoutlet(object, &outlet, 0);
+                if(outlet) {
+                    outlet_list(outlet, gensym(""), argc, argv);
+                }
+            }
+        }
     }
     
 };

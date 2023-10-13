@@ -53,8 +53,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     xRange.addListener(this);
     yRange.addListener(this);
 
-    patchWidth = patch.getBounds().getWidth();
-    patchHeight = patch.getBounds().getHeight();
+    auto patchBounds = patch.getBounds();
+    patchWidth = patchBounds.getWidth();
+    patchHeight = patchBounds.getHeight();
 
     patchWidth.addListener(this);
     patchHeight.addListener(this);
@@ -1592,17 +1593,31 @@ void Canvas::valueChanged(Value& v)
         // Without this, future calls to getViewPosition() will give wrong results
         viewport->resized();
 
-        // set and trigger the zoom label popup in the bottom left corner
+        // set and trigger the zoom labsetValueExcludingListenerel popup in the bottom left corner
         // TODO: move this to viewport, and have one per viewport?
         editor->setZoomLabelLevel(newScaleFactor);
     } else if (v.refersToSameSourceAs(patchWidth)) {
         // limit canvas width to smallest object (11px)
         patchWidth = jmax(11, getValue<int>(patchWidth));
+        if(auto cnv = patch.getPointer()) {
+            auto x1 = cnv->gl_screenx1;
+            auto y1 = cnv->gl_screeny1;
+            auto x2 = getValue<int>(patchWidth) + x1;
+            auto y2 = cnv->gl_screeny2;
+            pd->sendDirectMessage(cnv.get(), "setbounds", {x1, y1, x2, y2});
+        }
+        
         patch.getPointer()->gl_screenx2 = getValue<int>(patchWidth) + patch.getPointer()->gl_screenx1;
         repaint();
     } else if (v.refersToSameSourceAs(patchHeight)) {
         patchHeight = jmax(11, getValue<int>(patchHeight));
-        patch.getPointer()->gl_screeny2 = getValue<int>(patchHeight) + patch.getPointer()->gl_screeny1;
+        if(auto cnv = patch.getPointer()) {
+            auto x1 = cnv->gl_screenx1;
+            auto y1 = cnv->gl_screeny1;
+            auto x2 = cnv->gl_screenx2;
+            auto y2 = getValue<int>(patchHeight) + y1;
+            pd->sendDirectMessage(cnv.get(), "setbounds", {x1, y1, x2, y2});
+        }
         repaint();
     }
     // When lock changes
@@ -1823,6 +1838,21 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
                 presentationMode = false;
             }
         }
+        break;
+    }
+    case hash("setbounds"):
+    {
+        if(argc >= 4) {
+            auto width = argv[2].a_w.w_float - argv[0].a_w.w_float;
+            auto height = argv[3].a_w.w_float - argv[1].a_w.w_float;
+            MessageManager::callAsync([_this = SafePointer(this), width, height](){
+                if(!_this) return;
+                setValueExcludingListener(_this->patchWidth, width, _this.getComponent());
+                setValueExcludingListener(_this->patchHeight, height, _this.getComponent());
+                _this->repaint();
+            });
+        }
+
         break;
     }
     case hash("coords"):

@@ -1,7 +1,11 @@
 #pragma once
 
 #include <juce_data_structures/juce_data_structures.h>
+
+using namespace juce;
+
 #include "Utility/HashUtils.h"
+#include "Utility/SynchronousValue.h"
 
 namespace juce {
 class AudioDeviceManager;
@@ -11,7 +15,7 @@ class PlugDataWindow;
 class PluginEditor;
 class StandalonePluginHolder;
 
-using namespace juce;
+
 
 struct ProjectInfo {
 
@@ -43,6 +47,20 @@ inline T getValue(Value const& v)
 {
     return static_cast<T>(v.getValue());
 }
+
+inline void setValueExcludingListener(Value& parameter, var const& value, Value::Listener* listener)
+{
+    // This is only gonna work well on synchronous values!
+    jassert(dynamic_cast<SynchronousValueSource*>(&parameter.getValueSource()) != nullptr);
+
+    parameter.removeListener(listener);
+    
+    auto oldValue = parameter.getValue();
+    parameter.setValue(value);
+
+    parameter.addListener(listener);
+}
+
 
 static String getRelativeTimeDescription(String const& timestampString)
 {

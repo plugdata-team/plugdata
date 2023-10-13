@@ -705,3 +705,10 @@ struct t_fake_pd_tilde {
     float** x_outsig;
     int x_blksize;
 };
+
+struct t_fake_bounds
+{
+    t_object        x_obj;
+    void *x_proxy;
+    t_canvas       *x_canvas;
+};

@@ -180,10 +180,12 @@ public:
     bool hasParentCanvas = false;
     bool isDraggingLasso = false;
 
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
-    Value xRange, yRange;
-    Value patchWidth, patchHeight;
+    Value isGraphChild = SynchronousValue(var(false));
+    Value hideNameAndArgs = SynchronousValue(var(false));
+    Value xRange = SynchronousValue();
+    Value yRange = SynchronousValue();
+    Value patchWidth = SynchronousValue()
+    Value patchHeight = SynchronousValue();
 
     Value zoomScale;
 

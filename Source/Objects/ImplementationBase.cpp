@@ -75,6 +75,7 @@ bool ImplementationBase::hasImplementation(char const* type)
     case hash("keyup"):
     case hash("canvas.active"):
     case hash("canvas.mouse"):
+    case hash("canvas.bounds"):
     case hash("canvas.vis"):
     case hash("canvas.zoom"):
     case hash("canvas.edit"):
@@ -198,7 +199,7 @@ void ObjectImplementationManager::handleAsyncUpdate()
     for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
         auto& [ptr, implementation] = *it;
         
-        auto found = std::find_if(allImplementations.begin(), allImplementations.end(), [ptr](const auto& toCompare){
+        auto found = std::find_if(allImplementations.begin(), allImplementations.end(), [ptr = ptr](const auto& toCompare){
             return std::get<1>(toCompare) == ptr;
         });
 

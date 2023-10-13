@@ -189,7 +189,7 @@ void ObjectBase::objectMovedOrResized(bool resized)
 {
     auto objectBounds = object->getObjectBounds();
 
-    setParameterExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
+    setValueExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
 
     if (resized)
         updateSizeProperty();
@@ -698,23 +698,10 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
 {
     parameter.removeListener(&propertyUndoListener);
-    parameter.removeListener(this);
+    
+    setValueExcludingListener(parameter, value, this);
 
-    auto oldValue = parameter.getValue();
-    parameter.setValue(value);
-
-    parameter.addListener(this);
     parameter.addListener(&propertyUndoListener);
-}
-
-void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* listener)
-{
-    parameter.removeListener(listener);
-
-    auto oldValue = parameter.getValue();
-    parameter.setValue(value);
-
-    parameter.addListener(listener);
 }
 
 ObjectLabel* ObjectBase::getLabel()
