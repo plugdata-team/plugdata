@@ -85,7 +85,7 @@ public:
 
     void update() override
     {
-        auto* canvas = getMainCanvas(glist_getcanvas(cnv));
+        auto* canvas = getMainCanvas(cnv, true);
         if(canvas)
         {
             attachedEditor = canvas->editor;
@@ -420,7 +420,7 @@ class CanvasMouseObject final : public ImplementationBase
     Component::SafePointer<Canvas> parentCanvas;
 
 public:
-    using ImplementationBase::ImplementationBase;
+
     CanvasMouseObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
         : ImplementationBase(ptr, parent, pd)
     {
@@ -438,7 +438,6 @@ public:
 
     void update() override
     {
-
         if (pd->isPerformingGlobalSync)
             return;
 
@@ -782,4 +781,42 @@ public:
     bool isDown = false;
     int const timerInterval = 30;
     t_glist* canvas;
+};
+
+
+class CanvasBoundsObject final : public ImplementationBase
+    , public MouseListener
+    , public pd::MessageListener
+{
+    
+    Component::SafePointer<Canvas> cnv;
+    Component::SafePointer<Canvas> parentCanvas;
+    
+public:
+    
+    CanvasBoundsObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+    : ImplementationBase(ptr, parent, pd)
+    {
+        pd->registerMessageListener(cnv, this);
+    }
+    
+    ~CanvasBoundsObject()
+    {
+        pd->unregisterMessageListener(cnv, this);
+    }
+    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    {
+        if (pd->isPerformingGlobalSync)
+            return;
+        
+        auto atoms = pd::Atom::fromAtoms(argc, argv);
+        
+        /*
+        bool isBoundsMessage = symbol == "setbounds";
+        if(isBoundsMessage)
+        {
+            
+        } */
+    }
+    
 };

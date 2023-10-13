@@ -28,7 +28,7 @@ public:
     void openSubpatch(pd::Patch* subpatch);
     void closeOpenedSubpatchers();
 
-    Canvas* getMainCanvas(t_canvas* patchPtr) const;
+    Canvas* getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot = false) const;
 
     PluginProcessor* pd;
     pd::WeakReference ptr;

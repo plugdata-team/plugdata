@@ -38,13 +38,26 @@ ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProc
 
 ImplementationBase::~ImplementationBase() = default;
 
-Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr) const
+Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot) const
 {
     for(auto* editor : pd->openedEditors) {
         for (auto* cnv : editor->canvases) {
             auto glist = cnv->patch.getPointer();
             if (glist && glist.get() == patchPtr) {
                 return cnv;
+            }
+        }
+    }
+    
+    if(alsoSearchRoot)
+    {
+        patchPtr = glist_getcanvas(patchPtr);
+        for(auto* editor : pd->openedEditors) {
+            for (auto* cnv : editor->canvases) {
+                auto glist = cnv->patch.getPointer();
+                if (glist && glist.get() == patchPtr) {
+                    return cnv;
+                }
             }
         }
     }
@@ -82,6 +95,8 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
         return new CanvasActiveObject(ptr, cnv, pd);
     case hash("canvas.mouse"):
         return new CanvasMouseObject(ptr, cnv, pd);
+    case hash("canvas.bounds"):
+        return new CanvasBoundsObject(ptr, cnv, pd);
     case hash("canvas.vis"):
         return new CanvasVisibleObject(ptr, cnv, pd);
     case hash("canvas.zoom"):
@@ -180,7 +195,7 @@ void ObjectImplementationManager::handleAsyncUpdate()
     pd->unlockAudioThread();
 
     // Remove unused object implementations
-    for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend(); it++) {
+    for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
         auto& [ptr, implementation] = *it;
         
         auto found = std::find_if(allImplementations.begin(), allImplementations.end(), [ptr](const auto& toCompare){
@@ -188,7 +203,11 @@ void ObjectImplementationManager::handleAsyncUpdate()
         });
 
         if (found == allImplementations.end()) {
-            objectImplementations.erase(it);
+            objectImplementations.erase(it++);
+        }
+        else
+        {
+            it++;
         }
     }
 
