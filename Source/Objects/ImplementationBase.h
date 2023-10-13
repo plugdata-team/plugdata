@@ -16,11 +16,11 @@ class Canvas;
 class ImplementationBase {
 
 public:
-    ImplementationBase(t_gobj* obj, PluginProcessor* pd);
+    ImplementationBase(t_gobj* obj,  t_canvas* parent, PluginProcessor* pd);
 
     virtual ~ImplementationBase();
 
-    static ImplementationBase* createImplementation(String const& type, t_gobj* ptr, PluginProcessor* pd);
+    static ImplementationBase* createImplementation(String const& type, t_gobj* ptr, t_canvas* cnv, PluginProcessor* pd);
     static bool hasImplementation(char const* type);
 
     virtual void update() {};
@@ -29,10 +29,10 @@ public:
     void closeOpenedSubpatchers();
 
     Canvas* getMainCanvas(t_canvas* patchPtr) const;
-    Canvas* getMainCanvasForObject(t_gobj* objectPtr) const;
 
     PluginProcessor* pd;
     pd::WeakReference ptr;
+    t_canvas* cnv;
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(ImplementationBase);
 };

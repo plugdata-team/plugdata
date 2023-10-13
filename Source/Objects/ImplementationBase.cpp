@@ -28,30 +28,15 @@ int clone_get_n(t_gobj*);
 #include "ImplementationBase.h"
 #include "ObjectImplementations.h"
 
-ImplementationBase::ImplementationBase(t_gobj* obj, PluginProcessor* processor)
+ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProcessor* processor)
     : pd(processor)
     , ptr(obj, processor)
+    , cnv(parent)
 {
     update();
 }
 
 ImplementationBase::~ImplementationBase() = default;
-
-Canvas* ImplementationBase::getMainCanvasForObject(t_gobj* objectPtr) const
-{
-    for(auto* editor : pd->openedEditors) {
-        for (auto* cnv : editor->canvases) {
-            for (auto* object : cnv->objects) {
-                if(object->getPointer() == objectPtr)
-                {
-                    return cnv;
-                }
-            }
-        }
-    }
-
-    return nullptr;
-}
 
 Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr) const
 {
@@ -87,30 +72,30 @@ bool ImplementationBase::hasImplementation(char const* type)
         return false;
     }
 }
-ImplementationBase* ImplementationBase::createImplementation(String const& type, t_gobj* ptr, PluginProcessor* pd)
+ImplementationBase* ImplementationBase::createImplementation(String const& type, t_gobj* ptr, t_canvas* cnv, PluginProcessor* pd)
 {
     switch (hash(type)) {
     case hash("canvas"):
     case hash("graph"):
-        return new SubpatchImpl(ptr, pd);
+        return new SubpatchImpl(ptr, cnv, pd);
     case hash("canvas.active"):
-        return new CanvasActiveObject(ptr, pd);
+        return new CanvasActiveObject(ptr, cnv, pd);
     case hash("canvas.mouse"):
-        return new CanvasMouseObject(ptr, pd);
+        return new CanvasMouseObject(ptr, cnv, pd);
     case hash("canvas.vis"):
-        return new CanvasVisibleObject(ptr, pd);
+        return new CanvasVisibleObject(ptr, cnv, pd);
     case hash("canvas.zoom"):
-        return new CanvasZoomObject(ptr, pd);
+        return new CanvasZoomObject(ptr, cnv, pd);
     case hash("canvas.edit"):
-        return new CanvasEditObject(ptr, pd);
+        return new CanvasEditObject(ptr, cnv, pd);
     case hash("key"):
-        return new KeyObject(ptr, pd, KeyObject::Key);
+        return new KeyObject(ptr, cnv, pd, KeyObject::Key);
     case hash("keyname"):
-        return new KeyObject(ptr, pd, KeyObject::KeyName);
+        return new KeyObject(ptr, cnv, pd, KeyObject::KeyName);
     case hash("keyup"):
-        return new KeyObject(ptr, pd, KeyObject::KeyUp);
+        return new KeyObject(ptr, cnv, pd, KeyObject::KeyUp);
     case hash("mouse"):
-        return new MouseObject(ptr, pd);
+        return new MouseObject(ptr, cnv, pd);
 
     default:
         break;
@@ -181,38 +166,41 @@ ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor
 
 void ObjectImplementationManager::handleAsyncUpdate()
 {
-    Array<t_gobj*> allImplementations;
+    Array<std::pair<t_canvas*, t_gobj*>> allImplementations;
 
     pd->setThis();
 
     pd->lockAudioThread();
-    t_glist* x;
-    for (x = pd_getcanvaslist(); x; x = x->gl_next) {
-        allImplementations.addArray(getImplementationsForPatch(x));
+    for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
+        for(auto* object : getImplementationsForPatch(cnv))
+        {
+            allImplementations.add({cnv, object});
+        }
     }
     pd->unlockAudioThread();
 
     // Remove unused object implementations
-    for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
+    for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend(); it++) {
         auto& [ptr, implementation] = *it;
-        auto found = std::find(allImplementations.begin(), allImplementations.end(), ptr);
+        
+        auto found = std::find_if(allImplementations.begin(), allImplementations.end(), [ptr](const auto& toCompare){
+            return std::get<1>(toCompare) == ptr;
+        });
 
         if (found == allImplementations.end()) {
-            objectImplementations.erase(it++);
-        } else {
-            it++;
+            objectImplementations.erase(it);
         }
     }
 
-    for (auto* ptr : allImplementations) {
-        if (!objectImplementations.count(ptr)) {
+    for (auto& [cnv, obj] : allImplementations) {
+        if (!objectImplementations.count(obj)) {
 
-            auto const name = String::fromUTF8(pd::Interface::getObjectClassName(&ptr->g_pd));
+            auto const name = String::fromUTF8(pd::Interface::getObjectClassName(&obj->g_pd));
 
-            objectImplementations[ptr] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, ptr, pd));
+            objectImplementations[obj] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, obj, cnv, pd));
         }
 
-        objectImplementations[ptr]->update();
+        objectImplementations[obj]->update();
     }
 }
 

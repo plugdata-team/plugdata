@@ -9,8 +9,8 @@
 class SubpatchImpl : public ImplementationBase
     , public pd::MessageListener {
 public:
-    SubpatchImpl(t_gobj* ptr, PluginProcessor* pd)
-        : ImplementationBase(ptr, pd)
+    SubpatchImpl(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+        : ImplementationBase(ptr, parent, pd)
     {
         pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
@@ -69,8 +69,8 @@ public:
     KeyObjectType type;
     Component::SafePointer<PluginEditor> attachedEditor = nullptr;
 
-    KeyObject(t_gobj* ptr, PluginProcessor* pd, KeyObjectType keyObjectType)
-        : ImplementationBase(ptr, pd)
+    KeyObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd, KeyObjectType keyObjectType)
+        : ImplementationBase(ptr, parent, pd)
         , type(keyObjectType)
     {
     }
@@ -85,10 +85,10 @@ public:
 
     void update() override
     {
-        auto* cnv = getMainCanvasForObject(ptr.getRawUnchecked<t_gobj>());
-        if(cnv)
+        auto* canvas = getMainCanvas(glist_getcanvas(cnv));
+        if(canvas)
         {
-            attachedEditor = cnv->editor;
+            attachedEditor = canvas->editor;
             attachedEditor->addModifierKeyListener(this);
             attachedEditor->addKeyListener(this);
         }
@@ -421,8 +421,8 @@ class CanvasMouseObject final : public ImplementationBase
 
 public:
     using ImplementationBase::ImplementationBase;
-    CanvasMouseObject(t_gobj* ptr, PluginProcessor* pd)
-        : ImplementationBase(ptr, pd)
+    CanvasMouseObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+        : ImplementationBase(ptr, parent, pd)
     {
         pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
@@ -727,8 +727,8 @@ class MouseObject final : public ImplementationBase
     , public Timer {
 
 public:
-    MouseObject(t_gobj* ptr, PluginProcessor* pd)
-        : ImplementationBase(ptr, pd)
+    MouseObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+        : ImplementationBase(ptr, parent, pd)
         , mouseSource(Desktop::getInstance().getMainMouseSource())
     {
         lastPosition = mouseSource.getScreenPosition();
