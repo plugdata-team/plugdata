@@ -71,15 +71,20 @@ public:
         repaint();
     }
 
-    String getObjectString()
+    String getObjectString() override
     {
         return substituteThemeColours(objectPatch);
     }
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (e.mouseWasDraggedSinceMouseDown())
+        if (e.mouseWasDraggedSinceMouseDown()) {
             dismissMenu(false);
+        }
+        else {
+            ObjectClickAndDrop::attachToMouse(this);
+            dismissMenu(false);
+        }
     }
 
     String substituteThemeColours(String patch)
