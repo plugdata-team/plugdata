@@ -150,7 +150,10 @@ public:
     
     void mouseDown(const MouseEvent& e) override
     {
+        // This is nicer, but also makes sure that getComponentAt doesn't return this object
+        setVisible(false);
         auto* underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, e.getScreenPosition()));
+        
         if(underMouse)
         {
             if(auto* cnv = dynamic_cast<Canvas*>(underMouse))
