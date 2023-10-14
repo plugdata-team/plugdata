@@ -154,7 +154,7 @@ void Patch::savePatch()
 void Patch::setCurrent()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        instance->setThis();
+        // Ugly fix: plugdata needs gl_havewindow to always be true!
         patch->gl_havewindow = true;
         canvas_create_editor(patch.get());
     }
@@ -164,6 +164,7 @@ void Patch::setVisible(bool shouldVis)
 {
     if (auto patch = ptr.get<t_glist>()) {
         patch->gl_mapped = shouldVis;
+
     }
 }
 

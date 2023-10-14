@@ -74,9 +74,6 @@ struct Interface {
 
     static void getObjectBounds(t_canvas* cnv, t_gobj* ptr, int* x, int* y, int* w, int* h)
     {
-        while (cnv->gl_owner && !cnv->gl_havewindow && cnv->gl_isgraph)
-            cnv = cnv->gl_owner;
-
         *x = 0;
         *y = 0;
         *w = 0;

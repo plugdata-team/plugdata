@@ -688,14 +688,7 @@ public:
                 {
                     
                     toDraw.addRectangle(ixpix, yToPixels(baseY + fielddesc_cvttocoord((t_fielddesc*)yfielddesc, minyval)), inextx, yToPixels(baseY + fielddesc_cvttocoord((t_fielddesc*)yfielddesc, maxyval)) + linewidth);
-                    /*
-                    pdgui_vmess(0, "crr iiii rk rf rS",
-                                glist_getcanvas(glist), "create", "rectangle",
-                                ixpix , (int) yToPixels(baseY + fielddesc_cvttocoord((t_fielddesc*)yfielddesc, minyval)),
-                                inextx, (int)(yToPixels(baseY + fielddesc_cvttocoord((t_fielddesc*)yfielddesc, maxyval)) + linewidth),
-                                "-fill", colour,
-                                "-width", 0.,
-                                "-tags", 3, tags); */
+
                     ndrawn++;
                     minyval = 1e20;
                     maxyval = -1e20;
@@ -829,18 +822,6 @@ public:
                     }
                     toDraw.lineTo(coordinates[0] + canvas->canvasOrigin.x, coordinates[1] + canvas->canvasOrigin.y);
                 }
-                
-                pdgui_vmess(0, "crr ri rk rk ri rS",
-                            glist_getcanvas(glist), "create", "polygon",
-                            "-width", (glist->gl_isgraph ? glist_getzoom(glist) : 1),
-                            "-fill", outline,
-                            "-outline", outline,
-                            "-smooth", (style == PLOTSTYLE_BEZ),
-                            "-tags", 3, tags);
-                
-                pdgui_vmess(0, "crs w",
-                            glist_getcanvas(glist), "coords", tag0,
-                            ndrawn*2, coordinates);
             }
             else if (linewidth > 0)
             {
@@ -889,18 +870,6 @@ public:
                     for (int i = 1; i < ndrawn; i++) {
                         toDraw.lineTo(coordinates[2 * i] + canvas->canvasOrigin.x, coordinates[2 * i + 1] + canvas->canvasOrigin.y);
                     }
-
-                    /*
-                    pdgui_vmess(0, "crr iiii rf rk ri rS",
-                                glist_getcanvas(glist), "create", "line",
-                                0, 0, 0, 0,
-                                "-width", linewidth,
-                                "-fill", outline,
-                                "-smooth", (style == PLOTSTYLE_BEZ),
-                                "-tags", 3, tags);
-                    pdgui_vmess(0, "crs w",
-                                glist_getcanvas(glist), "coords", tag0,
-                                ndrawn*2, coordinates); */
                 }
             }
         }
