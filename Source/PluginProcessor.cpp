@@ -1291,7 +1291,7 @@ Colour PluginProcessor::getTextColour()
 
 void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int const velocity)
 {
-    auto device = channel >> 4;
+    auto device = (channel - 1) >> 4;
     auto deviceChannel = channel - (device * 16);
 
     if (velocity == 0) {
