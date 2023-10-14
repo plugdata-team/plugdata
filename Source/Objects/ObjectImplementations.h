@@ -238,8 +238,10 @@ public:
         } else if (keynum == ctrlKey) {
             keysym = pd->generateSymbol("Control_L");
             keynum = 0;
-        } else if (keynum == KeyPress::backspaceKey)
+        } else if (keynum == KeyPress::backspaceKey) {
             keysym = pd->generateSymbol("BackSpace");
+            keynum = 8;
+        }
         else if (keynum == KeyPress::tabKey)
             keynum = 9, keysym = pd->generateSymbol("Tab");
         else if (keynum == KeyPress::returnKey)
@@ -314,7 +316,7 @@ public:
             keynum = 57, keysym = pd->generateSymbol("9");
 
             // on macOS, alphanumeric characters are offset
-#if JUCE_MAC
+#if JUCE_MAC || JUCE_WINDOWS
         else if (keynum >= 65 && keynum <= 90) {
             keynum += 32;
         }
