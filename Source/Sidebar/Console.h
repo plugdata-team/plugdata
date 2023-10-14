@@ -425,8 +425,8 @@ public:
             auto* editor = findParentComponentOfClass<PluginEditor>();
             auto* sidebar = findParentComponentOfClass<Sidebar>();
             auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
-            auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
-            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, editor);
+            auto bounds = editor->callOutSafeArea.getLocalArea(nullptr, settingsCalloutButton->getScreenBounds());
+            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, &editor->callOutSafeArea);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);

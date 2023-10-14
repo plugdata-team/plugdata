@@ -247,6 +247,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addChildComponent(*zoomLabel);
 
+    addAndMakeVisible(&callOutSafeArea);
+    callOutSafeArea.setAlwaysOnTop(true);
+    callOutSafeArea.setInterceptsMouseClicks(false, true);
+
     addModifierKeyListener(this);
 
     // Restore Plugin Mode View
@@ -361,6 +365,8 @@ void PluginEditor::resized()
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 30;
     if (!palettes->isVisible())
         paletteWidth = 0;
+
+    callOutSafeArea.setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight - 30);
 
     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), getHeight() - toolbarHeight - (statusbar->getHeight()));
 
