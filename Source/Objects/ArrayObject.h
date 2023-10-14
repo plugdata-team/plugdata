@@ -892,13 +892,12 @@ private:
     bool editable = true;
 };
 
-// Actual text object, marked final for optimisation
 class ArrayDefineObject final : public TextBase {
     std::unique_ptr<ArrayEditorDialog> editor = nullptr;
 
 public:
-    ArrayDefineObject(t_gobj* obj, Object* parent, bool isValid = true)
-        : TextBase(obj, parent, isValid)
+    ArrayDefineObject(t_gobj* obj, Object* parent)
+        : TextBase(obj, parent, true)
     {
     }
 

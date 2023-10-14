@@ -2121,7 +2121,7 @@ struct TextEditorDialog : public Component {
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(15).toFloat(), Corners::windowCornerRadius, 1.0f);
     }
 
@@ -2137,8 +2137,8 @@ struct TextEditorDialog : public Component {
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(b.toFloat(), Corners::windowCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        //g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
         g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
 
         if (!title.isEmpty()) {

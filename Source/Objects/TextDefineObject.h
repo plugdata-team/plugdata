@@ -12,8 +12,8 @@ class TextFileObject final : public TextBase {
     std::unique_ptr<Dialog> saveDialog;
 
 public:
-    TextFileObject(t_gobj* obj, Object* parent, bool isValid = true)
-        : TextBase(obj, parent, isValid)
+    TextFileObject(t_gobj* obj, Object* parent)
+        : TextBase(obj, parent, true)
         , textEditor(nullptr)
     {
     }
@@ -160,15 +160,14 @@ public:
     }
 };
 
-// Actual text object, marked final for optimisation
 class TextDefineObject final : public TextBase {
 
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
 
 public:
-    TextDefineObject(t_gobj* obj, Object* parent, bool isValid = true)
-        : TextBase(obj, parent, isValid)
+    TextDefineObject(t_gobj* obj, Object* parent)
+        : TextBase(obj, parent, true)
         , textEditor(nullptr)
     {
     }

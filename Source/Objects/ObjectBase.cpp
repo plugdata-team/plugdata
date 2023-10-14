@@ -73,6 +73,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "MidiObjects.h"
 #include "OpenFileObject.h"
 #include "PdTildeObject.h"
+#include "CollObject.h"
 
 // Class for non-patchable objects
 class NonPatchable : public ObjectBase {

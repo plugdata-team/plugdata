@@ -1450,31 +1450,40 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
                     unlockAudioThread();
 
                     // remove repeating spaces
-                    while (text.contains("  ")) {
-                        text = text.replace("  ", " ");
-                    }
                     text = text.replace("\r ", "\r");
                     text = text.replace(";\r", ";");
                     text = text.replace("\r;", ";");
                     text = text.replace(" ;", ";");
                     text = text.replace("; ", ";");
+                    text = text.replace(",", " , ");
                     text = text.replaceCharacters("\r", " ");
+ 
+                    
+                    while (text.contains("  ")) {
+                        text = text.replace("  ", " ");
+                    }
                     text = text.trimStart();
                     auto lines = StringArray::fromTokens(text, ";", "\"");
-                    auto atoms = std::vector<t_atom>();
-                    atoms.reserve(lines.size());
 
                     int count = 0;
                     for (auto const& line : lines) {
                         count++;
                         auto words = StringArray::fromTokens(line, " ", "\"");
+                        
+                        auto atoms = std::vector<t_atom>();
+                        atoms.reserve(words.size() + 1);
+                        
                         for (auto const& word : words) {
                             atoms.emplace_back();
                             // check if string is a valid number
                             auto charptr = word.getCharPointer();
                             auto ptr = charptr;
                             auto value = CharacterFunctions::readDoubleValue(ptr);
-                            if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
+                            if(*charptr == ',')
+                            {
+                                SETCOMMA(&atoms.back());
+                            }
+                            else if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
                                 SETFLOAT(&atoms.back(), word.getFloatValue());
                             } else {
                                 SETSYMBOL(&atoms.back(), generateSymbol(word));
@@ -1483,11 +1492,13 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
 
                         if (count != lines.size()) {
                             atoms.emplace_back();
-                            SETSYMBOL(&atoms.back(), generateSymbol(";"));
+                            SETSEMI(&atoms.back());
                         }
 
                         lockAudioThread();
+                        
                         pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("addline"), atoms.size(), atoms.data());
+                        
                         unlockAudioThread();
                     }
 
@@ -1495,7 +1506,8 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
                     SETSYMBOL(&fake_path, generateSymbol(title.toRawUTF8()));
 
                     lockAudioThread();
-                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("path"), 1, &fake_path);
+                    
+                    //pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("path"), 1, &fake_path);
                     pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("end"), 0, NULL);
                     unlockAudioThread();
 
