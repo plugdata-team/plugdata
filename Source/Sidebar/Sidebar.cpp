@@ -389,6 +389,10 @@ void Sidebar::updateConsole(int numMessages, bool newWarning)
         consoleButton.hasWarning = consoleButton.hasWarning || newWarning;
         consoleButton.repaint();
     }
+    else {
+        consoleButton.numNotifications = 0;
+    }
+    
     console->update();
 }
 

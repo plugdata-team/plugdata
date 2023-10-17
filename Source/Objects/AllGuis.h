@@ -6,6 +6,7 @@
 
 #pragma once
 #include <g_canvas.h>
+#include <pthread.h>
 
 // Atoms
 struct t_fake_gatom {
