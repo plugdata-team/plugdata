@@ -6,7 +6,6 @@
 
 #pragma once
 #include <g_canvas.h>
-#include <pthread.h>
 
 // Atoms
 struct t_fake_gatom {
@@ -739,36 +738,4 @@ struct t_fake_keycode
     t_object x_obj;
     t_outlet *x_outlet1;
     t_outlet *x_outlet2;
-};
-
-struct t_fake_coll
-{
-  t_object       x_ob;
-  t_canvas      *x_canvas;
-  t_symbol      *x_name;
-  void          *x_common;
-  void          *x_filehandle;
-  t_outlet      *x_keyout;
-  t_outlet      *x_filebangout;
-  t_outlet      *x_dumpbangout;
-  t_symbol      *x_bindsym;
-  int           x_is_opened;
-  int           x_threaded;
-  int           x_nosearch;
-  int           x_initread; //if we're reading a file for the first time
-  int           x_filebang; //if we're expecting to bang out 3rd outlet
-  struct _coll  *x_next;
-
-// for thread-unsafe file i/o operations added by Ivica Ico Bukvic <ico@vt.edu> 9-24-2010
-// http://disis.music.vt.edu http://l2ork.music.vt.edu
-  t_clock *x_clock;
-  pthread_t unsafe_t;
-  pthread_mutex_t unsafe_mutex;
-  pthread_cond_t unsafe_cond;
-  t_symbol *x_s;
-  t_symbol      *x_fileext;
-  t_int unsafe;
-  t_int init; //used to make sure that the secondary thread is ready to go
-  t_int threaded; //used to decide whether this should be a threaded instance
-  void *x_q; //a list of error messages to be processed
 };
