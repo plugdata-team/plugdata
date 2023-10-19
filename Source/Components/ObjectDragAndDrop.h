@@ -153,7 +153,7 @@ public:
             scale = 1.0f;
         }
 
-        if(animatedScale != scale)
+        if(!approximatelyEqual<float>(animatedScale, scale))
         {
             animatedScale = scale;
             auto newWidth = dragImage.getWidth() / 3.0f * animatedScale;
