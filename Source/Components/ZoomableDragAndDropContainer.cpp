@@ -232,7 +232,7 @@ public:
 
     void updateScale(float newScale, bool withAnimation)
     {
-        if (std::abs(newScale - previousScale) < std::numeric_limits<float>::epsilon())
+        if (!approximatelyEqual<float>(newScale, previousScale))
             return;
 
         previousScale = newScale;

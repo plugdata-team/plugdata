@@ -72,8 +72,8 @@ class ObjectClickAndDrop : public Component
     bool isOnEditor = false;
 
     ComponentAnimator animator;
+    Canvas* canvas = nullptr;
 
-public:
     ObjectClickAndDrop(ObjectDragAndDrop* target)
     {
         objectString = target->getObjectString();
@@ -129,20 +129,46 @@ public:
             underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
         }
 
-        if (!underMouse) {
+        Canvas* foundCanvas = nullptr;
+
+        if(!underMouse)
+        {
             scale = 1.0f;
-        } else if (auto* cnv = dynamic_cast<Canvas*>(underMouse)) {
+        }
+        else if(auto* cnv = dynamic_cast<Canvas*>(underMouse))
+        {
+            foundCanvas = cnv;
             scale = getValue<float>(cnv->zoomScale);
-        } else if (auto* cnv = underMouse->findParentComponentOfClass<Canvas>()) {
+        }
+        else if(auto* cnv = underMouse->findParentComponentOfClass<Canvas>())
+        {
+            foundCanvas = cnv;
             scale = getValue<float>(cnv->zoomScale);
         } else if (auto* split = editor->splitView.getSplitAtScreenPosition(screenPos)) {
             // if we get here, this object is on the editor (not a window) - so we have to manually find the canvas
-            scale = getValue<float>(split->getTabComponent()->getCurrentCanvas()->zoomScale);
-        } else {
+            if (auto* tabComponent = split->getTabComponent()) {
+                foundCanvas = tabComponent->getCurrentCanvas();
+                scale = getValue<float>(foundCanvas->zoomScale);
+            } else {
+                scale = 1.0f;
+            }
+        }
+        else {
             scale = 1.0f;
         }
 
-        if (!approximatelyEqual(animatedScale, scale)) {
+        if (foundCanvas && (foundCanvas != canvas)) {
+            canvas = foundCanvas;
+            for (auto* split : editor->splitView.splits) {
+                if (canvas == split->getTabComponent()->getCurrentCanvas()) {
+                    editor->splitView.setFocus(split);
+                    break;
+                }
+            }
+        }
+
+        if(!approximatelyEqual<float>(animatedScale, scale))
+        {
             animatedScale = scale;
             auto newWidth = dragImage.getWidth() / 3.0f * animatedScale;
             auto newHeight = dragImage.getHeight() / 3.0f * animatedScale;
