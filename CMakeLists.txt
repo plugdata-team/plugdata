@@ -24,7 +24,7 @@ endfunction()
 
 if(APPLE)
   set(CMAKE_XCODE_BUILD_SYSTEM "12" CACHE STRING "" FORCE)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
   if(RUN_CLANG_TIDY)
   set(CMAKE_OSX_ARCHITECTURES "arm64;" CACHE STRING "" FORCE)
   else()
