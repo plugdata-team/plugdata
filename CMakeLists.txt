@@ -108,7 +108,6 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterVariable.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/GoNotoCurrent.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_large_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
@@ -174,7 +173,7 @@ if(NOT ${GIT_BRANCH} STREQUAL "main")
           )
 endif()
 
-set(PLUGDATA_COMPILE_DEFINITIONS
+set(JUCE_COMPILE_DEFINITIONS
     JUCE_DONT_DECLARE_PROJECTINFO=1
     JUCE_ALLOW_STATIC_NULL_VARIABLES=0
     JUCE_DISPLAY_SPLASH_SCREEN=0
@@ -186,18 +185,33 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_WEB_BROWSER=0 
     JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
     JUCE_USE_COREIMAGE_LOADER=0
+    JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
+)
+
+set(PLUGDATA_COMPILE_DEFINITIONS
+    
     PLUGDATA_VERSION="${PLUGDATA_VERSION}"
     PLUGDATA_GIT_HASH="${GIT_HASH}"
-    JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
     PD=1
     ENABLE_SFIZZ=${ENABLE_SFIZZ}
 )
 
+add_library(juce STATIC)
+target_compile_definitions(juce PUBLIC ${JUCE_COMPILE_DEFINITIONS})
+
+target_link_libraries(juce
+    PRIVATE
+        juce::juce_audio_utils
+        juce::juce_audio_plugin_client
+        juce::juce_dsp
+    PUBLIC
+        juce::juce_recommended_config_flags
+        juce::juce_recommended_lto_flags
+        juce::juce_recommended_warning_flags)
+
 set(libs
+  juce
   PlugDataBinaryData
-  juce::juce_audio_utils
-  juce::juce_audio_plugin_client
-  juce::juce_dsp
 )
 
 if(UNIX AND NOT APPLE)
@@ -387,10 +401,13 @@ endif()
 if(UNIX AND NOT APPLE)
     target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-Wl,-export-dynamic")
 elseif(APPLE)
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-framework Carbon -Wl,-ld_classic")
-  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi  "-framework Carbon -Wl,-ld_classic")
-  target_link_libraries(plugdata PRIVATE "-framework Carbon -Wl,-ld_classic")
-  target_link_libraries(plugdata_fx PRIVATE "-framework Carbon -Wl,-ld_classic")
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 3.2)
+    set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
+  endif()
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi  "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata PRIVATE "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata_fx PRIVATE "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
 else()
  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData)
 endif()
