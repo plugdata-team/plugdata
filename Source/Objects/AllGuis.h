@@ -555,10 +555,9 @@ struct t_fake_drawnumber {
     t_canvas* x_canvas;
 };
 
-struct t_fake_plot
-{
+struct t_fake_plot {
     t_object x_obj;
-    t_canvas *x_canvas;
+    t_canvas* x_canvas;
     t_fake_fielddesc x_outlinecolor;
     t_fake_fielddesc x_width;
     t_fake_fielddesc x_xloc;
@@ -569,9 +568,9 @@ struct t_fake_plot
     t_fake_fielddesc x_xpoints;
     t_fake_fielddesc x_ypoints;
     t_fake_fielddesc x_wpoints;
-    t_fake_fielddesc x_vis;          /* visible */
-    t_fake_fielddesc x_scalarvis;    /* true if drawing the scalar at each point */
-    t_fake_fielddesc x_edit;         /* enable/disable mouse editing */
+    t_fake_fielddesc x_vis;       /* visible */
+    t_fake_fielddesc x_scalarvis; /* true if drawing the scalar at each point */
+    t_fake_fielddesc x_edit;      /* enable/disable mouse editing */
 };
 
 #define SCOPE_MAXBUFSIZE 256
@@ -706,36 +705,33 @@ struct t_fake_pd_tilde {
     int x_blksize;
 };
 
-struct t_fake_bounds
-{
-    t_object        x_obj;
-    void *x_proxy;
-    t_canvas       *x_canvas;
-};
-
-struct t_fake_mousestate
-{
-    t_object   x_ob;
-    int        x_ispolling;
-    int        x_bang;
-    int        x_hlast;
-    int        x_vlast;
-    int        x_hzero;
-    int        x_vzero;
-    int        x_mode; //0-screen, 1-object window, 2-active window
-    int        x_zero; //if we are requesting to zero
-    int         x_wx;
-    int         x_wy;
-    t_glist   *x_glist;
-    t_outlet  *x_hposout;
-    t_outlet  *x_vposout;
-    t_outlet  *x_hdiffout;
-    t_outlet  *x_vdiffout;
-};
-
-struct t_fake_keycode
-{
+struct t_fake_bounds {
     t_object x_obj;
-    t_outlet *x_outlet1;
-    t_outlet *x_outlet2;
+    void* x_proxy;
+    t_canvas* x_canvas;
+};
+
+struct t_fake_mousestate {
+    t_object x_ob;
+    int x_ispolling;
+    int x_bang;
+    int x_hlast;
+    int x_vlast;
+    int x_hzero;
+    int x_vzero;
+    int x_mode; // 0-screen, 1-object window, 2-active window
+    int x_zero; // if we are requesting to zero
+    int x_wx;
+    int x_wy;
+    t_glist* x_glist;
+    t_outlet* x_hposout;
+    t_outlet* x_vposout;
+    t_outlet* x_hdiffout;
+    t_outlet* x_vdiffout;
+};
+
+struct t_fake_keycode {
+    t_object x_obj;
+    t_outlet* x_outlet1;
+    t_outlet* x_outlet2;
 };

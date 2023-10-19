@@ -171,9 +171,9 @@ public:
     */
     static ZoomableDragAndDropContainer* findParentDragContainerFor(Component* childComponent);
 
-    virtual void createNewWindow(TabBarButtonComponent* tabButton) {};
-    
-    virtual SplitView* getSplitView() { return nullptr; };
+    virtual void createNewWindow(TabBarButtonComponent* tabButton) { }
+
+    virtual SplitView* getSplitView() { return nullptr; }
     /** This performs an asynchronous drag-and-drop of a set of files to some external
         application.
 
@@ -255,7 +255,6 @@ protected:
     virtual DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos);
 
 private:
-
     class DragImageComponent;
     OwnedArray<DragImageComponent> dragImageComponents;
 

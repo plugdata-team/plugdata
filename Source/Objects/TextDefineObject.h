@@ -85,7 +85,7 @@ public:
                 // check if string is a valid number
                 auto charptr = word.getCharPointer();
                 auto ptr = charptr;
-                auto value = CharacterFunctions::readDoubleValue(ptr);
+                CharacterFunctions::readDoubleValue(ptr); // Remove double value from string
                 if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {
@@ -253,7 +253,7 @@ public:
                 // check if string is a valid number
                 auto charptr = word.getCharPointer();
                 auto ptr = charptr;
-                auto value = CharacterFunctions::readDoubleValue(ptr);
+                CharacterFunctions::readDoubleValue(ptr);
                 if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
                     SETFLOAT(&atoms.back(), word.getFloatValue());
                 } else {

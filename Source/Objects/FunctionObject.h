@@ -8,7 +8,6 @@ class FunctionObject final : public ObjectBase {
 
     int hoverIdx = -1;
     int dragIdx = -1;
-    bool newPointAdded = false;
 
     Value initialise = SynchronousValue();
     Value range = SynchronousValue();
@@ -43,7 +42,7 @@ public:
 
             Array<var> arr = { function->x_min, function->x_max };
             range = var(arr);
-            
+
             auto sndSym = function->x_snd_set ? String::fromUTF8(function->x_snd_raw->s_name) : getBinbufSymbol(3);
             auto rcvSym = function->x_rcv_set ? String::fromUTF8(function->x_rcv_raw->s_name) : getBinbufSymbol(4);
 
@@ -153,7 +152,7 @@ public:
         }
 
         repaint();
-    };
+    }
 
     static int compareElements(Point<float> a, Point<float> b)
     {
@@ -236,7 +235,7 @@ public:
         auto start = static_cast<float>(arr[0]);
         auto end = static_cast<float>(arr[1]);
 
-        if (start == end) {
+        if (approximatelyEqual(start, end)) {
             return { start, end + 0.01f };
         }
         if (start < end) {

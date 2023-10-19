@@ -14,7 +14,7 @@ public:
         Integer,
         Logarithmic
     };
-        
+
 protected:
     int decimalDrag = 0;
     double dragValue = 0.0;
@@ -37,7 +37,7 @@ protected:
     GlyphArrangement currentGlyphs;
 
 public:
-    std::function<void(double)> onValueChange = [](double){};
+    std::function<void(double)> onValueChange = [](double) {};
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
 
@@ -50,18 +50,18 @@ public:
         setBufferedToImage(true);
     }
 
-    void labelTextChanged(Label* labelThatHasChanged) override {};
+    void labelTextChanged(Label* labelThatHasChanged) override { }
 
     void editorShown(Label* l, TextEditor& editor) override
     {
         dragStart();
-        editor.onTextChange = [this](){
-            if(onTextChange)
+        editor.onTextChange = [this]() {
+            if (onTextChange)
                 onTextChange();
         };
     }
 
-    void editorHidden(Label* l, TextEditor& editor) override
+    void editorHidden(Label*, TextEditor& editor) override
     {
         auto newValue = editor.getText().getDoubleValue();
         setValue(newValue, dontSendNotification);
@@ -130,7 +130,7 @@ public:
 
         newValue = limitValue(newValue);
 
-        if (lastValue != newValue) {
+        if (!approximatelyEqual(lastValue, newValue)) {
             lastValue = newValue;
 
             setText(String(newValue, 8), notification);
@@ -181,7 +181,6 @@ public:
             return;
 
         bool command = e.mods.isCommandDown();
-        bool shift = e.mods.isShiftDown();
 
         if (command && resetOnCommandClick) {
             if (wasReset) {
@@ -419,7 +418,7 @@ public:
             text << '.';
 
         text = text.trimCharactersAtEnd("0");
-        
+
         return text;
     }
 };
@@ -540,8 +539,6 @@ struct DraggableListNumber : public DraggableNumber {
     void updateListHoverPosition(int x)
     {
         int oldHoverPosition = hoveredDecimal;
-
-        Rectangle<float> position;
         auto [numberStart, numberEnd, numberValue] = getListItemAtPosition(x, &hoveredDecimalPosition);
 
         hoveredDecimal = numberStart;

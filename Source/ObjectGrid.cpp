@@ -51,10 +51,10 @@ void ObjectGrid::updateMarker()
     gridLines[1].setStrokeFill(FillType(lnf.findColour(PlugDataColour::gridLineColourId)));
 
     if (!snapped[0]) {
-        gridLines[0].setPath(std::move(Path()));
+        gridLines[0].setPath(Path());
     }
     if (!snapped[1]) {
-        gridLines[1].setPath(std::move(Path()));
+        gridLines[1].setPath(Path());
     }
     if (!snapped[0] && !snapped[1]) {
         return;
@@ -414,7 +414,8 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 
                 // If we're close, don't snap for other reasons
                 if (std::abs(snapDistance) < tolerance * 2.0f) {
-                    dragOffset = dragOffset;
+                    // TODO: is this correct?
+                    snappedPosition = dragOffset;
                 }
             }
         }

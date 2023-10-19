@@ -55,7 +55,7 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
     isDragAndDropOver = false;
     repaint();
 
-    if (auto windowTab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+    if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         switch (activeZone) {
         case DropZones::Right:
             splitMode = Split::SplitMode::Horizontal;
@@ -157,6 +157,8 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
             resizerLeft->splits[1] = newSplit;
         }
         resizerLeft = resizer;
+    } else {
+        return;
     }
 
     // update the bounds of the new and existing split using the resizer factors
@@ -171,7 +173,7 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
     newSplit->getTabComponent()->addTab(tabTitle, canvas->viewport.get(), 0);
     canvas->viewport->setVisible(true);
     canvas->moveToWindow(editor);
-    
+
     newSplit->resized();
     newSplit->getTabComponent()->resized();
 }
@@ -368,16 +370,15 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
 {
     editor->splitView.setFocus(this);
     // if we are dragging a tabbar, update the highlight split
-    if(dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+    if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         isDragAndDropOver = true;
         repaint();
     }
 }
 
-
 void ResizableTabbedComponent::itemDragExit(SourceDetails const& dragSourceDetails)
 {
-    if(dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+    if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         isDragAndDropOver = false;
         repaint();
     }
@@ -400,7 +401,7 @@ void ResizableTabbedComponent::itemDragMove(SourceDetails const& dragSourceDetai
             }
         } else if (sourceTabButton->getTabComponent() != tabComponent.get()) {
             auto foundZone = zone == DropZones::TabBar ? DropZones::None : DropZones::Centre;
-            if (activeZone != foundZone){
+            if (activeZone != foundZone) {
                 activeZone = foundZone;
                 repaint();
             }
@@ -435,41 +436,37 @@ void ResizableTabbedComponent::updateDropZones()
     /*
     DROP ZONE ARRANGEMENT
     ┌─────────────────────────┐
-    │0          TAB          1│
-    ├─────────────────────────┤
-    │5                       2│
+    │3                       0│
     │ \                     / │
     │  \        TOP        /  │
     │   \                 /   │
     │    ┌───────────────┐    │
-    │    │9             6│    │
+    │    │7             4│    │
     │ L  │   TAB CENTRE  │ R  │
-    │    │8             7│    │
+    │    │6             5│    │
     │    └───────────────┘    │
     │   /                 \   │
     │  /      BOTTOM       \  │
     │ /                     \ │
-    │4                       3│
+    │2                       1│
     └─────────────────────────┘
     */
 
-    auto point_0 = localBounds.getTopLeft();
-    auto point_1 = localBounds.getTopRight();
-    auto point_2 = canvasBounds.getTopRight();
-    auto point_3 = canvasBounds.getBottomRight();
-    auto point_4 = canvasBounds.getBottomLeft();
-    auto point_5 = canvasBounds.getTopLeft();
-    auto point_6 = innerRect.getTopRight();
-    auto point_7 = innerRect.getBottomRight();
-    auto point_8 = innerRect.getBottomLeft();
-    auto point_9 = innerRect.getTopLeft();
+    auto point_0 = canvasBounds.getTopRight();
+    auto point_1 = canvasBounds.getBottomRight();
+    auto point_2 = canvasBounds.getBottomLeft();
+    auto point_3 = canvasBounds.getTopLeft();
+    auto point_4 = innerRect.getTopRight();
+    auto point_5 = innerRect.getBottomRight();
+    auto point_6 = innerRect.getBottomLeft();
+    auto point_7 = innerRect.getTopLeft();
 
     Path zoneLeft, zoneTop, zoneRight, zoneBottom, zoneTabCentre, zoneTab;
 
-    zoneLeft.addQuadrilateral(point_5.x, point_5.y, point_9.x, point_9.y, point_8.x, point_8.y, point_4.x, point_4.y);
-    zoneTop.addQuadrilateral(point_5.x, point_5.y, point_2.x, point_2.y, point_6.x, point_6.y, point_9.x, point_9.y);
-    zoneRight.addQuadrilateral(point_6.x, point_6.y, point_2.x, point_2.y, point_3.x, point_3.y, point_7.x, point_7.y);
-    zoneBottom.addQuadrilateral(point_8.x, point_8.y, point_7.x, point_7.y, point_3.x, point_3.y, point_4.x, point_4.y);
+    zoneLeft.addQuadrilateral(point_3.x, point_3.y, point_7.x, point_7.y, point_6.x, point_6.y, point_2.x, point_2.y);
+    zoneTop.addQuadrilateral(point_3.x, point_3.y, point_0.x, point_0.y, point_4.x, point_4.y, point_7.x, point_7.y);
+    zoneRight.addQuadrilateral(point_4.x, point_4.y, point_0.x, point_0.y, point_1.x, point_1.y, point_5.x, point_5.y);
+    zoneBottom.addQuadrilateral(point_6.x, point_6.y, point_5.x, point_5.y, point_1.x, point_1.y, point_2.x, point_2.y);
     zoneTabCentre.addRectangle(innerRect);
     zoneTab.addRectangle(tabbarBounds);
 

@@ -1,12 +1,10 @@
 #pragma once
 
-
 class MainToolbarButton : public TextButton {
-    
-public:
 
+public:
     using TextButton::TextButton;
-    
+
     void paint(Graphics& g) override
     {
         bool active = isOver() || isDown() || getToggleState();
@@ -17,13 +15,13 @@ public:
 
         g.setColour(backgroundColour);
         PlugDataLook::fillSmoothedRectangle(g, bounds, cornerSize);
-        
-        auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha (isEnabled() ? 1.0f : 0.5f);
-        
+
+        auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
+
         AttributedString attributedIcon;
         attributedIcon.append(getButtonText(), Fonts::getIconFont().withHeight(getHeight() / 2.7), textColour);
         attributedIcon.setJustification(Justification::centred);
-        
+
 #if JUCE_MAC
         bounds = bounds.withTrimmedBottom(2);
 #endif
@@ -34,15 +32,13 @@ public:
 class ToolbarRadioButton : public TextButton {
 
 public:
-    
     using TextButton::TextButton;
-    
+
     void paint(Graphics& g) override
     {
         bool mouseOver = isOver();
         bool active = mouseOver || isDown() || getToggleState();
 
-        auto cornerSize = Corners::defaultCornerRadius;
         auto flatOnLeft = isConnectedOnLeft();
         auto flatOnRight = isConnectedOnRight();
         auto flatOnTop = isConnectedOnTop();
@@ -50,7 +46,6 @@ public:
 
         auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting((mouseOver && !getToggleState()) ? 0.0f : 0.035f);
 
-        
         auto bounds = getLocalBounds().toFloat();
         bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
 
@@ -60,9 +55,9 @@ public:
             !(flatOnRight || flatOnTop),
             !(flatOnLeft || flatOnBottom),
             !(flatOnRight || flatOnBottom));
-        
-        auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha (isEnabled() ? 1.0f : 0.5f);
-        
+
+        auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
+
         AttributedString attributedIcon;
         attributedIcon.append(getButtonText(), Fonts::getIconFont().withHeight(getHeight() / 2.8), textColour);
         attributedIcon.setJustification(Justification::centred);
@@ -72,17 +67,17 @@ public:
 
 class SmallIconButton : public TextButton {
     using TextButton::TextButton;
-    
-    void mouseEnter(const MouseEvent& e) override
+
+    void mouseEnter(MouseEvent const& e) override
     {
         repaint();
     }
-    
-    void mouseExit(const MouseEvent& e) override
+
+    void mouseExit(MouseEvent const& e) override
     {
         repaint();
     }
-    
+
     void paint(Graphics& g) override
     {
         auto font = Fonts::getIconFont().withHeight(13.5);
@@ -109,7 +104,6 @@ class SmallIconButton : public TextButton {
         if (textWidth > 0)
             g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
     }
-    
 };
 
 // Toolbar button for settings panel, with both icon and text
@@ -143,9 +137,6 @@ public:
         auto textColour = findColour(PlugDataColour::toolbarTextColourId);
         auto boldFont = Fonts::getBoldFont().withHeight(13.5f);
         auto iconFont = Fonts::getIconFont().withHeight(13.5f);
-
-        auto textWidth = boldFont.getStringWidth(text);
-        auto iconWidth = iconFont.getStringWidth(icon);
 
         AttributedString attrStr;
         attrStr.setJustification(Justification::centred);

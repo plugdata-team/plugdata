@@ -282,7 +282,32 @@ if(WIN32)
     endif()
 elseif(UNIX)
     list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
+    if(NOT APPLE)
+        list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_ENDIAN_H=1)
+    endif()
 endif()
+
+# ------------------------------------------------------------------------------#
+# C FLAGS
+# ------------------------------------------------------------------------------#
+
+# C FLAGS COMPILER OR GENERATOR
+# ------------------------------------------------------------------------------#
+if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+    # These are the warning flags I need to get pd to compile withoout warnings
+    # Would be nice if these warnings were solved instead
+    add_compile_options(-Wno-format -Wno-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-parentheses -Wno-unused-value -Wno-unknown-pragmas)
+    
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+        add_compile_options(-Wno-compare-distinct-pointer-types -Wno-implicit-int-conversion)
+    else()
+        add_compile_options(-Wno-discarded-qualifiers)
+    endif()
+ 
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-int-conversion -Wno-pointer-sign -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
+
+ endif()
 
 # ------------------------------------------------------------------------------#
 # SFONT~
@@ -346,23 +371,13 @@ list(APPEND SFONT_INCLUDES
 
 add_library(fluidlite STATIC ${SFONT_SOURCES})
 target_include_directories(fluidlite PRIVATE ${SFONT_INCLUDES})
+if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+target_compile_options(fluidlite PRIVATE -Wno-compound-token-split-by-macro)
+endif()
 
 list(APPEND ELSE_SOURCES
     ${SFONT_DIR}/sfont~.c
 )
-
-# ------------------------------------------------------------------------------#
-# C FLAGS
-# ------------------------------------------------------------------------------#
-
-# C FLAGS COMPILER OR GENERATOR
-# ------------------------------------------------------------------------------#
-if(MSVC)
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
-else(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-compare-distinct-pointer-types -Wno-pointer-sign -Wno-int-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types -Wno-parentheses -Wno-unused-value")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
-endif()
 
 file(GLOB OFELIA_SOURCES ./plugdata-ofelia/Source/Objects/*.cpp ./plugdata-ofelia/Source/Objects/*.h ./plugdata-ofelia/Source/Shared/*.cpp ./plugdata-ofelia/Source/Shared/*.h)
 source_group(ofelia FILES ${OFELIA_SOURCES})
@@ -401,8 +416,6 @@ set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
-
-
 # ------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
 # ------------------------------------------------------------------------------#
@@ -423,15 +436,10 @@ endif()
 # LINK
 # ------------------------------------------------------------------------------#
 
-# LINK OS
-# ------------------------------------------------------------------------------#
-
-
 set(externals_libs fluidlite lua)
 if(ENABLE_SFIZZ)
 list(APPEND externals_libs sfizz)
 endif()
-
 
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
@@ -458,7 +466,7 @@ elseif(APPLE)
     target_link_libraries(pd-multi INTERFACE externals-multi pd-src-multi ${externals_libs})
 endif()
 
-# LINK PTHREAD
+# PTHREAD
 # ------------------------------------------------------------------------------#
 set(THREADS_PREFER_PTHREAD_FLAG On)
 set(CMAKE_THREAD_PREFER_PTHREAD True)

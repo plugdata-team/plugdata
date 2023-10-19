@@ -63,9 +63,9 @@ public:
             openChooser = std::make_unique<FileChooser>("Locate pd folder", File::getSpecialLocation(File::SpecialLocationType::globalApplicationsDirectory), "", SettingsFile::getInstance()->wantsNativeDialog());
 
 #if JUCE_MAC
-    auto openFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectDirectories;
+            auto openFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectDirectories;
 #else
-    auto openFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
+            auto openFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
 #endif
             openChooser->launchAsync(openFlags, openFunc);
         } else {

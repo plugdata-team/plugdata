@@ -30,4 +30,4 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SynchronousValueSource)
 };
 
-#define SynchronousValue(x) Value(new SynchronousValueSource(x));
+#define SynchronousValue(x) Value(new SynchronousValueSource(x))

@@ -6,12 +6,10 @@
 
 #pragma once
 
-extern "C"
-{
+extern "C" {
 #include <z_libpd.h>
 #include <s_stuff.h>
 }
-
 
 typedef void (*t_plugdata_banghook)(void* ptr, char const* recv);
 typedef void (*t_plugdata_floathook)(void* ptr, char const* recv, float f);
@@ -27,19 +25,17 @@ typedef void (*t_plugdata_polyaftertouchhook)(void* ptr, int channel, int pitch,
 typedef void (*t_plugdata_midibytehook)(void* ptr, int port, int byte);
 typedef void (*t_plugdata_printhook)(void* ptr, void* obj, char const* recv);
 
-namespace pd
-{
+namespace pd {
 
-struct Setup
-{
+struct Setup {
     static int initialisePd();
-    
+
     void parseArguments(char const** args, size_t argc, t_namelist** sys_openlist, t_namelist** sys_messagelist);
-    
-    static void initialisePdLua(const char *datadir, char *vers, int vers_len);
+
+    static void initialisePdLua(char const* datadir, char* vers, int vers_len);
     static void initialiseELSE();
     static void initialiseCyclone();
-    
+
     static void* createMIDIHook(void* ptr,
         t_plugdata_noteonhook hook_noteon,
         t_plugdata_controlchangehook hook_controlchange,
@@ -47,7 +43,7 @@ struct Setup
         t_plugdata_pitchbendhook hook_pitchbend,
         t_plugdata_aftertouchhook hook_aftertouch,
         t_plugdata_polyaftertouchhook hook_polyaftertouch,
-                            t_plugdata_midibytehook hook_midibyte);
+        t_plugdata_midibytehook hook_midibyte);
 
     static void* createReceiver(void* ptr, char const* s,
         t_plugdata_banghook hook_bang,
@@ -57,7 +53,6 @@ struct Setup
         t_plugdata_messagehook hook_message);
 
     static void* createPrintHook(void* ptr, t_plugdata_printhook hook_print);
-
 };
 
 }

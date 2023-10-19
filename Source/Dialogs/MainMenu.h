@@ -212,7 +212,6 @@ public:
 
         bool hasSubMenu;
         bool hasTickBox;
-        bool isMouseOver = false;
 
     public:
         bool isTicked = false;
@@ -384,7 +383,7 @@ public:
             return 100;
 
         return item;
-    };
+    }
 
     static int getMenuItemIndex(MenuItem item)
     {

@@ -123,7 +123,6 @@ public:
                 } else
                     iemcolor = ((-1 - iemcolor) & 0xffffff);
 
-                
                 auto colour = convertFromIEMColour(iemcolor);
                 gui->setParameterExcludingListener(targetValue, colour.toString());
             }
@@ -281,7 +280,7 @@ public:
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<ObjectLabel>(object);
+                label = std::make_unique<ObjectLabel>();
                 object->cnv->addChildComponent(label.get());
             }
 
@@ -475,8 +474,8 @@ public:
 
         return "";
     }
-    
-    static Colour convertFromIEMColour(const int color)
+
+    static Colour convertFromIEMColour(int const color)
     {
         const uint32 c = (uint32)(color << 8 | 0xFF);
         return Colour(static_cast<uint32>((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8)));

@@ -7,58 +7,51 @@
 #pragma once
 #include "Utility/OSUtils.h"
 
-class WindowDragger
-{
+class WindowDragger {
 public:
-
     WindowDragger() = default;
     ~WindowDragger() = default;
 
-    void startDraggingWindow (Component* componentToDrag,
-                                 const MouseEvent& e)
+    void startDraggingWindow(Component* componentToDrag,
+        MouseEvent const& e)
     {
-      jassert (componentToDrag != nullptr);
-      jassert (e.mods.isAnyMouseButtonDown()); // The event has to be a drag event!
+        jassert(componentToDrag != nullptr);
+        jassert(e.mods.isAnyMouseButtonDown()); // The event has to be a drag event!
 
-      if (componentToDrag != nullptr)
-          mouseDownWithinTarget = e.getEventRelativeTo (componentToDrag).getMouseDownPosition();
+        if (componentToDrag != nullptr)
+            mouseDownWithinTarget = e.getEventRelativeTo(componentToDrag).getMouseDownPosition();
 
 #if JUCE_LINUX
-      // This will tell X11 to act as if the titlebar is being dragged, and can make window dragging behave better.
-      // This will sometimes also work on XWayland, but not always
-      OSUtils::hostManagedX11WindowMove(componentToDrag, {mouseDownWithinTarget.x, mouseDownWithinTarget.y, 0, 0});
+        auto* peer = componentToDrag->getPeer();
+        peer->startHostManagedResize(peer->localToGlobal(mouseDownWithinTarget), ResizableBorderComponent::Zone(0));
 #endif
-}
+    }
 
-    void dragWindow (Component* componentToDrag,
-                        const MouseEvent& e,
-                        ComponentBoundsConstrainer* constrainer)
+    void dragWindow(Component* componentToDrag,
+        MouseEvent const& e,
+        ComponentBoundsConstrainer* constrainer)
     {
-      jassert (componentToDrag != nullptr);
-      jassert (e.mods.isAnyMouseButtonDown()); // The event has to be a drag event!
+        jassert(componentToDrag != nullptr);
+        jassert(e.mods.isAnyMouseButtonDown()); // The event has to be a drag event!
 
-      if (componentToDrag != nullptr)
-      {
-          auto bounds = componentToDrag->getBounds();
+        if (componentToDrag != nullptr) {
+            auto bounds = componentToDrag->getBounds();
 
-          // If the component is a window, multiple mouse events can get queued while it's in the same position,
-          // so their coordinates become wrong after the first one moves the window, so in that case, we'll use
-          // the current mouse position instead of the one that the event contains...
-          if (componentToDrag->isOnDesktop())
-              bounds += componentToDrag->getLocalPoint (nullptr, e.source.getScreenPosition()).roundToInt() - mouseDownWithinTarget;
-          else
-              bounds += e.getEventRelativeTo (componentToDrag).getPosition() - mouseDownWithinTarget;
+            // If the component is a window, multiple mouse events can get queued while it's in the same position,
+            // so their coordinates become wrong after the first one moves the window, so in that case, we'll use
+            // the current mouse position instead of the one that the event contains...
+            if (componentToDrag->isOnDesktop())
+                bounds += componentToDrag->getLocalPoint(nullptr, e.source.getScreenPosition()).roundToInt() - mouseDownWithinTarget;
+            else
+                bounds += e.getEventRelativeTo(componentToDrag).getPosition() - mouseDownWithinTarget;
 
-          componentToDrag->getPeer()->setBounds (bounds, false);
-      }
-
+            componentToDrag->getPeer()->setBounds(bounds, false);
+        }
     }
 
 private:
     //==============================================================================
     Point<int> mouseDownWithinTarget;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowDragger)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WindowDragger)
 };
-
-

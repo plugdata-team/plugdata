@@ -40,7 +40,6 @@ class PluginEditor : public AudioProcessorEditor
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer {
 public:
-
     explicit PluginEditor(PluginProcessor&);
 
     ~PluginEditor() override;
@@ -49,7 +48,7 @@ public:
     void paintOverChildren(Graphics& g) override;
 
     bool isActiveWindow() override;
-        
+
     void resized() override;
     void parentSizeChanged() override;
 
@@ -64,7 +63,8 @@ public:
 
     void addTab(Canvas* cnv, int splitIdx = -1);
     void closeTab(Canvas* cnv);
-    void closeAllTabs(bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = [](){});
+    void closeAllTabs(
+        bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = []() {});
 
     void quit(bool askToSave);
 
@@ -85,7 +85,7 @@ public:
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
     void fileDragExit(StringArray const&) override;
-        
+
     void createNewWindow(TabBarButtonComponent* tabButton) override;
 
     DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos) override;

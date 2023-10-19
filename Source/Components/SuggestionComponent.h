@@ -18,8 +18,8 @@ class AutoCompleteComponent
 
 public:
     AutoCompleteComponent(TextEditor* e, Canvas* c)
-        : editor(e)
-        , cnv(c)
+        : cnv(c)
+        , editor(e)
     {
         setAlwaysOnTop(true);
 
@@ -133,15 +133,13 @@ class SuggestionComponent : public Component
     , public ComponentListener {
 
     class Suggestion : public TextButton {
-        int idx = 0;
         int type = -1;
 
         String objectDescription;
 
     public:
         Suggestion(SuggestionComponent* parentComponent, int i)
-            : idx(i)
-            , parent(parentComponent)
+            : parent(parentComponent)
         {
             setText("", "", false);
             setWantsKeyboardFocus(false);
@@ -629,8 +627,7 @@ private:
         auto filterObjects = [_this = SafePointer(this)](StringArray& toFilter) {
             if (!_this || !_this->currentObject)
                 return;
-            
-            
+
             // When hvcc mode is enabled, show only hvcc compatible objects
             if (getValue<bool>(_this->currentObject->cnv->editor->hvccMode)) {
 
@@ -644,16 +641,13 @@ private:
 
                 toFilter = hvccObjectsFound;
             }
-            
+
             // Remove unhelpful objects
-            for(int i = toFilter.size() - 1; i >= 0; i--)
-            {
-                if(_this->excludeList.contains(toFilter[i]))
-                {
+            for (int i = toFilter.size() - 1; i >= 0; i--) {
+                if (_this->excludeList.contains(toFilter[i])) {
                     toFilter.remove(i);
                 }
             }
-            
         };
         auto patchDir = currentObject->cnv->patch.getPatchFile().getParentDirectory();
         if (!patchDir.isDirectory() || patchDir == File::getSpecialLocation(File::tempDirectory))
@@ -775,7 +769,7 @@ private:
 
     SafePointer<TextEditor> openedEditor = nullptr;
     SafePointer<Object> currentObject = nullptr;
-        
+
     StringArray excludeList = {
         "number~", // appears before numbox~ alphabetically, but is worse in every way
         "allpass_unit",

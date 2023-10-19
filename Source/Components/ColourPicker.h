@@ -37,7 +37,7 @@ class Eyedropper : public Timer
             removeFromDesktop();
         }
 
-        void mouseDown(MouseEvent const& e) override
+        void mouseDown(MouseEvent const&) override
         {
             onClick();
         }
@@ -201,9 +201,9 @@ public:
 
     ColourPicker()
         : colour(Colours::white)
-        , edgeGap(2)
-        , colourSpace(*this, h, s, v)
+        , colourSpace(*this, h, s)
         , brightnessSelector(*this, v)
+        , edgeGap(2)
     {
         updateHSV();
 
@@ -335,7 +335,7 @@ private:
     {
         newV = jlimit(0.0f, 1.0f, newV);
 
-        if (v != newV) {
+        if (!approximatelyEqual(v, newV)) {
             v = newV;
             colour = Colour(h, s, v, colour.getFloatAlpha());
             update(sendNotification);
@@ -352,7 +352,7 @@ private:
         newH = jlimit(0.0f, 1.0f, newH);
         newS = jlimit(0.0f, 1.0f, newS);
 
-        if (h != newH || s != newS) {
+        if (!approximatelyEqual(h, newH) || !approximatelyEqual(s, newS)) {
             h = newH;
             s = newS;
 
@@ -454,11 +454,10 @@ private:
     class ColourSpaceView : public Component {
 
     public:
-        ColourSpaceView(ColourPicker& cp, float& hue, float& sat, float& val)
+        ColourSpaceView(ColourPicker& cp, float& hue, float& sat)
             : owner(cp)
             , h(hue)
             , s(sat)
-            , v(val)
             , marker(cp)
         {
             addAndMakeVisible(marker);
@@ -574,7 +573,6 @@ private:
         ColourPicker& owner;
         float& h;
         float& s;
-        float& v;
         float lastHue = 0;
 
         static inline constexpr int margin = 10;
@@ -652,10 +650,10 @@ private:
             auto radius = jmin(Corners::defaultCornerRadius, bounds.getWidth() / 2.0f);
 
             g.setGradientFill(ColourGradient(colour, 0.0f, 0.0f, Colours::black, bounds.getHeight() / 2, bounds.getHeight() / 2, false));
-            PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius);
+            PlugDataLook::fillSmoothedRectangle(g, bounds, radius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::defaultCornerRadius);
+            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, radius);
         }
 
         void resized() override

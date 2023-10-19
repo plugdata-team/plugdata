@@ -64,7 +64,7 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
         // save the pointer to the next object
         auto nextObject = object->g_next;
         // delete the current object from the canvas after we have read its dimensions
-        pd::Interface::removeObjects(offlineCnv, {object});
+        pd::Interface::removeObjects(offlineCnv, { object });
         // move to the next object in the linked list
         object = nextObject;
     }
@@ -106,7 +106,7 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
         isValid = true;
 
         auto nextObject = object->g_next;
-        pd::Interface::removeObjects(offlineCnv, {object});
+        pd::Interface::removeObjects(offlineCnv, { object });
         object = nextObject;
     }
 

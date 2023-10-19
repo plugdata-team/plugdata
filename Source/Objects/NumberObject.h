@@ -25,8 +25,8 @@ class NumberObject final : public ObjectBase {
 public:
     NumberObject(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
-        , iemHelper(ptr, object, this)
         , input(false)
+        , iemHelper(ptr, object, this)
 
     {
         input.onEditorShow = [this]() {
@@ -167,7 +167,7 @@ public:
     void focusLost(FocusChangeType cause) override
     {
         auto inputValue = input.getText().getFloatValue();
-        if (inputValue != preFocusValue) {
+        if (!approximatelyEqual(inputValue, preFocusValue)) {
             sendFloatValue(inputValue);
         }
         repaint();

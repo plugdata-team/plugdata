@@ -27,7 +27,7 @@ public:
         tab = tabButton;
         // this should never happen, if it does then the index for the tab is wrong ( getTab(idx) will return nullptr )
         // which can happen if the tabbar goes into overflow, because we don't know exactly when that will happen
-        if (tab){
+        if (tab) {
             setBounds(tab->getBounds());
             repaint();
         }
@@ -134,7 +134,7 @@ void ButtonBar::itemDropped(SourceDetails const& dragSourceDetails)
         auto newTab = owner.tabs->getTabButton(ghostTabIdx);
         newTab->setBounds(ghostTabBounds);
         ghostTab->setTabButtonToGhost(newTab);
-        
+
         tabCanvas->moveToWindow(owner.getEditor()); // In case it got dragged into a new window
 
         sourceTabContent->removeTab(sourceTabIndex);
@@ -232,7 +232,7 @@ void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         auto ghostTabCentreOffset = ghostTab->getWidth() / 2;
-        auto targetTabPos = getWidth() / (getNumVisibleTabs());
+        auto targetTabPos = getWidth() / std::max(1, getNumVisibleTabs());
         auto tabPos = ghostTab->getBounds().getCentreX() / targetTabPos;
 
         auto leftPos = dragSourceDetails.localPosition.getX() - ghostTabCentreOffset;
@@ -306,7 +306,7 @@ TabComponent::~TabComponent()
 
 void TabComponent::setFocused()
 {
-    for (auto * split : editor->splitView.splits){
+    for (auto* split : editor->splitView.splits) {
         if (split->getTabComponent() == this)
             editor->splitView.setFocus(split);
     }
@@ -363,7 +363,7 @@ void TabComponent::addTab(String const& tabName, Component* contentComponent, in
     contentComponents.insert(insertIndex, WeakReference<Component>(contentComponent));
 
     tabs->addTab(tabName, findColour(ResizableWindow::backgroundColourId), insertIndex);
-    
+
     setTabBarDepth(30); // Make sure tabbar isn't invisible
     resized();
 }
@@ -417,8 +417,8 @@ void TabComponent::onTabChange(int tabIndex)
 
     for (auto* split : editor->splitView.splits) {
         auto tabBar = split->getTabComponent();
-        if (split->getTabComponent()->getCurrentCanvas())
-            split->getTabComponent()->getCurrentCanvas()->tabChanged();
+        if (tabBar->getCurrentCanvas())
+            tabBar->getCurrentCanvas()->tabChanged();
     }
 }
 
@@ -499,11 +499,10 @@ void TabComponent::paint(Graphics& g)
 {
     auto backgroundColour = findColour(PlugDataColour::tabBackgroundColourId);
 
-    if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
-    {
+    if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
         backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
     }
-    
+
     g.fillAll(backgroundColour);
 }
 

@@ -281,8 +281,7 @@ public:
 class PaletteComponent : public Component {
 public:
     PaletteComponent(PluginEditor* e, ValueTree tree)
-        : editor(e)
-        , paletteTree(tree)
+        : paletteTree(tree)
     {
         paletteDraggableList = new PaletteDraggableList(e, tree);
 
@@ -309,7 +308,7 @@ public:
         };
 
         addAndMakeVisible(nameLabel);
-    };
+    }
 
     ~PaletteComponent()
     {
@@ -328,11 +327,10 @@ public:
     {
         // toolbar bar
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
-        {
+        if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
-        
+
         g.setColour(backgroundColour);
         g.fillRect(getLocalBounds().toFloat().removeFromTop(30).withTrimmedTop(0.5f));
 
@@ -355,7 +353,6 @@ public:
 
 private:
     PaletteDraggableList* paletteDraggableList;
-    PluginEditor* editor;
     ValueTree paletteTree;
     BouncingViewport viewport;
 
@@ -392,11 +389,10 @@ public:
     void paint(Graphics& g) override
     {
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
-        {
+        if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
-        
+
         g.setColour(backgroundColour);
         g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
 
@@ -473,7 +469,7 @@ public:
 
         palettesTree.addListener(this);
 
-        addButton.onClick = [this, e]() {
+        addButton.onClick = [this]() {
             PopupMenu menu;
             menu.addItem(1, "New palette");
 
@@ -552,7 +548,7 @@ private:
         if (name == "show_palettes") {
             setVisible(static_cast<bool>(value));
         }
-    };
+    }
 
     bool hitTest(int x, int y) override
     {
@@ -572,11 +568,10 @@ private:
 
         totalHeight += 46;
 
-        
         auto selectorBounds = getLocalBounds().removeFromLeft(30).withSizeKeepingCentre(30, totalHeight);
-        
+
         paletteBar.setBounds(0, 0, 30, std::max(totalHeight, getHeight()));
-        
+
         paletteViewport.setBounds(getLocalBounds().removeFromLeft(30));
 
         int offset = totalHeight > paletteViewport.getMaximumVisibleHeight() ? -4 : 0;
@@ -695,8 +690,7 @@ private:
         }
 
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
-        {
+        if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
         g.setColour(backgroundColour);

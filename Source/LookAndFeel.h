@@ -173,11 +173,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
             }
 
             auto finalColour = shouldDrawButtonAsDown ? buttonColour.darker(0.4f) : buttonColour;
-            if(!isEnabled())
-            {
+            if (!isEnabled()) {
                 finalColour = finalColour.interpolatedWith(Colours::black, 0.5f);
             }
-            
+
             // draw macOS filled background circle
             g.setColour(finalColour);
             g.fillEllipse(reducedRect);
@@ -264,39 +263,38 @@ struct PlugDataLook : public LookAndFeel_V4 {
     public:
         PlugData_DocumentWindowButton(int buttonType)
             : Button("")
-            , buttonType(buttonType)
         {
             auto crossThickness = 0.2f;
             String name;
 
             switch (buttonType) {
-            case DocumentWindow::closeButton: {
-                name = "close";
-                shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
-                shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
-                toggledShape = shape;
-                break;
-            }
-            case DocumentWindow::minimiseButton: {
-                name = "minimise";
-                shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
-                toggledShape = shape;
-                break;
-            }
-            case DocumentWindow::maximiseButton: {
-                name = "maximise";
-                shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
-                shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+                case DocumentWindow::closeButton: {
+                    name = "close";
+                    shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
+                    shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
+                    toggledShape = shape;
+                    break;
+                }
+                case DocumentWindow::minimiseButton: {
+                    name = "minimise";
+                    shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+                    toggledShape = shape;
+                    break;
+                }
+                case DocumentWindow::maximiseButton: {
+                    name = "maximise";
+                    shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
+                    shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
 
-                toggledShape.startNewSubPath(45.0f, 100.0f);
-                toggledShape.lineTo(0.0f, 100.0f);
-                toggledShape.lineTo(0.0f, 0.0f);
-                toggledShape.lineTo(100.0f, 0.0f);
-                toggledShape.lineTo(100.0f, 45.0f);
-                toggledShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
-                PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
-                break;
-            }
+                    toggledShape.startNewSubPath(45.0f, 100.0f);
+                    toggledShape.lineTo(0.0f, 100.0f);
+                    toggledShape.lineTo(0.0f, 0.0f);
+                    toggledShape.lineTo(100.0f, 0.0f);
+                    toggledShape.lineTo(100.0f, 45.0f);
+                    toggledShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
+                    PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
+                    break;
+                }
             }
             setName(name);
             setButtonText(name);
@@ -305,13 +303,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
             auto circleColour = findColour(PlugDataColour::toolbarHoverColourId);
-            if(shouldDrawButtonAsHighlighted) circleColour = circleColour.contrasting(0.04f);
+            if (shouldDrawButtonAsHighlighted)
+                circleColour = circleColour.contrasting(0.04f);
 
-            if(!isEnabled())
-            {
+            if (!isEnabled()) {
                 circleColour = circleColour.interpolatedWith(Colours::black, 0.5f);
             }
-            
+
             g.setColour(circleColour);
             g.fillEllipse(getLocalBounds().withSizeKeepingCentre(getWidth() - 8, getWidth() - 8).toFloat());
 
@@ -328,14 +326,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
     private:
         Colour colour;
         Path shape, toggledShape;
-        int buttonType;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugData_DocumentWindowButton)
     };
 
     void fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window) override
     {
-        if (auto* dialog = dynamic_cast<FileChooserDialogBox*>(&window)) {
+        if (dynamic_cast<FileChooserDialogBox*>(&window)) {
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
         }
     }
@@ -849,13 +846,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
             idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
             idealWidth = font.getStringWidth(text) + idealHeight;
 
-            #if JUCE_LINUX || JUCE_WINDOWS
+#if JUCE_LINUX || JUCE_WINDOWS
             // Dumb check to see if there is a keyboard shortcut after the text.
             // On Linux and Windows, it seems to reserve way to much space for those.
-            if(text.contains("  ")) {
+            if (text.contains("  ")) {
                 idealWidth -= 25;
             }
-            #endif
+#endif
         }
     }
 
@@ -990,9 +987,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
         } else {
             return 6;
         }
-    };
+    }
 
-    void drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour backgroundColour, bool isOpen, bool isMouseOver) override
+    void drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour, bool isOpen, bool isMouseOver) override
     {
         Path p;
         p.startNewSubPath(0.0f, 0.0f);
@@ -1046,7 +1043,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.fillRect(sliderBounds);
 
         constexpr auto thumbSize = 4.0f;
-        constexpr auto halfThumbSize = thumbSize / 2.0f;
         auto cornerSize = Corners::objectCornerRadius / 2.0f;
 
         Path toDraw;
@@ -1095,10 +1091,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override
     {
-        
+
         Path triangle;
         triangle.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
-        
+
         Path roundEdgeClipping;
         roundEdgeClipping.addRoundedRectangle(Rectangle<int>(0, 0, w, h), Corners::objectCornerRadius);
 
@@ -1571,7 +1567,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           dashed_signal_connections=\"1\" straight_connections=\"0\"\n"
     "           thin_connections=\"1\" square_iolets=\"1\" square_object_corners=\"0\"/>\n"
     "  </ColourThemes>";
-    
+
     // clang-format on
 
     static void resetColours(ValueTree themesTree)
@@ -1654,4 +1650,3 @@ struct PlugDataLook : public LookAndFeel_V4 {
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };
 };
-

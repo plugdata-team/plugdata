@@ -16,8 +16,8 @@ class SearchPanel : public Component
     , public KeyListener {
 public:
     explicit SearchPanel(PluginEditor* pluginEditor)
-        : editor(pluginEditor)
-        , bouncer(listBox.getViewport())
+        : bouncer(listBox.getViewport())
+        , editor(pluginEditor)
     {
         listBox.setModel(this);
         listBox.setRowHeight(26);
@@ -26,7 +26,6 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
-        
         input.setTextToShowWhenEmpty("Type to search in patch", findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
 
         input.onTextChange = [this]() {
@@ -174,7 +173,7 @@ public:
     {
         repaint();
     }
-        
+
     void lookAndFeelChanged() override
     {
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
@@ -186,7 +185,7 @@ public:
     {
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(getLocalBounds());
-        
+
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
         g.fillRoundedRectangle(input.getBounds().reduced(6, 4).toFloat(), Corners::defaultCornerRadius);
     }
@@ -337,7 +336,7 @@ public:
 
                 }
                 // If it's a text object, message or comment, add the text
-                else if(auto* checkedObject = pd::Interface::checkObject(&object->g_pd)){
+                else if (auto* checkedObject = pd::Interface::checkObject(&object->g_pd)) {
                     char* objectText;
                     int len;
                     pd::Interface::getObjectText(checkedObject, &objectText, &len);

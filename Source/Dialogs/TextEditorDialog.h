@@ -28,7 +28,7 @@ class Caret;                 // draws the caret symbol(s)
 class GutterComponent;       // draws the gutter
 class GlyphArrangementArray; // like StringArray but caches glyph positions
 class HighlightComponent;    // draws the highlight region(s)
-class Selection;             // stores leading and trailing edges of an editing region
+struct Selection;            // stores leading and trailing edges of an editing region
 class TextDocument;          // stores text data and caret ranges, supplies metrics, accepts actions
 class PlugDataTextEditor;    // is a component, issues actions, computes view transform
 class Transaction;           // a text replacement, the document computes the inverse on fulfilling it
@@ -201,7 +201,8 @@ struct Selection {
     int token = 0;
 };
 
-struct Transaction {
+class Transaction {
+public:
     using Callback = std::function<void(Transaction const&)>;
     enum class Direction { forward,
         reverse };
@@ -564,7 +565,6 @@ public:
 private:
     static Path getOutlinePath(Array<Rectangle<float>> const& rectangles);
 
-    bool useRoundedHighlight = true;
     TextDocument const& document;
     AffineTransform transform;
     Path outlinePath;
@@ -2138,7 +2138,7 @@ struct TextEditorDialog : public Component {
         g.fillRoundedRectangle(b.toFloat(), Corners::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        //g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
+        // g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
         g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
 
         if (!title.isEmpty()) {
