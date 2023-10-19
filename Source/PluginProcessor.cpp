@@ -892,7 +892,6 @@ void PluginProcessor::processInternal()
     sendMidiBuffer();
 
     // Process audio
-    FloatVectorOperations::copy(audioBufferIn.data() + (2 * 64), audioBufferOut.data() + (2 * 64), 64);
     performDSP(audioBufferIn.data(), audioBufferOut.data());
 }
 
