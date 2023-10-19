@@ -254,8 +254,8 @@ public:
             Object* object;
 
             NoteObjectBoundsConstrainer(Object* obj, NoteObject* parent)
-                : object(obj)
-                , noteObject(parent)
+                : noteObject(parent)
+                , object(obj)
             {
             }
             /*

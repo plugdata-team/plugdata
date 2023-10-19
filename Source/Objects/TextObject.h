@@ -29,9 +29,9 @@ struct TextObjectHelper {
         }
 
         w = std::max(w, maxIolets * 18);
-        
+
         numLines = getNumLines(currentText, w, fontHeight);
-        
+
         // Calculate height so that height with 1 line is 21px, after that scale along with fontheight
         h = numLines * fontHeight + (21.f - fontHeight);
 

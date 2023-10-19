@@ -19,12 +19,12 @@
 #include "Dialogs/ConnectionMessageDisplay.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
-    : cnv(parent)
-    , ptr(parent->pd)
+    : inlet(s->isInlet ? s : e)
     , outlet(s->isInlet ? e : s)
-    , inlet(s->isInlet ? s : e)
-    , outobj(outlet->object)
     , inobj(inlet->object)
+    , outobj(outlet->object)
+    , cnv(parent)
+    , ptr(parent->pd)
 {
     cnv->selectedComponents.addChangeListener(this);
 
@@ -50,11 +50,10 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     if (!oc) {
         auto* checkedOut = pd::Interface::checkObject(outobj->getPointer());
         auto* checkedIn = pd::Interface::checkObject(inobj->getPointer());
-        if(checkedOut && checkedIn) {
+        if (checkedOut && checkedIn) {
             oc = parent->patch.createAndReturnConnection(checkedOut, outIdx, checkedIn, inIdx);
             setPointer(oc);
-        }
-        else {
+        } else {
             jassertfalse;
             return;
         }
@@ -659,7 +658,7 @@ int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& 
 
 void Connection::reconnect(Iolet* target)
 {
-    if (!reconnecting.isEmpty())
+    if (!reconnecting.isEmpty() || !target)
         return;
 
     auto& otherEdge = target == inlet ? outlet : inlet;
@@ -679,7 +678,7 @@ void Connection::reconnect(Iolet* target)
 
         auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
         auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
-        
+
         if (checkedOut && checkedIn && cnv->patch.hasConnection(checkedOut, c->outIdx, checkedIn, c->inIdx)) {
             // Delete connection from pd if we haven't done that yet
             cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
@@ -991,7 +990,7 @@ void Connection::findPath()
     if (!bestPath.empty()) {
         simplifiedPath.push_back(bestPath.front());
 
-        direction = bestPath[0].x == bestPath[1].x;
+        direction = approximatelyEqual(bestPath[0].x, bestPath[1].x);
 
         if (!direction)
             simplifiedPath.push_back(bestPath.front());

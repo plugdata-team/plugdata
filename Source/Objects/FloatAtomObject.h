@@ -50,17 +50,15 @@ public:
 
         input.onTextChange = [this]() {
             // To resize while typing
-            if(atomHelper.getWidthInChars() == 0)
-            {
+            if (atomHelper.getWidthInChars() == 0) {
                 object->updateBounds();
             }
         };
-        
+
         input.onValueChange = [this](float newValue) {
             sendFloatValue(newValue);
-            
-            if(atomHelper.getWidthInChars() == 0)
-            {
+
+            if (atomHelper.getWidthInChars() == 0) {
                 object->updateBounds();
             }
         };
@@ -168,7 +166,7 @@ public:
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
         }
     }
-    
+
     void updateLabel() override
     {
         atomHelper.updateLabel(label);
@@ -204,7 +202,6 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
             auto width = ::getValue<int>(sizeProperty);
 
             setParameterExcludingListener(sizeProperty, width);
@@ -257,7 +254,7 @@ public:
             auto min = atomHelper.getMinimum();
             auto max = atomHelper.getMaximum();
 
-            if (min != 0 || max != 0) {
+            if (!approximatelyEqual(min, 0.0f) || !approximatelyEqual(max, 0.0f)) {
                 value = std::clamp(atoms[0].getFloat(), min, max);
             } else {
                 value = atoms[0].getFloat();

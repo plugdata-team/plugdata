@@ -244,7 +244,9 @@ class ConnectionPathUpdater : public Timer {
 
 public:
     explicit ConnectionPathUpdater(Canvas* cnv)
-        : canvas(cnv) {};
+        : canvas(cnv)
+    {
+    }
 
     void pushPathState(Connection* connection, t_symbol* newPathState)
     {

@@ -20,7 +20,7 @@ class Patch;
 }
 
 class SuggestionComponent;
-struct GraphArea;
+class GraphArea;
 class Iolet;
 class Object;
 class Connection;
@@ -55,7 +55,7 @@ public:
 
     PluginEditor* editor;
     PluginProcessor* pd;
-        
+
     void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
 
@@ -79,7 +79,7 @@ public:
     void handleAsyncUpdate() override;
 
     void moveToWindow(PluginEditor* newWindow);
-        
+
     void updateDrawables();
 
     bool keyPressed(KeyPress const& key) override;
@@ -184,7 +184,7 @@ public:
     Value hideNameAndArgs = SynchronousValue(var(false));
     Value xRange = SynchronousValue();
     Value yRange = SynchronousValue();
-    Value patchWidth = SynchronousValue()
+    Value patchWidth = SynchronousValue();
     Value patchHeight = SynchronousValue();
 
     Value zoomScale;

@@ -14,8 +14,8 @@ class ObjectItem : public ObjectDragAndDrop
     , public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
-        : iconText(icon)
-        , titleText(text)
+        : titleText(text)
+        , iconText(icon)
         , objectPatch(patch)
         , dismissMenu(dismissCalloutBox)
         , editor(e)
@@ -80,8 +80,7 @@ public:
     {
         if (e.mouseWasDraggedSinceMouseDown()) {
             dismissMenu(false);
-        }
-        else {
+        } else {
             ObjectClickAndDrop::attachToMouse(this);
             dismissMenu(false);
         }
@@ -147,7 +146,6 @@ public:
         auto width = getWidth();
 
         int column = 0;
-        int row = 0;
         int maxColumns = width / itemSize;
         int offset = 0;
 
@@ -498,11 +496,11 @@ class AddObjectMenu : public Component {
 
 public:
     AddObjectMenu(PluginEditor* e)
-        : editor(e)
+        : objectBrowserButton(Icons::Object, "Show Object Browser")
+        , pinButton(Icons::Pin)
+        , editor(e)
         , objectList(e, [this](bool shouldFade) { dismiss(shouldFade); })
         , categoriesList(e, [this](bool shouldFade) { dismiss(shouldFade); })
-        , objectBrowserButton(Icons::Object, "Show Object Browser")
-        , pinButton(Icons::Pin)
     {
         categoriesList.setVisible(true);
 

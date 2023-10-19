@@ -12,12 +12,11 @@
 #include "LookAndFeel.h"
 #include "PluginEditor.h"
 
-class AlignmentButton : public TextButton
-{
+class AlignmentButton : public TextButton {
 public:
     AlignmentButton(String const& icon, String const& text)
-        : iconText(icon)
-        , titleText(text)
+        : titleText(text)
+        , iconText(icon)
     {
     }
 
@@ -25,10 +24,11 @@ public:
     {
         auto iconBounds = getLocalBounds().reduced(9).translated(0, 0);
         auto textBounds = getLocalBounds().removeFromBottom(14);
-        
+
         auto textColour = findColour(PlugDataColour::popupMenuTextColourId);
-        if(isHovering) textColour = textColour.contrasting(0.3f);
-        
+        if (isHovering)
+            textColour = textColour.contrasting(0.3f);
+
         Fonts::drawText(g, titleText, textBounds, textColour, 13.0f, Justification::centred);
         Fonts::drawIcon(g, iconText, iconBounds, textColour, 15.0f);
     }
@@ -49,6 +49,7 @@ public:
         isHovering = false;
         repaint();
     }
+
 private:
     String titleText;
     String iconText;
@@ -68,7 +69,7 @@ public:
         horizontalAlignmentLabel.setFont(Fonts::getBoldFont().withHeight(14));
         horizontalAlignmentLabel.setJustificationType(Justification::centred);
         addAndMakeVisible(horizontalAlignmentLabel);
-        
+
         alignButtons.add(new AlignmentButton(Icons::AlignLeft, "Left"));
         alignButtons.add(new AlignmentButton(Icons::AlignVCentre, "Center"));
         alignButtons.add(new AlignmentButton(Icons::AlignRight, "Right"));
@@ -89,7 +90,6 @@ public:
         alignButtons[AlignButton::Bottom]->setTooltip("Align selected objects to bottom");
         alignButtons[AlignButton::VDistribute]->setTooltip("Distribute selected objects vertical");
 
-        auto buttonNum = 0;
         for (auto* button : alignButtons) {
             button->setClickingTogglesState(true);
             button->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
@@ -152,19 +152,17 @@ public:
     {
         auto horizontalButtonBounds = getLocalBounds().reduced(4);
         auto verticalButtonBounds = horizontalButtonBounds.removeFromBottom(horizontalButtonBounds.getHeight() / 2).withTrimmedTop(8);
-         
+
         verticalAlignmentLabel.setBounds(verticalButtonBounds.removeFromTop(18));
         horizontalAlignmentLabel.setBounds(horizontalButtonBounds.removeFromTop(18));
-          
+
         auto buttonWidth = verticalButtonBounds.getWidth() / 4;
-        
-        for(int i = 0; i < 4; i++)
-        {
+
+        for (int i = 0; i < 4; i++) {
             alignButtons[i]->setBounds(horizontalButtonBounds.removeFromLeft(buttonWidth).translated(0, -8));
         }
-        
-        for(int i = 4; i < 8; i++)
-        {
+
+        for (int i = 4; i < 8; i++) {
             alignButtons[i]->setBounds(verticalButtonBounds.removeFromLeft(buttonWidth).translated(0, -8));
         }
     }
@@ -191,7 +189,7 @@ private:
 
     static inline bool isShowing = false;
 
-    enum AlignButton { 
+    enum AlignButton {
         Left,
         VCentre,
         Right,
@@ -199,7 +197,8 @@ private:
         Top,
         HCentre,
         Bottom,
-        VDistribute };
+        VDistribute
+    };
 
     OwnedArray<TextButton> alignButtons;
 

@@ -59,12 +59,12 @@ public:
         bool canZoom)
         : sourceDetails(desc, sourceComponent, Point<int>())
         , image(im)
+        , isZoomable(canZoom)
         , owner(ddc)
         , mouseDragSource(draggingSource->getComponentUnderMouse())
         , imageOffset(transformOffsetCoordinates(sourceComponent, offset))
         , originalInputSourceIndex(draggingSource->getIndex())
         , originalInputSourceType(draggingSource->getType())
-        , isZoomable(canZoom)
     {
         if (dynamic_cast<ObjectDragAndDrop*>(sourceComponent))
             isObjectItem = true;
@@ -130,9 +130,9 @@ public:
             if (finalTarget != nullptr) {
                 currentlyOverComp = nullptr;
                 finalTarget->itemDropped(details);
-            }
-            else if(auto* tab = dynamic_cast<TabBarButtonComponent*>(details.sourceComponent.get())){
-                if(ProjectInfo::isStandalone) owner.createNewWindow(tab);
+            } else if (auto* tab = dynamic_cast<TabBarButtonComponent*>(details.sourceComponent.get())) {
+                if (ProjectInfo::isStandalone)
+                    owner.createNewWindow(tab);
             }
             // careful - this object could now be deleted..
         }
@@ -463,16 +463,22 @@ private:
                     auto canMoveFiles = false;
 
                     if (owner.shouldDropFilesWhenDraggedExternally(details, files, canMoveFiles) && !files.isEmpty()) {
-                        MessageManager::callAsync([=] { DragAndDropContainer::performExternalDragDropOfFiles(files, canMoveFiles); });
-                        deleteSelf();
+                        MessageManager::callAsync([this, files, canMoveFiles] { 
+                            DragAndDropContainer::performExternalDragDropOfFiles(files, canMoveFiles);
+                            deleteSelf();
+                        });
+                        
                         return;
                     }
 
                     String text;
 
                     if (owner.shouldDropTextWhenDraggedExternally(details, text) && text.isNotEmpty()) {
-                        MessageManager::callAsync([=] { DragAndDropContainer::performExternalDragDropOfText(text); });
-                        deleteSelf();
+                        MessageManager::callAsync([this, text] { 
+                            DragAndDropContainer::performExternalDragDropOfText(text);
+                            deleteSelf(); // Delete asynchronously so the stack can unwind
+                        });
+                        
                         return;
                     }
                 }

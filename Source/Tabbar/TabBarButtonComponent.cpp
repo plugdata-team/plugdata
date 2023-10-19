@@ -13,9 +13,9 @@
 // #define ENABLE_TABBAR_DEBUGGING 1
 
 class CloseTabButton : public SmallIconButton {
-    
+
     using SmallIconButton::SmallIconButton;
-    
+
     void paint(Graphics& g) override
     {
         auto font = Fonts::getIconFont().withHeight(12);
@@ -109,7 +109,8 @@ void TabBarButtonComponent::closeTab()
         MessageManager::callAsync([_cnv = SafePointer(cnv), _editor = SafePointer(editor)]() mutable {
             // Don't show save dialog, if patch is still open in another view
             if (_cnv && _cnv->patch.isDirty()) {
-                Dialogs::showSaveDialog(&_editor->openedDialog, _editor, _cnv->patch.getTitle(),
+                Dialogs::showSaveDialog(
+                    &_editor->openedDialog, _editor, _cnv->patch.getTitle(),
                     [_cnv, _editor](int result) mutable {
                         if (!_cnv)
                             return;
@@ -117,7 +118,8 @@ void TabBarButtonComponent::closeTab()
                             _editor->saveProject([_cnv, _editor]() mutable { _editor->closeTab(_cnv); });
                         else if (result == 1)
                             _editor->closeTab(_cnv);
-                    }, 0, true);
+                    },
+                    0, true);
             } else {
                 _editor->closeTab(_cnv);
             }
@@ -212,8 +214,6 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         return;
 
     if (e.mods.isPopupMenu()) {
-        auto splitIndex = getTabComponent()->getEditor()->splitView.getTabComponentSplitIndex(getTabComponent());
-
         PopupMenu tabMenu;
 
 #if JUCE_MAC
@@ -237,13 +237,13 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         tabMenu.addSeparator();
 
         auto canSplitTab = cnv->editor->getSplitView()->splits.size() > 1 || getTabComponent()->getNumTabs() > 1;
-        tabMenu.addItem("Split left", canSplitTab, false, [this, cnv, splitIndex]() {
+        tabMenu.addItem("Split left", canSplitTab, false, [cnv]() {
             auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
             auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
             auto* targetSplit = cnv->editor->splitView.splits[0];
             currentSplit->moveToSplit(targetSplit, cnv);
         });
-        tabMenu.addItem("Split right", canSplitTab, false, [this, cnv, splitIndex]() {
+        tabMenu.addItem("Split right", canSplitTab, false, [cnv]() {
             auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
             auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
             auto* targetSplit = cnv->editor->splitView.splits.size() > 1 ? cnv->editor->splitView.splits[1] : nullptr;
@@ -252,15 +252,15 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
 
         tabMenu.addSeparator();
 
-        tabMenu.addItem("Close patch", true, false, [this, cnv, splitIndex]() {
+        tabMenu.addItem("Close patch", true, false, [cnv]() {
             cnv->editor->closeTab(cnv);
         });
 
-        tabMenu.addItem("Close all other patches", true, false, [this, cnv, splitIndex]() {
+        tabMenu.addItem("Close all other patches", true, false, [cnv]() {
             cnv->editor->closeAllTabs(false, cnv);
         });
 
-        tabMenu.addItem("Close all patches", true, false, [this, cnv, splitIndex]() {
+        tabMenu.addItem("Close all patches", true, false, [cnv]() {
             cnv->editor->closeAllTabs(false);
         });
 

@@ -4,10 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
-
-extern "C"
-{
+extern "C" {
 #include <m_pd.h>
 #include <z_hooks.h>
 }
@@ -158,10 +155,7 @@ static void plugdata_print(void* object, char const* message)
     }
 }
 
-extern "C"
-{
-
-
+extern "C" {
 
 void pd_init();
 
@@ -610,7 +604,7 @@ void susloop_tilde_setup();
 void suspedal_setup();
 void svfilter_tilde_setup();
 void symbol2any_setup();
-//void table_tilde_setup();
+// void table_tilde_setup();
 void tabplayer_tilde_setup();
 void tabreader_setup();
 void tabreader_tilde_setup();
@@ -673,18 +667,15 @@ void op2_tilde_setup();
 void op4_tilde_setup();
 void op6_tilde_setup();
 
-
 #if ENABLE_SFIZZ
 void sfz_tilde_setup();
 #endif
 void knob_setup();
 
-void pdlua_setup(const char *datadir, char *vers, int vers_len);
+void pdlua_setup(char const* datadir, char* vers, int vers_len);
 }
 
-
-namespace pd
-{
+namespace pd {
 
 static int defaultfontshit[] = {
     8, 5, 11, 10, 6, 13, 12, 7, 16, 16, 10, 19, 24, 14, 29, 36, 22, 44,
@@ -704,37 +695,37 @@ int Setup::initialisePd()
         libpd_set_polyaftertouchhook(plugdata_polyaftertouch);
         libpd_set_midibytehook(plugdata_midibyte);
         libpd_set_printhook(plugdata_print);
-                
+
         // Initialise pd
         libpd_init();
-        
+
         sys_lock();
-        
+
         plugdata_receiver_class = class_new(gensym("plugdata_receiver"), (t_newmethod)NULL, (t_method)plugdata_receiver_free,
-                                               sizeof(t_plugdata_receiver), CLASS_DEFAULT, A_NULL, 0);
+            sizeof(t_plugdata_receiver), CLASS_DEFAULT, A_NULL, 0);
         class_addbang(plugdata_receiver_class, plugdata_receiver_bang);
         class_addfloat(plugdata_receiver_class, plugdata_receiver_float);
         class_addsymbol(plugdata_receiver_class, plugdata_receiver_symbol);
         class_addlist(plugdata_receiver_class, plugdata_receiver_list);
         class_addanything(plugdata_receiver_class, plugdata_receiver_anything);
-        
+
         plugdata_midi_class = class_new(gensym("plugdata_midi"), (t_newmethod)NULL, (t_method)plugdata_midi_free,
-                                           sizeof(t_plugdata_midi), CLASS_DEFAULT, A_NULL, 0);
-        
+            sizeof(t_plugdata_midi), CLASS_DEFAULT, A_NULL, 0);
+
         plugdata_print_class = class_new(gensym("plugdata_print"), (t_newmethod)NULL, (t_method)NULL,
-                                            sizeof(t_plugdata_print), CLASS_DEFAULT, A_NULL, 0);
-        
+            sizeof(t_plugdata_print), CLASS_DEFAULT, A_NULL, 0);
+
         int i;
         t_atom zz[ndefaultfont + 2];
         SETSYMBOL(zz, gensym("."));
         SETFLOAT(zz + 1, 0);
-        
+
         for (i = 0; i < ndefaultfont; i++) {
             SETFLOAT(zz + i + 2, defaultfontshit[i]);
         }
         pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + ndefaultfont, zz);
         sys_unlock();
-        
+
         initialized = 1;
     }
 
@@ -764,7 +755,6 @@ void* Setup::createReceiver(void* ptr, char const* s,
     return x;
 }
 
-
 void* Setup::createPrintHook(void* ptr, t_plugdata_printhook hook_print)
 {
     t_plugdata_print* x = (t_plugdata_print*)pd_new(plugdata_print_class);
@@ -778,7 +768,6 @@ void* Setup::createPrintHook(void* ptr, t_plugdata_printhook hook_print)
     }
     return x;
 }
-
 
 void* Setup::createMIDIHook(void* ptr,
     t_plugdata_noteonhook hook_noteon,
@@ -808,9 +797,8 @@ void* Setup::createMIDIHook(void* ptr,
     return x;
 }
 
-extern "C"
-{
-EXTERN int sys_argparse(int argc, const char **argv);
+extern "C" {
+EXTERN int sys_argparse(int argc, char const** argv);
 }
 
 void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_openlist, t_namelist** sys_messagelist)
@@ -822,7 +810,7 @@ void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_open
     return;
 }
 
-void Setup::initialisePdLua(const char *datadir, char *vers, int vers_len)
+void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len)
 {
     pdlua_setup(datadir, vers, vers_len);
 }
@@ -1068,7 +1056,7 @@ void Setup::initialiseELSE()
     suspedal_setup();
     svfilter_tilde_setup();
     symbol2any_setup();
-    //table_tilde_setup();
+    // table_tilde_setup();
     tabplayer_tilde_setup();
     tabreader_setup();
     tabreader_tilde_setup();
@@ -1128,7 +1116,7 @@ void Setup::initialiseELSE()
     setup_rotate0x2emc_tilde();
     pipe2_setup();
     circuit_tilde_setup();
-    
+
     /* Not yet!
     op2_tilde_setup();
     op4_tilde_setup();

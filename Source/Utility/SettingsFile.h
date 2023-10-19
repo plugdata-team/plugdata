@@ -7,14 +7,15 @@
 #pragma once
 #include "Pd/Library.h"
 
-struct SettingsFileListener {
+class SettingsFileListener {
+public:
     SettingsFileListener();
 
     ~SettingsFileListener();
 
-    virtual void propertyChanged(String const& name, var const& value) {};
+    virtual void propertyChanged(String const& name, var const& value) { }
 
-    virtual void settingsFileReloaded() {};
+    virtual void settingsFileReloaded() { }
 };
 
 // Class that manages the settings file

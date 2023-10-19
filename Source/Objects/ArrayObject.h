@@ -20,10 +20,10 @@ public:
     };
 
     GraphicalArray(PluginProcessor* instance, void* ptr, Object* parent)
-        : arr(ptr, instance)
+        : object(parent)
+        , arr(ptr, instance)
         , edited(false)
         , pd(instance)
-        , object(parent)
     {
         vec.reserve(8192);
         temp.reserve(8192);
@@ -41,10 +41,11 @@ public:
         });
     }
 
-    void receiveMessage(String const& name, int argc, t_atom* argv) override {
+    void receiveMessage(String const& name, int argc, t_atom* argv) override
+    {
         std::cout << name << std::endl;
-    };
-        
+    }
+
     void setArray(void* array)
     {
         if (!array)
@@ -335,11 +336,11 @@ public:
             if (cnv) {
                 float min = cnv->gl_y2;
                 float max = cnv->gl_y1;
-                
-                if (min == max)
+
+                if (approximatelyEqual(min, max))
                     max += 1e-6;
 
-                return {min, max};
+                return { min, max };
             }
         }
 
@@ -422,9 +423,10 @@ public:
         if (auto ptr = arr.get<t_garray>()) {
             int const size = garray_getarray(ptr.get())->a_n;
             output.resize(static_cast<size_t>(size));
-            
+
             t_word* vec = ((t_word*)garray_vec(ptr.get()));
-            for (int i = 0; i < size; i++) output[i] = vec[i].w_float;
+            for (int i = 0; i < size; i++)
+                output[i] = vec[i].w_float;
         }
     }
 
@@ -450,8 +452,7 @@ public:
     PluginProcessor* pd;
 };
 
-class ArrayEditorDialog : public Component
-{
+class ArrayEditorDialog : public Component {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
@@ -550,8 +551,7 @@ public:
     }
 };
 
-class ArrayObject final : public ObjectBase
-{
+class ArrayObject final : public ObjectBase {
 public:
     // Array component
     ArrayObject(t_gobj* obj, Object* object)
@@ -575,7 +575,7 @@ public:
         objectParameters.addParamBool("Save contents", cGeneral, &saveContents, { "No", "Yes" }, 0);
 
         objectParameters.addParamCombo("Draw mode", cAppearance, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2);
-        
+
         updateGraphs();
     }
 
@@ -601,7 +601,7 @@ public:
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<ObjectLabel>(object);
+                label = std::make_unique<ObjectLabel>();
             }
 
             auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2);
@@ -830,11 +830,9 @@ public:
         case hash("list"): {
             break;
         }
-        case hash("redraw"):
-        {
+        case hash("redraw"): {
             updateGraphs();
-            if(dialog)
-            {
+            if (dialog) {
                 dialog->updateGraphs();
             }
             break;

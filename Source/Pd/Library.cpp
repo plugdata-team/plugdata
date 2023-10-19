@@ -46,8 +46,7 @@ void Library::updateLibrary()
 
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
-    
-    
+
     auto* mlist = static_cast<t_methodentry*>(libpd_get_class_methods(o));
     t_methodentry* m;
 
@@ -84,7 +83,7 @@ void Library::updateLibrary()
 
     allObjects.add("graph");
     allObjects.add("garray");
-    
+
     sys_unlock();
 }
 

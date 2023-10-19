@@ -18,7 +18,7 @@ public:
 
         updateMappings();
     }
-        
+
     PropertiesPanel* getPropertiesPanel() override
     {
         return &propertiesPanel;

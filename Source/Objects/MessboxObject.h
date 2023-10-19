@@ -11,8 +11,6 @@ class MessboxObject final : public ObjectBase
     TextEditor editor;
     BorderSize<int> border = BorderSize<int>(5, 7, 1, 2);
 
-    int numLines = 1;
-
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
     Value fontSize = SynchronousValue();

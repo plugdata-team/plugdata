@@ -54,12 +54,12 @@ public:
         }
     }
 
-    void mouseEnter(MouseEvent const& e) override
+    void mouseEnter(MouseEvent const&) override
     {
         repaint();
     }
 
-    void mouseExit(MouseEvent const& e) override
+    void mouseExit(MouseEvent const&) override
     {
         repaint();
     }
@@ -207,12 +207,12 @@ public:
         locked = isLocked;
     }
 
-    bool canReceiveMouseEvent(int x, int y) override
+    bool canReceiveMouseEvent(int, int) override
     {
         return !locked;
     }
 
-    bool keyPressed(KeyPress const& key, Component* component) override
+    bool keyPressed(KeyPress const& key, Component*) override
     {
         if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
             editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
@@ -251,13 +251,13 @@ public:
         }
     }
 
-    void textEditorReturnKeyPressed(TextEditor& ed) override
+    void textEditorReturnKeyPressed(TextEditor&) override
     {
         cnv->grabKeyboardFocus();
     }
 
     // For resize-while-typing behaviour
-    void textEditorTextChanged(TextEditor& ed) override
+    void textEditorTextChanged(TextEditor&) override
     {
         object->updateBounds();
     }

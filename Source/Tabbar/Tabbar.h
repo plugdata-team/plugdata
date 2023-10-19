@@ -19,7 +19,6 @@
 
 class WelcomePanel : public Component {
 
-
     class RecentlyOpenedListBox : public Component
         , public ListBoxModel {
     public:
@@ -203,7 +202,7 @@ class TabComponent : public Component
 
 public:
     TabComponent(PluginEditor* editor);
-    ~TabComponent();
+    ~TabComponent() override;
 
     void onTabMoved();
     void onTabChange(int tabIndex);
@@ -219,7 +218,7 @@ public:
     int getNumTabs() const noexcept { return tabs->getNumTabs(); }
     int getNumVisibleTabs();
     void removeTab(int idx);
-    int getTabBarDepth() const noexcept { return tabDepth; };
+    int getTabBarDepth() const noexcept { return tabDepth; }
     void changeCallback(int newCurrentTabIndex, String const& newTabName);
 
     void openProject();
@@ -252,13 +251,8 @@ public:
     Rectangle<int> currentTabBounds;
 
 private:
-    int clickedTabIndex;
-    int tabWidth;
 
     Point<int> scalePos;
-
-    int draggedTabIndex = -1;
-    Component* draggedTabComponent = nullptr;
 
     int tabDepth = 30;
 

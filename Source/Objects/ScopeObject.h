@@ -159,8 +159,8 @@ public:
 
     void timerCallback() override
     {
-        int bufsize, mode;
-        float min, max;
+        int bufsize = 0, mode = 0;
+        float min = 0.0f, max = 1.0f;
 
         if (object->iolets.size() == 3)
             object->iolets[2]->setVisible(false);
@@ -271,7 +271,6 @@ public:
             if (auto scope = ptr.get<S>())
                 scope->x_triglevel = getValue<int>(triggerValue);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
-            auto* rcv = pd->generateSymbol(receiveSymbol.toString());
             auto symbol = receiveSymbol.toString();
             if (auto scope = ptr.get<void>())
                 pd->sendDirectMessage(scope.get(), "receive", { symbol });

@@ -6,14 +6,13 @@
 #include "../PluginEditor.h"
 #include "Canvas.h"
 
-class ObjectDragAndDrop : public Component
-{
+class ObjectDragAndDrop : public Component {
 public:
-    ObjectDragAndDrop(){};
-    
+    ObjectDragAndDrop() { }
+
     virtual String getObjectString() = 0;
 
-    virtual void dismiss(bool withAnimation){};
+    virtual void dismiss(bool withAnimation) { }
 
     void lookAndFeelChanged() override
     {
@@ -60,20 +59,19 @@ private:
     ImageWithOffset dragImage;
 };
 
-class ObjectClickAndDrop : public Component, public Timer
-{
+class ObjectClickAndDrop : public Component
+    , public Timer {
     String objectString;
     PluginEditor* editor;
     Image dragImage;
     float scale = 0.5f;
     float animatedScale = 0.0f;
     ImageComponent imageComponent;
-    
+
     static inline std::unique_ptr<ObjectClickAndDrop> instance = nullptr;
     bool isOnEditor = false;
 
     ComponentAnimator animator;
-
     Canvas* canvas = nullptr;
 
 public:
@@ -82,11 +80,9 @@ public:
         objectString = target->getObjectString();
         editor = target->findParentComponentOfClass<PluginEditor>();
 
-        if(ProjectInfo::canUseSemiTransparentWindows())
-        {
+        if (ProjectInfo::canUseSemiTransparentWindows()) {
             addToDesktop(ComponentPeer::windowIsTemporary);
-        }
-        else {
+        } else {
             isOnEditor = true;
             editor->addChildComponent(this);
         }
@@ -149,9 +145,7 @@ public:
         {
             foundCanvas = cnv;
             scale = getValue<float>(cnv->zoomScale);
-        }
-        else if (auto* split = editor->splitView.getSplitAtScreenPosition(screenPos))
-        {
+        } else if (auto* split = editor->splitView.getSplitAtScreenPosition(screenPos)) {
             // if we get here, this object is on the editor (not a window) - so we have to manually find the canvas
             if (auto* tabComponent = split->getTabComponent()) {
                 foundCanvas = tabComponent->getCurrentCanvas();
@@ -186,29 +180,24 @@ public:
         setCentrePosition(mousePosition);
     }
 
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
         // This is nicer, but also makes sure that getComponentAt doesn't return this object
         setVisible(false);
-       // We don't need to check getSplitAtScreenPosition() here because we have set this component to invisible!
+        // We don't need to check getSplitAtScreenPosition() here because we have set this component to invisible!
         auto* underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, e.getScreenPosition()));
-        
-        if(underMouse)
-        {
+
+        if (underMouse) {
             auto width = dragImage.getWidth() / 3.0f;
             auto height = dragImage.getHeight() / 3.0f;
 
-            if(auto* cnv = dynamic_cast<Canvas*>(underMouse))
-            {
+            if (auto* cnv = dynamic_cast<Canvas*>(underMouse)) {
                 cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height);
-            }
-            else if(auto* cnv = underMouse->findParentComponentOfClass<Canvas>())
-            {
+            } else if (auto* cnv = underMouse->findParentComponentOfClass<Canvas>()) {
                 cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height);
             }
         }
 
         instance.reset(nullptr);
     }
-    
 };

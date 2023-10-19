@@ -84,8 +84,8 @@ public:
         parent->setVisible(false);
     }
 
-    Rectangle<int> getPdBounds() override { return { 0, 0, 1, 1 }; };
-    void setPdBounds(Rectangle<int> newBounds) override {};
+    Rectangle<int> getPdBounds() override { return { 0, 0, 1, 1 }; }
+    void setPdBounds(Rectangle<int> newBounds) override { }
 };
 
 ObjectBase::ObjectSizeListener::ObjectSizeListener(Object* obj)
@@ -203,7 +203,7 @@ String ObjectBase::getText()
     int size = 0;
 
     if (auto obj = ptr.get<t_gobj>()) {
-        
+
         if (!pd::Interface::checkObject(obj.get()))
             return "";
 
@@ -572,11 +572,9 @@ ObjectBase* ObjectBase::createGui(t_gobj* ptr, Object* parent)
             pd::Interface::getObjectText(reinterpret_cast<t_object*>(ptr), &text, &size);
             auto objText = String::fromUTF8(text, size);
             bool hyperlink = objText.contains("openfile -h");
-            if(hyperlink)
-            {
+            if (hyperlink) {
                 return new OpenFileObject(ptr, parent);
-            }
-            else {
+            } else {
                 return new TextObject(ptr, parent);
             }
         }
@@ -631,17 +629,16 @@ void ObjectBase::lock(bool isLocked)
 
 String ObjectBase::getBinbufSymbol(int argIndex)
 {
-    if(auto obj = ptr.get<t_object>())
-    {
+    if (auto obj = ptr.get<t_object>()) {
         auto* binbuf = obj->te_binbuf;
         int numAtoms = binbuf_getnatom(binbuf);
-        if(argIndex < numAtoms) {
+        if (argIndex < numAtoms) {
             char buf[80];
             atom_string(binbuf_getvec(binbuf) + argIndex, buf, 80);
             return String::fromUTF8(buf);
         }
     }
-    
+
     return {};
 }
 
@@ -698,7 +695,7 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
 {
     parameter.removeListener(&propertyUndoListener);
-    
+
     setValueExcludingListener(parameter, value, this);
 
     parameter.addListener(&propertyUndoListener);

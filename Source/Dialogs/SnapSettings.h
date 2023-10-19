@@ -80,10 +80,10 @@ public:
 
     public:
         SnapSelector(SnapSettings* parent, String const& iconText, String nameOfGroup, SnapBitMask snapBitValue)
-            : groupName(std::move(nameOfGroup))
-            , snapBit(snapBitValue)
+            : snapBit(snapBitValue)
             , parent(parent)
             , icon(iconText)
+            , groupName(std::move(nameOfGroup))
         {
             snapValue.referTo(SettingsFile::getInstance()->getPropertyAsValue(property));
             snapValue.addListener(this);

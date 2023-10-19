@@ -55,8 +55,7 @@ public:
 
     bool mouseDownOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
-        if(e.mods.isShiftDown())
-        {
+        if (e.mods.isShiftDown()) {
             if (toggledKeys.count(midiNoteNumber)) {
                 toggledKeys.erase(midiNoteNumber);
                 noteOff(midiNoteNumber);
@@ -64,8 +63,7 @@ public:
                 toggledKeys.insert(midiNoteNumber);
                 noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
             }
-        }
-        else if (toggleMode) {
+        } else if (toggleMode) {
             if (heldKeys.count(midiNoteNumber)) {
                 heldKeys.erase(midiNoteNumber);
                 noteOff(midiNoteNumber);

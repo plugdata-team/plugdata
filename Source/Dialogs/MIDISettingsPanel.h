@@ -10,14 +10,14 @@ class MidiSettingsToggle : public PropertiesPanel::BoolComponent {
 public:
     MidiSettingsToggle(bool isMidiInput, PluginProcessor* pluginProcessor, MidiDeviceInfo& midiDeviceInfo, AudioDeviceManager& audioDeviceManager)
         : PropertiesPanel::BoolComponent(midiDeviceInfo.name, { "Disabled", "Enabled" })
-        , deviceInfo(midiDeviceInfo)
-        , deviceManager(audioDeviceManager)
         , isInput(isMidiInput)
         , processor(pluginProcessor)
+        , deviceInfo(midiDeviceInfo)
+        , deviceManager(audioDeviceManager)
     {
         toggleStateValue = ProjectInfo::getMidiDeviceManager()->isMidiDeviceEnabled(isInput, deviceInfo.identifier);
     }
-    
+
     Property* createCopy() override
     {
         return new MidiSettingsToggle(isInput, processor, deviceInfo, deviceManager);
@@ -79,7 +79,7 @@ public:
     {
         return &midiProperties;
     }
-        
+
 private:
     void resized() override
     {

@@ -83,7 +83,7 @@ public:
         objectParameters.addParamSize(&sizeProperty);
     }
 
-    ~MousePadObject() = default;
+    ~MousePadObject() override = default;
 
     void paint(Graphics& g) override
     {
@@ -96,7 +96,7 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-    };
+    }
 
     void setPdBounds(Rectangle<int> b) override
     {

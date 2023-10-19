@@ -49,7 +49,7 @@ public:
                 button->setVisible(controlVisibility(button->getName()));
                 button->addListener(this);
             }
-            
+
             buttons[Edit]->setButtonText(Icons::Edit);
             buttons[Lock]->setButtonText(Icons::Lock);
             buttons[Run]->setButtonText(Icons::Presentation);

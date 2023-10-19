@@ -21,17 +21,16 @@ class PluginProcessor;
 class VolumeSlider;
 class OversampleSelector;
 
-
 class StatusbarSource : public Timer {
 
 public:
     struct Listener {
-        virtual void midiReceivedChanged(bool midiReceived) {};
-        virtual void midiSentChanged(bool midiSent) {};
-        virtual void audioProcessedChanged(bool audioProcessed) {};
-        virtual void audioLevelChanged(Array<float> peak) {};
-        virtual void cpuUsageChanged(float newCpuUsage) {};
-        virtual void timerCallback() {};
+        virtual void midiReceivedChanged(bool midiReceived) { ignoreUnused(midiReceived); }
+        virtual void midiSentChanged(bool midiSent) { ignoreUnused(midiSent); }
+        virtual void audioProcessedChanged(bool audioProcessed) { ignoreUnused(audioProcessed); }
+        virtual void audioLevelChanged(Array<float> peak) { ignoreUnused(peak); }
+        virtual void cpuUsageChanged(float newCpuUsage) { ignoreUnused(newCpuUsage); }
+        virtual void timerCallback() { }
     };
 
     StatusbarSource();
@@ -48,7 +47,7 @@ public:
 
     void addListener(Listener* l);
     void removeListener(Listener* l);
-    
+
     void setCPUUsage(float cpuUsage);
 
     AudioSampleRingBuffer peakBuffer;
@@ -60,8 +59,6 @@ private:
     std::atomic<float> level[2] = { 0 };
     std::atomic<float> peakHold[2] = { 0 };
     std::atomic<float> cpuUsage;
-
-    int peakHoldDelay[2] = { 0 };
 
     int numChannels;
     int bufferSize;
@@ -99,7 +96,6 @@ public:
     std::unique_ptr<VolumeSlider> volumeSlider;
     std::unique_ptr<MIDIBlinker> midiBlinker;
     std::unique_ptr<CPUMeter> cpuMeter;
-
 
     SmallIconButton powerButton, centreButton, fitAllButton, protectButton;
 

@@ -9,29 +9,27 @@
 class InspectorPanel : public PropertiesPanel {
 };
 
-class PropertyRedirector : public Value::Listener
-{
+class PropertyRedirector : public Value::Listener {
 public:
-    
-    PropertyRedirector(Value* controllerValue, Array<Value*> attachedValues) : values(attachedValues)
+    PropertyRedirector(Value* controllerValue, Array<Value*> attachedValues)
+        : values(attachedValues)
     {
         baseValue.referTo(*controllerValue);
         baseValue.addListener(this);
     }
-    
+
     ~PropertyRedirector()
     {
         baseValue.removeListener(this);
     }
-    
+
     void valueChanged(Value& v) override
     {
-        for(auto* value : values)
-        {
+        for (auto* value : values) {
             value->setValue(baseValue.getValue());
         }
     }
-    
+
     Value baseValue;
     Array<Value*> values;
 };
@@ -122,52 +120,47 @@ public:
 
         panel.clear();
 
-        auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, Array<Value*>& values){
-            
+        auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, Array<Value*>& values) {
             auto& [name1, type1, category1, value1, options1, defaultVal1] = param;
-            
-            if(objectParameters.size() > 1 && (name1 == "Size" || name1 == "Position" || name1 == "Height")) {
+
+            if (objectParameters.size() > 1 && (name1 == "Size" || name1 == "Position" || name1 == "Height")) {
                 return false;
             }
-            
+
             bool isInAllObjects = true;
-            for(auto& parameters : objectParameters)
-            {
+            for (auto& parameters : objectParameters) {
                 bool hasParameter = false;
-                for(auto& [name2, type2, category2, value2, options2, defaultVal2] : parameters.getParameters())
-                {
-                    if(name1 == name2 && type1 == type2 && category1 == category2)
-                    {
+                for (auto& [name2, type2, category2, value2, options2, defaultVal2] : parameters.getParameters()) {
+                    if (name1 == name2 && type1 == type2 && category1 == category2) {
                         values.add(value2);
                         hasParameter = true;
                         break;
                     }
                 }
-                
+
                 isInAllObjects = isInAllObjects && hasParameter;
             }
-            
+
             return isInAllObjects;
         };
-        
+
         redirectors.clear();
-        
+
         for (int i = 0; i < 4; i++) {
             Array<PropertiesPanel::Property*> panels;
-            int idx = 0;
             for (auto& parameter : objectParameters[0].getParameters()) {
                 auto& [name, type, category, value, options, defaultVal] = parameter;
                 if (static_cast<int>(category) == i) {
-                    
+
                     Array<Value*> otherValues;
-                    if(!parameterIsInAllObjects(parameter, otherValues)) continue;
-                    
+                    if (!parameterIsInAllObjects(parameter, otherValues))
+                        continue;
+
                     redirectors.add(new PropertyRedirector(value, otherValues));
-                    
+
                     auto newPanel = createPanel(type, name, value, options);
                     newPanel->setPreferredHeight(26);
                     panels.add(newPanel);
-                    idx++;
                 }
             }
             if (!panels.isEmpty()) {
@@ -182,8 +175,7 @@ public:
         resetButton->setTooltip("Reset to default");
         resetButton->setSize(23, 23);
         resetButton->onClick = [this]() {
-            for(auto& propertiesList : properties)
-            {
+            for (auto& propertiesList : properties) {
                 propertiesList.resetAll();
             }
         };
