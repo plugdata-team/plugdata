@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
+#include "../PluginEditor.h"
 #include "Canvas.h"
 
 class ObjectDragAndDrop : public Component
@@ -62,110 +63,130 @@ private:
 class ObjectClickAndDrop : public Component, public Timer
 {
     String objectString;
-    Component* editor;
+    PluginEditor* editor;
     Image dragImage;
     float scale = 0.5f;
     float animatedScale = 0.0f;
+    ImageComponent imageComponent;
     
     static inline std::unique_ptr<ObjectClickAndDrop> instance = nullptr;
+    bool isOnEditor = false;
+
+    ComponentAnimator animator;
     
 public:
     ObjectClickAndDrop(ObjectDragAndDrop* target)
     {
         objectString = target->getObjectString();
-        editor = target->findParentComponentOfClass<AudioProcessorEditor>();
-    
+        editor = target->findParentComponentOfClass<PluginEditor>();
+
         if(ProjectInfo::canUseSemiTransparentWindows())
         {
             addToDesktop(ComponentPeer::windowIsTemporary);
         }
         else {
+            isOnEditor = true;
             editor->addChildComponent(this);
         }
-        
-        setVisible(true);
+
         setAlwaysOnTop(true);
-        startTimerHz(60);
-        
-        
+
         auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(target);
-        dragImage = offlineObjectRenderer->patchToTempImage(target->getObjectString(), 2.0f).image;
-        repaint();
-        
-        // If we don't set the position immediately, we can prevent the mouse event that created this object from triggering the mouseDown function
-        MessageManager::callAsync([_this = SafePointer(this)](){
-            if(_this) {
-                _this->setSize(_this->dragImage.getWidth(), _this->dragImage.getHeight());
-                _this->setCentrePosition(Desktop::getMousePosition());
-            }
-        });
+        dragImage = offlineObjectRenderer->patchToTempImage(target->getObjectString(), 3.0f).image;
+
+        // we set the size of this component / window 3x larger to match the max zoom of canavs (300%)
+        setSize(dragImage.getWidth(), dragImage.getHeight());
+
+        addAndMakeVisible(imageComponent);
+        imageComponent.setInterceptsMouseClicks(false, false);
+
+        imageComponent.setImage(dragImage);
+        auto imageComponentBounds = getLocalBounds().withSizeKeepingCentre(0, 0);
+        imageComponent.setBounds(imageComponentBounds);
+        imageComponent.setAlpha(0.0f);
+
+        auto screenPos = Desktop::getMousePosition();
+        setCentrePosition(isOnEditor ? getLocalPoint(nullptr, screenPos) : screenPos);
+        startTimerHz(60);
+        setVisible(true);
+
+        setOpaque(false);
     }
-    
-    void paint(Graphics& g) override
-    {
-        g.drawImageTransformed(dragImage, AffineTransform::scale(scale));
-    }
-    
+
     static void attachToMouse(ObjectDragAndDrop* parent)
     {
         instance = std::make_unique<ObjectClickAndDrop>(parent);
     }
-    
+
     void timerCallback() override
     {
-        auto mousePosition = Desktop::getMousePosition();
-        
-        auto* underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, mousePosition));
+        auto screenPos = Desktop::getMousePosition();
+        auto mousePosition = Point<int>();
+        Component* underMouse;
+
+        if (isOnEditor) {
+            mousePosition = editor->getLocalPoint(nullptr, screenPos);
+            underMouse = editor->getComponentAt(mousePosition);
+        } else {
+            mousePosition = screenPos;
+            underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
+        }
+
         if(!underMouse)
         {
-            scale = 0.5f;
-            repaint();
+            scale = 1.0f;
         }
         else if(auto* cnv = dynamic_cast<Canvas*>(underMouse))
         {
-            scale = getValue<float>(cnv->zoomScale) / 2.0f;
+            scale = getValue<float>(cnv->zoomScale);
         }
         else if(auto* cnv = underMouse->findParentComponentOfClass<Canvas>())
         {
-            scale = getValue<float>(cnv->zoomScale) / 2.0f;
+            scale = getValue<float>(cnv->zoomScale);
+        }
+        else if (auto* split = editor->splitView.getSplitAtScreenPosition(screenPos))
+        {
+            // if we get here, this object is on the editor (not a window) - so we have to manually find the canvas
+            scale = getValue<float>(split->getTabComponent()->getCurrentCanvas()->zoomScale);
         }
         else {
-            scale = 0.5f;
+            scale = 1.0f;
         }
 
         if(animatedScale != scale)
         {
-            animatedScale = jmap(0.5f, animatedScale, scale);
-            setSize(dragImage.getWidth() * animatedScale, dragImage.getHeight() * animatedScale);
-            repaint();
+            animatedScale = scale;
+            auto newWidth = dragImage.getWidth() / 3.0f * animatedScale;
+            auto newHeight = dragImage.getHeight() / 3.0f * animatedScale;
+            auto animatedBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
+            animator.animateComponent(&imageComponent, animatedBounds, 1.0f, 150, false, 3.0f, 0.0f);
         }
-        
-        if(ProjectInfo::canUseSemiTransparentWindows()) {
-            setCentrePosition(mousePosition);
-        }
-        else {
-            setCentrePosition(editor->getLocalPoint(nullptr, mousePosition));
-        }
+
+        setCentrePosition(mousePosition);
     }
-    
+
     void mouseDown(const MouseEvent& e) override
     {
         // This is nicer, but also makes sure that getComponentAt doesn't return this object
         setVisible(false);
+       // We don't need to check getSplitAtScreenPosition() here because we have set this component to invisible!
         auto* underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, e.getScreenPosition()));
         
         if(underMouse)
         {
+            auto width = dragImage.getWidth() / 3.0f;
+            auto height = dragImage.getHeight() / 3.0f;
+
             if(auto* cnv = dynamic_cast<Canvas*>(underMouse))
             {
-                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, dragImage.getWidth() / 2, dragImage.getHeight() / 2);
+                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height);
             }
             else if(auto* cnv = underMouse->findParentComponentOfClass<Canvas>())
             {
-                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, dragImage.getWidth() / 2, dragImage.getHeight() / 2);
+                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height);
             }
         }
-        
+
         instance.reset(nullptr);
     }
     
