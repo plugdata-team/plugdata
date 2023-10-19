@@ -20,7 +20,7 @@ public:
     PluginProcessor& processor;
 
     PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled, int idx, float minimum, float maximum)
-        : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, defaultName)
+        : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, AudioProcessorParameterWithIDAttributes())
         , processor(*p)
         , defaultValue(def)
         , index(idx)
@@ -29,6 +29,7 @@ public:
         , enabled(enabled)
         , mode(Float)
     {
+       
         value = range.convertFrom0to1(getDefaultValue());
     }
 

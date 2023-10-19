@@ -282,6 +282,9 @@ if(WIN32)
     endif()
 elseif(UNIX)
     list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_LIBDL=1 HAVE_UNISTD_H=1 HAVE_ALLOCA_H=1 HAVE_ALLOCA=1 DONT_USE_ALLOCA=0)
+    if(NOT APPLE)
+        list(APPEND LIBPD_COMPILE_DEFINITIONS HAVE_ENDIAN_H=1)
+    endif()
 endif()
 
 # ------------------------------------------------------------------------------#
@@ -290,14 +293,20 @@ endif()
 
 # C FLAGS COMPILER OR GENERATOR
 # ------------------------------------------------------------------------------#
-if(MSVC)
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
-else(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     # These are the warning flags I need to get pd to compile withoout warnings
     # Would be nice if these warnings were solved instead
-    add_compile_options(-Wno-format -Wno-conversion -Wno-implicit-int-conversion -Wno-compare-distinct-pointer-types -Wno-pointer-sign -Wno-int-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types -Wno-parentheses -Wno-unused-value)
+    add_compile_options(-Wno-format -Wno-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-parentheses -Wno-unused-value -Wno-unknown-pragmas)
+    
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+        add_compile_options(-Wno-compare-distinct-pointer-types -Wno-implicit-int-conversion)
+    
+    endif()
+ 
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-discarded-qualifiers -Wno-int-conversion -Wno-pointer-sign -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
-endif()
+
+ endif()
 
 # ------------------------------------------------------------------------------#
 # SFONT~

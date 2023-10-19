@@ -74,13 +74,11 @@ if(MSVC)
   add_compile_options(/MP)
   add_compile_options(/wd4244)
 else()
-  add_compile_options(-Wall -Wstrict-aliasing -Wuninitialized -Wno-conversion -Wno-implicit-int-conversion -Wno-overloaded-virtual)
+  add_compile_options(-Wall -Wstrict-aliasing -Wuninitialized -Wno-conversion -Wno-overloaded-virtual -Wno-sign-compare -Wno-comment)
 endif()
-
 
 message(STATUS "Preparing documentation")
 execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
-
 
 message(STATUS "Packaging resources")
 execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
@@ -190,6 +188,7 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_USE_COREIMAGE_LOADER=0
     JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
     JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=1
+    JUCE_USE_XRENDER=1
 )
 
 set(PLUGDATA_COMPILE_DEFINITIONS
@@ -224,10 +223,6 @@ set(libs
 )
 
 if(UNIX AND NOT APPLE)
-    set(PLUGDATA_COMPILE_DEFINITIONS
-    ${PLUGDATA_COMPILE_DEFINITIONS}
-    JUCE_USE_XRENDER=1
-    )
     list(APPEND libs curl X11)
 endif()
 

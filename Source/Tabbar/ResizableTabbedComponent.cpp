@@ -55,7 +55,7 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
     isDragAndDropOver = false;
     repaint();
 
-    if (auto windowTab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+    if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         switch (activeZone) {
         case DropZones::Right:
             splitMode = Split::SplitMode::Horizontal;

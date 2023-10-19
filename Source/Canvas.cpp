@@ -1601,10 +1601,10 @@ void Canvas::valueChanged(Value& v)
         // limit canvas width to smallest object (11px)
         patchWidth = jmax(11, getValue<int>(patchWidth));
         if (auto cnv = patch.getPointer()) {
-            auto x1 = cnv->gl_screenx1;
-            auto y1 = cnv->gl_screeny1;
-            auto x2 = getValue<int>(patchWidth) + x1;
-            auto y2 = cnv->gl_screeny2;
+            auto x1 = static_cast<float>(cnv->gl_screenx1);
+            auto y1 = static_cast<float>(cnv->gl_screeny1);
+            auto x2 = static_cast<float>(getValue<int>(patchWidth) + x1);
+            auto y2 = static_cast<float>(cnv->gl_screeny2);
             pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
         }
 
@@ -1613,10 +1613,10 @@ void Canvas::valueChanged(Value& v)
     } else if (v.refersToSameSourceAs(patchHeight)) {
         patchHeight = jmax(11, getValue<int>(patchHeight));
         if (auto cnv = patch.getPointer()) {
-            auto x1 = cnv->gl_screenx1;
-            auto y1 = cnv->gl_screeny1;
-            auto x2 = cnv->gl_screenx2;
-            auto y2 = getValue<int>(patchHeight) + y1;
+            auto x1 = static_cast<float>(cnv->gl_screenx1);
+            auto y1 = static_cast<float>(cnv->gl_screeny1);
+            auto x2 = static_cast<float>(cnv->gl_screenx2);
+            auto y2 = static_cast<float>(getValue<int>(patchHeight) + y1);
             pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
         }
         repaint();

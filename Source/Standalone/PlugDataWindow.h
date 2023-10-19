@@ -532,7 +532,7 @@ public:
                 b->setToggleState(!shouldBeMaximised, dontSendNotification);
 
                 if (!isUsingNativeTitleBar()) {
-                    OSUtils::maximiseX11Window(getPeer()->getNativeHandle(), !shouldBeMaximised);
+                    OSUtils::maximiseX11Window(peer->getNativeHandle(), !shouldBeMaximised);
                 }
                 setFullScreen(!isFullScreen());
             } else {

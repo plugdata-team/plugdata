@@ -332,7 +332,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window) override
     {
-        if (auto* dialog = dynamic_cast<FileChooserDialogBox*>(&window)) {
+        if (dynamic_cast<FileChooserDialogBox*>(&window)) {
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
         }
     }

@@ -463,7 +463,7 @@ private:
                     auto canMoveFiles = false;
 
                     if (owner.shouldDropFilesWhenDraggedExternally(details, files, canMoveFiles) && !files.isEmpty()) {
-                        MessageManager::callAsync([=] { 
+                        MessageManager::callAsync([this, files, canMoveFiles] { 
                             DragAndDropContainer::performExternalDragDropOfFiles(files, canMoveFiles);
                             deleteSelf();
                         });
@@ -474,7 +474,7 @@ private:
                     String text;
 
                     if (owner.shouldDropTextWhenDraggedExternally(details, text) && text.isNotEmpty()) {
-                        MessageManager::callAsync([=] { 
+                        MessageManager::callAsync([this, text] { 
                             DragAndDropContainer::performExternalDragDropOfText(text);
                             deleteSelf(); // Delete asynchronously so the stack can unwind
                         });

@@ -147,7 +147,6 @@ public:
     void run() override
     {
         char buf[BUF_LEN];
-        ssize_t numRead;
 
         const struct inotify_event* iNotifyEvent;
         char* ptr;

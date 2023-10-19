@@ -260,7 +260,6 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
     char* line = NULL;
     size_t size = 0;
-    ssize_t len;
     KeyboardLayout result = QWERTY;
     FILE* in;
 
@@ -269,7 +268,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
         return QWERTY;
 
     while (1) {
-        len = getline(&line, &size, in);
+        getline(&line, &size, in);
         if (strstr(line, "aliases(qwerty)"))
             result = QWERTY;
         if (strstr(line, "aliases(azerty)"))
