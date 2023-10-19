@@ -19,9 +19,7 @@
 #include "Utility/Config.h"
 
 #if JUCE_WINDOWS
-// Enable for JUCE >=7.0.6
-// #    include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
-#    include <juce_gui_basics/native/juce_win32_ScopedThreadDPIAwarenessSetter.h>
+#include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
 #endif
 
 #include <juce_gui_basics/detail/juce_WindowingHelpers.h>
