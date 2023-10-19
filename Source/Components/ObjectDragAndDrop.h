@@ -74,6 +74,7 @@ class ObjectClickAndDrop : public Component
     ComponentAnimator animator;
     Canvas* canvas = nullptr;
 
+public:
     ObjectClickAndDrop(ObjectDragAndDrop* target)
     {
         objectString = target->getObjectString();
