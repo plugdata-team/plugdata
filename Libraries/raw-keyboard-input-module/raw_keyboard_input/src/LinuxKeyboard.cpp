@@ -1,5 +1,5 @@
 #include "LinuxKeyboard.h"
-#include <juce_gui_basics/native/x11/juce_XWindowSystem_linux.h>
+#include <juce_gui_basics/native/juce_XWindowSystem_linux.h>
 #include <map>
 
 LinuxKeyboard::LinuxKeyboard(juce::Component* parent) : Keyboard(parent)
