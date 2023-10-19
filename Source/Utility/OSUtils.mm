@@ -18,7 +18,7 @@ int getStyleMask(bool nativeTitlebar) {
     style |= NSWindowStyleMaskResizable;
     
     if(!nativeTitlebar) {
-        style |= NSFullSizeContentViewWindowMask;
+        style |= NSWindowStyleMaskFullSizeContentView;
     }
 
     return style;
