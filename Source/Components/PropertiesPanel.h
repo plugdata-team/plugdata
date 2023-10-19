@@ -35,7 +35,7 @@ public:
         {
         }
         
-        virtual Property* createCopy() { return nullptr; };
+        virtual Property* createCopy() { return nullptr; }
 
         void setHideLabel(bool labelHidden)
         {
@@ -58,7 +58,7 @@ public:
             repaint();
         }
 
-        void refresh() override {};
+        void refresh() override {}
     };
 
 private:
@@ -66,8 +66,8 @@ private:
         SectionComponent(PropertiesPanel& propertiesPanel, String const& sectionTitle,
             Array<Property*> const& newProperties, int extraPadding)
             : Component(sectionTitle)
-            , padding(extraPadding)
             , parent(propertiesPanel)
+            , padding(extraPadding)
 
         {
             lookAndFeelChanged();
@@ -746,7 +746,7 @@ public:
 
                 draggableNumber->setEditableOnClick(true);
 
-                draggableNumber->onEditorShow = [this, draggableNumber]() {
+                draggableNumber->onEditorShow = [draggableNumber]() {
                     auto* editor = draggableNumber->getCurrentTextEditor();
                     editor->setBorder(BorderSize<int>(2, 1, 4, 1));
                     editor->setJustification(Justification::centredLeft);
@@ -859,10 +859,10 @@ public:
     public:
         ActionComponent(std::function<void()> callback, String iconToShow, String const& textToShow, bool roundOnTop = false, bool roundOnBottom = false)
             : Property(textToShow)
-            , icon(std::move(iconToShow))
             , roundTop(roundOnTop)
             , roundBottom(roundOnBottom)
             , onClick(std::move(callback))
+            , icon(std::move(iconToShow))
         {
             setHideLabel(true);
         }

@@ -82,7 +82,7 @@ class DocumentBrowserViewBase : public TreeView
 public:
     explicit DocumentBrowserViewBase(DirectoryContentsList& listToShow)
         : DirectoryContentsDisplayComponent(listToShow)
-        , bouncer(getViewport()) {};
+        , bouncer(getViewport()) {}
 
     BouncingViewportAttachment bouncer;
 };
@@ -92,11 +92,11 @@ class DocumentBrowserBase : public Component {
 public:
     explicit DocumentBrowserBase(PluginProcessor* processor)
         : pd(processor)
-        , filter("*", "*", "All files")
         , updateThread("browserThread")
-        , directory(&filter, updateThread) {
+        , directory(&filter, updateThread)
+        , filter("*", "*", "All files") {
 
-        };
+    }
 
     virtual bool isSearching() = 0;
 
@@ -331,9 +331,9 @@ public:
      */
     DocumentBrowserView(DirectoryContentsList& listToShow, DocumentBrowserBase* parent)
         : DocumentBrowserViewBase(listToShow)
-        , itemHeight(24)
         , browser(parent)
         , lastUpdateTime(listToShow.getDirectory().getLastModificationTime())
+        , itemHeight(24)
     {
         setIndentSize(16);
         setRootItemVisible(false);
@@ -486,10 +486,10 @@ public:
     void selectionChanged() override
     {
         browser->repaint();
-    };
+    }
 
-    void fileClicked(File const&, MouseEvent const&) override {};
-    void browserRootChanged(File const&) override {};
+    void fileClicked(File const&, MouseEvent const&) override {}
+    void browserRootChanged(File const&) override {}
 
     bool isInterestedInFileDrag(StringArray const& files) override
     {
@@ -572,8 +572,8 @@ class FileSearchComponent : public Component
     , public KeyListener {
 public:
     explicit FileSearchComponent(DirectoryContentsList& directory)
-        : searchPath(directory)
-        , bouncer(listBox.getViewport())
+        : bouncer(listBox.getViewport())
+        , searchPath(directory)
     {
         listBox.setModel(this);
         listBox.setRowHeight(26);

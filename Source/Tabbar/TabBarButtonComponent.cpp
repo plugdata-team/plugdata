@@ -212,8 +212,6 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         return;
 
     if (e.mods.isPopupMenu()) {
-        auto splitIndex = getTabComponent()->getEditor()->splitView.getTabComponentSplitIndex(getTabComponent());
-
         PopupMenu tabMenu;
 
 #if JUCE_MAC
@@ -237,13 +235,13 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
         tabMenu.addSeparator();
 
         auto canSplitTab = cnv->editor->getSplitView()->splits.size() > 1 || getTabComponent()->getNumTabs() > 1;
-        tabMenu.addItem("Split left", canSplitTab, false, [this, cnv, splitIndex]() {
+        tabMenu.addItem("Split left", canSplitTab, false, [cnv]() {
             auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
             auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
             auto* targetSplit = cnv->editor->splitView.splits[0];
             currentSplit->moveToSplit(targetSplit, cnv);
         });
-        tabMenu.addItem("Split right", canSplitTab, false, [this, cnv, splitIndex]() {
+        tabMenu.addItem("Split right", canSplitTab, false, [cnv]() {
             auto splitIdx = cnv->editor->splitView.getTabComponentSplitIndex(cnv->getTabbar());
             auto* currentSplit = cnv->editor->splitView.splits[splitIdx];
             auto* targetSplit = cnv->editor->splitView.splits.size() > 1 ? cnv->editor->splitView.splits[1] : nullptr;
@@ -252,15 +250,15 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
 
         tabMenu.addSeparator();
 
-        tabMenu.addItem("Close patch", true, false, [this, cnv, splitIndex]() {
+        tabMenu.addItem("Close patch", true, false, [cnv]() {
             cnv->editor->closeTab(cnv);
         });
 
-        tabMenu.addItem("Close all other patches", true, false, [this, cnv, splitIndex]() {
+        tabMenu.addItem("Close all other patches", true, false, [cnv]() {
             cnv->editor->closeAllTabs(false, cnv);
         });
 
-        tabMenu.addItem("Close all patches", true, false, [this, cnv, splitIndex]() {
+        tabMenu.addItem("Close all patches", true, false, [cnv]() {
             cnv->editor->closeAllTabs(false);
         });
 

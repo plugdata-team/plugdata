@@ -21,12 +21,12 @@ public:
 
     PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled, int idx, float minimum, float maximum)
         : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, defaultName)
-        , range(minimum, maximum, 0.000001f)
-        , defaultValue(def)
         , processor(*p)
-        , enabled(enabled)
-        , name(defaultName)
+        , defaultValue(def)
         , index(idx)
+        , range(minimum, maximum, 0.000001f)
+        , name(defaultName)
+        , enabled(enabled)
         , mode(Float)
     {
         value = range.convertFrom0to1(getDefaultValue());
@@ -237,7 +237,7 @@ public:
             float min = 0.0f, max = 1.0f;
             bool enabled = true;
             int index = i;
-            Mode mode;
+            Mode mode = Float;
 
             // Check for these values, they may not be there in legacy versions
             if (xmlParam->hasAttribute("name")) {

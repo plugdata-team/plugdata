@@ -12,15 +12,15 @@
 // Create one broadcaster class and attach listeners to that
 
 struct ModifierKeyListener {
-    virtual void shiftKeyChanged(bool isHeld) {};
-    virtual void commandKeyChanged(bool isHeld) {};
-    virtual void altKeyChanged(bool isHeld) {};
-    virtual void ctrlKeyChanged(bool isHeld) {};
+    virtual void shiftKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
+    virtual void commandKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
+    virtual void altKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
+    virtual void ctrlKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
 
-    virtual void spaceKeyChanged(bool isHeld) {};
-    virtual void middleMouseChanged(bool isHeld) {};
+    virtual void spaceKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
+    virtual void middleMouseChanged(bool isHeld) { ignoreUnused(isHeld); }
     
-    JUCE_DECLARE_WEAK_REFERENCEABLE(ModifierKeyListener);
+    JUCE_DECLARE_WEAK_REFERENCEABLE(ModifierKeyListener)
 };
 
 class ModifierKeyBroadcaster : private Timer {
@@ -150,7 +150,7 @@ private:
         setModifierKeys(mods);
     }
     
-    virtual bool isActiveWindow() { return true; };
+    virtual bool isActiveWindow() { return true; }
 
     bool shiftWasDown = false;
     bool commandWasDown = false;

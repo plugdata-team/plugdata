@@ -55,7 +55,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "a
   set(ENABLE_SFIZZ OFF)
 endif()
 
-
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
 cmake_policy(SET CMP0091 NEW)
@@ -72,8 +71,12 @@ if(ENABLE_ASAN)
 endif()
 
 if(MSVC)
-add_compile_options("/MP")
+  add_compile_options(/MP)
+  add_compile_options(/wd4244)
+else()
+  add_compile_options(-Wall -Wstrict-aliasing -Wuninitialized -Wno-conversion -Wno-implicit-int-conversion -Wno-overloaded-virtual)
 endif()
+
 
 message(STATUS "Preparing documentation")
 execute_process(COMMAND python3 parse_documentation.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
@@ -186,6 +189,7 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
     JUCE_USE_COREIMAGE_LOADER=0
     JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
+    JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=1
 )
 
 set(PLUGDATA_COMPILE_DEFINITIONS
@@ -197,7 +201,12 @@ set(PLUGDATA_COMPILE_DEFINITIONS
 )
 
 add_library(juce STATIC)
-target_compile_definitions(juce PUBLIC ${JUCE_COMPILE_DEFINITIONS})
+target_compile_definitions(juce 
+    PUBLIC 
+        ${JUCE_COMPILE_DEFINITIONS} 
+    INTERFACE
+        $<TARGET_PROPERTY:juce,COMPILE_DEFINITIONS>
+    )
 
 target_link_libraries(juce
     PRIVATE
@@ -205,9 +214,9 @@ target_link_libraries(juce
         juce::juce_audio_plugin_client
         juce::juce_dsp
     PUBLIC
-        juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
-        juce::juce_recommended_warning_flags)
+        #juce::juce_recommended_warning_flags
+        )
 
 set(libs
   juce

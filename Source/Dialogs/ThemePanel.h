@@ -214,7 +214,7 @@ public:
     void settingsFileReloaded() override
     {
         updateSwatches();
-    };
+    }
 
     void updateSwatches()
     {
@@ -411,11 +411,11 @@ public:
 
         panel.addSection("Manage themes", { resetButton, newButton, loadButton, saveButton, deleteButton });
 
-        primaryThemeSelector = new ThemeSelectorProperty("Primary Theme", [this, onThemeChange](const String& selectedThemeName) {
+        primaryThemeSelector = new ThemeSelectorProperty("Primary Theme", [onThemeChange](const String& selectedThemeName) {
             onThemeChange(0, selectedThemeName);
         });
 
-        secondaryThemeSelector = new ThemeSelectorProperty("Secondary Theme", [this, onThemeChange](const String& selectedThemeName) {
+        secondaryThemeSelector = new ThemeSelectorProperty("Secondary Theme", [onThemeChange](const String& selectedThemeName) {
             onThemeChange(1, selectedThemeName);
         });
 

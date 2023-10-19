@@ -34,9 +34,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , pd(parent->pd)
     , refCountedPatch(p)
     , patch(*p)
-    , pathUpdater(new ConnectionPathUpdater(this))
-    , graphArea(nullptr)
     , canvasOrigin(Point<int>(infiniteCanvasSize / 2, infiniteCanvasSize / 2))
+    , graphArea(nullptr)
+    , pathUpdater(new ConnectionPathUpdater(this))
 {
     if (auto patchPtr = patch.getPointer()) {
         isGraphChild = glist_isgraph(patchPtr.get());
@@ -1406,7 +1406,7 @@ void Canvas::alignObjects(Align alignment)
         });
     };
 
-    auto getBoundingBox = [this](Array<Object *> &objects) -> Rectangle<int> {
+    auto getBoundingBox = [](Array<Object *> &objects) -> Rectangle<int> {
         auto totalBounds = Rectangle<int>();
         for (auto* object : objects) {
             if (object->getPointer()) {
@@ -1567,8 +1567,8 @@ void Canvas::valueChanged(Value& v)
     if (v.refersToSameSourceAs(zoomScale)) {
 
         auto newScaleFactor = getValue<float>(v);
-
-        if (newScaleFactor == 0) {
+            
+        if (approximatelyEqual(newScaleFactor, 0.0f)) {
             newScaleFactor = 1.0f;
             zoomScale = 1.0f;
         }

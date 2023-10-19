@@ -360,7 +360,9 @@ list(APPEND ELSE_SOURCES
 if(MSVC)
 # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
 else(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-compare-distinct-pointer-types -Wno-pointer-sign -Wno-int-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types -Wno-parentheses -Wno-unused-value")
+    # These are the warning flags I need to get pd to compile withoout warnings
+    # Would be nice if these warnings were solved instead
+    add_compile_options(-Wno-format -Wno-conversion -Wno-implicit-int-conversion -Wno-compare-distinct-pointer-types -Wno-pointer-sign -Wno-int-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types -Wno-parentheses -Wno-unused-value)
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
 endif()
 

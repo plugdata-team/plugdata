@@ -510,7 +510,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         selectedConnection = true;
     }
 
-    popupMenu.addItem("Curved Connection", selectedConnection, selectedConnection && !noneSegmented, [editor, cnv, noneSegmented]() {
+    popupMenu.addItem("Curved Connection", selectedConnection, selectedConnection && !noneSegmented, [editor, noneSegmented]() {
         bool segmented = noneSegmented;
         auto* cnv = editor->getCurrentCanvas();
 
@@ -538,7 +538,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addSeparator();
     popupMenu.addItem(Properties, "Properties", (originalComponent == cnv || (object && !params.getParameters().isEmpty())) && !locked);
     // showObjectReferenceDialog
-    auto callback = [cnv, editor, object, originalComponent, params, position, selectedBoxes](int result) mutable {
+    auto callback = [cnv, editor, object, originalComponent, params, selectedBoxes](int result) mutable {
         cnv->grabKeyboardFocus();
 
         // Make sure that iolets don't hang in hovered state

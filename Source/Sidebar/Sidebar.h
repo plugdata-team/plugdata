@@ -9,15 +9,15 @@
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 
-struct Console;
-struct Inspector;
-struct DocumentBrowser;
-struct AutomationPanel;
-struct SearchPanel;
-struct PluginProcessor;
+class Console;
+class Inspector;
+class DocumentBrowser;
+class AutomationPanel;
+class SearchPanel;
+class PluginProcessor;
 
 namespace pd {
-struct Instance;
+class Instance;
 }
 
 

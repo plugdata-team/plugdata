@@ -220,7 +220,8 @@ void Instance::initialisePd(String& pdlua_version)
                 title = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
                 hasCallback = atom_getfloat(argv + 4);
             }
-
+            
+            // TODO: do we need to do something with hasCallback?
             static_cast<Instance*>(instance)->showTextEditor(ptr, Rectangle<int>(width, height), title);
 
             break;
@@ -474,16 +475,6 @@ void Instance::processMessage(Message mess)
     } else if (mess.destination == "databuffer") {
         fillDataBuffer(mess.list);
 
-    } else if (mess.selector == "bang") {
-        receiveBang(mess.destination);
-    } else if (mess.selector == "float") {
-        receiveFloat(mess.destination, mess.list[0].getFloat());
-    } else if (mess.selector == "symbol") {
-        receiveSymbol(mess.destination, mess.list[0].getSymbol());
-    } else if (mess.selector == "list") {
-        receiveList(mess.destination, mess.list);
-    } else {
-        receiveMessage(mess.destination, mess.selector, mess.list);
     }
 }
 
@@ -744,7 +735,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                 }
 
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
-                openChooser->launchAsync(folderChooserFlags, [this, obj, openMode, callback](FileChooser const& fileChooser) {
+                openChooser->launchAsync(folderChooserFlags, [this, obj, callback](FileChooser const& fileChooser) {
                     auto const files = fileChooser.getResults();
                     if (files.isEmpty())
                         return;

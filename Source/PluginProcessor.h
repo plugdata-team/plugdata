@@ -21,7 +21,7 @@ class Library;
 class InternalSynth;
 class SettingsFile;
 class StatusbarSource;
-class PlugDataLook;
+struct PlugDataLook;
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance {

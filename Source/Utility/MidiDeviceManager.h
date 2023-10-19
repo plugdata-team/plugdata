@@ -8,8 +8,10 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "Standalone/InternalSynth.h"
 
-struct MidiDeviceManager : public ChangeListener
+class MidiDeviceManager : public ChangeListener
     , public AsyncUpdater {
+        
+    public:
     // Helper functions to encode/decode regular MIDI events into a sysex event
     // The reason we do this, is that we want to append extra information to the MIDI event when it comes in from pd or the device, but JUCE won't allow this
     // We still want to be able to use handy JUCE stuff for MIDI timing, so we treat every MIDI event as sysex

@@ -50,7 +50,7 @@ public:
         setBufferedToImage(true);
     }
 
-    void labelTextChanged(Label* labelThatHasChanged) override {};
+    void labelTextChanged(Label* labelThatHasChanged) override {}
 
     void editorShown(Label* l, TextEditor& editor) override
     {
@@ -61,7 +61,7 @@ public:
         };
     }
 
-    void editorHidden(Label* l, TextEditor& editor) override
+    void editorHidden(Label*, TextEditor& editor) override
     {
         auto newValue = editor.getText().getDoubleValue();
         setValue(newValue, dontSendNotification);
@@ -130,7 +130,7 @@ public:
 
         newValue = limitValue(newValue);
 
-        if (lastValue != newValue) {
+        if (!approximatelyEqual(lastValue, newValue)) {
             lastValue = newValue;
 
             setText(String(newValue, 8), notification);
@@ -181,7 +181,6 @@ public:
             return;
 
         bool command = e.mods.isCommandDown();
-        bool shift = e.mods.isShiftDown();
 
         if (command && resetOnCommandClick) {
             if (wasReset) {
@@ -540,8 +539,6 @@ struct DraggableListNumber : public DraggableNumber {
     void updateListHoverPosition(int x)
     {
         int oldHoverPosition = hoveredDecimal;
-
-        Rectangle<float> position;
         auto [numberStart, numberEnd, numberValue] = getListItemAtPosition(x, &hoveredDecimalPosition);
 
         hoveredDecimal = numberStart;

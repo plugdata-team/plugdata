@@ -154,7 +154,6 @@ public:
         
         for (int i = 0; i < 4; i++) {
             Array<PropertiesPanel::Property*> panels;
-            int idx = 0;
             for (auto& parameter : objectParameters[0].getParameters()) {
                 auto& [name, type, category, value, options, defaultVal] = parameter;
                 if (static_cast<int>(category) == i) {
@@ -167,7 +166,6 @@ public:
                     auto newPanel = createPanel(type, name, value, options);
                     newPanel->setPreferredHeight(26);
                     panels.add(newPanel);
-                    idx++;
                 }
             }
             if (!panels.isEmpty()) {

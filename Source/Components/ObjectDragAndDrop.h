@@ -9,11 +9,11 @@
 class ObjectDragAndDrop : public Component
 {
 public:
-    ObjectDragAndDrop(){};
+    ObjectDragAndDrop() {}
     
     virtual String getObjectString() = 0;
 
-    virtual void dismiss(bool withAnimation){};
+    virtual void dismiss(bool withAnimation) {}
 
     void lookAndFeelChanged() override
     {
@@ -153,7 +153,7 @@ public:
             scale = 1.0f;
         }
 
-        if(animatedScale != scale)
+        if(!approximatelyEqual(animatedScale, scale))
         {
             animatedScale = scale;
             auto newWidth = dragImage.getWidth() / 3.0f * animatedScale;

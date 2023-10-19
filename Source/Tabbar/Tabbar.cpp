@@ -417,8 +417,8 @@ void TabComponent::onTabChange(int tabIndex)
 
     for (auto* split : editor->splitView.splits) {
         auto tabBar = split->getTabComponent();
-        if (split->getTabComponent()->getCurrentCanvas())
-            split->getTabComponent()->getCurrentCanvas()->tabChanged();
+        if (tabBar->getCurrentCanvas())
+            tabBar->getCurrentCanvas()->tabChanged();
     }
 }
 

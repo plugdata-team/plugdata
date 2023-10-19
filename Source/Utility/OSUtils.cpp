@@ -36,7 +36,9 @@ namespace filesystem = experimental::filesystem;
 }
 #    endif
 #else
-#    include "../Libraries/cpath/cpath.h"
+
+#include "../Libraries/cpath/cpath.h"
+
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -335,7 +337,7 @@ static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool re
         auto isDir = file->IsDir();
 
         if (isDir && recursive && !file->IsSpecialHardLink()) {
-            result.addArray(iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles, maximum));
+            result.addArray(iterateDirectoryRecurse(file->ToDir().GetRaw(), recursive, onlyFiles, maximum));
         }
         if ((isDir && !onlyFiles) || !isDir) {
             result.add(juce::File(juce::String::fromUTF8(file->GetPath().GetRawPath()->buf)));

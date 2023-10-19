@@ -13,7 +13,7 @@ class ImageWithOffset {
 public:
     ImageWithOffset(Image const& withImage = Image(), Point<int> withOffset = Point<int>())
         : image(withImage)
-        , offset(withOffset) {};
+        , offset(withOffset) {}
     Image image;
     Point<int> offset;
 };

@@ -143,8 +143,8 @@ public:
 
 HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     : exportingView(new ExportingProgressView())
-    , exporterPanel(new ExporterSettingsPanel(dynamic_cast<PluginEditor*>(dialog->parentComponent), exportingView.get()))
     , installer(new ToolchainInstaller(dynamic_cast<PluginEditor*>(dialog->parentComponent)))
+    , exporterPanel(new ExporterSettingsPanel(dynamic_cast<PluginEditor*>(dialog->parentComponent), exportingView.get()))
     , infoButton(new MainToolbarButton(Icons::Help))
 {
     hasToolchain = Toolchain::dir.exists();

@@ -1,5 +1,4 @@
 #pragma clang diagnostic push
-#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 /*
  // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -86,7 +85,7 @@ private:
     inline static Array<File> tempFilesToDelete;
 };
 
-struct ToolchainInstaller : public Component
+class ToolchainInstaller : public Component
     , public Thread
     , public Timer {
 
@@ -94,7 +93,7 @@ struct ToolchainInstaller : public Component
     {
         repaint();
     }
-
+public:
     explicit ToolchainInstaller(PluginEditor* pluginEditor)
         : Thread("Toolchain Install Thread")
         , editor(pluginEditor)

@@ -45,7 +45,7 @@ public:
 
     pd::Patch* subpatch = nullptr;
 
-    JUCE_DECLARE_WEAK_REFERENCEABLE(SubpatchImpl);
+    JUCE_DECLARE_WEAK_REFERENCEABLE(SubpatchImpl)
 };
 
 // Wrapper for Pd's key, keyup and keyname objects
@@ -469,6 +469,9 @@ public:
                 canvasToFind = mouse->x_canvas;
             }
         }
+        else {
+            return;
+        }
 
         cnv = getMainCanvas(canvasToFind);
 
@@ -663,13 +666,13 @@ public:
         lastScale = getValue<float>(zoomScaleValue);
     }
 
-    void valueChanged(Value& v) override
+    void valueChanged(Value&) override
     {
         if (pd->isPerformingGlobalSync)
             return;
 
         auto newScale = getValue<float>(zoomScaleValue);
-        if (lastScale != newScale) {
+        if (!approximatelyEqual(lastScale, newScale)) {
             if (auto zoom = ptr.get<t_fake_zoom>()) {
                 outlet_float(zoom->x_obj.ob_outlet, newScale);
             }
@@ -846,13 +849,13 @@ public:
     {
         pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
         
-        mouseListener.globalMouseDown = [this, pd](const MouseEvent& e){
+        mouseListener.globalMouseDown = [this](const MouseEvent& e){
             if(auto obj = this->ptr.get<t_object>())
             {
                 outlet_float(obj->ob_outlet, 1.0f);
             }
         };
-        mouseListener.globalMouseUp = [this, pd](const MouseEvent& e){
+        mouseListener.globalMouseUp = [this](const MouseEvent& e){
             if(auto obj = this->ptr.get<t_object>())
             {
                 outlet_float(obj->ob_outlet, 0.0f);
@@ -899,11 +902,6 @@ public:
 class KeycodeObject final : public ImplementationBase
     //, public KeyListener
 , public ModifierKeyListener {
-    
-    int const shiftKey = -1;
-    int const commandKey = -2;
-    int const altKey = -3;
-    int const ctrlKey = -4;
     
 public:
     

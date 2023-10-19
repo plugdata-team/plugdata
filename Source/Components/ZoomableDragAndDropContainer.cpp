@@ -59,12 +59,12 @@ public:
         bool canZoom)
         : sourceDetails(desc, sourceComponent, Point<int>())
         , image(im)
+        , isZoomable(canZoom)
         , owner(ddc)
         , mouseDragSource(draggingSource->getComponentUnderMouse())
         , imageOffset(transformOffsetCoordinates(sourceComponent, offset))
         , originalInputSourceIndex(draggingSource->getIndex())
         , originalInputSourceType(draggingSource->getType())
-        , isZoomable(canZoom)
     {
         if (dynamic_cast<ObjectDragAndDrop*>(sourceComponent))
             isObjectItem = true;

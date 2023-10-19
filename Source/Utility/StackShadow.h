@@ -1149,6 +1149,6 @@ private:
     std::unique_ptr<ParentVisibilityChangedListener> visibilityChangedListener;
     std::unique_ptr<VirtualDesktopWatcher> virtualDesktopWatcher;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StackDropShadower);
-    JUCE_DECLARE_WEAK_REFERENCEABLE(StackDropShadower);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StackDropShadower)
+    JUCE_DECLARE_WEAK_REFERENCEABLE(StackDropShadower)
 };

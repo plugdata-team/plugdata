@@ -78,11 +78,11 @@ class ObjectsListBox : public ListBox
         {
         public:
             ObjectListBoxItem(ListBox* parent, const String& name, const String& description, bool isSelected, std::function<void(bool shouldFade)> dismissDialog)
-                : rowIsSelected(isSelected)
+                : objectName(name)
+                , objectDescription(description)
+                , rowIsSelected(isSelected)
                 , objectsListBox(parent)
                 , dismissMenu(dismissDialog)
-                , objectName(name)
-                , objectDescription(description)
             {
             }
 
@@ -135,12 +135,12 @@ class ObjectsListBox : public ListBox
                     dismissMenu(false);
             }
 
-            void dismiss(bool withAnimation)
+            void dismiss(bool withAnimation) override
             {
                 dismissMenu(withAnimation);
             }
 
-            String getObjectString()
+            String getObjectString() override
             {
                 return "#X obj 0 0 " + objectName;
             }
@@ -260,7 +260,7 @@ public:
         objectName = name;
     }
 
-    String getObjectString()
+    String getObjectString() override
     {
         return "#X obj 0 0 " + objectName;
     }
@@ -312,9 +312,9 @@ class ObjectViewer : public Component {
 
 public:
     ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference, std::function<void(bool shouldFade)> dismissMenu)
-        : reference(objectReference)
+        : objectDragArea(dismissMenu)
         , library(*editor->pd->objectLibrary)
-        , objectDragArea(dismissMenu)
+        , reference(objectReference)
     {
         setInterceptsMouseClicks(false, true);
 
@@ -326,7 +326,7 @@ public:
             reference.showObject(objectName);
         };
 
-        openHelp.onClick = [editor]() {
+        openHelp.onClick = []() {
             // TODO: implement this!
         };
 

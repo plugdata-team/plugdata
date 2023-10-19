@@ -45,20 +45,6 @@
 #    define snprintf _snprintf
 #endif
 
-static char const* strtokcpy(char* to, size_t to_len, char const* from, char delim)
-{
-    unsigned int i = 0;
-
-    for (; i < (to_len - 1) && from[i] && from[i] != delim; i++)
-        to[i] = from[i];
-    to[i] = '\0';
-
-    if (i && from[i] != '\0')
-        return from + i + 1;
-
-    return nullptr;
-}
-
 class PlugDataApp : public JUCEApplication {
 
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);

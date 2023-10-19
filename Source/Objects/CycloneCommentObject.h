@@ -325,8 +325,8 @@ public:
             Object* object;
 
             CycloneCommentObjectBoundsConstrainer(Object* obj, CycloneCommentObject* parent)
-                : object(obj)
-                , commentObject(parent)
+            : commentObject(parent)
+            , object(obj)
             {
             }
             /*

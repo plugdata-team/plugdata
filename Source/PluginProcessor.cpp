@@ -809,7 +809,7 @@ void PluginProcessor::sendParameters()
             continue;
 
         auto newvalue = pldParam->getUnscaledValue();
-        if (pldParam->getLastValue() != newvalue) {
+        if (!approximatelyEqual(pldParam->getLastValue(), newvalue)) {
             auto title = pldParam->getTitle();
             sendFloat(title.toRawUTF8(), pldParam->getUnscaledValue());
             pldParam->setLastValue(newvalue);
@@ -1091,7 +1091,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     if (xmlState) {
         // If xmltree contains new patch format, use that
         if (auto* patchTree = xmlState->getChildByName("Patches")) {
-            forEachXmlChildElementWithTagName(*patchTree, p, "Patch")
+            for(auto p : patchTree->getChildWithTagNameIterator("Patch"))
             {
                 auto content = p->getStringAttribute("Content");
                 auto location = p->getStringAttribute("Location");
@@ -1478,7 +1478,7 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
                             // check if string is a valid number
                             auto charptr = word.getCharPointer();
                             auto ptr = charptr;
-                            auto value = CharacterFunctions::readDoubleValue(ptr);
+                            CharacterFunctions::readDoubleValue(ptr); // Removes double value from char*
                             if(*charptr == ',')
                             {
                                 SETCOMMA(&atoms.back());

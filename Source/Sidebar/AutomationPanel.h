@@ -61,7 +61,7 @@ public:
         deleteButton.setTooltip("Remove parameter");
         settingsButton.setTooltip("Expand settings");
 
-        settingsButton.onClick = [this, parentComponent]() mutable {
+        settingsButton.onClick = [this]() mutable {
             bool toggleState = settingsButton.getToggleState();
 
             rangeProperty.setVisible(toggleState);

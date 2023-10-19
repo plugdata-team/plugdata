@@ -33,8 +33,8 @@ extern "C" {
 
 Object::Object(Canvas* parent, String const& name, Point<int> position)
     : cnv(parent)
-    , ds(parent->dragState)
     , gui(nullptr)
+    , ds(parent->dragState)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
 
@@ -54,8 +54,8 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
 }
 
 Object::Object(t_gobj* object, Canvas* parent)
-    : ds(parent->dragState)
-    , gui(nullptr)
+: gui(nullptr)
+, ds(parent->dragState)
 {
     cnv = parent;
 
@@ -247,8 +247,6 @@ void Object::mouseMove(MouseEvent const& e)
          && !b.reduced(7).contains(e.position))
     {
         auto corners = getCorners();
-        bool done = false;
-        
         auto minW = jmax(b.getWidth() / 10.0f, jmin (10.0f, b.getWidth() / 3.0f));
         auto minH = jmax(b.getHeight() / 10.0f, jmin (10.0f, b.getHeight() / 3.0f));
         
@@ -325,7 +323,7 @@ void Object::setType(String const& newType, t_gobj* existingObject)
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
-    t_gobj* objectPtr;
+    t_gobj* objectPtr = nullptr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
     if (!existingObject) {
@@ -772,7 +770,7 @@ void Object::updateIolets()
         auto* iolet = iolets[i];
         bool input = iolet->isInlet;
 
-        bool isSignal;
+        bool isSignal = false;
         auto* patchableObject = pd::Interface::checkObject(getPointer());
         if (patchableObject && i < numInputs) {
             isSignal = pd::Interface::isSignalInlet(patchableObject, i);

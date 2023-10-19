@@ -7,10 +7,12 @@
 
 namespace pd {
 
-struct MessageListener {
-    virtual void receiveMessage(String const& name, int argc, t_atom* argv) {};
+class MessageListener {
+    
+public:
+    virtual void receiveMessage(String const& name, int argc, t_atom* argv) = 0;
 
-    JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener);
+    JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener)
 };
 
 }

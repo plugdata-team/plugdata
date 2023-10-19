@@ -42,7 +42,6 @@ public:
         bool mouseOver = isOver();
         bool active = mouseOver || isDown() || getToggleState();
 
-        auto cornerSize = Corners::defaultCornerRadius;
         auto flatOnLeft = isConnectedOnLeft();
         auto flatOnRight = isConnectedOnRight();
         auto flatOnTop = isConnectedOnTop();
@@ -143,9 +142,6 @@ public:
         auto textColour = findColour(PlugDataColour::toolbarTextColourId);
         auto boldFont = Fonts::getBoldFont().withHeight(13.5f);
         auto iconFont = Fonts::getIconFont().withHeight(13.5f);
-
-        auto textWidth = boldFont.getStringWidth(text);
-        auto iconWidth = iconFont.getStringWidth(icon);
 
         AttributedString attrStr;
         attrStr.setJustification(Justification::centred);

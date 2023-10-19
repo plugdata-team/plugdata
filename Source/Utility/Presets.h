@@ -17,82 +17,8 @@ struct Presets {
         { "Bulgroz", "AQAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAAA6AQAAVkMyITEBAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI0NjEiIEhlaWdodD0iMjAxIiBQbHVnaW5Nb2RlPSJCdWxncm96LnBkIj48UGF0Y2hlcz48UGF0Y2ggQ29udGVudD0iIiBMb2NhdGlvbj0iJHtQUkVTRVRfRElSfS9CdWxncm96L0J1bGdyb3oucGQiIFBsdWdpbk1vZGU9IjEiLz48L1BhdGNoZXM+PC9wbHVnZGF0YV9zYXZlPgA=" },
         { "Pong", "AQAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAAAxAQAAVkMyISgBAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSI1MDAiIEhlaWdodD0iNTIwIiBQbHVnaW5Nb2RlPSJQb25nLnBkIj48UGF0Y2hlcz48UGF0Y2ggQ29udGVudD0iIiBMb2NhdGlvbj0iJHtQUkVTRVRfRElSfS9Qb25nL1BvbmcucGQiIFBsdWdpbk1vZGU9IjEiLz48L1BhdGNoZXM+PC9wbHVnZGF0YV9zYXZlPgA=" }
     };
-
-    static bool fixPresets()
-    {
-        for (auto& [name, content] : presets) {
-            std::cout << "name: " << name << std::endl;
-            fixPreset(content);
-        }
-
-        return true;
-    }
-    static void fixPreset(String const& preset)
-    {
-        MemoryOutputStream b64_ostream;
-        Base64::convertFromBase64(b64_ostream, preset);
-
-        MemoryInputStream istream(b64_ostream.getData(), b64_ostream.getDataSize(), true);
-
-        istream.readInt();
-        // jassert(istream.readInt() == 1);
-
-        int numPatches = 1;
-
-        istream.readString();
-        auto patchFile = istream.readString();
-
-        auto latency = istream.readInt();
-        auto oversampling = istream.readInt();
-        auto tailLength = istream.readFloat();
-
-        auto xmlSize = istream.readInt();
-
-        auto* xmlData = new char[xmlSize];
-        istream.read(xmlData, xmlSize);
-
-        std::unique_ptr<XmlElement> xmlState(AudioProcessor::getXmlFromBinary(xmlData, xmlSize));
-
-        auto* patches = new XmlElement("Patches");
-        auto* patch = new XmlElement("Patch");
-
-        patch->setAttribute("Content", "");
-        patch->setAttribute("Location", patchFile);
-        patch->setAttribute("PluginMode", true);
-
-        patches->addChildElement(patch);
-        xmlState->addChildElement(patches);
-
-        MemoryBlock outBlock;
-
-        // Now reconstruct the modified save file
-        MemoryOutputStream ostream(outBlock, false);
-
-        ostream.writeInt(1);
-
-        ostream.writeString("");
-        ostream.writeString("${PRESET_DIR}/" + patchFile.fromFirstOccurrenceOf("Extra/Presets/", false, false));
-
-        ostream.writeInt(latency);
-        ostream.writeInt(oversampling);
-        ostream.writeFloat(tailLength);
-
-        MemoryBlock xmlBlock;
-        AudioProcessor::copyXmlToBinary(*xmlState, xmlBlock);
-        ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
-        ostream.write(xmlBlock.getData(), xmlBlock.getSize());
-
-        auto block = ostream.getMemoryBlock();
-
-        MemoryOutputStream base64_ostream;
-        Base64::convertToBase64(base64_ostream, block.getData(), block.getSize());
-        auto result = base64_ostream.toString();
-        std::cout << result << std::endl;
-        SystemClipboard::copyTextToClipboard(result);
-    }
-
-    // static inline bool wasRan = fixPresets();
-
+    
+    /* Helper function for creating presets
     static void createPreset(AudioProcessor* processor)
     {
         File presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
@@ -163,5 +89,5 @@ struct Presets {
         auto result = base64_ostream.toString();
         std::cout << result << std::endl;
         SystemClipboard::copyTextToClipboard(result);
-    }
+    } */
 };

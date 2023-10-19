@@ -100,9 +100,9 @@ public:
                 finish(Result::fail("Failed to start download"));
                 return;
             }
-        };
+        }
 
-        ~DownloadTask()
+        ~DownloadTask() override
         {
             stopThread(-1);
         }
@@ -733,7 +733,7 @@ private:
         {
             listBox.updateContent();
 
-            auto* model = listBox.getModel();
+            auto* model = listBox.getListBoxModel();
             auto height = model ? model->getNumRows() * listBox.getRowHeight() : viewport.getParentComponent()->getHeight();
             listBox.setBounds(getLocalBounds().reduced(20, 18).withHeight(height));
             setSize(getWidth(), height + 26);
@@ -746,7 +746,7 @@ private:
 
         void paint(Graphics& g) override
         {
-            auto* model = listBox.getModel();
+            auto* model = listBox.getListBoxModel();
             if (!model || !model->getNumRows())
                 return;
 
@@ -782,8 +782,6 @@ private:
     SettingsToolbarButton installedButton = SettingsToolbarButton(Icons::Checkmark, "Installed");
     SettingsToolbarButton exploreButton = SettingsToolbarButton(Icons::Sparkle, "Explore");
     
-    bool showInstalledPackages = false;
-
     PackageManager* packageManager = PackageManager::getInstance();
 
     SearchEditor input;
@@ -809,10 +807,10 @@ private:
 
         DekenRowComponent(Deken& parent, PackageInfo& info, bool first, bool last)
             : deken(parent)
-            , isFirst(first)
-            , isLast(last)
             , packageInfo(info)
             , packageState(deken.packageManager->packageState)
+            , isFirst(first)
+            , isLast(last)
         {
             addChildComponent(installButton);
             addChildComponent(uninstallButton);

@@ -51,7 +51,7 @@ static bool drawWindowShadow = true;
 
 namespace pd {
 class Patch;
-};
+}
 
 class PlugDataProcessorPlayer : public AudioProcessorPlayer {
 public:

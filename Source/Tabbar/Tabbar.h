@@ -203,7 +203,7 @@ class TabComponent : public Component
 
 public:
     TabComponent(PluginEditor* editor);
-    ~TabComponent();
+    ~TabComponent() override;
 
     void onTabMoved();
     void onTabChange(int tabIndex);
@@ -219,7 +219,7 @@ public:
     int getNumTabs() const noexcept { return tabs->getNumTabs(); }
     int getNumVisibleTabs();
     void removeTab(int idx);
-    int getTabBarDepth() const noexcept { return tabDepth; };
+    int getTabBarDepth() const noexcept { return tabDepth; }
     void changeCallback(int newCurrentTabIndex, String const& newTabName);
 
     void openProject();

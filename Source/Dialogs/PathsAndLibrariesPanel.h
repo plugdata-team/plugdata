@@ -16,9 +16,9 @@ class ActionButton : public Component {
 
 public:
     ActionButton(String iconToShow, String textToShow, bool roundOnTop = false)
-        : icon(std::move(iconToShow))
-        , text(std::move(textToShow))
-        , roundTop(roundOnTop)
+    : roundTop(roundOnTop)
+    , icon(std::move(iconToShow))
+    , text(std::move(textToShow))
     {
     }
 
@@ -144,7 +144,7 @@ public:
     int getNumRows() override
     {
         return paths.size();
-    };
+    }
 
     std::pair<int, int> getContentXAndWidth()
     {

@@ -20,10 +20,10 @@ public:
     };
 
     GraphicalArray(PluginProcessor* instance, void* ptr, Object* parent)
-        : arr(ptr, instance)
+        : object(parent)
+        , arr(ptr, instance)
         , edited(false)
         , pd(instance)
-        , object(parent)
     {
         vec.reserve(8192);
         temp.reserve(8192);
@@ -43,7 +43,7 @@ public:
 
     void receiveMessage(String const& name, int argc, t_atom* argv) override {
         std::cout << name << std::endl;
-    };
+    }
         
     void setArray(void* array)
     {
@@ -336,7 +336,7 @@ public:
                 float min = cnv->gl_y2;
                 float max = cnv->gl_y1;
                 
-                if (min == max)
+                if (approximatelyEqual(min, max))
                     max += 1e-6;
 
                 return {min, max};
@@ -601,7 +601,7 @@ public:
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<ObjectLabel>(object);
+                label = std::make_unique<ObjectLabel>();
             }
 
             auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2);

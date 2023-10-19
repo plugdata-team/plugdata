@@ -13,7 +13,7 @@
 
 
 struct SettingsDialogPanel : public Component {
-    virtual PropertiesPanel* getPropertiesPanel() { return nullptr; };
+    virtual PropertiesPanel* getPropertiesPanel() { return nullptr; }
 };
 
 #include "AudioSettingsPanel.h"
@@ -27,7 +27,8 @@ class SettingsDialog : public Component {
 
 public:
     explicit SettingsDialog(PluginEditor* pluginEditor)
-        : editor(pluginEditor), processor(dynamic_cast<PluginProcessor*>(pluginEditor->getAudioProcessor()))
+        : processor(dynamic_cast<PluginProcessor*>(pluginEditor->getAudioProcessor()))
+        , editor(pluginEditor)
     {
         setVisible(false);
 

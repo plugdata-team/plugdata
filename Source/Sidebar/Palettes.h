@@ -281,8 +281,7 @@ public:
 class PaletteComponent : public Component {
 public:
     PaletteComponent(PluginEditor* e, ValueTree tree)
-        : editor(e)
-        , paletteTree(tree)
+        : paletteTree(tree)
     {
         paletteDraggableList = new PaletteDraggableList(e, tree);
 
@@ -309,7 +308,7 @@ public:
         };
 
         addAndMakeVisible(nameLabel);
-    };
+    }
 
     ~PaletteComponent()
     {
@@ -355,7 +354,6 @@ public:
 
 private:
     PaletteDraggableList* paletteDraggableList;
-    PluginEditor* editor;
     ValueTree paletteTree;
     BouncingViewport viewport;
 
@@ -473,7 +471,7 @@ public:
 
         palettesTree.addListener(this);
 
-        addButton.onClick = [this, e]() {
+        addButton.onClick = [this]() {
             PopupMenu menu;
             menu.addItem(1, "New palette");
 
@@ -552,7 +550,7 @@ private:
         if (name == "show_palettes") {
             setVisible(static_cast<bool>(value));
         }
-    };
+    }
 
     bool hitTest(int x, int y) override
     {

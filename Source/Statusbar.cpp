@@ -249,7 +249,6 @@ public:
         auto x = 6.0f;
 
         auto outerBorderWidth = 2.0f;
-        auto spacingFraction = 0.08f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
         auto bgHeight = getHeight() - doubleOuterBorderWidth;
         auto bgWidth = width - doubleOuterBorderWidth;
@@ -304,13 +303,13 @@ public:
     {
         blinkMidiIn = midiReceived;
         repaint();
-    };
+    }
 
     void midiSentChanged(bool midiSent) override
     {
         blinkMidiOut = midiSent;
         repaint();
-    };
+    }
 
     bool blinkMidiIn = false;
     bool blinkMidiOut = false;
@@ -341,7 +340,7 @@ public:
 
     void cpuUsageChanged(float newCpuUsage) override {
         cpuUsage = newCpuUsage;
-    };
+    }
 
     float cpuUsage = 0.0f;
     int cpuUsageToDraw = 0;

@@ -20,7 +20,7 @@ class Patch;
 }
 
 class SuggestionComponent;
-struct GraphArea;
+class GraphArea;
 class Iolet;
 class Object;
 class Connection;
@@ -184,7 +184,7 @@ public:
     Value hideNameAndArgs = SynchronousValue(var(false));
     Value xRange = SynchronousValue();
     Value yRange = SynchronousValue();
-    Value patchWidth = SynchronousValue()
+    Value patchWidth = SynchronousValue();
     Value patchHeight = SynchronousValue();
 
     Value zoomScale;

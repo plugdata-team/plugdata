@@ -279,7 +279,7 @@ public:
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<ObjectLabel>(object);
+                label = std::make_unique<ObjectLabel>();
             }
 
             auto bounds = getLabelBounds();
@@ -324,7 +324,7 @@ public:
 
         int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
 
-        int labelPosition;
+        int labelPosition = 0;
         if (auto atom = ptr.get<t_fake_gatom>()) {
             labelPosition = atom->a_wherelabel;
         }

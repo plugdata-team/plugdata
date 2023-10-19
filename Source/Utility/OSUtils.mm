@@ -110,7 +110,7 @@ OSUtils::ScrollTracker::ScrollTracker()
     
     NSEventMask scrollEventMask = NSEventMaskScrollWheel;
             [NSEvent addLocalMonitorForEventsMatchingMask:scrollEventMask handler:^NSEvent* (NSEvent* event) {
-                [observer scrollEventOccurred:event];
+                [(ScrollEventObserver*)observer scrollEventOccurred:event];
                 return event;
             }];
 }

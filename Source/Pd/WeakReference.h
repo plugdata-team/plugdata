@@ -66,7 +66,7 @@ struct WeakReference {
         pd_weak_reference const& weakRef;
         T* ptr;
 
-        JUCE_DECLARE_NON_COPYABLE(Ptr);
+        JUCE_DECLARE_NON_COPYABLE(Ptr)
     };
 
     template<typename T>

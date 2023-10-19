@@ -17,9 +17,9 @@ class Dialog : public Component {
 
 public:
     Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0)
-        : parentComponent(editor)
-        , height(childHeight)
+        : height(childHeight)
         , width(childWidth)
+        , parentComponent(editor)
         , owner(ownerPtr)
         , backgroundMargin(margin)
     {

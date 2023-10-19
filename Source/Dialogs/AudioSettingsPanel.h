@@ -165,9 +165,9 @@ class StandaloneAudioSettings : public SettingsDialogPanel
 
 public:
     explicit StandaloneAudioSettings(AudioDeviceManager& audioDeviceManager)
-        : deviceManager(audioDeviceManager)
-        , inputLevelMeter(audioDeviceManager.getInputLevelGetter())
+        : inputLevelMeter(audioDeviceManager.getInputLevelGetter())
         , outputLevelMeter(audioDeviceManager.getOutputLevelGetter())
+        , deviceManager(audioDeviceManager)
     {
         deviceManager.addChangeListener(this);
         addAndMakeVisible(audioPropertiesPanel);

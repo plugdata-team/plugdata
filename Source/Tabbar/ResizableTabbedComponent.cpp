@@ -158,6 +158,9 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
         }
         resizerLeft = resizer;
     }
+    else {
+        return;
+    }
 
     // update the bounds of the new and existing split using the resizer factors
     newSplit->setBoundsWithFactors(getParentComponent()->getLocalBounds());
@@ -435,41 +438,37 @@ void ResizableTabbedComponent::updateDropZones()
     /*
     DROP ZONE ARRANGEMENT
     ┌─────────────────────────┐
-    │0          TAB          1│
-    ├─────────────────────────┤
-    │5                       2│
+    │3                       0│
     │ \                     / │
     │  \        TOP        /  │
     │   \                 /   │
     │    ┌───────────────┐    │
-    │    │9             6│    │
+    │    │7             4│    │
     │ L  │   TAB CENTRE  │ R  │
-    │    │8             7│    │
+    │    │6             5│    │
     │    └───────────────┘    │
     │   /                 \   │
     │  /      BOTTOM       \  │
     │ /                     \ │
-    │4                       3│
+    │2                       1│
     └─────────────────────────┘
     */
 
-    auto point_0 = localBounds.getTopLeft();
-    auto point_1 = localBounds.getTopRight();
-    auto point_2 = canvasBounds.getTopRight();
-    auto point_3 = canvasBounds.getBottomRight();
-    auto point_4 = canvasBounds.getBottomLeft();
-    auto point_5 = canvasBounds.getTopLeft();
-    auto point_6 = innerRect.getTopRight();
-    auto point_7 = innerRect.getBottomRight();
-    auto point_8 = innerRect.getBottomLeft();
-    auto point_9 = innerRect.getTopLeft();
+    auto point_0 = canvasBounds.getTopRight();
+    auto point_1 = canvasBounds.getBottomRight();
+    auto point_2 = canvasBounds.getBottomLeft();
+    auto point_3 = canvasBounds.getTopLeft();
+    auto point_4 = innerRect.getTopRight();
+    auto point_5 = innerRect.getBottomRight();
+    auto point_6 = innerRect.getBottomLeft();
+    auto point_7 = innerRect.getTopLeft();
 
     Path zoneLeft, zoneTop, zoneRight, zoneBottom, zoneTabCentre, zoneTab;
 
-    zoneLeft.addQuadrilateral(point_5.x, point_5.y, point_9.x, point_9.y, point_8.x, point_8.y, point_4.x, point_4.y);
-    zoneTop.addQuadrilateral(point_5.x, point_5.y, point_2.x, point_2.y, point_6.x, point_6.y, point_9.x, point_9.y);
-    zoneRight.addQuadrilateral(point_6.x, point_6.y, point_2.x, point_2.y, point_3.x, point_3.y, point_7.x, point_7.y);
-    zoneBottom.addQuadrilateral(point_8.x, point_8.y, point_7.x, point_7.y, point_3.x, point_3.y, point_4.x, point_4.y);
+    zoneLeft.addQuadrilateral(point_3.x, point_3.y, point_7.x, point_7.y, point_6.x, point_6.y, point_2.x, point_2.y);
+    zoneTop.addQuadrilateral(point_3.x, point_3.y, point_0.x, point_0.y, point_4.x, point_4.y, point_7.x, point_7.y);
+    zoneRight.addQuadrilateral(point_4.x, point_4.y, point_0.x, point_0.y, point_1.x, point_1.y, point_5.x, point_5.y);
+    zoneBottom.addQuadrilateral(point_6.x, point_6.y, point_5.x, point_5.y, point_1.x, point_1.y, point_2.x, point_2.y);
     zoneTabCentre.addRectangle(innerRect);
     zoneTab.addRectangle(tabbarBounds);
 

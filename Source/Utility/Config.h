@@ -62,7 +62,7 @@ inline void setValueExcludingListener(Value& parameter, var const& value, Value:
 }
 
 
-static String getRelativeTimeDescription(String const& timestampString)
+static inline String getRelativeTimeDescription(String const& timestampString)
 {
     StringArray dateAndTime = StringArray::fromTokens(timestampString, true);
     StringArray dateComponents = StringArray::fromTokens(dateAndTime[0], "-", "");
@@ -80,10 +80,10 @@ static String getRelativeTimeDescription(String const& timestampString)
     Time currentTime = Time::getCurrentTime();
     RelativeTime relativeTime = currentTime - timestamp;
 
-    int years = relativeTime.inDays() / 365;
-    int months = relativeTime.inDays() / 30;
-    int weeks = relativeTime.inWeeks();
-    int days = relativeTime.inDays();
+    int years = static_cast<int>(relativeTime.inDays() / 365);
+    int months = static_cast<int>(relativeTime.inDays() / 30);
+    int weeks = static_cast<int>(relativeTime.inWeeks());
+    int days = static_cast<int>(relativeTime.inDays());
 
     if (years == 1)
         return String(years) + " year ago";

@@ -53,7 +53,7 @@ public:
         }
 
         isGraphChild = graph;
-    };
+    }
 
     void mouseDown(MouseEvent const& e) override
     {

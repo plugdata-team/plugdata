@@ -43,14 +43,14 @@ public:
     pd::WeakReference scalar;
 
     DrawableTemplate(t_scalar* object, t_word* scalarData, t_template* scalarTemplate, t_template* parentTemplate, Canvas* cnv, int x, int y)
-        : scalar(object, cnv->pd)
+        : pd(cnv->pd)
         , canvas(cnv)
-        , pd(cnv->pd)
         , baseX(x)
         , baseY(y)
         , data(scalarData)
         , templ(scalarTemplate)
         , parentTempl(parentTemplate ? parentTemplate : scalarTemplate)
+        , scalar(object, cnv->pd)
     {
         pd->registerMessageListener(scalar.getRawUnchecked<void>(), this);
         triggerAsyncUpdate();
@@ -66,7 +66,7 @@ public:
         if (name == "redraw") {
             triggerAsyncUpdate();
         }
-    };
+    }
 
     void handleAsyncUpdate()
     {
@@ -406,7 +406,6 @@ public:
             return;
 
         auto* x = reinterpret_cast<t_fake_drawnumber*>(object);
-        t_atom at;
 
         int xloc = 0, yloc = 0;
         if (auto glist = canvas->patch.getPointer()) {
@@ -559,7 +558,6 @@ public:
         for (xsum = xloc, i = 0; i < nelem; i++)
         {
             t_float usexloc, useyloc;
-            t_gobj *y;
         
             if (xonset >= 0)
                 usexloc = baseX + xloc +
@@ -578,7 +576,6 @@ public:
                 pd_getparentwidget(&y->g_pd);
                 if (!wb) continue;
                 
-                Component* drawable = nullptr;
                 auto name = String::fromUTF8(y->g_pd->c_name->s_name);
                 if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
                     drawables.add(new DrawableSymbol(s, y, subData, elemtemplate, canvas, static_cast<int>(usexloc), static_cast<int>(useyloc), templ));
@@ -609,15 +606,13 @@ public:
         t_canvas *elemtemplatecanvas;
         t_template *elemtemplate;
         t_symbol *elemtemplatesym;
-        t_float linewidth, xloc, xinc, yloc, style, yval,
+        t_float linewidth, xloc, xinc, yloc, style,
         vis, scalarvis, edit;
         double xsum;
         t_array *array;
         int nelem;
         char *elem;
         t_fake_fielddesc *xfielddesc, *yfielddesc, *wfielddesc;
-        char tag[80], tag0[80];
-        const char*tags[] = {tag, tag0, "array"};
         
         /* even if the array is "invisible", if its visibility is
          set by an instance variable you have to explicitly erase it,
@@ -647,7 +642,7 @@ public:
         
         Path toDraw;
         
-        if (style == PLOTSTYLE_POINTS)
+        if (static_cast<int>(style) == PLOTSTYLE_POINTS)
         {
             t_float minyval = 1e20, maxyval = -1e20;
             int ndrawn = 0;
@@ -658,7 +653,7 @@ public:
             
             for (xsum = baseX + xloc, i = 0; i < nelem; i++)
             {
-                t_float yval, xpix, ypix, nextxloc, usexloc;
+                t_float yval, usexloc;
                 int ixpix, inextx;
                 
                 if (xonset >= 0)
@@ -901,7 +896,6 @@ struct ScalarObject final : public ObjectBase {
             if (!wb)
                 continue;
 
-            Component* drawable = nullptr;
             auto name = String::fromUTF8(y->g_pd->c_name->s_name);
             if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
                 cnv->addAndMakeVisible(templates.add(new DrawableSymbol(x, y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
@@ -937,6 +931,7 @@ struct ScalarObject final : public ObjectBase {
         }
     }
 
-    Rectangle<int> getPdBounds() override { return { 0, 0, 0, 0 }; };
-    void setPdBounds(Rectangle<int> b) override {};
+    Rectangle<int> getPdBounds() override { return { 0, 0, 0, 0 }; }
+    
+    void setPdBounds(Rectangle<int> b) override {}
 };

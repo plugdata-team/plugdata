@@ -62,5 +62,5 @@ private:
     dsp::Compressor<float> firstStageCompressor, secondStageCompressor;
 
     double sampleRate = 44100.0;
-    float thresholddB = -10.0, releaseTime = 100.0;
+    float releaseTime = 100.0;
 };

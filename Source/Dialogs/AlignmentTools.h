@@ -16,8 +16,8 @@ class AlignmentButton : public TextButton
 {
 public:
     AlignmentButton(String const& icon, String const& text)
-        : iconText(icon)
-        , titleText(text)
+    : titleText(text)
+    , iconText(icon)
     {
     }
 
@@ -89,7 +89,6 @@ public:
         alignButtons[AlignButton::Bottom]->setTooltip("Align selected objects to bottom");
         alignButtons[AlignButton::VDistribute]->setTooltip("Distribute selected objects vertical");
 
-        auto buttonNum = 0;
         for (auto* button : alignButtons) {
             button->setClickingTogglesState(true);
             button->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));

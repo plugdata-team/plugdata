@@ -990,9 +990,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
         } else {
             return 6;
         }
-    };
+    }
 
-    void drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour backgroundColour, bool isOpen, bool isMouseOver) override
+    void drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour, bool isOpen, bool isMouseOver) override
     {
         Path p;
         p.startNewSubPath(0.0f, 0.0f);
@@ -1046,7 +1046,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.fillRect(sliderBounds);
 
         constexpr auto thumbSize = 4.0f;
-        constexpr auto halfThumbSize = thumbSize / 2.0f;
         auto cornerSize = Corners::objectCornerRadius / 2.0f;
 
         Path toDraw;

@@ -42,7 +42,8 @@ class SaveDialog : public Component {
 
 public:
     SaveDialog(Dialog* parent, String const& filename, std::function<void(int)> callback, bool withLogo)
-        : savelabel("savelabel", filename.isEmpty() ? "Save changes before closing?" : "Save changes to \"" + filename + "\"\n before closing?"), hasLogo(withLogo)
+    : hasLogo(withLogo)
+    , savelabel("savelabel", filename.isEmpty() ? "Save changes before closing?" : "Save changes to \"" + filename + "\"\n before closing?")
     {
         cb = callback;
         setSize(265, 270);

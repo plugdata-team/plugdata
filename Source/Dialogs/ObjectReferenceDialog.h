@@ -100,8 +100,6 @@ public:
 
         auto ioletDescriptions = objectInfo.getChildWithName("iolets");
         for (auto iolet : ioletDescriptions) {
-            auto variable = iolet.getProperty("variable").toString() == "1";
-
             if (iolet.getType() == Identifier("inlet")) {
                 auto tooltip = iolet.getProperty("tooltip").toString();
                 inletInfo.add({ String(inletInfo.size() + 1), tooltip });

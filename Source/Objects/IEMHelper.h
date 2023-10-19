@@ -281,7 +281,7 @@ public:
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<ObjectLabel>(object);
+                label = std::make_unique<ObjectLabel>();
                 object->cnv->addChildComponent(label.get());
             }
 

@@ -67,11 +67,11 @@ public:
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
-    , statusbar(std::make_unique<Statusbar>(&p))
-    , zoomLabel(std::make_unique<ZoomLabel>())
     , sidebar(std::make_unique<Sidebar>(&p, this))
-    , splitView(this)
+    , statusbar(std::make_unique<Statusbar>(&p))
     , openedDialog(nullptr)
+    , splitView(this)
+    , zoomLabel(std::make_unique<ZoomLabel>())
     , defaultConstrainer(getConstrainer())
     , offlineRenderer(&p)
     , tooltipWindow(this, [](Component* c) {
@@ -772,7 +772,6 @@ void PluginEditor::addTab(Canvas* cnv, int splitIdx)
     auto patchTitle = cnv->patch.getTitle();
 
     // Create a pointer to the TabBar in focus
-    TabComponent* focusedTabbar;
     if (splitIdx < 0) {
         if (auto* focusedTabbar = splitView.getActiveTabbar()) {
             int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab

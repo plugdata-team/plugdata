@@ -18,8 +18,8 @@ class AutoCompleteComponent
 
 public:
     AutoCompleteComponent(TextEditor* e, Canvas* c)
-        : editor(e)
-        , cnv(c)
+        : cnv(c)
+        , editor(e)
     {
         setAlwaysOnTop(true);
 
@@ -133,15 +133,13 @@ class SuggestionComponent : public Component
     , public ComponentListener {
 
     class Suggestion : public TextButton {
-        int idx = 0;
         int type = -1;
 
         String objectDescription;
 
     public:
         Suggestion(SuggestionComponent* parentComponent, int i)
-            : idx(i)
-            , parent(parentComponent)
+            : parent(parentComponent)
         {
             setText("", "", false);
             setWantsKeyboardFocus(false);

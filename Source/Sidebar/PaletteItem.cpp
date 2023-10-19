@@ -4,9 +4,9 @@
 #include "Utility/StackShadow.h"
 
 PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree)
-    : editor(e)
+    : itemTree(tree)
+    , editor(e)
     , paletteComp(parent)
-    , itemTree(tree)
 {
     addMouseListener(paletteComp, true);
 
@@ -286,7 +286,7 @@ void PaletteItem::mouseUp(MouseEvent const& e)
 bool PaletteItem::isSubpatchOrAbstraction(String const& patchAsString)
 {
     auto lines = StringArray::fromLines(patchAsString.trim());
-    return lines.size() == 1 || lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore");
+    return lines.size() == 1 || (lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore"));
 }
 
 std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String const& patchAsString)
@@ -340,7 +340,6 @@ std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String 
         }
 
         if (canvasDepth == 0 && isObject(tokens)) {
-            auto position = Point<int>();
             countIolet(tokens);
         }
 

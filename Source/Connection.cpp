@@ -19,12 +19,12 @@
 #include "Dialogs/ConnectionMessageDisplay.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
-    : cnv(parent)
-    , ptr(parent->pd)
+    : inlet(s->isInlet ? s : e)
     , outlet(s->isInlet ? e : s)
-    , inlet(s->isInlet ? s : e)
-    , outobj(outlet->object)
     , inobj(inlet->object)
+    , outobj(outlet->object)
+    , cnv(parent)
+    , ptr(parent->pd)
 {
     cnv->selectedComponents.addChangeListener(this);
 
@@ -991,7 +991,7 @@ void Connection::findPath()
     if (!bestPath.empty()) {
         simplifiedPath.push_back(bestPath.front());
 
-        direction = bestPath[0].x == bestPath[1].x;
+        direction = approximatelyEqual(bestPath[0].x, bestPath[1].x);
 
         if (!direction)
             simplifiedPath.push_back(bestPath.front());

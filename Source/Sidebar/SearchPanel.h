@@ -16,8 +16,8 @@ class SearchPanel : public Component
     , public KeyListener {
 public:
     explicit SearchPanel(PluginEditor* pluginEditor)
-        : editor(pluginEditor)
-        , bouncer(listBox.getViewport())
+        : bouncer(listBox.getViewport())
+        , editor(pluginEditor)
     {
         listBox.setModel(this);
         listBox.setRowHeight(26);

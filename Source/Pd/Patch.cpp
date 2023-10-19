@@ -28,10 +28,10 @@ extern void canvas_reload(t_symbol* name, t_symbol* dir, t_glist* except);
 namespace pd {
 
 Patch::Patch(t_canvas* patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
-    : ptr(patchPtr, parentInstance)
-    , instance(parentInstance)
-    , currentFile(std::move(patchFile))
+    : instance(parentInstance)
     , closePatchOnDelete(ownsPatch)
+    , currentFile(std::move(patchFile))
+    , ptr(patchPtr, parentInstance)
 {
     jassert(parentInstance);
 }
@@ -293,7 +293,7 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
         // check if string is a valid number
         auto charptr = tokens[i].getCharPointer();
         auto ptr = charptr;
-        auto value = CharacterFunctions::readDoubleValue(ptr); // This will read the number and increment the pointer to be past the number
+        CharacterFunctions::readDoubleValue(ptr); // This will read the number and increment the pointer to be past the number
         if (ptr - charptr == tokens[i].getNumBytesAsUTF8()) {
             SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
         } else {
@@ -515,8 +515,6 @@ void Patch::createConnection(t_object* src, int nout, t_object* sink, int nin)
 
 t_outconnect* Patch::createAndReturnConnection(t_object* src, int nout, t_object* sink, int nin)
 {
-    t_outconnect* outconnect = nullptr;
-
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
         return pd::Interface::createConnection(patch.get(), src, nout, sink, nin);

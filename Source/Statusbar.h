@@ -26,12 +26,12 @@ class StatusbarSource : public Timer {
 
 public:
     struct Listener {
-        virtual void midiReceivedChanged(bool midiReceived) {};
-        virtual void midiSentChanged(bool midiSent) {};
-        virtual void audioProcessedChanged(bool audioProcessed) {};
-        virtual void audioLevelChanged(Array<float> peak) {};
-        virtual void cpuUsageChanged(float newCpuUsage) {};
-        virtual void timerCallback() {};
+        virtual void midiReceivedChanged(bool midiReceived) { ignoreUnused(midiReceived); }
+        virtual void midiSentChanged(bool midiSent) { ignoreUnused(midiSent); }
+        virtual void audioProcessedChanged(bool audioProcessed) { ignoreUnused(audioProcessed); }
+        virtual void audioLevelChanged(Array<float> peak) { ignoreUnused(peak); }
+        virtual void cpuUsageChanged(float newCpuUsage) { ignoreUnused(newCpuUsage); }
+        virtual void timerCallback() {}
     };
 
     StatusbarSource();
@@ -60,8 +60,6 @@ private:
     std::atomic<float> level[2] = { 0 };
     std::atomic<float> peakHold[2] = { 0 };
     std::atomic<float> cpuUsage;
-
-    int peakHoldDelay[2] = { 0 };
 
     int numChannels;
     int bufferSize;
