@@ -27,9 +27,6 @@ public:
       auto* peer = componentToDrag->getPeer();
         
         peer->startHostManagedResize(peer->localToGlobal(mouseDownWithinTarget), ResizableBorderComponent::Zone(0));
-      // This will tell X11 to act as if the titlebar is being dragged, and can make window dragging behave better.
-      // This will sometimes also work on XWayland, but not always
-      OSUtils::hostManagedX11WindowMove(componentToDrag, {mouseDownWithinTarget.x, mouseDownWithinTarget.y, 0, 0});
 #endif
 }
 
