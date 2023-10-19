@@ -24,6 +24,7 @@
 #    include <juce_gui_basics/native/juce_win32_ScopedThreadDPIAwarenessSetter.h>
 #endif
 
+#include <juce_gui_basics/detail/juce_WindowingHelpers.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 
 class StackShadow {
@@ -737,12 +738,6 @@ public:
     }
 };
 
-#if !JUCE_BSD
-namespace juce {
-bool isWindowOnCurrentVirtualDesktop(void* x);
-}
-#endif
-
 class StackDropShadower : private ComponentListener {
 public:
     /** Creates a DropShadower. */
@@ -1043,7 +1038,7 @@ private:
 #if JUCE_BSD
                     return false;
 #else
-                    return !isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
+                    return !detail::WindowingHelpers::isWindowOnCurrentVirtualDesktop (component->getWindowHandle());
 #endif
                 }
 

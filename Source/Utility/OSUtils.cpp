@@ -167,43 +167,6 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
 
-void OSUtils::hostManagedX11WindowMove(juce::Component* component, const juce::Rectangle<int>& newBounds)
-{
-        auto* display = juce::XWindowSystem::getInstance()->getDisplay();
-        auto* peer = component->getPeer();
-        auto window = (Window)peer->getNativeHandle();
-
-        XUngrabPointer (display, CurrentTime);
-
-        const auto root = XRootWindow(display, XDefaultScreen(display));
-
-        XEvent ev = {0};
-        ev.xclient.type = ClientMessage;
-        ev.xclient.send_event = True;
-        ev.xclient.message_type = XInternAtom(display, "_NET_WM_MOVERESIZE", False);
-        ev.xclient.window = window;
-        ev.xclient.display = display;
-        ev.xclient.format = 32;
-
-        auto pos = component->localPointToGlobal(newBounds.getPosition());
-        ev.xclient.data.l[0] = pos.getX();
-        ev.xclient.data.l[1] = pos.getY();
-        ev.xclient.data.l[2] = 8;
-        ev.xclient.data.l[3] = 0;
-        ev.xclient.data.l[4] = 1;
-
-        XSendEvent(display, root, False, SubstructureRedirectMask | SubstructureNotifyMask, &ev);
-        XSync(display, 0);
-
-        /* This is a simpler method that will be available once we update to JUCE 7.0.7
-        auto* peer = component->getPeer();
-        auto pos = component->localPointToGlobal(newBounds.getPosition());
-        auto window = (Window)peer->getNativeHandle();
-
-        juce::XWindowSystem::getInstance()->startHostManagedResize(window, pos, (juce::ResizableBorderComponent::Zone)juce::ResizableBorderComponent::Zone::centre);
-        */
-}
-
 bool OSUtils::isX11WindowMaximised(void* handle)
 {
     enum window_state_t {

@@ -187,6 +187,7 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_USE_COREIMAGE_LOADER=0
     PLUGDATA_VERSION="${PLUGDATA_VERSION}"
     PLUGDATA_GIT_HASH="${GIT_HASH}"
+    JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
     PD=1
     ENABLE_SFIZZ=${ENABLE_SFIZZ}
 )
@@ -385,10 +386,10 @@ endif()
 if(UNIX AND NOT APPLE)
     target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-Wl,-export-dynamic")
 elseif(APPLE)
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-framework Carbon")
-  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi  "-framework Carbon")
-  target_link_libraries(plugdata PRIVATE "-framework Carbon")
-  target_link_libraries(plugdata_fx PRIVATE "-framework Carbon")
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-framework Carbon -Wl,-ld_classic")
+  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi  "-framework Carbon -Wl,-ld_classic")
+  target_link_libraries(plugdata PRIVATE "-framework Carbon -Wl,-ld_classic")
+  target_link_libraries(plugdata_fx PRIVATE "-framework Carbon -Wl,-ld_classic")
 else()
  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData)
 endif()

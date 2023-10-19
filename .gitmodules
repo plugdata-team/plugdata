@@ -34,3 +34,5 @@
 [submodule "Libraries/juce-raw-keyboard-input-module"]
 	path = Libraries/juce-raw-keyboard-input-module
 	url = https://github.com/izzyreal/juce-raw-keyboard-input-module.git
+[submodule "./JUCE"]
+	url = https://github.com/plugdata-team/JUCE.git
