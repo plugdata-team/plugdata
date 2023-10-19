@@ -61,6 +61,8 @@ static char const* strtokcpy(char* to, size_t to_len, char const* from, char del
 
 class PlugDataApp : public JUCEApplication {
 
+    Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
+    
 public:
     PlugDataApp()
     {
@@ -119,6 +121,10 @@ public:
         
         mainWindow->setVisible(true);
         parseSystemArguments(arguments);
+        
+#if JUCE_LINUX || JUCE_BSD
+        mainWindow->getPeer()->setIcon(logo);
+#endif
         
         auto getWindowScreenBounds = [this]() -> juce::Rectangle<int> {
             const auto width = mainWindow->getWidth();

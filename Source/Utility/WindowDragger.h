@@ -23,9 +23,8 @@ public:
       if (componentToDrag != nullptr)
           mouseDownWithinTarget = e.getEventRelativeTo (componentToDrag).getMouseDownPosition();
 
-        ResizableBorderComponent::Zone(0);
 #if JUCE_LINUX
-      auto* peer = componentToDraw->getPeer();
+      auto* peer = componentToDrag->getPeer();
         
         peer->startHostManagedResize(peer->localToGlobal(mouseDownWithinTarget), ResizableBorderComponent::Zone(0));
       // This will tell X11 to act as if the titlebar is being dragged, and can make window dragging behave better.
