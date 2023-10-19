@@ -251,13 +251,8 @@ public:
     Rectangle<int> currentTabBounds;
 
 private:
-    int clickedTabIndex;
-    int tabWidth;
 
     Point<int> scalePos;
-
-    int draggedTabIndex = -1;
-    Component* draggedTabComponent = nullptr;
 
     int tabDepth = 30;
 

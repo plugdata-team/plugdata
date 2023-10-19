@@ -232,7 +232,7 @@ void ButtonBar::itemDragMove(SourceDetails const& dragSourceDetails)
 {
     if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         auto ghostTabCentreOffset = ghostTab->getWidth() / 2;
-        auto targetTabPos = getWidth() / (getNumVisibleTabs());
+        auto targetTabPos = getWidth() / std::max(1, getNumVisibleTabs());
         auto tabPos = ghostTab->getBounds().getCentreX() / targetTabPos;
 
         auto leftPos = dragSourceDetails.localPosition.getX() - ghostTabCentreOffset;

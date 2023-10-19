@@ -185,10 +185,6 @@ private:
 
     std::vector<pd::Atom> atoms_playhead;
 
-    int minIn = 2;
-    int minOut = 2;
-
-    int lastSplitIndex = -1;
     int lastSetProgram = 0;
 
     Limiter limiter;

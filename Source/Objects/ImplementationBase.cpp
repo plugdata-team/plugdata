@@ -127,24 +127,20 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
 
 void ImplementationBase::openSubpatch(pd::Patch* subpatch)
 {
-    if (!subpatch) {
-        if (auto glist = ptr.get<t_glist>()) {
+    if (auto glist = ptr.get<t_glist>()) {
+        if (!subpatch) {
             subpatch = new pd::Patch(glist.get(), pd, false);
         }
-    }
-
-    File path;
-    if (auto glist = ptr.get<t_glist>()) {
+        
         if (canvas_isabstraction(glist.get())) {
-            path = File(String::fromUTF8(canvas_getdir(glist.get())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
+            auto path = File(String::fromUTF8(canvas_getdir(glist.get())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
+            subpatch->setCurrentFile(path);
         }
-    } else {
+        pd->patches.add(subpatch);
+    }
+    else {
         return;
     }
-
-    pd->patches.add(subpatch);
-
-    subpatch->setCurrentFile(path);
 
     for (auto* editor : pd->openedEditors) {
         if (!editor->isActiveWindow())

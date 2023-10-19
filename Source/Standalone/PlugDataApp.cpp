@@ -242,25 +242,27 @@ void PlugDataWindow::closeAllPatches()
 {
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
-    auto* processor = ProjectInfo::getStandalonePluginHolder()->processor.get();
-    auto* mainEditor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
-    auto& openedEditors = editor->pd->openedEditors;
-
-    if (editor == mainEditor) {
-        processor->editorBeingDeleted(editor);
-    }
-
-    if (openedEditors.size() == 1) {
-        editor->closeAllTabs(true, nullptr, [this, editor, &openedEditors]() {
-            removeFromDesktop();
-            openedEditors.removeObject(editor);
-        });
-    } else {
-        editor->closeAllTabs(false, nullptr, [this, editor, &openedEditors]() {
-            removeFromDesktop();
-            openedEditors.removeObject(editor);
-        });
+    if(auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor()))
+    {
+        auto* processor = ProjectInfo::getStandalonePluginHolder()->processor.get();
+        auto* mainEditor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
+        auto& openedEditors = editor->pd->openedEditors;
+        
+        if (editor == mainEditor) {
+            processor->editorBeingDeleted(editor);
+        }
+        
+        if (openedEditors.size() == 1) {
+            editor->closeAllTabs(true, nullptr, [this, editor, &openedEditors]() {
+                removeFromDesktop();
+                openedEditors.removeObject(editor);
+            });
+        } else {
+            editor->closeAllTabs(false, nullptr, [this, editor, &openedEditors]() {
+                removeFromDesktop();
+                openedEditors.removeObject(editor);
+            });
+        }
     }
 }
 

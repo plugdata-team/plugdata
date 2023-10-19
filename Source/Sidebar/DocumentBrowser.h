@@ -116,7 +116,6 @@ public:
         : file(std::move(f))
         , owner(treeComp)
         , parentContentsList(parentContents)
-        , indexInContentsList(indexInContents)
         , subContentsList(nullptr, false)
     {
         DirectoryContentsList::FileInfo fileInfo;
@@ -315,7 +314,6 @@ public:
 private:
     DocumentBrowserViewBase& owner;
     DirectoryContentsList* parentContentsList;
-    int indexInContentsList;
     OptionalScopedPointer<DirectoryContentsList> subContentsList;
     bool isDirectory;
     String fileSize;

@@ -385,11 +385,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 button->onClick = [commandManager, id]() {
                     if (auto* editor = dynamic_cast<PluginEditor*>(commandManager)) {
                         editor->grabKeyboardFocus();
-                    }
-
-                    ApplicationCommandTarget::InvocationInfo info(id);
-                    info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                    commandManager->invoke(info, true);
+                        ApplicationCommandTarget::InvocationInfo info(id);
+                        info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
+                        commandManager->invoke(info, true);
+                    }                    
                 };
 
                 if (auto* registeredInfo = commandManager->getCommandForID(id)) {
@@ -458,8 +457,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     // If we directly right-clicked on an object, make sure it has been added to selection
     if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
         selectedBoxes.addIfNotAlreadyThere(obj);
-    } else if (auto* obj = originalComponent->findParentComponentOfClass<Object>()) {
-        selectedBoxes.addIfNotAlreadyThere(obj);
+    } 
+    else if (auto* parentOfTypeObject = originalComponent->findParentComponentOfClass<Object>()) {
+        selectedBoxes.addIfNotAlreadyThere(parentOfTypeObject);
     }
 
     bool hasSelection = !selectedBoxes.isEmpty();

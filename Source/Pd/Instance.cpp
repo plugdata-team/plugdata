@@ -210,18 +210,14 @@ void Instance::initialisePd(String& pdlua_version)
             auto width = atom_getfloat(argv + 1);
             auto height = atom_getfloat(argv + 2);
             String owner, title;
-            bool hasCallback;
 
             if (argc > 5) {
                 owner = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
                 title = String::fromUTF8(atom_getsymbol(argv + 4)->s_name);
-                hasCallback = atom_getfloat(argv + 5);
             } else {
                 title = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
-                hasCallback = atom_getfloat(argv + 4);
             }
 
-            // TODO: do we need to do something with hasCallback?
             static_cast<Instance*>(instance)->showTextEditor(ptr, Rectangle<int>(width, height), title);
 
             break;

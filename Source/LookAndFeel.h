@@ -263,39 +263,38 @@ struct PlugDataLook : public LookAndFeel_V4 {
     public:
         PlugData_DocumentWindowButton(int buttonType)
             : Button("")
-            , buttonType(buttonType)
         {
             auto crossThickness = 0.2f;
             String name;
 
             switch (buttonType) {
-            case DocumentWindow::closeButton: {
-                name = "close";
-                shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
-                shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
-                toggledShape = shape;
-                break;
-            }
-            case DocumentWindow::minimiseButton: {
-                name = "minimise";
-                shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
-                toggledShape = shape;
-                break;
-            }
-            case DocumentWindow::maximiseButton: {
-                name = "maximise";
-                shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
-                shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+                case DocumentWindow::closeButton: {
+                    name = "close";
+                    shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
+                    shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
+                    toggledShape = shape;
+                    break;
+                }
+                case DocumentWindow::minimiseButton: {
+                    name = "minimise";
+                    shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+                    toggledShape = shape;
+                    break;
+                }
+                case DocumentWindow::maximiseButton: {
+                    name = "maximise";
+                    shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
+                    shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
 
-                toggledShape.startNewSubPath(45.0f, 100.0f);
-                toggledShape.lineTo(0.0f, 100.0f);
-                toggledShape.lineTo(0.0f, 0.0f);
-                toggledShape.lineTo(100.0f, 0.0f);
-                toggledShape.lineTo(100.0f, 45.0f);
-                toggledShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
-                PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
-                break;
-            }
+                    toggledShape.startNewSubPath(45.0f, 100.0f);
+                    toggledShape.lineTo(0.0f, 100.0f);
+                    toggledShape.lineTo(0.0f, 0.0f);
+                    toggledShape.lineTo(100.0f, 0.0f);
+                    toggledShape.lineTo(100.0f, 45.0f);
+                    toggledShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
+                    PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
+                    break;
+                }
             }
             setName(name);
             setButtonText(name);
@@ -327,7 +326,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
     private:
         Colour colour;
         Path shape, toggledShape;
-        int buttonType;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugData_DocumentWindowButton)
     };

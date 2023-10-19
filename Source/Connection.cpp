@@ -658,7 +658,7 @@ int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& 
 
 void Connection::reconnect(Iolet* target)
 {
-    if (!reconnecting.isEmpty())
+    if (!reconnecting.isEmpty() || !target)
         return;
 
     auto& otherEdge = target == inlet ? outlet : inlet;
