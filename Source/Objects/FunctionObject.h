@@ -42,7 +42,7 @@ public:
 
             Array<var> arr = { function->x_min, function->x_max };
             range = var(arr);
-            
+
             auto sndSym = function->x_snd_set ? String::fromUTF8(function->x_snd_raw->s_name) : getBinbufSymbol(3);
             auto rcvSym = function->x_rcv_set ? String::fromUTF8(function->x_rcv_raw->s_name) : getBinbufSymbol(4);
 

@@ -21,10 +21,11 @@ public:
     {
         setInterceptsMouseClicks(false, false);
     }
-    
+
     ~SplitViewFocusOutline()
     {
-        if(tabbedComponent) tabbedComponent->removeComponentListener(this);
+        if (tabbedComponent)
+            tabbedComponent->removeComponentListener(this);
     }
 
     void setActive(ResizableTabbedComponent* tabComponent)

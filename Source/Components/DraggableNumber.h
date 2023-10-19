@@ -14,7 +14,7 @@ public:
         Integer,
         Logarithmic
     };
-        
+
 protected:
     int decimalDrag = 0;
     double dragValue = 0.0;
@@ -37,7 +37,7 @@ protected:
     GlyphArrangement currentGlyphs;
 
 public:
-    std::function<void(double)> onValueChange = [](double){};
+    std::function<void(double)> onValueChange = [](double) {};
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
 
@@ -50,13 +50,13 @@ public:
         setBufferedToImage(true);
     }
 
-    void labelTextChanged(Label* labelThatHasChanged) override {}
+    void labelTextChanged(Label* labelThatHasChanged) override { }
 
     void editorShown(Label* l, TextEditor& editor) override
     {
         dragStart();
-        editor.onTextChange = [this](){
-            if(onTextChange)
+        editor.onTextChange = [this]() {
+            if (onTextChange)
                 onTextChange();
         };
     }
@@ -418,7 +418,7 @@ public:
             text << '.';
 
         text = text.trimCharactersAtEnd("0");
-        
+
         return text;
     }
 };

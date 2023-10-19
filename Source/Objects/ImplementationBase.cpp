@@ -40,7 +40,7 @@ ImplementationBase::~ImplementationBase() = default;
 
 Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot) const
 {
-    for(auto* editor : pd->openedEditors) {
+    for (auto* editor : pd->openedEditors) {
         for (auto* cnv : editor->canvases) {
             auto glist = cnv->patch.getPointer();
             if (glist && glist.get() == patchPtr) {
@@ -48,11 +48,10 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoo
             }
         }
     }
-    
-    if(alsoSearchRoot)
-    {
+
+    if (alsoSearchRoot) {
         patchPtr = glist_getcanvas(patchPtr);
-        for(auto* editor : pd->openedEditors) {
+        for (auto* editor : pd->openedEditors) {
             for (auto* cnv : editor->canvases) {
                 auto glist = cnv->patch.getPointer();
                 if (glist && glist.get() == patchPtr) {
@@ -147,9 +146,10 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
 
     subpatch->setCurrentFile(path);
 
-    for(auto* editor : pd->openedEditors) {
-        if(!editor->isActiveWindow()) continue;
-        
+    for (auto* editor : pd->openedEditors) {
+        if (!editor->isActiveWindow())
+            continue;
+
         // Check if subpatch is already opened
         for (auto* cnv : editor->canvases) {
             if (cnv->patch == *subpatch) {
@@ -169,8 +169,8 @@ void ImplementationBase::closeOpenedSubpatchers()
     auto glist = ptr.get<t_glist>();
     if (!glist)
         return;
-    
-    for(auto* editor : pd->openedEditors) {
+
+    for (auto* editor : pd->openedEditors) {
         for (auto* canvas : editor->canvases) {
             auto canvasPtr = canvas->patch.getPointer();
             if (canvasPtr && canvasPtr.get() == glist.get()) {
@@ -194,9 +194,8 @@ void ObjectImplementationManager::handleAsyncUpdate()
 
     pd->lockAudioThread();
     for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
-        for(auto* object : getImplementationsForPatch(cnv))
-        {
-            allImplementations.add({cnv, object});
+        for (auto* object : getImplementationsForPatch(cnv)) {
+            allImplementations.add({ cnv, object });
         }
     }
     pd->unlockAudioThread();
@@ -204,16 +203,14 @@ void ObjectImplementationManager::handleAsyncUpdate()
     // Remove unused object implementations
     for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
         auto& [ptr, implementation] = *it;
-        
-        auto found = std::find_if(allImplementations.begin(), allImplementations.end(), [ptr = ptr](const auto& toCompare){
+
+        auto found = std::find_if(allImplementations.begin(), allImplementations.end(), [ptr = ptr](auto const& toCompare) {
             return std::get<1>(toCompare) == ptr;
         });
 
         if (found == allImplementations.end()) {
             objectImplementations.erase(it++);
-        }
-        else
-        {
+        } else {
             it++;
         }
     }

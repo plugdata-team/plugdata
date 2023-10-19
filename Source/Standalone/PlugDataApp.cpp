@@ -31,7 +31,6 @@
 
 #include "Dialogs/Dialogs.h"
 
-
 #if JUCE_WINDOWS
 #    include <filesystem>
 #endif
@@ -48,7 +47,7 @@
 class PlugDataApp : public JUCEApplication {
 
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
-    
+
 public:
     PlugDataApp()
     {
@@ -89,7 +88,6 @@ public:
         if (file.existsAsFile()) {
             auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
 
-
             if (pd && file.existsAsFile()) {
                 pd->loadPatch(file);
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
@@ -102,16 +100,16 @@ public:
         LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colours::transparentBlack);
 
         pluginHolder = std::make_unique<StandalonePluginHolder>(appProperties.getUserSettings(), false, "");
-        
+
         mainWindow = new PlugDataWindow(pluginHolder->processor->createEditorIfNeeded());
-        
+
         mainWindow->setVisible(true);
         parseSystemArguments(arguments);
-        
+
 #if JUCE_LINUX || JUCE_BSD
         mainWindow->getPeer()->setIcon(logo);
 #endif
-        
+
         auto getWindowScreenBounds = [this]() -> juce::Rectangle<int> {
             const auto width = mainWindow->getWidth();
             const auto height = mainWindow->getHeight();
@@ -150,13 +148,13 @@ public:
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
         bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
-        
+
         // When starting with any sysargs, assume we don't want the last patch to open
         // Prevents a possible crash and generally kinda makes sense
         if (arguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
             pluginHolder->reloadPluginState();
         }
-        
+
         auto args = StringArray::fromTokens(arguments, true);
         size_t argc = args.size();
 
@@ -169,14 +167,14 @@ public:
         t_namelist* openlist = nullptr;
         t_namelist* messagelist = nullptr;
 
-        int retval = 0;//parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
+        int retval = 0; // parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
 
         StringArray openedPatches;
         // open patches specifies with "-open" args
         for (auto* nl = openlist; nl; nl = nl->nl_next) {
             auto toOpen = File(String(nl->nl_string).unquoted());
             if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
-                
+
                 if (auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get())) {
                     pd->loadPatch(toOpen);
                     SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
@@ -185,15 +183,15 @@ public:
             }
         }
 
-    #if JUCE_LINUX || JUCE_WINDOWS
+#if JUCE_LINUX || JUCE_WINDOWS
         for (auto arg : args) {
             arg = arg.trim().unquoted().trim();
 
             // Would be best to enable this on Linux, but some distros use ancient gcc which doesn't have std::filesystem
-    #    if JUCE_WINDOWS
+#    if JUCE_WINDOWS
             if (!std::filesystem::exists(arg.toStdString()))
                 continue;
-    #    endif
+#    endif
             auto toOpen = File(arg);
             if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
                 auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
@@ -201,7 +199,7 @@ public:
                 SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
             }
         }
-    #endif
+#endif
 
         /* send messages specified with "-send" args */
         for (auto* nl = messagelist; nl; nl = nl->nl_next) {
@@ -217,7 +215,7 @@ public:
 
         return retval;
     }
-    
+
     void systemRequestedQuit() override
     {
         if (ModalComponentManager::getInstance()->cancelAllModalComponents()) {
@@ -234,7 +232,7 @@ public:
     }
 
     std::unique_ptr<StandalonePluginHolder> pluginHolder;
-    
+
 protected:
     ApplicationProperties appProperties;
     PlugDataWindow* mainWindow;
@@ -248,22 +246,20 @@ void PlugDataWindow::closeAllPatches()
     auto* processor = ProjectInfo::getStandalonePluginHolder()->processor.get();
     auto* mainEditor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
     auto& openedEditors = editor->pd->openedEditors;
-    
-    if(editor == mainEditor)
-    {
+
+    if (editor == mainEditor) {
         processor->editorBeingDeleted(editor);
     }
 
-    if(openedEditors.size() == 1) {
-        editor->closeAllTabs(true, nullptr, [this, editor, &openedEditors](){
+    if (openedEditors.size() == 1) {
+        editor->closeAllTabs(true, nullptr, [this, editor, &openedEditors]() {
             removeFromDesktop();
-            openedEditors.removeObject(editor); 
+            openedEditors.removeObject(editor);
         });
-    }
-    else {
-        editor->closeAllTabs(false, nullptr, [this, editor, &openedEditors](){
+    } else {
+        editor->closeAllTabs(false, nullptr, [this, editor, &openedEditors]() {
             removeFromDesktop();
-            openedEditors.removeObject(editor); 
+            openedEditors.removeObject(editor);
         });
     }
 }

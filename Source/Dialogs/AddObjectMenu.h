@@ -80,8 +80,7 @@ public:
     {
         if (e.mouseWasDraggedSinceMouseDown()) {
             dismissMenu(false);
-        }
-        else {
+        } else {
             ObjectClickAndDrop::attachToMouse(this);
             dismissMenu(false);
         }
@@ -497,11 +496,11 @@ class AddObjectMenu : public Component {
 
 public:
     AddObjectMenu(PluginEditor* e)
-    : objectBrowserButton(Icons::Object, "Show Object Browser")
-    , pinButton(Icons::Pin)
-    , editor(e)
-    , objectList(e, [this](bool shouldFade) { dismiss(shouldFade); })
-    , categoriesList(e, [this](bool shouldFade) { dismiss(shouldFade); })
+        : objectBrowserButton(Icons::Object, "Show Object Browser")
+        , pinButton(Icons::Pin)
+        , editor(e)
+        , objectList(e, [this](bool shouldFade) { dismiss(shouldFade); })
+        , categoriesList(e, [this](bool shouldFade) { dismiss(shouldFade); })
     {
         categoriesList.setVisible(true);
 

@@ -99,10 +99,9 @@ public:
             int x, y, w, h;
             pd::Interface::getObjectBounds(patchPtr, atom.cast<t_gobj>(), &x, &y, &w, &h);
 
-            if(atom->a_text.te_width == 0) {
+            if (atom->a_text.te_width == 0) {
                 w = textLength + 10;
-            }
-            else {
+            } else {
                 w = (atom->a_text.te_width * glist_fontwidth(patchPtr)) + 3;
             }
 
@@ -122,7 +121,7 @@ public:
             pd::Interface::moveObject(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
 
             auto fontWidth = glist_fontwidth(patchPtr);
-            if(atom->a_text.te_width != 0) {
+            if (atom->a_text.te_width != 0) {
                 atom->a_text.te_width = (b.getWidth() - 3) / fontWidth;
             }
         }

@@ -285,8 +285,8 @@ PluginEditor::~PluginEditor()
 
     setConstrainer(nullptr);
     theme.removeListener(this);
-    
-    if(auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
+
+    if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
         ProjectInfo::closeWindow(window); // Make sure plugdatawindow gets cleaned up
     }
 }
@@ -308,11 +308,10 @@ void PluginEditor::paint(Graphics& g)
 
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
-    if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
-    {
+    if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
         baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
     }
-    
+
     bool rounded = wantsRoundedCorners();
 
     if (rounded) {
@@ -537,18 +536,19 @@ void PluginEditor::fileDragExit(StringArray const&)
 
 void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
 {
-    if(!ProjectInfo::isStandalone) return;
-    
+    if (!ProjectInfo::isStandalone)
+        return;
+
     auto* newEditor = new PluginEditor(*pd);
     auto* newWindow = ProjectInfo::createNewWindow(newEditor);
-    
+
     auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
-    
+
     pd->openedEditors.add(newEditor);
-    
+
     newWindow->addToDesktop(window->getDesktopWindowStyleFlags());
     newWindow->setVisible(true);
-    
+
     auto* targetSplit = newEditor->getSplitView()->splits[0];
     auto* originalTabComponent = tabButton->getTabComponent();
     auto* originalCanvas = originalTabComponent->getCanvas(tabButton->getIndex());
@@ -556,7 +556,7 @@ void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
 
     splitView.splits[originalSplitIndex]->moveToSplit(targetSplit, originalCanvas);
     originalCanvas->moveToWindow(newEditor);
-    
+
     newWindow->setTopLeftPosition(Desktop::getInstance().getMousePosition() - Point<int>(500, 60));
     newWindow->toFront(true);
 }
@@ -702,7 +702,8 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
     if (canvas) {
         MessageManager::callAsync([this, canvas, patch, deleteFunc]() mutable {
             if (patch->isDirty()) {
-                Dialogs::showSaveDialog(&openedDialog, this, patch->getTitle(),
+                Dialogs::showSaveDialog(
+                    &openedDialog, this, patch->getTitle(),
                     [this, canvas, deleteFunc](int result) mutable {
                         if (!canvas)
                             return;
@@ -710,7 +711,8 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
                             saveProject([&deleteFunc]() mutable { deleteFunc(); });
                         else if (result == 1)
                             deleteFunc();
-                    }, 0, true);
+                    },
+                    0, true);
             } else {
                 deleteFunc();
             }
@@ -1311,7 +1313,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
         if (cnv) {
             MessageManager::callAsync([this, cnv = SafePointer(cnv)]() mutable {
                 if (cnv && cnv->patch.isDirty()) {
-                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
+                    Dialogs::showSaveDialog(
+                        &openedDialog, this, cnv->patch.getTitle(),
                         [this, cnv](int result) mutable {
                             if (!cnv)
                                 return;
@@ -1319,7 +1322,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
                                 saveProject([this, cnv]() mutable { closeTab(cnv); });
                             else if (result == 1)
                                 closeTab(cnv);
-                        }, 0, true);
+                        },
+                        0, true);
                 } else {
                     closeTab(cnv);
                 }

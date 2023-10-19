@@ -176,7 +176,7 @@ public:
 
                 checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
                 freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-                
+
             } else if (!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
                 instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
             }

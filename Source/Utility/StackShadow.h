@@ -19,7 +19,7 @@
 #include "Utility/Config.h"
 
 #if JUCE_WINDOWS
-#include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
+#    include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
 #endif
 
 #include <juce_gui_basics/detail/juce_WindowingHelpers.h>
@@ -1036,7 +1036,7 @@ private:
 #if JUCE_BSD
                     return false;
 #else
-                    return !detail::WindowingHelpers::isWindowOnCurrentVirtualDesktop (component->getWindowHandle());
+                    return !detail::WindowingHelpers::isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
 #endif
                 }
 

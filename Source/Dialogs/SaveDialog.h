@@ -42,8 +42,8 @@ class SaveDialog : public Component {
 
 public:
     SaveDialog(Dialog* parent, String const& filename, std::function<void(int)> callback, bool withLogo)
-    : hasLogo(withLogo)
-    , savelabel("savelabel", filename.isEmpty() ? "Save changes before closing?" : "Save changes to \"" + filename + "\"\n before closing?")
+        : hasLogo(withLogo)
+        , savelabel("savelabel", filename.isEmpty() ? "Save changes before closing?" : "Save changes to \"" + filename + "\"\n before closing?")
     {
         cb = callback;
         setSize(265, 270);
@@ -86,8 +86,9 @@ public:
         MessageManager::callAsync([_this = SafePointer(this)]() {
             if (_this) {
                 // Move window to front when opening dialog
-                if(auto* topLevel = _this->getTopLevelComponent()) topLevel->toFront(false);
-    
+                if (auto* topLevel = _this->getTopLevelComponent())
+                    topLevel->toFront(false);
+
                 _this->save.grabKeyboardFocus();
             }
         });
@@ -95,8 +96,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        if(!hasLogo) return;
-        
+        if (!hasLogo)
+            return;
+
         auto contentBounds = getLocalBounds().reduced(16);
         auto logoBounds = contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f).withSizeKeepingCentre(64, 64);
 
@@ -110,10 +112,10 @@ public:
         auto contentBounds = getLocalBounds().reduced(16);
 
         // logo space
-        if(hasLogo) {
+        if (hasLogo) {
             contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f + 8.0f);
         }
-    
+
         savelabel.setBounds(contentBounds.removeFromTop(contentBounds.getHeight() / 3));
         contentBounds.removeFromTop(8);
 

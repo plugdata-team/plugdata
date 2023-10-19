@@ -13,9 +13,9 @@
 // #define ENABLE_TABBAR_DEBUGGING 1
 
 class CloseTabButton : public SmallIconButton {
-    
+
     using SmallIconButton::SmallIconButton;
-    
+
     void paint(Graphics& g) override
     {
         auto font = Fonts::getIconFont().withHeight(12);
@@ -109,7 +109,8 @@ void TabBarButtonComponent::closeTab()
         MessageManager::callAsync([_cnv = SafePointer(cnv), _editor = SafePointer(editor)]() mutable {
             // Don't show save dialog, if patch is still open in another view
             if (_cnv && _cnv->patch.isDirty()) {
-                Dialogs::showSaveDialog(&_editor->openedDialog, _editor, _cnv->patch.getTitle(),
+                Dialogs::showSaveDialog(
+                    &_editor->openedDialog, _editor, _cnv->patch.getTitle(),
                     [_cnv, _editor](int result) mutable {
                         if (!_cnv)
                             return;
@@ -117,7 +118,8 @@ void TabBarButtonComponent::closeTab()
                             _editor->saveProject([_cnv, _editor]() mutable { _editor->closeTab(_cnv); });
                         else if (result == 1)
                             _editor->closeTab(_cnv);
-                    }, 0, true);
+                    },
+                    0, true);
             } else {
                 _editor->closeTab(_cnv);
             }

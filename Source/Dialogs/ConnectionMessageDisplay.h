@@ -209,7 +209,9 @@ private:
         TextStringWithMetrics(String text, FontStyle fontStyle, int width)
             : text(std::move(text))
             , fontStyle(fontStyle)
-            , width(width) {}
+            , width(width)
+        {
+        }
         String text;
         FontStyle fontStyle;
         int width;

@@ -164,7 +164,6 @@ void Patch::setVisible(bool shouldVis)
 {
     if (auto patch = ptr.get<t_glist>()) {
         patch->gl_mapped = shouldVis;
-
     }
 }
 
@@ -208,7 +207,6 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
 
     StringArray tokens;
     tokens.addTokens(name, false);
-    
 
     // See if we have preset parameters for this object
     // These parameters are designed to make the experience in plugdata better
@@ -347,7 +345,7 @@ t_gobj* Patch::renameObject(t_object* obj, String const& name)
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
 
-        pd::Interface::renameObject(patch.get(),&obj->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
+        pd::Interface::renameObject(patch.get(), &obj->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
         return pd::Interface::getNewest(patch.get());
     }
 
@@ -476,7 +474,6 @@ void Patch::duplicate(std::vector<t_gobj*> const& objects)
     }
 }
 
-
 void Patch::deselectAll()
 {
     if (auto patch = ptr.get<t_glist>()) {
@@ -484,7 +481,6 @@ void Patch::deselectAll()
         libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
     }
 }
-
 
 bool Patch::hasConnection(t_object* src, int nout, t_object* sink, int nin)
 {
@@ -498,7 +494,7 @@ bool Patch::hasConnection(t_object* src, int nout, t_object* sink, int nin)
 bool Patch::canConnect(t_object* src, int nout, t_object* sink, int nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        
+
         return pd::Interface::canConnect(patch.get(), src, nout, sink, nin);
     }
 
@@ -606,7 +602,6 @@ void Patch::redo()
         pd::Interface::redo(patch.get());
     }
 }
-
 
 String Patch::getTitle() const
 {

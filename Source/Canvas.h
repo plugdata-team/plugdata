@@ -55,7 +55,7 @@ public:
 
     PluginEditor* editor;
     PluginProcessor* pd;
-        
+
     void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
 
@@ -79,7 +79,7 @@ public:
     void handleAsyncUpdate() override;
 
     void moveToWindow(PluginEditor* newWindow);
-        
+
     void updateDrawables();
 
     bool keyPressed(KeyPress const& key) override;

@@ -51,9 +51,9 @@ struct ExporterBase : public Component
         , editor(pluginEditor)
     {
         addAndMakeVisible(exportButton);
-        
+
         exportButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
-        
+
         Array<PropertiesPanel::Property*> properties;
 
         auto* patchChooser = new PropertiesPanel::ComboComponent("Patch to export", inputPatchValue, { "Currently opened patch", "Other patch (browse)" });
@@ -101,7 +101,7 @@ struct ExporterBase : public Component
             saveChooser->launchAsync(FileBrowserComponent::canSelectDirectories,
                 [this](const FileChooser& fileChooser) {
                     const auto folder = fileChooser.getResult();
-                    if(folder.exists()) {
+                    if (folder.exists()) {
                         startExport(folder);
                     }
                 });

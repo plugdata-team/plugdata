@@ -68,7 +68,6 @@ void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre,
     centre->getTopLevelComponent()->toFront(true);
 }
 
-
 void Dialogs::showSettingsDialog(PluginEditor* editor)
 {
     auto* dialog = new Dialog(&editor->openedDialog, editor, 690, 500, true);
@@ -158,7 +157,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
 
             cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
             okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-            
+
             cancel.onClick = [dialog, callback] {
                 callback(false);
                 dialog->closeDialog();
@@ -374,7 +373,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         QuickActionsBar(ApplicationCommandManager* commandManager)
         {
             // If the tooltip has it's own window, it should also have its own TooltipWindow!
-            if(ProjectInfo::canUseSemiTransparentWindows()) {
+            if (ProjectInfo::canUseSemiTransparentWindows()) {
                 tooltipWindow = std::make_unique<CheckedTooltip>(this);
             }
             auto commandIds = Array<CommandID> { CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete };
@@ -549,7 +548,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
         if (result == Properties) {
             if (originalComponent == cnv) {
-                Array<ObjectParameters> parameters = {cnv->getInspectorParameters()};
+                Array<ObjectParameters> parameters = { cnv->getInspectorParameters() };
                 editor->sidebar->showParameters("canvas", parameters);
             } else if (object && object->gui) {
 

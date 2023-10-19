@@ -19,7 +19,6 @@
 
 class WelcomePanel : public Component {
 
-
     class RecentlyOpenedListBox : public Component
         , public ListBoxModel {
     public:

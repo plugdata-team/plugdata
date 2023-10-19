@@ -161,7 +161,7 @@ public:
     std::atomic<bool> enableInternalSynth = false;
 
     OwnedArray<PluginEditor> openedEditors;
-        
+
 private:
     void processInternal();
 
@@ -176,7 +176,7 @@ private:
     MidiBuffer midiBufferTemp;
     MidiBuffer midiBufferCopy;
     MidiBuffer midiBufferInternalSynth;
-        
+
     AudioProcessLoadMeasurer cpuLoadMeasurer;
 
     bool midiByteIsSysex = false;

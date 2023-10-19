@@ -79,7 +79,7 @@ public:
         else
             return Slider::proportionOfLengthToValue(proportion);
     }
-    
+
     double valueToProportionOfLength(double value) override
     {
         if (isInverted)

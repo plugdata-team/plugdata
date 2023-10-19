@@ -613,7 +613,6 @@ public:
         }
     }
 
-
     String getNewParameterName()
     {
         StringArray takenNames;

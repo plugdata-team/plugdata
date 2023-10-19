@@ -157,8 +157,7 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
             resizerLeft->splits[1] = newSplit;
         }
         resizerLeft = resizer;
-    }
-    else {
+    } else {
         return;
     }
 
@@ -174,7 +173,7 @@ void ResizableTabbedComponent::createNewSplit(DropZones activeZone, Canvas* canv
     newSplit->getTabComponent()->addTab(tabTitle, canvas->viewport.get(), 0);
     canvas->viewport->setVisible(true);
     canvas->moveToWindow(editor);
-    
+
     newSplit->resized();
     newSplit->getTabComponent()->resized();
 }
@@ -371,16 +370,15 @@ void ResizableTabbedComponent::itemDragEnter(SourceDetails const& dragSourceDeta
 {
     editor->splitView.setFocus(this);
     // if we are dragging a tabbar, update the highlight split
-    if(dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+    if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         isDragAndDropOver = true;
         repaint();
     }
 }
 
-
 void ResizableTabbedComponent::itemDragExit(SourceDetails const& dragSourceDetails)
 {
-    if(dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+    if (dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         isDragAndDropOver = false;
         repaint();
     }
@@ -403,7 +401,7 @@ void ResizableTabbedComponent::itemDragMove(SourceDetails const& dragSourceDetai
             }
         } else if (sourceTabButton->getTabComponent() != tabComponent.get()) {
             auto foundZone = zone == DropZones::TabBar ? DropZones::None : DropZones::Centre;
-            if (activeZone != foundZone){
+            if (activeZone != foundZone) {
                 activeZone = foundZone;
                 repaint();
             }

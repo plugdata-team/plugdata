@@ -19,7 +19,7 @@ struct ModifierKeyListener {
 
     virtual void spaceKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
     virtual void middleMouseChanged(bool isHeld) { ignoreUnused(isHeld); }
-    
+
     JUCE_DECLARE_WEAK_REFERENCEABLE(ModifierKeyListener)
 };
 
@@ -108,7 +108,8 @@ private:
     void callListeners(Modifier mod, bool down)
     {
         for (auto listener : listeners) {
-            if(!listener) continue;
+            if (!listener)
+                continue;
             switch (mod) {
             case Shift: {
                 listener->shiftKeyChanged(down);
@@ -149,7 +150,7 @@ private:
         auto mods = ModifierKeys::getCurrentModifiersRealtime();
         setModifierKeys(mods);
     }
-    
+
     virtual bool isActiveWindow() { return true; }
 
     bool shiftWasDown = false;

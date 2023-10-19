@@ -50,17 +50,15 @@ public:
 
         input.onTextChange = [this]() {
             // To resize while typing
-            if(atomHelper.getWidthInChars() == 0)
-            {
+            if (atomHelper.getWidthInChars() == 0) {
                 object->updateBounds();
             }
         };
-        
+
         input.onValueChange = [this](float newValue) {
             sendFloatValue(newValue);
-            
-            if(atomHelper.getWidthInChars() == 0)
-            {
+
+            if (atomHelper.getWidthInChars() == 0) {
                 object->updateBounds();
             }
         };
@@ -168,7 +166,7 @@ public:
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
         }
     }
-    
+
     void updateLabel() override
     {
         atomHelper.updateLabel(label);

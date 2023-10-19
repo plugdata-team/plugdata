@@ -50,11 +50,10 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     if (!oc) {
         auto* checkedOut = pd::Interface::checkObject(outobj->getPointer());
         auto* checkedIn = pd::Interface::checkObject(inobj->getPointer());
-        if(checkedOut && checkedIn) {
+        if (checkedOut && checkedIn) {
             oc = parent->patch.createAndReturnConnection(checkedOut, outIdx, checkedIn, inIdx);
             setPointer(oc);
-        }
-        else {
+        } else {
             jassertfalse;
             return;
         }
@@ -679,7 +678,7 @@ void Connection::reconnect(Iolet* target)
 
         auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
         auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
-        
+
         if (checkedOut && checkedIn && cnv->patch.hasConnection(checkedOut, c->outIdx, checkedIn, c->inIdx)) {
             // Delete connection from pd if we haven't done that yet
             cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());

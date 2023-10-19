@@ -40,10 +40,9 @@ public:
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->addKeyListener(this);
-            editor->onTextChange = [this](){
+            editor->onTextChange = [this]() {
                 // To resize while typing
-                if(atomHelper.getWidthInChars() == 0)
-                {
+                if (atomHelper.getWidthInChars() == 0) {
                     object->updateBounds();
                 }
             };
@@ -54,7 +53,7 @@ public:
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         atomHelper.addAtomParameters(objectParameters);
     }
-        
+
     void update() override
     {
         sizeProperty = atomHelper.getWidthInChars();

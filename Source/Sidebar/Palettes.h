@@ -327,11 +327,10 @@ public:
     {
         // toolbar bar
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
-        {
+        if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
-        
+
         g.setColour(backgroundColour);
         g.fillRect(getLocalBounds().toFloat().removeFromTop(30).withTrimmedTop(0.5f));
 
@@ -390,11 +389,10 @@ public:
     void paint(Graphics& g) override
     {
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
-        {
+        if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
-        
+
         g.setColour(backgroundColour);
         g.fillRect(getLocalBounds().toFloat().withTrimmedTop(0.5f));
 
@@ -570,11 +568,10 @@ private:
 
         totalHeight += 46;
 
-        
         auto selectorBounds = getLocalBounds().removeFromLeft(30).withSizeKeepingCentre(30, totalHeight);
-        
+
         paletteBar.setBounds(0, 0, 30, std::max(totalHeight, getHeight()));
-        
+
         paletteViewport.setBounds(getLocalBounds().removeFromLeft(30));
 
         int offset = totalHeight > paletteViewport.getMaximumVisibleHeight() ? -4 : 0;
@@ -693,8 +690,7 @@ private:
         }
 
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
-        {
+        if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
         g.setColour(backgroundColour);

@@ -15,8 +15,6 @@ class PlugDataWindow;
 class PluginEditor;
 class StandalonePluginHolder;
 
-
-
 struct ProjectInfo {
 
     static char const* projectName;
@@ -28,10 +26,10 @@ struct ProjectInfo {
 
     static MidiDeviceManager* getMidiDeviceManager();
     static AudioDeviceManager* getDeviceManager();
-    
+
     static PlugDataWindow* createNewWindow(PluginEditor* editor);
     static void closeWindow(PlugDataWindow* window);
-    
+
     static StandalonePluginHolder* getStandalonePluginHolder();
 
     static bool canUseSemiTransparentWindows();
@@ -54,13 +52,12 @@ inline void setValueExcludingListener(Value& parameter, var const& value, Value:
     jassert(dynamic_cast<SynchronousValueSource*>(&parameter.getValueSource()) != nullptr);
 
     parameter.removeListener(listener);
-    
+
     auto oldValue = parameter.getValue();
     parameter.setValue(value);
 
     parameter.addListener(listener);
 }
-
 
 static inline String getRelativeTimeDescription(String const& timestampString)
 {

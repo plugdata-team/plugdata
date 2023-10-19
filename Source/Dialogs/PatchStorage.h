@@ -643,7 +643,6 @@ public:
         if (input.isVisible()) {
             Fonts::drawIcon(g, Icons::Search, 0, 40, 30, findColour(PlugDataColour::panelTextColourId), 12);
 
-
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.drawLine(0, 70, getWidth(), 70);
         }

@@ -148,24 +148,20 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     , infoButton(new MainToolbarButton(Icons::Help))
 {
     hasToolchain = Toolchain::dir.exists();
-    
 
     // Don't do this relative to toolchain variable, that won't work on Windows
     auto const versionFile = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("VERSION");
     auto const installedVersion = versionFile.loadFileAsString().trim().removeCharacters(".").getIntValue();
 
-    
     // Create integer versions by removing the dots
     // Compare latest version on github to the currently installed version
     int latestVersion;
     try {
         auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
         // Get latest version
-        if(compatTable.isObject())
-        {
+        if (compatTable.isObject()) {
             latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString().removeCharacters(".").getIntValue();
-        }
-        else {
+        } else {
             latestVersion = installedVersion;
         }
     }
@@ -186,11 +182,11 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
     exportingView->setAlwaysOnTop(true);
 
-    infoButton->onClick = [](){
+    infoButton->onClick = []() {
         URL("https://wasted-audio.github.io/hvcc/docs/01.introduction.html#what-is-heavy").launchInDefaultBrowser();
     };
     addAndMakeVisible(*infoButton);
-    
+
     installer->toolchainInstalledCallback = [this]() {
         hasToolchain = true;
         exporterPanel->setVisible(true);
@@ -214,15 +210,15 @@ void HeavyExportDialog::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
-    
+
     auto titlebarBounds = getLocalBounds().removeFromTop(40);
-    
+
     Path p;
     p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
 
     g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
     g.fillPath(p);
-        
+
     Fonts::drawStyledText(g, "Compiler", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
 }
 

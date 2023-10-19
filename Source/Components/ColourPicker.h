@@ -334,7 +334,7 @@ private:
     void setBrightness(float newV)
     {
         newV = jlimit(0.0f, 1.0f, newV);
-        
+
         if (!approximatelyEqual(v, newV)) {
             v = newV;
             colour = Colour(h, s, v, colour.getFloatAlpha());
@@ -351,7 +351,7 @@ private:
     {
         newH = jlimit(0.0f, 1.0f, newH);
         newS = jlimit(0.0f, 1.0f, newS);
-        
+
         if (!approximatelyEqual(h, newH) || !approximatelyEqual(s, newS)) {
             h = newH;
             s = newS;

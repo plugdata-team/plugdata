@@ -75,7 +75,7 @@ private:
             ofeliaExecutable.setExecutePermission(true);
 
             libpd_set_instance(pdinstance);
-            
+
             setup();
 
             // Initialise threading system for ofelia

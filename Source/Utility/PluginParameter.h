@@ -69,7 +69,8 @@ public:
             setValue(std::floor(getValue()));
         }
 
-        if(notify) notifyDAW();
+        if (notify)
+            notifyDAW();
     }
 
     // Reports whether the current DAW/format can deal with dynamic
@@ -258,7 +259,7 @@ public:
             if (xmlParam->hasAttribute("mode")) {
                 mode = static_cast<Mode>(xmlParam->getIntAttribute("mode"));
             }
-            
+
             param->setRange(min, max);
             param->setName(name);
             param->setIndex(index);

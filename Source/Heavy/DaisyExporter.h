@@ -38,7 +38,7 @@ public:
         addAndMakeVisible(flashButton);
 
         flashButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
-        
+
         exportTypeValue.addListener(this);
         targetBoardValue.addListener(this);
         usbMidiValue.addListener(this);
@@ -254,7 +254,6 @@ public:
                     auto output = runTest.startShellScriptWithOutput(testBootloaderScript);
                     bool bootloaderNotFound = output.contains("alt=1");
 
-                    
                     if (bootloaderNotFound) {
                         exportingView->logToConsole("Bootloader not found...\n");
                         exportingView->logToConsole("Flashing bootloader...\n");

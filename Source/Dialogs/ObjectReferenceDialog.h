@@ -28,10 +28,10 @@ class ObjectInfoPanel : public Component {
             float totalHeight = 24;
             for (int i = 0; i < panelContent.size(); i++) {
                 auto textHeight = layouts[i].getHeight();
-                
+
                 auto bounds = Rectangle<float>(36.0f, totalHeight + 6.0f, getWidth() - 48.0f, textHeight);
                 auto nameWidth = std::max(Fonts::getSemiBoldFont().getStringWidth(panelContent[i].first), 64);
-                
+
                 Fonts::drawStyledText(g, panelContent[i].first, bounds.removeFromLeft(nameWidth), findColour(PlugDataColour::panelTextColourId), FontStyle::Semibold, 13.5f);
 
                 layouts[i].draw(g, bounds);
@@ -50,9 +50,9 @@ class ObjectInfoPanel : public Component {
             int totalHeight = 24;
             for (auto const& [name, description] : panelContent) {
                 auto nameWidth = std::max(Fonts::getSemiBoldFont().getStringWidth(name), 64);
-                
+
                 AttributedString str;
-                
+
                 auto lines = StringArray::fromLines(description);
 
                 // Draw anything between () as bold
@@ -67,7 +67,7 @@ class ObjectInfoPanel : public Component {
                         str.append(line, Font(13.5f), findColour(PlugDataColour::panelTextColourId));
                     }
                 }
-                
+
                 TextLayout layout;
                 layout.createLayout(str, width - (nameWidth + 64.0f));
                 layouts.add(layout);
@@ -227,7 +227,7 @@ public:
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
-        
+
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
@@ -241,14 +241,14 @@ public:
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(40, 0.0f, getWidth());
-        
+
         if (objectName.isEmpty())
             return;
 
         auto leftPanelBounds = getLocalBounds().withTrimmedRight(getLocalBounds().proportionOfWidth(0.65f));
 
         g.drawVerticalLine(leftPanelBounds.getRight(), 40.0f, getHeight() - 40.0f);
-        
+
         auto infoBounds = leftPanelBounds.withTrimmedBottom(100).withTrimmedTop(140).withTrimmedLeft(5).reduced(10);
         auto objectDisplayBounds = leftPanelBounds.removeFromTop(140);
 

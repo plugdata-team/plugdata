@@ -204,10 +204,10 @@ public:
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
     void sendTypedMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
 
-    virtual void addTextToTextEditor(unsigned long ptr, String text) {}
-    virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) {}
+    virtual void addTextToTextEditor(unsigned long ptr, String text) { }
+    virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) { }
 
-    virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) {}
+    virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) { }
 
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(void* object, MessageListener* messageListener);
@@ -216,11 +216,11 @@ public:
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
     void clearWeakReferences(void* ptr);
 
-    virtual void receiveDSPState(bool dsp) {}
+    virtual void receiveDSPState(bool dsp) { }
 
-    virtual void updateConsole(int numMessages, bool newWarning) {}
+    virtual void updateConsole(int numMessages, bool newWarning) { }
 
-    virtual void titleChanged() {}
+    virtual void titleChanged() { }
 
     void enqueueFunctionAsync(std::function<void(void)> const& fn);
 
@@ -232,11 +232,11 @@ public:
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(pd::Patch* p);
 
-    virtual void performParameterChange(int type, String const& name, float value) {}
+    virtual void performParameterChange(int type, String const& name, float value) { }
 
     // JYG added this
-    virtual void fillDataBuffer(std::vector<pd::Atom> const& list) {}
-    virtual void parseDataBuffer(XmlElement const& xml) {}
+    virtual void fillDataBuffer(std::vector<pd::Atom> const& list) { }
+    virtual void parseDataBuffer(XmlElement const& xml) { }
 
     void logMessage(String const& message);
     void logError(String const& message);
@@ -246,7 +246,7 @@ public:
     std::deque<std::tuple<void*, String, int, int>>& getConsoleMessages();
     std::deque<std::tuple<void*, String, int, int>>& getConsoleHistory();
 
-    virtual void messageEnqueued() {}
+    virtual void messageEnqueued() { }
 
     void sendMessagesFromQueue();
     void processMessage(Message mess);

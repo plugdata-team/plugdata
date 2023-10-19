@@ -22,7 +22,8 @@
 #include "SearchPanel.h"
 
 Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
-    : pd(instance), editor(parent)
+    : pd(instance)
+    , editor(parent)
 {
     // Can't use RAII because unique pointer won't compile with forward declarations
     console = std::make_unique<Console>(pd);
@@ -111,17 +112,16 @@ void Sidebar::paint(Graphics& g)
     g.fillRect(0, 30, getWidth(), getHeight());
 
     auto toolbarColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-    if(ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true))
-    {
+    if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
         toolbarColour = toolbarColour.brighter(toolbarColour.getBrightness() / 2.5f);
     }
-    
+
     // Background for buttons
     g.setColour(toolbarColour);
     g.fillRect(getWidth() - 30, 0, 30, getHeight());
     g.fillRect(0, 0, getWidth() - 30, 30);
 
-    if(!sidebarHidden) {
+    if (!sidebarHidden) {
         if (inspector->isVisible()) {
             Fonts::drawStyledText(g, "Inspector: " + inspector->getTitle(), Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Semibold, 15, Justification::centred);
         } else {
@@ -147,7 +147,7 @@ void Sidebar::resized()
     auto buttonBarBounds = bounds.removeFromRight(30).reduced(0, 1);
 
     buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144);
-    
+
     consoleButton.setBounds(buttonBarBounds.removeFromTop(30));
     buttonBarBounds.removeFromTop(8);
     browserButton.setBounds(buttonBarBounds.removeFromTop(30));
@@ -216,23 +216,24 @@ void Sidebar::showPanel(int panelToShow)
     bool showBrowser = panelToShow == 1;
     bool showAutomation = panelToShow == 2;
     bool showSearch = panelToShow == 3;
-    
-    if(panelToShow == currentPanel && !sidebarHidden) {
-        
+
+    if (panelToShow == currentPanel && !sidebarHidden) {
+
         consoleButton.setToggleState(false, dontSendNotification);
         browserButton.setToggleState(false, dontSendNotification);
         automationButton.setToggleState(false, dontSendNotification);
         searchButton.setToggleState(false, dontSendNotification);
-        
+
         showSidebar(false);
         return;
     }
-    
+
     showSidebar(true);
 
     console->setVisible(showConsole);
-    if(showConsole) console->resized();
-    
+    if (showConsole)
+        console->resized();
+
     browser->setVisible(showBrowser);
     browser->setInterceptsMouseClicks(showBrowser, showBrowser);
 
@@ -291,7 +292,7 @@ void Sidebar::showSidebar(bool show)
             inspector->showParameters();
         }
     }
-    
+
     editor->resized();
 }
 
@@ -384,15 +385,14 @@ void Sidebar::clearConsole()
 
 void Sidebar::updateConsole(int numMessages, bool newWarning)
 {
-    if(currentPanel != 0 || sidebarHidden) {
+    if (currentPanel != 0 || sidebarHidden) {
         consoleButton.numNotifications += numMessages;
         consoleButton.hasWarning = consoleButton.hasWarning || newWarning;
         consoleButton.repaint();
-    }
-    else {
+    } else {
         consoleButton.numNotifications = 0;
     }
-    
+
     console->update();
 }
 

@@ -7,8 +7,6 @@
 #include "Components/ObjectDragAndDrop.h"
 #include "Components/Buttons.h"
 
-
-
 class PluginEditor;
 class PaletteDraggableList;
 class ReorderButton;

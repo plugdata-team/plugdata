@@ -10,8 +10,8 @@
 
 class MidiDeviceManager : public ChangeListener
     , public AsyncUpdater {
-        
-    public:
+
+public:
     // Helper functions to encode/decode regular MIDI events into a sysex event
     // The reason we do this, is that we want to append extra information to the MIDI event when it comes in from pd or the device, but JUCE won't allow this
     // We still want to be able to use handy JUCE stuff for MIDI timing, so we treat every MIDI event as sysex
@@ -44,7 +44,7 @@ class MidiDeviceManager : public ChangeListener
         }
         return decodeData;
     }
-        
+
     static MidiMessage convertToSysExFormat(MidiMessage m, int device)
     {
         if (ProjectInfo::isStandalone) {
@@ -70,7 +70,7 @@ class MidiDeviceManager : public ChangeListener
 
             device = midiMessage.back();
             midiMessage.pop_back();
-            
+
             return MidiMessage(midiMessage.data(), midiMessage.size());
         }
 
@@ -351,7 +351,8 @@ public:
             for (auto* midiOutput : midiOutputs) {
                 midiOutput->sendMessageNow(message);
             }
-            if(fromPlugdata) fromPlugdata->sendMessageNow(message);
+            if (fromPlugdata)
+                fromPlugdata->sendMessageNow(message);
             return;
         }
 

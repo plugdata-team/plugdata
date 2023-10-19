@@ -6,7 +6,6 @@
 
 class PdExporter : public ExporterBase {
 public:
-
     Value exportTypeValue = Value(var(2));
     Value copyToPath = Value(var(0));
 
@@ -28,17 +27,14 @@ public:
 
     void valueChanged(Value& v) override
     {
-        if(v.refersToSameSourceAs(exportTypeValue)) {
+        if (v.refersToSameSourceAs(exportTypeValue)) {
             copyToPathProperty->setEnabled(exportTypeValue == 2);
-            if(exportTypeValue == 1)
-            {
+            if (exportTypeValue == 1) {
                 copyToPath = 0;
             }
-        }
-        else {
+        } else {
             ExporterBase::valueChanged(v);
         }
-
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
@@ -98,10 +94,9 @@ public:
             Toolchain::startShellScript("make -j4", this);
 #elif JUCE_WINDOWS
             File pdDll;
-            if(ProjectInfo::isStandalone) {
+            if (ProjectInfo::isStandalone) {
                 pdDll = File::getSpecialLocation(File::currentApplicationFile).getParentDirectory();
-            }
-            else {
+            } else {
                 pdDll = File::getSpecialLocation(File::globalApplicationsDirectory).getChildFile("plugdata");
             }
 
@@ -131,14 +126,14 @@ public:
             workingDir.setAsCurrentWorkingDirectory();
 
 #if JUCE_MAC
-                auto external = outputFile.getChildFile(name + "~.pd_darwin");
+            auto external = outputFile.getChildFile(name + "~.pd_darwin");
 #elif JUCE_WINDOWS
-                auto external = outputFile.getChildFile(name + "~.dll");
+            auto external = outputFile.getChildFile(name + "~.dll");
 #else
-                auto external = outputFile.getChildFile(name + "~.pd_linux");
+            auto external = outputFile.getChildFile(name + "~.pd_linux");
 #endif
 
-            if(getValue<bool>(copyToPath)) {
+            if (getValue<bool>(copyToPath)) {
                 exportingView->logToConsole("Copying to Externals folder...\n");
                 auto copy_location = ProjectInfo::appDataDir.getChildFile("Externals").getChildFile(external.getFileName());
                 external.copyFileTo(copy_location.getFullPathName());

@@ -73,104 +73,102 @@ public:
 
 class ObjectsListBox : public ListBox
     , public ListBoxModel {
-        
-        class ObjectListBoxItem : public ObjectDragAndDrop
+
+    class ObjectListBoxItem : public ObjectDragAndDrop {
+    public:
+        ObjectListBoxItem(ListBox* parent, String const& name, String const& description, bool isSelected, std::function<void(bool shouldFade)> dismissDialog)
+            : objectName(name)
+            , objectDescription(description)
+            , rowIsSelected(isSelected)
+            , objectsListBox(parent)
+            , dismissMenu(dismissDialog)
         {
-        public:
-            ObjectListBoxItem(ListBox* parent, const String& name, const String& description, bool isSelected, std::function<void(bool shouldFade)> dismissDialog)
-                : objectName(name)
-                , objectDescription(description)
-                , rowIsSelected(isSelected)
-                , objectsListBox(parent)
-                , dismissMenu(dismissDialog)
-            {
+        }
+
+        void paint(juce::Graphics& g) override
+        {
+            if (rowIsSelected || mouseHover) {
+                auto colour = findColour(PlugDataColour::panelActiveBackgroundColourId);
+                if (mouseHover && !rowIsSelected)
+                    colour = colour.withAlpha(0.5f);
+
+                g.setColour(colour);
+                g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), Corners::defaultCornerRadius);
             }
 
-            void paint(juce::Graphics& g) override
-            {
-                if (rowIsSelected || mouseHover) {
-                    auto colour = findColour(PlugDataColour::panelActiveBackgroundColourId);
-                    if (mouseHover && !rowIsSelected)
-                        colour = colour.withAlpha(0.5f);
+            auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
 
-                    g.setColour(colour);
-                    g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), Corners::defaultCornerRadius);
-                }
+            auto textBounds = Rectangle<int>(0, 0, getWidth(), getHeight()).reduced(18, 6);
 
-                auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            Fonts::drawStyledText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
 
-                auto textBounds = Rectangle<int>(0, 0, getWidth(), getHeight()).reduced(18, 6);
+            Fonts::drawText(g, objectDescription, textBounds, colour, 14);
+        }
 
-                Fonts::drawStyledText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
+        bool hitTest(int x, int y) override
+        {
+            auto bounds = getLocalBounds().reduced(4, 2);
+            return bounds.contains(x, y);
+        }
 
-                Fonts::drawText(g, objectDescription, textBounds, colour, 14);
-            }
+        void mouseEnter(MouseEvent const& e) override
+        {
+            mouseHover = true;
+            repaint();
+        }
 
-            bool hitTest(int x, int y) override
-            {
-                auto bounds = getLocalBounds().reduced(4, 2);
-                return bounds.contains(x, y);
-            }
+        void mouseExit(MouseEvent const& e) override
+        {
+            mouseHover = false;
+            repaint();
+        }
 
-            void mouseEnter(MouseEvent const& e) override
-            {
-                mouseHover = true;
-                repaint();
-            }
+        void mouseDown(MouseEvent const& e) override
+        {
+            objectsListBox->selectRow(row, true, true);
+        }
 
-            void mouseExit(MouseEvent const& e) override
-            {
-                mouseHover = false;
-                repaint();
-            }
+        void mouseUp(MouseEvent const& e) override
+        {
+            if (e.mouseWasDraggedSinceMouseDown())
+                dismissMenu(false);
+        }
 
-            void mouseDown(MouseEvent const& e) override
-            {
-                objectsListBox->selectRow(row, true, true);
-            }
+        void dismiss(bool withAnimation) override
+        {
+            dismissMenu(withAnimation);
+        }
 
-            void mouseUp(MouseEvent const& e) override
-            {
-                if (e.mouseWasDraggedSinceMouseDown())
-                    dismissMenu(false);
-            }
+        String getObjectString() override
+        {
+            return "#X obj 0 0 " + objectName;
+        }
 
-            void dismiss(bool withAnimation) override
-            {
-                dismissMenu(withAnimation);
-            }
+        String getItemName() const
+        {
+            return objectName;
+        }
 
-            String getObjectString() override
-            {
-                return "#X obj 0 0 " + objectName;
-            }
+        void refresh(String name, String description, int rowNumber, bool isSelected)
+        {
+            objectName = name;
+            objectDescription = description;
+            row = rowNumber;
+            rowIsSelected = isSelected;
+            repaint();
+        }
 
-            String getItemName() const
-            {
-                return objectName;
-            }
+    private:
+        int row;
+        String objectName;
+        String objectDescription;
+        bool rowIsSelected = false;
+        ListBox* objectsListBox;
 
-            void refresh(String name, String description, int rowNumber, bool isSelected)
-            {
-                objectName = name;
-                objectDescription = description;
-                row = rowNumber;
-                rowIsSelected = isSelected;
-                repaint();
-            }
+        bool mouseHover = false;
 
-        private:
-            int row;
-            String objectName;
-            String objectDescription;
-            bool rowIsSelected = false;
-            ListBox* objectsListBox;
-
-            bool mouseHover = false;
-
-            std::function<void(bool shouldFade)> dismissMenu;
-        };
-
+        std::function<void(bool shouldFade)> dismissMenu;
+    };
 
     BouncingViewportAttachment bouncer;
     std::function<void(bool shouldFade)> dismiss;
@@ -206,21 +204,17 @@ public:
         changeCallback(objects[row]);
     }
 
-    virtual void paintListBoxItem (int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
+    virtual void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
     {
-
     }
 
     Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
     {
-        if (existingComponentToUpdate == nullptr)
-        {
+        if (existingComponentToUpdate == nullptr) {
             auto name = objects[rowNumber];
             auto description = descriptions[name];
             return new ObjectListBoxItem(this, name, description, isRowSelected, dismiss);
-        }
-        else
-        {
+        } else {
             auto* itemComponent = dynamic_cast<ObjectListBoxItem*>(existingComponentToUpdate);
             if (itemComponent != nullptr) {
                 auto name = objects[rowNumber];
@@ -253,7 +247,7 @@ public:
         setBufferedToImage(true);
     }
 
-    ~ObjectViewerDragArea(){}
+    ~ObjectViewerDragArea() { }
 
     void setObjectName(String name)
     {
@@ -307,7 +301,6 @@ private:
     String objectName;
 };
 
-
 class ObjectViewer : public Component {
 
 public:
@@ -321,7 +314,7 @@ public:
         addChildComponent(openHelp);
         addChildComponent(openReference);
         addChildComponent(objectDragArea);
-        
+
         openReference.onClick = [this]() {
             reference.showObject(objectName);
         };
@@ -352,7 +345,6 @@ public:
 
         objectDragArea.setBounds(getLocalBounds().withTrimmedTop(48).withTrimmedBottom(120).withTrimmedLeft(12).withTrimmedRight(6));
     }
-
 
     void paintOverChildren(Graphics& g) override
     {
@@ -640,13 +632,13 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().withTrimmedTop(42).removeFromLeft(getWidth() - 260).toFloat(), Corners::windowCornerRadius);
     }
-        
+
     void startSearching()
     {
         setVisible(true);
         input.grabKeyboardFocus();
     }
-    
+
     void stopSearching()
     {
         input.clear();
@@ -777,7 +769,7 @@ private:
 
     Array<String> searchResult;
     SearchEditor input;
-        
+
     std::unordered_map<String, String> objectDescriptions;
 };
 
@@ -803,11 +795,10 @@ public:
         }
 
         searchButton.setClickingTogglesState(true);
-        searchButton.onClick = [this](){
-            if(searchButton.getToggleState()) {
+        searchButton.onClick = [this]() {
+            if (searchButton.getToggleState()) {
                 objectSearch.startSearching();
-            }
-            else {
+            } else {
                 objectSearch.stopSearching();
             }
         };
@@ -899,10 +890,10 @@ public:
     {
         objectSearch.setBounds(getLocalBounds());
         searchButton.setBounds(2, 1, 38, 38);
-        
+
         auto b = getLocalBounds().withTrimmedTop(42).reduced(1);
         objectViewer.setBounds(b.removeFromRight(260));
-        
+
         categoriesList.setBounds(b.removeFromLeft(170));
         objectsList.setBounds(b);
 
@@ -913,12 +904,12 @@ public:
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
-        
+
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         auto titlebarBounds = getLocalBounds().removeFromTop(40);
-        
+
         Path p;
         p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
 
@@ -927,7 +918,7 @@ public:
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(40, 0.0f, getWidth());
-        
+
         Fonts::drawStyledText(g, "Object Browser", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
     }
 
@@ -941,7 +932,7 @@ private:
     ObjectSearchComponent objectSearch;
 
     MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
-    
+
     ComponentAnimator animator;
 
     std::unordered_map<String, StringArray> objectsByCategory;

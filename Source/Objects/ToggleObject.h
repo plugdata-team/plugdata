@@ -98,7 +98,7 @@ public:
     void toggleObject(Point<int> position) override
     {
         ignoreUnused(position);
-        
+
         if (!alreadyToggled) {
             startEdition();
             auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);

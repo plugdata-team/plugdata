@@ -263,7 +263,6 @@ public:
                 break;
             }
         }
-        
 
 #if JUCE_MAC
         packages.add(PackageInfo("plugdata-ofelia",
@@ -280,7 +279,7 @@ public:
             "Ofelia graphics environment for plugdata",
             "v4.0.0-test4", { "ofelia" }));
 #endif
-        
+
         return packages;
     }
 
@@ -464,34 +463,35 @@ public:
         if (!packageManager->isThreadRunning()) {
             packageManager->startThread();
         }
-        
+
         searchButton.setClickingTogglesState(true);
-        searchButton.onClick = [this](){
+        searchButton.onClick = [this]() {
             auto isSearching = searchButton.getToggleState();
             input.setVisible(isSearching);
-            if(isSearching) input.grabKeyboardFocus();
-            
+            if (isSearching)
+                input.grabKeyboardFocus();
+
             installedButton.setVisible(!isSearching);
             exploreButton.setVisible(!isSearching);
             repaint();
             filterResults();
         };
-        
+
         addAndMakeVisible(searchButton);
         addAndMakeVisible(installedButton);
         addAndMakeVisible(exploreButton);
-        
+
         installedButton.setRadioGroupId(hash("deken_toolbar"));
         exploreButton.setRadioGroupId(hash("deken_toolbar"));
-        
+
         installedButton.setToggleState(true, dontSendNotification);
-        installedButton.onClick = [this](){
+        installedButton.onClick = [this]() {
             filterResults();
         };
-        exploreButton.onClick = [this](){
+        exploreButton.onClick = [this]() {
             filterResults();
         };
-        
+
         filterResults();
     }
 
@@ -552,7 +552,7 @@ public:
         if (errorMessage.isNotEmpty()) {
             Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
         }
-        
+
         if (searchResult.isEmpty()) {
             auto message = installedButton.getToggleState() ? "No externals installed" : "Couldn't find any externals";
             Fonts::drawText(g, message, getLocalBounds().withTrimmedTop(40).removeFromTop(32), findColour(PlugDataColour::panelTextColourId), 14, Justification::centred);
@@ -593,13 +593,13 @@ public:
     {
         String query = input.getText();
         bool isSearching = searchButton.getToggleState();
-        
+
         PackageList newResult;
 
         searchResult.clear();
 
         if (installedButton.getToggleState() && !isSearching) {
-            
+
             // make sure installed packages are sorted alphabetically
             PackageSorter::sort(packageManager->packageState);
 
@@ -611,9 +611,9 @@ public:
                 auto version = child.getProperty("Version").toString();
                 auto author = child.getProperty("Author").toString();
                 auto objects = StringArray();
-                
+
                 auto info = PackageInfo(name, author, timestamp, url, description, version, objects);
-                
+
                 searchResult.addIfNotAlreadyThere(info);
             }
 
@@ -623,35 +623,35 @@ public:
 
         PackageList allPackages = packageManager->allPackages;
 
-        if(isSearching && !query.isEmpty()) {
+        if (isSearching && !query.isEmpty()) {
             // First check for name match
             for (auto const& result : allPackages) {
                 if (result.name.contains(query)) {
                     newResult.addIfNotAlreadyThere(result);
                 }
             }
-            
+
             // Then check for description match
             for (auto const& result : allPackages) {
                 if (result.description.contains(query)) {
                     newResult.addIfNotAlreadyThere(result);
                 }
             }
-            
+
             // Then check for object match
             for (auto const& result : allPackages) {
                 if (result.objects.contains(query)) {
                     newResult.addIfNotAlreadyThere(result);
                 }
             }
-            
+
             // Then check for author match
             for (auto const& result : allPackages) {
                 if (result.author.contains(query)) {
                     newResult.addIfNotAlreadyThere(result);
                 }
             }
-            
+
             // Then check for object close match
             for (auto const& result : allPackages) {
                 for (auto const& obj : result.objects) {
@@ -660,8 +660,7 @@ public:
                     }
                 }
             }
-        }
-        else if(!isSearching){
+        } else if (!isSearching) {
             newResult = allPackages;
         }
 
@@ -682,7 +681,7 @@ public:
     void resized() override
     {
         input.setBounds(getLocalBounds().removeFromTop(40).withTrimmedLeft(46).reduced(42, 5));
-        
+
         auto bounds = getLocalBounds().withTrimmedTop(40);
 
         updateSpinner.setBounds(input.getBounds().removeFromRight(30));
@@ -692,7 +691,7 @@ public:
 
         refreshButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40).translated(2, 0).reduced(1));
         searchButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40).translated(42, 0).reduced(1));
-        
+
         installedButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(105, 36).translated(-54, 0));
         exploreButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(105, 36).translated(54, 0));
     }
@@ -778,10 +777,10 @@ private:
 
     MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
     MainToolbarButton refreshButton = MainToolbarButton(Icons::Refresh);
-        
+
     SettingsToolbarButton installedButton = SettingsToolbarButton(Icons::Checkmark, "Installed");
     SettingsToolbarButton exploreButton = SettingsToolbarButton(Icons::Sparkle, "Explore");
-    
+
     PackageManager* packageManager = PackageManager::getInstance();
 
     SearchEditor input;

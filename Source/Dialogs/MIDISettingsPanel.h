@@ -17,7 +17,7 @@ public:
     {
         toggleStateValue = ProjectInfo::getMidiDeviceManager()->isMidiDeviceEnabled(isInput, deviceInfo.identifier);
     }
-    
+
     Property* createCopy() override
     {
         return new MidiSettingsToggle(isInput, processor, deviceInfo, deviceManager);
@@ -79,7 +79,7 @@ public:
     {
         return &midiProperties;
     }
-        
+
 private:
     void resized() override
     {

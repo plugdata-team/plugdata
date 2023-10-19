@@ -21,7 +21,6 @@ class PluginProcessor;
 class VolumeSlider;
 class OversampleSelector;
 
-
 class StatusbarSource : public Timer {
 
 public:
@@ -31,7 +30,7 @@ public:
         virtual void audioProcessedChanged(bool audioProcessed) { ignoreUnused(audioProcessed); }
         virtual void audioLevelChanged(Array<float> peak) { ignoreUnused(peak); }
         virtual void cpuUsageChanged(float newCpuUsage) { ignoreUnused(newCpuUsage); }
-        virtual void timerCallback() {}
+        virtual void timerCallback() { }
     };
 
     StatusbarSource();
@@ -48,7 +47,7 @@ public:
 
     void addListener(Listener* l);
     void removeListener(Listener* l);
-    
+
     void setCPUUsage(float cpuUsage);
 
     AudioSampleRingBuffer peakBuffer;
@@ -97,7 +96,6 @@ public:
     std::unique_ptr<VolumeSlider> volumeSlider;
     std::unique_ptr<MIDIBlinker> midiBlinker;
     std::unique_ptr<CPUMeter> cpuMeter;
-
 
     SmallIconButton powerButton, centreButton, fitAllButton, protectButton;
 

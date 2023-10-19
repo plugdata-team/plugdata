@@ -354,10 +354,10 @@ void Iolet::createConnection()
 
                 auto outIdx = outlet->ioletIdx;
                 auto inIdx = inlet->ioletIdx;
-                
+
                 auto* outptr = pd::Interface::checkObject(outobj->getPointer());
                 auto* inptr = pd::Interface::checkObject(inobj->getPointer());
-                
+
                 if (!outptr || !inptr)
                     return;
 

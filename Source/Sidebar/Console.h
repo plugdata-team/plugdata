@@ -166,8 +166,8 @@ public:
             int idx;
 
             ConsoleMessage(int index, ConsoleComponent& parent)
-            : console(parent)
-            , idx(index)
+                : console(parent)
+                , idx(index)
             {
 
                 parent.addAndMakeVisible(this);

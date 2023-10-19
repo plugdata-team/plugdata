@@ -8,7 +8,7 @@
 namespace pd {
 
 class MessageListener {
-    
+
 public:
     virtual void receiveMessage(String const& name, int argc, t_atom* argv) = 0;
 

@@ -16,9 +16,9 @@ class ActionButton : public Component {
 
 public:
     ActionButton(String iconToShow, String textToShow, bool roundOnTop = false)
-    : roundTop(roundOnTop)
-    , icon(std::move(iconToShow))
-    , text(std::move(textToShow))
+        : roundTop(roundOnTop)
+        , icon(std::move(iconToShow))
+        , text(std::move(textToShow))
     {
     }
 

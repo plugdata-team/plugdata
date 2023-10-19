@@ -138,7 +138,7 @@ Instance::~Instance()
 // ag: Stuff to be done after unpacking the library data on first launch.
 void Instance::initialisePd(String& pdlua_version)
 {
-   instance = libpd_new_instance();
+    instance = libpd_new_instance();
 
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
@@ -154,24 +154,24 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
         });
 
-   midiReceiver = pd::Setup::createMIDIHook(this, reinterpret_cast<t_plugdata_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_plugdata_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_plugdata_programchangehook>(internal::instance_multi_programchange),
+    midiReceiver = pd::Setup::createMIDIHook(this, reinterpret_cast<t_plugdata_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_plugdata_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_plugdata_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_plugdata_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_plugdata_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_plugdata_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
         reinterpret_cast<t_plugdata_midibytehook>(internal::instance_multi_midibyte));
 
-   messageReceiver = pd::Setup::createReceiver(this, "pd", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+    messageReceiver = pd::Setup::createReceiver(this, "pd", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-   parameterReceiver = pd::Setup::createReceiver(this, "param", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+    parameterReceiver = pd::Setup::createReceiver(this, "param", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     // JYG added This
-   dataBufferReceiver = pd::Setup::createReceiver(this, "databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+    dataBufferReceiver = pd::Setup::createReceiver(this, "databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-   parameterChangeReceiver = pd::Setup::createReceiver(this, "param_change", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+    parameterChangeReceiver = pd::Setup::createReceiver(this, "param_change", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-   atoms = malloc(sizeof(t_atom) * 512);
+    atoms = malloc(sizeof(t_atom) * 512);
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
@@ -220,7 +220,7 @@ void Instance::initialisePd(String& pdlua_version)
                 title = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
                 hasCallback = atom_getfloat(argv + 4);
             }
-            
+
             // TODO: do we need to do something with hasCallback?
             static_cast<Instance*>(instance)->showTextEditor(ptr, Rectangle<int>(width, height), title);
 
@@ -299,7 +299,7 @@ void Instance::initialisePd(String& pdlua_version)
     setThis();
 
     // ag: need to do this here to suppress noise from chatty externals
-   printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
+    printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
 }
 
@@ -474,7 +474,6 @@ void Instance::processMessage(Message mess)
         // JYG added This
     } else if (mess.destination == "databuffer") {
         fillDataBuffer(mess.list);
-
     }
 }
 
@@ -551,8 +550,8 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
 
     if (it != listeners.end())
         listeners.erase(it);
-    
-    if(listeners.empty())
+
+    if (listeners.empty())
         messageListeners.erase(object);
 }
 
@@ -590,7 +589,7 @@ void Instance::clearWeakReferences(void* ptr)
 
 void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
 {
-   functionQueue.enqueue(fn);
+    functionQueue.enqueue(fn);
 }
 
 void Instance::sendDirectMessage(void* object, String const& msg, std::vector<Atom>&& list)
