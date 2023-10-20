@@ -120,6 +120,10 @@ struct ExporterBase : public Component
         removeAllJobs(true, -1);
     }
 
+        
+    virtual ValueTree getState() = 0;
+    virtual void setState(ValueTree& state) = 0;
+
     void startExport(File const& outDir)
     {
 

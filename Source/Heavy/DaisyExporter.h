@@ -51,6 +51,34 @@ public:
             startExport(tempFolder);
         };
     }
+    
+    ValueTree getState() override
+    {
+        ValueTree stateTree("Daisy");
+        stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
+        stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
+        stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
+        stateTree.setProperty("targetBoardValue", getValue<int>(targetBoardValue), nullptr);
+        stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
+        stateTree.setProperty("usbMidiValue", getValue<int>(usbMidiValue), nullptr);
+        stateTree.setProperty("debugPrintValue", getValue<int>(debugPrintValue), nullptr);
+        stateTree.setProperty("patchSizeValue", getValue<int>(patchSizeValue), nullptr);
+        
+        return stateTree;
+    }
+    
+    void setState(ValueTree& stateTree) override
+    {
+        auto tree = stateTree.getChildWithName("Daisy");
+        inputPatchValue = tree.getProperty("inputPatchValue");
+        projectNameValue = tree.getProperty("projectNameValue");
+        projectCopyrightValue = tree.getProperty("projectCopyrightValue");
+        targetBoardValue = tree.getProperty("targetBoardValue");
+        exportTypeValue = tree.getProperty("exportTypeValue");
+        usbMidiValue = tree.getProperty("usbMidiValue");
+        debugPrintValue = tree.getProperty("debugPrintValue");
+        patchSizeValue = tree.getProperty("patchSizeValue");
+    }
 
     void resized() override
     {

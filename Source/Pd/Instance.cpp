@@ -711,8 +711,12 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);
-
-    if (!defaultFile.exists()) {
+    
+    if(!defaultFile.exists() && SettingsFile::getInstance()->hasProperty("last_filechooser_path"))
+    {
+        defaultFile = File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path"));
+    }
+    else if (!defaultFile.exists()) {
         defaultFile = ProjectInfo::appDataDir;
     }
 

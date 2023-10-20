@@ -61,6 +61,45 @@ public:
         listBox.selectRow(0);
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         listBox.setRowHeight(28);
+        
+        restoreState();
+    }
+        
+    ~ExporterSettingsPanel()
+    {
+        saveState();
+    }
+        
+    void restoreState()
+    {
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        auto heavyState = settingsTree.getChildWithName("HeavyState");
+        if(heavyState.isValid())
+        {
+            views[0]->setState(heavyState);
+            views[1]->setState(heavyState);
+            views[2]->setState(heavyState);
+            views[3]->setState(heavyState);
+        }
+    }
+        
+    ValueTree saveState()
+    {
+        ValueTree state("HeavyState");
+        state.appendChild(views[0]->getState(), nullptr);
+        state.appendChild(views[1]->getState(), nullptr);
+        state.appendChild(views[2]->getState(), nullptr);
+        state.appendChild(views[3]->getState(), nullptr);
+        
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        
+        auto oldState = settingsTree.getChildWithName("HeavyState");
+        if(oldState.isValid()) {
+            settingsTree.removeChild(oldState, nullptr);
+        }
+        settingsTree.appendChild(state, nullptr);
+        
+        return state;
     }
 
     void paint(Graphics& g) override
@@ -202,6 +241,8 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
 HeavyExportDialog::~HeavyExportDialog()
 {
+    
+    
     // Clean up temp files
     Toolchain::deleteTempFiles();
 }
