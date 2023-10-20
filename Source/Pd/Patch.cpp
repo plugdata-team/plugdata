@@ -621,6 +621,7 @@ String Patch::getTitle() const
             for (int i = 0; i < argc; i++) {
                 atom_string(&argv[i], namebuf, MAXPDSTRING);
                 name += String::fromUTF8(namebuf);
+                if(i != argc - 1) name += " ";
             }
             name += ")";
         }

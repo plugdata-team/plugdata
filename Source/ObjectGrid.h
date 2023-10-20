@@ -14,6 +14,7 @@ struct ObjectGrid : public SettingsFileListener {
 
     int gridSize = 20;
 
+
     ObjectGrid(Canvas* cnv);
 
     Point<int> performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds);
