@@ -1025,7 +1025,11 @@ void Object::mouseDrag(MouseEvent const& e)
 
             // Store origin object positions
             for (auto object : selection) {
-                mouseDownObjectPositions.add(object->getPosition().translated(10, 10));
+                auto gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+                auto gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
+                auto gridSize = gridEnabled && (gridType & 1) ? cnv->objectGrid.gridSize : 10;
+                
+                mouseDownObjectPositions.add(object->getPosition().translated(gridSize, gridSize));
             }
 
             // Duplicate once
