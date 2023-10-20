@@ -94,8 +94,8 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
                 inletBounds = inletBounds.withSize(8, 8);
                 if(outletBounds.getY() > inletBounds.getY()) continue;
                 
-                auto snapDistance = std::abs(inletBounds.getX() - outletBounds.getX());
-                if(snapDistance < connectionTolerance)  {
+                auto snapDistance = inletBounds.getX() - outletBounds.getX();
+                if(std::abs(snapDistance) < connectionTolerance)  {
                     distance.x = snapDistance;
                     horizontalIndicator = {outletBounds.getX() - 2, outletBounds.getBottom() + 4, outletBounds.getX() - 2, inletBounds.getY() - 4};
                     connectionSnapped = true;
@@ -112,9 +112,9 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
                 inletBounds = inletBounds.withSize(8, 8);
                 if(outletBounds.getY() > inletBounds.getY()) continue;
                 
-                auto snapDistance = std::abs(inletBounds.getX() - outletBounds.getX());
-                if(snapDistance < connectionTolerance)  {
-                    distance.x = snapDistance;
+                auto snapDistance = inletBounds.getX() - outletBounds.getX();
+                if(std::abs(snapDistance) < connectionTolerance)  {
+                    distance.x = -snapDistance;
                     horizontalIndicator = {inletBounds.getX() - 2, outletBounds.getBottom() + 4, inletBounds.getX() - 2, inletBounds.getY() - 4};
                     connectionSnapped = true;
                 }
