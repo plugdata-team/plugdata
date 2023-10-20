@@ -96,7 +96,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
                 
                 auto snapDistance = inletBounds.getX() - outletBounds.getX();
                 if(std::abs(snapDistance) < connectionTolerance)  {
-                    distance.x = snapDistance;
+                    distance.x = -snapDistance;
                     horizontalIndicator = {outletBounds.getX() - 2, outletBounds.getBottom() + 4, outletBounds.getX() - 2, inletBounds.getY() - 4};
                     connectionSnapped = true;
                 }
@@ -114,7 +114,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
                 
                 auto snapDistance = inletBounds.getX() - outletBounds.getX();
                 if(std::abs(snapDistance) < connectionTolerance)  {
-                    distance.x = -snapDistance;
+                    distance.x = snapDistance;
                     horizontalIndicator = {inletBounds.getX() - 2, outletBounds.getBottom() + 4, inletBounds.getX() - 2, inletBounds.getY() - 4};
                     connectionSnapped = true;
                 }
