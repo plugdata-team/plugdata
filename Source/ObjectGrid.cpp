@@ -88,8 +88,10 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
             {
                 if(!snappable.contains(connection->outobj)) continue;
                 
-                auto outletBounds = connection->outlet->getCanvasBounds();
+                auto outletBounds = connection->outobj->getBounds() + connection->outlet->getPosition();
                 auto inletBounds = connection->inobj->originalBounds + dragOffset + connection->inlet->getPosition();
+                outletBounds = outletBounds.withSize(12, 12);
+                inletBounds = inletBounds.withSize(8, 8);
                 if(outletBounds.getY() > inletBounds.getY()) continue;
                 
                 auto snapDistance = -(inletBounds.getX() - outletBounds.getX());
@@ -104,14 +106,16 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
             {
                 if(!snappable.contains(connection->inobj)) continue;
                 
-                auto inletBounds = connection->inlet->getCanvasBounds();
+                auto inletBounds = connection->inobj->getBounds() + connection->inlet->getPosition();
                 auto outletBounds = connection->outobj->originalBounds + dragOffset + connection->outlet->getPosition();
+                outletBounds = outletBounds.withSize(12, 12);
+                inletBounds = inletBounds.withSize(8, 8);
                 if(outletBounds.getY() > inletBounds.getY()) continue;
                 
                 auto snapDistance = inletBounds.getX() - outletBounds.getX();
                 if(std::abs(snapDistance) < connectionTolerance)  {
                     distance.x = snapDistance;
-                    horizontalIndicator = {inletBounds.getX() - 2, inletBounds.getBottom() - 4, inletBounds.getX() - 2, outletBounds.getY() + 4};
+                    horizontalIndicator = {inletBounds.getX() - 2, outletBounds.getBottom() + 4, inletBounds.getX() - 2, inletBounds.getY() - 4};
                     connectionSnapped = true;
                 }
                 break;
@@ -218,8 +222,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     
     // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
     toDrag->getConstrainer()->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
-        resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
-        resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
+                                          isDraggingTop, isDraggingLeft, isDraggingBottom, isDraggingRight);
 
     // Returns non-zero if the object has a fixed ratio
     auto ratio = toDrag->getConstrainer()->getFixedAspectRatio();
