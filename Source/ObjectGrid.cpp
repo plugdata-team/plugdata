@@ -12,475 +12,22 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-ObjectGrid::ObjectGrid(Component* parent)
-{
-    for (auto& line : gridLines) {
-        parent->addAndMakeVisible(line);
-
-        line.setStrokeThickness(1);
-        line.setAlwaysOnTop(true);
-    }
-
+ObjectGrid::ObjectGrid(Canvas* cnv) {
+    
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
     gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
     gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");
-}
-
-int ObjectGrid::applySnap(SnapOrientation direction, int pos, Component* s, Component* e, bool horizontal)
-{
-    orientation[horizontal] = direction;
-    snapped[horizontal] = true;
-
-    if (horizontal) {
-        snappedPosition.x = pos;
-    } else {
-        snappedPosition.y = pos;
-    }
-
-    start[horizontal] = s;
-    end[horizontal] = e;
-    updateMarker();
-
-    return pos;
-}
-
-void ObjectGrid::updateMarker()
-{
-    auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-    gridLines[0].setStrokeFill(FillType(lnf.findColour(PlugDataColour::gridLineColourId)));
-    gridLines[1].setStrokeFill(FillType(lnf.findColour(PlugDataColour::gridLineColourId)));
-
-    if (!snapped[0]) {
-        gridLines[0].setPath(Path());
-    }
-    if (!snapped[1]) {
-        gridLines[1].setPath(Path());
-    }
-    if (!snapped[0] && !snapped[1]) {
-        return;
-    }
-
-    Path toDraw;
-
-    if (snapped[1] && orientation[1] == SnappedConnection && start[1] && end[1]) {
-
-        auto b1 = start[1]->getParentComponent()->getBounds();
-        auto b2 = end[1]->getParentComponent()->getBounds();
-
-        b1.translate(start[1]->getX() - 2, 0);
-        b2.translate(end[1]->getX() - 2, 0);
-
-        toDraw.addLineSegment(Line<float>(b1.getX() - 2, b1.getBottom() + 2, b1.getX() - 2, b2.getY() - 2), 1.0f);
-        gridLines[1].setPath(toDraw);
-        return;
-    }
-
-    for (int i = 0; i < 2; i++) {
-        if (!start[i] || !end[i] || !snapped[i])
-            continue;
-
-        auto b1 = start[i]->getBounds().reduced(Object::margin);
-        auto b2 = end[i]->getBounds().reduced(Object::margin);
-
-        auto t = b1.getY() < b2.getY() ? b1 : b2;
-        auto b = b1.getY() >= b2.getY() ? b1 : b2;
-        auto l = b1.getX() < b2.getX() ? b1 : b2;
-        auto r = b1.getX() >= b2.getX() ? b1 : b2;
-
-        auto gridLine = Line<float>();
-
-        if (i == 0) {
-            if (orientation[0] == SnappedLeft) {
-                gridLine = Line<float>(l.getX(), t.getY(), r.getRight(), t.getY());
-            } else if (orientation[0] == SnappedRight) {
-                gridLine = Line<float>(l.getX(), t.getBottom(), r.getRight(), t.getBottom());
-            } else { // snapped centre
-                gridLine = Line<float>(l.getX(), t.getCentreY(), r.getRight(), t.getCentreY());
-            }
-        } else if (i == 1) {
-            if (orientation[1] == SnappedLeft) {
-                gridLine = Line<float>(l.getX(), t.getY(), l.getX(), b.getBottom());
-            } else if (orientation[1] == SnappedRight) {
-                gridLine = Line<float>(l.getRight(), t.getY(), l.getRight(), b.getBottom());
-            } else { // snapped centre
-                gridLine = Line<float>(l.getCentreX(), t.getY(), l.getCentreX(), b.getBottom());
-            }
-        }
-
-        toDraw.addLineSegment(gridLine, 1.0f);
-        gridLines[i].setPath(toDraw);
-    }
-}
-
-void ObjectGrid::clear(bool horizontal)
-{
-    snapped[horizontal] = false;
-    if (horizontal) {
-        snappedPosition.x = 0;
-    } else {
-        snappedPosition.y = 0;
-    }
-    start[horizontal] = nullptr;
-    end[horizontal] = nullptr;
-
-    updateMarker();
-}
-
-Point<int> ObjectGrid::performFixedResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds, Rectangle<int> nonClippedBounds)
-{
-    auto snappable = getSnappableObjects(toDrag);
-    auto resizeZone = toDrag->resizeZone;
-
-    auto* constrainer = toDrag->getConstrainer();
-    auto ratio = constrainer ? constrainer->getFixedAspectRatio() : 0.0;
-
-    auto oldBounds = toDrag->originalBounds;
-
-    auto wDiff = nonClippedBounds.getWidth() - oldBounds.getWidth();
-    auto hDiff = nonClippedBounds.getHeight() - oldBounds.getHeight();
-    bool draggingWidth = wDiff > (hDiff * ratio);
-
-    auto b2 = newResizeBounds.reduced(Object::margin);
-    bool isSnapped = snapped[0] || snapped[1];
-
-    if (isSnapped) {
-        auto snappedPos = horizontalResizeSnapped ? snappedPosition.x : snappedPosition.y;
-        auto dragPos = widthResizeSnapped ? dragOffset.x : dragOffset.y;
-
-        if (std::abs(snappedPos - dragPos) > tolerance) {
-            clear(0);
-            clear(1);
-            return dragOffset;
-        }
-
-        return { widthResizeSnapped ? snappedPos : dragOffset.x, widthResizeSnapped ? dragOffset.y : snappedPos };
-    }
-
-    auto snap = [this, b2, toDrag, draggingWidth, dragOffset, isSnapped, ratio](SnapOrientation direction, Object* object, Rectangle<int> b1, bool horizontal) mutable {
-        if (isSnapped)
-            return dragOffset;
-
-        int delta;
-        if (direction == SnappedLeft) {
-            delta = horizontal ? b1.getX() - b2.getX() : b1.getY() - b2.getY();
-        } else {
-            delta = horizontal ? b1.getRight() - b2.getRight() : b1.getBottom() - b2.getBottom();
-        }
-
-        auto& snapTarget = draggingWidth ? dragOffset.x : dragOffset.y;
-
-        if (draggingWidth && !horizontal) {
-            delta *= ratio;
-        }
-        if (!draggingWidth && horizontal) {
-            if (horizontal ^ draggingWidth) {
-                delta /= ratio;
-            }
-        }
-
-        snapTarget += delta;
-
-        applySnap(direction, snapTarget, object, toDrag, horizontal);
-        widthResizeSnapped = draggingWidth;
-        horizontalResizeSnapped = horizontal;
-
-        MessageManager::callAsync([this]() {
-            updateMarker();
-        });
-
-        return dragOffset;
-    };
-
-    for (auto* object : snappable) {
-        auto b1 = object->getBounds().reduced(Object::margin);
-
-        auto topDiff = b1.getY() - b2.getY();
-        auto bottomDiff = b1.getBottom() - b2.getBottom();
-        auto leftDiff = b1.getX() - b2.getX();
-        auto rightDiff = b1.getRight() - b2.getRight();
-
-        if (resizeZone.isDraggingTopEdge() && std::abs(topDiff) < tolerance) {
-            return snap(SnappedLeft, object, b1, false);
-        }
-        if (resizeZone.isDraggingBottomEdge() && std::abs(bottomDiff) < tolerance) {
-            return snap(SnappedRight, object, b1, false);
-        }
-
-        if (resizeZone.isDraggingLeftEdge() && std::abs(leftDiff) < tolerance) {
-            return snap(SnappedLeft, object, b1, true);
-        }
-        if (resizeZone.isDraggingRightEdge() && std::abs(rightDiff) < tolerance) {
-            return snap(SnappedRight, object, b1, true);
-        }
-    }
-
-    return dragOffset;
-}
-Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds)
-{
-    if (!gridEnabled)
-        return dragOffset;
-
-    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool> { gridType & 1, gridType & 2, gridType & 4 };
-
-    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0) {
-        clear(0);
-        clear(1);
-        return dragOffset;
-    }
-
-    auto limits = [&]() -> Rectangle<int> {
-        if (auto* parent = toDrag->getParentComponent())
-            return { parent->getWidth(), parent->getHeight() };
-
-        const auto globalBounds = toDrag->localAreaToGlobal(newResizeBounds - toDrag->getPosition());
-
-        if (auto* display = Desktop::getInstance().getDisplays().getDisplayForPoint(globalBounds.getCentre()))
-            return toDrag->getLocalArea(nullptr, display->userArea) + toDrag->getPosition();
-
-        const auto max = std::numeric_limits<int>::max();
-        return { max, max };
-    }();
-
-    auto resizeZone = toDrag->resizeZone;
-    auto nonClippedBounds = newResizeBounds;
-    auto* constrainer = toDrag->getConstrainer();
-
-    if (constrainer) {
-        // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
-        constrainer->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
-            resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
-            resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
-    }
-
-    auto b2 = newResizeBounds.reduced(Object::margin);
-    auto snappable = getSnappableObjects(toDrag);
-
-    // Snap to Objects
-    if (snapEdges && constrainer && constrainer->getFixedAspectRatio() != 0.0) {
-        dragOffset = performFixedResize(toDrag, dragOffset, newResizeBounds, nonClippedBounds);
-    } else if (snapEdges) {
-        bool alreadySnappedVertically = isAlreadySnapped(false, dragOffset);
-        bool alreadySnappedHorizontally = isAlreadySnapped(true, dragOffset);
-
-        if (!alreadySnappedVertically) {
-            for (auto* object : snappable) {
-                auto b1 = object->getBounds().reduced(Object::margin);
-
-                if (snapEdges && resizeZone.isDraggingTopEdge() && std::abs(b1.getY() - b2.getY()) < tolerance) {
-                    auto dy = b1.getY() - b2.getY();
-                    dragOffset.y = applySnap(SnappedLeft, dy + dragOffset.y, object, toDrag, false);
-                }
-                if (snapEdges && resizeZone.isDraggingBottomEdge() && std::abs(b1.getBottom() - b2.getBottom()) < tolerance) {
-                    auto dy = b1.getBottom() - b2.getBottom();
-                    dragOffset.y = applySnap(SnappedRight, dy + dragOffset.y, object, toDrag, false);
-                }
-            }
-        }
-
-        if (!alreadySnappedHorizontally) {
-            for (auto* object : snappable) {
-
-                auto b1 = object->getBounds().reduced(Object::margin);
-
-                if (snapEdges && resizeZone.isDraggingLeftEdge() && std::abs(b1.getX() - b2.getX()) < tolerance) {
-                    auto dx = b1.getX() - b2.getX();
-                    dragOffset.x = applySnap(SnappedLeft, dx + dragOffset.x, object, toDrag, true);
-                }
-                if (snapEdges && resizeZone.isDraggingRightEdge() && std::abs(b1.getRight() - b2.getRight()) < tolerance) {
-                    auto dx = b1.getRight() - b2.getRight();
-                    dragOffset.x = applySnap(SnappedRight, dx + dragOffset.x, object, toDrag, true);
-                }
-            }
-        }
-
-        MessageManager::callAsync([this]() {
-            updateMarker();
-        });
-    }
-
-    if (!snapGrid) {
-        return dragOffset;
-    }
-
-    // Snap to Grid
-    Point<int> newPosTopLeft = toDrag->originalBounds.reduced(Object::margin).getTopLeft() + dragOffset;
-    Point<int> newPosBotRight = toDrag->originalBounds.reduced(Object::margin).getBottomRight() + dragOffset;
-
-    if (resizeZone.isDraggingLeftEdge() && !isAlreadySnapped(true, dragOffset)) {
-        newPosTopLeft.setX(roundToInt(newPosTopLeft.getX() / gridSize + 1) * gridSize);
-        snappedPosition.x = newPosTopLeft.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
-        snappedPosition.x += (toDrag->cnv->canvasOrigin.x % gridSize) + 1;
-        dragOffset.x = snappedPosition.x;
-    }
-    if (resizeZone.isDraggingTopEdge() && !isAlreadySnapped(false, dragOffset)) {
-        newPosTopLeft.setY(roundToInt(newPosTopLeft.getY() / gridSize + 1) * gridSize);
-        snappedPosition.y = newPosTopLeft.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
-        snappedPosition.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 1;
-        dragOffset.y = snappedPosition.y;
-    }
-    if (resizeZone.isDraggingRightEdge() && !isAlreadySnapped(true, dragOffset)) {
-        newPosBotRight.setX(roundToInt(newPosBotRight.getX() / gridSize + 1) * gridSize);
-        snappedPosition.x = newPosBotRight.x - toDrag->originalBounds.reduced(Object::margin).getRight() - gridSize;
-        snappedPosition.x += (toDrag->cnv->canvasOrigin.x % gridSize) + 1;
-        dragOffset.x = snappedPosition.x;
-    }
-    if (resizeZone.isDraggingBottomEdge() && !isAlreadySnapped(false, dragOffset)) {
-        newPosBotRight.setY(roundToInt(newPosBotRight.getY() / gridSize + 1) * gridSize);
-        snappedPosition.y = newPosBotRight.y - toDrag->originalBounds.reduced(Object::margin).getBottom() - gridSize;
-        snappedPosition.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 1;
-        dragOffset.y = snappedPosition.y;
-    }
-
-    MessageManager::callAsync([this]() {
-        updateMarker();
-    });
-
-    return dragOffset;
-}
-
-Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
-{
-    if (!gridEnabled)
-        return dragOffset;
-
-    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool> { gridType & 1, gridType & 2, gridType & 4 };
-
-    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0) {
-        clear(0);
-        clear(1);
-        return dragOffset;
-    }
-
-    // Snap to Objects
-    if (snapEdges || snapCentres) {
-        auto snappable = getSnappableObjects(toDrag);
-        auto b2 = (toDrag->originalBounds + dragOffset).reduced(Object::margin);
-
-        if (!isAlreadySnapped(false, dragOffset)) {
-            for (auto* object : snappable) {
-                auto b1 = object->getBounds().reduced(Object::margin);
-
-                start[0] = object;
-                end[0] = toDrag;
-
-                if (snapEdges && std::abs(b1.getY() - b2.getY()) < tolerance) {
-                    dragOffset.y = applySnap(SnappedLeft, b1.getY() - b2.getY() + dragOffset.y, object, toDrag, false);
-                    break;
-                }
-                if (snapCentres && std::abs(b1.getCentreY() - b2.getCentreY()) < tolerance) {
-                    dragOffset.y = applySnap(SnappedCentre, b1.getCentreY() - b2.getCentreY() + dragOffset.y, object, toDrag, false);
-                    break;
-                }
-                if (snapEdges && std::abs(b1.getBottom() - b2.getBottom()) < tolerance) {
-                    dragOffset.y = applySnap(SnappedRight, b1.getBottom() - b2.getBottom() + dragOffset.y, object, toDrag, false);
-                    break;
-                }
-            }
-        }
-        if (snapEdges && !isAlreadySnapped(true, dragOffset)) {
-
-            // Find snap points based on connection alignment
-            for (auto* connection : toDrag->getConnections()) {
-                auto inletBounds = connection->inlet->getCanvasBounds();
-                auto outletBounds = connection->outlet->getCanvasBounds();
-
-                // Don't snap if the cord is upside-down
-                if (inletBounds.getY() < outletBounds.getY())
-                    continue;
-
-                auto recentDragOffset = (toDrag->originalBounds.getPosition() + dragOffset) - toDrag->getPosition();
-                if (connection->inobj == toDrag) {
-                    // Skip if both objects are selected
-                    if (!snappable.contains(connection->outobj))
-                        continue;
-                    inletBounds += recentDragOffset;
-                } else {
-                    if (!snappable.contains(connection->inobj))
-                        continue;
-                    outletBounds += recentDragOffset;
-                }
-
-                int snapDistance = inletBounds.getX() - outletBounds.getX();
-
-                // Check if the inlet or outlet is being moved, and invert if needed
-                if (connection->inobj == toDrag)
-                    snapDistance = -snapDistance;
-
-                if (std::abs(snapDistance) < tolerance) {
-                    dragOffset.x = applySnap(SnappedConnection, snapDistance + dragOffset.x, connection->outlet, connection->inlet, true);
-                    break;
-                }
-
-                // If we're close, don't snap for other reasons
-                if (std::abs(snapDistance) < tolerance * 2.0f) {
-                    // TODO: is this correct?
-                    snappedPosition = dragOffset;
-                }
-            }
-        }
-
-        if (!isAlreadySnapped(true, dragOffset)) {
-            for (auto* object : snappable) {
-
-                auto b1 = object->getBounds().reduced(Object::margin);
-
-                start[1] = object;
-                end[1] = toDrag;
-
-                if (snapEdges && std::abs(b1.getX() - b2.getX()) < tolerance) {
-                    dragOffset.x = applySnap(SnappedLeft, b1.getX() - b2.getX() + dragOffset.x, object, toDrag, true);
-                    break;
-                }
-                if (snapCentres && std::abs(b1.getCentreX() - b2.getCentreX()) < tolerance) {
-                    dragOffset.x = applySnap(SnappedCentre, b1.getCentreX() - b2.getCentreX() + dragOffset.x, object, toDrag, true);
-                    break;
-                }
-                if (snapEdges && std::abs(b1.getRight() - b2.getRight()) < tolerance) {
-                    dragOffset.x = applySnap(SnappedRight, b1.getRight() - b2.getRight() + dragOffset.x, object, toDrag, true);
-                    break;
-                }
-            }
-        }
-
-        MessageManager::callAsync([this]() {
-            updateMarker();
-        });
-
-        if (!snapGrid) {
-            return dragOffset;
-        }
-    }
-
-    // Snap to Grid
-    if (snapGrid) {
-        Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
-        if (!isAlreadySnapped(true, dragOffset)) {
-
-            newPos.setX(floor(newPos.getX() / static_cast<float>(gridSize) + 1) * gridSize);
-            newPos.x += (toDrag->cnv->canvasOrigin.x % gridSize) - 1;
-            snappedPosition.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
-        }
-        if (!isAlreadySnapped(false, dragOffset)) {
-            newPos.setY(floor(newPos.getY() / static_cast<float>(gridSize) + 1) * gridSize);
-            newPos.y += (toDrag->cnv->canvasOrigin.y % gridSize) - 1;
-            snappedPosition.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
-        }
-
-        MessageManager::callAsync([this]() {
-            updateMarker();
-        });
-
-        return snappedPosition;
-    }
-
-    return dragOffset;
+    
+    cnv->addAndMakeVisible(gridLines[0]);
+    cnv->addAndMakeVisible(gridLines[1]);
+    
+    gridLines[0].setAlwaysOnTop(true);
+    gridLines[1].setAlwaysOnTop(true);
 }
 
 Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
 {
     auto& cnv = draggedObject->cnv;
-
     Array<Object*> snappable;
 
     auto scaleFactor = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
@@ -505,33 +52,6 @@ Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
     return snappable;
 }
 
-bool ObjectGrid::isAlreadySnapped(bool horizontal, Point<int>& dragOffset)
-{
-    if (horizontal && snapped[1]) {
-        if (std::abs(snappedPosition.x - dragOffset.x) > range) {
-            clear(true);
-            return true;
-        }
-        dragOffset = { snappedPosition.x, dragOffset.y };
-        return true;
-    } else if (!horizontal && snapped[0]) {
-        if (std::abs(snappedPosition.y - dragOffset.y) > range) {
-            clear(false);
-            return true;
-        }
-        dragOffset = { dragOffset.x, snappedPosition.y };
-        return true;
-    }
-
-    return false;
-}
-
-void ObjectGrid::clearAll()
-{
-    clear(false);
-    clear(true);
-}
-
 void ObjectGrid::propertyChanged(String const& name, var const& value)
 {
     if (name == "grid_type") {
@@ -542,5 +62,351 @@ void ObjectGrid::propertyChanged(String const& name, var const& value)
     }
     if (name == "grid_size") {
         gridSize = static_cast<int>(value);
+    }
+}
+
+Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
+{
+    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0) {
+        clearIndicators();
+        return dragOffset;
+    }
+    
+    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool> { gridType & 1, gridType & 2, gridType & 4 };
+    
+    auto snappable = getSnappableObjects(toDrag);
+    
+    Point<int> distance;
+    Line<int> verticalIndicator, horizontalIndicator;
+    bool connectionSnapped = false;
+    
+    // Check for straight connections to snap to
+    if(snapEdges) {
+        for (auto* connection : toDrag->getConnections()) {
+            
+            if(connection->inobj == toDrag)
+            {
+                if(!snappable.contains(connection->outobj)) continue;
+                
+                auto outletBounds = connection->outlet->getCanvasBounds();
+                auto inletBounds = connection->inobj->originalBounds + dragOffset + connection->inlet->getPosition();
+                if(outletBounds.getY() > inletBounds.getY()) continue;
+                
+                auto snapDistance = -(inletBounds.getX() - outletBounds.getX());
+                if(std::abs(snapDistance) < connectionTolerance)  {
+                    distance.x = snapDistance;
+                    horizontalIndicator = {outletBounds.getX() - 2, outletBounds.getBottom() + 4, outletBounds.getX() - 2, inletBounds.getY() - 4};
+                    connectionSnapped = true;
+                }
+                break;
+            }
+            else if(connection->outobj == toDrag)
+            {
+                if(!snappable.contains(connection->inobj)) continue;
+                
+                auto inletBounds = connection->inlet->getCanvasBounds();
+                auto outletBounds = connection->outobj->originalBounds + dragOffset + connection->outlet->getPosition();
+                if(outletBounds.getY() > inletBounds.getY()) continue;
+                
+                auto snapDistance = inletBounds.getX() - outletBounds.getX();
+                if(std::abs(snapDistance) < connectionTolerance)  {
+                    distance.x = snapDistance;
+                    horizontalIndicator = {inletBounds.getX() - 2, inletBounds.getBottom() - 4, inletBounds.getX() - 2, outletBounds.getY() + 4};
+                    connectionSnapped = true;
+                }
+                break;
+            }
+        }
+    }
+    
+    auto desiredBounds = toDrag->originalBounds.reduced(Object::margin) + dragOffset;
+    auto actualBounds = toDrag->getBounds().reduced(Object::margin);
+    
+    bool objectSnapped = false;
+    // Check for relative object snap
+    for(auto* object : snappable) {
+        auto b1 = object->getBounds().reduced(Object::margin);
+        auto topDiff = b1.getY() - desiredBounds.getY();
+        auto bottomDiff = b1.getBottom() - desiredBounds.getBottom();
+        auto leftDiff = b1.getX() - desiredBounds.getX();
+        auto rightDiff = b1.getRight() - desiredBounds.getRight();
+        
+        auto vCentreDiff = b1.getCentreY() - desiredBounds.getCentreY();
+        auto hCentreDiff = b1.getCentreX() - desiredBounds.getCentreX();
+        
+        if (snapEdges && std::abs(topDiff) < objectTolerance) {
+            verticalIndicator = getObjectIndicatorLine(Top, b1, actualBounds.withY(b1.getY()));
+            distance.y = topDiff;
+            objectSnapped = true;
+        }
+        else if (snapEdges && std::abs(bottomDiff) < objectTolerance) {
+            verticalIndicator = getObjectIndicatorLine(Bottom, b1, actualBounds.withBottom(b1.getBottom()));
+            distance.y = bottomDiff;
+            objectSnapped = true;
+        }
+        else if (snapCentres && std::abs(vCentreDiff) < objectTolerance) {
+            verticalIndicator = getObjectIndicatorLine(VerticalCentre, b1, actualBounds.withCentre({actualBounds.getCentreX(), b1.getCentreY()}));
+            distance.y = vCentreDiff;
+            objectSnapped = true;
+        }
+        
+        // Skip horizontal snap if we've already found a connection snap
+        if(!connectionSnapped) {
+            if (snapEdges && std::abs(leftDiff) < objectTolerance) {
+                horizontalIndicator = getObjectIndicatorLine(Left, b1, actualBounds.withX(b1.getX()));
+                distance.x = leftDiff;
+                objectSnapped = true;
+            }
+            else if (snapEdges && std::abs(rightDiff) < objectTolerance) {
+                horizontalIndicator = getObjectIndicatorLine(Right, b1, actualBounds.withRight(b1.getRight()));
+                distance.x = rightDiff;
+                objectSnapped = true;
+            }
+            else if (snapCentres && std::abs(hCentreDiff) < objectTolerance) {
+                horizontalIndicator = getObjectIndicatorLine(HorizontalCentre, b1, actualBounds.withCentre({b1.getCentreX(), actualBounds.getCentreY()}));
+                distance.x = hCentreDiff;
+                objectSnapped = true;
+            }
+        }
+    }
+    
+    // Snap to absolute grid
+    if (snapGrid && !objectSnapped && !connectionSnapped) {
+        Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
+
+        newPos.setX(floor(newPos.getX() / static_cast<float>(gridSize) + 1) * gridSize);
+        newPos.x += (toDrag->cnv->canvasOrigin.x % gridSize) - 1;
+        dragOffset.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
+        
+        newPos.setY(floor(newPos.getY() / static_cast<float>(gridSize) + 1) * gridSize);
+        newPos.y += (toDrag->cnv->canvasOrigin.y % gridSize) - 1;
+        dragOffset.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
+    }
+
+    if(objectSnapped || connectionSnapped) {
+        auto lineScale = 0.5f / std::max(1.0f, getValue<float>(toDrag->cnv->zoomScale));
+        setIndicator(0, verticalIndicator, lineScale);
+        setIndicator(1, horizontalIndicator, lineScale);
+        return dragOffset + distance;
+    }
+    
+    clearIndicators();
+    
+    return dragOffset;
+}
+
+Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds)
+{
+    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0) {
+        clearIndicators();
+        return dragOffset;
+    }
+    
+    auto [snapGrid, snapEdges, snapCentres] = std::tuple<bool, bool, bool> { gridType & 1, gridType & 2, gridType & 4 };
+    
+    auto limits = [&]() -> Rectangle<int> {
+        return { Canvas::infiniteCanvasSize, Canvas::infiniteCanvasSize };
+    }();
+    
+    auto resizeZone = toDrag->resizeZone;
+    auto isDraggingTop = resizeZone.isDraggingTopEdge();
+    auto isDraggingBottom = resizeZone.isDraggingBottomEdge();
+    auto isDraggingLeft = resizeZone.isDraggingLeftEdge();
+    auto isDraggingRight = resizeZone.isDraggingRightEdge();
+    
+    auto nonClippedBounds = newResizeBounds;
+    
+    // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
+    toDrag->getConstrainer()->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
+        resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
+        resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
+
+    // Returns non-zero if the object has a fixed ratio
+    auto ratio = toDrag->getConstrainer()->getFixedAspectRatio();
+
+    // In case of a fixed ratio, calculate the dominant drag direction
+    auto wDiff = nonClippedBounds.getWidth() - toDrag->originalBounds.getWidth();
+    auto hDiff = nonClippedBounds.getHeight() - toDrag->originalBounds.getHeight();
+    bool draggingWidth =  wDiff > (hDiff * ratio);
+
+    auto desiredBounds = newResizeBounds.reduced(Object::margin);
+    auto actualBounds = toDrag->getBounds().reduced(Object::margin);
+    
+    bool snapped = false;
+    Line<int> verticalIndicator, horizontalIndicator;
+    Point<int> distance;
+    
+    if(snapEdges) {
+        // Check for objects to relative snap to
+        for(auto* object : getSnappableObjects(toDrag)) {
+            auto b1 = object->getBounds().reduced(Object::margin);
+            auto topDiff = b1.getY() - desiredBounds.getY();
+            auto bottomDiff = b1.getBottom() - desiredBounds.getBottom();
+            auto leftDiff = b1.getX() - desiredBounds.getX();
+            auto rightDiff = b1.getRight() - desiredBounds.getRight();
+            
+            if (isDraggingTop && std::abs(topDiff) < objectTolerance) {
+                verticalIndicator = getObjectIndicatorLine(Top, b1, actualBounds.withY(b1.getY()));
+                if(draggingWidth && ratio != 0)
+                {
+                    if(isDraggingRight) distance.x = topDiff * ratio;
+                    if(isDraggingLeft) distance.x = -topDiff * ratio;
+                }
+                else {
+                    distance.y = topDiff;
+                }
+                snapped = true;
+            }
+            else if (isDraggingBottom && std::abs(bottomDiff) < objectTolerance) {
+                verticalIndicator = getObjectIndicatorLine(Bottom, b1, actualBounds.withBottom(b1.getBottom()));
+                if(draggingWidth && ratio != 0)
+                {
+                    if(isDraggingRight) distance.x = bottomDiff * ratio;
+                    if(isDraggingLeft) distance.x = -bottomDiff * ratio;
+                }
+                else {
+                    distance.y = bottomDiff;
+                }
+                snapped = true;
+            }
+            if(approximatelyEqual(ratio, 0.0) || !snapped) {
+                if (isDraggingLeft && std::abs(leftDiff) < objectTolerance) {
+                    horizontalIndicator = getObjectIndicatorLine(Left, b1, actualBounds.withX(b1.getX()));
+                    if(!draggingWidth && ratio != 0)
+                    {
+                        if(isDraggingBottom) distance.y = -leftDiff / ratio;
+                        if(isDraggingTop) distance.y = leftDiff / ratio;
+                    }
+                    else {
+                        distance.x = leftDiff;
+                    }
+                    snapped = true;
+                }
+                else if (isDraggingRight && std::abs(rightDiff) < objectTolerance) {
+                    horizontalIndicator = getObjectIndicatorLine(Right, b1, actualBounds.withRight(b1.getRight()));
+                    if(!draggingWidth && ratio != 0)
+                    {
+                        if(isDraggingBottom) distance.y = rightDiff / ratio;
+                        if(isDraggingTop) distance.y = -rightDiff / ratio;
+                    }
+                    else {
+                        distance.x = rightDiff;
+                    }
+                    snapped = true;
+                }
+            }
+        }
+        
+        if(snapped) {
+            auto lineScale = 0.5f / std::max(1.0f, getValue<float>(toDrag->cnv->zoomScale));
+            setIndicator(0, verticalIndicator, lineScale);
+            setIndicator(1, horizontalIndicator, lineScale);
+            return dragOffset + distance;
+        }
+    }
+    
+    if(snapGrid)
+    {
+           Point<int> newPosTopLeft = toDrag->originalBounds.reduced(Object::margin).getTopLeft() + dragOffset;
+           Point<int> newPosBotRight = toDrag->originalBounds.reduced(Object::margin).getBottomRight() + dragOffset;
+
+            if (isDraggingTop) {
+                auto newY = roundToInt(newPosTopLeft.getY() / gridSize + 1) * gridSize;
+                dragOffset.y = newY - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
+                dragOffset.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 1;
+            }
+            if (isDraggingBottom) {
+                auto newY = roundToInt(newPosBotRight.getY() / gridSize + 1) * gridSize;
+                dragOffset.y = newY - toDrag->originalBounds.reduced(Object::margin).getBottom() - gridSize;
+                dragOffset.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 1;
+            }
+           if (isDraggingLeft) {
+               auto newX = roundToInt(newPosTopLeft.getX() / gridSize + 1) * gridSize;
+               dragOffset.x = newX - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
+               dragOffset.x += (toDrag->cnv->canvasOrigin.x % gridSize) + 1;
+           }
+
+           if (isDraggingRight) {
+               auto newX = roundToInt(newPosBotRight.getX() / gridSize + 1) * gridSize;
+               dragOffset.x = newX - toDrag->originalBounds.reduced(Object::margin).getRight() - gridSize;
+               dragOffset.x += (toDrag->cnv->canvasOrigin.x % gridSize) + 1;
+           }
+    }
+
+    clearIndicators();
+    
+    return dragOffset;
+}
+
+// Calculates the path of the grid lines
+Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Rectangle<int> b2)
+{
+    switch (side) {
+        case Left:
+            if (b1.getY() > b2.getY()) {
+                return {b2.getTopLeft(), b1.getBottomLeft()};
+            } else {
+                return {b1.getTopLeft(), b2.getBottomLeft()};
+            }
+        case Right:
+            if (b1.getY() > b2.getY()) {
+                return {b2.getTopRight(), b1.getBottomRight()};
+            } else {
+                return {b1.getTopRight(), b2.getBottomRight()};
+            }
+        case Top:
+            if (b1.getX() > b2.getX()) {
+                return {b2.getTopLeft(), b1.getTopRight()};
+            } else {
+                return {b1.getTopLeft(), b2.getTopRight()};
+            }
+        case Bottom:
+            if (b1.getX() > b2.getX()) {
+                return {b2.getBottomLeft(), b1.getBottomRight()};
+            } else {
+                return {b1.getBottomLeft(), b2.getBottomRight()};
+            }
+        case VerticalCentre:
+            if (b1.getX() > b2.getX()) {
+                
+                return {b2.getX(), b2.getCentreY(), b1.getRight(), b1.getCentreY()};
+            } else {
+                return {b1.getX(), b1.getCentreY(), b2.getRight(), b2.getCentreY()};
+            }
+        case HorizontalCentre:
+            if (b1.getY() > b2.getY()) {
+                return {b2.getCentreX(), b2.getY(), b1.getCentreX(), b1.getBottom()};
+            } else {
+                return {b1.getCentreX(), b1.getY(), b2.getCentreX(), b2.getBottom()};
+            }
+    }
+}
+
+void ObjectGrid::clearIndicators()
+{
+    gridLineAnimator.fadeOut(&gridLines[0], 100);
+    gridLineAnimator.fadeOut(&gridLines[1], 100);
+    
+    gridLines[0].setPath(Path());
+    gridLines[1].setPath(Path());
+}
+
+void ObjectGrid::setIndicator(int idx, Line<int> line, float scale) {
+    auto lineIsEmpty = line.getLength() == 0;
+    if(gridLines[idx].isVisible() && lineIsEmpty) {
+        gridLineAnimator.fadeOut(&gridLines[idx], 100);
+    }
+    
+    auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+    gridLines[idx].setStrokeFill(FillType(lnf.findColour(PlugDataColour::gridLineColourId)));
+    gridLines[idx].setStrokeThickness(1);
+    gridLines[idx].toFront(false);
+
+    Path toDraw;
+    toDraw.addLineSegment(line.toFloat(), scale);
+    gridLines[idx].setPath(toDraw);
+    
+    if(!gridLines[idx].isVisible() && !lineIsEmpty) {
+        gridLineAnimator.fadeIn(&gridLines[idx], 75);
     }
 }

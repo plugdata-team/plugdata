@@ -849,7 +849,7 @@ void Object::mouseUp(MouseEvent const& e)
 
     if (ds.wasResized) {
 
-        cnv->objectGrid.clearAll();
+        cnv->objectGrid.clearIndicators();
 
         applyBounds();
 
@@ -875,7 +875,7 @@ void Object::mouseUp(MouseEvent const& e)
         cnv->updateSidebarSelection();
 
         if (ds.didStartDragging) {
-            cnv->objectGrid.clearAll();
+            cnv->objectGrid.clearIndicators();
             applyBounds();
             ds.didStartDragging = false;
         }
