@@ -188,7 +188,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
     }
 
     if(objectSnapped || connectionSnapped) {
-        auto lineScale = 0.5f / std::max(1.0f, getValue<float>(toDrag->cnv->zoomScale));
+        auto lineScale = 0.75f / std::max(1.0f, getValue<float>(toDrag->cnv->zoomScale));
         setIndicator(0, verticalIndicator, lineScale);
         setIndicator(1, horizontalIndicator, lineScale);
         return dragOffset + distance;
@@ -301,7 +301,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         }
         
         if(snapped) {
-            auto lineScale = 0.5f / std::max(1.0f, getValue<float>(toDrag->cnv->zoomScale));
+            auto lineScale = 0.75f / std::max(1.0f, getValue<float>(toDrag->cnv->zoomScale));
             setIndicator(0, verticalIndicator, lineScale);
             setIndicator(1, horizontalIndicator, lineScale);
             return dragOffset + distance;
@@ -402,7 +402,7 @@ void ObjectGrid::setIndicator(int idx, Line<int> line, float scale) {
     
     auto& lnf = LookAndFeel::getDefaultLookAndFeel();
     gridLines[idx].setStrokeFill(FillType(lnf.findColour(PlugDataColour::gridLineColourId)));
-    gridLines[idx].setStrokeThickness(1);
+    gridLines[idx].setStrokeThickness(scale);
     gridLines[idx].toFront(false);
 
     Path toDraw;
