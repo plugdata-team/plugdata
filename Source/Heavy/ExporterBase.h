@@ -27,11 +27,6 @@ struct ExporterBase : public Component
 
     bool validPatchSelected = false;
 
-    std::unique_ptr<FileChooser> saveChooser;
-    std::unique_ptr<FileChooser> openChooser;
-
-    // OwnedArray<PropertiesPanel::Property> properties;
-
     File patchFile;
     File openedPatchFile;
     File realPatchFile;
@@ -95,16 +90,12 @@ struct ExporterBase : public Component
             validPatchSelected = false;
         }
 
-        exportButton.onClick = [this]() {
-            saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", true);
-
-            saveChooser->launchAsync(FileBrowserComponent::canSelectDirectories,
-                [this](const FileChooser& fileChooser) {
-                    const auto folder = fileChooser.getResult();
-                    if (folder.exists()) {
-                        startExport(folder);
-                    }
-                });
+        exportButton.onClick = [this](){
+            Dialogs::showSaveDialog([this](File& result){
+                if (result.getParentDirectory().exists()) {
+                    startExport(result);
+                }
+            }, "HeavyExport");
         };
     }
 
@@ -183,11 +174,7 @@ struct ExporterBase : public Component
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
             } else if (idx == 2) {
-                // Open file browser
-                openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.pd", true);
-
-                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](FileChooser const& fileChooser) {
-                    auto result = fileChooser.getResult();
+                Dialogs::showOpenDialog([this](File& result){
                     if (result.existsAsFile()) {
                         patchFile = result;
                         validPatchSelected = true;
@@ -196,7 +183,7 @@ struct ExporterBase : public Component
                         patchFile = "";
                         validPatchSelected = false;
                     }
-                });
+                }, true, false, "*.pd", "HeavyPatchLocation");
             }
         }
 

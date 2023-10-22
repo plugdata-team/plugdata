@@ -37,6 +37,9 @@ public:
     ValueTree getTheme(String const& name);
     ValueTree getCurrentTheme();
 
+    void setLastBrowserPathForId(String const& identifier, File& path);
+    File getLastBrowserPathForId(String const& identifier);
+    
     void addToRecentlyOpened(File const& path);
 
     void initialisePathsTree();
@@ -132,6 +135,7 @@ private:
         "RecentlyOpened",
         "Libraries",
         "EnabledMidiOutputPorts",
+        "LastBrowserPaths",
     };
 
 public:

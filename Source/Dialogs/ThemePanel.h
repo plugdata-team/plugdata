@@ -178,9 +178,6 @@ class ThemePanel : public SettingsDialogPanel
 
     std::unique_ptr<Dialog> dialog;
 
-    std::unique_ptr<FileChooser> saveChooser;
-    std::unique_ptr<FileChooser> openChooser;
-
     PluginProcessor* pd;
 
 public:
@@ -308,12 +305,9 @@ public:
             Icons::New, "New theme...");
 
         loadButton = new PropertiesPanel::ActionComponent([this]() {
-            auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
-
-            openChooser = std::make_unique<FileChooser>("Choose theme to open", File::getSpecialLocation(File::userHomeDirectory), "*.plugdatatheme", true);
-
-            openChooser->launchAsync(folderChooserFlags, [this](FileChooser const& fileChooser) {
-                auto result = fileChooser.getResult();
+            Dialogs::showOpenDialog([this](File& result){
+                if(!result.exists()) return;
+                
                 auto themeXml = result.loadFileAsString();
                 auto themeTree = ValueTree::fromXml(themeXml);
                 auto themeName = themeTree.getProperty("theme").toString();
@@ -334,7 +328,7 @@ public:
                 themeTree.setProperty("theme", themeName, nullptr);
                 SettingsFile::getInstance()->getColourThemesTree().appendChild(themeTree, nullptr);
                 updateSwatches();
-            });
+            }, true, false, "*.plugdatatheme", "ThemeLocation");
         },
             Icons::Open, "Import theme...");
 
@@ -347,7 +341,7 @@ public:
                 menu.addItem(i + 1, allThemes[i]);
             }
 
-            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(saveButton).withParentComponent(this), [this, allThemes](int result) {
+            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(saveButton).withParentComponent(this), [allThemes](int result) {
                 if (result < 1)
                     return;
 
@@ -356,20 +350,13 @@ public:
                 auto themeTree = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName);
 
                 auto themeXml = themeTree.toXmlString();
+                
+                Dialogs::showSaveDialog([themeXml](File& result){
+                    if(result.getParentDirectory().exists()) {
+                        result.replaceWithText(themeXml);
+                    }
+                }, "*.plugdatatheme", "ThemeLocation");
 
-                saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "*.plugdatatheme", true);
-
-#if JUCE_LINUX || JUCE_BSD
-                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
-#else
-                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
-#endif
-
-                saveChooser->launchAsync(folderChooserFlags,
-                    [themeXml](FileChooser const& fileChooser) mutable {
-                        const auto file = fileChooser.getResult();
-                        file.replaceWithText(themeXml);
-                    });
             });
         },
             Icons::Save, "Export theme...");

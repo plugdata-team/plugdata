@@ -1445,7 +1445,7 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
             return;
         }
 
-        Dialogs::showSaveDialog(
+        Dialogs::showAskToSaveDialog(
             &saveDialog, textEditorDialogs[ptr].get(), "", [this, ptr, title, text = lastText](int result) mutable {
                 if (result == 2) {
 

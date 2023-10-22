@@ -304,7 +304,6 @@ private:
 
     moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
-    std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
     std::atomic<bool> consoleMute;
 

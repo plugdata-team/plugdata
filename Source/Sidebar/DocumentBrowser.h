@@ -795,10 +795,10 @@ public:
 
         addAndMakeVisible(fileList);
 
-        searchComponent.openFile = [this](File& file) {
-            if (file.existsAsFile()) {
-                pd->loadPatch(file);
-                SettingsFile::getInstance()->addToRecentlyOpened(file);
+        searchComponent.openFile = [this](File& result) {
+            if (result.existsAsFile()) {
+                pd->loadPatch(result);
+                SettingsFile::getInstance()->addToRecentlyOpened(result);
             }
         };
 
@@ -848,17 +848,13 @@ public:
             auto* sidebar = getParentComponent();
             auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
             auto openFolderCallback = [this]() {
-                openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", SettingsFile::getInstance()->wantsNativeDialog());
-
-                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
-                    [this](FileChooser const& fileChooser) {
-                        const auto file = fileChooser.getResult();
-                        if (file.exists()) {
-                            const auto& path = file.getFullPathName();
-                            pd->settingsFile->setProperty("browser_path", path);
-                            directory.setDirectory(path, true, true);
-                        }
-                    });
+                Dialogs::showOpenDialog([this](File& result){
+                    if (result.exists()) {
+                        const auto& path = result.getFullPathName();
+                        pd->settingsFile->setProperty("browser_path", path);
+                        directory.setDirectory(path, true, true);
+                    }
+                }, false, true, "DocumentationFileChooser");
             };
 
             auto resetFolderCallback = [this]() {
@@ -880,7 +876,6 @@ private:
     TextButton loadFolderButton = TextButton(Icons::Folder);
     TextButton resetFolderButton = TextButton(Icons::Restore);
 
-    std::unique_ptr<FileChooser> openChooser;
     TextButton settingsCalloutButton = TextButton();
 
 public:

@@ -104,17 +104,13 @@ public:
 
             // Custom board option
             if (idx == 8) {
-                // Open file browser
-                openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.json", true);
-
-                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](FileChooser const& fileChooser) {
-                    auto result = fileChooser.getResult();
+                Dialogs::showOpenDialog([this](File& result){
                     if (result.existsAsFile()) {
                         customBoardDefinition = result;
                     } else {
                         customBoardDefinition = File();
                     }
-                });
+                }, true, false, "*.json", "DaisyCustomBoard");
             } else {
                 customBoardDefinition = File();
             }

@@ -43,12 +43,13 @@ struct ProjectInfo {
 template<typename T>
 inline T getValue(Value const& v)
 {
-    if constexpr(std::is_same<T, String>())
+    if constexpr(std::is_same_v<T, String>)
     {
         return v.toString();
     }
-    
-    return static_cast<T>(v.getValue());
+    else {
+        return static_cast<T>(v.getValue());
+    }
 }
 
 inline void setValueExcludingListener(Value& parameter, var const& value, Value::Listener* listener)
