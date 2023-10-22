@@ -108,7 +108,7 @@ public:
     // Jyg added this
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
-    XmlElement* m_temp_xml;
+    XmlElement* extraData;
 
     pd::Patch::Ptr loadPatch(String patch, int splitIdx = -1);
     pd::Patch::Ptr loadPatch(File const& patch, int splitIdx = -1);
