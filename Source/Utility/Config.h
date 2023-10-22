@@ -43,7 +43,7 @@ struct ProjectInfo {
 template<typename T>
 inline T getValue(Value const& v)
 {
-    if constexpr(std::is_same<T, String>())
+    if constexpr(std::is_same_v<T, String>)
     {
         return v.toString();
     }

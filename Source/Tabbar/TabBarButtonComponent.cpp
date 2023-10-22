@@ -109,7 +109,7 @@ void TabBarButtonComponent::closeTab()
         MessageManager::callAsync([_cnv = SafePointer(cnv), _editor = SafePointer(editor)]() mutable {
             // Don't show save dialog, if patch is still open in another view
             if (_cnv && _cnv->patch.isDirty()) {
-                Dialogs::showSaveDialog(
+                Dialogs::showAskToSaveDialog(
                     &_editor->openedDialog, _editor, _cnv->patch.getTitle(),
                     [_cnv, _editor](int result) mutable {
                         if (!_cnv)
