@@ -28,11 +28,10 @@ public:
         listLabel.onEditorHide = [this]() {
             stopEdition();
         };
-        
+
         listLabel.onTextChange = [this]() {
             // To resize while typing
-            if(atomHelper.getWidthInChars() == 0)
-            {
+            if (atomHelper.getWidthInChars() == 0) {
                 object->updateBounds();
             }
         };
@@ -165,7 +164,7 @@ public:
     {
         return atomHelper.hasSendSymbol();
     }
-    
+
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectInternalOutlineColour));

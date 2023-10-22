@@ -61,6 +61,42 @@ public:
         panel.addSection("DPF", properties);
         panel.addSection("Plugin formats", pluginFormats);
     }
+    
+    ValueTree getState() override
+    {
+        ValueTree stateTree("DPF");
+        
+        stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
+        stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
+        stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
+        stateTree.setProperty("midiinEnableValue", getValue<int>(midioutEnableValue), nullptr);
+        stateTree.setProperty("lv2EnableValue", getValue<int>(lv2EnableValue), nullptr);
+        stateTree.setProperty("vst2EnableValue", getValue<int>(vst2EnableValue), nullptr);
+        stateTree.setProperty("vst3EnableValue", getValue<int>(vst3EnableValue), nullptr);
+        stateTree.setProperty("clapEnableValue", getValue<int>(clapEnableValue), nullptr);
+        stateTree.setProperty("jackEnableValue", getValue<int>(jackEnableValue), nullptr);
+        stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
+        stateTree.setProperty("pluginTypeValue", getValue<int>(pluginTypeValue), nullptr);
+        
+        return stateTree;
+    }
+    
+    void setState(ValueTree& stateTree) override
+    {
+        auto tree = stateTree.getChildWithName("DPF");
+        inputPatchValue = tree.getProperty("inputPatchValue");
+        projectNameValue = tree.getProperty("projectNameValue");
+        projectCopyrightValue = tree.getProperty("projectCopyrightValue");
+        midiinEnableValue = tree.getProperty("midiinEnableValue");
+        midioutEnableValue = tree.getProperty("midioutEnableValue");
+        lv2EnableValue = tree.getProperty("lv2EnableValue");
+        vst2EnableValue = tree.getProperty("vst2EnableValue");
+        vst3EnableValue = tree.getProperty("vst3EnableValue");
+        clapEnableValue = tree.getProperty("clapEnableValue");
+        jackEnableValue = tree.getProperty("jackEnableValue");
+        exportTypeValue = tree.getProperty("exportTypeValue");
+        pluginTypeValue = tree.getProperty("pluginTypeValue");
+    }
 
     void valueChanged(Value& v) override
     {

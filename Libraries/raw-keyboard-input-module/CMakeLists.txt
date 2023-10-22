@@ -1,0 +1,1 @@
+juce_add_modules(raw_keyboard_input)

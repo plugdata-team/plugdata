@@ -13,9 +13,9 @@
 
 #define ACTIVITY_UPDATE_RATE 15
 
+struct ObjectDragState;
 class ObjectBase;
 class Iolet;
-class ObjectDragState;
 class Canvas;
 class Connection;
 class ObjectBoundsConstrainer;

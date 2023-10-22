@@ -17,19 +17,19 @@ class Dialog : public Component {
 
 public:
     Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0)
-        : parentComponent(editor)
-        , height(childHeight)
+        : height(childHeight)
         , width(childWidth)
+        , parentComponent(editor)
         , owner(ownerPtr)
         , backgroundMargin(margin)
     {
         parentComponent->addAndMakeVisible(this);
-        
+
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
-        
+
         if (showCloseButton) {
             closeButton.reset(getLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
             addAndMakeVisible(closeButton.get());
@@ -40,29 +40,32 @@ public:
         }
 
         // Make sure titlebar buttons are greyed out when a dialog is showing
-        if(auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent()))
-        {
-            if(ProjectInfo::isStandalone) {
-                if(auto* closeButton = window->getCloseButton()) closeButton->setEnabled(false);
-                if(auto* minimiseButton = window->getMinimiseButton()) minimiseButton->setEnabled(false);
-                if(auto* maximiseButton = window->getMaximiseButton()) maximiseButton->setEnabled(false);
+        if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
+            if (ProjectInfo::isStandalone) {
+                if (auto* closeButton = window->getCloseButton())
+                    closeButton->setEnabled(false);
+                if (auto* minimiseButton = window->getMinimiseButton())
+                    minimiseButton->setEnabled(false);
+                if (auto* maximiseButton = window->getMaximiseButton())
+                    maximiseButton->setEnabled(false);
             }
             window->repaint();
         }
     }
-    
+
     ~Dialog()
     {
-        if(auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent()))
-        {
-            if(ProjectInfo::isStandalone) {
-                if(auto* closeButton = window->getCloseButton()) closeButton->setEnabled(true);
-                if(auto* minimiseButton = window->getMinimiseButton()) minimiseButton->setEnabled(true);
-                if(auto* maximiseButton = window->getMaximiseButton()) maximiseButton->setEnabled(true);
+        if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
+            if (ProjectInfo::isStandalone) {
+                if (auto* closeButton = window->getCloseButton())
+                    closeButton->setEnabled(true);
+                if (auto* minimiseButton = window->getMinimiseButton())
+                    minimiseButton->setEnabled(true);
+                if (auto* maximiseButton = window->getMaximiseButton())
+                    maximiseButton->setEnabled(true);
             }
         }
     }
-
 
     void setViewedComponent(Component* child)
     {
@@ -118,20 +121,19 @@ public:
             closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
         }
     }
-    
-    void mouseDown(const MouseEvent& e) override
+
+    void mouseDown(MouseEvent const& e) override
     {
-        if(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY() < 40) {
+        if (e.getEventRelativeTo(viewedComponent.get()).getMouseDownY() < 40) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
-        }
-        else if(!viewedComponent->getBounds().contains(e.getPosition())){
+        } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
             closeDialog();
         }
     }
-    
-    void mouseDrag(const MouseEvent& e) override
+
+    void mouseDrag(MouseEvent const& e) override
     {
-        if(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY() < 40) {
+        if (e.getEventRelativeTo(viewedComponent.get()).getMouseDownY() < 40) {
             dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
         }
     }

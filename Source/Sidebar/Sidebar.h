@@ -9,26 +9,25 @@
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 
-struct Console;
-struct Inspector;
-struct DocumentBrowser;
-struct AutomationPanel;
-struct SearchPanel;
-struct PluginProcessor;
+class Console;
+class Inspector;
+class DocumentBrowser;
+class AutomationPanel;
+class SearchPanel;
+class PluginProcessor;
 
 namespace pd {
-struct Instance;
+class Instance;
 }
 
-
-class SidebarSelectorButton : public TextButton
-{
+class SidebarSelectorButton : public TextButton {
 public:
-    SidebarSelectorButton(const String& icon) : TextButton(icon)
+    SidebarSelectorButton(String const& icon)
+        : TextButton(icon)
     {
     }
-    
-    void mouseDown(const MouseEvent& e)
+
+    void mouseDown(MouseEvent const& e)
     {
         numNotifications = 0;
         hasWarning = false;
@@ -50,7 +49,7 @@ public:
         auto font = Fonts::getIconFont().withHeight(13);
         g.setFont(font);
         g.setColour(findColour(PlugDataColour::toolbarTextColourId));
-        
+
         int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
 
         int const fontHeight = roundToInt(font.getHeight() * 0.6f);
@@ -60,9 +59,8 @@ public:
 
         if (textWidth > 0)
             g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
-        
-        if(numNotifications)
-        {
+
+        if (numNotifications) {
             auto notificationBounds = getLocalBounds().removeFromBottom(15).removeFromRight(15).translated(-1, -1);
             auto bubbleColour = hasWarning ? Colours::orange : findColour(PlugDataColour::toolbarActiveColourId);
             g.setColour(bubbleColour.withAlpha(0.8f));
@@ -72,7 +70,7 @@ public:
             g.drawText(numNotifications > 99 ? String("99+") : String(numNotifications), notificationBounds, Justification::centred);
         }
     }
-    
+
     bool hasWarning = false;
     int numNotifications = 0;
 };

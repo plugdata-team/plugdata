@@ -11,9 +11,8 @@
 
 #include "AboutPanel.h"
 
-
 struct SettingsDialogPanel : public Component {
-    virtual PropertiesPanel* getPropertiesPanel() { return nullptr; };
+    virtual PropertiesPanel* getPropertiesPanel() { return nullptr; }
 };
 
 #include "AudioSettingsPanel.h"
@@ -27,7 +26,8 @@ class SettingsDialog : public Component {
 
 public:
     explicit SettingsDialog(PluginEditor* pluginEditor)
-        : editor(pluginEditor), processor(dynamic_cast<PluginProcessor*>(pluginEditor->getAudioProcessor()))
+        : processor(dynamic_cast<PluginProcessor*>(pluginEditor->getAudioProcessor()))
+        , editor(pluginEditor)
     {
         setVisible(false);
 
@@ -59,17 +59,16 @@ public:
         }
 
         searchButton.setClickingTogglesState(true);
-        searchButton.onClick = [this](){
-            if(searchButton.getToggleState()) {
+        searchButton.onClick = [this]() {
+            if (searchButton.getToggleState()) {
                 searcher->startSearching();
-            }
-            else {
+            } else {
                 reloadPanels();
                 searcher->stopSearching();
             }
         };
         addAndMakeVisible(searchButton);
-        
+
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
         reloadPanels();
     }
@@ -79,11 +78,11 @@ public:
         lastPanel = currentPanel;
         SettingsFile::getInstance()->saveSettings();
     }
-    
+
     void reloadPanels()
     {
         panels.clear();
-        
+
         if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
             panels.add(new StandaloneAudioSettings(*deviceManager));
             panels.add(new StandaloneMIDISettings(processor, *deviceManager));
@@ -99,15 +98,14 @@ public:
         Array<PropertiesPanel*> propertiesPanels;
         for (int i = 0; i < panels.size(); i++) {
             addChildComponent(panels[i]);
-            
-            if(auto* panel = panels[i]->getPropertiesPanel())
-            {
+
+            if (auto* panel = panels[i]->getPropertiesPanel()) {
                 propertiesPanels.add(panel);
             }
         }
         searcher = std::make_unique<PropertiesSearchPanel>(propertiesPanels);
         addChildComponent(searcher.get());
-        
+
         searchButton.toFront(false);
         toolbarButtons[currentPanel]->setToggleState(true, dontSendNotification);
         panels[currentPanel]->setVisible(true);
@@ -123,7 +121,7 @@ public:
 
         searchButton.setBounds(4, 1, toolbarHeight - 2, toolbarHeight - 2);
         searcher->setBounds(getLocalBounds());
-        
+
         for (auto& button : toolbarButtons) {
             button->setBounds(toolbarPosition, 1, spacing, toolbarHeight - 2);
             toolbarPosition += spacing;
@@ -162,7 +160,7 @@ public:
     PluginProcessor* processor;
     PluginEditor* editor;
     ComponentBoundsConstrainer constrainer;
-    
+
     MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
     std::unique_ptr<PropertiesSearchPanel> searcher;
 

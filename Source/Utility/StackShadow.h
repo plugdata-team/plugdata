@@ -19,11 +19,10 @@
 #include "Utility/Config.h"
 
 #if JUCE_WINDOWS
-// Enable for JUCE >=7.0.6
-// #    include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
-#    include <juce_gui_basics/native/juce_win32_ScopedThreadDPIAwarenessSetter.h>
+#    include <juce_gui_basics/native/juce_ScopedThreadDPIAwarenessSetter_windows.h>
 #endif
 
+#include <juce_gui_basics/detail/juce_WindowingHelpers.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 
 class StackShadow {
@@ -737,12 +736,6 @@ public:
     }
 };
 
-#if !JUCE_BSD
-namespace juce {
-bool isWindowOnCurrentVirtualDesktop(void* x);
-}
-#endif
-
 class StackDropShadower : private ComponentListener {
 public:
     /** Creates a DropShadower. */
@@ -1043,7 +1036,7 @@ private:
 #if JUCE_BSD
                     return false;
 #else
-                    return !isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
+                    return !detail::WindowingHelpers::isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
 #endif
                 }
 
@@ -1156,6 +1149,6 @@ private:
     std::unique_ptr<ParentVisibilityChangedListener> visibilityChangedListener;
     std::unique_ptr<VirtualDesktopWatcher> virtualDesktopWatcher;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StackDropShadower);
-    JUCE_DECLARE_WEAK_REFERENCEABLE(StackDropShadower);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StackDropShadower)
+    JUCE_DECLARE_WEAK_REFERENCEABLE(StackDropShadower)
 };

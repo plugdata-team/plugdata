@@ -99,7 +99,7 @@ public:
         onClick = [this, pd]() {
             auto selection = log2(getButtonText().upToLastOccurrenceOf("x", false, false).getIntValue());
             auto* editor = findParentComponentOfClass<PluginEditor>();
-            
+
             auto oversampleSettings = std::make_unique<OversampleSettingsPopup>(selection);
             auto bounds = editor->getLocalArea(this, getLocalBounds());
 
@@ -249,7 +249,6 @@ public:
         auto x = 6.0f;
 
         auto outerBorderWidth = 2.0f;
-        auto spacingFraction = 0.08f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
         auto bgHeight = getHeight() - doubleOuterBorderWidth;
         auto bgWidth = width - doubleOuterBorderWidth;
@@ -277,10 +276,10 @@ public:
 };
 
 class MIDIBlinker : public Component
-    , public StatusbarSource::Listener, public SettableTooltipClient {
+    , public StatusbarSource::Listener
+    , public SettableTooltipClient {
 
 public:
-        
     MIDIBlinker()
     {
         setTooltip("MIDI activity");
@@ -304,44 +303,46 @@ public:
     {
         blinkMidiIn = midiReceived;
         repaint();
-    };
+    }
 
     void midiSentChanged(bool midiSent) override
     {
         blinkMidiOut = midiSent;
         repaint();
-    };
+    }
 
     bool blinkMidiIn = false;
     bool blinkMidiOut = false;
 };
 
 class CPUMeter : public Component
-    , public StatusbarSource::Listener, public Timer, public SettableTooltipClient {
+    , public StatusbarSource::Listener
+    , public Timer
+    , public SettableTooltipClient {
 
 public:
-    
     CPUMeter()
     {
         startTimer(1000);
         setTooltip("CPU usage");
     }
-        
+
     void paint(Graphics& g) override
     {
         Fonts::drawIcon(g, Icons::CPU, getLocalBounds().removeFromLeft(20), findColour(ComboBox::textColourId), 14);
         Fonts::drawText(g, String(cpuUsageToDraw) + "%", getLocalBounds().withTrimmedLeft(26).withTrimmedTop(1), findColour(ComboBox::textColourId), 13.5, Justification::centredLeft);
     }
-        
+
     void timerCallback() override
     {
         cpuUsageToDraw = round(cpuUsage);
         repaint();
     }
 
-    void cpuUsageChanged(float newCpuUsage) override {
+    void cpuUsageChanged(float newCpuUsage) override
+    {
         cpuUsage = newCpuUsage;
-    };
+    }
 
     float cpuUsage = 0.0f;
     int cpuUsageToDraw = 0;
@@ -640,7 +641,7 @@ void StatusbarSource::timerCallback()
         for (auto* listener : listeners)
             listener->audioProcessedChanged(hasProcessedAudio);
     }
-    
+
     auto peak = peakBuffer.getPeak();
 
     for (auto* listener : listeners) {

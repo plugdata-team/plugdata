@@ -52,7 +52,9 @@ public:
 
 struct CallbackComboProperty : public PropertiesPanel::Property {
     CallbackComboProperty(String const& propertyName, StringArray const& comboOptions, String const& currentOption, std::function<void(String)> const& onChange)
-        : Property(propertyName), changeCallback(onChange), options(comboOptions)
+        : Property(propertyName)
+        , changeCallback(onChange)
+        , options(comboOptions)
     {
         lastValue = currentOption;
         comboBox.addItemList(options, 1);
@@ -67,7 +69,7 @@ struct CallbackComboProperty : public PropertiesPanel::Property {
         };
         addAndMakeVisible(comboBox);
     }
-    
+
     Property* createCopy() override
     {
         return new CallbackComboProperty(getName(), options, lastValue, changeCallback);
@@ -165,9 +167,9 @@ class StandaloneAudioSettings : public SettingsDialogPanel
 
 public:
     explicit StandaloneAudioSettings(AudioDeviceManager& audioDeviceManager)
-        : deviceManager(audioDeviceManager)
-        , inputLevelMeter(audioDeviceManager.getInputLevelGetter())
+        : inputLevelMeter(audioDeviceManager.getInputLevelGetter())
         , outputLevelMeter(audioDeviceManager.getOutputLevelGetter())
+        , deviceManager(audioDeviceManager)
     {
         deviceManager.addChangeListener(this);
         addAndMakeVisible(audioPropertiesPanel);
@@ -187,7 +189,7 @@ public:
     {
         deviceManager.removeChangeListener(this);
     }
-        
+
     PropertiesPanel* getPropertiesPanel() override
     {
         return &audioPropertiesPanel;
@@ -479,12 +481,11 @@ public:
 
         latencyNumberBox->setRangeMin(64);
     }
-        
+
     PropertiesPanel* getPropertiesPanel() override
     {
         return &dawSettingsPanel;
     }
-
 
     void resized() override
     {

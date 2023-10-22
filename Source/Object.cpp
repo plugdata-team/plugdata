@@ -33,8 +33,8 @@ extern "C" {
 
 Object::Object(Canvas* parent, String const& name, Point<int> position)
     : cnv(parent)
-    , ds(parent->dragState)
     , gui(nullptr)
+    , ds(parent->dragState)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
 
@@ -47,15 +47,15 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     } else {
         setType(name);
     }
-    
+
     if (!getValue<bool>(locked)) {
         showEditor();
     }
 }
 
 Object::Object(t_gobj* object, Canvas* parent)
-    : ds(parent->dragState)
-    , gui(nullptr)
+    : gui(nullptr)
+    , ds(parent->dragState)
 {
     cnv = parent;
 
@@ -240,29 +240,26 @@ void Object::mouseMove(MouseEvent const& e)
         updateMouseCursor();
         return;
     }
-    
+
     int zone = 0;
     auto b = getLocalBounds().toFloat().reduced(margin - 2);
-    if (b.contains (e.position)
-         && !b.reduced(7).contains(e.position))
-    {
+    if (b.contains(e.position)
+        && !b.reduced(7).contains(e.position)) {
         auto corners = getCorners();
-        bool done = false;
-        
-        auto minW = jmax(b.getWidth() / 10.0f, jmin (10.0f, b.getWidth() / 3.0f));
-        auto minH = jmax(b.getHeight() / 10.0f, jmin (10.0f, b.getHeight() / 3.0f));
-        
-        if (corners[0].contains(e.position) || corners[1].contains(e.position) || (e.position.x < jmax (7.0f, minW) && b.getX() > 0.0f))
+        auto minW = jmax(b.getWidth() / 10.0f, jmin(10.0f, b.getWidth() / 3.0f));
+        auto minH = jmax(b.getHeight() / 10.0f, jmin(10.0f, b.getHeight() / 3.0f));
+
+        if (corners[0].contains(e.position) || corners[1].contains(e.position) || (e.position.x < jmax(7.0f, minW) && b.getX() > 0.0f))
             zone |= ResizableBorderComponent::Zone::left;
-        else if (corners[2].contains(e.position) || corners[3].contains(e.position) || (e.position.x >= b.getWidth() - jmax (7.0f, minW)))
+        else if (corners[2].contains(e.position) || corners[3].contains(e.position) || (e.position.x >= b.getWidth() - jmax(7.0f, minW)))
             zone |= ResizableBorderComponent::Zone::right;
 
-        if (corners[0].contains(e.position) || corners[3].contains(e.position) || (e.position.y < jmax (7.0f, minH)))
+        if (corners[0].contains(e.position) || corners[3].contains(e.position) || (e.position.y < jmax(7.0f, minH)))
             zone |= ResizableBorderComponent::Zone::top;
-        else if (corners[1].contains(e.position) || corners[2].contains(e.position) || (e.position.y >= b.getHeight() - jmax (7.0f, minH)))
+        else if (corners[1].contains(e.position) || corners[2].contains(e.position) || (e.position.y >= b.getHeight() - jmax(7.0f, minH)))
             zone |= ResizableBorderComponent::Zone::bottom;
     }
-    
+
     resizeZone = static_cast<ResizableBorderComponent::Zone>(zone);
     validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre && e.originalComponent == this;
 
@@ -325,7 +322,7 @@ void Object::setType(String const& newType, t_gobj* existingObject)
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
-    t_gobj* objectPtr;
+    t_gobj* objectPtr = nullptr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
     if (!existingObject) {
@@ -336,7 +333,7 @@ void Object::setType(String const& newType, t_gobj* existingObject)
             for (auto* connection : getConnections())
                 cnv->connections.removeObject(connection);
 
-            if(auto* checkedObject = pd::Interface::checkObject(getPointer())) {
+            if (auto* checkedObject = pd::Interface::checkObject(getPointer())) {
                 objectPtr = patch->renameObject(checkedObject, newType);
             }
 
@@ -382,7 +379,6 @@ void Object::setType(String const& newType, t_gobj* existingObject)
             });
         }
     }
-    
 
     if (cnv->lastSelectedConnection && numInputs && numOutputs) {
         // if 1 connection is selected, connect the new object in middle of connection
@@ -390,10 +386,10 @@ void Object::setType(String const& newType, t_gobj* existingObject)
         auto inobj = cnv->lastSelectedConnection->inobj;
         auto outlet = outobj->iolets[outobj->numInputs + cnv->lastSelectedConnection->outIdx];
         auto inlet = inobj->iolets[cnv->lastSelectedConnection->inIdx];
-        
+
         auto* checkedOut = pd::Interface::checkObject(outobj->getPointer());
         auto* checkedIn = pd::Interface::checkObject(inobj->getPointer());
-        
+
         if (checkedOut && checkedIn && (outlet->isSignal == iolets[0]->isSignal) && (inlet->isSignal == iolets[this->numInputs]->isSignal)) {
             // Call async to make sure the object is created before the connection
             MessageManager::callAsync([this, outlet, inlet]() {
@@ -406,7 +402,7 @@ void Object::setType(String const& newType, t_gobj* existingObject)
         }
     }
     cnv->lastSelectedObject = nullptr;
-    
+
     cnv->lastSelectedConnection = nullptr;
 
     cnv->editor->updateCommandStatus();
@@ -429,17 +425,16 @@ Array<Rectangle<float>> Object::getCorners() const
 void Object::paintOverChildren(Graphics& g)
 {
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
-    if(getValue<bool>(cnv->editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs)
-    {
+    if (getValue<bool>(cnv->editor->autoconnect) && isInitialEditorShown() && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto fakeInletBounds = Rectangle<float>(16, 4, 8, 8);
         g.setColour(findColour(outlet->isSignal ? PlugDataColour::signalColourId : PlugDataColour::dataColourId).brighter());
         g.fillEllipse(fakeInletBounds);
-        
+
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
         g.drawEllipse(fakeInletBounds, 1.0f);
     }
-    
+
     if (consoleTarget == this) {
         g.saveState();
 
@@ -508,7 +503,8 @@ void Object::triggerOverlayActiveState()
     // it will not trigger it's callback until it's free-running
     // so we manually call the repaint here if this happens
     MessageManager::callAsync([_this = SafePointer(this)]() {
-        if(_this) _this->repaint();
+        if (_this)
+            _this->repaint();
     });
 }
 
@@ -772,11 +768,11 @@ void Object::updateIolets()
         auto* iolet = iolets[i];
         bool input = iolet->isInlet;
 
-        bool isSignal;
+        bool isSignal = false;
         auto* patchableObject = pd::Interface::checkObject(getPointer());
         if (patchableObject && i < numInputs) {
             isSignal = pd::Interface::isSignalInlet(patchableObject, i);
-        } else if(patchableObject) {
+        } else if (patchableObject) {
             isSignal = pd::Interface::isSignalOutlet(patchableObject, i - numInputs);
         }
 
@@ -853,7 +849,7 @@ void Object::mouseUp(MouseEvent const& e)
 
     if (ds.wasResized) {
 
-        cnv->objectGrid.clearAll();
+        cnv->objectGrid.clearIndicators();
 
         applyBounds();
 
@@ -879,7 +875,7 @@ void Object::mouseUp(MouseEvent const& e)
         cnv->updateSidebarSelection();
 
         if (ds.didStartDragging) {
-            cnv->objectGrid.clearAll();
+            cnv->objectGrid.clearIndicators();
             applyBounds();
             ds.didStartDragging = false;
         }
@@ -892,10 +888,10 @@ void Object::mouseUp(MouseEvent const& e)
             auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
             auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
             auto* checkedSnapped = pd::Interface::checkObject(ds.objectSnappingInbetween->getPointer());
-            
-            if(checkedOut && checkedIn && checkedSnapped) {
+
+            if (checkedOut && checkedIn && checkedSnapped) {
                 cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
-                
+
                 cnv->patch.createConnection(checkedOut, c->outIdx, checkedSnapped, 0);
                 cnv->patch.createConnection(checkedSnapped, 0, checkedIn, c->inIdx);
             }
@@ -1029,7 +1025,11 @@ void Object::mouseDrag(MouseEvent const& e)
 
             // Store origin object positions
             for (auto object : selection) {
-                mouseDownObjectPositions.add(object->getPosition().translated(10, 10));
+                auto gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+                auto gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
+                auto gridSize = gridEnabled && (gridType & 1) ? cnv->objectGrid.gridSize : 10;
+                
+                mouseDownObjectPositions.add(object->getPosition().translated(gridSize, gridSize));
             }
 
             // Duplicate once
@@ -1092,10 +1092,10 @@ void Object::mouseDrag(MouseEvent const& e)
                 for (auto* c : outputs) {
                     auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
                     auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
-                    
-                    if(checkedOut && checkedIn) {
+
+                    if (checkedOut && checkedIn) {
                         cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
-                        
+
                         cnv->connections.add(new Connection(cnv, outlet, c->inlet, nullptr));
                         cnv->connections.removeObject(c);
                     }
@@ -1104,8 +1104,8 @@ void Object::mouseDrag(MouseEvent const& e)
                 auto* c = inputs[0];
                 auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
                 auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
-                
-                if(checkedOut && checkedIn) {
+
+                if (checkedOut && checkedIn) {
                     cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
                 }
                 cnv->connections.removeObject(c);
@@ -1122,7 +1122,7 @@ void Object::mouseDrag(MouseEvent const& e)
                 for (auto* c : inputs) {
                     auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
                     auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
-                    if(checkedOut && checkedIn) {
+                    if (checkedOut && checkedIn) {
                         cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
                     }
 
@@ -1133,8 +1133,8 @@ void Object::mouseDrag(MouseEvent const& e)
                 auto* c = outputs[0];
                 auto* checkedOut = pd::Interface::checkObject(c->outobj->getPointer());
                 auto* checkedIn = pd::Interface::checkObject(c->inobj->getPointer());
-                
-                if(checkedOut && checkedIn) {
+
+                if (checkedOut && checkedIn) {
                     cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
                 }
                 cnv->connections.removeObject(c);
@@ -1202,8 +1202,6 @@ void Object::showEditor()
         gui->showEditor();
     }
 }
-
-
 
 void Object::hideEditor()
 {
@@ -1274,7 +1272,7 @@ void Object::openNewObjectEditor()
                 cnv->hideSuggestions();
                 cnv->objects.removeObject(_this.getComponent());
                 cnv->lastSelectedObject = nullptr;
-                
+
                 cnv->lastSelectedConnection = nullptr;
             });
         };

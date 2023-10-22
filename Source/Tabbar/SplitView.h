@@ -44,15 +44,10 @@ public:
     void resized() override;
 
 private:
-    bool splitView = false;
-    int activeTabIndex = 0;
-    bool splitFocusIndex = false;
 
     Rectangle<int> selectedSplit;
     SafePointer<ResizableTabbedComponent> activeTabComponent = nullptr;
     ResizableTabbedComponent* rootComponent;
-
-    bool splitviewIndicator = false;
 
     std::unique_ptr<SplitViewFocusOutline> focusOutline;
 

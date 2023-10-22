@@ -1,5 +1,4 @@
 #pragma clang diagnostic push
-#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 /*
  // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -86,7 +85,7 @@ private:
     inline static Array<File> tempFilesToDelete;
 };
 
-struct ToolchainInstaller : public Component
+class ToolchainInstaller : public Component
     , public Thread
     , public Timer {
 
@@ -95,6 +94,7 @@ struct ToolchainInstaller : public Component
         repaint();
     }
 
+public:
     explicit ToolchainInstaller(PluginEditor* pluginEditor)
         : Thread("Toolchain Install Thread")
         , editor(pluginEditor)
@@ -109,9 +109,10 @@ struct ToolchainInstaller : public Component
             try {
                 auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
                 // Get latest version
-                
+
                 latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
-                if(latestVersion.isEmpty()) throw;
+                if (latestVersion.isEmpty())
+                    throw;
             }
             // Network error, JSON error or empty version string somehow
             catch (...) {
@@ -120,7 +121,7 @@ struct ToolchainInstaller : public Component
                 repaint();
                 return;
             }
-            
+
             String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/v" + latestVersion + "/";
 
 #if JUCE_MAC
@@ -308,17 +309,16 @@ struct ToolchainInstaller : public Component
     bool needsUpdate = false;
     int statusCode;
 
-        
 #if JUCE_WINDOWS
-        String downloadSize = "720 MB";
+    String downloadSize = "720 MB";
 #elif JUCE_MAC
-        String downloadSize = "650 MB";
+    String downloadSize = "650 MB";
 #else
-        String downloadSize = "1.45 GB";
+    String downloadSize = "1.45 GB";
 #endif
-        
+
     WelcomePanelButton installButton = WelcomePanelButton(Icons::SaveAs, "Download Toolchain", "Download compilation utilities (" + downloadSize + ")");
-        
+
     std::function<void()> toolchainInstalledCallback;
 
     String errorMessage;

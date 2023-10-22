@@ -187,7 +187,6 @@ void Iolet::mouseUp(MouseEvent const& e)
             createConnection();
 
         } else if (!cnv->connectionsBeingCreated.isEmpty()) {
-            bool createdConnection = false;
             if (!wasDragged && !shiftIsDown) {
                 createConnection();
                 cnv->cancelConnectionCreation();
@@ -197,7 +196,6 @@ void Iolet::mouseUp(MouseEvent const& e)
 
                 cnv->nearestIolet->isTargeted = false;
                 cnv->nearestIolet->repaint();
-                createdConnection = true;
 
                 // CreateConnection will automatically create connections for all connections that are being created!
                 cnv->nearestIolet->createConnection();
@@ -356,10 +354,10 @@ void Iolet::createConnection()
 
                 auto outIdx = outlet->ioletIdx;
                 auto inIdx = inlet->ioletIdx;
-                
+
                 auto* outptr = pd::Interface::checkObject(outobj->getPointer());
                 auto* inptr = pd::Interface::checkObject(inobj->getPointer());
-                
+
                 if (!outptr || !inptr)
                     return;
 

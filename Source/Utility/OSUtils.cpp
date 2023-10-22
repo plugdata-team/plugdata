@@ -4,10 +4,12 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#if !defined(__APPLE__)
+#    include <raw_keyboard_input/raw_keyboard_input.cpp>
+#endif
+
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #include <juce_gui_basics/juce_gui_basics.h>
-
-#include <juce_core/juce_core.h>
 #include "OSUtils.h"
 
 #if defined(__APPLE__)
@@ -32,7 +34,9 @@ namespace filesystem = experimental::filesystem;
 }
 #    endif
 #else
+
 #    include "../Libraries/cpath/cpath.h"
+
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -163,43 +167,6 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
 
-void OSUtils::hostManagedX11WindowMove(juce::Component* component, const juce::Rectangle<int>& newBounds)
-{
-        auto* display = juce::XWindowSystem::getInstance()->getDisplay();
-        auto* peer = component->getPeer();
-        auto window = (Window)peer->getNativeHandle();
-
-        XUngrabPointer (display, CurrentTime);
-
-        const auto root = XRootWindow(display, XDefaultScreen(display));
-
-        XEvent ev = {0};
-        ev.xclient.type = ClientMessage;
-        ev.xclient.send_event = True;
-        ev.xclient.message_type = XInternAtom(display, "_NET_WM_MOVERESIZE", False);
-        ev.xclient.window = window;
-        ev.xclient.display = display;
-        ev.xclient.format = 32;
-
-        auto pos = component->localPointToGlobal(newBounds.getPosition());
-        ev.xclient.data.l[0] = pos.getX();
-        ev.xclient.data.l[1] = pos.getY();
-        ev.xclient.data.l[2] = 8;
-        ev.xclient.data.l[3] = 0;
-        ev.xclient.data.l[4] = 1;
-
-        XSendEvent(display, root, False, SubstructureRedirectMask | SubstructureNotifyMask, &ev);
-        XSync(display, 0);
-
-        /* This is a simpler method that will be available once we update to JUCE 7.0.7
-        auto* peer = component->getPeer();
-        auto pos = component->localPointToGlobal(newBounds.getPosition());
-        auto window = (Window)peer->getNativeHandle();
-
-        juce::XWindowSystem::getInstance()->startHostManagedResize(window, pos, (juce::ResizableBorderComponent::Zone)juce::ResizableBorderComponent::Zone::centre);
-        */
-}
-
 bool OSUtils::isX11WindowMaximised(void* handle)
 {
     enum window_state_t {
@@ -263,7 +230,7 @@ bool OSUtils::isX11WindowMaximised(void* handle)
     Atom* states = nullptr;
     window_state_t state = WINDOW_STATE_NONE;
 
-    if (XGetWindowProperty(display, window, net_wm_state, 0l, max_length, False, XA_ATOM,
+    if (XGetWindowProperty(display, window, net_wm_state, 0l, max_length, False, 4,
             &actual_type, &actual_format, &num_states, &bytes_after, (unsigned char**)&states)
         == Success) {
 
@@ -293,7 +260,6 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
     char* line = NULL;
     size_t size = 0;
-    ssize_t len;
     KeyboardLayout result = QWERTY;
     FILE* in;
 
@@ -302,7 +268,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
         return QWERTY;
 
     while (1) {
-        len = getline(&line, &size, in);
+        getline(&line, &size, in);
         if (strstr(line, "aliases(qwerty)"))
             result = QWERTY;
         if (strstr(line, "aliases(azerty)"))
@@ -368,7 +334,7 @@ static juce::Array<juce::File> iterateDirectoryRecurse(cpath::Dir&& dir, bool re
         auto isDir = file->IsDir();
 
         if (isDir && recursive && !file->IsSpecialHardLink()) {
-            result.addArray(iterateDirectoryRecurse(std::move(file->ToDir().GetRaw()), recursive, onlyFiles, maximum));
+            result.addArray(iterateDirectoryRecurse(file->ToDir().GetRaw(), recursive, onlyFiles, maximum));
         }
         if ((isDir && !onlyFiles) || !isDir) {
             result.add(juce::File(juce::String::fromUTF8(file->GetPath().GetRawPath()->buf)));
@@ -391,3 +357,61 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
 }
 
 #endif
+
+// needs to be in OSutils because it needs <windows.h>
+unsigned int OSUtils::keycodeToHID(unsigned int scancode)
+{
+
+#if defined(_WIN32)
+    static unsigned char const KEYCODE_TO_HID[256] = {
+        0, 41, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 45, 46, 42, 43, 20, 26, 8, 21, 23, 28, 24, 12, 18, 19,
+        47, 48, 158, 224, 4, 22, 7, 9, 10, 11, 13, 14, 15, 51, 52, 53, 225, 49, 29, 27, 6, 25, 5, 17, 16, 54,
+        55, 56, 229, 0, 226, 0, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 72, 71, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 68, 69, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 228, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 70, 230, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 74, 82, 75, 0, 80, 0, 79, 0, 77, 81, 78, 73, 76, 0, 0, 0, 0, 0, 0, 0, 227, 231,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    };
+
+    static HKL layout;
+
+    scancode = MapVirtualKeyEx(scancode, MAPVK_VK_TO_VSC, layout);
+    if (scancode >= 256)
+        return (0);
+    return (KEYCODE_TO_HID[scancode]);
+
+#elif defined(__APPLE__)
+    static unsigned char const KEYCODE_TO_HID[128] = {
+        4, 22, 7, 9, 11, 10, 29, 27, 6, 25, 0, 5, 20, 26, 8, 21, 28, 23, 30, 31, 32, 33, 35, 34, 46, 38, 36,
+        45, 37, 39, 48, 18, 24, 47, 12, 19, 158, 15, 13, 52, 14, 51, 49, 54, 56, 17, 16, 55, 43, 44, 53, 42,
+        0, 41, 231, 227, 225, 57, 226, 224, 229, 230, 228, 0, 108, 220, 0, 85, 0, 87, 0, 216, 0, 0, 127,
+        84, 88, 0, 86, 109, 110, 103, 98, 89, 90, 91, 92, 93, 94, 95, 111, 96, 97, 0, 0, 0, 62, 63, 64, 60,
+        65, 66, 0, 68, 0, 104, 107, 105, 0, 67, 0, 69, 0, 106, 117, 74, 75, 76, 61, 77, 59, 78, 58, 80, 79,
+        81, 82, 0
+    };
+
+    if (scancode >= 128)
+        return 0;
+    return KEYCODE_TO_HID[scancode];
+#else
+
+    static unsigned char const KEYCODE_TO_HID[256] = {
+        0, 41, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 45, 46, 42, 43, 20, 26, 8, 21, 23, 28, 24, 12, 18, 19,
+        47, 48, 158, 224, 4, 22, 7, 9, 10, 11, 13, 14, 15, 51, 52, 53, 225, 49, 29, 27, 6, 25, 5, 17, 16, 54,
+        55, 56, 229, 85, 226, 44, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 83, 71, 95, 96, 97, 86, 92,
+        93, 94, 87, 89, 90, 91, 98, 99, 0, 0, 100, 68, 69, 0, 0, 0, 0, 0, 0, 0, 88, 228, 84, 154, 230, 0, 74,
+        82, 75, 80, 79, 77, 81, 78, 73, 76, 0, 0, 0, 0, 0, 103, 0, 72, 0, 0, 0, 0, 0, 227, 231, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 118, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    };
+
+    // xorg differs from kernel values
+    scancode -= 8;
+    if (scancode >= 256)
+        return 0;
+    return KEYCODE_TO_HID[scancode];
+#endif
+}

@@ -21,7 +21,7 @@ class Library;
 class InternalSynth;
 class SettingsFile;
 class StatusbarSource;
-class PlugDataLook;
+struct PlugDataLook;
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance {
@@ -161,7 +161,7 @@ public:
     std::atomic<bool> enableInternalSynth = false;
 
     OwnedArray<PluginEditor> openedEditors;
-        
+
 private:
     void processInternal();
 
@@ -176,7 +176,7 @@ private:
     MidiBuffer midiBufferTemp;
     MidiBuffer midiBufferCopy;
     MidiBuffer midiBufferInternalSynth;
-        
+
     AudioProcessLoadMeasurer cpuLoadMeasurer;
 
     bool midiByteIsSysex = false;
@@ -185,10 +185,6 @@ private:
 
     std::vector<pd::Atom> atoms_playhead;
 
-    int minIn = 2;
-    int minOut = 2;
-
-    int lastSplitIndex = -1;
     int lastSetProgram = 0;
 
     Limiter limiter;

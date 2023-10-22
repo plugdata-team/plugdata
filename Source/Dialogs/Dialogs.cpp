@@ -68,7 +68,6 @@ void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre,
     centre->getTopLevelComponent()->toFront(true);
 }
 
-
 void Dialogs::showSettingsDialog(PluginEditor* editor)
 {
     auto* dialog = new Dialog(&editor->openedDialog, editor, 690, 500, true);
@@ -158,7 +157,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
 
             cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
             okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-            
+
             cancel.onClick = [dialog, callback] {
                 callback(false);
                 dialog->closeDialog();
@@ -374,7 +373,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         QuickActionsBar(ApplicationCommandManager* commandManager)
         {
             // If the tooltip has it's own window, it should also have its own TooltipWindow!
-            if(ProjectInfo::canUseSemiTransparentWindows()) {
+            if (ProjectInfo::canUseSemiTransparentWindows()) {
                 tooltipWindow = std::make_unique<CheckedTooltip>(this);
             }
             auto commandIds = Array<CommandID> { CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete };
@@ -386,11 +385,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 button->onClick = [commandManager, id]() {
                     if (auto* editor = dynamic_cast<PluginEditor*>(commandManager)) {
                         editor->grabKeyboardFocus();
-                    }
-
-                    ApplicationCommandTarget::InvocationInfo info(id);
-                    info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                    commandManager->invoke(info, true);
+                        ApplicationCommandTarget::InvocationInfo info(id);
+                        info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
+                        commandManager->invoke(info, true);
+                    }                    
                 };
 
                 if (auto* registeredInfo = commandManager->getCommandForID(id)) {
@@ -459,8 +457,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     // If we directly right-clicked on an object, make sure it has been added to selection
     if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
         selectedBoxes.addIfNotAlreadyThere(obj);
-    } else if (auto* obj = originalComponent->findParentComponentOfClass<Object>()) {
-        selectedBoxes.addIfNotAlreadyThere(obj);
+    } 
+    else if (auto* parentOfTypeObject = originalComponent->findParentComponentOfClass<Object>()) {
+        selectedBoxes.addIfNotAlreadyThere(parentOfTypeObject);
     }
 
     bool hasSelection = !selectedBoxes.isEmpty();
@@ -510,7 +509,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         selectedConnection = true;
     }
 
-    popupMenu.addItem("Curved Connection", selectedConnection, selectedConnection && !noneSegmented, [editor, cnv, noneSegmented]() {
+    popupMenu.addItem("Curved Connection", selectedConnection, selectedConnection && !noneSegmented, [editor, noneSegmented]() {
         bool segmented = noneSegmented;
         auto* cnv = editor->getCurrentCanvas();
 
@@ -538,7 +537,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addSeparator();
     popupMenu.addItem(Properties, "Properties", (originalComponent == cnv || (object && !params.getParameters().isEmpty())) && !locked);
     // showObjectReferenceDialog
-    auto callback = [cnv, editor, object, originalComponent, params, position, selectedBoxes](int result) mutable {
+    auto callback = [cnv, editor, object, originalComponent, params, selectedBoxes](int result) mutable {
         cnv->grabKeyboardFocus();
 
         // Make sure that iolets don't hang in hovered state
@@ -549,7 +548,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
         if (result == Properties) {
             if (originalComponent == cnv) {
-                Array<ObjectParameters> parameters = {cnv->getInspectorParameters()};
+                Array<ObjectParameters> parameters = { cnv->getInspectorParameters() };
                 editor->sidebar->showParameters("canvas", parameters);
             } else if (object && object->gui) {
 

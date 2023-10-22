@@ -41,10 +41,8 @@ public:
 
     explicit ConsoleSettings(std::array<Value, 5>& settingsValues)
     {
-        auto i = 0;
         for (auto* button : buttons) {
             addAndMakeVisible(*button);
-            i++;
         }
 
         for (int i = 0; i < buttons.size(); i++) {
@@ -168,8 +166,8 @@ public:
             int idx;
 
             ConsoleMessage(int index, ConsoleComponent& parent)
-                : idx(index)
-                , console(parent)
+                : console(parent)
+                , idx(index)
             {
 
                 parent.addAndMakeVisible(this);
@@ -333,9 +331,6 @@ public:
                 messages.push_back(std::make_unique<ConsoleMessage>(messages.size(), *this));
             }
 
-            auto showMessages = getValue<bool>(settingsValues[2]);
-            auto showErrors = getValue<bool>(settingsValues[3]);
-
             setSize(getWidth(), std::max<int>(getTotalHeight(), viewport.getHeight()));
             resized();
 
@@ -423,10 +418,9 @@ public:
         settingsCalloutButton->setConnectedEdges(12);
         settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
             auto* editor = findParentComponentOfClass<PluginEditor>();
-            auto* sidebar = findParentComponentOfClass<Sidebar>();
             auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
-            auto bounds = editor->getLocalArea(sidebar, settingsCalloutButton->getBounds());
-            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, editor);
+            auto bounds = editor->callOutSafeArea.getLocalArea(nullptr, settingsCalloutButton->getScreenBounds());
+            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, &editor->callOutSafeArea);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);
@@ -436,6 +430,4 @@ private:
     std::array<Value, 5> settingsValues;
     ConsoleComponent* console;
     BouncingViewport viewport;
-
-    int pendingUpdates = 0;
 };

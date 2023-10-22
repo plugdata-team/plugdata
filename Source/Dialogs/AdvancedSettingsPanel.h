@@ -72,7 +72,7 @@ public:
 
         addAndMakeVisible(propertiesPanel);
     }
-        
+
     PropertiesPanel* getPropertiesPanel() override
     {
         return &propertiesPanel;
@@ -85,14 +85,15 @@ public:
 
     void valueChanged(Value& v) override
     {
-        if(v.refersToSameSourceAs(nativeTitlebar))
-        {
+        if (v.refersToSameSourceAs(nativeTitlebar)) {
             // Make sure titlebar buttons are greyed out because a dialog is still showing
-            if(auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent()))
-            {
-                if(auto* closeButton = window->getCloseButton()) closeButton->setEnabled(false);
-                if(auto* minimiseButton = window->getMinimiseButton()) minimiseButton->setEnabled(false);
-                if(auto* maximiseButton = window->getMaximiseButton()) maximiseButton->setEnabled(false);
+            if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
+                if (auto* closeButton = window->getCloseButton())
+                    closeButton->setEnabled(false);
+                if (auto* minimiseButton = window->getMinimiseButton())
+                    minimiseButton->setEnabled(false);
+                if (auto* maximiseButton = window->getMaximiseButton())
+                    maximiseButton->setEnabled(false);
             }
         }
         if (v.refersToSameSourceAs(macTitlebarButtons)) {

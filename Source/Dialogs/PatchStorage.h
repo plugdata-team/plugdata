@@ -4,9 +4,9 @@ class OnlineImage : public Component
     , private AsyncUpdater {
 public:
     OnlineImage(bool roundedTop, bool roundedBottom)
-        : roundTop(roundedTop)
+        : ThreadPoolJob("Image download job")
+        , roundTop(roundedTop)
         , roundBottom(roundedBottom)
-        , ThreadPoolJob("Image download job")
     {
         spinner.setSize(50, 50);
         spinner.setCentrePosition(getWidth() / 2, getHeight() / 2);
@@ -86,7 +86,6 @@ private:
         if (imageURL.isWellFormed()) {
             MemoryBlock block;
             // Load the image data from the URL
-            auto inputStream = imageURL.readEntireBinaryStream(block);
             MemoryInputStream memstream(block, false);
 
             downloadedImage = ImageFileFormat::loadFrom(block.getData(), block.getSize());
@@ -209,7 +208,6 @@ public:
 
         MemoryBlock block;
         // Load the image data from the URL
-        auto inputStream = fullInfoUrl.readEntireBinaryStream(block);
         MemoryInputStream memstream(block, false);
 
         var patchObject = JSON::parse(memstream);
@@ -353,9 +351,9 @@ public:
 class PatchDisplay : public Component {
 public:
     PatchDisplay(PatchInfo const& patchInfo, std::function<void(PatchInfo const&)> clickCallback)
-        : info(patchInfo)
+        : image(true, false)
         , callback(clickCallback)
-        , image(true, false)
+        , info(patchInfo)
     {
         image.setImageURL(patchInfo.artwork_url);
         addAndMakeVisible(image);
@@ -644,7 +642,6 @@ public:
 
         if (input.isVisible()) {
             Fonts::drawIcon(g, Icons::Search, 0, 40, 30, findColour(PlugDataColour::panelTextColourId), 12);
-
 
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.drawLine(0, 70, getWidth(), 70);

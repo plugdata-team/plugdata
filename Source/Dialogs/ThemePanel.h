@@ -106,8 +106,9 @@ private:
 };
 
 struct ThemeSelectorProperty : public PropertiesPanel::Property {
-    ThemeSelectorProperty(String const& propertyName, std::function<void(const String&)> const& callback)
-        : Property(propertyName), cb(callback)
+    ThemeSelectorProperty(String const& propertyName, std::function<void(String const&)> const& callback)
+        : Property(propertyName)
+        , cb(callback)
     {
         comboBox.getProperties().set("Style", "Inspector");
         comboBox.onChange = [this, callback]() {
@@ -120,7 +121,7 @@ struct ThemeSelectorProperty : public PropertiesPanel::Property {
 
         addAndMakeVisible(comboBox);
     }
-    
+
     PropertiesPanel::Property* createCopy() override
     {
         auto* themeSelector = new ThemeSelectorProperty(getName(), cb);
@@ -152,7 +153,7 @@ struct ThemeSelectorProperty : public PropertiesPanel::Property {
     }
 
     StringArray items;
-    std::function<void(const String&)> cb;
+    std::function<void(String const&)> cb;
     ComboBox comboBox;
 };
 
@@ -197,7 +198,7 @@ public:
 
         updateSwatches();
     }
-        
+
     PropertiesPanel* getPropertiesPanel() override
     {
         return &panel;
@@ -214,7 +215,7 @@ public:
     void settingsFileReloaded() override
     {
         updateSwatches();
-    };
+    }
 
     void updateSwatches()
     {
@@ -411,11 +412,11 @@ public:
 
         panel.addSection("Manage themes", { resetButton, newButton, loadButton, saveButton, deleteButton });
 
-        primaryThemeSelector = new ThemeSelectorProperty("Primary Theme", [this, onThemeChange](const String& selectedThemeName) {
+        primaryThemeSelector = new ThemeSelectorProperty("Primary Theme", [onThemeChange](String const& selectedThemeName) {
             onThemeChange(0, selectedThemeName);
         });
 
-        secondaryThemeSelector = new ThemeSelectorProperty("Secondary Theme", [this, onThemeChange](const String& selectedThemeName) {
+        secondaryThemeSelector = new ThemeSelectorProperty("Secondary Theme", [onThemeChange](String const& selectedThemeName) {
             onThemeChange(1, selectedThemeName);
         });
 

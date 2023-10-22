@@ -51,7 +51,7 @@ static bool drawWindowShadow = true;
 
 namespace pd {
 class Patch;
-};
+}
 
 class PlugDataProcessorPlayer : public AudioProcessorPlayer {
 public:
@@ -71,8 +71,7 @@ public:
     MidiDeviceManager midiDeviceManager;
 };
 
-class StandalonePluginHolder : private AudioIODeviceCallback
-{
+class StandalonePluginHolder : private AudioIODeviceCallback {
 public:
     /** Structure used for the number of inputs and outputs. */
     struct PluginInOuts {
@@ -238,7 +237,7 @@ public:
     }
 
     static StandalonePluginHolder* getInstance();
-        
+
     OptionalScopedPointer<PropertySet> settings;
     std::unique_ptr<AudioProcessor> processor;
     AudioDeviceManager deviceManager;
@@ -399,6 +398,7 @@ class PlugDataWindow : public DocumentWindow
     std::unique_ptr<StackDropShadower> dropShadower;
     AudioProcessorEditor* editor;
     StandalonePluginHolder* pluginHolder;
+
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
@@ -408,16 +408,17 @@ public:
      true, then the settings object will be owned and deleted by this object.
      */
     PlugDataWindow(AudioProcessorEditor* pluginEditor)
-        : DocumentWindow("plugdata", LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton), editor(pluginEditor)
+        : DocumentWindow("plugdata", LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
+        , editor(pluginEditor)
     {
         setTitleBarHeight(0);
         pluginHolder = ProjectInfo::getStandalonePluginHolder();
-        
+
         drawWindowShadow = Desktop::canUseSemiTransparentWindows();
 
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
         setOpaque(false);
-        
+
         mainComponent = new MainContentComponent(*this, editor);
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
@@ -427,21 +428,21 @@ public:
         // Make sure it gets updated on init
         propertyChanged("native_window", settingsTree.getProperty("native_window"));
     }
-        
+
     void propertyChanged(String const& name, var const& value) override
     {
         if (name == "native_window") {
             auto nativeWindow = static_cast<bool>(value);
-            
+
             auto* editor = mainComponent->getEditor();
             setUsingNativeTitleBar(nativeWindow);
-            
+
             if (!nativeWindow) {
-                
+
                 setOpaque(false);
-                
+
                 setResizable(false, false);
-                
+
                 if (drawWindowShadow) {
 #if JUCE_MAC
                     setDropShadowEnabled(true);
@@ -466,12 +467,15 @@ public:
         }
         if (name == "macos_buttons") {
             bool isEnabled = true;
-            if(auto* closeButton = getCloseButton()) isEnabled = closeButton->isEnabled();
+            if (auto* closeButton = getCloseButton())
+                isEnabled = closeButton->isEnabled();
             lookAndFeelChanged();
-            if(auto* closeButton = getCloseButton()) closeButton->setEnabled(isEnabled);
-            if(auto* minimiseButton = getMinimiseButton()) minimiseButton->setEnabled(isEnabled);
-            if(auto* maximiseButton = getMaximiseButton()) maximiseButton->setEnabled(isEnabled);
-            
+            if (auto* closeButton = getCloseButton())
+                closeButton->setEnabled(isEnabled);
+            if (auto* minimiseButton = getMinimiseButton())
+                minimiseButton->setEnabled(isEnabled);
+            if (auto* maximiseButton = getMaximiseButton())
+                maximiseButton->setEnabled(isEnabled);
         }
     }
 
@@ -528,7 +532,7 @@ public:
                 b->setToggleState(!shouldBeMaximised, dontSendNotification);
 
                 if (!isUsingNativeTitleBar()) {
-                    OSUtils::maximiseX11Window(getPeer()->getNativeHandle(), !shouldBeMaximised);
+                    OSUtils::maximiseX11Window(peer->getNativeHandle(), !shouldBeMaximised);
                 }
                 setFullScreen(!isFullScreen());
             } else {
@@ -558,7 +562,7 @@ public:
     void activeWindowStatusChanged() override
     {
         repaint();
-        
+
 #if JUCE_WINDOWS
         if (drawWindowShadow && !isUsingNativeTitleBar() && dropShadower)
             dropShadower->repaint();
@@ -743,6 +747,3 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)
 };
-
-
-
