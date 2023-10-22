@@ -269,8 +269,10 @@ public:
 
         auto* x = reinterpret_cast<t_fake_curve*>(object);
         int n = x->x_npoints;
-        
-        scalar_getbasexy(s, &baseX, &baseY);
+
+        if(parentTempl == templ) {
+            scalar_getbasexy(s, &baseX, &baseY);
+        }
 
         if (!fielddesc_getfloat(&x->x_vis, templ, data, 0)) {
             setPath(Path());
