@@ -34,13 +34,13 @@ class DrawableTemplate : public pd::MessageListener
 public:
     pd::Instance* pd;
     Canvas* canvas;
-    int baseX, baseY;
+    t_float baseX, baseY;
     t_word* data;
     t_template* templ;
     t_template* parentTempl;
     pd::WeakReference scalar;
 
-    DrawableTemplate(t_scalar* object, t_word* scalarData, t_template* scalarTemplate, t_template* parentTemplate, Canvas* cnv, int x, int y)
+    DrawableTemplate(t_scalar* object, t_word* scalarData, t_template* scalarTemplate, t_template* parentTemplate, Canvas* cnv, t_float x, t_float y)
         : pd(cnv->pd)
         , canvas(cnv)
         , baseX(x)
@@ -184,9 +184,16 @@ public:
         auto* patch = canvas->patch.getPointer().get();
         if (!patch)
             return;
+        
+        auto* x = reinterpret_cast<t_fake_curve*>(object);
 
         scalar_doclick(s->sc_vec, parentTempl, s, nullptr, patch, 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
-
+            
+        if (!fielddesc_getfloat(&x->x_vis, templ, data, 0)) {
+            setPath(Path());
+            return;
+        }
+        
         /*  Not working yet...
         int i, n = object->x_npoints;
         int bestn = -1;
@@ -262,8 +269,11 @@ public:
 
         auto* x = reinterpret_cast<t_fake_curve*>(object);
         int n = x->x_npoints;
+        
+        scalar_getbasexy(s, &baseX, &baseY);
 
         if (!fielddesc_getfloat(&x->x_vis, templ, data, 0)) {
+            setPath(Path());
             return;
         }
 
@@ -310,8 +320,38 @@ public:
             Path toDraw;
 
             toDraw.startNewSubPath(pix[0], pix[1]);
-            for (int i = 1; i < n; i++) {
-                toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
+            
+            if(flags & BEZ)
+            {
+                for (int i = 0; i < n; i++) {
+                    float x0 = pix[2 * i];
+                    float y0 = pix[2 * i + 1];
+                    
+                    float x1, y1;
+                    if (i == n - 1) {
+                        if(closed) {
+                            x1 = pix[0];
+                            y1 = pix[1];
+                        }
+                        else {
+                            x1 = x0;
+                            y1 = y0;
+                        }
+                    } else {
+                        x1 = pix[2 * (i + 1)];
+                        y1 = pix[2 * (i + 1) + 1];
+                    }
+                    toDraw.quadraticTo(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2);
+                    
+                    if (i == n - 1) {
+                        toDraw.quadraticTo((x0 + x1) / 2, (y0 + y1) / 2, x1, y1);
+                    }
+                }
+            }
+            else {
+                for (int i = 1; i < n; i++) {
+                    toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
+                }
             }
 
             if (closed) {
@@ -401,12 +441,17 @@ public:
 
         auto* x = reinterpret_cast<t_fake_drawnumber*>(object);
 
+        if (!fielddesc_getfloat(&x->x_vis, templ, data, 0)) {
+            setText("");
+            return;
+        }
+        
         int xloc = 0, yloc = 0;
         if (auto glist = canvas->patch.getPointer()) {
             xloc = xToPixels(baseX + fielddesc_getcoord((t_fielddesc*)&x->x_xloc, templ, data, 0)) + canvas->canvasOrigin.x;
             yloc = yToPixels(baseY + fielddesc_getcoord((t_fielddesc*)&x->x_yloc, templ, data, 0)) + canvas->canvasOrigin.y;
         }
-
+        
         char buf[DRAWNUMBER_BUFSIZE];
         int type, onset;
         t_symbol* arraytype;
@@ -863,6 +908,7 @@ struct ScalarObject final : public ObjectBase {
                 continue;
 
             auto name = String::fromUTF8(y->g_pd->c_name->s_name);
+            
             if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
                 cnv->addAndMakeVisible(templates.add(new DrawableSymbol(x, y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
             } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
@@ -875,6 +921,11 @@ struct ScalarObject final : public ObjectBase {
                     cnv->addAndMakeVisible(templates.add(subplot));
                 }
             }
+        }
+        
+        for(int i = templates.size() - 1; i >= 0; i--)
+        {
+            templates[i]->toBack();
         }
 
         updateDrawables();
