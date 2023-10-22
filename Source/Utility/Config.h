@@ -47,8 +47,9 @@ inline T getValue(Value const& v)
     {
         return v.toString();
     }
-    
-    return static_cast<T>(v.getValue());
+    else {
+        return static_cast<T>(v.getValue());
+    }
 }
 
 inline void setValueExcludingListener(Value& parameter, var const& value, Value::Listener* listener)
