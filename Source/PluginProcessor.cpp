@@ -91,10 +91,9 @@ PluginProcessor::PluginProcessor()
     addParameter(volumeParameter);
     volume = volumeParameter->getValuePointer();
 
-    // JYG added this
-   extraData = new XmlElement ("ExtraData");
-    //extraData= new XmlElement("ExtraData");
-
+    // XML tree for storing additional data in DAW session
+    extraData = new XmlElement ("ExtraData");
+   
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
         auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false, n + 1, 0.0f, 1.0f);
@@ -995,32 +994,28 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     xml.addChildElement(patchesTree);
 
-     PlugDataParameter::saveStateInformation(xml, getParameters());
-     
-        // JYG added This
-  
-     //old code : 
-     // extra_data_xml = &xml;
-    // signal to patches that we need to collect extra data to save into the host session
-    //sendMessage("from_plugdata", "save", {});
-     
-     // new code
-  
-    if (extraData)
-       post("extradata=%d", extraData->getNumChildElements());
-     if (extraData->getNumChildElements()>0)
-         xml.addChildElement(extraData);
+    PlugDataParameter::saveStateInformation(xml, getParameters());
+    
+    // store additional extra-data in DAW session if they exist.
+    bool extra_data_stored = false; 
+    if (extraData)  {
+        if (extraData->getNumChildElements()>0) {
+            xml.addChildElement(extraData);
+            extra_data_stored = true;
+            }
+        }
 
     MemoryBlock xmlBlock;
     copyXmlToBinary(xml, xmlBlock);
 
-   
-
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
     
-     // JYG added this
-   // extra_data_xml = nullptr;
+    // then detach extraData XmlElement from temporary tree xml for later re-use
+    if (extra_data_stored)  {   
+        xml.removeChildElement (extraData, false);
+        }
+
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
@@ -1163,7 +1158,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             }
         }
 
-        // JYG added this
+        // Retrieve additional extra-data from DAW
         parseDataBuffer(*xmlState);
     }
 
@@ -1570,16 +1565,23 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
 // JYG added this
 void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
 {
-    //TODO   trouver un moyen de remettre a zero  la liste extraData depuis le patch, sinon elle ne va cesser de croitre
+    if (!vec[0].isSymbol()) {
+        logMessage("databuffer accepts only lists beginning with a Symbol atom");
+        return;
+    }
+    String child_name = String(vec[0].getSymbol());
     
     if (extraData) {
      
-        int const nchilds = extraData->getNumChildElements();
-        logMessage("extraData size is "+ String(nchilds));
-          //TODO  Nommer le child element avec le premier atom de la liste, et tester s il n existe pas dejà
-        XmlElement* list = extraData->createNewChildElement(String("list") + String(nchilds + 1));  //  numerotation of each list line
+        int const nchilds = extraData->getNumChildElements(); 
+        if (nchilds > 0)    {
+            // Searching if a previously created child element exists, with same name as vec[0]. If true, delete it.
+                XmlElement* list = extraData->getChildByName(child_name);
+                if (list)
+                    extraData->removeChildElement (list, true) ;
+        }
+        XmlElement* list = extraData->createNewChildElement(child_name);  
         if (list) {
-          
             for (size_t i = 0; i < vec.size(); ++i) {
                 if (vec[i].isFloat()) {
                     list->setAttribute(String("float") + String(i + 1), vec[i].getFloat());
@@ -1599,7 +1601,7 @@ void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
 
 void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 {
-    // was : void CamomileAudioProcessor::loadInformation(XmlElement const& xml)
+    // source : void CamomileAudioProcessor::loadInformation(XmlElement const& xml)
 
     bool loaded = false;
     XmlElement const* extra_data = xml.getChildByName(juce::StringRef("ExtraData"));
