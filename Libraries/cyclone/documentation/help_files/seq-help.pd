@@ -1,4 +1,5 @@
-#N canvas 616 52 559 560 10;
+#N canvas 539 52 565 564 10;
+#X declare -stdpath ./;
 #X obj 2 192 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
 #X obj 2 438 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
 #X obj 2 487 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
@@ -9,14 +10,6 @@
 #X obj 227 119 bng 18 250 50 0 empty bng_play empty 17 7 0 10 #d0d0d0 #404040 #000000;
 #X text 156 197 bang;
 #X text 150 211 float;
-#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 #e0e0e0 #404040 0;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X coords 0 1 100 -1 554 42 1 0 0;
-#X restore 2 3 graph;
-#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
-#N canvas 382 141 749 319 (subpatch) 0;
-#X coords 0 -1 1 1 252 42 2 100 100;
-#X restore 304 3 pd;
 #X text 197 119 Play;
 #X obj 227 169 print;
 #X obj 72 199 cnv 17 3 234 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
@@ -43,10 +36,6 @@
 #X text 198 278 starts recording raw MIDI received in the inlet, f 57;
 #X text 198 320 external clock \, needed after 'start -1' message, f 57;
 #X text 186 197 - starts or restarts playing a sequence at normal speed, f 59;
-#X obj 17 57 cyclone/comment 425 14 DejaVu\ Sans\ Mono empty 0 0 0 0 0 255 255 255 0 0 MIDI sequencer;
-#X obj 16 4 cyclone/comment 425 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0 255 255 255 0 0 seq;
-#X obj 322 28 cyclone/comment 425 13 DejaVu\ Sans\ Mono empty 0 224 228 220 0 255 255 255 0 0 Objects cloned from Max/MSP;
-#X obj 363 4 cyclone/comment 425 24 DejaVu\ Sans\ Mono empty 0 224 228 220 0 255 255 255 0 0 cyclone;
 #X text 198 264 stops recording/playing and goes back to start, f 57;
 #X text 66 82 [seq] plays/records raw MIDI streams and can save/read MIDI sequence files. All tracks of a multi-track midi file are merged into one.;
 #N canvas 699 177 647 362 start 0;
@@ -185,7 +174,6 @@
 #X connect 12 0 14 0;
 #X connect 13 0 12 0;
 #X connect 14 0 30 0;
-#X connect 14 0 30 1;
 #X connect 15 0 13 0;
 #X connect 16 0 13 0;
 #X connect 16 1 18 0;
@@ -357,7 +345,6 @@
 #X connect 11 1 6 0;
 #X connect 11 1 10 0;
 #X connect 12 0 24 0;
-#X connect 12 0 24 1;
 #X connect 14 0 20 0;
 #X connect 15 0 13 0;
 #X connect 16 0 13 0;
@@ -500,6 +487,7 @@
 #X obj 660 121 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X text 25 87 Use the 'read' message to open another file with the dialog box and 'read seq.mid' to re open the example. The 'delay' message adds a delay in ms before sending the first event.;
 #X obj 150 388 output~;
+#X obj 307 437 declare -stdpath ./;
 #X connect 0 0 22 0;
 #X connect 1 0 14 0;
 #X connect 2 0 27 0;
@@ -519,7 +507,6 @@
 #X connect 16 0 27 0;
 #X connect 17 0 30 0;
 #X connect 22 0 40 0;
-#X connect 22 0 40 1;
 #X connect 24 0 27 0;
 #X connect 27 0 5 0;
 #X connect 27 1 3 0;
@@ -536,7 +523,9 @@
 #X text 78 362 addeventdelay <f> -;
 #X text 198 390 prints sequence's first 16 events in the Pd window, f 57;
 #X text 198 362 adds (in ms) to the onset delay, f 57;
-#X connect 7 0 47 0;
-#X connect 26 0 47 0;
-#X connect 47 0 15 0;
-#X connect 47 1 4 0;
+#X obj 5 3 ./header seq;
+#X text 22 62 MIDI sequencer;
+#X connect 7 0 39 0;
+#X connect 22 0 39 0;
+#X connect 39 0 11 0;
+#X connect 39 1 4 0;

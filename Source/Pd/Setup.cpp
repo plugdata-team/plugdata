@@ -362,7 +362,6 @@ void train_tilde_setup();
 void trapezoid_tilde_setup();
 void triangle_tilde_setup();
 void trunc_tilde_setup();
-void typeroute_tilde_setup();
 void vectral_tilde_setup();
 void wave_tilde_setup();
 void zerox_tilde_setup();
@@ -1314,7 +1313,6 @@ void Setup::initialiseCyclone()
     train_tilde_setup();
     trapezoid_tilde_setup();
     triangle_tilde_setup();
-    typeroute_tilde_setup();
     vectral_tilde_setup();
     wave_tilde_setup();
     zerox_tilde_setup();

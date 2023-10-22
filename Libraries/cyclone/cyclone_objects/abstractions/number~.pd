@@ -74,8 +74,7 @@
 #X restore 687 102 pd tohex;
 #X obj 610 126 s \$0-bg;
 #X obj 687 126 s \$0-fg;
-#X obj 71 72 route set list ft1 interval minimum maximum bang bgcolor
-textcolor, f 116;
+#X obj 71 72 route set list ft1 interval minimum maximum bang bgcolor textcolor, f 116;
 #X connect 0 0 14 0;
 #X connect 1 0 4 0;
 #X connect 1 1 2 0;
@@ -111,11 +110,10 @@ textcolor, f 116;
 #X obj 238 42 r \$0-ramp;
 #X obj 276 108 route range color;
 #X obj 219 22 r \$0-tgl;
-#X obj 219 132 cyclone/pak 0 0 100 0 0 #2a3434 #ffffff #b6fefd, f
-23;
+#X obj 219 132 cyclone/pak 0 0 100 0 0 #2a3434 #ffffff #b6fefd, f 23;
 #X obj 180 283 s \$0-interval;
 #X obj 153 112 list;
-#N canvas 502 160 286 303 args 0;
+#N canvas 502 160 486 274 args 0;
 #X obj 55 103 pdcontrol;
 #X msg 55 77 args;
 #X obj 55 51 loadbang;
@@ -212,15 +210,13 @@ textcolor, f 116;
 #X obj 129 124 route bang;
 #X obj 186 148 route @monitormode @sigoutmode;
 #X obj 186 183 == 0;
-#X obj 273 223 route list float @ft1 @interval @minimum @maximum @bgcolor
-@textcolor, f 37;
+#X obj 273 223 route list float @ft1 @interval @minimum @maximum @bgcolor @textcolor, f 37;
 #X obj 743 265 list append #2a3434 #ffffff #b6fefd;
 #X obj 743 290 unpack s s s;
 #X obj 573 264 expr -pow(1e+19 \, 1e+19) \; pow(1e+19 \, 1e+19);
 #X obj 35 39 inlet;
 #X obj 233 452 outlet;
-#X obj 233 386 pack 0 0 100 float float symbol symbol symbol, f 71
-;
+#X obj 233 386 pack 0 0 100 float float symbol symbol symbol, f 71;
 #X obj 35 67 trigger bang list bang, f 49;
 #X connect 0 0 5 0;
 #X connect 1 0 14 0;
@@ -255,13 +251,17 @@ textcolor, f 116;
 #X connect 15 2 11 0;
 #X connect 15 2 9 0;
 #X restore 78 163 pd list;
+#X obj 184 117 print warning;
+#X msg 184 85 [cyclone/number~] has been deprecated;
 #X connect 0 0 3 0;
 #X connect 1 0 0 0;
 #X connect 2 0 1 0;
+#X connect 2 0 9 0;
 #X connect 3 0 7 0;
 #X connect 4 0 3 1;
 #X connect 5 0 4 0;
 #X connect 7 0 6 0;
+#X connect 9 0 8 0;
 #X restore 39 103 pd args;
 #N canvas 568 163 264 361 color 0;
 #X obj 51 37 inlet;
@@ -395,18 +395,12 @@ textcolor, f 116;
 #X text 451 341 https://github.com/porres/pd-cyclone;
 #X text 451 303 porres \, 2017-2020:;
 #X msg 61 294 range 0 0;
-#X obj 117 100 nbx 8 17 0 0 0 0 \$0-send-nbx \$0-receive-nbx empty
-0 0 0 12 -62546 -262144 -262144 0 256;
-#X obj 100 100 tgl 17 0 \$0-tgl \$0-tgl-set empty 17 7 0 10 -228856
--1 -204800 0 1;
-#X obj 101 101 cnv 15 15 15 empty \$0-cnv-c ~ 2 6 0 19 -41806 -188416
-0;
-#X obj 101 101 cnv 2 2 2 empty \$0-cnv-a empty 4 7 0 12 -41806 -188416
-0;
-#X obj 101 101 cnv 2 2 2 empty \$0-cnv-b empty 4 8 0 12 -41806 -188416
-0;
-#X obj 207 101 cnv 3 3 3 empty \$0-cnv-d empty 20 12 0 14 -41806 -188416
-0;
+#X obj 117 100 nbx 8 17 0 0 0 0 \$0-send-nbx \$0-receive-nbx empty 0 0 0 12 #2a3434 #ffffff #b6fefd 0 256;
+#X obj 100 100 tgl 17 0 \$0-tgl \$0-tgl-set empty 17 7 0 10 #dcdcdc #000000 #c4fcfc 0 1;
+#X obj 101 101 cnv 15 15 15 empty \$0-cnv-c ~ 2 6 0 19 #2a3434 #b6fefd 0;
+#X obj 101 101 cnv 2 2 2 empty \$0-cnv-a empty 4 7 0 12 #2a3434 #b6fefd 0;
+#X obj 101 101 cnv 2 2 2 empty \$0-cnv-b empty 4 8 0 12 #2a3434 #b6fefd 0;
+#X obj 207 101 cnv 3 3 3 empty \$0-cnv-d empty 20 12 0 14 #2a3434 #b6fefd 0;
 #X connect 0 0 1 0;
 #X connect 2 0 9 0;
 #X connect 3 0 5 0;
