@@ -133,6 +133,7 @@ private:
     float activeStateAlpha = 0.0f;
 
     bool isObjectMouseActive = false;
+    bool isInsideUndoSequence = false;
 
     Image activityOverlayImage;
 

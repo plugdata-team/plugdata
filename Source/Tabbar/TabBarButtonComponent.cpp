@@ -212,6 +212,10 @@ void TabBarButtonComponent::mouseDown(MouseEvent const& e)
 {
     if (e.originalComponent != this)
         return;
+    
+    if (e.mods.isMiddleButtonDown()) {
+        closeTab();
+    }
 
     if (e.mods.isPopupMenu()) {
         PopupMenu tabMenu;

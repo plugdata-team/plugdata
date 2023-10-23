@@ -832,6 +832,7 @@ void Object::mouseDown(MouseEvent const& e)
 
     cnv->updateSidebarSelection();
     cnv->patch.startUndoSequence("Drag");
+    isInsideUndoSequence = true;
 }
 
 void Object::mouseUp(MouseEvent const& e)
@@ -858,7 +859,10 @@ void Object::mouseUp(MouseEvent const& e)
         originalBounds.setBounds(0, 0, 0, 0);
     } else {
         if (cnv->isGraph) {
-            cnv->patch.endUndoSequence("Drag");
+            if(isInsideUndoSequence)  {
+                isInsideUndoSequence = false;
+                cnv->patch.endUndoSequence("Drag");
+            }
             return;
         }
 
@@ -933,7 +937,10 @@ void Object::mouseUp(MouseEvent const& e)
     }
 
     selectionStateChanged = false;
-    cnv->patch.endUndoSequence("Drag");
+    if(isInsideUndoSequence) {
+        isInsideUndoSequence = false;
+        cnv->patch.endUndoSequence("Drag");
+    }
 }
 
 void Object::mouseDrag(MouseEvent const& e)
