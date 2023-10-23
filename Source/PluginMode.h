@@ -125,7 +125,7 @@ public:
 
         MessageManager::callAsync([editor = this->editor,
                                       bounds = windowBounds]() {
-            editor->setConstrainer(editor->defaultConstrainer);
+            editor->setConstrainer(&editor->constrainer); // FIXME: this is wrong, it should set the mainWindow constrainer, not the editor
             editor->setBoundsConstrained(bounds);
             if (auto* tabbar = editor->getActiveTabbar()) {
                 tabbar->resized();
