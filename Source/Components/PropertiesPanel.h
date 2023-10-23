@@ -14,6 +14,7 @@
 #include "ColourPicker.h"
 #include "BouncingViewport.h"
 #include "SearchEditor.h"
+#include "Dialogs/Dialogs.h"
 
 class PropertiesPanel : public Component {
 public:
@@ -796,9 +797,7 @@ public:
         Label label;
         SmallIconButton browseButton = SmallIconButton(Icons::File);
         Value property;
-
-        std::unique_ptr<FileChooser> saveChooser;
-
+        
         FilePathComponent(String const& propertyName, Value& value)
             : Property(propertyName)
             , property(value)
@@ -813,18 +812,11 @@ public:
             addAndMakeVisible(browseButton);
 
             browseButton.onClick = [this]() {
-                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
-
-                // TODO: Shouldn't this be an open dialog ?!
-                saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", false);
-
-                saveChooser->launchAsync(folderChooserFlags,
-                    [this](FileChooser const& fileChooser) {
-                        const auto file = fileChooser.getResult();
-                        if (file.getParentDirectory().exists()) {
-                            label.setText(file.getFullPathName(), sendNotification);
-                        }
-                    });
+                Dialogs::showSaveDialog([this](File& result){
+                    if (result.getParentDirectory().exists()) {
+                        label.setText(result.getFullPathName(), sendNotification);
+                    }
+                });
             };
         }
 

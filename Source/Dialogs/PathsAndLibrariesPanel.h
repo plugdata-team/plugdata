@@ -352,18 +352,14 @@ private:
 
         if (start == File())
             start = File::getCurrentWorkingDirectory();
-
-        chooser = std::make_unique<FileChooser>("Add a folder...", start, "*");
-        auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
-
-        chooser->launchAsync(chooserFlags,
-            [this](FileChooser const& fc) {
-                if (fc.getResult() == File {})
-                    return;
-
-                paths.addIfNotAlreadyThere(fc.getResult().getFullPathName(), listBox.getSelectedRow());
+        
+        Dialogs::showOpenDialog([this](File& result){
+            if(result.exists())
+            {
+                paths.addIfNotAlreadyThere(result.getFullPathName(), listBox.getSelectedRow());
                 internalChange();
-            });
+            }
+        }, false, true, "", "PathBrowser");
     }
 
     void deleteSelected()
@@ -378,19 +374,16 @@ private:
             return;
 
         auto row = listBox.getSelectedRow();
-        chooser = std::make_unique<FileChooser>("Change folder...", paths[row], "*", SettingsFile::getInstance()->wantsNativeDialog());
-        auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
-
-        chooser->launchAsync(chooserFlags,
-            [this, row](FileChooser const& fc) {
-                if (fc.getResult() == File {})
-                    return;
-
+        
+        Dialogs::showOpenDialog([this, row](File& result){
+            if(result.exists())
+            {
                 paths.remove(row);
-                paths.addIfNotAlreadyThere(fc.getResult().getFullPathName(), row);
+                paths.addIfNotAlreadyThere(result.getFullPathName(), row);
                 internalChange();
-            });
-
+            }
+        }, false, true, "", "PathBrowser");
+        
         internalChange();
     }
 
@@ -434,7 +427,6 @@ private:
 
     StringArray paths;
     File defaultBrowseTarget;
-    std::unique_ptr<FileChooser> chooser;
 
     ListBox listBox;
 

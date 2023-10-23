@@ -105,6 +105,20 @@ ValueTree SettingsFile::getTheme(String const& name)
     return getColourThemesTree().getChildWithProperty("theme", name);
 }
 
+void SettingsFile::setLastBrowserPathForId(String const& identifier, File& path)
+{
+    if(identifier.isEmpty()) return;
+    
+    settingsTree.getChildWithName("LastBrowserPaths").setProperty(identifier, path.getFullPathName(), nullptr);
+}
+
+File SettingsFile::getLastBrowserPathForId(String const& identifier)
+{
+    if(identifier.isEmpty()) return {};
+    
+    return File(settingsTree.getChildWithName("LastBrowserPaths").getProperty(identifier).toString());
+}
+
 ValueTree SettingsFile::getCurrentTheme()
 {
     return getColourThemesTree().getChildWithProperty("theme", settingsTree.getProperty("theme"));

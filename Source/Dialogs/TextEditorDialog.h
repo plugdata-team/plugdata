@@ -2073,7 +2073,7 @@ struct TextEditorDialog : public Component {
         : resizer(this, &constrainer)
         , title(std::move(name))
     {
-        closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
+        closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
 
         constrainer.setMinimumSize(500, 200);
@@ -2103,9 +2103,8 @@ struct TextEditorDialog : public Component {
 
         resizer.setBounds(b);
 
-        auto macOSStyle = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
         auto closeButtonBounds = b.removeFromTop(30).removeFromRight(30).translated(-5, 5);
-        closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
+        closeButton->setBounds(closeButtonBounds);
         editor.setBounds(b.withTrimmedTop(10).withTrimmedBottom(20));
     }
 

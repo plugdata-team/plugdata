@@ -663,10 +663,8 @@ static void embed_gc(t_pd *x, t_symbol *s, int expected){
     int count = 0;
     while((garbage = pd_findbyclass(s, *x)))
         pd_unbind(garbage, s), count++;
-    
-    // TODO: suppress this for now
-    //if(count != expected)
-	//bug("embed_gc (%d garbage bindings)", count);
+    if(count != expected)
+	bug("embed_gc (%d garbage bindings)", count);
 }
 
 static void embed_restore(t_pd *master){

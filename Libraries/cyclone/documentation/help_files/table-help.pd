@@ -18,14 +18,6 @@
 #X text 122 346 float;
 #X text 159 377 -;
 #X text 122 377 float;
-#X obj 3 3 cnv 15 553 42 empty empty empty 20 12 0 14 #e0e0e0 #404040 0;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X coords 0 1 100 -1 554 42 1 0 0;
-#X restore 3 2 graph;
-#X obj 306 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
-#N canvas 382 141 749 319 (subpatch) 0;
-#X coords 0 -1 1 1 252 42 2 100 100;
-#X restore 305 2 pd;
 #X obj 261 146 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 186 145 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 186 220 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
@@ -89,10 +81,6 @@
 #X text 145 267 sets a table name and is the same as "refer", f 78;
 #X text 145 171 finds the first table value which is >= the float and sends its address, f 78;
 #X restore 201 326 pd All_Messages;
-#X obj 21 56 cyclone/comment 425 14 DejaVu\ Sans\ Mono empty 0 0 0 0 0 255 255 255 0 0 Store and edit a number array;
-#X obj 17 3 cyclone/comment 425 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0 255 255 255 0 0 table;
-#X obj 323 27 cyclone/comment 425 13 DejaVu\ Sans\ Mono empty 0 224 228 220 0 255 255 255 0 0 Objects cloned from Max/MSP;
-#X obj 364 3 cyclone/comment 425 24 DejaVu\ Sans\ Mono empty 0 224 228 220 0 255 255 255 0 0 cyclone;
 #N canvas 836 207 417 233 name 0;
 #X text 201 173 <= from Pd Vanilla;
 #X text 33 136 And still create the vanilla object from vanilla without namespaces as:;
@@ -341,6 +329,8 @@
 #X text 68 85 This makes attributes like @range \, @signed & @notename not relevsant \, so they are missing. The @parameter sttribute also seems pointless in Pd., f 55;
 #X restore 430 202 pd inconsistencies;
 #X text 81 193 click to open =>;
-#X connect 23 0 47 1;
-#X connect 24 0 47 0;
-#X connect 47 0 25 0;
+#X obj 4 4 ./header table;
+#X text 26 58 Store and edit a number array;
+#X connect 19 0 39 1;
+#X connect 20 0 39 0;
+#X connect 39 0 21 0;

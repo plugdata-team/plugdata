@@ -143,9 +143,6 @@ private:
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 
-    std::unique_ptr<FileChooser> saveChooser;
-    std::unique_ptr<FileChooser> openChooser;
-
     int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
 
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;

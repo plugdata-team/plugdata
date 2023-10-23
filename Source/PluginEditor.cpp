@@ -590,49 +590,27 @@ void PluginEditor::newProject()
 
 void PluginEditor::openProject()
 {
-    auto openFunc = [this](FileChooser const& f) {
-        File openedFile = f.getResult();
-
-        if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
-            SettingsFile::getInstance()->setProperty("last_filechooser_path", openedFile.getParentDirectory().getFullPathName());
-
-            pd->loadPatch(openedFile);
-            SettingsFile::getInstance()->addToRecentlyOpened(openedFile);
+    Dialogs::showOpenDialog([this](File& result){
+        if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
+            pd->loadPatch(result);
+            SettingsFile::getInstance()->addToRecentlyOpened(result);
         }
-    };
-
-    openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", SettingsFile::getInstance()->wantsNativeDialog());
-
-    openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
+    }, true, false, "*.pd", "Patch");
 }
 
 void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 {
-    saveChooser = std::make_unique<FileChooser>("Select a save file", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", SettingsFile::getInstance()->wantsNativeDialog());
+    Dialogs::showSaveDialog([this, nestedCallback](File& result) mutable {
+        if (result.getFullPathName().isNotEmpty()) {
+            if(result.exists()) result.deleteFile();
+            result = result.withFileExtension(".pd");
 
-    // The warnAboutOverwriting flag causes the save dialog not to show at all on some Linux distros, so we better disable it
-#if JUCE_LINUX || JUCE_BSD
-    auto saveFlags = FileBrowserComponent::saveMode;
-#else
-    auto saveFlags = FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting;
-#endif
+            getCurrentCanvas()->patch.savePatch(result);
+            SettingsFile::getInstance()->addToRecentlyOpened(result);
+        }
 
-    saveChooser->launchAsync(saveFlags,
-        [this, nestedCallback](FileChooser const& f) mutable {
-            File result = saveChooser->getResult();
-
-            if (result.getFullPathName().isNotEmpty()) {
-                SettingsFile::getInstance()->setProperty("last_filechooser_path", result.getParentDirectory().getFullPathName());
-
-                result.deleteFile();
-                result = result.withFileExtension(".pd");
-
-                getCurrentCanvas()->patch.savePatch(result);
-                SettingsFile::getInstance()->addToRecentlyOpened(result);
-            }
-
-            nestedCallback();
-        });
+        nestedCallback();
+    }, "*.pd", "Patch");
 }
 
 void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
@@ -702,7 +680,7 @@ void PluginEditor::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
     if (canvas) {
         MessageManager::callAsync([this, canvas, patch, deleteFunc]() mutable {
             if (patch->isDirty()) {
-                Dialogs::showSaveDialog(
+                Dialogs::showAskToSaveDialog(
                     &openedDialog, this, patch->getTitle(),
                     [this, canvas, deleteFunc](int result) mutable {
                         if (!canvas)
@@ -1313,7 +1291,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         if (cnv) {
             MessageManager::callAsync([this, cnv = SafePointer(cnv)]() mutable {
                 if (cnv && cnv->patch.isDirty()) {
-                    Dialogs::showSaveDialog(
+                    Dialogs::showAskToSaveDialog(
                         &openedDialog, this, cnv->patch.getTitle(),
                         [this, cnv](int result) mutable {
                             if (!cnv)

@@ -566,7 +566,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
             if (enableInternalSynth && (device > midiDeviceManager->getOutputDevices().size() || device == 0)) {
                 midiBufferInternalSynth.addEvent(message, 0);
             }
-            if (isPositiveAndBelow(device, midiDeviceManager->getOutputDevices().size())) {
+            if (isPositiveAndBelow(device-1, midiDeviceManager->getOutputDevices().size())) {
                 midiDeviceManager->sendMidiOutputMessage(device, message);
             }
         }
@@ -1438,7 +1438,7 @@ void PluginProcessor::showTextEditor(unsigned long ptr, Rectangle<int> bounds, S
             return;
         }
 
-        Dialogs::showSaveDialog(
+        Dialogs::showAskToSaveDialog(
             &saveDialog, textEditorDialogs[ptr].get(), "", [this, ptr, title, text = lastText](int result) mutable {
                 if (result == 2) {
 

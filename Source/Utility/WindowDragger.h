@@ -23,7 +23,7 @@ public:
 
 #if JUCE_LINUX
         auto* peer = componentToDrag->getPeer();
-        peer->startHostManagedResize(peer->localToGlobal(mouseDownWithinTarget), ResizableBorderComponent::Zone(0));
+        peer->startHostManagedResize(peer->localToGlobal(mouseDownWithinTarget) * Desktop::getInstance().getGlobalScaleFactor(), ResizableBorderComponent::Zone(0));
 #endif
     }
 
@@ -36,16 +36,13 @@ public:
 
         if (componentToDrag != nullptr) {
             auto bounds = componentToDrag->getBounds();
-
+            auto peerBounds = componentToDrag->getPeer()->getBounds();
             // If the component is a window, multiple mouse events can get queued while it's in the same position,
             // so their coordinates become wrong after the first one moves the window, so in that case, we'll use
             // the current mouse position instead of the one that the event contains...
-            if (componentToDrag->isOnDesktop())
-                bounds += componentToDrag->getLocalPoint(nullptr, e.source.getScreenPosition()).roundToInt() - mouseDownWithinTarget;
-            else
-                bounds += e.getEventRelativeTo(componentToDrag).getPosition() - mouseDownWithinTarget;
-
-            componentToDrag->getPeer()->setBounds(bounds, false);
+            bounds += componentToDrag->getLocalPoint(nullptr, e.source.getScreenPosition()).roundToInt() - mouseDownWithinTarget;
+            
+            componentToDrag->getPeer()->setBounds(peerBounds.withPosition(bounds.getPosition()  * Desktop::getInstance().getGlobalScaleFactor()), false);
         }
     }
 
