@@ -513,22 +513,22 @@ bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
 void PluginEditor::fileDragMove (const StringArray &files, int x, int y)
 {
     auto* splitUnderMouse = splitView.getSplitAtScreenPosition(localPointToGlobal(Point<int>(x, y)));
+    bool wasDraggingFile = isDraggingFile;
     if(splitUnderMouse)
     {
-        bool wasOver = splitUnderMouse->isDragAndDropOver;
-        splitUnderMouse->isDragAndDropOver = true;
-        if(!wasOver) splitUnderMouse->repaint();
+        if(wasDraggingFile) {
+            isDraggingFile = false;
+            repaint();
+        }
+
+        splitView.setFocus(splitUnderMouse);
         return;
     }
     else {
-        for(auto* split : getSplitView()->splits)
-        {
-            bool wasOver = split->isDragAndDropOver;
-            split->isDragAndDropOver = false;
-            if(wasOver) split->repaint();
+        if(!wasDraggingFile) {
+            isDraggingFile = true;
+            repaint();
         }
-        
-        isDraggingFile = true;
         repaint();
     }
 }
