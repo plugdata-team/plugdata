@@ -1372,7 +1372,7 @@ void Object::openHelpPatch() const
         }
 
         cnv->pd->lockAudioThread();
-        cnv->pd->loadPatch(file);
+        cnv->pd->loadPatch(file, cnv->editor);
         cnv->pd->unlockAudioThread();
 
         return;

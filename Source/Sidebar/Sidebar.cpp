@@ -17,7 +17,7 @@
 #include "Sidebar.h"
 #include "Console.h"
 #include "Inspector.h"
-#include "DocumentBrowser.h"
+#include "DocumentationBrowser.h"
 #include "AutomationPanel.h"
 #include "SearchPanel.h"
 
@@ -28,7 +28,7 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     // Can't use RAII because unique pointer won't compile with forward declarations
     console = std::make_unique<Console>(pd);
     inspector = std::make_unique<Inspector>();
-    browser = std::make_unique<DocumentBrowser>(pd);
+    browser = std::make_unique<DocumentationBrowser>(pd);
     automationPanel = std::make_unique<AutomationPanel>(pd);
     searchPanel = std::make_unique<SearchPanel>(parent);
 

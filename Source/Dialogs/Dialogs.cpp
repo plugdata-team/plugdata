@@ -35,7 +35,7 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Deken.h"
-#include "PatchStorage.h"
+//#include "PatchStorage.h"
 
 Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback)
 {
@@ -234,10 +234,11 @@ void Dialogs::showDeken(PluginEditor* editor)
 
 void Dialogs::showPatchStorage(PluginEditor* editor)
 {
+    /*
     auto* dialog = new Dialog(&editor->openedDialog, editor, 800, 550, true);
     auto* dialogContent = new PatchStorage();
     dialog->setViewedComponent(dialogContent);
-    editor->openedDialog.reset(dialog);
+    editor->openedDialog.reset(dialog); */
 }
 
 StringArray DekenInterface::getExternalPaths()

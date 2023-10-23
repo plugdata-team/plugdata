@@ -55,6 +55,8 @@ public:
     void moveToSplit(ResizableTabbedComponent* targetSplit, Canvas* canvas);
     void createNewSplit(DropZones activeZone, Canvas* canvas);
 
+    bool isDragAndDropOver = false;
+        
 private:
     Split::SplitMode splitMode = Split::SplitMode::None;
 
@@ -69,7 +71,6 @@ private:
     int splitWidth = 0;
 
     int activeZone = -1;
-    bool isDragAndDropOver = false;
 
     std::unique_ptr<TabComponent> tabComponent;
 

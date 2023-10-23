@@ -10,7 +10,7 @@
 #include "PluginProcessor.h"
 #include "Components/SearchEditor.h"
 #include "Sidebar/Palettes.h"
-#include "Sidebar/DocumentBrowser.h"
+#include "Sidebar/DocumentationBrowser.h"
 #include "Tabbar.h"
 #include "TabBarButtonComponent.h"
 
