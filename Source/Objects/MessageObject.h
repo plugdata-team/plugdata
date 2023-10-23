@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+
 class MessageObject final : public ObjectBase
     , public KeyListener
     , public TextEditor::Listener {
@@ -11,7 +12,7 @@ class MessageObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
-
+        
     String objectText;
 
     int numLines = 1;
@@ -37,6 +38,10 @@ public:
     Rectangle<int> getPdBounds() override
     {
         auto objText = editor ? editor->getText() : objectText;
+        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+            objText = cnv->suggestor->getText();
+        }
+        
         auto newNumLines = 0;
 
         if (auto message = ptr.get<t_text>()) {
@@ -198,7 +203,14 @@ public:
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
 
+            cnv->showSuggestions(object, editor.get());
+
             editor->onFocusLost = [this]() {
+                if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
+                    editor->grabKeyboardFocus();
+                    return;
+                }
+
                 hideEditor();
             };
 
