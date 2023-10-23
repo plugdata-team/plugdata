@@ -661,9 +661,10 @@ void setup_rotate0x2emc_tilde();
 void pipe2_setup();
 void circuit_tilde_setup();
 
-void op2_tilde_setup();
-void op4_tilde_setup();
-void op6_tilde_setup();
+void pm_tilde_setup();
+void pm2_tilde_setup();
+void pm4_tilde_setup();
+void pm6_tilde_setup();
 
 #if ENABLE_SFIZZ
 void sfz_tilde_setup();
@@ -1114,10 +1115,10 @@ void Setup::initialiseELSE()
     pipe2_setup();
     circuit_tilde_setup();
 
-    /* Not yet!
-    op2_tilde_setup();
-    op4_tilde_setup();
-    op6_tilde_setup(); */
+    pm_tilde_setup();
+    pm2_tilde_setup();
+    pm4_tilde_setup();
+    pm6_tilde_setup();
 }
 
 void Setup::initialiseCyclone()
