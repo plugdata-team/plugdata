@@ -537,7 +537,6 @@ void pimpmul_tilde_setup();
 void pink_tilde_setup();
 void pluck_tilde_setup();
 void plaits_tilde_setup();
-void pmosc_tilde_setup();
 void power_tilde_setup();
 void properties_setup();
 void pulse_tilde_setup();
@@ -988,7 +987,6 @@ void Setup::initialiseELSE()
     pimpmul_tilde_setup();
     plaits_tilde_setup();
     pluck_tilde_setup();
-    pmosc_tilde_setup();
     power_tilde_setup();
     properties_setup();
     pulse_tilde_setup();
