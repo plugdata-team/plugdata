@@ -34,6 +34,7 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
 #include "Utility/MidiDeviceManager.h"
+#include "../PluginEditor.h"
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -435,14 +436,16 @@ public:
             auto nativeWindow = static_cast<bool>(value);
 
             auto* editor = mainComponent->getEditor();
+            auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
+
             setUsingNativeTitleBar(nativeWindow);
 
             if (!nativeWindow) {
-
                 setOpaque(false);
-
                 setResizable(false, false);
-
+                // we also need to set the constrainer of THIS window so it's set for the peer
+                setConstrainer(&pdEditor->constrainer);
+                pdEditor->setUseBorderResizer(true);
                 if (drawWindowShadow) {
 #if JUCE_MAC
                     setDropShadowEnabled(true);
@@ -458,7 +461,10 @@ public:
                 setOpaque(true);
                 dropShadower.reset(nullptr);
                 setDropShadowEnabled(true);
+                setConstrainer(nullptr);
                 setResizable(true, false);
+                setResizeLimits(850, 650, 99000, 99000);
+                pdEditor->setUseBorderResizer(false);
             }
 
             editor->resized();

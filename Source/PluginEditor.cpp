@@ -72,7 +72,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , openedDialog(nullptr)
     , splitView(this)
     , zoomLabel(std::make_unique<ZoomLabel>())
-    , defaultConstrainer(getConstrainer())
     , offlineRenderer(&p)
     , tooltipWindow(this, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
@@ -82,6 +81,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         return true;
     })
 {
+    constrainer.setMinimumSize(850, 650);
+
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
@@ -90,29 +91,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
-
-    setResizable(true, false);
-
-    // In the standalone, the resizer handling is done on the window class
-    if (ProjectInfo::isStandalone) {
-
-        // We need to attach this to the top-level component, which is not yet know during the constructor
-        // So we postpone initialisation of the resizer until PluginEditor has a parent component
-        MessageManager::callAsync([this]() {
-            borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(getTopLevelComponent(), getConstrainer());
-            borderResizer->setAlwaysOnTop(true);
-            addAndMakeVisible(borderResizer.get());
-            resized(); // Makes sure resizer gets resized
-
-            if (pluginMode) {
-                borderResizer->toBehind(pluginMode.get());
-            }
-        });
-    } else {
-        cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
-        cornerResizer->setAlwaysOnTop(true);
-        addAndMakeVisible(cornerResizer.get());
-    }
 
     addKeyListener(getKeyMappings());
 
@@ -234,9 +212,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
     setSize(pd->lastUIWidth, pd->lastUIHeight);
 
-    // Set minimum bounds
-    setResizeLimits(850, 550, 999999, 999999);
-
     sidebar->toFront(false);
 
     // Make sure existing console messages are processed
@@ -299,6 +274,36 @@ SplitView* PluginEditor::getSplitView()
 void PluginEditor::setZoomLabelLevel(float value)
 {
     zoomLabel->setZoomLevel(value);
+}
+
+void PluginEditor::setUseBorderResizer(bool shouldUse)
+{
+    if (shouldUse) {
+        if (ProjectInfo::isStandalone) {
+            if (!borderResizer) {
+                borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(getTopLevelComponent(), &constrainer);
+                borderResizer->setAlwaysOnTop(true);
+                addAndMakeVisible(borderResizer.get());
+            }
+            borderResizer->setVisible(true);
+            resized(); // Makes sure resizer gets resized
+
+            if (pluginMode) {
+                borderResizer->toBehind(pluginMode.get());
+            }
+        } else {
+            if (!cornerResizer) {
+                cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
+                cornerResizer->setAlwaysOnTop(true);
+            }
+            addAndMakeVisible(cornerResizer.get());
+        }
+    }
+    else {
+        if (ProjectInfo::isStandalone && borderResizer) {
+            borderResizer->setVisible(false);
+        }
+    }
 }
 
 void PluginEditor::paint(Graphics& g)
