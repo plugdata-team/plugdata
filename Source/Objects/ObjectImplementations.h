@@ -687,6 +687,13 @@ class CanvasEditObject final : public ImplementationBase
 public:
     using ImplementationBase::ImplementationBase;
 
+    ~CanvasEditObject()
+    {
+        if(cnv) {
+            cnv->locked.removeListener(this);
+        }
+    }
+        
     void update() override
     {
         if (pd->isPerformingGlobalSync)

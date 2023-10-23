@@ -217,6 +217,9 @@ public:
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());
             break;
         }
+        case hash("pos"):
+        case hash("size"):
+                break;
         default: {
             bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
             if (!wasIemMessage) {

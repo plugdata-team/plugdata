@@ -510,7 +510,7 @@ public:
 
         paletteBar.setVisible(true);
         paletteViewport.setViewedComponent(&paletteBar, false);
-        paletteViewport.setScrollBarsShown(true, true, true, true);
+        paletteViewport.setScrollBarsShown(true, false, false, false);
         paletteViewport.setScrollBarThickness(4);
         paletteViewport.setScrollBarPosition(false, false);
 
@@ -567,8 +567,15 @@ private:
         }
 
         totalHeight += 46;
-
-        auto selectorBounds = getLocalBounds().removeFromLeft(30).withSizeKeepingCentre(30, totalHeight);
+        
+        Rectangle<int> selectorBounds;
+        if(totalHeight > getHeight())
+        {
+            selectorBounds = getLocalBounds().removeFromLeft(30);
+        }
+        else {
+            selectorBounds = getLocalBounds().removeFromLeft(30).withSizeKeepingCentre(30, totalHeight);
+        }
 
         paletteBar.setBounds(0, 0, 30, std::max(totalHeight, getHeight()));
 

@@ -14,7 +14,8 @@ public:
     PropertyRedirector(Value* controllerValue, Array<Value*> attachedValues)
         : values(attachedValues)
     {
-        baseValue.referTo(*controllerValue);
+        values.add(controllerValue);
+        baseValue.setValue(controllerValue->getValue());
         baseValue.addListener(this);
     }
 
@@ -155,12 +156,22 @@ public:
                     Array<Value*> otherValues;
                     if (!parameterIsInAllObjects(parameter, otherValues))
                         continue;
+                    
+                    if(objectParameters.size() == 1)
+                    {
+                        auto newPanel = createPanel(type, name, value, options);
+                        newPanel->setPreferredHeight(26);
+                        panels.add(newPanel);
+                    }
+                    else {
+                        auto* redirector = redirectors.add(new PropertyRedirector(value, otherValues));
+                        auto newPanel = createPanel(type, name, &redirector->baseValue, options);
+                        newPanel->setPreferredHeight(26);
+                        panels.add(newPanel);
+                    }
+                    
 
-                    redirectors.add(new PropertyRedirector(value, otherValues));
 
-                    auto newPanel = createPanel(type, name, value, options);
-                    newPanel->setPreferredHeight(26);
-                    panels.add(newPanel);
                 }
             }
             if (!panels.isEmpty()) {

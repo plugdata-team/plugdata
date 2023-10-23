@@ -322,17 +322,14 @@ static void cycle_phase(t_cycle *x, t_floatarg f)
     pd_float((t_pd *)x->x_phaselet, f);
 }
 
-static t_int *cycle_perform(t_int *w)
-{
+static t_int *cycle_perform(t_int *w){
 	t_cycle *x = (t_cycle *)(w[1]);
-	//t_cybuf * c = x->x_cybuf;
 	int nblock = (int)(w[2]);
 	t_float *in1 = (t_float *)(w[3]);
 	t_float *in2 = (t_float *)(w[4]);
 	t_float *out = (t_float *)(w[5]);
-	//t_word *tab = c->c_vectors[0];
-        t_float *tab = x->x_usertable;
-	double  *costab = x->x_costable;
+    t_float *tab = x->x_usertable;
+	double *costab = x->x_costable;
 	double dphase = x->x_phase;
 	double conv = x->x_conv;
 	double wrapphase, tabphase, frac;
@@ -341,71 +338,52 @@ static t_int *cycle_perform(t_int *w)
 	int i, index;
 	int cycle_tabsize = x->x_cycle_tabsize;
 	int offset = x->x_offset;
-	//int npts = c->c_npts;
 	int npts = x->x_user_tabsize;
-	//int usetable = x->x_nameset > 0 && c->c_playable; //use user table
 	int usetable = x->x_nameset > 0;
-	
-        for (i=0; i< nblock; i++)
-	{
+    for (i=0; i< nblock; i++){
 		freq = in1[i];
 		phaseoff = in2[i];
 	
-                wrapphase = dphase + phaseoff;
+        wrapphase = dphase + phaseoff;
 
-                while(wrapphase >= 1){
-                    wrapphase -= 1.;
-                };
-                while(wrapphase < 0){
-                    wrapphase += 1.;
-                };
-
-                if(usetable){	
+        while(wrapphase >= 1)
+            wrapphase -= 1.;
+        while(wrapphase < 0)
+            wrapphase += 1.;
+        if(usetable)
 			tabphase = wrapphase * cycle_tabsize;
-		}
-		else{
+		else
 			tabphase = wrapphase * COS_TABSIZE;
-		};
 		index = (int)tabphase;
 		frac = tabphase - index;
-		if (usetable)
-		{
+		if(usetable){
 			f1 = (offset + index) >= npts ? 0. : tab[offset + index];
 			index++;
 			f2 = (offset + index) >= npts ? 0. : tab[offset + index];
 			output = (t_float)(f1 + frac * (f2 - f1));
 		}
-		else
-		{
+		else{
 			df1 = costab[index++];
 			df2 = costab[index];
 			output = (t_float) (df1 + frac * (df2 - df1));
 		};
-                out[i] = output;
+        out[i] = output;
 
-                //incrementation step
-                dphase += ((double)freq * conv);
-                while(dphase >= 1){
-                    dphase -= 1.;
-                };
-                while(dphase < 0){
-                    dphase += 1.;
-                };
-
+        // incrementation step
+        dphase += ((double)freq * conv);
+        while(dphase >= 1)
+            dphase -= 1.;
+        while(dphase < 0)
+            dphase += 1.;
 	};
-
-        x->x_phase = dphase;
-	
-        return (w + 6);
+    x->x_phase = dphase;
+    return(w+6);
 }
 	
-static void cycle_dsp(t_cycle *x, t_signal **sp)
-{
-  //cybuf_checkdsp(x->x_cybuf);
+static void cycle_dsp(t_cycle *x, t_signal **sp){
   cycle_gettable(x);
     x->x_conv = 1.0 / sp[0]->s_sr;
     cycle_phase_reset(x);
-    //post("cycle tabsize = %d", x->x_cycle_tabsize);
     dsp_add(cycle_perform, 5, x, sp[0]->s_n,
 	    sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec);
 }

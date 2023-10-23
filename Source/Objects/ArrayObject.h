@@ -475,7 +475,7 @@ public:
 
         title = graphs[0]->getUnexpandedName();
 
-        closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
+        closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
 
         constrainer.setMinimumSize(500, 200);
@@ -500,9 +500,8 @@ public:
     {
         resizer.setBounds(getLocalBounds());
 
-        auto macOSStyle = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
         auto closeButtonBounds = getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5);
-        closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
+        closeButton->setBounds(closeButtonBounds);
 
         for (auto* graph : graphs) {
             graph->setBounds(getLocalBounds().withTrimmedTop(40));

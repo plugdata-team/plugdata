@@ -24,6 +24,29 @@ public:
 
         exportTypeValue.addListener(this);
     }
+    
+    ValueTree getState() override
+    {
+        ValueTree stateTree("PdExt");
+        stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
+        stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
+        stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
+        
+        stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
+        stateTree.setProperty("copyToPath", getValue<int>(copyToPath), nullptr);
+        
+        return stateTree;
+    }
+    
+    void setState(ValueTree& stateTree) override
+    {
+        auto tree = stateTree.getChildWithName("PdExt");
+        inputPatchValue = tree.getProperty("inputPatchValue");
+        projectNameValue = tree.getProperty("projectNameValue");
+        projectCopyrightValue = tree.getProperty("projectCopyrightValue");
+        exportTypeValue = tree.getProperty("exportTypeValue");
+        copyToPath = tree.getProperty("copyToPath");
+    }
 
     void valueChanged(Value& v) override
     {

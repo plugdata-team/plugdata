@@ -8,6 +8,7 @@
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Dialogs/Dialogs.h"
 
 #include <algorithm>
 #include "Instance.h"
@@ -711,11 +712,12 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);
-
-    if (!defaultFile.exists()) {
-        defaultFile = ProjectInfo::appDataDir;
+    if(!defaultFile.exists())
+    {
+        defaultFile = SettingsFile::getInstance()->getLastBrowserPathForId("openpanel");
+        if(!defaultFile.exists()) defaultFile = ProjectInfo::appDataDir;
     }
-
+    
     if (type) {
         MessageManager::callAsync(
             [this, obj, defaultFile, openMode, callback = String(callbackName)]() mutable {
@@ -728,12 +730,16 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                 } else {
                     folderChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles | FileBrowserComponent::canSelectMultipleItems);
                 }
-
+                
+                static std::unique_ptr<FileChooser> openChooser;
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
                 openChooser->launchAsync(folderChooserFlags, [this, obj, callback](FileChooser const& fileChooser) {
                     auto const files = fileChooser.getResults();
                     if (files.isEmpty())
                         return;
+                    
+                    auto parentDirectory = files.getFirst().getParentDirectory();
+                    SettingsFile::getInstance()->setLastBrowserPathForId("openpanel", parentDirectory);
 
                     lockAudioThread();
 
@@ -758,22 +764,18 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
     } else {
         MessageManager::callAsync(
             [this, obj, defaultFile, callback = String(callbackName)]() mutable {
-                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
-                saveChooser = std::make_unique<FileChooser>("Save...", defaultFile, "", true);
+                
+                Dialogs::showSaveDialog([this, obj, callback](File& result){
+                    auto pathName = result.getFullPathName();
+                    const auto* path = pathName.toRawUTF8();
 
-                saveChooser->launchAsync(folderChooserFlags,
-                    [this, obj, callback](FileChooser const& fileChooser) {
-                        const auto file = fileChooser.getResult();
+                    t_atom argv[1];
+                    libpd_set_symbol(argv, path);
 
-                        const auto* path = file.getFullPathName().toRawUTF8();
-
-                        t_atom argv[1];
-                        libpd_set_symbol(argv, path);
-
-                        lockAudioThread();
-                        pd_typedmess(obj, generateSymbol(callback), 1, argv);
-                        unlockAudioThread();
-                    });
+                    lockAudioThread();
+                    pd_typedmess(obj, generateSymbol(callback), 1, argv);
+                    unlockAudioThread();
+                }, "openpanel");
             });
     }
 }

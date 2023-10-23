@@ -31,7 +31,7 @@ public:
         setWantsKeyboardFocus(true);
 
         if (showCloseButton) {
-            closeButton.reset(getLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
+            closeButton.reset(getLookAndFeel().createDocumentWindowButton(-1));
             addAndMakeVisible(closeButton.get());
             closeButton->onClick = [this]() {
                 closeDialog();
@@ -116,9 +116,8 @@ public:
         }
 
         if (closeButton) {
-            auto macOSStyle = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
             auto closeButtonBounds = Rectangle<int>(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
-            closeButton->setBounds(closeButtonBounds.reduced(macOSStyle ? 5 : 0));
+            closeButton->setBounds(closeButtonBounds);
         }
     }
 
@@ -169,13 +168,11 @@ struct Dialogs {
     static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback);
     static void appendTextToTextEditorDialog(Component* dialog, String const& text);
 
-    static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);
+    static void showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);
 
     static void showSettingsDialog(PluginEditor* editor);
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
-
-    static void askToLocatePatch(PluginEditor* editor, String const& backupState, std::function<void(File)> callback);
 
     static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback);
 
@@ -192,6 +189,12 @@ struct Dialogs {
     static void showPatchStorage(PluginEditor* editor);
 
     static PopupMenu createObjectMenu(PluginEditor* parent);
+    
+    static void showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, const String& lastFileId = "", const String& extension = "");
+
+    static void showSaveDialog(std::function<void(File&)> callback, const String& extension = "", const String& lastFileId = "");
+    
+    static inline std::unique_ptr<FileChooser> fileChooser = nullptr;
 };
 
 struct DekenInterface {

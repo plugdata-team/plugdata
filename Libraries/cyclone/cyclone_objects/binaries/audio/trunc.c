@@ -3,7 +3,6 @@
 #include <common/api.h>
 #include "math.h"
 
-/* not enabled, we favour else/else~
 // ---------------------------------------------------
 // Class definition
 // ---------------------------------------------------
@@ -86,4 +85,3 @@ CYCLONE_OBJ_API void trunc_tilde_setup(void) {
 // EOF---------------------------------------------------
 
 
-*/

@@ -54,7 +54,7 @@ void Dialogs::appendTextToTextEditorDialog(Component* dialog, String const& text
     editor.setText(editor.getText() + text);
 }
 
-void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin, bool withLogo)
+void Dialogs::showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin, bool withLogo)
 {
     if (*target)
         return;
@@ -267,77 +267,6 @@ bool Dialog::wantsRoundedCorners() const
     }
 }
 
-void Dialogs::askToLocatePatch(PluginEditor* editor, String const& backupState, std::function<void(File)> callback)
-{
-    class LocatePatchDialog : public Component {
-
-    public:
-        LocatePatchDialog(Dialog* dialog, String backup, std::function<void(File)> callback)
-            : label("", "")
-            , backupState(std::move(backup))
-        {
-            setSize(400, 200);
-            addAndMakeVisible(label);
-            addAndMakeVisible(locate);
-            addAndMakeVisible(loadFromState);
-
-            locate.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-            loadFromState.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-
-            locate.onClick = [this, dialog, callback] {
-                callback(File());
-
-                openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", SettingsFile::getInstance()->wantsNativeDialog());
-
-                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [callback](FileChooser const& f) {
-                    File openedFile = f.getResult();
-                    if (openedFile.existsAsFile()) {
-                        callback(openedFile);
-                    }
-                });
-
-                dialog->closeDialog();
-            };
-
-            loadFromState.onClick = [this, dialog, callback] {
-                if (backupState.isEmpty())
-                    backupState = pd::Instance::defaultPatch;
-
-                auto patchFile = File::createTempFile(".pd");
-                patchFile.replaceWithText(backupState);
-
-                callback(patchFile);
-                dialog->closeDialog();
-            };
-
-            locate.changeWidthToFitText();
-            loadFromState.changeWidthToFitText();
-            setOpaque(false);
-        }
-
-        void resized() override
-        {
-            label.setBounds(20, 25, 360, 30);
-            loadFromState.setBounds(20, 80, 80, 25);
-            locate.setBounds(300, 80, 80, 25);
-        }
-
-    private:
-        Label label;
-        String backupState;
-
-        std::unique_ptr<FileChooser> openChooser;
-
-        TextButton loadFromState = TextButton("Use saved state");
-        TextButton locate = TextButton("Locate...");
-    };
-
-    auto* dialog = new Dialog(&editor->openedDialog, editor, 400, 130, false);
-    auto* dialogContent = new LocatePatchDialog(dialog, backupState, std::move(callback));
-
-    dialog->setViewedComponent(dialogContent);
-    editor->openedDialog.reset(dialog);
-}
 
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
 {
@@ -670,4 +599,53 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 void Dialogs::showObjectMenu(PluginEditor* editor, Component* target)
 {
     AddObjectMenu::show(editor, editor->getLocalArea(target, target->getLocalBounds()));
+}
+
+void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, const String& extension, const String& lastFileId)
+{
+    bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
+    auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
+    if(!initialFile.exists()) initialFile = ProjectInfo::appDataDir;
+    
+    fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog);
+
+    auto openChooserFlags = FileBrowserComponent::openMode;
+    
+    if(canSelectFiles) 
+        openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectFiles);
+    if(canSelectDirectories)
+        openChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(openChooserFlags | FileBrowserComponent::canSelectDirectories);
+
+    fileChooser->launchAsync(openChooserFlags,
+                             [callback, lastFileId](FileChooser const& fileChooser) {
+        auto result = fileChooser.getResult();
+        SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, result);
+        callback(result);
+    });
+}
+
+void Dialogs::showSaveDialog(std::function<void(File&)> callback, const String& extension, const String& lastFileId)
+{
+    bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
+    auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
+    if(!initialFile.exists()) initialFile = ProjectInfo::appDataDir;
+    
+    fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog);
+
+    auto saveChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories;
+    
+    // TODO: checks if this still causes issues
+#if !JUCE_LINUX && !JUCE_BSD
+        saveChooserFlags |= FileBrowserComponent::warnAboutOverwriting;
+#endif
+    
+    fileChooser->launchAsync(saveChooserFlags,
+        [callback, lastFileId](FileChooser const& fileChooser) {
+            auto result = fileChooser.getResult();
+            auto parentDirectory = result.getParentDirectory();
+            if(parentDirectory.exists()) {
+                SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, parentDirectory);
+            }
+            callback(result);
+        });
 }

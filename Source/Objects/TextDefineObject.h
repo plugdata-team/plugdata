@@ -45,7 +45,7 @@ public:
                     return;
                 }
 
-                Dialogs::showSaveDialog(
+                Dialogs::showAskToSaveDialog(
                     &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
                         if (result == 2) {
                             setText(lastText);
@@ -206,7 +206,7 @@ public:
                     return;
                 }
 
-                Dialogs::showSaveDialog(
+                Dialogs::showAskToSaveDialog(
                     &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
                         if (result == 2) {
                             setText(lastText);

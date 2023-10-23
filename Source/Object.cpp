@@ -815,7 +815,7 @@ void Object::mouseDown(MouseEvent const& e)
     }
 
     cnv->setSelected(this, true);
-
+    
     ds.componentBeingDragged = this;
 
     for (auto* object : cnv->getSelectionOfType<Object>()) {
@@ -831,6 +831,8 @@ void Object::mouseDown(MouseEvent const& e)
     }
 
     cnv->updateSidebarSelection();
+    cnv->patch.startUndoSequence("Drag");
+    isInsideUndoSequence = true;
 }
 
 void Object::mouseUp(MouseEvent const& e)
@@ -849,15 +851,20 @@ void Object::mouseUp(MouseEvent const& e)
 
     if (ds.wasResized) {
 
-        cnv->objectGrid.clearAll();
+        cnv->objectGrid.clearIndicators();
 
         applyBounds();
 
         ds.wasResized = false;
         originalBounds.setBounds(0, 0, 0, 0);
     } else {
-        if (cnv->isGraph)
+        if (cnv->isGraph) {
+            if(isInsideUndoSequence)  {
+                isInsideUndoSequence = false;
+                cnv->patch.endUndoSequence("Drag");
+            }
             return;
+        }
 
         if (e.mods.isShiftDown() && ds.wasSelectedOnMouseDown && !ds.didStartDragging) {
             // Unselect object if selected
@@ -875,7 +882,7 @@ void Object::mouseUp(MouseEvent const& e)
         cnv->updateSidebarSelection();
 
         if (ds.didStartDragging) {
-            cnv->objectGrid.clearAll();
+            cnv->objectGrid.clearIndicators();
             applyBounds();
             ds.didStartDragging = false;
         }
@@ -930,6 +937,10 @@ void Object::mouseUp(MouseEvent const& e)
     }
 
     selectionStateChanged = false;
+    if(isInsideUndoSequence) {
+        isInsideUndoSequence = false;
+        cnv->patch.endUndoSequence("Drag");
+    }
 }
 
 void Object::mouseDrag(MouseEvent const& e)
@@ -1025,7 +1036,11 @@ void Object::mouseDrag(MouseEvent const& e)
 
             // Store origin object positions
             for (auto object : selection) {
-                mouseDownObjectPositions.add(object->getPosition().translated(10, 10));
+                auto gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+                auto gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
+                auto gridSize = gridEnabled && (gridType & 1) ? cnv->objectGrid.gridSize : 10;
+                
+                mouseDownObjectPositions.add(object->getPosition().translated(gridSize, gridSize));
             }
 
             // Duplicate once
@@ -1069,6 +1084,7 @@ void Object::mouseDrag(MouseEvent const& e)
         // This handles the "unsnap" action when you shift-drag a connected object
         if (e.mods.isShiftDown() && selection.size() == 1 && e.getDistanceFromDragStart() > 15) {
             auto* object = selection.getFirst();
+            cnv->patch.startUndoSequence("Snap");
 
             Array<Connection*> inputs, outputs;
             for (auto* connection : cnv->connections) {
@@ -1142,6 +1158,8 @@ void Object::mouseDrag(MouseEvent const& e)
 
                 ds.objectSnappingInbetween = nullptr;
             }
+            
+            cnv->patch.endUndoSequence("Snap");
         }
 
         // Behaviour for shift-dragging objects over
