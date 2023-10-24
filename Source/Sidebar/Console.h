@@ -179,7 +179,7 @@ public:
                 {
                     PopupMenu menu;
                     menu.addItem("Copy", [this](){ console.copySelectionToClipboard(); });
-                    menu.addItem("Show origin", object != nullptr, false, [this, object](){ highlightSearchTarget(object); });
+                    menu.addItem("Show origin", object != nullptr, false, [this, target = object](){ highlightSearchTarget(target); });
                     menu.showMenuAsync(PopupMenu::Options());
                 }
 
