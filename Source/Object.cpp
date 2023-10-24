@@ -435,7 +435,7 @@ void Object::paintOverChildren(Graphics& g)
         g.drawEllipse(fakeInletBounds, 1.0f);
     }
 
-    if (consoleTarget == this) {
+    if (isSearchTarget || consoleTarget == this) {
         g.saveState();
 
         // Don't draw line over iolets!
@@ -443,20 +443,7 @@ void Object::paintOverChildren(Graphics& g)
             g.excludeClipRegion(iolet->getBounds().reduced(2));
         }
 
-        g.setColour(Colours::darkorange);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
-
-        g.restoreState();
-    }
-    if (isSearchTarget) {
-        g.saveState();
-
-        // Don't draw line over iolets!
-        for (auto& iolet : iolets) {
-            g.excludeClipRegion(iolet->getBounds().reduced(2));
-        }
-
-        g.setColour(Colours::violet);
+        g.setColour(findColour(PlugDataColour::signalColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
 
         g.restoreState();
