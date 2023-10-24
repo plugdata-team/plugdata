@@ -650,6 +650,12 @@ void Canvas::mouseDown(MouseEvent const& e)
     else if (!editor->pluginMode) {
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
+    
+    if(auto* target = Object::consoleTarget)
+    {
+        Object::consoleTarget = nullptr;
+        target->repaint();
+    }
 }
 
 void Canvas::mouseDrag(MouseEvent const& e)
