@@ -632,11 +632,11 @@ void Dialogs::showSaveDialog(std::function<void(File&)> callback, const String& 
     
     fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog);
 
-    auto saveChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories;
+    auto saveChooserFlags = FileBrowserComponent::saveMode;
     
     // TODO: checks if this still causes issues
 #if !JUCE_LINUX && !JUCE_BSD
-        saveChooserFlags |= FileBrowserComponent::warnAboutOverwriting;
+        saveChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(saveChooserFlags | FileBrowserComponent::warnAboutOverwriting);
 #endif
     
     fileChooser->launchAsync(saveChooserFlags,
