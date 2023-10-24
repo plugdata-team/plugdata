@@ -662,6 +662,19 @@ public:
 
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
         g.fillRoundedRectangle(input.getBounds().reduced(6, 4).toFloat(), Corners::defaultCornerRadius);
+
+    }
+        
+    void paintOverChildren(Graphics& g) override
+    {
+        auto backgroundColour =  findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto transparentColour = backgroundColour.withAlpha(0.0f);
+
+        // Draw a gradient to fade the content out underneath the search input
+        g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 30.0f, transparentColour, 0.0f, 42.0f, false));
+        g.fillRect(Rectangle<int>(0, input.getBottom(), getWidth(), 12));
+        
+        Fonts::drawIcon(g, Icons::Search, 2, 1, 32, findColour(PlugDataColour::sidebarTextColourId), 12);
     }
 
     void lookAndFeelChanged() override
@@ -669,11 +682,6 @@ public:
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        Fonts::drawIcon(g, Icons::Search, 2, 1, 32, findColour(PlugDataColour::sidebarTextColourId), 12);
     }
 
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
