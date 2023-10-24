@@ -328,23 +328,7 @@ void TabBarButtonComponent::drawTabButtonText(Graphics& g, Rectangle<int> custom
     Font font(getLookAndFeel().getTabButtonFont(*this, area.getHeight()));
     font.setUnderline(hasKeyboardFocus(false));
 
-    AffineTransform t;
-
-    switch (getTabbedButtonBar().getOrientation()) {
-    case TabbedButtonBar::TabsAtLeft:
-        t = t.rotated(MathConstants<float>::pi * -0.5f).translated(area.getX(), area.getBottom());
-        break;
-    case TabbedButtonBar::TabsAtRight:
-        t = t.rotated(MathConstants<float>::pi * 0.5f).translated(area.getRight(), area.getY());
-        break;
-    case TabbedButtonBar::TabsAtTop:
-    case TabbedButtonBar::TabsAtBottom:
-        t = t.translated(area.getX(), area.getY());
-        break;
-    default:
-        jassertfalse;
-        break;
-    }
+    AffineTransform t = AffineTransform::translation(area.getX(), area.getY());
 
     g.setColour(findColour(PlugDataColour::tabTextColourId));
     g.setFont(font);
@@ -356,9 +340,4 @@ void TabBarButtonComponent::drawTabButtonText(Graphics& g, Rectangle<int> custom
         area.getX(), area.getY() - 2, (int)area.getWidth(), (int)area.getHeight(),
         Justification::centred,
         jmax(1, ((int)area.getHeight()) / 12));
-}
-
-void TabBarButtonComponent::paint(Graphics& g)
-{
-    LookAndFeel::getDefaultLookAndFeel().drawTabButton(*this, g, isMouseOver(true), isMouseButtonDown(false));
 }

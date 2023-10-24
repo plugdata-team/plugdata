@@ -24,6 +24,7 @@
 #include "Dialogs/ConnectionMessageDisplay.h"
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
+#include "Tabbar/TabBarButtonComponent.h"
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
 #include "PluginMode.h"
@@ -501,7 +502,7 @@ bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
 
     for (auto& path : files) {
         auto file = File(path);
-        if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
+        if (file.exists()) {
             return true;
         }
     }
@@ -509,22 +510,65 @@ bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
     return false;
 }
 
+void PluginEditor::fileDragMove (const StringArray &files, int x, int y)
+{
+    auto* splitUnderMouse = splitView.getSplitAtScreenPosition(localPointToGlobal(Point<int>(x, y)));
+    bool wasDraggingFile = isDraggingFile;
+    if(splitUnderMouse)
+    {
+        if(wasDraggingFile) {
+            isDraggingFile = false;
+            repaint();
+        }
+
+        splitView.setFocus(splitUnderMouse);
+        return;
+    }
+    else {
+        if(!wasDraggingFile) {
+            isDraggingFile = true;
+            repaint();
+        }
+        repaint();
+    }
+}
+
 void PluginEditor::filesDropped(StringArray const& files, int x, int y)
 {
+    auto* splitUnderMouse = splitView.getSplitAtScreenPosition(localPointToGlobal(Point<int>(x, y)));
+    if(splitUnderMouse)
+    {
+        if(auto* cnv = splitUnderMouse->getTabComponent()->getCurrentCanvas())
+        {
+            for (auto& path : files) {
+                auto file = File(path);
+                if (file.exists()) {
+                    auto position = cnv->getLocalPoint(this, Point<int>(x, y));
+                    auto filePath = file.getFullPathName().replaceCharacter('\\', '/');
+                    auto* object = cnv->objects.add(new Object(cnv, "msg " + filePath, position));
+                    object->hideEditor();
+                }
+            }
+            return;
+        }
+    }
+    
+    // then check for pd files
     for (auto& path : files) {
         auto file = File(path);
-        if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
-            pd->loadPatch(file);
+        if (file.exists() && file.hasFileExtension("pd")) {
+            pd->loadPatch(file, this);
             SettingsFile::getInstance()->addToRecentlyOpened(file);
         }
     }
-
+    
+    
     isDraggingFile = false;
     repaint();
 }
 void PluginEditor::fileDragEnter(StringArray const&, int, int)
 {
-    isDraggingFile = true;
+    //isDraggingFile = true;
     repaint();
 }
 
@@ -583,7 +627,7 @@ void PluginEditor::newProject()
             lowestNumber = number + 1;
     }
 
-    auto patch = pd->loadPatch(pd::Instance::defaultPatch);
+    auto patch = pd->loadPatch(pd::Instance::defaultPatch, this, -1);
     patch->untitledPatchNum = lowestNumber;
     patch->setTitle("Untitled-" + String(lowestNumber));
 }
@@ -592,7 +636,7 @@ void PluginEditor::openProject()
 {
     Dialogs::showOpenDialog([this](File& result){
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
-            pd->loadPatch(result);
+            pd->loadPatch(result, this);
             SettingsFile::getInstance()->addToRecentlyOpened(result);
         }
     }, true, false, "*.pd", "Patch");
