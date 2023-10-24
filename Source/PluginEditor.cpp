@@ -627,7 +627,7 @@ void PluginEditor::newProject()
             lowestNumber = number + 1;
     }
 
-    auto patch = pd->loadPatch(pd::Instance::defaultPatch, this);
+    auto patch = pd->loadPatch(pd::Instance::defaultPatch, this, -1);
     patch->untitledPatchNum = lowestNumber;
     patch->setTitle("Untitled-" + String(lowestNumber));
 }
