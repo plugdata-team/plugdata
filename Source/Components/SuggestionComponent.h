@@ -878,7 +878,23 @@ private:
         "resonbank.unit",
         "resonbank2.unit",
         "stepnoise.mc-unit",
-        "rampnoise.mc-unit"
+        "rampnoise.mc-unit",
+        "onebang_proxy",
+        "grain.sampler.grain",
+        "freeze.osc.clone~",
+        "presets.send.clone",
+        "grain.synth.grain",
+        "presets-abs",
+        "grain.live.grain",
+        "synth.voice.template",
+        "vocoder.band_clone",
+        "f2s~-help",
+        "rev1-final",
+        "rev1-stage",
+        "bpclone",
+        "libpd_receive",
+        "out.mc.hip~",
+        "pvoc~"
     };
 
     int windowMargin;
