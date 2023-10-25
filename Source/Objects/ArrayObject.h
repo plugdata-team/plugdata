@@ -829,7 +829,7 @@ public:
     {
         if (auto glist = ptr.get<_glist>()) {
             // TODO: generate a unique name?
-            graph_array(glist.get(), gensym("array1"), &s_float, 100, 0);
+            graph_array(glist.get(), gensym("array1"), gensym("float"), 100, 0);
         }
         reinitialiseGraphs();
     }
