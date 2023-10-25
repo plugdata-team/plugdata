@@ -49,7 +49,7 @@ struct ExporterBase : public Component
 
         exportButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
-        Array<PropertiesPanel::Property*> properties;
+        Array<PropertiesPanelProperty*> properties;
 
         auto* patchChooser = new PropertiesPanel::ComboComponent("Patch to export", inputPatchValue, { "Currently opened patch", "Other patch (browse)" });
         patchChooser->comboBox.setTextWhenNothingSelected("Choose a patch to export...");

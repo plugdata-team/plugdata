@@ -4,12 +4,14 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "Components/PropertiesPanel.h"
+
 extern "C" {
 void garray_arraydialog(t_fake_garray* x, t_symbol* name, t_floatarg fsize, t_floatarg fflags, t_floatarg deleteit);
 }
 
-class GraphicalArray : public Component
-    , public pd::MessageListener {
+
+class GraphicalArray : public Component, public Value::Listener {
 public:
     Object* object;
 
@@ -18,6 +20,14 @@ public:
         Polygon,
         Curve
     };
+        
+    Value name = SynchronousValue();
+    Value size = SynchronousValue();
+    Value drawMode = SynchronousValue();
+    Value saveContents = SynchronousValue();
+    Value range = SynchronousValue();
+    
+    std::function<void()> reloadGraphs = [](){};
 
     GraphicalArray(PluginProcessor* instance, void* ptr, Object* parent)
         : object(parent)
@@ -32,18 +42,17 @@ public:
         } catch (...) {
             error = true;
         }
+        
+        updateParameters();
+        
+        for(auto* value : std::vector<Value*>{&name, &size, &drawMode, &saveContents, &range})
+        {
+            // TODO: implement undo/redo for these values!
+            value->addListener(this);
+        }
 
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
-
-        MessageManager::callAsync([this] {
-            object->getConstrainer()->setMinimumSize(100 - Object::doubleMargin, 40 - Object::doubleMargin);
-        });
-    }
-
-    void receiveMessage(String const& name, int argc, t_atom* argv) override
-    {
-        std::cout << name << std::endl;
     }
 
     void setArray(void* array)
@@ -249,10 +258,12 @@ public:
     void update()
     {
         // Check if size has changed
-        int currentSize = size();
+        int currentSize = getArraySize();
         if (vec.size() != currentSize) {
             vec.resize(currentSize);
         }
+        
+        size = currentSize;
 
         if (!edited) {
             error = false;
@@ -364,7 +375,7 @@ public:
     }
 
     // Gets the scale of the array.
-    int size() const
+    int getArraySize() const
     {
         if (auto ptr = arr.get<t_garray>()) {
             return garray_getarray(ptr.get())->a_n;
@@ -402,6 +413,67 @@ public:
         }
 
         return object->findColour(PlugDataColour::guiObjectInternalOutlineColour);
+    }
+        
+    void valueChanged(Value& value) override
+    {
+        if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
+            updateSettings();
+        } else if (value.refersToSameSourceAs(range)) {
+            auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
+            auto max = static_cast<float>(range.getValue().getArray()->getReference(1));
+            setScale({ min, max });
+            repaint();
+        }
+    }
+        
+    void updateSettings()
+    {
+        auto arrName = name.getValue().toString();
+        auto arrSize = std::max(0, getValue<int>(size));
+        auto arrDrawMode = getValue<int>(drawMode) - 1;
+
+        if (arrSize != getValue<int>(size)) {
+            size = arrSize;
+        }
+
+        // This flag is swapped for some reason
+        if (arrDrawMode == 0) {
+            arrDrawMode = 1;
+        } else if (arrDrawMode == 1) {
+            arrDrawMode = 0;
+        }
+
+        auto arrSaveContents = getValue<bool>(saveContents);
+
+        int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
+
+        t_symbol* name = pd->generateSymbol(arrName);
+        if (auto garray = arr.get<t_fake_garray>()) {
+            garray_arraydialog(garray.get(), name, arrSize, static_cast<float>(flags), 0.0f);
+        }
+
+        repaint();
+    }
+    
+    void deleteArray()
+    {
+        if (auto garray = arr.get<t_fake_garray>()) {
+            glist_delete(garray->x_glist, &garray->x_gobj);
+        }
+        
+        reloadGraphs();
+    }
+        
+    void updateParameters()
+    {
+        auto scale = getScale();
+        range = var(Array<var> { var(scale[0]), var(scale[1]) });
+        size = var(static_cast<int>(getArraySize()));
+        saveContents = willSaveContent();
+        name = String(getUnexpandedName());
+        drawMode = static_cast<int>(getDrawType()) + 1;
+        repaint();
     }
 
     void setScale(std::array<float, 2> scale)
@@ -452,6 +524,142 @@ public:
     PluginProcessor* pd;
 };
 
+
+struct ArrayPropertiesPanel : public PropertiesPanelProperty, public Value::Listener
+{
+    class AddArrayButton : public Component {
+
+        bool mouseIsOver = false;
+
+    public:
+        std::function<void()> onClick = []() {};
+
+        void paint(Graphics& g) override
+        {
+            auto bounds = getLocalBounds();
+            auto textBounds = bounds;
+            auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+
+            auto colour = findColour(PlugDataColour::sidebarTextColourId);
+            if (mouseIsOver) {
+                g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+                PlugDataLook::fillSmoothedRectangle(g, bounds.toFloat(), Corners::defaultCornerRadius);
+
+                colour = findColour(PlugDataColour::sidebarActiveTextColourId);
+            }
+
+            Fonts::drawIcon(g, Icons::Add, iconBounds, colour, 12);
+            Fonts::drawText(g, "Add new array", textBounds, colour, 14);
+        }
+
+        bool hitTest(int x, int y) override
+        {
+            if (getLocalBounds().reduced(5, 2).contains(x, y)) {
+                return true;
+            }
+            return false;
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            mouseIsOver = true;
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            mouseIsOver = false;
+            repaint();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            onClick();
+        }
+    };
+    
+    OwnedArray<PropertiesPanelProperty> properties;
+    Array<SafePointer<GraphicalArray>> graphs;
+    
+    AddArrayButton addButton;
+    OwnedArray<SmallIconButton> deleteButtons;
+    Array<Value> nameValues;
+        
+    ArrayPropertiesPanel(Array<SafePointer<GraphicalArray>> safeGraphs, std::function<void()> addArrayCallback)
+    : PropertiesPanelProperty("array"), graphs(safeGraphs)
+    {
+        setHideLabel(true);
+        setPreferredHeight((156 * graphs.size()) + 34);
+        
+        for(auto graph : graphs)
+        {
+            addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<String>("Name", graph->name)));
+            addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<int>("Size", graph->size)));
+            addAndMakeVisible(properties.add(new PropertiesPanel::RangeComponent("Range", graph->range, false)));
+            addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Save contents", graph->saveContents, {"No", "Yes"})));
+            addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Draw Style", graph->drawMode, {"Points", "Polygon", "Bezier curve"})));
+            
+            // To detect name changes, so we can redraw the array title
+            nameValues.add(Value());
+            auto& nameValue = nameValues.getReference(nameValues.size() - 1);
+            nameValue.referTo(graph->name);
+            nameValue.addListener(this);
+            auto* deleteButton = deleteButtons.add(new SmallIconButton(Icons::Clear));
+            deleteButton->onClick = [graph](){
+                graph->deleteArray();
+            };
+            addAndMakeVisible(deleteButton);
+        }
+
+        addAndMakeVisible(addButton);
+        addButton.onClick = addArrayCallback;
+    }
+    
+    void valueChanged(Value& v) override
+    {
+        repaint();
+    }
+    
+    void paint(Graphics& g) override
+    {
+        g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
+        
+        auto numGraphs = properties.size() / 5;
+        for(int i = 0; i < numGraphs; i++)
+        {
+            if(!graphs[i]) continue;
+            
+            auto start = (i * 156) - 6;
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+            g.fillRoundedRectangle(0.0f, start + 25, getWidth(), 130, Corners::largeCornerRadius);
+           
+            Fonts::drawStyledText(g,  graphs[i]->name.toString(), 8, start - 2, getWidth() - 16, 25, findColour(PlugDataColour::sidebarTextColourId), Semibold, 14.5f);
+        }
+        
+        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        for (int i = 0; i < properties.size(); i++) {
+            if((i % 5) == 4) continue;
+            auto y = properties[i]->getBottom();
+            g.drawHorizontalLine(y, 0, getWidth());
+        }
+    }
+
+    void resized() override
+    {
+        auto b = getLocalBounds().translated(0, -6);
+        for(int i = 0; i < properties.size(); i++)
+        {
+            if((i % 5) == 0)  {
+                auto deleteButtonBounds = b.removeFromTop(26).removeFromRight(28);
+                deleteButtons[i / 5]->setBounds(deleteButtonBounds);
+            }
+            properties[i]->setBounds(b.removeFromTop(26));
+        }
+        
+        addButton.setBounds(getLocalBounds().removeFromBottom(36).reduced(0, 8));
+    }
+};
+
 class ArrayEditorDialog : public Component {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
@@ -473,7 +681,11 @@ public:
             addAndMakeVisible(graph);
         }
 
-        title = graphs[0]->getUnexpandedName();
+        auto title = String();
+        for(auto* graph : graphs)
+        {
+            title += graph->getUnexpandedName() + (graph != graphs.getLast() ? "," : "");
+        }
 
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
@@ -552,32 +764,76 @@ public:
 
 class ArrayObject final : public ObjectBase {
 public:
+    
+    Value sizeProperty = SynchronousValue();
+    
     // Array component
     ArrayObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
-        auto arrays = getArrays();
-
-        for (int i = 0; i < arrays.size(); i++) {
-            auto* graph = graphs.add(new GraphicalArray(cnv->pd, arrays[i], object));
-            graph->setBounds(getLocalBounds());
-            addAndMakeVisible(graph);
-        }
-
+        reinitialiseGraphs();
+        
         setInterceptsMouseClicks(false, true);
 
         objectParameters.addParamSize(&sizeProperty);
-        objectParameters.addParamString("Name", cGeneral, &name);
-        objectParameters.addParamInt("Size", cGeneral, &size);
-
-        objectParameters.addParamRange("Y range", cGeneral, &range, { -1.0f, 1.0f });
-        objectParameters.addParamBool("Save contents", cGeneral, &saveContents, { "No", "Yes" }, 0);
-
-        objectParameters.addParamCombo("Draw mode", cAppearance, &drawMode, { "Points", "Polygon", "Bezier Curve" }, 2);
-
-        updateGraphs();
+        objectParameters.addParamCustom([_this = SafePointer(this)](){
+            
+            if(!_this) return static_cast<ArrayPropertiesPanel*>(nullptr);
+            
+            Array<SafePointer<GraphicalArray>> safeGraphs;
+            for(auto* graph : _this->graphs)
+            {
+                safeGraphs.add(graph);
+            }
+            
+            auto* panel = new ArrayPropertiesPanel(safeGraphs, [_this](){
+                if(_this) _this->addArray();
+            });
+                        
+            return panel;
+        });
+        
+        updateLabel();
+        
+        onConstrainerCreate = [this]() {
+            constrainer->setSizeLimits(50 - Object::doubleMargin, 40 - Object::doubleMargin, 99999, 99999);
+        };
     }
-
+    
+    void reinitialiseGraphs()
+    {
+        // Close the dialog they could be holding a pointer to an old graph object
+        if(dialog != nullptr) dialog.reset(nullptr);
+        
+        auto arrays = getArrays();
+        graphs.clear();
+        
+        for (int i = 0; i < arrays.size(); i++) {
+            auto* graph = graphs.add(new GraphicalArray(cnv->pd, arrays[i], object));
+            graph->setBounds(getLocalBounds());
+            graph->reloadGraphs = [this]() {
+                MessageManager::callAsync([_this = SafePointer(this)]() {
+                    if(_this) _this->reinitialiseGraphs();
+                });
+            };
+            addAndMakeVisible(graph);
+        }
+        
+        updateGraphs();
+        
+        // Reload inspector properties
+        cnv->editor->sidebar->reloadParameters();
+    }
+    
+    void addArray()
+    {
+        if (auto glist = ptr.get<_glist>()) {
+            // TODO: generate a unique name?
+            graph_array(glist.get(), gensym("array1"), &s_float, 100, 0);
+        }
+        reinitialiseGraphs();
+    }
+    
     void updateGraphs()
     {
         pd->lockAudioThread();
@@ -587,8 +843,6 @@ public:
             graph->update();
         }
 
-        size = static_cast<int>(graphs[0]->vec.size());
-
         pd->unlockAudioThread();
     }
 
@@ -596,9 +850,13 @@ public:
     {
         int fontHeight = 14.0f;
 
-        const String text = graphs[0]->getUnexpandedName();
-
-        if (text.isNotEmpty()) {
+        auto title = String();
+        for(auto* graph : graphs)
+        {
+            title += graph->getUnexpandedName() + (graph != graphs.getLast() ? "," : "");
+        }
+  
+        if (title.isNotEmpty()) {
             if (!label) {
                 label = std::make_unique<ObjectLabel>();
             }
@@ -609,7 +867,7 @@ public:
 
             label->setFont(Font(fontHeight));
             label->setBounds(bounds);
-            label->setText(text, dontSendNotification);
+            label->setText(title, dontSendNotification);
 
             label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
@@ -657,17 +915,13 @@ public:
 
     void update() override
     {
-        auto scale = graphs[0]->getScale();
-        range = var(Array<var> { var(scale[0]), var(scale[1]) });
-        size = var(static_cast<int>(graphs[0]->size()));
-        saveContents = graphs[0]->willSaveContent();
-        name = String(graphs[0]->getUnexpandedName());
-        drawMode = static_cast<int>(graphs[0]->getDrawType()) + 1;
+        for(auto* graph : graphs)
+        {
+            graph->updateParameters();
+        }
         if (auto glist = ptr.get<t_glist>()) {
             sizeProperty = Array<var> { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
         }
-
-        labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
     }
 
     void updateSizeProperty() override
@@ -676,52 +930,6 @@ public:
 
         if (auto glist = ptr.get<t_glist>()) {
             setParameterExcludingListener(sizeProperty, Array<var> { var(glist->gl_pixwidth), var(glist->gl_pixheight) });
-        }
-    }
-
-    void updateSettings()
-    {
-        auto arrName = name.getValue().toString();
-        auto arrSize = std::max(0, getValue<int>(size));
-        auto arrDrawMode = getValue<int>(drawMode) - 1;
-
-        if (arrSize != getValue<int>(size)) {
-            size = arrSize;
-        }
-
-        // This flag is swapped for some reason
-        if (arrDrawMode == 0) {
-            arrDrawMode = 1;
-        } else if (arrDrawMode == 1) {
-            arrDrawMode = 0;
-        }
-
-        auto arrSaveContents = getValue<bool>(saveContents);
-
-        int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
-
-        if (auto arrayCanvas = ptr.get<t_canvas>()) {
-            bool first = true;
-            for (auto* graph : graphs) {
-                t_symbol* name = first ? pd->generateSymbol(arrName) : pd->generateSymbol(graph->getUnexpandedName());
-                first = false;
-
-                if (auto garray = graph->arr.get<t_fake_garray>()) {
-                    garray_arraydialog(garray.get(), name, arrSize, static_cast<float>(flags), 0.0f);
-                }
-            }
-        }
-
-        auto arrays = getArrays();
-
-        for (int i = 0; i < arrays.size(); i++) {
-            graphs[i]->setArray(arrays[i]);
-        }
-
-        updateLabel();
-
-        for (auto* graph : graphs) {
-            graph->repaint();
         }
     }
 
@@ -741,7 +949,9 @@ public:
             }
 
             object->updateBounds();
-        } else if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
+        } 
+        /*
+        else if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
             updateSettings();
         } else if (value.refersToSameSourceAs(range)) {
             auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
@@ -750,7 +960,7 @@ public:
                 graph->setScale({ min, max });
                 graph->repaint();
             }
-        } else {
+        } */ else {
             ObjectBase::valueChanged(value);
         }
     }
@@ -776,10 +986,12 @@ public:
             std::vector<void*> arrays;
 
             t_gobj* x = reinterpret_cast<t_gobj*>(c->gl_list);
-            arrays.push_back(x);
-
-            while ((x = x->g_next)) {
+            if(x) {
                 arrays.push_back(x);
+                
+                while ((x = x->g_next)) {
+                    arrays.push_back(x);
+                }
             }
 
             return arrays;
@@ -865,8 +1077,8 @@ public:
             break;
         }
         case hash("style"): {
-            drawMode = static_cast<int>(atoms[0].getFloat()) + 1;
-            updateSettings();
+            //drawMode = static_cast<int>(atoms[0].getFloat()) + 1;
+            //updateSettings();
             break;
         }
         default:
@@ -875,17 +1087,11 @@ public:
     }
 
 private:
-    Value name = SynchronousValue();
-    Value size = SynchronousValue();
-    Value drawMode = SynchronousValue();
-    Value saveContents = SynchronousValue();
-    Value range = SynchronousValue();
-    Value sizeProperty = SynchronousValue();
-
+    
     OwnedArray<GraphicalArray> graphs;
     std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
 
-    Value labelColour = SynchronousValue();
+
     bool editable = true;
 };
 

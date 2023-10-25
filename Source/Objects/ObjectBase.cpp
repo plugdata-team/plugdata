@@ -179,9 +179,11 @@ void ObjectBase::initialise()
 
     pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
 
-    for (auto& [name, type, cat, value, list, valueDefault] : objectParameters.getParameters()) {
-        value->addListener(this);
-        value->addListener(&propertyUndoListener);
+    for (auto& [name, type, cat, value, list, valueDefault, customComponent] : objectParameters.getParameters()) {
+        if(value) {
+            value->addListener(this);
+            value->addListener(&propertyUndoListener);
+        }
     }
 }
 

@@ -6,8 +6,6 @@
 
 #include "Components/PropertiesPanel.h"
 
-class InspectorPanel : public PropertiesPanel {
-};
 
 class PropertyRedirector : public Value::Listener {
 public:
@@ -37,7 +35,7 @@ public:
 
 class Inspector : public Component {
 
-    InspectorPanel panel;
+    PropertiesPanel panel;
     String title;
     TextButton resetButton;
     Array<ObjectParameters> properties;
@@ -82,7 +80,7 @@ public:
         return title;
     }
 
-    static PropertiesPanel::Property* createPanel(int type, String const& name, Value* value, StringArray& options)
+    static PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options)
     {
         switch (type) {
         case tString:
@@ -122,7 +120,7 @@ public:
         panel.clear();
 
         auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, Array<Value*>& values) {
-            auto& [name1, type1, category1, value1, options1, defaultVal1] = param;
+            auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1] = param;
 
             if (objectParameters.size() > 1 && (name1 == "Size" || name1 == "Position" || name1 == "Height")) {
                 return false;
@@ -131,7 +129,7 @@ public:
             bool isInAllObjects = true;
             for (auto& parameters : objectParameters) {
                 bool hasParameter = false;
-                for (auto& [name2, type2, category2, value2, options2, defaultVal2] : parameters.getParameters()) {
+                for (auto& [name2, type2, category2, value2, options2, defaultVal2, customComponent2] : parameters.getParameters()) {
                     if (name1 == name2 && type1 == type2 && category1 == category2) {
                         values.add(value2);
                         hasParameter = true;
@@ -148,16 +146,31 @@ public:
         redirectors.clear();
 
         for (int i = 0; i < 4; i++) {
-            Array<PropertiesPanel::Property*> panels;
+            Array<PropertiesPanelProperty*> panels;
             for (auto& parameter : objectParameters[0].getParameters()) {
-                auto& [name, type, category, value, options, defaultVal] = parameter;
-                if (static_cast<int>(category) == i) {
+                auto& [name, type, category, value, options, defaultVal, customComponentFn] = parameter;
+                
+                if(customComponentFn && objectParameters.size() == 1 && static_cast<int>(category) == i)
+                {
+                    if(auto* customComponent = customComponentFn()) {
+                        panel.addSection("", {customComponent});
+                    }
+                    else {
+                        continue;
+                    }
+                }
+                else if(customComponentFn)
+                {
+                    continue;
+                }
+                else if (static_cast<int>(category) == i) {
 
                     Array<Value*> otherValues;
                     if (!parameterIsInAllObjects(parameter, otherValues))
                         continue;
-                    
-                    if(objectParameters.size() == 1)
+                
+
+                    else if(objectParameters.size() == 1)
                     {
                         auto newPanel = createPanel(type, name, value, options);
                         newPanel->setPreferredHeight(26);

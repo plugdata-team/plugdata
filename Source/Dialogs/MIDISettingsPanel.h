@@ -18,7 +18,7 @@ public:
         toggleStateValue = ProjectInfo::getMidiDeviceManager()->isMidiDeviceEnabled(isInput, deviceInfo.identifier);
     }
 
-    Property* createCopy() override
+    PropertiesPanelProperty* createCopy() override
     {
         return new MidiSettingsToggle(isInput, processor, deviceInfo, deviceManager);
     }
@@ -91,10 +91,10 @@ private:
         midiProperties.clear();
 
         auto midiInputDevices = ProjectInfo::getMidiDeviceManager()->getInputDevicesUnfiltered();
-        auto midiInputProperties = Array<PropertiesPanel::Property*>();
+        auto midiInputProperties = Array<PropertiesPanelProperty*>();
 
         auto midiOutputDevices = ProjectInfo::getMidiDeviceManager()->getOutputDevicesUnfiltered();
-        auto midiOutputProperties = Array<PropertiesPanel::Property*>();
+        auto midiOutputProperties = Array<PropertiesPanelProperty*>();
 
         for (auto& deviceInfo : midiInputDevices) {
             // The internal plugdata ports should be viewed from our perspective instead of that of an external application

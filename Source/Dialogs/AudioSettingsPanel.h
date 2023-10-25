@@ -50,9 +50,9 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DeviceManagerLevelMeter)
 };
 
-struct CallbackComboProperty : public PropertiesPanel::Property {
+struct CallbackComboProperty : public PropertiesPanelProperty {
     CallbackComboProperty(String const& propertyName, StringArray const& comboOptions, String const& currentOption, std::function<void(String)> const& onChange)
-        : Property(propertyName)
+        : PropertiesPanelProperty(propertyName)
         , changeCallback(onChange)
         , options(comboOptions)
     {
@@ -70,7 +70,7 @@ struct CallbackComboProperty : public PropertiesPanel::Property {
         addAndMakeVisible(comboBox);
     }
 
-    Property* createCopy() override
+    PropertiesPanelProperty* createCopy() override
     {
         return new CallbackComboProperty(getName(), options, lastValue, changeCallback);
     }
@@ -155,7 +155,7 @@ public:
         Fonts::drawText(g, textOptions[isDown], buttonBounds, textColour, 14.0f, Justification::centred);
 
         // Paint label
-        Property::paint(g);
+        PropertiesPanelProperty::paint(g);
     }
 
     std::function<void(bool)> callback;
@@ -213,7 +213,7 @@ private:
 
         auto* currentType = deviceManager.getCurrentDeviceTypeObject();
 
-        Array<PropertiesPanel::Property*> deviceConfigurationProperties;
+        Array<PropertiesPanelProperty*> deviceConfigurationProperties;
 
         // Only show if there are multiple device types
         if (types.size() > 1) {
@@ -297,7 +297,7 @@ private:
         }
 
         // Add output device selector
-        Array<PropertiesPanel::Property*> outputProperties;
+        Array<PropertiesPanelProperty*> outputProperties;
         const StringArray outputDevices(currentType->getDeviceNames(false));
         outputSelectorProperty = new CallbackComboPropertyWithTestButton(
             "Output Device", outputDevices, setup.outputDeviceName, [this](String selectedDevice) {
@@ -308,7 +308,7 @@ private:
         outputProperties.add(outputSelectorProperty);
 
         // Add input device selector
-        Array<PropertiesPanel::Property*> inputProperties;
+        Array<PropertiesPanelProperty*> inputProperties;
         const StringArray inputDevices(currentType->getDeviceNames(true));
         inputSelectorProperty = new CallbackComboProperty("Input Device", inputDevices, setup.inputDeviceName, [this](String selectedDevice) {
             setup.inputDeviceName = std::move(selectedDevice);
@@ -439,8 +439,8 @@ private:
     DeviceManagerLevelMeter outputLevelMeter;
 
     // Used for positioning the levelmeters
-    SafePointer<PropertiesPanel::Property> outputSelectorProperty;
-    SafePointer<PropertiesPanel::Property> inputSelectorProperty;
+    SafePointer<PropertiesPanelProperty> outputSelectorProperty;
+    SafePointer<PropertiesPanelProperty> inputSelectorProperty;
 
     AudioDeviceManager::AudioDeviceSetup setup;
 

@@ -95,6 +95,7 @@ public:
 
     void showParameters(String const& name, Array<ObjectParameters>& params);
     void showParameters();
+    void reloadParameters();
     void hideParameters();
 
     bool isShowingBrowser();

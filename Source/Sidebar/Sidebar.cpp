@@ -373,6 +373,11 @@ void Sidebar::hideParameters()
     repaint();
 }
 
+void Sidebar::reloadParameters()
+{
+    inspector->loadParameters(lastParameters);
+}
+
 bool Sidebar::isShowingConsole() const
 {
     return console->isVisible();

@@ -148,7 +148,7 @@ public:
 
     void resized() override
     {
-        auto bounds = getLocalBounds();
+        auto bounds = getLocalBounds().reduced(4, 0);
 
         auto const labelHeight = 26;
         auto const itemHeight = 28;
@@ -182,10 +182,10 @@ public:
         for(auto& bounds : std::vector<Rectangle<int>>{firstPanelBounds, secondPanelBounds, thirdPanelBounds})
         {
             Path p;
-            p.addRoundedRectangle(bounds.reduced(3.0f), Corners::largeCornerRadius);
+            p.addRoundedRectangle(bounds.reduced(2.0f), Corners::largeCornerRadius);
             StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
             
-            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.05f));
+            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
             g.fillRoundedRectangle(bounds.toFloat(), Corners::largeCornerRadius);
 
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));

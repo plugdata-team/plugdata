@@ -105,9 +105,9 @@ private:
     String errorMessage;
 };
 
-struct ThemeSelectorProperty : public PropertiesPanel::Property {
+struct ThemeSelectorProperty : public PropertiesPanelProperty {
     ThemeSelectorProperty(String const& propertyName, std::function<void(String const&)> const& callback)
-        : Property(propertyName)
+        : PropertiesPanelProperty(propertyName)
         , cb(callback)
     {
         comboBox.getProperties().set("Style", "Inspector");
@@ -122,7 +122,7 @@ struct ThemeSelectorProperty : public PropertiesPanel::Property {
         addAndMakeVisible(comboBox);
     }
 
-    PropertiesPanel::Property* createCopy() override
+    PropertiesPanelProperty* createCopy() override
     {
         auto* themeSelector = new ThemeSelectorProperty(getName(), cb);
         themeSelector->setOptions(items);
@@ -219,7 +219,7 @@ public:
         panel.clear();
         allPanels.clear();
 
-        std::map<String, Array<PropertiesPanel::Property*>> panels;
+        std::map<String, Array<PropertiesPanelProperty*>> panels;
 
         // Loop over colours
         for (auto const& [colour, colourNames] : PlugDataColourNames) {
