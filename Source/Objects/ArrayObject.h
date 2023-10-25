@@ -585,11 +585,22 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty, public Value::List
     OwnedArray<SmallIconButton> deleteButtons;
     Array<Value> nameValues;
         
-    ArrayPropertiesPanel(Array<SafePointer<GraphicalArray>> safeGraphs, std::function<void()> addArrayCallback)
-    : PropertiesPanelProperty("array"), graphs(safeGraphs)
+    ArrayPropertiesPanel(std::function<void()> addArrayCallback)
+    : PropertiesPanelProperty("array")
     {
         setHideLabel(true);
-        setPreferredHeight((156 * graphs.size()) + 34);
+        
+        addAndMakeVisible(addButton);
+        addButton.onClick = addArrayCallback;
+    }
+    
+    void reloadGraphs(const Array<SafePointer<GraphicalArray>>& safeGraphs)
+    {
+        properties.clear();
+        nameValues.clear();
+        deleteButtons.clear();
+        
+        graphs = safeGraphs;
         
         for(auto graph : graphs)
         {
@@ -610,9 +621,15 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty, public Value::List
             };
             addAndMakeVisible(deleteButton);
         }
-
-        addAndMakeVisible(addButton);
-        addButton.onClick = addArrayCallback;
+        
+        auto newHeight = (156 * graphs.size()) + 34;
+        setPreferredHeight(newHeight);
+        if(auto* propertiesPanel = findParentComponentOfClass<PropertiesPanel>())
+        {
+            propertiesPanel->updatePropHolderLayout();
+        }
+        
+        repaint();
     }
     
     void valueChanged(Value& v) override
@@ -765,6 +782,7 @@ public:
 class ArrayObject final : public ObjectBase {
 public:
     
+    SafePointer<ArrayPropertiesPanel> propertiesPanel = nullptr;
     Value sizeProperty = SynchronousValue();
     
     // Array component
@@ -786,9 +804,12 @@ public:
                 safeGraphs.add(graph);
             }
             
-            auto* panel = new ArrayPropertiesPanel(safeGraphs, [_this](){
+            auto* panel = new ArrayPropertiesPanel([_this](){
                 if(_this) _this->addArray();
             });
+            
+            panel->reloadGraphs(safeGraphs);
+            _this->propertiesPanel = panel;
                         
             return panel;
         });
@@ -821,8 +842,10 @@ public:
         
         updateGraphs();
         
-        // Reload inspector properties
-        cnv->editor->sidebar->reloadParameters();
+        Array<SafePointer<GraphicalArray>> safeGraphs;
+        for(auto* graph : graphs) safeGraphs.add(graph);
+        
+        if(propertiesPanel) propertiesPanel->reloadGraphs(safeGraphs);
     }
     
     void addArray()
