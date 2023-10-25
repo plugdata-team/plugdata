@@ -607,7 +607,7 @@ void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
 
 bool PluginEditor::isActiveWindow()
 {
-    return TopLevelWindow::getActiveTopLevelWindow() == getTopLevelComponent();
+    return !ProjectInfo::isStandalone || (TopLevelWindow::getActiveTopLevelWindow() == getTopLevelComponent());
 }
 
 void PluginEditor::newProject()

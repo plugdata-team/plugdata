@@ -38,9 +38,12 @@ ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProc
 
 ImplementationBase::~ImplementationBase() = default;
 
+
 Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot) const
 {
-    for (auto* editor : pd->openedEditors) {
+    auto editors = pd->getEditors();
+
+    for (auto* editor : editors) {
         for (auto* cnv : editor->canvases) {
             auto glist = cnv->patch.getPointer();
             if (glist && glist.get() == patchPtr) {
@@ -51,7 +54,7 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoo
 
     if (alsoSearchRoot) {
         patchPtr = glist_getcanvas(patchPtr);
-        for (auto* editor : pd->openedEditors) {
+        for (auto* editor : editors) {
             for (auto* cnv : editor->canvases) {
                 auto glist = cnv->patch.getPointer();
                 if (glist && glist.get() == patchPtr) {
@@ -142,9 +145,10 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
         return;
     }
 
-    for (auto* editor : pd->openedEditors) {
+    for (auto* editor : pd->getEditors()) {
         if (!editor->isActiveWindow())
             continue;
+        
 
         // Check if subpatch is already opened
         for (auto* cnv : editor->canvases) {
@@ -166,7 +170,7 @@ void ImplementationBase::closeOpenedSubpatchers()
     if (!glist)
         return;
 
-    for (auto* editor : pd->openedEditors) {
+    for (auto* editor : pd->getEditors()) {
         for (auto* canvas : editor->canvases) {
             auto canvasPtr = canvas->patch.getPointer();
             if (canvasPtr && canvasPtr.get() == glist.get()) {

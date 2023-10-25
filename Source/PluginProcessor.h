@@ -101,6 +101,8 @@ public:
     void sendParameters();
 
     bool isInPluginMode();
+        
+    Array<PluginEditor*> getEditors() const;
 
     void messageEnqueued() override;
     void performParameterChange(int type, String const& name, float value) override;
@@ -161,9 +163,10 @@ public:
     std::atomic<bool> enableInternalSynth = false;
 
     OwnedArray<PluginEditor> openedEditors;
-
+        
 private:
     void processInternal();
+
 
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 

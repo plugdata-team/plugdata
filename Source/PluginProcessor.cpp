@@ -1024,7 +1024,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     // Close any opened patches
     MessageManager::callAsync([this]() {
-        for (auto* editor : openedEditors) {
+        for (auto* editor : getEditors()) {
             for (auto split : editor->splitView.splits) {
                 split->getTabComponent()->clearTabs();
             }
@@ -1160,7 +1160,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     delete[] xmlData;
 
     MessageManager::callAsync([this]() {
-        for (auto* editor : openedEditors) {
+        for (auto* editor : getEditors()) {
             editor->sidebar->updateAutomationParameters();
 
             if (editor->pluginMode && !editor->pd->isInPluginMode()) {
@@ -1177,7 +1177,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* e
         if (patch->getCurrentFile() == patchFile) {
 
             MessageManager::callAsync([this, patch]() mutable {
-                for (auto* editor : openedEditors) {
+                for (auto* editor : getEditors()) {
                     for (auto* cnv : editor->canvases) {
                         if (cnv->patch == *patch) {
                             cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
@@ -1258,7 +1258,7 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
 
     lnf->setTheme(themeTree);
 
-    for (auto* editor : openedEditors) {
+    for (auto* editor : getEditors()) {
         editor->sendLookAndFeelChange();
         editor->getTopLevelComponent()->repaint();
         editor->repaint();
@@ -1396,7 +1396,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
         bool dsp = list[0].getFloat();
         MessageManager::callAsync(
             [this, dsp]() mutable {
-                for (auto* editor : openedEditors) {
+                for (auto* editor : getEditors()) {
                     editor->statusbar->powerButton.setToggleState(dsp, dontSendNotification);
                 }
             });
@@ -1544,7 +1544,7 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
             pldParam->setUnscaledValueNotifyingHost(value);
 
             if (ProjectInfo::isStandalone) {
-                for (auto* editor : openedEditors) {
+                for (auto* editor : getEditors()) {
                     editor->sidebar->updateAutomationParameters();
                 }
             }
@@ -1623,9 +1623,28 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 
 void PluginProcessor::updateConsole(int numMessages, bool newWarning)
 {
-    for (auto* editor : openedEditors) {
+    for (auto* editor : getEditors()) {
         editor->sidebar->updateConsole(numMessages, newWarning);
     }
+}
+
+Array<PluginEditor*> PluginProcessor::getEditors() const
+{
+    Array<PluginEditor*> editors;
+    if(ProjectInfo::isStandalone)
+    {
+        for (auto* editor : getEditors()) {
+            editors.add(editor);
+        }
+    }
+    else {
+        if(auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
+        {
+            editors.add(editor);
+        }
+    }
+    
+    return editors;
 }
 
 void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
@@ -1639,7 +1658,7 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 
     pd::Patch::reloadPatch(changedPatch, except);
 
-    for (auto* editor : openedEditors) {
+    for (auto* editor : getEditors()) {
 
         // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
         Array<Component::SafePointer<Canvas>> canvases;
@@ -1663,7 +1682,7 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 
 void PluginProcessor::titleChanged()
 {
-    for (auto* editor : openedEditors) {
+    for (auto* editor : getEditors()) {
         for (auto split : editor->splitView.splits) {
             auto tabbar = split->getTabComponent();
             for (int n = 0; n < tabbar->getNumTabs(); n++) {
