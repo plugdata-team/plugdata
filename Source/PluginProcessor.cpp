@@ -1633,7 +1633,7 @@ Array<PluginEditor*> PluginProcessor::getEditors() const
     Array<PluginEditor*> editors;
     if(ProjectInfo::isStandalone)
     {
-        for (auto* editor : getEditors()) {
+        for (auto* editor : openedEditors) {
             editors.add(editor);
         }
     }
