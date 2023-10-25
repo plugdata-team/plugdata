@@ -1181,15 +1181,13 @@ static void coll_wclose(t_coll *x){ // if edited, closing window asks and replac
 }
 
 static void coll_open(t_coll *x){
-    //check_open(x, 1);
-    coll_is_opened(x, 0.0f, 1.0f);
+    check_open(x, 1);
 }
 
 static void coll_click(t_coll *x, t_floatarg xpos, t_floatarg ypos,
 t_floatarg shift, t_floatarg ctrl, t_floatarg alt){
     xpos = ypos = shift = ctrl = alt = 0;
-    //check_open(x, 1);
-    coll_is_opened(x, 0.0f, 1.0f);
+    check_open(x, 1);
 }
 
 static void coll_float(t_coll *x, t_float f){

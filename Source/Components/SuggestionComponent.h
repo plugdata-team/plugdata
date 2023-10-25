@@ -6,6 +6,7 @@
 
 #include "PluginEditor.h"
 #include "PluginProcessor.h" // TODO: We shouldn't need this!
+#include "Objects/ObjectBase.h"
 #include "Heavy/CompatibleObjects.h"
 
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
@@ -49,7 +50,8 @@ public:
         if (!editor)
             return;
 
-        editor->setText(editor->getText() + suggestion, sendNotification);
+        editor->setText(editor->getText() + suggestion.upToFirstOccurrenceOf(" ", false, false), sendNotification);
+        editor->moveCaretToEnd();
         suggestion = "";
         repaint();
     }
@@ -86,13 +88,14 @@ public:
             auto textUpToSpace = editorText.upToFirstOccurrenceOf(" ", false, false);
             suggestion = suggestionText.fromFirstOccurrenceOf(textUpToSpace, false, true);
             setVisible(suggestionText.isNotEmpty() && textUpToSpace != suggestionText);
-            repaint();
         } else if (editorText.isNotEmpty()) {
             stashedText = editorText;
             editor->setText("", dontSendNotification);
             suggestion = suggestionText;
-            repaint();
         }
+        
+        suggestion = suggestion.upToFirstOccurrenceOf(" ", false, false);
+        repaint();
     }
 
 private:
@@ -571,6 +574,51 @@ private:
             suggestions.strings.sort(sorter);
             return suggestions;
         };
+        
+        if (currentObject->gui && currentObject->gui->getType() == "message") {
+            auto nearbyMethods = findNearbyMethods(currentText);
+            
+            numOptions = std::min<int>(buttons.size(), nearbyMethods.size());
+            for (int i = 0; i < numOptions; i++) {
+                auto [objectName, methodName, description] = nearbyMethods[i];
+               
+                buttons[i]->setText(methodName, "(" + objectName + ") " + description, false);
+                buttons[i]->setInterceptsMouseClicks(false, false);
+                buttons[i]->setToggleState(false, dontSendNotification);
+            }
+
+            for (int i = numOptions; i < buttons.size(); i++) {
+                buttons[i]->setText("", "", false);
+                buttons[i]->setToggleState(false, dontSendNotification);
+            }
+
+            setVisible(numOptions);
+
+            
+            
+            // Get length of user-typed text
+            int textlen = openedEditor->getText().length();
+
+            if (nearbyMethods.isEmpty() || textlen == 0) {
+                state = Hidden;
+                if (autoCompleteComponent)
+                    autoCompleteComponent->enableAutocomplete(false);
+                currentObject->updateBounds();
+                setVisible(false);
+                return;
+            }
+            
+            state = ShowingObjects;
+            currentidx = -1;
+            
+            if (autoCompleteComponent) {
+                autoCompleteComponent->setSuggestion("");
+                currentObject->updateBounds();
+            }
+            
+            resized();
+            return;
+        }
 
         // If there's a space, open arguments panel
         if (currentText.contains(" ")) {
@@ -740,6 +788,75 @@ private:
             applySuggestionsToButtons(found, currentText);
         });
     }
+        
+    Array<std::tuple<String, String, String>> findNearbyMethods(const String& toSearch)
+    {
+        Array<std::tuple<String, ValueTree, int>> objects;
+        auto* cnv = currentObject->cnv;
+        for(auto* obj : cnv->objects) {
+            int distance = currentObject->getPosition().getDistanceFrom(obj->getPosition());
+            if(!obj->getPointer() || obj == currentObject || distance > 300) continue;
+            
+            auto objectName = obj->gui->getType();
+            auto alreadyExists = std::find_if(objects.begin(), objects.end(), [objectName](const auto& toCompare){
+                return std::get<0>(toCompare) == objectName;
+            }) != objects.end();
+            
+            if(alreadyExists) 
+                continue;
+            
+            auto info = cnv->pd->objectLibrary->getObjectInfo(objectName);
+            auto methods = info.getChildWithName("methods");
+            objects.add({objectName, methods, distance});
+        }
+        
+        // Sort by distance
+        std::sort(objects.begin(), objects.end(), [](const auto& a, const auto& b){
+            return std::get<2>(a) > std::get<2>(b);
+        });
+                  
+        // Look for object name matches
+        Array<std::tuple<String, String, String>> nearbyMethods;
+        for(auto& [objectName, methods, distance] : objects)
+        {
+            for(auto method : methods)
+            {
+                if(objectName.contains(toSearch)) {
+                    auto methodName = method.getProperty("type").toString();
+                    auto description = method.getProperty("description").toString();
+                    nearbyMethods.add({objectName, methodName, description});
+                }
+            }
+        }
+        
+        // Look for method name matches
+        for(auto& [objectName, methods, distance] : objects)
+        {
+            for(auto method : methods)
+            {
+                auto methodName = method.getProperty("type").toString();
+                if(methodName.contains(toSearch)) {
+                    auto description = method.getProperty("description").toString();
+                    nearbyMethods.add({objectName, methodName, description});
+                }
+            }
+        }
+        
+        // Look for description matches
+        for(auto& [objectName, methods, distance] : objects)
+        {
+            for(auto method : methods)
+            {
+                auto description = method.getProperty("description").toString();
+                if(description.contains(toSearch)) {
+                    auto methodName = method.getProperty("type").toString();
+                    nearbyMethods.add({objectName, methodName, description});
+                }
+            }
+        }
+        
+        return nearbyMethods;
+    }
 
     void deselectAll()
     {
@@ -794,7 +911,23 @@ private:
         "resonbank.unit",
         "resonbank2.unit",
         "stepnoise.mc-unit",
-        "rampnoise.mc-unit"
+        "rampnoise.mc-unit",
+        "onebang_proxy",
+        "grain.sampler.grain",
+        "freeze.osc.clone~",
+        "presets.send.clone",
+        "grain.synth.grain",
+        "presets-abs",
+        "grain.live.grain",
+        "synth.voice.template",
+        "vocoder.band_clone",
+        "f2s~-help",
+        "rev1-final",
+        "rev1-stage",
+        "bpclone",
+        "libpd_receive",
+        "out.mc.hip~",
+        "pvoc~"
     };
 
     int windowMargin;

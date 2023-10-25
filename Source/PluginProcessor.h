@@ -110,8 +110,8 @@ public:
     void parseDataBuffer(XmlElement const& xml) override;
     XmlElement* extraData;
 
-    pd::Patch::Ptr loadPatch(String patch, int splitIdx = -1);
-    pd::Patch::Ptr loadPatch(File const& patch, int splitIdx = -1);
+    pd::Patch::Ptr loadPatch(String patch, PluginEditor* editor, int splitIndex = 0);
+    pd::Patch::Ptr loadPatch(File const& patch, PluginEditor* editor, int splitIndex = 0);
 
     void titleChanged() override;
 
@@ -193,7 +193,7 @@ private:
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
     static inline const String else_version = "ELSE v1.0-rc9";
-    static inline const String cyclone_version = "cyclone v0.7-0";
+    static inline const String cyclone_version = "cyclone v0.8-0";
     // this gets updated with live version data later
     static String pdlua_version;
 

@@ -35,7 +35,7 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Deken.h"
-#include "PatchStorage.h"
+//#include "PatchStorage.h"
 
 Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback)
 {
@@ -234,10 +234,11 @@ void Dialogs::showDeken(PluginEditor* editor)
 
 void Dialogs::showPatchStorage(PluginEditor* editor)
 {
+    /*
     auto* dialog = new Dialog(&editor->openedDialog, editor, 800, 550, true);
     auto* dialogContent = new PatchStorage();
     dialog->setViewedComponent(dialogContent);
-    editor->openedDialog.reset(dialog);
+    editor->openedDialog.reset(dialog); */
 }
 
 StringArray DekenInterface::getExternalPaths()
@@ -632,11 +633,11 @@ void Dialogs::showSaveDialog(std::function<void(File&)> callback, const String& 
     
     fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog);
 
-    auto saveChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories;
+    auto saveChooserFlags = FileBrowserComponent::saveMode;
     
     // TODO: checks if this still causes issues
 #if !JUCE_LINUX && !JUCE_BSD
-        saveChooserFlags |= FileBrowserComponent::warnAboutOverwriting;
+        saveChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(saveChooserFlags | FileBrowserComponent::warnAboutOverwriting);
 #endif
     
     fileChooser->launchAsync(saveChooserFlags,

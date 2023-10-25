@@ -79,6 +79,7 @@
 #X text 39 375 After setting a background color you can use the 'bg' attribute to turn it off or on again., f 62;
 #X text 39 461 Cyclone's [comment] will attempt to open a font name that corresponds to your given name. If such a font name doesn't exist \, it'll open some other font you have on your system instead that it thinks is best for what you requested \, and you'll have no idea which one it is. So just be sure you have the fonts you want properly isntalled., f 62;
 #X text 480 462 This object is fully compliant to Max 5 but not fully compliant to Max6+ versions (with all that 'bubble' stuff and more). It also has inconsistencies like different attributes than the original object in Max. It is also now based on [else/note] \, an object that was first based on [cyclone/comment]., f 65;
+#X text 526 529 ALSO: CONSIDER THIS OBJECT DEPRECATED!!!;
 #X connect 1 0 0 0;
 #X connect 2 0 0 0;
 #X connect 3 0 0 0;
@@ -160,4 +161,4 @@
 #X text 230 339 - non zero sets to italic, f 51;
 #X text 132 354 outline <float>;
 #X text 230 354 - non zero sets an outline, f 51;
-#X text 31 82 [comment] is a GUI meant to be only a comment (a label or a note) that can be typed directly into it when in Edit mode. It is widely used in cyclone's documentation and (unlike pd vanilla's comments) allows you to set font \, size \, color \, background color \, bold \, italic \, underline and justification. This object is not being fully compliant to Max6+ versions! It is also now related to [else/note]., f 83;
+#X text 31 82 [comment] is a GUI meant to be only a comment (a label or a note) that can be typed directly into it when in Edit mode. Unlike pd vanilla's comments \, it allows you to set font \, size \, color \, background color \, bold \, italic \, underline and justification. This object is not being fully compliant to Max6+ versions! It is also now related to [else/note]. Since Cyclone 0.7-1 this object is being considered DEPRECATED., f 83;

@@ -736,10 +736,10 @@ static int seq_mfread(t_seq *x, char *path){
         goto mfreadfailed;
 /* #ifdef SEQ_DEBUG
     post("midifile (format %d): %d tracks, %d ticks",
-        mifiread_getformat(mr), mifiread_gethdtracks(mr),
-        mifiread_getbeatticks(mr));
-    if(mifiread_getnframes(mr))
-        post(" (%d smpte frames)", mifiread_getnframes(mr));
+        cyclone_mifiread_getformat(mr), cyclone_mifiread_gethdtracks(mr),
+        cyclone_mifiread_getbeatticks(mr));
+    if(cyclone_mifiread_getnframes(mr))
+        post(" (%d smpte frames)", cyclone_mifiread_getnframes(mr));
     else
         post(" per beat");
 #endif */

@@ -3,7 +3,6 @@
 #include <common/api.h>
 #include "math.h"
 
-/* not enabled, we favour else/else~
 // ---------------------------------------------------
 // Class definition
 // ---------------------------------------------------
@@ -72,6 +71,7 @@ void trunc_destroy(t_trunc *x)
 // ---------------------------------------------------
 // Setup
 // ---------------------------------------------------
+/* Disabled because of else/trunc~
 CYCLONE_OBJ_API void trunc_tilde_setup(void) {
    trunc_class = class_new(gensym("trunc~"),
       (t_newmethod) trunc_new, // Constructor
@@ -83,7 +83,7 @@ CYCLONE_OBJ_API void trunc_tilde_setup(void) {
    class_addmethod(trunc_class, nullfn, gensym("signal"), 0);
    class_addmethod(trunc_class, (t_method) trunc_dsp, gensym("dsp"), A_CANT, 0);
 }
+*/
 // EOF---------------------------------------------------
 
 
-*/

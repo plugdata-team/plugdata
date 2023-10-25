@@ -26,6 +26,7 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
+        input.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
         input.setTextToShowWhenEmpty("Type to search in patch", findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
 
         input.onTextChange = [this]() {
@@ -192,7 +193,13 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
+        auto backgroundColour =  findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto transparentColour = backgroundColour.withAlpha(0.0f);
 
+        // Draw a gradient to fade the content out underneath the search input
+        g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 30.0f, transparentColour, 0.0f, 42.0f, false));
+        g.fillRect(Rectangle<int>(0, input.getBottom(), getWidth(), 12));
+        
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
         Fonts::drawIcon(g, Icons::Search, 2, 1, 32, colour, 12);
     }

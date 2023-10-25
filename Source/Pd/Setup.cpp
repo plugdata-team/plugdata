@@ -362,7 +362,6 @@ void train_tilde_setup();
 void trapezoid_tilde_setup();
 void triangle_tilde_setup();
 void trunc_tilde_setup();
-void typeroute_tilde_setup();
 void vectral_tilde_setup();
 void wave_tilde_setup();
 void zerox_tilde_setup();
@@ -538,7 +537,6 @@ void pimpmul_tilde_setup();
 void pink_tilde_setup();
 void pluck_tilde_setup();
 void plaits_tilde_setup();
-void pmosc_tilde_setup();
 void power_tilde_setup();
 void properties_setup();
 void pulse_tilde_setup();
@@ -663,9 +661,10 @@ void setup_rotate0x2emc_tilde();
 void pipe2_setup();
 void circuit_tilde_setup();
 
-void op2_tilde_setup();
-void op4_tilde_setup();
-void op6_tilde_setup();
+void pm_tilde_setup();
+void pm2_tilde_setup();
+void pm4_tilde_setup();
+void pm6_tilde_setup();
 
 #if ENABLE_SFIZZ
 void sfz_tilde_setup();
@@ -989,7 +988,6 @@ void Setup::initialiseELSE()
     pimpmul_tilde_setup();
     plaits_tilde_setup();
     pluck_tilde_setup();
-    pmosc_tilde_setup();
     power_tilde_setup();
     properties_setup();
     pulse_tilde_setup();
@@ -1117,10 +1115,10 @@ void Setup::initialiseELSE()
     pipe2_setup();
     circuit_tilde_setup();
 
-    /* Not yet!
-    op2_tilde_setup();
-    op4_tilde_setup();
-    op6_tilde_setup(); */
+    pm_tilde_setup();
+    pm2_tilde_setup();
+    pm4_tilde_setup();
+    pm6_tilde_setup();
 }
 
 void Setup::initialiseCyclone()
@@ -1314,7 +1312,6 @@ void Setup::initialiseCyclone()
     train_tilde_setup();
     trapezoid_tilde_setup();
     triangle_tilde_setup();
-    typeroute_tilde_setup();
     vectral_tilde_setup();
     wave_tilde_setup();
     zerox_tilde_setup();

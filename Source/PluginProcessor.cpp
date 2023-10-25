@@ -1073,7 +1073,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
         if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
-            auto patch = loadPatch(location, splitIndex);
+            auto patch = loadPatch(location, openedEditors[0], splitIndex);
             if (patch) {
                 patch->setTitle(location.getFileName());
                 patch->openInPluginMode = pluginMode;
@@ -1083,7 +1083,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto parentPath = location.getParentDirectory().getFullPathName();
                 libpd_add_to_search_path(parentPath.toRawUTF8());
             }
-            auto patch = loadPatch(content, splitIndex);
+            auto patch = loadPatch(content, openedEditors[0], splitIndex);
             if (patch && ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists())) {
                 patch->setTitle("Untitled Patcher");
                 patch->openInPluginMode = pluginMode;
@@ -1177,7 +1177,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     });
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
+pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* editor, int splitIndex)
 {
     // First, check if patch is already opened
     for (auto const& patch : patches) {
@@ -1215,29 +1215,26 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
     patches.add(newPatch);
     auto* patch = patches.getLast().get();
 
-    MessageManager::callAsync([this, patch, splitIdx]() mutable {
-        for (auto* editor : openedEditors) {
-            if (!editor || !editor->hasKeyboardFocus(true))
-                continue;
-
+    if(editor) {
+        MessageManager::callAsync([this, patch, splitIndex, _editor = Component::SafePointer<PluginEditor>(editor)]() mutable {
+            if(!_editor) return;
             // There are some subroutines that get called when we create a canvas, that will lock the audio thread
             // By locking it around this whole function, we can prevent slowdowns from constantly locking/unlocking the audio thread
             lockAudioThread();
-
-            auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
-
+            
+            auto* cnv = _editor->canvases.add(new Canvas(_editor.getComponent(), *patch, nullptr));
+            
             unlockAudioThread();
-
-            editor->addTab(cnv, splitIdx);
-        }
-    });
-
+            
+            _editor->addTab(cnv, splitIndex);
+        });
+    }
     patch->setCurrentFile(patchFile);
 
     return patch;
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, int splitIdx)
+pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, PluginEditor* editor, int splitIndex)
 {
     if (patchText.isEmpty())
         patchText = pd::Instance::defaultPatch;
@@ -1245,7 +1242,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, int splitIdx)
     auto patchFile = File::createTempFile(".pd");
     patchFile.replaceWithText(patchText);
 
-    auto patch = loadPatch(patchFile, splitIdx);
+    auto patch = loadPatch(patchFile, editor, splitIndex);
 
     // Set to unknown file when loading temp patch
     patch->setCurrentFile(File());
@@ -1387,7 +1384,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto directory = list[1].getSymbol();
 
             auto patch = File(directory).getChildFile(filename);
-            loadPatch(patch);
+            loadPatch(patch, openedEditors[0]);
         }
         break;
     }
@@ -1396,7 +1393,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto filename = list[0].getSymbol();
             auto directory = list[1].getSymbol();
 
-            auto patchPtr = loadPatch(defaultPatch);
+            auto patchPtr = loadPatch(defaultPatch, openedEditors[0]);
             patchPtr->setCurrentFile(File(directory).getChildFile(filename).getFullPathName());
             patchPtr->setTitle(filename);
         }

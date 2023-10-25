@@ -435,7 +435,7 @@ void Object::paintOverChildren(Graphics& g)
         g.drawEllipse(fakeInletBounds, 1.0f);
     }
 
-    if (consoleTarget == this) {
+    if (isSearchTarget || consoleTarget == this) {
         g.saveState();
 
         // Don't draw line over iolets!
@@ -443,20 +443,7 @@ void Object::paintOverChildren(Graphics& g)
             g.excludeClipRegion(iolet->getBounds().reduced(2));
         }
 
-        g.setColour(Colours::darkorange);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
-
-        g.restoreState();
-    }
-    if (isSearchTarget) {
-        g.saveState();
-
-        // Don't draw line over iolets!
-        for (auto& iolet : iolets) {
-            g.excludeClipRegion(iolet->getBounds().reduced(2));
-        }
-
-        g.setColour(Colours::violet);
+        g.setColour(findColour(PlugDataColour::signalColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
 
         g.restoreState();
@@ -815,7 +802,7 @@ void Object::mouseDown(MouseEvent const& e)
     }
 
     cnv->setSelected(this, true);
-
+    
     ds.componentBeingDragged = this;
 
     for (auto* object : cnv->getSelectionOfType<Object>()) {
@@ -831,6 +818,8 @@ void Object::mouseDown(MouseEvent const& e)
     }
 
     cnv->updateSidebarSelection();
+    cnv->patch.startUndoSequence("Drag");
+    isInsideUndoSequence = true;
 }
 
 void Object::mouseUp(MouseEvent const& e)
@@ -856,8 +845,13 @@ void Object::mouseUp(MouseEvent const& e)
         ds.wasResized = false;
         originalBounds.setBounds(0, 0, 0, 0);
     } else {
-        if (cnv->isGraph)
+        if (cnv->isGraph) {
+            if(isInsideUndoSequence)  {
+                isInsideUndoSequence = false;
+                cnv->patch.endUndoSequence("Drag");
+            }
             return;
+        }
 
         if (e.mods.isShiftDown() && ds.wasSelectedOnMouseDown && !ds.didStartDragging) {
             // Unselect object if selected
@@ -930,6 +924,10 @@ void Object::mouseUp(MouseEvent const& e)
     }
 
     selectionStateChanged = false;
+    if(isInsideUndoSequence) {
+        isInsideUndoSequence = false;
+        cnv->patch.endUndoSequence("Drag");
+    }
 }
 
 void Object::mouseDrag(MouseEvent const& e)
@@ -1073,6 +1071,7 @@ void Object::mouseDrag(MouseEvent const& e)
         // This handles the "unsnap" action when you shift-drag a connected object
         if (e.mods.isShiftDown() && selection.size() == 1 && e.getDistanceFromDragStart() > 15) {
             auto* object = selection.getFirst();
+            cnv->patch.startUndoSequence("Snap");
 
             Array<Connection*> inputs, outputs;
             for (auto* connection : cnv->connections) {
@@ -1146,6 +1145,8 @@ void Object::mouseDrag(MouseEvent const& e)
 
                 ds.objectSnappingInbetween = nullptr;
             }
+            
+            cnv->patch.endUndoSequence("Snap");
         }
 
         // Behaviour for shift-dragging objects over
@@ -1358,7 +1359,7 @@ void Object::openHelpPatch() const
         }
 
         cnv->pd->lockAudioThread();
-        cnv->pd->loadPatch(file);
+        cnv->pd->loadPatch(file, cnv->editor, -1);
         cnv->pd->unlockAudioThread();
 
         return;

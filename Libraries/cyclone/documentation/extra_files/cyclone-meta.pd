@@ -8,5 +8,5 @@
 #X text 26 194 HELP_PATCHES_AUTHOR: Alexandre Torres Porres, f 60;
 #X text 26 165 CURRENT DEVELOPERS (since february 2016): Alexandre Torres Porres \, Derek Kwan and Matt Barber, f 60;
 #X text 26 135 FOLLOWING DEVELOPERS: Hans-Christoph Steiner (2005-2013) and Fred Jan Kraan (dec/2014 - feb/2016);
-#X text 26 66 VERSION: 0.7-1, f 60;
-#X text 26 84 RELEASE_DATE: Unreleased, f 60;
+#X text 26 66 VERSION: 0.8-0, f 60;
+#X text 26 84 RELEASE_DATE: Released October 22nd 2023, f 60;

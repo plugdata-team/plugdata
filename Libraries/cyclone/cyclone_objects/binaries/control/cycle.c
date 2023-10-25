@@ -84,7 +84,7 @@ static void cycle_list(t_cycle *x, t_symbol *s, int ac, t_atom *av)
 
 static void cycle_anything(t_cycle *x, t_symbol *s, int ac, t_atom *av)
 {
-    if (s /*&& s != &s*/)
+    if (s && s != &s)
     {
        if(ac > 1)  cycle_symbol(x, s);  /* CHECKED */
        else

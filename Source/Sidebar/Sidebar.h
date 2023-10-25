@@ -11,7 +11,7 @@
 
 class Console;
 class Inspector;
-class DocumentBrowser;
+class DocumentationBrowser;
 class AutomationPanel;
 class SearchPanel;
 class PluginProcessor;
@@ -133,7 +133,7 @@ private:
 
     std::unique_ptr<Console> console;
     std::unique_ptr<Inspector> inspector;
-    std::unique_ptr<DocumentBrowser> browser;
+    std::unique_ptr<DocumentationBrowser> browser;
     std::unique_ptr<AutomationPanel> automationPanel;
     std::unique_ptr<SearchPanel> searchPanel;
 

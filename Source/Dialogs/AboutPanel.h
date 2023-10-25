@@ -23,6 +23,7 @@ public:
     AboutPanel()
     {
         credits.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        credits.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         credits.setReadOnly(true);
         credits.setMultiLine(true);
         credits.setText(creditsText);
@@ -70,10 +71,10 @@ public:
         g.setImageResamplingQuality(Graphics::mediumResamplingQuality);
 
         auto creditsBounds = credits.getBounds().expanded(5);
-        g.setColour(findColour(TextEditor::backgroundColourId));
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         PlugDataLook::fillSmoothedRectangle(g, creditsBounds.toFloat(), Corners::largeCornerRadius);
 
-        g.setColour(findColour(TextEditor::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), creditsBounds.toFloat(), Corners::largeCornerRadius);
     }
 

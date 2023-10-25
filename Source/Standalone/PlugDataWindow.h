@@ -559,6 +559,14 @@ public:
     }
 #endif
 
+#if JUCE_WINDOWS
+    void paintOverChildren(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+    }
+#endif
+
     void activeWindowStatusChanged() override
     {
         repaint();
@@ -743,6 +751,7 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
     };
 
+    public:
     MainContentComponent* mainComponent = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)
