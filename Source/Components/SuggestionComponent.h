@@ -791,32 +791,65 @@ private:
         
     Array<std::tuple<String, String, String>> findNearbyMethods(const String& toSearch)
     {
-        Array<std::tuple<Object*, int>> objects;
+        Array<std::tuple<String, ValueTree, int>> objects;
         auto* cnv = currentObject->cnv;
         for(auto* obj : cnv->objects) {
-            if(obj == currentObject) continue;
-            objects.add({obj, currentObject->getPosition().getDistanceFrom(obj->getPosition())});
-        }
-        
-        std::sort(objects.begin(), objects.end(), [](const auto& a, const auto& b){
-            return std::get<1>(a) > std::get<1>(b);
-        });
-                        
-        Array<std::tuple<String, String, String>> nearbyMethods;
-        for(auto& [object, distance] : objects)
-        {
-            if(distance > 300) break;
+            int distance = currentObject->getPosition().getDistanceFrom(obj->getPosition());
+            if(!obj->getPointer() || obj == currentObject || distance > 300) continue;
             
-            auto objectName = object->gui->getType();
+            auto objectName = obj->gui->getType();
+            auto alreadyExists = std::find_if(objects.begin(), objects.end(), [objectName](const auto& toCompare){
+                return std::get<0>(toCompare) == objectName;
+            }) != objects.end();
+            
+            if(alreadyExists) 
+                continue;
+            
             auto info = cnv->pd->objectLibrary->getObjectInfo(objectName);
             auto methods = info.getChildWithName("methods");
-            
+            objects.add({objectName, methods, distance});
+        }
+        
+        // Sort by distance
+        std::sort(objects.begin(), objects.end(), [](const auto& a, const auto& b){
+            return std::get<2>(a) > std::get<2>(b);
+        });
+                  
+        // Look for object name matches
+        Array<std::tuple<String, String, String>> nearbyMethods;
+        for(auto& [objectName, methods, distance] : objects)
+        {
+            for(auto method : methods)
+            {
+                if(objectName.contains(toSearch)) {
+                    auto methodName = method.getProperty("type").toString();
+                    auto description = method.getProperty("description").toString();
+                    nearbyMethods.add({objectName, methodName, description});
+                }
+            }
+        }
+        
+        // Look for method name matches
+        for(auto& [objectName, methods, distance] : objects)
+        {
             for(auto method : methods)
             {
                 auto methodName = method.getProperty("type").toString();
-                auto description = method.getProperty("description").toString();
-                
                 if(methodName.contains(toSearch)) {
+                    auto description = method.getProperty("description").toString();
+                    nearbyMethods.add({objectName, methodName, description});
+                }
+            }
+        }
+        
+        // Look for description matches
+        for(auto& [objectName, methods, distance] : objects)
+        {
+            for(auto method : methods)
+            {
+                auto description = method.getProperty("description").toString();
+                if(description.contains(toSearch)) {
+                    auto methodName = method.getProperty("type").toString();
                     nearbyMethods.add({objectName, methodName, description});
                 }
             }

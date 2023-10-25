@@ -213,7 +213,15 @@ public:
                 break;
             }
         }
-        repaint();
+
+        // For some reason we need to repaint the whole graph to make this work inside a GOP
+        if(auto* graph = cnv->findParentComponentOfClass<GraphOnParent>())
+        {
+            graph->repaint();
+        }
+        else {
+            repaint();
+        }
     }
 
     void valueChanged(Value& v) override

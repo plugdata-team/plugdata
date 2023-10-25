@@ -557,7 +557,7 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
     for (auto& path : files) {
         auto file = File(path);
         if (file.exists() && file.hasFileExtension("pd")) {
-            pd->loadPatch(file, this);
+            pd->loadPatch(file, this, -1);
             SettingsFile::getInstance()->addToRecentlyOpened(file);
         }
     }
@@ -636,7 +636,7 @@ void PluginEditor::openProject()
 {
     Dialogs::showOpenDialog([this](File& result){
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
-            pd->loadPatch(result, this);
+            pd->loadPatch(result, this, -1);
             SettingsFile::getInstance()->addToRecentlyOpened(result);
         }
     }, true, false, "*.pd", "Patch");
