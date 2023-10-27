@@ -67,7 +67,7 @@ void ObjectGrid::propertyChanged(String const& name, var const& value)
 
 Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 {
-    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0) {
+    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0 || !gridEnabled) {
         clearIndicators();
         return dragOffset;
     }
@@ -201,7 +201,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 
 Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds)
 {
-    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0) {
+    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0 || !gridEnabled) {
         clearIndicators();
         return dragOffset;
     }
