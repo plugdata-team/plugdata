@@ -95,7 +95,7 @@ struct ExporterBase : public Component
                 if (result.getParentDirectory().exists()) {
                     startExport(result);
                 }
-            }, "HeavyExport");
+            }, "", "HeavyExport", true);
         };
     }
 

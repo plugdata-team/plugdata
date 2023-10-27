@@ -608,7 +608,7 @@ void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelect
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
     if(!initialFile.exists()) initialFile = ProjectInfo::appDataDir;
     
-    fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog);
+    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog);
 
     auto openChooserFlags = FileBrowserComponent::openMode;
     
@@ -625,7 +625,7 @@ void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelect
     });
 }
 
-void Dialogs::showSaveDialog(std::function<void(File&)> callback, const String& extension, const String& lastFileId)
+void Dialogs::showSaveDialog(std::function<void(File&)> callback, const String& extension, const String& lastFileId, bool directoryMode)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;

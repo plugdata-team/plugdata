@@ -823,7 +823,7 @@ public:
                     if (result.getParentDirectory().exists()) {
                         label.setText(result.getFullPathName(), sendNotification);
                     }
-                });
+                }, "", "");
             };
         }
 

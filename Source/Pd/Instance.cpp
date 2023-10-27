@@ -775,7 +775,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                     lockAudioThread();
                     pd_typedmess(obj, generateSymbol(callback), 1, argv);
                     unlockAudioThread();
-                }, "openpanel");
+                }, "", "openpanel");
             });
     }
 }

@@ -874,7 +874,7 @@ public:
                         pd->settingsFile->setProperty("browser_path", path);
                         directory.setDirectory(path, true, true);
                     }
-                }, false, true, "DocumentationFileChooser");
+                }, false, true, "", "DocumentationFileChooser");
             };
 
             auto resetFolderCallback = [this]() {

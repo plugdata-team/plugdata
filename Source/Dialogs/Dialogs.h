@@ -190,9 +190,9 @@ struct Dialogs {
 
     static PopupMenu createObjectMenu(PluginEditor* parent);
     
-    static void showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, const String& lastFileId = "", const String& extension = "");
+    static void showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, const String& lastFileId, const String& extension);
 
-    static void showSaveDialog(std::function<void(File&)> callback, const String& extension = "", const String& lastFileId = "");
+    static void showSaveDialog(std::function<void(File&)> callback, const String& extension, const String& lastFileId, bool directoryMode = false);
     
     static inline std::unique_ptr<FileChooser> fileChooser = nullptr;
 };
