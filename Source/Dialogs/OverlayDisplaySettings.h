@@ -100,7 +100,7 @@ public:
             auto bounds = Rectangle<int>(4, 0, 30, 30);
             
             textLabel.setBounds(bounds.withWidth(getWidth() / 2.0));
-            bounds.translate((getWidth() / 2.0) - 8, 0);
+            bounds.translate((getWidth() / 2.0) - 12, 0);
             
             buttons[Edit]->setBounds(bounds);
             bounds.translate(25, 0);
@@ -181,10 +181,6 @@ public:
         
         for(auto& bounds : std::vector<Rectangle<int>>{firstPanelBounds, secondPanelBounds, thirdPanelBounds})
         {
-            Path p;
-            p.addRoundedRectangle(bounds.reduced(2.0f), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
-            
             g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
             g.fillRoundedRectangle(bounds.toFloat(), Corners::largeCornerRadius);
 

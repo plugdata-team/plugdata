@@ -809,7 +809,6 @@ public:
             : PropertiesPanelProperty(propertyName)
             , property(value)
         {
-
             label.setEditable(true, false);
             label.getTextValue().referTo(property);
             label.addMouseListener(this, true);
