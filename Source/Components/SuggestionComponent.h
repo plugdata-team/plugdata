@@ -927,7 +927,8 @@ private:
         "bpclone",
         "libpd_receive",
         "out.mc.hip~",
-        "pvoc~"
+        "pvoc~",
+        "gran~"
     };
 
     int windowMargin;
