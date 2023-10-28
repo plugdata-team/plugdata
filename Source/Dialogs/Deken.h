@@ -815,13 +815,9 @@ private:
             addChildComponent(uninstallButton);
             addChildComponent(addToPathButton);
 
-            installButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
-            uninstallButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
-            addToPathButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
-
-            installButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
-            uninstallButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
-            addToPathButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
+            installButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            uninstallButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            addToPathButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
             installButton.setTooltip("Install package");
             uninstallButton.setTooltip("Uninstall package");

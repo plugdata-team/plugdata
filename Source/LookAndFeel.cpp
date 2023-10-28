@@ -281,6 +281,7 @@ void PlugDataLook::drawTextButtonBackground(Graphics& g, Button& button, bool sh
     auto cornerSize = Corners::defaultCornerRadius;
     g.setColour(backgroundColour);
     fillSmoothedRectangle(g, button.getLocalBounds().toFloat(), cornerSize);
+    jassertfalse; // I think we don't use this anymore?
 }
 
 void PlugDataLook::drawToolbarButtonBackground(Graphics& g, Button& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)

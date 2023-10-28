@@ -37,7 +37,7 @@ public:
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
 
-        flashButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
+        flashButton.setColour(ComboBox::outlineColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
         exportTypeValue.addListener(this);
         targetBoardValue.addListener(this);

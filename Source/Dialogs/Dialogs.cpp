@@ -150,14 +150,25 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback)
             : label("", title)
         {
-            setSize(400, 200);
+            setSize(375, 200);
+            
+            label.setJustificationType(Justification::centred);
+            label.setFont(Fonts::getBoldFont().withHeight(14.0f));
+            
             addAndMakeVisible(label);
             addAndMakeVisible(cancel);
             addAndMakeVisible(okay);
+            
+            auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
 
-            cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-            okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-
+            cancel.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+            cancel.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+            cancel.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            
+            okay.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+            okay.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+            okay.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            
             cancel.onClick = [dialog, callback] {
                 callback(false);
                 dialog->closeDialog();
