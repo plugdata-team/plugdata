@@ -947,7 +947,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
 
-    auto* patchesTree = new XmlElement("Patches");
+    auto patchesTree = new XmlElement("Patches");
 
     for (auto const& patch : patches) {
 
@@ -997,13 +997,13 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     PlugDataParameter::saveStateInformation(xml, getParameters());
     
     // store additional extra-data in DAW session if they exist.
-    bool extra_data_stored = false; 
+    bool extraDataStored = false;
     if (extraData)  {
-        if (extraData->getNumChildElements()>0) {
+        if (extraData->getNumChildElements() > 0) {
             xml.addChildElement(extraData);
-            extra_data_stored = true;
-            }
+            extraDataStored = true;
         }
+    }
 
     MemoryBlock xmlBlock;
     copyXmlToBinary(xml, xmlBlock);
@@ -1012,9 +1012,9 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
     
     // then detach extraData XmlElement from temporary tree xml for later re-use
-    if (extra_data_stored)  {   
+    if (extraDataStored)  {   
         xml.removeChildElement (extraData, false);
-        }
+    }
 
 }
 
@@ -1572,8 +1572,8 @@ void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
     
     if (extraData) {
      
-        int const nchilds = extraData->getNumChildElements(); 
-        if (nchilds > 0)    {
+        int const numChildren = extraData->getNumChildElements();
+        if (numChildren > 0)    {
             // Searching if a previously created child element exists, with same name as vec[0]. If true, delete it.
                 XmlElement* list = extraData->getChildByName(child_name);
                 if (list)
