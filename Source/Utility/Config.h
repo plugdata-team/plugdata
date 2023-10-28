@@ -65,6 +65,34 @@ inline void setValueExcludingListener(Value& parameter, var const& value, Value:
     parameter.addListener(listener);
 }
 
+
+static inline String convertURLtoUTF8(const String& input) {
+    StringArray tokens;
+    tokens.addTokens(input, " ", "");
+    String output;
+
+    for (int i = 0; i < tokens.size(); ++i) {
+        String token = tokens[i];
+
+        if (token.startsWithChar('#')) {
+            // Extract the hex value and convert it to a character
+            auto hexString = token.substring(1);
+            int hexValue;
+            sscanf(hexString.toRawUTF8(), "%x", &hexValue);
+            output += String::charToString(static_cast<wchar_t>(hexValue));
+            output += token.substring(3);
+        } else {
+            output += token;
+        }
+
+        if (i < tokens.size() - 1) {
+            output += " ";
+        }
+    }
+
+    return output.trimEnd();
+}
+
 static inline String getRelativeTimeDescription(String const& timestampString)
 {
     StringArray dateAndTime = StringArray::fromTokens(timestampString, true);

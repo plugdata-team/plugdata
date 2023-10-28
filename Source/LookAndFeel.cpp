@@ -1048,7 +1048,7 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
     AttributedString s;
     s.setJustification(Justification::centredLeft);
 
-    auto lines = StringArray::fromLines(text);
+    auto lines = StringArray::fromLines(convertURLtoUTF8(text));
 
     for (auto const& line : lines) {
         if (line.contains("(") && line.contains(")")) {

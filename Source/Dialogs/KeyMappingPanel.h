@@ -161,7 +161,7 @@ private:
         void paintButton(Graphics& g, bool /*isOver*/, bool /*isDown*/) override
         {
             getLookAndFeel().drawKeymapChangeButton(g, getWidth(), getHeight(), *this,
-                keyNum >= 0 ? getName() : String());
+                keyNum >= 0 ? convertURLtoUTF8(getName()) : String());
         }
 
         void clicked() override
