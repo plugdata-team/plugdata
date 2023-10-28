@@ -123,8 +123,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (e.getEventRelativeTo(viewedComponent.get()).getMouseDownY() < 40) {
+        if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40)) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
+            dragging = true;
         } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
             closeDialog();
         }
@@ -132,11 +133,18 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (e.getEventRelativeTo(viewedComponent.get()).getMouseDownY() < 40) {
+        if (dragging) {
             dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
         }
     }
+    
+    void mouseUp(MouseEvent const& e) override
+    {
+        dragging = false;
+    }
 
+    
+    
     bool keyPressed(KeyPress const& key) override
     {
         if (key == KeyPress::escapeKey) {
@@ -161,6 +169,7 @@ public:
     std::unique_ptr<Button> closeButton = nullptr;
     std::unique_ptr<Dialog>* owner;
 
+    bool dragging = false;
     int backgroundMargin = 0;
 };
 

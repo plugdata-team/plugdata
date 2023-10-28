@@ -72,37 +72,51 @@ struct pd::Instance::internal {
 
     static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, pitch, velocity]() mutable { ptr->processMidiEvent({ midievent::NOTEON, channel, pitch, velocity }); });
+        ptr->enqueueFunctionAsync([ptr, channel, pitch, velocity]() mutable {
+            ptr->receiveNoteOn(channel + 1, pitch, velocity);
+        });
     }
 
     static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, controller, value]() mutable { ptr->processMidiEvent({ midievent::CONTROLCHANGE, channel, controller, value }); });
+        ptr->enqueueFunctionAsync([ptr, channel, controller, value]() mutable { 
+            ptr->receiveControlChange(channel + 1, controller, value);
+        });
     }
 
     static void instance_multi_programchange(pd::Instance* ptr, int channel, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({ midievent::PROGRAMCHANGE, channel, value, 0 }); });
+        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable {
+            ptr->receiveProgramChange(channel + 1, value);
+        });
     }
 
     static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({ midievent::PITCHBEND, channel, value, 0 }); });
+        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable {
+            ptr->receivePitchBend(channel + 1, value);
+        });
     }
 
     static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({ midievent::AFTERTOUCH, channel, value, 0 }); });
+        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { 
+            ptr->receiveAftertouch(channel + 1, value);
+        });
     }
 
     static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, pitch, value]() mutable { ptr->processMidiEvent({ midievent::POLYAFTERTOUCH, channel, pitch, value }); });
+        ptr->enqueueFunctionAsync([ptr, channel, pitch, value]() mutable { 
+            ptr->receivePolyAftertouch(channel + 1, pitch, value);
+        });
     }
 
     static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte)
     {
-        ptr->enqueueFunctionAsync([ptr, port, byte]() mutable { ptr->processMidiEvent({ midievent::MIDIBYTE, port, byte, 0 }); });
+        ptr->enqueueFunctionAsync([ptr, port, byte]() mutable { 
+            ptr->receiveMidiByte(port + 1, byte);
+        });
     }
 
     static void instance_multi_print(pd::Instance* ptr, void* object, char const* s)
@@ -471,35 +485,6 @@ void Instance::processMessage(Message mess)
         // JYG added This
     } else if (mess.destination == "databuffer") {
         fillDataBuffer(mess.list);
-    }
-}
-
-void Instance::processMidiEvent(midievent event)
-{
-    switch (event.type) {
-    case midievent::NOTEON:
-        receiveNoteOn(event.midi1 + 1, event.midi2, event.midi3);
-        break;
-    case midievent::CONTROLCHANGE:
-        receiveControlChange(event.midi1 + 1, event.midi2, event.midi3);
-        break;
-    case midievent::PROGRAMCHANGE:
-        receiveProgramChange(event.midi1 + 1, event.midi2);
-        break;
-    case midievent::PITCHBEND:
-        receivePitchBend(event.midi1 + 1, event.midi2);
-        break;
-    case midievent::AFTERTOUCH:
-        receiveAftertouch(event.midi1 + 1, event.midi2);
-        break;
-    case midievent::POLYAFTERTOUCH:
-        receivePolyAftertouch(event.midi1 + 1, event.midi2, event.midi3);
-        break;
-    case midievent::MIDIBYTE:
-        receiveMidiByte(event.midi1, event.midi2);
-        break;
-    default:
-        break;
     }
 }
 
