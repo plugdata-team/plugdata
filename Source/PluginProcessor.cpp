@@ -91,9 +91,9 @@ PluginProcessor::PluginProcessor()
     addParameter(volumeParameter);
     volume = volumeParameter->getValuePointer();
 
-    // JYG added this
-    m_temp_xml = nullptr;
-
+    // XML tree for storing additional data in DAW session
+    extraData = new XmlElement ("ExtraData");
+   
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
         auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false, n + 1, 0.0f, 1.0f);
@@ -947,7 +947,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
 
-    auto* patchesTree = new XmlElement("Patches");
+    auto patchesTree = new XmlElement("Patches");
 
     for (auto const& patch : patches) {
 
@@ -994,21 +994,28 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     xml.addChildElement(patchesTree);
 
-    // JYG added This
-    m_temp_xml = &xml;
-    // signal to patches that we need to collect extra data to save into the host session
-    sendMessage("from_plugdata", "save", {});
-
     PlugDataParameter::saveStateInformation(xml, getParameters());
+    
+    // store additional extra-data in DAW session if they exist.
+    bool extraDataStored = false;
+    if (extraData)  {
+        if (extraData->getNumChildElements() > 0) {
+            xml.addChildElement(extraData);
+            extraDataStored = true;
+        }
+    }
 
     MemoryBlock xmlBlock;
     copyXmlToBinary(xml, xmlBlock);
 
-    // JYG added this
-    m_temp_xml = nullptr;
-
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
+    
+    // then detach extraData XmlElement from temporary tree xml for later re-use
+    if (extraDataStored)  {   
+        xml.removeChildElement (extraData, false);
+    }
+
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
@@ -1151,7 +1158,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             }
         }
 
-        // JYG added this
+        // Retrieve additional extra-data from DAW
         parseDataBuffer(*xmlState);
     }
 
@@ -1555,48 +1562,53 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
 }
 
 // JYG added this
-void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& list)
+void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
 {
-    if (m_temp_xml) {
-        XmlElement* patch = m_temp_xml->getChildByName("patch");
-        if (!patch) {
-            patch = m_temp_xml->createNewChildElement("patch");
-            if (!patch) {
-                logMessage("Error:can't allocate memory for saving plugin state.");
-                return;
-            }
+    if (!vec[0].isSymbol()) {
+        logMessage("databuffer accepts only lists beginning with a Symbol atom");
+        return;
+    }
+    String child_name = String(vec[0].getSymbol());
+    
+    if (extraData) {
+     
+        int const numChildren = extraData->getNumChildElements();
+        if (numChildren > 0)    {
+            // Searching if a previously created child element exists, with same name as vec[0]. If true, delete it.
+                XmlElement* list = extraData->getChildByName(child_name);
+                if (list)
+                    extraData->removeChildElement (list, true) ;
         }
-        int const nchilds = patch->getNumChildElements();
-        XmlElement* preset = patch->createNewChildElement(String("list") + String(nchilds + 1));
-        if (preset) {
-            for (size_t i = 0; i < list.size(); ++i) {
-                if (list[i].isFloat()) {
-                    preset->setAttribute(String("float") + String(i + 1), list[i].getFloat());
-                } else if (list[i].isSymbol()) {
-                    preset->setAttribute(String("string") + String(i + 1), String(list[i].getSymbol()));
+        XmlElement* list = extraData->createNewChildElement(child_name);  
+        if (list) {
+            for (size_t i = 0; i < vec.size(); ++i) {
+                if (vec[i].isFloat()) {
+                    list->setAttribute(String("float") + String(i + 1), vec[i].getFloat());
+                } else if (vec[i].isSymbol()) {
+                    list->setAttribute(String("string") + String(i + 1), String(vec[i].getSymbol()));
                 } else {
-                    preset->setAttribute(String("atom") + String(i + 1), String("unknown"));
+                    list->setAttribute(String("atom") + String(i + 1), String("unknown"));
                 }
             }
         } else {
             logMessage("Error: can't allocate memory for saving plugin databuffer.");
         }
     } else {
-        logMessage("Error, databuffer method should be called after databuffer save notification.");
+        logMessage("Error, databuffer extraData has not been allocated.");
     }
 }
 
 void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 {
-    // was : void CamomileAudioProcessor::loadInformation(XmlElement const& xml)
+    // source : void CamomileAudioProcessor::loadInformation(XmlElement const& xml)
 
     bool loaded = false;
-    XmlElement const* patch = xml.getChildByName(juce::StringRef("patch"));
-    if (patch) {
-        int const nlists = patch->getNumChildElements();
+    XmlElement const* extra_data = xml.getChildByName(juce::StringRef("ExtraData"));
+    if (extra_data) {
+        int const nlists = extra_data->getNumChildElements();
         std::vector<pd::Atom> vec;
         for (int i = 0; i < nlists; ++i) {
-            XmlElement const* list = patch->getChildElement(i);
+            XmlElement const* list = extra_data->getChildElement(i);
             if (list) {
                 int const natoms = list->getNumAttributes();
                 vec.resize(natoms);
