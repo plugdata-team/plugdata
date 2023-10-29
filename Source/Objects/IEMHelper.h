@@ -491,12 +491,12 @@ public:
 
     void setLabelText(String newText)
     {
+        
         if (newText.isEmpty())
-            newText = "empty";
+            newText = String("empty");
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            iemgui->x_lab_unexpanded = pd->generateSymbol(newText);
-            iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
+            iemgui_label(static_cast<void*>(iemgui->x_glist), iemgui.get(), pd->generateSymbol(newText));
         }
     }
 

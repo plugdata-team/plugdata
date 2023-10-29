@@ -15,12 +15,12 @@ public:
     File customBoardDefinition;
 
     TextButton flashButton = TextButton("Flash");
-    PropertiesPanel::Property* usbMidiProperty;
+    PropertiesPanelProperty* usbMidiProperty;
 
     DaisyExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
-        Array<PropertiesPanel::Property*> properties;
+        Array<PropertiesPanelProperty*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Simple", "Custom JSON..." }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
@@ -37,7 +37,10 @@ public:
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
 
-        flashButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
+        auto backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
+        flashButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        flashButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        flashButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
         exportTypeValue.addListener(this);
         targetBoardValue.addListener(this);

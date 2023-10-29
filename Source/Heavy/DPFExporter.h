@@ -18,13 +18,13 @@ public:
     Value exportTypeValue = Value(var(2));
     Value pluginTypeValue = Value(var(1));
 
-    PropertiesPanel::Property* midiinProperty;
-    PropertiesPanel::Property* midioutProperty;
+    PropertiesPanelProperty* midiinProperty;
+    PropertiesPanelProperty* midioutProperty;
 
     DPFExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
-        Array<PropertiesPanel::Property*> properties;
+        Array<PropertiesPanelProperty*> properties;
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
         properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
 
@@ -33,7 +33,7 @@ public:
         midioutProperty = new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, { "No", "yes" });
         properties.add(midioutProperty);
 
-        Array<PropertiesPanel::Property*> pluginFormats;
+        Array<PropertiesPanelProperty*> pluginFormats;
 
         pluginFormats.add(new PropertiesPanel::BoolComponent("LV2", lv2EnableValue, { "No", "Yes" }));
         lv2EnableValue.addListener(this);

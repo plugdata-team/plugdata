@@ -101,6 +101,8 @@ public:
     void sendParameters();
 
     bool isInPluginMode();
+        
+    Array<PluginEditor*> getEditors() const;
 
     void messageEnqueued() override;
     void performParameterChange(int type, String const& name, float value) override;
@@ -108,10 +110,10 @@ public:
     // Jyg added this
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
-    XmlElement* m_temp_xml;
+    std::unique_ptr<XmlElement> extraData;
 
-    pd::Patch::Ptr loadPatch(String patch, int splitIdx = -1);
-    pd::Patch::Ptr loadPatch(File const& patch, int splitIdx = -1);
+    pd::Patch::Ptr loadPatch(String patch, PluginEditor* editor, int splitIndex = 0);
+    pd::Patch::Ptr loadPatch(File const& patch, PluginEditor* editor, int splitIndex = 0);
 
     void titleChanged() override;
 
@@ -161,9 +163,10 @@ public:
     std::atomic<bool> enableInternalSynth = false;
 
     OwnedArray<PluginEditor> openedEditors;
-
+        
 private:
     void processInternal();
+
 
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 

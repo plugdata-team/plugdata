@@ -23,6 +23,7 @@ public:
     AboutPanel()
     {
         credits.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        credits.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         credits.setReadOnly(true);
         credits.setMultiLine(true);
         credits.setText(creditsText);
@@ -30,6 +31,20 @@ public:
         credits.setLineSpacing(1.1f);
         addAndMakeVisible(credits);
 
+        auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+        viewOnGithub.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        viewOnGithub.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        viewOnGithub.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        
+        reportIssue.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        reportIssue.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        reportIssue.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        
+        sponsor.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        sponsor.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        sponsor.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+        
         viewOnGithub.setButtonText("View on Github");
         reportIssue.setButtonText("Report issue");
         sponsor.setButtonText("Become a sponsor");
@@ -70,10 +85,10 @@ public:
         g.setImageResamplingQuality(Graphics::mediumResamplingQuality);
 
         auto creditsBounds = credits.getBounds().expanded(5);
-        g.setColour(findColour(TextEditor::backgroundColourId));
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         PlugDataLook::fillSmoothedRectangle(g, creditsBounds.toFloat(), Corners::largeCornerRadius);
 
-        g.setColour(findColour(TextEditor::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), creditsBounds.toFloat(), Corners::largeCornerRadius);
     }
 

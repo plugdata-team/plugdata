@@ -10,7 +10,7 @@
 #include "PluginProcessor.h"
 #include "Components/SearchEditor.h"
 #include "Sidebar/Palettes.h"
-#include "Sidebar/DocumentBrowser.h"
+#include "Sidebar/DocumentationBrowser.h"
 #include "Tabbar.h"
 #include "TabBarButtonComponent.h"
 
@@ -96,12 +96,6 @@ void ResizableTabbedComponent::itemDropped(SourceDetails const& dragSourceDetail
         auto patchData = patchWithSize[2].toString();
 
         cnv->dragAndDropPaste(patchData, mousePos, patchSize.x, patchSize.y);
-    } else if (auto docBrowserItem = dynamic_cast<DocumentBrowserItem*>(dragSourceDetails.sourceComponent.get())) {
-        // ALEX TODO: not implemented
-        // we also have an issue that the DocumentBrowserItem is a TreeViewItem which is a Juce class that uses DragAndDropContainer!
-        // so we wil need to somehow get that using ZoomableDragAndDropContainer?
-        // browser->pd->loadPatch(file);
-        // SettingsFile::getInstance()->addToRecentlyOpened(file);
     }
 }
 

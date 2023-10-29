@@ -35,7 +35,7 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Deken.h"
-#include "PatchStorage.h"
+//#include "PatchStorage.h"
 
 Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback)
 {
@@ -150,14 +150,24 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
         OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback)
             : label("", title)
         {
-            setSize(400, 200);
+            setSize(375, 200);
+            
+            label.setJustificationType(Justification::centred);
+            label.setFont(Fonts::getBoldFont().withHeight(14.0f));
+            
             addAndMakeVisible(label);
             addAndMakeVisible(cancel);
             addAndMakeVisible(okay);
-
-            cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-            okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-
+            
+            auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+            cancel.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+            cancel.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+            cancel.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            
+            okay.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+            okay.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+            okay.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            
             cancel.onClick = [dialog, callback] {
                 callback(false);
                 dialog->closeDialog();
@@ -234,10 +244,11 @@ void Dialogs::showDeken(PluginEditor* editor)
 
 void Dialogs::showPatchStorage(PluginEditor* editor)
 {
+    /*
     auto* dialog = new Dialog(&editor->openedDialog, editor, 800, 550, true);
     auto* dialogContent = new PatchStorage();
     dialog->setViewedComponent(dialogContent);
-    editor->openedDialog.reset(dialog);
+    editor->openedDialog.reset(dialog); */
 }
 
 StringArray DekenInterface::getExternalPaths()
@@ -607,7 +618,7 @@ void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelect
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
     if(!initialFile.exists()) initialFile = ProjectInfo::appDataDir;
     
-    fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog);
+    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog);
 
     auto openChooserFlags = FileBrowserComponent::openMode;
     
@@ -624,7 +635,7 @@ void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelect
     });
 }
 
-void Dialogs::showSaveDialog(std::function<void(File&)> callback, const String& extension, const String& lastFileId)
+void Dialogs::showSaveDialog(std::function<void(File&)> callback, const String& extension, const String& lastFileId, bool directoryMode)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
@@ -632,11 +643,11 @@ void Dialogs::showSaveDialog(std::function<void(File&)> callback, const String& 
     
     fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog);
 
-    auto saveChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories;
+    auto saveChooserFlags = FileBrowserComponent::saveMode;
     
     // TODO: checks if this still causes issues
 #if !JUCE_LINUX && !JUCE_BSD
-        saveChooserFlags |= FileBrowserComponent::warnAboutOverwriting;
+        saveChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(saveChooserFlags | FileBrowserComponent::warnAboutOverwriting);
 #endif
     
     fileChooser->launchAsync(saveChooserFlags,

@@ -55,7 +55,7 @@ public:
                         pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
                         pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
                     }
-                }, true, true, "LastPdLocation");
+                }, true, true, "", "LastPdLocation");
         } else {
             if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
                 auto pdPath = pdLocation.getFullPathName();

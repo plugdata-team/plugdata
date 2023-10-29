@@ -230,7 +230,7 @@ struct Interface {
 
         char* text;
         int len;
-        binbuf_gettext(pd_this->pd_gui->i_editor->copy_binbuf, &text, &len);
+        binbuf_gettext(libpd_this_instance()->pd_gui->i_editor->copy_binbuf, &text, &len);
         *size = len;
 
         glist_noselect(cnv);
@@ -241,7 +241,8 @@ struct Interface {
     static void paste(t_canvas* cnv, char const* buf)
     {
         size_t len = strlen(buf);
-        binbuf_text(pd_this->pd_gui->i_editor->copy_binbuf, buf, len);
+        
+        binbuf_text(libpd_this_instance()->pd_gui->i_editor->copy_binbuf, buf, len);
 
         canvas_setcurrent(cnv);
         pd_typedmess((t_pd*)cnv, gensym("paste"), 0, nullptr);
@@ -259,7 +260,7 @@ struct Interface {
     static void redo(t_canvas* cnv)
     {
         // Temporary fix... might cause us to miss a loadbang when recreating a canvas
-        pd_this->pd_newest = 0;
+        libpd_this_instance()->pd_newest = 0;
         if (!cnv->gl_editor)
             return;
 
@@ -746,11 +747,11 @@ private:
          the glist to reselect. */
         if (cnv->gl_editor->e_textedfor) {
             // t_gobj *selwas = x->gl_editor->e_selection->sel_what;
-            pd_this->pd_newest = 0;
+            libpd_this_instance()->pd_newest = 0;
             glist_noselect(cnv);
-            if (pd_this->pd_newest) {
+            if (libpd_this_instance()->pd_newest) {
                 for (y = cnv->gl_list; y; y = y->g_next)
-                    if (&y->g_pd == pd_this->pd_newest)
+                    if (&y->g_pd == libpd_this_instance()->pd_newest)
                         glist_select(cnv, y);
             }
         }

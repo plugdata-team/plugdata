@@ -149,10 +149,6 @@ public:
 
     void deselect()
     {
-        if (auto* target = Object::consoleTarget) {
-            Object::consoleTarget = nullptr;
-            target->repaint();
-        }
         console->selectedItems.clear();
         repaint();
     }
@@ -169,7 +165,6 @@ public:
                 : console(parent)
                 , idx(index)
             {
-
                 parent.addAndMakeVisible(this);
             }
 
@@ -178,44 +173,120 @@ public:
                 if (!e.mods.isShiftDown() && !e.mods.isCommandDown()) {
                     console.selectedItems.clear();
                 }
+                
+                auto& [object, message, type, length] = console.pd->getConsoleMessages()[idx];
+                if(e.mods.isPopupMenu())
+                {
+                    PopupMenu menu;
+                    menu.addItem("Copy", [this](){ console.copySelectionToClipboard(); });
+                    menu.addItem("Show origin", object != nullptr, false, [this, target = object](){ highlightSearchTarget(target); });
+                    menu.showMenuAsync(PopupMenu::Options());
+                }
 
                 console.selectedItems.addIfNotAlreadyThere(SafePointer(this));
                 console.repaint();
-
-                auto& [object, message, type, length] = console.pd->getConsoleMessages()[idx];
-                if (object) {
-                    highlightSearchTarget(object);
+            }
+            
+            
+            Array<Canvas*> getAllCanvases(PluginEditor* editor)
+            {
+                Array<Canvas*> allCanvases;
+                for(auto* split : editor->splitView.splits)
+                {
+                    auto* tabComponent = split->getTabComponent();
+                    for(int i = 0; i < tabComponent->getNumTabs(); i++)
+                    {
+                        allCanvases.add(tabComponent->getCanvas(i));
+                    }
+                    
                 }
+                
+                return allCanvases;
+            }
+            
+            t_glist* findSearchTargetRecursively(t_glist* glist, void* target)
+            {
+                for (auto* y = glist->gl_list; y; y = y->g_next) {
+                    if (pd_class(&y->g_pd) == canvas_class) {
+                        if(auto* subpatch = findSearchTargetRecursively(reinterpret_cast<t_glist*>(y), target))
+                        {
+                            return subpatch;
+                        }
+                    }
+                    if(y == target)
+                    {
+                        return glist;
+                    }
+                }
+                
+                return nullptr;
             }
 
             void highlightSearchTarget(void* target)
             {
-                auto* editor = findParentComponentOfClass<PluginEditor>();
-                auto* cnv = editor->getCurrentCanvas();
-                if (!cnv)
-                    return;
-
-                for (auto* object : cnv->objects) {
-
-                    if (object->getPointer() == target) {
-                        Object::consoleTarget = object;
-                        object->repaint();
-                    } else if (Object::consoleTarget == object) {
-                        Object::consoleTarget = nullptr;
-                        object->repaint();
+                t_glist* targetCanvas;
+                for (auto* glist = pd_getcanvaslist(); glist; glist = glist->gl_next) {
+                    auto* found = findSearchTargetRecursively(glist, target);
+                    if(found)
+                    {
+                        targetCanvas = found;
+                        break;
                     }
                 }
 
-                if (Object::consoleTarget) {
-                    if (auto* viewport = cnv->viewport.get()) {
-                        auto scale = getValue<float>(cnv->zoomScale);
-                        auto pos = Object::consoleTarget->getBounds().getCentre() * scale;
-
-                        pos.x -= viewport->getViewWidth() * 0.5f;
-                        pos.y -= viewport->getViewHeight() * 0.5f;
-
-                        viewport->setViewPosition(pos);
+                auto* editor = findParentComponentOfClass<PluginEditor>();
+                for(auto* cnv : getAllCanvases(editor))
+                {
+                    if(cnv->patch.getPointer().get() == targetCanvas)
+                    {
+                        for(auto* object : cnv->objects)
+                        {
+                            if(object->getPointer() == target)
+                            {
+                                Object::consoleTarget = object;
+                                object->repaint();
+                                break;
+                            }
+                        }
+                        if(Object::consoleTarget) {
+                            auto* viewport = cnv->viewport.get();
+                            auto scale = getValue<float>(cnv->zoomScale);
+                            auto pos = Object::consoleTarget->getBounds().getCentre() * scale;
+                            
+                            pos.x -= viewport->getViewWidth() * 0.5f;
+                            pos.y -= viewport->getViewHeight() * 0.5f;
+                            
+                            viewport->setViewPosition(pos);
+                            cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
+                            return;
+                        }
                     }
+                }
+                
+                auto* patch = new pd::Patch(targetCanvas, editor->pd, false);
+                auto* cnv = new Canvas(editor, patch);
+                editor->addTab(cnv);
+                
+                for(auto* object : cnv->objects)
+                {
+                    if(object->getPointer() == target)
+                    {
+                        Object::consoleTarget = object;
+                        object->repaint();
+                        break;
+                    }
+                }
+                
+                if(Object::consoleTarget) {
+                    auto* viewport = cnv->viewport.get();
+                    auto scale = getValue<float>(cnv->zoomScale);
+                    auto pos = Object::consoleTarget->getBounds().getCentre() * scale;
+                    
+                    pos.x -= viewport->getViewWidth() * 0.5f;
+                    pos.y -= viewport->getViewHeight() * 0.5f;
+                    
+                    viewport->setViewPosition(pos);
+                    cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
                 }
             }
 
@@ -296,20 +367,24 @@ public:
             selectedItems.clear();
             repaint();
         }
+        
+        void copySelectionToClipboard()
+        {
+            String textToCopy;
+            for (auto& item : selectedItems) {
+                if (!item.getComponent())
+                    continue;
+                textToCopy += std::get<1>(pd->getConsoleMessages()[item->idx]) + "\n";
+            }
+
+            SystemClipboard::copyTextToClipboard(textToCopy.trimEnd());
+        }
 
         bool keyPressed(KeyPress const& key) override
         {
             // Copy from console
             if (key == KeyPress('c', ModifierKeys::commandModifier, 0)) {
-                String textToCopy;
-                for (auto& item : selectedItems) {
-                    if (!item.getComponent())
-                        continue;
-                    textToCopy += std::get<1>(pd->getConsoleMessages()[item->idx]) + "\n";
-                }
-
-                textToCopy.trimEnd();
-                SystemClipboard::copyTextToClipboard(textToCopy);
+                copySelectionToClipboard();
                 return true;
             }
 

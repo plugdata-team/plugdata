@@ -47,9 +47,12 @@ struct ExporterBase : public Component
     {
         addAndMakeVisible(exportButton);
 
-        exportButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
+        auto backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
+        exportButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        exportButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        exportButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
-        Array<PropertiesPanel::Property*> properties;
+        Array<PropertiesPanelProperty*> properties;
 
         auto* patchChooser = new PropertiesPanel::ComboComponent("Patch to export", inputPatchValue, { "Currently opened patch", "Other patch (browse)" });
         patchChooser->comboBox.setTextWhenNothingSelected("Choose a patch to export...");
@@ -95,7 +98,7 @@ struct ExporterBase : public Component
                 if (result.getParentDirectory().exists()) {
                     startExport(result);
                 }
-            }, "HeavyExport");
+            }, "", "HeavyExport", true);
         };
     }
 

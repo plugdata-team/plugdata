@@ -123,8 +123,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (e.getEventRelativeTo(viewedComponent.get()).getMouseDownY() < 40) {
+        if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40)) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
+            dragging = true;
         } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
             closeDialog();
         }
@@ -132,11 +133,18 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (e.getEventRelativeTo(viewedComponent.get()).getMouseDownY() < 40) {
+        if (dragging) {
             dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
         }
     }
+    
+    void mouseUp(MouseEvent const& e) override
+    {
+        dragging = false;
+    }
 
+    
+    
     bool keyPressed(KeyPress const& key) override
     {
         if (key == KeyPress::escapeKey) {
@@ -161,6 +169,7 @@ public:
     std::unique_ptr<Button> closeButton = nullptr;
     std::unique_ptr<Dialog>* owner;
 
+    bool dragging = false;
     int backgroundMargin = 0;
 };
 
@@ -190,9 +199,9 @@ struct Dialogs {
 
     static PopupMenu createObjectMenu(PluginEditor* parent);
     
-    static void showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, const String& lastFileId = "", const String& extension = "");
+    static void showOpenDialog(std::function<void(File&)> callback, bool canSelectFiles, bool canSelectDirectories, const String& lastFileId, const String& extension);
 
-    static void showSaveDialog(std::function<void(File&)> callback, const String& extension = "", const String& lastFileId = "");
+    static void showSaveDialog(std::function<void(File&)> callback, const String& extension, const String& lastFileId, bool directoryMode = false);
     
     static inline std::unique_ptr<FileChooser> fileChooser = nullptr;
 };

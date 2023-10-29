@@ -77,13 +77,18 @@ private:
 
 // Base classes for communication between parent and child classes
 class DocumentBrowserViewBase : public TreeView
-    , public DirectoryContentsDisplayComponent {
+    , public DirectoryContentsDisplayComponent, public DragAndDropContainer {
 
 public:
     explicit DocumentBrowserViewBase(DirectoryContentsList& listToShow)
         : DirectoryContentsDisplayComponent(listToShow)
         , bouncer(getViewport())
     {
+    }
+
+    bool shouldDropTextWhenDraggedExternally (const DragAndDropTarget::SourceDetails &sourceDetails, String &text) override
+    {
+        return false;
     }
 
     BouncingViewportAttachment bouncer;
@@ -165,10 +170,11 @@ public:
     }
     var getDragSourceDescription() override
     {
-        if (file.existsAsFile() && file.hasFileExtension("pd")) {
+        if (file.existsAsFile()) {
             return var(String(file.getFileName()));
         }
-        return var();
+        
+        return var(String());
     }
 
     void itemOpennessChanged(bool isNowOpen) override
@@ -461,6 +467,13 @@ public:
         bouncer.mouseWheelMove(e, d);
         repaint();
     }
+        
+    void dragOperationStarted (const DragAndDropTarget::SourceDetails &) override
+    {
+        DragAndDropContainer::performExternalDragDropOfFiles ({getSelectedFile().getFullPathName()}, false, this, nullptr);
+        setCurrentDragImage(ScaledImage());
+    }
+        
 
     /** Callback when the user double-clicks on a file in the browser. */
     void fileDoubleClicked(File const& file) override
@@ -468,7 +481,7 @@ public:
         if (file.isDirectory()) {
             file.revealToUser();
         } else if (file.existsAsFile() && file.hasFileExtension("pd")) {
-            browser->pd->loadPatch(file);
+            browser->pd->loadPatch(file, findParentComponentOfClass<PluginEditor>());
             SettingsFile::getInstance()->addToRecentlyOpened(file);
             lastUpdateTime = Time::getCurrentTime() + RelativeTime(2.0f);
         } else if (file.existsAsFile()) {
@@ -516,10 +529,9 @@ public:
             if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
                 auto alias = browser->directory.getDirectory().getChildFile(file.getFileName());
 
+                if (alias.exists()) continue;
+                
 #if JUCE_WINDOWS
-                if (alias.exists())
-                    alias.deleteRecursively();
-
                 // Symlinks on Windows are weird!
                 if (file.isDirectory()) {
 
@@ -650,6 +662,19 @@ public:
 
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
         g.fillRoundedRectangle(input.getBounds().reduced(6, 4).toFloat(), Corners::defaultCornerRadius);
+
+    }
+        
+    void paintOverChildren(Graphics& g) override
+    {
+        auto backgroundColour =  findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto transparentColour = backgroundColour.withAlpha(0.0f);
+
+        // Draw a gradient to fade the content out underneath the search input
+        g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 30.0f, transparentColour, 0.0f, 42.0f, false));
+        g.fillRect(Rectangle<int>(0, input.getBottom(), getWidth(), 12));
+        
+        Fonts::drawIcon(g, Icons::Search, 2, 1, 32, findColour(PlugDataColour::sidebarTextColourId), 12);
     }
 
     void lookAndFeelChanged() override
@@ -657,11 +682,6 @@ public:
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        Fonts::drawIcon(g, Icons::Search, 2, 1, 32, findColour(PlugDataColour::sidebarTextColourId), 12);
     }
 
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
@@ -772,10 +792,10 @@ private:
     SearchEditor input;
 };
 
-class DocumentBrowser : public DocumentBrowserBase {
+class DocumentationBrowser : public DocumentBrowserBase {
 
 public:
-    explicit DocumentBrowser(PluginProcessor* processor)
+    explicit DocumentationBrowser(PluginProcessor* processor)
         : DocumentBrowserBase(processor)
         , fileList(directory, this)
         , searchComponent(directory)
@@ -797,7 +817,7 @@ public:
 
         searchComponent.openFile = [this](File& result) {
             if (result.existsAsFile()) {
-                pd->loadPatch(result);
+                pd->loadPatch(result, findParentComponentOfClass<PluginEditor>());
                 SettingsFile::getInstance()->addToRecentlyOpened(result);
             }
         };
@@ -808,7 +828,7 @@ public:
             fileList.moveSelectedRow(1);
     }
 
-    ~DocumentBrowser() override
+    ~DocumentationBrowser() override
     {
         updateThread.stopThread(1000);
     }
@@ -854,7 +874,7 @@ public:
                         pd->settingsFile->setProperty("browser_path", path);
                         directory.setDirectory(path, true, true);
                     }
-                }, false, true, "DocumentationFileChooser");
+                }, false, true, "", "DocumentationFileChooser");
             };
 
             auto resetFolderCallback = [this]() {

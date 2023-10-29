@@ -55,7 +55,7 @@ public:
         propertiesPanel.addSection("Reset shortcuts", { resetMaxButton, resetPdButton });
 
         for (auto const& category : mappings.getCommandManager().getCommandCategories()) {
-            Array<PropertiesPanel::Property*> properties;
+            Array<PropertiesPanelProperty*> properties;
             for (auto command : mappings.getCommandManager().getCommandsInCategory(category)) {
                 properties.add(new KeyMappingProperty(*this, mappings.getCommandManager().getNameOfCommand(command), command));
             }
@@ -161,7 +161,7 @@ private:
         void paintButton(Graphics& g, bool /*isOver*/, bool /*isDown*/) override
         {
             getLookAndFeel().drawKeymapChangeButton(g, getWidth(), getHeight(), *this,
-                keyNum >= 0 ? getName() : String());
+                keyNum >= 0 ? convertURLtoUTF8(getName()) : String());
         }
 
         void clicked() override
@@ -309,10 +309,10 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChangeKeyButton)
     };
 
-    class KeyMappingProperty : public PropertiesPanel::Property {
+    class KeyMappingProperty : public PropertiesPanelProperty {
     public:
         KeyMappingProperty(KeyMappingComponent& kec, String const& name, CommandID command)
-            : PropertiesPanel::Property(name)
+            : PropertiesPanelProperty(name)
             , owner(kec)
             , commandID(command)
         {

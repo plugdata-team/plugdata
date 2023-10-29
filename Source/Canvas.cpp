@@ -650,6 +650,12 @@ void Canvas::mouseDown(MouseEvent const& e)
     else if (!editor->pluginMode) {
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
+    
+    if(auto* target = Object::consoleTarget)
+    {
+        Object::consoleTarget = nullptr;
+        target->repaint();
+    }
 }
 
 void Canvas::mouseDrag(MouseEvent const& e)
@@ -1091,7 +1097,7 @@ void Canvas::duplicateSelection()
         }
         bool overlap = true;
         int moveDistance = 0;
-        while (overlap) {
+        while (overlap && moveDistance < 300) {
             overlap = false;
             for (auto* object : objects) {
                 if (!duplicated.isEmpty() && !duplicated.contains(object) && duplicated[0]->getBounds().translated(moveDistance, 0).intersects(object->getBounds())) {

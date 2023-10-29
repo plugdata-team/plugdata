@@ -91,9 +91,9 @@ PluginProcessor::PluginProcessor()
     addParameter(volumeParameter);
     volume = volumeParameter->getValuePointer();
 
-    // JYG added this
-    m_temp_xml = nullptr;
-
+    // XML tree for storing additional data in DAW session
+    extraData = std::make_unique<XmlElement>("ExtraData");
+   
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
         auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false, n + 1, 0.0f, 1.0f);
@@ -566,7 +566,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
             if (enableInternalSynth && (device > midiDeviceManager->getOutputDevices().size() || device == 0)) {
                 midiBufferInternalSynth.addEvent(message, 0);
             }
-            if (isPositiveAndBelow(device-1, midiDeviceManager->getOutputDevices().size())) {
+            if (isPositiveAndBelow(device, midiDeviceManager->getOutputDevices().size() + 1)) {
                 midiDeviceManager->sendMidiOutputMessage(device, message);
             }
         }
@@ -947,7 +947,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
 
-    auto* patchesTree = new XmlElement("Patches");
+    auto patchesTree = new XmlElement("Patches");
 
     for (auto const& patch : patches) {
 
@@ -994,21 +994,28 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     xml.addChildElement(patchesTree);
 
-    // JYG added This
-    m_temp_xml = &xml;
-    // signal to patches that we need to collect extra data to save into the host session
-    sendMessage("from_plugdata", "save", {});
-
     PlugDataParameter::saveStateInformation(xml, getParameters());
+    
+    // store additional extra-data in DAW session if they exist.
+    bool extraDataStored = false;
+    if (extraData)  {
+        if (extraData->getNumChildElements() > 0) {
+            xml.addChildElement(extraData.get());
+            extraDataStored = true;
+        }
+    }
 
     MemoryBlock xmlBlock;
     copyXmlToBinary(xml, xmlBlock);
 
-    // JYG added this
-    m_temp_xml = nullptr;
-
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
+    
+    // then detach extraData XmlElement from temporary tree xml for later re-use
+    if (extraDataStored)  {   
+        xml.removeChildElement(extraData.get(), false);
+    }
+
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
@@ -1024,7 +1031,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     // Close any opened patches
     MessageManager::callAsync([this]() {
-        for (auto* editor : openedEditors) {
+        for (auto* editor : getEditors()) {
             for (auto split : editor->splitView.splits) {
                 split->getTabComponent()->clearTabs();
             }
@@ -1066,7 +1073,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     auto openPatch = [this](String const& content, File const& location, bool pluginMode = false, int splitIndex = 0) {
         if (location.getFullPathName().isNotEmpty() && location.existsAsFile()) {
-            auto patch = loadPatch(location, splitIndex);
+            auto patch = loadPatch(location, openedEditors[0], splitIndex);
             if (patch) {
                 patch->setTitle(location.getFileName());
                 patch->openInPluginMode = pluginMode;
@@ -1076,7 +1083,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto parentPath = location.getParentDirectory().getFullPathName();
                 libpd_add_to_search_path(parentPath.toRawUTF8());
             }
-            auto patch = loadPatch(content, splitIndex);
+            auto patch = loadPatch(content, openedEditors[0], splitIndex);
             if (patch && ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists())) {
                 patch->setTitle("Untitled Patcher");
                 patch->openInPluginMode = pluginMode;
@@ -1151,7 +1158,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             }
         }
 
-        // JYG added this
+        // Retrieve additional extra-data from DAW
         parseDataBuffer(*xmlState);
     }
 
@@ -1160,7 +1167,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     delete[] xmlData;
 
     MessageManager::callAsync([this]() {
-        for (auto* editor : openedEditors) {
+        for (auto* editor : getEditors()) {
             editor->sidebar->updateAutomationParameters();
 
             if (editor->pluginMode && !editor->pd->isInPluginMode()) {
@@ -1170,14 +1177,14 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     });
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
+pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* editor, int splitIndex)
 {
     // First, check if patch is already opened
     for (auto const& patch : patches) {
         if (patch->getCurrentFile() == patchFile) {
 
             MessageManager::callAsync([this, patch]() mutable {
-                for (auto* editor : openedEditors) {
+                for (auto* editor : getEditors()) {
                     for (auto* cnv : editor->canvases) {
                         if (cnv->patch == *patch) {
                             cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
@@ -1208,29 +1215,26 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, int splitIdx)
     patches.add(newPatch);
     auto* patch = patches.getLast().get();
 
-    MessageManager::callAsync([this, patch, splitIdx]() mutable {
-        for (auto* editor : openedEditors) {
-            if (!editor || !editor->hasKeyboardFocus(true))
-                continue;
-
+    if(editor) {
+        MessageManager::callAsync([this, patch, splitIndex, _editor = Component::SafePointer<PluginEditor>(editor)]() mutable {
+            if(!_editor) return;
             // There are some subroutines that get called when we create a canvas, that will lock the audio thread
             // By locking it around this whole function, we can prevent slowdowns from constantly locking/unlocking the audio thread
             lockAudioThread();
-
-            auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
-
+            
+            auto* cnv = _editor->canvases.add(new Canvas(_editor.getComponent(), *patch, nullptr));
+            
             unlockAudioThread();
-
-            editor->addTab(cnv, splitIdx);
-        }
-    });
-
+            
+            _editor->addTab(cnv, splitIndex);
+        });
+    }
     patch->setCurrentFile(patchFile);
 
     return patch;
 }
 
-pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, int splitIdx)
+pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, PluginEditor* editor, int splitIndex)
 {
     if (patchText.isEmpty())
         patchText = pd::Instance::defaultPatch;
@@ -1238,7 +1242,7 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText, int splitIdx)
     auto patchFile = File::createTempFile(".pd");
     patchFile.replaceWithText(patchText);
 
-    auto patch = loadPatch(patchFile, splitIdx);
+    auto patch = loadPatch(patchFile, editor, splitIndex);
 
     // Set to unknown file when loading temp patch
     patch->setCurrentFile(File());
@@ -1261,7 +1265,7 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
 
     lnf->setTheme(themeTree);
 
-    for (auto* editor : openedEditors) {
+    for (auto* editor : getEditors()) {
         editor->sendLookAndFeelChange();
         editor->getTopLevelComponent()->repaint();
         editor->repaint();
@@ -1342,9 +1346,11 @@ void PluginProcessor::receivePolyAftertouch(int const channel, int const pitch, 
 
 void PluginProcessor::receiveMidiByte(int const port, int const byte)
 {
+    auto device = port >> 4;
+    
     if (midiByteIsSysex) {
         if (byte == 0xf7) {
-            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), port), audioAdvancement);
+            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), device), audioAdvancement);
             midiByteIndex = 0;
             midiByteIsSysex = false;
         } else {
@@ -1358,13 +1364,13 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     } else {
         // Handle single-byte messages
         if (midiByteIndex == 0 && byte >= 0xf8 && byte <= 0xff) {
-            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(static_cast<uint8>(byte)), port), audioAdvancement);
+            midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(static_cast<uint8>(byte)), device), audioAdvancement);
         }
         // Handle 3-byte messages
         else {
             midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
             if (midiByteIndex >= 3) {
-                midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(midiByteBuffer, 3), port), audioAdvancement);
+                midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage(midiByteBuffer, 3), device), audioAdvancement);
                 midiByteIndex = 0;
             }
         }
@@ -1380,7 +1386,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto directory = list[1].getSymbol();
 
             auto patch = File(directory).getChildFile(filename);
-            loadPatch(patch);
+            loadPatch(patch, openedEditors[0]);
         }
         break;
     }
@@ -1389,7 +1395,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
             auto filename = list[0].getSymbol();
             auto directory = list[1].getSymbol();
 
-            auto patchPtr = loadPatch(defaultPatch);
+            auto patchPtr = loadPatch(defaultPatch, openedEditors[0]);
             patchPtr->setCurrentFile(File(directory).getChildFile(filename).getFullPathName());
             patchPtr->setTitle(filename);
         }
@@ -1399,7 +1405,7 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
         bool dsp = list[0].getFloat();
         MessageManager::callAsync(
             [this, dsp]() mutable {
-                for (auto* editor : openedEditors) {
+                for (auto* editor : getEditors()) {
                     editor->statusbar->powerButton.setToggleState(dsp, dontSendNotification);
                 }
             });
@@ -1547,7 +1553,7 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
             pldParam->setUnscaledValueNotifyingHost(value);
 
             if (ProjectInfo::isStandalone) {
-                for (auto* editor : openedEditors) {
+                for (auto* editor : getEditors()) {
                     editor->sidebar->updateAutomationParameters();
                 }
             }
@@ -1556,48 +1562,53 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
 }
 
 // JYG added this
-void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& list)
+void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
 {
-    if (m_temp_xml) {
-        XmlElement* patch = m_temp_xml->getChildByName("patch");
-        if (!patch) {
-            patch = m_temp_xml->createNewChildElement("patch");
-            if (!patch) {
-                logMessage("Error:can't allocate memory for saving plugin state.");
-                return;
-            }
+    if (!vec[0].isSymbol()) {
+        logMessage("databuffer accepts only lists beginning with a Symbol atom");
+        return;
+    }
+    String child_name = String(vec[0].getSymbol());
+    
+    if (extraData) {
+     
+        int const numChildren = extraData->getNumChildElements();
+        if (numChildren > 0)    {
+            // Searching if a previously created child element exists, with same name as vec[0]. If true, delete it.
+                XmlElement* list = extraData->getChildByName(child_name);
+                if (list)
+                    extraData->removeChildElement (list, true) ;
         }
-        int const nchilds = patch->getNumChildElements();
-        XmlElement* preset = patch->createNewChildElement(String("list") + String(nchilds + 1));
-        if (preset) {
-            for (size_t i = 0; i < list.size(); ++i) {
-                if (list[i].isFloat()) {
-                    preset->setAttribute(String("float") + String(i + 1), list[i].getFloat());
-                } else if (list[i].isSymbol()) {
-                    preset->setAttribute(String("string") + String(i + 1), String(list[i].getSymbol()));
+        XmlElement* list = extraData->createNewChildElement(child_name);  
+        if (list) {
+            for (size_t i = 0; i < vec.size(); ++i) {
+                if (vec[i].isFloat()) {
+                    list->setAttribute(String("float") + String(i + 1), vec[i].getFloat());
+                } else if (vec[i].isSymbol()) {
+                    list->setAttribute(String("string") + String(i + 1), String(vec[i].getSymbol()));
                 } else {
-                    preset->setAttribute(String("atom") + String(i + 1), String("unknown"));
+                    list->setAttribute(String("atom") + String(i + 1), String("unknown"));
                 }
             }
         } else {
             logMessage("Error: can't allocate memory for saving plugin databuffer.");
         }
     } else {
-        logMessage("Error, databuffer method should be called after databuffer save notification.");
+        logMessage("Error, databuffer extraData has not been allocated.");
     }
 }
 
 void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 {
-    // was : void CamomileAudioProcessor::loadInformation(XmlElement const& xml)
+    // source : void CamomileAudioProcessor::loadInformation(XmlElement const& xml)
 
     bool loaded = false;
-    XmlElement const* patch = xml.getChildByName(juce::StringRef("patch"));
-    if (patch) {
-        int const nlists = patch->getNumChildElements();
+    XmlElement const* extra_data = xml.getChildByName(juce::StringRef("ExtraData"));
+    if (extra_data) {
+        int const nlists = extra_data->getNumChildElements();
         std::vector<pd::Atom> vec;
         for (int i = 0; i < nlists; ++i) {
-            XmlElement const* list = patch->getChildElement(i);
+            XmlElement const* list = extra_data->getChildElement(i);
             if (list) {
                 int const natoms = list->getNumAttributes();
                 vec.resize(natoms);
@@ -1626,9 +1637,28 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 
 void PluginProcessor::updateConsole(int numMessages, bool newWarning)
 {
-    for (auto* editor : openedEditors) {
+    for (auto* editor : getEditors()) {
         editor->sidebar->updateConsole(numMessages, newWarning);
     }
+}
+
+Array<PluginEditor*> PluginProcessor::getEditors() const
+{
+    Array<PluginEditor*> editors;
+    if(ProjectInfo::isStandalone)
+    {
+        for (auto* editor : openedEditors) {
+            editors.add(editor);
+        }
+    }
+    else {
+        if(auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
+        {
+            editors.add(editor);
+        }
+    }
+    
+    return editors;
 }
 
 void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
@@ -1642,7 +1672,7 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 
     pd::Patch::reloadPatch(changedPatch, except);
 
-    for (auto* editor : openedEditors) {
+    for (auto* editor : getEditors()) {
 
         // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
         Array<Component::SafePointer<Canvas>> canvases;
@@ -1666,7 +1696,7 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 
 void PluginProcessor::titleChanged()
 {
-    for (auto* editor : openedEditors) {
+    for (auto* editor : getEditors()) {
         for (auto split : editor->splitView.splits) {
             auto tabbar = split->getTabComponent();
             for (int n = 0; n < tabbar->getNumTabs(); n++) {

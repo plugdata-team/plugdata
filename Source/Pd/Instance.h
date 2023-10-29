@@ -150,21 +150,6 @@ class Instance {
         std::vector<pd::Atom> list;
     };
 
-    typedef struct midievent {
-        enum {
-            NOTEON,
-            CONTROLCHANGE,
-            PROGRAMCHANGE,
-            PITCHBEND,
-            AFTERTOUCH,
-            POLYAFTERTOUCH,
-            MIDIBYTE
-        } type;
-        int midi1;
-        int midi2;
-        int midi3;
-    } midievent;
-
 public:
     Instance(String const& symbol);
     Instance(Instance const& other) = delete;
@@ -250,7 +235,6 @@ public:
 
     void sendMessagesFromQueue();
     void processMessage(Message mess);
-    void processMidiEvent(midievent event);
     void processSend(dmessage mess);
 
     String getExtraInfo(File const& toOpen);

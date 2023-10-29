@@ -40,6 +40,8 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
 
     sys_lock();
     pd->muteConsole(true);
+    
+    canvas_create_editor(offlineCnv);
 
     objectRects.clear();
     totalSize.setBounds(0, 0, 0, 0);

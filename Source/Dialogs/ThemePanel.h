@@ -12,8 +12,22 @@ public:
     NewThemeDialog(Dialog* parent, std::function<void(int, String, String)> callback)
         : cb(std::move(callback))
     {
-        setSize(400, 200);
-
+        setSize(400, 170);
+        
+        label.setFont(Fonts::getBoldFont().withHeight(14.0f));
+        label.setJustificationType(Justification::centred);
+        
+        nameEditor.setJustification(Justification::centredLeft);
+        
+        auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+        ok.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        ok.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        ok.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        
+        cancel.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        cancel.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        cancel.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        
         addAndMakeVisible(label);
         addAndMakeVisible(cancel);
         addAndMakeVisible(ok);
@@ -56,9 +70,6 @@ public:
 
         baseThemeSelector.setSelectedItemIndex(0);
 
-        cancel.changeWidthToFitText();
-        ok.changeWidthToFitText();
-
         addAndMakeVisible(nameLabel);
         addAndMakeVisible(baseThemeLabel);
 
@@ -70,11 +81,11 @@ public:
 
     void resized() override
     {
-        label.setBounds(10, 7, 200, 30);
+        label.setBounds(0, 7, getWidth(), 30);
         cancel.setBounds(30, getHeight() - 40, 80, 25);
         ok.setBounds(getWidth() - 110, getHeight() - 40, 80, 25);
 
-        nameEditor.setBounds(90, 45, getWidth() - 100, 25);
+        nameEditor.setBounds(90, 43, getWidth() - 100, 28);
         baseThemeSelector.setBounds(90, 85, getWidth() - 100, 25);
 
         nameLabel.setBounds(8, 45, 80, 25);
@@ -105,9 +116,9 @@ private:
     String errorMessage;
 };
 
-struct ThemeSelectorProperty : public PropertiesPanel::Property {
+struct ThemeSelectorProperty : public PropertiesPanelProperty {
     ThemeSelectorProperty(String const& propertyName, std::function<void(String const&)> const& callback)
-        : Property(propertyName)
+        : PropertiesPanelProperty(propertyName)
         , cb(callback)
     {
         comboBox.getProperties().set("Style", "Inspector");
@@ -122,7 +133,7 @@ struct ThemeSelectorProperty : public PropertiesPanel::Property {
         addAndMakeVisible(comboBox);
     }
 
-    PropertiesPanel::Property* createCopy() override
+    PropertiesPanelProperty* createCopy() override
     {
         auto* themeSelector = new ThemeSelectorProperty(getName(), cb);
         themeSelector->setOptions(items);
@@ -219,7 +230,7 @@ public:
         panel.clear();
         allPanels.clear();
 
-        std::map<String, Array<PropertiesPanel::Property*>> panels;
+        std::map<String, Array<PropertiesPanelProperty*>> panels;
 
         // Loop over colours
         for (auto const& [colour, colourNames] : PlugDataColourNames) {
@@ -296,7 +307,7 @@ public:
                 updateSwatches();
             };
 
-            auto* d = new Dialog(&dialog, getParentComponent(), 400, 190, 220, false);
+            auto* d = new Dialog(&dialog, getParentComponent(), 400, 170, false);
             auto* dialogContent = new NewThemeDialog(d, callback);
 
             d->setViewedComponent(dialogContent);

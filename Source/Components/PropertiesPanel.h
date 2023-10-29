@@ -16,6 +16,45 @@
 #include "SearchEditor.h"
 #include "Dialogs/Dialogs.h"
 
+class PropertiesPanelProperty : public PropertyComponent {
+
+protected:
+    bool hideLabel = false;
+    bool roundTopCorner = false;
+    bool roundBottomCorner = false;
+
+public:
+    explicit PropertiesPanelProperty(String const& propertyName)
+        : PropertyComponent(propertyName, 32)
+    {
+    }
+
+    virtual PropertiesPanelProperty* createCopy() { return nullptr; }
+
+    void setHideLabel(bool labelHidden)
+    {
+        hideLabel = labelHidden;
+        repaint();
+        resized();
+    }
+
+    void paint(Graphics& g) override
+    {
+        if (!hideLabel) {
+            getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight() * 0.85f, *this);
+        }
+    }
+
+    virtual void setRoundedCorners(bool roundTop, bool roundBottom)
+    {
+        roundTopCorner = roundTop;
+        roundBottomCorner = roundBottom;
+        repaint();
+    }
+
+    void refresh() override { }
+};
+
 class PropertiesPanel : public Component {
 public:
     enum TitleAlignment {
@@ -23,49 +62,10 @@ public:
         AlignWithPropertyName,
     };
 
-    class Property : public PropertyComponent {
-
-    protected:
-        bool hideLabel = false;
-        bool roundTopCorner = false;
-        bool roundBottomCorner = false;
-
-    public:
-        explicit Property(String const& propertyName)
-            : PropertyComponent(propertyName, 32)
-        {
-        }
-
-        virtual Property* createCopy() { return nullptr; }
-
-        void setHideLabel(bool labelHidden)
-        {
-            hideLabel = labelHidden;
-            repaint();
-            resized();
-        }
-
-        void paint(Graphics& g) override
-        {
-            if (!hideLabel) {
-                getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight() * 0.85f, *this);
-            }
-        }
-
-        virtual void setRoundedCorners(bool roundTop, bool roundBottom)
-        {
-            roundTopCorner = roundTop;
-            roundBottomCorner = roundBottom;
-            repaint();
-        }
-
-        void refresh() override { }
-    };
-
 private:
     struct SectionComponent : public Component {
         SectionComponent(PropertiesPanel& propertiesPanel, String const& sectionTitle,
-            Array<Property*> const& newProperties, int extraPadding)
+            Array<PropertiesPanelProperty*> const& newProperties, int extraPadding)
             : Component(sectionTitle)
             , parent(propertiesPanel)
             , padding(extraPadding)
@@ -102,9 +102,14 @@ private:
                 titleX += 8;
             }
 
-            Fonts::drawStyledText(g, getName(), titleX, 0, width - 4, parent.titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 14.5f);
-
-            auto propertyBounds = Rectangle<float>(x, parent.titleHeight + 8.0f, width, getHeight() - (parent.titleHeight + 16.0f));
+            auto title = getName();
+            auto titleHeight = title.isEmpty() ? 0 : parent.titleHeight;
+            
+            if(titleHeight != 0) {
+                Fonts::drawStyledText(g, title, titleX, 0, width - 4, titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 14.5f);
+            }
+            
+            auto propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
 
             // Don't draw the shadow if the background colour has opacity
             if (parent.drawShadowAndOutline) {
@@ -153,7 +158,8 @@ private:
 
         void resized() override
         {
-            auto y = parent.titleHeight + 8;
+            auto title = getName();
+            auto y = title.isNotEmpty() ? parent.titleHeight + 8 : 0;
             auto [x, width] = parent.getContentXAndWidth();
 
             for (auto* propertyComponent : propertyComponents) {
@@ -170,7 +176,8 @@ private:
 
         int getPreferredHeight() const
         {
-            auto y = parent.titleHeight;
+            auto title = getName();
+            auto y = title.isNotEmpty() ? parent.titleHeight : 0;
 
             auto numComponents = propertyComponents.size();
 
@@ -181,7 +188,7 @@ private:
                 y += (numComponents - 1) * padding;
             }
 
-            return y + 16;
+            return y + (title.isNotEmpty() ? 16 : 0);
         }
 
         void refreshAll() const
@@ -199,7 +206,7 @@ private:
         }
 
         PropertiesPanel& parent;
-        OwnedArray<Property> propertyComponents;
+        OwnedArray<PropertiesPanelProperty> propertyComponents;
         StringArray extraHeaderNames;
         int padding;
 
@@ -254,9 +261,9 @@ private:
     };
 
 public:
-    struct ComboComponent : public Property {
+    struct ComboComponent : public PropertiesPanelProperty {
         ComboComponent(String const& propertyName, Value& value, StringArray const& options)
-            : Property(propertyName)
+            : PropertiesPanelProperty(propertyName)
             , items(options)
         {
             comboBox.addItemList(options, 1);
@@ -271,7 +278,7 @@ public:
             comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
 
-        Property* createCopy() override
+        PropertiesPanelProperty* createCopy() override
         {
             return new ComboComponent(getName(), comboBox.getSelectedIdAsValue(), items);
         }
@@ -303,12 +310,12 @@ public:
         }
     };
 
-    struct FontComponent : public Property {
+    struct FontComponent : public PropertiesPanelProperty {
         Value fontValue;
         StringArray options = Font::findAllTypefaceNames();
 
         FontComponent(String const& propertyName, Value& value)
-            : Property(propertyName)
+            : PropertiesPanelProperty(propertyName)
         {
             options.addIfNotAlreadyThere("Inter");
 
@@ -327,7 +334,7 @@ public:
             addAndMakeVisible(comboBox);
         }
 
-        Property* createCopy() override
+        PropertiesPanelProperty* createCopy() override
         {
             return new FontComponent(getName(), fontValue);
         }
@@ -348,14 +355,14 @@ public:
     };
 
     template<typename T>
-    struct MultiPropertyComponent : public Property {
+    struct MultiPropertyComponent : public PropertiesPanelProperty {
 
         OwnedArray<T> properties;
         Array<Value*> propertyValues;
         StringArray propertyOptions;
 
         MultiPropertyComponent(String const& propertyName, Array<Value*> values)
-            : Property(propertyName)
+            : PropertiesPanelProperty(propertyName)
             , propertyValues(values)
         {
             for (int i = 0; i < propertyValues.size(); i++) {
@@ -366,7 +373,7 @@ public:
         }
 
         MultiPropertyComponent(String const& propertyName, Array<Value*> values, StringArray options)
-            : Property(propertyName)
+            : PropertiesPanelProperty(propertyName)
             , propertyValues(values)
             , propertyOptions(options)
         {
@@ -377,7 +384,7 @@ public:
             }
         }
 
-        Property* createCopy() override
+        PropertiesPanelProperty* createCopy() override
         {
             if constexpr (std::is_same_v<T, BoolComponent> || std::is_same_v<T, ComboComponent>) {
                 return new MultiPropertyComponent<T>(getName(), propertyValues, propertyOptions);
@@ -414,10 +421,10 @@ public:
         }
     };
 
-    struct BoolComponent : public Property
+    struct BoolComponent : public PropertiesPanelProperty
         , public Value::Listener {
         BoolComponent(String const& propertyName, Value& value, StringArray options)
-            : Property(propertyName)
+            : PropertiesPanelProperty(propertyName)
             , textOptions(std::move(options))
             , toggleStateValue(value)
         {
@@ -426,7 +433,7 @@ public:
 
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
         BoolComponent(String const& propertyName, StringArray options)
-            : Property(propertyName)
+            : PropertiesPanelProperty(propertyName)
             , textOptions(std::move(options))
         {
             toggleStateValue.addListener(this);
@@ -435,7 +442,7 @@ public:
         // Allow creation without an attached juce::Value, but with an initial value
         // We need this constructor sometimes to prevent feedback caused by the initial value being set after the listener is attached
         BoolComponent(String const& propertyName, bool initialValue, StringArray options)
-            : Property(propertyName)
+            : PropertiesPanelProperty(propertyName)
             , textOptions(std::move(options))
         {
             toggleStateValue = initialValue;
@@ -447,7 +454,7 @@ public:
             toggleStateValue.removeListener(this);
         }
 
-        Property* createCopy() override
+        PropertiesPanelProperty* createCopy() override
         {
             return new BoolComponent(getName(), toggleStateValue, textOptions);
         }
@@ -485,7 +492,7 @@ public:
             Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
 
             // Paint label
-            Property::paint(g);
+            PropertiesPanelProperty::paint(g);
         }
 
         void mouseEnter(MouseEvent const& e) override
@@ -515,7 +522,7 @@ public:
         Value toggleStateValue;
     };
 
-    struct ColourComponent : public Property
+    struct ColourComponent : public PropertiesPanelProperty
         , public Value::Listener {
 
         struct SwatchComponent : public Component {
@@ -561,7 +568,7 @@ public:
         };
 
         ColourComponent(String const& propertyName, Value& value)
-            : Property(propertyName)
+            : PropertiesPanelProperty(propertyName)
             , swatchComponent(value)
         {
             currentColour.referTo(value);
@@ -590,7 +597,7 @@ public:
             currentColour.removeListener(this);
         }
 
-        Property* createCopy() override
+        PropertiesPanelProperty* createCopy() override
         {
             return new ColourComponent(getName(), currentColour);
         }
@@ -623,7 +630,7 @@ public:
         TextEditor hexValueEditor;
     };
 
-    struct RangeComponent : public Property
+    struct RangeComponent : public PropertiesPanelProperty
         , public Value::Listener {
         Value property;
 
@@ -632,7 +639,7 @@ public:
         float min, max;
 
         RangeComponent(String const& propertyName, Value& value, bool integerMode)
-            : Property(propertyName)
+            : PropertiesPanelProperty(propertyName)
             , property(value)
             , minLabel(integerMode)
             , maxLabel(integerMode)
@@ -682,7 +689,7 @@ public:
             property.removeListener(this);
         }
 
-        Property* createCopy() override
+        PropertiesPanelProperty* createCopy() override
         {
             return new RangeComponent(getName(), property, false);
         }
@@ -722,12 +729,12 @@ public:
     };
 
     template<typename T>
-    struct EditableComponent : public Property {
+    struct EditableComponent : public PropertiesPanelProperty {
         std::unique_ptr<Label> label;
         Value property;
 
         EditableComponent(String propertyName, Value& value)
-            : Property(propertyName)
+            : PropertiesPanelProperty(propertyName)
             , property(value)
         {
             if constexpr (std::is_arithmetic<T>::value) {
@@ -768,7 +775,7 @@ public:
             label->addMouseListener(this, true);
         }
 
-        Property* createCopy() override
+        PropertiesPanelProperty* createCopy() override
         {
             return new EditableComponent<T>(getName(), property);
         }
@@ -793,16 +800,15 @@ public:
         }
     };
 
-    struct FilePathComponent : public Property {
+    struct FilePathComponent : public PropertiesPanelProperty {
         Label label;
         SmallIconButton browseButton = SmallIconButton(Icons::File);
         Value property;
         
         FilePathComponent(String const& propertyName, Value& value)
-            : Property(propertyName)
+            : PropertiesPanelProperty(propertyName)
             , property(value)
         {
-
             label.setEditable(true, false);
             label.getTextValue().referTo(property);
             label.addMouseListener(this, true);
@@ -816,11 +822,11 @@ public:
                     if (result.getParentDirectory().exists()) {
                         label.setText(result.getFullPathName(), sendNotification);
                     }
-                });
+                }, "", "");
             };
         }
 
-        Property* createCopy() override
+        PropertiesPanelProperty* createCopy() override
         {
             return new FilePathComponent(getName(), property);
         }
@@ -828,7 +834,7 @@ public:
         void paint(Graphics& g) override
         {
 
-            Property::paint(g);
+            PropertiesPanelProperty::paint(g);
 
             g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
             g.fillRect(getLocalBounds().removeFromRight(getHeight()));
@@ -842,14 +848,14 @@ public:
         }
     };
 
-    class ActionComponent : public Property {
+    class ActionComponent : public PropertiesPanelProperty {
 
         bool mouseIsOver = false;
         bool roundTop, roundBottom;
 
     public:
         ActionComponent(std::function<void()> callback, String iconToShow, String const& textToShow, bool roundOnTop = false, bool roundOnBottom = false)
-            : Property(textToShow)
+            : PropertiesPanelProperty(textToShow)
             , roundTop(roundOnTop)
             , roundBottom(roundOnBottom)
             , onClick(std::move(callback))
@@ -858,7 +864,7 @@ public:
             setHideLabel(true);
         }
 
-        Property* createCopy() override
+        PropertiesPanelProperty* createCopy() override
         {
             return new ActionComponent(onClick, icon, getName(), roundTop, roundBottom);
         }
@@ -936,10 +942,8 @@ public:
     }
 
     // Adds a set of properties to the panel
-    void addSection(String const& sectionTitle, Array<Property*> const& newProperties, int indexToInsertAt = -1, int extraPaddingBetweenComponents = 0)
+    void addSection(String const& sectionTitle, Array<PropertiesPanelProperty*> const& newProperties, int indexToInsertAt = -1, int extraPaddingBetweenComponents = 0)
     {
-        jassert(sectionTitle.isNotEmpty());
-
         if (isEmpty())
             repaint();
 
@@ -1108,7 +1112,7 @@ public:
 
         for (auto* propertiesPanel : panelsToSearch) {
             for (auto* section : propertiesPanel->propertyHolderComponent->sections) {
-                Array<PropertiesPanel::Property*> properties;
+                Array<PropertiesPanelProperty*> properties;
                 auto sectionTitle = section->getName();
 
                 for (auto* property : section->propertyComponents) {
@@ -1133,7 +1137,7 @@ public:
         auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
 
         Path p;
-        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillPath(p);

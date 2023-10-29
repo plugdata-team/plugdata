@@ -16,7 +16,7 @@ public:
     {
         auto* settingsFile = SettingsFile::getInstance();
 
-        Array<PropertiesPanel::Property*> otherProperties;
+        Array<PropertiesPanelProperty*> otherProperties;
 
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
@@ -26,7 +26,7 @@ public:
             macTitlebarButtons.addListener(this);
             nativeTitlebar.addListener(this);
 
-            Array<PropertiesPanel::Property*> windowProperties;
+            Array<PropertiesPanelProperty*> windowProperties;
 
             windowProperties.add(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
             windowProperties.add(new PropertiesPanel::BoolComponent("Use macOS style window buttons", macTitlebarButtons, { "No", "Yes" }));

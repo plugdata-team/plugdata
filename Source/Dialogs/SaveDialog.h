@@ -20,7 +20,10 @@ private:
         auto activeColour = findColour(PlugDataColour::toolbarActiveColourId);
 
         if (isMouseOver() || isMouseButtonDown()) {
-            backgroundColour = backgroundColour.contrasting(0.05f);
+            backgroundColour = backgroundColour.contrasting(0.1f);
+        }
+        else {
+            backgroundColour = backgroundColour.contrasting(0.06f);
         }
 
         g.setColour(backgroundColour);
@@ -31,10 +34,11 @@ private:
 
         g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
 
-        auto outlineColour = hasKeyboardFocus(false) ? activeColour : findColour(PlugDataColour::outlineColourId);
-
-        g.setColour(outlineColour);
-        PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::defaultCornerRadius);
+        if(hasKeyboardFocus(false))
+        {
+            g.setColour(activeColour);
+            PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), bounds, Corners::defaultCornerRadius);
+        }
     }
 };
 

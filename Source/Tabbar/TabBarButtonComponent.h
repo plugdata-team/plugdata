@@ -43,8 +43,6 @@ public:
     void drawTabButtonText(Graphics& g, Rectangle<int> customBounds = Rectangle<int>());
     ScaledImage generateTabBarButtonImage();
 
-    void paint(Graphics& g) override;
-
     void closeTab();
 
 private:
