@@ -74,7 +74,7 @@ if(MSVC)
   add_compile_options(/MP /wd4244 /wd4311 /wd4003 /wd4047 /wd4477 /wd4068 /wd4133 /wd4311)
   add_link_options(/ignore:4286 /ignore:4217)
 else()
-  add_compile_options(-Wall -Wstrict-aliasing -Wuninitialized -Wno-conversion -Wno-overloaded-virtual -Wno-sign-compare -Wno-comment -Wno-unknown-pragmas -Wnounused-result)
+  add_compile_options(-Wall -Wstrict-aliasing -Wuninitialized -Wno-conversion -Wno-overloaded-virtual -Wno-sign-compare -Wno-comment -Wno-unknown-pragmas -Wno-unused-result)
 endif()
 
 message(STATUS "Preparing documentation")
