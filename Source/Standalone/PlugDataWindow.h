@@ -534,13 +534,13 @@ public:
 #if JUCE_LINUX || JUCE_BSD
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
-                bool shouldBeMaximised = isFullScreen();
+                bool shouldBeMaximised = OSUtils::isX11WindowMaximised(peer->getNativeHandle());
                 b->setToggleState(!shouldBeMaximised, dontSendNotification);
 
                 if (!isUsingNativeTitleBar()) {
                     OSUtils::maximiseX11Window(peer->getNativeHandle(), !shouldBeMaximised);
                 }
-                setFullScreen(!isFullScreen());
+                //setFullScreen(!isFullScreen());
             } else {
                 b->setToggleState(false, dontSendNotification);
             }
