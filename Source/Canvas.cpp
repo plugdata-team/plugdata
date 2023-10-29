@@ -1631,7 +1631,10 @@ void Canvas::valueChanged(Value& v)
             auto y1 = static_cast<float>(cnv->gl_screeny1);
             auto x2 = static_cast<float>(getValue<int>(patchWidth) + x1);
             auto y2 = static_cast<float>(cnv->gl_screeny2);
-            pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
+            
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)cnv.get());
+            pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
 
         patch.getPointer()->gl_screenx2 = getValue<int>(patchWidth) + patch.getPointer()->gl_screenx1;
@@ -1643,7 +1646,10 @@ void Canvas::valueChanged(Value& v)
             auto y1 = static_cast<float>(cnv->gl_screeny1);
             auto x2 = static_cast<float>(cnv->gl_screenx2);
             auto y2 = static_cast<float>(getValue<int>(patchHeight) + y1);
-            pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
+            
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)cnv.get());
+            pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
         repaint();
     }

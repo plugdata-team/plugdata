@@ -322,93 +322,6 @@ public:
     }
 };
 
-class CanvasActiveObject final : public ImplementationBase
-    , public FocusChangeListener {
-
-    bool lastFocus = false;
-
-    t_symbol* lastFocussedName;
-    t_symbol* canvasName;
-    Component::SafePointer<Canvas> cnv;
-
-public:
-    using ImplementationBase::ImplementationBase;
-
-    ~CanvasActiveObject() override
-    {
-        Desktop::getInstance().removeFocusChangeListener(this);
-    }
-
-    void update() override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        t_canvas* patch;
-        sscanf(ptr.get<t_fake_active>()->x_cname->s_name, ".x%lx.c", (unsigned long*)&patch);
-
-        cnv = getMainCanvas(patch);
-        if (!cnv)
-            return;
-
-        lastFocus = cnv->hasKeyboardFocus(true);
-        Desktop::getInstance().addFocusChangeListener(this);
-
-        if (auto y = cnv->patch.getPointer()) {
-            char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)y.get());
-            buf[MAXPDSTRING - 1] = 0;
-            canvasName = pd->generateSymbol(buf);
-        }
-    };
-
-    void globalFocusChanged(Component* focusedComponent) override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        if (!focusedComponent) {
-            if (auto obj = ptr.get<void>()) {
-                pd->sendTypedMessage(obj.get(), "_focus", { canvasName, 0.0f });
-            }
-
-            lastFocus = false;
-            return;
-        }
-
-        bool shouldHaveFocus = focusedComponent == cnv;
-
-        Canvas* focusedCanvas = nullptr;
-
-        if (auto active = ptr.get<t_fake_active>()) {
-            if (active->x_name) {
-                focusedCanvas = dynamic_cast<Canvas*>(focusedComponent);
-                if (!focusedCanvas) {
-                    focusedCanvas = focusedComponent->findParentComponentOfClass<Canvas>();
-                }
-                if (!focusedCanvas)
-                    return;
-
-                char buf[MAXPDSTRING];
-                snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)focusedCanvas->patch.getPointer());
-                buf[MAXPDSTRING - 1] = 0;
-
-                auto* name = pd->generateSymbol(String::fromUTF8(buf));
-
-                if (lastFocussedName != name) {
-                    pd->sendTypedMessage(active.cast<t_pd>(), "_focus", { name, static_cast<float>(shouldHaveFocus) });
-                    lastFocussedName = name;
-                }
-                return;
-            }
-
-            if (shouldHaveFocus != lastFocus) {
-                pd->sendTypedMessage(active.cast<t_pd>(), "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
-                lastFocus = shouldHaveFocus;
-            }
-        }
-    }
-};
 
 class CanvasMouseObject final : public ImplementationBase
     , public MouseListener
@@ -740,44 +653,6 @@ public:
     t_glist* canvas;
 };
 
-class CanvasBoundsObject final : public ImplementationBase
-    , public MouseListener
-    , public pd::MessageListener {
-    t_canvas* targetCanvas;
-    Component::SafePointer<Canvas> mainCanvas;
-
-public:
-    CanvasBoundsObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
-        : ImplementationBase(ptr, parent, pd)
-    {
-        targetCanvas = reinterpret_cast<t_fake_bounds*>(ptr)->x_canvas;
-        pd->registerMessageListener(targetCanvas, this);
-    }
-
-    ~CanvasBoundsObject()
-    {
-        pd->unregisterMessageListener(targetCanvas, this);
-    }
-
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        bool isBoundsMessage = symbol == "setbounds";
-        if (isBoundsMessage) {
-            auto atoms = pd::Atom::fromAtoms(argc, argv);
-
-            if (auto* object = ptr.getRaw<t_object>()) {
-                t_outlet* outlet;
-                obj_starttraverseoutlet(object, &outlet, 0);
-                if (outlet) {
-                    outlet_list(outlet, gensym(""), argc, argv);
-                }
-            }
-        }
-    }
-};
 
 class MouseStateObject final : public ImplementationBase
     , public MouseListener
