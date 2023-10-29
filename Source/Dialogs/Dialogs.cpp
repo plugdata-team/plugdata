@@ -642,8 +642,13 @@ void Dialogs::showSaveDialog(std::function<void(File&)> callback, const String& 
     if(!initialFile.exists()) initialFile = ProjectInfo::appDataDir;
     
     fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog);
-
+    
     auto saveChooserFlags = FileBrowserComponent::saveMode;
+    
+    if(directoryMode)
+    {
+        saveChooserFlags = FileBrowserComponent::canSelectDirectories;
+    }
     
     // TODO: checks if this still causes issues
 #if !JUCE_LINUX && !JUCE_BSD
