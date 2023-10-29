@@ -423,15 +423,6 @@ struct t_fake_numbox {
     char x_buf[MAX_NUMBOX_LEN]; // number buffer
 };
 
-// [else/canvas.active]
-struct t_fake_active {
-    t_object x_obj;
-    void* x_proxy;
-    t_symbol* x_cname;
-    int x_right_click;
-    int x_on;
-    int x_name;
-};
 
 // [else/canvas.mouse]
 struct t_fake_canvas_mouse {
@@ -449,13 +440,6 @@ struct t_fake_canvas_mouse {
     int x_enable_edit_mode;
 };
 
-// [else/canvas.vis]
-struct t_fake_canvas_vis {
-    t_object x_obj;
-    void* x_proxy;
-    t_canvas* x_canvas;
-};
-
 // [else/canvas.zoom]
 struct t_fake_zoom {
     t_object x_obj;
@@ -464,12 +448,11 @@ struct t_fake_zoom {
     int x_zoom;
 };
 
-// [else/canvas.edit]
-struct t_fake_edit {
+// [else/canvas.vis]
+struct t_fake_canvas_vis {
     t_object x_obj;
     void* x_proxy;
     t_canvas* x_canvas;
-    int x_edit;
 };
 
 // [else/canvas.mouse]
@@ -703,12 +686,6 @@ struct t_fake_pd_tilde {
     float** x_insig;
     float** x_outsig;
     int x_blksize;
-};
-
-struct t_fake_bounds {
-    t_object x_obj;
-    void* x_proxy;
-    t_canvas* x_canvas;
 };
 
 struct t_fake_mousestate {

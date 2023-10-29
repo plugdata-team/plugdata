@@ -846,13 +846,14 @@ public:
         for(auto* graph : graphs) safeGraphs.add(graph);
         
         if(propertiesPanel) propertiesPanel->reloadGraphs(safeGraphs);
+        
+        updateLabel();
     }
     
     void addArray()
     {
         if (auto glist = ptr.get<_glist>()) {
-            // TODO: generate a unique name?
-            graph_array(glist.get(), gensym("array1"), gensym("float"), 100, 0);
+            graph_array(glist.get(), pd::Interface::getUnusedArrayName(), gensym("float"), 100, 0);
         }
         reinitialiseGraphs();
     }
@@ -973,17 +974,7 @@ public:
 
             object->updateBounds();
         } 
-        /*
-        else if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
-            updateSettings();
-        } else if (value.refersToSameSourceAs(range)) {
-            auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
-            auto max = static_cast<float>(range.getValue().getArray()->getReference(1));
-            for (auto* graph : graphs) {
-                graph->setScale({ min, max });
-                graph->repaint();
-            }
-        } */ else {
+        else {
             ObjectBase::valueChanged(value);
         }
     }

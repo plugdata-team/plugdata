@@ -795,7 +795,7 @@ void Canvas::updateSidebarSelection()
         if (!allParameters.isEmpty() || editor->sidebar->isPinned()) {
             String objectName = "(multiple)";
             if (lassoSelection.size() == 1 && lassoSelection.getFirst()) {
-                objectName = lassoSelection.getFirst()->gui->getText();
+                objectName = lassoSelection.getFirst()->gui->getType();
             }
 
             editor->sidebar->showParameters(objectName, allParameters);
@@ -919,6 +919,26 @@ void Canvas::copySelection()
     // Tell pd to copy
     patch.copy(objects);
     patch.deselectAll();
+}
+
+void Canvas::focusGained(FocusChangeType cause)
+{
+    if(auto ptr = patch.getPointer())
+    {
+        char buf[MAXPDSTRING];
+        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
+        pd->sendMessage("#active_gui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
+    }
+}
+
+void Canvas::focusLost(FocusChangeType cause)
+{
+    if(auto ptr = patch.getPointer())
+    {
+        char buf[MAXPDSTRING];
+        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
+        pd->sendMessage("#active_gui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
+    }
 }
 
 void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight)
@@ -1611,7 +1631,10 @@ void Canvas::valueChanged(Value& v)
             auto y1 = static_cast<float>(cnv->gl_screeny1);
             auto x2 = static_cast<float>(getValue<int>(patchWidth) + x1);
             auto y2 = static_cast<float>(cnv->gl_screeny2);
-            pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
+            
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)cnv.get());
+            pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
 
         patch.getPointer()->gl_screenx2 = getValue<int>(patchWidth) + patch.getPointer()->gl_screenx1;
@@ -1623,7 +1646,10 @@ void Canvas::valueChanged(Value& v)
             auto y1 = static_cast<float>(cnv->gl_screeny1);
             auto x2 = static_cast<float>(cnv->gl_screenx2);
             auto y2 = static_cast<float>(getValue<int>(patchHeight) + y1);
-            pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
+            
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)cnv.get());
+            pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
         repaint();
     }
@@ -1631,10 +1657,13 @@ void Canvas::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(locked)) {
         bool editMode = !getValue<bool>(v);
 
-        pd->lockAudioThread();
-        patch.getPointer()->gl_edit = editMode;
-        pd->unlockAudioThread();
-
+        if(auto ptr = patch.getPointer())
+        {
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)ptr.get());
+            pd->sendMessage(buf, "editmode", {static_cast<float>(editMode)});
+        }
+        
         cancelConnectionCreation();
         deselectAll();
 
