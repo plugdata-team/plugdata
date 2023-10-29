@@ -98,7 +98,7 @@ static void hammergui__focus(t_hammergui *snk, t_symbol *s, t_floatarg f)
     fprintf(stderr, "_focus %s %g (sink %x)\n", (s ? s->s_name : "???"), f, (int)snk);
 #endif
     if (!snk->g_psfocus){
-        bug("hammergui__focus");
+        //bug("hammergui__focus");
         return;
     }
     if (snk->g_psfocus->s_thing){

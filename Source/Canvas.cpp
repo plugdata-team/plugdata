@@ -925,9 +925,13 @@ void Canvas::focusGained(FocusChangeType cause)
 {
     if(auto ptr = patch.getPointer())
     {
+        // canvas.active listener
         char buf[MAXPDSTRING];
         snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
         pd->sendMessage("#active_gui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
+        
+        // cyclone focus listeners
+        pd->sendMessage("#hammergui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
     }
 }
 
@@ -935,9 +939,13 @@ void Canvas::focusLost(FocusChangeType cause)
 {
     if(auto ptr = patch.getPointer())
     {
+        // canvas.active listener
         char buf[MAXPDSTRING];
         snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
         pd->sendMessage("#active_gui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
+        
+        // cyclone focus listeners
+        pd->sendMessage("#hammergui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
     }
 }
 
