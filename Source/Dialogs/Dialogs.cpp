@@ -160,7 +160,6 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
             addAndMakeVisible(okay);
             
             auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
-
             cancel.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
             cancel.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             cancel.setColour(ComboBox::outlineColourId, Colours::transparentBlack);

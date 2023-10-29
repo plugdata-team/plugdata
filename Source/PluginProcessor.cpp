@@ -92,7 +92,7 @@ PluginProcessor::PluginProcessor()
     volume = volumeParameter->getValuePointer();
 
     // XML tree for storing additional data in DAW session
-    extraData = new XmlElement ("ExtraData");
+    extraData = std::make_unique<XmlElement>("ExtraData");
    
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
@@ -1000,7 +1000,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     bool extraDataStored = false;
     if (extraData)  {
         if (extraData->getNumChildElements() > 0) {
-            xml.addChildElement(extraData);
+            xml.addChildElement(extraData.get());
             extraDataStored = true;
         }
     }
@@ -1013,7 +1013,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     
     // then detach extraData XmlElement from temporary tree xml for later re-use
     if (extraDataStored)  {   
-        xml.removeChildElement (extraData, false);
+        xml.removeChildElement(extraData.get(), false);
     }
 
 }

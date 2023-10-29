@@ -544,7 +544,7 @@ public:
         auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
 
         Path p;
-        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillPath(p);
@@ -815,8 +815,17 @@ private:
             addChildComponent(uninstallButton);
             addChildComponent(addToPathButton);
 
+            auto backgroundColour = findColour(PlugDataColour::panelForegroundColourId);
+            installButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+            installButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             installButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            
+            uninstallButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+            uninstallButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             uninstallButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            
+            addToPathButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+            addToPathButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             addToPathButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
             installButton.setTooltip("Install package");

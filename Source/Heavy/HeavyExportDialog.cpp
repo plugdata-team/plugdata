@@ -107,8 +107,7 @@ public:
         auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRoundedRectangle(listboxBounds.toFloat(), Corners::windowCornerRadius);
-        g.fillRect(listboxBounds.removeFromRight(10));
+        g.fillRect(listboxBounds);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -255,7 +254,7 @@ void HeavyExportDialog::paint(Graphics& g)
     auto titlebarBounds = getLocalBounds().removeFromTop(40);
 
     Path p;
-    p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+    p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
     g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
     g.fillPath(p);
