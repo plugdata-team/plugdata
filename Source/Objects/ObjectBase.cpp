@@ -20,8 +20,14 @@ extern "C" {
 #include <g_all_guis.h>
 #include <g_undo.h>
 
+#if _MSC_VER
+__declspec(dllimport) void canvas_setgraph(t_glist* x, int flag, int nogoprect);
+__declspec(dllimport) void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shift, t_floatarg ctrl, t_floatarg alt);
+#else
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shift, t_floatarg ctrl, t_floatarg alt);
+#endif
+
 }
 
 #include "AllGuis.h"
