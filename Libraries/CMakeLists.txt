@@ -300,8 +300,6 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     
     if(CMAKE_C_COMPILER_ID MATCHES "Clang")
         add_compile_options(-Wno-compare-distinct-pointer-types -Wno-implicit-int-conversion)
-    else()
-        add_compile_options(-Wno-discarded-qualifiers)
     endif()
  
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-int-conversion -Wno-pointer-sign -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types")
