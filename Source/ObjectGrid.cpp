@@ -383,6 +383,8 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Recta
                 return {b1.getCentreX(), b1.getY(), b2.getCentreX(), b2.getBottom()};
             }
     }
+
+    return {};
 }
 
 void ObjectGrid::clearIndicators()
