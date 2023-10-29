@@ -426,6 +426,7 @@ public:
     void setSendSymbol(String const& symbol) const
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
+            
             atom->a_symto = pd->generateSymbol(symbol);
             atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
         }

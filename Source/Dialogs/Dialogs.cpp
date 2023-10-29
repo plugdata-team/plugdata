@@ -502,7 +502,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 cnv->pd->unlockAudioThread();
 
                 Array<ObjectParameters> parameters = {};
-                editor->sidebar->showParameters(object->gui->getText(), parameters);
+                editor->sidebar->showParameters(object->gui->getType(), parameters);
             }
 
             return;
