@@ -81,6 +81,7 @@ bool ImplementationBase::hasImplementation(char const* type)
     case hash("canvas.zoom"):
     case hash("mouse"):
     case hash("mousestate"):
+    case hash("mousefilter"):
         return true;
 
     default:
@@ -111,6 +112,10 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
         return new MouseObject(ptr, cnv, pd);
     case hash("mousestate"):
         return new MouseStateObject(ptr, cnv, pd);
+    case hash("mousefilter"):
+        return new MouseFilterObject(ptr, cnv, pd);
+                
+            
 
     default:
         break;

@@ -366,11 +366,11 @@ public:
             binbuf_gettext(mouse->x_obj.te_binbuf, &text, &size);
 
             int depth = 0;
-            for (auto& arg : StringArray::fromTokens(String::fromUTF8(text, size), false)) {
-                if (arg.containsOnly("0123456789")) {
-                    depth = arg.getIntValue();
-                    break;
-                }
+            
+            auto tokens = StringArray::fromTokens(String::fromUTF8(text, size), false);
+            if(tokens.size() > 1 && tokens[1].containsOnly("0123456789"))
+            {
+                depth = tokens[1].getIntValue();
             }
 
             if (depth > 0) {
@@ -419,11 +419,10 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
-        if (!cnv || !getValue<bool>(cnv->locked))
-            return;
-
         if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
-            outlet_float(mouse->x_obj.ob_outlet, 1.0);
+            if (!cnv || (mouse->x_enable_edit_mode || !getValue<bool>(cnv->locked))) {
+                outlet_float(mouse->x_obj.ob_outlet, 1.0);
+            }
         }
     }
 
@@ -432,20 +431,16 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
-        if (!cnv || !getValue<bool>(cnv->locked))
-            return;
-
         if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
-            outlet_float(mouse->x_obj.ob_outlet, 0.0f);
+            if (!cnv || (mouse->x_enable_edit_mode || getValue<bool>(cnv->locked))) {
+                outlet_float(mouse->x_obj.ob_outlet, 0.0f);
+            }
         }
     }
 
     void mouseMove(MouseEvent const& e) override
     {
         if (pd->isPerformingGlobalSync)
-            return;
-
-        if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
         Point<int> pos;
@@ -460,8 +455,10 @@ public:
 
         if (positionChanged) {
             if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
-                outlet_float(mouse->x_outlet_y, (float)pos.y);
-                outlet_float(mouse->x_outlet_x, (float)pos.x);
+                if (!cnv || (mouse->x_enable_edit_mode || getValue<bool>(cnv->locked))) {
+                    outlet_float(mouse->x_outlet_y, (float)pos.y);
+                    outlet_float(mouse->x_outlet_x, (float)pos.x);
+                }
             }
         }
     }
@@ -718,7 +715,6 @@ public:
 };
 
 class KeycodeObject final : public ImplementationBase
-    //, public KeyListener
     , public ModifierKeyListener {
 
 public:
@@ -768,3 +764,55 @@ public:
         }
     }
 };
+
+
+class MouseFilterObject final : public ImplementationBase
+, public GlobalMouseListener {
+    
+    class MouseFilterProxy
+    {
+    public:
+        
+        MouseFilterProxy() : pd(nullptr) {}
+        
+        MouseFilterProxy(pd::Instance* instance) : pd(instance)
+        {
+        }
+
+        void setState(bool newState)
+        {
+            if(newState != state) {
+                state = newState;
+                pd->setThis();
+                pd->sendMessage("#hammergui", "_up", {pd::Atom(!state)});
+            }
+        }
+        
+    private:
+        
+        pd::Instance* pd;
+        bool state = false;
+    };
+    
+    
+    static inline std::map<pd::Instance*, MouseFilterProxy> proxy;
+    
+public:
+    MouseFilterObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd) : ImplementationBase(object, parent, pd)
+    {
+        if(!proxy.count(pd)) {
+            proxy[pd] = MouseFilterProxy(pd);
+            
+            globalMouseDown = [pd](const MouseEvent& e){
+                proxy[pd].setState(true);
+            };
+            
+            globalMouseUp = [pd](const MouseEvent& e){
+                proxy[pd].setState(false);
+            };
+        }
+    }
+
+};
+
+
