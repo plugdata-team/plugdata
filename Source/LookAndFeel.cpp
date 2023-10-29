@@ -992,12 +992,8 @@ void PlugDataLook::drawGUIObjectSlider(Graphics& g, int x, int y, int width, int
 void PlugDataLook::fillTextEditorBackground(Graphics& g, int width, int height, TextEditor& textEditor)
 {
     if (textEditor.getProperties()["NoBackground"].isVoid()) {
-        if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) != nullptr) {
-            g.setColour(textEditor.findColour(TextEditor::backgroundColourId));
-            g.fillRect(0, 0, width, height);
-        } else {
-            g.fillAll(textEditor.findColour(TextEditor::backgroundColourId));
-        }
+        g.setColour(textEditor.findColour(TextEditor::backgroundColourId));
+        g.fillRoundedRectangle(2, 3, width - 4, height - 6, Corners::defaultCornerRadius);
     }
 }
 
@@ -1250,8 +1246,6 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
     setColour(ListBox::backgroundColourId,
         colours.at(PlugDataColour::toolbarBackgroundColourId));
 
-    setColour(AlertWindow::backgroundColourId,
-        colours.at(PlugDataColour::panelBackgroundColourId));
     getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, colours.at(PlugDataColour::panelBackgroundColourId));
 
     setColour(TooltipWindow::backgroundColourId,
@@ -1313,8 +1307,6 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
     setColour(DirectoryContentsDisplayComponent::textColourId,
         colours.at(PlugDataColour::panelTextColourId));
     setColour(Slider::textBoxTextColourId,
-        colours.at(PlugDataColour::panelTextColourId));
-    setColour(AlertWindow::textColourId,
         colours.at(PlugDataColour::panelTextColourId));
     setColour(FileBrowserComponent::currentPathBoxTextColourId,
         colours.at(PlugDataColour::panelActiveTextColourId));
