@@ -855,6 +855,22 @@ private:
             }
         }
         
+        // Remove duplicates
+        for (int i = nearbyMethods.size() - 1; i >= 0; i--)
+        {
+            auto& [objectName1, method1, distance1] = nearbyMethods.getReference(i);
+            
+            for (int j = nearbyMethods.size() - 1; j >= 0; j--)
+            {
+                auto& [objectName2, method2, distance2] = nearbyMethods.getReference(j);
+                if(objectName1 == objectName2 && method1 == method2 && i != j)
+                {
+                    nearbyMethods.remove(i);
+                    break;
+                }
+            }
+        }
+
         return nearbyMethods;
     }
 
