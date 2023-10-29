@@ -32,7 +32,6 @@
 #X text 174 554 float \, symbol or list - receive extradata from DAW;
 #X text 157 604 1) symbol - name of the xml-tag under which the extra data will be internally stored in the DAW session data., f 55;
 #X text 54 344 <- manually dump array content into the plugdata temporary struct. Those data will be stored in the DAW when you save the DAW session., f 68;
-#X text 72 378 NOTE : You should rather dump thoses data as soon as they change., f 66;
 #X text 18 149 [daw_storage] objects enable storage of arrays \, lists \, symbols \, as extradata lists in the DAW session., f 64;
 #N canvas 0 0 432 113 reserved_send/receive_names 0;
 #X obj 19 40 r load;
@@ -54,8 +53,9 @@
 #X f 40;
 #X obj 428 261 r my_list-s;
 #X obj 428 316 s my_list-r;
+#X text 72 378 NOTE : You should instead flush this data as soon as it changes., f 66;
 #X connect 1 0 10 0;
 #X connect 2 0 1 0;
 #X connect 10 0 11 0;
-#X connect 12 0 33 0;
-#X connect 32 0 12 0;
+#X connect 12 0 32 0;
+#X connect 31 0 12 0;
