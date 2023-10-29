@@ -237,6 +237,22 @@ struct Interface {
 
         return text;
     }
+    
+    static t_symbol* getUnusedArrayName()
+    {
+        sys_lock();
+        int gcount;
+        char arraybuf[80] = {'\0'};
+        for (gcount = 1; gcount < 1000; gcount++)
+        {
+            snprintf(arraybuf, 80, "array%d", gcount);
+            if (!pd_findbyclass(gensym(arraybuf), garray_class))
+                break;
+        }
+        sys_unlock();
+        
+        return gensym(arraybuf);
+    }
 
     static void paste(t_canvas* cnv, char const* buf)
     {
@@ -370,6 +386,7 @@ struct Interface {
             struct _rtext* x_next;
         };
 
+        auto wasEditMode = cnv->gl_edit;
         canvas_editmode(cnv, 1);
 
         glist_noselect(cnv);
@@ -390,7 +407,7 @@ struct Interface {
         cnv->gl_editor->e_textedfor = 0;
         cnv->gl_editor->e_textdirty = 0;
 
-        canvas_editmode(cnv, 0);
+        canvas_editmode(cnv, wasEditMode);
 
         canvas_dirty(cnv, 1);
     }
