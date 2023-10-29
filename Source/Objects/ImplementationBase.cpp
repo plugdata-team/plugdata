@@ -76,12 +76,10 @@ bool ImplementationBase::hasImplementation(char const* type)
     case hash("keyname"):
     case hash("keyup"):
     case hash("keycode"):
-    case hash("canvas.active"):
     case hash("canvas.mouse"):
     case hash("canvas.bounds"):
     case hash("canvas.vis"):
     case hash("canvas.zoom"):
-    case hash("canvas.edit"):
     case hash("mouse"):
     case hash("mousestate"):
         return true;
@@ -96,8 +94,6 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
     case hash("canvas"):
     case hash("graph"):
         return new SubpatchImpl(ptr, cnv, pd);
-    case hash("canvas.active"):
-        return new CanvasActiveObject(ptr, cnv, pd);
     case hash("canvas.mouse"):
         return new CanvasMouseObject(ptr, cnv, pd);
     case hash("canvas.bounds"):
@@ -106,8 +102,6 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
         return new CanvasVisibleObject(ptr, cnv, pd);
     case hash("canvas.zoom"):
         return new CanvasZoomObject(ptr, cnv, pd);
-    case hash("canvas.edit"):
-        return new CanvasEditObject(ptr, cnv, pd);
     case hash("key"):
         return new KeyObject(ptr, cnv, pd, KeyObject::Key);
     case hash("keyname"):

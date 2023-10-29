@@ -678,58 +678,6 @@ public:
     }
 };
 
-class CanvasEditObject final : public ImplementationBase
-    , public Value::Listener {
-
-    bool lastEditMode;
-    Component::SafePointer<Canvas> cnv;
-
-public:
-    using ImplementationBase::ImplementationBase;
-
-    ~CanvasEditObject()
-    {
-        if(cnv) {
-            cnv->locked.removeListener(this);
-        }
-    }
-        
-    void update() override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        if (cnv) {
-            cnv->locked.removeListener(this);
-        }
-
-        if (auto edit = ptr.get<t_fake_edit>()) {
-            cnv = getMainCanvas(edit->x_canvas);
-        }
-
-        if (!cnv)
-            return;
-
-        // Don't use lock method, because that also responds to temporary lock
-        lastEditMode = getValue<float>(cnv->locked);
-        cnv->locked.addListener(this);
-    }
-    void valueChanged(Value& v) override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        int editMode = getValue<bool>(v) ? 0 : 1;
-        if (lastEditMode != editMode) {
-            if (auto edit = ptr.get<t_fake_edit>()) {
-                outlet_float(edit->x_obj.ob_outlet, edit->x_edit = editMode);
-            }
-
-            lastEditMode = editMode;
-        }
-    }
-};
-
 // Else "mouse" component
 class MouseObject final : public ImplementationBase
     , public Timer {

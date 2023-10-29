@@ -921,6 +921,26 @@ void Canvas::copySelection()
     patch.deselectAll();
 }
 
+void Canvas::focusGained(FocusChangeType cause)
+{
+    if(auto ptr = patch.getPointer())
+    {
+        char buf[MAXPDSTRING];
+        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
+        pd->sendMessage("#active_gui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
+    }
+}
+
+void Canvas::focusLost(FocusChangeType cause)
+{
+    if(auto ptr = patch.getPointer())
+    {
+        char buf[MAXPDSTRING];
+        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
+        pd->sendMessage("#active_gui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
+    }
+}
+
 void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight)
 {
     locked = false;
@@ -1631,10 +1651,13 @@ void Canvas::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(locked)) {
         bool editMode = !getValue<bool>(v);
 
-        pd->lockAudioThread();
-        patch.getPointer()->gl_edit = editMode;
-        pd->unlockAudioThread();
-
+        if(auto ptr = patch.getPointer())
+        {
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING-1, ".x%lx", (unsigned long)ptr.get());
+            pd->sendMessage(buf, "editmode", {static_cast<float>(editMode)});
+        }
+        
         cancelConnectionCreation();
         deselectAll();
 

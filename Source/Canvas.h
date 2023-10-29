@@ -69,6 +69,9 @@ public:
     void altKeyChanged(bool isHeld) override;
 
     void propertyChanged(String const& name, var const& value) override;
+        
+    void focusGained(FocusChangeType cause) override;
+    void focusLost(FocusChangeType cause) override;
 
     int getOverlays() const;
     void updateOverlays();

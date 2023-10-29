@@ -386,6 +386,7 @@ struct Interface {
             struct _rtext* x_next;
         };
 
+        auto wasEditMode = cnv->gl_edit;
         canvas_editmode(cnv, 1);
 
         glist_noselect(cnv);
@@ -406,7 +407,7 @@ struct Interface {
         cnv->gl_editor->e_textedfor = 0;
         cnv->gl_editor->e_textdirty = 0;
 
-        canvas_editmode(cnv, 0);
+        canvas_editmode(cnv, wasEditMode);
 
         canvas_dirty(cnv, 1);
     }
