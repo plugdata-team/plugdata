@@ -395,9 +395,9 @@ public:
             button->setRadioGroupId(hash("add_menu_category"));
             button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
             button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
-
-            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
+            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+            button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             addAndMakeVisible(button);
         }
 
