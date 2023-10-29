@@ -507,7 +507,6 @@ public:
         if (!cnv)
             return;
 
-        lastFocus = cnv->hasKeyboardFocus(true);
         cnv->addComponentListener(this);
         startTimer(100);
     }
@@ -516,16 +515,21 @@ public:
     {
         if (pd->isPerformingGlobalSync)
             return;
-
-        if (!cnv)
-            return;
-
-        if (lastFocus != cnv->isShowing()) {
-
-            lastFocus = cnv->isShowing();
-
+        
+        // We use a safepointer to the canvas to determine if it's still open
+        bool showing = cnv != nullptr;
+        
+        if(showing && !lastFocus)
+        {
+            lastFocus = true;
             if (auto vis = ptr.get<t_fake_canvas_vis>()) {
-                outlet_float(vis->x_obj.ob_outlet, static_cast<int>(cnv->isShowing()));
+                outlet_float(vis->x_obj.ob_outlet, 1.0f);
+            }
+        }
+        else if(lastFocus && !showing) {
+            lastFocus = false;
+            if (auto vis = ptr.get<t_fake_canvas_vis>()) {
+                outlet_float(vis->x_obj.ob_outlet, 0.0f);
             }
         }
     }
