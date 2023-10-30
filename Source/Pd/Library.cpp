@@ -114,9 +114,11 @@ Library::Library(pd::Instance* instance)
 
     // This is unfortunately necessary to make Windows LV2 turtle dump work
     // Let's hope its not harmful
-    MessageManager::callAsync([this, instance]() {
-        instance->setThis();
-        updateLibrary();
+    MessageManager::callAsync([this, instance = juce::WeakReference(instance)]() {
+        if(instance.get()) {
+            instance->setThis();
+            updateLibrary();
+        }
     });
 }
 
