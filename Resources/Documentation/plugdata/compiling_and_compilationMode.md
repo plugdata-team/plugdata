@@ -22,22 +22,34 @@ Checking this box may (or may not) produce a good number of error messages in th
 <br>
 
 ## Compiling in plugdata
+When you select "Compile..." a window with different compilation options along the left, the primary window displaying the common options for all compilation modes and then specific qualities for the compilation mode you currently have selected.
+All compilation modes feature the following common attributes
+- Patch to export
+	- If a patch is currently open, it will read "Currently opened patch" otherwise it will read "Choose a patch to export...". Select the patch you wish to export here.
+ - Project Name (Optional)
+ 	- The name of the project (potentially different than the patch name) that is used in some compilation scenarios in their information registry.
+  - Project Copyright (optional)
+  	- Similar to the Project Name, the Project Copyright is placed in the information registry for the compilation mode 	
+
+### C++ Code<br>
+<img width="634" alt="Plugdata Compiler C++ Code" src="https://github.com/thouldcroft/plugdata/assets/1238556/25182673-eef3-40fb-913e-cecdb8311625">
+In the C++ Code mode, your plugdata patch isn't actually compiled, instead it is [transpiled/transcompiled](https://en.wikipedia.org/wiki/Source-to-source_compiler) from one coding language (Pd) to another (C++). The plugdata patch is transpiled for no specific platform, and the raw code can then be used for any project that accepts C++ code.
+
+### Electro-Smith Daisy<br>
+<img width="635" alt="Plugdata Compiler Daisy Export" src="https://github.com/thouldcroft/plugdata/assets/1238556/d206902c-2115-4727-be2a-27b23b2ab821">
+**_Daisy_**
+
+### DPF Audio Plugin<br>
+<img width="636" alt="Plugdata Compiler Plugin Export" src="https://github.com/thouldcroft/plugdata/assets/1238556/63e21b8c-8ed0-4131-8206-7a7be361b58f">
+<img width="425" alt="Plugdata Compiler Plugin Formats" src="https://github.com/thouldcroft/plugdata/assets/1238556/b3643f41-81e0-431e-a814-14970ee9fb86">
+
+
 >[!WARNING]
 >When compiling *DPF Audio Plug-ins*, your plugdata patch cannot contain any "special characters". Special characters include the following: <br>
 >		` ~ @ ! $ # ^ * % & ( ) [ ] { } < > + = _ – | / \ ; : ' “ , . ?
 
 >[!WARNING]
 >When compiling *DPF Audio Plug-ins* and exporting *plug-in binaries*, as of the current version (0.8.0), the destination path for the binaries cannot contain *any* spaces.
-
-### C++ Code<br>
-<img width="634" alt="Plugdata Compiler C++ Code" src="https://github.com/thouldcroft/plugdata/assets/1238556/25182673-eef3-40fb-913e-cecdb8311625">
-
-### Electro-Smith Daisy<br>
-<img width="635" alt="Plugdata Compiler Daisy Export" src="https://github.com/thouldcroft/plugdata/assets/1238556/d206902c-2115-4727-be2a-27b23b2ab821">
-
-### DPF Audio Plugin<br>
-<img width="636" alt="Plugdata Compiler Plugin Export" src="https://github.com/thouldcroft/plugdata/assets/1238556/63e21b8c-8ed0-4131-8206-7a7be361b58f">
-<img width="425" alt="Plugdata Compiler Plugin Formats" src="https://github.com/thouldcroft/plugdata/assets/1238556/b3643f41-81e0-431e-a814-14970ee9fb86">
 
 ### Pd External<br>
 <img width="638" alt="Plugdata Compiler External" src="https://github.com/thouldcroft/plugdata/assets/1238556/47cb9cbd-4963-43e6-b1c8-7311baad9095">
