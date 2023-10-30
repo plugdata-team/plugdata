@@ -20,7 +20,7 @@ struct ObjectGrid : public SettingsFileListener {
     Point<int> performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds);
     Point<int> performMove(Object* toDrag, Point<int> dragOffset);
 
-    void clearIndicators();
+    void clearIndicators(bool fast);
     
 private:
     

@@ -406,5 +406,7 @@ protected:
     std::unique_ptr<Ofelia> ofelia;
 
     ConsoleHandler consoleHandler;
+    
+    JUCE_DECLARE_WEAK_REFERENCEABLE (Instance)
 };
 } // namespace pd

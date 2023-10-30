@@ -68,7 +68,7 @@ void ObjectGrid::propertyChanged(String const& name, var const& value)
 Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 {
     if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0 || !gridEnabled) {
-        clearIndicators();
+        clearIndicators(true);
         return dragOffset;
     }
     
@@ -194,7 +194,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
         return dragOffset + distance;
     }
     
-    clearIndicators();
+    clearIndicators(true);
     
     return dragOffset;
 }
@@ -202,7 +202,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds)
 {
     if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0 || !gridEnabled) {
-        clearIndicators();
+        clearIndicators(true);
         return dragOffset;
     }
     
@@ -336,7 +336,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
            }
     }
 
-    clearIndicators();
+    clearIndicators(true);
     
     return dragOffset;
 }
@@ -387,10 +387,10 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Recta
     return {};
 }
 
-void ObjectGrid::clearIndicators()
+void ObjectGrid::clearIndicators(bool fast)
 {
-    gridLineAnimator.fadeOut(&gridLines[0], 100);
-    gridLineAnimator.fadeOut(&gridLines[1], 100);
+    gridLineAnimator.fadeOut(&gridLines[0], fast ? 25 : 125);
+    gridLineAnimator.fadeOut(&gridLines[1], fast ? 25 : 125);
     
     gridLines[0].setPath(Path());
     gridLines[1].setPath(Path());
@@ -412,6 +412,6 @@ void ObjectGrid::setIndicator(int idx, Line<int> line, float scale) {
     gridLines[idx].setPath(toDraw);
     
     if(!gridLines[idx].isVisible() && !lineIsEmpty) {
-        gridLineAnimator.fadeIn(&gridLines[idx], 75);
+        gridLineAnimator.fadeIn(&gridLines[idx], 25);
     }
 }
