@@ -13,11 +13,6 @@ arguments:
   description: sets a key name
   default: none
 
-inlets:
-  1st:
-  - description: activate key learn
-    type: bang
-
 outlets:
   1st:
   - description: from learned key depending on the mode
@@ -31,6 +26,8 @@ flags:
     description: sets to toggle output
 
 methods:
+  - type: learn
+    description: activate key learn
   - type: toggle <float>
     description: nonzero sets to toggle mode
   - type: query
