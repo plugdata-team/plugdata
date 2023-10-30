@@ -33,11 +33,10 @@
 #X text 157 604 1) symbol - name of the xml-tag under which the extra data will be internally stored in the DAW session data., f 55;
 #X text 18 149 [daw_storage] objects enable storage of arrays \, lists \, symbols \, as extradata lists in the DAW session., f 64;
 #N canvas 0 0 432 113 reserved_send/receive_names 0;
-#X obj 19 40 r load;
-#X obj 117 40 s extrabuffer;
-#X text 83 39 and;
 #X text 19 12 For communication with the daw \, following;
-#X text 234 40 are reserved names.;
+#X text 200 53 are reserved names.;
+#X obj 20 40 r from_daw_databuffer;
+#X obj 20 69 s to_daw_databuffer;
 #X restore 9 646 pd reserved_send/receive_names;
 #N canvas 952 332 450 300 forbidden_characters_in_argument 0;
 #X text 9 21 Due to the way data are internally stored within the DAW session (using xml-tags) \, some characters are forbidden for naming the tag \, i.e. argument of the abstraction;

@@ -1624,14 +1624,14 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
                     }
                 }
 
-                sendList("load", vec);
+                sendList("from_daw_databuffer", vec);
                 loaded = true;
             }
         }
     }
 
     if (!loaded) {
-        sendBang("load");
+        sendBang("from_daw_databuffer");
     }
 }
 

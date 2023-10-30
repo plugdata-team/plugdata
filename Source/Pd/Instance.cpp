@@ -180,7 +180,7 @@ void Instance::initialisePd(String& pdlua_version)
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     // JYG added This
-    dataBufferReceiver = pd::Setup::createReceiver(this, "databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+    dataBufferReceiver = pd::Setup::createReceiver(this, "to_daw_databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     parameterChangeReceiver = pd::Setup::createReceiver(this, "param_change", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
@@ -483,7 +483,7 @@ void Instance::processMessage(Message mess)
         int state = mess.list[1].getFloat() != 0;
         performParameterChange(1, name, state);
         // JYG added This
-    } else if (mess.destination == "databuffer") {
+    } else if (mess.destination == "to_daw_databuffer") {
         fillDataBuffer(mess.list);
     }
 }
