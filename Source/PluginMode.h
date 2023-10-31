@@ -61,16 +61,6 @@ public:
         editor->addAndMakeVisible(this);
 
         if (ProjectInfo::isStandalone) {
-            borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(editor->getTopLevelComponent(), &pluginModeConstrainer);
-            borderResizer->setAlwaysOnTop(true);
-            addAndMakeVisible(borderResizer.get());
-        } else {
-            cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(editor, &pluginModeConstrainer);
-            cornerResizer->setAlwaysOnTop(true);
-            addAndMakeVisible(cornerResizer.get());
-        }
-
-        if (ProjectInfo::isStandalone) {
             fullscreenButton = std::make_unique<MainToolbarButton>(Icons::Fullscreen);
             fullscreenButton->setTooltip("Enter fullscreen kiosk mode");
             fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
@@ -79,6 +69,56 @@ public:
             };
             titleBar.addAndMakeVisible(*fullscreenButton);
         }
+
+        scaleLabel = std::make_unique<Label>();
+        scaleLabel->setText("100%", NotificationType::dontSendNotification);
+        scaleLabel->setBounds(fullscreenButton ? fullscreenButton->getWidth() : 0, 0, titlebarHeight * 1.6f, titlebarHeight);
+        addAndMakeVisible(scaleLabel.get());
+
+        settingsButton.setButtonText(Icons::ThinDown);
+        settingsButton.setTooltip("Change plugin scale");
+        settingsButton.setBounds(scaleLabel->getWidth(), 0, titlebarHeight, titlebarHeight);
+        settingsButton.setConnectedEdges(Button::ConnectedOnLeft);
+
+        settingsButton.onClick = [this]() {
+            PopupMenu settingsMenu;
+            settingsMenu.setLookAndFeel(&PlugDataLook::getDefaultLookAndFeel());
+            settingsMenu.addItem(1, "50%", true, selectedItemId == 1);
+            settingsMenu.addItem(2, "75%", true, selectedItemId == 2);
+            settingsMenu.addItem(3, "100%", true, selectedItemId == 3);
+            settingsMenu.addItem(4, "125%", true, selectedItemId == 4);
+            settingsMenu.addItem(5, "150%", true, selectedItemId == 5);
+            settingsMenu.addItem(6, "175%", true, selectedItemId == 6);
+            settingsMenu.addItem(7, "200%", true, selectedItemId == 7);
+
+            // we want to make sure this menu always shows in its own window, as the plugin window can be smaller than the menu
+            settingsMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(nullptr), [this](int itemId) {;
+                float scale;
+                String text;
+                switch (itemId) {
+                case 1:     scale = 0.5f;   text = "50%";    break;
+                case 2:     scale = 0.75f;  text = "75%";    break;
+                case 3:     scale = 1.0f;   text = "100%";   break;
+                case 4:     scale = 1.25f;  text = "125%";   break;
+                case 5:     scale = 1.5f;   text = "150%";   break;
+                case 6:     scale = 1.75f;  text = "175%";   break;
+                case 7:     scale = 2.0f;   text = "200%";   break;
+                default:
+                    return;
+                }
+                if (selectedItemId != itemId) {
+                    scaleLabel->setText(text, NotificationType::dontSendNotification);
+                    selectedItemId = itemId;
+                    auto newWidth = width * scale;
+                    auto newHeight = (height * scale) + titlebarHeight + nativeTitleBarHeight;
+                    // setting the min=max will disable resizing
+                    fixedSizeConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
+                    editor->setSize(newWidth, newHeight);
+                    setBounds(0, 0, newWidth, newHeight);
+                }
+            });
+        };
+        titleBar.addAndMakeVisible(&settingsButton);
 
         addAndMakeVisible(titleBar);
 
@@ -96,15 +136,21 @@ public:
 
         cnv->setTopLeftPosition(-cnv->canvasOrigin);
 
-        pluginModeConstrainer.setSizeLimits(width / 2, height / 2 + titlebarHeight, width * 10, height * 10 + titlebarHeight);
-
-        editor->setConstrainer(&pluginModeConstrainer);
-
+        auto componentHeight = height + titlebarHeight;
+        fixedSizeConstrainer.setSizeLimits(width, componentHeight + nativeTitleBarHeight, width, componentHeight + nativeTitleBarHeight);
+        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
+            mainWindow->setConstrainer(&fixedSizeConstrainer);
+            mainWindow->resized();
+        }
+        else {
+            editor->setConstrainer(&fixedSizeConstrainer);
+            editor->resized();
+        }
         // Set editor bounds
-        editor->setSize(width, height + titlebarHeight);
+        editor->setSize(width, componentHeight);
 
         // Set local bounds
-        setBounds(0, 0, width, height + titlebarHeight);
+        setBounds(0, 0, width, componentHeight);
     }
 
     ~PluginMode() = default;
@@ -123,10 +169,16 @@ public:
             cnv->presentationMode = originalPresentationMode;
         }
 
-        MessageManager::callAsync([editor = this->editor,
-                                      bounds = windowBounds]() {
-            editor->setConstrainer(&editor->constrainer); // FIXME: this is wrong, it should set the mainWindow constrainer, not the editor
-            editor->setBoundsConstrained(bounds);
+        MessageManager::callAsync([editor = this->editor, bounds = windowBounds]() {
+            if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
+                mainWindow->setConstrainer(&editor->constrainer);
+                mainWindow->setBoundsConstrained(bounds);
+            } else {
+                editor->setConstrainer(&editor->constrainer);
+                editor->setBounds(bounds);
+            }
+
+            editor->resized();
             if (auto* tabbar = editor->getActiveTabbar()) {
                 tabbar->resized();
             }
@@ -179,11 +231,7 @@ public:
 
     void resized() override
     {
-        float const controlsHeight = isWindowFullscreen() ? 0 : titlebarHeight;
         float const scale = getWidth() / width;
-        float const resizeRatio = width / (height + (controlsHeight / scale));
-
-        pluginModeConstrainer.setFixedAspectRatio(resizeRatio);
 
         // Detect if the user exited fullscreen with the macOS's fullscreen button
 #if JUCE_MAC
@@ -211,21 +259,20 @@ public:
 
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
+            scaleLabel->setVisible(false);
+            settingsButton.setVisible(false);
+            editorButton->setVisible(false);
         } else {
-            if (ProjectInfo::isStandalone) {
-                borderResizer->setBounds(getLocalBounds());
-            } else {
-                int const resizerSize = 18;
-                cornerResizer->setBounds(getWidth() - resizerSize,
-                    getHeight() - resizerSize,
-                    resizerSize, resizerSize);
-            }
-
             content.setTransform(content.getTransform().scale(scale));
             content.setTopLeftPosition(0, titlebarHeight / scale);
-
             titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
 
+            scaleLabel->setVisible(true);
+            settingsButton.setVisible(true);
+            editorButton->setVisible(true);
+
+            scaleLabel->setBounds(fullscreenButton ? fullscreenButton->getWidth() : 0, 0, titlebarHeight * 1.6f, titlebarHeight);
+            settingsButton.setBounds(scaleLabel->getWidth(), 0, titlebarHeight, titlebarHeight);
             editorButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         }
     }
@@ -304,21 +351,22 @@ public:
             window->setUsingNativeTitleBar(false);
             desktopWindow = window->getPeer();
             setFullScreen(window, true);
-            borderResizer->setVisible(false);
         } else {
             setFullScreen(window, false);
-            editor->setConstrainer(&pluginModeConstrainer);
+            if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
+                mainWindow->setConstrainer(&fixedSizeConstrainer);
+                mainWindow->resized();
+            } else
+                editor->setConstrainer(&fixedSizeConstrainer);
+
             setBounds(originalPluginWindowBounds.withZeroOrigin());
             editor->setBounds(originalPluginWindowBounds);
-
             bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
             window->setBounds(originalPluginWindowBounds.translated(0, isUsingNativeTitlebar ? -nativeTitleBarHeight : 0));
 
             window->getContentComponent()->resized();
             window->setUsingNativeTitleBar(isUsingNativeTitlebar);
             desktopWindow = window->getPeer();
-
-            borderResizer->setVisible(true);
         }
     }
 
@@ -346,14 +394,18 @@ private:
     Component titleBar;
     int const titlebarHeight = 40;
     int nativeTitleBarHeight;
-    std::unique_ptr<MainToolbarButton> editorButton;
     std::unique_ptr<MainToolbarButton> fullscreenButton;
+    std::unique_ptr<Label> scaleLabel;
+    SmallIconButton settingsButton;
+    std::unique_ptr<MainToolbarButton> editorButton;
+
+    int selectedItemId = 3; // default is 100% for now
 
     Component content;
 
     ComponentDragger windowDragger;
 
-    ComponentBoundsConstrainer pluginModeConstrainer;
+    ComponentBoundsConstrainer fixedSizeConstrainer;
 
     Point<int> originalCanvasPos;
     float originalCanvasScale;
@@ -362,12 +414,6 @@ private:
     bool isFullScreenKioskMode = false;
 
     Rectangle<int> originalPluginWindowBounds;
-
-    // Used in plugin
-    std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
-
-    // Used in standalone
-    std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
 
     Rectangle<int> windowBounds;
     float const width = float(cnv->patchWidth.getValue()) + 1.0f;
