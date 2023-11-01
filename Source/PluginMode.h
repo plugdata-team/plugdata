@@ -96,6 +96,7 @@ public:
                 auto newHeight = (height * scale) + titlebarHeight + nativeTitleBarHeight;
                 // setting the min=max will disable resizing
                 editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
+                editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
                 editor->setSize(newWidth, newHeight);
                 setBounds(0, 0, newWidth, newHeight);
             }
