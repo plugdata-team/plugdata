@@ -209,14 +209,14 @@ public:
 
     void resized() override
     {
-        float const scale = getWidth() / width;
-
         // Detect if the user exited fullscreen with the macOS's fullscreen button
 #if JUCE_MAC
         if (ProjectInfo::isStandalone && isWindowFullscreen() && !desktopWindow->isFullScreen()) {
             setKioskMode(false);
         }
 #endif
+        
+        float const scale = getWidth() / width;
 
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
 
@@ -322,26 +322,21 @@ public:
 
         if (shouldBeKiosk) {
             editor->constrainer.setSizeLimits(1, 1, 99000, 99000);
-            if (!ProjectInfo::isStandalone) editor->pluginConstrainer.setSizeLimits(1, 1, 99000, 99000);
             originalPluginWindowBounds = window->getBounds();
             window->setUsingNativeTitleBar(false);
             desktopWindow = window->getPeer();
             setFullScreen(window, true);
         } else {
-            editor->constrainer.setSizeLimits(originalPluginWindowBounds.getWidth(), originalPluginWindowBounds.getHeight(), originalPluginWindowBounds.getWidth(), originalPluginWindowBounds.getHeight());
-            setFullScreen(window, false);
-            if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-                mainWindow->resized();
-            }
-            
-            setBounds(originalPluginWindowBounds.withZeroOrigin());
-            editor->setBounds(originalPluginWindowBounds);
             bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
-            window->setBounds(originalPluginWindowBounds.translated(0, isUsingNativeTitlebar ? -nativeTitleBarHeight : 0));
-
-            window->getContentComponent()->resized();
             window->setUsingNativeTitleBar(isUsingNativeTitlebar);
-            desktopWindow = window->getPeer();
+            
+            auto windowHeight = height + titlebarHeight + nativeTitleBarHeight;
+            editor->constrainer.setSizeLimits(width, windowHeight, width, windowHeight);
+            setFullScreen(window, false);
+            editor->setSize(width, windowHeight);
+            setSize(width, windowHeight);
+            selectedItemId = 3;
+            resized();
         }
     }
 
