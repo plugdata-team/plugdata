@@ -79,15 +79,14 @@ public:
         scaleComboBox.onChange = [this](){
             auto itemId = scaleComboBox.getSelectedId();
             float scale;
-            String text;
             switch (itemId) {
-            case 1:     scale = 0.5f;   text = "50%";    break;
-            case 2:     scale = 0.75f;  text = "75%";    break;
-            case 3:     scale = 1.0f;   text = "100%";   break;
-            case 4:     scale = 1.25f;  text = "125%";   break;
-            case 5:     scale = 1.5f;   text = "150%";   break;
-            case 6:     scale = 1.75f;  text = "175%";   break;
-            case 7:     scale = 2.0f;   text = "200%";   break;
+            case 1:     scale = 0.5f;  break;
+            case 2:     scale = 0.75f; break;
+            case 3:     scale = 1.0f;  break;
+            case 4:     scale = 1.25f; break;
+            case 5:     scale = 1.5f;  break;
+            case 6:     scale = 1.75f; break;
+            case 7:     scale = 2.0f;  break;
             default:
                 return;
             }
@@ -97,7 +96,6 @@ public:
                 auto newHeight = (height * scale) + titlebarHeight + nativeTitleBarHeight;
                 // setting the min=max will disable resizing
                 editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
-                editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
                 editor->setSize(newWidth, newHeight);
                 setBounds(0, 0, newWidth, newHeight);
             }
@@ -124,6 +122,7 @@ public:
         auto componentHeight = height + titlebarHeight;
         
         // Set editor bounds
+        editor->constrainer.setSizeLimits(width, componentHeight, width, componentHeight);
         editor->setSize(width, componentHeight);
 
         // Set local bounds
@@ -148,10 +147,10 @@ public:
 
         MessageManager::callAsync([editor = this->editor, bounds = windowBounds]() {
             if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
+                editor->constrainer.setSizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
                 mainWindow->setBoundsConstrained(bounds);
             } else {
                 editor->constrainer.setSizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
-                editor->pluginConstrainer.setSizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
                 editor->setBounds(bounds);
             }
 
