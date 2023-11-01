@@ -147,7 +147,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour, bool isOpen, bool isMouseOver) override;
 
     void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& object) override;
-
+    
+    Font getComboBoxFont (ComboBox&) override;
+    
     PopupMenu::Options getOptionsForComboBoxPopupMenu(ComboBox& box, Label& label) override;
     
     void drawResizableFrame(Graphics& g, int w, int h, BorderSize<int> const& border) override {}
@@ -159,6 +161,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override;
 
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override;
+    
+    
 
     void drawTooltip(Graphics& g, String const& text, int width, int height) override;
 

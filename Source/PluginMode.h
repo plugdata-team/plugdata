@@ -28,38 +28,38 @@ public:
         originalCanvasPos = cnv->getPosition();
         originalLockedMode = getValue<bool>(cnv->locked);
         originalPresentationMode = getValue<bool>(cnv->presentationMode);
-
+        
         // Set zoom value and update synchronously
         cnv->zoomScale.setValue(1.0f);
         cnv->zoomScale.getValueSource().sendChangeMessage(true);
-
+        
         if (ProjectInfo::isStandalone) {
             auto frameSize = desktopWindow->getFrameSizeIfPresent();
             nativeTitleBarHeight = frameSize ? frameSize->getTop() : 0;
         } else {
             nativeTitleBarHeight = 0;
         }
-
+        
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);
-
+        
         editorButton = std::make_unique<MainToolbarButton>(Icons::Edit);
         editorButton->setTooltip("Show editor");
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         editorButton->onClick = [this]() {
             closePluginMode();
         };
-
+        
         titleBar.addAndMakeVisible(*editorButton);
-
+        
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
         setInterceptsMouseClicks(false, false);
-
+        
         // Add this view to the editor
         editor->addAndMakeVisible(this);
-
+        
         if (ProjectInfo::isStandalone) {
             fullscreenButton = std::make_unique<MainToolbarButton>(Icons::Fullscreen);
             fullscreenButton->setTooltip("Enter fullscreen kiosk mode");
@@ -69,57 +69,41 @@ public:
             };
             titleBar.addAndMakeVisible(*fullscreenButton);
         }
-
-        scaleLabel = std::make_unique<Label>();
-        scaleLabel->setText("100%", NotificationType::dontSendNotification);
-        scaleLabel->setBounds(fullscreenButton ? fullscreenButton->getWidth() : 0, 0, titlebarHeight * 1.6f, titlebarHeight);
-        addAndMakeVisible(scaleLabel.get());
-
-        settingsButton.setButtonText(Icons::ThinDown);
-        settingsButton.setTooltip("Change plugin scale");
-        settingsButton.setBounds(scaleLabel->getWidth(), 0, titlebarHeight, titlebarHeight);
-        settingsButton.setConnectedEdges(Button::ConnectedOnLeft);
-
-        settingsButton.onClick = [this]() {
-            PopupMenu settingsMenu;
-            settingsMenu.setLookAndFeel(&PlugDataLook::getDefaultLookAndFeel());
-            settingsMenu.addItem(1, "50%", true, selectedItemId == 1);
-            settingsMenu.addItem(2, "75%", true, selectedItemId == 2);
-            settingsMenu.addItem(3, "100%", true, selectedItemId == 3);
-            settingsMenu.addItem(4, "125%", true, selectedItemId == 4);
-            settingsMenu.addItem(5, "150%", true, selectedItemId == 5);
-            settingsMenu.addItem(6, "175%", true, selectedItemId == 6);
-            settingsMenu.addItem(7, "200%", true, selectedItemId == 7);
-
-            // we want to make sure this menu always shows in its own window, as the plugin window can be smaller than the menu
-            settingsMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(nullptr), [this](int itemId) {;
-                float scale;
-                String text;
-                switch (itemId) {
-                case 1:     scale = 0.5f;   text = "50%";    break;
-                case 2:     scale = 0.75f;  text = "75%";    break;
-                case 3:     scale = 1.0f;   text = "100%";   break;
-                case 4:     scale = 1.25f;  text = "125%";   break;
-                case 5:     scale = 1.5f;   text = "150%";   break;
-                case 6:     scale = 1.75f;  text = "175%";   break;
-                case 7:     scale = 2.0f;   text = "200%";   break;
-                default:
-                    return;
-                }
-                if (selectedItemId != itemId) {
-                    scaleLabel->setText(text, NotificationType::dontSendNotification);
-                    selectedItemId = itemId;
-                    auto newWidth = width * scale;
-                    auto newHeight = (height * scale) + titlebarHeight + nativeTitleBarHeight;
-                    // setting the min=max will disable resizing
-                    editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
-                    editor->setSize(newWidth, newHeight);
-                    setBounds(0, 0, newWidth, newHeight);
-                }
-            });
+        
+        scaleComboBox.addItemList({"50%", "75%", "100%", "125%", "150%", "175%", "200%"}, 1);
+        scaleComboBox.setTooltip("Change plugin scale");
+        scaleComboBox.setText("100%");
+        scaleComboBox.setBounds(fullscreenButton ? fullscreenButton->getWidth() + 4 : 4, 8, 70, titlebarHeight - 16);
+        scaleComboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        scaleComboBox.setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::toolbarHoverColourId).withAlpha(0.8f));
+        scaleComboBox.onChange = [this](){
+            auto itemId = scaleComboBox.getSelectedId();
+            float scale;
+            String text;
+            switch (itemId) {
+            case 1:     scale = 0.5f;   text = "50%";    break;
+            case 2:     scale = 0.75f;  text = "75%";    break;
+            case 3:     scale = 1.0f;   text = "100%";   break;
+            case 4:     scale = 1.25f;  text = "125%";   break;
+            case 5:     scale = 1.5f;   text = "150%";   break;
+            case 6:     scale = 1.75f;  text = "175%";   break;
+            case 7:     scale = 2.0f;   text = "200%";   break;
+            default:
+                return;
+            }
+            if (selectedItemId != itemId) {
+                selectedItemId = itemId;
+                auto newWidth = width * scale;
+                auto newHeight = (height * scale) + titlebarHeight + nativeTitleBarHeight;
+                // setting the min=max will disable resizing
+                editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
+                editor->setSize(newWidth, newHeight);
+                setBounds(0, 0, newWidth, newHeight);
+            }
         };
-        titleBar.addAndMakeVisible(&settingsButton);
 
+        titleBar.addAndMakeVisible(scaleComboBox);
+        
         addAndMakeVisible(titleBar);
 
         // Viewed Content (canvas)
@@ -250,20 +234,17 @@ public:
 
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
-            scaleLabel->setVisible(false);
-            settingsButton.setVisible(false);
+            scaleComboBox.setVisible(false);
             editorButton->setVisible(false);
         } else {
             content.setTransform(content.getTransform().scale(scale));
             content.setTopLeftPosition(0, titlebarHeight / scale);
             titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
 
-            scaleLabel->setVisible(true);
-            settingsButton.setVisible(true);
+            scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
 
-            scaleLabel->setBounds(fullscreenButton ? fullscreenButton->getWidth() : 0, 0, titlebarHeight * 1.6f, titlebarHeight);
-            settingsButton.setBounds(scaleLabel->getWidth(), 0, titlebarHeight, titlebarHeight);
+            scaleComboBox.setBounds(fullscreenButton ? fullscreenButton->getWidth() + 4 : 4, 8, 70, titlebarHeight - 16);
             editorButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         }
     }
@@ -383,8 +364,7 @@ private:
     int const titlebarHeight = 40;
     int nativeTitleBarHeight;
     std::unique_ptr<MainToolbarButton> fullscreenButton;
-    std::unique_ptr<Label> scaleLabel;
-    SmallIconButton settingsButton;
+    ComboBox scaleComboBox;
     std::unique_ptr<MainToolbarButton> editorButton;
 
     int selectedItemId = 3; // default is 100% for now
