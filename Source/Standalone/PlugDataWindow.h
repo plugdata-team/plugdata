@@ -463,7 +463,7 @@ public:
                 setDropShadowEnabled(true);
                 setConstrainer(nullptr);
                 setResizable(true, false);
-                setResizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
+                setResizeLimits(850, 650, 99000, 99000);
                 pdEditor->setUseBorderResizer(false);
             }
 

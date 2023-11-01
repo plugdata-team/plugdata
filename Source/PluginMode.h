@@ -95,7 +95,7 @@ public:
                 auto newWidth = width * scale;
                 auto newHeight = (height * scale) + titlebarHeight + nativeTitleBarHeight;
                 // setting the min=max will disable resizing
-                editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
+                if (!ProjectInfo::isStandalone) editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
                 editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
                 editor->setSize(newWidth, newHeight);
                 setBounds(0, 0, newWidth, newHeight);
@@ -123,7 +123,6 @@ public:
         auto componentHeight = height + titlebarHeight;
         
         // Set editor bounds
-        editor->pluginConstrainer.setSizeLimits(width, componentHeight, width, componentHeight);
         editor->setSize(width, componentHeight);
 
         // Set local bounds
@@ -147,13 +146,13 @@ public:
         }
 
         MessageManager::callAsync([editor = this->editor, bounds = windowBounds]() {
+
+            if(!ProjectInfo::isStandalone) editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
+            editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
+
             if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-                editor->pluginConstrainer.setSizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
-                editor->constrainer.setSizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
                 mainWindow->setBoundsConstrained(bounds);
             } else {
-                editor->pluginConstrainer.setSizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
-                editor->constrainer.setSizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
                 editor->setBounds(bounds);
             }
 
@@ -322,20 +321,19 @@ public:
         isFullScreenKioskMode = shouldBeKiosk;
 
         if (shouldBeKiosk) {
-            editor->constrainer.setSizeLimits(1, 1, 0x3fffffff, 0x3fffffff);
-            editor->pluginConstrainer.setSizeLimits(1, 1, 0x3fffffff, 0x3fffffff);
+            editor->constrainer.setSizeLimits(1, 1, 99000, 99000);
+            if (!ProjectInfo::isStandalone) editor->pluginConstrainer.setSizeLimits(1, 1, 99000, 99000);
             originalPluginWindowBounds = window->getBounds();
             window->setUsingNativeTitleBar(false);
             desktopWindow = window->getPeer();
             setFullScreen(window, true);
         } else {
+            editor->constrainer.setSizeLimits(originalPluginWindowBounds.getWidth(), originalPluginWindowBounds.getHeight(), originalPluginWindowBounds.getWidth(), originalPluginWindowBounds.getHeight());
             setFullScreen(window, false);
             if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
                 mainWindow->resized();
             }
             
-            editor->constrainer.setSizeLimits(originalPluginWindowBounds.getWidth(), originalPluginWindowBounds.getHeight(), originalPluginWindowBounds.getWidth(), originalPluginWindowBounds.getHeight());
-            editor->pluginConstrainer.setSizeLimits(originalPluginWindowBounds.getWidth(), originalPluginWindowBounds.getHeight(), originalPluginWindowBounds.getWidth(), originalPluginWindowBounds.getHeight());
             setBounds(originalPluginWindowBounds.withZeroOrigin());
             editor->setBounds(originalPluginWindowBounds);
             bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
