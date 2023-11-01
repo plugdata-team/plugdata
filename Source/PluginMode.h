@@ -309,16 +309,17 @@ public:
 #endif
     }
 
-    void setKioskMode(bool shouldBeBiosk)
+    void setKioskMode(bool shouldBeKiosk)
     {
         auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
 
         if (!window)
             return;
 
-        isFullScreenKioskMode = shouldBeBiosk;
+        isFullScreenKioskMode = shouldBeKiosk;
 
-        if (shouldBeBiosk) {
+        if (shouldBeKiosk) {
+            editor->constrainer.setSizeLimits(1, 1, 0x3fffffff, 0x3fffffff);
             originalPluginWindowBounds = window->getBounds();
             window->setUsingNativeTitleBar(false);
             desktopWindow = window->getPeer();
@@ -327,8 +328,9 @@ public:
             setFullScreen(window, false);
             if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
                 mainWindow->resized();
-            } 
-
+            }
+            
+            editor->constrainer.setSizeLimits(originalPluginWindowBounds.getWidth(), originalPluginWindowBounds.getHeight(), originalPluginWindowBounds.getWidth(), originalPluginWindowBounds.getHeight());
             setBounds(originalPluginWindowBounds.withZeroOrigin());
             editor->setBounds(originalPluginWindowBounds);
             bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
