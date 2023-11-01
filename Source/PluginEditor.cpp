@@ -74,11 +74,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , splitView(this)
     , zoomLabel(std::make_unique<ZoomLabel>())
     , offlineRenderer(&p)
+    , constrainer(*getConstrainer())
     , tooltipWindow(this, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
         }
-
+        
         return true;
     })
 {
@@ -253,7 +254,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
         _this->grabKeyboardFocus();
     });
-
+    
     // if we are inside a DAW / host set up the border resizer now
     if (!ProjectInfo::isStandalone)
         setUseBorderResizer(true);
@@ -262,8 +263,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 PluginEditor::~PluginEditor()
 {
     pd->savePatchTabPositions();
-
-    setConstrainer(nullptr);
     theme.removeListener(this);
 
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
@@ -410,9 +409,9 @@ void PluginEditor::resized()
     if (borderResizer && ProjectInfo::isStandalone) {
         borderResizer->setBounds(getLocalBounds());
     } else if (cornerResizer) {
-        int const resizerSize = 18;
-        cornerResizer->setBounds(getWidth() - resizerSize,
-            getHeight() - resizerSize,
+        int const resizerSize = 18; 
+        cornerResizer->setBounds(getWidth() - resizerSize + 1,
+            getHeight() - resizerSize + 1,
             resizerSize, resizerSize);
     }
 

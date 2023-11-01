@@ -112,7 +112,7 @@ public:
                     auto newWidth = width * scale;
                     auto newHeight = (height * scale) + titlebarHeight + nativeTitleBarHeight;
                     // setting the min=max will disable resizing
-                    fixedSizeConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
+                    editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
                     editor->setSize(newWidth, newHeight);
                     setBounds(0, 0, newWidth, newHeight);
                 }
@@ -137,15 +137,7 @@ public:
         cnv->setTopLeftPosition(-cnv->canvasOrigin);
 
         auto componentHeight = height + titlebarHeight;
-        fixedSizeConstrainer.setSizeLimits(width, componentHeight + nativeTitleBarHeight, width, componentHeight + nativeTitleBarHeight);
-        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            mainWindow->setConstrainer(&fixedSizeConstrainer);
-            mainWindow->resized();
-        }
-        else {
-            editor->setConstrainer(&fixedSizeConstrainer);
-            editor->resized();
-        }
+        
         // Set editor bounds
         editor->setSize(width, componentHeight);
 
@@ -171,10 +163,9 @@ public:
 
         MessageManager::callAsync([editor = this->editor, bounds = windowBounds]() {
             if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-                mainWindow->setConstrainer(&editor->constrainer);
                 mainWindow->setBoundsConstrained(bounds);
             } else {
-                editor->setConstrainer(&editor->constrainer);
+                editor->constrainer.setSizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
                 editor->setBounds(bounds);
             }
 
@@ -347,17 +338,14 @@ public:
 
         if (shouldBeBiosk) {
             originalPluginWindowBounds = window->getBounds();
-            editor->setConstrainer(nullptr);
             window->setUsingNativeTitleBar(false);
             desktopWindow = window->getPeer();
             setFullScreen(window, true);
         } else {
             setFullScreen(window, false);
             if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-                mainWindow->setConstrainer(&fixedSizeConstrainer);
                 mainWindow->resized();
-            } else
-                editor->setConstrainer(&fixedSizeConstrainer);
+            } 
 
             setBounds(originalPluginWindowBounds.withZeroOrigin());
             editor->setBounds(originalPluginWindowBounds);
@@ -404,8 +392,6 @@ private:
     Component content;
 
     ComponentDragger windowDragger;
-
-    ComponentBoundsConstrainer fixedSizeConstrainer;
 
     Point<int> originalCanvasPos;
     float originalCanvasScale;

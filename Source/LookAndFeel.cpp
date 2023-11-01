@@ -1014,15 +1014,10 @@ void PlugDataLook::drawTextEditorOutline(Graphics& g, int width, int height, Tex
 
 void PlugDataLook::drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging)
 {
-
     Path triangle;
     triangle.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
 
-    Path roundEdgeClipping;
-    roundEdgeClipping.addRoundedRectangle(Rectangle<int>(0, 0, w, h), Corners::objectCornerRadius);
-
     g.saveState();
-    g.reduceClipRegion(roundEdgeClipping);
     g.setColour(findColour(PlugDataColour::resizeableCornerColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));
     g.fillPath(triangle);
     g.restoreState();

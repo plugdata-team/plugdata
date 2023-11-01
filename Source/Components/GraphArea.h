@@ -8,9 +8,36 @@
 class GraphArea : public Component
     , public ComponentDragger
     , public Value::Listener {
-    ResizableCornerComponent resizer;
-    Canvas* canvas;
 
+    class GraphAreaResizer : public ResizableCornerComponent
+    {
+        public:
+        
+        using ResizableCornerComponent::ResizableCornerComponent;
+        
+        void paint(Graphics& g) override
+        {
+            auto w = getWidth();
+            auto h = getHeight();
+            
+            Path triangle;
+            triangle.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
+
+            Path roundEdgeClipping;
+            roundEdgeClipping.addRoundedRectangle(Rectangle<int>(0, 0, w, h), Corners::objectCornerRadius);
+
+            g.saveState();
+            g.reduceClipRegion(roundEdgeClipping);
+            g.setColour(findColour(PlugDataColour::resizeableCornerColourId).withAlpha(isMouseOver() ? 1.0f : 0.6f));
+            g.fillPath(triangle);
+            g.restoreState();
+        }
+    };
+
+    GraphAreaResizer resizer;
+    Canvas* canvas;
+        
+        
 public:
     explicit GraphArea(Canvas* parent)
         : resizer(this, nullptr)
