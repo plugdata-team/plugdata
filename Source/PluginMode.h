@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2022-2023 Nejrup, Alex Mitchell and Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #pragma once
 
 #include "PluginEditor.h"
