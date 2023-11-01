@@ -92,13 +92,7 @@ public:
             }
             if (selectedItemId != itemId) {
                 selectedItemId = itemId;
-                auto newWidth = width * scale;
-                auto newHeight = (height * scale) + titlebarHeight + nativeTitleBarHeight;
-                // setting the min=max will disable resizing
-                if (!ProjectInfo::isStandalone) editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
-                editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
-                editor->setSize(newWidth, newHeight);
-                setBounds(0, 0, newWidth, newHeight);
+                setWidthAndHeight(scale);
             }
         };
 
@@ -121,15 +115,27 @@ public:
         cnv->setTopLeftPosition(-cnv->canvasOrigin);
 
         auto componentHeight = height + titlebarHeight;
-        
-        // Set editor bounds
-        editor->setSize(width, componentHeight);
 
-        // Set local bounds
-        setBounds(0, 0, width, componentHeight);
+        setWidthAndHeight(1.0f);
     }
 
     ~PluginMode() = default;
+
+    void setWidthAndHeight(float scale)
+    {
+        auto newWidth = static_cast<int>(width * scale);
+        auto newHeight = static_cast<int>(height * scale) + titlebarHeight + nativeTitleBarHeight;
+        // setting the min=max will disable resizing
+        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
+            mainWindow->setResizeLimits(newWidth, newHeight, newWidth, newHeight);
+            editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
+        }
+        else {
+            editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
+        }
+        editor->setSize(newWidth, newHeight);
+        setBounds(0, 0, newWidth, newHeight);
+    }
 
     void closePluginMode()
     {
@@ -145,22 +151,22 @@ public:
             cnv->presentationMode = originalPresentationMode;
         }
 
-        MessageManager::callAsync([editor = this->editor, bounds = windowBounds]() {
+        if(!ProjectInfo::isStandalone) editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
+        editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
 
-            if(!ProjectInfo::isStandalone) editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
+        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
+            mainWindow->setResizeLimits(850, 650, 99000, 99000);
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
+            mainWindow->setBoundsConstrained(windowBounds);
+        } else {
+            editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
+            editor->setBounds(windowBounds);
+        }
 
-            if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-                mainWindow->setBoundsConstrained(bounds);
-            } else {
-                editor->setBounds(bounds);
-            }
-
-            editor->resized();
-            if (auto* tabbar = editor->getActiveTabbar()) {
-                tabbar->resized();
-            }
-        });
+        editor->resized();
+        if (auto* tabbar = editor->getActiveTabbar()) {
+            tabbar->resized();
+        }
 
         // Destroy this view
         editor->pluginMode.reset(nullptr);
@@ -328,15 +334,14 @@ public:
             setFullScreen(window, true);
         } else {
             bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
-            window->setUsingNativeTitleBar(isUsingNativeTitlebar);
-            
+            setFullScreen(window, false);
+
             auto windowHeight = height + titlebarHeight + nativeTitleBarHeight;
             editor->constrainer.setSizeLimits(width, windowHeight, width, windowHeight);
             setFullScreen(window, false);
-            editor->setSize(width, windowHeight);
-            setSize(width, windowHeight);
-            selectedItemId = 3;
-            resized();
+            setWidthAndHeight(1.0f);
+            window->setUsingNativeTitleBar(isUsingNativeTitlebar);
+            desktopWindow = window->getPeer();
         }
     }
 
