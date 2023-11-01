@@ -299,7 +299,7 @@ public:
 
         // Offset the start of the drag when dragging the window by Titlebar
         if (e.getPosition().getY() < titlebarHeight)
-            windowDragger.startDraggingComponent(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()));
+            windowDragger.startDraggingWindow(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()));
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -308,7 +308,7 @@ public:
         if (!ProjectInfo::isStandalone)
             return;
 
-        windowDragger.dragComponent(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()), nullptr);
+        windowDragger.dragWindow(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()), nullptr);
     }
 
     void setFullScreen(PlugDataWindow* window, bool shouldBeFullScreen)
@@ -376,7 +376,7 @@ private:
 
     Component content;
 
-    ComponentDragger windowDragger;
+    WindowDragger windowDragger;
 
     Point<int> originalCanvasPos;
     float originalCanvasScale;
