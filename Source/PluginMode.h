@@ -148,6 +148,7 @@ public:
         MessageManager::callAsync([editor = this->editor, bounds = windowBounds]() {
             if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
                 editor->constrainer.setSizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
+                mainWindow->getConstrainer()->setSizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
                 mainWindow->setBoundsConstrained(bounds);
             } else {
                 editor->constrainer.setSizeLimits(850, 650, 0x3fffffff, 0x3fffffff);
