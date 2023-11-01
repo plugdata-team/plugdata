@@ -232,7 +232,7 @@ public:
 
     void updateScale(float newScale, bool withAnimation)
     {
-        if (!approximatelyEqual<float>(newScale, previousScale))
+        if (approximatelyEqual<float>(newScale, previousScale))
             return;
 
         previousScale = newScale;
