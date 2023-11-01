@@ -141,7 +141,9 @@ public:
     // used to display callOutBoxes only in a safe area between top & bottom toolbars
     Component callOutSafeArea;
 
-    ComponentBoundsConstrainer& constrainer;
+    ComponentBoundsConstrainer constrainer;
+
+    ComponentBoundsConstrainer& pluginConstrainer;
 
 private:
     // Used by standalone to handle dragging the window
