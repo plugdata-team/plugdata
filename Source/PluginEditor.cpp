@@ -253,6 +253,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
         _this->grabKeyboardFocus();
     });
+
+    // if we are inside a DAW / host set up the border resizer now
+    if (!ProjectInfo::isStandalone)
+        setUseBorderResizer(true);
 }
 
 PluginEditor::~PluginEditor()
@@ -294,7 +298,7 @@ void PluginEditor::setUseBorderResizer(bool shouldUse)
             }
         } else {
             if (!cornerResizer) {
-                cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
+                cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, &constrainer);
                 cornerResizer->setAlwaysOnTop(true);
             }
             addAndMakeVisible(cornerResizer.get());
