@@ -29,6 +29,13 @@ public:
             }
 #endif
         }
+        if(auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent()))
+        {
+            mainWindow->setUsingNativeTitleBar(false);
+            mainWindow->setOpaque(false);
+        }
+        desktopWindow = editor->getPeer();
+        
         // Save original canvas properties
         originalCanvasScale = getValue<float>(cnv->zoomScale);
         originalCanvasPos = cnv->getPosition();
@@ -38,14 +45,7 @@ public:
         // Set zoom value and update synchronously
         cnv->zoomScale.setValue(1.0f);
         cnv->zoomScale.getValueSource().sendChangeMessage(true);
-        
-        if (ProjectInfo::isStandalone) {
-            auto frameSize = desktopWindow->getFrameSizeIfPresent();
-            nativeTitleBarHeight = frameSize ? frameSize->getTop() : 0;
-        } else {
-            nativeTitleBarHeight = 0;
-        }
-        
+                
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);
@@ -119,9 +119,6 @@ public:
         addAndMakeVisible(content);
 
         cnv->setTopLeftPosition(-cnv->canvasOrigin);
-
-        auto componentHeight = height + titlebarHeight;
-
         setWidthAndHeight(1.0f);
     }
 
@@ -130,11 +127,11 @@ public:
     void setWidthAndHeight(float scale)
     {
         auto newWidth = static_cast<int>(width * scale);
-        auto newHeight = static_cast<int>(height * scale) + titlebarHeight + nativeTitleBarHeight;
+        auto newHeight = static_cast<int>(height * scale) + titlebarHeight;
         // setting the min=max will disable resizing
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            mainWindow->setResizeLimits(newWidth, newHeight, newWidth, newHeight);
             editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
+            mainWindow->setResizeLimits(newWidth, newHeight, newWidth, newHeight);
         }
         else {
             editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
@@ -157,11 +154,14 @@ public:
             cnv->presentationMode = originalPresentationMode;
         }
 
-        if(!ProjectInfo::isStandalone) editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
-        editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
-
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            mainWindow->setResizeLimits(850, 650, 99000, 99000);
+            bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
+            if(isUsingNativeTitlebar) {
+                mainWindow->setResizeLimits(850, 650, 99000, 99000);
+                mainWindow->setOpaque(true);
+                mainWindow->setUsingNativeTitleBar(true);
+            }
+
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
             mainWindow->setBoundsConstrained(windowBounds);
         } else {
@@ -223,7 +223,8 @@ public:
     {
         // Detect if the user exited fullscreen with the macOS's fullscreen button
 #if JUCE_MAC
-        if (ProjectInfo::isStandalone && isWindowFullscreen() && !desktopWindow->isFullScreen()) {
+        auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
+        if (ProjectInfo::isStandalone && isWindowFullscreen() && window && !window->getPeer()->isFullScreen()) {
             setKioskMode(false);
         }
 #endif
@@ -268,11 +269,13 @@ public:
     {
         // Fullscreen / Kiosk Mode
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
-            // Determine the screen size
-            auto const screenBounds = desktopWindow->getBounds();
-
-            // Fill the screen
-            setBounds(0, 0, screenBounds.getWidth(), screenBounds.getHeight());
+            if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
+                // Determine the screen size
+                auto const screenBounds = mainWindow->getPeer()->getBounds();
+                
+                // Fill the screen
+                setBounds(0, 0, screenBounds.getWidth(), screenBounds.getHeight());
+            }
         } else {
             setBounds(editor->getLocalBounds());
         }
@@ -295,10 +298,8 @@ public:
             return;
 
         // Offset the start of the drag when dragging the window by Titlebar
-        if (!nativeTitleBarHeight) {
-            if (e.getPosition().getY() < titlebarHeight)
-                windowDragger.startDraggingComponent(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()));
-        }
+        if (e.getPosition().getY() < titlebarHeight)
+            windowDragger.startDraggingComponent(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()));
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -307,9 +308,7 @@ public:
         if (!ProjectInfo::isStandalone)
             return;
 
-        // Drag window by TitleBar
-        if (!nativeTitleBarHeight)
-            windowDragger.dragComponent(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()), nullptr);
+        windowDragger.dragComponent(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()), nullptr);
     }
 
     void setFullScreen(PlugDataWindow* window, bool shouldBeFullScreen)
@@ -335,18 +334,13 @@ public:
         if (shouldBeKiosk) {
             editor->constrainer.setSizeLimits(1, 1, 99000, 99000);
             originalPluginWindowBounds = window->getBounds();
-            window->setUsingNativeTitleBar(false);
             desktopWindow = window->getPeer();
             setFullScreen(window, true);
         } else {
-            bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
             setFullScreen(window, false);
-
-            auto windowHeight = height + titlebarHeight + nativeTitleBarHeight;
-            editor->constrainer.setSizeLimits(width, windowHeight, width, windowHeight);
-            setFullScreen(window, false);
+            selectedItemId = 3;
+            scaleComboBox.setText("100%");
             setWidthAndHeight(1.0f);
-            window->setUsingNativeTitleBar(isUsingNativeTitlebar);
             desktopWindow = window->getPeer();
         }
     }
@@ -374,7 +368,6 @@ private:
 
     Component titleBar;
     int const titlebarHeight = 40;
-    int nativeTitleBarHeight;
     std::unique_ptr<MainToolbarButton> fullscreenButton;
     ComboBox scaleComboBox;
     std::unique_ptr<MainToolbarButton> editorButton;
