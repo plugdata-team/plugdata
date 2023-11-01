@@ -74,7 +74,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , splitView(this)
     , zoomLabel(std::make_unique<ZoomLabel>())
     , offlineRenderer(&p)
-    , constrainer(*getConstrainer())
+    , pluginConstrainer(*getConstrainer())
     , tooltipWindow(this, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
@@ -87,7 +87,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     if (!ProjectInfo::isStandalone) {
         setUseBorderResizer(true);
     }
+    
     constrainer.setMinimumSize(850, 650);
+    pluginConstrainer.setMinimumSize(850, 650);
 
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
@@ -297,7 +299,7 @@ void PluginEditor::setUseBorderResizer(bool shouldUse)
             }
         } else {
             if (!cornerResizer) {
-                cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, &constrainer);
+                cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, &pluginConstrainer);
                 cornerResizer->setAlwaysOnTop(true);
             }
             addAndMakeVisible(cornerResizer.get());
