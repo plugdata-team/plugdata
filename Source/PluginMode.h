@@ -287,7 +287,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (scaleComboBox.contains(e.getPosition()))
+        if (scaleComboBox.contains(e.getEventRelativeTo(&scaleComboBox).getPosition()))
             return;
 
         // Offset the start of the drag when dragging the window by Titlebar
