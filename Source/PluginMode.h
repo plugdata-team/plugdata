@@ -34,57 +34,55 @@ public:
             mainWindow->setUsingNativeTitleBar(false);
             mainWindow->setOpaque(false);
         }
-        
+
         desktopWindow = editor->getPeer();
-        
+
         // Save original canvas properties
         originalCanvasScale = getValue<float>(cnv->zoomScale);
         originalCanvasPos = cnv->getPosition();
         originalLockedMode = getValue<bool>(cnv->locked);
         originalPresentationMode = getValue<bool>(cnv->presentationMode);
-        
+
         // Set zoom value and update synchronously
         cnv->zoomScale.setValue(1.0f);
         cnv->zoomScale.getValueSource().sendChangeMessage(true);
-                
+
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);
-        
+
         editorButton = std::make_unique<MainToolbarButton>(Icons::Edit);
         editorButton->setTooltip("Show editor");
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         editorButton->onClick = [this]() {
             closePluginMode();
         };
-        
+
         titleBar.addAndMakeVisible(*editorButton);
         
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
         setInterceptsMouseClicks(false, false);
-        
+
         // Add this view to the editor
         editor->addAndMakeVisible(this);
-        
-        if (ProjectInfo::isStandalone) {
-            fullscreenButton = std::make_unique<MainToolbarButton>(Icons::Fullscreen);
-            fullscreenButton->setTooltip("Enter fullscreen kiosk mode");
-            fullscreenButton->setBounds(0, 0, titlebarHeight, titlebarHeight);
-            fullscreenButton->onClick = [this]() {
-                setKioskMode(true);
-            };
-            titleBar.addAndMakeVisible(*fullscreenButton);
-        }
-        
+
         scaleComboBox.addItemList({"50%", "75%", "100%", "125%", "150%", "175%", "200%"}, 1);
+        if (ProjectInfo::isStandalone) {
+            scaleComboBox.addSeparator();
+            scaleComboBox.addItem("Fullscreen kiosk", 8);
+        }
         scaleComboBox.setTooltip("Change plugin scale");
         scaleComboBox.setText("100%");
-        scaleComboBox.setBounds(fullscreenButton ? fullscreenButton->getWidth() + 4 : 4, 8, 70, titlebarHeight - 16);
+        scaleComboBox.setBounds(8, 8, 70, titlebarHeight - 16);
         scaleComboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         scaleComboBox.setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::toolbarHoverColourId).withAlpha(0.8f));
         scaleComboBox.onChange = [this](){
             auto itemId = scaleComboBox.getSelectedId();
+            if (itemId == 8) {
+                setKioskMode(true);
+                return;
+            }
             auto scale = std::vector<float>{0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f}[itemId - 1];
             if (selectedItemId != itemId) {
                 selectedItemId = itemId;
@@ -255,7 +253,7 @@ public:
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
 
-            scaleComboBox.setBounds(fullscreenButton ? fullscreenButton->getWidth() + 4 : 4, 8, 70, titlebarHeight - 16);
+            scaleComboBox.setBounds(8, 8, 70, titlebarHeight - 16);
             editorButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         }
     }
@@ -374,7 +372,6 @@ private:
 
     Component titleBar;
     int const titlebarHeight = 40;
-    std::unique_ptr<MainToolbarButton> fullscreenButton;
     ComboBox scaleComboBox;
     std::unique_ptr<MainToolbarButton> editorButton;
 
