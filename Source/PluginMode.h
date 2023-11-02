@@ -289,20 +289,32 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (scaleComboBox.contains(e.getPosition()))
+            return;
+
         // Offset the start of the drag when dragging the window by Titlebar
         if(auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent()))
         {
             if (e.getPosition().getY() < titlebarHeight)
+                isDraggingWindow = true;
                 windowDragger.startDraggingWindow(mainWindow, e.getEventRelativeTo(mainWindow));
         }
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
+        if (!isDraggingWindow)
+            return;
+
         if(auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent()))
         {
             windowDragger.dragWindow(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
         }
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        isDraggingWindow = false;
     }
 
     void setFullScreen(PlugDataWindow* window, bool shouldBeFullScreen)
@@ -371,6 +383,7 @@ private:
     Component content;
 
     WindowDragger windowDragger;
+    bool isDraggingWindow = false;
 
     Point<int> originalCanvasPos;
     float originalCanvasScale;
