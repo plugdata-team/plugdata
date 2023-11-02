@@ -34,6 +34,7 @@ public:
             mainWindow->setUsingNativeTitleBar(false);
             mainWindow->setOpaque(false);
         }
+        
         desktopWindow = editor->getPeer();
         
         // Save original canvas properties
@@ -84,18 +85,7 @@ public:
         scaleComboBox.setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::toolbarHoverColourId).withAlpha(0.8f));
         scaleComboBox.onChange = [this](){
             auto itemId = scaleComboBox.getSelectedId();
-            float scale;
-            switch (itemId) {
-            case 1:     scale = 0.5f;  break;
-            case 2:     scale = 0.75f; break;
-            case 3:     scale = 1.0f;  break;
-            case 4:     scale = 1.25f; break;
-            case 5:     scale = 1.5f;  break;
-            case 6:     scale = 1.75f; break;
-            case 7:     scale = 2.0f;  break;
-            default:
-                return;
-            }
+            auto scale = std::vector<float>{0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f}[itemId - 1];
             if (selectedItemId != itemId) {
                 selectedItemId = itemId;
                 setWidthAndHeight(scale);
@@ -128,14 +118,21 @@ public:
     {
         auto newWidth = static_cast<int>(width * scale);
         auto newHeight = static_cast<int>(height * scale) + titlebarHeight;
-        // setting the min=max will disable resizing
+        
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
-            mainWindow->setResizeLimits(newWidth, newHeight, newWidth, newHeight);
+#if JUCE_LINUX || JUCE_BSD
+            // We need to add the window margin for the shadow on Linux, or else X11 will try to make the window smaller than it should be when the window moves
+            auto margin = 36;
+#else
+            auto margin = 0;
+#endif
+            // Setting the min=max will disable resizing
+            editor->constrainer.setSizeLimits(newWidth + margin, newHeight + margin, newWidth + margin, newHeight + margin);
         }
         else {
             editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
         }
+        
         editor->setSize(newWidth, newHeight);
         setBounds(0, 0, newWidth, newHeight);
     }
@@ -161,7 +158,6 @@ public:
                 mainWindow->setOpaque(true);
                 mainWindow->setUsingNativeTitleBar(true);
             }
-
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
             mainWindow->setBoundsConstrained(windowBounds);
         } else {
@@ -224,13 +220,12 @@ public:
         // Detect if the user exited fullscreen with the macOS's fullscreen button
 #if JUCE_MAC
         auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
-        if (ProjectInfo::isStandalone && isWindowFullscreen() && window && !window->getPeer()->isFullScreen()) {
+        if (ProjectInfo::isStandalone && isWindowFullscreen() && desktopWindow->isFullScreen()) {
             setKioskMode(false);
         }
 #endif
         
         float const scale = getWidth() / width;
-
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
 
             // Calculate the scale factor required to fit the editor in the screen
@@ -271,12 +266,13 @@ public:
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
             if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
                 // Determine the screen size
-                auto const screenBounds = mainWindow->getPeer()->getBounds();
+                auto const screenBounds = desktopWindow->getBounds();
                 
                 // Fill the screen
                 setBounds(0, 0, screenBounds.getWidth(), screenBounds.getHeight());
             }
-        } else {
+        }
+        else {
             setBounds(editor->getLocalBounds());
         }
     }
@@ -293,22 +289,20 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        // No window dragging by TitleBar in plugin!
-        if (!ProjectInfo::isStandalone)
-            return;
-
         // Offset the start of the drag when dragging the window by Titlebar
-        if (e.getPosition().getY() < titlebarHeight)
-            windowDragger.startDraggingWindow(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()));
+        if(auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent()))
+        {
+            if (e.getPosition().getY() < titlebarHeight)
+                windowDragger.startDraggingWindow(mainWindow, e.getEventRelativeTo(mainWindow));
+        }
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        // No window dragging by TitleBar in plugin!
-        if (!ProjectInfo::isStandalone)
-            return;
-
-        windowDragger.dragWindow(&desktopWindow->getComponent(), e.getEventRelativeTo(&desktopWindow->getComponent()), nullptr);
+        if(auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent()))
+        {
+            windowDragger.dragWindow(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
+        }
     }
 
     void setFullScreen(PlugDataWindow* window, bool shouldBeFullScreen)
