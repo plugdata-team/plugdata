@@ -128,7 +128,7 @@ public:
 #endif
             // Setting the min=max will disable resizing
             editor->constrainer.setSizeLimits(newWidth + margin, newHeight + margin, newWidth + margin, newHeight + margin);
-            mainWindow->setResizeLimits(newWidth, newHeight, newWidth, newHeight);
+            mainWindow->getConstrainer()->setSizeLimits(newWidth + margin, newHeight + margin, newWidth + margin, newHeight + margin);
         }
         else {
             editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);

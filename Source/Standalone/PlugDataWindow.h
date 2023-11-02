@@ -730,7 +730,6 @@ private:
     public:
         Rectangle<int> oldBounds;
 
-    private:
         void componentMovedOrResized(Component&, bool, bool) override
         {
             ScopedValueSetter<bool> const scope(preventResizingEditor, true);
@@ -741,7 +740,7 @@ private:
                 setSize(rect.getWidth(), rect.getHeight());
             }
         }
-
+    private:
         Rectangle<int> getSizeToContainEditor() const
         {
             if (editor != nullptr)
@@ -750,9 +749,9 @@ private:
             return {};
         }
 
+        bool preventResizingEditor = false;
         PlugDataWindow& owner;
         SafePointer<AudioProcessorEditor> editor;
-        bool preventResizingEditor = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
     };
