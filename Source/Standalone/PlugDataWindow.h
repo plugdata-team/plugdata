@@ -34,6 +34,7 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
 #include "Utility/MidiDeviceManager.h"
+#include "../PluginEditor.h"
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -435,14 +436,16 @@ public:
             auto nativeWindow = static_cast<bool>(value);
 
             auto* editor = mainComponent->getEditor();
+            auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
+
             setUsingNativeTitleBar(nativeWindow);
 
             if (!nativeWindow) {
-
                 setOpaque(false);
-
                 setResizable(false, false);
-
+                // we also need to set the constrainer of THIS window so it's set for the peer
+                setConstrainer(&pdEditor->constrainer);
+                pdEditor->setUseBorderResizer(true);
                 if (drawWindowShadow) {
 #if JUCE_MAC
                     setDropShadowEnabled(true);
@@ -458,7 +461,10 @@ public:
                 setOpaque(true);
                 dropShadower.reset(nullptr);
                 setDropShadowEnabled(true);
+                setConstrainer(nullptr);
                 setResizable(true, false);
+                setResizeLimits(850, 650, 99000, 99000);
+                pdEditor->setUseBorderResizer(false);
             }
 
             editor->resized();
@@ -528,13 +534,13 @@ public:
 #if JUCE_LINUX || JUCE_BSD
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
-                bool shouldBeMaximised = isFullScreen();
+                bool shouldBeMaximised = OSUtils::isX11WindowMaximised(peer->getNativeHandle());
                 b->setToggleState(!shouldBeMaximised, dontSendNotification);
 
                 if (!isUsingNativeTitleBar()) {
                     OSUtils::maximiseX11Window(peer->getNativeHandle(), !shouldBeMaximised);
                 }
-                setFullScreen(!isFullScreen());
+                //setFullScreen(!isFullScreen());
             } else {
                 b->setToggleState(false, dontSendNotification);
             }
@@ -724,7 +730,6 @@ private:
     public:
         Rectangle<int> oldBounds;
 
-    private:
         void componentMovedOrResized(Component&, bool, bool) override
         {
             ScopedValueSetter<bool> const scope(preventResizingEditor, true);
@@ -735,7 +740,7 @@ private:
                 setSize(rect.getWidth(), rect.getHeight());
             }
         }
-
+    private:
         Rectangle<int> getSizeToContainEditor() const
         {
             if (editor != nullptr)
@@ -744,9 +749,9 @@ private:
             return {};
         }
 
+        bool preventResizingEditor = false;
         PlugDataWindow& owner;
         SafePointer<AudioProcessorEditor> editor;
-        bool preventResizingEditor = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
     };

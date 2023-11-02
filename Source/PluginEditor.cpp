@@ -73,16 +73,28 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , openedDialog(nullptr)
     , splitView(this)
     , zoomLabel(std::make_unique<ZoomLabel>())
-    , defaultConstrainer(getConstrainer())
     , offlineRenderer(&p)
+    , pluginConstrainer(*getConstrainer())
     , tooltipWindow(this, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
         }
-
+        
         return true;
     })
 {
+    // if we are inside a DAW / host set up the border resizer now
+    if (!ProjectInfo::isStandalone) {
+        // NEVER touch pluginConstrainer outside of plugin mode!
+        pluginConstrainer.setMinimumSize(850, 650);
+        setUseBorderResizer(true);
+    }
+    else {
+        constrainer.setMinimumSize(850, 650);
+    }
+    
+
+
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
@@ -91,29 +103,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
-
-    setResizable(true, false);
-
-    // In the standalone, the resizer handling is done on the window class
-    if (ProjectInfo::isStandalone) {
-
-        // We need to attach this to the top-level component, which is not yet know during the constructor
-        // So we postpone initialisation of the resizer until PluginEditor has a parent component
-        MessageManager::callAsync([this]() {
-            borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(getTopLevelComponent(), getConstrainer());
-            borderResizer->setAlwaysOnTop(true);
-            addAndMakeVisible(borderResizer.get());
-            resized(); // Makes sure resizer gets resized
-
-            if (pluginMode) {
-                borderResizer->toBehind(pluginMode.get());
-            }
-        });
-    } else {
-        cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
-        cornerResizer->setAlwaysOnTop(true);
-        addAndMakeVisible(cornerResizer.get());
-    }
 
     addKeyListener(getKeyMappings());
 
@@ -235,9 +224,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
     setSize(pd->lastUIWidth, pd->lastUIHeight);
 
-    // Set minimum bounds
-    setResizeLimits(850, 550, 999999, 999999);
-
     sidebar->toFront(false);
 
     // Make sure existing console messages are processed
@@ -283,8 +269,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 PluginEditor::~PluginEditor()
 {
     pd->savePatchTabPositions();
-
-    setConstrainer(nullptr);
     theme.removeListener(this);
 
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
@@ -300,6 +284,36 @@ SplitView* PluginEditor::getSplitView()
 void PluginEditor::setZoomLabelLevel(float value)
 {
     zoomLabel->setZoomLevel(value);
+}
+
+void PluginEditor::setUseBorderResizer(bool shouldUse)
+{
+    if (shouldUse) {
+        if (ProjectInfo::isStandalone) {
+            if (!borderResizer) {
+                borderResizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(getTopLevelComponent(), &constrainer);
+                borderResizer->setAlwaysOnTop(true);
+                addAndMakeVisible(borderResizer.get());
+            }
+            borderResizer->setVisible(true);
+            resized(); // Makes sure resizer gets resized
+
+            if (pluginMode) {
+                borderResizer->toBehind(pluginMode.get());
+            }
+        } else {
+            if (!cornerResizer) {
+                cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, &pluginConstrainer);
+                cornerResizer->setAlwaysOnTop(true);
+            }
+            addAndMakeVisible(cornerResizer.get());
+        }
+    }
+    else {
+        if (ProjectInfo::isStandalone && borderResizer) {
+            borderResizer->setVisible(false);
+        }
+    }
 }
 
 void PluginEditor::paint(Graphics& g)
@@ -359,8 +373,7 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 
 void PluginEditor::resized()
 {
-    if (pd->isInPluginMode())
-        return;
+    if (pd->isInPluginMode()) return;
 
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 30;
     if (!palettes->isVisible())
@@ -401,9 +414,9 @@ void PluginEditor::resized()
     if (borderResizer && ProjectInfo::isStandalone) {
         borderResizer->setBounds(getLocalBounds());
     } else if (cornerResizer) {
-        int const resizerSize = 18;
-        cornerResizer->setBounds(getWidth() - resizerSize,
-            getHeight() - resizerSize,
+        int const resizerSize = 18; 
+        cornerResizer->setBounds(getWidth() - resizerSize + 1,
+            getHeight() - resizerSize + 1,
             resizerSize, resizerSize);
     }
 

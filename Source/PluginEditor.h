@@ -106,6 +106,8 @@ public:
 
     void setZoomLabelLevel(float value);
 
+    void setUseBorderResizer(bool shouldUse);
+
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;
@@ -134,11 +136,13 @@ public:
 
     std::unique_ptr<ZoomLabel> zoomLabel;
 
-    ComponentBoundsConstrainer* defaultConstrainer;
     OfflineObjectRenderer offlineRenderer;
 
     // used to display callOutBoxes only in a safe area between top & bottom toolbars
     Component callOutSafeArea;
+
+    ComponentBoundsConstrainer constrainer;
+    ComponentBoundsConstrainer& pluginConstrainer;
 
 private:
     // Used by standalone to handle dragging the window

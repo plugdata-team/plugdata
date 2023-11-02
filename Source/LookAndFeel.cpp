@@ -941,10 +941,10 @@ void PlugDataLook::drawComboBox(Graphics& g, int width, int height, bool, int, i
     if (!inspectorElement) {
 
         g.setColour(object.findColour(ComboBox::backgroundColourId));
-        g.fillRoundedRectangle(boxBounds.toFloat(), 3.0f);
+        g.fillRoundedRectangle(boxBounds.toFloat(), Corners::defaultCornerRadius);
 
         g.setColour(object.findColour(ComboBox::outlineColourId));
-        g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), 3.0f, 1.0f);
+        g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), Corners::defaultCornerRadius, 1.0f);
     }
 
     Rectangle<int> arrowZone(width - 22, 9, 14, height - 18);
@@ -1014,15 +1014,10 @@ void PlugDataLook::drawTextEditorOutline(Graphics& g, int width, int height, Tex
 
 void PlugDataLook::drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging)
 {
-
     Path triangle;
     triangle.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
 
-    Path roundEdgeClipping;
-    roundEdgeClipping.addRoundedRectangle(Rectangle<int>(0, 0, w, h), Corners::objectCornerRadius);
-
     g.saveState();
-    g.reduceClipRegion(roundEdgeClipping);
     g.setColour(findColour(PlugDataColour::resizeableCornerColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));
     g.fillPath(triangle);
     g.restoreState();
@@ -1062,6 +1057,11 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
     TextLayout tl;
     tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
     tl.draw(g, bounds.withSizeKeepingCentre(width - 20, height - 2));
+}
+
+Font PlugDataLook::getComboBoxFont (ComboBox&)
+{
+    return Font(13.5f);
 }
 
 void PlugDataLook::drawLabel(Graphics& g, Label& label)
