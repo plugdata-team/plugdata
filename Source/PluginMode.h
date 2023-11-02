@@ -128,6 +128,7 @@ public:
 #endif
             // Setting the min=max will disable resizing
             editor->constrainer.setSizeLimits(newWidth + margin, newHeight + margin, newWidth + margin, newHeight + margin);
+            mainWindow->setResizeLimits(newWidth, newHeight, newWidth, newHeight);
         }
         else {
             editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
@@ -219,8 +220,7 @@ public:
     {
         // Detect if the user exited fullscreen with the macOS's fullscreen button
 #if JUCE_MAC
-        auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
-        if (ProjectInfo::isStandalone && isWindowFullscreen() && desktopWindow->isFullScreen()) {
+        if (ProjectInfo::isStandalone && isWindowFullscreen() && !desktopWindow->isFullScreen()) {
             setKioskMode(false);
         }
 #endif
