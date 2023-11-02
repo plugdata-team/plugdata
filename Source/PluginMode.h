@@ -100,8 +100,12 @@ public:
         content.addAndMakeVisible(cnv);
 
         cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
+
         cnv->locked = true;
+        cnv->locked.getValueSource().sendChangeMessage(true);
         cnv->presentationMode = true;
+        cnv->presentationMode.getValueSource().sendChangeMessage(true);
+
         cnv->viewport->setViewedComponent(nullptr);
 
         addAndMakeVisible(content);
