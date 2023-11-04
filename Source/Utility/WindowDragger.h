@@ -23,7 +23,7 @@ public:
 
 #if JUCE_LINUX
         auto* peer = componentToDrag->getPeer();
-        peer->startHostManagedResize(peer->localToGlobal(mouseDownWithinTarget) * Desktop::getInstance().getGlobalScaleFactor(), ResizableBorderComponent::Zone(0));
+        peer->startHostManagedResize(e.getPosition(), ResizableBorderComponent::Zone(0));
 #endif
     }
 
