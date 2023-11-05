@@ -296,7 +296,7 @@ endif()
 if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     # These are the warning flags I need to get pd to compile withoout warnings
     # Would be nice if these warnings were solved instead
-    add_compile_options(-Wno-format -Wno-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-parentheses -Wno-unused-value -Wno-unknown-pragmas)
+    add_compile_options(-Wno-format -Wno-format-security -Wno-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-parentheses -Wno-unused-value -Wno-unknown-pragmas)
     
     if(CMAKE_C_COMPILER_ID MATCHES "Clang")
         add_compile_options(-Wno-compare-distinct-pointer-types -Wno-implicit-int-conversion)
