@@ -363,11 +363,8 @@ public:
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto receive = receiveSymbol.toString();
             if (auto note = ptr.get<t_fake_note>()) {
-                note->x_rcv_raw = pd->generateSymbol(receive);
-                note->x_rcv_set = receive.isNotEmpty();
+                pd->sendDirectMessage(note.get(), "receive", {receive});
             }
-
-            repaint();
         } else if (v.refersToSameSourceAs(justification)) {
             auto justificationType = getValue<int>(justification);
             if (auto note = ptr.get<t_fake_note>())
