@@ -1059,9 +1059,9 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
     tl.draw(g, bounds.withSizeKeepingCentre(width - 20, height - 2));
 }
 
-Font PlugDataLook::getComboBoxFont (ComboBox&)
+Font PlugDataLook::getComboBoxFont (ComboBox& box)
 {
-    return Font(13.5f);
+    return Fonts::getDefaultFont().withHeight(std::clamp(box.getHeight() * 0.85f, 13.5f, 15.0f));
 }
 
 void PlugDataLook::drawLabel(Graphics& g, Label& label)
