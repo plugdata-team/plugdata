@@ -495,13 +495,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     sendPlayhead();
     sendParameters();
 
-    // Don't process if there are no samples, channels or we are suspended
-    /*
-    if (isSuspended() || buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0) {
-        buffer.clear();
-        return;
-    }*/
-
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
