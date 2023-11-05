@@ -501,7 +501,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     propertiesFn(static_cast<t_gobj*>(object->getPointer()), cnv->patch.getPointer().get());
                 cnv->pd->unlockAudioThread();
 
-                Array<ObjectParameters> parameters = {};
+                Array<ObjectParameters> parameters = { object->gui->getParameters() };
                 editor->sidebar->showParameters(object->gui->getType(), parameters);
             }
 

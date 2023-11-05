@@ -15,7 +15,8 @@ public:
         : editor(editor)
     {
         auto* settingsFile = SettingsFile::getInstance();
-
+        auto settingsTree = settingsFile->getValueTree();
+        
         Array<PropertiesPanelProperty*> otherProperties;
 
         if (ProjectInfo::isStandalone) {
@@ -114,8 +115,6 @@ public:
         }
     }
     Component* editor;
-
-    ValueTree settingsTree;
 
     Value nativeTitlebar;
     Value macTitlebarButtons;

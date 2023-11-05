@@ -31,7 +31,8 @@ struct ProjectInfo {
     static void closeWindow(PlugDataWindow* window);
 
     static StandalonePluginHolder* getStandalonePluginHolder();
-
+    
+    static bool isMidiEffect() noexcept;
     static bool canUseSemiTransparentWindows();
 
     static inline const File appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");

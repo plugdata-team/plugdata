@@ -52,6 +52,7 @@ public:
 
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
         atomHelper.addAtomParameters(objectParameters);
+        lookAndFeelChanged();
     }
 
     void update() override

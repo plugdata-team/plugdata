@@ -79,6 +79,15 @@ bool ProjectInfo::canUseSemiTransparentWindows()
 #endif
 }
 
+bool ProjectInfo::isMidiEffect() noexcept
+{
+#if JucePlugin_IsMidiEffect
+    return true;
+#else
+    return false;
+#endif
+}
+
 StandalonePluginHolder* ProjectInfo::getStandalonePluginHolder()
 {
 #if PLUGDATA_STANDALONE

@@ -13,6 +13,8 @@ public:
     Value patchSizeValue = Value(var(1));
     Value appTypeValue = Value(var(0));
 
+    bool dontOpenFileChooser = false;
+
     File customBoardDefinition;
     File customLinker;
 
@@ -67,32 +69,33 @@ public:
         stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
         stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
         stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
+        stateTree.setProperty("customBoardDefinitionValue", customBoardDefinition.getFullPathName(), nullptr);
         stateTree.setProperty("targetBoardValue", getValue<int>(targetBoardValue), nullptr);
         stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
         stateTree.setProperty("usbMidiValue", getValue<int>(usbMidiValue), nullptr);
         stateTree.setProperty("debugPrintValue", getValue<int>(debugPrintValue), nullptr);
         stateTree.setProperty("patchSizeValue", getValue<int>(patchSizeValue), nullptr);
         stateTree.setProperty("appTypeValue", getValue<int>(appTypeValue), nullptr);
-        stateTree.setProperty("customBoardDefinition", customBoardDefinition.getFullPathName(), nullptr);
-        stateTree.setProperty("customLinker", customLinker.getFullPathName(), nullptr);
-
+        stateTree.setProperty("customLinkerValue", customLinker.getFullPathName(), nullptr);
         return stateTree;
     }
 
     void setState(ValueTree& stateTree) override
     {
+        ScopedValueSetter<bool>(dontOpenFileChooser, true);
+
         auto tree = stateTree.getChildWithName("Daisy");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
+        customBoardDefinition = File(tree.getProperty("customBoardDefinitionValue").toString());
         targetBoardValue = tree.getProperty("targetBoardValue");
         exportTypeValue = tree.getProperty("exportTypeValue");
         usbMidiValue = tree.getProperty("usbMidiValue");
         debugPrintValue = tree.getProperty("debugPrintValue");
         patchSizeValue = tree.getProperty("patchSizeValue");
         appTypeValue = tree.getProperty("appTypeValue");
-        customBoardDefinition = tree.getProperty("customBoardDefiniton");
-        customLinker = tree.getProperty("customLinker");
+        customLinker = File(tree.getProperty("customLinkerValue").toString());
     }
 
     void resized() override
@@ -122,7 +125,7 @@ public:
             int idx = getValue<int>(targetBoardValue);
 
             // Custom board option
-            if (idx == 8) {
+            if (idx == 8 && !dontOpenFileChooser) {
                 Dialogs::showOpenDialog([this](File& result){
                     if (result.existsAsFile()) {
                         customBoardDefinition = result;
@@ -139,7 +142,7 @@ public:
             int idx = getValue<int>(patchSizeValue);
 
             // Custom linker option
-            if (idx == 4) {
+            if (idx == 4 && !dontOpenFileChooser) {
                 Dialogs::showOpenDialog([this](File& result){
                     if (result.existsAsFile()) {
                         customLinker = result;

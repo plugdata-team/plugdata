@@ -73,6 +73,7 @@ public:
         atomHelper.addAtomParameters(objectParameters);
 
         input.setResetValue(0.0f);
+        lookAndFeelChanged();
     }
 
     void update() override
