@@ -332,11 +332,7 @@ bool PluginProcessor::producesMidi() const
 
 bool PluginProcessor::isMidiEffect() const
 {
-#if JucePlugin_IsMidiEffect
-    return true;
-#else
-    return false;
-#endif
+    return ProjectInfo::isMidiEffect();
 }
 
 double PluginProcessor::getTailLengthSeconds() const
@@ -408,7 +404,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor, samplesPerBlock * oversampleFactor);
 
-    oversampler = std::make_unique<dsp::Oversampling<float>>(maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false);
+    oversampler = std::make_unique<dsp::Oversampling<float>>(std::max(1, maxChannels), oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false);
 
     oversampler->initProcessing(samplesPerBlock);
 
@@ -441,7 +437,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     statusbarSource->setBufferSize(samplesPerBlock);
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
 
-    limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), static_cast<uint32>(maxChannels) });
+    limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), std::max(1u, static_cast<uint32>(maxChannels)) });
 
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
 }
@@ -500,10 +496,11 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     sendParameters();
 
     // Don't process if there are no samples, channels or we are suspended
+    /*
     if (isSuspended() || buffer.getNumSamples() == 0 || buffer.getNumChannels() == 0) {
         buffer.clear();
         return;
-    }
+    }*/
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
