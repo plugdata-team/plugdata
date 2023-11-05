@@ -11,6 +11,8 @@ public:
     Value usbMidiValue = Value(var(0));
     Value debugPrintValue = Value(var(0));
     Value patchSizeValue = Value(var(1));
+    
+    bool dontOpenFileChooser = false;
 
     File customBoardDefinition;
 
@@ -61,21 +63,24 @@ public:
         stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
         stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
         stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
+        stateTree.setProperty("customBoardDefinitionValue", customBoardDefinition.getFullPathName(), nullptr);
         stateTree.setProperty("targetBoardValue", getValue<int>(targetBoardValue), nullptr);
         stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
         stateTree.setProperty("usbMidiValue", getValue<int>(usbMidiValue), nullptr);
         stateTree.setProperty("debugPrintValue", getValue<int>(debugPrintValue), nullptr);
         stateTree.setProperty("patchSizeValue", getValue<int>(patchSizeValue), nullptr);
-        
         return stateTree;
     }
     
     void setState(ValueTree& stateTree) override
     {
+        ScopedValueSetter<bool>(dontOpenFileChooser, true);
+        
         auto tree = stateTree.getChildWithName("Daisy");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
+        customBoardDefinition = File(tree.getProperty("customBoardDefinitionValue").toString());
         targetBoardValue = tree.getProperty("targetBoardValue");
         exportTypeValue = tree.getProperty("exportTypeValue");
         usbMidiValue = tree.getProperty("usbMidiValue");
@@ -106,7 +111,7 @@ public:
             int idx = getValue<int>(targetBoardValue);
 
             // Custom board option
-            if (idx == 8) {
+            if (idx == 8 && !dontOpenFileChooser) {
                 Dialogs::showOpenDialog([this](File& result){
                     if (result.existsAsFile()) {
                         customBoardDefinition = result;
