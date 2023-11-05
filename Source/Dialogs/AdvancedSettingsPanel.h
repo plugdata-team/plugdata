@@ -15,7 +15,8 @@ public:
         : editor(editor)
     {
         auto* settingsFile = SettingsFile::getInstance();
-
+        settingsTree = settingsFile->settingsTree;
+        
         Array<PropertiesPanelProperty*> otherProperties;
 
         if (ProjectInfo::isStandalone) {
