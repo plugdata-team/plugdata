@@ -118,8 +118,16 @@ public:
         usbMidiProperty->setEnabled(!debugPrint);
 
         // need to actually hide this property until needed
-        int appTypeShow = getValue<int>(patchSizeValue);
-        appTypeProperty->setEnabled(appTypeShow == 4);
+        int patchSize = getValue<int>(patchSizeValue);
+        appTypeProperty->setEnabled(patchSize == 4);
+
+        if (patchSize == 1) {
+            appTypeValue.setValue(0);
+        } else if (patchSize == 2) {
+            appTypeValue.setValue(1);
+        } else if (patchSize == 3) {
+            appTypeValue.setValue(2);
+        }
 
         if (v.refersToSameSourceAs(targetBoardValue)) {
             int idx = getValue<int>(targetBoardValue);
