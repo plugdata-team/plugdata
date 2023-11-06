@@ -6,12 +6,12 @@
 
 class DaisyExporter : public ExporterBase {
 public:
-    Value targetBoardValue = Value(var(1));
-    Value exportTypeValue = Value(var(3));
-    Value usbMidiValue = Value(var(0));
-    Value debugPrintValue = Value(var(0));
-    Value patchSizeValue = Value(var(1));
-    Value appTypeValue = Value(var(0));
+    Value targetBoardValue = SynchronousValue(var(1));
+    Value exportTypeValue = SynchronousValue(var(3));
+    Value usbMidiValue = SynchronousValue(var(0));
+    Value debugPrintValue = SynchronousValue(var(0));
+    Value patchSizeValue = SynchronousValue(var(1));
+    Value appTypeValue = SynchronousValue(var(0));
 
     bool dontOpenFileChooser = false;
 
@@ -82,7 +82,7 @@ public:
 
     void setState(ValueTree& stateTree) override
     {
-        ScopedValueSetter<bool>(dontOpenFileChooser, true);
+        ScopedValueSetter<bool> scopedValueSetter(dontOpenFileChooser, true);
 
         auto tree = stateTree.getChildWithName("Daisy");
         inputPatchValue = tree.getProperty("inputPatchValue");
