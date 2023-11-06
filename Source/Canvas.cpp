@@ -1704,7 +1704,6 @@ void Canvas::valueChanged(Value& v)
     // Should only get called when the canvas isn't a real graph
     else if (v.refersToSameSourceAs(presentationMode)) {
         deselectAll();
-        commandLocked.setValue(presentationMode.getValue());
     } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
         if (!patch.getPointer())
             return;
@@ -1875,7 +1874,6 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
             int flag = atoms[0].getFloat();
             if (flag % 2 == 0) {
                 locked = true;
-                presentationMode = false;
             } else {
                 locked = false;
                 presentationMode = false;

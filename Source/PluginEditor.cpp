@@ -187,11 +187,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
                     cnv->presentationMode.setValue(false);
                     cnv->locked.setValue(false);
                 } else if (runButton.getToggleState()) {
+                    cnv->locked.setValue(true);
                     cnv->presentationMode.setValue(false);
-                    cnv->locked.setValue(true);
                 } else if (presentButton.getToggleState()) {
-                    cnv->presentationMode.setValue(true);
                     cnv->locked.setValue(true);
+                    cnv->presentationMode.setValue(true);
                 }
             }
         };
@@ -867,7 +867,7 @@ void PluginEditor::updateCommandStatus()
 
         if (getValue<bool>(cnv->presentationMode)) {
             presentButton.setToggleState(true, dontSendNotification);
-        } else if (getValue<bool>(cnv->locked)) {
+        } else if (locked) {
             runButton.setToggleState(true, dontSendNotification);
         } else {
             editButton.setToggleState(true, dontSendNotification);
