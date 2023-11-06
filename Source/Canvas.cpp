@@ -265,9 +265,8 @@ void Canvas::zoomToFitAll()
 
 void Canvas::lookAndFeelChanged()
 {
-    lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.125f));
-
-    lasso.setColour(LassoComponent<Object>::lassoOutlineColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.8f));
+    lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.075f));
+    lasso.setColour(LassoComponent<Object>::lassoOutlineColourId, findColour(PlugDataColour::canvasBackgroundColourId).interpolatedWith(findColour(PlugDataColour::objectSelectedOutlineColourId), 0.65f));
 }
 
 void Canvas::paint(Graphics& g)

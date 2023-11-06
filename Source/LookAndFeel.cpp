@@ -1064,6 +1064,29 @@ Font PlugDataLook::getComboBoxFont (ComboBox& box)
     return Fonts::getDefaultFont().withHeight(std::clamp(box.getHeight() * 0.85f, 13.5f, 15.0f));
 }
 
+void PlugDataLook::drawLasso (Graphics& g, Component& lassoComp)
+{
+    float outlineThickness = 0.75f;
+    
+    // Apply inverted scaling of the canvas to the outline of the lasso, so the lasso outline doesn't grow larger as you zoom in
+    if(auto* parent = lassoComp.getParentComponent())
+    {
+        auto transform = parent->getTransform();
+        auto transformScale = std::sqrt(std::abs(transform.getDeterminant()));
+        outlineThickness = 0.75f / std::max(transformScale, std::numeric_limits<float>::epsilon());
+    }
+    
+    Path p;
+    p.addRectangle(lassoComp.getLocalBounds().reduced(1));
+    
+    g.setColour (lassoComp.findColour (0x1000440 /*lassoFillColourId*/));
+    g.fillPath(p);
+    
+    g.setColour (lassoComp.findColour (0x1000441 /*lassoOutlineColourId*/));
+    g.strokePath(p, PathStrokeType(outlineThickness));
+}
+
+
 void PlugDataLook::drawLabel(Graphics& g, Label& label)
 {
     g.fillAll(label.findColour(Label::backgroundColourId));
