@@ -23,7 +23,7 @@ Checking this box may (or may not) produce a good number of error messages in th
 
 ## Compiling in plugdata
 When you select "Compile..." a window with different compilation options along the left, the primary window displaying the common options for all compilation modes and then specific qualities for the compilation mode you currently have selected.
-All compilation modes feature the following common attributes
+All compilation modes feature the following common attributes:
 - Patch to export
 	- If a patch is currently open, it will read "Currently opened patch" otherwise it will read "Choose a patch to export...". Select the patch you wish to export here.
  - Project Name (Optional)
