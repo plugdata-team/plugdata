@@ -61,44 +61,59 @@ public:
         listBox.selectRow(0);
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         listBox.setRowHeight(28);
-        
+
         restoreState();
     }
-        
+
     ~ExporterSettingsPanel()
     {
         saveState();
     }
-        
+
+    ValueTree getState()
+    {
+        ValueTree stateTree("HeavySelect");
+        stateTree.setProperty("listBox", listBox.getSelectedRow(), nullptr);
+        return stateTree;
+    }
+
+    void setState(ValueTree& stateTree)
+    {
+        auto tree = stateTree.getChildWithName("HeavySelect");
+        listBox.selectRow(tree.getProperty("listBox"));
+    }
+
     void restoreState()
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
         auto heavyState = settingsTree.getChildWithName("HeavyState");
         if(heavyState.isValid())
         {
+            this->setState(heavyState);
             views[0]->setState(heavyState);
             views[1]->setState(heavyState);
             views[2]->setState(heavyState);
             views[3]->setState(heavyState);
         }
     }
-        
+
     ValueTree saveState()
     {
         ValueTree state("HeavyState");
+        state.appendChild(this->getState(), nullptr);
         state.appendChild(views[0]->getState(), nullptr);
         state.appendChild(views[1]->getState(), nullptr);
         state.appendChild(views[2]->getState(), nullptr);
         state.appendChild(views[3]->getState(), nullptr);
-        
+
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
-        
+
         auto oldState = settingsTree.getChildWithName("HeavyState");
         if(oldState.isValid()) {
             settingsTree.removeChild(oldState, nullptr);
         }
         settingsTree.appendChild(state, nullptr);
-        
+
         return state;
     }
 
@@ -240,8 +255,6 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
 HeavyExportDialog::~HeavyExportDialog()
 {
-    
-    
     // Clean up temp files
     Toolchain::deleteTempFiles();
 }
