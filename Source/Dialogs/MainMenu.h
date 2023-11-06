@@ -150,6 +150,18 @@ public:
         enum ZoomType { ZoomIn,
             ZoomOut,
             Reset };
+        
+        void lookAndFeelChanged() override
+        {
+            for(auto* button : Array<TextButton*>{&zoomIn, &zoomReset, &zoomOut})
+            {
+                button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+                button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+                button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            }
+        }
 
         void applyZoom(ZoomType zoomEventType)
         {
