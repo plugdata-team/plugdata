@@ -44,6 +44,7 @@ public:
         pluginFormats.add(new PropertiesPanel::BoolComponent("CLAP", clapEnableValue, { "No", "Yes" }));
         clapEnableValue.addListener(this);
         pluginFormats.add(new PropertiesPanel::BoolComponent("JACK", jackEnableValue, { "No", "Yes" }));
+        jackEnableValue.addListener(this);
 
         for (auto* property : properties) {
             property->setPreferredHeight(28);
@@ -56,16 +57,14 @@ public:
         midiinEnableValue.addListener(this);
         midioutEnableValue.addListener(this);
 
-        jackEnableValue.addListener(this);
-
         panel.addSection("DPF", properties);
         panel.addSection("Plugin formats", pluginFormats);
     }
-    
+
     ValueTree getState() override
     {
         ValueTree stateTree("DPF");
-        
+
         stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
         stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
         stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
@@ -77,10 +76,10 @@ public:
         stateTree.setProperty("jackEnableValue", getValue<int>(jackEnableValue), nullptr);
         stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
         stateTree.setProperty("pluginTypeValue", getValue<int>(pluginTypeValue), nullptr);
-        
+
         return stateTree;
     }
-    
+
     void setState(ValueTree& stateTree) override
     {
         auto tree = stateTree.getChildWithName("DPF");

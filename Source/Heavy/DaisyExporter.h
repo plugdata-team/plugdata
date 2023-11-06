@@ -11,24 +11,29 @@ public:
     Value usbMidiValue = SynchronousValue(var(0));
     Value debugPrintValue = SynchronousValue(var(0));
     Value patchSizeValue = SynchronousValue(var(1));
-    
+    Value appTypeValue = SynchronousValue(var(0));
+
     bool dontOpenFileChooser = false;
 
     File customBoardDefinition;
+    File customLinker;
 
     TextButton flashButton = TextButton("Flash");
     PropertiesPanelProperty* usbMidiProperty;
+    PropertiesPanelProperty* appTypeProperty;
 
     DaisyExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanelProperty*> properties;
-        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Simple", "Custom JSON..." }));
+        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Simple", "Custom JSON..." }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
         properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
-        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge" }));
+        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge", "Custom Linker..." }));
+        appTypeProperty = new PropertiesPanel::ComboComponent("App type", appTypeValue, { "SRAM", "QSPI" });
+        properties.add(appTypeProperty);
 
         for (auto* property : properties) {
             property->setPreferredHeight(28);
@@ -49,6 +54,7 @@ public:
         usbMidiValue.addListener(this);
         debugPrintValue.addListener(this);
         patchSizeValue.addListener(this);
+        appTypeValue.addListener(this);
 
         flashButton.onClick = [this]() {
             auto tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
@@ -56,7 +62,7 @@ public:
             startExport(tempFolder);
         };
     }
-    
+
     ValueTree getState() override
     {
         ValueTree stateTree("Daisy");
@@ -69,13 +75,15 @@ public:
         stateTree.setProperty("usbMidiValue", getValue<int>(usbMidiValue), nullptr);
         stateTree.setProperty("debugPrintValue", getValue<int>(debugPrintValue), nullptr);
         stateTree.setProperty("patchSizeValue", getValue<int>(patchSizeValue), nullptr);
+        stateTree.setProperty("appTypeValue", getValue<int>(appTypeValue), nullptr);
+        stateTree.setProperty("customLinkerValue", customLinker.getFullPathName(), nullptr);
         return stateTree;
     }
-    
+
     void setState(ValueTree& stateTree) override
     {
         ScopedValueSetter<bool> scopedValueSetter(dontOpenFileChooser, true);
-        
+
         auto tree = stateTree.getChildWithName("Daisy");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
@@ -86,6 +94,8 @@ public:
         usbMidiValue = tree.getProperty("usbMidiValue");
         debugPrintValue = tree.getProperty("debugPrintValue");
         patchSizeValue = tree.getProperty("patchSizeValue");
+        appTypeValue = tree.getProperty("appTypeValue");
+        customLinker = File(tree.getProperty("customLinkerValue").toString());
     }
 
     void resized() override
@@ -107,6 +117,18 @@ public:
         bool debugPrint = getValue<int>(debugPrintValue);
         usbMidiProperty->setEnabled(!debugPrint);
 
+        // need to actually hide this property until needed
+        int patchSize = getValue<int>(patchSizeValue);
+        appTypeProperty->setEnabled(patchSize == 4);
+
+        if (patchSize == 1) {
+            appTypeValue.setValue(0);
+        } else if (patchSize == 2) {
+            appTypeValue.setValue(1);
+        } else if (patchSize == 3) {
+            appTypeValue.setValue(2);
+        }
+
         if (v.refersToSameSourceAs(targetBoardValue)) {
             int idx = getValue<int>(targetBoardValue);
 
@@ -123,6 +145,23 @@ public:
                 customBoardDefinition = File();
             }
         }
+
+        if (v.refersToSameSourceAs(patchSizeValue)) {
+            int idx = getValue<int>(patchSizeValue);
+
+            // Custom linker option
+            if (idx == 4 && !dontOpenFileChooser) {
+                Dialogs::showOpenDialog([this](File& result){
+                    if (result.existsAsFile()) {
+                        customLinker = result;
+                    } else {
+                        customLinker = File();
+                    }
+                }, true, false, "*.lds", "DaisyCustomLinker");
+            } else {
+                customLinker = File();
+            }
+        }
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
@@ -133,6 +172,7 @@ public:
         bool usbMidi = getValue<int>(usbMidiValue);
         bool print = getValue<int>(debugPrintValue);
         auto size = getValue<int>(patchSizeValue);
+        auto appType = getValue<int>(appTypeValue);
 
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
 
@@ -180,6 +220,14 @@ public:
             metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_qspi.lds");
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
             bootloader = true;
+        } else if (size == 4) {
+            metaDaisy.getDynamicObject()->setProperty("linker_script", customLinker.getFullPathName());
+            if (appType == 1) {
+                metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
+            } else if (appType == 2) {
+                metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
+            }
+            bootloader = true;
         }
 
         metaJson->setProperty("daisy", metaDaisy);
@@ -199,7 +247,7 @@ public:
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
 
-        exportingView->logToConsole("Compiling...");
+        exportingView->logToConsole("Compiling for " + board + "...\n");
 
         if (shouldQuit)
             return true;
