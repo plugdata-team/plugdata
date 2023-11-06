@@ -58,7 +58,7 @@ public:
     {
         pd->unregisterMessageListener(scalar.getRawUnchecked<void>(), this);
     }
-
+        
     void receiveMessage(String const& name, int argc, t_atom* argv)
     {
         if (name == "redraw") {
@@ -152,108 +152,77 @@ class DrawableCurve final : public DrawableTemplate
     , public DrawablePath {
 
     t_fake_curve* object;
-    GlobalMouseListener mouseListener;
-    Point<int> dragPosition;
-    t_fake_fielddesc* motionField = nullptr;
+    GlobalMouseListener globalMouseListener;
+    Point<int> lastMouseDragPosition = {0, 0};
 
 public:
     DrawableCurve(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
         : DrawableTemplate(s, data, templ, parent, cnv, x, y)
         , object(reinterpret_cast<t_fake_curve*>(obj))
-        , mouseListener(this)
+        , globalMouseListener(cnv)
     {
-        mouseListener.globalMouseDown = [this](MouseEvent const& e) {
-            handleMouseDown(e);
-        };
-        mouseListener.globalMouseDrag = [this](MouseEvent const& e) {
-            handleMouseDrag(e);
-        };
-    }
-
-    void handleMouseDown(MouseEvent const& e)
-    {
-        auto* s = scalar.getRaw<t_scalar>();
-
-        if (!s || !getLocalBounds().contains(e.getPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing() || !s->sc_template)
-            return;
-
-        auto shift = e.mods.isShiftDown();
-        auto alt = e.mods.isAltDown();
-        auto dbl = 0;
-
-        auto* patch = canvas->patch.getPointer().get();
-        if (!patch)
-            return;
-        
-        auto* x = reinterpret_cast<t_fake_curve*>(object);
-
-        scalar_doclick(s->sc_vec, parentTempl, s, nullptr, patch, 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
-            
-        if (!fielddesc_getfloat(&x->x_vis, templ, data, 0)) {
-            setPath(Path());
-            return;
-        }
-        
-        /*  Not working yet...
-        int i, n = object->x_npoints;
-        int bestn = -1;
-        int besterror = 0x7fffffff;
-        t_fake_fielddesc *f;
-        if ((object->x_flags & NOMOUSERUN) || (object->x_flags & NOVERTICES) ||
-            !fielddesc_getfloat(&object->x_vis, templ, data, 0))
-                return (0);
-
-        for (i = 0, f = object->x_vec; i < n; i++, f += 2)
-        {
-            int xval = fielddesc_getcoord((t_fielddesc*)f, parentTempl, data, 0),
-                xloc = xToPixels(baseX + xval);
-            int yval = fielddesc_getcoord((t_fielddesc*)(f+1), parentTempl, data, 0),
-                yloc = yToPixels(baseY + yval);
-            int xerr = xloc - e.x, yerr = yloc - e.y;
-            if (!f->fd_var && !(f+1)->fd_var)
-                continue;
-
-            if (xerr < 0)
-                xerr = -xerr;
-            if (yerr < 0)
-                yerr = -yerr;
-            if (yerr > xerr)
-                xerr = yerr;
-            if (xerr < besterror)
-            {
-                dragPosition = Point<int>{xval, yval};
-                besterror = xerr;
-                bestn = i;
-            }
-
-            motionField = object->x_vec + 2*bestn;
-        } */
-
-        // Update all drawables
-        for (auto* object : canvas->objects) {
-            if (!object->gui)
-                continue;
-            object->gui->updateDrawables();
-        }
-    }
-
-    void handleMouseDrag(MouseEvent const& e)
-    {
-        if (!getLocalBounds().contains(e.getMouseDownPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
-            return;
-
-        if (auto s = scalar.get<t_scalar>()) {
-            if (!motionField || !s->sc_template) {
+        /* TODO: finish this and enable it!
+        globalMouseListener.globalMouseDown = [this, cnv](const MouseEvent& e){
+            auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
+            if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
+            
+            if(auto gobj = scalar.get<t_gobj>()) {
+                auto glist = cnv->patch.getPointer();
+                auto pos = e.getPosition() - cnv->canvasOrigin;
+                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
+                cnv->updateDrawables();
+                glist->gl_editor->e_xwas = pos.x;
+                glist->gl_editor->e_ywas = pos.y;
             }
-
-            fielddesc_setcoord((t_fielddesc*)motionField, parentTempl, data, dragPosition.x + e.getDistanceFromDragStartX(), 1);
-            fielddesc_setcoord((t_fielddesc*)(motionField + 1), parentTempl, data, dragPosition.y + e.getDistanceFromDragStartY(), 1);
-
-            //((t_word*)((char*)data + onset))->w_float = mouseDownValue - e.getDistanceFromDragStartY() / 6;
-        }
-
-        canvas->updateDrawables();
+        };
+        globalMouseListener.globalMouseUp = [this, cnv](const MouseEvent& e){
+            auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
+            if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
+                return;
+            
+            if(auto gobj = scalar.get<t_gobj>()) {
+                auto glist = cnv->patch.getPointer();
+                auto pos = e.getPosition() - cnv->canvasOrigin;
+                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
+                cnv->updateDrawables();
+                glist->gl_editor->e_xwas = pos.x;
+                glist->gl_editor->e_ywas = pos.y;
+            }
+        };
+        globalMouseListener.globalMouseDrag = [this, cnv](const MouseEvent& e){
+            auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
+            if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
+                return;
+            
+            if(auto gobj = scalar.get<t_gobj>()) {
+                auto glist = cnv->patch.getPointer();
+                auto pos = e.getPosition() - cnv->canvasOrigin;
+                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
+                
+                auto* canvas = glist_getcanvas(glist.get());
+                if(canvas->gl_editor->e_motionfn) {
+                    canvas->gl_editor->e_motionfn(&canvas->gl_editor->e_grab->g_pd, pos.x - glist->gl_editor->e_xwas, pos.y - glist->gl_editor->e_ywas, 0);
+                }
+                
+                cnv->updateDrawables();
+                glist->gl_editor->e_xwas = pos.x;
+                glist->gl_editor->e_ywas = pos.y;
+            }
+        };
+        globalMouseListener.globalMouseMove = [this, cnv](const MouseEvent& e){
+            auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
+            if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
+                return;
+            
+            if(auto gobj = scalar.get<t_gobj>()) {
+                auto glist = cnv->patch.getPointer();
+                auto pos = e.getPosition() - cnv->canvasOrigin;
+                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
+                glist->gl_editor->e_xwas = pos.x;
+                glist->gl_editor->e_ywas = pos.y;
+            }
+        }; */
     }
 
     void update() override
@@ -507,13 +476,79 @@ public:
 class DrawablePlot final : public DrawableTemplate
     , public DrawablePath {
 
-    t_fake_curve* object;
 
+    Point<int> lastMouseDragPosition = {0, 0};
+    t_fake_curve* object;
+    GlobalMouseListener globalMouseListener;
+        
 public:
     DrawablePlot(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int x, int y, t_template* parent = nullptr)
         : DrawableTemplate(s, data, templ, parent, cnv, x, y)
         , object(reinterpret_cast<t_fake_curve*>(obj))
+        , globalMouseListener(cnv)
     {
+        /* TODO: finish this and enable it!
+        globalMouseListener.globalMouseDown = [this, cnv](const MouseEvent& e){
+            auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
+            if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
+                return;
+            
+            if(auto gobj = scalar.get<t_gobj>()) {
+                auto glist = cnv->patch.getPointer();
+                auto pos = e.getPosition() - cnv->canvasOrigin;
+                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
+                cnv->updateDrawables();
+                glist->gl_editor->e_xwas = pos.x;
+                glist->gl_editor->e_ywas = pos.y;
+            }
+        };
+        globalMouseListener.globalMouseUp = [this, cnv](const MouseEvent& e){
+            auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
+            if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
+                return;
+            
+            if(auto gobj = scalar.get<t_gobj>()) {
+                auto glist = cnv->patch.getPointer();
+                auto pos = e.getPosition() - cnv->canvasOrigin;
+                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
+                cnv->updateDrawables();
+                glist->gl_editor->e_xwas = pos.x;
+                glist->gl_editor->e_ywas = pos.y;
+            }
+        };
+        globalMouseListener.globalMouseDrag = [this, cnv](const MouseEvent& e){
+            auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
+            if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
+                return;
+            
+            if(auto gobj = scalar.get<t_gobj>()) {
+                auto glist = cnv->patch.getPointer();
+                auto pos = e.getPosition() - cnv->canvasOrigin;
+                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
+                
+                auto* canvas = glist_getcanvas(glist.get());
+                if(canvas->gl_editor->e_motionfn) {
+                    canvas->gl_editor->e_motionfn(&canvas->gl_editor->e_grab->g_pd, pos.x - glist->gl_editor->e_xwas, pos.y - glist->gl_editor->e_ywas, 0);
+                }
+                
+                cnv->updateDrawables();
+                glist->gl_editor->e_xwas = pos.x;
+                glist->gl_editor->e_ywas = pos.y;
+            }
+        };
+        globalMouseListener.globalMouseMove = [this, cnv](const MouseEvent& e){
+            auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
+            if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
+                return;
+            
+            if(auto gobj = scalar.get<t_gobj>()) {
+                auto glist = cnv->patch.getPointer();
+                auto pos = e.getPosition() - cnv->canvasOrigin;
+                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
+                glist->gl_editor->e_xwas = pos.x;
+                glist->gl_editor->e_ywas = pos.y;
+            }
+        }; */
     }
 
     static int readOwnerTemplate(t_fake_plot* x,
@@ -889,7 +924,7 @@ public:
 
 struct ScalarObject final : public ObjectBase {
     OwnedArray<Component> templates;
-
+    
     ScalarObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
@@ -929,6 +964,7 @@ struct ScalarObject final : public ObjectBase {
         {
             templates[i]->toBack();
         }
+        
 
         updateDrawables();
     }
