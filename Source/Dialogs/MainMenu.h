@@ -122,9 +122,15 @@ public:
             zoomReset.setButtonText(buttonText);
             zoomOut.setButtonText("-");
 
-            addAndMakeVisible(zoomIn);
-            addAndMakeVisible(zoomReset);
-            addAndMakeVisible(zoomOut);
+            for(auto* button : Array<TextButton*>{&zoomIn, &zoomReset, &zoomOut})
+            {
+                button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+                button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+                button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+                addAndMakeVisible(button);
+            }
 
             zoomIn.setConnectedEdges(Button::ConnectedOnLeft);
             zoomOut.setConnectedEdges(Button::ConnectedOnRight);
@@ -186,14 +192,13 @@ public:
             // Set the new canvas position
             // Alex: there is an accumulated error when zooming in/out
             //       possibly we should save the canvas position as an additional Point<float> ?
-            // Tim: pretty sure there isn't? You can tell more clearly by using a macbook trackpad, zooming appears to be accurate
             cnv->setTopLeftPosition((cnv->getPosition().toFloat() + offset).roundToInt());
 
             cnv->zoomScale = scale;
 
             zoomReset.setButtonText(String(scale * 100.0f, 1) + "%");
         }
-
+        
         void resized() override
         {
             auto bounds = getLocalBounds().reduced(8, 4);
