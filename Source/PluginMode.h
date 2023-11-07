@@ -70,7 +70,7 @@ public:
         scaleComboBox.addItemList({"50%", "75%", "100%", "125%", "150%", "175%", "200%"}, 1);
         if (ProjectInfo::isStandalone) {
             scaleComboBox.addSeparator();
-            scaleComboBox.addItem("Fullscreen kiosk", 8);
+            scaleComboBox.addItem("Fullscreen", 8);
         }
         scaleComboBox.setTooltip("Change plugin scale");
         scaleComboBox.setText("100%");
@@ -257,7 +257,7 @@ public:
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
 
-            scaleComboBox.setBounds(8, 8, 70, titlebarHeight - 16);
+            scaleComboBox.setBounds(8, 8, 74, titlebarHeight - 16);
             editorButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         }
     }
