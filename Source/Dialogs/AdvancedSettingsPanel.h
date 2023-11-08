@@ -57,9 +57,49 @@ public:
         autoPatchingValue.referTo(settingsFile->getPropertyAsValue("autoconnect"));
         otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
 
+        struct ScaleComponent : public PropertiesPanelProperty {
+            ScaleComponent(String const& propertyName, Value& value)
+                : PropertiesPanelProperty(propertyName), scaleValue(value)
+            {
+                StringArray comboItems = {"50%", "62.5%", "75%", "87.5%", "100%", "112.5%", "125%", "137.5%", "150%", "162.5%", "175%", "187.5%", "200%" };
+                Array<float> scaleValues = {0.5f, 0.625f, 0.75f, 0.875f, 1.0f, 1.125f, 1.25f, 1.375f, 1.5f, 1.625f, 1.75f, 1.875f, 2.0f};
+                
+                comboBox.addItemList(comboItems, 1);
+                
+                // Find number closest to current scale factor
+                auto closest = std::min_element(scaleValues.begin(), scaleValues.end(),
+                        [target = getValue<float>(value)](float a, float b) {
+                            return std::abs(a - target) < std::abs(b - target);
+                        });
+                auto currentIndex = std::distance(scaleValues.begin(), closest);
+                
+                comboBox.setSelectedItemIndex(currentIndex);
+                comboBox.onChange = [this, scaleValues](){
+                    scaleValue = scaleValues[comboBox.getSelectedItemIndex()];
+                };
+                
+                comboBox.getProperties().set("Style", "Inspector");
+
+                addAndMakeVisible(comboBox);
+            }
+            
+            void resized() override
+            {
+                comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
+            }
+            
+            PropertiesPanelProperty* createCopy() override
+            {
+                return new ScaleComponent(getName(), scaleValue);
+            }
+
+            Value& scaleValue;
+            ComboBox comboBox;
+        };
+        
         scaleValue = settingsFile->getProperty<float>("global_scale");
         scaleValue.addListener(this);
-        otherProperties.add(new PropertiesPanel::EditableComponent<float>("Global scale factor", scaleValue));
+        otherProperties.add(new ScaleComponent("Global scale factor", scaleValue));
 
         defaultZoom = settingsFile->getProperty<float>("default_zoom");
         defaultZoom.addListener(this);
@@ -104,9 +144,7 @@ public:
             editor->resized();
         }
         if (v.refersToSameSourceAs(scaleValue)) {
-            auto scale = std::clamp(getValue<float>(scaleValue), 0.5f, 2.5f);
-            SettingsFile::getInstance()->setGlobalScale(scale);
-            scaleValue = scale;
+            SettingsFile::getInstance()->setGlobalScale(getValue<float>(scaleValue));
         }
         if (v.refersToSameSourceAs(defaultZoom)) {
             auto zoom = std::clamp(getValue<float>(defaultZoom), 20.0f, 300.0f);
