@@ -732,6 +732,7 @@ public:
     struct EditableComponent : public PropertiesPanelProperty {
         std::unique_ptr<Label> label;
         Value property;
+        String allowedCharacters = "";
 
         EditableComponent(String propertyName, Value& value)
             : PropertiesPanelProperty(propertyName)
@@ -745,12 +746,6 @@ public:
                 draggableNumber->setText(property.toString(), dontSendNotification);
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
-
-                /* I think we don't need this?
-                draggableNumber->onValueChange = [this](float value) {
-                    property = String(value, 8);
-                }; */
-
                 draggableNumber->setEditableOnClick(true);
 
                 draggableNumber->onEditorShow = [draggableNumber]() {
@@ -768,6 +763,17 @@ public:
                 label->setEditable(true, false);
                 label->getTextValue().referTo(property);
                 label->setFont(Font(14));
+                
+                label->onEditorShow = [this]() {
+                    auto* editor = label->getCurrentTextEditor();
+                    editor->setBorder(BorderSize<int>(2, 1, 4, 1));
+                    editor->setJustification(Justification::centredLeft);
+                    
+                    if(allowedCharacters.isNotEmpty())
+                    {
+                        editor->setInputRestrictions(0, allowedCharacters);
+                    }
+                };
             }
 
             addAndMakeVisible(label.get());
@@ -778,6 +784,11 @@ public:
         PropertiesPanelProperty* createCopy() override
         {
             return new EditableComponent<T>(getName(), property);
+        }
+        
+        void setInputRestrictions(const String& newAllowedCharacters)
+        {
+            allowedCharacters = newAllowedCharacters;
         }
 
         void setRangeMin(float minimum)

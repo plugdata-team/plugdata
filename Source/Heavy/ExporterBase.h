@@ -59,7 +59,10 @@ struct ExporterBase : public Component
         patchChooser->comboBox.setSelectedId(-1);
         properties.add(patchChooser);
 
-        properties.add(new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue));
+        auto* nameProperty = new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue);
+        nameProperty->setInputRestrictions("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
+        properties.add(nameProperty);
+        
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Copyright (optional)", projectCopyrightValue));
 
         for (auto* property : properties) {
