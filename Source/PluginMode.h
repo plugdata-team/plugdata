@@ -29,6 +29,11 @@ public:
             }
 #endif
         }
+        if (ProjectInfo::isStandalone) {
+            auto frameSize = desktopWindow->getFrameSizeIfPresent();
+            nativeTitleBarHeight = frameSize ? frameSize->getTop() : 0;
+        }
+
         if(auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent()))
         {
             mainWindow->setUsingNativeTitleBar(false);
@@ -142,6 +147,25 @@ public:
 
     void closePluginMode()
     {
+        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
+            bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
+            if(isUsingNativeTitlebar) {
+                mainWindow->setResizeLimits(850, 650, 99000, 99000);
+                mainWindow->setOpaque(true);
+                mainWindow->setUsingNativeTitleBar(true);
+            }
+            editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
+            auto correctedPosition = windowBounds.getTopLeft() - Point<int>(0, nativeTitleBarHeight);
+            mainWindow->setBoundsConstrained(windowBounds.withPosition(correctedPosition));
+        } else {
+            editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
+            editor->setBounds(windowBounds);
+        }
+
+        if (auto* tabbar = editor->getActiveTabbar()) {
+            tabbar->resized();
+        }
+
         if (cnv) {
             content.removeChildComponent(cnv);
             // Reset the canvas properties to before plugin mode was entered
@@ -154,24 +178,8 @@ public:
             cnv->presentationMode = originalPresentationMode;
         }
 
-        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
-            if(isUsingNativeTitlebar) {
-                mainWindow->setResizeLimits(850, 650, 99000, 99000);
-                mainWindow->setOpaque(true);
-                mainWindow->setUsingNativeTitleBar(true);
-            }
-            editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
-            mainWindow->setBoundsConstrained(windowBounds);
-        } else {
-            editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
-            editor->setBounds(windowBounds);
-        }
-
+        editor->parentSizeChanged();
         editor->resized();
-        if (auto* tabbar = editor->getActiveTabbar()) {
-            tabbar->resized();
-        }
 
         // Destroy this view
         editor->pluginMode.reset(nullptr);
@@ -376,6 +384,7 @@ private:
 
     Component titleBar;
     int const titlebarHeight = 40;
+    int nativeTitleBarHeight = 0;
     ComboBox scaleComboBox;
     std::unique_ptr<MainToolbarButton> editorButton;
 
