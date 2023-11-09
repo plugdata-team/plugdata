@@ -294,6 +294,8 @@ void Canvas::paint(Graphics& g)
     clippedOrigin.x += fmod(originDiff.x, 10.0f) - 0.5f;
     clippedOrigin.y += fmod(originDiff.y, 10.0f) - 0.5f;
 
+    auto scale = ::getValue<float>(zoomScale);
+
     if (!getValue<bool>(locked)) {
 
         auto startX = (canvasOrigin.x % objectGrid.gridSize);
@@ -305,14 +307,29 @@ void Canvas::paint(Graphics& g)
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
         for (int x = startX; x < clipBounds.getRight(); x += objectGrid.gridSize) {
+            // calculate the x here, once per iteration, as it won't change for y
+            const auto gridSpacing = objectGrid.gridSize * 4;
+            const auto xGridSpacing = (x - canvasOrigin.x) % gridSpacing == 0;
+
             for (int y = startY; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
 
-                // Don't draw over origin line
+                // Don't draw over origin or border line
                 if (showBorder || showOrigin) {
-                    if ((x == canvasOrigin.x && y >= canvasOrigin.y && y <= patchHeightCanvas) || (y == canvasOrigin.y && x >= canvasOrigin.x && x <= patchWidthCanvas))
+                    if ((x == canvasOrigin.x && y >= canvasOrigin.y && (showOrigin || (y <= patchHeightCanvas))) || (y == canvasOrigin.y && x >= canvasOrigin.x && (showOrigin || (x <= patchWidthCanvas))))
                         continue;
                 }
-                g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
+                auto dotWidth = 1.0f;
+                if (scale < 1.0f) {
+                    if (((y - canvasOrigin.y) % gridSpacing == 0) || xGridSpacing) {
+                        dotWidth = 1.0f / jmap(scale, 0.3f, 1.0f, 0.4f, 1.0f);
+                    } else {
+                        // TIM: draw the dot's differently for some grid sizes, or not at all?
+                        if (objectGrid.gridSize == 5)
+                            continue;
+                    }
+                }
+                auto halfDotWidth = dotWidth * 0.5f;
+                g.fillRect(static_cast<float>(x) - halfDotWidth, static_cast<float>(y) - halfDotWidth, dotWidth, dotWidth);
             }
         }
     }
@@ -349,19 +366,24 @@ void Canvas::paint(Graphics& g)
         extentLeft = Line<float>(pointA, pointOriginD);
     }
 
-    float dash[2] = { 5.0f, 5.0f };
+    const auto scaleLimited = scale < 1.0f ? scale : 1.0f;
+    const auto scaleNormalised = 1.0f / scaleLimited;
+    const auto scaleMapped = jmap(scaleLimited, 0.3f, 1.0f, 0.4f, 1.0f);
+    const auto lineWidthMappedScale = 1.0f / scaleMapped;
+
+    float dash[2] = { 5.0f * scaleNormalised, 5.0f * scaleNormalised};
 
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
-    g.drawDashedLine(extentLeft, dash, 2, 1.0f);
-    g.drawDashedLine(extentTop, dash, 2, 1.0f);
+    g.drawDashedLine(extentLeft, dash, 2, lineWidthMappedScale);
+    g.drawDashedLine(extentTop, dash, 2, lineWidthMappedScale);
 
     if (showBorder) {
         auto extentRight = Line<float>(pointC, pointB);
         auto extentBottom = Line<float>(pointC, pointD);
 
-        g.drawDashedLine(extentRight, dash, 2, 1.0f);
-        g.drawDashedLine(extentBottom, dash, 2, 1.0f);
+        g.drawDashedLine(extentRight, dash, 2, lineWidthMappedScale);
+        g.drawDashedLine(extentBottom, dash, 2, lineWidthMappedScale);
     }
 }
 
