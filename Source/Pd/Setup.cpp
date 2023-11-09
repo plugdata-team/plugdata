@@ -665,8 +665,11 @@ void pm_tilde_setup();
 void pm2_tilde_setup();
 void pm4_tilde_setup();
 void pm6_tilde_setup();
+void var_setup();
+void conv_tilde_setup();
+void fm_tilde_setup();
 
-#if ENABLE_SFIZZ
+#ifdef ENABLE_SFIZZ
 void sfz_tilde_setup();
 #endif
 void knob_setup();
@@ -985,6 +988,7 @@ void Setup::initialiseELSE()
     setup_pgm0x2eout();
     pic_setup();
     pimp_tilde_setup();
+    pink_tilde_setup();
     pimpmul_tilde_setup();
     plaits_tilde_setup();
     pluck_tilde_setup();
@@ -1104,7 +1108,7 @@ void Setup::initialiseELSE()
     repeat_tilde_setup();
     setup_xgate0x2emc_tilde();
     setup_xfade0x2emc_tilde();
-#if ENABLE_SFIZZ
+#ifdef ENABLE_SFIZZ
     sfz_tilde_setup();
 #endif
     sender_setup();
@@ -1119,6 +1123,10 @@ void Setup::initialiseELSE()
     pm2_tilde_setup();
     pm4_tilde_setup();
     pm6_tilde_setup();
+    
+    var_setup();
+    conv_tilde_setup();
+    fm_tilde_setup();
 }
 
 void Setup::initialiseCyclone()
@@ -1280,7 +1288,6 @@ void Setup::initialiseCyclone()
     peek_tilde_setup();
     phaseshift_tilde_setup();
     phasewrap_tilde_setup();
-    pink_tilde_setup();
     play_tilde_setup();
     plusequals_tilde_setup();
     poke_tilde_setup();
