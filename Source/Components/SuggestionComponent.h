@@ -944,7 +944,8 @@ private:
         "libpd_receive",
         "out.mc.hip~",
         "pvoc~",
-        "gran~"
+        "gran~",
+        "convpartition"
     };
 
     int windowMargin;

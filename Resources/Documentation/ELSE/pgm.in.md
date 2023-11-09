@@ -29,6 +29,15 @@ outlets:
   - type: float
     description: MIDI channel
 
+methods:
+- type: -ext <float>
+  description: non zero sets to listen only to external input source
+
+flags:
+- name: -ext
+  description: only listen to external input source
+  default: no
+  
 draft: false
 ---
 

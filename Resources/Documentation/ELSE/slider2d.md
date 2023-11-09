@@ -34,8 +34,8 @@ flags:
 - name: -fgcolor <f,f,f>
   description: sets foreground color
   default: 0 0 0
-- name: -init <f>
-  description: non-0 sets to init mode
+- name: -savestate <float>
+  description: non-0 will save object state
   default: 0
 
 
@@ -72,8 +72,8 @@ methods:
   description: sets background color in RGB
 - type: fgcolor <f,f,f>
   description: sets foreground color in RGB
-- type: init <f>
-  description: non-0 sets to init mode
+- type: savestate <float>
+  description: non-0 will save object state
 
 draft: false
 ---

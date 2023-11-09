@@ -36,15 +36,18 @@ inlets:
   - type: bang
     description: trigger/retrigger
   2nd:
-  - type: float/signal
-    description: attack time in ms
+  - type: signal
+    description: signal retrigger via impulses and gates
   3rd:
   - type: float/signal
-    description: decay time in ms
+    description: attack time in ms
   4th:
   - type: float/signal
-    description: sustain amplitude (ratio to gate value)
+    description: decay time in ms
   5th:
+  - type: float/signal
+    description: sustain amplitude (ratio to gate value)
+  6th:
   - type: float/signal
     description: release time in ms
 
@@ -59,7 +62,8 @@ outlets:
 methods:
   - type: lin <float>
     description: non-0 sets to "lin" mode, "log" otherwise
-
+  - type: gate <float>
+    description: control gate values
 draft: false
 ---
 

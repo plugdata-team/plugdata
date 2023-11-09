@@ -8,14 +8,6 @@ categories:
 
 pdcategory: ELSE, Signal Generators
 
-arguments:
-  - description: number of oscillators 
-    type: float
-    default: 1
-  - description: ramp time in ms
-    type: float
-    default: 10
-
 inlets:
   1st:
   - type: freq <list>
@@ -46,6 +38,9 @@ flags:
   - name: -rampall <float>
     description: sets a ramp time for all oscillators
     default: all 10
+  - name: -mc <float>
+    description: sets to multichannel output
+    default: 0
 
 methods:
   - type: freq <list>
@@ -58,6 +53,8 @@ methods:
     description: list of ramp time for all oscillators in the bank
   - type: rampall <float>
     description: sets ramp time for all oscillators
+  - type: mc <float>
+    description: sets to multichannel output
 
 draft: false
 ---

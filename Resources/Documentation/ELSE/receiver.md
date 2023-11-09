@@ -9,6 +9,9 @@ categories:
 pdcategory: ELSE, Data Management
 
 arguments:
+- type: optional depth value 
+  description: receive names
+  default: 1
 - type: list
   description: receive names
   default:
@@ -33,4 +36,4 @@ methods:
 draft: false
 ---
 
-[receiver] is much like vanilla's [receive], but can have up to two names and has an inlet to set the receive names.
+[receiver] is like vanilla's [receive]. It can have up to two names, has an inlet to set the receive names and at load time can expand dollar symbols according to parent patches.

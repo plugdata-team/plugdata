@@ -27,16 +27,15 @@ outlets:
     description: peak amplitude value
 
 flags:
-  - name: -db
-    description: sets the output to dBFS
+  - name: -lin
+    description: sets the output to linear
+    default: dBFS
 
 methods:
   - type: set <float, float>
     description: sets window and hop size in samples
-  - type: db
-    description: change peak value to dBFS
-  - type: linear
-    description: change peak value to linear (the default is linear)
+  - type: lin
+    description: non zero sets to linear output
 
 draft: false
 ---

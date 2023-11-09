@@ -41,8 +41,8 @@ flags:
  - name: -dim <float, float>
    description: sets x/y dimensions
    default: 200 127
- - name: -init <float>
-   description: non-0 sets to init mode
+ - name: -savestate <float>
+   description: non-0 will save object state
    default: 0
  - name: -send <symbol>
    description: sets send symbol
@@ -94,8 +94,8 @@ methods:
     description: sets number of sliders and values (and dumps them)
   - type: export
     description: outputs sliders values as a list
-  - type: init <float>
-    description: non-0 sets to jump on click mode
+  - type: savestate <float>
+    description: non-0 will save object state
   - type: send <symbol>
     description: sets send name
   - type: receive <symbol>

@@ -13,9 +13,16 @@ arguments:
   description: sets channel number
   default: 0 - OMNI
 
+methods:
+- type: -ext <float>
+  description: non zero sets to listen only to external input source
+  
 flags:
 - name: -raw
   description: sets to raw output mode (0-16383)
+- name: -ext
+  description: only listen to external input source
+  default: no
 
 inlets:
   1st:
@@ -32,6 +39,7 @@ outlets:
   2nd:
   - type: float
     description: MIDI channel
+
 
 draft: false
 ---
