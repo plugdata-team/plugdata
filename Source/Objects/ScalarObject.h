@@ -161,7 +161,7 @@ public:
         , object(reinterpret_cast<t_fake_curve*>(obj))
         , globalMouseListener(cnv)
     {
-        /* TODO: finish this and enable it!
+
         globalMouseListener.globalMouseDown = [this, cnv](const MouseEvent& e){
             auto localPos = e.getEventRelativeTo(this).getMouseDownPosition();
             if (!getLocalBounds().contains(localPos) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
@@ -222,7 +222,7 @@ public:
                 glist->gl_editor->e_xwas = pos.x;
                 glist->gl_editor->e_ywas = pos.y;
             }
-        }; */
+        };
     }
 
     void update() override
