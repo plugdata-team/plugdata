@@ -643,13 +643,11 @@ void Object::updateTooltips()
     if (auto subpatch = gui->getPatch()) {
         auto* subpatchPtr = subpatch->getPointer().get();
 
-        // if(!subpatchPtr) return;
-
         // Check child objects of subpatch for inlet/outlet messages
         for (auto* obj : subpatch->getObjects()) {
 
             const String name = pd::Interface::getObjectClassName(&obj->g_pd);
-            auto* checkedObject = pd::Interface::checkObject(getPointer());
+            auto* checkedObject = pd::Interface::checkObject(obj);
             if (name == "inlet" || name == "inlet~") {
                 int size;
                 char* str_ptr;
