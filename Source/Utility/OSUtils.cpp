@@ -12,6 +12,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 
+#include "Config.h"
 #include "OSUtils.h"
 
 #if defined(__APPLE__)
@@ -170,7 +171,9 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 
 void OSUtils::updateX11Constraints(void* handle)
 {
-    juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(handle));
+    if(ProjectInfo::isStandalone) {
+        juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(handle));
+    }
 }
 
 bool OSUtils::isX11WindowMaximised(void* handle)
