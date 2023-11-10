@@ -91,10 +91,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
     else {
         constrainer.setMinimumSize(850, 650);
-
-    #if JUCE_LINUX
-        OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
-    #endif
     }
 
 
