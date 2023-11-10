@@ -316,6 +316,87 @@ public:
     bool blinkMidiOut = false;
 };
 
+class CPUHistoryGraph : public Component
+{
+public:
+    CPUHistoryGraph(Array<float>& history)
+        : historyGraph(history)
+    {
+    }
+
+    void resized() override
+    {
+        auto innerRect = getLocalBounds();
+        roundedClip.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
+    }
+
+    void paint(Graphics& g) override
+    {
+        // clip the rectangle to rounded corners
+        g.saveState();
+        g.reduceClipRegion(roundedClip);
+
+        g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
+        g.fillRect(getLocalBounds());
+
+        g.setColour(findColour(PlugDataColour::levelMeterActiveColourId));
+        auto distribute = getWidth() / 200.0f;
+        for (int i = 0; i < historyGraph.size(); i++) {
+            auto xPos = i * distribute;
+            auto cpuLoad = getHeight() - (getHeight() * std::pow(historyGraph[i] * 0.01, 1 / 2.0f));
+            g.drawLine(xPos, getHeight(), xPos, cpuLoad, 0.5f);
+        }
+
+        g.restoreState();
+    }
+
+private:
+    Array<float>& historyGraph;
+    Path roundedClip;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUHistoryGraph);
+};
+
+class CPUMeterPopup : public Component
+{
+public:
+    CPUMeterPopup(Array<float>& history)
+    {
+        cpuGraph = std::make_unique<CPUHistoryGraph>(history);
+        addAndMakeVisible(cpuGraph.get());
+        setSize(216, 60);
+    }
+
+    ~CPUMeterPopup()
+    {
+        onClose();
+    }
+
+    void resized() override
+    {
+        cpuGraph->setBounds(8, 8, getWidth() - (2 * 8), getHeight() - (2 * 8));
+    }
+
+    std::function<void()> getUpdateFunc()
+    {
+        return [this]() {
+            this->update();
+        };
+    }
+
+    std::function<void()> onClose = []() {};
+
+private:
+    void update()
+    {
+        cpuGraph->repaint();
+    }
+
+    std::unique_ptr<CPUHistoryGraph> cpuGraph;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUMeterPopup);
+};
+
 class CPUMeter : public Component
     , public StatusbarSource::Listener
     , public Timer
@@ -324,29 +405,90 @@ class CPUMeter : public Component
 public:
     CPUMeter()
     {
+        cpuUsage.resize(200);
         startTimer(1000);
         setTooltip("CPU usage");
     }
 
     void paint(Graphics& g) override
     {
-        Fonts::drawIcon(g, Icons::CPU, getLocalBounds().removeFromLeft(20), findColour(ComboBox::textColourId), 14);
-        Fonts::drawText(g, String(cpuUsageToDraw) + "%", getLocalBounds().withTrimmedLeft(26).withTrimmedTop(1), findColour(ComboBox::textColourId), 13.5, Justification::centredLeft);
+        Colour textColour;
+        if (isMouseOver() || currentCalloutBox)
+            textColour = findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f);
+        else
+            textColour = findColour(PlugDataColour::toolbarTextColourId);
+
+        Fonts::drawIcon(g, Icons::CPU, getLocalBounds().removeFromLeft(20), textColour, 14);
+        Fonts::drawText(g, String(cpuUsageToDraw) + "%", getLocalBounds().withTrimmedLeft(26).withTrimmedTop(1), textColour, 13.5, Justification::centredLeft);
     }
 
     void timerCallback() override
     {
-        cpuUsageToDraw = round(cpuUsage);
+        CriticalSection::ScopedLockType lock(cpuMeterMutex);
+        cpuUsageToDraw = round(cpuUsage.getLast());
         repaint();
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        return getLocalBounds().contains(x, y);
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        // check if the callout is active, otherwise mouse down / up will trigger callout box again
+        if (isCallOutBoxActive) {
+            isCallOutBoxActive = false;
+        }
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (!isCallOutBoxActive) {
+            auto cpuHistory = std::make_unique<CPUMeterPopup>(cpuUsage);
+            updateCPUGraph = cpuHistory->getUpdateFunc();
+            auto editor = findParentComponentOfClass<PluginEditor>();
+            auto bounds = editor->getLocalArea(this, getLocalBounds());
+
+            cpuHistory->onClose = [this](){
+                updateCPUGraph = [](){ return; };
+                repaint();
+            };
+
+            currentCalloutBox = &CallOutBox::launchAsynchronously(std::move(cpuHistory), bounds, editor);
+            isCallOutBoxActive = true;
+        }
+        else {
+            isCallOutBoxActive = false;
+        }
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+         repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+         repaint();
     }
 
     void cpuUsageChanged(float newCpuUsage) override
     {
-        cpuUsage = newCpuUsage;
+        CriticalSection::ScopedLockType lock(cpuMeterMutex);
+        cpuUsage.add(newCpuUsage);
+        cpuUsage.remove(0);
+        updateCPUGraph();
     }
 
-    float cpuUsage = 0.0f;
+    std::function<void()> updateCPUGraph = [](){ return; };
+    static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
+    bool isCallOutBoxActive = false;
+    CriticalSection cpuMeterMutex;
+    Array<float> cpuUsage;
     int cpuUsageToDraw = 0;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUMeter);
 };
 
 Statusbar::Statusbar(PluginProcessor* processor)
@@ -558,7 +700,7 @@ void Statusbar::resized()
 
     midiBlinker->setBounds(position(40, true) - 8, 0, 55, getHeight());
     fourthSeparatorPosition = position(10, true);
-    cpuMeter->setBounds(position(48, true), 0, 70, getHeight());
+    cpuMeter->setBounds(position(48, true), 0, 50, getHeight());
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)
