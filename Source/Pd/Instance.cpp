@@ -26,7 +26,7 @@ extern "C" {
 #include "Setup.h"
 #include "z_print_util.h"
 
-int sys_load_lib(t_canvas* canvas, char const* classname);
+EXTERN int sys_load_lib(t_canvas* canvas, char const* classname);
 
 struct pd::Instance::internal {
 

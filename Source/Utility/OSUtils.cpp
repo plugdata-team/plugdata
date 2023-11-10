@@ -42,8 +42,6 @@ namespace filesystem = experimental::filesystem;
 #if defined(_WIN32) || defined(_WIN64)
 
 #    define REPARSE_MOUNTPOINT_HEADER_SIZE 8
-
-#    define _WIN32_WINNT 0x0500 // Windows 2000 or later
 #    define WIN32_LEAN_AND_MEAN
 #    define WIN32_NO_STATUS
 
@@ -154,8 +152,8 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
     TCHAR buff[KL_NAMELENGTH];
     bool result = GetKeyboardLayoutNameA(buff);
-
-    if (buff == "French" || buff == "Belgian French" || buff == "Belgian (Comma)" || buff == "Belgian (Period)") {
+    
+    if (strcmp(buff, "French") != 0 || strcmp(buff, "Belgian French") != 0 || strcmp(buff, "Belgian (Comma)") != 0 || strcmp(buff, "Belgian (Period)") != 0) {
         return AZERTY;
     }
 
