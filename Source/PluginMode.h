@@ -158,16 +158,19 @@ public:
                 mainWindow->setUsingNativeTitleBar(true);
             }
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
+#if JUCE_LINUX
+            OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
+#endif
+
             auto correctedPosition = windowBounds.getTopLeft() - Point<int>(0, nativeTitleBarHeight);
             mainWindow->setBoundsConstrained(windowBounds.withPosition(correctedPosition));
         } else {
             editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
+#if JUCE_LINUX
+            OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
+#endif
             editor->setBounds(windowBounds);
         }
-        
-#if JUCE_LINUX
-        OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
-#endif
 
         if (auto* tabbar = editor->getActiveTabbar()) {
             tabbar->resized();
