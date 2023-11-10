@@ -24,6 +24,7 @@ struct OSUtils {
 #elif defined(__unix__) && !defined(__APPLE__)
     static void maximiseX11Window(void* handle, bool shouldBeMaximised);
     static bool isX11WindowMaximised(void* handle);
+    static void updateX11Constraints(void* handle);
 #elif JUCE_MAC
     static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
     static void HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);

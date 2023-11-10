@@ -141,6 +141,9 @@ public:
             editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
         }
         
+#if JUCE_LINUX
+        OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
+#endif
         editor->setSize(newWidth, newHeight);
         setBounds(0, 0, newWidth, newHeight);
     }
@@ -155,10 +158,17 @@ public:
                 mainWindow->setUsingNativeTitleBar(true);
             }
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
+#if JUCE_LINUX
+            OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
+#endif
+
             auto correctedPosition = windowBounds.getTopLeft() - Point<int>(0, nativeTitleBarHeight);
             mainWindow->setBoundsConstrained(windowBounds.withPosition(correctedPosition));
         } else {
             editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
+#if JUCE_LINUX
+            OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
+#endif
             editor->setBounds(windowBounds);
         }
 

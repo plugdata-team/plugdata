@@ -49,6 +49,11 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(plugdata VERSION 0.8.1 LANGUAGES C CXX)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+  message(STATUS "Disabled sfizz")
+  set(ENABLE_SFIZZ OFF)
+endif()
+
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
 cmake_policy(SET CMP0091 NEW)
