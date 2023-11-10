@@ -142,7 +142,7 @@ public:
         }
         
 #if JUCE_LINUX
-        OSUtils::updateX11Constraints(getPeer()->getWindowHandle());
+        OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
 #endif
         editor->setSize(newWidth, newHeight);
         setBounds(0, 0, newWidth, newHeight);
@@ -166,7 +166,7 @@ public:
         }
         
 #if JUCE_LINUX
-        OSUtils::updateX11Constraints(getPeer()->getWindowHandle());
+        OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
 #endif
 
         if (auto* tabbar = editor->getActiveTabbar()) {

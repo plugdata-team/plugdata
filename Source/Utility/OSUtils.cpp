@@ -10,6 +10,8 @@
 
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #include <juce_gui_basics/juce_gui_basics.h>
+
+
 #include "OSUtils.h"
 
 #if defined(__APPLE__)
@@ -168,9 +170,9 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 #if defined(__unix__) && !defined(__APPLE__)
 
 
-bool OSUtils::updateX11Constraints(void* handle)
+void OSUtils::updateX11Constraints(void* handle)
 {
-    XWindowSystem::getInstance()->updateConstraints(handle);
+    juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(handle));
 }
 
 bool OSUtils::isX11WindowMaximised(void* handle)

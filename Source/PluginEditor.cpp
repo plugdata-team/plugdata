@@ -89,7 +89,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         pluginConstrainer.setMinimumSize(850, 650);
         setUseBorderResizer(true);
 #if JUCE_LINUX
-        OSUtils::updateX11Constraints(getPeer()->getWindowHandle());
+        OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
 #endif
     }
     else {
