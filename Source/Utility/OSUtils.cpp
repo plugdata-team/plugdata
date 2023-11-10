@@ -12,7 +12,6 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 
-#include "Config.h"
 #include "OSUtils.h"
 
 #if defined(__APPLE__)
@@ -171,7 +170,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 
 void OSUtils::updateX11Constraints(void* handle)
 {
-    if(ProjectInfo::isStandalone) {
+    if(handle) {
         juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(handle));
     }
 }

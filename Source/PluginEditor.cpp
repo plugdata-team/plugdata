@@ -88,14 +88,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         // NEVER touch pluginConstrainer outside of plugin mode!
         pluginConstrainer.setMinimumSize(850, 650);
         setUseBorderResizer(true);
-#if JUCE_LINUX
-        OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
-#endif
     }
     else {
         constrainer.setMinimumSize(850, 650);
+
+    #if JUCE_LINUX
+        OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
+    #endif
     }
-    
 
 
     mainMenuButton.setButtonText(Icons::Menu);
