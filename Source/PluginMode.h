@@ -141,6 +141,9 @@ public:
             editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
         }
         
+#if JUCE_LINUX
+        OSUtils::updateX11Constraints(getPeer()->getWindowHandle());
+#endif
         editor->setSize(newWidth, newHeight);
         setBounds(0, 0, newWidth, newHeight);
     }
@@ -161,6 +164,10 @@ public:
             editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
             editor->setBounds(windowBounds);
         }
+        
+#if JUCE_LINUX
+        OSUtils::updateX11Constraints(getPeer()->getWindowHandle());
+#endif
 
         if (auto* tabbar = editor->getActiveTabbar()) {
             tabbar->resized();

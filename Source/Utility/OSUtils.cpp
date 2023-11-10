@@ -167,6 +167,12 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
 
+
+bool OSUtils::updateX11Constraints(void* handle)
+{
+    XWindowSystem::getInstance()->updateConstraints(handle);
+}
+
 bool OSUtils::isX11WindowMaximised(void* handle)
 {
     enum window_state_t {

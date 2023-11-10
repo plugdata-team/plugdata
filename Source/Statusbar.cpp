@@ -476,7 +476,7 @@ public:
     void cpuUsageChanged(float newCpuUsage) override
     {
         CriticalSection::ScopedLockType lock(cpuMeterMutex);
-        cpuUsage.add(newCpuUsage);
+        cpuUsage.add(newCpuUsage); // FIXME: we should use a circular buffer instead
         cpuUsage.remove(0);
         updateCPUGraph();
     }
