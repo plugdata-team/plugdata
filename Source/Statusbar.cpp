@@ -326,8 +326,8 @@ public:
 
     void resized() override
     {
-        auto innerRect = getLocalBounds();
-        roundedClip.addRoundedRectangle(innerRect, Corners::objectCornerRadius);
+        bounds = getLocalBounds().reduced(6);
+        roundedClip.addRoundedRectangle(bounds, Corners::defaultCornerRadius * 0.75f);
     }
 
     void paint(Graphics& g) override
@@ -337,21 +337,52 @@ public:
         g.reduceClipRegion(roundedClip);
 
         g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
-        g.fillRect(getLocalBounds());
+        g.fillRect(bounds);
+
+        auto bottom = bounds.getBottom();
+        auto height = bounds.getHeight();
+        auto points = historyGraph.size();
+        auto distribute = static_cast<float>(bounds.getWidth()) / points;
+        Path graphTopLine;
+
+        // TODO: set to linear mapping, but consider having a toggle button to allow user to change to log / lin mapping
+        auto useLogMapping = false;
+
+        auto getCPUScaledY = [this, bottom, height, useLogMapping](int index) -> float {
+            float graphValue;
+            if (useLogMapping)
+                graphValue = pow(historyGraph[index] * 0.01, 1 / 1.5);
+            else
+                graphValue = historyGraph[index] * 0.01;
+
+            return bottom - height * graphValue;
+        };
+
+        auto startPoint = Point<float>(bounds.getTopLeft().getX(), getCPUScaledY(0));
+        graphTopLine.startNewSubPath(startPoint);
+
+        for (int i = 1; i < points; i++) {
+            auto xPos = (i * distribute) + bounds.getTopLeft().getX() + distribute;
+            auto newPoint = Point<float>(xPos, getCPUScaledY(i));
+            graphTopLine.lineTo(newPoint);
+        }
+        Path graphFilled = graphTopLine;
+
+        graphFilled.lineTo(bounds.getBottomRight().toFloat());
+        graphFilled.lineTo(bounds.getBottomLeft().toFloat());
+        graphFilled.closeSubPath();
+        g.setColour(findColour(PlugDataColour::levelMeterActiveColourId).withAlpha(0.3f));
+        g.fillPath(graphFilled);
 
         g.setColour(findColour(PlugDataColour::levelMeterActiveColourId));
-        auto distribute = getWidth() / 200.0f;
-        for (int i = 0; i < historyGraph.size(); i++) {
-            auto xPos = i * distribute;
-            auto cpuLoad = getHeight() - (getHeight() * std::pow(historyGraph[i] * 0.01, 1 / 2.0f));
-            g.drawLine(xPos, getHeight(), xPos, cpuLoad, 0.5f);
-        }
+        g.strokePath(graphTopLine, PathStrokeType(1.0f));
 
         g.restoreState();
     }
 
 private:
     Array<float>& historyGraph;
+    Rectangle<int> bounds;
     Path roundedClip;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUHistoryGraph);
@@ -360,11 +391,24 @@ private:
 class CPUMeterPopup : public Component
 {
 public:
-    CPUMeterPopup(Array<float>& history)
+    CPUMeterPopup(Array<float>& history, Array<float>& longHistory)
     {
         cpuGraph = std::make_unique<CPUHistoryGraph>(history);
+        cpuGraphLongHistory = std::make_unique<CPUHistoryGraph>(longHistory);
         addAndMakeVisible(cpuGraph.get());
-        setSize(216, 60);
+        addAndMakeVisible(cpuGraphLongHistory.get());
+
+        fastGraphTitle.setText("CPU usage recent", dontSendNotification);
+        fastGraphTitle.setFont(Fonts::getBoldFont().withHeight(14.0f));
+        fastGraphTitle.setJustificationType(Justification::centred);
+        addAndMakeVisible(fastGraphTitle);
+
+        slowGraphTitle.setText("CPU usage last 5 minutes", dontSendNotification);
+        slowGraphTitle.setFont(Fonts::getBoldFont().withHeight(14.0f));
+        slowGraphTitle.setJustificationType(Justification::centred);
+        addAndMakeVisible(slowGraphTitle);
+
+        setSize(212, 146);
     }
 
     ~CPUMeterPopup()
@@ -374,13 +418,23 @@ public:
 
     void resized() override
     {
-        cpuGraph->setBounds(8, 8, getWidth() - (2 * 8), getHeight() - (2 * 8));
+        fastGraphTitle.setBounds(0, 6, getWidth(), 20);
+        cpuGraph->setBounds(0, fastGraphTitle.getBottom(), getWidth(), 50);
+        slowGraphTitle.setBounds(0, cpuGraph->getBottom(), getWidth(), 20);
+        cpuGraphLongHistory->setBounds(0, slowGraphTitle.getBottom(), getWidth(), 50);
     }
 
     std::function<void()> getUpdateFunc()
     {
         return [this]() {
             this->update();
+        };
+    }
+
+    std::function<void()> getUpdateFuncLongHistory()
+    {
+        return [this]() {
+            this->updateLong();
         };
     }
 
@@ -392,7 +446,15 @@ private:
         cpuGraph->repaint();
     }
 
+    void updateLong()
+    {
+        cpuGraphLongHistory->repaint();
+    }
+
+    Label fastGraphTitle;
+    Label slowGraphTitle;
     std::unique_ptr<CPUHistoryGraph> cpuGraph;
+    std::unique_ptr<CPUHistoryGraph> cpuGraphLongHistory;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUMeterPopup);
 };
@@ -406,6 +468,7 @@ public:
     CPUMeter()
     {
         cpuUsage.resize(200);
+        cpuUsageLongHistory.resize(300); // 5 mins of history
         startTimer(1000);
         setTooltip("CPU usage");
     }
@@ -425,7 +488,11 @@ public:
     void timerCallback() override
     {
         CriticalSection::ScopedLockType lock(cpuMeterMutex);
-        cpuUsageToDraw = round(cpuUsage.getLast());
+        auto lastCpuUsage = cpuUsage.getLast();
+        cpuUsageToDraw = round(lastCpuUsage);
+        cpuUsageLongHistory.add(lastCpuUsage);
+        cpuUsageLongHistory.remove(0);
+        updateCPUGraphLong();
         repaint();
     }
 
@@ -445,13 +512,15 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         if (!isCallOutBoxActive) {
-            auto cpuHistory = std::make_unique<CPUMeterPopup>(cpuUsage);
+            auto cpuHistory = std::make_unique<CPUMeterPopup>(cpuUsage, cpuUsageLongHistory);
             updateCPUGraph = cpuHistory->getUpdateFunc();
+            updateCPUGraphLong = cpuHistory->getUpdateFuncLongHistory();
             auto editor = findParentComponentOfClass<PluginEditor>();
             auto bounds = editor->getLocalArea(this, getLocalBounds());
 
             cpuHistory->onClose = [this](){
                 updateCPUGraph = [](){ return; };
+                updateCPUGraphLong = [](){ return; };
                 repaint();
             };
 
@@ -482,10 +551,14 @@ public:
     }
 
     std::function<void()> updateCPUGraph = [](){ return; };
+    std::function<void()> updateCPUGraphLong = [](){ return; };
+
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
     bool isCallOutBoxActive = false;
     CriticalSection cpuMeterMutex;
+
     Array<float> cpuUsage;
+    Array<float> cpuUsageLongHistory;
     int cpuUsageToDraw = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUMeter);
