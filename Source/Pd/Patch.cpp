@@ -243,7 +243,7 @@ t_gobj* Patch::createObject(int x, int y, String const& name)
             
             instance->setThis();
             auto* newArraySymbol = pd::Interface::getUnusedArrayName();
-            arrayPasta.replace("@arrName", String::fromUTF8(newArraySymbol->s_name));
+            arrayPasta = arrayPasta.replace("@arrName", String::fromUTF8(newArraySymbol->s_name));
             
             pd::Interface::paste(patch.get(), arrayPasta.toRawUTF8());
             return pd::Interface::getNewest(patch.get());
