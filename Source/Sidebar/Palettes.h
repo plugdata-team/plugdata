@@ -859,7 +859,7 @@ private:
                 { "drum sequencer", "#X obj 0 0 palette/drumseq.m~" },
                 { "note sequencer", "#X obj 0 0 palette/noteseq.m~" },
                 { "seq8", "#X obj 0 0 palette/seq8.m~" },
-                { "presets", "#X obj 0 0 palette/presets.m~" },
+                { "presets", "#X obj 0 0 palette/presets.m" },
             } },
         { "Instruments",
             {
