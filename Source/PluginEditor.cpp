@@ -349,7 +349,7 @@ void PluginEditor::paint(Graphics& g)
     }
 
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight, 1.0f);
+    g.drawLine(29.0f, toolbarHeight - 0.5f, static_cast<float>(getWidth() - 29.5f), toolbarHeight - 0.5f, 1.0f);
 }
 
 // Paint file drop outline

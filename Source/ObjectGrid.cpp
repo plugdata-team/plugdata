@@ -218,19 +218,12 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     auto isDraggingLeft = resizeZone.isDraggingLeftEdge();
     auto isDraggingRight = resizeZone.isDraggingRightEdge();
     
-    auto nonClippedBounds = newResizeBounds;
-    
     // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
     toDrag->getConstrainer()->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
                                           isDraggingTop, isDraggingLeft, isDraggingBottom, isDraggingRight);
 
     // Returns non-zero if the object has a fixed ratio
     auto ratio = toDrag->getConstrainer()->getFixedAspectRatio();
-
-    // In case of a fixed ratio, calculate the dominant drag direction
-    auto wDiff = nonClippedBounds.getWidth() - toDrag->originalBounds.getWidth();
-    auto hDiff = nonClippedBounds.getHeight() - toDrag->originalBounds.getHeight();
-    bool draggingWidth =  wDiff > (hDiff * ratio);
 
     auto desiredBounds = newResizeBounds.reduced(Object::margin);
     auto actualBounds = toDrag->getBounds().reduced(Object::margin);

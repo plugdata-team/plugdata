@@ -73,7 +73,6 @@ private:
 
 class VolumeSlider;
 class Statusbar : public Component
-    , public SettingsFileListener
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
     PluginProcessor* pd;
@@ -85,8 +84,6 @@ public:
     void paint(Graphics& g) override;
 
     void resized() override;
-
-    void propertyChanged(String const& name, var const& value) override;
 
     void audioProcessedChanged(bool audioProcessed) override;
 
