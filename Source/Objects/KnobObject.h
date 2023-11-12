@@ -193,7 +193,7 @@ public:
         objectParameters.addParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0);
         objectParameters.addParamInt("Angular range", cGeneral, &angularRange, 270);
         objectParameters.addParamInt("Angular offset", cGeneral, &angularOffset, 0);
-        objectParameters.addParamFloat("Arc start", cGeneral, &arcStart, 63.5f);
+        objectParameters.addParamFloat("Arc start", cGeneral, &arcStart, 0.0f);
         objectParameters.addParamFloat("Exp", cGeneral, &exponential, 0.0f);
 
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
@@ -708,6 +708,8 @@ public:
             updateRange();
             updateDoubleClickValue();
             updateKnobPosFromMin(oldMinVal, oldMaxVal, newMinVal);
+            if (::getValue<float>(arcStart) < newMinVal)
+                arcStart = newMinVal;
         } else if (value.refersToSameSourceAs(max)) {
             float oldMinVal, oldMaxVal, newMaxVal;
             if (auto knb = ptr.get<t_fake_knob>()) {
@@ -724,6 +726,8 @@ public:
             updateDoubleClickValue();
 
             updateKnobPosFromMax(oldMinVal, oldMaxVal, newMaxVal);
+            if (::getValue<float>(arcStart) > newMaxVal)
+                arcStart = newMaxVal;
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             if (auto knb = ptr.get<t_fake_knob>())
@@ -785,8 +789,9 @@ public:
                 knb->x_bg = pd->generateSymbol(colour);
             repaint();
         }  else if (value.refersToSameSourceAs(arcStart)) {
+            auto arcStartLimited = limitValueRange(arcStart, ::getValue<float>(min), ::getValue<float>(max));
             if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_start = ::getValue<float>(arcStart);
+                knb->x_start = arcStartLimited;
             updateDoubleClickValue();
             repaint();
         }
