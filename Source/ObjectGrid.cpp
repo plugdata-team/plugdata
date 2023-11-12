@@ -243,58 +243,54 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         // Check for objects to relative snap to
         for(auto* object : getSnappableObjects(toDrag)) {
             auto b1 = object->getBounds().reduced(Object::margin);
-            auto topDiff = b1.getY() - desiredBounds.getY();
-            auto bottomDiff = b1.getBottom() - desiredBounds.getBottom();
-            auto leftDiff = b1.getX() - desiredBounds.getX();
-            auto rightDiff = b1.getRight() - desiredBounds.getRight();
+            float topDiff = b1.getY() - desiredBounds.getY();
+            float bottomDiff = b1.getBottom() - desiredBounds.getBottom();
+            float leftDiff = b1.getX() - desiredBounds.getX();
+            float rightDiff = b1.getRight() - desiredBounds.getRight();
             
             if (isDraggingTop && std::abs(topDiff) < objectTolerance) {
                 verticalIndicator = getObjectIndicatorLine(Top, b1, actualBounds.withY(b1.getY()));
-                if(draggingWidth && ratio != 0)
+                if(ratio != 0)
                 {
-                    if(isDraggingRight) distance.x = topDiff * ratio;
-                    if(isDraggingLeft) distance.x = -topDiff * ratio;
+                    if(isDraggingRight) distance.x = round(-topDiff * ratio);
+                    if(isDraggingLeft) distance.x = round(topDiff * ratio);
                 }
-                else {
-                    distance.y = topDiff;
-                }
+               
+                distance.y = topDiff;
                 snapped = true;
             }
             else if (isDraggingBottom && std::abs(bottomDiff) < objectTolerance) {
                 verticalIndicator = getObjectIndicatorLine(Bottom, b1, actualBounds.withBottom(b1.getBottom()));
-                if(draggingWidth && ratio != 0)
+                if(ratio != 0)
                 {
-                    if(isDraggingRight) distance.x = bottomDiff * ratio;
-                    if(isDraggingLeft) distance.x = -bottomDiff * ratio;
+                    if(isDraggingRight) distance.x = round(bottomDiff * ratio);
+                    if(isDraggingLeft) distance.x = round(-bottomDiff * ratio);
                 }
-                else {
-                    distance.y = bottomDiff;
-                }
+       
+                distance.y = bottomDiff;
                 snapped = true;
             }
             if(approximatelyEqual(ratio, 0.0) || !snapped) {
                 if (isDraggingLeft && std::abs(leftDiff) < objectTolerance) {
                     horizontalIndicator = getObjectIndicatorLine(Left, b1, actualBounds.withX(b1.getX()));
-                    if(!draggingWidth && ratio != 0)
+                    if(ratio != 0)
                     {
-                        if(isDraggingBottom) distance.y = -leftDiff / ratio;
-                        if(isDraggingTop) distance.y = leftDiff / ratio;
+                        if(isDraggingBottom) distance.y = round(-leftDiff / ratio);
+                        if(isDraggingTop) distance.y = round(leftDiff / ratio);
                     }
-                    else {
-                        distance.x = leftDiff;
-                    }
+         
+                    distance.x = leftDiff;
                     snapped = true;
                 }
                 else if (isDraggingRight && std::abs(rightDiff) < objectTolerance) {
                     horizontalIndicator = getObjectIndicatorLine(Right, b1, actualBounds.withRight(b1.getRight()));
-                    if(!draggingWidth && ratio != 0)
+                    if(ratio != 0)
                     {
-                        if(isDraggingBottom) distance.y = rightDiff / ratio;
-                        if(isDraggingTop) distance.y = -rightDiff / ratio;
+                        if(isDraggingBottom) distance.y = round(rightDiff / ratio);
+                        if(isDraggingTop) distance.y = round(-rightDiff / ratio);
                     }
-                    else {
-                        distance.x = rightDiff;
-                    }
+                    
+                    distance.x = rightDiff;
                     snapped = true;
                 }
             }
