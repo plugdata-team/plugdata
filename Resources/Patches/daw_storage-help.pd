@@ -38,11 +38,6 @@
 #X obj 20 40 r from_daw_databuffer;
 #X obj 20 69 s to_daw_databuffer;
 #X restore 9 646 pd reserved_send/receive_names;
-#N canvas 952 332 450 300 forbidden_characters_in_argument 0;
-#X text 9 21 Due to the way data are internally stored within the DAW session (using xml-tags) \, some characters are forbidden for naming the tag \, i.e. argument of the abstraction;
-#X text 11 94 Indeed \, XML Tag names cannot contain any of the characters :!"#$%&'()*+ \, / \; <=>?@[]^`|~ \, nor a space character \, and cannot begin with "-" \, "." \, or a numeric digit.;
-#X text 20 179 If you fill argument with invalid name \, the abstraction [daw_storage] won't work.;
-#X restore 293 648 pd forbidden_characters_in_argument;
 #X obj 23 89 daw_storage tag;
 #N canvas 648 540 450 300 advanced 0;
 #X text 16 35 Use [text tolist] and [text fromlist] to save / retrieve content of a text object;
@@ -65,5 +60,5 @@
 #X connect 1 0 10 0;
 #X connect 2 0 1 0;
 #X connect 10 0 11 0;
-#X connect 12 0 31 0;
-#X connect 30 0 12 0;
+#X connect 12 0 30 0;
+#X connect 29 0 12 0;
