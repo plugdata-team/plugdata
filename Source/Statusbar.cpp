@@ -322,6 +322,7 @@ public:
     CPUHistoryGraph(Array<float>& history)
         : historyGraph(history)
     {
+        mappingMode = SettingsFile::getInstance()->getPropertyAsValue("cpu_meter_mapping_mode").getValue();
     }
 
     void resized() override
@@ -345,16 +346,20 @@ public:
         auto distribute = static_cast<float>(bounds.getWidth()) / points;
         Path graphTopLine;
 
-        // TODO: set to linear mapping, but consider having a toggle button to allow user to change to log / lin mapping
-        auto useLogMapping = false;
-
-        auto getCPUScaledY = [this, bottom, height, useLogMapping](int index) -> float {
+        auto getCPUScaledY = [this, bottom, height](int index) -> float {
             float graphValue;
-            if (useLogMapping)
-                graphValue = pow(historyGraph[index] * 0.01, 1 / 1.5);
-            else
-                graphValue = historyGraph[index] * 0.01;
-
+            float value = historyGraph[index] * 0.01;
+            switch(mappingMode) {
+            case 1:
+                graphValue = pow(value, 1 / 1.5f);
+                break;
+            case 2:
+                graphValue = pow(value, 1 / 3.5f);
+                break;
+            default:
+                graphValue = value;
+                break;
+            }
             return bottom - height * graphValue;
         };
 
@@ -380,10 +385,19 @@ public:
         g.restoreState();
     }
 
+    void updateMapping(int mapping)
+    {
+        if (mappingMode != mapping) {
+            mappingMode = mapping;
+            repaint();
+        }
+    }
+
 private:
     Array<float>& historyGraph;
     Rectangle<int> bounds;
     Path roundedClip;
+    int mappingMode;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUHistoryGraph);
 };
@@ -408,7 +422,35 @@ public:
         slowGraphTitle.setJustificationType(Justification::centred);
         addAndMakeVisible(slowGraphTitle);
 
-        setSize(212, 146);
+        linear.setConnectedEdges(TextButton::ConnectedEdgeFlags::ConnectedOnRight);
+        logA.setConnectedEdges(TextButton::ConnectedEdgeFlags::ConnectedOnLeft | TextButton::ConnectedEdgeFlags::ConnectedOnRight);
+        logB.setConnectedEdges(TextButton::ConnectedEdgeFlags::ConnectedOnLeft);
+
+        auto buttons = Array<TextButton*> { &linear, &logA, &logB };
+
+        int i = 0;
+        for (auto* button : buttons) {
+            button->setRadioGroupId(hash("cpu_meter_mapping_mode"));
+            button->setClickingTogglesState(true);
+            button->onClick = [this, i]() {
+                SettingsFile::getInstance()->setProperty("cpu_meter_mapping_mode", i);
+                cpuGraph->updateMapping(i);
+                cpuGraphLongHistory->updateMapping(i);
+            };
+            button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
+            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
+            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.04f));
+            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+            button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+            addAndMakeVisible(button);
+            i++;
+        }
+
+        auto currentMappingMode = SettingsFile::getInstance()->getPropertyAsValue("cpu_meter_mapping_mode").getValue();
+        buttons[currentMappingMode]->setToggleState(true, dontSendNotification);
+
+        setSize(212, 177);
     }
 
     ~CPUMeterPopup()
@@ -422,6 +464,12 @@ public:
         cpuGraph->setBounds(0, fastGraphTitle.getBottom(), getWidth(), 50);
         slowGraphTitle.setBounds(0, cpuGraph->getBottom(), getWidth(), 20);
         cpuGraphLongHistory->setBounds(0, slowGraphTitle.getBottom(), getWidth(), 50);
+
+        auto b = getLocalBounds().withTop(cpuGraphLongHistory->getBottom() + 5).reduced(6, 0).withHeight(20);
+        auto buttonWidth = getWidth() / 3;
+        linear.setBounds(b.removeFromLeft(buttonWidth));
+        logA.setBounds(b.removeFromLeft(buttonWidth).expanded(1,0));
+        logB.setBounds(b.removeFromLeft(buttonWidth).expanded(1,0));
     }
 
     std::function<void()> getUpdateFunc()
@@ -455,6 +503,10 @@ private:
     Label slowGraphTitle;
     std::unique_ptr<CPUHistoryGraph> cpuGraph;
     std::unique_ptr<CPUHistoryGraph> cpuGraphLongHistory;
+
+    TextButton linear = TextButton("Linear");
+    TextButton logA = TextButton("Log A");
+    TextButton logB = TextButton("Log B");
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUMeterPopup);
 };
