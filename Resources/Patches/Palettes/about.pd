@@ -1,0 +1,6 @@
+#N canvas 486 76 601 409 12;
+#X obj 61 22 note 488 40 Menlo empty 4 0 0 0 0 223 223 223 1 1 í ½í²© M.E.R.D.A í ½í²© MODULAR EURORACKS DANCING ALONG;
+#X text 107 186 This is a collection of Pure Data Abstractions that are inspired by Eurorack Modules. They need the ELSE library for Pure Data. ELSE is by Porres. MERDA is also by Porres., f 58;
+#X text 107 238 Eventually \, MERDA will be incorporated into ELSE. This is still a very early draft., f 58;
+#X text 106 293 The absctractions have savestating and you can also use [presets.m] to save different presets., f 58;
+#X text 106 334 This first early draft needs ELSE 1.0-0 rc10 and Pd 0.54-1 to run.;

@@ -1,0 +1,13 @@
+#N canvas 484 25 425 479 12;
+#X obj 162 270 out~;
+#X obj 95 275 meter~;
+#X obj 95 91 drive.m~;
+#A saved 3.16228;
+#X obj 95 50 play.file~ bubul.wav 1 1;
+#X obj 266 145 drive~;
+#X text 258 113 based on;
+#X obj 290 385 about;
+#X text 230 385 see -->;
+#X connect 2 0 0 0;
+#X connect 2 0 1 0;
+#X connect 3 0 2 0;

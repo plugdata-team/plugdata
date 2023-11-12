@@ -804,7 +804,7 @@ private:
 
     PluginEditor* editor;
 
-    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_3");
+    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_4");
     //    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have finished all the default palettes
 
     ValueTree objectTree;
@@ -824,75 +824,55 @@ private:
 
     bool shouldAnimate = false;
 
-    static inline const String delayPatch = "#X obj 0 0 palette/delay";
-    static inline const String chorusPatch = "#X obj 0 0 palette/chorus";
-    static inline const String phaserPatch = "#X obj 0 0 palette/phaser";
-    static inline const String flangerPatch = "#X obj 0 0 palette/flanger";
-    static inline const String drivePatch = "#X obj 0 0 palette/drive";
-    static inline const String bitcrusherPatch = "#X obj 0 0 palette/bitcrusher";
-    static inline const String reverbPatch = "#X obj 0 0 palette/reverb";
-
-    static inline const String svfPatch = "#X obj 0 0 palette/svf";
-    static inline const String eqPatch = "#X obj 0 0 palette/eq";
-    static inline const String lowpassPatch = "#X obj 0 0 palette/lowpass";
-
-    static inline const String metronomePatch = "#X obj 0 0 palette/metronome";
-    static inline const String adsrPatch = "#X obj 0 0 palette/adsr";
-
-    static inline const String drumSequencerPatch = "#X obj 0 0 palette/drumseq";
-    static inline const String noteSequencerPatch = "#X obj 0 0 palette/noteseq";
-
-    static inline const String drumsPatch = "#X obj 0 0 palette/drums";
-    static inline const String pianoPatch = "#X obj 0 0 palette/piano";
-    static inline const String ePianoPatch = "#X obj 0 0 palette/epiano";
-    static inline const String bassPatch = "#X obj 0 0 palette/bass";
-    static inline const String guitarPatch = "#X obj 0 0 palette/guitar";
-    static inline const String stringsPatch = "#X obj 0 0 palette/strings";
-    static inline const String brassPatch = "#X obj 0 0 palette/brass";
-    static inline const String organPatch = "#X obj 0 0 palette/organ";
-
-    static inline const String multiOscPatch = "#X obj 0 0 palette/multiosc";
-    static inline const String noiseOscPatch = "#X obj 0 0 palette/noiseosc";
-    static inline const String lfoPatch = "#X obj 0 0 palette/LFO";
-
     std::map<String, std::map<String, String>> defaultPalettes = {
         { "Oscillators",
             {
-                { "multi osc", multiOscPatch },
-                { "noise osc", noiseOscPatch },
-                { "lfo", lfoPatch },
+                { "vco", "#X obj 0 0 palette/vco.m~" },
+                { "lfo", "#X obj 0 0 palette/lfo.m~" },
+                { "plaits", "#X obj 0 0 palette/plaits.m~" },
+                { "pm6", "#X obj 0 0 palette/pm6.m~" },
+                { "sig", "#X obj 0 0 palette/sig.m~" },
+                { "noise osc", "#X obj 0 0 palette/noiseosc.m~" },
             } },
         { "Filters",
-            { { "lowpass", lowpassPatch },
-                { "svf", svfPatch },
-                { "EQ", eqPatch } } },
+            { { "vcf", "#X obj 0 0 palette/vcf.m~" },
+                { "svf", "#X obj 0 0 palette/svf.m~" },
+                { "EQ", "#X obj 0 0 palette/eq.m~" },
+            } },
         { "Effects",
             {
-                { "delay", delayPatch },
-                { "chorus", chorusPatch },
-                { "phaser", phaserPatch },
-                { "flanger", flangerPatch },
-                { "drive", drivePatch },
-                { "bitcrusher", bitcrusherPatch },
-                { "reverb", reverbPatch },
+                { "delay", "#X obj 0 0 palette/delay.m~" },
+                { "chorus", "#X obj 0 0 palette/chorus.m~" },
+                { "phaser", "#X obj 0 0 palette/phaser.m~" },
+                { "flanger", "#X obj 0 0 palette/flanger.m~" },
+                { "drive", "#X obj 0 0 palette/drive.m~" },
+                { "bitcrusher", "#X obj 0 0 palette/bitcrusher.m~" },
+                { "reverb", "#X obj 0 0 palette/plate.rev.m~" },
+                { "gain", "#X obj 0 0 palette/gain.m~" },
+                { "rm", "#X obj 0 0 palette/rm.m~" },
+                { "drive", "#X obj 0 0 palette/drive.m~" },
             } },
         { "Sequencers",
             {
-                { "bpm metronome", metronomePatch },
-                { "adsr", adsrPatch },
-                { "drum sequencer", drumSequencerPatch },
-                { "note sequencer", noteSequencerPatch },
+                { "bpm metronome", "#X obj 0 0 palette/metronome.m~" },
+                { "adsr", "#X obj 0 0 palette/adsr.m~" },
+                { "drum sequencer", "#X obj 0 0 palette/drumseq.m~" },
+                { "note sequencer", "#X obj 0 0 palette/noteseq.m~" },
+                { "seq8", "#X obj 0 0 palette/seq8.m~" },
+                { "presets", "#X obj 0 0 palette/presets.m~" },
             } },
         { "Instruments",
             {
-                { "drums", drumsPatch },
-                { "piano", pianoPatch },
-                { "e-piano", ePianoPatch },
-                { "bass", bassPatch },
-                { "guitar", guitarPatch },
-                { "strings", stringsPatch },
-                { "brass", brassPatch },
-                { "organ", organPatch },
+                { "drums", "#X obj 0 0 palette/drums.m~" },
+                { "piano", "#X obj 0 0 palette/piano.m~" },
+                { "e-piano", "#X obj 0 0 palette/epiano.m~" },
+                { "bass", "#X obj 0 0 palette/bass.m~" },
+                { "guitar", "#X obj 0 0 palette/guitar.m~" },
+                { "strings", "#X obj 0 0 palette/strings.m~" },
+                { "brass", "#X obj 0 0 palette/brass.m~" },
+                { "organ", "#X obj 0 0 palette/organ.m~" },
+                { "vca", "#X obj 0 0 palette/vca.m~" },
+                { "pluck", "#X obj 0 0 palette/pluck.m~" },
             } },
     };
 

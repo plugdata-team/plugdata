@@ -1,0 +1,11 @@
+#N canvas 484 25 534 527 12;
+#X obj 42 340 out~;
+#X obj 42 37 bl.saw~ 110;
+#X obj 42 81 flanger.m~;
+#A saved 0.1 0 0 0;
+#X text 304 145 based on;
+#X obj 304 167 flanger~;
+#X obj 348 286 about;
+#X text 288 286 see -->;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
