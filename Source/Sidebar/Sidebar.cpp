@@ -134,9 +134,7 @@ void Sidebar::paintOverChildren(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(getWidth() - 30, 0, getWidth() - 30, getHeight());
-    g.drawLine(0.0f, getHeight() + 0.5f, static_cast<float>(getWidth()), getHeight() + 0.5f);
     g.drawLine(0.5f, 0, 0.5f, getHeight() + 0.5f);
-
     g.drawLine(0, 30, getWidth() - 30, 30);
 }
 
