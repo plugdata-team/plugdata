@@ -143,7 +143,7 @@ public:
         for (auto* buttonGroup : buttonGroups) {
             addAndMakeVisible(buttonGroup);
         }
-        setSize(200, 500);
+        setSize(200, 505);
     }
 
     void resized() override
@@ -170,7 +170,7 @@ public:
         connectionLabel.setBounds(bounds.removeFromTop(labelHeight));
         buttonGroups[OverlayDirection]->setBounds(bounds.removeFromTop(itemHeight));
         buttonGroups[OverlayOrder]->setBounds(bounds.removeFromTop(itemHeight));
-        setSize(200, bounds.getY());
+        setSize(200, bounds.getY() + 5);
     }
     
     void paint(Graphics& g) override
