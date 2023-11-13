@@ -619,6 +619,7 @@ public:
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
+    setAlwaysOnTop(true);
     levelMeter = std::make_unique<LevelMeter>();
     cpuMeter = std::make_unique<CPUMeter>();
     midiBlinker = std::make_unique<MIDIBlinker>();

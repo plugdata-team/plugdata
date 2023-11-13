@@ -380,11 +380,13 @@ void PluginEditor::resized()
 
     callOutSafeArea.setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight - 30);
 
-    palettes->setBounds(0, toolbarHeight, palettes->getWidth(), getHeight() - toolbarHeight - (statusbar->getHeight()));
-
-    splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), getHeight() - toolbarHeight - Statusbar::statusbarHeight);
-    sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), getHeight() - toolbarHeight - Statusbar::statusbarHeight);
     statusbar->setBounds(0, getHeight() - Statusbar::statusbarHeight, getWidth(), statusbar->getHeight());
+
+    auto workAreaHeight = getHeight() - toolbarHeight - statusbar->getHeight();
+
+    palettes->setBounds(0, toolbarHeight, palettes->getWidth(), workAreaHeight);
+    splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
+    sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 
     auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
