@@ -224,7 +224,7 @@ public:
 
             void highlightSearchTarget(void* target)
             {
-                t_glist* targetCanvas;
+                t_glist* targetCanvas = nullptr;
                 for (auto* glist = pd_getcanvaslist(); glist; glist = glist->gl_next) {
                     auto* found = findSearchTargetRecursively(glist, target);
                     if(found)
@@ -233,6 +233,8 @@ public:
                         break;
                     }
                 }
+                
+                if(!targetCanvas) return;
 
                 auto* editor = findParentComponentOfClass<PluginEditor>();
                 for(auto* cnv : getAllCanvases(editor))
