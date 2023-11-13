@@ -42,7 +42,7 @@ public:
             // the current mouse position instead of the one that the event contains...
             bounds += componentToDrag->getLocalPoint(nullptr, e.source.getScreenPosition()).roundToInt() - mouseDownWithinTarget;
             
-            componentToDrag->getPeer()->setBounds(peerBounds.withPosition(bounds.getPosition()  * Desktop::getInstance().getGlobalScaleFactor()), false);
+            componentToDrag->getPeer()->setBounds(peerBounds.withPosition(bounds.getPosition()), false);
         }
     }
 
