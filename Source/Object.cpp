@@ -346,6 +346,10 @@ void Object::setType(String const& newType, t_gobj* existingObject)
     } else {
         objectPtr = existingObject;
     }
+    if(!objectPtr)  {
+        jassertfalse;
+        return;
+    }
 
     // Create gui for the object
     gui.reset(ObjectBase::createGui(objectPtr, this));
