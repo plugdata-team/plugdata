@@ -97,7 +97,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
                 auto snapDistance = inletBounds.getX() - outletBounds.getX();
                 if(std::abs(snapDistance) < connectionTolerance)  {
                     distance.x = -snapDistance;
-                    horizontalIndicator = {outletBounds.getX() - 2, outletBounds.getBottom() + 4, outletBounds.getX() - 2, inletBounds.getY() - 4};
+                    horizontalIndicator = {outletBounds.getX() - 2, outletBounds.getBottom() + 3, outletBounds.getX() - 2, connection->inobj->getY() - 3};
                     connectionSnapped = true;
                 }
                 break;
@@ -115,7 +115,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
                 auto snapDistance = inletBounds.getX() - outletBounds.getX();
                 if(std::abs(snapDistance) < connectionTolerance)  {
                     distance.x = snapDistance;
-                    horizontalIndicator = {inletBounds.getX() - 2, outletBounds.getBottom() + 4, inletBounds.getX() - 2, inletBounds.getY() - 4};
+                    horizontalIndicator = {inletBounds.getX() - 2, connection->outobj->getBottom() + 3, inletBounds.getX() - 2, inletBounds.getY() - 3};
                     connectionSnapped = true;
                 }
                 break;
@@ -124,7 +124,6 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
     }
     
     auto desiredBounds = toDrag->originalBounds.reduced(Object::margin) + dragOffset;
-    auto actualBounds = toDrag->getBounds().reduced(Object::margin);
     
     bool objectSnapped = false;
     // Check for relative object snap
@@ -139,17 +138,17 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
         auto hCentreDiff = b1.getCentreX() - desiredBounds.getCentreX();
         
         if (snapEdges && std::abs(topDiff) < objectTolerance) {
-            verticalIndicator = getObjectIndicatorLine(Top, b1, actualBounds.withY(b1.getY()));
+            verticalIndicator = getObjectIndicatorLine(Top, b1, desiredBounds.withY(b1.getY()));
             distance.y = topDiff;
             objectSnapped = true;
         }
         else if (snapEdges && std::abs(bottomDiff) < objectTolerance) {
-            verticalIndicator = getObjectIndicatorLine(Bottom, b1, actualBounds.withBottom(b1.getBottom()));
+            verticalIndicator = getObjectIndicatorLine(Bottom, b1, desiredBounds.withBottom(b1.getBottom()));
             distance.y = bottomDiff;
             objectSnapped = true;
         }
         else if (snapCentres && std::abs(vCentreDiff) < objectTolerance) {
-            verticalIndicator = getObjectIndicatorLine(VerticalCentre, b1, actualBounds.withCentre({actualBounds.getCentreX(), b1.getCentreY()}));
+            verticalIndicator = getObjectIndicatorLine(VerticalCentre, b1, desiredBounds.withCentre({desiredBounds.getCentreX(), b1.getCentreY()}));
             distance.y = vCentreDiff;
             objectSnapped = true;
         }
@@ -157,17 +156,17 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
         // Skip horizontal snap if we've already found a connection snap
         if(!connectionSnapped) {
             if (snapEdges && std::abs(leftDiff) < objectTolerance) {
-                horizontalIndicator = getObjectIndicatorLine(Left, b1, actualBounds.withX(b1.getX()));
+                horizontalIndicator = getObjectIndicatorLine(Left, b1, desiredBounds.withX(b1.getX()));
                 distance.x = leftDiff;
                 objectSnapped = true;
             }
             else if (snapEdges && std::abs(rightDiff) < objectTolerance) {
-                horizontalIndicator = getObjectIndicatorLine(Right, b1, actualBounds.withRight(b1.getRight()));
+                horizontalIndicator = getObjectIndicatorLine(Right, b1, desiredBounds.withRight(b1.getRight()));
                 distance.x = rightDiff;
                 objectSnapped = true;
             }
             else if (snapCentres && std::abs(hCentreDiff) < objectTolerance) {
-                horizontalIndicator = getObjectIndicatorLine(HorizontalCentre, b1, actualBounds.withCentre({b1.getCentreX(), actualBounds.getCentreY()}));
+                horizontalIndicator = getObjectIndicatorLine(HorizontalCentre, b1, desiredBounds.withCentre({b1.getCentreX(), desiredBounds.getCentreY()}));
                 distance.x = hCentreDiff;
                 objectSnapped = true;
             }
@@ -378,8 +377,8 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Recta
 
 void ObjectGrid::clearIndicators(bool fast)
 {
-    gridLineAnimator.fadeOut(&gridLines[0], fast ? 25 : 125);
-    gridLineAnimator.fadeOut(&gridLines[1], fast ? 25 : 125);
+    gridLineAnimator.fadeOut(&gridLines[0], fast ? 20 : 125);
+    gridLineAnimator.fadeOut(&gridLines[1], fast ? 20 : 125);
     
     gridLines[0].setPath(Path());
     gridLines[1].setPath(Path());
@@ -388,7 +387,7 @@ void ObjectGrid::clearIndicators(bool fast)
 void ObjectGrid::setIndicator(int idx, Line<int> line, float scale) {
     auto lineIsEmpty = line.getLength() == 0;
     if(gridLines[idx].isVisible() && lineIsEmpty) {
-        gridLineAnimator.fadeOut(&gridLines[idx], 100);
+        gridLineAnimator.fadeOut(&gridLines[idx], 20);
     }
     
     auto& lnf = LookAndFeel::getDefaultLookAndFeel();
