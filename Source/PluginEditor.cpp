@@ -143,6 +143,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addAndMakeVisible(splitView);
     addAndMakeVisible(*sidebar);
+    sidebar->toBehind(statusbar.get());
 
     for (auto* button : std::vector<MainToolbarButton*> {
              &mainMenuButton,
