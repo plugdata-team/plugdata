@@ -74,6 +74,7 @@ if(MSVC)
   add_link_options(/IGNORE:4286 /IGNORE:4217)
 else()
   add_compile_options(-Wall -Wstrict-aliasing -Wuninitialized -Wno-conversion -Wno-overloaded-virtual -Wno-sign-compare -Wno-comment -Wno-unknown-pragmas -Wno-unused-result)
+  add_link_options(-Wno-psabi)
 endif()
 
 message(STATUS "Preparing documentation")
