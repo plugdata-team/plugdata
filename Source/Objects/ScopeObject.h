@@ -37,6 +37,8 @@ public:
         objectParameters.addParamInt("Samples per point", cGeneral, &samplesPerPoint, 256);
         objectParameters.addParamInt("Buffer size", cGeneral, &bufferSize, 128);
         objectParameters.addParamInt("Delay", cGeneral, &delay, 0);
+        objectParameters.addParamRange("Signal Range", cGeneral, &signalRange, Array<var>{var(-1.0f), var(1.0f)});
+
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
 
         startTimerHz(25);
