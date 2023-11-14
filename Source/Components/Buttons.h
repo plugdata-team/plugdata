@@ -80,7 +80,7 @@ class SmallIconButton : public TextButton {
 
     void paint(Graphics& g) override
     {
-        auto font = Fonts::getIconFont().withHeight(13.5);
+        auto font = Fonts::getIconFont().withHeight(11.5);
         g.setFont(font);
 
         if (!isEnabled()) {
@@ -93,16 +93,7 @@ class SmallIconButton : public TextButton {
             g.setColour(findColour(PlugDataColour::toolbarTextColourId));
         }
 
-        int const yIndent = jmin(4, proportionOfHeight(0.3f));
-        int const cornerSize = jmin(getHeight(), getWidth()) / 2;
-
-        int const fontHeight = roundToInt(font.getHeight() * 0.6f);
-        int const leftIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnLeft() ? 4 : 2));
-        int const rightIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
-        int const textWidth = getWidth() - leftIndent - rightIndent;
-
-        if (textWidth > 0)
-            g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
+        g.drawText(getButtonText(), 0, 0, getWidth(), getHeight(), Justification::centred);
     }
 };
 
