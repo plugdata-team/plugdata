@@ -1833,19 +1833,19 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
         }
     }
 
-    for (auto& con : connections) {
+    for (auto& connection : connections) {
         // If total bounds don't intersect, there can't be an intersection with the line
         // This is cheaper than checking the path intersection, so do this first
-        if (!con->getBounds().intersects(lasso.getBounds())) {
-            setSelected(con, false, false);
+        if (!connection->getBounds().intersects(lasso.getBounds())) {
+            setSelected(connection, false, false);
             continue;
         }
 
         // Check if path intersects with lasso
-        if (con->intersects(lasso.getBounds().toFloat())) {
-            itemsFound.add(con);
+        if (connection->intersects(lasso.getBounds().toFloat())) {
+            itemsFound.add(connection);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            setSelected(con, false, false);
+            setSelected(connection, false, false);
         }
     }
 }

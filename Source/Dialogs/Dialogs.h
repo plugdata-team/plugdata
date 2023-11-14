@@ -123,7 +123,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40)) {
+        if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
             dragging = true;
         } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
