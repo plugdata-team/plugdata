@@ -528,6 +528,20 @@ public:
 
     // implemented in PlugDataApp.cpp
     void closeAllPatches();
+        
+    bool isMaximised() const
+    {
+#if JUCE_LINUX
+        if (auto* b = getMaximiseButton()) {
+            return b->getToggleState();
+        }
+        else {
+            return isFullScreen();
+        }
+#else
+        return isFullScreen();
+#endif
+    }
 
     void maximiseButtonPressed() override
     {
@@ -540,7 +554,6 @@ public:
                 if (!isUsingNativeTitleBar()) {
                     OSUtils::maximiseX11Window(peer->getNativeHandle(), !shouldBeMaximised);
                 }
-                //setFullScreen(!isFullScreen());
             } else {
                 b->setToggleState(false, dontSendNotification);
             }
