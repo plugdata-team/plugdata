@@ -318,9 +318,6 @@ void PluginEditor::setUseBorderResizer(bool shouldUse)
 
 void PluginEditor::paint(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
-
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
     if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
@@ -330,6 +327,9 @@ void PluginEditor::paint(Graphics& g)
     bool rounded = wantsRoundedCorners();
 
     if (rounded) {
+        g.setColour(baseColour);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
+
         // Toolbar background
         g.setColour(baseColour);
         g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
@@ -340,13 +340,7 @@ void PluginEditor::paint(Graphics& g)
         g.fillRect(0, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight() - 12);
         g.fillRoundedRectangle(0.0f, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight(), Corners::windowCornerRadius);
     } else {
-        // Toolbar background
-        g.setColour(baseColour);
-        g.fillRect(0, 0, getWidth(), toolbarHeight);
-
-        // Statusbar background
-        g.setColour(baseColour);
-        g.fillRect(0, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight());
+        g.fillAll(baseColour);
     }
 
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));

@@ -582,7 +582,13 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+        if (isUsingNativeTitleBar() || isMaximised())
+        {
+            g.drawRect(getLocalBounds().toFloat(), 1.0f);
+        }
+        else {
+            g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+        }
     }
 #endif
 
