@@ -48,7 +48,7 @@ public:
         originalLockedMode = getValue<bool>(cnv->locked);
         originalPresentationMode = getValue<bool>(cnv->presentationMode);
 
-        // Set zoom value and update synchronously
+        // Set zoom value and update synchronouslyf
         cnv->zoomScale.setValue(1.0f);
         cnv->zoomScale.getValueSource().sendChangeMessage(true);
 
@@ -283,13 +283,11 @@ public:
     {
         // Fullscreen / Kiosk Mode
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
-            if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-                // Determine the screen size
+               // Determine the screen size
                 auto const screenBounds = desktopWindow->getBounds();
                 
                 // Fill the screen
                 setBounds(0, 0, screenBounds.getWidth(), screenBounds.getHeight());
-            }
         }
         else {
             setBounds(editor->getLocalBounds());
@@ -314,9 +312,10 @@ public:
         // Offset the start of the drag when dragging the window by Titlebar
         if(auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent()))
         {
-            if (e.getPosition().getY() < titlebarHeight)
+            if (e.getPosition().getY() < titlebarHeight) {
                 isDraggingWindow = true;
                 windowDragger.startDraggingWindow(mainWindow, e.getEventRelativeTo(mainWindow));
+            }
         }
     }
 
