@@ -48,7 +48,7 @@ public:
         originalLockedMode = getValue<bool>(cnv->locked);
         originalPresentationMode = getValue<bool>(cnv->presentationMode);
 
-        // Set zoom value and update synchronouslyf
+        // Set zoom value and update synchronously
         cnv->zoomScale.setValue(1.0f);
         cnv->zoomScale.getValueSource().sendChangeMessage(true);
 
