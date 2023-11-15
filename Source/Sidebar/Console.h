@@ -352,10 +352,11 @@ public:
                     
                     auto circleColour = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
                     auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+                    auto contrast = isSelected ? 1.5f : 0.5f;
                     
-                    if(isSelected) circleColour = Colour(circleColour.getRed()   + (circleColour.getRed()   - backgroundColour.getRed())   * 2,
-                                                         circleColour.getGreen() + (circleColour.getGreen() - backgroundColour.getGreen()) * 2,
-                                                         circleColour.getBlue()  + (circleColour.getBlue()  - backgroundColour.getBlue())  * 2);
+                    circleColour = Colour(circleColour.getRed()   + (circleColour.getRed()   - backgroundColour.getRed())   * contrast,
+                                          circleColour.getGreen() + (circleColour.getGreen() - backgroundColour.getGreen()) * contrast,
+                                          circleColour.getBlue()  + (circleColour.getBlue()  - backgroundColour.getBlue())  * contrast);
                         
                     g.setColour(circleColour);
                     auto circleBounds = repeatIndicatorBounds.reduced(2);
