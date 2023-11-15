@@ -171,7 +171,7 @@ void TabBarButtonComponent::lookAndFeelChanged()
 
 void TabBarButtonComponent::resized()
 {
-    closeTabButton->setCentrePosition(getBounds().getCentre().withX(getBounds().getWidth() - 15).translated(0, -1));
+    closeTabButton->setCentrePosition(getBounds().getCentre().withX(getBounds().getWidth() - 15).translated(0, 1));
 }
 
 ScaledImage TabBarButtonComponent::generateTabBarButtonImage()
