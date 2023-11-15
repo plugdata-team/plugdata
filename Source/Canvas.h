@@ -159,13 +159,14 @@ public:
     bool connectingWithDrag = false;
     bool connectionCancelled = false;
     SafePointer<Iolet> nearestIolet;
+        
+    std::unique_ptr<SuggestionComponent> suggestor;
 
     pd::Patch::Ptr refCountedPatch;
     pd::Patch& patch;
 
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
-
     OwnedArray<Object> objects;
     OwnedArray<Connection> connections;
     OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
@@ -198,7 +199,6 @@ public:
     Point<int> viewportPositionBeforeMiddleDrag = { 0, 0 };
 
     std::unique_ptr<GraphArea> graphArea;
-    SuggestionComponent* suggestor = nullptr;
 
     SafePointer<Object> lastSelectedObject;         // For auto patching
     SafePointer<Connection> lastSelectedConnection; // For auto patching
