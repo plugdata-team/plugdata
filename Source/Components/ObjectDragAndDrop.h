@@ -19,6 +19,11 @@ public:
         resetDragAndDropImage();
     }
 
+    MouseCursor getMouseCursor() override
+    {
+        return juce::MouseCursor::DraggingHandCursor;
+    }
+
     void resetDragAndDropImage()
     {
         dragImage.image = Image();

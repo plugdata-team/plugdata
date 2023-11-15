@@ -271,7 +271,7 @@ void PaletteItem::deleteItem()
 
 void PaletteItem::mouseUp(MouseEvent const& e)
 {
-    if (!e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
+    if (nameLabel.getBounds().contains((e.getEventRelativeTo(&nameLabel).getPosition())) && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
         nameLabel.showEditor();
     } else if (e.mouseWasDraggedSinceMouseDown()) {
         getParentComponent()->resized();
