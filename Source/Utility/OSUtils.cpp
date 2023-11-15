@@ -155,7 +155,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     TCHAR buff[KL_NAMELENGTH];
     bool result = GetKeyboardLayoutNameA(buff);
     
-    if (strcmp(buff, "French") != 0 || strcmp(buff, "Belgian French") != 0 || strcmp(buff, "Belgian (Comma)") != 0 || strcmp(buff, "Belgian (Period)") != 0) {
+    if (strcmp(buff, "French") == 0 || strcmp(buff, "Belgian French") == 0 || strcmp(buff, "Belgian (Comma)") == 0 || strcmp(buff, "Belgian (Period)") == 0) {
         return AZERTY;
     }
 
