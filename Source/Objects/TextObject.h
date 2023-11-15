@@ -352,7 +352,7 @@ public:
 
             auto newText = outgoingEditor->getText();
 
-            outgoingEditor->removeListener(cnv->suggestor);
+            outgoingEditor->removeListener(cnv->suggestor.get());
 
             newText = TextObjectHelper::fixNewlines(newText);
 
@@ -396,7 +396,7 @@ public:
             editor->grabKeyboardFocus();
 
             editor->onFocusLost = [this]() {
-                if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
+                if (reinterpret_cast<Component*>(cnv->suggestor.get())->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
                     editor->grabKeyboardFocus();
                     return;
                 }
