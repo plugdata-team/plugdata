@@ -60,6 +60,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     patchWidth.addListener(this);
     patchHeight.addListener(this);
 
+    suggestor = std::make_unique<SuggestionComponent>();
+    
     // Check if canvas belongs to a graph
     if (parentGraph) {
         setLookAndFeel(&editor->getLookAndFeel());
@@ -89,8 +91,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         viewport.reset(canvasViewport); // Owned by the tabbar, but doesn't exist for graph!
         jumpToOrigin();
     }
-
-    suggestor = new SuggestionComponent;
 
     commandLocked.referTo(pd->commandLocked);
     commandLocked.addListener(this);
@@ -151,8 +151,6 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(patch.getPointer().get(), this);
-
-    delete suggestor;
 }
 
 void Canvas::propertyChanged(String const& name, var const& value)

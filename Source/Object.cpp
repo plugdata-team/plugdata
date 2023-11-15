@@ -66,7 +66,7 @@ Object::Object(t_gobj* object, Canvas* parent)
 
 Object::~Object()
 {
-    hideEditor();
+    hideEditor(); // Make sure the editor is not still open, that could lead to issues with listeners attached to the editor (i.e. suggestioncomponent)
     cnv->selectedComponents.removeChangeListener(this);
 }
 
@@ -1217,7 +1217,7 @@ void Object::hideEditor()
 
         cnv->hideSuggestions();
 
-        outgoingEditor->removeListener(cnv->suggestor);
+        outgoingEditor->removeListener(cnv->suggestor.get());
 
         // Get entered text, remove extra spaces at the end
         auto newText = outgoingEditor->getText().trimEnd();
@@ -1285,7 +1285,7 @@ void Object::openNewObjectEditor()
         editor->grabKeyboardFocus();
 
         editor->onFocusLost = [this, editor]() {
-            if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor) {
+            if (reinterpret_cast<Component*>(cnv->suggestor.get())->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor) {
                 editor->grabKeyboardFocus();
                 return;
             }
