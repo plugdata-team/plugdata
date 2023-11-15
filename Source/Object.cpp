@@ -66,6 +66,7 @@ Object::Object(t_gobj* object, Canvas* parent)
 
 Object::~Object()
 {
+    hideEditor();
     cnv->selectedComponents.removeChangeListener(this);
 }
 
