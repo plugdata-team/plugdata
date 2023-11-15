@@ -152,14 +152,21 @@ bool OSUtils::runAsAdmin(std::string command, std::string parameters, void* hWnd
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
-    TCHAR buff[KL_NAMELENGTH];
-    bool result = GetKeyboardLayoutNameA(buff);
-    
-    if (strcmp(buff, "French") == 0 || strcmp(buff, "Belgian French") == 0 || strcmp(buff, "Belgian (Comma)") == 0 || strcmp(buff, "Belgian (Period)") == 0) {
-        return AZERTY;
+    CHAR layoutName[KL_NAMELENGTH];
+
+    if (GetKeyboardLayoutNameA(layoutName)) {
+        // Check for specific layout names to differentiate between French and Belgian layouts.
+        if (strcmp(layoutName, "0000040C") == 0 || strcmp(layoutName, "0000080C") == 0) // French or Belgian French
+        {
+            return OSUtils::AZERTY;
+        } else if (strcmp(layoutName, "00000813") == 0) // Belgian Dutch
+        {
+            return OSUtils::AZERTY;
+        }
     }
 
-    return QWERTY;
+    // Default to QWERTY if it's not AZERTY
+    return OSUtils::QWERTY;
 }
 
 #endif // Windows
