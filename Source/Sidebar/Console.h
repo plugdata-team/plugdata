@@ -174,7 +174,7 @@ public:
                     console.selectedItems.clear();
                 }
                 
-                auto& [object, message, type, length] = console.pd->getConsoleMessages()[idx];
+                auto& [object, message, type, length, repeats] = console.pd->getConsoleMessages()[idx];
                 if(e.mods.isPopupMenu())
                 {
                     PopupMenu menu;
@@ -325,7 +325,7 @@ public:
                 }
 
                 // Get console message
-                auto& [object, message, type, length] = console.pd->getConsoleMessages()[idx];
+                auto& [object, message, type, length, repeats] = console.pd->getConsoleMessages()[idx];
 
                 // Check if message type should be visible
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors)) {
@@ -333,17 +333,40 @@ public:
                 }
 
                 // Approximate number of lines from string length and current width
-                auto numLines = StringUtils::getNumLines(console.getWidth(), length);
-
+                auto totalLength = length + calculateRepeatOffset(repeats);
+                auto numLines = StringUtils::getNumLines(console.getWidth(), totalLength);
+                
                 auto textColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
 
                 if (type == 1)
                     textColour = Colours::orange;
                 else if (type == 2)
                     textColour = Colours::red;
+                
+                auto bounds = getLocalBounds().reduced(8, 2);
+                if(repeats > 1)
+                {
+                    
+                    auto repeatIndicatorBounds = bounds.removeFromLeft(calculateRepeatOffset(repeats)).toFloat().translated(-4, 0.25);
+                    repeatIndicatorBounds = repeatIndicatorBounds.withSizeKeepingCentre(repeatIndicatorBounds.getWidth(), 21);
+                    
+                    auto circleColour = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
+                    auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+                    
+                    if(isSelected) circleColour = Colour(circleColour.getRed()   + (circleColour.getRed()   - backgroundColour.getRed())   * 2,
+                                                         circleColour.getGreen() + (circleColour.getGreen() - backgroundColour.getGreen()) * 2,
+                                                         circleColour.getBlue()  + (circleColour.getBlue()  - backgroundColour.getBlue())  * 2);
+                        
+                    g.setColour(circleColour);
+                    auto circleBounds = repeatIndicatorBounds.reduced(2);
+                    g.fillRoundedRectangle(circleBounds, circleBounds.getHeight() / 2.0f);
+                    
+                    g.setColour(textColour);
+                    Fonts::drawText(g, String(repeats), repeatIndicatorBounds, textColour, 12, Justification::centred);
+                }
 
                 // Draw text
-                Fonts::drawFittedText(g, message, getLocalBounds().reduced(8, 2), textColour, numLines, 0.9f, 14);
+                Fonts::drawFittedText(g, message, bounds.translated(0, -1), textColour, numLines, 0.9f, 14);
             }
         };
 
@@ -437,8 +460,9 @@ public:
             auto showErrors = getValue<bool>(settingsValues[3]);
             auto totalHeight = 0;
 
-            for (auto& [object, message, type, length] : pd->getConsoleMessages()) {
-                auto numLines = StringUtils::getNumLines(getWidth(), length);
+            for (auto& [object, message, type, length, repeats] : pd->getConsoleMessages()) {
+                auto totalLength = length + calculateRepeatOffset(repeats);
+                auto numLines = StringUtils::getNumLines(getWidth(), totalLength);
                 auto height = numLines * 13 + 12;
 
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
@@ -448,6 +472,14 @@ public:
             }
 
             return totalHeight + 8;
+        }
+        
+        static int calculateRepeatOffset(int numRepeats)
+        {
+            if(numRepeats == 0) return 0;
+            
+            int digitCount = static_cast<int>(std::log10(numRepeats)) + 1;
+            return digitCount <= 2 ? 21 : 21 + ((digitCount - 2) * 10);
         }
 
         void mouseDown(MouseEvent const& e) override
@@ -470,9 +502,10 @@ public:
                 if (row >= messages.size())
                     break;
 
-                auto& [object, message, type, length] = pd->getConsoleMessages()[row];
+                auto& [object, message, type, length, repeats] = pd->getConsoleMessages()[row];
 
-                auto numLines = StringUtils::getNumLines(getWidth(), length);
+                auto totalLength = length + calculateRepeatOffset(repeats);
+                auto numLines = StringUtils::getNumLines(getWidth(), totalLength);
                 auto height = numLines * 13 + 12;
 
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))

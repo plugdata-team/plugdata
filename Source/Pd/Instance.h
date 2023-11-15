@@ -228,8 +228,8 @@ public:
     void logWarning(String const& message);
     void muteConsole(bool shouldMute);
 
-    std::deque<std::tuple<void*, String, int, int>>& getConsoleMessages();
-    std::deque<std::tuple<void*, String, int, int>>& getConsoleHistory();
+    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages();
+    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory();
 
     virtual void messageEnqueued() { }
 
@@ -311,8 +311,20 @@ protected:
 
             while (pendingMessages.try_dequeue(item)) {
                 auto& [object, message, type] = item;
-                consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8);
-
+                
+                if(consoleMessages.size()) {
+                    auto& [lastObject, lastMessage, lastType, lastLength, numMessages] = consoleMessages.back();
+                    if(object == lastObject && message == lastMessage && type == lastType) {
+                        numMessages++;
+                    }
+                    else {
+                        consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
+                    }
+                }
+                else {
+                    consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
+                }
+                
                 if (consoleMessages.size() > 800)
                     consoleMessages.pop_front();
 
@@ -393,8 +405,8 @@ protected:
             }
         }
 
-        std::deque<std::tuple<void*, String, int, int>> consoleMessages;
-        std::deque<std::tuple<void*, String, int, int>> consoleHistory;
+        std::deque<std::tuple<void*, String, int, int, int>> consoleMessages;
+        std::deque<std::tuple<void*, String, int, int, int>> consoleHistory;
 
         char printConcatBuffer[2048];
 

@@ -683,12 +683,12 @@ void Instance::muteConsole(bool shouldMute)
     consoleMute = shouldMute;
 }
 
-std::deque<std::tuple<void*, String, int, int>>& Instance::getConsoleMessages()
+std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages()
 {
     return consoleHandler.consoleMessages;
 }
 
-std::deque<std::tuple<void*, String, int, int>>& Instance::getConsoleHistory()
+std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleHistory()
 {
     return consoleHandler.consoleHistory;
 }
