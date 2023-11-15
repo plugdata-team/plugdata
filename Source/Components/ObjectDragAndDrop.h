@@ -21,7 +21,10 @@ public:
 
     MouseCursor getMouseCursor() override
     {
-        return juce::MouseCursor::DraggingHandCursor;
+        if ((dragContainer != nullptr) && dragContainer->isDragAndDropActive())
+            return MouseCursor::DraggingHandCursor;
+
+        return MouseCursor::PointingHandCursor;
     }
 
     void resetDragAndDropImage()
@@ -39,7 +42,7 @@ public:
         if (reordering || e.getDistanceFromDragStart() < 5)
             return;
 
-        auto* dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
+        dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
         if (!dragContainer || dragContainer->isDragAndDropActive())
             return;
@@ -61,6 +64,7 @@ public:
 
 private:
     bool reordering = false;
+    ZoomableDragAndDropContainer* dragContainer = nullptr;
     ImageWithOffset dragImage;
 };
 
