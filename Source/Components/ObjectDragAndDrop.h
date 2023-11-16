@@ -47,10 +47,10 @@ public:
         if (!dragContainer || dragContainer->isDragAndDropActive())
             return;
 
-        auto scale = 2.0f;
+        auto scale = 3.0f;
         if (dragImage.image.isNull()) {
             auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
-            dragImage = offlineObjectRenderer->patchToTempImage(getObjectString(), scale);
+            dragImage = offlineObjectRenderer->patchToMaskedImage(getObjectString(), scale);
         }
 
         dismiss(true);
@@ -99,7 +99,8 @@ public:
         setAlwaysOnTop(true);
 
         auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(target);
-        dragImage = offlineObjectRenderer->patchToTempImage(target->getObjectString(), 3.0f).image;
+        // FIXME: we should only ask a new mask image when the theme has changed so it's the correct colour
+        dragImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f).image;
 
         // we set the size of this component / window 3x larger to match the max zoom of canavs (300%)
         setSize(dragImage.getWidth(), dragImage.getHeight());
