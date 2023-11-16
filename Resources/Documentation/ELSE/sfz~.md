@@ -1,7 +1,7 @@
 ---
 title: sfz~
 
-description: merge multichannel signals
+description: hybrid sample player
 
 categories:
  - object

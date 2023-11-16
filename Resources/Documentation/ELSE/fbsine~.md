@@ -19,7 +19,7 @@ arguments:
   default: 0
 - type: float
   description: mean filter: on <1> or off <0>
-  default: 0
+  default: 1
 
 inlets:
   1st:

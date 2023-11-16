@@ -7,13 +7,16 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "LookAndFeel.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/AudioSampleRingBuffer.h"
+#include "Components/Buttons.h"
 
 class Canvas;
 class LevelMeter;
-class MidiBlinker;
+class MIDIBlinker;
+class CPUMeter;
 class PluginProcessor;
 class VolumeSlider;
 class OversampleSelector;
@@ -22,11 +25,12 @@ class StatusbarSource : public Timer {
 
 public:
     struct Listener {
-        virtual void midiReceivedChanged(bool midiReceived) {};
-        virtual void midiSentChanged(bool midiSent) {};
-        virtual void audioProcessedChanged(bool audioProcessed) {};
-        virtual void audioLevelChanged(Array<float> peak) {};
-        virtual void timerCallback() {};
+        virtual void midiReceivedChanged(bool midiReceived) { ignoreUnused(midiReceived); }
+        virtual void midiSentChanged(bool midiSent) { ignoreUnused(midiSent); }
+        virtual void audioProcessedChanged(bool audioProcessed) { ignoreUnused(audioProcessed); }
+        virtual void audioLevelChanged(Array<float> peak) { ignoreUnused(peak); }
+        virtual void cpuUsageChanged(float newCpuUsage) { ignoreUnused(newCpuUsage); }
+        virtual void timerCallback() { }
     };
 
     StatusbarSource();
@@ -44,6 +48,8 @@ public:
     void addListener(Listener* l);
     void removeListener(Listener* l);
 
+    void setCPUUsage(float cpuUsage);
+
     AudioSampleRingBuffer peakBuffer;
 
 private:
@@ -52,8 +58,7 @@ private:
     std::atomic<int> lastAudioProcessedTime = 0;
     std::atomic<float> level[2] = { 0 };
     std::atomic<float> peakHold[2] = { 0 };
-
-    int peakHoldDelay[2] = { 0 };
+    std::atomic<float> cpuUsage;
 
     int numChannels;
     int bufferSize;
@@ -68,7 +73,6 @@ private:
 
 class VolumeSlider;
 class Statusbar : public Component
-    , public SettingsFileListener
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
     PluginProcessor* pd;
@@ -81,23 +85,22 @@ public:
 
     void resized() override;
 
-    void propertyChanged(String const& name, var const& value) override;
-
     void audioProcessedChanged(bool audioProcessed) override;
 
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
 
     std::unique_ptr<LevelMeter> levelMeter;
-    std::unique_ptr<MidiBlinker> midiBlinker;
     std::unique_ptr<VolumeSlider> volumeSlider;
+    std::unique_ptr<MIDIBlinker> midiBlinker;
+    std::unique_ptr<CPUMeter> cpuMeter;
 
-    TextButton powerButton, centreButton, fitAllButton, protectButton;
+    SmallIconButton powerButton, centreButton, fitAllButton, protectButton;
 
-    TextButton overlayButton, overlaySettingsButton;
+    SmallIconButton overlayButton, overlaySettingsButton;
 
-    TextButton snapEnableButton, snapSettingsButton;
+    SmallIconButton snapEnableButton, snapSettingsButton;
 
-    TextButton alignmentButton;
+    SmallIconButton alignmentButton;
 
     std::unique_ptr<OversampleSelector> oversampleSelector;
 
@@ -113,6 +116,7 @@ public:
     int firstSeparatorPosition;
     int secondSeparatorPosition;
     int thirdSeparatorPosition;
+    int fourthSeparatorPosition;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

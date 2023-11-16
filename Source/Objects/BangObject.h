@@ -17,7 +17,7 @@ class BangObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    BangObject(void* obj, Object* parent)
+    BangObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {
@@ -217,6 +217,9 @@ public:
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());
             break;
         }
+        case hash("pos"):
+        case hash("size"):
+                break;
         default: {
             bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
             if (!wasIemMessage) {

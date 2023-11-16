@@ -5,12 +5,13 @@
  */
 
 #include "Utility/GlobalMouseListener.h"
+#include <raw_keyboard_input/raw_keyboard_input.h>
 
 class SubpatchImpl : public ImplementationBase
     , public pd::MessageListener {
 public:
-    SubpatchImpl(void* ptr, PluginProcessor* pd)
-        : ImplementationBase(ptr, pd)
+    SubpatchImpl(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+        : ImplementationBase(ptr, parent, pd)
     {
         pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
@@ -44,7 +45,7 @@ public:
 
     pd::Patch* subpatch = nullptr;
 
-    JUCE_DECLARE_WEAK_REFERENCEABLE(SubpatchImpl);
+    JUCE_DECLARE_WEAK_REFERENCEABLE(SubpatchImpl)
 };
 
 // Wrapper for Pd's key, keyup and keyname objects
@@ -67,27 +68,29 @@ public:
         KeyName
     };
     KeyObjectType type;
+    Component::SafePointer<PluginEditor> attachedEditor = nullptr;
 
-    KeyObject(void* ptr, PluginProcessor* pd, KeyObjectType keyObjectType)
-        : ImplementationBase(ptr, pd)
+    KeyObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd, KeyObjectType keyObjectType)
+        : ImplementationBase(ptr, parent, pd)
         , type(keyObjectType)
     {
     }
 
     ~KeyObject() override
     {
-        if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
-            editor->removeModifierKeyListener(this);
-            editor->removeKeyListener(this);
+        if (attachedEditor) {
+            attachedEditor->removeModifierKeyListener(this);
+            attachedEditor->removeKeyListener(this);
         }
     }
 
     void update() override
     {
-        if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
-            // Capture key events for whole window
-            editor->addKeyListener(this);
-            editor->addModifierKeyListener(this);
+        auto* canvas = getMainCanvas(cnv, true);
+        if (canvas) {
+            attachedEditor = canvas->editor;
+            attachedEditor->addModifierKeyListener(this);
+            attachedEditor->addKeyListener(this);
         }
     }
 
@@ -234,9 +237,10 @@ public:
         } else if (keynum == ctrlKey) {
             keysym = pd->generateSymbol("Control_L");
             keynum = 0;
-        } else if (keynum == KeyPress::backspaceKey)
+        } else if (keynum == KeyPress::backspaceKey) {
             keysym = pd->generateSymbol("BackSpace");
-        else if (keynum == KeyPress::tabKey)
+            keynum = 8;
+        } else if (keynum == KeyPress::tabKey)
             keynum = 9, keysym = pd->generateSymbol("Tab");
         else if (keynum == KeyPress::returnKey)
             keynum = 10, keysym = pd->generateSymbol("Return");
@@ -310,7 +314,7 @@ public:
             keynum = 57, keysym = pd->generateSymbol("9");
 
             // on macOS, alphanumeric characters are offset
-#if JUCE_MAC
+#if JUCE_MAC || JUCE_WINDOWS
         else if (keynum >= 65 && keynum <= 90) {
             keynum += 32;
         }
@@ -318,93 +322,6 @@ public:
     }
 };
 
-class CanvasActiveObject final : public ImplementationBase
-    , public FocusChangeListener {
-
-    bool lastFocus = false;
-
-    t_symbol* lastFocussedName;
-    t_symbol* canvasName;
-    Component::SafePointer<Canvas> cnv;
-
-public:
-    using ImplementationBase::ImplementationBase;
-
-    ~CanvasActiveObject() override
-    {
-        Desktop::getInstance().removeFocusChangeListener(this);
-    }
-
-    void update() override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        void* patch;
-        sscanf(ptr.get<t_fake_active>()->x_cname->s_name, ".x%lx.c", (unsigned long*)&patch);
-
-        cnv = getMainCanvas(patch);
-        if (!cnv)
-            return;
-
-        lastFocus = cnv->hasKeyboardFocus(true);
-        Desktop::getInstance().addFocusChangeListener(this);
-
-        if (auto y = cnv->patch.getPointer()) {
-            char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)y.get());
-            buf[MAXPDSTRING - 1] = 0;
-            canvasName = pd->generateSymbol(buf);
-        }
-    };
-
-    void globalFocusChanged(Component* focusedComponent) override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        if (!focusedComponent) {
-            if (auto obj = ptr.get<void>()) {
-                pd->sendTypedMessage(obj.get(), "_focus", { canvasName, 0.0f });
-            }
-
-            lastFocus = false;
-            return;
-        }
-
-        bool shouldHaveFocus = focusedComponent == cnv;
-
-        Canvas* focusedCanvas = nullptr;
-
-        if (auto active = ptr.get<t_fake_active>()) {
-            if (active->x_name) {
-                focusedCanvas = dynamic_cast<Canvas*>(focusedComponent);
-                if (!focusedCanvas) {
-                    focusedCanvas = focusedComponent->findParentComponentOfClass<Canvas>();
-                }
-                if (!focusedCanvas)
-                    return;
-
-                char buf[MAXPDSTRING];
-                snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)focusedCanvas->patch.getPointer());
-                buf[MAXPDSTRING - 1] = 0;
-
-                auto* name = pd->generateSymbol(String::fromUTF8(buf));
-
-                if (lastFocussedName != name) {
-                    pd->sendTypedMessage(active.cast<t_pd>(), "_focus", { name, static_cast<float>(shouldHaveFocus) });
-                    lastFocussedName = name;
-                }
-                return;
-            }
-
-            if (shouldHaveFocus != lastFocus) {
-                pd->sendTypedMessage(active.cast<t_pd>(), "_focus", { canvasName, static_cast<float>(shouldHaveFocus) });
-                lastFocus = shouldHaveFocus;
-            }
-        }
-    }
-};
 
 class CanvasMouseObject final : public ImplementationBase
     , public MouseListener
@@ -417,9 +334,8 @@ class CanvasMouseObject final : public ImplementationBase
     Component::SafePointer<Canvas> parentCanvas;
 
 public:
-    using ImplementationBase::ImplementationBase;
-    CanvasMouseObject(void* ptr, PluginProcessor* pd)
-        : ImplementationBase(ptr, pd)
+    CanvasMouseObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+        : ImplementationBase(ptr, parent, pd)
     {
         pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
@@ -435,7 +351,6 @@ public:
 
     void update() override
     {
-
         if (pd->isPerformingGlobalSync)
             return;
 
@@ -451,11 +366,11 @@ public:
             binbuf_gettext(mouse->x_obj.te_binbuf, &text, &size);
 
             int depth = 0;
-            for (auto& arg : StringArray::fromTokens(String::fromUTF8(text, size), false)) {
-                if (arg.containsOnly("0123456789")) {
-                    depth = arg.getIntValue();
-                    break;
-                }
+            
+            auto tokens = StringArray::fromTokens(String::fromUTF8(text, size), false);
+            if(tokens.size() > 1 && tokens[1].containsOnly("0123456789"))
+            {
+                depth = tokens[1].getIntValue();
             }
 
             if (depth > 0) {
@@ -463,6 +378,8 @@ public:
             } else {
                 canvasToFind = mouse->x_canvas;
             }
+        } else {
+            return;
         }
 
         cnv = getMainCanvas(canvasToFind);
@@ -502,11 +419,10 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
-        if (!cnv || !getValue<bool>(cnv->locked))
-            return;
-
         if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
-            outlet_float(mouse->x_obj.ob_outlet, 1.0);
+            if (!cnv || (mouse->x_enable_edit_mode || !getValue<bool>(cnv->locked))) {
+                outlet_float(mouse->x_obj.ob_outlet, 1.0);
+            }
         }
     }
 
@@ -515,20 +431,16 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
-        if (!cnv || !getValue<bool>(cnv->locked))
-            return;
-
         if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
-            outlet_float(mouse->x_obj.ob_outlet, 0.0f);
+            if (!cnv || (mouse->x_enable_edit_mode || getValue<bool>(cnv->locked))) {
+                outlet_float(mouse->x_obj.ob_outlet, 0.0f);
+            }
         }
     }
 
     void mouseMove(MouseEvent const& e) override
     {
         if (pd->isPerformingGlobalSync)
-            return;
-
-        if (!cnv || !getValue<bool>(cnv->locked))
             return;
 
         Point<int> pos;
@@ -543,8 +455,10 @@ public:
 
         if (positionChanged) {
             if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
-                outlet_float(mouse->x_outlet_y, (float)pos.y);
-                outlet_float(mouse->x_outlet_x, (float)pos.x);
+                if (!cnv || (mouse->x_enable_edit_mode || getValue<bool>(cnv->locked))) {
+                    outlet_float(mouse->x_outlet_y, (float)pos.y);
+                    outlet_float(mouse->x_outlet_x, (float)pos.x);
+                }
             }
         }
     }
@@ -590,7 +504,6 @@ public:
         if (!cnv)
             return;
 
-        lastFocus = cnv->hasKeyboardFocus(true);
         cnv->addComponentListener(this);
         startTimer(100);
     }
@@ -599,16 +512,21 @@ public:
     {
         if (pd->isPerformingGlobalSync)
             return;
-
-        if (!cnv)
-            return;
-
-        if (lastFocus != cnv->isShowing()) {
-
-            lastFocus = cnv->isShowing();
-
+        
+        // We use a safepointer to the canvas to determine if it's still open
+        bool showing = cnv != nullptr;
+        
+        if(showing && !lastFocus)
+        {
+            lastFocus = true;
             if (auto vis = ptr.get<t_fake_canvas_vis>()) {
-                outlet_float(vis->x_obj.ob_outlet, static_cast<int>(cnv->isShowing()));
+                outlet_float(vis->x_obj.ob_outlet, 1.0f);
+            }
+        }
+        else if(lastFocus && !showing) {
+            lastFocus = false;
+            if (auto vis = ptr.get<t_fake_canvas_vis>()) {
+                outlet_float(vis->x_obj.ob_outlet, 0.0f);
             }
         }
     }
@@ -658,13 +576,13 @@ public:
         lastScale = getValue<float>(zoomScaleValue);
     }
 
-    void valueChanged(Value& v) override
+    void valueChanged(Value&) override
     {
         if (pd->isPerformingGlobalSync)
             return;
 
         auto newScale = getValue<float>(zoomScaleValue);
-        if (lastScale != newScale) {
+        if (!approximatelyEqual(lastScale, newScale)) {
             if (auto zoom = ptr.get<t_fake_zoom>()) {
                 outlet_float(zoom->x_obj.ob_outlet, newScale);
             }
@@ -674,58 +592,13 @@ public:
     }
 };
 
-class CanvasEditObject final : public ImplementationBase
-    , public Value::Listener {
-
-    bool lastEditMode;
-    Component::SafePointer<Canvas> cnv;
-
-public:
-    using ImplementationBase::ImplementationBase;
-
-    void update() override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        if (cnv) {
-            cnv->locked.removeListener(this);
-        }
-
-        if(auto edit = ptr.get<t_fake_edit>())
-        {
-            cnv = getMainCanvas(edit->x_canvas);
-        }
-        
-        if (!cnv) return;
-        
-        // Don't use lock method, because that also responds to temporary lock
-        lastEditMode = getValue<float>(cnv->locked);
-        cnv->locked.addListener(this);
-    }
-    void valueChanged(Value& v) override
-    {
-        if (pd->isPerformingGlobalSync)
-            return;
-
-        int editMode = getValue<bool>(v) ? 0 : 1;
-        if (lastEditMode != editMode) {
-            if (auto edit = ptr.get<t_fake_edit>()) {
-                outlet_float(edit->x_obj.ob_outlet, edit->x_edit = editMode);
-            }
-
-            lastEditMode = editMode;
-        }
-    }
-};
-
 // Else "mouse" component
 class MouseObject final : public ImplementationBase
     , public Timer {
 
 public:
-    MouseObject(void* ptr, PluginProcessor* pd)
-        : ImplementationBase(ptr, pd)
+    MouseObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+        : ImplementationBase(ptr, parent, pd)
         , mouseSource(Desktop::getInstance().getMainMouseSource())
     {
         lastPosition = mouseSource.getScreenPosition();
@@ -780,3 +653,166 @@ public:
     int const timerInterval = 30;
     t_glist* canvas;
 };
+
+
+class MouseStateObject final : public ImplementationBase
+    , public MouseListener
+    , public pd::MessageListener {
+
+    Point<int> lastPosition;
+    Point<int> currentPosition;
+
+    GlobalMouseListener mouseListener;
+
+public:
+    MouseStateObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd)
+        : ImplementationBase(object, parent, pd)
+    {
+        pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
+
+        mouseListener.globalMouseDown = [this](MouseEvent const& e) {
+            if (auto obj = this->ptr.get<t_object>()) {
+                outlet_float(obj->ob_outlet, 1.0f);
+            }
+        };
+        mouseListener.globalMouseUp = [this](MouseEvent const& e) {
+            if (auto obj = this->ptr.get<t_object>()) {
+                outlet_float(obj->ob_outlet, 0.0f);
+            }
+        };
+    }
+
+    ~MouseStateObject()
+    {
+        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+    }
+
+    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    {
+        if (pd->isPerformingGlobalSync)
+            return;
+
+        bool isBang = symbol == "bang";
+        if (isBang) {
+            MessageManager::callAsync([_base = WeakReference<ImplementationBase>(this)]() {
+                if (!_base)
+                    return;
+                auto* _this = dynamic_cast<MouseStateObject*>(_base.get());
+
+                auto currentPosition = Desktop::getMousePosition();
+
+                if (auto obj = _this->ptr.get<t_fake_mousestate>()) {
+                    outlet_float(obj->x_hposout, currentPosition.x);
+                    outlet_float(obj->x_vposout, currentPosition.y);
+                    outlet_float(obj->x_hdiffout, currentPosition.x - _this->lastPosition.x);
+                    outlet_float(obj->x_vdiffout, currentPosition.y - _this->lastPosition.y);
+
+                    _this->lastPosition = currentPosition;
+                }
+            });
+        }
+    }
+};
+
+class KeycodeObject final : public ImplementationBase
+    , public ModifierKeyListener {
+
+public:
+    std::unique_ptr<Keyboard> keyboard;
+    Component::SafePointer<PluginEditor> attachedEditor = nullptr;
+
+    KeycodeObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+        : ImplementationBase(ptr, parent, pd)
+    {
+    }
+
+    ~KeycodeObject() override
+    {
+        if (attachedEditor) {
+            attachedEditor->removeModifierKeyListener(this);
+            // attachedEditor->removeKeyListener(this);
+        }
+    }
+
+    void update() override
+    {
+        auto* canvas = getMainCanvas(cnv, true);
+        if (canvas) {
+            attachedEditor = canvas->editor;
+            attachedEditor->addModifierKeyListener(this);
+            // attachedEditor->addKeyListener(this);
+            keyboard.reset(nullptr);
+            keyboard = std::unique_ptr<Keyboard>(KeyboardFactory::instance(attachedEditor));
+
+            // Install callbacks
+            keyboard->onKeyDownFn = [&](int keynum) {
+                auto hid = OSUtils::keycodeToHID(keynum);
+
+                if (auto obj = ptr.get<t_fake_keycode>()) {
+                    outlet_float(obj->x_outlet2, hid);
+                    outlet_float(obj->x_outlet1, 1.0f);
+                }
+            };
+            keyboard->onKeyUpFn = [&](int keynum) {
+                auto hid = OSUtils::keycodeToHID(keynum);
+
+                if (auto obj = ptr.get<t_fake_keycode>()) {
+                    outlet_float(obj->x_outlet2, hid);
+                    outlet_float(obj->x_outlet1, 0.0f);
+                }
+            };
+        }
+    }
+};
+
+
+class MouseFilterObject final : public ImplementationBase
+, public GlobalMouseListener {
+    
+    class MouseFilterProxy
+    {
+    public:
+        
+        MouseFilterProxy() : pd(nullptr) {}
+        
+        MouseFilterProxy(pd::Instance* instance) : pd(instance)
+        {
+        }
+
+        void setState(bool newState)
+        {
+            if(newState != state) {
+                state = newState;
+                pd->setThis();
+                pd->sendMessage("#hammergui", "_up", {pd::Atom(!state)});
+            }
+        }
+        
+    private:
+        
+        pd::Instance* pd;
+        bool state = false;
+    };
+    
+    
+    static inline std::map<pd::Instance*, MouseFilterProxy> proxy;
+    
+public:
+    MouseFilterObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd) : ImplementationBase(object, parent, pd)
+    {
+        if(!proxy.count(pd)) {
+            proxy[pd] = MouseFilterProxy(pd);
+            
+            globalMouseDown = [pd](const MouseEvent& e){
+                proxy[pd].setState(true);
+            };
+            
+            globalMouseUp = [pd](const MouseEvent& e){
+                proxy[pd].setState(false);
+            };
+        }
+    }
+
+};
+
+

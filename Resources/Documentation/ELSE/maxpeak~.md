@@ -26,6 +26,10 @@ outlets:
   - type: bang
     description: bangs when input gets clipped
 
+methods:
+- type: -lin <float>
+  description: non zero sets to linear output
+
 draft: false
 ---
 

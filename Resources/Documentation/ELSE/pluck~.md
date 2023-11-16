@@ -19,14 +19,12 @@ arguments:
 inlets:
   1st:
   - type: signal
-    description: trigger (determines the amplitude)
-  - type: float
-    description: non-0 triggers and sets amplitude
-  - type: bang
-    description: triggers with last control amplitude (default 1)
+    description: frequency input
+  - type: list
+    description: set frequency and trigger value (normalized to MIDI range)
   2nd:
   - type: float/signal
-    description: frequency in Hz (minimum 1)
+    description: trigger (determines the maximum amplitude)
   3rd:
   - type: float/signal
     description: decay time in ms
@@ -42,12 +40,19 @@ outlets:
   - type: signal
     description: the Karplus-Strong output
 
+methods:
+  - type: midi <float>
+    description: non zero sets to MIDI pitch input instead of hz.
+
 flags:
   - name: -in
     description: creates an extra right inlet for noise input
+  - name: -midi
+    description: sets to MIDI pitch input
+
 
 draft: false
 ---
 
-[pluck~] is a Karplus-Strong algorithm with a 1st order lowpass filter in the feedback loop. It takes frequency in Hz, a decay time in ms and a cutoff frequency for the filter. It is triggered by signals at zero to non-0 transitions or by floats and bangs at control rate.
+[pluck~] is a Karplus-Strong algorithm with a 1st order lowpass filter in the feedback loop. It takes frequency in hertz or midi, a decay time in ms and a cutoff frequency in hz for the filter. It is triggered by signals at zero to non zero transitions or by lists at control rate.
 

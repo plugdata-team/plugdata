@@ -669,18 +669,18 @@ static int seq_tempocomparehook(const void *t1, const void *t2){
 
 static int seq_mrhook(t_mifiread *mr, void *hookdata, int evtype){
     t_seq *x = (t_seq *)hookdata;
-    double scoretime = mifiread_getscoretime(mr);
+    double scoretime = cyclone_mifiread_getscoretime(mr);
     if((evtype >= 0x80 && evtype < 0xf0) || (evtype == MIFIMETA_EOT)){
         if(x->x_eventreadhead < x->x_nevents){
             t_seqevent *sev = &x->x_sequence[x->x_eventreadhead++];
-            int status = mifiread_getstatus(mr);
+            int status = cyclone_mifiread_getstatus(mr);
             sev->e_delta = scoretime;
-            sev->e_bytes[0] = status | mifiread_getchannel(mr);
-            sev->e_bytes[1] = mifiread_getdata1(mr);
+            sev->e_bytes[0] = status | cyclone_mifiread_getchannel(mr);
+            sev->e_bytes[1] = cyclone_mifiread_getdata1(mr);
             if(MIFI_ONEDATABYTE(status) || evtype == 0x2f)
                 sev->e_bytes[2] = SEQ_EOM;
             else{
-                sev->e_bytes[2] = mifiread_getdata2(mr);
+                sev->e_bytes[2] = cyclone_mifiread_getdata2(mr);
                 sev->e_bytes[3] = SEQ_EOM;
             }
         }
@@ -693,7 +693,7 @@ static int seq_mrhook(t_mifiread *mr, void *hookdata, int evtype){
         if(x->x_temporeadhead < x->x_ntempi){
             t_seqtempo *stm = &x->x_tempomap[x->x_temporeadhead++];
             stm->t_scoretime = scoretime;
-            stm->t_sr = mifiread_gettempo(mr);
+            stm->t_sr = cyclone_mifiread_gettempo(mr);
 /* #ifdef SEQ_DEBUG
         loudbug_post("tempo %g at %g", stm->t_sr, scoretime);
 #endif */
@@ -731,23 +731,23 @@ static void seq_foldtime(t_seq *x, double deftempo){
 
 static int seq_mfread(t_seq *x, char *path){
     int result = 0;
-    t_mifiread *mr = mifiread_new((t_pd *)x);
-    if(!mifiread_open(mr, path, "", 0))
+    t_mifiread *mr = cyclone_mifiread_new((t_pd *)x);
+    if(!cyclone_mifiread_open(mr, path, "", 0))
         goto mfreadfailed;
 /* #ifdef SEQ_DEBUG
     post("midifile (format %d): %d tracks, %d ticks",
-        mifiread_getformat(mr), mifiread_gethdtracks(mr),
-        mifiread_getbeatticks(mr));
-    if(mifiread_getnframes(mr))
-        post(" (%d smpte frames)", mifiread_getnframes(mr));
+        cyclone_mifiread_getformat(mr), cyclone_mifiread_gethdtracks(mr),
+        cyclone_mifiread_getbeatticks(mr));
+    if(cyclone_mifiread_getnframes(mr))
+        post(" (%d smpte frames)", cyclone_mifiread_getnframes(mr));
     else
         post(" per beat");
 #endif */
-    if(!seq_dogrowing(x, mifiread_getnevents(mr), mifiread_getntempi(mr)))
+    if(!seq_dogrowing(x, cyclone_mifiread_getnevents(mr), cyclone_mifiread_getntempi(mr)))
         goto mfreadfailed;
     x->x_eventreadhead = 0;
     x->x_temporeadhead = 0;
-    if(mifiread_doit(mr, seq_mrhook, x) != MIFIREAD_EOF)
+    if(cyclone_mifiread_doit(mr, seq_mrhook, x) != MIFIREAD_EOF)
         goto mfreadfailed;
     if(x->x_eventreadhead < x->x_nevents){
         pd_error(x, "bug [seq]: seq_mfread 1");
@@ -764,13 +764,13 @@ static int seq_mfread(t_seq *x, char *path){
     }
     if(x->x_ntempi)
         qsort(x->x_tempomap, x->x_ntempi, sizeof(*x->x_tempomap), seq_tempocomparehook);
-    seq_foldtime(x, mifiread_getdeftempo(mr));
+    seq_foldtime(x, cyclone_mifiread_getdeftempo(mr));
 /* #ifdef SEQ_DEBUG
     loudbug_post("seq: got %d events from midi file", x->x_nevents);
 #endif */
     result = 1;
 mfreadfailed:
-    mifiread_free(mr);
+    cyclone_mifiread_free(mr);
     return(result);
 }
 
@@ -778,16 +778,16 @@ static int seq_mfwrite(t_seq *x, char *path){
     int result = 0;
     t_seqevent *sev = x->x_sequence;
     int nevents = x->x_nevents;
-    t_mifiwrite *mw = mifiwrite_new((t_pd *)x);
-    if(!mifiwrite_open(mw, path, "", 1, 1))
+    t_mifiwrite *mw = cyclone_mifiwrite_new((t_pd *)x);
+    if(!cyclone_mifiwrite_open(mw, path, "", 1, 1))
         goto mfwritefailed;
-    if(!mifiwrite_opentrack(mw, "seq-track", 1))
+    if(!cyclone_mifiwrite_opentrack(mw, "seq-track", 1))
         goto mfwritefailed;
     while(nevents--){
         unsigned char *bp = sev->e_bytes;
         unsigned status = *bp & 0xf0;
         if(status > 127 && status < 240){
-            if(!mifiwrite_channelevent(mw, sev->e_delta, status, *bp & 0x0f, bp[1], bp[2])){  /* SEQ_EOM ignored */
+            if(!cyclone_mifiwrite_channelevent(mw, sev->e_delta, status, *bp & 0x0f, bp[1], bp[2])){  /* SEQ_EOM ignored */
                 pd_error(x, "[seq] cannot write channel event %d", status);
                 goto mfwritefailed;
             }
@@ -795,14 +795,14 @@ static int seq_mfwrite(t_seq *x, char *path){
         /* FIXME system, sysex (first, and continuation) */
         sev++;
     }
-    if(!mifiwrite_closetrack(mw, 0., 1))
+    if(!cyclone_mifiwrite_closetrack(mw, 0., 1))
         goto mfwritefailed;
-    mifiwrite_close(mw);
+    cyclone_mifiwrite_close(mw);
     result = 1;
 mfwritefailed:
     if(!result)
         post("while saving sequence into midi file \"%s\"", path);
-    mifiwrite_free(mw);
+    cyclone_mifiwrite_free(mw);
     return(result);
 }
 

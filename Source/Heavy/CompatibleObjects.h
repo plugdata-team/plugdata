@@ -6,8 +6,7 @@
 
 #pragma once
 
-struct HeavyCompatibleObjects
-{
+struct HeavyCompatibleObjects {
     static inline const StringArray heavyObjects = {
         "!=",
         "%",
@@ -230,5 +229,4 @@ struct HeavyCompatibleObjects
 
         return allObjects;
     }
-
 };

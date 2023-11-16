@@ -18,7 +18,7 @@ arguments:
 
 inlets:
   1st:
-  - type: anything
+  - type: list
     description: any number of elements to be split and ordered
 
 outlets:

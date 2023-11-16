@@ -62,7 +62,7 @@ class CanvasViewport : public Viewport {
         void mouseUp(MouseEvent const& e) override
         {
             e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
-            for (auto* object : viewport->cnv->objects){
+            for (auto* object : viewport->cnv->objects) {
                 object->setBufferedToImage(false);
             }
         }
@@ -234,10 +234,10 @@ class CanvasViewport : public Viewport {
             auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
             auto scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
             auto activeScrollbarColour = scrollbarColour.interpolatedWith(canvasColour.contrasting(0.6f), 0.7f);
-            
+
             g.setColour(scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f)));
             g.fillRoundedRectangle(fullBounds, roundedCorner);
-    
+
             g.setColour(isMouseDragging ? activeScrollbarColour : scrollbarColour);
             g.fillRoundedRectangle(growingBounds, roundedCorner);
         }
@@ -348,7 +348,7 @@ public:
         float scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
         auto contentArea = getViewArea() * scale;
 
-        Rectangle<int> objectArea;
+        Rectangle<int> objectArea = contentArea.withPosition(cnv->canvasOrigin);
         for (auto object : cnv->objects) {
             objectArea = objectArea.getUnion(object->getBounds());
         }

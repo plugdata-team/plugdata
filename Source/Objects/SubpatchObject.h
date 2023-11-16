@@ -12,9 +12,9 @@ class SubpatchObject final : public TextBase {
     bool locked = false;
 
 public:
-    SubpatchObject(void* obj, Object* object)
+    SubpatchObject(t_gobj* obj, Object* object)
         : TextBase(obj, object)
-        , subpatch(new pd::Patch(obj, cnv->pd, false))
+        , subpatch(new pd::Patch(reinterpret_cast<t_canvas*>(obj), cnv->pd, false))
     {
         object->hvccMode.addListener(this);
 
@@ -53,7 +53,7 @@ public:
         }
 
         isGraphChild = graph;
-    };
+    }
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -65,9 +65,8 @@ public:
         }
 
         //  If locked and it's a left click
-        if (locked && !e.mods.isRightButtonDown() && !object->attachedToMouse) {
+        if (locked && !e.mods.isRightButtonDown()) {
             openSubpatch();
-
             return;
         } else {
             TextBase::mouseDown(e);
@@ -105,7 +104,7 @@ public:
 
                     _this->cnv->setSelected(object, false);
                     _this->object->cnv->editor->sidebar->hideParameters();
-                    _this->object->setType(_this->getText(), ptr.getRaw<void>());
+                    _this->object->setType(_this->getText(), ptr.getRaw<t_gobj>());
                 });
             }
 
@@ -164,19 +163,20 @@ public:
         }
 
         for (auto* object : patch->getObjects()) {
-            const String type = libpd_get_object_class_name(object);
+            const String type = pd::Interface::getObjectClassName(&object->g_pd);
 
             if (type == "canvas" || type == "graph") {
-                pd::Patch::Ptr subpatch = new pd::Patch(object, instance, false);
+                auto* cnv = reinterpret_cast<t_canvas*>(object);
+                pd::Patch::Ptr subpatch = new pd::Patch(cnv, instance, false);
 
                 char* text = nullptr;
                 int size = 0;
-                libpd_get_object_text(object, &text, &size);
+                pd::Interface::getObjectText(&cnv->gl_obj, &text, &size);
                 auto objName = String::fromUTF8(text, size);
 
                 checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
                 freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-                
+
             } else if (!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
                 instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
             }

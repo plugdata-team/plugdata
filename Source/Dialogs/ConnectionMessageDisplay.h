@@ -11,9 +11,9 @@
 #include <utility>
 #include "Constants.h"
 #include "LookAndFeel.h"
-#include "../Connection.h"
-#include "../PluginEditor.h"
-#include "../CanvasViewport.h"
+#include "Connection.h"
+#include "PluginEditor.h"
+#include "CanvasViewport.h"
 
 class ConnectionMessageDisplay
     : public Component
@@ -209,7 +209,9 @@ private:
         TextStringWithMetrics(String text, FontStyle fontStyle, int width)
             : text(std::move(text))
             , fontStyle(fontStyle)
-            , width(width) {};
+            , width(width)
+        {
+        }
         String text;
         FontStyle fontStyle;
         int width;
@@ -225,7 +227,6 @@ private:
     Rectangle<int> constrainedBounds = { 0, 0, 0, 0 };
 
     Point<float> circlePosition = { 8.0f + 4.0f, 36.0f / 2.0f };
-    float circleRadius = 3.0f;
 
     Image cachedImage;
     Rectangle<int> previousBounds;

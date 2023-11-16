@@ -47,11 +47,10 @@ static void *maximum_new(t_floatarg f)
     return (x);
 }
 
-CYCLONE_OBJ_API void maximum_tilde_setup(void)
-{
-    maximum_class = class_new(gensym("maximum~"),
-                              (t_newmethod)maximum_new, 0,
-                              sizeof(t_maximum), 0, A_DEFFLOAT, 0);
+CYCLONE_OBJ_API void maximum_tilde_setup(void){
+    maximum_class = class_new(gensym("maximum~"), (t_newmethod)maximum_new, 0,
+        sizeof(t_maximum), 0, A_DEFFLOAT, 0);
     class_addmethod(maximum_class, (t_method)maximum_dsp, gensym("dsp"), A_CANT, 0);
     CLASS_MAINSIGNALIN(maximum_class, t_maximum, x_input);
+    pd_error(maximum_class, "[cyclone/maximum~] is deprecated, consider using vanilla's [max~] instead");
 }

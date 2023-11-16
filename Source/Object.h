@@ -13,9 +13,9 @@
 
 #define ACTIVITY_UPDATE_RATE 15
 
+struct ObjectDragState;
 class ObjectBase;
 class Iolet;
-class ObjectDragState;
 class Canvas;
 class Connection;
 class ObjectBoundsConstrainer;
@@ -23,19 +23,19 @@ class ObjectBoundsConstrainer;
 class Object : public Component
     , public Value::Listener
     , public ChangeListener
-    , public MultiTimer
+    , public Timer
     , private TextEditor::Listener {
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
-    Object(void* object, Canvas* parent);
+    Object(t_gobj* object, Canvas* parent);
 
     ~Object() override;
 
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
-    void timerCallback(int timerID) override;
+    void timerCallback() override;
 
     void paint(Graphics&) override;
     void paintOverChildren(Graphics&) override;
@@ -43,7 +43,7 @@ public:
 
     void updateIolets();
 
-    void setType(String const& newType, void* existingObject = nullptr);
+    void setType(String const& newType, t_gobj* existingObject = nullptr);
     void updateBounds();
     void applyBounds();
 
@@ -58,7 +58,7 @@ public:
     ComponentBoundsConstrainer* getConstrainer() const;
 
     void openHelpPatch() const;
-    void* getPointer() const;
+    t_gobj* getPointer() const;
 
     Array<Connection*> getConnections() const;
 
@@ -102,7 +102,6 @@ public:
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
 
-    bool attachedToMouse = false;
     bool isSearchTarget = false;
     static inline Object* consoleTarget = nullptr;
 
@@ -134,6 +133,7 @@ private:
     float activeStateAlpha = 0.0f;
 
     bool isObjectMouseActive = false;
+    bool isInsideUndoSequence = false;
 
     Image activityOverlayImage;
 

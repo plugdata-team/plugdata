@@ -22,6 +22,9 @@ inlets:
   - type: list
     description: sets and runs envelope (pairs of duration & target. if odd, 1st float is starting point)
   2nd:
+  - type: signal
+    description: impulses to retrigger the envelope
+  3rd:
   - type: list
     description: sets the envelope and doesn't run it
 

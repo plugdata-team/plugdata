@@ -520,7 +520,7 @@ void cpathClear(cpath *path);
     segments as it goes meaning on completion the path will be fully restored.
 
     NOTE: Modifies the path buffer so you shouldn't use the path for anything
-                Until this returns NULL (indicating no more path segments)
+                Until this returns nullptr (indicating no more path segments)
                 OR you use cpathItRefRestore() note that on the last path segment
                 it obviously won't have to add an '\0' so it'll also work if you bail
                 out then.  It is hard to detect that though.
@@ -642,7 +642,7 @@ int cpathPeekNextFile(cpath_dir *dir, cpath_file *file);
     i.e. while (cpathGetNextFile(...)) can use dir->hasNext to verify
     that there are indeed a file but it is safe!
 
-    File may be null if you don't wish to actually get a copy
+    File may be nullptr if you don't wish to actually get a copy
 */
 _CPATH_FUNC_
 int cpathGetNextFile(cpath_dir *dir, cpath_file *file);
@@ -768,8 +768,8 @@ int cpathFileToDir(cpath_dir *dir, const cpath_file *file);
 /*
     Get the extension for a file.
     Note: You can't access a file's extension BEFORE you call this
-                It will be null prior.
-    Returns NULL if no extension or if it is a directory.
+                It will be nullptr prior.
+    Returns nullptr if no extension or if it is a directory.
 */
 _CPATH_FUNC_
 cpath_str cpathGetExtension(cpath_file *file);
@@ -997,7 +997,7 @@ int cpathCanonicaliseNoSysCall(cpath *out, cpath *path) {
         NOTE: This should work even if out == path
                     It just has been written that way.
     */
-    if (path == NULL) {
+    if (path == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1057,7 +1057,7 @@ int cpathCanonicalise(cpath *out, cpath *path) {
     }
 
 #if defined _MSC_VER
-    DWORD size = GetFullPathName(path->buf, CPATH_MAX_PATH_LEN, out->buf, NULL);
+    DWORD size = GetFullPathName(path->buf, CPATH_MAX_PATH_LEN, out->buf, nullptr);
     if (size == 0) {
         // figure out errno
         return 0;
@@ -1067,10 +1067,10 @@ int cpathCanonicalise(cpath *out, cpath *path) {
     }
 #else
     char *res = realpath(path->buf, out->buf);
-    if (res != NULL) {
+    if (res != nullptr) {
         out->len = cpath_str_length(out->buf);
     }
-    return res != NULL;
+    return res != nullptr;
 #endif
 }
 
@@ -1091,8 +1091,8 @@ void cpathClear(cpath *path) {
 
 _CPATH_FUNC_
 const cpath_char_t *cpathItRef(cpath *path, int *index) {
-    if (path == NULL || index == NULL || *index >= path->len || *index < 0) {
-        return NULL;
+    if (path == nullptr || index == nullptr || *index >= path->len || *index < 0) {
+        return nullptr;
     }
 
     if (path->buf[*index] == CPATH_STR('\0')) {
@@ -1114,17 +1114,17 @@ const cpath_char_t *cpathItRef(cpath *path, int *index) {
 
 _CPATH_FUNC_
 void cpathItRefRestore(cpath *path, int *index) {
-    if (path == NULL) return;
+    if (path == nullptr) return;
 
-    if (index == NULL || *index < 0 || *index >= path->len ||
+    if (index == nullptr || *index < 0 || *index >= path->len ||
             path->buf[*index] != CPATH_STR('\0')) {
         // we have to loop
         for (int i = 0; i < path->len; i++) {
             if (path->buf[i] == CPATH_STR('\0')) path->buf[i] = CPATH_SEP;
         }
         // set index to the length since we have no real way to determine
-        // where abouts it its (that is if it isn't null)
-        if (index != NULL) *index = path->len;
+        // where abouts it its (that is if it isn't nullptr)
+        if (index != nullptr) *index = path->len;
     } else {
         path->buf[*index] = CPATH_SEP;
         (*index)++;
@@ -1212,7 +1212,7 @@ cpath cpathGetCwd() {
 
 _CPATH_FUNC_
 int cpathOpenDir(cpath_dir *dir, const cpath *path) {
-    if (dir == NULL || path == NULL || path->len == 0) {
+    if (dir == nullptr || path == nullptr || path->len == 0) {
         // empty strings are invalid arguments
         errno = EINVAL;
         return 0;
@@ -1223,21 +1223,21 @@ int cpathOpenDir(cpath_dir *dir, const cpath *path) {
         return 0;
     }
 
-    dir->files = NULL;
+    dir->files = nullptr;
 
 #if defined _MSC_VER
     dir->handle = INVALID_HANDLE_VALUE;
 #else
-    dir->dir = NULL;
+    dir->dir = nullptr;
 #endif
     dir->path.buf[path->len] = CPATH_STR('\0');
-    dir->parent = NULL;
-    dir->files = NULL;
+    dir->parent = nullptr;
+    dir->files = nullptr;
 #if defined _MSC_VER
     dir->handle = INVALID_HANDLE_VALUE;
 #else
-    dir->dir = NULL;
-    dir->dirent = NULL;
+    dir->dir = nullptr;
+    dir->dirent = nullptr;
 #endif
 
     cpathCopy(&dir->path, path);
@@ -1247,23 +1247,23 @@ int cpathOpenDir(cpath_dir *dir, const cpath *path) {
 _CPATH_FUNC_
 int cpathRestartDir(cpath_dir *dir) {
     // @TODO: I think there is a faster way if the handles exist
-    if (dir == NULL) {
+    if (dir == nullptr) {
         errno = EINVAL;
         return 0;
     }
 
     dir->hasNext = 1;
     dir->size = -1;
-    if (dir->files != NULL) CPATH_FREE(dir->files);
-    dir->files = NULL;
+    if (dir->files != nullptr) CPATH_FREE(dir->files);
+    dir->files = nullptr;
 
 #if defined _MSC_VER
     if (dir->handle != INVALID_HANDLE_VALUE) FindClose(dir->handle);
     dir->handle = INVALID_HANDLE_VALUE;
 #else
-    if (dir->dir != NULL) _cpath_closedir(dir->dir);
-    dir->dir = NULL;
-    dir->dirent = NULL;
+    if (dir->dir != nullptr) _cpath_closedir(dir->dir);
+    dir->dir = nullptr;
+    dir->dirent = nullptr;
 #endif
 
     // Ignore parent, just restart this dir
@@ -1275,7 +1275,7 @@ int cpathRestartDir(cpath_dir *dir) {
 
 #if (defined WINAPI_FAMILY) && (WINAPI_FAMILY != WINAPI_FAMILY_DESKTOP_APP)
     dir->handle = FindFirstFileEx(pathBuf, FindExInfoStandard, &dir->findData,
-                                                                FindExSearchNameMatch, NULL, 0);
+                                                                FindExSearchNameMatch, nullptr, 0);
 #else
     dir->handle = FindFirstFile(pathBuf, &dir->findData);
 #endif
@@ -1290,13 +1290,13 @@ int cpathRestartDir(cpath_dir *dir) {
 #else
 
     dir->dir = _cpath_opendir(dir->path.buf);
-    if (dir->dir == NULL) {
+    if (dir->dir == nullptr) {
         cpathCloseDir(dir);
         return 0;
     }
     dir->dirent = _cpath_readdir(dir->dir);
     // empty directory
-    if (dir->dirent == NULL) dir->hasNext = 0;
+    if (dir->dirent == nullptr) dir->hasNext = 0;
 
 #endif
 
@@ -1305,33 +1305,33 @@ int cpathRestartDir(cpath_dir *dir) {
 
 _CPATH_FUNC_
 void cpathCloseDir(cpath_dir *dir) {
-    if (dir == NULL) return;
+    if (dir == nullptr) return;
 
     dir->hasNext = 1;
     dir->size = -1;
-    if (dir->files != NULL) CPATH_FREE(dir->files);
-    dir->files = NULL;
+    if (dir->files != nullptr) CPATH_FREE(dir->files);
+    dir->files = nullptr;
 
 #if defined _MSC_VER
     if (dir->handle != INVALID_HANDLE_VALUE) FindClose(dir->handle);
     dir->handle = INVALID_HANDLE_VALUE;
 #else
-    if (dir->dir != NULL) _cpath_closedir(dir->dir);
-    dir->dir = NULL;
-    dir->dirent = NULL;
+    if (dir->dir != nullptr) _cpath_closedir(dir->dir);
+    dir->dir = nullptr;
+    dir->dirent = nullptr;
 #endif
 
     cpathClear(&dir->path);
-    if (dir->parent != NULL) {
+    if (dir->parent != nullptr) {
         cpathCloseDir(dir->parent);
         CPATH_FREE(dir->parent);
-        dir->parent = NULL;
+        dir->parent = nullptr;
     }
 }
 
 _CPATH_FUNC_
 int cpathMoveNextFile(cpath_dir *dir) {
-    if (dir == NULL) {
+    if (dir == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1351,7 +1351,7 @@ int cpathMoveNextFile(cpath_dir *dir) {
     }
 #else
     dir->dirent = _cpath_readdir(dir->dir);
-    if (dir->dirent == NULL) {
+    if (dir->dirent == nullptr) {
         dir->hasNext = 0;
     }
 #endif
@@ -1407,7 +1407,7 @@ int cpathLoadFlags(cpath_dir *dir, cpath_file *file, void *data) {
     }
     file->isSym = FILE_IS(find, REPARSE_POINT);
 #else
-    if (dir->dirent == NULL || dir->dirent->d_type == DT_UNKNOWN) {
+    if (dir->dirent == nullptr || dir->dirent->d_type == DT_UNKNOWN) {
         if (!cpathGetFileInfo(file)) {
             return 0;
         }
@@ -1427,7 +1427,7 @@ int cpathLoadFlags(cpath_dir *dir, cpath_file *file, void *data) {
 
 _CPATH_FUNC_
 int cpathPeekNextFile(cpath_dir *dir, cpath_file *file) {
-    if (file == NULL || dir == NULL) {
+    if (file == nullptr || dir == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1443,7 +1443,7 @@ int cpathPeekNextFile(cpath_dir *dir, cpath_file *file) {
     filename = dir->findData.cFileName;
     filenameLen = cpath_str_length(filename);
 #else
-    if (dir->dirent == NULL) {
+    if (dir->dirent == nullptr) {
         return 0;
     }
     filename = dir->dirent->d_name;
@@ -1469,7 +1469,7 @@ int cpathPeekNextFile(cpath_dir *dir, cpath_file *file) {
 #if defined _MSC_VER
     if (!cpathLoadFlags(dir, file, (WIN32_FIND_DATA*)(&dir->findData))) return 0;
 #else
-    if (!cpathLoadFlags(dir, file, NULL)) return 0;
+    if (!cpathLoadFlags(dir, file, nullptr)) return 0;
 #endif
 #ifdef CPATH_AUTOLOAD_STAT
     if (!cpathGetFileInfo(file)) return 0;
@@ -1479,7 +1479,7 @@ int cpathPeekNextFile(cpath_dir *dir, cpath_file *file) {
 
 _CPATH_FUNC_
 int cpathGetNextFile(cpath_dir *dir, cpath_file *file) {
-    if (file != NULL) {
+    if (file != nullptr) {
         if (!cpathPeekNextFile(dir, file)) {
             return 0;
         }
@@ -1504,12 +1504,12 @@ int cpathFileIsSpecialHardLink(const cpath_file *file) {
 
 _CPATH_FUNC_
 int cpathLoadAllFiles(cpath_dir *dir) {
-    if (dir == NULL) {
+    if (dir == nullptr) {
         errno = EINVAL;
         return 0;
     }
 
-    if (dir->files != NULL) CPATH_FREE(dir->files);
+    if (dir->files != nullptr) CPATH_FREE(dir->files);
 
     // @Ugly:
     /*
@@ -1540,7 +1540,7 @@ int cpathLoadAllFiles(cpath_dir *dir) {
 
     dir->size = count;
     dir->files = (cpath_file*) CPATH_MALLOC(sizeof(cpath_file) * count);
-    if (dir->files == NULL) {
+    if (dir->files == nullptr) {
         // we won't close the directory just error out
         dir->size = 0;
         return 0;
@@ -1569,7 +1569,7 @@ int cpathLoadAllFiles(cpath_dir *dir) {
 
 _CPATH_FUNC_
 int cpathCheckGetN(cpath_dir *dir, size_t n) {
-    if (dir == NULL) {
+    if (dir == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1588,7 +1588,7 @@ int cpathCheckGetN(cpath_dir *dir, size_t n) {
 
 _CPATH_FUNC_
 int cpathGetFile(cpath_dir *dir, cpath_file *file, size_t n) {
-    if (file == NULL) {
+    if (file == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1600,7 +1600,7 @@ int cpathGetFile(cpath_dir *dir, cpath_file *file, size_t n) {
 
 _CPATH_FUNC_
 int cpathGetFileConst(cpath_dir *dir, const cpath_file **file, size_t n) {
-    if (dir == NULL || file == NULL) {
+    if (dir == nullptr || file == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1622,15 +1622,15 @@ int cpathGetFileConst(cpath_dir *dir, const cpath_file **file, size_t n) {
 _CPATH_FUNC_
 int cpathOpenSubFileEmplace(cpath_dir *dir, const cpath_file *file,
                                                         int saveDir) {
-    cpath_dir *saved = NULL;
+    cpath_dir *saved = nullptr;
     if (saveDir) {
         // save the old one
         saved = (cpath_dir*)CPATH_MALLOC(sizeof(cpath_dir));
-        if (saved != NULL) memcpy(saved, dir, sizeof(cpath_dir));
+        if (saved != nullptr) memcpy(saved, dir, sizeof(cpath_dir));
     }
 
     if (!cpathFileToDir(dir, file)) {
-        if (saved != NULL) CPATH_FREE(saved);
+        if (saved != nullptr) CPATH_FREE(saved);
         return 0;
     }
 
@@ -1641,7 +1641,7 @@ int cpathOpenSubFileEmplace(cpath_dir *dir, const cpath_file *file,
 
 _CPATH_FUNC_
 int cpathOpenSubDirEmplace(cpath_dir *dir, size_t n, int saveDir) {
-    if (dir == NULL) {
+    if (dir == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1659,7 +1659,7 @@ int cpathOpenSubDirEmplace(cpath_dir *dir, size_t n, int saveDir) {
 
 _CPATH_FUNC_
 int cpathOpenSubDir(cpath_dir *out, cpath_dir *dir, size_t n) {
-    if (dir == NULL || out == NULL) {
+    if (dir == nullptr || out == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1676,7 +1676,7 @@ int cpathOpenSubDir(cpath_dir *out, cpath_dir *dir, size_t n) {
 
 _CPATH_FUNC_
 int cpathOpenNextSubDir(cpath_dir *out, cpath_dir *dir) {
-    if (dir == NULL || out == NULL) {
+    if (dir == nullptr || out == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1692,7 +1692,7 @@ int cpathOpenNextSubDir(cpath_dir *out, cpath_dir *dir) {
 
 _CPATH_FUNC_
 int cpathOpenCurrentSubDir(cpath_dir *out, cpath_dir *dir) {
-    if (dir == NULL || out == NULL) {
+    if (dir == nullptr || out == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1708,7 +1708,7 @@ int cpathOpenCurrentSubDir(cpath_dir *out, cpath_dir *dir) {
 
 _CPATH_FUNC_
 int cpathOpenNextSubDirEmplace(cpath_dir *dir, int saveDir) {
-    if (dir == NULL) {
+    if (dir == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1724,7 +1724,7 @@ int cpathOpenNextSubDirEmplace(cpath_dir *dir, int saveDir) {
 
 _CPATH_FUNC_
 int cpathOpenCurrentSubDirEmplace(cpath_dir *dir, int saveDir) {
-    if (dir == NULL) {
+    if (dir == nullptr) {
         errno = EINVAL;
         return 0;
     }
@@ -1740,24 +1740,24 @@ int cpathOpenCurrentSubDirEmplace(cpath_dir *dir, int saveDir) {
 
 _CPATH_FUNC_
 int cpathRevertEmplace(cpath_dir **dir) {
-    if (dir == NULL || *dir == NULL) return 0;
+    if (dir == nullptr || *dir == nullptr) return 0;
     cpath_dir *tmp = (*dir)->parent;
-    (*dir)->parent = NULL;
+    (*dir)->parent = nullptr;
     cpathCloseDir(*dir);
     *dir = tmp;
-    return *dir != NULL;
+    return *dir != nullptr;
 }
 
 _CPATH_FUNC_
 int cpathRevertEmplaceCopy(cpath_dir *dir) {
-    if (dir == NULL) return 0;
+    if (dir == nullptr) return 0;
     cpath_dir *tmp = dir->parent;
-    dir->parent = NULL;
+    dir->parent = nullptr;
     cpathCloseDir(dir);
-    if (tmp != NULL) {
+    if (tmp != nullptr) {
         memcpy(dir, tmp, sizeof(cpath_dir));
     }
-    return tmp != NULL;
+    return tmp != nullptr;
 }
 
 _CPATH_FUNC_
@@ -1766,9 +1766,8 @@ int cpathOpenFile(cpath_file *file, const cpath *path) {
     // we won't use a directory search we will just find the given file
     // or directly use stuff like dirname/basename!
     cpath_dir dir;
-    int found = 0;
 
-    if (file == NULL || path == NULL || path->len == 0) {
+    if (file == nullptr || path == nullptr || path->len == 0) {
         errno = EINVAL;
         return 0;
     }
@@ -1777,17 +1776,17 @@ int cpathOpenFile(cpath_file *file, const cpath *path) {
         return 0;
     }
 
-    void *data;
-    void *handle = NULL;
+    void* data = nullptr;
 
     cpathCopy(&file->path, path);
 
 #if defined _MSC_VER
+    void *handle = nullptr;
     WIN32_FIND_DATA findData;
 
 #if (defined WINAPI_FAMILY) && (WINAPI_FAMILY != WINAPI_FAMILY_DESKTOP_APP)
     handle = FindFirstFileEx(path->buf, FindExInfoStandard, &findData,
-                                                                FindExSearchNameMatch, NULL, 0);
+                                                                FindExSearchNameMatch, nullptr, 0);
 #else
     handle = FindFirstFile(path->buf, &findData);
 #endif
@@ -1818,7 +1817,7 @@ int cpathOpenFile(cpath_file *file, const cpath *path) {
 #if defined _MSC_VER
     FindClose((HANDLE)handle);
 #else
-    dir.dirent = NULL;
+    dir.dirent = nullptr;
 #endif
 
     return res;
@@ -1826,7 +1825,7 @@ int cpathOpenFile(cpath_file *file, const cpath *path) {
 
 _CPATH_FUNC_
 int cpathFileToDir(cpath_dir *dir, const cpath_file *file) {
-    if (dir == NULL || file == NULL || !file->isDir) {
+    if (dir == nullptr || file == nullptr || !file->isDir) {
         errno = EINVAL;
         return 0;
     }
@@ -1835,10 +1834,10 @@ int cpathFileToDir(cpath_dir *dir, const cpath_file *file) {
 
 _CPATH_FUNC_
 cpath_str cpathGetExtension(cpath_file *file) {
-    if (file->extension != NULL) return file->extension;
+    if (file->extension != nullptr) return file->extension;
 
     cpath_char_t *dot = cpath_str_find_last_char(file->name, CPATH_STR('.'));
-    if (dot != NULL) {
+    if (dot != nullptr) {
         // extension
         file->extension = dot + 1;
     } else {
@@ -1883,7 +1882,7 @@ cpath_offset_t cpathGetFileSize(cpath_file *file) {
 
 _CPATH_FUNC_
 void cpathSort(cpath_dir *dir, cpath_cmp cmp) {
-    if (dir->files == NULL) {
+    if (dir->files == nullptr) {
         if (dir->size == -1) {
             // bad, this means you try to sorted a directory before you preloaded
             // in this case we'll just preload the files.  This is just to be nice
@@ -1965,7 +1964,7 @@ const cpath_char_t *cpathGetFileSizeSuffix(cpath_file *file, CPathByteRep rep) {
         case BYTE_REP_DECIMAL:        return prefixTableDecimal[steps - 1];
         case BYTE_REP_DECIMAL_LOWER:  return prefixTableDecimalLower[steps - 1];
         case BYTE_REP_DECIMAL_UPPER:  return prefixTableDecimalUpper[steps - 1];
-        default: return NULL;
+        default: return nullptr;
     }
 }
 
@@ -1975,14 +1974,14 @@ void cpath_traverse(
     cpath_traverse_it it, void *data
 ) {
     // currently implemented recursively
-    if (dir == NULL) {
+    if (dir == nullptr) {
         errno = EINVAL;
-        if (err != NULL) err();
+        if (err != nullptr) err();
         return;
     }
     cpath_file file;
     while (cpathGetNextFile(dir, &file)) {
-        if (it != NULL) {
+        if (it != nullptr) {
             it(&file, dir, depth, data);
         }
         if (file.isDir && visit_subdirs && !cpathFileIsSpecialHardLink(&file)) {
@@ -2000,7 +1999,7 @@ void cpath_traverse(
 _CPATH_FUNC_
 int cpathMkdir(const cpath *path) {
 #if defined _MSC_VER || __MINGW32__
-    return CreateDirectory(path->buf, NULL);
+    return CreateDirectory(path->buf, nullptr);
 #else
     return mkdir(path->buf, 0700) == 0;
 #endif
@@ -2096,12 +2095,12 @@ public:
     }
 
     T *operator*() {
-        if (!ok) return NULL;
+        if (!ok) return nullptr;
         return &data.raw;
     }
 
     T *operator->() {
-        if (!ok) return NULL;
+        if (!ok) return nullptr;
         return &data.raw;
     }
 };
@@ -2291,7 +2290,7 @@ public:
         if (internals::cpathGetExtension(&file)) {
             return file.extension;
         } else {
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -2419,7 +2418,7 @@ public:
 
     inline Opt<File, Error::Type> GetNextFile() {
         RawFile file;
-        file.extension = NULL;
+        file.extension = nullptr;
         if (!internals::cpathGetNextFile(&dir, &file)) {
             return Error::FromErrno();
         } else {

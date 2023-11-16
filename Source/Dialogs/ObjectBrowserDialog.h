@@ -7,10 +7,10 @@
 #include <JuceHeader.h>
 #include <utility>
 
-#include "Utility/BouncingViewport.h"
+#include "Components/BouncingViewport.h"
+#include "Components/ObjectDragAndDrop.h"
 #include "ObjectReferenceDialog.h"
 #include "Canvas.h"
-#include "ListBoxObjectItem.h"
 #include "Dialogs.h"
 
 class CategoriesListBox : public ListBox
@@ -74,6 +74,102 @@ public:
 class ObjectsListBox : public ListBox
     , public ListBoxModel {
 
+    class ObjectListBoxItem : public ObjectDragAndDrop {
+    public:
+        ObjectListBoxItem(ListBox* parent, String const& name, String const& description, bool isSelected, std::function<void(bool shouldFade)> dismissDialog)
+            : objectName(name)
+            , objectDescription(description)
+            , rowIsSelected(isSelected)
+            , objectsListBox(parent)
+            , dismissMenu(dismissDialog)
+        {
+        }
+
+        void paint(juce::Graphics& g) override
+        {
+            if (rowIsSelected || mouseHover) {
+                auto colour = findColour(PlugDataColour::panelActiveBackgroundColourId);
+                if (mouseHover && !rowIsSelected)
+                    colour = colour.withAlpha(0.5f);
+
+                g.setColour(colour);
+                g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), Corners::defaultCornerRadius);
+            }
+
+            auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+
+            auto textBounds = Rectangle<int>(0, 0, getWidth(), getHeight()).reduced(18, 6);
+
+            Fonts::drawStyledText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
+
+            Fonts::drawText(g, objectDescription, textBounds, colour, 14);
+        }
+
+        bool hitTest(int x, int y) override
+        {
+            auto bounds = getLocalBounds().reduced(4, 2);
+            return bounds.contains(x, y);
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            mouseHover = true;
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            mouseHover = false;
+            repaint();
+        }
+
+        void mouseDown(MouseEvent const& e) override
+        {
+            objectsListBox->selectRow(row, true, true);
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            if (e.mouseWasDraggedSinceMouseDown())
+                dismissMenu(false);
+        }
+
+        void dismiss(bool withAnimation) override
+        {
+            dismissMenu(withAnimation);
+        }
+
+        String getObjectString() override
+        {
+            return "#X obj 0 0 " + objectName;
+        }
+
+        String getItemName() const
+        {
+            return objectName;
+        }
+
+        void refresh(String name, String description, int rowNumber, bool isSelected)
+        {
+            objectName = name;
+            objectDescription = description;
+            row = rowNumber;
+            rowIsSelected = isSelected;
+            repaint();
+        }
+
+    private:
+        int row;
+        String objectName;
+        String objectDescription;
+        bool rowIsSelected = false;
+        ListBox* objectsListBox;
+
+        bool mouseHover = false;
+
+        std::function<void(bool shouldFade)> dismissMenu;
+    };
+
     BouncingViewportAttachment bouncer;
     std::function<void(bool shouldFade)> dismiss;
 
@@ -108,20 +204,18 @@ public:
         changeCallback(objects[row]);
     }
 
-    virtual void paintListBoxItem (int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
+    virtual void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
     {
-
     }
 
     Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
     {
-        if (existingComponentToUpdate == nullptr)
-        {
-            return new ListBoxObjectItem(this, rowNumber, isRowSelected, dismiss);
-        }
-        else
-        {
-            auto* itemComponent = dynamic_cast<ListBoxObjectItem*>(existingComponentToUpdate);
+        if (existingComponentToUpdate == nullptr) {
+            auto name = objects[rowNumber];
+            auto description = descriptions[name];
+            return new ObjectListBoxItem(this, name, description, isRowSelected, dismiss);
+        } else {
+            auto* itemComponent = dynamic_cast<ObjectListBoxItem*>(existingComponentToUpdate);
             if (itemComponent != nullptr) {
                 auto name = objects[rowNumber];
                 auto description = descriptions[name];
@@ -153,14 +247,14 @@ public:
         setBufferedToImage(true);
     }
 
-    ~ObjectViewerDragArea(){}
+    ~ObjectViewerDragArea() { }
 
     void setObjectName(String name)
     {
         objectName = name;
     }
 
-    String getObjectString()
+    String getObjectString() override
     {
         return "#X obj 0 0 " + objectName;
     }
@@ -207,29 +301,25 @@ private:
     String objectName;
 };
 
-
 class ObjectViewer : public Component {
 
 public:
     ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference, std::function<void(bool shouldFade)> dismissMenu)
-        : reference(objectReference)
+        : objectDragArea(dismissMenu)
         , library(*editor->pd->objectLibrary)
-        , objectDragArea(dismissMenu)
+        , reference(objectReference)
     {
         setInterceptsMouseClicks(false, true);
 
         addChildComponent(openHelp);
         addChildComponent(openReference);
         addChildComponent(objectDragArea);
-        
-        openReference.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        openHelp.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
         openReference.onClick = [this]() {
             reference.showObject(objectName);
         };
 
-        openHelp.onClick = [editor]() {
+        openHelp.onClick = []() {
             // TODO: implement this!
         };
 
@@ -255,7 +345,6 @@ public:
 
         objectDragArea.setBounds(getLocalBounds().withTrimmedTop(48).withTrimmedBottom(120).withTrimmedLeft(12).withTrimmedRight(6));
     }
-
 
     void paintOverChildren(Graphics& g) override
     {
@@ -484,41 +573,19 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
-        input.getProperties().set("NoOutline", true);
+        input.setTextToShowWhenEmpty("Type to search for objects", findColour(TextEditor::textColourId).withAlpha(0.5f));
         input.addKeyListener(this);
         input.onTextChange = [this]() {
-            bool notEmpty = input.getText().isNotEmpty();
-            if (listBox.isVisible() != notEmpty) {
-                listBox.setVisible(notEmpty);
-                getParentComponent()->repaint();
-            }
-
-            setInterceptsMouseClicks(notEmpty, true);
             updateResults(input.getText());
         };
 
-        clearButton.getProperties().set("Style", "SmallIcon");
-        clearButton.onClick = [this]() {
-            input.clear();
-            grabKeyboardFocus(); // steal focus from text editor
-            listBox.setVisible(false);
-            setInterceptsMouseClicks(false, true);
-            input.repaint();
-            changeCallback("");
-        };
-
-        input.setInterceptsMouseClicks(true, true);
-        clearButton.setAlwaysOnTop(true);
-
-        addAndMakeVisible(clearButton);
         addAndMakeVisible(listBox);
         addAndMakeVisible(input);
 
         listBox.addMouseListener(this, true);
-        listBox.setVisible(false);
 
         input.setJustification(Justification::centredLeft);
-        input.setBorder({ 1, 23, 3, 1 });
+        input.setBorder({ 0, 3, 5, 1 });
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
 
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
@@ -562,20 +629,21 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (listBox.isVisible()) {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
-        }
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().withTrimmedTop(42).removeFromLeft(getWidth() - 260).toFloat(), Corners::windowCornerRadius);
     }
 
-    void paintOverChildren(Graphics& g) override
+    void startSearching()
     {
-        auto colour = findColour(PlugDataColour::sidebarTextColourId);
-        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
+        setVisible(true);
+        input.grabKeyboardFocus();
+    }
 
-        if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search for objects", 30, 0, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
-        }
+    void stopSearching()
+    {
+        input.clear();
+        clearSearchResults();
+        setVisible(false);
     }
 
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
@@ -642,6 +710,7 @@ public:
     void clearSearchResults()
     {
         searchResult.clear();
+        listBox.updateContent();
     }
 
     void updateResults(String const& query)
@@ -683,15 +752,13 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop(28);
+        auto inputBounds = tableBounds.removeFromTop(40).reduced(42, 5);
 
         tableBounds.removeFromTop(4);
 
         input.setBounds(inputBounds);
 
-        clearButton.setBounds(inputBounds.removeFromRight(30).translated(4, 0));
-
-        listBox.setBounds(tableBounds);
+        listBox.setBounds(tableBounds.removeFromLeft(getWidth() - 260));
     }
 
     std::function<void(String const&)> changeCallback;
@@ -701,8 +768,7 @@ private:
     BouncingViewportAttachment bouncer;
 
     Array<String> searchResult;
-    TextEditor input;
-    TextButton clearButton = TextButton(Icons::ClearText);
+    SearchEditor input;
 
     std::unordered_map<String, String> objectDescriptions;
 };
@@ -728,11 +794,20 @@ public:
             }
         }
 
+        searchButton.setClickingTogglesState(true);
+        searchButton.onClick = [this]() {
+            if (searchButton.getToggleState()) {
+                objectSearch.startSearching();
+            } else {
+                objectSearch.stopSearching();
+            }
+        };
+
         addAndMakeVisible(categoriesList);
         addAndMakeVisible(objectsList);
         addAndMakeVisible(objectViewer);
-        addAndMakeVisible(objectSearch);
-
+        addChildComponent(objectSearch);
+        addAndMakeVisible(searchButton);
         addChildComponent(objectReference);
 
         objectsByCategory["All"] = StringArray();
@@ -813,10 +888,11 @@ public:
 
     void resized() override
     {
-        auto b = getLocalBounds().withTrimmedTop(40).reduced(1);
+        objectSearch.setBounds(getLocalBounds());
+        searchButton.setBounds(2, 1, 38, 38);
+
+        auto b = getLocalBounds().withTrimmedTop(42).reduced(1);
         objectViewer.setBounds(b.removeFromRight(260));
-        objectSearch.setBounds(b);
-        b.removeFromTop(35);
 
         categoriesList.setBounds(b.removeFromLeft(170));
         objectsList.setBounds(b);
@@ -828,22 +904,21 @@ public:
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
-        
+
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         auto titlebarBounds = getLocalBounds().removeFromTop(40);
-        
+
         Path p;
-        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillPath(p);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(40, 0.0f, getWidth());
-        g.drawHorizontalLine(70, 0.0f, getWidth());
-        
+
         Fonts::drawStyledText(g, "Object Browser", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
     }
 
@@ -855,6 +930,8 @@ private:
     ObjectReferenceDialog objectReference;
     ObjectViewer objectViewer;
     ObjectSearchComponent objectSearch;
+
+    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
 
     ComponentAnimator animator;
 

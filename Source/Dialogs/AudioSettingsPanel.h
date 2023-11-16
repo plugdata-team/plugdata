@@ -50,9 +50,11 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DeviceManagerLevelMeter)
 };
 
-struct CallbackComboProperty : public PropertiesPanel::Property {
-    CallbackComboProperty(String const& propertyName, StringArray const& options, String const& currentOption, std::function<void(String)> const& onChange)
-        : Property(propertyName)
+struct CallbackComboProperty : public PropertiesPanelProperty {
+    CallbackComboProperty(String const& propertyName, StringArray const& comboOptions, String const& currentOption, std::function<void(String)> const& onChange)
+        : PropertiesPanelProperty(propertyName)
+        , changeCallback(onChange)
+        , options(comboOptions)
     {
         lastValue = currentOption;
         comboBox.addItemList(options, 1);
@@ -68,12 +70,19 @@ struct CallbackComboProperty : public PropertiesPanel::Property {
         addAndMakeVisible(comboBox);
     }
 
+    PropertiesPanelProperty* createCopy() override
+    {
+        return new CallbackComboProperty(getName(), options, lastValue, changeCallback);
+    }
+
     void resized() override
     {
         auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
         comboBox.setBounds(bounds);
     }
 
+    std::function<void(String)> changeCallback;
+    StringArray options;
     String lastValue;
     ComboBox comboBox;
 };
@@ -84,7 +93,6 @@ struct CallbackComboPropertyWithTestButton : public CallbackComboProperty {
         : CallbackComboProperty(propertyName, options, currentOption, onChange)
     {
         testButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        testButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
         testButton.onClick = [&deviceManager]() mutable {
             deviceManager.playTestSound();
         };
@@ -147,21 +155,21 @@ public:
         Fonts::drawText(g, textOptions[isDown], buttonBounds, textColour, 14.0f, Justification::centred);
 
         // Paint label
-        Property::paint(g);
+        PropertiesPanelProperty::paint(g);
     }
 
     std::function<void(bool)> callback;
 };
 
-class StandaloneAudioSettings : public Component
+class StandaloneAudioSettings : public SettingsDialogPanel
     , private ChangeListener
     , public Value::Listener {
 
 public:
     explicit StandaloneAudioSettings(AudioDeviceManager& audioDeviceManager)
-        : deviceManager(audioDeviceManager)
-        , inputLevelMeter(audioDeviceManager.getInputLevelGetter())
+        : inputLevelMeter(audioDeviceManager.getInputLevelGetter())
         , outputLevelMeter(audioDeviceManager.getOutputLevelGetter())
+        , deviceManager(audioDeviceManager)
     {
         deviceManager.addChangeListener(this);
         addAndMakeVisible(audioPropertiesPanel);
@@ -182,6 +190,11 @@ public:
         deviceManager.removeChangeListener(this);
     }
 
+    PropertiesPanel* getPropertiesPanel() override
+    {
+        return &audioPropertiesPanel;
+    }
+
 private:
     void valueChanged(Value& v) override
     {
@@ -200,7 +213,7 @@ private:
 
         auto* currentType = deviceManager.getCurrentDeviceTypeObject();
 
-        Array<PropertiesPanel::Property*> deviceConfigurationProperties;
+        Array<PropertiesPanelProperty*> deviceConfigurationProperties;
 
         // Only show if there are multiple device types
         if (types.size() > 1) {
@@ -284,7 +297,7 @@ private:
         }
 
         // Add output device selector
-        Array<PropertiesPanel::Property*> outputProperties;
+        Array<PropertiesPanelProperty*> outputProperties;
         const StringArray outputDevices(currentType->getDeviceNames(false));
         outputSelectorProperty = new CallbackComboPropertyWithTestButton(
             "Output Device", outputDevices, setup.outputDeviceName, [this](String selectedDevice) {
@@ -295,7 +308,7 @@ private:
         outputProperties.add(outputSelectorProperty);
 
         // Add input device selector
-        Array<PropertiesPanel::Property*> inputProperties;
+        Array<PropertiesPanelProperty*> inputProperties;
         const StringArray inputDevices(currentType->getDeviceNames(true));
         inputSelectorProperty = new CallbackComboProperty("Input Device", inputDevices, setup.inputDeviceName, [this](String selectedDevice) {
             setup.inputDeviceName = std::move(selectedDevice);
@@ -426,8 +439,8 @@ private:
     DeviceManagerLevelMeter outputLevelMeter;
 
     // Used for positioning the levelmeters
-    SafePointer<PropertiesPanel::Property> outputSelectorProperty;
-    SafePointer<PropertiesPanel::Property> inputSelectorProperty;
+    SafePointer<PropertiesPanelProperty> outputSelectorProperty;
+    SafePointer<PropertiesPanelProperty> inputSelectorProperty;
 
     AudioDeviceManager::AudioDeviceSetup setup;
 
@@ -443,7 +456,7 @@ private:
     StringArray standardSampleRates = { "44100", "48000", "88200", "96000", "176400", "192000" };
 };
 
-class DAWAudioSettings : public Component
+class DAWAudioSettings : public SettingsDialogPanel
     , public Value::Listener {
 
 public:
@@ -467,6 +480,11 @@ public:
         addAndMakeVisible(dawSettingsPanel);
 
         latencyNumberBox->setRangeMin(64);
+    }
+
+    PropertiesPanel* getPropertiesPanel() override
+    {
+        return &dawSettingsPanel;
     }
 
     void resized() override

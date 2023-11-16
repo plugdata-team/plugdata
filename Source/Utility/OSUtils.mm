@@ -7,6 +7,8 @@
 #include <juce_core/juce_core.h>
 #include "OSUtils.h"
 
+#include <raw_keyboard_input/raw_keyboard_input.mm>
+
 int getStyleMask(bool nativeTitlebar) {
     
     unsigned int style = NSWindowStyleMaskTitled;
@@ -16,7 +18,7 @@ int getStyleMask(bool nativeTitlebar) {
     style |= NSWindowStyleMaskResizable;
     
     if(!nativeTitlebar) {
-        style |= NSFullSizeContentViewWindowMask;
+        style |= NSWindowStyleMaskFullSizeContentView;
     }
 
     return style;
@@ -108,7 +110,7 @@ OSUtils::ScrollTracker::ScrollTracker()
     
     NSEventMask scrollEventMask = NSEventMaskScrollWheel;
             [NSEvent addLocalMonitorForEventsMatchingMask:scrollEventMask handler:^NSEvent* (NSEvent* event) {
-                [observer scrollEventOccurred:event];
+                [(ScrollEventObserver*)observer scrollEventOccurred:event];
                 return event;
             }];
 }

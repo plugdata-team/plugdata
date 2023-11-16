@@ -15,7 +15,7 @@ class ToggleObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    ToggleObject(void* ptr, Object* object)
+    ToggleObject(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
@@ -97,6 +97,8 @@ public:
 
     void toggleObject(Point<int> position) override
     {
+        ignoreUnused(position);
+
         if (!alreadyToggled) {
             startEdition();
             auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);

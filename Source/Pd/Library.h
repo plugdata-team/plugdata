@@ -7,8 +7,8 @@
 #pragma once
 
 #include <m_pd.h>
-#include "../Utility/FileSystemWatcher.h"
-#include "../Utility/Config.h"
+#include "Utility/FileSystemWatcher.h"
+#include "Utility/Config.h"
 
 namespace pd {
 
@@ -33,7 +33,7 @@ public:
 
     void fsChangeCallback() override;
 
-    File findHelpfile(t_object* obj, File const& parentPatchFile) const;
+    File findHelpfile(t_gobj* obj, File const& parentPatchFile) const;
 
     ValueTree getObjectInfo(String const& name);
 

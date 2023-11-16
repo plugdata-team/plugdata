@@ -29,14 +29,17 @@ outlets:
 flags:
  - name: -size <float>
    description: sets buffer size
- - name: -db
-   description: sets output in dBFS
+ - name: -lin
+   description: sets output to linear
+   default: dBFS
 
 methods:
   - type: clear
     description: clears buffer's memory
   - type: size <float>
     description: sets new maximum size and clears buffer's memory
+  - type: lin
+    description: non zero sets to linear output
 
 draft: false
 ---

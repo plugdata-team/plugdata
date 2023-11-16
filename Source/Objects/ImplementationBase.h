@@ -16,24 +16,26 @@ class Canvas;
 class ImplementationBase {
 
 public:
-    ImplementationBase(void* obj, PluginProcessor* pd);
+    ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProcessor* pd);
 
     virtual ~ImplementationBase();
 
-    static ImplementationBase* createImplementation(String const& type, void* ptr, PluginProcessor* pd);
+    static ImplementationBase* createImplementation(String const& type, t_gobj* ptr, t_canvas* cnv, PluginProcessor* pd);
     static bool hasImplementation(char const* type);
 
-    virtual void update() {};
+    virtual void update() { }
 
     void openSubpatch(pd::Patch* subpatch);
     void closeOpenedSubpatchers();
 
-    Canvas* getMainCanvas(void* patchPtr) const;
+    Canvas* getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot = false) const;
+    Array<PluginEditor*> getEditors() const;
 
     PluginProcessor* pd;
     pd::WeakReference ptr;
+    t_canvas* cnv;
 
-    JUCE_DECLARE_WEAK_REFERENCEABLE(ImplementationBase);
+    JUCE_DECLARE_WEAK_REFERENCEABLE(ImplementationBase)
 };
 
 class ObjectImplementationManager : public AsyncUpdater {
@@ -41,14 +43,14 @@ public:
     explicit ObjectImplementationManager(pd::Instance* pd);
 
     void updateObjectImplementations();
-    void clearObjectImplementationsForPatch(void* patch);
+    void clearObjectImplementationsForPatch(t_canvas* patch);
 
     void handleAsyncUpdate();
 
 private:
-    Array<void*> getImplementationsForPatch(void* patch);
+    Array<t_gobj*> getImplementationsForPatch(t_canvas* patch);
 
     PluginProcessor* pd;
 
-    std::map<void*, std::unique_ptr<ImplementationBase>> objectImplementations;
+    std::map<t_gobj*, std::unique_ptr<ImplementationBase>> objectImplementations;
 };

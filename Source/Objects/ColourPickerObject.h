@@ -4,11 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Utility/ColourPicker.h"
+#include "Components/ColourPicker.h"
 
 class ColourPickerObject final : public TextBase {
 public:
-    ColourPickerObject(void* ptr, Object* object)
+    ColourPickerObject(t_gobj* ptr, Object* object)
         : TextBase(ptr, object)
     {
     }
@@ -25,7 +25,7 @@ public:
 
     void showColourPicker()
     {
-        unsigned int red, green, blue;
+        unsigned int red = 0, green = 0, blue = 0;
         if (auto colors = ptr.get<t_fake_colors>()) {
             sscanf(colors->x_color, "#%02x%02x%02x", &red, &green, &blue);
         }

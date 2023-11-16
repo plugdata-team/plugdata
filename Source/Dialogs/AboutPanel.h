@@ -11,7 +11,7 @@ EXTERN char* pd_version;
 class AboutPanel : public Component {
 
     String creditsText = " Thanks to Alex Mitchell and tomara-x for helping out with development, documentation and testing.\n\n - ELSE v1.0-rc9 by Alexandre Porres\n - cyclone v0.7-0 by Krzysztof Czaja, Hans-Christoph Steiner, Fred Jan Kraan, Alexandre Porres, Derek Kwan, Matt Barber et al.\n - Based on Camomile by Pierre Guillot\n - Inter font by Rasmus Andersson\n - Made with JUCE\n\n\nSpecial thanks to: Deskew Technologies, PowerUser64, DSBHproject, CFDAF, cotik1 , alfonso73, spamfunnel, ooroor, bla9kdog, KPY7030P, duddex, rubenlorenzo, mungbean, jamescorrea, Soundworlds-JO, vasilymilovidov, polarity, chee, Joshua A.C. Newman and ludnny for supporting this project\n\n\nThis program is published under the terms of the GPL3 license";
-    
+
     TextEditor credits;
     TextButton viewOnGithub;
     TextButton reportIssue;
@@ -23,6 +23,7 @@ public:
     AboutPanel()
     {
         credits.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        credits.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         credits.setReadOnly(true);
         credits.setMultiLine(true);
         credits.setText(creditsText);
@@ -30,13 +31,23 @@ public:
         credits.setLineSpacing(1.1f);
         addAndMakeVisible(credits);
 
+        auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+        viewOnGithub.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        viewOnGithub.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        viewOnGithub.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        
+        reportIssue.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        reportIssue.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        reportIssue.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        
+        sponsor.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        sponsor.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        sponsor.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+        
         viewOnGithub.setButtonText("View on Github");
         reportIssue.setButtonText("Report issue");
         sponsor.setButtonText("Become a sponsor");
-        
-        viewOnGithub.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        reportIssue.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
-        sponsor.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
         addAndMakeVisible(viewOnGithub);
         addAndMakeVisible(reportIssue);
@@ -74,10 +85,10 @@ public:
         g.setImageResamplingQuality(Graphics::mediumResamplingQuality);
 
         auto creditsBounds = credits.getBounds().expanded(5);
-        g.setColour(findColour(TextEditor::backgroundColourId));
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
         PlugDataLook::fillSmoothedRectangle(g, creditsBounds.toFloat(), Corners::largeCornerRadius);
 
-        g.setColour(findColour(TextEditor::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         PlugDataLook::drawSmoothedRectangle(g, PathStrokeType(1.0f), creditsBounds.toFloat(), Corners::largeCornerRadius);
     }
 

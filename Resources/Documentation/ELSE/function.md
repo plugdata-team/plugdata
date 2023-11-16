@@ -42,8 +42,9 @@ flags:
     description: default 0
   - name: -max <float>
     description: default 1
-  - name: -init
-    description: 
+  - name: -savestate
+    description: save object state
+    default: 0
   - name: -set <list>
     description: default 0 1000 0
 
@@ -72,8 +73,9 @@ methods:
     description: sets send symbol
   - type: receive <symbol>
     description: sets receive symbol
-  - type: init <float>
-    description: non-0 sets to init mode
+  - type: savestate <float>
+    description: non-0 will save object state
+
 
 draft: false
 ---

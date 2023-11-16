@@ -1,0 +1,8 @@
+#N canvas 484 25 535 404 12;
+#X obj 99 277 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 99 75 sig.m~;
+#A saved -0.516666;
+#X obj 318 102 setdsp~;
+#X obj 347 243 about;
+#X text 287 243 see -->;
+#X connect 1 0 0 0;

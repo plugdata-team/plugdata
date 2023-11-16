@@ -16,9 +16,9 @@ class ActionButton : public Component {
 
 public:
     ActionButton(String iconToShow, String textToShow, bool roundOnTop = false)
-        : icon(std::move(iconToShow))
+        : roundTop(roundOnTop)
+        , icon(std::move(iconToShow))
         , text(std::move(textToShow))
-        , roundTop(roundOnTop)
     {
     }
 
@@ -93,22 +93,18 @@ public:
         addAndMakeVisible(removeButton);
         removeButton.onClick = [this] { deleteSelected(); };
         removeButton.setConnectedEdges(12);
-        removeButton.getProperties().set("Style", "SmallIcon");
 
         changeButton.setTooltip("Edit search path");
-        changeButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
         changeButton.onClick = [this] { editSelected(); };
 
         upButton.setTooltip("Move selection up");
-        upButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(upButton);
         upButton.setConnectedEdges(12);
         upButton.onClick = [this] { moveSelection(-1); };
 
         upButton.setTooltip("Move selection down");
-        downButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(downButton);
         downButton.setConnectedEdges(12);
         downButton.onClick = [this] { moveSelection(1); };
@@ -148,7 +144,7 @@ public:
     int getNumRows() override
     {
         return paths.size();
-    };
+    }
 
     std::pair<int, int> getContentXAndWidth()
     {
@@ -356,18 +352,14 @@ private:
 
         if (start == File())
             start = File::getCurrentWorkingDirectory();
-
-        chooser = std::make_unique<FileChooser>("Add a folder...", start, "*");
-        auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
-
-        chooser->launchAsync(chooserFlags,
-            [this](FileChooser const& fc) {
-                if (fc.getResult() == File {})
-                    return;
-
-                paths.addIfNotAlreadyThere(fc.getResult().getFullPathName(), listBox.getSelectedRow());
+        
+        Dialogs::showOpenDialog([this](File& result){
+            if(result.exists())
+            {
+                paths.addIfNotAlreadyThere(result.getFullPathName(), listBox.getSelectedRow());
                 internalChange();
-            });
+            }
+        }, false, true, "", "PathBrowser");
     }
 
     void deleteSelected()
@@ -382,19 +374,16 @@ private:
             return;
 
         auto row = listBox.getSelectedRow();
-        chooser = std::make_unique<FileChooser>("Change folder...", paths[row], "*", SettingsFile::getInstance()->wantsNativeDialog());
-        auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
-
-        chooser->launchAsync(chooserFlags,
-            [this, row](FileChooser const& fc) {
-                if (fc.getResult() == File {})
-                    return;
-
+        
+        Dialogs::showOpenDialog([this, row](File& result){
+            if(result.exists())
+            {
                 paths.remove(row);
-                paths.addIfNotAlreadyThere(fc.getResult().getFullPathName(), row);
+                paths.addIfNotAlreadyThere(result.getFullPathName(), row);
                 internalChange();
-            });
-
+            }
+        }, false, true, "", "PathBrowser");
+        
         internalChange();
     }
 
@@ -438,17 +427,16 @@ private:
 
     StringArray paths;
     File defaultBrowseTarget;
-    std::unique_ptr<FileChooser> chooser;
 
     ListBox listBox;
 
-    TextButton upButton = TextButton(Icons::Up);
-    TextButton downButton = TextButton(Icons::Down);
+    SmallIconButton upButton = SmallIconButton(Icons::Up);
+    SmallIconButton downButton = SmallIconButton(Icons::Down);
 
     ActionButton addButton = ActionButton(Icons::Add, "Add search path");
     ActionButton resetButton = ActionButton(Icons::Reset, "Reset to default search paths", true);
-    TextButton removeButton = TextButton(Icons::Clear);
-    TextButton changeButton = TextButton(Icons::Edit);
+    SmallIconButton removeButton = SmallIconButton(Icons::Clear);
+    SmallIconButton changeButton = SmallIconButton(Icons::Edit);
 
     ValueTree tree;
 
@@ -480,10 +468,8 @@ public:
         addAndMakeVisible(removeButton);
         removeButton.onClick = [this] { deleteSelected(); };
         removeButton.setConnectedEdges(12);
-        removeButton.getProperties().set("Style", "SmallIcon");
 
         changeButton.setTooltip("Edit library");
-        changeButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
         changeButton.onClick = [this] { editSelected(); };
@@ -717,8 +703,8 @@ private:
     ListBox listBox;
 
     ActionButton addButton = ActionButton(Icons::Add, "Add library to load on startup");
-    TextButton removeButton = TextButton(Icons::Clear);
-    TextButton changeButton = TextButton(Icons::Edit);
+    SmallIconButton removeButton = SmallIconButton(Icons::Clear);
+    SmallIconButton changeButton = SmallIconButton(Icons::Edit);
 
     ValueTree tree;
 
@@ -728,7 +714,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LibraryLoadPanel)
 };
 
-class PathsAndLibrariesPanel : public Component
+class PathsAndLibrariesPanel : public SettingsDialogPanel
     , public ComponentListener {
 public:
     PathsAndLibrariesPanel()

@@ -7,8 +7,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#if _MSC_VER && HAVE_ALLOCA
-#include <malloc.h>
+#if defined _WIN32
+#    include <malloc.h> /* MSVC or mingw on windows */
 #endif
 
 #ifndef HAVE_ALLOCA     /* can work without alloca() but we never need it */

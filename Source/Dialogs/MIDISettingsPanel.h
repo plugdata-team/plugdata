@@ -10,12 +10,17 @@ class MidiSettingsToggle : public PropertiesPanel::BoolComponent {
 public:
     MidiSettingsToggle(bool isMidiInput, PluginProcessor* pluginProcessor, MidiDeviceInfo& midiDeviceInfo, AudioDeviceManager& audioDeviceManager)
         : PropertiesPanel::BoolComponent(midiDeviceInfo.name, { "Disabled", "Enabled" })
-        , deviceInfo(midiDeviceInfo)
-        , deviceManager(audioDeviceManager)
         , isInput(isMidiInput)
         , processor(pluginProcessor)
+        , deviceInfo(midiDeviceInfo)
+        , deviceManager(audioDeviceManager)
     {
         toggleStateValue = ProjectInfo::getMidiDeviceManager()->isMidiDeviceEnabled(isInput, deviceInfo.identifier);
+    }
+
+    PropertiesPanelProperty* createCopy() override
+    {
+        return new MidiSettingsToggle(isInput, processor, deviceInfo, deviceManager);
     }
 
 private:
@@ -51,7 +56,7 @@ public:
     PluginProcessor* processor;
 };
 
-class StandaloneMIDISettings : public Component
+class StandaloneMIDISettings : public SettingsDialogPanel
     , private ChangeListener {
 public:
     StandaloneMIDISettings(PluginProcessor* audioProcessor, AudioDeviceManager& audioDeviceManager)
@@ -70,6 +75,11 @@ public:
         deviceManager.removeChangeListener(this);
     }
 
+    PropertiesPanel* getPropertiesPanel() override
+    {
+        return &midiProperties;
+    }
+
 private:
     void resized() override
     {
@@ -81,10 +91,10 @@ private:
         midiProperties.clear();
 
         auto midiInputDevices = ProjectInfo::getMidiDeviceManager()->getInputDevicesUnfiltered();
-        auto midiInputProperties = Array<PropertiesPanel::Property*>();
+        auto midiInputProperties = Array<PropertiesPanelProperty*>();
 
         auto midiOutputDevices = ProjectInfo::getMidiDeviceManager()->getOutputDevicesUnfiltered();
-        auto midiOutputProperties = Array<PropertiesPanel::Property*>();
+        auto midiOutputProperties = Array<PropertiesPanelProperty*>();
 
         for (auto& deviceInfo : midiInputDevices) {
             // The internal plugdata ports should be viewed from our perspective instead of that of an external application

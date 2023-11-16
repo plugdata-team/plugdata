@@ -12,6 +12,9 @@ arguments:
 - type: float
   description: BPM
   default: 120
+- type: list
+  description: extra note-off message parameters
+  default: none
 
 inlets:
   1st:

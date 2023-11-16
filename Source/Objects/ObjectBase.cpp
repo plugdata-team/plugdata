@@ -20,16 +20,22 @@ extern "C" {
 #include <g_all_guis.h>
 #include <g_undo.h>
 
+#if _MSC_VER
+__declspec(dllimport) void canvas_setgraph(t_glist* x, int flag, int nogoprect);
+__declspec(dllimport) void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shift, t_floatarg ctrl, t_floatarg alt);
+#else
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shift, t_floatarg ctrl, t_floatarg alt);
+#endif
+
 }
 
 #include "AllGuis.h"
 #include "Object.h"
 #include "Iolet.h"
 #include "Canvas.h"
-#include "Tabbar.h"
-#include "SuggestionComponent.h"
+#include "Tabbar/Tabbar.h"
+#include "Components/SuggestionComponent.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 #include "Pd/Patch.h"
@@ -78,14 +84,14 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 class NonPatchable : public ObjectBase {
 
 public:
-    NonPatchable(void* obj, Object* parent)
+    NonPatchable(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         parent->setVisible(false);
     }
 
-    Rectangle<int> getPdBounds() override { return { 0, 0, 1, 1 }; };
-    void setPdBounds(Rectangle<int> newBounds) override {};
+    Rectangle<int> getPdBounds() override { return { 0, 0, 1, 1 }; }
+    void setPdBounds(Rectangle<int> newBounds) override { }
 };
 
 ObjectBase::ObjectSizeListener::ObjectSizeListener(Object* obj)
@@ -108,7 +114,7 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
         auto x = static_cast<float>(v.getValue().getArray()->getReference(0));
         auto y = static_cast<float>(v.getValue().getArray()->getReference(1));
 
-        libpd_moveobj(patch, obj.get(), x, y);
+        pd::Interface::moveObject(patch, obj.get(), x, y);
         object->updateBounds();
     }
 }
@@ -127,7 +133,7 @@ void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
     lastChange = Time::getMillisecondCounter();
 }
 
-ObjectBase::ObjectBase(void* obj, Object* parent)
+ObjectBase::ObjectBase(t_gobj* obj, Object* parent)
     : ptr(obj, parent->cnv->pd)
     , object(parent)
     , cnv(parent->cnv)
@@ -155,7 +161,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
             if (!canvas)
                 return;
 
-            libpd_undo_apply(canvas, obj.get());
+            pd::Interface::undoApply(canvas, obj.get());
         }
     };
 }
@@ -179,9 +185,11 @@ void ObjectBase::initialise()
 
     pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
 
-    for (auto& [name, type, cat, value, list, valueDefault] : objectParameters.getParameters()) {
-        value->addListener(this);
-        value->addListener(&propertyUndoListener);
+    for (auto& [name, type, cat, value, list, valueDefault, customComponent] : objectParameters.getParameters()) {
+        if(value) {
+            value->addListener(this);
+            value->addListener(&propertyUndoListener);
+        }
     }
 }
 
@@ -189,7 +197,7 @@ void ObjectBase::objectMovedOrResized(bool resized)
 {
     auto objectBounds = object->getObjectBounds();
 
-    setParameterExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
+    setValueExcludingListener(positionParameter, Array<var> { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
 
     if (resized)
         updateSizeProperty();
@@ -203,10 +211,11 @@ String ObjectBase::getText()
     int size = 0;
 
     if (auto obj = ptr.get<t_gobj>()) {
-        if (!cnv->patch.checkObject(obj.get()))
+
+        if (!pd::Interface::checkObject(obj.get()))
             return "";
 
-        libpd_get_object_text(obj.get(), &text, &size);
+        pd::Interface::getObjectText(obj.cast<t_object>(), &text, &size);
     }
 
     if (text && size) {
@@ -235,7 +244,7 @@ String ObjectBase::getType() const
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
 
-        auto* className = libpd_get_object_class_name(obj.get());
+        auto* className = pd::Interface::getObjectClassName(obj.get());
         if (!className)
             return {};
 
@@ -358,7 +367,7 @@ void ObjectBase::moveToFront()
         if (!patch)
             return;
 
-        libpd_tofront(patch, obj.get());
+        pd::Interface::toFront(patch, obj.get());
     }
 }
 
@@ -369,7 +378,7 @@ void ObjectBase::moveForward()
         if (!patch)
             return;
 
-        libpd_move_forward(patch, obj.get());
+        pd::Interface::moveForward(patch, obj.get());
     }
 }
 
@@ -380,7 +389,7 @@ void ObjectBase::moveBackward()
         if (!patch)
             return;
 
-        libpd_move_backward(patch, obj.get());
+        pd::Interface::moveBackward(patch, obj.get());
     }
 }
 
@@ -391,7 +400,7 @@ void ObjectBase::moveToBack()
         if (!patch)
             return;
 
-        libpd_toback(patch, obj.get());
+        pd::Interface::toBack(patch, obj.get());
     }
 }
 
@@ -446,15 +455,15 @@ void ObjectBase::sendFloatValue(float newValue)
     }
 }
 
-ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
+ObjectBase* ObjectBase::createGui(t_gobj* ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
     ScopedLock(parent->cnv->pd->audioLock);
 
-    auto const name = hash(libpd_get_object_class_name(ptr));
+    auto const name = hash(pd::Interface::getObjectClassName(&ptr->g_pd));
 
     // check if object is a patcher object, or something else
-    if (!pd_checkobject(static_cast<t_pd*>(ptr)) && name != hash("scalar")) {
+    if (!pd::Interface::checkObject(ptr) && name != hash("scalar")) {
         return new NonPatchable(ptr, parent);
     } else {
         switch (name) {
@@ -480,7 +489,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         case hash("vu"):
             return new VUMeterObject(ptr, parent);
         case hash("text"): {
-            auto* textObj = static_cast<t_text*>(ptr);
+            auto* textObj = reinterpret_cast<t_text*>(ptr);
             if (textObj->te_type == T_OBJECT) {
                 return new TextObject(ptr, parent, false);
             } else {
@@ -491,7 +500,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new CycloneCommentObject(ptr, parent);
         // Check if message type text object to prevent confusing it with else/message
         case hash("message"): {
-            if (libpd_is_text_object(ptr) && static_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
+            if (pd::Interface::isTextObject(ptr) && reinterpret_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
                 return new MessageObject(ptr, parent);
             }
             break;
@@ -508,27 +517,27 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         case hash("qlist"):
             return new TextFileObject(ptr, parent);
         case hash("gatom"): {
-            if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT) {
+            if (reinterpret_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT) {
                 return new FloatAtomObject(ptr, parent);
-            } else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL) {
+            } else if (reinterpret_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL) {
                 return new SymbolAtomObject(ptr, parent);
-            } else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL) {
+            } else if (reinterpret_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL) {
                 return new ListObject(ptr, parent);
             }
             break;
         }
         case hash("canvas"):
         case hash("graph"): {
-            if (static_cast<t_canvas*>(ptr)->gl_list) {
-                t_class* c = static_cast<t_canvas*>(ptr)->gl_list->g_pd;
+            if (reinterpret_cast<t_canvas*>(ptr)->gl_list) {
+                t_class* c = reinterpret_cast<t_canvas*>(ptr)->gl_list->g_pd;
                 if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
                     return new ArrayObject(ptr, parent);
-                } else if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
+                } else if (reinterpret_cast<t_canvas*>(ptr)->gl_isgraph) {
                     return new GraphOnParent(ptr, parent);
                 } else { // abstraction or subpatch
                     return new SubpatchObject(ptr, parent);
                 }
-            } else if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
+            } else if (reinterpret_cast<t_canvas*>(ptr)->gl_isgraph) {
                 return new GraphOnParent(ptr, parent);
             } else {
                 return new SubpatchObject(ptr, parent);
@@ -568,14 +577,12 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         case hash("openfile"): {
             char* text;
             int size;
-            libpd_get_object_text(ptr, &text, &size);
+            pd::Interface::getObjectText(reinterpret_cast<t_object*>(ptr), &text, &size);
             auto objText = String::fromUTF8(text, size);
             bool hyperlink = objText.contains("openfile -h");
-            if(hyperlink)
-            {
+            if (hyperlink) {
                 return new OpenFileObject(ptr, parent);
-            }
-            else {
+            } else {
                 return new TextObject(ptr, parent);
             }
         }
@@ -630,17 +637,16 @@ void ObjectBase::lock(bool isLocked)
 
 String ObjectBase::getBinbufSymbol(int argIndex)
 {
-    if(auto obj = ptr.get<t_object>())
-    {
+    if (auto obj = ptr.get<t_object>()) {
         auto* binbuf = obj->te_binbuf;
         int numAtoms = binbuf_getnatom(binbuf);
-        if(argIndex < numAtoms) {
+        if (argIndex < numAtoms) {
             char buf[80];
             atom_string(binbuf_getvec(binbuf) + argIndex, buf, 80);
             return String::fromUTF8(buf);
         }
     }
-    
+
     return {};
 }
 
@@ -697,23 +703,10 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)
 {
     parameter.removeListener(&propertyUndoListener);
-    parameter.removeListener(this);
 
-    auto oldValue = parameter.getValue();
-    parameter.setValue(value);
+    setValueExcludingListener(parameter, value, this);
 
-    parameter.addListener(this);
     parameter.addListener(&propertyUndoListener);
-}
-
-void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value, Value::Listener* listener)
-{
-    parameter.removeListener(listener);
-
-    auto oldValue = parameter.getValue();
-    parameter.setValue(value);
-
-    parameter.addListener(listener);
 }
 
 ObjectLabel* ObjectBase::getLabel()

@@ -6,14 +6,14 @@
 #pragma once
 
 extern "C" {
-#include "x_libpd_mod_utils.h" //  TODO: we only need t_object
+#include "Pd/Interface.h" //  TODO: we only need t_object
 }
 
 #include "WeakReference.h"
 
 namespace pd {
 
-using Connections = std::vector<std::tuple<void*, int, t_object*, int, t_object*>>;
+using Connections = std::vector<std::tuple<t_outconnect*, int, t_object*, int, t_object*>>;
 class Instance;
 
 // The Pd patch.
@@ -25,7 +25,7 @@ class Patch : public ReferenceCountedObject {
 public:
     using Ptr = ReferenceCountedObjectPtr<Patch>;
 
-    Patch(void* ptr, Instance* instance, bool ownsPatch, File currentFile = File());
+    Patch(t_canvas* ptr, Instance* instance, bool ownsPatch, File currentFile = File());
 
     ~Patch();
 
@@ -38,21 +38,16 @@ public:
     // Gets the bounds of the patch.
     Rectangle<int> getBounds() const;
 
-    void* createGraph(int x, int y, String const& name, int size, int drawMode, bool saveContents, std::pair<float, float> range);
-    void* createGraphOnParent(int x, int y);
+    t_gobj* createObject(int x, int y, String const& name);
+    t_gobj* renameObject(t_object* obj, String const& name);
 
-    void* createObject(int x, int y, String const& name);
-    void removeObject(void* obj);
-    void* renameObject(void* obj, String const& name);
+    void moveObjects(std::vector<t_gobj*> const&, int x, int y);
 
-    void moveObjects(std::vector<void*> const&, int x, int y);
-
-    void moveObjectTo(void* object, int x, int y);
+    void moveObjectTo(t_gobj* object, int x, int y);
 
     void finishRemove();
-    void removeSelection();
+    void removeObjects(std::vector<t_gobj*> const& objects);
 
-    void selectObject(void*);
     void deselectAll();
 
     bool isSubpatch();
@@ -64,9 +59,9 @@ public:
 
     t_glist* getRoot();
 
-    void copy();
+    void copy(std::vector<t_gobj*> const& objects);
     void paste(Point<int> position);
-    void duplicate();
+    void duplicate(std::vector<t_gobj*> const& objects);
 
     void startUndoSequence(String const& name);
     void endUndoSequence(String const& name);
@@ -91,15 +86,15 @@ public:
 
     void setCurrentFile(File newFile);
 
-    bool objectWasDeleted(void* ptr) const;
-    bool connectionWasDeleted(void* ptr) const;
+    bool objectWasDeleted(t_gobj* ptr) const;
+    bool connectionWasDeleted(t_outconnect* ptr) const;
 
-    bool hasConnection(void* src, int nout, void* sink, int nin);
-    bool canConnect(void* src, int nout, void* sink, int nin);
-    void createConnection(void* src, int nout, void* sink, int nin);
-    void* createAndReturnConnection(void* src, int nout, void* sink, int nin);
-    void removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath);
-    void* setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath);
+    bool hasConnection(t_object* src, int nout, t_object* sink, int nin);
+    bool canConnect(t_object* src, int nout, t_object* sink, int nin);
+    void createConnection(t_object* src, int nout, t_object* sink, int nin);
+    t_outconnect* createAndReturnConnection(t_object* src, int nout, t_object* sink, int nin);
+    void removeConnection(t_object* src, int nout, t_object* sink, int nin, t_symbol* connectionPath);
+    t_outconnect* setConnctionPath(t_object* src, int nout, t_object* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath);
 
     Connections getConnections() const;
 
@@ -109,13 +104,11 @@ public:
     }
 
     // Gets the objects of the patch.
-    std::vector<void*> getObjects();
+    std::vector<t_gobj*> getObjects();
 
     String getCanvasContent();
 
     static void reloadPatch(File const& changedPatch, t_glist* except);
-
-    static t_object* checkObject(void* obj);
 
     String getTitle() const;
     void setTitle(String const& title);
@@ -146,8 +139,9 @@ private:
         { "vradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0" },
         { "cnv", "15 100 60 empty empty empty 20 12 0 14 lnColour lblColour" },
         { "vu", "20 120 empty empty -1 -8 0 10 bgColour lblColour 1 0" },
-        { "floatatom", "5 0 0 0 empty - - 12" },
-        { "listbox", "9 0 0 0 empty - - 0" },
+        { "floatatom", "5 0 0 0 - - - 12" },
+        { "symbolatom", "5 0 0 0 - - - 12" },
+        { "listbox", "9 0 0 0 - - - 0" },
         { "numbox~", "4 15 100 bgColour fgColour 10 0 0 0" },
         { "button", "25 25 bgColour_rgb fgColour_rgb" },
         { "oscope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },

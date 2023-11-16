@@ -12,6 +12,7 @@ arguments:
 - type: float
   description: sets channel number
   default: 0 - OMNI
+
 inlets:
   1st:
   - type: float
@@ -19,25 +20,28 @@ inlets:
   2nd:
   - type: float
     description: MIDI channel
+
 outlets:
   1st:
-  - type: float
-    description: MIDI pitch
+  - type: list
+    description: MIDI pitch and note-on velocity
   2nd:
-  - type: float
-    description: MIDI velocity
-  3rd:
-  - type: float
-    description: Note on/off flag (if -rel flag is given)
-  4th:
-  - type: float
-    description: Rightmost outlet is MIDI channel
+  - type: list
+    description: MIDI pitch and note-off velocity
 
 flags:
 - name: -rel
   description: sets the object to output release velocity and note on/off flag
+- name: -ext
+  description: only listen to external input source
+- name: -both
+  description: sets the object to output both note on and off velocity
+
+methods:
+- type: ext <float>
+  description: nonzero sets to listen only to external input source
 
 draft: false
 ---
 
-[note.in] extracts MIDI Pitch information from raw MIDI input (such as from [midiin]).
+[note.in] extracts MIDI Pitch information from external "raw" MIDI data or an internally connected device. It deals with both NoteOn and NoteOff messages (with release velocity).

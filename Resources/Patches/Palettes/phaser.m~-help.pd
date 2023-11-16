@@ -1,0 +1,11 @@
+#N canvas 484 25 527 432 12;
+#X obj 42 317 out~;
+#X obj 42 67 bl.saw~ 55;
+#X obj 347 227 phaser~;
+#X text 291 168 This is just a wrapper around [phaser~] from ELSE \, check it out., f 22;
+#X obj 42 108 phaser.m~;
+#A saved 0.1 3 0.5;
+#X obj 368 333 about;
+#X text 308 333 see -->;
+#X connect 1 0 4 0;
+#X connect 4 0 0 0;

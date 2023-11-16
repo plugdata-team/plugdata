@@ -15,6 +15,8 @@ struct OSUtils {
         /* QWERTZ */
     };
 
+    static unsigned int keycodeToHID(unsigned int scancode);
+
 #if defined(_WIN32) || defined(_WIN64)
     static void createJunction(std::string from, std::string to);
     static void createHardLink(std::string from, std::string to);
@@ -22,7 +24,7 @@ struct OSUtils {
 #elif defined(__unix__) && !defined(__APPLE__)
     static void maximiseX11Window(void* handle, bool shouldBeMaximised);
     static bool isX11WindowMaximised(void* handle);
-    static void hostManagedX11WindowMove(juce::Component* handle, const juce::Rectangle<int>& bounds);
+    static void updateX11Constraints(void* handle);
 #elif JUCE_MAC
     static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
     static void HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);

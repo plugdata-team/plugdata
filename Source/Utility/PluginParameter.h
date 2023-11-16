@@ -20,15 +20,16 @@ public:
     PluginProcessor& processor;
 
     PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled, int idx, float minimum, float maximum)
-        : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, defaultName)
-        , range(minimum, maximum, 0.000001f)
-        , defaultValue(def)
+        : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, AudioProcessorParameterWithIDAttributes())
         , processor(*p)
-        , enabled(enabled)
-        , name(defaultName)
+        , defaultValue(def)
         , index(idx)
+        , range(minimum, maximum, 0.000001f)
+        , name(defaultName)
+        , enabled(enabled)
         , mode(Float)
     {
+       
         value = range.convertFrom0to1(getDefaultValue());
     }
 
@@ -69,7 +70,8 @@ public:
             setValue(std::floor(getValue()));
         }
 
-        if(notify) notifyDAW();
+        if (notify)
+            notifyDAW();
     }
 
     // Reports whether the current DAW/format can deal with dynamic
@@ -237,7 +239,7 @@ public:
             float min = 0.0f, max = 1.0f;
             bool enabled = true;
             int index = i;
-            Mode mode;
+            Mode mode = Float;
 
             // Check for these values, they may not be there in legacy versions
             if (xmlParam->hasAttribute("name")) {
@@ -258,7 +260,7 @@ public:
             if (xmlParam->hasAttribute("mode")) {
                 mode = static_cast<Mode>(xmlParam->getIntAttribute("mode"));
             }
-            
+
             param->setRange(min, max);
             param->setName(name);
             param->setIndex(index);

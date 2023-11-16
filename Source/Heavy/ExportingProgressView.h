@@ -58,13 +58,10 @@ public:
             showState(Busy);
             userInteractionWait.signal();
         };
-        
-        continueButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
 
         console.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         console.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-        
-        
+
         console.setScrollbarsShown(true);
         console.setMultiLine(true);
         console.setReadOnly(true);
@@ -144,7 +141,7 @@ public:
             MessageManager::callAsync([_this = SafePointer(this), text]() {
                 if (!_this)
                     return;
-                
+
                 _this->console.setText(_this->console.getText() + text);
                 _this->console.moveCaretToEnd();
                 _this->console.setScrollToShowCursor(true);
@@ -171,10 +168,10 @@ public:
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawRoundedRectangle(console.getBounds().expanded(2).toFloat(), Corners::defaultCornerRadius, 1.0f);
-        
+
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRoundedRectangle(console.getBounds().expanded(2).toFloat(), Corners::defaultCornerRadius);
-        
+
         // TODO: use panel colour IDs?
         if (state == Busy) {
             Fonts::drawStyledText(g, "Exporting...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);

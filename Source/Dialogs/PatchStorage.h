@@ -4,9 +4,9 @@ class OnlineImage : public Component
     , private AsyncUpdater {
 public:
     OnlineImage(bool roundedTop, bool roundedBottom)
-        : roundTop(roundedTop)
+        : ThreadPoolJob("Image download job")
+        , roundTop(roundedTop)
         , roundBottom(roundedBottom)
-        , ThreadPoolJob("Image download job")
     {
         spinner.setSize(50, 50);
         spinner.setCentrePosition(getWidth() / 2, getHeight() / 2);
@@ -86,7 +86,6 @@ private:
         if (imageURL.isWellFormed()) {
             MemoryBlock block;
             // Load the image data from the URL
-            auto inputStream = imageURL.readEntireBinaryStream(block);
             MemoryInputStream memstream(block, false);
 
             downloadedImage = ImageFileFormat::loadFrom(block.getData(), block.getSize());
@@ -209,7 +208,6 @@ public:
 
         MemoryBlock block;
         // Load the image data from the URL
-        auto inputStream = fullInfoUrl.readEntireBinaryStream(block);
         MemoryInputStream memstream(block, false);
 
         var patchObject = JSON::parse(memstream);
@@ -353,9 +351,9 @@ public:
 class PatchDisplay : public Component {
 public:
     PatchDisplay(PatchInfo const& patchInfo, std::function<void(PatchInfo const&)> clickCallback)
-        : info(patchInfo)
+        : image(true, false)
         , callback(clickCallback)
-        , image(true, false)
+        , info(patchInfo)
     {
         image.setImageURL(patchInfo.artwork_url);
         addAndMakeVisible(image);
@@ -565,11 +563,10 @@ struct PatchStorage : public Component
     BouncingViewport contentViewport;
     PatchFullDisplay patchFullDisplay;
 
-    TextButton backButton = TextButton(Icons::Back);
-    TextButton refreshButton = TextButton(Icons::Refresh);
+    MainToolbarButton backButton = MainToolbarButton(Icons::Back);
+    MainToolbarButton refreshButton = MainToolbarButton(Icons::Refresh);
 
-    TextButton clearButton = TextButton(Icons::ClearText);
-    TextEditor input;
+    SearchEditor input;
 
     Spinner spinner;
 
@@ -593,7 +590,6 @@ public:
             backButton.setVisible(true);
             refreshButton.setVisible(false);
             input.setVisible(false);
-            clearButton.setVisible(false);
         };
 
         addChildComponent(backButton);
@@ -603,15 +599,12 @@ public:
             backButton.setVisible(false);
             refreshButton.setVisible(true);
             input.setVisible(true);
-            clearButton.setVisible(true);
         };
 
         backButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         backButton.setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
-        backButton.getProperties().set("Style", "LargeIcon");
 
         refreshButton.setTooltip("Refresh packages");
-        refreshButton.getProperties().set("Style", "LargeIcon");
         refreshButton.setEnabled(false);
         addAndMakeVisible(refreshButton);
         refreshButton.onClick = [this]() {
@@ -622,25 +615,14 @@ public:
             });
         };
 
-        input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
+        input.setTextToShowWhenEmpty("Type to search for patches", findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 1, 23, 3, 1 });
-        input.getProperties().set("NoOutline", true);
         input.onTextChange = [this]() {
             patchContainer.filterPatches(input.getText());
         };
         addAndMakeVisible(input);
-
-        clearButton.getProperties().set("Style", "SmallIcon");
-        clearButton.setAlwaysOnTop(true);
-        clearButton.onClick = [this]() {
-            input.clear();
-            grabKeyboardFocus(); // steal focus from text editor
-            input.repaint();
-            patchContainer.filterPatches("");
-        };
-        addAndMakeVisible(clearButton);
         addChildComponent(spinner);
     }
 
@@ -661,9 +643,6 @@ public:
         if (input.isVisible()) {
             Fonts::drawIcon(g, Icons::Search, 0, 40, 30, findColour(PlugDataColour::panelTextColourId), 12);
 
-            if (input.getText().isEmpty()) {
-                Fonts::drawFittedText(g, "Type to search for patches", 30, 40, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
-            }
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.drawLine(0, 70, getWidth(), 70);
         }
@@ -694,7 +673,6 @@ public:
 
         auto inputBounds = b.removeFromTop(28);
         input.setBounds(inputBounds);
-        clearButton.setBounds(inputBounds.removeFromRight(32));
 
         contentViewport.setBounds(b);
 

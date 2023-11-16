@@ -1,5 +1,4 @@
 #pragma clang diagnostic push
-#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 /*
  // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -7,7 +6,7 @@
  */
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "../Constants.h"
+#include "Constants.h"
 
 struct Toolchain {
 #if JUCE_WINDOWS
@@ -86,67 +85,16 @@ private:
     inline static Array<File> tempFilesToDelete;
 };
 
-struct ToolchainInstaller : public Component
+class ToolchainInstaller : public Component
     , public Thread
     , public Timer {
-    struct InstallButton : public Component {
-
-#if JUCE_WINDOWS
-        String downloadSize = "720 MB";
-#elif JUCE_MAC
-        String downloadSize = "650 MB";
-#else
-        String downloadSize = "1.45 GB";
-#endif
-        String iconText = Icons::SaveAs;
-        String topText = "Download Toolchain";
-        String bottomText = "Download compilation utilities (" + downloadSize + ")";
-
-        std::function<void(void)> onClick = []() {};
-
-        InstallButton()
-        {
-            setInterceptsMouseClicks(true, false);
-        }
-
-        void paint(Graphics& g) override
-        {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-
-            if (isMouseOver()) {
-                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::defaultCornerRadius);
-            }
-
-            auto colour = findColour(PlugDataColour::panelTextColourId);
-
-            Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24);
-
-            Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
-
-            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
-        }
-
-        void mouseUp(MouseEvent const& e) override
-        {
-            onClick();
-        }
-
-        void mouseEnter(MouseEvent const& e) override
-        {
-            repaint();
-        }
-
-        void mouseExit(MouseEvent const& e) override
-        {
-            repaint();
-        }
-    };
 
     void timerCallback() override
     {
         repaint();
     }
 
+public:
     explicit ToolchainInstaller(PluginEditor* pluginEditor)
         : Thread("Toolchain Install Thread")
         , editor(pluginEditor)
@@ -161,9 +109,10 @@ struct ToolchainInstaller : public Component
             try {
                 auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
                 // Get latest version
-                
+
                 latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
-                if(latestVersion.isEmpty()) throw;
+                if (latestVersion.isEmpty())
+                    throw;
             }
             // Network error, JSON error or empty version string somehow
             catch (...) {
@@ -172,7 +121,7 @@ struct ToolchainInstaller : public Component
                 repaint();
                 return;
             }
-            
+
             String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/v" + latestVersion + "/";
 
 #if JUCE_MAC
@@ -360,7 +309,16 @@ struct ToolchainInstaller : public Component
     bool needsUpdate = false;
     int statusCode;
 
-    InstallButton installButton;
+#if JUCE_WINDOWS
+    String downloadSize = "720 MB";
+#elif JUCE_MAC
+    String downloadSize = "650 MB";
+#else
+    String downloadSize = "1.45 GB";
+#endif
+
+    WelcomePanelButton installButton = WelcomePanelButton(Icons::SaveAs, "Download Toolchain", "Download compilation utilities (" + downloadSize + ")");
+
     std::function<void()> toolchainInstalledCallback;
 
     String errorMessage;

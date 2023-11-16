@@ -1,0 +1,11 @@
+#N canvas 484 25 464 416 12;
+#X obj 42 306 out~;
+#X obj 42 37 bl.saw~ 110;
+#X obj 353 215 chorus~;
+#X text 297 156 This is just a wrapper around [chorus~] from ELSE \, check it out., f 22;
+#X obj 42 90 chorus.m~;
+#A saved 0.1 0 0;
+#X obj 334 325 about;
+#X text 274 325 see -->;
+#X connect 1 0 4 0;
+#X connect 4 0 0 0;

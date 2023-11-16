@@ -21,7 +21,7 @@ class Library;
 class InternalSynth;
 class SettingsFile;
 class StatusbarSource;
-class PlugDataLook;
+struct PlugDataLook;
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance {
@@ -74,7 +74,7 @@ public:
     void addTextToTextEditor(unsigned long ptr, String text) override;
     void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
 
-    void updateConsole() override;
+    void updateConsole(int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
@@ -101,6 +101,8 @@ public:
     void sendParameters();
 
     bool isInPluginMode();
+        
+    Array<PluginEditor*> getEditors() const;
 
     void messageEnqueued() override;
     void performParameterChange(int type, String const& name, float value) override;
@@ -108,10 +110,10 @@ public:
     // Jyg added this
     void fillDataBuffer(std::vector<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
-    XmlElement* m_temp_xml;
+    std::unique_ptr<XmlElement> extraData;
 
-    pd::Patch::Ptr loadPatch(String patch, int splitIdx = -1);
-    pd::Patch::Ptr loadPatch(File const& patch, int splitIdx = -1);
+    pd::Patch::Ptr loadPatch(String patch, PluginEditor* editor, int splitIndex = 0);
+    pd::Patch::Ptr loadPatch(File const& patch, PluginEditor* editor, int splitIndex = 0);
 
     void titleChanged() override;
 
@@ -160,8 +162,11 @@ public:
     std::unique_ptr<InternalSynth> internalSynth;
     std::atomic<bool> enableInternalSynth = false;
 
+    OwnedArray<PluginEditor> openedEditors;
+        
 private:
     void processInternal();
+
 
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
@@ -175,16 +180,14 @@ private:
     MidiBuffer midiBufferCopy;
     MidiBuffer midiBufferInternalSynth;
 
+    AudioProcessLoadMeasurer cpuLoadMeasurer;
+
     bool midiByteIsSysex = false;
     uint8 midiByteBuffer[512] = { 0 };
     size_t midiByteIndex = 0;
 
     std::vector<pd::Atom> atoms_playhead;
 
-    int minIn = 2;
-    int minOut = 2;
-
-    int lastSplitIndex = -1;
     int lastSetProgram = 0;
 
     Limiter limiter;
@@ -193,7 +196,7 @@ private:
     std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
 
     static inline const String else_version = "ELSE v1.0-rc9";
-    static inline const String cyclone_version = "cyclone v0.7-0";
+    static inline const String cyclone_version = "cyclone v0.8-0";
     // this gets updated with live version data later
     static String pdlua_version;
 

@@ -19,7 +19,7 @@ class PictureObject final : public ObjectBase {
     Image img;
 
 public:
-    PictureObject(void* ptr, Object* object)
+    PictureObject(t_gobj* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         if (auto pic = this->ptr.get<t_fake_pic>()) {
@@ -80,13 +80,13 @@ public:
             latch = pic->x_latch;
             outline = pic->x_outline;
             reportSize = pic->x_size;
-            
+
             auto sndSym = pic->x_snd_set ? String::fromUTF8(pic->x_snd_raw->s_name) : getBinbufSymbol(3);
             auto rcvSym = pic->x_rcv_set ? String::fromUTF8(pic->x_rcv_raw->s_name) : getBinbufSymbol(4);
 
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
-            
+
             sizeProperty = Array<var> { var(pic->x_width), var(pic->x_height) };
         }
 
@@ -186,7 +186,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, pic.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, pic.cast<t_gobj>(), b.getX(), b.getY());
 
             pic->x_width = b.getWidth();
             pic->x_height = b.getHeight();
@@ -201,7 +201,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, pic.cast<t_gobj>(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, pic.cast<t_gobj>(), &x, &y, &w, &h);
             return { x, y, w, h };
         }
 
@@ -238,7 +238,7 @@ public:
             // Get pd's search paths
             char* paths[1024];
             int numItems;
-            libpd_get_search_paths(paths, &numItems);
+            pd::Interface::getSearchPaths(paths, &numItems);
 
             for (int i = 0; i < numItems; i++) {
                 auto file = File(String::fromUTF8(paths[i])).getChildFile(name);

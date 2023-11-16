@@ -20,9 +20,9 @@ class GraphOnParent final : public ObjectBase {
 
 public:
     // Graph On Parent
-    GraphOnParent(void* obj, Object* object)
+    GraphOnParent(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
-        , subpatch(new pd::Patch(obj, cnv->pd, false))
+        , subpatch(new pd::Patch(reinterpret_cast<t_canvas*>(obj), cnv->pd, false))
     {
         resized();
 
@@ -74,7 +74,7 @@ public:
                     return;
 
                 int x = 0, y = 0, w = 0, h = 0;
-                libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+                pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
                 bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
             }
             update();
@@ -131,7 +131,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
             glist->gl_pixwidth = b.getWidth() - 1;
             glist->gl_pixheight = b.getHeight() - 1;
         }
@@ -145,7 +145,7 @@ public:
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(patch, gobj.get(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
             return { x, y, w + 1, h + 1 };
         }
 
@@ -291,7 +291,7 @@ public:
                     _this->cnv->setSelected(_this->object, false);
                     _this->object->cnv->editor->sidebar->hideParameters();
 
-                    _this->object->setType(_this->getText(), _this->ptr.getRaw<void>());
+                    _this->object->setType(_this->getText(), _this->ptr.getRaw<t_gobj>());
                 });
             } else {
                 updateCanvas();

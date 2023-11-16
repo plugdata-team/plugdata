@@ -78,14 +78,15 @@ public:
             return Slider::proportionOfLengthToValue(1.0f - proportion);
         else
             return Slider::proportionOfLengthToValue(proportion);
-    };
+    }
+
     double valueToProportionOfLength(double value) override
     {
         if (isInverted)
             return 1.0f - (Slider::valueToProportionOfLength(value));
         else
             return Slider::valueToProportionOfLength(value);
-    };
+    }
 };
 
 class SliderObject : public ObjectBase {
@@ -104,7 +105,7 @@ class SliderObject : public ObjectBase {
     float value = 0.0f;
 
 public:
-    SliderObject(void* obj, Object* object)
+    SliderObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
         , iemHelper(obj, object, this)
     {
@@ -365,7 +366,7 @@ public:
 
     void setMinimum(float value)
     {
-        float min, max;
+        float min = 0.0f, max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
             ptr.get<t_slider>()->x_min = value;
             min = slider->x_min;
@@ -377,7 +378,7 @@ public:
 
     void setMaximum(float value)
     {
-        float min, max;
+        float min = 0.0f, max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
             ptr.get<t_slider>()->x_max = value;
             min = slider->x_min;

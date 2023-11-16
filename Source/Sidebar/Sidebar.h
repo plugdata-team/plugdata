@@ -5,19 +5,75 @@
  */
 
 #pragma once
-#include "Constants.h"
+#include "LookAndFeel.h"
+#include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 
-struct Console;
-struct Inspector;
-struct DocumentBrowser;
-struct AutomationPanel;
-struct SearchPanel;
-struct PluginProcessor;
+class Console;
+class Inspector;
+class DocumentationBrowser;
+class AutomationPanel;
+class SearchPanel;
+class PluginProcessor;
 
 namespace pd {
-struct Instance;
+class Instance;
 }
+
+class SidebarSelectorButton : public TextButton {
+public:
+    SidebarSelectorButton(String const& icon)
+        : TextButton(icon)
+    {
+    }
+
+    void mouseDown(MouseEvent const& e)
+    {
+        numNotifications = 0;
+        hasWarning = false;
+        TextButton::mouseDown(e);
+    }
+
+    void paint(Graphics& g)
+    {
+        bool active = isMouseOver() || isMouseButtonDown() || getToggleState();
+
+        auto cornerSize = Corners::defaultCornerRadius;
+
+        auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+        auto bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
+
+        g.setColour(backgroundColour);
+        PlugDataLook::fillSmoothedRectangle(g, bounds, cornerSize);
+
+        auto font = Fonts::getIconFont().withHeight(13);
+        g.setFont(font);
+        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+
+        int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
+
+        int const fontHeight = roundToInt(font.getHeight() * 0.6f);
+        int const leftIndent = jmin<int>(fontHeight, 2 + cornerSize / (isConnectedOnLeft() ? 4 : 2));
+        int const rightIndent = jmin<int>(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
+        int const textWidth = getWidth() - leftIndent - rightIndent;
+
+        if (textWidth > 0)
+            g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
+
+        if (numNotifications) {
+            auto notificationBounds = getLocalBounds().removeFromBottom(15).removeFromRight(15).translated(-1, -1);
+            auto bubbleColour = hasWarning ? Colours::orange : findColour(PlugDataColour::toolbarActiveColourId);
+            g.setColour(bubbleColour.withAlpha(0.8f));
+            g.fillEllipse(notificationBounds.toFloat());
+            g.setFont(Font(numNotifications >= 100 ? 8 : 12));
+            g.setColour(bubbleColour.darker(0.6f).contrasting());
+            g.drawText(numNotifications > 99 ? String("99+") : String(numNotifications), notificationBounds, Justification::centred);
+        }
+    }
+
+    bool hasWarning = false;
+    int numNotifications = 0;
+};
 
 class PluginEditor;
 class Sidebar : public Component {
@@ -37,7 +93,7 @@ public:
     void mouseMove(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    void showParameters(String const& name, ObjectParameters& params);
+    void showParameters(String const& name, Array<ObjectParameters>& params);
     void showParameters();
     void hideParameters();
 
@@ -52,7 +108,7 @@ public:
     bool isPinned() const;
 
     void clearConsole();
-    void updateConsole();
+    void updateConsole(int numMessages, bool newWarning);
 
     void tabChanged();
 
@@ -64,19 +120,20 @@ private:
     void updateExtraSettingsButton();
 
     PluginProcessor* pd;
-    ObjectParameters lastParameters;
+    PluginEditor* editor;
+    Array<ObjectParameters> lastParameters;
 
-    TextButton consoleButton = TextButton(Icons::Console);
-    TextButton browserButton = TextButton(Icons::Documentation);
-    TextButton automationButton = TextButton(Icons::Parameters);
-    TextButton searchButton = TextButton(Icons::Search);
+    SidebarSelectorButton consoleButton = SidebarSelectorButton(Icons::Console);
+    SidebarSelectorButton browserButton = SidebarSelectorButton(Icons::Documentation);
+    SidebarSelectorButton automationButton = SidebarSelectorButton(Icons::Parameters);
+    SidebarSelectorButton searchButton = SidebarSelectorButton(Icons::Search);
 
     std::unique_ptr<Component> extraSettingsButton;
-    TextButton panelPinButton = TextButton(Icons::Pin);
+    SmallIconButton panelPinButton = SmallIconButton(Icons::Pin);
 
     std::unique_ptr<Console> console;
     std::unique_ptr<Inspector> inspector;
-    std::unique_ptr<DocumentBrowser> browser;
+    std::unique_ptr<DocumentationBrowser> browser;
     std::unique_ptr<AutomationPanel> automationPanel;
     std::unique_ptr<SearchPanel> searchPanel;
 

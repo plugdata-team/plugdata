@@ -11,13 +11,13 @@
 #include "Utility/Fonts.h"
 #include "Utility/RateReducer.h" // TODO: move to impl
 #include "Utility/ModifierKeyListener.h"
-#include "Utility/CheckedTooltip.h"
+#include "Components/CheckedTooltip.h"
 #include "Utility/StackShadow.h" // TODO: move to impl
-#include "Utility/ZoomableDragAndDropContainer.h"
+#include "Components/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/WindowDragger.h"
 
-#include "SplitView.h" // TODO: move to impl
+#include "Tabbar/SplitView.h" // TODO: move to impl
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
 
@@ -40,21 +40,14 @@ class PluginEditor : public AudioProcessorEditor
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer {
 public:
-    enum ToolbarButtonType {
-        Settings = 0,
-        Undo,
-        Redo,
-        Add,
-        Hide,
-        Pin
-    };
-
     explicit PluginEditor(PluginProcessor&);
 
     ~PluginEditor() override;
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
+
+    bool isActiveWindow() override;
 
     void resized() override;
     void parentSizeChanged() override;
@@ -70,7 +63,8 @@ public:
 
     void addTab(Canvas* cnv, int splitIdx = -1);
     void closeTab(Canvas* cnv);
-    void closeAllTabs(bool quitAfterComplete = false, Canvas* patchToExclude = nullptr);
+    void closeAllTabs(
+        bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = []() {});
 
     void quit(bool askToSave);
 
@@ -90,7 +84,10 @@ public:
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
+    void fileDragMove (const StringArray &files, int x, int y) override;
     void fileDragExit(StringArray const&) override;
+
+    void createNewWindow(TabBarButtonComponent* tabButton) override;
 
     DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos) override;
 
@@ -108,6 +105,8 @@ public:
     void commandKeyChanged(bool isHeld) override;
 
     void setZoomLabelLevel(float value);
+
+    void setUseBorderResizer(bool shouldUse);
 
     TabComponent* getActiveTabbar();
 
@@ -137,20 +136,22 @@ public:
 
     std::unique_ptr<ZoomLabel> zoomLabel;
 
-    ComponentBoundsConstrainer* defaultConstrainer;
     OfflineObjectRenderer offlineRenderer;
+
+    // used to display callOutBoxes only in a safe area between top & bottom toolbars
+    Component callOutSafeArea;
+
+    ComponentBoundsConstrainer constrainer;
+    ComponentBoundsConstrainer& pluginConstrainer;
 
 private:
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 
-    std::unique_ptr<FileChooser> saveChooser;
-    std::unique_ptr<FileChooser> openChooser;
-
     int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
 
-    TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, hideSidebarButton, pluginModeButton;
-    TextButton editButton, runButton, presentButton;
+    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
+    ToolbarRadioButton editButton, runButton, presentButton;
 
     CheckedTooltip tooltipWindow;
 

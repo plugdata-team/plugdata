@@ -100,9 +100,9 @@ public:
                 finish(Result::fail("Failed to start download"));
                 return;
             }
-        };
+        }
 
-        ~DownloadTask()
+        ~DownloadTask() override
         {
             stopThread(-1);
         }
@@ -263,7 +263,6 @@ public:
                 break;
             }
         }
-        
 
 #if JUCE_MAC
         packages.add(PackageInfo("plugdata-ofelia",
@@ -280,7 +279,7 @@ public:
             "Ofelia graphics environment for plugdata",
             "v4.0.0-test4", { "ofelia" }));
 #endif
-        
+
         return packages;
     }
 
@@ -431,33 +430,24 @@ public:
 
         listBox.setModel(this);
 
-        input.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::searchBarColourId));
+        input.setTextToShowWhenEmpty("Type to search for objects or libraries", findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
+        input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
         input.setJustification(Justification::centredLeft);
-        input.setBorder({ 1, 23, 3, 1 });
-        input.getProperties().set("NoOutline", true);
+        input.setBorder({ 0, 3, 5, 1 });
+        input.setEnabled(false);
         input.onTextChange = [this]() {
             filterResults();
-        };
-
-        clearButton.getProperties().set("Style", "SmallIcon");
-        clearButton.setAlwaysOnTop(true);
-        clearButton.onClick = [this]() {
-            input.clear();
-            grabKeyboardFocus(); // steal focus from text editor
-            input.repaint();
-            filterResults();
+            repaint();
         };
 
         updateSpinner.setAlwaysOnTop(true);
 
-        addAndMakeVisible(clearButton);
         addAndMakeVisible(listBox.getViewport());
-        addAndMakeVisible(input);
+        addChildComponent(input);
         addAndMakeVisible(updateSpinner);
 
         refreshButton.setTooltip("Refresh packages");
-        refreshButton.getProperties().set("Style", "LargeIcon");
         addAndMakeVisible(refreshButton);
         refreshButton.onClick = [this]() {
             packageManager->startThread();
@@ -466,15 +456,41 @@ public:
 
         packageManager->addActionListener(this);
 
-        input.setEnabled(false);
         refreshButton.setEnabled(false);
-        clearButton.setEnabled(false);
         input.setText("Updating Packages...");
         updateSpinner.startSpinning();
 
         if (!packageManager->isThreadRunning()) {
             packageManager->startThread();
         }
+
+        searchButton.setClickingTogglesState(true);
+        searchButton.onClick = [this]() {
+            auto isSearching = searchButton.getToggleState();
+            input.setVisible(isSearching);
+            if (isSearching)
+                input.grabKeyboardFocus();
+
+            installedButton.setVisible(!isSearching);
+            exploreButton.setVisible(!isSearching);
+            repaint();
+            filterResults();
+        };
+
+        addAndMakeVisible(searchButton);
+        addAndMakeVisible(installedButton);
+        addAndMakeVisible(exploreButton);
+
+        installedButton.setRadioGroupId(hash("deken_toolbar"));
+        exploreButton.setRadioGroupId(hash("deken_toolbar"));
+
+        installedButton.setToggleState(true, dontSendNotification);
+        installedButton.onClick = [this]() {
+            filterResults();
+        };
+        exploreButton.onClick = [this]() {
+            filterResults();
+        };
 
         filterResults();
     }
@@ -506,7 +522,6 @@ public:
             input.setText("Updating packages...");
             input.setEnabled(false);
             refreshButton.setEnabled(false);
-            clearButton.setEnabled(false);
             updateSpinner.startSpinning();
         } else {
             // Clear text if it was previously disabled
@@ -516,7 +531,6 @@ public:
             }
 
             refreshButton.setEnabled(true);
-            clearButton.setEnabled(true);
             input.setEnabled(true);
             updateSpinner.stopSpinning();
         }
@@ -530,7 +544,7 @@ public:
         auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
 
         Path p;
-        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, true, true, false, false);
+        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillPath(p);
@@ -538,21 +552,17 @@ public:
         if (errorMessage.isNotEmpty()) {
             Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
         }
+
+        if (searchResult.isEmpty()) {
+            auto message = installedButton.getToggleState() ? "No externals installed" : "Couldn't find any externals";
+            Fonts::drawText(g, message, getLocalBounds().withTrimmedTop(40).removeFromTop(32), findColour(PlugDataColour::panelTextColourId), 14, Justification::centred);
+        }
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        Fonts::drawStyledText(g, "Find Externals", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
-
-        Fonts::drawIcon(g, Icons::Search, 0, 40, 30, findColour(PlugDataColour::panelTextColourId), 12);
-
-        if (input.getText().isEmpty()) {
-            Fonts::drawFittedText(g, "Type to search for objects or libraries", 30, 40, getWidth() - 60, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 1, 0.9f, 14);
-        }
-
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 40, getWidth(), 40);
-        g.drawLine(0, 70, getWidth(), 70);
     }
 
     int getNumRows() override
@@ -582,13 +592,14 @@ public:
     void filterResults()
     {
         String query = input.getText();
+        bool isSearching = searchButton.getToggleState();
 
         PackageList newResult;
 
         searchResult.clear();
 
-        // Show installed packages when query is empty
-        if (query.isEmpty()) {
+        if (installedButton.getToggleState() && !isSearching) {
+
             // make sure installed packages are sorted alphabetically
             PackageSorter::sort(packageManager->packageState);
 
@@ -603,55 +614,54 @@ public:
 
                 auto info = PackageInfo(name, author, timestamp, url, description, version, objects);
 
-                if (!packageManager->getDownloadForPackage(info)) {
-                    newResult.addIfNotAlreadyThere(info);
-                }
+                searchResult.addIfNotAlreadyThere(info);
             }
 
-            searchResult = newResult;
             listBox.updateContent();
-            updateSpinner.stopSpinning();
-
             return;
         }
 
-        auto& allPackages = packageManager->allPackages;
+        PackageList allPackages = packageManager->allPackages;
 
-        // First check for name match
-        for (auto const& result : allPackages) {
-            if (result.name.contains(query)) {
-                newResult.addIfNotAlreadyThere(result);
-            }
-        }
-
-        // Then check for description match
-        for (auto const& result : allPackages) {
-            if (result.description.contains(query)) {
-                newResult.addIfNotAlreadyThere(result);
-            }
-        }
-
-        // Then check for object match
-        for (auto const& result : allPackages) {
-            if (result.objects.contains(query)) {
-                newResult.addIfNotAlreadyThere(result);
-            }
-        }
-
-        // Then check for author match
-        for (auto const& result : allPackages) {
-            if (result.author.contains(query)) {
-                newResult.addIfNotAlreadyThere(result);
-            }
-        }
-
-        // Then check for object close match
-        for (auto const& result : allPackages) {
-            for (auto const& obj : result.objects) {
-                if (obj.contains(query)) {
+        if (isSearching && !query.isEmpty()) {
+            // First check for name match
+            for (auto const& result : allPackages) {
+                if (result.name.contains(query)) {
                     newResult.addIfNotAlreadyThere(result);
                 }
             }
+
+            // Then check for description match
+            for (auto const& result : allPackages) {
+                if (result.description.contains(query)) {
+                    newResult.addIfNotAlreadyThere(result);
+                }
+            }
+
+            // Then check for object match
+            for (auto const& result : allPackages) {
+                if (result.objects.contains(query)) {
+                    newResult.addIfNotAlreadyThere(result);
+                }
+            }
+
+            // Then check for author match
+            for (auto const& result : allPackages) {
+                if (result.author.contains(query)) {
+                    newResult.addIfNotAlreadyThere(result);
+                }
+            }
+
+            // Then check for object close match
+            for (auto const& result : allPackages) {
+                for (auto const& obj : result.objects) {
+                    if (obj.contains(query)) {
+                        newResult.addIfNotAlreadyThere(result);
+                    }
+                }
+            }
+        } else if (!isSearching) {
+            newResult = allPackages;
         }
 
         // Downloads are already always visible, so filter them out here
@@ -670,18 +680,20 @@ public:
 
     void resized() override
     {
+        input.setBounds(getLocalBounds().removeFromTop(40).withTrimmedLeft(46).reduced(42, 5));
+
         auto bounds = getLocalBounds().withTrimmedTop(40);
-        auto inputBounds = bounds.removeFromTop(28);
 
-        input.setBounds(inputBounds);
-
-        clearButton.setBounds(inputBounds.removeFromRight(32));
-        updateSpinner.setBounds(inputBounds.removeFromRight(30));
+        updateSpinner.setBounds(input.getBounds().removeFromRight(30));
 
         listBox.setBounds(getLocalBounds().withHeight(listBox.getHeight()));
         listBox.getViewport()->setBounds(bounds);
 
-        refreshButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40).translated(2, 0));
+        refreshButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40).translated(2, 0).reduced(1));
+        searchButton.setBounds(getLocalBounds().removeFromTop(40).removeFromLeft(40).translated(42, 0).reduced(1));
+
+        installedButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(105, 36).translated(-54, 0));
+        exploreButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(105, 36).translated(54, 0));
     }
 
     // Show error message in statusbar
@@ -720,9 +732,9 @@ private:
         {
             listBox.updateContent();
 
-            auto* model = listBox.getModel();
+            auto* model = listBox.getListBoxModel();
             auto height = model ? model->getNumRows() * listBox.getRowHeight() : viewport.getParentComponent()->getHeight();
-            listBox.setBounds(getLocalBounds().reduced(10, 18).withHeight(height));
+            listBox.setBounds(getLocalBounds().reduced(20, 18).withHeight(height));
             setSize(getWidth(), height + 26);
         }
 
@@ -733,12 +745,12 @@ private:
 
         void paint(Graphics& g) override
         {
-            auto* model = listBox.getModel();
+            auto* model = listBox.getListBoxModel();
             if (!model || !model->getNumRows())
                 return;
 
             auto bounds = getLocalBounds();
-            auto margin = 20;
+            auto margin = 30;
 
             auto shadowY = 20;
             auto shadowX = bounds.getX() + margin;
@@ -763,12 +775,15 @@ private:
     // Current search result
     PackageList searchResult;
 
-    TextButton refreshButton = TextButton(Icons::Refresh);
+    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
+    MainToolbarButton refreshButton = MainToolbarButton(Icons::Refresh);
+
+    SettingsToolbarButton installedButton = SettingsToolbarButton(Icons::Checkmark, "Installed");
+    SettingsToolbarButton exploreButton = SettingsToolbarButton(Icons::Sparkle, "Explore");
 
     PackageManager* packageManager = PackageManager::getInstance();
 
-    TextEditor input;
-    TextButton clearButton = TextButton(Icons::ClearText);
+    SearchEditor input;
 
     Spinner updateSpinner;
 
@@ -791,26 +806,27 @@ private:
 
         DekenRowComponent(Deken& parent, PackageInfo& info, bool first, bool last)
             : deken(parent)
-            , isFirst(first)
-            , isLast(last)
             , packageInfo(info)
             , packageState(deken.packageManager->packageState)
+            , isFirst(first)
+            , isLast(last)
         {
             addChildComponent(installButton);
             addChildComponent(uninstallButton);
             addChildComponent(addToPathButton);
 
-            installButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
-            uninstallButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
-            addToPathButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelForegroundColourId));
-
-            installButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
-            uninstallButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
-            addToPathButton.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
-
-            installButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
-            uninstallButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
-            addToPathButton.setColour(TextButton::textColourOnId, findColour(PlugDataColour::panelTextColourId));
+            auto backgroundColour = findColour(PlugDataColour::panelForegroundColourId);
+            installButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+            installButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+            installButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            
+            uninstallButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+            uninstallButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+            uninstallButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            
+            addToPathButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+            addToPathButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+            addToPathButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
             installButton.setTooltip("Install package");
             uninstallButton.setTooltip("Uninstall package");
@@ -901,7 +917,7 @@ private:
             Fonts::drawStyledText(g, packageInfo.name, 64, 8, 200, 25, findColour(ComboBox::textColourId), Semibold, 15);
             Fonts::drawIcon(g, Icons::Externals, Rectangle<int>(16, 14, 38, 38), findColour(ComboBox::textColourId));
 
-            Fonts::drawFittedText(g, "Uploaded " + getRelativeTimeDescription(packageInfo.timestamp) + " by " + packageInfo.author, getWidth() - 418, 8, 400, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 13.5f, Justification::centredRight);
+            Fonts::drawFittedText(g, "Uploaded " + getRelativeTimeDescription(packageInfo.timestamp) + " by " + packageInfo.author, getWidth() - 418, 6, 400, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 13.5f, Justification::centredRight);
 
             // draw progressbar
             if (deken.packageManager->getDownloadForPackage(packageInfo)) {

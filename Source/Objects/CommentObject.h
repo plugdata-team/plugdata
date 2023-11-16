@@ -17,7 +17,7 @@ class CommentObject final : public ObjectBase
     int numLines = 1;
 
 public:
-    CommentObject(void* obj, Object* object)
+    CommentObject(t_gobj* obj, Object* object)
         : ObjectBase(obj, object)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
@@ -54,12 +54,12 @@ public:
         }
     }
 
-    void mouseEnter(MouseEvent const& e) override
+    void mouseEnter(MouseEvent const&) override
     {
         repaint();
     }
 
-    void mouseExit(MouseEvent const& e) override
+    void mouseExit(MouseEvent const&) override
     {
         repaint();
     }
@@ -129,7 +129,7 @@ public:
             auto objText = editor ? editor->getText() : objectText;
             auto newNumLines = 0;
 
-            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(patch, obj.get(), objText, 14, newNumLines);
+            auto newBounds = TextObjectHelper::recalculateTextObjectBounds(patch, obj.cast<t_gobj>(), objText, 14, newNumLines);
 
             numLines = newNumLines;
 
@@ -151,7 +151,7 @@ public:
             if (!patch)
                 return;
 
-            libpd_moveobj(patch, gobj.get(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
@@ -192,7 +192,7 @@ public:
             if (!canvas)
                 return;
 
-            libpd_renameobj(canvas, comment.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
+            pd::Interface::renameObject(canvas, comment.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
         }
     }
 
@@ -207,12 +207,12 @@ public:
         locked = isLocked;
     }
 
-    bool canReceiveMouseEvent(int x, int y) override
+    bool canReceiveMouseEvent(int, int) override
     {
         return !locked;
     }
 
-    bool keyPressed(KeyPress const& key, Component* component) override
+    bool keyPressed(KeyPress const& key, Component*) override
     {
         if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
             editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
@@ -251,13 +251,13 @@ public:
         }
     }
 
-    void textEditorReturnKeyPressed(TextEditor& ed) override
+    void textEditorReturnKeyPressed(TextEditor&) override
     {
         cnv->grabKeyboardFocus();
     }
 
     // For resize-while-typing behaviour
-    void textEditorTextChanged(TextEditor& ed) override
+    void textEditorTextChanged(TextEditor&) override
     {
         object->updateBounds();
     }

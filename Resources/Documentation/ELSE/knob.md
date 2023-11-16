@@ -24,8 +24,8 @@ outlets:
 flags:
   - name: -set <float>
     description: sets value (no output)
-  - name: -init <float>
-    description: sets initialization value, no float sets current 
+  - name: -load <float>
+    description: sets load value, no float sets current
     default: 0
   - name: -size <float>
     description: - sets size in pixels 
@@ -73,12 +73,14 @@ flags:
 methods:
   - type: set <float>
     description: sets value (no output)
-  - type: init <float>
-    description: sets initialization value, no float sets current 
+  - type: load <float>
+    description: sets load value, no float sets current
     default: 0
   - type: size <float>
     description: - sets size in pixels 
     default: 50
+  - type: start <float>
+    description: sets arc start value, no float sets current
   - type: arc <float>
     description: - non zero sets to arc drawing mode 
     default: 1

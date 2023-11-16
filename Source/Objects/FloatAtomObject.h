@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "Utility/DraggableNumber.h"
+#include "Components/DraggableNumber.h"
 
 class FloatAtomObject final : public ObjectBase {
 
@@ -18,7 +18,7 @@ class FloatAtomObject final : public ObjectBase {
     float value = 0.0f;
 
 public:
-    FloatAtomObject(void* obj, Object* parent)
+    FloatAtomObject(t_gobj* obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
         , input(false)
@@ -48,8 +48,19 @@ public:
             startEdition();
         };
 
+        input.onTextChange = [this]() {
+            // To resize while typing
+            if (atomHelper.getWidthInChars() == 0) {
+                object->updateBounds();
+            }
+        };
+
         input.onValueChange = [this](float newValue) {
             sendFloatValue(newValue);
+
+            if (atomHelper.getWidthInChars() == 0) {
+                object->updateBounds();
+            }
         };
 
         input.dragEnd = [this]() {
@@ -62,6 +73,7 @@ public:
         atomHelper.addAtomParameters(objectParameters);
 
         input.setResetValue(0.0f);
+        lookAndFeelChanged();
     }
 
     void update() override
@@ -163,7 +175,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds();
+        return atomHelper.getPdBounds(input.getFont().getStringWidth(DraggableNumber::formatNumber(input.getText(true).getDoubleValue())));
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -191,8 +203,7 @@ public:
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto width = ::getValue<int>(sizeProperty);
 
             setParameterExcludingListener(sizeProperty, width);
 
@@ -244,7 +255,7 @@ public:
             auto min = atomHelper.getMinimum();
             auto max = atomHelper.getMaximum();
 
-            if (min != 0 || max != 0) {
+            if (!approximatelyEqual(min, 0.0f) || !approximatelyEqual(max, 0.0f)) {
                 value = std::clamp(atoms[0].getFloat(), min, max);
             } else {
                 value = atoms[0].getFloat();
