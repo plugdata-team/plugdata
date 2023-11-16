@@ -212,6 +212,7 @@ target_link_libraries(juce
         juce::juce_audio_utils
         juce::juce_audio_plugin_client
         juce::juce_dsp
+        juce::juce_cryptography
     PUBLIC
         juce::juce_recommended_lto_flags
         #juce::juce_recommended_warning_flags
