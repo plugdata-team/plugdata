@@ -329,7 +329,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
 
     auto findHelpPatch = [&firstName, &secondName](File const& searchDir) -> File {
         for (const auto& file : OSUtils::iterateDirectory(searchDir, false, true)) {
-            if (file.getFullPathName().endsWith(firstName) || file.getFullPathName().endsWith(secondName)) {
+            if (file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/").endsWith(firstName) || file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/").endsWith(secondName)) {
                 return file;
             }
         }
