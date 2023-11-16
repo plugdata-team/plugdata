@@ -113,6 +113,7 @@ Library::Library(pd::Instance* instance)
     // First, only search vanilla, then search all documentation
     // Lastly, check the deken folder
     helpPaths = { 
+        ProjectInfo::appDataDir.getChildFile("Documentation"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("5.reference"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("9.else"),
         ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("10.cyclone"),
@@ -329,7 +330,8 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
 
     auto findHelpPatch = [&firstName, &secondName](File const& searchDir) -> File {
         for (const auto& file : OSUtils::iterateDirectory(searchDir, false, true)) {
-            if (file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/").endsWith(firstName) || file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/").endsWith(secondName)) {
+            auto pathName = file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/");
+            if (pathName.endsWith(firstName) || pathName.endsWith(secondName)) {
                 return file;
             }
         }
