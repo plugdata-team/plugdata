@@ -95,7 +95,7 @@ cat > ./plugdata.wxs <<-EOL
 							<RemoveFile Id="VST3_FX_ICON" Name="Plugin.ico" On="both"/>
 							<File Id="VST3_FX_DESKTOP" Source="Plugins\VST3\plugdata-fx.vst3\desktop.ini"/>
 							<File Id="VST3_FX_ICON" Source="Plugins\VST3\plugdata-fx.vst3\Plugin.ico"/>
-							<File Id="VST3_MODULEINFO" Source="Plugins\VST3\plugdata-fx.vst3\Contents\Resources\moduleinfo.json"/>
+							<File Id="VST3_FX_MODULEINFO" Source="Plugins\VST3\plugdata-fx.vst3\Contents\Resources\moduleinfo.json"/>
 						</Component>
 					</Directory>
 				</Directory>
