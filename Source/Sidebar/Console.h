@@ -362,8 +362,7 @@ public:
                     auto circleBounds = repeatIndicatorBounds.reduced(2);
                     g.fillRoundedRectangle(circleBounds, circleBounds.getHeight() / 2.0f);
                     
-                    g.setColour(textColour);
-                    Fonts::drawText(g, String(repeats), repeatIndicatorBounds, textColour, 12, Justification::centred);
+                    Fonts::drawText(g, String(repeats), repeatIndicatorBounds, findColour(PlugDataColour::sidebarTextColourId), 12, Justification::centred);
                 }
 
                 // Draw text

@@ -109,7 +109,13 @@ Library::Library(pd::Instance* instance)
     // Paths to search
     // First, only search vanilla, then search all documentation
     // Lastly, check the deken folder
-    helpPaths = { ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("5.reference"), ProjectInfo::appDataDir.getChildFile("Documentation"),
+    helpPaths = { 
+        ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("5.reference"),
+        ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("9.else"),
+        ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("10.cyclone"),
+        ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("11.heavylib"),
+        ProjectInfo::appDataDir.getChildFile("Documentation").getChildFile("13.pdlua"),
+        ProjectInfo::appDataDir.getChildFile("Extra"),
         ProjectInfo::appDataDir.getChildFile("Externals") };
 
     // This is unfortunately necessary to make Windows LV2 turtle dump work
@@ -318,9 +324,9 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";
 
-    auto findHelpPatch = [&firstName, &secondName](File const& searchDir, bool recursive) -> File {
-        for (const auto& file : OSUtils::iterateDirectory(searchDir, recursive, true)) {
-            if (file.getFileName() == firstName || file.getFileName() == secondName) {
+    auto findHelpPatch = [&firstName, &secondName](File const& searchDir) -> File {
+        for (const auto& file : OSUtils::iterateDirectory(searchDir, false, true)) {
+            if (file.getFullPathName().endsWith(firstName) || file.getFullPathName().endsWith(secondName)) {
                 return file;
             }
         }
@@ -332,7 +338,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
         if (!path.exists())
             continue;
 
-        auto file = findHelpPatch(path, true);
+        auto file = findHelpPatch(path);
         if (file.existsAsFile()) {
             return file;
         }
@@ -342,8 +348,8 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile) const
     helpDir = String::fromUTF8(rawHelpDir);
 
     if (helpDir.isNotEmpty() && File(helpDir).exists()) {
-        // Search for files int the patch directory
-        auto file = findHelpPatch(helpDir, true);
+        // Search for files in the patch directory
+        auto file = findHelpPatch(helpDir);
         if (file.existsAsFile()) {
             return file;
         }
