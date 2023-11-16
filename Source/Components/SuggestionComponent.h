@@ -530,7 +530,7 @@ private:
                 if (a == query) {
                     return -1;
                 }
-
+                
                 if (b == query) {
                     return 1;
                 }
@@ -545,11 +545,11 @@ private:
                 }
 
                 // Check if suggestion is equal to query with "." appended
-                if (a.startsWith(query + ".") && b != query && b != (query + "~") && !b.startsWith(query + ".")) {
+                if (a.startsWith(query + ".")) {
                     return -1;
                 }
 
-                if (b.startsWith(query + ".") && a != query && a != (query + "~") && !a.startsWith(query + ".")) {
+                if (b.startsWith(query + ".")) {
                     return 1;
                 }
 

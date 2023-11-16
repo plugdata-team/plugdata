@@ -5,6 +5,7 @@
 */
 
 #include "OfflineObjectRenderer.h"
+#include <juce_cryptography/juce_cryptography.h>
 #include "Constants.h"
 #include "PluginEditor.h"
 
@@ -34,8 +35,30 @@ OfflineObjectRenderer* OfflineObjectRenderer::findParentOfflineObjectRendererFor
     return childComponent != nullptr ? &childComponent->findParentComponentOfClass<PluginEditor>()->offlineRenderer : nullptr;
 }
 
+ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float scale)
+{
+    auto image = patchToTempImage(patch, scale);
+    auto width = image.image.getWidth();
+    auto height = image.image.getHeight();
+    auto output = Image(Image::ARGB, width, height, true);
+
+    Graphics gOutput(output);
+    gOutput.reduceClipRegion(image.image, AffineTransform());
+    gOutput.fillAll(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
+
+    return ImageWithOffset(output, image.offset);
+}
+
+
 ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float scale)
 {
+    static std::unordered_map<String, ImageWithOffset> patchImageCache;
+
+    const auto patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
+    if (patchImageCache.contains(patchSHA256)) {
+        return patchImageCache[patchSHA256];
+    }
+
     pd->setThis();
 
     sys_lock();
@@ -82,18 +105,25 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     Image image(Image::ARGB, totalSize.getWidth() * scale, totalSize.getHeight() * scale, true);
     Graphics g(image);
     g.addTransform(AffineTransform::scale(scale));
-    g.setColour(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+    g.setColour(Colours::white);
     for (auto& rect : objectRects) {
         g.fillRoundedRectangle(rect.toFloat(), 5.0f);
     }
-    // ALEX TODO we shouldn't apply alpha here! Do it in the zoomableDragAndDropContainer
-    image.multiplyAllAlphas(0.3f);
 
-    return ImageWithOffset(image, size);
+    auto output = ImageWithOffset(image, size);
+    patchImageCache.emplace(patchSHA256, output);
+    return output;
 }
 
 bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
 {
+    static std::unordered_map<String, bool> patchValidCache;
+
+    const auto patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
+    if (patchValidCache.contains(patchSHA256)) {
+        return patchValidCache[patchSHA256];
+    }
+
     pd->setThis();
 
     sys_lock();
@@ -115,6 +145,7 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
     pd->muteConsole(false);
     sys_unlock();
 
+    patchValidCache.emplace(patchSHA256, isValid);
     return isValid;
 }
 
@@ -139,6 +170,13 @@ String OfflineObjectRenderer::stripConnections(String const& patch)
 
 std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIolets(String const& patch)
 {
+    static std::unordered_map<String, std::pair<std::vector<bool>, std::vector<bool>>> patchIoletCache;
+
+    const auto patchSHA256 = SHA256(patch.getCharPointer()).toHexString();
+    if (patchIoletCache.contains(patchSHA256)) {
+        return patchIoletCache[patchSHA256];
+    }
+
     std::vector<bool> inlets;
     std::vector<bool> outlets;
     pd->setThis();
@@ -163,5 +201,7 @@ std::pair<std::vector<bool>, std::vector<bool>> OfflineObjectRenderer::countIole
     pd->muteConsole(false);
     sys_unlock();
 
-    return std::make_pair(inlets, outlets);
+    auto output = std::make_pair(inlets, outlets);
+    patchIoletCache.emplace(patchSHA256, output);
+    return output;
 }
