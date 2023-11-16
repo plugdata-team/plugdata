@@ -453,7 +453,7 @@ public:
             garray_arraydialog(garray.get(), name, arrSize, static_cast<float>(flags), 0.0f);
         }
 
-        repaint();
+        object->gui->updateLabel();
     }
     
     void deleteArray()
