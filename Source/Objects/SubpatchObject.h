@@ -12,9 +12,9 @@ class SubpatchObject final : public TextBase {
     bool locked = false;
 
 public:
-    SubpatchObject(t_gobj* obj, Object* object)
+    SubpatchObject(pd::WeakReference obj, Object* object)
         : TextBase(obj, object)
-        , subpatch(new pd::Patch(reinterpret_cast<t_canvas*>(obj), cnv->pd, false))
+        , subpatch(new pd::Patch(obj, cnv->pd, false))
     {
         object->hvccMode.addListener(this);
 
@@ -104,7 +104,7 @@ public:
 
                     _this->cnv->setSelected(object, false);
                     _this->object->cnv->editor->sidebar->hideParameters();
-                    _this->object->setType(_this->getText(), ptr.getRaw<t_gobj>());
+                    _this->object->setType(_this->getText(), ptr);
                 });
             }
 
@@ -162,23 +162,24 @@ public:
             return;
         }
 
-        for (auto* object : patch->getObjects()) {
-            const String type = pd::Interface::getObjectClassName(&object->g_pd);
-
-            if (type == "canvas" || type == "graph") {
-                auto* cnv = reinterpret_cast<t_canvas*>(object);
-                pd::Patch::Ptr subpatch = new pd::Patch(cnv, instance, false);
-
-                char* text = nullptr;
-                int size = 0;
-                pd::Interface::getObjectText(&cnv->gl_obj, &text, &size);
-                auto objName = String::fromUTF8(text, size);
-
-                checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
-                freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-
-            } else if (!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
-                instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
+        for (auto object : patch->getObjects()) {
+            if(auto ptr = object.get<t_pd>()) {
+                const String type = pd::Interface::getObjectClassName(ptr.get());
+                
+                if (type == "canvas" || type == "graph") {
+                    pd::Patch::Ptr subpatch = new pd::Patch(object, instance, false);
+                    
+                    char* text = nullptr;
+                    int size = 0;
+                    pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj, &text, &size);
+                    auto objName = String::fromUTF8(text, size);
+                    
+                    checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
+                    freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
+                    
+                } else if (!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
+                    instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
+                }
             }
         }
     }

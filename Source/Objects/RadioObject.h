@@ -18,7 +18,7 @@ class RadioObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    RadioObject(t_gobj* ptr, Object* object)
+    RadioObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {

@@ -128,7 +128,7 @@ void ImplementationBase::openSubpatch(pd::Patch* subpatch)
 {
     if (auto glist = ptr.get<t_glist>()) {
         if (!subpatch) {
-            subpatch = new pd::Patch(glist.get(), pd, false);
+            subpatch = new pd::Patch(ptr, pd, false);
         }
         
         if (canvas_isabstraction(glist.get())) {

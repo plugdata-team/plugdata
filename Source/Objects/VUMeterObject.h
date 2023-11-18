@@ -10,7 +10,7 @@ class VUMeterObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    VUMeterObject(t_gobj* ptr, Object* object)
+    VUMeterObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {

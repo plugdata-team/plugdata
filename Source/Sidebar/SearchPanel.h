@@ -110,7 +110,7 @@ public:
     {
         int row = listBox.getSelectedRow();
         if (isPositiveAndBelow(row, searchResult.size())) {
-            auto [name, prefix, object, ptr] = searchResult[row];
+            const auto& [name, prefix, object, ptr] = searchResult.getReference(row);
 
             if (object) {
                 highlightSearchTarget(object.getComponent());
@@ -238,7 +238,7 @@ public:
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
 
-        auto const& [name, prefix, object, ptr] = searchResult[rowNumber];
+        auto const& [name, prefix, object, ptr] = searchResult.getReference(rowNumber);
 
         if (!object)
             return;
@@ -293,16 +293,16 @@ public:
         input.grabKeyboardFocus();
     }
 
-    static Array<std::tuple<String, String, SafePointer<Object>, t_gobj*>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, String const& query, Object* topLevelObject = nullptr, String prefix = "")
+    static Array<std::tuple<String, String, SafePointer<Object>, pd::WeakReference>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, String const& query, Object* topLevelObject = nullptr, String prefix = "")
     {
 
         auto* instance = patch.instance;
 
-        Array<std::tuple<String, String, SafePointer<Object>, t_gobj*>> result;
+        Array<std::tuple<String, String, SafePointer<Object>, pd::WeakReference>> result;
 
-        Array<std::pair<t_canvas*, Object*>> subpatches;
+        Array<std::pair<pd::WeakReference, Object*>> subpatches;
 
-        auto addObject = [&query, &result, &prefix](String const& text, Object* object, t_gobj* ptr) {
+        auto addObject = [&query, &result, &prefix](String const& text, Object* object, pd::WeakReference ptr) {
             // Insert in front if the query matches a whole word
             if (text.containsWholeWordIgnoreCase(query)) {
                 result.insert(0, { text, prefix, object, ptr });
@@ -317,25 +317,25 @@ public:
             return false;
         };
 
-        for (auto* object : patch.getObjects()) {
+        for (auto object : patch.getObjects()) {
 
             Object* topLevel = topLevelObject;
             if (topLevelCanvas) {
                 for (auto* obj : topLevelCanvas->objects) {
-                    if (obj->getPointer() == object) {
+                    if (obj->getPointer() == object.getRawUnchecked<t_gobj>()) {
                         topLevel = obj;
                     }
                 }
             }
 
-            auto className = String::fromUTF8(pd::Interface::getObjectClassName(&object->g_pd));
+            auto className = String::fromUTF8(pd::Interface::getObjectClassName(object.getRaw<t_pd>()));
 
             if (className == "canvas" || className == "graph") {
                 // Save them for later, so we can put them at the end of the result
-                subpatches.add({ reinterpret_cast<t_canvas*>(object), topLevel });
+                subpatches.add({ object, topLevel });
             } else {
 
-                bool isGui = !pd::Interface::isTextObject(object);
+                bool isGui = !pd::Interface::isTextObject(object.getRaw<t_gobj>());
 
                 // If it's a gui add the class name
                 if (isGui) {
@@ -343,7 +343,7 @@ public:
 
                 }
                 // If it's a text object, message or comment, add the text
-                else if (auto* checkedObject = pd::Interface::checkObject(&object->g_pd)) {
+                else if (auto* checkedObject = pd::Interface::checkObject(object.getRaw<t_pd>())) {
                     char* objectText;
                     int len;
                     pd::Interface::getObjectText(checkedObject, &objectText, &len);
@@ -356,26 +356,28 @@ public:
         // Search through subpatches
         for (auto& [object, topLevel] : subpatches) {
             auto patch = pd::Patch(object, instance, false);
-
-            char* objectText;
-            int len;
-            pd::Interface::getObjectText(&object->gl_obj, &objectText, &len);
-
-            auto objTextStr = String::fromUTF8(objectText, len);
-
-            addObject(objTextStr, topLevel, &object->gl_obj.te_g);
-
-            freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
-
-            auto tokens = StringArray::fromTokens(objTextStr, false);
-            String newPrefix;
-            if (tokens[0] == "pd") {
-                newPrefix = tokens[0] + " " + tokens[1];
-            } else {
-                newPrefix = tokens[0];
+            
+            if(auto ptr = object.get<t_canvas>()) {
+                char* objectText;
+                int len;
+                pd::Interface::getObjectText(ptr.cast<t_text>(), &objectText, &len);
+                
+                auto objTextStr = String::fromUTF8(objectText, len);
+                
+                addObject(objTextStr, topLevel, object);
+                
+                freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
+                
+                auto tokens = StringArray::fromTokens(objTextStr, false);
+                String newPrefix;
+                if (tokens[0] == "pd") {
+                    newPrefix = tokens[0] + " " + tokens[1];
+                } else {
+                    newPrefix = tokens[0];
+                }
+                
+                result.addArray(searchRecursively(nullptr, patch, query, topLevel, prefix + newPrefix + " -> "));
             }
-
-            result.addArray(searchRecursively(nullptr, patch, query, topLevel, prefix + newPrefix + " -> "));
         }
 
         return result;
@@ -395,7 +397,7 @@ public:
 private:
     ListBox listBox;
 
-    Array<std::tuple<String, String, SafePointer<Object>, t_gobj*>> searchResult;
+    Array<std::tuple<String, String, SafePointer<Object>, pd::WeakReference>> searchResult;
     SearchEditor input;
 
     BouncingViewportAttachment bouncer;

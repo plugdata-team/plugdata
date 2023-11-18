@@ -11,7 +11,7 @@ void garray_arraydialog(t_fake_garray* x, t_symbol* name, t_floatarg fsize, t_fl
 }
 
 
-class GraphicalArray : public Component, public Value::Listener {
+class GraphicalArray : public Component, public Value::Listener, public pd::MessageListener {
 public:
     Object* object;
 
@@ -50,9 +50,16 @@ public:
             // TODO: implement undo/redo for these values!
             value->addListener(this);
         }
+        
+        pd->registerMessageListener(arr.getRawUnchecked<void>(), this);
 
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
+    }
+    
+    ~GraphicalArray()
+    {
+        pd->unregisterMessageListener(arr.getRawUnchecked<void>(), this);
     }
 
     void setArray(void* array)
@@ -171,6 +178,63 @@ public:
             }
             default:
                 break;
+            }
+        }
+    }
+    
+    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    {
+        auto atoms = pd::Atom::fromAtoms(argc, argv);
+        
+        switch(hash(symbol)) {
+            case hash("edit"): {
+                if (atoms.empty()) break;
+                MessageManager::callAsync([_this = SafePointer(this), shouldBeEditable = static_cast<bool>(atoms[0].getFloat())]() {
+                        _this->editable = shouldBeEditable;
+                        _this->setInterceptsMouseClicks(shouldBeEditable, false);
+                });
+                break;
+            }
+            case hash("rename"): {
+                if (atoms.empty()) break;
+                MessageManager::callAsync([_this = SafePointer(this), newName = atoms[0].getSymbol()]() {
+                    if (!_this)
+                        return;
+                    
+                    _this->object->cnv->setSelected(_this->object, false);
+                    _this->object->cnv->editor->sidebar->hideParameters();
+                    _this->name = newName;
+                });
+                
+                break;
+            }
+            case hash("color"): {
+                MessageManager::callAsync([_this = SafePointer(this)] {
+                    if(_this) _this->repaint();
+                });
+                break;
+            }
+            case hash("width"): {
+                MessageManager::callAsync([_this = SafePointer(this)] {
+                    if(_this) _this->repaint();
+                });
+                break;
+            }
+            case hash("style"): {
+                MessageManager::callAsync([_this = SafePointer(this), newDrawMode = static_cast<int>(atoms[0].getFloat())] {
+                    if(_this)
+                    {
+                        _this->drawMode = newDrawMode + 1;
+                        _this->updateSettings();
+                    }
+                });
+                break;
+            }
+            case hash("xpix"): {
+                // TODO: implement ticks
+            }
+            case hash("ypix"): {
+                // TODO: implement ticks
             }
         }
     }
@@ -522,6 +586,7 @@ public:
     int lastIndex = 0;
 
     PluginProcessor* pd;
+    bool editable = true;
 };
 
 
@@ -786,7 +851,7 @@ public:
     Value sizeProperty = SynchronousValue();
     
     // Array component
-    ArrayObject(t_gobj* obj, Object* object)
+    ArrayObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
         reinitialiseGraphs();
@@ -1035,68 +1100,18 @@ public:
     std::vector<hash32> getAllMessages() override
     {
         return {
-            hash("float"),
-            hash("symbol"),
-            hash("list"),
-            hash("edit"),
-            hash("width"),
-            hash("rename"),
-            hash("color"),
-            hash("style"),
-            hash("redraw"),
+            hash("redraw")
         };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        switch (hash(symbol)) {
-        case hash("float"):
-        case hash("symbol"):
-        case hash("list"): {
-            break;
-        }
-        case hash("redraw"): {
+        if(symbol == "redraw")
+        {
             updateGraphs();
             if (dialog) {
                 dialog->updateGraphs();
             }
-            break;
-        }
-        case hash("edit"): {
-            if (!atoms.empty()) {
-                editable = atoms[0].getFloat();
-                setInterceptsMouseClicks(false, editable);
-            }
-        }
-        case hash("rename"): {
-            // When we receive a rename message, recreate the array object
-            MessageManager::callAsync([_this = SafePointer(this)]() {
-                if (!_this)
-                    return;
-
-                _this->cnv->setSelected(_this->object, false);
-                _this->object->cnv->editor->sidebar->hideParameters();
-
-                _this->object->setType(_this->getText(), _this->ptr.getRaw<t_gobj>());
-            });
-
-            break;
-        }
-        case hash("color"): {
-            repaint();
-            break;
-        }
-        case hash("width"): {
-            repaint();
-            break;
-        }
-        case hash("style"): {
-            //drawMode = static_cast<int>(atoms[0].getFloat()) + 1;
-            //updateSettings();
-            break;
-        }
-        default:
-            break;
         }
     }
 
@@ -1104,16 +1119,13 @@ private:
     
     OwnedArray<GraphicalArray> graphs;
     std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
-
-
-    bool editable = true;
 };
 
 class ArrayDefineObject final : public TextBase {
     std::unique_ptr<ArrayEditorDialog> editor = nullptr;
 
 public:
-    ArrayDefineObject(t_gobj* obj, Object* parent)
+    ArrayDefineObject(pd::WeakReference obj, Object* parent)
         : TextBase(obj, parent, true)
     {
     }

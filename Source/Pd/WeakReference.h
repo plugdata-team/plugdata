@@ -20,11 +20,23 @@ struct WeakReference {
     WeakReference(void* p, Instance* instance);
 
     WeakReference(Instance* instance);
+    
+    WeakReference(const WeakReference& toCopy);
 
     ~WeakReference();
 
     WeakReference& operator=(WeakReference const& other);
-
+    
+    bool operator ==(const WeakReference& other) const
+    {
+        return ptr == other.ptr;
+    }
+    
+    bool operator ==(const void* other) const
+    {
+        return ptr == other;
+    }
+    
     void setThis() const;
 
     template<typename T>
@@ -88,6 +100,12 @@ struct WeakReference {
     {
         return reinterpret_cast<T*>(ptr);
     }
+    
+    bool isValid()
+    {
+        return weakRef && ptr != nullptr;
+    }
+
 
 private:
     void* ptr;

@@ -224,6 +224,9 @@ public:
 
             void highlightSearchTarget(void* target)
             {
+                auto* editor = findParentComponentOfClass<PluginEditor>();
+                ScopedLock audioLock(editor->pd->audioLock);
+                
                 t_glist* targetCanvas = nullptr;
                 for (auto* glist = pd_getcanvaslist(); glist; glist = glist->gl_next) {
                     auto* found = findSearchTargetRecursively(glist, target);
@@ -236,7 +239,7 @@ public:
                 
                 if(!targetCanvas) return;
 
-                auto* editor = findParentComponentOfClass<PluginEditor>();
+               
                 for(auto* cnv : getAllCanvases(editor))
                 {
                     if(cnv->patch.getPointer().get() == targetCanvas)
@@ -265,7 +268,7 @@ public:
                     }
                 }
                 
-                auto* patch = new pd::Patch(targetCanvas, editor->pd, false);
+                auto* patch = new pd::Patch(pd::WeakReference(targetCanvas, editor->pd), editor->pd, false);
                 auto* cnv = new Canvas(editor, patch);
                 editor->addTab(cnv);
                 

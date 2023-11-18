@@ -63,7 +63,7 @@ class ObjectBase : public Component
     };
 
 public:
-    ObjectBase(t_gobj* obj, Object* parent);
+    ObjectBase(pd::WeakReference obj, Object* parent);
 
     ~ObjectBase() override;
 
@@ -141,7 +141,7 @@ public:
 
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
 
-    static ObjectBase* createGui(t_gobj* ptr, Object* parent);
+    static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
 
     // Override this to return parameters that will be shown in the inspector
     virtual ObjectParameters getParameters();

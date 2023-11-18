@@ -20,7 +20,7 @@ class FunctionObject final : public ObjectBase {
     Array<Point<float>> points;
 
 public:
-    FunctionObject(t_gobj* ptr, Object* object)
+    FunctionObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
         objectParameters.addParamSize(&sizeProperty);

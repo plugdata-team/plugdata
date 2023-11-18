@@ -218,7 +218,7 @@ class KeyboardObject final : public ObjectBase
     int keyRatio = 5;
 
 public:
-    KeyboardObject(t_gobj* ptr, Object* object)
+    KeyboardObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , keyboard(object, state, MidiKeyboardComponent::horizontalKeyboard)
     {

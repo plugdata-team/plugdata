@@ -28,7 +28,7 @@ class NoteObject final : public ObjectBase {
     bool wasSelectedOnMouseDown = false;
 
 public:
-    NoteObject(t_gobj* obj, Object* object)
+    NoteObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
         locked = getValue<bool>(object->locked);

@@ -638,7 +638,7 @@ Patch::Ptr Instance::openPatch(File const& toOpen)
 
     cnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
 
-    return new Patch(cnv, this, true, toOpen);
+    return new Patch(pd::WeakReference(cnv, this), this, true, toOpen);
 }
 
 void Instance::setThis() const

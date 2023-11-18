@@ -20,7 +20,7 @@ class MessageObject final : public ObjectBase
     bool isLocked = false;
 
 public:
-    MessageObject(t_gobj* obj, Object* parent)
+    MessageObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);

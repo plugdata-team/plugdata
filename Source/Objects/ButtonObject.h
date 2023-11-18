@@ -14,7 +14,7 @@ class ButtonObject : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    ButtonObject(t_gobj* obj, Object* parent)
+    ButtonObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         onConstrainerCreate = [this]() {

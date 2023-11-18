@@ -18,12 +18,12 @@ char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen)
 class IEMHelper {
 
 public:
-    IEMHelper(t_gobj* iemgui, Object* parent, ObjectBase* base)
+    IEMHelper(pd::WeakReference iemgui, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
         , cnv(parent->cnv)
         , pd(parent->cnv->pd)
-        , ptr(iemgui, parent->cnv->pd)
+        , ptr(iemgui)
     {
     }
 

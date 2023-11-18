@@ -925,44 +925,44 @@ public:
 struct ScalarObject final : public ObjectBase {
     OwnedArray<Component> templates;
     
-    ScalarObject(t_gobj* obj, Object* object)
+    ScalarObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
-        cnv->pd->setThis();
 
         // Make object invisible
         object->setVisible(false);
 
-        auto* x = reinterpret_cast<t_scalar*>(obj);
-        auto* templ = template_findbyname(x->sc_template);
-        auto* templatecanvas = template_findcanvas(templ);
-        t_float baseX, baseY;
-        scalar_getbasexy(x, &baseX, &baseY);
-        auto* data = x->sc_vec;
-        for (auto* y = templatecanvas->gl_list; y; y = y->g_next) {
-            t_parentwidgetbehavior const* wb = pd_getparentwidget(&y->g_pd);
-            if (!wb)
-                continue;
-
-            auto name = String::fromUTF8(y->g_pd->c_name->s_name);
-            
-            if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
-                cnv->addAndMakeVisible(templates.add(new DrawableSymbol(x, y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
-            } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
-                cnv->addAndMakeVisible(templates.add(new DrawableCurve(x, y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
-            } else if (name == "plot") {
-                auto* plot = new DrawablePlot(x, y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY));
-                cnv->addAndMakeVisible(templates.add(plot));
-
-                for (auto* subplot : plot->getSubPlots()) {
-                    cnv->addAndMakeVisible(templates.add(subplot));
+        if(auto scalar = obj.get<t_scalar>()) {
+            auto* templ = template_findbyname(scalar->sc_template);
+            auto* templatecanvas = template_findcanvas(templ);
+            t_float baseX, baseY;
+            scalar_getbasexy(scalar.get(), &baseX, &baseY);
+            auto* data = scalar->sc_vec;
+            for (auto* y = templatecanvas->gl_list; y; y = y->g_next) {
+                t_parentwidgetbehavior const* wb = pd_getparentwidget(&y->g_pd);
+                if (!wb)
+                    continue;
+                
+                auto name = String::fromUTF8(y->g_pd->c_name->s_name);
+                
+                if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
+                    cnv->addAndMakeVisible(templates.add(new DrawableSymbol(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
+                } else if (name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
+                    cnv->addAndMakeVisible(templates.add(new DrawableCurve(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY))));
+                } else if (name == "plot") {
+                    auto* plot = new DrawablePlot(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY));
+                    cnv->addAndMakeVisible(templates.add(plot));
+                    
+                    for (auto* subplot : plot->getSubPlots()) {
+                        cnv->addAndMakeVisible(templates.add(subplot));
+                    }
                 }
             }
-        }
-        
-        for(int i = templates.size() - 1; i >= 0; i--)
-        {
-            templates[i]->toBack();
+            
+            for(int i = templates.size() - 1; i >= 0; i--)
+            {
+                templates[i]->toBack();
+            }
         }
         
 
