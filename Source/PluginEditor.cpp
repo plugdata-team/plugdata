@@ -93,7 +93,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         constrainer.setMinimumSize(850, 650);
     }
 
-
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
@@ -264,6 +263,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
         _this->grabKeyboardFocus();
     });
+
+    addChildComponent(&objectManager);
+    objectManager.lookAndFeelChanged();
 }
 
 PluginEditor::~PluginEditor()

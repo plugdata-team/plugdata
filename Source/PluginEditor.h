@@ -21,6 +21,8 @@
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
 
+#include "Utility/ObjectThemeManager.h"
+
 class ConnectionMessageDisplay;
 class Sidebar;
 class Statusbar;
@@ -143,6 +145,9 @@ public:
 
     ComponentBoundsConstrainer constrainer;
     ComponentBoundsConstrainer& pluginConstrainer;
+
+    inline static ObjectThemeManager objectManager;
+    static ObjectThemeManager* getObjectManager() { return &objectManager; };
 
 private:
     // Used by standalone to handle dragging the window
