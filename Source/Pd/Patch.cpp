@@ -12,6 +12,7 @@
 #include "Instance.h"
 #include "Interface.h"
 #include "Objects/ObjectBase.h"
+#include "../PluginEditor.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -203,39 +204,10 @@ std::vector<t_gobj*> Patch::getObjects()
 t_gobj* Patch::createObject(int x, int y, String const& name)
 {
 
-    instance->setThis();
-
     StringArray tokens;
     tokens.addTokens(name, false);
 
-    // See if we have preset parameters for this object
-    // These parameters are designed to make the experience in plugdata better
-    // Mostly larger GUI objects and a different colour scheme
-    if (guiDefaults.find(tokens[0]) != guiDefaults.end()) {
-        auto preset = guiDefaults.at(tokens[0]);
-
-        auto bg = instance->getBackgroundColour();
-        auto fg = instance->getForegroundColour();
-        auto lbl = instance->getTextColour();
-        auto ln = instance->getOutlineColour();
-
-        auto bg_str = bg.toString().substring(2);
-        auto fg_str = fg.toString().substring(2);
-        auto lbl_str = lbl.toString().substring(2);
-        auto ln_str = ln.toString().substring(2);
-
-        preset = preset.replace("bgColour_rgb", String(bg.getRed()) + " " + String(bg.getGreen()) + " " + String(bg.getBlue()));
-        preset = preset.replace("fgColour_rgb", String(fg.getRed()) + " " + String(fg.getGreen()) + " " + String(fg.getBlue()));
-        preset = preset.replace("lblColour_rgb", String(lbl.getRed()) + " " + String(lbl.getGreen()) + " " + String(lbl.getBlue()));
-        preset = preset.replace("lnColour_rgb", String(ln.getRed()) + " " + String(ln.getGreen()) + " " + String(ln.getBlue()));
-
-        preset = preset.replace("bgColour", "#" + bg_str);
-        preset = preset.replace("fgColour", "#" + fg_str);
-        preset = preset.replace("lblColour", "#" + lbl_str);
-        preset = preset.replace("lnColour", "#" + ln_str);
-
-        tokens.addTokens(preset, false);
-    }
+    PluginEditor::getObjectManager()->formatObject(tokens);
 
     if (tokens[0] == "garray") {
         if (auto patch = ptr.get<t_glist>()) {
@@ -317,34 +289,7 @@ t_gobj* Patch::renameObject(t_object* obj, String const& name)
     StringArray tokens;
     tokens.addTokens(name, false);
 
-    // See if we have preset parameters for this object
-    // These parameters are designed to make the experience in plugdata better
-    // Mostly larger GUI objects and a different colour scheme
-    if (guiDefaults.find(tokens[0]) != guiDefaults.end()) {
-        auto preset = guiDefaults.at(tokens[0]);
-
-        auto bg = instance->getBackgroundColour();
-        auto fg = instance->getForegroundColour();
-        auto lbl = instance->getTextColour();
-        auto ln = instance->getOutlineColour();
-
-        auto bg_str = bg.toString().substring(2);
-        auto fg_str = fg.toString().substring(2);
-        auto lbl_str = lbl.toString().substring(2);
-        auto ln_str = ln.toString().substring(2);
-
-        preset = preset.replace("bgColour_rgb", String(bg.getRed()) + " " + String(bg.getGreen()) + " " + String(bg.getBlue()));
-        preset = preset.replace("fgColour_rgb", String(fg.getRed()) + " " + String(fg.getGreen()) + " " + String(fg.getBlue()));
-        preset = preset.replace("lblColour_rgb", String(lbl.getRed()) + " " + String(lbl.getGreen()) + " " + String(lbl.getBlue()));
-        preset = preset.replace("lnColour_rgb", String(ln.getRed()) + " " + String(ln.getGreen()) + " " + String(ln.getBlue()));
-
-        preset = preset.replace("bgColour", "#" + bg_str);
-        preset = preset.replace("fgColour", "#" + fg_str);
-        preset = preset.replace("lblColour", "#" + lbl_str);
-        preset = preset.replace("lnColour", "#" + ln_str);
-
-        tokens.addTokens(preset, false);
-    }
+    PluginEditor::getObjectManager()->formatObject(tokens);
     String newName = tokens.joinIntoString(" ");
 
     if (auto patch = ptr.get<t_glist>()) {

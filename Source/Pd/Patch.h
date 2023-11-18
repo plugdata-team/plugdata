@@ -125,33 +125,6 @@ private:
 
     WeakReference ptr;
 
-    // Initialisation parameters for GUI objects
-    // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters
-    static inline const std::map<String, String> guiDefaults = {
-        { "tgl", "25 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour 0 1" },
-        { "hsl", "128 17 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1" },
-        { "hslider", "128 17 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1" },
-        { "vsl", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1" },
-        { "vslider", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1" },
-        { "bng", "25 250 50 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour" },
-        { "nbx", "4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour lblColour lblColour 0 256" },
-        { "hradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0" },
-        { "vradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0" },
-        { "cnv", "15 100 60 empty empty empty 20 12 0 14 lnColour lblColour" },
-        { "vu", "20 120 empty empty -1 -8 0 10 bgColour lblColour 1 0" },
-        { "floatatom", "5 0 0 0 - - - 12" },
-        { "symbolatom", "5 0 0 0 - - - 12" },
-        { "listbox", "9 0 0 0 - - - 0" },
-        { "numbox~", "4 15 100 bgColour fgColour 10 0 0 0" },
-        { "button", "25 25 bgColour_rgb fgColour_rgb" },
-        { "oscope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
-        { "scope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
-        { "function", "200 100 empty empty 0 1 bgColour_rgb lblColour_rgb 0 0 0 0 0 1000 0" },
-        { "messbox", "180 60 bgColour_rgb lblColour_rgb 0 12" },
-        { "note", "0 14 Inter empty 0 lblColour_rgb 0 bgColour_rgb 0 0 note" },
-        { "knob", "50 0 127 0 0 empty empty bgColour lnColour fgColour 1 0 0 0 1 270 0 0" }
-    };
-
     friend class Instance;
     friend class Gui;
     friend class Object;

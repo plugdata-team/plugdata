@@ -141,7 +141,7 @@ class ObjectsListBox : public ListBox
 
         String getObjectString() override
         {
-            return "#X obj 0 0 " + objectName;
+            return PluginEditor::getObjectManager()->getCompleteFormat(objectName);
         }
 
         String getItemName() const
@@ -256,7 +256,7 @@ public:
 
     String getObjectString() override
     {
-        return "#X obj 0 0 " + objectName;
+        return PluginEditor::getObjectManager()->getCompleteFormat(objectName);
     }
 
     void dismiss(bool shouldFade) override
