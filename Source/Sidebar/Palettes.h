@@ -548,6 +548,9 @@ private:
         if (name == "show_palettes") {
             setVisible(static_cast<bool>(value));
         }
+        if (name == "centre_sidepanel_buttons") {
+            resized();
+        }
     }
 
     bool hitTest(int x, int y) override
@@ -569,7 +572,7 @@ private:
         totalHeight += 46;
         
         Rectangle<int> selectorBounds;
-        if(totalHeight > getHeight())
+        if(totalHeight > getHeight() || !SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons"))
         {
             selectorBounds = getLocalBounds().removeFromLeft(30);
         }
