@@ -47,7 +47,7 @@ set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(plugdata VERSION 0.8.1 LANGUAGES C CXX)
+project(plugdata VERSION 0.8.2 LANGUAGES C CXX)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
   message(STATUS "Disabled sfizz")
@@ -84,7 +84,7 @@ message(STATUS "Packaging resources")
 execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
 
-set(PLUGDATA_VERSION                    "0.8.1")
+set(PLUGDATA_VERSION                    "0.8.2")
 set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
