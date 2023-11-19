@@ -118,12 +118,12 @@ private:
                 StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
             }
 
-            g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+            g.setColour(findColour(parent.panelColour));
             g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
             // Don't draw the outline if the background colour has opacity
             if (parent.drawShadowAndOutline) {
-                g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+                g.setColour(findColour(parent.separatorColour));
                 g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
             }
 
@@ -931,8 +931,8 @@ public:
 
         viewport.addMouseListener(this, true);
 
-        panelColour = findColour(PlugDataColour::panelForegroundColourId);
-        separatorColour = findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f);
+        panelColour = PlugDataColour::panelForegroundColourId;
+        separatorColour = PlugDataColour::toolbarOutlineColourId;
     }
 
     /** Destructor. */
@@ -1023,14 +1023,14 @@ public:
         titleAlignment = newTitleAlignment;
     }
 
-    void setPanelColour(Colour newPanelColour)
+    void setPanelColour(int newPanelColourId)
     {
-        panelColour = newPanelColour;
+        panelColour = newPanelColourId;
     }
 
-    void setSeparatorColour(Colour newSeparatorColour)
+    void setSeparatorColour(int newSeparatorColourId)
     {
-        separatorColour = newSeparatorColour;
+        separatorColour = newSeparatorColourId;
     }
 
     void setDrawShadowAndOutline(bool shouldDrawShadowAndOutline)
@@ -1073,8 +1073,8 @@ public:
     }
 
     TitleAlignment titleAlignment = AlignWithSection;
-    Colour panelColour;
-    Colour separatorColour;
+    int panelColour;
+    int separatorColour;
     bool drawShadowAndOutline = true;
     int titleHeight = 26;
     int contentWidth = 600;

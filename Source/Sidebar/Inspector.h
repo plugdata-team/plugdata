@@ -53,8 +53,8 @@ public:
 
     void lookAndFeelChanged() override
     {
-        panel.setSeparatorColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        panel.setPanelColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+        panel.setSeparatorColour(PlugDataColour::sidebarBackgroundColourId);
+        panel.setPanelColour(PlugDataColour::sidebarActiveBackgroundColourId);
     }
 
     void paint(Graphics& g) override
