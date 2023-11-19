@@ -12,9 +12,6 @@ public:
 
     void lookAndFeelChanged() override
     {
-        static int c = 0;
-        std::cout << c++ << " Look and feel has changed" << std::endl;
-
         bg = findColour(PlugDataColour::guiObjectBackgroundColourId);
         fg = findColour(PlugDataColour::canvasTextColourId);
         lbl = findColour(PlugDataColour::toolbarTextColourId);

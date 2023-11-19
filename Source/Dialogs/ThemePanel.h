@@ -176,6 +176,8 @@ class ThemePanel : public SettingsDialogPanel
 
     std::map<String, std::map<String, Value>> swatches;
 
+    bool updatingTheme = false;
+
     PropertiesPanel::ActionComponent* newButton = nullptr;
     PropertiesPanel::ActionComponent* loadButton = nullptr;
     PropertiesPanel::ActionComponent* saveButton = nullptr;
@@ -225,12 +227,15 @@ public:
         updateSwatches();
     }
 
-    void updateSwatches()
+    void updateSwatches(bool forceUpdate = false)
     {
         panel.clear();
         allPanels.clear();
 
         std::map<String, Array<PropertiesPanelProperty*>> panels;
+
+        if (!forceUpdate)
+            updatingTheme = true;
 
         // Loop over colours
         for (auto const& [colour, colourNames] : PlugDataColourNames) {
@@ -497,10 +502,20 @@ public:
         }
 
         updateThemeNames(primaryThemeSelector->getText(), secondaryThemeSelector->getText());
+
+        if (!forceUpdate)
+            updatingTheme = false;
+
+        panel.repaint();
     }
 
     void valueChanged(Value& v) override
     {
+        // when the theme is updated from theme pannel, each swatch update also triggers a value changed
+        // bypass so as not to spam theme changes
+        if (updatingTheme)
+            return;
+
         if (v.refersToSameSourceAs(fontValue)) {
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
@@ -576,6 +591,6 @@ public:
         SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
 
         pd->setTheme(PlugDataLook::currentTheme);
-        updateSwatches();
+        updateSwatches(true);
     }
 };

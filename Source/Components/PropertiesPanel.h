@@ -106,7 +106,7 @@ private:
             auto titleHeight = title.isEmpty() ? 0 : parent.titleHeight;
             
             if(titleHeight != 0) {
-                Fonts::drawStyledText(g, title, titleX, 0, width - 4, titleHeight, findColour(PropertyComponent::labelTextColourId), Semibold, 14.5f);
+                Fonts::drawStyledText(g, title, titleX, 0, width - 4, titleHeight, findColour(PlugDataColour::panelTextColourId), Semibold, 14.5f);
             }
             
             auto propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
@@ -118,7 +118,7 @@ private:
                 StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
             }
 
-            g.setColour(parent.panelColour);
+            g.setColour(findColour(PlugDataColour::panelForegroundColourId));
             g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
             // Don't draw the outline if the background colour has opacity
@@ -148,7 +148,7 @@ private:
         {
             auto [x, width] = parent.getContentXAndWidth();
 
-            g.setColour(parent.separatorColour);
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
 
             for (int i = 0; i < propertyComponents.size() - 1; i++) {
                 auto y = propertyComponents[i]->getBottom() + padding;
@@ -844,7 +844,6 @@ public:
 
         void paint(Graphics& g) override
         {
-
             PropertiesPanelProperty::paint(g);
 
             g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
