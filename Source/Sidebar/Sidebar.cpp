@@ -307,6 +307,11 @@ bool Sidebar::isPinned() const
     return pinned;
 }
 
+bool Sidebar::isHidden() const
+{
+    return sidebarHidden;
+}
+
 void Sidebar::showParameters(String const& name, Array<ObjectParameters>& params)
 {
     lastParameters = params;

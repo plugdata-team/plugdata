@@ -105,7 +105,9 @@ public:
     void showSidebar(bool show);
 
     void pinSidebar(bool pin);
+    
     bool isPinned() const;
+    bool isHidden() const;
 
     void clearConsole();
     void updateConsole(int numMessages, bool newWarning);

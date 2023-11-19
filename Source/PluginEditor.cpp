@@ -1294,7 +1294,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ToggleSidebar: {
-        // TODO: implement
+        sidebar->showSidebar(sidebar->isHidden());
         return true;
     }
     case CommandIDs::TogglePalettes: {
