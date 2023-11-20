@@ -122,7 +122,7 @@ public:
         auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRect(listboxBounds);
+        g.fillRoundedRectangle(listboxBounds.toFloat(), Corners::windowCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
