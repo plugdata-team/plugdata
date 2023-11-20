@@ -591,7 +591,7 @@ void PluginEditor::fileDragExit(StringArray const&)
 
 void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
 {
-    if (!ProjectInfo::isStandalone)
+    if (!ProjectInfo::isStandalone || !ProjectInfo::canUseSemiTransparentWindows())
         return;
 
     auto* newEditor = new PluginEditor(*pd);
