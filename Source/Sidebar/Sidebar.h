@@ -8,6 +8,7 @@
 #include "LookAndFeel.h"
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
+#include "Utility/SettingsFile.h"
 
 class Console;
 class Inspector;
@@ -76,7 +77,7 @@ public:
 };
 
 class PluginEditor;
-class Sidebar : public Component {
+class Sidebar : public Component, public SettingsFileListener {
 
 public:
     explicit Sidebar(PluginProcessor* instance, PluginEditor* parent);
@@ -98,6 +99,8 @@ public:
     void hideParameters();
 
     bool isShowingBrowser();
+    
+    void propertyChanged(String const& name, var const& value) override;
 
     void showPanel(int panelToShow);
 
@@ -105,7 +108,9 @@ public:
     void showSidebar(bool show);
 
     void pinSidebar(bool pin);
+    
     bool isPinned() const;
+    bool isHidden() const;
 
     void clearConsole();
     void updateConsole(int numMessages, bool newWarning);

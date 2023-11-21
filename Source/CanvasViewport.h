@@ -143,8 +143,15 @@ class CanvasViewport : public Viewport {
 
         bool hitTest(int x, int y) override
         {
-            if (thumbBounds.contains(x, y))
+            Rectangle<float> fullBounds;
+            if (isVertical)
+                fullBounds = thumbBounds.withY(2).withHeight(getHeight() - 4);
+            else
+                fullBounds = thumbBounds.withX(2).withWidth(getWidth() - 4);
+
+            if (fullBounds.contains(x, y))
                 return true;
+
             return false;
         }
 

@@ -26,8 +26,8 @@ public:
         };
 
         objectParameters.addParamSize(&sizeProperty, true);
-        objectParameters.addParamInt("Minimum flash time", cGeneral, &bangInterrupt, 50);
-        objectParameters.addParamInt("Maximum flash time", cGeneral, &bangHold, 250);
+        objectParameters.addParamInt("Min. flash time", cGeneral, &bangInterrupt, 50);
+        objectParameters.addParamInt("Max. flash time", cGeneral, &bangHold, 250);
 
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }

@@ -112,7 +112,7 @@ void Sidebar::paint(Graphics& g)
     g.fillRect(0, 30, getWidth(), getHeight());
 
     auto toolbarColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-    if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
+    if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
         toolbarColour = toolbarColour.brighter(toolbarColour.getBrightness() / 2.5f);
     }
 
@@ -138,12 +138,21 @@ void Sidebar::paintOverChildren(Graphics& g)
     g.drawLine(0, 30, getWidth() - 30, 30);
 }
 
+void Sidebar::propertyChanged(String const& name, var const& value)
+{
+    if (name == "centre_sidepanel_buttons") {
+        resized();
+    }
+}
+
 void Sidebar::resized()
 {
     auto bounds = getLocalBounds();
     auto buttonBarBounds = bounds.removeFromRight(30).reduced(0, 1);
 
-    buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144);
+    if(SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
+        buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144);
+    }
 
     consoleButton.setBounds(buttonBarBounds.removeFromTop(30));
     buttonBarBounds.removeFromTop(8);
@@ -305,6 +314,11 @@ void Sidebar::pinSidebar(bool pin)
 bool Sidebar::isPinned() const
 {
     return pinned;
+}
+
+bool Sidebar::isHidden() const
+{
+    return sidebarHidden;
 }
 
 void Sidebar::showParameters(String const& name, Array<ObjectParameters>& params)

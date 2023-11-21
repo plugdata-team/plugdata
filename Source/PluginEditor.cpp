@@ -93,7 +93,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         constrainer.setMinimumSize(850, 650);
     }
 
-
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
@@ -264,6 +263,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
         _this->grabKeyboardFocus();
     });
+
+    addChildComponent(&objectManager);
+    objectManager.lookAndFeelChanged();
 }
 
 PluginEditor::~PluginEditor()
@@ -320,7 +322,7 @@ void PluginEditor::paint(Graphics& g)
 {
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
-    if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
+    if (ProjectInfo::isStandalone && !isActiveWindow()) {
         baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
     }
 
@@ -589,7 +591,7 @@ void PluginEditor::fileDragExit(StringArray const&)
 
 void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
 {
-    if (!ProjectInfo::isStandalone)
+    if (!ProjectInfo::isStandalone || !ProjectInfo::canUseSemiTransparentWindows())
         return;
 
     auto* newEditor = new PluginEditor(*pd);
@@ -616,7 +618,8 @@ void PluginEditor::createNewWindow(TabBarButtonComponent* tabButton)
 
 bool PluginEditor::isActiveWindow()
 {
-    return !ProjectInfo::isStandalone || (TopLevelWindow::getActiveTopLevelWindow() == getTopLevelComponent());
+    bool isDraggingTab = ZoomableDragAndDropContainer::isDragAndDropActive();
+    return !ProjectInfo::isStandalone || isDraggingTab || (TopLevelWindow::getActiveTopLevelWindow() == getTopLevelComponent());
 }
 
 void PluginEditor::newProject()
@@ -1292,7 +1295,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ToggleSidebar: {
-        // TODO: implement
+        sidebar->showSidebar(sidebar->isHidden());
         return true;
     }
     case CommandIDs::TogglePalettes: {

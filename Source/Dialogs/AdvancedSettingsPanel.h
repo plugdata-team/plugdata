@@ -105,9 +105,12 @@ public:
         defaultZoom.addListener(this);
         otherProperties.add(new PropertiesPanel::EditableComponent<float>("Default zoom %", defaultZoom));
 
-        centerResized = settingsFile->getPropertyAsValue("center_resized_canvas");
-        centerResized.addListener(this);
-        otherProperties.add(new PropertiesPanel::BoolComponent("Center canvas when resized", centerResized, { "No", "Yes" }));
+        centreResized = settingsFile->getPropertyAsValue("centre_resized_canvas");
+        centreResized.addListener(this);
+        otherProperties.add(new PropertiesPanel::BoolComponent("Centre canvas when resized", centreResized, { "No", "Yes" }));
+        
+        centreSidepanelButtons = settingsFile->getPropertyAsValue("centre_sidepanel_buttons");
+        otherProperties.add(new PropertiesPanel::BoolComponent("Centre canvas sidepanel selectors", centreSidepanelButtons, { "No", "Yes" }));
 
         propertiesPanel.addSection("Other", otherProperties);
 
@@ -159,8 +162,9 @@ public:
     Value reloadPatch;
     Value scaleValue;
     Value defaultZoom;
-    Value centerResized;
-
+    Value centreResized;
+    Value centreSidepanelButtons;
+        
     Value showPalettesValue;
     Value autoPatchingValue;
     Value showAllAudioDeviceValues;
