@@ -619,6 +619,7 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
 #endif
 
     dragOperationStarted(dragImageComponent->sourceDetails);
+    TopLevelWindow::getActiveTopLevelWindow()->repaint();
 }
 
 bool ZoomableDragAndDropContainer::isDragAndDropActive() const

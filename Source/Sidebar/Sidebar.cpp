@@ -112,7 +112,7 @@ void Sidebar::paint(Graphics& g)
     g.fillRect(0, 30, getWidth(), getHeight());
 
     auto toolbarColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-    if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
+    if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
         toolbarColour = toolbarColour.brighter(toolbarColour.getBrightness() / 2.5f);
     }
 

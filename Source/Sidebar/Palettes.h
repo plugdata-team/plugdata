@@ -281,7 +281,7 @@ public:
 class PaletteComponent : public Component {
 public:
     PaletteComponent(PluginEditor* e, ValueTree tree)
-        : paletteTree(tree)
+        : editor(e), paletteTree(tree)
     {
         paletteDraggableList = new PaletteDraggableList(e, tree);
 
@@ -327,7 +327,7 @@ public:
     {
         // toolbar bar
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
+        if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
 
@@ -354,6 +354,7 @@ public:
 private:
     PaletteDraggableList* paletteDraggableList;
     ValueTree paletteTree;
+    PluginEditor* editor;
     BouncingViewport viewport;
 
     Label nameLabel;
@@ -389,7 +390,8 @@ public:
     void paint(Graphics& g) override
     {
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
+        auto* editor = findParentComponentOfClass<PluginEditor>();
+        if (ProjectInfo::isStandalone && editor && !editor->isActiveWindow()) {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
 
@@ -700,7 +702,7 @@ private:
         }
 
         auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
-        if (ProjectInfo::isStandalone && !getTopLevelComponent()->hasKeyboardFocus(true)) {
+        if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
         g.setColour(backgroundColour);
