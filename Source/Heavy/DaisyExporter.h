@@ -141,8 +141,6 @@ public:
                         customBoardDefinition = File();
                     }
                 }, true, false, "*.json", "DaisyCustomBoard");
-            } else {
-                customBoardDefinition = File();
             }
         }
 
@@ -158,8 +156,6 @@ public:
                         customLinker = File();
                     }
                 }, true, false, "*.lds", "DaisyCustomLinker");
-            } else {
-                customLinker = File();
             }
         }
     }
