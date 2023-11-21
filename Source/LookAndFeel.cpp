@@ -743,7 +743,7 @@ Button* PlugDataLook::createTabBarExtrasButton()
 
 Font PlugDataLook::getTabButtonFont(TabBarButton&, float height)
 {
-    return Fonts::getCurrentFont().withHeight(13.0f);
+    return Fonts::getCurrentFont().withHeight(13.5f);
 }
 
 void PlugDataLook::drawScrollbar(Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,
