@@ -630,7 +630,8 @@ void Dialogs::showOpenDialog(std::function<void(File&)> callback, bool canSelect
     fileChooser->launchAsync(openChooserFlags,
                              [callback, lastFileId](FileChooser const& fileChooser) {
         auto result = fileChooser.getResult();
-        SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, result);
+        auto lastDir = result.isDirectory() ? result : result.getParentDirectory();
+        SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
         callback(result);
     });
 }
@@ -661,7 +662,7 @@ void Dialogs::showSaveDialog(std::function<void(File&)> callback, const String& 
             auto parentDirectory = result.getParentDirectory();
             if(parentDirectory.exists()) {
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, parentDirectory);
+                callback(result);
             }
-            callback(result);
         });
 }

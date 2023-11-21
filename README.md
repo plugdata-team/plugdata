@@ -76,9 +76,17 @@ You can use externals inside plugdata's plugin version by recompiling the extern
 -  Add your sources to the "externals" target inside Libraries/CMakeLists.txt. Alternatively the source files can be placed inside the Libraries/ELSE/Source folder, as all .c files in that folder will be compiled automatically.
 -  In Libraries/libpd/x_libpd_multi.c, add the setup function for your external. The best place to call your setup function is inside libpd_init_pdlua. libpd_init_else and libpd_init_cyclone will also work, but it has the side-effect that the externals will also be available under the else/* and cyclone/* prefix.
 
+## Corporate sponsors
+<p align="center" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+  <a href="https://gigperformer.com/">
+    <img src="https://github.com/plugdata-team/plugdata/assets/44585538/e0c37c87-05cc-4766-9dc4-a42ddbb8784f">
+  </a>
+  <a href="https://jb.gg/OpenSourceSupport">
+    <img src="https://github.com/plugdata-team/plugdata/assets/44585538/fd9ae433-4913-411f-8ae0-c1a7c5f28c72">
+  </a>
+</p>
 
 ## Credits
-Supported by [Deskew Technologies](https://gigperformer.com)
 - Logo by [Bas de Bruin](https://www.bdebruin.nl/), based on concept by [Joshua A.C. Newman](https://glyphpress.com/talk/) 
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
 - [ELSE](https://github.com/porres/pd-else) by Alexandre Torres Porres
