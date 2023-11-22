@@ -23,14 +23,8 @@ public:
         , owner(ownerPtr)
         , backgroundMargin(margin)
     {
-#if JUCE_IOS
-        addToDesktop(ComponentPeer::windowIsTemporary);
-        setVisible(true);
-        getPeer()->setFullScreen(true);
-#else
         parentComponent->addAndMakeVisible(this);
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
-#endif
 
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
@@ -110,7 +104,9 @@ public:
 
     void parentSizeChanged() override
     {
-        setBounds(getParentComponent()->getLocalBounds());
+        if(auto* parent = getParentComponent()) {
+            setBounds(parent->getLocalBounds());
+        }
     }
 
     void resized() override
