@@ -554,9 +554,14 @@ void Object::resized()
     if (newObjectEditor) {
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
-
+    
+#if JUCE_IOS
+    int ioletSize = 15;
+#else
     int ioletSize = 13;
-    int ioletHitBox = 4;
+#endif
+    
+    int ioletHitBox = 6;
 
     int maxIoletWidth = std::min(((getWidth() - doubleMargin) / std::max(numInputs, 1)) - 4, ((getWidth() - doubleMargin) / std::max(numOutputs, 1)) - 4);
     int maxIoletHeight = (getHeight() / 2.0f) - 3;
@@ -586,7 +591,7 @@ void Object::resized()
         auto const bounds = isInlet ? inletBounds : outletBounds;
 
         if (total == 1 && position == 0) {
-            int xPosition = getWidth() < 40 ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX();
+            int xPosition = getWidth() < 50 ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX();
             iolet->setBounds(xPosition, yPosition, ioletSize, ioletSize);
         } else if (total > 1) {
             float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);

@@ -355,7 +355,8 @@ public:
 };
 #endif
 
-#if JUCE_BSD
+// Dummy implementation for OS where we don't support this yet
+#if JUCE_BSD || JUCE_IOS
 class FileSystemWatcher::Impl
 {
 public:
@@ -372,7 +373,7 @@ public:
 };
 #endif
 
-#if defined JUCE_MAC || defined JUCE_WINDOWS || defined JUCE_LINUX || defined JUCE_BSD
+#if defined JUCE_MAC || defined JUCE_WINDOWS || defined JUCE_LINUX || defined JUCE_BSD || defined JUCE_IOS
 FileSystemWatcher::FileSystemWatcher()
 {
 }

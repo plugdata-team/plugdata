@@ -49,7 +49,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(plugdata VERSION 0.8.2 LANGUAGES C CXX)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+  OR ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS"))
   message(STATUS "Disabled sfizz")
   set(ENABLE_SFIZZ OFF)
 endif()
@@ -296,7 +297,7 @@ juce_add_plugin(plugdata
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdIn
-    FORMATS                     AU VST3 LV2 CLAP
+    FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata"
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
@@ -412,10 +413,15 @@ elseif(APPLE)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 15.0)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
   endif()
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
-  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi  "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
-  target_link_libraries(plugdata PRIVATE "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
-  target_link_libraries(plugdata_fx PRIVATE "-framework Carbon" ${MACOS_COMPAT_LINKER_FLAGS})
+
+  if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+    set(LINK_CARBON "-framework Carbon")
+  endif()
+
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi  ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata PRIVATE ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata_fx PRIVATE ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
 else()
  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData)
 endif()

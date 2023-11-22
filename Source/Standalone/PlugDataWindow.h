@@ -425,7 +425,7 @@ public:
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
         setContentOwned(mainComponent, true);
-
+        
         // Make sure it gets updated on init
         propertyChanged("native_window", settingsTree.getProperty("native_window"));
     }
@@ -434,6 +434,9 @@ public:
     {
         if (name == "native_window") {
             auto nativeWindow = static_cast<bool>(value);
+#if JUCE_IOS
+            nativeWindow = true;
+#endif
 
             auto* editor = mainComponent->getEditor();
             auto* pdEditor = dynamic_cast<PluginEditor*>(editor);

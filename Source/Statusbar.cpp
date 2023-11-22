@@ -772,7 +772,9 @@ void Statusbar::paint(Graphics& g)
     g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
     g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
     g.drawLine(thirdSeparatorPosition, 6.0f, thirdSeparatorPosition, getHeight() - 6.0f);
-    g.drawLine(fourthSeparatorPosition, 6.0f, fourthSeparatorPosition, getHeight() - 6.0f);
+    if(getWidth() > 500) {
+        g.drawLine(fourthSeparatorPosition, 6.0f, fourthSeparatorPosition, getHeight() - 6.0f);
+    }
 }
 
 void Statusbar::resized()
@@ -819,6 +821,10 @@ void Statusbar::resized()
 
     thirdSeparatorPosition = position(5, true) + 2.5f; // Fourth seperator
 
+    // Hide these if there isn't enough space
+    midiBlinker->setVisible(getWidth() > 500);
+    cpuMeter->setVisible(getWidth() > 500);
+        
     midiBlinker->setBounds(position(40, true) - 8, 0, 55, getHeight());
     fourthSeparatorPosition = position(10, true);
     cpuMeter->setBounds(position(48, true), 0, 50, getHeight());

@@ -23,9 +23,14 @@ public:
         , owner(ownerPtr)
         , backgroundMargin(margin)
     {
+#if JUCE_IOS
+        addToDesktop(ComponentPeer::windowIsTemporary);
+        setVisible(true);
+        getPeer()->setFullScreen(true);
+#else
         parentComponent->addAndMakeVisible(this);
-
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
+#endif
 
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
@@ -111,8 +116,12 @@ public:
     void resized() override
     {
         if (viewedComponent) {
+#if JUCE_IOS
+            viewedComponent->setBounds(0, 0, getWidth(), getHeight());
+#else
             viewedComponent->setSize(width, height);
             viewedComponent->setCentrePosition({ getBounds().getCentreX(), getBounds().getCentreY() });
+#endif
         }
 
         if (closeButton) {
@@ -120,7 +129,8 @@ public:
             closeButton->setBounds(closeButtonBounds);
         }
     }
-
+    
+#if !JUCE_IOS
     void mouseDown(MouseEvent const& e) override
     {
         if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
@@ -142,7 +152,7 @@ public:
     {
         dragging = false;
     }
-
+#endif
     
     
     bool keyPressed(KeyPress const& key) override

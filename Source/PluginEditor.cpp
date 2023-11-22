@@ -90,7 +90,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         setUseBorderResizer(true);
     }
     else {
-        constrainer.setMinimumSize(850, 650);
+#if JUCE_IOS
+        constrainer.setMinimumSize(250, 250);
+#endif
     }
 
     mainMenuButton.setButtonText(Icons::Menu);
@@ -149,7 +151,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
              &undoButton,
              &redoButton,
              &addObjectMenuButton,
-             &pluginModeButton,
+#if !JUCE_IOS
+            &pluginModeButton,
+#endif
+
          }) {
         addAndMakeVisible(button);
     }
@@ -218,11 +223,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
     };
 
-    addAndMakeVisible(pluginModeButton);
-
+    
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
+    
     setSize(pd->lastUIWidth, pd->lastUIHeight);
-
+    
     sidebar->toFront(false);
 
     // Make sure existing console messages are processed
@@ -370,6 +375,13 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 void PluginEditor::resized()
 {
     if (pd->isInPluginMode()) return;
+    
+#if JUCE_IOS
+    if(auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
+        window->setFullScreen(true);
+        OSUtils::ScrollTracker::create(window->getPeer());
+    }
+#endif
 
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 30;
     if (!palettes->isVisible())

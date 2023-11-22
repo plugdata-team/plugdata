@@ -626,7 +626,8 @@ void Canvas::moveToWindow(PluginEditor* newEditor)
 void Canvas::mouseDown(MouseEvent const& e)
 {
     PopupMenu::dismissAllActiveMenus();
-
+    
+    
     if (checkPanDragMode())
         return;
 
@@ -1855,6 +1856,10 @@ ObjectParameters& Canvas::getInspectorParameters()
 
 bool Canvas::panningModifierDown()
 {
+#if JUCE_IOS
+    return OSUtils::ScrollTracker::isScrolling();
+#endif
+    
     return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }
 

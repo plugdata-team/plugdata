@@ -67,8 +67,11 @@ SettingsFile* SettingsFile::initialise()
     initialiseThemesTree();
     initialiseOverlayTree();
 
+#if JUCE_IOS
+    Desktop::getInstance().setGlobalScaleFactor(0.8f);
+#else
     Desktop::getInstance().setGlobalScaleFactor(getProperty<float>("global_scale"));
-
+#endif
     saveSettings();
 
     settingsTree.addListener(this);
