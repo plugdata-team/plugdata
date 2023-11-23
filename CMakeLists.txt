@@ -280,7 +280,7 @@ juce_add_gui_app(plugdata_standalone
     BUNDLE_ID                    com.plugdata.plugdata
     )
 else()
-juce_add_plugin(plugdata_app
+juce_add_plugin(plugdata_standalone
     VERSION                     ${PLUGDATA_VERSION}
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
     COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
