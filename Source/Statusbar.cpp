@@ -7,6 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/CircularBuffer.h"
 
 #include "Statusbar.h"
 #include "LookAndFeel.h"
@@ -319,8 +320,8 @@ public:
 class CPUHistoryGraph : public Component
 {
 public:
-    CPUHistoryGraph(Array<float>& history)
-        : historyGraph(history)
+    CPUHistoryGraph(CircularBuffer<float>& history, int length)
+        : historyGraph(history), historyLength(length)
     {
         mappingMode = SettingsFile::getInstance()->getPropertyAsValue("cpu_meter_mapping_mode").getValue();
     }
@@ -342,13 +343,13 @@ public:
 
         auto bottom = bounds.getBottom();
         auto height = bounds.getHeight();
-        auto points = historyGraph.size();
+        auto points = historyLength;
         auto distribute = static_cast<float>(bounds.getWidth()) / points;
         Path graphTopLine;
 
         auto getCPUScaledY = [this, bottom, height](int index) -> float {
             float graphValue;
-            float value = historyGraph[index] * 0.01;
+            float value = historyGraph(index) * 0.01;
             switch(mappingMode) {
             case 1:
                 graphValue = pow(value, 1 / 1.5f);
@@ -394,7 +395,8 @@ public:
     }
 
 private:
-    Array<float>& historyGraph;
+    int historyLength;
+    CircularBuffer<float>& historyGraph;
     Rectangle<int> bounds;
     Path roundedClip;
     int mappingMode;
@@ -405,10 +407,10 @@ private:
 class CPUMeterPopup : public Component
 {
 public:
-    CPUMeterPopup(Array<float>& history, Array<float>& longHistory)
+    CPUMeterPopup(CircularBuffer<float>& history, CircularBuffer<float>& longHistory)
     {
-        cpuGraph = std::make_unique<CPUHistoryGraph>(history);
-        cpuGraphLongHistory = std::make_unique<CPUHistoryGraph>(longHistory);
+        cpuGraph = std::make_unique<CPUHistoryGraph>(history, 200);
+        cpuGraphLongHistory = std::make_unique<CPUHistoryGraph>(longHistory, 300);
         addAndMakeVisible(cpuGraph.get());
         addAndMakeVisible(cpuGraphLongHistory.get());
 
@@ -519,8 +521,6 @@ class CPUMeter : public Component
 public:
     CPUMeter()
     {
-        cpuUsage.resize(200);
-        cpuUsageLongHistory.resize(300); // 5 mins of history
         startTimer(1000);
         setTooltip("CPU usage");
     }
@@ -540,10 +540,9 @@ public:
     void timerCallback() override
     {
         CriticalSection::ScopedLockType lock(cpuMeterMutex);
-        auto lastCpuUsage = cpuUsage.getLast();
+        auto lastCpuUsage = cpuUsage.last();
         cpuUsageToDraw = round(lastCpuUsage);
-        cpuUsageLongHistory.add(lastCpuUsage);
-        cpuUsageLongHistory.remove(0);
+        cpuUsageLongHistory.push(lastCpuUsage);
         updateCPUGraphLong();
         repaint();
     }
@@ -596,9 +595,8 @@ public:
 
     void cpuUsageChanged(float newCpuUsage) override
     {
-        CriticalSection::ScopedLockType lock(cpuMeterMutex);
-        cpuUsage.add(newCpuUsage); // FIXME: we should use a circular buffer instead
-        cpuUsage.remove(0);
+        ScopedLock lock(cpuMeterMutex);
+        cpuUsage.push(newCpuUsage); // FIXME: we should use a circular buffer instead
         updateCPUGraph();
     }
 
@@ -609,8 +607,8 @@ public:
     bool isCallOutBoxActive = false;
     CriticalSection cpuMeterMutex;
 
-    Array<float> cpuUsage;
-    Array<float> cpuUsageLongHistory;
+    CircularBuffer<float> cpuUsage = CircularBuffer<float>(256);
+    CircularBuffer<float> cpuUsageLongHistory = CircularBuffer<float>(512);
     int cpuUsageToDraw = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CPUMeter);
