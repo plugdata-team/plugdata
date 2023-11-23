@@ -266,6 +266,7 @@ file(GLOB plugdata_standalone_sources
     ${SOURCES_DIRECTORY}/Standalone/InternalSynth.h)
 source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
 
+if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 juce_add_gui_app(plugdata_standalone
     PRODUCT_NAME                "plugdata"
     VERSION                     ${PLUGDATA_VERSION}
@@ -278,6 +279,32 @@ juce_add_gui_app(plugdata_standalone
     DOCUMENT_EXTENSIONS          .pd
     BUNDLE_ID                    com.plugdata.plugdata
     )
+else()
+juce_add_plugin(plugdata_app
+    VERSION                     ${PLUGDATA_VERSION}
+    COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
+    COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
+    COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
+    PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
+    ICON_BIG                    ${PLUGDATA_ICON_BIG}
+    MICROPHONE_PERMISSION_ENABLED TRUE
+    HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
+    HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
+    IS_SYNTH                    TRUE
+    NEEDS_MIDI_INPUT            TRUE
+    NEEDS_MIDI_OUTPUT           TRUE
+    IS_MIDI_EFFECT              FALSE
+    EDITOR_WANTS_KEYBOARD_FOCUS TRUE
+    COPY_PLUGIN_AFTER_BUILD     FALSE
+    PLUGIN_MANUFACTURER_CODE    PlDt
+    PLUGIN_CODE                 PdIn
+    FORMATS                     Standalone
+    LV2URI                      https://github.com/timothyschoen/plugdata
+    PRODUCT_NAME                "plugdata"
+    AU_MAIN_TYPE                kAudioUnitType_MusicDevice
+    VST3_CATEGORIES             Instrument
+    VST2_CATEGORY               kPlugCategSynth)
+endif()
 
 juce_add_plugin(plugdata
     VERSION                     ${PLUGDATA_VERSION}
