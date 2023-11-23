@@ -261,4 +261,177 @@ OSUtils::ScrollTracker::~ScrollTracker()
     // TODO: clean up!
 }
 
+
+
+void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback)
+{
+    auto* view = (UIView<CALayerDelegate>*)peer->getNativeHandle();
+    
+    // Find the parent view controller
+    UIViewController *viewController = nil;
+    UIResponder *responder = view;
+    while (responder) {
+        if ([responder isKindOfClass:[UIViewController class]]) {
+            viewController = (UIViewController *)responder;
+            break;
+        }
+        responder = [responder nextResponder];
+    }
+
+    if (viewController) {
+        // Create an alert controller
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Select an Option"
+                                                                             message:nil
+                                                                      preferredStyle:UIAlertControllerStyleActionSheet];
+    
+        UIAlertAction *themeAction = [UIAlertAction actionWithTitle:@"Select Theme..."
+                                                                style:UIAlertActionStyleDefault
+                                                              handler:^(UIAlertAction * _Nonnull action) {
+                                                                  // Create a second UIAlertController for the submenu
+                                                                  UIAlertController *submenu = [UIAlertController alertControllerWithTitle:@"Submenu Options"
+                                                                                                                                  message:nil
+                                                                                                                           preferredStyle:UIAlertControllerStyleActionSheet];
+
+                                                                  // Add actions for the submenu
+                                                                  UIAlertAction *subAction1 = [UIAlertAction actionWithTitle:@"First Theme (Light)"
+                                                                                                                      style:UIAlertActionStyleDefault
+                                                                                                                    handler:^(UIAlertAction * _Nonnull action) {
+                                                                      callback(7);
+                                                                                                                    }];
+
+                                                                  UIAlertAction *subAction2 = [UIAlertAction actionWithTitle:@"Second Theme (dark)"
+                                                                                                                      style:UIAlertActionStyleDefault
+                                                                                                                    handler:^(UIAlertAction * _Nonnull action) {
+                                                                      callback(8);
+                                                                                                                    }];
+
+                                                                UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+                                                                                                                        style:UIAlertActionStyleDefault
+                                                                                                                      handler:^(UIAlertAction * _Nonnull action) {
+                                                                    callback(-1);
+                                                                                                                      }];
+            
+                                                                  [submenu addAction:subAction1];
+                                                                  [submenu addAction:subAction2];
+                                                                  [submenu addAction:cancelAction];
+
+                                                                  // Present the submenu
+                                                                  [viewController presentViewController:submenu animated:YES completion:nil];
+                                                              }];
+
+        
+        UIAlertAction *newPatchAction = [UIAlertAction actionWithTitle:@"New Patch"
+                                                              style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            callback(1);
+                                                            }];
+        UIAlertAction *openPatchAction = [UIAlertAction actionWithTitle:@"Open Patch"
+                                              style:UIAlertActionStyleDefault
+                                            handler:^(UIAlertAction * _Nonnull action) {
+            callback(2);
+                                            }];
+        
+        UIAlertAction *savePatchAction = [UIAlertAction actionWithTitle:@"Save Patch"
+                                                              style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            callback(3);
+                                                            }];
+        
+        UIAlertAction *savePatchAsAction = [UIAlertAction actionWithTitle:@"Save Patch As"
+                                                              style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            callback(4);
+                                                            }];
+        UIAlertAction *settingsAction = [UIAlertAction actionWithTitle:@"Settings"
+                                                              style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            callback(5);
+                                                            }];
+        UIAlertAction *aboutAction = [UIAlertAction actionWithTitle:@"About"
+                                                              style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            callback(6);
+                                                            }];
+        
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+                                                               style:UIAlertActionStyleCancel
+                                                             handler:^(UIAlertAction * _Nonnull action) {
+            callback(-1);
+                                                             }];
+
+        [alertController addAction:newPatchAction];
+        [alertController addAction:openPatchAction];
+        [alertController addAction:savePatchAction];
+        [alertController addAction:savePatchAsAction];
+        [alertController addAction:themeAction];
+        [alertController addAction:settingsAction];
+        [alertController addAction:aboutAction];
+        [alertController addAction:cancelAction];
+    
+        // Present the alert controller using the found view controller
+        [viewController presentViewController:alertController animated:YES completion:nil];
+    }
+    else {
+        NSLog(@"Failed to find a UIViewController to present the UIAlertController.");
+    }
+}
+
+void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer)
+{
+    auto* view = (UIView<CALayerDelegate>*)peer->getNativeHandle();
+    
+    // Find the parent view controller
+    UIViewController *viewController = nil;
+    UIResponder *responder = view;
+    while (responder) {
+        if ([responder isKindOfClass:[UIViewController class]]) {
+            viewController = (UIViewController *)responder;
+            break;
+        }
+        responder = [responder nextResponder];
+    }
+
+    if (viewController) {
+        // Create an alert controller
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Select an Option"
+                                                                             message:nil
+                                                                      preferredStyle:UIAlertControllerStyleActionSheet];
+    
+       
+        UIAlertAction *openAction = [UIAlertAction actionWithTitle:@"Open"
+                                                              style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            //callback(1);
+                                                            }];
+        UIAlertAction *encapsulateAction = [UIAlertAction actionWithTitle:@"Encapsulate"
+                                              style:UIAlertActionStyleDefault
+                                            handler:^(UIAlertAction * _Nonnull action) {
+            //callback(2);
+                                            }];
+        
+        UIAlertAction *propertiesAction = [UIAlertAction actionWithTitle:@"Properties"
+                                                              style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            //callback(3);
+                                                            }];
+        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+                                                              style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            //callback(3);
+                                                            }];
+
+        [alertController addAction:openAction];
+        [alertController addAction:encapsulateAction];
+        [alertController addAction:propertiesAction];
+        [alertController addAction:cancelAction];
+
+        // Present the alert controller using the found view controller
+        [viewController presentViewController:alertController animated:YES completion:nil];
+    }
+    else {
+        NSLog(@"Failed to find a UIViewController to present the UIAlertController.");
+    }
+}
+
+
 #endif

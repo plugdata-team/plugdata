@@ -68,7 +68,7 @@ SettingsFile* SettingsFile::initialise()
     initialiseOverlayTree();
 
 #if JUCE_IOS
-    Desktop::getInstance().setGlobalScaleFactor(0.8f);
+    Desktop::getInstance().setGlobalScaleFactor(0.85f);
 #else
     Desktop::getInstance().setGlobalScaleFactor(getProperty<float>("global_scale"));
 #endif

@@ -80,5 +80,9 @@ struct OSUtils {
         void* observer;
         static inline ScrollTracker* instance = nullptr;
     };
+    
+    static void showMobileMainMenu(juce::ComponentPeer* parent, std::function<void(int)> callback);
+    static void showMobileCanvasMenu(juce::ComponentPeer* parent);
+    
 #endif
 };

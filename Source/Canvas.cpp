@@ -71,6 +71,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     } else {
         isGraph = false;
     }
+    
 
     if (!isGraph) {
         auto* canvasViewport = new CanvasViewport(editor, this);
@@ -799,6 +800,10 @@ void Canvas::mouseUp(MouseEvent const& e)
 void Canvas::updateSidebarSelection()
 {
     auto lassoSelection = getSelectionOfType<Object>();
+    
+#if JUCE_IOS
+    editor->showTouchSelectionHelper(lassoSelection.size() >= 1);
+#endif
 
     if (lassoSelection.size() >= 1) {
         Array<ObjectParameters> allParameters;
@@ -1173,6 +1178,7 @@ void Canvas::removeSelection()
 {
     // Make sure object isn't selected and stop updating gui
     editor->sidebar->hideParameters();
+    editor->showTouchSelectionHelper(false);
 
     // Find selected objects and make them selected in pd
     std::vector<t_gobj*> objects;

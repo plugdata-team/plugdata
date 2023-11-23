@@ -28,6 +28,7 @@
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
 #include "PluginMode.h"
+#include "Components/TouchSelectionHelper.h"
 
 class ZoomLabel : public TextButton
     , public Timer {
@@ -75,6 +76,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , zoomLabel(std::make_unique<ZoomLabel>())
     , offlineRenderer(&p)
     , pluginConstrainer(*getConstrainer())
+    , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
     , tooltipWindow(this, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
@@ -271,6 +273,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addChildComponent(&objectManager);
     objectManager.lookAndFeelChanged();
+    
+#if JUCE_IOS
+    addAndMakeVisible(touchSelectionHelper.get());
+#endif
 }
 
 PluginEditor::~PluginEditor()
@@ -1667,3 +1673,14 @@ void PluginEditor::quit(bool askToSave)
         JUCEApplication::quit();
     }
 }
+
+void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
+{
+    touchSelectionHelper->setVisible(shouldBeShown);
+    if(shouldBeShown)
+    {
+        auto touchHelperBounds = getLocalBounds().removeFromBottom(42).withSizeKeepingCentre(180, 42).translated(0, -46);
+        touchSelectionHelper->setBounds(touchHelperBounds);
+    }
+};
+
