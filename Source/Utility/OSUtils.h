@@ -82,7 +82,7 @@ struct OSUtils {
     };
     
     static void showMobileMainMenu(juce::ComponentPeer* parent, std::function<void(int)> callback);
-    static void showMobileCanvasMenu(juce::ComponentPeer* parent);
+    static void showMobileCanvasMenu(juce::ComponentPeer* parent, std::function<void(int)> callback);
     
 #endif
 };

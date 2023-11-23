@@ -330,7 +330,7 @@ bool Dialog::wantsRoundedCorners() const
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
 {
 #if JUCE_IOS
-    OSUtils::showMobileCanvasMenu(cnv->getPeer());
+    //OSUtils::showMobileCanvasMenu(cnv->getPeer());
     return;
 #endif
     

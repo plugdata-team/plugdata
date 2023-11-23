@@ -115,13 +115,14 @@ public:
 
     void resized() override
     {
-        newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -70));
-        openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -10));
-
         if (getHeight() > 400) {
+            newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -70));
+            openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -10));
             recentlyOpened.setBounds(getLocalBounds().withSizeKeepingCentre(275, 170).translated(0, 110));
             recentlyOpened.setVisible(true);
         } else {
+            newButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, -20));
+            openButton.setBounds(getLocalBounds().withSizeKeepingCentre(275, 50).translated(0, 50));
             recentlyOpened.setVisible(false);
         }
     }
@@ -139,11 +140,12 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto offset = getHeight() > 400 ? 0 : 50;
         g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
 
-        Fonts::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 195, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+        Fonts::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 195 + offset, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
-        Fonts::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 160, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
+        Fonts::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 160 + offset, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
     }
 
     WelcomePanelButton newButton;

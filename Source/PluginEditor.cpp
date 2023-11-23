@@ -1704,7 +1704,7 @@ void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
     touchSelectionHelper->setVisible(shouldBeShown);
     if(shouldBeShown)
     {
-        auto touchHelperBounds = getLocalBounds().removeFromBottom(42).withSizeKeepingCentre(180, 42).translated(0, -46);
+        auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(180, 48).translated(0, -54);
         touchSelectionHelper->setBounds(touchHelperBounds);
     }
 };

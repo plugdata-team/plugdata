@@ -376,7 +376,7 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
     }
 }
 
-void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer)
+void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback)
 {
     auto* view = (UIView<CALayerDelegate>*)peer->getNativeHandle();
     
@@ -397,46 +397,53 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer)
                                                                              message:nil
                                                                       preferredStyle:UIAlertControllerStyleActionSheet];
     
-       
-    
 
         UIAlertAction *cutAction = [UIAlertAction actionWithTitle:@"Cut"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction * _Nonnull action) {
-            //callback(1);
+            callback(1);
                                                             }];
         UIAlertAction *copyAction = [UIAlertAction actionWithTitle:@"Copy"
                                               style:UIAlertActionStyleDefault
                                             handler:^(UIAlertAction * _Nonnull action) {
-            //callback(2);
+            callback(2);
                                             }];
         
         UIAlertAction *pasteAction = [UIAlertAction actionWithTitle:@"Paste"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction * _Nonnull action) {
-            //callback(3);
+            callback(3);
                                                             }];
         
-        
+        UIAlertAction *duplicateAction = [UIAlertAction actionWithTitle:@"Duplicate"
+                                              style:UIAlertActionStyleDefault
+                                            handler:^(UIAlertAction * _Nonnull action) {
+            callback(4);
+                                            }];
         UIAlertAction *encapsulateAction = [UIAlertAction actionWithTitle:@"Encapsulate"
                                               style:UIAlertActionStyleDefault
                                             handler:^(UIAlertAction * _Nonnull action) {
-            //callback(2);
+            callback(5);
                                             }];
-        
+        UIAlertAction *tidyConnectionAction = [UIAlertAction actionWithTitle:@"Tidy Connection"
+                                              style:UIAlertActionStyleDefault
+                                            handler:^(UIAlertAction * _Nonnull action) {
+            callback(6);
+                                            }];
         
         UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
                                                               style:UIAlertActionStyleCancel
                                                             handler:^(UIAlertAction * _Nonnull action) {
-            //callback(3);
+            callback(-1);
                                                             }];
 
         [alertController addAction:cutAction];
         [alertController addAction:copyAction];
         [alertController addAction:pasteAction];
+        [alertController addAction:duplicateAction];
         [alertController addAction:encapsulateAction];
+        [alertController addAction:tidyConnectionAction];
         [alertController addAction:cancelAction];
-
         // Present the alert controller using the found view controller
         [viewController presentViewController:alertController animated:YES completion:nil];
     }
