@@ -113,6 +113,14 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 editor->openedDialog.reset(dialog);
                 break;
             }
+            case 7: {
+                SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[0]);
+                break;
+            }
+            case 8: {
+                SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[1]);
+                break;
+            }
         }
     });
     return;
@@ -321,6 +329,11 @@ bool Dialog::wantsRoundedCorners() const
 
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
 {
+#if JUCE_IOS
+    OSUtils::showMobileCanvasMenu(cnv->getPeer());
+    return;
+#endif
+    
     struct QuickActionsBar : public PopupMenu::CustomComponent {
         struct QuickActionButton : public TextButton {
             QuickActionButton(String buttonText)

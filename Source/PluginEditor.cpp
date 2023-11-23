@@ -1212,6 +1212,19 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         }
         break;
     }
+    case CommandIDs::ShowHelp: {
+        result.setInfo("Open Help", "Open help file", "View", 0);
+        result.addDefaultKeypress(KeyPress::F2Key, ModifierKeys::noModifiers); // f1 to open reference
+
+        if (auto* cnv = getCurrentCanvas()) {
+            auto selection = cnv->getSelectionOfType<Object>();
+            bool enabled = selection.size() == 1 && selection[0]->gui && selection[0]->gui->getType().isNotEmpty();
+            result.setActive(enabled);
+        } else {
+            result.setActive(false);
+        }
+        break;
+    }
     case CommandIDs::OpenObjectBrowser: {
         result.setInfo("Open Object Browser", "Open object browser dialog", "View", 0);
         result.addDefaultKeypress(63, ModifierKeys::shiftModifier); // shift + ? to open object browser
@@ -1543,6 +1556,18 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
             Dialogs::showObjectReferenceDialog(&openedDialog, this, selection[0]->gui->getType());
 
+            return true;
+        }
+
+        return false;
+    }
+    case CommandIDs::ShowHelp: {
+        if (auto* cnv = getCurrentCanvas()) {
+            auto selection = cnv->getSelectionOfType<Object>();
+            if (selection.size() != 1 || !selection[0]->gui || selection[0]->gui->getType().isEmpty()) {
+                return false;
+            }
+            selection[0]->openHelpPatch();
             return true;
         }
 

@@ -280,7 +280,7 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
 
     if (viewController) {
         // Create an alert controller
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Select an Option"
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Main Menu"
                                                                              message:nil
                                                                       preferredStyle:UIAlertControllerStyleActionSheet];
     
@@ -306,7 +306,7 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
                                                                                                                     }];
 
                                                                 UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
-                                                                                                                        style:UIAlertActionStyleDefault
+                                                                                                                        style:UIAlertActionStyleCancel
                                                                                                                       handler:^(UIAlertAction * _Nonnull action) {
                                                                     callback(-1);
                                                                                                                       }];
@@ -398,31 +398,43 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer)
                                                                       preferredStyle:UIAlertControllerStyleActionSheet];
     
        
-        UIAlertAction *openAction = [UIAlertAction actionWithTitle:@"Open"
+    
+
+        UIAlertAction *cutAction = [UIAlertAction actionWithTitle:@"Cut"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction * _Nonnull action) {
             //callback(1);
                                                             }];
+        UIAlertAction *copyAction = [UIAlertAction actionWithTitle:@"Copy"
+                                              style:UIAlertActionStyleDefault
+                                            handler:^(UIAlertAction * _Nonnull action) {
+            //callback(2);
+                                            }];
+        
+        UIAlertAction *pasteAction = [UIAlertAction actionWithTitle:@"Paste"
+                                                              style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            //callback(3);
+                                                            }];
+        
+        
         UIAlertAction *encapsulateAction = [UIAlertAction actionWithTitle:@"Encapsulate"
                                               style:UIAlertActionStyleDefault
                                             handler:^(UIAlertAction * _Nonnull action) {
             //callback(2);
                                             }];
         
-        UIAlertAction *propertiesAction = [UIAlertAction actionWithTitle:@"Properties"
-                                                              style:UIAlertActionStyleDefault
-                                                            handler:^(UIAlertAction * _Nonnull action) {
-            //callback(3);
-                                                            }];
+        
         UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
-                                                              style:UIAlertActionStyleDefault
+                                                              style:UIAlertActionStyleCancel
                                                             handler:^(UIAlertAction * _Nonnull action) {
             //callback(3);
                                                             }];
 
-        [alertController addAction:openAction];
+        [alertController addAction:cutAction];
+        [alertController addAction:copyAction];
+        [alertController addAction:pasteAction];
         [alertController addAction:encapsulateAction];
-        [alertController addAction:propertiesAction];
         [alertController addAction:cancelAction];
 
         // Present the alert controller using the found view controller

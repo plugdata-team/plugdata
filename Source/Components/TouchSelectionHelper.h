@@ -13,39 +13,52 @@
 
 class TouchSelectionHelper : public Component {
 
+    PluginEditor* editor;
 public:
-    TouchSelectionHelper(PluginEditor* editor)
+    TouchSelectionHelper(PluginEditor* e) : editor(e)
     {
-        addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Copy)));
-        addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Paste)));
+        addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::ExportState))); // This icon doubles as a "open" icon in the mobile app
+        addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Info)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Help)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Trash)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::More)));
         
-        actionButtons[0]->onClick = [editor](){
-            ApplicationCommandTarget::InvocationInfo info(CommandIDs::Copy);
-            info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-            editor->ApplicationCommandManager::invoke(info, true);
+        actionButtons[0]->onClick = [this](){
+            auto* cnv = editor->getCurrentCanvas();
+            auto selection = cnv->getSelectionOfType<Object>();
+            if(selection.size() == 1 &&  selection[0]->gui)
+            {
+                selection[0]->gui->openFromMenu();
+            }
         };
-        actionButtons[1]->onClick = [editor](){
-            ApplicationCommandTarget::InvocationInfo info(CommandIDs::Paste);
-            info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-            editor->ApplicationCommandManager::invoke(info, true);
-        };
-        actionButtons[2]->onClick = [editor](){
+        actionButtons[1]->onClick = [this](){
             ApplicationCommandTarget::InvocationInfo info(CommandIDs::ShowReference);
             info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
             editor->ApplicationCommandManager::invoke(info, true);
         };
-        actionButtons[3]->onClick = [editor](){
+        actionButtons[2]->onClick = [this](){
+            ApplicationCommandTarget::InvocationInfo info(CommandIDs::ShowHelp);
+            info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
+            editor->ApplicationCommandManager::invoke(info, true);
+        };
+        actionButtons[3]->onClick = [this](){
             ApplicationCommandTarget::InvocationInfo info(CommandIDs::Delete);
             info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
             editor->ApplicationCommandManager::invoke(info, true);
         };
-        actionButtons[4]->onClick = [editor](){
+        actionButtons[4]->onClick = [this](){
             OSUtils::showMobileCanvasMenu(editor->getPeer());
         };
         
+    }
+    
+    void show()
+    {
+        actionButtons[1]->setEnabled(editor->isCommandActive(CommandIDs::ShowReference));
+        actionButtons[2]->setEnabled(editor->isCommandActive(CommandIDs::ShowHelp));
+        actionButtons[3]->setEnabled(editor->isCommandActive(CommandIDs::Delete));
+        
+        setVisible(true);
     }
     
     void resized() override
