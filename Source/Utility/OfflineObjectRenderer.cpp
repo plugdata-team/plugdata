@@ -35,16 +35,29 @@ OfflineObjectRenderer* OfflineObjectRenderer::findParentOfflineObjectRendererFor
     return childComponent != nullptr ? &childComponent->findParentComponentOfClass<PluginEditor>()->offlineRenderer : nullptr;
 }
 
-ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float scale)
+ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float scale, bool isErrorImage)
 {
     auto image = patchToTempImage(patch, scale);
     auto width = image.image.getWidth();
     auto height = image.image.getHeight();
     auto output = Image(Image::ARGB, width, height, true);
 
-    Graphics gOutput(output);
-    gOutput.reduceClipRegion(image.image, AffineTransform());
-    gOutput.fillAll(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
+    Graphics g(output);
+    g.reduceClipRegion(image.image, AffineTransform());
+    auto backgroundColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
+    g.fillAll(backgroundColour);
+
+    if (isErrorImage) {
+        AffineTransform rotate;
+        rotate = rotate.rotated(juce::MathConstants<float>::pi / 4.0f);
+        g.addTransform(rotate);
+        float diagonalLength = std::sqrt(image.image.getWidth() * image.image.getWidth() + image.image.getHeight() * image.image.getHeight());
+        g.setColour(backgroundColour.darker(3.0f));
+        for (float x = -diagonalLength; x < diagonalLength; x += (20 * 2)) {
+            g.fillRect(x, -diagonalLength, 20.0f, diagonalLength * 2);
+        }
+        g.addTransform(rotate.inverted());
+    }
 
     return ImageWithOffset(output, image.offset);
 }
