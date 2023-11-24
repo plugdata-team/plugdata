@@ -30,6 +30,7 @@ public:
     void resetDragAndDropImage()
     {
         dragImage.image = Image();
+        errorImage.image = Image();
     }
 
     void setIsReordering(bool isReordering)
@@ -48,9 +49,10 @@ public:
             return;
 
         auto scale = 3.0f;
-        if (dragImage.image.isNull()) {
+        if (dragImage.image.isNull() || errorImage.image.isNull()) {
             auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(this);
             dragImage = offlineObjectRenderer->patchToMaskedImage(getObjectString(), scale);
+            errorImage = offlineObjectRenderer->patchToMaskedImage(getObjectString(), scale, true);
         }
 
         dismiss(true);
@@ -59,13 +61,14 @@ public:
         palettePatchWithOffset.add(var(dragImage.offset.getX()));
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(getObjectString()));
-        dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), true, nullptr, nullptr, true);
+        dragContainer->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), ScaledImage(errorImage.image, scale), true, nullptr, nullptr, true);
     }
 
 private:
     bool reordering = false;
     ZoomableDragAndDropContainer* dragContainer = nullptr;
     ImageWithOffset dragImage;
+    ImageWithOffset errorImage;
 };
 
 class ObjectClickAndDrop : public Component
@@ -73,12 +76,15 @@ class ObjectClickAndDrop : public Component
     String objectString;
     PluginEditor* editor;
     Image dragImage;
+    Image dragErrorImage;
     float scale = 0.5f;
     float animatedScale = 0.0f;
     ImageComponent imageComponent;
 
     static inline std::unique_ptr<ObjectClickAndDrop> instance = nullptr;
     bool isOnEditor = false;
+
+    bool dropState = false;
 
     ComponentAnimator animator;
     Canvas* canvas = nullptr;
@@ -101,6 +107,7 @@ public:
         auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(target);
         // FIXME: we should only ask a new mask image when the theme has changed so it's the correct colour
         dragImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f).image;
+        dragErrorImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f, true).image;
 
         // we set the size of this component / window 3x larger to match the max zoom of canavs (300%)
         setSize(dragImage.getWidth(), dragImage.getHeight());
@@ -176,6 +183,12 @@ public:
                     break;
                 }
             }
+        }
+
+        // swap the image to show if the current drop position will result in adding a new object
+        if ((foundCanvas != nullptr) != dropState) {
+            dropState = foundCanvas != nullptr;
+            imageComponent.setImage(dropState ? dragImage : dragErrorImage);
         }
 
         if(!approximatelyEqual<float>(animatedScale, scale))
