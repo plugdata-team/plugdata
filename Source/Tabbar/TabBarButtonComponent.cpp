@@ -284,7 +284,7 @@ void TabBarButtonComponent::mouseDrag(MouseEvent const& e)
         auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
         tabImage = generateTabBarButtonImage();
-        dragContainer->startDragging(tabIndex, this, tabImage, true, nullptr);
+        dragContainer->startDragging(tabIndex, this, tabImage, tabImage, true, nullptr);
     }
 }
 
