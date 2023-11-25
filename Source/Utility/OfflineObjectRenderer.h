@@ -27,7 +27,7 @@ public:
 
     static OfflineObjectRenderer* findParentOfflineObjectRendererFor(Component* childComponent);
 
-    ImageWithOffset patchToMaskedImage(String const& patch, float scale, bool isErrorImage = false);
+    ImageWithOffset patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage = false);
 
     bool checkIfPatchIsValid(String const& patch);
 
