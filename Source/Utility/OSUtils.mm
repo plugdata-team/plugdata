@@ -318,9 +318,9 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
                                                                   if (isIPad())
                                                                   {
   
-                                                                      alertController.preferredContentSize = view.frame.size;
+                                                                      submenu.preferredContentSize = view.frame.size;
   
-                                                                      if (auto* popoverController = alertController.popoverPresentationController)
+                                                                      if (auto* popoverController = submenu.popoverPresentationController)
                                                                       {
                                                                           popoverController.sourceView = view;
                                                                           popoverController.sourceRect = CGRectMake (35.0f, 1.0f, 50.0f, 50.0f);
