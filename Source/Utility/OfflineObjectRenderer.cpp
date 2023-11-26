@@ -35,7 +35,7 @@ OfflineObjectRenderer* OfflineObjectRenderer::findParentOfflineObjectRendererFor
     return childComponent != nullptr ? &childComponent->findParentComponentOfClass<PluginEditor>()->offlineRenderer : nullptr;
 }
 
-ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float scale, bool isErrorImage)
+ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage)
 {
     auto image = patchToTempImage(patch, scale);
     auto width = image.image.getWidth();
@@ -47,14 +47,15 @@ ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, f
     auto backgroundColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
     g.fillAll(backgroundColour);
 
-    if (isErrorImage) {
+    if (makeInvalidImage) {
         AffineTransform rotate;
-        rotate = rotate.rotated(juce::MathConstants<float>::pi / 4.0f);
+        rotate = rotate.rotated(MathConstants<float>::pi / 4.0f);
         g.addTransform(rotate);
-        float diagonalLength = std::sqrt(image.image.getWidth() * image.image.getWidth() + image.image.getHeight() * image.image.getHeight());
+        float diagonalLength = std::sqrt(width * width + height * height);
         g.setColour(backgroundColour.darker(3.0f));
-        for (float x = -diagonalLength; x < diagonalLength; x += (20 * 2)) {
-            g.fillRect(x, -diagonalLength, 20.0f, diagonalLength * 2);
+        auto stripeWidth = 20.0f;
+        for (float x = -diagonalLength; x < diagonalLength; x += (stripeWidth * 2)) {
+            g.fillRect(x, -diagonalLength, stripeWidth, diagonalLength * 2);
         }
         g.addTransform(rotate.inverted());
     }

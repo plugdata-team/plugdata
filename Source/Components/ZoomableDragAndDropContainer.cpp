@@ -50,7 +50,7 @@ bool juce_performDragDropText(String const&, bool& shouldStop);
 class ZoomableDragAndDropContainer::DragImageComponent : public Component
     , public Timer {
 public:
-    DragImageComponent(ScaledImage const& im, ScaledImage const& errorIm,
+    DragImageComponent(ScaledImage const& im, ScaledImage const& invalidIm,
         var const& desc,
         Component* const sourceComponent,
         MouseInputSource const* draggingSource,
@@ -59,7 +59,7 @@ public:
         bool canZoom)
         : sourceDetails(desc, sourceComponent, Point<int>())
         , image(im)
-        , errorImage(errorIm)
+        , invalidImage(invalidIm)
         , isZoomable(canZoom)
         , owner(ddc)
         , mouseDragSource(draggingSource->getComponentUnderMouse())
@@ -152,7 +152,7 @@ public:
             auto* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
 
             if (target != previousTarget)
-                zoomImageComponent.setImage(target ? image.getImage() : errorImage.getImage());
+                zoomImageComponent.setImage(target ? image.getImage() : invalidImage.getImage());
 
             if (isZoomable) {
                 if (target == nullptr) {
@@ -314,7 +314,7 @@ public:
 
 private:
     ScaledImage image;
-    ScaledImage errorImage;
+    ScaledImage invalidImage;
 
     bool isZoomable = false;
 
@@ -531,7 +531,7 @@ ZoomableDragAndDropContainer::~ZoomableDragAndDropContainer() = default;
 void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
     Component* sourceComponent,
     ScaledImage const& dragImage,
-    ScaledImage const& errorImage,
+    ScaledImage const& invalidImage,
     bool allowDraggingToExternalWindows,
     Point<int> const* imageOffsetFromMouse,
     MouseInputSource const* inputSourceCausingDrag,
@@ -595,7 +595,7 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
         return { ScaledImage(composite, scaleFactor), clipped };
     };
 
-    auto* dragImageComponent = dragImageComponents.add(new DragImageComponent(imageToUse(dragImage).image, imageToUse(errorImage).image, sourceDescription, sourceComponent,
+    auto* dragImageComponent = dragImageComponents.add(new DragImageComponent(imageToUse(dragImage).image, imageToUse(invalidImage).image, sourceDescription, sourceComponent,
         draggingSource, *this, imageToUse(dragImage).offset.roundToInt(), canZoom));
 
     if (allowDraggingToExternalWindows) {

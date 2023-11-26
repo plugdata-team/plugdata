@@ -76,7 +76,7 @@ class ObjectClickAndDrop : public Component
     String objectString;
     PluginEditor* editor;
     Image dragImage;
-    Image dragErrorImage;
+    Image dragInvalidImage;
     float scale = 0.5f;
     float animatedScale = 0.0f;
     ImageComponent imageComponent;
@@ -107,7 +107,7 @@ public:
         auto offlineObjectRenderer = OfflineObjectRenderer::findParentOfflineObjectRendererFor(target);
         // FIXME: we should only ask a new mask image when the theme has changed so it's the correct colour
         dragImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f).image;
-        dragErrorImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f, true).image;
+        dragInvalidImage = offlineObjectRenderer->patchToMaskedImage(target->getObjectString(), 3.0f, true).image;
 
         // we set the size of this component / window 3x larger to match the max zoom of canavs (300%)
         setSize(dragImage.getWidth(), dragImage.getHeight());
@@ -126,6 +126,11 @@ public:
         setVisible(true);
 
         setOpaque(false);
+    }
+
+    MouseCursor getMouseCursor() override
+    {
+        return MouseCursor::StandardCursorType::DraggingHandCursor;
     }
 
     static void attachToMouse(ObjectDragAndDrop* parent)
@@ -186,9 +191,10 @@ public:
         }
 
         // swap the image to show if the current drop position will result in adding a new object
-        if ((foundCanvas != nullptr) != dropState) {
-            dropState = foundCanvas != nullptr;
-            imageComponent.setImage(dropState ? dragImage : dragErrorImage);
+        auto newDropState = foundCanvas != nullptr;
+        if (dropState != newDropState) {
+            dropState = newDropState;
+            imageComponent.setImage(dropState ? dragImage : dragInvalidImage);
         }
 
         if(!approximatelyEqual<float>(animatedScale, scale))
