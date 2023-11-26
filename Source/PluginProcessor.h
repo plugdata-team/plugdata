@@ -101,7 +101,7 @@ public:
     void sendParameters();
 
     bool isInPluginMode();
-        
+
     Array<PluginEditor*> getEditors() const;
 
     void messageEnqueued() override;
@@ -163,7 +163,7 @@ public:
     std::atomic<bool> enableInternalSynth = false;
 
     OwnedArray<PluginEditor> openedEditors;
-        
+
 private:
     void processInternal();
 
@@ -197,6 +197,7 @@ private:
 
     static inline const String else_version = "ELSE v1.0-rc10";
     static inline const String cyclone_version = "cyclone v0.8-0";
+    static inline const String heavylib_version = "heavylib v0.3";
     // this gets updated with live version data later
     static String pdlua_version;
 
