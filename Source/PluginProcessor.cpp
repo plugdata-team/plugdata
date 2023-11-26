@@ -252,14 +252,16 @@ void PluginProcessor::initialiseFilesystem()
 
 #elif JUCE_IOS
     // This is not ideal but on iOS, it seems to be the only way to make it work...
-    versionDataDir.getChildFile("Abstractions").moveFileTo(homeDir.getChildFile("Abstractions"));
-    versionDataDir.getChildFile("Documentation").moveFileTo(homeDir.getChildFile("Documentation"));
-    versionDataDir.getChildFile("Extra").moveFileTo(homeDir.getChildFile("Extra"));
+    versionDataDir.getChildFile("Abstractions").copyDirectoryTo(homeDir.getChildFile("Abstractions"));
+    versionDataDir.getChildFile("Documentation").copyDirectoryTo(homeDir.getChildFile("Documentation"));
+    versionDataDir.getChildFile("Extra").copyDirectoryTo(homeDir.getChildFile("Extra"));
 #else
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
     versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
 #endif
+    
+    internalSynth->extractSoundfont();
 }
 
 void PluginProcessor::updateSearchPaths()
