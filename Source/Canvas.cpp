@@ -655,9 +655,7 @@ void Canvas::mouseDown(MouseEvent const& e)
             if (!e.mods.isShiftDown()) {
                 deselectAll();
             }
-            
-            pd->logMessage(String(e.source.getIndex()));
-            
+                        
             if(!(e.source.isTouch() && e.source.getIndex() != 0)) {
                 lasso.beginLasso(e.getEventRelativeTo(this), this);
                 isDraggingLasso = true;
