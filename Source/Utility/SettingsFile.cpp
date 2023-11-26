@@ -139,16 +139,16 @@ void SettingsFile::initialisePathsTree()
 {
 
     // Make sure all the default paths are in place
-    StringArray currentPaths;
+    Array<File> currentPaths;
 
     auto pathTree = getPathsTree();
 
     for (auto child : pathTree) {
-        currentPaths.add(child.getProperty("Path").toString());
+        currentPaths.add(File(child.getProperty("Path").toString()));
     }
 
     for (auto const& path : pd::Library::defaultPaths) {
-        if (!currentPaths.contains(path.getFullPathName())) {
+        if (!currentPaths.contains(path)) {
             auto pathSubTree = ValueTree("Path");
             pathSubTree.setProperty("Path", path.getFullPathName(), nullptr);
             pathTree.appendChild(pathSubTree, nullptr);

@@ -315,9 +315,23 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
                                                                     callback(-1);
                                                                                                                       }];
             
+                                                                  if (isIPad())
+                                                                  {
+  
+                                                                      alertController.preferredContentSize = view.frame.size;
+  
+                                                                      if (auto* popoverController = alertController.popoverPresentationController)
+                                                                      {
+                                                                          popoverController.sourceView = view;
+                                                                          popoverController.sourceRect = CGRectMake (35.0f, 1.0f, 50.0f, 50.0f);
+                                                                          popoverController.canOverlapSourceViewRect = YES;
+                                                                      }
+                                                                  }
+            
                                                                   [submenu addAction:subAction1];
                                                                   [submenu addAction:subAction2];
                                                                   [submenu addAction:cancelAction];
+            
 
                                                                   // Present the submenu
                                                                   [viewController presentViewController:submenu animated:YES completion:nil];
