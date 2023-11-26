@@ -197,7 +197,7 @@ private:
 
     static inline const String else_version = "ELSE v1.0-rc10";
     static inline const String cyclone_version = "cyclone v0.8-0";
-    static inline const String heavylib_version = "heavylib v0.3";
+    static inline const String heavylib_version = "heavylib v0.3.1";
     // this gets updated with live version data later
     static String pdlua_version;
 
