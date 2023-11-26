@@ -130,8 +130,15 @@ class ObjectsListBox : public ListBox
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (e.mouseWasDraggedSinceMouseDown())
+            if (e.mouseWasDraggedSinceMouseDown() && !e.source.isTouch())
                 dismissMenu(false);
+        }
+        
+        void mouseDrag(MouseEvent const& e) override
+        {
+            if(e.source.isTouch()) return;
+            
+            ObjectDragAndDrop::mouseDrag(e);
         }
 
         void dismiss(bool withAnimation) override
@@ -881,7 +888,9 @@ public:
             animator.animateComponent(getParentComponent(), getParentComponent()->getBounds(), 0.0f, 300, false, 0.0f, 0.0f);
         else {
             MessageManager::callAsync([_this = SafePointer(this)]() {
-                _this->editor->openedDialog.reset(nullptr);
+                if(_this) {
+                    _this->editor->openedDialog.reset(nullptr);
+                }
             });
         }
     }

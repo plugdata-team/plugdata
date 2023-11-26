@@ -90,7 +90,9 @@ set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
 
-if(APPLE)
+if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_ios.png")
+elseif(APPLE)
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_mac.png")
 else()
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png")
@@ -280,13 +282,16 @@ juce_add_gui_app(plugdata_standalone
     BUNDLE_ID                    com.plugdata.plugdata
     )
 else()
+set(IOS_SCREEN_ORIENTATIONS UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight)
 juce_add_plugin(plugdata_standalone
     VERSION                     ${PLUGDATA_VERSION}
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
     COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
     COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
     PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
-    ICON_SMALL                    ${PLUGDATA_ICON_BIG}
+    ICON_BIG                    ${PLUGDATA_ICON_BIG}
+    LAUNCH_STORYBOARD_FILE      ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/LaunchScreen.storyboard
+    IPHONE_SCREEN_ORIENTATIONS  ${IOS_SCREEN_ORIENTATIONS}
     MICROPHONE_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
@@ -301,6 +306,7 @@ juce_add_plugin(plugdata_standalone
     FORMATS                     Standalone
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata"
+    BUNDLE_ID                   com.plugdata.plugdata
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     VST3_CATEGORIES             Instrument
     VST2_CATEGORY               kPlugCategSynth)
@@ -327,6 +333,7 @@ juce_add_plugin(plugdata
     FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata"
+    BUNDLE_ID                   com.plugdata.plugdata.instrument
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     VST3_CATEGORIES             Instrument
     VST2_CATEGORY               kPlugCategSynth)
@@ -348,9 +355,10 @@ juce_add_plugin(plugdata_fx
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdFx
-    FORMATS                     AU VST3 LV2 CLAP
+    FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata-fx
     PRODUCT_NAME                "plugdata-fx"
+    BUNDLE_ID                   com.plugdata.plugdata.fx
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)

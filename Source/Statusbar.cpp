@@ -787,6 +787,11 @@ void Statusbar::resized()
     };
 
     auto spacing = getHeight() + 4;
+    
+    // Some newer iPhone models have a very large corner radius
+#if JUCE_IOS
+    position(22);
+#endif
 
     centreButton.setBounds(position(spacing), 0, getHeight(), getHeight());
     fitAllButton.setBounds(position(spacing), 0, getHeight(), getHeight());
@@ -805,6 +810,10 @@ void Statusbar::resized()
 
     pos = 4; // reset position for elements on the right
 
+#if JUCE_IOS
+    position(22, true);
+#endif
+    
     protectButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     powerButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());

@@ -18,7 +18,6 @@ public:
     TouchSelectionHelper(PluginEditor* e) : editor(e)
     {
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::ExportState))); // This icon doubles as a "open" icon in the mobile app
-        addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Info)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Help)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Trash)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::More)));
@@ -32,21 +31,16 @@ public:
             }
         };
         actionButtons[1]->onClick = [this](){
-            ApplicationCommandTarget::InvocationInfo info(CommandIDs::ShowReference);
-            info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-            editor->ApplicationCommandManager::invoke(info, true);
-        };
-        actionButtons[2]->onClick = [this](){
             ApplicationCommandTarget::InvocationInfo info(CommandIDs::ShowHelp);
             info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
             editor->ApplicationCommandManager::invoke(info, true);
         };
-        actionButtons[3]->onClick = [this](){
+        actionButtons[2]->onClick = [this](){
             ApplicationCommandTarget::InvocationInfo info(CommandIDs::Delete);
             info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
             editor->ApplicationCommandManager::invoke(info, true);
         };
-        actionButtons[4]->onClick = [this](){
+        actionButtons[3]->onClick = [this](){
             OSUtils::showMobileCanvasMenu(editor->getPeer(), [this](int result){
                 if(result < 1) return;
                 switch(result)
@@ -101,20 +95,19 @@ public:
     
     void show()
     {
-        actionButtons[1]->setEnabled(editor->isCommandActive(CommandIDs::ShowReference));
-        actionButtons[2]->setEnabled(editor->isCommandActive(CommandIDs::ShowHelp));
-        actionButtons[3]->setEnabled(editor->isCommandActive(CommandIDs::Delete));
+        actionButtons[1]->setEnabled(editor->isCommandActive(CommandIDs::ShowHelp));
+        actionButtons[2]->setEnabled(editor->isCommandActive(CommandIDs::Delete));
         
         setVisible(true);
     }
     
     void resized() override
     {
-        auto b = getLocalBounds().reduced(4);
+        auto b = getLocalBounds().reduced(5);
         
         for(auto* button : actionButtons)
         {
-            button->setBounds(b.removeFromLeft(36));
+            button->setBounds(b.removeFromLeft(48));
         }
     }
 
@@ -122,11 +115,11 @@ private:
 
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(4);
+        auto b = getLocalBounds().reduced(5);
         
         Path p;
         p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 6, { 0, 1 });
+        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 8, { 0, 1 });
         
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);

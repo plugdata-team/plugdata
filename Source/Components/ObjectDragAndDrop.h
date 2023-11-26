@@ -37,7 +37,7 @@ public:
         reordering = isReordering;
     }
 
-    void mouseDrag(MouseEvent const& e) override final
+    void mouseDrag(MouseEvent const& e) override
     {
         if (reordering || e.getDistanceFromDragStart() < 5)
             return;

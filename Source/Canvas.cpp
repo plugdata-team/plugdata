@@ -633,7 +633,7 @@ void Canvas::mouseDown(MouseEvent const& e)
         return;
 
     auto* source = e.originalComponent;
-
+    
     // Left-click
     if (!e.mods.isRightButtonDown()) {
 
@@ -655,9 +655,13 @@ void Canvas::mouseDown(MouseEvent const& e)
             if (!e.mods.isShiftDown()) {
                 deselectAll();
             }
-
-            lasso.beginLasso(e.getEventRelativeTo(this), this);
-            isDraggingLasso = true;
+            
+            pd->logMessage(String(e.source.getIndex()));
+            
+            if(!(e.source.isTouch() && e.source.getIndex() != 0)) {
+                lasso.beginLasso(e.getEventRelativeTo(this), this);
+                isDraggingLasso = true;
+            }
         }
 
         // Update selected object in sidebar when we click a object
@@ -727,7 +731,9 @@ void Canvas::mouseDrag(MouseEvent const& e)
     }
 
     // Drag lasso
-    lasso.dragLasso(e);
+    if(!(e.source.isTouch() && e.source.getIndex() != 0)) {
+        lasso.dragLasso(e);
+    }
 }
 
 bool Canvas::autoscroll(MouseEvent const& e)

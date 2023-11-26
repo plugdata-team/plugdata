@@ -49,8 +49,8 @@ void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
 
 void OSUtils::HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton)
 {
-	NSView* nsView = (NSView*)view;
-	NSWindow* nsWindow = [nsView window];
+    NSView* nsView = (NSView*)view;
+    NSWindow* nsWindow = [nsView window];
     NSButton *minimizeButton = [nsWindow standardWindowButton:NSWindowMiniaturizeButton];
     NSButton *maximizeButton = [nsWindow standardWindowButton:NSWindowZoomButton];
     NSButton *closeButton = [nsWindow standardWindowButton:NSWindowCloseButton];
@@ -128,7 +128,7 @@ OSUtils::ScrollTracker::~ScrollTracker()
 #import <UIKit/UIKit.h>
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
-{    
+{
     // This is only for keyboard shortcuts, so it doens't really matter much on iOS
     return QWERTY;
 }

@@ -385,7 +385,10 @@ void PluginEditor::resized()
 #if JUCE_IOS
     if(auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
         window->setFullScreen(true);
-        OSUtils::ScrollTracker::create(window->getPeer());
+    }
+    if(auto* peer = getPeer())
+    {
+        OSUtils::ScrollTracker::create(peer);
     }
 #endif
 
@@ -409,6 +412,9 @@ void PluginEditor::resized()
 #if JUCE_MAC
     if (auto standalone = ProjectInfo::isStandalone ? dynamic_cast<DocumentWindow*>(getTopLevelComponent()) : nullptr)
         offset = standalone->isFullScreen() ? 20 : offset;
+#endif
+#if JUCE_IOS
+    offset += 22;
 #endif
 
     zoomLabel->setBounds(paletteWidth + 5, getHeight() - Statusbar::statusbarHeight - 36, 55, 23);
@@ -1704,7 +1710,7 @@ void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
     touchSelectionHelper->setVisible(shouldBeShown);
     if(shouldBeShown)
     {
-        auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(180, 48).translated(0, -54);
+        auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
         touchSelectionHelper->setBounds(touchHelperBounds);
     }
 };
