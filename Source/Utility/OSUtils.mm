@@ -262,6 +262,10 @@ OSUtils::ScrollTracker::~ScrollTracker()
 }
 
 
+bool OSUtils::isIPad()
+{
+    return [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad;
+}
 
 void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback)
 {
@@ -288,7 +292,7 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
                                                                 style:UIAlertActionStyleDefault
                                                               handler:^(UIAlertAction * _Nonnull action) {
                                                                   // Create a second UIAlertController for the submenu
-                                                                  UIAlertController *submenu = [UIAlertController alertControllerWithTitle:@"Submenu Options"
+                                                                  UIAlertController *submenu = [UIAlertController alertControllerWithTitle:@"Themes"
                                                                                                                                   message:nil
                                                                                                                            preferredStyle:UIAlertControllerStyleActionSheet];
 
@@ -367,6 +371,20 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
         [alertController addAction:settingsAction];
         [alertController addAction:aboutAction];
         [alertController addAction:cancelAction];
+        
+        if (isIPad())
+        {
+
+            alertController.preferredContentSize = view.frame.size;
+
+            if (auto* popoverController = alertController.popoverPresentationController)
+            {
+                popoverController.sourceView = view;
+                popoverController.sourceRect = CGRectMake (35.0f, 1.0f, 50.0f, 50.0f);
+                popoverController.canOverlapSourceViewRect = YES;
+            }
+        }
+
     
         // Present the alert controller using the found view controller
         [viewController presentViewController:alertController animated:YES completion:nil];
@@ -437,6 +455,22 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
             callback(-1);
                                                             }];
 
+        
+        if (isIPad())
+        {
+
+            alertController.preferredContentSize = view.frame.size;
+
+            if (auto* popoverController = alertController.popoverPresentationController)
+            {
+                auto peerBounds = peer->getBounds().toFloat();
+                
+                popoverController.sourceView = view;
+                popoverController.sourceRect = CGRectMake (peerBounds.getCentreX() - 10.0f, peerBounds.getBottom() - 120.0f, 20.0f, 5.0f);
+                popoverController.canOverlapSourceViewRect = YES;
+            }
+        }
+        
         [alertController addAction:cutAction];
         [alertController addAction:copyAction];
         [alertController addAction:pasteAction];
