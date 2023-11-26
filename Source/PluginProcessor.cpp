@@ -93,7 +93,7 @@ PluginProcessor::PluginProcessor()
 
     // XML tree for storing additional data in DAW session
     extraData = std::make_unique<XmlElement>("ExtraData");
-   
+
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
         auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false, n + 1, 0.0f, 1.0f);
@@ -112,6 +112,7 @@ PluginProcessor::PluginProcessor()
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);
+    logMessage(heavylib_version);
 
     channelPointers.reserve(32);
 
@@ -985,7 +986,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     xml.addChildElement(patchesTree);
 
     PlugDataParameter::saveStateInformation(xml, getParameters());
-    
+
     // store additional extra-data in DAW session if they exist.
     bool extraDataStored = false;
     if (extraData)  {
@@ -1000,9 +1001,9 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
-    
+
     // then detach extraData XmlElement from temporary tree xml for later re-use
-    if (extraDataStored)  {   
+    if (extraDataStored)  {
         xml.removeChildElement(extraData.get(), false);
     }
 
@@ -1211,11 +1212,11 @@ pd::Patch::Ptr PluginProcessor::loadPatch(File const& patchFile, PluginEditor* e
             // There are some subroutines that get called when we create a canvas, that will lock the audio thread
             // By locking it around this whole function, we can prevent slowdowns from constantly locking/unlocking the audio thread
             lockAudioThread();
-            
+
             auto* cnv = _editor->canvases.add(new Canvas(_editor.getComponent(), *patch, nullptr));
-            
+
             unlockAudioThread();
-            
+
             _editor->addTab(cnv, splitIndex);
         });
     }
@@ -1337,7 +1338,7 @@ void PluginProcessor::receivePolyAftertouch(int const channel, int const pitch, 
 void PluginProcessor::receiveMidiByte(int const port, int const byte)
 {
     auto device = port >> 4;
-    
+
     if (midiByteIsSysex) {
         if (byte == 0xf7) {
             midiBufferOut.addEvent(MidiDeviceManager::convertToSysExFormat(MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), device), audioAdvancement);
@@ -1559,9 +1560,9 @@ void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
         return;
     }
     String child_name = String(vec[0].getSymbol());
-    
+
     if (extraData) {
-     
+
         int const numChildren = extraData->getNumChildElements();
         if (numChildren > 0)    {
             // Searching if a previously created child element exists, with same name as vec[0]. If true, delete it.
@@ -1569,7 +1570,7 @@ void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
                 if (list)
                     extraData->removeChildElement (list, true) ;
         }
-        XmlElement* list = extraData->createNewChildElement(child_name);  
+        XmlElement* list = extraData->createNewChildElement(child_name);
         if (list) {
             for (size_t i = 0; i < vec.size(); ++i) {
                 if (vec[i].isFloat()) {
@@ -1647,7 +1648,7 @@ Array<PluginEditor*> PluginProcessor::getEditors() const
             editors.add(editor);
         }
     }
-    
+
     return editors;
 }
 
