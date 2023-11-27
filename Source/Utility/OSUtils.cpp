@@ -79,7 +79,7 @@ void OSUtils::createJunction(std::string from, std::string to)
     strcat(szTarget, "\\");
 
     if (!::CreateDirectory(szJunction, nullptr))
-        throw ::GetLastError();
+        return;
 
     // Obtain SE_RESTORE_NAME privilege (required for opening a directory)
     HANDLE hToken = nullptr;
@@ -92,7 +92,7 @@ void OSUtils::createJunction(std::string from, std::string to)
         tp.PrivilegeCount = 1;
         tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
         if (!::AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr))
-            throw ::GetLastError();
+            return;
     } catch (DWORD) {
     } // Ignore errors
     if (hToken)
@@ -100,7 +100,7 @@ void OSUtils::createJunction(std::string from, std::string to)
 
     HANDLE hDir = ::CreateFile(szJunction, GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, nullptr);
     if (hDir == INVALID_HANDLE_VALUE)
-        throw ::GetLastError();
+        return;
 
     memset(buf, 0, sizeof(buf));
     ReparseBuffer.ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
@@ -114,7 +114,7 @@ void OSUtils::createJunction(std::string from, std::string to)
         DWORD dr = ::GetLastError();
         ::CloseHandle(hDir);
         ::RemoveDirectory(szJunction);
-        throw dr;
+        return;
     }
 
     ::CloseHandle(hDir);
