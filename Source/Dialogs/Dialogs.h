@@ -24,7 +24,6 @@ public:
         , backgroundMargin(margin)
     {
         parentComponent->addAndMakeVisible(this);
-
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 
         setAlwaysOnTop(true);
@@ -105,14 +104,20 @@ public:
 
     void parentSizeChanged() override
     {
-        setBounds(getParentComponent()->getLocalBounds());
+        if(auto* parent = getParentComponent()) {
+            setBounds(parent->getLocalBounds());
+        }
     }
 
     void resized() override
     {
         if (viewedComponent) {
+#if JUCE_IOS
+            viewedComponent->setBounds(0, 0, getWidth(), getHeight());
+#else
             viewedComponent->setSize(width, height);
             viewedComponent->setCentrePosition({ getBounds().getCentreX(), getBounds().getCentreY() });
+#endif
         }
 
         if (closeButton) {
@@ -120,7 +125,8 @@ public:
             closeButton->setBounds(closeButtonBounds);
         }
     }
-
+    
+#if !JUCE_IOS
     void mouseDown(MouseEvent const& e) override
     {
         if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
@@ -142,7 +148,7 @@ public:
     {
         dragging = false;
     }
-
+#endif
     
     
     bool keyPressed(KeyPress const& key) override

@@ -74,9 +74,11 @@ public:
 
         addSeparator();
 
+#if !JUCE_IOS
         addCustomItem(getMenuItemID(MenuItem::CompiledMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::CompiledMode)]), nullptr, "Compiled mode");
         addCustomItem(getMenuItemID(MenuItem::Compile), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Compile)]), nullptr, "Compile...");
-
+#endif
+        
         addSeparator();
 
         addCustomItem(getMenuItemID(MenuItem::FindExternals), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::FindExternals)]), nullptr, "Find externals...");
@@ -247,6 +249,13 @@ public:
             idealWidth = 70;
             idealHeight = 24;
         }
+        
+#if JUCE_IOS // On iOS, the mouseUp event arrives after the menu has already been dismissed...
+        void mouseDown(const MouseEvent& e) override
+        {
+            triggerMenuItem();
+        }
+#endif
 
         void paint(Graphics& g) override
         {

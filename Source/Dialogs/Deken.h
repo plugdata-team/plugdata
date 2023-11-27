@@ -370,7 +370,7 @@ public:
     static inline const String os =
 #if JUCE_LINUX
         "Linux"
-#elif JUCE_MAC
+#elif JUCE_MAC || JUCE_IOS
         "Darwin"
 #elif JUCE_WINDOWS
         "Windows"

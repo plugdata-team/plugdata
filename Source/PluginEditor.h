@@ -33,6 +33,7 @@ class TabComponent;
 class PluginProcessor;
 class Palettes;
 class PluginMode;
+class TouchSelectionHelper;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -109,6 +110,8 @@ public:
     void setZoomLabelLevel(float value);
 
     void setUseBorderResizer(bool shouldUse);
+        
+    void showTouchSelectionHelper(bool shouldBeShown);
 
     TabComponent* getActiveTabbar();
 
@@ -148,8 +151,11 @@ public:
 
     inline static ObjectThemeManager objectManager;
     static ObjectThemeManager* getObjectManager() { return &objectManager; };
-
+        
 private:
+        
+    std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
+        
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 

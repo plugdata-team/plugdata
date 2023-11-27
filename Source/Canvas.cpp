@@ -71,6 +71,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     } else {
         isGraph = false;
     }
+    
 
     if (!isGraph) {
         auto* canvasViewport = new CanvasViewport(editor, this);
@@ -626,12 +627,13 @@ void Canvas::moveToWindow(PluginEditor* newEditor)
 void Canvas::mouseDown(MouseEvent const& e)
 {
     PopupMenu::dismissAllActiveMenus();
-
+    
+    
     if (checkPanDragMode())
         return;
 
     auto* source = e.originalComponent;
-
+    
     // Left-click
     if (!e.mods.isRightButtonDown()) {
 
@@ -653,9 +655,11 @@ void Canvas::mouseDown(MouseEvent const& e)
             if (!e.mods.isShiftDown()) {
                 deselectAll();
             }
-
-            lasso.beginLasso(e.getEventRelativeTo(this), this);
-            isDraggingLasso = true;
+                        
+            if(!(e.source.isTouch() && e.source.getIndex() != 0)) {
+                lasso.beginLasso(e.getEventRelativeTo(this), this);
+                isDraggingLasso = true;
+            }
         }
 
         // Update selected object in sidebar when we click a object
@@ -725,7 +729,9 @@ void Canvas::mouseDrag(MouseEvent const& e)
     }
 
     // Drag lasso
-    lasso.dragLasso(e);
+    if(!(e.source.isTouch() && e.source.getIndex() != 0)) {
+        lasso.dragLasso(e);
+    }
 }
 
 bool Canvas::autoscroll(MouseEvent const& e)
@@ -798,6 +804,10 @@ void Canvas::mouseUp(MouseEvent const& e)
 void Canvas::updateSidebarSelection()
 {
     auto lassoSelection = getSelectionOfType<Object>();
+    
+#if JUCE_IOS
+    editor->showTouchSelectionHelper(lassoSelection.size() >= 1);
+#endif
 
     if (lassoSelection.size() >= 1) {
         Array<ObjectParameters> allParameters;
@@ -1172,6 +1182,7 @@ void Canvas::removeSelection()
 {
     // Make sure object isn't selected and stop updating gui
     editor->sidebar->hideParameters();
+    editor->showTouchSelectionHelper(false);
 
     // Find selected objects and make them selected in pd
     std::vector<t_gobj*> objects;
@@ -1855,6 +1866,10 @@ ObjectParameters& Canvas::getInspectorParameters()
 
 bool Canvas::panningModifierDown()
 {
+#if JUCE_IOS
+    return OSUtils::ScrollTracker::isScrolling();
+#endif
+    
     return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }
 

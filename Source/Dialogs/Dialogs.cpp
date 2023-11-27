@@ -78,6 +78,54 @@ void Dialogs::showSettingsDialog(PluginEditor* editor)
 
 void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 {
+#if JUCE_IOS
+    OSUtils::showMobileMainMenu(editor->getPeer(), [editor](int result)
+    {
+        if(result < 0) return;
+        
+        switch (result) {
+            case 1: {
+                editor->newProject();
+                break;
+            }
+            case 2: {
+                editor->openProject();
+                break;
+            }
+            case 3: {
+                if (editor->getCurrentCanvas())
+                    editor->saveProject();
+                break;
+            }
+            case 4: {
+                if (editor->getCurrentCanvas())
+                    editor->saveProjectAs();
+                break;
+            }
+            case 5: {
+                Dialogs::showSettingsDialog(editor);
+                break;
+            }
+            case 6: {
+                auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, true);
+                auto* aboutPanel = new AboutPanel();
+                dialog->setViewedComponent(aboutPanel);
+                editor->openedDialog.reset(dialog);
+                break;
+            }
+            case 7: {
+                SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[0]);
+                break;
+            }
+            case 8: {
+                SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[1]);
+                break;
+            }
+        }
+    });
+    return;
+#endif
+    
     auto* popup = new MainMenu(editor);
 
     ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(210).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
@@ -281,6 +329,11 @@ bool Dialog::wantsRoundedCorners() const
 
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
 {
+#if JUCE_IOS
+    //OSUtils::showMobileCanvasMenu(cnv->getPeer());
+    return;
+#endif
+    
     struct QuickActionsBar : public PopupMenu::CustomComponent {
         struct QuickActionButton : public TextButton {
             QuickActionButton(String buttonText)

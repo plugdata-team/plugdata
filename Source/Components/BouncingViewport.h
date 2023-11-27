@@ -13,6 +13,7 @@ public:
     BouncingViewportAttachment(Viewport* vp)
         : viewport(vp)
     {
+        viewport->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);
         viewport->addMouseListener(this, true);
     }
 

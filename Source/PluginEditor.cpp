@@ -28,6 +28,7 @@
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
 #include "PluginMode.h"
+#include "Components/TouchSelectionHelper.h"
 
 class ZoomLabel : public TextButton
     , public Timer {
@@ -75,6 +76,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , zoomLabel(std::make_unique<ZoomLabel>())
     , offlineRenderer(&p)
     , pluginConstrainer(*getConstrainer())
+    , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
     , tooltipWindow(this, [](Component* c) {
         if (auto* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
@@ -90,7 +92,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         setUseBorderResizer(true);
     }
     else {
-        constrainer.setMinimumSize(850, 650);
+#if JUCE_IOS
+        constrainer.setMinimumSize(250, 250);
+#endif
     }
 
     mainMenuButton.setButtonText(Icons::Menu);
@@ -149,7 +153,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
              &undoButton,
              &redoButton,
              &addObjectMenuButton,
-             &pluginModeButton,
+#if !JUCE_IOS
+            &pluginModeButton,
+#endif
+
          }) {
         addAndMakeVisible(button);
     }
@@ -218,11 +225,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
     };
 
-    addAndMakeVisible(pluginModeButton);
-
+    
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
+    
     setSize(pd->lastUIWidth, pd->lastUIHeight);
-
+    
     sidebar->toFront(false);
 
     // Make sure existing console messages are processed
@@ -266,6 +273,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addChildComponent(&objectManager);
     objectManager.lookAndFeelChanged();
+    
+#if JUCE_IOS
+    addAndMakeVisible(touchSelectionHelper.get());
+#endif
 }
 
 PluginEditor::~PluginEditor()
@@ -370,6 +381,16 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 void PluginEditor::resized()
 {
     if (pd->isInPluginMode()) return;
+    
+#if JUCE_IOS
+    if(auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
+        window->setFullScreen(true);
+    }
+    if(auto* peer = getPeer())
+    {
+        OSUtils::ScrollTracker::create(peer);
+    }
+#endif
 
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 30;
     if (!palettes->isVisible())
@@ -391,6 +412,9 @@ void PluginEditor::resized()
 #if JUCE_MAC
     if (auto standalone = ProjectInfo::isStandalone ? dynamic_cast<DocumentWindow*>(getTopLevelComponent()) : nullptr)
         offset = standalone->isFullScreen() ? 20 : offset;
+#endif
+#if JUCE_IOS
+    offset += 22;
 #endif
 
     zoomLabel->setBounds(paletteWidth + 5, getHeight() - Statusbar::statusbarHeight - 36, 55, 23);
@@ -1194,6 +1218,19 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         }
         break;
     }
+    case CommandIDs::ShowHelp: {
+        result.setInfo("Open Help", "Open help file", "View", 0);
+        result.addDefaultKeypress(KeyPress::F2Key, ModifierKeys::noModifiers); // f1 to open reference
+
+        if (auto* cnv = getCurrentCanvas()) {
+            auto selection = cnv->getSelectionOfType<Object>();
+            bool enabled = selection.size() == 1 && selection[0]->gui && selection[0]->gui->getType().isNotEmpty();
+            result.setActive(enabled);
+        } else {
+            result.setActive(false);
+        }
+        break;
+    }
     case CommandIDs::OpenObjectBrowser: {
         result.setInfo("Open Object Browser", "Open object browser dialog", "View", 0);
         result.addDefaultKeypress(63, ModifierKeys::shiftModifier); // shift + ? to open object browser
@@ -1530,6 +1567,18 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
         return false;
     }
+    case CommandIDs::ShowHelp: {
+        if (auto* cnv = getCurrentCanvas()) {
+            auto selection = cnv->getSelectionOfType<Object>();
+            if (selection.size() != 1 || !selection[0]->gui || selection[0]->gui->getType().isEmpty()) {
+                return false;
+            }
+            selection[0]->openHelpPatch();
+            return true;
+        }
+
+        return false;
+    }
     case CommandIDs::OpenObjectBrowser: {
         Dialogs::showObjectBrowserDialog(&openedDialog, this);
         return true;
@@ -1655,3 +1704,14 @@ void PluginEditor::quit(bool askToSave)
         JUCEApplication::quit();
     }
 }
+
+void PluginEditor::showTouchSelectionHelper(bool shouldBeShown)
+{
+    touchSelectionHelper->setVisible(shouldBeShown);
+    if(shouldBeShown)
+    {
+        auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
+        touchSelectionHelper->setBounds(touchHelperBounds);
+    }
+};
+

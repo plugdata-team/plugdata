@@ -43,7 +43,7 @@ struct OSUtils {
 
         static ScrollTracker* create()
         {
-            return new ScrollTracker;
+            return new ScrollTracker();
         }
 
         static bool isScrolling()
@@ -56,5 +56,34 @@ struct OSUtils {
         void* observer;
         static inline ScrollTracker* instance = create();
     };
+#elif JUCE_IOS
+    class ScrollTracker {
+    public:
+        ScrollTracker(juce::ComponentPeer* peer);
+
+        ~ScrollTracker();
+
+        static ScrollTracker* create(juce::ComponentPeer* peer)
+        {
+            if(instance) return instance;
+            
+            return instance = new ScrollTracker(peer);
+        }
+        
+        static bool isScrolling()
+        {
+            return instance->scrolling;
+        }
+
+    private:
+        bool scrolling = false;
+        void* observer;
+        static inline ScrollTracker* instance = nullptr;
+    };
+    
+    static bool isIPad();
+    static void showMobileMainMenu(juce::ComponentPeer* parent, std::function<void(int)> callback);
+    static void showMobileCanvasMenu(juce::ComponentPeer* parent, std::function<void(int)> callback);
+    
 #endif
 };

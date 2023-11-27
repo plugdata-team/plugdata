@@ -670,7 +670,7 @@ void conv_tilde_setup();
 void fm_tilde_setup();
 
 #ifdef ENABLE_SFIZZ
-void sfz_tilde_setup();
+//void sfz_tilde_setup();
 #endif
 void knob_setup();
 
@@ -1109,7 +1109,7 @@ void Setup::initialiseELSE()
     setup_xgate0x2emc_tilde();
     setup_xfade0x2emc_tilde();
 #ifdef ENABLE_SFIZZ
-    sfz_tilde_setup();
+    //sfz_tilde_setup();
 #endif
     sender_setup();
     setup_ptouch0x2ein();

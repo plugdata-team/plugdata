@@ -8,6 +8,7 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/OSUtils.h"
 
 #include "SettingsFile.h"
 #include "LookAndFeel.h"
@@ -50,7 +51,6 @@ SettingsFile* SettingsFile::initialise()
 
     // Make sure all the properties exist
     for (auto& [propertyName, propertyValue] : defaultSettings) {
-
         // If it doesn't exists, set it to the default value
         if (!settingsTree.hasProperty(propertyName) || settingsTree.getProperty(propertyName).toString() == "") {
             settingsTree.setProperty(propertyName, propertyValue, nullptr);
@@ -67,8 +67,17 @@ SettingsFile* SettingsFile::initialise()
     initialiseThemesTree();
     initialiseOverlayTree();
 
+#if JUCE_IOS
+    if(OSUtils::isIPad()) {
+        Desktop::getInstance().setGlobalScaleFactor(1.125f);
+    }
+    else {
+        Desktop::getInstance().setGlobalScaleFactor(0.825f);
+    }
+    
+#else
     Desktop::getInstance().setGlobalScaleFactor(getProperty<float>("global_scale"));
-
+#endif
     saveSettings();
 
     settingsTree.addListener(this);
@@ -129,16 +138,22 @@ void SettingsFile::initialisePathsTree()
 {
 
     // Make sure all the default paths are in place
-    StringArray currentPaths;
+    Array<File> currentPaths;
 
     auto pathTree = getPathsTree();
+    
+    // on iOS, the containerisation of apps leads to problems with custom search paths
+    // So we completely reset them every time
+#if JUCE_IOS
+    pathTree.removeAllChildren(nullptr);
+#endif
 
     for (auto child : pathTree) {
-        currentPaths.add(child.getProperty("Path").toString());
+        currentPaths.add(File(child.getProperty("Path").toString()));
     }
 
     for (auto const& path : pd::Library::defaultPaths) {
-        if (!currentPaths.contains(path.getFullPathName())) {
+        if (!currentPaths.contains(path)) {
             auto pathSubTree = ValueTree("Path");
             pathSubTree.setProperty("Path", path.getFullPathName(), nullptr);
             pathTree.appendChild(pathSubTree, nullptr);
