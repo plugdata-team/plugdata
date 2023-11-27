@@ -51,7 +51,6 @@ SettingsFile* SettingsFile::initialise()
 
     // Make sure all the properties exist
     for (auto& [propertyName, propertyValue] : defaultSettings) {
-
         // If it doesn't exists, set it to the default value
         if (!settingsTree.hasProperty(propertyName) || settingsTree.getProperty(propertyName).toString() == "") {
             settingsTree.setProperty(propertyName, propertyValue, nullptr);
@@ -142,6 +141,12 @@ void SettingsFile::initialisePathsTree()
     Array<File> currentPaths;
 
     auto pathTree = getPathsTree();
+    
+    // on iOS, the containerisation of apps leads to problems with custom search paths
+    // So we completely reset them every time
+#if JUCE_IOS
+    pathTree.removeAllChildren(nullptr);
+#endif
 
     for (auto child : pathTree) {
         currentPaths.add(File(child.getProperty("Path").toString()));

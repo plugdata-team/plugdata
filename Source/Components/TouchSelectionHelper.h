@@ -40,6 +40,8 @@ public:
             info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
             editor->ApplicationCommandManager::invoke(info, true);
         };
+        
+#if JUCE_IOS
         actionButtons[3]->onClick = [this](){
             OSUtils::showMobileCanvasMenu(editor->getPeer(), [this](int result){
                 if(result < 1) return;
@@ -90,7 +92,7 @@ public:
                 }
             });
         };
-        
+#endif
     }
     
     void show()
