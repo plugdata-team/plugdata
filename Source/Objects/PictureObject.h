@@ -102,7 +102,7 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
 
         switch (hash(symbol)) {
@@ -118,7 +118,7 @@ public:
         }
         case hash("open"): {
             if (atoms.size() >= 1)
-                openFile(atoms[0].getSymbol());
+                openFile(atoms[0].toString());
             break;
         }
         }
@@ -171,11 +171,11 @@ public:
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
-                pd->sendDirectMessage(pic.get(), "send", { symbol });
+                pd->sendDirectMessage(pic.get(), "send", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
-                pd->sendDirectMessage(pic.get(), "receive", { symbol });
+                pd->sendDirectMessage(pic.get(), "receive", { pd->generateSymbol(symbol) });
         }
     }
 

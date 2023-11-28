@@ -496,10 +496,7 @@ void Object::triggerOverlayActiveState()
     // Because the timer is being reset when new messages come in
     // it will not trigger it's callback until it's free-running
     // so we manually call the repaint here if this happens
-    MessageManager::callAsync([_this = SafePointer(this)]() {
-        if (_this)
-            _this->repaint();
-    });
+    repaint();
 }
 
 void Object::paint(Graphics& g)

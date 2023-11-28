@@ -669,7 +669,7 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
     return true;
 }
 
-void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
+void ObjectBase::receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms)
 {
     object->triggerOverlayActiveState();
 
@@ -695,12 +695,10 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
     auto messages = getAllMessages();
     if (std::find(messages.begin(), messages.end(), hash("anything")) != messages.end() || std::find(messages.begin(), messages.end(), sym) != messages.end()) {
 
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
-
-        MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-            if (_this)
-                _this->receiveObjectMessage(symbol, atoms);
-        });
+        //MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+        //    if (_this)
+                receiveObjectMessage(symbol, atoms);
+        //});
     }
 }
 

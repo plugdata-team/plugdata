@@ -363,7 +363,7 @@ public:
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto receive = receiveSymbol.toString();
             if (auto note = ptr.get<t_fake_note>()) {
-                pd->sendDirectMessage(note.get(), "receive", {receive});
+                pd->sendDirectMessage(note.get(), "receive", { pd->generateSymbol(receive) });
             }
         } else if (v.refersToSameSourceAs(justification)) {
             auto justificationType = getValue<int>(justification);
@@ -432,7 +432,7 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {
         case hash("font"): {
@@ -507,7 +507,7 @@ public:
         }
         case hash("receive"): {
             if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("bg"): {

@@ -582,7 +582,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
 
     if (protectedMode && buffer.getNumChannels() > 0) {
 
-        // Take out inf and NaN values
+        //Take out inf and NaN values
         auto* const* writePtr = buffer.getArrayOfWritePointers();
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             for (int n = 0; n < buffer.getNumSamples(); n++) {
@@ -885,12 +885,11 @@ void PluginProcessor::processInternal()
         midiBufferOut.clear();
     }
 
-    // Dequeue messages
-    sendMessagesFromQueue();
     sendMidiBuffer();
 
     // Process audio
     performDSP(audioBufferIn.data(), audioBufferOut.data());
+    messageDispatcher->dispatch();
 }
 
 bool PluginProcessor::hasEditor() const
@@ -1380,8 +1379,8 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     switch (hash(selector)) {
     case hash("open"): {
         if (list.size() >= 2) {
-            auto filename = list[0].getSymbol();
-            auto directory = list[1].getSymbol();
+            auto filename = list[0].toString();
+            auto directory = list[1].toString();
 
             auto patch = File(directory).getChildFile(filename);
             loadPatch(patch, openedEditors[0]);
@@ -1390,8 +1389,8 @@ void PluginProcessor::receiveSysMessage(String const& selector, std::vector<pd::
     }
     case hash("menunew"): {
         if (list.size() >= 2) {
-            auto filename = list[0].getSymbol();
-            auto directory = list[1].getSymbol();
+            auto filename = list[0].toString();
+            auto directory = list[1].toString();
 
             auto patchPtr = loadPatch(defaultPatch, openedEditors[0]);
             patchPtr->setCurrentFile(File(directory).getChildFile(filename).getFullPathName());
@@ -1566,7 +1565,7 @@ void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
         logMessage("databuffer accepts only lists beginning with a Symbol atom");
         return;
     }
-    String child_name = String(vec[0].getSymbol());
+    String child_name = String(vec[0].toString());
 
     if (extraData) {
 
@@ -1583,7 +1582,7 @@ void PluginProcessor::fillDataBuffer(std::vector<pd::Atom> const& vec)
                 if (vec[i].isFloat()) {
                     list->setAttribute(String("float") + String(i + 1), vec[i].getFloat());
                 } else if (vec[i].isSymbol()) {
-                    list->setAttribute(String("string") + String(i + 1), String(vec[i].getSymbol()));
+                    list->setAttribute(String("string") + String(i + 1), String(vec[i].toString()));
                 } else {
                     list->setAttribute(String("atom") + String(i + 1), String("unknown"));
                 }
@@ -1616,9 +1615,9 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
                     if (name.startsWith("float")) {
                         vec[j] = static_cast<float>(list->getDoubleAttribute(name));
                     } else if (name.startsWith("string")) {
-                        vec[j] = list->getStringAttribute(name);
+                        vec[j] = generateSymbol(list->getStringAttribute(name));
                     } else {
-                        vec[j] = String("unknown");
+                        vec[j] = generateSymbol(String("unknown"));
                     }
                 }
 

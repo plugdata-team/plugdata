@@ -377,11 +377,11 @@ public:
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
             if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "send", { symbol });
+                pd->sendDirectMessage(obj.get(), "send", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
             if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "receive", { symbol });
+                pd->sendDirectMessage(obj.get(), "receive", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(toggleMode)) {
             auto toggle = getValue<int>(toggleMode);
             if (auto obj = ptr.get<void>())
@@ -432,7 +432,7 @@ public:
         keyboard.repaint();
     }
 
-    void notesOn(std::vector<pd::Atom>& noteList, bool isOn)
+    void notesOn(std::vector<pd::Atom> const& noteList, bool isOn)
     {
         for (auto note : noteList) {
             if (isOn)
@@ -443,7 +443,7 @@ public:
         keyboard.repaint();
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 
@@ -487,12 +487,12 @@ public:
         }
         case hash("send"): {
             if (atoms.size() >= 1)
-                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
             if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("toggle"): {

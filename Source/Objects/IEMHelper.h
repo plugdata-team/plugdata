@@ -103,11 +103,11 @@ public:
             objectParams.addParam(param);
     }
 
-    bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
+    bool receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms)
     {
-        auto setColour = [this](Value& targetValue, pd::Atom& atom) {
+        auto setColour = [this](Value& targetValue, pd::Atom const& atom) {
             if (atom.isSymbol()) {
-                auto colour = "#FF" + atom.getSymbol().fromFirstOccurrenceOf("#", false, false);
+                auto colour = "#FF" + atom.toString().fromFirstOccurrenceOf("#", false, false);
                 gui->setParameterExcludingListener(targetValue, colour);
             } else {
 
@@ -130,12 +130,12 @@ public:
         switch (hash(symbol)) {
         case hash("send"): {
             if (atoms.size() >= 1)
-                gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+                gui->setParameterExcludingListener(sendSymbol, atoms[0].toString());
             return true;
         }
         case hash("receive"): {
             if (atoms.size() >= 1)
-                gui->setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+                gui->setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             return true;
         }
         case hash("color"): {
@@ -151,7 +151,7 @@ public:
         }
         case hash("label"): {
             if (atoms.size() >= 1) {
-                gui->setParameterExcludingListener(labelText, atoms[0].getSymbol());
+                gui->setParameterExcludingListener(labelText, atoms[0].toString());
                 gui->updateLabel();
             }
             return true;

@@ -276,7 +276,7 @@ public:
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
             if (auto scope = ptr.get<void>())
-                pd->sendDirectMessage(scope.get(), "receive", { symbol });
+                pd->sendDirectMessage(scope.get(), "receive", { pd->generateSymbol(symbol) });
         }
     }
 
@@ -290,12 +290,12 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {
         case hash("receive"): {
             if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("fgcolor"): {

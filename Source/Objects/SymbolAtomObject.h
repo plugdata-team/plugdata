@@ -218,14 +218,14 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {
 
         case hash("set"):
         case hash("list"):
         case hash("symbol"): {
-            input.setText(atoms[0].getSymbol(), dontSendNotification);
+            input.setText(atoms[0].toString(), dontSendNotification);
             break;
         }
         case hash("float"): {
@@ -234,12 +234,12 @@ public:
         }
         case hash("send"): {
             if (atoms.size() >= 1)
-                setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
             if (atoms.size() >= 1) {
-                setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
             }
             break;
         }

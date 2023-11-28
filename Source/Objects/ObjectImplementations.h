@@ -22,24 +22,17 @@ public:
         closeOpenedSubpatchers();
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;
 
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
-
         bool isVisMessage = symbol == "vis";
         if (isVisMessage && atoms[0].getFloat()) {
-            MessageManager::callAsync([_this = WeakReference(this)] {
-                if (_this)
-                    _this->openSubpatch(_this->subpatch);
-            });
-        } else if (isVisMessage) {
-            MessageManager::callAsync([_this = WeakReference(this)] {
-                if (_this)
-                    _this->closeOpenedSubpatchers();
-            });
+            openSubpatch(subpatch);
+        }
+        else if (isVisMessage) {
+            closeOpenedSubpatchers();
         }
     }
 
@@ -468,7 +461,7 @@ public:
         mouseMove(e);
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         if (!cnv || pd->isPerformingGlobalSync)
             return;
@@ -687,29 +680,22 @@ public:
         pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;
+        
+        if (symbol == "bang") {
+            auto currentPosition = Desktop::getMousePosition();
 
-        bool isBang = symbol == "bang";
-        if (isBang) {
-            MessageManager::callAsync([_base = WeakReference<ImplementationBase>(this)]() {
-                if (!_base)
-                    return;
-                auto* _this = dynamic_cast<MouseStateObject*>(_base.get());
+            if (auto obj = ptr.get<t_fake_mousestate>()) {
+                outlet_float(obj->x_hposout, currentPosition.x);
+                outlet_float(obj->x_vposout, currentPosition.y);
+                outlet_float(obj->x_hdiffout, currentPosition.x - lastPosition.x);
+                outlet_float(obj->x_vdiffout, currentPosition.y - lastPosition.y);
 
-                auto currentPosition = Desktop::getMousePosition();
-
-                if (auto obj = _this->ptr.get<t_fake_mousestate>()) {
-                    outlet_float(obj->x_hposout, currentPosition.x);
-                    outlet_float(obj->x_vposout, currentPosition.y);
-                    outlet_float(obj->x_hdiffout, currentPosition.x - _this->lastPosition.x);
-                    outlet_float(obj->x_vdiffout, currentPosition.y - _this->lastPosition.y);
-
-                    _this->lastPosition = currentPosition;
-                }
-            });
+                lastPosition = currentPosition;
+            }
         }
     }
 };

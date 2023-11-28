@@ -148,7 +148,7 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {
         case hash("set"): {
@@ -236,7 +236,7 @@ public:
                 SETFLOAT(pd_atoms.data() + i, atoms[i].getFloat());
             } else {
                 auto sym = atoms[i].getSymbol();
-                SETSYMBOL(pd_atoms.data() + i, gensym(sym.toRawUTF8()));
+                SETSYMBOL(pd_atoms.data() + i, sym);
             }
         }
 
@@ -256,7 +256,7 @@ public:
             if (atom.isFloat())
                 newText += String(atom.getFloat()) + " ";
             else {
-                auto symbol = atom.getSymbol();
+                auto symbol = atom.toString();
                 auto const* sym = symbol.toRawUTF8();
                 int pos;
                 int j = 0;

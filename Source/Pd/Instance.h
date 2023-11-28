@@ -40,7 +40,7 @@ public:
             if (av[i].a_type == A_FLOAT) {
                 array.emplace_back(atom_getfloat(av + i));
             } else if (av[i].a_type == A_SYMBOL) {
-                array.emplace_back(atom_getsymbol(av + i)->s_name);
+                array.emplace_back(atom_getsymbol(av + i));
             } else {
                 array.emplace_back();
             }
@@ -49,7 +49,7 @@ public:
         return array;
     }
 
-    // The const floatructor.
+    // The float constructor.
     inline Atom(float val)
         : type(FLOAT)
         , value(val)
@@ -57,27 +57,10 @@ public:
     {
     }
 
-    // The string constructor.
-    inline Atom(String sym)
-        : type(SYMBOL)
-        , value(0)
-        , symbol(std::move(sym))
-    {
-    }
-
-    // The pd hash constructor.
     inline Atom(t_symbol* sym)
         : type(SYMBOL)
         , value(0)
-        , symbol(String::fromUTF8(sym->s_name))
-    {
-    }
-
-    // The c-string constructor.
-    inline Atom(char const* sym)
-        : type(SYMBOL)
-        , value(0)
-        , symbol(String::fromUTF8(sym))
+        , symbol(sym)
     {
     }
 
@@ -96,13 +79,28 @@ public:
     // Get the float value.
     inline float getFloat() const
     {
+        jassert(isFloat());
         return value;
     }
 
     // Get the string.
-    inline String const& getSymbol() const
+    inline t_symbol* getSymbol() const
     {
+        jassert(isSymbol());
+        
         return symbol;
+    }
+    
+    // Get the string.
+    inline String toString() const
+    {
+        if(type == FLOAT)
+        {
+            return String(value);
+        }
+        else {
+            return String::fromUTF8(symbol->s_name);
+        }
     }
 
     // Compare two atoms.
@@ -122,10 +120,12 @@ private:
     };
     Type type = FLOAT;
     float value = 0;
-    String symbol;
+    t_symbol* symbol;
 };
 
+
 class MessageListener;
+class MessageDispatcher;
 class Patch;
 class Instance {
     struct Message {
@@ -192,7 +192,24 @@ public:
     virtual void addTextToTextEditor(unsigned long ptr, String text) { }
     virtual void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) { }
 
-    virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) { }
+    virtual void receivePrint(String const& message) {};
+
+    virtual void receiveBang(String const& dest)
+    {
+    }
+    virtual void receiveFloat(String const& dest, float num)
+    {
+    }
+    virtual void receiveSymbol(String const& dest, String const& symbol)
+    {
+    }
+    virtual void receiveList(String const& dest, std::vector<pd::Atom> const& list)
+    {
+    }
+    virtual void receiveMessage(String const& dest, String const& msg, std::vector<pd::Atom> const& list)
+    {
+    }
+    virtual void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) {};
 
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(void* object, MessageListener* messageListener);
@@ -280,19 +297,20 @@ public:
 private:
     std::mutex weakReferenceMutex;
     std::unordered_map<void*, std::vector<pd_weak_reference*>> pdWeakReferences;
-    std::unordered_map<void*, std::vector<juce::WeakReference<MessageListener>>> messageListeners;
+
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
-    CriticalSection messageListenerLock;
-
     moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
+    
 
     std::unique_ptr<FileChooser> openChooser;
     std::atomic<bool> consoleMute;
 
 protected:
     struct internal;
+            
+    std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
 
     struct ConsoleHandler : public Timer {
         Instance* instance;
