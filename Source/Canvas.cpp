@@ -480,7 +480,7 @@ void Canvas::performSynchronise()
     auto pdObjects = patch.getObjects();
 
     for (auto object : pdObjects) {
-        auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object; });
+        auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object.getRawUnchecked<void>(); });
         if(!object.isValid()) continue;
         
         if (it == objects.end()) {
@@ -1920,13 +1920,9 @@ void Canvas::receiveMessage(String const& symbol, std::vector<pd::Atom> const& a
         if (atoms.size() >= 4) {
             auto width = atoms[2].getFloat() - atoms[0].getFloat();
             auto height = atoms[3].getFloat() - atoms[1].getFloat();
-            MessageManager::callAsync([_this = SafePointer(this), width, height]() {
-                if (!_this)
-                    return;
-                setValueExcludingListener(_this->patchWidth, width, _this.getComponent());
-                setValueExcludingListener(_this->patchHeight, height, _this.getComponent());
-                _this->repaint();
-            });
+            setValueExcludingListener(patchWidth, width, this);
+            setValueExcludingListener(patchHeight, height, this);
+            repaint();
         }
 
         break;

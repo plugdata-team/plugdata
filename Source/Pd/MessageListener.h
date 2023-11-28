@@ -164,6 +164,7 @@ private:
     
     void handleAsyncUpdate() override
     {
+        ScopedLock lock(messageListenerLock);
         Message incomingMessage = {nullptr, nullptr, {MemoryPoolVector<pd::Atom>(memoryPool)}};
 
         std::vector<std::pair<void*, std::vector<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
@@ -171,6 +172,10 @@ private:
         while(messageQueue.try_dequeue(incomingMessage))
         {
             auto& [target, symbol, atoms] = incomingMessage;
+            
+            if (messageListeners.find(target) == messageListeners.end())
+                return;
+            
             for (auto it = messageListeners.at(target).begin(); it != messageListeners.at(target).end(); ++it) {
                 auto listenerWeak = *it;
                 auto listener = listenerWeak.get();
