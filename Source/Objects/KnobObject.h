@@ -346,7 +346,7 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {
         case hash("float"):
@@ -417,12 +417,12 @@ public:
         }
         case hash("send"): {
             if (atoms.size() >= 1)
-                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
             if (atoms.size() >= 1)
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("fgcolor"): {
@@ -529,14 +529,14 @@ public:
     void setSendSymbol(String const& symbol) const
     {
         if (auto knob = ptr.get<void>()) {
-            pd->sendDirectMessage(knob.get(), "send", { pd::Atom(symbol) });
+            pd->sendDirectMessage(knob.get(), "send", { pd::Atom(pd->generateSymbol(symbol)) });
         }
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
         if (auto knob = ptr.get<void>()) {
-            pd->sendDirectMessage(knob.get(), "receive", { pd::Atom(symbol) });
+            pd->sendDirectMessage(knob.get(), "receive", { pd::Atom(pd->generateSymbol(symbol)) });
         }
     }
 

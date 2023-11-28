@@ -22,12 +22,10 @@ public:
         closeOpenedSubpatchers();
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;
-
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
 
         bool isVisMessage = symbol == "vis";
         if (isVisMessage && atoms[0].getFloat()) {
@@ -468,7 +466,7 @@ public:
         mouseMove(e);
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         if (!cnv || pd->isPerformingGlobalSync)
             return;
@@ -687,7 +685,7 @@ public:
         pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;

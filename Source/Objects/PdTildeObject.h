@@ -53,7 +53,7 @@ public:
 
                         pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
                         pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
-                        pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
+                        pd->sendDirectMessage(pdTilde.get(), "pd~", { pd->generateSymbol("start") });
                     }
                 }, true, true, "", "LastPdLocation");
         } else {
@@ -63,7 +63,7 @@ public:
 
                 pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
                 pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
-                pd->sendDirectMessage(pdTilde.get(), "pd~", { "start" });
+                pd->sendDirectMessage(pdTilde.get(), "pd~", { pd->generateSymbol("start") });
             }
         }
     }

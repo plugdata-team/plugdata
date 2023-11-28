@@ -955,10 +955,10 @@ void Canvas::focusGained(FocusChangeType cause)
         // canvas.active listener
         char buf[MAXPDSTRING];
         snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
-        pd->sendMessage("#active_gui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
+        pd->sendMessage("#active_gui", "_focus", {pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true))});
         
         // cyclone focus listeners
-        pd->sendMessage("#hammergui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
+        pd->sendMessage("#hammergui", "_focus", {pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true))});
     }
 }
 
@@ -969,10 +969,10 @@ void Canvas::focusLost(FocusChangeType cause)
         // canvas.active listener
         char buf[MAXPDSTRING];
         snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
-        pd->sendMessage("#active_gui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
+        pd->sendMessage("#active_gui", "_focus", {pd->generateSymbol(buf), static_cast<float>(hasKeyboardFocus(true))});
         
         // cyclone focus listeners
-        pd->sendMessage("#hammergui", "_focus", {pd::Atom(buf), static_cast<float>(hasKeyboardFocus(true))});
+        pd->sendMessage("#hammergui", "_focus", {pd->generateSymbol(buf), static_cast<float>(hasKeyboardFocus(true))});
     }
 }
 
@@ -1874,9 +1874,8 @@ bool Canvas::panningModifierDown()
     return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }
 
-void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
+void Canvas::receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms)
 {
-    auto atoms = pd::Atom::fromAtoms(argc, argv);
     switch (hash(symbol)) {
     case hash("obj"):
     case hash("msg"):
@@ -1918,9 +1917,9 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
         break;
     }
     case hash("setbounds"): {
-        if (argc >= 4) {
-            auto width = argv[2].a_w.w_float - argv[0].a_w.w_float;
-            auto height = argv[3].a_w.w_float - argv[1].a_w.w_float;
+        if (atoms.size() >= 4) {
+            auto width = atoms[2].getFloat() - atoms[0].getFloat();
+            auto height = atoms[3].getFloat() - atoms[1].getFloat();
             MessageManager::callAsync([_this = SafePointer(this), width, height]() {
                 if (!_this)
                     return;

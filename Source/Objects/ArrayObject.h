@@ -182,10 +182,8 @@ public:
         }
     }
     
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
-        
         switch(hash(symbol)) {
             case hash("edit"): {
                 if (atoms.empty()) break;
@@ -197,7 +195,7 @@ public:
             }
             case hash("rename"): {
                 if (atoms.empty()) break;
-                MessageManager::callAsync([_this = SafePointer(this), newName = atoms[0].getSymbol()]() {
+                MessageManager::callAsync([_this = SafePointer(this), newName = atoms[0].toString()]() {
                     if (!_this)
                         return;
                     
@@ -1103,7 +1101,7 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         if(symbol == "redraw")
         {
@@ -1188,9 +1186,10 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
     }
+    
     void openFromMenu() override
     {
         openArrayEditor();

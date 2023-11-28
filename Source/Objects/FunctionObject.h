@@ -386,11 +386,11 @@ public:
             } else if (v.refersToSameSourceAs(sendSymbol)) {
                 auto symbol = sendSymbol.toString();
                 if (auto obj = ptr.get<void>())
-                    pd->sendDirectMessage(obj.get(), "send", { symbol });
+                    pd->sendDirectMessage(obj.get(), "send", { pd->generateSymbol(symbol) });
             } else if (v.refersToSameSourceAs(receiveSymbol)) {
                 auto symbol = receiveSymbol.toString();
                 if (auto obj = ptr.get<void>())
-                    pd->sendDirectMessage(obj.get(), "receive", { symbol });
+                    pd->sendDirectMessage(obj.get(), "receive", { pd->generateSymbol(symbol) });
 
             } else if (v.refersToSameSourceAs(range)) {
                 setRange(getRange());
@@ -421,17 +421,17 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {
         case hash("send"): {
             if (!atoms.empty())
-                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
             if (!atoms.empty())
-                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("list"): {

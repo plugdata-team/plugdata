@@ -118,7 +118,7 @@ public:
             if (numptr - charptr == elem.getNumBytesAsUTF8()) {
                 list.emplace_back(value);
             } else {
-                list.emplace_back(elem);
+                list.emplace_back(pd->generateSymbol(elem));
             }
         }
         if (list != getList()) {
@@ -220,11 +220,8 @@ public:
                 if (message.isNotEmpty()) {
                     message += " ";
                 }
-                if (atom.isFloat()) {
-                    message += String(atom.getFloat());
-                } else if (atom.isSymbol()) {
-                    message += String(atom.getSymbol());
-                }
+
+                message += atom.toString();
             }
             listLabel.setText(message, NotificationType::dontSendNotification);
         }
@@ -239,11 +236,8 @@ public:
                 if (message.isNotEmpty()) {
                     message += " ";
                 }
-                if (atom.isFloat()) {
-                    message += String(atom.getFloat());
-                } else if (atom.isSymbol()) {
-                    message += String(atom.getSymbol());
-                }
+                
+                message += atom.toString();
             }
             listLabel.setText(message, NotificationType::dontSendNotification);
         }
@@ -286,7 +280,7 @@ public:
         };
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {
         case hash("float"):
@@ -298,12 +292,12 @@ public:
         }
         case hash("send"): {
             if (atoms.size() >= 1)
-                setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
             break;
         }
         case hash("receive"): {
             if (atoms.size() >= 1)
-                setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+                setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
             break;
         }
         default:

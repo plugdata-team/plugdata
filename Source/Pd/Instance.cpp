@@ -42,7 +42,7 @@ struct pd::Instance::internal {
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String::fromUTF8(recv), std::vector<Atom>(1, String::fromUTF8(sym)) }); });
+        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String::fromUTF8(recv), std::vector<Atom>(1, ptr->generateSymbol(sym)) }); });
     }
 
     static void instance_multi_list(pd::Instance* ptr, char const* recv, int argc, t_atom* argv)
@@ -52,7 +52,7 @@ struct pd::Instance::internal {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
+                mess.list[i] = Atom(atom_getsymbol(argv + i));
         }
 
         ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(mess); });
@@ -65,7 +65,7 @@ struct pd::Instance::internal {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
+                mess.list[i] = Atom(atom_getsymbol(argv + i));
         }
         ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
     }
@@ -129,7 +129,7 @@ struct pd::Instance::internal {
 namespace pd {
 
 Instance::Instance(String const& symbol)
-    : consoleHandler(this)
+: messageDispatcher(std::make_unique<MessageDispatcher>()), consoleHandler(this)
 {
     pd::Setup::initialisePd();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
@@ -248,29 +248,8 @@ void Instance::initialisePd(String& pdlua_version)
     };
 
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
-        ScopedLock lock(static_cast<Instance*>(instance)->messageListenerLock);
-
-        auto& listeners = static_cast<Instance*>(instance)->messageListeners;
-        if (!symbol || !listeners.count(target))
-            return;
-
-        auto sym = String::fromUTF8(symbol->s_name);
-
-        // Create a new vector to hold the null listeners
-        std::vector<std::vector<juce::WeakReference<pd::MessageListener>>::iterator> nullListeners;
-
-        for (auto it = listeners[target].begin(); it != listeners[target].end(); ++it) {
-            auto listener = it->get();
-            if (listener) {
-                listener->receiveMessage(sym, argc, argv);
-            } else
-                nullListeners.push_back(it);
-        }
-
-        // Remove all the null listeners from the original vector using the iterators in the nullListeners vector
-        for (int i = nullListeners.size() - 1; i >= 0; i--) {
-            listeners[target].erase(nullListeners[i]);
-        }
+        auto* pd = reinterpret_cast<pd::Instance*>(instance);
+        pd->messageDispatcher->enqueueMessage(target, symbol, argc, argv);
     };
 
     register_gui_triggers(static_cast<t_pdinstance*>(instance), this, gui_trigger, message_trigger);
@@ -437,7 +416,7 @@ void Instance::sendList(char const* receiver, std::vector<Atom> const& list) con
         if (list[i].isFloat())
             libpd_set_float(argv + i, list[i].getFloat());
         else
-            libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
+            libpd_set_symbol(argv + i, list[i].getSymbol()->s_name);
     }
     libpd_list(receiver, static_cast<int>(list.size()), argv);
 }
@@ -455,7 +434,7 @@ void Instance::sendTypedMessage(void* object, char const* msg, std::vector<Atom>
         if (list[i].isFloat())
             libpd_set_float(argv + i, list[i].getFloat());
         else
-            libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
+            libpd_set_symbol(argv + i, list[i].getSymbol()->s_name);
     }
 
     pd_typedmess(static_cast<t_pd*>(object), generateSymbol(msg), static_cast<int>(list.size()), argv);
@@ -474,13 +453,13 @@ void Instance::processMessage(Message mess)
     if (mess.destination == "param" && mess.list.size() >= 2) {
         if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
             return;
-        auto name = mess.list[0].getSymbol();
+        auto name = mess.list[0].toString();
         float value = mess.list[1].getFloat();
         performParameterChange(0, name, value);
     } else if (mess.destination == "param_change" && mess.list.size() >= 2) {
         if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
             return;
-        auto name = mess.list[0].getSymbol();
+        auto name = mess.list[0].toString();
         int state = mess.list[1].getFloat() != 0;
         performParameterChange(1, name, state);
         // JYG added This
@@ -498,7 +477,7 @@ void Instance::processSend(dmessage mess)
                 if (mess.list[i].isFloat())
                     SETFLOAT(argv + i, mess.list[i].getFloat());
                 else if (mess.list[i].isSymbol()) {
-                    SETSYMBOL(argv + i, generateSymbol(mess.list[i].getSymbol()));
+                    SETSYMBOL(argv + i, mess.list[i].getSymbol());
                 } else
                     SETFLOAT(argv + i, 0.0);
             }
@@ -506,7 +485,7 @@ void Instance::processSend(dmessage mess)
         } else if (mess.selector == "float" && !mess.list.empty() && mess.list[0].isFloat()) {
             pd_float(obj.get(), mess.list[0].getFloat());
         } else if (mess.selector == "symbol" && !mess.list.empty() && mess.list[0].isSymbol()) {
-            pd_symbol(obj.get(), generateSymbol(mess.list[0].getSymbol()));
+            pd_symbol(obj.get(), mess.list[0].getSymbol());
         } else {
             sendTypedMessage(obj.get(), mess.selector.toRawUTF8(), mess.list);
         }
@@ -517,25 +496,12 @@ void Instance::processSend(dmessage mess)
 
 void Instance::registerMessageListener(void* object, MessageListener* messageListener)
 {
-    ScopedLock lock(messageListenerLock);
-    messageListeners[object].emplace_back(messageListener);
+    messageDispatcher->addMessageListener(object, messageListener);
 }
 
 void Instance::unregisterMessageListener(void* object, MessageListener* messageListener)
 {
-    ScopedLock lock(messageListenerLock);
-
-    if (!messageListeners.count(object))
-        return;
-
-    auto& listeners = messageListeners[object];
-    auto it = std::find(listeners.begin(), listeners.end(), messageListener);
-
-    if (it != listeners.end())
-        listeners.erase(it);
-
-    if (listeners.empty())
-        messageListeners.erase(object);
+    messageDispatcher->removeMessageListener(object, messageListener);
 }
 
 void Instance::registerWeakReference(void* ptr, pd_weak_reference* ref)
@@ -593,7 +559,7 @@ void Instance::sendDirectMessage(void* object, String const& msg)
 {
 
     lockAudioThread();
-    processSend(dmessage(this, object, String(), "symbol", std::vector<Atom>(1, msg)));
+    processSend(dmessage(this, object, String(), "symbol", std::vector<Atom>(1, generateSymbol(msg))));
     unlockAudioThread();
 }
 

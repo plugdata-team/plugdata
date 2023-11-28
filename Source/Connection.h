@@ -109,7 +109,7 @@ public:
     bool intersectsObject(Object* object) const;
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
-    void receiveMessage(String const& name, int argc, t_atom* argv) override;
+    void receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override;
 
     bool isSelected() const;
 
