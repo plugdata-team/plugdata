@@ -346,16 +346,15 @@ public:
         auto points = historyLength;
         auto distribute = static_cast<float>(bounds.getWidth()) / points;
         Path graphTopLine;
-
-        auto getCPUScaledY = [this, bottom, height](int index) -> float {
+        
+        auto getCPUScaledY = [this, bottom, height](float value) -> float {
             float graphValue;
-            float value = historyGraph(index) * 0.01;
             switch(mappingMode) {
             case 1:
-                graphValue = pow(value, 1 / 1.5f);
+                graphValue = pow(value, 1.0f / 1.5f);
                 break;
             case 2:
-                graphValue = pow(value, 1 / 3.5f);
+                graphValue = pow(value, 1.0f / 3.5f);
                 break;
             default:
                 graphValue = value;
@@ -367,9 +366,11 @@ public:
         auto startPoint = Point<float>(bounds.getTopLeft().getX(), getCPUScaledY(0));
         graphTopLine.startNewSubPath(startPoint);
 
-        for (int i = 1; i < points; i++) {
+        auto lastValues = historyGraph.last(points);
+        
+        for (int i = 0; i < points; i++) {
             auto xPos = (i * distribute) + bounds.getTopLeft().getX() + distribute;
-            auto newPoint = Point<float>(xPos, getCPUScaledY(i));
+            auto newPoint = Point<float>(xPos, getCPUScaledY(lastValues[i] * 0.01f));
             graphTopLine.lineTo(newPoint);
         }
         Path graphFilled = graphTopLine;

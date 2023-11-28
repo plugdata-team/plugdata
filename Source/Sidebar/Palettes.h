@@ -281,7 +281,7 @@ public:
 class PaletteComponent : public Component {
 public:
     PaletteComponent(PluginEditor* e, ValueTree tree)
-        : editor(e), paletteTree(tree)
+    : paletteTree(tree), editor(e)
     {
         paletteDraggableList = new PaletteDraggableList(e, tree);
 
