@@ -803,8 +803,7 @@ void PluginProcessor::sendPlayhead()
 void PluginProcessor::sendParameters()
 {
     for (auto* param : getParameters()) {
-        // Used to do dynamic_cast here, but since it gets called very often and param is always PlugDataParameter
-        // we use reinterpret_cast now.
+        // We used to do dynamic_cast here, but since it gets called very often and param is always PlugDataParameter, we use reinterpret_cast now
         auto* pldParam = reinterpret_cast<PlugDataParameter*>(param);
         if (!pldParam->isEnabled())
             continue;
