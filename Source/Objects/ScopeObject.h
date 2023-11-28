@@ -24,7 +24,7 @@ class ScopeBase : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    ScopeBase(t_gobj* ptr, Object* object)
+    ScopeBase(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
 
@@ -322,7 +322,7 @@ public:
 // Hilarious use of templates to support both cyclone/scope and else/oscope in the same code
 class ScopeObject final : public ScopeBase<t_fake_scope> {
 public:
-    ScopeObject(t_gobj* ptr, Object* object)
+    ScopeObject(pd::WeakReference ptr, Object* object)
         : ScopeBase<t_fake_scope>(ptr, object)
     {
     }
@@ -330,7 +330,7 @@ public:
 
 class OscopeObject final : public ScopeBase<t_fake_oscope> {
 public:
-    OscopeObject(t_gobj* ptr, Object* object)
+    OscopeObject(pd::WeakReference ptr, Object* object)
         : ScopeBase<t_fake_oscope>(ptr, object)
     {
     }

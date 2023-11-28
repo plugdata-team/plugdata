@@ -139,7 +139,7 @@ class CycloneCommentObject final : public ObjectBase {
     bool wasSelectedOnMouseDown = false;
 
 public:
-    CycloneCommentObject(t_gobj* obj, Object* object)
+    CycloneCommentObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
         locked = getValue<bool>(object->locked);

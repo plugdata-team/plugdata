@@ -8,7 +8,7 @@
 
 class OpenFileObject final : public TextBase {
 public:
-    OpenFileObject(t_gobj* ptr, Object* object)
+    OpenFileObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
     }

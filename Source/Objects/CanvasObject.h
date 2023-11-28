@@ -12,7 +12,7 @@ class CanvasObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    CanvasObject(t_gobj* ptr, Object* object)
+    CanvasObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {

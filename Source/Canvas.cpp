@@ -479,12 +479,10 @@ void Canvas::performSynchronise()
 
     auto pdObjects = patch.getObjects();
 
-    for (auto* object : pdObjects) {
+    for (auto object : pdObjects) {
         auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object* b) { return b->getPointer() && b->getPointer() == object; });
-
-        if (patch.objectWasDeleted(object))
-            continue;
-
+        if(!object.isValid()) continue;
+        
         if (it == objects.end()) {
             auto* newBox = objects.add(new Object(object, this));
             newBox->toFront(false);
@@ -1359,7 +1357,10 @@ void Canvas::encapsulateSelection()
     auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
 
     pd::Interface::paste(patchPtr, replacement.toRawUTF8());
-    auto* newObject = pd::Interface::checkObject(patch.getObjects().back());
+    auto lastObject = patch.getObjects().back();
+    if(!lastObject.isValid()) return;
+    
+    auto* newObject = pd::Interface::checkObject(lastObject.getRaw<t_pd>());
     if (!newObject) {
         patch.endUndoSequence("encapsulate");
         pd->unlockAudioThread();

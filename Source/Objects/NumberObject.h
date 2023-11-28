@@ -23,7 +23,7 @@ class NumberObject final : public ObjectBase {
     float value = 0.0f;
 
 public:
-    NumberObject(t_gobj* ptr, Object* object)
+    NumberObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , input(false)
         , iemHelper(ptr, object, this)

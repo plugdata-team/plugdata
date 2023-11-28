@@ -12,7 +12,7 @@ class MousePadObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    MousePadObject(t_gobj* ptr, Object* object)
+    MousePadObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
         , mouseListener(this)
     {

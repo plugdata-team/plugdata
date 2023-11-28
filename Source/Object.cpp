@@ -53,7 +53,7 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     }
 }
 
-Object::Object(t_gobj* object, Canvas* parent)
+Object::Object(pd::WeakReference object, Canvas* parent)
     : gui(nullptr)
     , ds(parent->dragState)
 {
@@ -61,7 +61,7 @@ Object::Object(t_gobj* object, Canvas* parent)
 
     initialise();
 
-    setType("", object);
+    setType("", std::move(object));
 }
 
 Object::~Object()
@@ -318,15 +318,15 @@ void Object::updateBounds()
     }
 }
 
-void Object::setType(String const& newType, t_gobj* existingObject)
+void Object::setType(String const& newType, pd::WeakReference existingObject)
 {
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
-    t_gobj* objectPtr = nullptr;
+    pd::WeakReference objectPtr = nullptr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
-    if (!existingObject) {
+    if (!existingObject.isValid()) {
         auto* patch = &cnv->patch;
         if (gui) {
             // Clear connections to this object
@@ -335,19 +335,21 @@ void Object::setType(String const& newType, t_gobj* existingObject)
                 cnv->connections.removeObject(connection);
 
             if (auto* checkedObject = pd::Interface::checkObject(getPointer())) {
-                objectPtr = patch->renameObject(checkedObject, newType);
+                auto renamedObject = patch->renameObject(checkedObject, newType);
+                objectPtr = pd::WeakReference(renamedObject, cnv->pd);
             }
 
             // Synchronise to make sure connections are preserved correctly
             cnv->synchronise();
         } else {
             auto rect = getObjectBounds();
-            objectPtr = patch->createObject(rect.getX(), rect.getY(), newType);
+            auto* newObject = patch->createObject(rect.getX(), rect.getY(), newType);
+            objectPtr = pd::WeakReference(newObject, cnv->pd);
         }
     } else {
         objectPtr = existingObject;
     }
-    if(!objectPtr)  {
+    if(!objectPtr.getRaw<t_gobj>())  {
         jassertfalse;
         return;
     }
@@ -654,17 +656,19 @@ void Object::updateTooltips()
         auto* subpatchPtr = subpatch->getPointer().get();
 
         // Check child objects of subpatch for inlet/outlet messages
-        for (auto* obj : subpatch->getObjects()) {
-
-            const String name = pd::Interface::getObjectClassName(&obj->g_pd);
-            auto* checkedObject = pd::Interface::checkObject(obj);
+        for (auto obj : subpatch->getObjects()) {
+            
+            if(!obj.isValid()) continue;
+            
+            const String name = pd::Interface::getObjectClassName(obj.getRaw<t_pd>());
+            auto* checkedObject = pd::Interface::checkObject(obj.getRaw<t_pd>());
             if (name == "inlet" || name == "inlet~") {
                 int size;
                 char* str_ptr;
                 pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
 
                 int x, y, w, h;
-                pd::Interface::getObjectBounds(subpatchPtr, obj, &x, &y, &w, &h);
+                pd::Interface::getObjectBounds(subpatchPtr, obj.getRaw<t_gobj>(), &x, &y, &w, &h);
 
                 // Anything after the first space will be the comment
                 auto const text = String::fromUTF8(str_ptr, size);
@@ -677,7 +681,7 @@ void Object::updateTooltips()
                 pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
 
                 int x, y, w, h;
-                pd::Interface::getObjectBounds(subpatchPtr, obj, &x, &y, &w, &h);
+                pd::Interface::getObjectBounds(subpatchPtr, obj.getRaw<t_gobj>(), &x, &y, &w, &h);
 
                 auto const text = String::fromUTF8(str_ptr, size);
                 outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));

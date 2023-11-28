@@ -39,12 +39,12 @@ public:
 
     ObjectParameters objectParameters;
 
-    AtomHelper(t_gobj* pointer, Object* parent, ObjectBase* base)
+    AtomHelper(pd::WeakReference pointer, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
         , cnv(parent->cnv)
         , pd(parent->cnv->pd)
-        , ptr(pointer, parent->cnv->pd)
+        , ptr(pointer)
     {
         objectParameters.addParamCombo("Font height", cDimensions, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" });
         objectParameters.addParamReceiveSymbol(&receiveSymbol);

@@ -17,7 +17,7 @@ class BangObject final : public ObjectBase {
     IEMHelper iemHelper;
 
 public:
-    BangObject(t_gobj* obj, Object* parent)
+    BangObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {

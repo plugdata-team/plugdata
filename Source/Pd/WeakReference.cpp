@@ -27,9 +27,17 @@ pd::WeakReference::WeakReference(Instance* instance)
 {
 }
 
+pd::WeakReference::WeakReference(const WeakReference& toCopy)
+: ptr(toCopy.ptr)
+, pd(toCopy.pd)
+, weakRef(toCopy.weakRef.load())
+{
+    pd->registerWeakReference(ptr, &weakRef);
+}
+
 pd::WeakReference::~WeakReference()
 {
-    pd->unregisterWeakReference(ptr, &weakRef);
+    if(pd) pd->unregisterWeakReference(ptr, &weakRef);
 }
 
 pd::WeakReference& pd::WeakReference::operator=(pd::WeakReference const& other)

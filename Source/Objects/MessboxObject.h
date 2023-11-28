@@ -18,7 +18,7 @@ class MessboxObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    MessboxObject(t_gobj* obj, Object* parent)
+    MessboxObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));

@@ -18,7 +18,7 @@ class SymbolAtomObject final : public ObjectBase
     Label input;
 
 public:
-    SymbolAtomObject(t_gobj* obj, Object* parent)
+    SymbolAtomObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
     {

@@ -509,7 +509,7 @@ class BicoeffObject : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    BicoeffObject(t_gobj* obj, Object* parent)
+    BicoeffObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , graph(parent)
     {

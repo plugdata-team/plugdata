@@ -850,7 +850,7 @@ public:
     Value sizeProperty = SynchronousValue();
     
     // Array component
-    ArrayObject(t_gobj* obj, Object* object)
+    ArrayObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
         reinitialiseGraphs();
@@ -1124,7 +1124,7 @@ class ArrayDefineObject final : public TextBase {
     std::unique_ptr<ArrayEditorDialog> editor = nullptr;
 
 public:
-    ArrayDefineObject(t_gobj* obj, Object* parent)
+    ArrayDefineObject(pd::WeakReference obj, Object* parent)
         : TextBase(obj, parent, true)
     {
     }

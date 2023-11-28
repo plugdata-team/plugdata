@@ -84,7 +84,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 class NonPatchable : public ObjectBase {
 
 public:
-    NonPatchable(t_gobj* obj, Object* parent)
+    NonPatchable(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         parent->setVisible(false);
@@ -133,8 +133,8 @@ void ObjectBase::PropertyUndoListener::valueChanged(Value& v)
     lastChange = Time::getMillisecondCounter();
 }
 
-ObjectBase::ObjectBase(t_gobj* obj, Object* parent)
-    : ptr(obj, parent->cnv->pd)
+ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
+    : ptr(obj)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
@@ -455,157 +455,161 @@ void ObjectBase::sendFloatValue(float newValue)
     }
 }
 
-ObjectBase* ObjectBase::createGui(t_gobj* ptr, Object* parent)
+ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
-    ScopedLock(parent->cnv->pd->audioLock);
-
-    auto const name = hash(pd::Interface::getObjectClassName(&ptr->g_pd));
-
-    // check if object is a patcher object, or something else
-    if (!pd::Interface::checkObject(ptr) && name != hash("scalar")) {
-        return new NonPatchable(ptr, parent);
-    } else {
-        switch (name) {
-        case hash("bng"):
-            return new BangObject(ptr, parent);
-        case hash("button"):
-            return new ButtonObject(ptr, parent);
-        case hash("hsl"):
-        case hash("vsl"):
-        case hash("slider"):
-            return new SliderObject(ptr, parent);
-        case hash("tgl"):
-            return new ToggleObject(ptr, parent);
-        case hash("nbx"):
-            return new NumberObject(ptr, parent);
-        case hash("numbox~"):
-            return new NumboxTildeObject(ptr, parent);
-        case hash("vradio"):
-        case hash("hradio"):
-            return new RadioObject(ptr, parent);
-        case hash("cnv"):
-            return new CanvasObject(ptr, parent);
-        case hash("vu"):
-            return new VUMeterObject(ptr, parent);
-        case hash("text"): {
-            auto* textObj = reinterpret_cast<t_text*>(ptr);
-            if (textObj->te_type == T_OBJECT) {
-                return new TextObject(ptr, parent, false);
-            } else {
-                return new CommentObject(ptr, parent);
-            }
-        }
-        case hash("comment"):
-            return new CycloneCommentObject(ptr, parent);
-        // Check if message type text object to prevent confusing it with else/message
-        case hash("message"): {
-            if (pd::Interface::isTextObject(ptr) && reinterpret_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
-                return new MessageObject(ptr, parent);
-            }
-            break;
-        }
-        case hash("pad"):
-            return new MousePadObject(ptr, parent);
-        case hash("keyboard"):
-            return new KeyboardObject(ptr, parent);
-        case hash("pic"):
-            return new PictureObject(ptr, parent);
-        case hash("text define"):
-            return new TextDefineObject(ptr, parent);
-        case hash("textfile"):
-        case hash("qlist"):
-            return new TextFileObject(ptr, parent);
-        case hash("gatom"): {
-            if (reinterpret_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT) {
-                return new FloatAtomObject(ptr, parent);
-            } else if (reinterpret_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL) {
-                return new SymbolAtomObject(ptr, parent);
-            } else if (reinterpret_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL) {
-                return new ListObject(ptr, parent);
-            }
-            break;
-        }
-        case hash("canvas"):
-        case hash("graph"): {
-            if (reinterpret_cast<t_canvas*>(ptr)->gl_list) {
-                t_class* c = reinterpret_cast<t_canvas*>(ptr)->gl_list->g_pd;
-                if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
-                    return new ArrayObject(ptr, parent);
-                } else if (reinterpret_cast<t_canvas*>(ptr)->gl_isgraph) {
-                    return new GraphOnParent(ptr, parent);
-                } else { // abstraction or subpatch
-                    return new SubpatchObject(ptr, parent);
+    
+    // This will ensure the object is still valid at this point, and also locks the audio thread to make sure it will remain valid
+    if(auto checked = ptr.get<t_gobj>())
+    {
+        auto const name = hash(pd::Interface::getObjectClassName(checked.cast<t_pd>()));
+        
+        // check if object is a patcher object, or something else
+        if (!pd::Interface::checkObject(checked.get()) && name != hash("scalar")) {
+            return new NonPatchable(ptr, parent);
+        } else {
+            switch (name) {
+                case hash("bng"):
+                    return new BangObject(ptr, parent);
+                case hash("button"):
+                    return new ButtonObject(ptr, parent);
+                case hash("hsl"):
+                case hash("vsl"):
+                case hash("slider"):
+                    return new SliderObject(ptr, parent);
+                case hash("tgl"):
+                    return new ToggleObject(ptr, parent);
+                case hash("nbx"):
+                    return new NumberObject(ptr, parent);
+                case hash("numbox~"):
+                    return new NumboxTildeObject(ptr, parent);
+                case hash("vradio"):
+                case hash("hradio"):
+                    return new RadioObject(ptr, parent);
+                case hash("cnv"):
+                    return new CanvasObject(ptr, parent);
+                case hash("vu"):
+                    return new VUMeterObject(ptr, parent);
+                case hash("text"): {
+                    if (checked.cast<t_text>()->te_type == T_OBJECT) {
+                        return new TextObject(ptr, parent, false);
+                    } else {
+                        return new CommentObject(ptr, parent);
+                    }
                 }
-            } else if (reinterpret_cast<t_canvas*>(ptr)->gl_isgraph) {
-                return new GraphOnParent(ptr, parent);
-            } else {
-                return new SubpatchObject(ptr, parent);
+                case hash("comment"):
+                    return new CycloneCommentObject(ptr, parent);
+                    // Check if message type text object to prevent confusing it with else/message
+                case hash("message"): {
+                    if (pd::Interface::isTextObject(checked.get()) && checked.cast<t_text>()->te_type == T_MESSAGE) {
+                        return new MessageObject(ptr, parent);
+                    }
+                    break;
+                }
+                case hash("pad"):
+                    return new MousePadObject(ptr, parent);
+                case hash("keyboard"):
+                    return new KeyboardObject(ptr, parent);
+                case hash("pic"):
+                    return new PictureObject(ptr, parent);
+                case hash("text define"):
+                    return new TextDefineObject(ptr, parent);
+                case hash("textfile"):
+                case hash("qlist"):
+                    return new TextFileObject(ptr, parent);
+                case hash("gatom"): {
+                    if (checked.cast<t_fake_gatom>()->a_flavor == A_FLOAT) {
+                        return new FloatAtomObject(ptr, parent);
+                    } else if (checked.cast<t_fake_gatom>()->a_flavor == A_SYMBOL) {
+                        return new SymbolAtomObject(ptr, parent);
+                    } else if (checked.cast<t_fake_gatom>()->a_flavor == A_NULL) {
+                        return new ListObject(ptr, parent);
+                    }
+                    break;
+                }
+                case hash("canvas"):
+                case hash("graph"): {
+                    auto* canvas = checked.cast<t_canvas>();
+                    if (checked.cast<t_canvas>()->gl_list) {
+                        t_class* c = canvas->gl_list->g_pd;
+                        if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
+                            return new ArrayObject(ptr, parent);
+                        } else if (canvas->gl_isgraph) {
+                            return new GraphOnParent(ptr, parent);
+                        } else { // abstraction or subpatch
+                            return new SubpatchObject(ptr, parent);
+                        }
+                    } else if (canvas->gl_isgraph) {
+                        return new GraphOnParent(ptr, parent);
+                    } else {
+                        return new SubpatchObject(ptr, parent);
+                    }
+                }
+                case hash("array define"):
+                    return new ArrayDefineObject(ptr, parent);
+                case hash("clone"):
+                    return new CloneObject(ptr, parent);
+                case hash("pd"):
+                    return new SubpatchObject(ptr, parent);
+                case hash("pd~"):
+                    return new PdTildeObject(ptr, parent);
+                case hash("scalar"): {
+                    if (checked->g_pd == scalar_class) {
+                        return new ScalarObject(ptr, parent);
+                    }
+                    break;
+                }
+                case hash("colors"):
+                    return new ColourPickerObject(ptr, parent);
+                case hash("oscope~"):
+                    return new OscopeObject(ptr, parent);
+                case hash("scope~"):
+                    return new ScopeObject(ptr, parent);
+                case hash("function"):
+                    return new FunctionObject(ptr, parent);
+                case hash("bicoeff"):
+                    return new BicoeffObject(ptr, parent);
+                case hash("messbox"):
+                    return new MessboxObject(ptr, parent);
+                case hash("note"):
+                    return new NoteObject(ptr, parent);
+                case hash("knob"):
+                    return new KnobObject(ptr, parent);
+                case hash("openfile"): {
+                    char* text;
+                    int size;
+                    pd::Interface::getObjectText(checked.cast<t_text>(), &text, &size);
+                    auto objText = String::fromUTF8(text, size);
+                    bool hyperlink = objText.contains("openfile -h");
+                    if (hyperlink) {
+                        return new OpenFileObject(ptr, parent);
+                    } else {
+                        return new TextObject(ptr, parent);
+                    }
+                }
+                case hash("noteout"):
+                case hash("pgmout"):
+                case hash("bendout"): {
+                    return new MidiObject(ptr, parent, false, false);
+                }
+                case hash("notein"):
+                case hash("pgmin"):
+                case hash("bendin"): {
+                    return new MidiObject(ptr, parent, true, false);
+                }
+                case hash("ctlout"): {
+                    return new MidiObject(ptr, parent, false, true);
+                }
+                case hash("ctlin"): {
+                    return new MidiObject(ptr, parent, true, true);
+                }
+                default:
+                    break;
             }
         }
-        case hash("array define"):
-            return new ArrayDefineObject(ptr, parent);
-        case hash("clone"):
-            return new CloneObject(ptr, parent);
-        case hash("pd"):
-            return new SubpatchObject(ptr, parent);
-        case hash("pd~"):
-            return new PdTildeObject(ptr, parent);
-        case hash("scalar"): {
-            auto* gobj = static_cast<t_gobj*>(ptr);
-            if (gobj->g_pd == scalar_class) {
-                return new ScalarObject(ptr, parent);
-            }
-            break;
-        }
-        case hash("colors"):
-            return new ColourPickerObject(ptr, parent);
-        case hash("oscope~"):
-            return new OscopeObject(ptr, parent);
-        case hash("scope~"):
-            return new ScopeObject(ptr, parent);
-        case hash("function"):
-            return new FunctionObject(ptr, parent);
-        case hash("bicoeff"):
-            return new BicoeffObject(ptr, parent);
-        case hash("messbox"):
-            return new MessboxObject(ptr, parent);
-        case hash("note"):
-            return new NoteObject(ptr, parent);
-        case hash("knob"):
-            return new KnobObject(ptr, parent);
-        case hash("openfile"): {
-            char* text;
-            int size;
-            pd::Interface::getObjectText(reinterpret_cast<t_object*>(ptr), &text, &size);
-            auto objText = String::fromUTF8(text, size);
-            bool hyperlink = objText.contains("openfile -h");
-            if (hyperlink) {
-                return new OpenFileObject(ptr, parent);
-            } else {
-                return new TextObject(ptr, parent);
-            }
-        }
-        case hash("noteout"):
-        case hash("pgmout"):
-        case hash("bendout"): {
-            return new MidiObject(ptr, parent, false, false);
-        }
-        case hash("notein"):
-        case hash("pgmin"):
-        case hash("bendin"): {
-            return new MidiObject(ptr, parent, true, false);
-        }
-        case hash("ctlout"): {
-            return new MidiObject(ptr, parent, false, true);
-        }
-        case hash("ctlin"): {
-            return new MidiObject(ptr, parent, true, true);
-        }
-        default:
-            break;
-        }
+        
     }
+    
     return new TextObject(ptr, parent);
 }
 

@@ -28,11 +28,11 @@ extern void canvas_reload(t_symbol* name, t_symbol* dir, t_glist* except);
 
 namespace pd {
 
-Patch::Patch(t_canvas* patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
+Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
     : instance(parentInstance)
     , closePatchOnDelete(ownsPatch)
     , currentFile(std::move(patchFile))
-    , ptr(patchPtr, parentInstance)
+    , ptr(patchPtr)
 {
     jassert(parentInstance);
 }
@@ -187,14 +187,14 @@ Connections Patch::getConnections() const
     return connections;
 }
 
-std::vector<t_gobj*> Patch::getObjects()
+std::vector<pd::WeakReference> Patch::getObjects()
 {
     setCurrent();
 
-    std::vector<t_gobj*> objects;
+    std::vector<pd::WeakReference> objects;
     if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
-            objects.push_back(y);
+            objects.push_back(pd::WeakReference(y, instance));
         }
     }
 

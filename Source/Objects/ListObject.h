@@ -14,7 +14,7 @@ class ListObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
 
 public:
-    ListObject(t_gobj* obj, Object* parent)
+    ListObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
     {

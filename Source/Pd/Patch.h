@@ -25,7 +25,7 @@ class Patch : public ReferenceCountedObject {
 public:
     using Ptr = ReferenceCountedObjectPtr<Patch>;
 
-    Patch(t_canvas* ptr, Instance* instance, bool ownsPatch, File currentFile = File());
+    Patch(pd::WeakReference ptr, Instance* instance, bool ownsPatch, File currentFile = File());
 
     ~Patch();
 
@@ -104,7 +104,7 @@ public:
     }
 
     // Gets the objects of the patch.
-    std::vector<t_gobj*> getObjects();
+    std::vector<pd::WeakReference> getObjects();
 
     String getCanvasContent();
 

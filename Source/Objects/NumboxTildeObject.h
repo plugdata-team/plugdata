@@ -26,7 +26,7 @@ class NumboxTildeObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
 public:
-    NumboxTildeObject(t_gobj* obj, Object* parent)
+    NumboxTildeObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
         , input(false)
     {

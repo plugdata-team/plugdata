@@ -105,7 +105,7 @@ class SliderObject : public ObjectBase {
     float value = 0.0f;
 
 public:
-    SliderObject(t_gobj* obj, Object* object)
+    SliderObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
         , iemHelper(obj, object, this)
     {

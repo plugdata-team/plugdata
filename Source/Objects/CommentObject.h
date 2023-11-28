@@ -17,7 +17,7 @@ class CommentObject final : public ObjectBase
     int numLines = 1;
 
 public:
-    CommentObject(t_gobj* obj, Object* object)
+    CommentObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);

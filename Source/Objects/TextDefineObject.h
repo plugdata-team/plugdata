@@ -12,7 +12,7 @@ class TextFileObject final : public TextBase {
     std::unique_ptr<Dialog> saveDialog;
 
 public:
-    TextFileObject(t_gobj* obj, Object* parent)
+    TextFileObject(pd::WeakReference obj, Object* parent)
         : TextBase(obj, parent, true)
         , textEditor(nullptr)
     {
@@ -166,7 +166,7 @@ class TextDefineObject final : public TextBase {
     std::unique_ptr<Dialog> saveDialog;
 
 public:
-    TextDefineObject(t_gobj* obj, Object* parent)
+    TextDefineObject(pd::WeakReference obj, Object* parent)
         : TextBase(obj, parent, true)
         , textEditor(nullptr)
     {

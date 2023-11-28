@@ -8,7 +8,7 @@
 
 class ColourPickerObject final : public TextBase {
 public:
-    ColourPickerObject(t_gobj* ptr, Object* object)
+    ColourPickerObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
     }
