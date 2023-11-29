@@ -321,7 +321,7 @@ class CPUHistoryGraph : public Component
 {
 public:
     CPUHistoryGraph(CircularBuffer<float>& history, int length)
-        : historyGraph(history), historyLength(length)
+    : historyLength(length), historyGraph(history)
     {
         mappingMode = SettingsFile::getInstance()->getPropertyAsValue("cpu_meter_mapping_mode").getValue();
     }

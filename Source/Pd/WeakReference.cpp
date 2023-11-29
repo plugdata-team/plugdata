@@ -46,16 +46,18 @@ pd::WeakReference::~WeakReference()
 
 pd::WeakReference& pd::WeakReference::operator=(pd::WeakReference const& other)
 {
-    if (this != &other) // Check for self-assignment
+    bool valid = other.ptr && other.pd;
+    if (valid && this != &other) // Check for self-assignment
     {
+        pd = other.pd;
+        
         pd->weakReferenceMutex.lock();
-        if (ptr)
-            pd->unregisterWeakReference(ptr, &other.weakRef);
+        pd->unregisterWeakReference(ptr, &other.weakRef);
 
         // Use atomic exchange to safely copy the weakRef value
         weakRef.store(other.weakRef.load());
         ptr = other.ptr;
-        pd = other.pd;
+        
 
         pd->registerWeakReference(ptr, &weakRef);
         pd->weakReferenceMutex.unlock();
@@ -66,5 +68,5 @@ pd::WeakReference& pd::WeakReference::operator=(pd::WeakReference const& other)
 
 void pd::WeakReference::setThis() const
 {
-    pd->setThis();
+    if(pd) pd->setThis();
 }
