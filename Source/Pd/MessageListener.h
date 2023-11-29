@@ -31,7 +31,7 @@ class MessageDispatcher : private AsyncUpdater
         void* target;
         t_symbol* symbol;
         t_atom data[8];
-        short size;
+        int size;
         
         Message() {};
         
@@ -138,9 +138,10 @@ private:
                 auto listener = listenerWeak.get();
                 
                 auto heapAtoms = pd::Atom::fromAtoms(message.size, message.data);
+                auto symbol = message.symbol ? String::fromUTF8(message.symbol->s_name) : String();
                 
                 if (listener)
-                    listener->receiveMessage(String::fromUTF8(message.symbol->s_name), heapAtoms);
+                    listener->receiveMessage(symbol, heapAtoms);
                 else
                     nullListeners.push_back({message.target, it});
             }
