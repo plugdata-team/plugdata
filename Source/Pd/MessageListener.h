@@ -44,7 +44,7 @@ class MessageDispatcher : private AsyncUpdater
         Message(Message&& other) noexcept {
             target = std::move(other.target);
             symbol = std::move(other.symbol);
-            size = std::move(other.size);
+            size = other.size;
             // Move the data
             for (int i = 0; i < size; ++i) {
                 data[i] = std::move(other.data[i]);
@@ -57,8 +57,8 @@ class MessageDispatcher : private AsyncUpdater
         Message& operator=(Message&& other) noexcept {
             // Check for self-assignment
             if (this != &other) {
-                target = other.target;
-                symbol = other.symbol;
+                target = std::move(other.target);
+                symbol = std::move(other.symbol);
                 size = other.size;
                 // Move the data
                 for (int i = 0; i < size; ++i) {
