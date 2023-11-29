@@ -211,22 +211,6 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
-    // If we already know the atoms, this will allow a lock-free update
-    void updateValue(std::vector<pd::Atom> array)
-    {
-        if (!listLabel.isBeingEdited()) {
-            String message;
-            for (auto const& atom : array) {
-                if (message.isNotEmpty()) {
-                    message += " ";
-                }
-
-                message += atom.toString();
-            }
-            listLabel.setText(message, NotificationType::dontSendNotification);
-        }
-    }
-
     void updateValue()
     {
         if (!listLabel.isBeingEdited()) {
@@ -287,7 +271,7 @@ public:
         case hash("symbol"):
         case hash("list"):
         case hash("set"): {
-            updateValue(atoms);
+            updateValue();
             break;
         }
         case hash("send"): {

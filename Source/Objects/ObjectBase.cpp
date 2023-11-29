@@ -695,10 +695,7 @@ void ObjectBase::receiveMessage(String const& symbol, std::vector<pd::Atom> cons
     auto messages = getAllMessages();
     if (std::find(messages.begin(), messages.end(), hash("anything")) != messages.end() || std::find(messages.begin(), messages.end(), sym) != messages.end()) {
 
-        //MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-        //    if (_this)
-                receiveObjectMessage(symbol, atoms);
-        //});
+        receiveObjectMessage(symbol, atoms);
     }
 }
 

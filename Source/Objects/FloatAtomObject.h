@@ -249,7 +249,7 @@ public:
         case hash("set"):
         case hash("float"):
         case hash("list"): {
-            if (!atoms[0].isFloat())
+            if (atoms.empty() || !atoms[0].isFloat())
                 break;
 
             auto min = atomHelper.getMinimum();

@@ -22,90 +22,48 @@ public:
 // without performing and memory allocation on the audio thread, and which groups messages within the same audio block (or multiple audio blocks, depending on how long it takes to get a callback from the message thread) togethter
 class MessageDispatcher : private AsyncUpdater
 {
-    template <typename T>
-    class MemoryPool {
-    private:
-        std::vector<T> blocks;
-        std::vector<bool> usedBlocks;
-
+    // Wrapper to store 8 atoms in stack memory
+    // We never read more than 8 args in the whole source code, so this prevents unnecessary memory copying
+    // We also don't want this list to be dynamic since we want to stack allocate it
+    class Atoms {
     public:
-        MemoryPool(size_t initial_size) : blocks(initial_size), usedBlocks(initial_size, false) {}
+        t_atom data[8];
+        short size = 0;
+        
+        Atoms() = default;
+        
+        Atoms(int argc, t_atom* argv)
+        {
+            size = std::min(argc, 8);
+            std::copy(argv, argv + size, data);
+        }
 
-        T* allocate(std::size_t n) {
-            
-            auto it = std::find(usedBlocks.begin(), usedBlocks.end(), false);
-            while (it != usedBlocks.end()) {
-                
-                // Check if there are enough consecutive free blocks
-                auto remaining = std::distance(it, usedBlocks.end());
-                if (std::count(it, std::next(it, std::min<size_t>(n, remaining)), false) >= n) {
-                    break;  // Found a suitable block
+        // Provide a copy constructor
+        Atoms(const Atoms& other) {
+            size = other.size;
+            // Perform a deep copy
+            for (int i = 0; i < size; ++i) {
+                data[i] = other.data[i];
+            }
+        }
+
+        // Provide a copy assignment operator
+        Atoms& operator=(const Atoms& other) {
+            size = other.size;
+            // Check for self-assignment
+            if (this != &other) {
+                // Perform a deep copy
+                for (int i = 0; i < size; ++i) {
+                    data[i] = other.data[i];
                 }
-                // Move to the next potential block
-                it = std::find(std::next(it), usedBlocks.end(), false);
             }
-
-            if (it == usedBlocks.end()) {
-                // No free block found, resize both vectors
-                size_t newSize = blocks.size() * 2;
-
-                blocks.resize(newSize);
-                usedBlocks.resize(newSize, false);
-
-                it = std::find(usedBlocks.begin(), usedBlocks.end(), false);
-            }
-
-            std::fill(it, it + n, true);
-            return &blocks[std::distance(usedBlocks.begin(), it)];
-        }
-
-        void deallocate(T* ptr, std::size_t n) {
-            size_t index = std::distance(&blocks[0], ptr);
-            std::fill(usedBlocks.begin() + index, usedBlocks.begin() + index + n, false);
+            return *this;
         }
     };
 
-    // Custom allocator for std::vector using MemoryPool
-    template <typename T>
-    class MemoryPoolAllocator {
-    public:
-        using value_type = T;
-
-        MemoryPoolAllocator(MemoryPool<T>& memory_pool) noexcept
-            : memory_pool_(memory_pool) {}
-
-        template <typename U>
-        MemoryPoolAllocator(const MemoryPoolAllocator<U>& other) noexcept
-            : memory_pool_(other.memory_pool_) {}
-
-        T* allocate(std::size_t n) {
-            return memory_pool_.allocate(n);
-        }
-
-        void deallocate(T* p, std::size_t n) {
-            if (n == 1) {
-                memory_pool_.deallocate(p, n);
-            }
-        }
-
-        MemoryPool<T>& memory_pool_;
-    };
     
-    template <typename U>
-    friend bool operator==(const MemoryPoolAllocator<U>& a, const MemoryPoolAllocator<U>& b) {
-        return &a.memory_pool_ == &b.memory_pool_;
-    }
-
-    template <typename U>
-    friend bool operator!=(const MemoryPoolAllocator<U>& a, const MemoryPoolAllocator<U>& b) {
-        return !(a == b);
-    }
-
-    template <typename T>
-    using MemoryPoolVector = std::vector<T, MemoryPoolAllocator<T>>;
-
     // Alias for your Message type
-    using Message = std::tuple<void*, t_symbol*, MemoryPoolVector<pd::Atom>>;
+    using Message = std::tuple<void*, t_symbol*, Atoms>;
     
 public:
     void enqueueMessage(void* target, t_symbol* symbol, int argc, t_atom* argv)
@@ -113,21 +71,7 @@ public:
         if (messageListeners.find(target) == messageListeners.end())
             return;
         
-        auto array = MemoryPoolVector<pd::Atom>(memoryPool);
-        array.reserve(argc);
-
-        for (int i = 0; i < argc; i++) {
-            if (argv[i].a_type == A_FLOAT) {
-                array.emplace_back(atom_getfloat(argv + i));
-            } else if (argv[i].a_type == A_SYMBOL) {
-                array.emplace_back(atom_getsymbol(argv + i));
-            } else {
-                array.emplace_back();
-            }
-        }
-                
-        Message message(target, symbol, std::move(array));
-        messageQueue.try_enqueue(std::move(message));
+        messageQueue.try_enqueue({target, symbol, Atoms(argc, argv)});
     }
     
     void addMessageListener(void* object, pd::MessageListener* messageListener)
@@ -165,7 +109,7 @@ private:
     void handleAsyncUpdate() override
     {
         ScopedLock lock(messageListenerLock);
-        Message incomingMessage = {nullptr, nullptr, {MemoryPoolVector<pd::Atom>(memoryPool)}};
+        Message incomingMessage;
 
         std::vector<std::pair<void*, std::vector<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
         
@@ -180,7 +124,8 @@ private:
                 auto listenerWeak = *it;
                 auto listener = listenerWeak.get();
                 
-                auto heapAtoms = std::vector<pd::Atom, std::allocator<pd::Atom>>(atoms.begin(), atoms.end());;
+                auto heapAtoms = pd::Atom::fromAtoms(atoms.size, atoms.data);
+    
                 if (listener)
                     listener->receiveMessage(String::fromUTF8(symbol->s_name), heapAtoms);
                 else
@@ -194,7 +139,6 @@ private:
         }
     }
     
-    MemoryPool<pd::Atom> memoryPool = MemoryPool<pd::Atom>(4096);
     CriticalSection messageListenerLock;
     std::unordered_map<void*, std::vector<juce::WeakReference<MessageListener>>> messageListeners;
     moodycamel::ConcurrentQueue<Message> messageQueue = moodycamel::ConcurrentQueue<Message>(4096);
