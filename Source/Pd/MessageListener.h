@@ -18,20 +18,6 @@ public:
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener)
 };
 
-struct PairHash {
-    template <class T1, class T2>
-    std::size_t operator () (const std::pair<T1, T2>& p) const {
-        //auto hash1 = std::hash<T1>{}(p.first);
-        //auto hash2 = std::hash<T2>{}(p.second);
-        
-        
-
-        // Combine hashes of the two elements in the pair
-        return reinterpret_cast<std::size_t>(p.first) + reinterpret_cast<std::size_t>(p.second);
-    }
-};
-
-
 // MessageDispatcher handles the organising of messages from Pd to the plugdata GUI
 // It provides an optimised way to listen to messages within pd from the message thread,
 // without performing and memory allocation on the audio thread, and which groups messages within the same audio block (or multiple audio blocks, depending on how long it takes to get a callback from the message thread) togethter
@@ -40,53 +26,58 @@ class MessageDispatcher : private AsyncUpdater
     // Wrapper to store 8 atoms in stack memory
     // We never read more than 8 args in the whole source code, so this prevents unnecessary memory copying
     // We also don't want this list to be dynamic since we want to stack allocate it
-    class Atoms {
+    class Message {
     public:
+        void* target;
+        t_symbol* symbol;
         t_atom data[8];
-        short size = 0;
+        short size;
         
-        Atoms() = default;
+        Message() {};
         
-        Atoms(int argc, t_atom* argv)
+        Message(void* ptr, t_symbol* sym, int argc, t_atom* argv) : target(ptr), symbol(sym)
         {
             size = std::min(argc, 8);
             std::copy(argv, argv + size, data);
         }
-
-        // Provide a copy constructor
-        Atoms(const Atoms& other) {
-            size = other.size;
-            // Perform a deep copy
+        
+        Message(Message&& other) noexcept {
+            target = std::move(other.target);
+            symbol = std::move(other.symbol);
+            size = std::move(other.size);
+            // Move the data
             for (int i = 0; i < size; ++i) {
-                data[i] = other.data[i];
+                data[i] = std::move(other.data[i]);
             }
+            // Reset the other object
+            other.size = 0;
         }
-
-        // Provide a copy assignment operator
-        Atoms& operator=(const Atoms& other) {
-            size = other.size;
+    
+        // Move assignment operator
+        Message& operator=(Message&& other) noexcept {
             // Check for self-assignment
             if (this != &other) {
-                // Perform a deep copy
+                target = other.target;
+                symbol = other.symbol;
+                size = other.size;
+                // Move the data
                 for (int i = 0; i < size; ++i) {
-                    data[i] = other.data[i];
+                    data[i] = std::move(other.data[i]);
                 }
+                // Reset the other object
+                other.size = 0;
             }
             return *this;
         }
     };
 
-    
-    // Alias for your Message type
-    using Message = std::tuple<void*, t_symbol*, Atoms>;
-    
 public:
     void enqueueMessage(void* target, t_symbol* symbol, int argc, t_atom* argv)
     {
         if (messageListeners.find(target) == messageListeners.end())
             return;
-        
-        messageQueue.try_enqueue({target, symbol, Atoms(argc, argv)});
+    
+        messageQueue.try_enqueue({target, symbol, argc, argv});
     }
     
     void addMessageListener(void* object, pd::MessageListener* messageListener)
@@ -129,29 +120,29 @@ private:
         std::vector<std::pair<void*, std::vector<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
         
         Message incomingMessage;
-        std::map<std::pair<void*, t_symbol*>, Atoms> uniqueMessages;
+        std::map<size_t, Message> uniqueMessages;
 
         while(messageQueue.try_dequeue(incomingMessage))
         {
-            auto& [target, symbol, atoms] = incomingMessage;
-            uniqueMessages[std::make_pair(target, symbol)] = atoms;
+            auto hash = reinterpret_cast<size_t>(incomingMessage.target) + reinterpret_cast<size_t>(incomingMessage.symbol);
+            //TODO: make a simple hash from symbol and target!
+            uniqueMessages[hash] = std::move(incomingMessage);
         }
         
-        for (auto& [targetAndSymbol, atoms] : uniqueMessages) {
+        for (auto& [hash, message] : uniqueMessages) {
             
-            auto& [target, symbol] = targetAndSymbol;
-            if (messageListeners.find(target) == messageListeners.end()) continue;
+            if (messageListeners.find(message.target) == messageListeners.end()) continue;
             
-            for (auto it = messageListeners.at(target).begin(); it != messageListeners.at(target).end(); ++it) {
+            for (auto it = messageListeners.at(message.target).begin(); it != messageListeners.at(message.target).end(); ++it) {
                 auto listenerWeak = *it;
                 auto listener = listenerWeak.get();
                 
-                auto heapAtoms = pd::Atom::fromAtoms(atoms.size, atoms.data);
+                auto heapAtoms = pd::Atom::fromAtoms(message.size, message.data);
                 
                 if (listener)
-                    listener->receiveMessage(String::fromUTF8(symbol->s_name), heapAtoms);
+                    listener->receiveMessage(String::fromUTF8(message.symbol->s_name), heapAtoms);
                 else
-                    nullListeners.push_back({target, it});
+                    nullListeners.push_back({message.target, it});
             }
         }
         
