@@ -120,25 +120,6 @@ public:
     }
     
 private:
-    struct ScopedNanoTimer
-    {
-        std::chrono::high_resolution_clock::time_point t0;
-        std::function<void(int)> cb;
-        int& totalTime ;
-        
-        ScopedNanoTimer(std::function<void(int)> callback, int& time) : totalTime(time)
-            , t0(std::chrono::high_resolution_clock::now())
-            , cb(callback)
-        {
-        }
-        ~ScopedNanoTimer(void)
-        {
-            auto  t1 = std::chrono::high_resolution_clock::now();
-            auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
-            totalTime += nanos;
-            cb(totalTime);
-        }
-    };
     
     void handleAsyncUpdate() override
     {
