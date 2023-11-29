@@ -109,23 +109,38 @@ private:
     void handleAsyncUpdate() override
     {
         ScopedLock lock(messageListenerLock);
-        Message incomingMessage;
 
         std::vector<std::pair<void*, std::vector<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
         
-        while(messageQueue.try_dequeue(incomingMessage))
-        {
-            auto& [target, symbol, atoms] = incomingMessage;
+        auto size = messageQueue.size_approx();
+        
+        std::vector<Message> messages(size);
+
+        auto numDequeued = messageQueue.try_dequeue_bulk(messages.begin(), size);
+        messages.resize(numDequeued);
+        
+        std::vector<Message> uniqueMessages;
+        std::set<std::pair<void*, t_symbol*>> uniquePairs;
+        
+        for (int i = messages.size() - 1; i >= 0; --i) {
+            const auto& pair = std::make_pair(std::get<0>(messages[i]), std::get<1>(messages[i]));
             
-            if (messageListeners.find(target) == messageListeners.end())
-                return;
+            if (messageListeners.find(pair.first) == messageListeners.end()) continue;
             
+            if (uniquePairs.find(pair) != uniquePairs.end()) {
+                uniqueMessages.push_back(messages[i]);
+            } else {
+                uniquePairs.insert(pair);
+            }
+        }
+        
+        for (auto& [target, symbol, atoms] : uniqueMessages) {
             for (auto it = messageListeners.at(target).begin(); it != messageListeners.at(target).end(); ++it) {
                 auto listenerWeak = *it;
                 auto listener = listenerWeak.get();
                 
                 auto heapAtoms = pd::Atom::fromAtoms(atoms.size, atoms.data);
-    
+                
                 if (listener)
                     listener->receiveMessage(String::fromUTF8(symbol->s_name), heapAtoms);
                 else
