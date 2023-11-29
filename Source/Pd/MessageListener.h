@@ -127,9 +127,8 @@ private:
             
             if (messageListeners.find(pair.first) == messageListeners.end()) continue;
             
-            if (uniquePairs.find(pair) != uniquePairs.end()) {
+            if (uniquePairs.find(pair) == uniquePairs.end()) {
                 uniqueMessages.push_back(messages[i]);
-            } else {
                 uniquePairs.insert(pair);
             }
         }
