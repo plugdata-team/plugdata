@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Instance.h"
+#include <readerwriterqueue.h>
 
 namespace pd {
 
@@ -16,6 +17,20 @@ public:
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener)
 };
+
+struct PairHash {
+    template <class T1, class T2>
+    std::size_t operator () (const std::pair<T1, T2>& p) const {
+        //auto hash1 = std::hash<T1>{}(p.first);
+        //auto hash2 = std::hash<T2>{}(p.second);
+        
+        
+
+        // Combine hashes of the two elements in the pair
+        return reinterpret_cast<std::size_t>(p.first) + reinterpret_cast<std::size_t>(p.second);
+    }
+};
+
 
 // MessageDispatcher handles the organising of messages from Pd to the plugdata GUI
 // It provides an optimised way to listen to messages within pd from the message thread,
@@ -105,35 +120,47 @@ public:
     }
     
 private:
+    struct ScopedNanoTimer
+    {
+        std::chrono::high_resolution_clock::time_point t0;
+        std::function<void(int)> cb;
+        int& totalTime ;
+        
+        ScopedNanoTimer(std::function<void(int)> callback, int& time) : totalTime(time)
+            , t0(std::chrono::high_resolution_clock::now())
+            , cb(callback)
+        {
+        }
+        ~ScopedNanoTimer(void)
+        {
+            auto  t1 = std::chrono::high_resolution_clock::now();
+            auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(t1-t0).count();
+            totalTime += nanos;
+            cb(totalTime);
+        }
+    };
     
     void handleAsyncUpdate() override
     {
         ScopedLock lock(messageListenerLock);
 
+        // Collect MessageListeners that have been deallocated for later removal
         std::vector<std::pair<void*, std::vector<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
         
-        auto size = messageQueue.size_approx();
-        
-        std::vector<Message> messages(size);
+        Message incomingMessage;
+        std::map<std::pair<void*, t_symbol*>, Atoms> uniqueMessages;
 
-        auto numDequeued = messageQueue.try_dequeue_bulk(messages.begin(), size);
-        messages.resize(numDequeued);
-        
-        std::vector<Message> uniqueMessages;
-        std::set<std::pair<void*, t_symbol*>> uniquePairs;
-        
-        for (int i = messages.size() - 1; i >= 0; --i) {
-            const auto& pair = std::make_pair(std::get<0>(messages[i]), std::get<1>(messages[i]));
-            
-            if (messageListeners.find(pair.first) == messageListeners.end()) continue;
-            
-            if (uniquePairs.find(pair) == uniquePairs.end()) {
-                uniqueMessages.push_back(messages[i]);
-                uniquePairs.insert(pair);
-            }
+        while(messageQueue.try_dequeue(incomingMessage))
+        {
+            auto& [target, symbol, atoms] = incomingMessage;
+            uniqueMessages[std::make_pair(target, symbol)] = atoms;
         }
         
-        for (auto& [target, symbol, atoms] : uniqueMessages) {
+        for (auto& [targetAndSymbol, atoms] : uniqueMessages) {
+            
+            auto& [target, symbol] = targetAndSymbol;
+            if (messageListeners.find(target) == messageListeners.end()) continue;
+            
             for (auto it = messageListeners.at(target).begin(); it != messageListeners.at(target).end(); ++it) {
                 auto listenerWeak = *it;
                 auto listener = listenerWeak.get();
@@ -155,7 +182,7 @@ private:
     
     CriticalSection messageListenerLock;
     std::unordered_map<void*, std::vector<juce::WeakReference<MessageListener>>> messageListeners;
-    moodycamel::ConcurrentQueue<Message> messageQueue = moodycamel::ConcurrentQueue<Message>(4096);
+    moodycamel::ReaderWriterQueue<Message> messageQueue = moodycamel::ReaderWriterQueue<Message>(32768);
 };
         
 

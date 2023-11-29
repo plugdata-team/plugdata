@@ -36,3 +36,6 @@
 	url = https://github.com/izzyreal/juce-raw-keyboard-input-module.git
 [submodule "./JUCE"]
 	url = https://github.com/plugdata-team/JUCE.git
+[submodule "Libraries/readerwriterqueue"]
+	path = Libraries/readerwriterqueue
+	url = https://github.com/cameron314/readerwriterqueue.git
