@@ -884,6 +884,7 @@ void PluginProcessor::processInternal()
         midiBufferOut.clear();
     }
 
+    sendMessagesFromQueue();
     sendMidiBuffer();
 
     // Process audio
