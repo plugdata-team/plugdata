@@ -817,18 +817,6 @@ void PluginProcessor::sendParameters()
     }
 }
 
-void PluginProcessor::messageEnqueued()
-{
-    if (isNonRealtime() || isSuspended()) {
-        sendMessagesFromQueue();
-    } else {
-        if (tryLockAudioThread()) {
-            sendMessagesFromQueue();
-            unlockAudioThread();
-        }
-    }
-}
-
 void PluginProcessor::sendMidiBuffer()
 {
     if (acceptsMidi()) {

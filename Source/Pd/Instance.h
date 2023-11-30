@@ -11,8 +11,7 @@ extern "C" {
 #include <s_inter.h>
 }
 
-#include <concurrentqueue.h>
-
+#include <readerwriterqueue.h>
 #include "Utility/StringUtils.h"
 #include "Patch.h"
 #include "Ofelia.h"
@@ -248,8 +247,6 @@ public:
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages();
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory();
 
-    virtual void messageEnqueued() { }
-
     void sendMessagesFromQueue();
     void processMessage(Message mess);
     void processSend(dmessage mess);
@@ -301,7 +298,7 @@ private:
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
-    moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
+    moodycamel::ReaderWriterQueue<std::function<void(void)>> functionQueue = moodycamel::ReaderWriterQueue<std::function<void(void)>>(4096);
     
 
     std::unique_ptr<FileChooser> openChooser;
@@ -329,23 +326,8 @@ protected:
 
             while (pendingMessages.try_dequeue(item)) {
                 auto& [object, message, type] = item;
+                addMessage(object, message, type);
                 
-                if(consoleMessages.size()) {
-                    auto& [lastObject, lastMessage, lastType, lastLength, numMessages] = consoleMessages.back();
-                    if(object == lastObject && message == lastMessage && type == lastType) {
-                        numMessages++;
-                    }
-                    else {
-                        consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
-                    }
-                }
-                else {
-                    consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
-                }
-                
-                if (consoleMessages.size() > 800)
-                    consoleMessages.pop_front();
-
                 numReceived++;
                 newWarning = newWarning || type;
             }
@@ -357,23 +339,63 @@ protected:
 
             stopTimer();
         }
+        
+        void addMessage(void* object, const String& message, bool type)
+        {
+            if(consoleMessages.size()) {
+                auto& [lastObject, lastMessage, lastType, lastLength, numMessages] = consoleMessages.back();
+                if(object == lastObject && message == lastMessage && type == lastType) {
+                    numMessages++;
+                }
+                else {
+                    consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
+                }
+            }
+            else {
+                consoleMessages.emplace_back(object, message, type, fastStringWidth.getStringWidth(message) + 8, 1);
+            }
+            
+            if (consoleMessages.size() > 800)
+                consoleMessages.pop_front();
+        }
 
         void logMessage(void* object, String const& message)
         {
-            pendingMessages.enqueue({ object, message, false });
-            startTimer(10);
+            if(MessageManager::getInstance()->isThisTheMessageThread())
+            {
+                addMessage(object, message, false);
+                instance->updateConsole(1, false);
+            }
+            else {
+                pendingMessages.enqueue({ object, message, false });
+                startTimer(10);
+            }
         }
 
         void logWarning(void* object, String const& warning)
         {
-            pendingMessages.enqueue({ object, warning, 1 });
-            startTimer(10);
+            if(MessageManager::getInstance()->isThisTheMessageThread())
+            {
+                addMessage(object, warning, true);
+                instance->updateConsole(1, true);
+            }
+            else {
+                pendingMessages.enqueue({ object, warning, true });
+                startTimer(10);
+            }
         }
 
         void logError(void* object, String const& error)
         {
-            pendingMessages.enqueue({ object, error, 2 });
-            startTimer(10);
+            if(MessageManager::getInstance()->isThisTheMessageThread())
+            {
+                addMessage(object, error, true);
+                instance->updateConsole(1, true);
+            }
+            else {
+                pendingMessages.enqueue({ object, error, true });
+                startTimer(10);
+            }
         }
 
         void processPrint(void* object, char const* message)
@@ -428,7 +450,7 @@ protected:
 
         char printConcatBuffer[2048];
 
-        moodycamel::ConcurrentQueue<std::tuple<void*, String, bool>> pendingMessages;
+        moodycamel::ReaderWriterQueue<std::tuple<void*, String, bool>> pendingMessages;
 
         StringUtils fastStringWidth; // For formatting console messages more quickly
     };

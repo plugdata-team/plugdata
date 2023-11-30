@@ -8,7 +8,7 @@
 
 #include <m_pd.h>
 
-#include <concurrentqueue.h> // Move to impl
+#include <readerwriterqueue.h>
 #include "Constants.h"
 #include "Objects/AllGuis.h"
 #include "Iolet.h"       // Move to impl
@@ -238,7 +238,7 @@ public:
 class ConnectionPathUpdater : public Timer {
     Canvas* canvas;
 
-    moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue = moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
+    moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue = moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
 
     void timerCallback() override;
 
