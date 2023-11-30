@@ -511,13 +511,22 @@ StringArray Connection::getMessageFormated()
         formatedMessage.add("symbol:");
         formatedMessage.add(String(args[0].toString()));
     } else if (name == "list") {
-        formatedMessage.add("list (" + String(args.size()) + "):");
+        if(args.size() >= 8)
+        {
+            formatedMessage.add("list (7+):");
+        }
+        else {
+            formatedMessage.add("list (" + String(args.size()) + "):");
+        }
         for (auto& arg : args) {
             if (arg.isFloat()) {
                 formatedMessage.add(String(arg.getFloat()));
             } else if (arg.isSymbol()) {
                 formatedMessage.add(arg.toString());
             }
+        }
+        if(args.size() >= 8) {
+            formatedMessage.add("...");
         }
     } else {
         formatedMessage.add(name);
