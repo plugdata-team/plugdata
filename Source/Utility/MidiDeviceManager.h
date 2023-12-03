@@ -351,7 +351,7 @@ public:
             for (auto* midiOutput : midiOutputs) {
                 midiOutput->sendMessageNow(message);
             }
-            if (fromPlugdata)
+            if (fromPlugdata && internalOutputEnabled)
                 fromPlugdata->sendMessageNow(message);
             return;
         }

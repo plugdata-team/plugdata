@@ -114,13 +114,9 @@ PluginProcessor::PluginProcessor()
     logMessage(cyclone_version);
     logMessage(heavylib_version);
 
-    channelPointers.reserve(32);
-
     // Set up midi buffers
     midiBufferIn.ensureSize(2048);
     midiBufferOut.ensureSize(2048);
-    midiBufferTemp.ensureSize(2048);
-    midiBufferCopy.ensureSize(2048);
     midiBufferInternalSynth.ensureSize(2048);
 
     atoms_playhead.reserve(3);
@@ -421,16 +417,24 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     }
 
     audioAdvancement = 0;
-    auto const blksize = static_cast<size_t>(Instance::getBlockSize());
-    auto const numIn = static_cast<size_t>(getTotalNumInputChannels());
-    auto const nouts = static_cast<size_t>(getTotalNumOutputChannels());
-    audioBufferIn.resize(numIn * blksize);
-    audioBufferOut.resize(nouts * blksize);
-    std::fill(audioBufferOut.begin(), audioBufferOut.end(), 0.f);
-    std::fill(audioBufferIn.begin(), audioBufferIn.end(), 0.f);
+    auto const pdBlockSize = static_cast<size_t>(Instance::getBlockSize());
+    audioBufferIn.setSize(maxChannels, pdBlockSize);
+    audioBufferOut.setSize(maxChannels, pdBlockSize);
+    
+    audioVectorIn.resize(maxChannels * pdBlockSize, 0.0f);
+    audioVectorOut.resize(maxChannels * pdBlockSize, 0.0f);
+
     midiBufferIn.clear();
     midiBufferOut.clear();
-    midiBufferTemp.clear();
+    
+    // If the block size is a multiple of 64 and we are not a plugin, we can optimise the process loop
+    // Audio plugins can choose to send in a smaller block size when automation is happening
+    variableBlockSize = !ProjectInfo::isStandalone || samplesPerBlock < pdBlockSize || samplesPerBlock % pdBlockSize != 0;
+    
+    if(variableBlockSize) {
+        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(samplesPerBlock, pdBlockSize));
+        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(samplesPerBlock, pdBlockSize));
+    }
 
     midiByteIndex = 0;
     midiByteBuffer[0] = 0;
@@ -491,6 +495,14 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
     return ninch <= 32 && noutch <= 32;
 }
 
+static bool hasRealEvents(MidiBuffer& buffer)
+{
+    return std::any_of(buffer.begin(), buffer.end(),
+        [](auto const& event) {
+            return !event.getMessage().isSysEx();
+        });
+}
+
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
     ScopedNoDenormals noDenormals;
@@ -506,14 +518,24 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
-
-    midiBufferCopy.clear();
-    midiBufferCopy.addEvents(midiMessages, 0, buffer.getNumSamples(), audioAdvancement);
-
+    
     auto targetBlock = dsp::AudioBlock<float>(buffer);
     auto blockOut = oversampling > 0 ? oversampler->processSamplesUp(targetBlock) : targetBlock;
 
-    process(blockOut, midiMessages);
+    auto hasMidiInEvents = hasRealEvents(midiMessages);
+    
+    midiBufferIn.clear();
+    midiBufferOut.clear();
+    
+    if(variableBlockSize)
+    {
+        processVariable(blockOut, midiMessages);
+    }
+    else {
+        processConstant(blockOut, midiMessages);
+    }
+    
+    auto hasMidiOutEvents = hasRealEvents(midiMessages);
 
     if (oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
@@ -550,7 +572,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     smoothedGain.setTargetValue(mappedTargetGain);
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
-    statusbarSource->processBlock(midiBufferCopy, midiMessages, totalNumOutputChannels);
+    statusbarSource->process(hasMidiInEvents, hasMidiOutEvents, totalNumOutputChannels);
     statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
     statusbarSource->peakBuffer.write(buffer);
 
@@ -597,122 +619,123 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 }
 
-void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
+void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
 {
-    int const blockSize = Instance::getBlockSize();
-    int const numSamples = static_cast<int>(buffer.getNumSamples());
-    int const adv = audioAdvancement >= 64 ? 0 : audioAdvancement;
-    int const numLeft = blockSize - adv;
-    int const numIn = getTotalNumInputChannels();
-    int const numOut = getTotalNumOutputChannels();
-
-    channelPointers.clear();
-    for (int ch = 0; ch < std::min<int>(std::max(numIn, numOut), buffer.getNumChannels()); ch++) {
-        channelPointers.push_back(buffer.getChannelPointer(ch));
+    int blockSize = Instance::getBlockSize();
+    int numBlocks = buffer.getNumSamples() / blockSize;
+    audioAdvancement = 0;
+    
+    for(int block = 0; block < numBlocks; block++)
+    {
+        for (int ch = 0; ch < buffer.getNumChannels(); ch++)
+        {
+            // Copy the channel data into the vector
+            juce::FloatVectorOperations::copy(
+                                              audioVectorIn.data() + (ch * blockSize),
+                                              buffer.getChannelPointer(ch) + audioAdvancement,
+                                              blockSize
+                                              );
+        }
+        
+        if (producesMidi()) {
+            midiByteIndex = 0;
+            midiByteBuffer[0] = 0;
+            midiByteBuffer[1] = 0;
+            midiByteBuffer[2] = 0;
+            midiBufferOut.clear();
+        }
+        
+        setThis();
+        
+        midiBufferIn.clear();
+        midiBufferIn.addEvents(midiMessages, audioAdvancement, blockSize, 0);
+        sendMidiBuffer();
+        
+        // Process audio
+        performDSP(audioVectorIn.data(), audioVectorOut.data());
+        
+        sendMessagesFromQueue();
+        
+        messageDispatcher->dispatch();
+        
+        for (int ch = 0; ch < buffer.getNumChannels(); ch++)
+        {
+            // Use FloatVectorOperations to copy the vector data into the audioBuffer
+            juce::FloatVectorOperations::copy(
+                buffer.getChannelPointer(ch) + audioAdvancement,
+                audioVectorOut.data() + (ch * blockSize),
+                blockSize
+            );
+        }
+        
+        audioAdvancement += blockSize;
     }
+    
+    midiMessages.clear();
+    midiMessages.addEvents(midiBufferOut, 0, buffer.getNumSamples(), 0);
+}
 
-    bool const midiConsume = acceptsMidi();
-    bool const midiProduce = producesMidi();
+void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
+{
+    auto const blockSize = Instance::getBlockSize();
+    auto const numChannels = buffer.getNumChannels();
+    
+    inputFifo->writeAudioAndMidi(buffer, midiMessages);
+    
+    audioAdvancement = 0;
+    
+    while(inputFifo->getNumSamplesAvailable() >= blockSize)
+    {
+        midiBufferIn.clear();
+        inputFifo->readAudioAndMidi(audioBufferIn, midiBufferIn);
 
-    auto const maxOuts = std::max(numOut, std::max(numIn, numOut));
-    for (int ch = numIn; ch < maxOuts; ch++) {
-        buffer.getSingleChannelBlock(ch).clear();
+        for (int channel = 0; channel < audioBufferIn.getNumChannels(); ++channel)
+        {
+            // Copy the channel data into the vector
+            juce::FloatVectorOperations::copy(
+                audioVectorIn.data() + (channel * blockSize),
+                audioBufferIn.getReadPointer(channel),
+                blockSize
+            );
+        }
+        
+        if (producesMidi()) {
+            midiByteIndex = 0;
+            midiByteBuffer[0] = 0;
+            midiByteBuffer[1] = 0;
+            midiByteBuffer[2] = 0;
+            midiBufferOut.clear();
+        }
+        
+        setThis();
+
+        sendMidiBuffer();
+        
+        // Process audio
+        performDSP(audioVectorIn.data(), audioVectorOut.data());
+        
+        sendMessagesFromQueue();
+        
+        messageDispatcher->dispatch();
+        
+        for (int channel = 0; channel < numChannels; ++channel)
+        {
+            // Use FloatVectorOperations to copy the vector data into the audioBuffer
+            juce::FloatVectorOperations::copy(
+                audioBufferOut.getWritePointer(channel),
+                audioVectorOut.data() + (channel * blockSize),
+                blockSize
+            );
+        }
+    
+        outputFifo->writeAudioAndMidi(audioBufferOut, midiBufferOut);
+        audioAdvancement += blockSize;
     }
-
-    // If the current number of samples in this block
-    // is inferior to the number of samples required
-    if (numSamples < numLeft) {
-        // we save the input samples and we output
-        // the missing samples of the previous tick.
-        for (int j = 0; j < numIn; ++j) {
-            int const index = j * blockSize + adv;
-            FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j], numSamples);
-        }
-        for (int j = 0; j < numOut; ++j) {
-            int const index = j * blockSize + adv;
-            FloatVectorOperations::copy(channelPointers[j], audioBufferOut.data() + index, numSamples);
-        }
-        if (midiConsume) {
-            midiBufferIn.addEvents(midiMessages, 0, numSamples, adv);
-        }
-        if (midiProduce) {
-            midiMessages.clear();
-            midiMessages.addEvents(midiBufferOut, adv, numSamples, -adv);
-        }
-        audioAdvancement += numSamples;
-    }
-    // If the current number of samples in this block
-    // is superior to the number of samples required
-    else {
-        // we save the missing input samples, we output
-        // the missing samples of the previous tick and
-        // we call DSP perform method.
-        MidiBuffer const& midiin = midiProduce ? midiBufferTemp : midiMessages;
-        if (midiProduce) {
-            midiBufferTemp.swapWith(midiMessages);
-            midiMessages.clear();
-        }
-
-        for (int j = 0; j < numIn; ++j) {
-            int const index = j * blockSize + adv;
-            FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j], numLeft);
-        }
-        for (int j = 0; j < numOut; ++j) {
-            int const index = j * blockSize + adv;
-            FloatVectorOperations::copy(channelPointers[j], audioBufferOut.data() + index, numLeft);
-        }
-        if (midiConsume) {
-            midiBufferIn.addEvents(midiin, 0, numLeft, adv);
-        }
-        if (midiProduce) {
-            midiMessages.addEvents(midiBufferOut, adv, numLeft, -adv);
-        }
-        audioAdvancement = 0;
-        processInternal();
-
-        // If there are other DSP ticks that can be
-        // performed, then we do it now.
-        int pos = numLeft;
-        while ((pos + blockSize) <= numSamples) {
-            for (int j = 0; j < numIn; ++j) {
-                int const index = j * blockSize;
-                FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j] + pos, blockSize);
-            }
-            for (int j = 0; j < numOut; ++j) {
-                int const index = j * blockSize;
-                FloatVectorOperations::copy(channelPointers[j] + pos, audioBufferOut.data() + index, blockSize);
-            }
-            if (midiConsume) {
-                midiBufferIn.addEvents(midiin, pos, blockSize, 0);
-            }
-            if (midiProduce) {
-                midiMessages.addEvents(midiBufferOut, 0, blockSize, pos);
-            }
-            processInternal();
-            pos += blockSize;
-        }
-
-        // If there are samples that can't be
-        // processed, then save them for later
-        // and outputs the remaining samples
-        int const remaining = numSamples - pos;
-        if (remaining > 0) {
-            for (int j = 0; j < numIn; ++j) {
-                int const index = j * blockSize;
-                FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j] + pos, remaining);
-            }
-            for (int j = 0; j < numOut; ++j) {
-                int const index = j * blockSize;
-                FloatVectorOperations::copy(channelPointers[j] + pos, audioBufferOut.data() + index, remaining);
-            }
-            if (midiConsume) {
-                midiBufferIn.addEvents(midiin, pos, remaining, 0);
-            }
-            if (midiProduce) {
-                midiMessages.addEvents(midiBufferOut, 0, remaining, pos);
-            }
-            audioAdvancement = remaining;
-        }
+    
+    auto totalDelay = std::max(buffer.getNumSamples() / blockSize, buffer.getNumSamples());
+    if(outputFifo->getNumSamplesAvailable() >= totalDelay)
+    {
+        outputFifo->readAudioAndMidi(buffer, midiMessages);
     }
 }
 
@@ -857,27 +880,6 @@ void PluginProcessor::sendMidiBuffer()
         }
         midiBufferIn.clear();
     }
-}
-
-void PluginProcessor::processInternal()
-{
-    setThis();
-
-    // clear midi out
-    if (producesMidi()) {
-        midiByteIndex = 0;
-        midiByteBuffer[0] = 0;
-        midiByteBuffer[1] = 0;
-        midiByteBuffer[2] = 0;
-        midiBufferOut.clear();
-    }
-
-    sendMessagesFromQueue();
-    sendMidiBuffer();
-
-    // Process audio
-    performDSP(audioBufferIn.data(), audioBufferOut.data());
-    messageDispatcher->dispatch();
 }
 
 bool PluginProcessor::hasEditor() const

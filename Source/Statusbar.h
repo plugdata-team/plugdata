@@ -35,7 +35,7 @@ public:
 
     StatusbarSource();
 
-    void processBlock(MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
+    void process(bool hasMidiInput, bool hasMidiOutput, int outChannels);
 
     void setSampleRate(double sampleRate);
 

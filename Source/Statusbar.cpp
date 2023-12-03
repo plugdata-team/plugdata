@@ -851,14 +851,6 @@ StatusbarSource::StatusbarSource()
     startTimerHz(30);
 }
 
-static bool hasRealEvents(MidiBuffer& buffer)
-{
-    return std::any_of(buffer.begin(), buffer.end(),
-        [](auto const& event) {
-            return !event.getMessage().isSysEx();
-        });
-}
-
 void StatusbarSource::setSampleRate(double const newSampleRate)
 {
     sampleRate = static_cast<int>(newSampleRate);
@@ -869,7 +861,7 @@ void StatusbarSource::setBufferSize(int bufferSize)
     this->bufferSize = bufferSize;
 }
 
-void StatusbarSource::processBlock(MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
+void StatusbarSource::process(bool hasMidiInput, bool hasMidiOutput, int channels)
 {
     if (channels == 1) {
         level[1] = 0;
@@ -877,16 +869,14 @@ void StatusbarSource::processBlock(MidiBuffer& midiIn, MidiBuffer& midiOut, int 
         level[0] = 0;
         level[1] = 0;
     }
-
+    
     auto nowInMs = Time::getCurrentTime().getMillisecondCounter();
-    auto hasInEvents = hasRealEvents(midiIn);
-    auto hasOutEvents = hasRealEvents(midiOut);
 
     lastAudioProcessedTime = nowInMs;
 
-    if (hasOutEvents)
+    if (hasMidiOutput)
         lastMidiSentTime = nowInMs;
-    if (hasInEvents)
+    if (hasMidiInput)
         lastMidiReceivedTime = nowInMs;
 }
 

@@ -1165,6 +1165,8 @@ bool Connection::straightLineIntersectsObject(Line<float> toCheck, Array<Object*
 
 void ConnectionPathUpdater::timerCallback()
 {
+    stopTimer();
+    
     std::pair<Component::SafePointer<Connection>, t_symbol*> currentConnection;
 
     canvas->patch.startUndoSequence("SetConnectionPaths");
@@ -1186,7 +1188,7 @@ void ConnectionPathUpdater::timerCallback()
 
         auto* patch = connection->cnv->patch.getPointer().get();
         if (!patch)
-            return;
+            continue;
 
         // Get connections from pd
         linetraverser_start(&t, patch);
@@ -1216,8 +1218,6 @@ void ConnectionPathUpdater::timerCallback()
     }
 
     canvas->patch.endUndoSequence("SetConnectionPaths");
-
-    stopTimer();
 }
 
 void Connection::receiveMessage(String const& symbol, std::vector<pd::Atom> const& atoms)

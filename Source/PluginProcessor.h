@@ -8,8 +8,10 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
+
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
+#include <Utility/AudioMidiFifo.h>
 
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
@@ -78,8 +80,9 @@ public:
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
-    void process(dsp::AudioBlock<float>, MidiBuffer&);
-
+    void processConstant(dsp::AudioBlock<float>, MidiBuffer&);
+    void processVariable(dsp::AudioBlock<float>, MidiBuffer&);
+        
     bool canAddBus(bool isInput) const override
     {
         return true;
@@ -128,7 +131,6 @@ public:
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
-    std::vector<float*> channelPointers;
     std::atomic<float>* volume;
 
     SettingsFile* settingsFile;
@@ -164,19 +166,23 @@ public:
     OwnedArray<PluginEditor> openedEditors;
 
 private:
-    void processInternal();
-
 
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
     int audioAdvancement = 0;
-    std::vector<float> audioBufferIn;
-    std::vector<float> audioBufferOut;
+    
+    bool variableBlockSize = false;
+    AudioBuffer<float> audioBufferIn;
+    AudioBuffer<float> audioBufferOut;
+        
+    std::vector<float> audioVectorIn;
+    std::vector<float> audioVectorOut;
+        
+    std::unique_ptr<AudioMidiFifo> inputFifo;
+    std::unique_ptr<AudioMidiFifo> outputFifo;
 
     MidiBuffer midiBufferIn;
     MidiBuffer midiBufferOut;
-    MidiBuffer midiBufferTemp;
-    MidiBuffer midiBufferCopy;
     MidiBuffer midiBufferInternalSynth;
 
     AudioProcessLoadMeasurer cpuLoadMeasurer;

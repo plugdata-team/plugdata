@@ -363,7 +363,11 @@ private:
 
     void setupAudioDevices(bool enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions)
     {
+#if JUCE_IOS
         deviceManager.addAudioCallback(&maxSizeEnforcer);
+#else
+        deviceManager.addAudioCallback(this);
+#endif
         deviceManager.addMidiInputDeviceCallback({}, &player);
 
         reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
@@ -374,7 +378,12 @@ private:
         saveAudioDeviceState();
 
         deviceManager.removeMidiInputDeviceCallback({}, &player);
+
+#if JUCE_IOS
         deviceManager.removeAudioCallback(&maxSizeEnforcer);
+#else
+        deviceManager.removeAudioCallback(this);
+#endif
     }
 
     OwnedArray<MidiInput> customMidiInputs;

@@ -192,6 +192,7 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
     JUCE_USE_XRENDER=1
     JUCE_ALSA=1
+    JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=1
     #JUCE_JACK=1
     #JUCE_JACK_CLIENT_NAME="plugdata"
 )
@@ -442,9 +443,10 @@ set_target_properties(plugdata_standalone PROPERTIES
   RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/pd-file.icns")
 endif()
 
-
 if(UNIX AND NOT APPLE)
-    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData "-Wl,-export-dynamic")
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals StandaloneBinaryData "-Wl,-export-dynamic")
+    target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi)
+    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi)
 elseif(APPLE)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 15.0)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
@@ -454,16 +456,15 @@ elseif(APPLE)
     set(LINK_CARBON "-framework Carbon")
   endif()
 
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
-  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi  ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals StandaloneBinaryData ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi-src externals-multi ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
   target_link_libraries(plugdata PRIVATE ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
   target_link_libraries(plugdata_fx PRIVATE ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
 else()
- target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData)
+  target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
+  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd StandaloneBinaryData)
 endif()
-
-target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
-target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)
 
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
