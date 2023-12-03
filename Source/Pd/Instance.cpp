@@ -160,10 +160,6 @@ void Instance::initialisePd(String& pdlua_version)
     set_instance_lock(
         static_cast<void const*>(&audioLock),
         [](void* lock) {
-            if(MessageManager::getInstance()->isThisTheMessageThread())
-            {
-                std::cout << "lock" << std::endl;
-            }
             static_cast<CriticalSection*>(lock)->enter();
         },
         [](void* lock) {
@@ -743,10 +739,6 @@ bool Instance::loadLibrary(String const& libraryToLoad)
 
 void Instance::lockAudioThread()
 {
-    if(MessageManager::getInstance()->isThisTheMessageThread())
-    {
-        std::cout << "lock" << std::endl;
-    }
     audioLock.enter();
 }
 
