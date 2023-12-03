@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Utility/ModifierKeyListener.h"
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
 #include "Pd/WeakReference.h"

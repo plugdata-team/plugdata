@@ -1,7 +1,6 @@
 #pragma once
 
-#include <JuceHeader.h>
-
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "LookAndFeel.h"
 #include "Pd/Instance.h"
 #include "Components/ObjectDragAndDrop.h"

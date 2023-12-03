@@ -13,6 +13,7 @@
 
 #include <utility>
 
+#include "Utility/Config.h"
 #include "Constants.h"
 
 #define GUTTER_WIDTH 48.f

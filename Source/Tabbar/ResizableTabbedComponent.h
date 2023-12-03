@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "Tabbar.h"
 #include "Utility/SplitModeEnum.h"
 

@@ -5,7 +5,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "LookAndFeel.h"
 #include "PluginEditor.h"
 #include "PluginProcessor.h"

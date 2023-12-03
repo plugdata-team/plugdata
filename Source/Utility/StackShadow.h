@@ -14,7 +14,7 @@
 // https://gist.github.com/benjamin9999/3809142
 // http://www.antigrain.com/__code/include/agg_blur.h.html
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/HashUtils.h"
 #include "Utility/Config.h"
 
