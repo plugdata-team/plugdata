@@ -83,7 +83,7 @@ public:
     void addMessageListener(void* object, pd::MessageListener* messageListener)
     {
         ScopedLock lock(messageListenerLock);
-        messageListeners[object].emplace_back(messageListener);
+        messageListeners[object].insert(juce::WeakReference(messageListener));
     }
     
     void removeMessageListener(void* object, MessageListener* messageListener)
@@ -117,7 +117,7 @@ private:
         ScopedLock lock(messageListenerLock);
 
         // Collect MessageListeners that have been deallocated for later removal
-        std::vector<std::pair<void*, std::vector<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
+        std::vector<std::pair<void*, std::set<juce::WeakReference<pd::MessageListener>>::iterator>> nullListeners;
         
         Message incomingMessage;
         std::map<size_t, Message> uniqueMessages;
@@ -134,8 +134,9 @@ private:
             if (messageListeners.find(message.target) == messageListeners.end()) continue;
             
             for (auto it = messageListeners.at(message.target).begin(); it != messageListeners.at(message.target).end(); ++it) {
-                auto listenerWeak = *it;
-                auto listener = listenerWeak.get();
+                if(it->wasObjectDeleted()) continue;
+                
+                auto listener = it->get();
                 
                 auto heapAtoms = pd::Atom::fromAtoms(message.size, message.data);
                 auto symbol = message.symbol ? String::fromUTF8(message.symbol->s_name) : String();
@@ -154,7 +155,7 @@ private:
     }
     
     CriticalSection messageListenerLock;
-    std::unordered_map<void*, std::vector<juce::WeakReference<MessageListener>>> messageListeners;
+    std::map<void*, std::set<juce::WeakReference<MessageListener>>> messageListeners;
     moodycamel::ReaderWriterQueue<Message> messageQueue = moodycamel::ReaderWriterQueue<Message>(32768);
 };
         

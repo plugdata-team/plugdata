@@ -613,7 +613,7 @@ void Connection::mouseDrag(MouseEvent const& e)
             currentPlan[n].y = mouseDownPosition + delta.y;
         }
 
-        setBufferedToImage(false);
+        //setBufferedToImage(false);
         updatePath();
         resizeToFit();
         repaint();
@@ -739,6 +739,9 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 {
     if (!inlet || !outlet)
         return;
+    
+    // as we are moving the whole component, no need to redraw
+    setBufferedToImage(true);
 
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
@@ -752,9 +755,6 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         // This will happen often since there's a move callback from both inlet and outlet
         if (pointOffset.isOrigin())
             return;
-
-        // as we are moving the whole component, no need to redraw
-        setBufferedToImage(true);
 
         previousPStart = pstart;
         setTopLeftPosition(getPosition() + pointOffset.toInt());
@@ -772,7 +772,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     //
     // we may need to turn it off in other parts of this class,
     // if getCachedComponentImage() returns true setBufferedToImage is on
-    setBufferedToImage(false);
+    //setBufferedToImage(false);
 
     if (currentPlan.size() <= 2) {
         updatePath();

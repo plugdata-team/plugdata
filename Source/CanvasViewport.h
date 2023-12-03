@@ -40,7 +40,7 @@ class CanvasViewport : public Viewport {
         }
 
         // warning: this only works because Canvas::mouseDown gets called before the listener's mouse down
-        // thus giving is a chance to attach the mouselistener on the middle-mouse click event
+        // thus giving us a chance to attach the mouselistener on the middle-mouse click event
         void mouseDown(MouseEvent const& e) override
         {
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
