@@ -85,6 +85,8 @@ public:
     File getPatchFile() const;
 
     void setCurrentFile(File newFile);
+    
+    void updateUndoRedoState();
 
     bool objectWasDeleted(t_gobj* ptr) const;
     bool connectionWasDeleted(t_outconnect* ptr) const;
@@ -117,6 +119,8 @@ public:
     bool closePatchOnDelete;
     bool openInPluginMode = false;
     int splitViewIndex = 0;
+    std::atomic<bool> canUndo = false;
+    std::atomic<bool> canRedo = false;
 
     int untitledPatchNum = 0;
 

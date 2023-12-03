@@ -896,16 +896,9 @@ void PluginEditor::updateCommandStatus()
         } else {
             editButton.setToggleState(true, dontSendNotification);
         }
-
-        auto patchPtr = cnv->patch.getPointer();
-        if (!patchPtr)
-            return;
-
-        /*
-        pd->lockAudioThread();
-        canUndo = pd::Interface::canUndo(patchPtr.get()) && !isDragging && !locked;
-        canRedo = pd::Interface::canRedo(patchPtr.get()) && !isDragging && !locked;
-        pd->unlockAudioThread(); */
+        
+        canUndo = cnv->patch.canUndo && !isDragging && !locked;
+        canRedo = cnv->patch.canRedo && !isDragging && !locked;
 
         undoButton.setEnabled(canUndo);
         redoButton.setEnabled(canRedo);

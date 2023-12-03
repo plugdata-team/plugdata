@@ -146,6 +146,7 @@ private:
     Point<float> previousPStart = Point<float>();
 
     int dragIdx = -1;
+    int numSignalChannels = 1;
 
     float mouseDownPosition = 0;
     bool isHovering = false;

@@ -282,10 +282,7 @@ public:
 
     // JYG added this
     void* dataBufferReceiver = nullptr;
-
-    std::atomic<bool> undoAvailable = false;
-    std::atomic<bool> redoAvailable = false;
-
+    
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
     bool isPerformingGlobalSync = false;

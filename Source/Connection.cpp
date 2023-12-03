@@ -184,6 +184,7 @@ void Connection::popPathState()
     }
 
     currentPlan = plan;
+    numSignalChannels = getNumSignalChannels();
     updatePath();
 }
 
@@ -423,7 +424,7 @@ void Connection::paint(Graphics& g)
         isHovering,
         getNumberOfConnections(),
         getMultiConnectNumber(),
-        getNumSignalChannels());
+        numSignalChannels);
 
     /* ENABLE_CONNECTION_GRAPHICS_DEBUGGING_REPAINT
         static Random rng;

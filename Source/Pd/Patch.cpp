@@ -129,6 +129,14 @@ bool Patch::isAbstraction()
     return false;
 }
 
+void Patch::updateUndoRedoState()
+{
+    if (auto patch = ptr.get<t_glist>()) {
+        canUndo = pd::Interface::canUndo(patch.get());
+        canRedo = pd::Interface::canRedo(patch.get());
+    }
+}
+
 void Patch::savePatch()
 {
     String fullPathname = currentFile.getParentDirectory().getFullPathName();

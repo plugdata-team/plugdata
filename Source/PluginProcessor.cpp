@@ -540,6 +540,11 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     if (oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
     }
+    
+    for(auto& patch : patches)
+    {
+        patch->updateUndoRedoState();
+    }
 
     auto targetGain = volume->load();
     float mappedTargetGain = 0.0f;
