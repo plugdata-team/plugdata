@@ -950,30 +950,36 @@ void Canvas::copySelection()
 
 void Canvas::focusGained(FocusChangeType cause)
 {
-    if(auto ptr = patch.getPointer())
-    {
+    pd->enqueueFunctionAsync([_this = SafePointer(this), this](){
+        if(!_this) return;
+        auto* glist = patch.getPointer().get();
+        if(!glist) return;
+        
         // canvas.active listener
         char buf[MAXPDSTRING];
-        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
+        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)glist);
         pd->sendMessage("#active_gui", "_focus", {pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true))});
         
         // cyclone focus listeners
         pd->sendMessage("#hammergui", "_focus", {pd::Atom(pd->generateSymbol(buf)), static_cast<float>(hasKeyboardFocus(true))});
-    }
+    });
 }
 
 void Canvas::focusLost(FocusChangeType cause)
 {
-    if(auto ptr = patch.getPointer())
-    {
+    pd->enqueueFunctionAsync([_this = SafePointer(this), this](){
+        if(!_this) return;
+        auto* glist = patch.getPointer().get();
+        if(!glist) return;
+        
         // canvas.active listener
         char buf[MAXPDSTRING];
-        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)ptr.get());
+        snprintf(buf, MAXPDSTRING-1, ".x%lx.c", (unsigned long)glist);
         pd->sendMessage("#active_gui", "_focus", {pd->generateSymbol(buf), static_cast<float>(hasKeyboardFocus(true))});
         
         // cyclone focus listeners
         pd->sendMessage("#hammergui", "_focus", {pd->generateSymbol(buf), static_cast<float>(hasKeyboardFocus(true))});
-    }
+    });
 }
 
 void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight)

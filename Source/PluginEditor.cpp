@@ -674,6 +674,7 @@ void PluginEditor::openProject()
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
             pd->loadPatch(result, this, -1);
             SettingsFile::getInstance()->addToRecentlyOpened(result);
+            pd->titleChanged();
         }
     }, true, false, "*.pd", "Patch");
 }
@@ -687,6 +688,7 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 
             getCurrentCanvas()->patch.savePatch(result);
             SettingsFile::getInstance()->addToRecentlyOpened(result);
+            pd->titleChanged();
         }
 
         nestedCallback();
@@ -713,6 +715,7 @@ void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
         cnv->patch.savePatch();
         SettingsFile::getInstance()->addToRecentlyOpened(cnv->patch.getCurrentFile());
         nestedCallback();
+        pd->titleChanged();
     } else {
         saveProjectAs(nestedCallback);
     }
@@ -882,8 +885,6 @@ void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
 
 void PluginEditor::updateCommandStatus()
 {
-    pd->titleChanged();
-
     if (auto* cnv = getCurrentCanvas()) {
         bool locked = getValue<bool>(cnv->locked);
         bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
@@ -900,10 +901,11 @@ void PluginEditor::updateCommandStatus()
         if (!patchPtr)
             return;
 
+        /*
         pd->lockAudioThread();
         canUndo = pd::Interface::canUndo(patchPtr.get()) && !isDragging && !locked;
         canRedo = pd::Interface::canRedo(patchPtr.get()) && !isDragging && !locked;
-        pd->unlockAudioThread();
+        pd->unlockAudioThread(); */
 
         undoButton.setEnabled(canUndo);
         redoButton.setEnabled(canRedo);
