@@ -174,13 +174,6 @@ public:
         return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue());
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("color"),
-        };
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {

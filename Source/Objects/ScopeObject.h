@@ -280,16 +280,6 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("receive"),
-            hash("fgcolor"),
-            hash("bgcolor"),
-            hash("gridcolor")
-        };
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {

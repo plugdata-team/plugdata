@@ -283,6 +283,13 @@ bool ObjectBase::hitTest(int x, int y)
     return Component::hitTest(x, y);
 }
 
+
+// Gets position from pd and applies it to Object
+Rectangle<int> ObjectBase::getSelectableBounds()
+{
+    return object->getBounds();
+}
+
 // Called in destructor of subpatch and graph class
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
@@ -692,11 +699,7 @@ void ObjectBase::receiveMessage(String const& symbol, std::vector<pd::Atom> cons
         break;
     }
 
-    auto messages = getAllMessages();
-    if (std::find(messages.begin(), messages.end(), hash("anything")) != messages.end() || std::find(messages.begin(), messages.end(), sym) != messages.end()) {
-
-        receiveObjectMessage(symbol, atoms);
-    }
+    receiveObjectMessage(symbol, atoms);
 }
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var const& value)

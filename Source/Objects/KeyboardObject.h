@@ -405,23 +405,6 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("float"),
-            hash("list"),
-            hash("set"),
-            hash("on"),
-            hash("off"),
-            hash("lowc"),
-            hash("oct"),
-            hash("8ves"),
-            hash("send"),
-            hash("receive"),
-            hash("toggle")
-        };
-    }
-
     void noteOn(int midiNoteNumber, bool isOn)
     {
         if (isOn)

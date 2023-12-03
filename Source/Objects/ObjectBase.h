@@ -83,16 +83,11 @@ public:
     virtual bool hideInlets() { return false; }
     virtual bool hideOutlets() { return false; }
 
-    virtual std::vector<hash32> getAllMessages() { return {}; }
-
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getPdBounds() = 0;
 
     // Gets position from pd and applies it to Object
-    virtual Rectangle<int> getSelectableBounds()
-    {
-        return getPdBounds();
-    }
+    virtual Rectangle<int> getSelectableBounds();
 
     // Push current object bounds into pd
     virtual void setPdBounds(Rectangle<int> newBounds) = 0;

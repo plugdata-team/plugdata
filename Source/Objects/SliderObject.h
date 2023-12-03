@@ -214,21 +214,6 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("float"),
-            hash("list"),
-            hash("set"),
-            hash("lin"),
-            hash("log"),
-            hash("range"),
-            hash("steady"),
-            hash("orientation"),
-            IEMGUI_MESSAGES
-        };
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {

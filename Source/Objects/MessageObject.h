@@ -149,19 +149,6 @@ public:
         g.drawRoundedRectangle(reducedBounds, Corners::objectCornerRadius, 1.0f);
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("set"),
-            hash("add"),
-            hash("add2"),
-            hash("addcomma"),
-            hash("addsemi"),
-            hash("adddollar"),
-            hash("adddollsym")
-        };
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         String v = getSymbol();

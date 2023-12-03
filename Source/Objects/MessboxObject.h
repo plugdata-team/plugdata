@@ -131,23 +131,6 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("list"),
-            hash("float"),
-            hash("symbol"),
-            hash("bang"),
-            hash("set"),
-            hash("append"),
-            hash("fgcolor"),
-            hash("bgcolor"),
-            hash("bang"),
-            hash("fontsize"),
-            hash("bold")
-        };
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {

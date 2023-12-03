@@ -322,30 +322,6 @@ public:
         knob.setRange(0.0, 1.0, increment);
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("float"),
-            hash("list"),
-            hash("set"),
-            hash("range"),
-            hash("circular"),
-            hash("discrete"),
-            hash("arc"),
-            hash("start"),
-            hash("angle"),
-            hash("offset"),
-            hash("ticks"),
-            hash("send"),
-            hash("receive"),
-            hash("fgcolor"),
-            hash("bgcolor"),
-            hash("arccolor"),
-            hash("init"),
-            hash("outline"),
-        };
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {

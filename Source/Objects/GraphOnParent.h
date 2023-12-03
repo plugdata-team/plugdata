@@ -55,14 +55,6 @@ public:
         updateCanvas();
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("coords"),
-            hash("donecanvasdialog")
-        };
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {

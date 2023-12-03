@@ -1094,13 +1094,6 @@ public:
         };
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("redraw")
-        };
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         if(symbol == "redraw")
@@ -1179,13 +1172,7 @@ public:
             }
         }
     }
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("redraw"),
-        };
-    }
-
+    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
     }

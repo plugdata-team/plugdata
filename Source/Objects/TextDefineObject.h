@@ -112,14 +112,6 @@ public:
         }
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("click"),
-            hash("close")
-        };
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {
@@ -277,14 +269,6 @@ public:
             binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
             binbuf_free(z);
         }
-    }
-    
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("click"),
-            hash("close")
-        };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override

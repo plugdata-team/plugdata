@@ -48,13 +48,6 @@ public:
         iemHelper.updateLabel(label);
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            IEMGUI_MESSAGES
-        };
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         iemHelper.receiveObjectMessage(symbol, atoms);

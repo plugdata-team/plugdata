@@ -460,25 +460,6 @@ public:
         object->updateBounds();
     }
 
-    std::vector<hash32> getAllMessages() override
-    {
-        return {
-            hash("italic"),
-            hash("size"),
-            hash("underline"),
-            hash("bold"),
-            hash("prepend"),
-            hash("append"),
-            hash("set"),
-            hash("color"),
-            hash("bgcolor"),
-            hash("justification"),
-            hash("width"),
-            hash("receive"),
-            hash("bg")
-        };
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom> const& atoms) override
     {
         switch (hash(symbol)) {
