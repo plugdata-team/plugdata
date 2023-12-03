@@ -4,7 +4,7 @@ if [[ $1 == "x64" ]]; then
   X64BitMode="x64"
 fi
 
-VERSION=0.7.0
+VERSION=0.8.3
 
 rm -f ./plugdata.wxs 
 cat > ./plugdata.wxs <<-EOL
