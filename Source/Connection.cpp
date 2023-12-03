@@ -82,6 +82,9 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     valueChanged(presentationMode);
 
     updateOverlays(cnv->getOverlays());
+
+    // Prevents the connection from constantly being redrawn when scrolling or moving many objects
+    setBufferedToImage(true);
 }
 
 Connection::~Connection()
@@ -739,9 +742,6 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 {
     if (!inlet || !outlet)
         return;
-    
-    // as we are moving the whole component, no need to redraw
-    setBufferedToImage(true);
 
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
