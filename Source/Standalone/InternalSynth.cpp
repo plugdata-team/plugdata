@@ -18,12 +18,15 @@
 InternalSynth::InternalSynth()
     : Thread("InternalSynthInit")
 {
+#ifndef PLUGDATA_STANDALONE
+    ignoreUnused(synth);
+    ignoreUnused(settings);
+#endif
 }
 
 InternalSynth::~InternalSynth()
 {
 #ifdef PLUGDATA_STANDALONE
-
     stopThread(6000);
 
     if (ready) {
