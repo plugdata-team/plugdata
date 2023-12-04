@@ -722,8 +722,6 @@ public:
 #if !JUCE_IOS
     void update() override
     {
-
-
         auto* canvas = getMainCanvas(cnv, true);
         if (canvas) {
             attachedEditor = canvas->editor;
