@@ -14,8 +14,6 @@ TIMESTAMP_FILE=${FILE}_timestamp.txt
 DATE=$(date -u +"%d-%m-%y %H:%M UTC")
 COMMIT_TIMESTAMP=$(git show -s --format=%ct HEAD)
 
-LATEST_HASH=$(git rev-parse HEAD)
-
 # Only run on develop branch
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [ "$BRANCH" != "develop" ]; then
@@ -29,10 +27,6 @@ END_FILE
 
 cat > $TIMESTAMP_FILE <<END_FILE
 $COMMIT_TIMESTAMP
-END_FILE
-
-cat > latest.txt <<END_FILE
-$LATEST_HASH
 END_FILE
 
 # Get the last timestamp
@@ -62,8 +56,5 @@ curl -T ./${FILE} ftp://glyphpress.com/${FILE} --user ${FTP_USERNAME}:${FTP_PASS
 curl -T ./${INFO_FILE} ftp://glyphpress.com/${INFO_FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
 curl -T ./${TIMESTAMP_FILE} ftp://glyphpress.com/${TIMESTAMP_FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
 fi
-
-# Update the latest version
-curl -T ./latest.txt ftp://glyphpress.com/latest.txt --user ${FTP_USERNAME}:${FTP_PASSWORD}
 
 exit 0
