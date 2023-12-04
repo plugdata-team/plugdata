@@ -304,7 +304,6 @@ public:
 
         if (auto ptr = arr.get<t_fake_garray>()) {
             pd->sendDirectMessage(ptr.get(), stringArray);
-            plugdata_forward_message(ptr->x_glist, gensym("redraw"), 0, NULL);
         }
 
         pd->unlockAudioThread();
@@ -315,6 +314,11 @@ public:
     {
         if (error || !getEditMode())
             return;
+        
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            plugdata_forward_message(ptr->x_glist, gensym("redraw"), 0, NULL);
+        }
+        
         edited = false;
     }
 
