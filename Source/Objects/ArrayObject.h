@@ -302,8 +302,9 @@ public:
             write(interpStart + n, changed[n]);
         }
 
-        if (auto ptr = arr.get<t_garray>()) {
+        if (auto ptr = arr.get<t_fake_garray>()) {
             pd->sendDirectMessage(ptr.get(), stringArray);
+            plugdata_forward_message(ptr->x_glist, gensym("redraw"), 0, NULL);
         }
 
         pd->unlockAudioThread();
@@ -739,17 +740,93 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty, public Value::List
     }
 };
 
+class ArrayListView : public PropertiesPanel, public Value::Listener
+{
+public:
+    ArrayListView(pd::Instance* instance, void* arr) : array(arr, instance)
+    {
+        update();
+    }
+    
+    void parentSizeChanged() override
+    {
+        setContentWidth(getWidth() - 100);
+    }
+    
+    void update()
+    {
+        clear();
+        arrayValues.clear();
+        
+        Array<PropertiesPanelProperty*> properties;
+        
+        if (auto ptr = array.get<t_fake_garray>()) {
+            auto* arr = garray_getarray(ptr.cast<t_garray>());
+            auto* vec = ((t_word*)garray_vec(ptr.cast<t_garray>()));
+            
+            auto numProperties = arr->a_n;
+            properties.resize(numProperties);
+            
+            for(int i = 0; i < numProperties; i++)
+            {
+                auto& value = *arrayValues.add(new Value(vec[i].w_float));
+                value.addListener(this);
+                auto* property = new EditableComponent<float>(String(i), value);
+                auto* label = dynamic_cast<DraggableNumber*>(property->label.get());
+
+                property->setRangeMin(ptr->x_glist->gl_y2);
+                property->setRangeMax(ptr->x_glist->gl_y1);
+                
+                // Only send this after drag end so it doesn't interrupt the drag action
+                label->dragEnd = [this](){
+                    if (auto ptr = array.get<t_fake_garray>()) {
+                        plugdata_forward_message(ptr->x_glist, gensym("redraw"), 0, NULL);
+                    };
+                };
+                properties.set(i, property);
+            }
+        }
+        
+        addSection("", properties);
+    }
+    
+private:
+    void valueChanged(Value& v) override
+    {
+        if (auto ptr = array.get<t_fake_garray>()) {
+            auto* vec = ((t_word*)garray_vec(ptr.cast<t_garray>()));
+            
+            for(int i = 0; i < arrayValues.size(); i++)
+            {
+                auto& value = *arrayValues[i];
+                if(v.refersToSameSourceAs(value))
+                {
+                    vec[i].w_float = getValue<float>(value);
+                    break;
+                }
+            }
+        }
+    }
+    
+    OwnedArray<Value> arrayValues;
+    pd::WeakReference array;
+};
+
 class ArrayEditorDialog : public Component {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
     ComponentBoundsConstrainer constrainer;
+    
+    ComboBox selectedArrayCombo;
+    SettingsToolbarButton listViewButton = SettingsToolbarButton(Icons::List, "List");
+    SettingsToolbarButton graphViewButton = SettingsToolbarButton(Icons::Graph, "Graph");
 
 public:
     std::function<void()> onClose;
     OwnedArray<GraphicalArray> graphs;
+    OwnedArray<ArrayListView> lists;
     PluginProcessor* pd;
-    String title;
 
     ArrayEditorDialog(PluginProcessor* instance, std::vector<void*> arrays, Object* parent)
         : resizer(this, &constrainer)
@@ -757,19 +834,47 @@ public:
     {
         for (auto* arr : arrays) {
             auto* graph = graphs.add(new GraphicalArray(pd, arr, parent));
-            addAndMakeVisible(graph);
+            addChildComponent(graph);
+            
+            auto* list = lists.add(new ArrayListView(pd, arr));
+            addChildComponent(list);
         }
+        graphs[0]->setVisible(true);
 
-        auto title = String();
-        for(auto* graph : graphs)
+        for(int i = 0; i < graphs.size(); i++)
         {
-            title += graph->getUnexpandedName() + (graph != graphs.getLast() ? "," : "");
+            selectedArrayCombo.addItem(graphs[i]->getUnexpandedName(), i + 1);
         }
-
+        selectedArrayCombo.setSelectedItemIndex(0);
+        selectedArrayCombo.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        selectedArrayCombo.setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::toolbarHoverColourId).withAlpha(0.8f));
+        
+        addAndMakeVisible(selectedArrayCombo);
+        
+        graphViewButton.setRadioGroupId(hash("array_radio_button"));
+        listViewButton.setRadioGroupId(hash("array_radio_button"));
+        graphViewButton.setClickingTogglesState(true);
+        listViewButton.setClickingTogglesState(true);
+        graphViewButton.setToggleState(true, dontSendNotification);
+        
+        addAndMakeVisible(listViewButton);
+        addAndMakeVisible(graphViewButton);
+        
+        listViewButton.onClick = [this](){
+            updateVisibleGraph();
+        };
+        graphViewButton.onClick = [this](){
+            updateVisibleGraph();
+        };
+        selectedArrayCombo.onChange = [this](){
+            updateVisibleGraph();
+        };
+        
+        
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
 
-        constrainer.setMinimumSize(500, 200);
+        constrainer.setMinimumSize(500, 300);
 
         closeButton->onClick = [this]() {
             MessageManager::callAsync([this]() {
@@ -785,10 +890,32 @@ public:
 
         addAndMakeVisible(resizer);
         updateGraphs();
+        updateVisibleGraph();
+    }
+    
+    void updateVisibleGraph()
+    {
+        for(int i = 0; i < graphs.size(); i++)
+        {
+            graphs[i]->setVisible(i == selectedArrayCombo.getSelectedItemIndex() && graphViewButton.getToggleState());
+        }
+        for(int i = 0; i < graphs.size(); i++)
+        {
+            lists[i]->setVisible(i == selectedArrayCombo.getSelectedItemIndex() && listViewButton.getToggleState());
+        }
     }
 
     void resized() override
     {
+        auto toolbarHeight = 38;
+        auto buttonWidth = 120;
+        auto centre = getWidth() / 2;
+        
+        graphViewButton.setBounds(centre - buttonWidth, 1, buttonWidth, toolbarHeight - 2);
+        listViewButton.setBounds(centre, 1, buttonWidth, toolbarHeight - 2);
+
+        selectedArrayCombo.setBounds(8, 8, toolbarHeight * 2.5f, toolbarHeight - 16);
+        
         resizer.setBounds(getLocalBounds());
 
         auto closeButtonBounds = getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5);
@@ -796,6 +923,9 @@ public:
 
         for (auto* graph : graphs) {
             graph->setBounds(getLocalBounds().withTrimmedTop(40));
+        }
+        for (auto* list : lists) {
+            list->setBounds(getLocalBounds().withTrimmedTop(40));
         }
     }
 
@@ -806,6 +936,9 @@ public:
 
         for (auto* graph : graphs) {
             graph->update();
+        }
+        for (auto* list : lists) {
+            list->update();
         }
 
         pd->unlockAudioThread();
@@ -829,15 +962,23 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
+        auto toolbarHeight = 38;
+        auto b = getLocalBounds();
+        auto titlebarBounds = b.removeFromTop(toolbarHeight).toFloat();
+        auto arrayBounds = b.toFloat();
 
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
-        g.drawHorizontalLine(39, 0, getWidth());
+        Path toolbarPath;
+        toolbarPath.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillPath(toolbarPath);
 
-        if (!title.isEmpty()) {
-            Fonts::drawText(g, title, 0, 0, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
-        }
+        Path arrayPath;
+        arrayPath.addRoundedRectangle(arrayBounds.getX(), arrayBounds.getY(), arrayBounds.getWidth(), arrayBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.fillPath(arrayPath);
+        
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawHorizontalLine(toolbarHeight, 0, getWidth());
     }
 };
 

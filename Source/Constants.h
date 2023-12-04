@@ -89,6 +89,9 @@ struct Icons {
 
     inline static const String Reorder = "(";
     inline static const String Object = ":";
+    
+    inline static const String List = "!";
+    inline static const String Graph = "<";
 
     inline static const String Heart = ",";
     inline static const String Download = "-";
