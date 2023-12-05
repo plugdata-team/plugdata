@@ -7,7 +7,7 @@ Not only can you run Plug Data as an audio plugin inside your DAW, Plug Data pro
 - DPF Audio Plugin
 	- An audio plugin using the DISTRHO Plugin Framework to compile a ready to use plugin (binary export) or source code export. Plugins can be effects, instruments, or custom plugins, with MIDI I/O, and export as nearly every popular audio plugin format today: LV2, VST2, VST3, CLAP, and JACK.
 - Pd External
-	- You can compile your code into a Pd External object, similar to creating a Pd abstraction, except an external object uses less computational resources, because an abstraction requires the program to perform a translation of C++ code for every object in a patch, but when compiled to an external, it translates C++ code once for one single object.
+	- Compile your plugdata into an external object that can be used in PureData or plugdata like a built-in object.
 
 ## Compilation Mode
 In the main plugdata menu, you will find a toggle box labelled ***Compiled Mode***. <br>
@@ -67,9 +67,17 @@ Here you define the formats you wish to output your binary as, or the formats th
 >[!WARNING]
 >When compiling *DPF Audio Plug-ins* and exporting *plug-in binaries*, as of writing, the destination path for the binaries cannot contain *any* spaces.
 
-### Pd External<br>
+## Pd External<br>
 <img width="638" alt="Plugdata Compiler External" src="https://github.com/thouldcroft/plugdata/assets/1238556/47cb9cbd-4963-43e6-b1c8-7311baad9095"><br>
 One of the few detractions from a visual programming language like plugdata is that for every object in your code, C code is working behind the scenes, with a snippet of C code for every object. plugdata allows you to write abstractions and subpatches that look and operate like built in objects, but abstractions and subpatches can't run as efficiently as an object that is composed of C code. plugdata helps you bridge this gap by providing the functionality to compile your plugdata abstraction into a Pd external, which can be used in plugdata or Pd. 
+
+### Pd
+- **Export Type**
+	- Export your compiled external as a Binary (an object ready to be used in Pd) or as external object source code for further modification and external compilation
+- **Copy to externals path**
+	- This will create a copy of the external object in the plugdata/Externals folder  
+
+
 
 
 
